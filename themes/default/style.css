@@ -1,0 +1,455 @@
+
+/*
+ * Roboto fonts
+ */
+@font-face {
+    font-family: "Roboto";
+    font-style: normal;
+    font-weight: 300;
+    src: local("Roboto Light"), local("Roboto-Light"), url("//ssl.gstatic.com/fonts/roboto/v10/Pru33qjShpZSmG3z6VYwnbO3LdcAZYWl9Si6vvxL-qU.woff") format("woff");
+}
+
+/*
+ * General styles
+ */
+body {
+    font-family: Roboto, Arial,sans-serif;
+    font-weight: 300;
+}
+.fixed {
+    position:fixed;
+}
+.center {
+    text-align: center;
+}
+.padded-top {
+    padding-top:10px;
+}
+.padded-bottom {
+    padding-bottom:10px;
+}
+.facebook {
+    color:#3B5998;
+}
+.twitter {
+    color:#4099FF;
+}
+.rss {
+    color:#FF6600;
+}
+.hidden {
+    display:none;
+}
+.red {
+    color:red;
+}
+.orange {
+    color: orange;
+}
+.grey {
+    color:#ccc;
+}
+.bggreen {
+    background-color: green;
+}
+.bgorange {
+    background-color: orange;
+}
+.bgred {
+    background-color: red;
+}
+.gravatar {
+    margin:-5px 0px;
+    width:50px;
+    height:50px;
+    border-radius:50%;
+    background-size:100% 100%;
+}
+/*
+ * Enlarge foundation row for big displays
+ */
+.row {
+    max-width: 1280px;
+}
+.row.padded {
+    padding:2% 10%;
+}
+.row.dark {
+    color:#fff;
+    background-color: #000;
+}
+.row.dark h1 {
+    color:#ccc;
+}
+.row.light {
+    background-color: #fff;
+    color:#000;
+}
+/*
+ * Responsive topbar
+ */
+header {
+    background-color: #000;
+    width: 100%;
+    height: 35px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 90000;
+}
+#logo{
+    color:#fff;
+    margin: 0 20px;
+    float: left;
+    height: 35px;
+    line-height: 35px;
+    display: block;
+}
+
+nav {
+    float: right;
+    position: relative;
+}
+nav ul {
+    padding: 0 10px 0 0;
+    margin: 0 auto;
+}
+nav li {
+    display: inline;
+    float: left;
+    color:#fff;
+    padding:5px 10px;
+    font-size:1.5em;
+}
+nav li.link {
+    cursor:pointer;
+}
+nav li.link:hover {
+    background-color:lightgray;
+}
+nav a {
+    color: #fff;
+    display: inline-block;
+    text-decoration: none;
+    padding:0 10px;
+    line-height: 35px;
+}
+nav a:active {
+    background-color: #FF0000;
+}
+.footer{
+    height: 50px;
+    line-height: 50px;
+    color: #aaa;
+    text-align: center;
+    width: 100%;
+}
+
+/*
+ * Styles for screen 480px and lower
+ */
+@media only screen and (max-width : 480px) {
+   
+    #logo {
+        display:none;
+    }
+    /*
+     * Hide mapshup for small screens
+     */
+    .resto-queryanalyze, .resto-addLayer, .showOnMap {
+        display:none;
+    }
+    
+    .button.zoom {
+        display:none;
+    }
+}
+
+/* 
+ * Smartphone
+ */
+@media only screen and (max-width : 320px) {
+}
+
+
+/*
+ * RESTo CSS
+ */
+.resto-entry {
+    text-align:center;
+    border-bottom:1px solid lightgrey;
+}
+.resto-entry.selected {
+    background-color:lightgray;
+}
+.resto-entry .platform {
+    font-weight: bold;
+}
+.resto-entry img {
+    border-radius:0px;
+    height:200px;
+    box-shadow:#000 1px 1px 4px; 
+}
+.resto-keywords {
+    font-size: 14px;
+}
+
+.resto-actions {
+    font-size: 2em;
+}
+.resto-actions a {
+    padding:0 10px;
+}
+.resto-search input {
+    font-family: Roboto,Arial,sans-serif;
+    font-size: 20px;
+    font-weight: 300;
+    height:50px;
+}
+.resto-queryanalyze {
+    position:fixed;
+    top:95px;
+    left:40px;
+    font-size:12px;
+    font-weight: 300;
+    text-shadow:1px 1px 1px #000; 
+    color:#fff;
+    z-index:30000;
+}
+
+.resto-keywords table {
+    width:90%;
+    margin:10px 5%;
+}
+.resto-keywords table td {
+    vertical-align:top;
+    text-align:left;
+}
+.resto-keywords table td.title {
+    white-space: nowrap;
+}
+
+a.resto-keyword {
+    font-weight: 400;
+}
+a.resto-keyword-forest {
+    color:darkgreen;
+}
+a.resto-keyword-water {
+    color:darkblue;
+}
+a.resto-keyword-flooded {
+    color:blue;
+}
+a.resto-keyword-urban {
+    color:darkgrey;
+}
+a.resto-keyword-cultivated {
+    color:orange;
+}
+a.resto-keyword-desert {
+    color:red;
+}
+a.resto-keyword-snow {
+    color:lightgray;
+}
+a.resto-keyword-herbaceous  {
+    color:green;
+}
+
+/*
+ * mapshup 
+ */
+#mapshup {
+    position:relative;
+    top:0px;
+    height:310px;
+    width:100%;
+    margin:auto;
+    overflow:hidden;
+    border-bottom: 2px solid #fff;
+    z-index:1000;
+}
+#mapshup-tools {
+    position:relative;
+    top:310px;
+    height:40px;
+    width:100%;
+    text-align:center;
+    margin:auto;
+    background-color:#2BA6CB;
+    z-index:1000;
+    display: table;
+}
+#mapshup-tools ul {
+    display: table-row;
+}
+#mapshup-tools li {
+    font-size:1.5em;
+    color:#fff;
+    display: table-cell;
+    cursor:pointer;
+    margin: 0;
+    line-height:40px;
+    border-bottom: 2px solid #fff;
+}
+#mapshup-tools li.black {
+    color:#000;
+}
+#mapshup-tools li:hover {
+    background-color:darkgrey;
+}
+#mapshup #theBar {
+    display:none;
+}
+#mapshup #__CONTROL_ATTRIBUTION__ {
+    background-color:transparent;
+    color: #000000;
+    font-size: 0.9em;
+}   
+.olControlAttribution {
+    left:10px;
+    bottom:30px;
+    height:18px;
+    width:auto;
+    max-width:600px;
+    text-align:left;
+}
+/* Navigation */
+#mapshup .tbnwh {
+    top:15px;
+    background-color:#E4E4E4;
+    color:#000;
+    border:1px solid #fff;
+}
+
+/*
+ * home and admin
+ */
+.fullWidth {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: initial;
+}
+.resto-wikipedia {
+    padding:3% 10%;
+    font-size:12px;
+}
+.resto-resource {
+    padding:3% 10%;
+    font-size:3em;
+}
+.resto-collection {
+    padding:3% 10%;
+}
+.resto-title {
+    padding:1% 10%;
+} 
+.resto-title a {
+    color: #fff;
+}
+.resto-title {
+    background:url('img/halfearth.png') no-repeat scroll 0px 0px #000;
+    -webkit-background-size:contain;
+    -moz-background-size:contain;
+    -o-background-size:contain;
+    background-size:contain;
+    color:lightgray;
+}
+.resto-title p, .resto-collection p {
+    font-style: italic;
+}
+.left {
+    text-align:left;
+}
+.right {
+    text-align:right;
+}
+
+/*
+ * Administration
+ */
+#dropZone {
+    border: 2px dashed #FFF;
+    border-radius: 5px 5px 5px 5px;
+    font-size:1em;
+    padding: 30px;
+    margin:20px 10%;
+    text-align: center;
+}
+#dropZone.hover {
+    background-color:white;
+    color:#000;
+    border: 2px dashed #000;
+}
+#dropZone.hover h1 {
+    color:#000;
+}
+#restoUserPanel {
+    position: fixed;
+    z-index: 90000;
+    top: 0px;
+    left: 0px;
+    background-color: rgba(0, 0, 0, 0.9);
+    color: white;
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    padding:10% 0 0 0
+}
+#restoUserPanel img {
+    padding:10px;
+    border-radius: 50%;
+}
+#restoUserPanel .close {
+    position:absolute;
+    top:0px;
+    right:20px;
+    cursor:pointer;
+    font-size:4em;
+    color:#fff;
+}
+#restoUserPanel .close:before {
+    content:"\00D7";
+}
+#restoUserPanel input[type="password"],#restoUserPanel input[type="text"] {
+    display: inline-block;
+    width:250px;
+}
+
+.button.zoom {
+    font-size:1.5rem;
+    padding:12px 20px 13px 20px;
+}
+.button.admin {
+    font-size:0.5em;
+    padding:15px;
+    border-radius:5px;
+}
+.adminMessage {
+    position:fixed;
+    z-index:95000;
+    height:auto;
+    padding:20px 20px;
+    background-color: orange;
+    color:#fff;
+    box-shadow: 1px 1px 1px #000;
+}
+.resto-admin {
+    background-color:#4099FF;
+    color:#fff;
+}
+.resto-admin h1 {
+    color:#fff;
+}
+.resto-admin a {
+    color:#fff;
+}
+.resto-admin a:hover {
+    color:#000;
+}
+input[type="search"] {
+    display:inline;
+    width:80%;
+}

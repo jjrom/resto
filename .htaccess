@@ -1,0 +1,37 @@
+AddType font/woff .woff 
+<FilesMatch "\.(woff)$">
+    <IfModule mod_headers.c>
+        Header set Access-Control-Allow-Origin "*"
+    </IfModule>
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+
+    RewriteEngine On
+
+    # IMPORTANT : change this to match your installation 
+    RewriteBase /resto2/
+    
+    # Transmit authorization to PHP
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+    
+    # Do not apply the rewrite rules to existing directories, files and/or links
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-l
+    
+    # Rewrite /a/b/c/d to index.php?RESToURL=/a/b/c/d
+    RewriteRule ^(.*)$ index.php?RESToURL=$1 [QSA,NC,L]
+
+</IfModule>
+
+#<Location />
+#    SetOutputFilter DEFLATE
+#    SetEnvIfNoCase Request_URI  \
+#        \.(?:gif|jpe?g|png)$ no-gzip dont-vary
+##    SetEnvIfNoCase Request_URI  \
+#        \.(?:mp3|wav|wma|au|m4p|snd|mid|wmv|mpg|mpeg|mp4|qt|mov)$ no-gzip dont-vary
+#    SetEnvIfNoCase Request_URI \.pdf$ no-gzip dont-vary
+#    SetEnvIfNoCase Request_URI  \
+#        \.(?:exe|t?gz|zip|gz2|sit|rar)$ no-gzip dont-vary
+#</Location>

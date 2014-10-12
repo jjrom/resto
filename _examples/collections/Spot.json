@@ -1,0 +1,28 @@
+{
+    "name": "PHR",
+    "controller": "SpotController",
+    "status": "public",
+    "createdb": true,
+    "osDescription": {
+        "en": {
+            "ShortName": "Very High Resolution satellite images",
+            "LongName": "Optical satellite images (SPOT 1-6 and Pleiades HR) - Airbus Defense and Space",
+            "Description": "With any point on Earth covered at least once a day, Airbus Defense and Space provides unrivalled access to the most comprehensive range of commercial Earth observation data available today. Our data products comprise imagery acquired by the Pléiades constellation, the SPOT constellation, TerraSAR-X, TanDEM-X and from partner satellites such as FORMOSAT-2 and DEIMOS-1.",
+            "Tags": "international charter space disasters",
+            "Developper": "J\u00e9r\u00f4me Gasperi",
+            "Contact": "jerome.gasperi@gmail.com",
+            "Query": "Images on Toulouse acquired in december 2013",
+            "Attribution": "Images courtesy of Airbus Defense and Space. Copyright 2014, All Rights Reserved"
+        },
+        "fr": {
+            "ShortName": "Image satellite à Très Haute Résolution",
+            "LongName": "Images satellite optique (SPOT 1-6 and Pleiades HR) - Airbus Defense and Space",
+            "Description": "Grâce à des images quotidiennes de chaque recoin de la planète, Airbus Defense and Space fournit un accès inégalé au plus large spectre de données commerciales d’observation de la Terre disponible à ce jour. Nos produits comprennent des images acquises par la constellation Pléiades, la constellation SPOT et les satellites TerraSAR-X et TanDEM-X, ainsi que des images issues de nos satellites partenaires, FORMOSAT-2 et DEIMOS-1.",
+            "Tags": "spot image satellite high resolution",
+            "Developper": "J\u00e9r\u00f4me Gasperi",
+            "Contact": "jerome.gasperi@gmail.com",
+            "Query": "Images acquises sur Toulouse en décembre 2013",
+            "Attribution": "Images courtesy of Airbus Defense and Space. Copyright 2014, All Rights Reserved"
+        }
+    }
+}

@@ -1,0 +1,219 @@
+AND
+Add
+Added
+Add a description
+Add layer
+Add to map
+Add quicklook to map
+Add search service
+An error occured during password generation. Registering is currently disable
+A password has been sent to your mailbox
+Area
+Available layers
+Backgrounds
+Bing Shaded
+Cancel
+Cannot add OpenSearch description
+Cannot zoom : this feature is outside authorized extent
+Catalog
+Catalogs
+Center
+Center view on layer
+Center map on one of the following countries
+Change
+Change value
+Choose a search service
+Choose export format
+Choose the catalog type
+Checking
+Clear
+Click on a feature to modify it
+Click on the map to draw a feature
+Click the mouse left button to define the measure point
+Click to show it
+Click to zoom
+close
+Close
+Close menu
+Connector
+Copy and paste the HTML fragment into your web site
+Data automatic detection
+Define a search area
+Delete
+Delete tab
+Description
+Distance
+Download
+Do you really want to remove layer
+Do you really want to remove this tab ?
+Do you really want to sign out ?
+Draw layer
+Drop !
+Drop a file here
+Drop files or url on the map
+Elevation (m)
+Email
+Embed code in your website
+Enter an url
+Entering 2D mode
+Entering 3D mode
+entities
+Error : cannot add search service
+Error : cannot export layer
+Error : cannot perform action
+Error : cannot reproject this layer
+Error : cannot retrieve contexts
+Error : cannot save context
+Error : cannot save layer on server
+Error : email adress is already registered
+Error : file size is too big or extension is not allowed
+Error : format not supported
+Error : Flash doesn't appear to be supported by your browser
+Error : Google Earth cannot be loaded
+Error : read error
+Error : registering is currently unavailable
+Error : this file type is not allowed
+Error : url is not defined
+Error performing GetCapabilities operation
+Error performing DescribeFeatureType operation
+Expected format is YYYY-MM-DD for a single date or YYYY-MM-DD/YYYY-MM-DD for a date interval
+Expected format is lonmin,latmin,lonmax,latmax
+Export
+Export layer
+Export in progress
+Export layer in CSV format
+Export layer in KML format
+feature
+features
+Feature information
+Flickr
+Get capabilities
+Get elevation profile
+Get feature info
+Get more results
+Global view
+Google libraries not loaded. Streetview is disabled
+Hi
+Hide
+Hide thematic metadata
+Hide this layer
+Images
+in
+Initializing 3D mode
+Item
+is empty
+is hidden
+Layer
+Layer added
+Layer detection in progress...
+Layer information
+layers
+Layers manager
+Limit search to map view extent
+Line
+Load
+Load a context
+Loading
+Location not found
+Log in
+Log out
+Map context successfully saved
+Measure distance
+My history
+My searches
+Navigation history
+Next view
+No
+No account yet ?
+No description available
+No information available here
+No layers available
+No process selected
+No result
+No Streetview data around this point
+Normal/Fullscreen
+or
+OR
+Ooops ! Cannot load layer
+Opacity
+OpenStreetMap
+Overlays
+Page
+Password
+Pick a country
+Pick one layer in the list
+Photos
+Point
+Polygon
+Preview
+Previous view
+Quicklooks
+Quit
+Relief
+Remember me
+Reset filters
+results
+Satellite
+Save
+Saving layer
+Search
+Search Area
+Search for media
+Search for related data
+Search for related images
+Search in
+Search in catalogs
+Search location name...
+Search parameters
+Searching
+Server error
+Set
+Share
+Show
+Show quicklook
+Show thematic metadata
+Sign in
+Sign out
+Sign up
+Size
+Somewhere
+Status
+Start tracking
+Stop tracking
+Streets
+Streetview
+Switch drawing/modification
+Tags
+The layer cannot be saved
+The layer is empty and cannot be exported
+this layer already exists. Do you want to replace it ?
+Time
+Title
+Toggle 2D/3D
+Toponyms
+Trends
+Type
+Upload file
+unknown
+Username
+Validate
+Videos
+Visits per country
+Waiting for additional info
+What is the format for this catalog ?
+What is the type for this layer ?
+Where am I ?
+Wikipedia
+Wrong login/password - Connection refused
+WMS
+WPS server successfully added
+Yahoo! Streets
+Yes
+You are in drawing mode
+You are in modification mode
+You are not logged in
+Youtube
+Zoom
+Zoom here
+Zoom out
+Zoom on feature

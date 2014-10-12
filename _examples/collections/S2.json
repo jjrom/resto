@@ -1,0 +1,34 @@
+{
+    "name": "S2",
+    "controller": "DefaultController",
+    "status": "public",
+    "createdb": true,
+    "osDescription": {
+        "en": {
+            "ShortName": "Sentinel2",
+            "LongName": "Sentinel-2 simulation server",
+            "Description": "Sentinel-2 optical data",
+            "Tags": "sentinel2 sentinel s2 esa cnes optical",
+            "Developper": "J\u00e9r\u00f4me Gasperi",
+            "Contact": "jerome.gasperi@cnes.fr",
+            "Query": "France",
+            "Attribution": "CNES. Copyright 2014, All Rights Reserved"
+        }
+    },
+    "model": {
+        "identifier": "db:identifier",
+        "parentIdentifier": "",
+        "title": null,
+        "description": null,
+        "authority": "CNES",
+        "startDate": "db:acquisition",
+        "completionDate": "db:acquisition",
+        "productType": "OPTICAL",
+        "processingLevel": "LEVEL1C",
+        "platform": "db:platform",
+        "instrument": "db:instrument",
+        "resolution": "db:resolution",
+        "orbitNumber": null,
+        "sensorMode": null
+    }
+}
