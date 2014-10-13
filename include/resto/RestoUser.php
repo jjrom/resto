@@ -125,7 +125,7 @@ class RestoUser{
      * @param string $featureIdentifier
      */
     public function getRights($collectionName = null, $featureIdentifier = null) {
-        return $this->profile['activated'] === false ? $this->rights['unregistered'] : $this->rights->getRights($collectionName, $featureIdentifier);
+        return $this->profile['activated'] === false ? $this->rights['groupRights']['unregistered'] : $this->rights->getRights($collectionName, $featureIdentifier);
     }
     
     /**
