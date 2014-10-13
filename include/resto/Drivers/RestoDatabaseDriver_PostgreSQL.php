@@ -267,7 +267,14 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         $values = array('\'' . pg_escape_string($collectionName) . '\'');
         $facets = array();
         try {
-            for($i = count($elements); $i--;) {
+            for ($i = count($elements); $i--;) {
+                
+                /*
+                 * Do not process null values
+                 */
+                if (!isset($elements[$i][1])) {
+                    continue;
+                }
                 
                 $keys[] = pg_escape_string($model->getDbKey($elements[$i][0]));
                 
