@@ -79,7 +79,7 @@ createlang -U $SUPERUSER plpgsql $DB
 # Make db POSTGIS compliant
 if [ "$ROOTDIR" = "EXTENSION" ]
 then
-    psql -d $DB -U $SUPERUSER -h $HOSTNAME -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;"
+    psql -d $DB -U $SUPERUSER -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;"
 else
     # Example : $ROOTDIR = /usr/local/pgsql/share/contrib/postgis-1.5/
     postgis=`echo $ROOTDIR/postgis.sql`
