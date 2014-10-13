@@ -169,7 +169,7 @@ CREATE TABLE resto.keywords (
     value               VARCHAR(255) -- keyword as stored in features keywords columns
 );
 CREATE INDEX idx_name_keywords ON resto.keywords (lower(unaccent(name)));
-CREATE INDEX idx_name_keywords ON resto.keywords (type);
+CREATE INDEX idx_type_keywords ON resto.keywords (type);
 CREATE INDEX idx_lang_keywords ON resto.keywords (lang);
 
 --
