@@ -198,11 +198,15 @@ class RestoContext {
     
     /**
      * Return complete url
+     * 
+     * @param boolean $withparams : true to return url with parameters (i.e. with ?key=value&...) / false otherwise
      */
-    public function getUrl() {
+    public function getUrl($withparams = true) {
         $paramsStr = null;
-        foreach ($this->query as $key => $value) {
-            $paramsStr .= (isset($paramsStr) ? '&' : '') . urlencode($key) . '=' . urlencode($value);
+        if ($withparams) {
+            foreach ($this->query as $key => $value) {
+                $paramsStr .= (isset($paramsStr) ? '&' : '') . urlencode($key) . '=' . urlencode($value);
+            }
         }
         return $this->baseUrl . $this->path . '.' . $this->outputFormat . (isset($paramsStr) ? '?' . $paramsStr : '');
     }

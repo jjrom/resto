@@ -226,14 +226,14 @@ class RestoFeatureCollection {
         /*
          * Links
          */
-        $url = $this->context->getUrl();
+        $url = $this->context->getUrl(false);
         
         $links = array(
             array(
                 'rel' => 'self',
                 'type' => RestoUtil::$contentTypes['json'],
                 'title' => $this->context->dictionary->translate('_selfCollectionLink'),
-                'href' => RestoUtil::updateUrl($url, $this->writeRequestParams($params))
+                'href' => RestoUtil::updateUrl($url, $this->writeRequestParams($this->context->query))
             ),
             array(
                 'rel' => 'search',
@@ -252,18 +252,18 @@ class RestoFeatureCollection {
                 'rel' => 'previous',
                 'type' => RestoUtil::$contentTypes['json'],
                 'title' => $this->context->dictionary->translate('_previousCollectionLink'),
-                'href' => RestoUtil::updateUrl($url, $this->writeRequestParams($params, array(
+                'href' => RestoUtil::updateUrl($url, $this->writeRequestParams(array_merge($this->context->query, array(
                             'startPage' => max($startPage - 1, 1),
-                            'count' => $limit)))
+                            'count' => $limit))))
             );
             // First URL is the first search URL i.e. with startPage = 1
             $links[] = array(
                 'rel' => 'first',
                 'type' => RestoUtil::$contentTypes['json'],
                 'title' => $this->context->dictionary->translate('_firstCollectionLink'),
-                'href' => RestoUtil::updateUrl($url, $this->writeRequestParams($params, array(
+                'href' => RestoUtil::updateUrl($url, $this->writeRequestParams(array_merge($this->context->query, array(
                             'startPage' => 1,
-                            'count' => $limit)))
+                            'count' => $limit))))
             );
         }
 
@@ -276,9 +276,9 @@ class RestoFeatureCollection {
                 'rel' => 'next',
                 'type' => RestoUtil::$contentTypes['json'],
                 'title' => $this->context->dictionary->translate('_nextCollectionLink'),
-                'href' => RestoUtil::updateUrl($url, $this->writeRequestParams($params, array(
+                'href' => RestoUtil::updateUrl($url, $this->writeRequestParams(array_merge($this->context->query, array(
                             'startPage' => min($startPage, $totalPage),
-                            'count' => $limit)))
+                            'count' => $limit))))
             );
             
             // Last URL has the highest startIndex
@@ -286,9 +286,9 @@ class RestoFeatureCollection {
                 'rel' => 'last',
                 'type' => RestoUtil::$contentTypes['json'],
                 'title' => $this->context->dictionary->translate('_lastCollectionLink'),
-                'href' => RestoUtil::updateUrl($url, $this->writeRequestParams($params, array(
+                'href' => RestoUtil::updateUrl($url, $this->writeRequestParams(array_merge($this->context->query, array(
                             'startIndex' => max($totalPage, 1),
-                            'count' => $limit)))
+                            'count' => $limit))))
             );
         }
         
@@ -302,9 +302,9 @@ class RestoFeatureCollection {
                 'rel' => 'next',
                 'type' => RestoUtil::$contentTypes['json'],
                 'title' => $this->context->dictionary->translate('_nextCollectionLink'),
-                'href' => RestoUtil::updateUrl($url, $this->writeRequestParams($params, array(
+                'href' => RestoUtil::updateUrl($url, $this->writeRequestParams(array_merge($this->context->query, array(
                             'startPage' => $startPage + 1,
-                            'count' => $limit)))
+                            'count' => $limit))))
             );
         }
         
@@ -338,76 +338,37 @@ class RestoFeatureCollection {
      * Return an array of request parameters formated for output url
      * 
      * @param {array} $params - input params
-     * @param {array} $list - list of parameters to add/modify
      * 
      */
-    private function writeRequestParams($params, $list = null) {
+    private function writeRequestParams($params) {
 
         $arr = array();
 
-        /*
-         * No input $list - returns all params unmodified
-         * Note : assertion checks if $list is an associative array
-         */
-        if (!$list || !($list !== array_values($list))) {
-            foreach ($params as $key => $value) {
+        foreach ($params as $key => $value) {
 
-                /*
-                 * Support key tuples
-                 */
-                if (is_array($value)) {
-                    for ($i = 0, $l = count($value); $i < $l; $i++) {
+            /*
+             * Support key tuples
+             */
+            if (is_array($value)) {
+                for ($i = 0, $l = count($value); $i < $l; $i++) {
+                    if (isset($this->model->searchFilters[$key]['osKey'])) {
                         $arr[$this->model->searchFilters[$key]['osKey'] . '[]'] = $value[$i];
                     }
-                } else {
+                    else {
+                        $arr[$key . '[]'] = $value;
+                    }
+                }
+            }
+            else {
+                if (isset($this->model->searchFilters[$key]['osKey'])) {
                     $arr[$this->model->searchFilters[$key]['osKey']] = $value;
-                }
-            }
-        }
-        /*
-         * Input $list - modify params accordingly and add $list elements
-         * that are not present in params
-         */
-        else {
-            foreach ($params as $key => $value) {
-                $skip = false;
-                foreach (array_keys($list) as $key2) {
-                    if ($key2 === $key) {
-                        $skip = true;
-                        break;
-                    }
-                }
-                if (!$skip) {
-                    
-                   /*
-                    * Support key tuples
-                    */
-                   if (is_array($value)) {
-                       for ($i = 0, $l = count($value); $i < $l; $i++) {
-                           $arr[$this->model->searchFilters[$key]['osKey'] . '[]'] = $value[$i];
-                       }
-                   }
-                   else {
-                       $arr[$this->model->searchFilters[$key]['osKey']] = $value;
-                   }
-                }
-            }
-            foreach ($list as $key => $value) {
-                
-                /*
-                 * Support key tuples
-                 */
-                if (is_array($value)) {
-                    for ($i = 0, $l = count($value); $i < $l; $i++) {
-                        $arr[$this->model->searchFilters[$key]['osKey'] . '[]'] = $value[$i];
-                    }
                 }
                 else {
-                    $arr[$this->model->searchFilters[$key]['osKey']] = $value;
+                    $arr[$key] = $value;
                 }
             }
         }
-
+        
         return $arr;
     }
     

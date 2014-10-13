@@ -283,11 +283,11 @@ abstract class RestoModel {
             'title' => 'Number of results returned per page (default 50)'
         ),
         'startIndex' => array(
-            'osKey' => 'nextRecord',
+            'osKey' => 'index',
             'minInclusive' => 1
         ),
         'startPage' => array(
-            'osKey' => 'nextPage',
+            'osKey' => 'page',
             'minInclusive' => 1
         ),
         'language' => array(
