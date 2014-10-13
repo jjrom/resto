@@ -331,7 +331,6 @@ CREATE TABLE usermanagement.cart (
                 
 );
 CREATE INDEX idx_email_cart ON usermanagement.cart (email);
-EOF
 
 --
 -- temporary download table
@@ -343,7 +342,7 @@ CREATE TABLE usermanagement.sharedlinks (
     validity            TIMESTAMP
 );
 CREATE INDEX idx_token_sharedlinks ON usermanagement.sharedlinks (token);
-
+EOF
 
 # Data
 psql -U $SUPERUSER -d $DB -f $DATADIR/platformsAndInstruments.sql
