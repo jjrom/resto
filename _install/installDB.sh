@@ -41,7 +41,7 @@ SUPERUSER=postgres
 DROPFIRST=NO
 DB=resto2
 USER=resto
-usage="## RESTo database installation\n\n  Usage $0 -d <PostGIS directory> -D <_install/data directory> -p <resto (Read+Write database) user password> [-s <database SUPERUSER> -F]\n\n  -d : absolute path to the directory containing postgis.sql\n  -s : dabase SUPERUSER (default "postgres")\n  -F : WARNING - suppress existing resto schema within resto database\n"
+usage="## RESTo database installation\n\n  Usage $0 -d <PostGIS directory (If not specified 'EXTENSION' mechanism will be used)> -D <_install/data directory> -p <resto (Read+Write database) user password> [-s <database SUPERUSER> -F]\n\n  -d : absolute path to the directory containing postgis.sql\n  -s : dabase SUPERUSER (default "postgres")\n  -F : WARNING - suppress existing resto schema within resto database\n"
 while getopts "d:D:s:p:hF" options; do
     case $options in
         d ) ROOTDIR=`echo $OPTARG`;;
@@ -56,11 +56,6 @@ while getopts "d:D:s:p:hF" options; do
             exit 1;;
     esac
 done
-if [ "$ROOTDIR" = "" ]
-then
-    echo -e $usage
-    exit 1
-fi
 if [ "$DATADIR" = "" ]
 then
     echo -e $usage
@@ -72,15 +67,23 @@ then
     exit 1
 fi
 
-# Example : $ROOTDIR = /usr/local/share/postgis/
-postgis=`echo $ROOTDIR/postgis.sql`
-projections=`echo $ROOTDIR/spatial_ref_sys.sql`
-
-# Make db POSTGIS compliant
+# Create DB
 createdb $DB -U $SUPERUSER -E UTF8
 createlang -U $SUPERUSER plpgsql $DB
-psql -d $DB -U $SUPERUSER -f $postgis
-psql -d $DB -U $SUPERUSER -f $projections
+
+# Make db POSTGIS compliant
+if [ "$ROOTDIR" = "" ]
+then
+    psql -d $DB -U $SUPERUSER -h $HOSTNAME -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;"
+else
+    # Example : $ROOTDIR = /usr/local/pgsql/share/contrib/postgis-1.5/
+    postgis=`echo $ROOTDIR/postgis.sql`
+    projections=`echo $ROOTDIR/spatial_ref_sys.sql`
+    psql -d $DB -U $SUPERUSER -f $postgis -h $HOSTNAME
+    psql -d $DB -U $SUPERUSER -f $projections -h $HOSTNAME
+
+fi
+
 
 ###### ADMIN ACCOUNT CREATION ######
 psql -U $SUPERUSER -d $DB << EOF
