@@ -41,7 +41,7 @@ SUPERUSER=postgres
 DROPFIRST=NO
 DB=resto2
 USER=resto
-usage="## RESTo database installation\n\n  Usage $0 -d <PostGIS directory or 'EXTENSION'> -D <_install/data directory> -p <resto (Read+Write database) user password> [-s <database SUPERUSER> -F]\n\n  -d : absolute path to the directory containing postgis.sql\n  -s : dabase SUPERUSER (default "postgres")\n  -F : WARNING - suppress existing resto schema within resto database\n"
+usage="## RESTo database installation\n\n  Usage $0 -D <_install/data directory> -p <resto (Read+Write database) user password> [-d <PostGIS directory> -s <database SUPERUSER> -F]\n\n  -d : absolute path to the directory containing postgis.sql - If not set EXTENSION mechanism will be used\n  -s : dabase SUPERUSER (default "postgres")\n  -F : WARNING - suppress existing resto schema within resto database\n"
 while getopts "d:D:s:p:hF" options; do
     case $options in
         d ) ROOTDIR=`echo $OPTARG`;;
@@ -66,18 +66,13 @@ then
     echo -e $usage
     exit 1
 fi
-if [ "$ROOTDIR" = "" ]
-then
-    echo -e $usage
-    exit 1
-fi
 
 # Create DB
 createdb $DB -U $SUPERUSER -E UTF8
 createlang -U $SUPERUSER plpgsql $DB
 
 # Make db POSTGIS compliant
-if [ "$ROOTDIR" = "EXTENSION" ]
+if [ "$ROOTDIR" = "" ]
 then
     psql -d $DB -U $SUPERUSER -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;"
 else
