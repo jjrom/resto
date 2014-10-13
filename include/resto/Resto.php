@@ -516,6 +516,14 @@ class Resto {
              * Add user
              */
             if ($this->method === 'POST') {
+                
+                /*
+                 * Check credentials
+                 */
+                if (!$this->user->canPost()) {
+                    throw new Exception('Forbidden', 403);
+                }
+                
                 if (!isset($this->context->query['email']) || $this->dbDriver->userExists($this->context->query['email'])) {
                     throw new Exception('Bad Request', 400);
                 }
@@ -694,6 +702,13 @@ class Resto {
         }
         else if ($this->method === 'POST') {
             
+           /*
+            * Check credentials
+            */
+            if (!$this->user->canPost()) {
+                throw new Exception('Forbidden', 403);
+            }
+
             if (isset($modifier)) {
                 $this->process404();
             }
@@ -733,6 +748,13 @@ class Resto {
         }
         else if ($this->method === 'PUT') {
             
+           /*
+            * Check credentials
+            */
+            if (!$this->user->canPut()) {
+                throw new Exception('Forbidden', 403);
+            }
+            
             if (isset($modifier) || !isset($collection)) {
                 $this->process404();
             }
@@ -763,6 +785,13 @@ class Resto {
             }
         }
         else if ($this->method === 'DELETE') {
+            
+           /*
+            * Check credentials
+            */
+            if (!$this->user->canDelete()) {
+                throw new Exception('Forbidden', 403);
+            }
             
             if (isset($modifier) || !isset($collection)) {
                 $this->process404();
