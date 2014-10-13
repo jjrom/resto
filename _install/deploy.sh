@@ -68,6 +68,6 @@ fi
 
 mkdir $TARGETDIR
 echo ' ==> Copy files to $TARGETDIR directory'
-cp -Rf $SRCDIR/.htaccess $SRCDIR/favicon.ico $SRCDIR/index.php $SRCDIR/themes $SRCDIR/js $SRCDIR/include $SRCDIR/lib $SRCDIR/auth $TARGETDIR
+cp -Rf $SRCDIR/.htaccess $SRCDIR/favicon.ico $SRCDIR/index.php $SRCDIR/themes $SRCDIR/js $SRCDIR/include $SRCDIR/lib $TARGETDIR
 echo ' ==> Successfully install RESTo to $TARGETDIR directory'
 echo ' ==> Now, do not forget to check $TARGETDIR/include/resto.ini configuration !'
