@@ -91,8 +91,8 @@ EOF
 if [ "$DROPFIRST" = "YES" ]
 then
 psql -d $DB -U $SUPERUSER << EOF
-DROP SCHEMA resto CASCADE;
-DROP SCHEMA usermanagement CASCADE;
+DROP SCHEMA IF EXISTS resto CASCADE;
+DROP SCHEMA IF EXISTS usermanagement CASCADE;
 EOF
 fi
 #############CREATE DB ##############
