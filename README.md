@@ -180,9 +180,8 @@ Create an admin user within the database
         
         # Change password !!!
         $SHA1PASSWORD=`php -r "echo sha1('admin');"`
-        
-        psql -d resto << EOF
-        INSERT INTO usermanagement.users (email,groupname,username,password,activationcode,activated,registrationdate) VALUES ('admin','admin','admin',$SHA1PASSWORD,$SHA1PASSWORD, TRUE, now());
+        psql -d resto2 << EOF
+        INSERT INTO usermanagement.users (email,groupname,username,password,activationcode,activated,registrationdate) VALUES ('admin','admin','admin','$SHA1PASSWORD','$SHA1PASSWORD', TRUE, now());
         EOF
 
 masphup configuration
