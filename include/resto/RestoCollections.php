@@ -44,15 +44,15 @@
  */
 class RestoCollections {
     
+    /**
+     * RestoContext
+     */
+    public $context;
+    
     /*
      * Array of RestoCollection (key = collection name)
      */
     private $collections = array();
-    
-    /**
-     * RestoContext
-     */
-    private $context;
     
     /**
      * Constructor 
@@ -114,6 +114,15 @@ class RestoCollections {
     }
 
     /**
+     * Search features within collection
+     * 
+     * @return array (FeatureCollection)
+     */
+    public function search() {
+        return new RestoFeatureCollection($this->context, null);
+    }
+    
+    /**
      * Load all collections from RESTo database and add them to this object
      */
     public function loadCollectionsFromStore() {
@@ -141,5 +150,12 @@ class RestoCollections {
             $collections['collections'][] = $this->collections[$key]->toArray();
         }
         return RestoUtil::json_format($collections, $pretty);
+    }
+    
+    /**
+     * Output collection description as an HTML page
+     */
+    public function toHTML() {
+        return RestoUtil::get_include_contents(realpath(dirname(__FILE__)) . '/../../themes/' . $this->context->config['theme'] . '/templates/collections.php', $this);
     }
 }

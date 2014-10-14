@@ -310,7 +310,7 @@ class RestoFeatureCollection {
             'type' => 'FeatureCollection',
             'properties' => array(
                 'title' => isset($query['searchTerms']) ? $query['searchTerms'] : '',
-                'id' => RestoUtil::UUIDv5((isset($this->collection) ?$this->collection->name : '*') . ':' . implode($query)),
+                'id' => RestoUtil::UUIDv5((isset($this->collection) ?$this->collection->name : '*') . ':' . json_encode($query)),
                 'totalResults' => $total !== -1 ? $total : null,
                 'startIndex' => $startIndex,
                 'itemsPerPage' => $count,

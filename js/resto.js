@@ -261,7 +261,7 @@
                 });
             }
 
-            self.updateConnectionInfo();
+            //self.updateConnectionInfo();
             self.hideMask();
 
         },
@@ -369,11 +369,19 @@
             });
 
             /*
-             * Display user panel
+             * Display user panel on click
              */
             $('.viewUserPanel').click(function(){
                 self.showUserPanel();
             });
+            
+            /*
+             * Show gravatar if user is connected
+             */
+            $('.gravatar')
+                        .html('')
+                        .attr('title', this.userProfile.email)
+                        .css('background-image', 'url(' + this.getGravatar(this.userProfile.userhash, 200) + ')');
             
         },
         
@@ -1363,17 +1371,10 @@
             /*
              * Actions
              */
-            $('.deactiveCollection').each(function() {
-                $(this).click(function(e) {
-                    e.stopPropagation();
-                    self.removeCollection($(this).attr('collection'), false);
-                    return false;
-                });
-            });
             $('.removeCollection').each(function() {
                 $(this).click(function(e) {
                     e.stopPropagation();
-                    self.removeCollection($(this).attr('collection'), true);
+                    self.removeCollection($(this).attr('collection'));
                     return false;
                 });
             });
@@ -1471,23 +1472,20 @@
          * @param {object} description
          */
         addCollection: function(description) {
-
+            
             if (window.confirm('Add collection ' + description.name + ' ?')) {
                 window.R.ajax({
-                    url: window.R.restoUrl,
+                    url: window.R.restoUrl + 'collections',
                     async: true,
                     type: 'POST',
                     dataType: "json",
-                    data: {
-                        data: encodeURIComponent(JSON.stringify(description))
-                    },
+                    data: JSON.stringify(description),
+                    contentType: 'application/json',
                     success: function(obj, textStatus, XMLHttpRequest) {
                         if (XMLHttpRequest.status === 200) {
-                            window.location = window.R.restoUrl;
+                            window.location = this.url;
                         }
-                        else {
-                            window.R.message(textStatus);
-                        }
+                        window.R.message(obj['message']);
                     },
                     error: function(e) {
                         window.R.message(e.responseJSON['ErrorMessage']);
@@ -1539,26 +1537,24 @@
          * Logically remove a collection
          * 
          * @param {type} collection
-         * @param {boolean} physical - true to physically delete the collection
-         *                             (otherwise collection is logically delete)
          */
-        removeCollection: function(collection, physical) {
+        removeCollection: function(collection) {
 
             if (window.confirm('Remove collection ' + collection + ' ?')) {
                 window.R.ajax({
-                    url: window.R.restoUrl + collection + (physical ? '?physical=true' : ''),
+                    url: window.R.restoUrl + 'collections/' + collection,
                     async: true,
                     type: 'DELETE',
                     dataType: "json",
                     success: function(obj, textStatus, XMLHttpRequest) {
                         if (XMLHttpRequest.status === 200) {
-                            window.R.message(obj['Message']);
+                            window.R.message(obj['message']);
                             $('#_' + collection).fadeOut(300, function() {
                                 $(this).remove();
                             });
                         }
                         else {
-                            alert(textStatus);
+                            window.R.message(obj['message']);
                         }
                     },
                     error: function(e) {

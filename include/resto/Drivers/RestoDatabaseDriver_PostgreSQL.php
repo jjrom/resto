@@ -1630,7 +1630,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
          */
         $operation = $model->searchFilters[$filterName]['operation'];
 
-        if (isset($requestParams[$filterName]) && $requestParams[$filterName] !== '') {
+        if (isset($requestParams[$filterName]) && (is_array($requestParams[$filterName]) || $requestParams[$filterName] !== '')) {
 
             /*
              * Check if filter as an associated column within database
@@ -1713,15 +1713,32 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             $quote = $type === 'numeric' ? '' : '\'';
 
             /*
-             * Simple case - non 'interval' operation
+             * Simple case - non 'interval' operation on value or arrays
              * 
              * if operation is '=' and last character of input value is a '%' sign then perform a like instead of an =
              */
             if ($operation === '=' || $operation === '>' || $operation === '>=' || $operation === '<' || $operation === '<=') {
-                if ($operation === '=' && substr($requestParams[$filterName], -1) === '%') {
-                    return $model->getDbKey($model->searchFilters[$filterName]['key']) . ' LIKE ' . $quote . pg_escape_string($requestParams[$filterName]) . $quote;
+                
+                /*
+                 * Array of values assumes a 'OR' operation
+                 */
+                if (!is_array($requestParams[$filterName])) {
+                    $requestParams[$filterName] = array($requestParams[$filterName]);
                 }
-                return $model->getDbKey($model->searchFilters[$filterName]['key']) . ' ' . $operation . ' ' . $quote . pg_escape_string($requestParams[$filterName]) . $quote;
+                $ors = array();
+                for ($i = count($requestParams[$filterName]); $i--;) {
+                    if ($operation === '=' && substr($requestParams[$filterName][$i], -1) === '%') {
+                        array_push($ors, $model->getDbKey($model->searchFilters[$filterName]['key']) . ' LIKE ' . $quote . pg_escape_string($requestParams[$filterName][$i]) . $quote);
+                    }
+                    else {
+                        array_push($ors, $model->getDbKey($model->searchFilters[$filterName]['key']) . ' ' . $operation . ' ' . $quote . pg_escape_string($requestParams[$filterName][$i]) . $quote);
+                    }
+                }
+                if (count($ors) > 1) {
+                    return '(' . join(' OR ', $ors) . ')';
+                }
+                return $ors[0];
+                
             }
             /*
              * Spatial operation ST_Intersects (Input bbox or polygon)

@@ -1,20 +1,11 @@
 
-/*
- * Roboto fonts
- */
-@font-face {
-    font-family: "Roboto";
-    font-style: normal;
-    font-weight: 300;
-    src: local("Roboto Light"), local("Roboto-Light"), url("//ssl.gstatic.com/fonts/roboto/v10/Pru33qjShpZSmG3z6VYwnbO3LdcAZYWl9Si6vvxL-qU.woff") format("woff");
-}
+@import url(http://fonts.googleapis.com/css?family=Montserrat);
 
 /*
  * General styles
  */
 body {
-    font-family: Roboto, Arial,sans-serif;
-    font-weight: 300;
+    font-family: 'Montserrat', Helvetica, sans-serif;
 }
 .fixed {
     position:fixed;
@@ -59,9 +50,9 @@ body {
     background-color: red;
 }
 .gravatar {
-    margin:-5px 0px;
-    width:50px;
-    height:50px;
+    margin:5px 0px;
+    width:35px;
+    height:35px;
     border-radius:50%;
     background-size:100% 100%;
 }
@@ -89,21 +80,39 @@ body {
  * Responsive topbar
  */
 header {
-    background-color: #000;
     width: 100%;
-    height: 35px;
+    height: 45px;
     position: fixed;
     top: 0;
     left: 0;
     z-index: 90000;
 }
-#logo{
+header.opaque {
+    background-color: #333333;
+}
+.top-bar {
+    background: #333333;
+}
+
+.top-bar-section .has-form {
+    background: #333333;
+}
+
+.top-bar-section .name {
+    background: #333333;
+}
+#logo {
     color:#fff;
-    margin: 0 20px;
+    margin: 0px 10px;
     float: left;
-    height: 35px;
-    line-height: 35px;
+    height: 45px;
+    line-height: 45px;
     display: block;
+    font-size: 2em;
+    font-weight: bold;
+}
+#logo a {
+    color:#fff;
 }
 
 nav {
@@ -118,21 +127,23 @@ nav li {
     display: inline;
     float: left;
     color:#fff;
-    padding:5px 10px;
+    padding: 10px 10px;
+}
+nav li.fa {
     font-size:1.5em;
 }
 nav li.link {
     cursor:pointer;
 }
 nav li.link:hover {
-    background-color:lightgray;
+    color:lightgray;
 }
 nav a {
     color: #fff;
     display: inline-block;
     text-decoration: none;
     padding:0 10px;
-    line-height: 35px;
+    line-height: 45px;
 }
 nav a:active {
     background-color: #FF0000;
@@ -200,12 +211,27 @@ nav a:active {
 .resto-actions a {
     padding:0 10px;
 }
+
+.resto-search {
+    background: url("https://s.yimg.com/pw/images/sohp_2014/search@2x.png") no-repeat scroll 97% 50% / 20px 20px rgba(255, 255, 255, 0.25);
+    border: medium none;
+    border-radius: 3px;
+    color: #fff;
+    display: inline-block;
+    font-size: 13px;
+    height: 32px;
+    margin: 0 1em 0 0;
+    padding: 0 8px;
+    width: 255px;
+}
+
 .resto-search input {
     font-family: Roboto,Arial,sans-serif;
     font-size: 20px;
     font-weight: 300;
     height:50px;
 }
+
 .resto-queryanalyze {
     position:fixed;
     top:95px;

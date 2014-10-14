@@ -96,7 +96,7 @@
                     restoUrl: '<?php echo $self->context->baseUrl ?>',
                     collection: '<?php echo $self->collection->name ?>',
                     ssoServices:<?php echo json_encode($self->context->config['ssoServices']) ?>,
-                    userProfile:<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => $_SESSION['rights']))) ?> 
+                    userProfile:<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?> 
                 });
                 
             });

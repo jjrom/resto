@@ -87,9 +87,10 @@ class RestoUser{
                  * Invalid email/password or user not yet activated
                  */
                 if ($this->profile['userid'] !== -1) {
+                    $this->profile['lastsessionid'] = session_id();
                     $this->dbDriver->updateUserProfile(array(
                         'email' => $identifier,
-                        'lastsessionid' => session_id()
+                        'lastsessionid' => $this->profile['lastsessionid']
                     ));
                 }
                 if ($setSession) {
@@ -262,16 +263,25 @@ class RestoUser{
     }
     
     /**
-     * Add item to cart
+     * Add item to cart - if you have right to do it !!
      * 
      * @param string $resourceUrl
      */
     public function addToCart($resourceUrl) {
-        if ($this->cart) {
-            if ($this->cart->add($resourceUrl, true)) {
-                $_SESSION['cart'] = $this->getCart()->getItems();
-                return true;
+        if (isset($resourceUrl) && RestoUtil::isUrl($resourceUrl) && $this->cart) {
+            $exploded = parse_url($resourceUrl);
+            $segments = explode('/', $exploded['path']);
+            $last = count($segments) - 1;
+            if ($last > 2) {
+                list($modifier) = explode('.', $segments[$last], 1);
+                if ($modifier === 'download' && $this->canDownload($segments[$last - 2], $segments[$last - 1])) {
+                    if ($this->cart->add($resourceUrl, true)) {
+                        $_SESSION['cart'] = $this->getCart()->getItems();
+                        return true;
+                    }
+                }
             }
+            return false;
         }
         return false;
     }

@@ -207,8 +207,8 @@ class RestoDictionary_en extends RestoDictionary {
      * Translations
      */
     protected $translations = array(
-        '_headerTitle' => 'RESTo',
-        '_headerDescription' => '<b>RESTo</b> - <b>RE</b>stful <b>S</b>emantic search <b>T</b>ool for ge<b>O</b>spatial<br/>RESTo implements search service with semantic query analyzis on Earth Observation metadata database. It conforms to OGC 13-026 standard - OpenSearch Extension for Earth Observation.',
+        '_headerTitle' => 'resto',
+        '_headerDescription' => '<b>resto</b> - <b>RE</b>stful <b>S</b>emantic search <b>T</b>ool for ge<b>O</b>spatial<br/>RESTo implements search service with semantic query analyzis on Earth Observation metadata database. It conforms to OGC 13-026 standard - OpenSearch Extension for Earth Observation.',
         '_selfCollectionLink' => 'self',
         '_alternateCollectionLink' => 'alternate',
         '_firstCollectionLink' => 'first',
@@ -265,7 +265,6 @@ class RestoDictionary_en extends RestoDictionary {
         'LR' => 'Images with resolution greater than 500 m',
         '_home' => 'Home',
         '_viewAtomFeed' => 'View Atom feed for this search result',
-        '_shareOn' => 'Share on {a:1}',
         '_zoom' => 'Zoom map',
         '_unZoom' => 'Unzoom map',
         '_centerOnLayer' => 'Center view on search result',
@@ -292,11 +291,13 @@ class RestoDictionary_en extends RestoDictionary {
         '_resultFor' => 'Search results for &#34;{a:1}&#34;',
         '_resourceSummary' => '{a:1} image ({a:2} m) acquired on {a:3}',
         '_poi' => 'Points of interest',
-        //Menu
+        // Menu
+        '_menu_shareOn' => 'Share on {a:1}',
+        '_menu_viewCart' => 'View Cart',
         '_menu_informations' => 'informations',
         '_menu_didacticiel' => 'didacticiel',
         '_menu_administration' => 'administration',
-        '_menu_connexion' => 'connexion',
+        '_menu_connexion' => 'Connexion',
         '_menu_globalsearch' => 'Global search...',
         //Administration
         '_users_groupname' => 'Group Name',

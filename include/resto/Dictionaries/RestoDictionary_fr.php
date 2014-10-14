@@ -214,8 +214,8 @@ class RestoDictionary_fr extends RestoDictionary {
     );
     
     protected $translations = array(
-        '_headerTitle' => 'RESTo',
-        '_headerDescription' => '<b>RESTo</b> - <b>RE</b>stful <b>S</b>emantic search <b>T</b>ool for ge<b>O</b>spatial<br/>RESTo est un service de recherche s&eacute;mantique de donn&eacute;es d\'observation de la Terreervice. Il suit le standard OGC 13-026 - OpenSearch Extension for Earth Observation.',
+        '_headerTitle' => 'resto',
+        '_headerDescription' => '<b>resto</b> - <b>RE</b>stful <b>S</b>emantic search <b>T</b>ool for ge<b>O</b>spatial<br/>RESTo est un service de recherche s&eacute;mantique de donn&eacute;es d\'observation de la Terreervice. Il suit le standard OGC 13-026 - OpenSearch Extension for Earth Observation.',
         '_selfCollectionLink' => 'self',
         '_alternateCollectionLink' => 'alternate',
         '_firstCollectionLink' => 'first',

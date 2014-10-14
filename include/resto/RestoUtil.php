@@ -431,7 +431,14 @@ class RestoUtil {
         }
         $params = array_merge($existingParams, $newParams);
         foreach ($params as $key => $value) {
-            $paramsStr .= (isset($paramsStr) ? '&' : '') . urlencode($key) . '=' . urlencode($value);
+            if (is_array($value)) {
+                for ($i = count($value); $i--;) {
+                    $paramsStr .= (isset($paramsStr) ? '&' : '') . urlencode($key) . '[]=' . urlencode($value[$i]);
+                }
+            }
+            else {
+                $paramsStr .= (isset($paramsStr) ? '&' : '') . urlencode($key) . '=' . urlencode($value);
+            }
         }
         return (isset($exploded['scheme']) ? $exploded['scheme'] . ':' : '') . '//' .
                (isset($exploded['user']) ? $exploded['user'] . ':' . $exploded['pass'] . '@' : '') .

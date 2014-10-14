@@ -161,6 +161,11 @@ class Resto {
     const DEFAULT_GET_OUTPUT_FORMAT = 'html';
     
     /*
+     * RestoContext
+     */
+    public $context;
+    
+    /*
      * String storing response
      */
     private $response;
@@ -174,11 +179,6 @@ class Resto {
      * Configuration
      */
     private $config = array();
-    
-    /*
-     * RestoContext
-     */
-    public $context;
     
     /*
      * Resto Database driver
@@ -267,7 +267,7 @@ class Resto {
              * Homepage
              */
             case '':
-                $this->process404(); // TODO
+                $this->processHome();
                 break;
             /*
              * Collections
@@ -459,10 +459,14 @@ class Resto {
         if ($this->method !== 'GET') {
             $this->process404();
         }
+        
+        /*
+         * Search in one collection...or in all collections
+         */
         $resource = isset($collectionName) ? new RestoCollection($collectionName, $this->context, array('autoload' => true)) : new RestoCollections($this->context); 
         $this->response = $this->format($resource->search());
-        $this->storeQuery('search', $collectionName, null);
-
+        $this->storeQuery('search', isset($collectionName) ? $collectionName : '*', null);
+        
     }
     
     /**
@@ -520,7 +524,7 @@ class Resto {
                 /*
                  * Check credentials
                  */
-                if (!$this->user->canPost()) {
+                if (!$this->user->canPost($collectionName)) {
                     throw new Exception('Forbidden', 403);
                 }
                 
@@ -705,7 +709,7 @@ class Resto {
            /*
             * Check credentials
             */
-            if (!$this->user->canPost()) {
+            if (!$this->user->canPost($collectionName)) {
                 throw new Exception('Forbidden', 403);
             }
 
@@ -751,7 +755,7 @@ class Resto {
            /*
             * Check credentials
             */
-            if (!$this->user->canPut()) {
+            if (!$this->user->canPut($collectionName, $featureIdentifier)) {
                 throw new Exception('Forbidden', 403);
             }
             
@@ -789,7 +793,7 @@ class Resto {
            /*
             * Check credentials
             */
-            if (!$this->user->canDelete()) {
+            if (!$this->user->canDelete($collectionName, $featureIdentifier)) {
                 throw new Exception('Forbidden', 403);
             }
             
@@ -821,6 +825,16 @@ class Resto {
      */
     private function process404() {
         throw new Exception('Not Found', 404);
+    }
+    
+    /*
+     * Display homepage
+     */
+    private function processHome() {
+        if ($this->method !== 'GET') {
+            throw new Exception('Not Found', 404);
+        }
+        $this->response = RestoUtil::get_include_contents(realpath(dirname(__FILE__)) . '/../../themes/' . $this->context->config['theme'] . '/templates/home.php', $this);
     }
     
     /**
