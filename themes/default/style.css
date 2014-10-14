@@ -8,14 +8,6 @@ body {
     font-family: 'Montserrat', Helvetica, sans-serif;
 }
 
-.homepage h1 {
-    color:#fff;
-    font-size: 10em;
-}
-.homepage p {
-    font-size: 2em;
-}
-
 .fixed {
     position:fixed;
 }
@@ -104,16 +96,6 @@ header {
     top: 0;
     left: 0;
     z-index: 90000;
-}
-.glass {
-    background: #489dde; /* Old browsers */
-    background: -moz-linear-gradient(top,  #489dde 0%, #2171b3 0%, #143762 0%, #2171b3 101%); /* FF3.6+ */
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#489dde), color-stop(0%,#2171b3), color-stop(0%,#143762), color-stop(101%,#2171b3)); /* Chrome,Safari4+ */
-    background: -webkit-linear-gradient(top,  #489dde 0%,#2171b3 0%,#143762 0%,#2171b3 101%); /* Chrome10+,Safari5.1+ */
-    background: -o-linear-gradient(top,  #489dde 0%,#2171b3 0%,#143762 0%,#2171b3 101%); /* Opera 11.10+ */
-    background: -ms-linear-gradient(top,  #489dde 0%,#2171b3 0%,#143762 0%,#2171b3 101%); /* IE10+ */
-    background: linear-gradient(to bottom,  #489dde 0%,#2171b3 0%,#143762 0%,#2171b3 101%); /* W3C */
-    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#489dde', endColorstr='#2171b3',GradientType=0 ); /* IE6-9 */
 }
 .glass header {
     background-color: transparent;
@@ -402,6 +384,10 @@ a.resto-keyword-herbaceous  {
 .resto-collection {
     padding:3% 10%;
 }
+.resto-collection a {
+    color:#fff;
+}
+
 .resto-title {
     padding:1% 10%;
 } 
@@ -430,6 +416,7 @@ a.resto-keyword-herbaceous  {
  * Administration
  */
 #dropZone {
+    background-color:#4099FF;
     border: 2px dashed #FFF;
     border-radius: 5px 5px 5px 5px;
     font-size:1em;
@@ -496,7 +483,6 @@ a.resto-keyword-herbaceous  {
     box-shadow: 1px 1px 1px #000;
 }
 .resto-admin {
-    background-color:#4099FF;
     color:#fff;
 }
 .resto-admin h1 {

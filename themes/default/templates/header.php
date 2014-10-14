@@ -1,6 +1,6 @@
 <header>
     <span id="logo"><a title="<?php echo $self->context->dictionary->translate('_home'); ?>" href="<?php echo $self->context->baseUrl ?>">resto</a></span>
-    <span class="resto-search"><input type="text" placeholder="<?php echo $self->context->dictionary->translate('_menu_globalsearch'); ?>"></span>
+    <span class="resto-search"><input type="text" placeholder="<?php echo $self->context->dictionary->translate('_menu_search'); ?>"></span>
     <nav>
         <ul class="no-bullet">
             <li title="<?php echo $self->context->dictionary->translate('_menu_shareOn', 'Facebook'); ?>" class="fa fa-facebook link shareOnFacebook"></li>
@@ -15,6 +15,3 @@
         </ul>
     </nav>
 </header>
-<div class="row" style="height:50px;">
-    <div class="large-12 columns"></div>
-</div>

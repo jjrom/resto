@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $self->context->dictionary->language ?>">
     <?php include 'head.php' ?>
-    <body class="glass homepage">
+    <body class="glass">
         
         <!-- Header -->
         <header>
