@@ -7,6 +7,15 @@
 body {
     font-family: 'Montserrat', Helvetica, sans-serif;
 }
+
+.homepage h1 {
+    color:#fff;
+    font-size: 10em;
+}
+.homepage p {
+    font-size: 2em;
+}
+
 .fixed {
     position:fixed;
 }
@@ -39,6 +48,14 @@ body {
 }
 .grey {
     color:#ccc;
+}
+.bg {
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -5000;
+    height: 100%;
 }
 .bggreen {
     background-color: green;
@@ -80,6 +97,7 @@ body {
  * Responsive topbar
  */
 header {
+    background-color: #333333;
     width: 100%;
     height: 45px;
     position: fixed;
@@ -87,13 +105,31 @@ header {
     left: 0;
     z-index: 90000;
 }
-header.opaque {
-    background-color: #333333;
+.glass {
+    background: #489dde; /* Old browsers */
+    background: -moz-linear-gradient(top,  #489dde 0%, #2171b3 0%, #143762 0%, #2171b3 101%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#489dde), color-stop(0%,#2171b3), color-stop(0%,#143762), color-stop(101%,#2171b3)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  #489dde 0%,#2171b3 0%,#143762 0%,#2171b3 101%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #489dde 0%,#2171b3 0%,#143762 0%,#2171b3 101%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #489dde 0%,#2171b3 0%,#143762 0%,#2171b3 101%); /* IE10+ */
+    background: linear-gradient(to bottom,  #489dde 0%,#2171b3 0%,#143762 0%,#2171b3 101%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#489dde', endColorstr='#2171b3',GradientType=0 ); /* IE6-9 */
 }
+.glass header {
+    background-color: transparent;
+}
+footer {
+    width:100%;
+    color:#fff;
+    height: 50px;
+    line-height: 50px;
+    text-align: center;
+    font-size:0.8em;
+}
+
 .top-bar {
     background: #333333;
 }
-
 .top-bar-section .has-form {
     background: #333333;
 }
@@ -127,10 +163,11 @@ nav li {
     display: inline;
     float: left;
     color:#fff;
-    padding: 10px 10px;
+    line-height: 45px;
 }
 nav li.fa {
     font-size:1.5em;
+    padding:10px 10px;
 }
 nav li.link {
     cursor:pointer;
@@ -148,13 +185,6 @@ nav a {
 nav a:active {
     background-color: #FF0000;
 }
-.footer{
-    height: 50px;
-    line-height: 50px;
-    color: #aaa;
-    text-align: center;
-    width: 100%;
-}
 
 /*
  * Styles for screen 480px and lower
@@ -164,10 +194,11 @@ nav a:active {
     #logo {
         display:none;
     }
+    
     /*
-     * Hide mapshup for small screens
+     * Hide search bar
      */
-    .resto-queryanalyze, .resto-addLayer, .showOnMap {
+    .resto-search, .resto-queryanalyze, .resto-addLayer, .showOnMap {
         display:none;
     }
     
@@ -213,23 +244,25 @@ nav a:active {
 }
 
 .resto-search {
-    background: url("https://s.yimg.com/pw/images/sohp_2014/search@2x.png") no-repeat scroll 97% 50% / 20px 20px rgba(255, 255, 255, 0.25);
+    padding: 0 10px 0 20px;
+    line-height:45px;
+}
+.resto-search input, .resto-search input:focus {
+    background: url('img/search.png') no-repeat scroll 97% 50% / 20px 20px rgba(255, 255, 255, 0.25);
     border: medium none;
     border-radius: 3px;
+    height:30px;
     color: #fff;
     display: inline-block;
     font-size: 13px;
-    height: 32px;
     margin: 0 1em 0 0;
     padding: 0 8px;
-    width: 255px;
+    width: 315px;
 }
 
-.resto-search input {
-    font-family: Roboto,Arial,sans-serif;
-    font-size: 20px;
-    font-weight: 300;
-    height:50px;
+.resto-search input.darker, .resto-search input.darker:focus {
+   background: url('img/search_darker.png') no-repeat scroll 97% 50% / 20px 20px rgba(255, 255, 255, 0.8);
+   color:#000;
 }
 
 .resto-queryanalyze {

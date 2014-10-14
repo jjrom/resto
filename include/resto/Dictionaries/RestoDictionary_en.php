@@ -298,7 +298,7 @@ class RestoDictionary_en extends RestoDictionary {
         '_menu_didacticiel' => 'didacticiel',
         '_menu_administration' => 'administration',
         '_menu_connexion' => 'Connexion',
-        '_menu_globalsearch' => 'Global search...',
+        '_menu_search' => 'Search...',
         //Administration
         '_users_groupname' => 'Group Name',
         '_user_set_admin_as_group' => 'Set admin as group',

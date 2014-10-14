@@ -6,9 +6,6 @@
         <!-- Header -->
         <?php include 'header.php' ?>
         
-        <div class="row" style="height:35px;">
-            <div class="large-12 columns"></div>
-        </div>
         <div class="row fullWidth resto-title">
             <div class="large-12 columns">
                 <h1><a href="http://jjrom.github.io/resto/"><?php echo $self->context->dictionary->translate('_headerTitle'); ?></a></h1>

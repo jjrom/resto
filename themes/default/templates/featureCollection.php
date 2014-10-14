@@ -6,9 +6,6 @@
         <!-- Header -->
         <?php include 'header.php' ?>
         
-        <div class="row" style="height:50px;">
-            <div class="large-12 columns"></div>
-        </div>
         <!-- Collection title and description -->
         <div class="row">
             <div class="large-6 columns">
