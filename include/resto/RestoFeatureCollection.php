@@ -54,11 +54,6 @@ class RestoFeatureCollection {
     public $collection;
     
     /*
-     * Name
-     */
-    public $name = 'collections';
-    
-    /*
      * Context
      */
     public $context;
@@ -92,7 +87,6 @@ class RestoFeatureCollection {
         }
         else {
             $this->collection = $collection;
-            $this->name = $this->collection->name;
             $this->model = $this->collection->model;
         }
         
@@ -158,7 +152,7 @@ class RestoFeatureCollection {
         /*
          * Get features array
          */
-        $featuresArray = $this->context->dbDriver->getFeaturesDescriptions($params, $this->model, $this->collection, $limit, $offset, $this->context->config['realCount']);
+        $featuresArray = $this->context->dbDriver->getFeaturesDescriptions($params, $this->model, isset($this->collection) ? $this->collection->name : null, $limit, $offset, $this->context->config['realCount']);
         for ($i = 0, $l = count($featuresArray); $i < $l; $i++) {
             $this->restoFeatures[] = new RestoFeature($featuresArray[$i], $this->context, $this->collection);
             $total = isset($featuresArray[$i]['totalcount']) ? $featuresArray[$i]['totalcount'] : -1;
@@ -316,7 +310,7 @@ class RestoFeatureCollection {
             'type' => 'FeatureCollection',
             'properties' => array(
                 'title' => isset($query['searchTerms']) ? $query['searchTerms'] : '',
-                'id' => RestoUtil::UUIDv5($this->name . ':' . implode($query)),
+                'id' => RestoUtil::UUIDv5((isset($this->collection) ?$this->collection->name : '*') . ':' . implode($query)),
                 'totalResults' => $total !== -1 ? $total : null,
                 'startIndex' => $startIndex,
                 'itemsPerPage' => $count,

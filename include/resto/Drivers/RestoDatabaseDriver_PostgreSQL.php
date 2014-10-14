@@ -1409,7 +1409,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      *
      * @param array $params
      * @param RestoModel $model
-     * @param RestoCollection $collection
+     * @param string $collectionName
      * @param integer $limit
      * @param integer $offset
      * @param boolean $count : true to return the total number of results without pagination
@@ -1417,7 +1417,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      * @return array
      * @throws Exception
      */
-    public function getFeaturesDescriptions($params, $model, $collection, $limit, $offset, $count = false) {
+    public function getFeaturesDescriptions($params, $model, $collectionName, $limit, $offset, $count = false) {
 
         /*
          * Check that mandatory filters are set
@@ -1495,7 +1495,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
          * Note that the total number of results (i.e. with no LIMIT constraint)
          * is retrieved with PostgreSQL "count(*) OVER()" technique
          */
-        $query = 'SELECT ' . implode(',', $this->getSQLFields($model)) . ($count ? ', count(' . $model->getDbKey('identifier') . ') OVER() AS totalcount' : '') . ' FROM ' . (isset($collection) ? $this->getSchemaName($collection->name) : 'resto') . '.features' . ($oFilter ? ' WHERE ' . $oFilter : '') . ' ORDER BY startdate LIMIT ' . $limit . ' OFFSET ' . $offset;
+        $query = 'SELECT ' . implode(',', $this->getSQLFields($model)) . ($count ? ', count(' . $model->getDbKey('identifier') . ') OVER() AS totalcount' : '') . ' FROM ' . (isset($collectionName) ? $this->getSchemaName($collectionName) : 'resto') . '.features' . ($oFilter ? ' WHERE ' . $oFilter : '') . ' ORDER BY startdate LIMIT ' . $limit . ' OFFSET ' . $offset;
     
         /*
          * Retrieve products from database

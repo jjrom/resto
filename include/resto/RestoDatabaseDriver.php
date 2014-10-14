@@ -370,7 +370,7 @@ abstract class RestoDatabaseDriver {
      *
      * @param array $params
      * @param RestoModel $model
-     * @param RestoCollection $collection
+     * @param string $collectionName
      * @param integer $limit
      * @param integer $offset
      * @param boolean $count : true to return the total number of results without pagination
@@ -378,7 +378,7 @@ abstract class RestoDatabaseDriver {
      * @return array
      * @throws Exception
      */
-    abstract public function getFeaturesDescriptions($params, $model, $collection, $limit, $offset, $count = false);
+    abstract public function getFeaturesDescriptions($params, $model, $collectionName, $limit, $offset, $count = false);
 
     /**
      * 
