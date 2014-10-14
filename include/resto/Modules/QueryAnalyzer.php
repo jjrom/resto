@@ -376,13 +376,29 @@ class QueryAnalyzer extends RestoModule {
              */
             $platform = $this->dictionary->getPlatform($searchTerms[$i]);
             if (isset($platform)) {
-                $params['eo:platform'] = $platform;
+                if (isset($params['eo:platform'])) {
+                    if (!is_array($params['eo:platform'])) {
+                        $params['eo:platform'] = array($params['eo:platform']);
+                    }
+                    array_push($params['eo:platform'], $platform);
+                }
+                else {
+                    $params['eo:platform'] = $platform;
+                }
                 $toRemove[] = $searchTerms[$i];
             }
             else {
                 $instrument = $this->dictionary->getInstrument($searchTerms[$i]);
                 if (isset($instrument)) {
-                    $params['eo:instrument'] = $instrument;
+                    if (isset($params['eo:instrument'])) {
+                        if (!is_array($params['eo:instrument'])) {
+                            $params['eo:instrument'] = array($params['eo:instrument']);
+                        }
+                        array_push($params['eo:instrument'], $instrument);
+                    }
+                    else {
+                        $params['eo:instrument'] = $instrument;
+                    }
                     $toRemove[] = $searchTerms[$i];
                 }
             }
