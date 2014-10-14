@@ -272,6 +272,7 @@ CREATE TABLE usermanagement.users (
     lastsessionid       VARCHAR(255)
 );
 CREATE INDEX idx_email_users ON usermanagement.users (email);
+CREATE INDEX idx_groupname_users ON usermanagement.users (groupname);
 
 --
 -- rights table list user rights on collection
@@ -289,6 +290,7 @@ CREATE TABLE usermanagement.rights (
     candelete           BOOLEAN DEFAULT FALSE,
     filters             TEXT -- serialized json representation of services rights
 );
+CREATE INDEX idx_emailorgroup_rights ON usermanagement.rights (emailorgroup);
 
 --
 -- list licenses signed by users
