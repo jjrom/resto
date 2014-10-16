@@ -191,7 +191,7 @@ class Resto {
     private $outputFormat;
     
     /*
-     * Method requested (i.e. GET, POST, PUT, DELETE)
+     * Method requested (i.e. GET, POST, PUT, DELETE, OPTIONS)
      */
     private $method;
     
@@ -247,7 +247,6 @@ class Resto {
          */
         ob_start();
         header('HTTP/1.1 ' . $this->responseStatus . ' ' . (isset(RestoUtil::$codes[$this->responseStatus]) ? RestoUtil::$codes[$this->responseStatus] : RestoUtil::$codes[200]));
-        header('Access-Control-Allow-Origin: *');
         header('Content-Type: ' . RestoUtil::$contentTypes[$this->outputFormat]);
         echo $this->response;
         ob_end_flush();
@@ -260,6 +259,34 @@ class Resto {
      * @param array $segments - path (i.e. a/b/c/d) exploded as an array (i.e. array('a', 'b', 'c', 'd')
      */
     private function route($segments) {
+        
+        /*
+         * CORS : Response to preflights - returns only headers
+         */
+        if ($this->method == 'OPTIONS') {
+            
+            /*
+             * Only set access to known servers
+             */
+            if (isset($_SERVER['HTTP_ORIGIN'])) {
+                header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
+                header('Access-Control-Allow-Credentials: true');
+                header('Access-Control-Max-Age: 3600');
+            }
+
+            /*
+             * Control header are received during OPTIONS requests
+             */
+            if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+                if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD'])) {
+                    header("Access-Control-Allow-Methods: GET, POST, OPTIONS");         
+                }
+                if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'])) {
+                    header("Access-Control-Allow-Headers: {$_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']}");
+                }
+            }
+            exit(0);
+        }
         
         switch ($segments[0]) {
             
@@ -331,7 +358,11 @@ class Resto {
                      */
                     else if ($segments[2] === 'connect' && !isset($segments[3])) {
                         if (isset($this->user->profile['email'])) {
-                            $this->response = json_encode(array('status' => 'success', 'message' => 'User ' . $this->user->profile['email'] . ' connected'));
+                            $this->response = $this->toJSON(array(
+                                'status' => 'success', 
+                                'message' => 'User ' . $this->user->profile['email'] . ' connected',
+                                'profile' => $this->user->profile
+                            ));
                         }
                         else {
                             throw new Exception('Forbidden', 403);
@@ -339,15 +370,24 @@ class Resto {
                     }
                     else if ($segments[2] === 'disconnect' && !isset($segments[3])) {
                         $this->user->disconnect();
-                        $this->response = json_encode(array('status' => 'success', 'message' => 'User disconnected'));
+                        $this->response = $this->toJSON(array(
+                            'status' => 'success',
+                            'message' => 'User disconnected'
+                        ));
                     }
                     else if (isset($segments[3]) && $segments[3] === 'activate' && !isset($segments[4])) {
                         if (isset($this->context->query['act'])) {
                             if ($this->dbDriver->activateUser($segments[2], $this->context->query['act'])) {
-                                $this->response = json_encode(array('status' => 'success', 'message' => 'User activated'));
+                                $this->response = $this->toJSON(array(
+                                    'status' => 'success',
+                                    'message' => 'User activated'
+                                ));
                             }
                             else {
-                                $this->response = json_encode(array('status' => 'error', 'message' => 'User not activated'));
+                                $this->response = $this->toJSON(array(
+                                    'status' => 'error',
+                                    'message' => 'User not activated'
+                                ));
                             }
                         }
                         else {
@@ -545,7 +585,10 @@ class Resto {
                 else {
                     throw new Exception('Database connection error', 500);
                 }
-                $this->response = json_encode(array('status' => 'success', 'message' => 'User ' . $this->context->query['email'] . ' created'));
+                $this->response = $this->toJSON(array(
+                    'status' => 'success',
+                    'message' => 'User ' . $this->context->query['email'] . ' created'
+                ));
             }
             /*
              * List all users
@@ -604,10 +647,16 @@ class Resto {
                 throw new Exception('Bad Request', 400);
             }
             if ($this->user->addToCart($this->context->query['resourceUrl'], true)) {
-                $this->response = json_encode(array('status' => 'success', 'message' => 'Add item to cart'));
+                $this->response = $this->toJSON(array(
+                    'status' => 'success',
+                    'message' => 'Add item to cart'
+                ));
             }
             else {
-                $this->response = json_encode(array('status' => 'error', 'message' => 'Cannot add item to cart'));
+                $this->response = $this->toJSON(array(
+                    'status' => 'error',
+                    'message' => 'Cannot add item to cart'
+                ));
             }
         }
         /*
@@ -618,10 +667,18 @@ class Resto {
                 $this->process404();
             }
             if ($this->user->removeFromCart($itemid, true)) {
-                $this->response = json_encode(array('status' => 'success', 'message' => 'Item removed from cart'));
+                $this->response = $this->toJSON(array(
+                    'status' => 'success',
+                    'message' => 'Item removed from cart',
+                    'itemid' => $itemid
+                ));
             }
             else {
-                $this->response = json_encode(array('status' => 'error', 'message' => 'Item cannot be removed'));
+                $this->response = $this->toJSON(array(
+                    'status' => 'error',
+                    'message' => 'Item cannot be removed',
+                    'itemid' => $itemid
+                ));
             }
         }
         
@@ -738,7 +795,10 @@ class Resto {
                 }
                 $collection = new RestoCollection($data['name'], $this->context);
                 $collection->loadFromJSON($data, true);
-                $this->response = json_encode(array('status' => 'success', 'message' => 'Collection ' . $data['name'] . ' created'));
+                $this->response = $this->toJSON(array(
+                    'status' => 'success',
+                    'message' => 'Collection ' . $data['name'] . ' created'
+                ));
                 $this->storeQuery('create', $data['name'], null);
             }
             /*
@@ -746,7 +806,11 @@ class Resto {
              */
             else {
                 $feature = $collection->addFeature($data);
-                $this->response = json_encode(array('status' => 'success', 'message' => 'Feature ' . $feature->identifier . ' inserted within '. $collection->name));
+                $this->response = $this->toJSON(array(
+                    'status' => 'success',
+                    'message' => 'Feature ' . $feature->identifier . ' inserted within '. $collection->name,
+                    'featureIdentifier' => $feature->identifier
+                ));
                 $this->storeQuery('insert', $collection->name, $feature->identifier);
             }
         }
@@ -777,7 +841,10 @@ class Resto {
              */
             if (!isset($feature)) {
                 $collection->loadFromJSON($data, true);
-                $this->response = json_encode(array('status' => 'success', 'message' => 'Collection ' . $collectionName . ' updated'));
+                $this->response = $this->toJSON(array(
+                    'status' => 'success',
+                    'message' => 'Collection ' . $collectionName . ' updated'
+                ));
                 $this->storeQuery('update', $collectionName, null);
             }
             /*
@@ -806,7 +873,10 @@ class Resto {
              */
             if (!isset($feature)) {
                 $collection->removeFromStore();
-                $this->response = json_encode(array('status' => 'success', 'message' => 'Collection ' . $collectionName . ' deleted'));
+                $this->response = $this->toJSON(array(
+                    'status' => 'success',
+                    'message' => 'Collection ' . $collectionName . ' deleted'
+                ));
                 $this->storeQuery('remove', $collectionName, null);
             }
             /*
@@ -814,7 +884,11 @@ class Resto {
              */
             else {
                 $feature->removeFromStore();
-                $this->response = json_encode(array('status' => 'success', 'message' => 'Feature ' . $featureIdentifier . ' deleted'));
+                $this->response = $this->toJSON(array(
+                    'status' => 'success',
+                    'message' => 'Feature ' . $featureIdentifier . ' deleted',
+                    'featureIdentifier' => $featureIdentifier
+                ));
                 $this->storeQuery('remove', $collectionName, $featureIdentifier);
             }
         }
@@ -1281,6 +1355,29 @@ class Resto {
         else {
             $this->process404();
         }
+    }
+    
+    /**
+     * Encode input $array to JSON
+     * 
+     * @param array $array
+     * @throws Exception
+     */
+    private function toJSON($array) {
+        
+        if (!is_array($array)) {
+            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Internal Server Error', 500);
+        }
+        /*
+         * JSON-P case
+         */
+        $pretty = isset($this->context->query['_pretty']) ? RestoUtil::toBoolean($this->context->query['_pretty']) : false;
+        if (isset($this->context->query['callback'])) {
+            return $this->context->query['callback'] . '(' . json_encode($array, $pretty) . ')';
+        }
+        
+        return json_encode($array, $pretty);
+        
     }
     
     /**
