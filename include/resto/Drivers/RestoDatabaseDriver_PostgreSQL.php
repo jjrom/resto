@@ -1030,7 +1030,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      * @throws exception
      */
     public function isInCart($identifier, $resourceUrl) {
-        if (!isset($identifier) || !isset($resourceUrl) || !RestoUtil::isUrl($resourceUrl)) {
+        if (!isset($identifier) || !isset($resourceUrl)) {
             return false;
         }
         try {
@@ -1093,7 +1093,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      * @throws exception
      */
     public function addToCart($identifier, $itemId, $resourceUrl, $resourceInfo = array()) {
-        if (!isset($identifier) || !isset($itemId) || !isset($resourceUrl) || !RestoUtil::isUrl($resourceUrl)) {
+        if (!isset($identifier) || !isset($itemId) || !isset($resourceUrl)) {
             return false;
         }
         try {
@@ -1107,7 +1107,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 'now()',
                 isset($resourceInfo['size']) ? $resourceInfo['size'] : 'NULL',
                 isset($resourceInfo['checksum']) ? '\'' . pg_escape_string($resourceInfo['checksum']) . '\'' : 'NULL',
-                isset($resourceInfo['mimeType']) ? '\'' . pg_escape_string($resourceInfo['mimeType']) . '\'' : 'NULL',
+                isset($resourceInfo['mimeType']) ? '\'' . pg_escape_string($resourceInfo['mimeType']) . '\'' : 'NULL'
             );
             $results = pg_query($this->dbh, 'INSERT INTO usermanagement.cart (resource_url, email, itemid, querytime, resource_size, resource_checksum, resource_mimetype) VALUES (' . join(',', $values) . ')');
             if (!$results) {

@@ -332,7 +332,6 @@ CREATE TABLE usermanagement.cart (
     resource_mimetype   VARCHAR(20),
     resource_size       INTEGER,
     resource_checksum   TEXT -- Checksum should be on the form checksumtype=checksum (e.g. SHA1=.....)
-                
 );
 CREATE INDEX idx_email_cart ON usermanagement.cart (email);
 
