@@ -1,22 +1,45 @@
+<?php
+    $_noSearchBar = true;
+    $_noMap = true;
+    $facets = $self->context->dbDriver->getFacets(null, array('collection'));
+    $nbOfProducts = 0;
+    $nbOfCollections = 0;
+    foreach (array_keys($facets) as $key) {
+        $nbOfCollections++;
+        if (isset($facets[$key]['collection']) && $facets[$key]['collection'][$key]) {
+            $nbOfProducts += (integer) $facets[$key]['collection'][$key];
+        }
+    }
+?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $self->context->dictionary->language ?>">
-    <?php include 'head_nomap.php' ?>
+    <?php include 'head.php' ?>
     <body class="glass">
         
         <!-- Header -->
-        <?php include 'header_nosearch.php' ?>
+        <?php include 'header.php' ?>
         
         <div class="row" style="height:250px;">
             <div class="large-12 columns"></div>
         </div>
-        
+                    
         <form id="resto-searchform" changeLocation="true" action="<?php echo $self->context->baseUrl . 'api/collections/search.html' ?>">
-        <div class="row fullWidth" style="width:100%;text-align:center;">
+            <div class="row fullWidth" style="width:100%;text-align:center;">
+                <div class="large-12 columns">
+                    <span class="resto-search"><input id="search" class="darker" type="text" name="q" placeholder="<?php echo $self->context->dictionary->translate('_menu_search'); ?>" value="<?php echo isset($self->context->query['q']) ? $self->context->query['q'] : ''; ?>" style="font-size:1.5em;height:50px;width:500px;"></span>
+                </div>
+            </div>
+        </form>
+        
+        <div class="row" style="height:50px">
+            <div class="large-12 columns"></div>
+        </div>
+        
+        <div class="row fullWidth" style="width:100%;text-align:center;color:#fff;font-size:2em;">
             <div class="large-12 columns">
-                <span class="resto-search"><input id="search" class="darker" type="text" name="q" placeholder="<?php echo $self->context->dictionary->translate('_menu_search'); ?>" value="<?php echo isset($self->context->query['q']) ? $self->context->query['q'] : ''; ?>" style="font-size:1.5em;height:50px;width:500px;"></span>
+                Currently <?php echo $nbOfProducts;?> images available in <?php echo $nbOfCollections;?> <a href="<?php echo $self->context->baseUrl . 'collections'; ?>">collections</a>
             </div>
         </div>
-        </form>
         
         <!-- Footer -->
         <div style="position:fixed;bottom:0px;text-align:center;width:100%;">

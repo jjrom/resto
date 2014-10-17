@@ -185,9 +185,9 @@ nav a:active {
     }
     
     /*
-     * Hide search bar
+     * Hide map
      */
-    .resto-search, .resto-queryanalyze, .resto-addLayer, .showOnMap {
+    .resto-queryanalyze, .resto-addLayer, .showOnMap {
         display:none;
     }
     
