@@ -103,6 +103,29 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     }
     
     /**
+     * List all groups
+     * 
+     * @return array
+     * @throws Exception
+     */
+    public function listGroups() {
+        try{
+            $results = pg_query($this->dbh, 'SELECT DISTINCT groupname FROM usermanagement.users');
+            if (!$results) {
+                throw new Exception();
+            }
+            $groups = array();
+            while ($row = pg_fetch_assoc($results)){
+                array_push($groups, $row);
+            }
+            return $groups;
+            
+        } catch (Exception $e) {
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+        }
+    }
+    
+    /**
      * Return $sentence in lowercase and without accent
      * This function is superseed in RestoDabaseDriver_PostgreSQL and use
      * the inner function lower(unaccent($sentence)) defined in installDB.sh
@@ -825,7 +848,9 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         }
         $booleans = array('search', 'download', 'visualize', 'post', 'put', 'delete');
         for ($i = count($booleans); $i--;) {
-            $result[$booleans[$i]] = $result[$booleans[$i]] === 't' ? true : false;
+            if (isset($result[$booleans[$i]])){
+                $result[$booleans[$i]] = $result[$booleans[$i]] === 't' ? true : false;
+            }
         }
         return $result;
     }
@@ -893,12 +918,12 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 '\'' . pg_escape_string($collectionName) . '\'',
                 isset($featureIdentifier) ? '\'' . pg_escape_string($featureIdentifier) . '\'' : 'NULL',
                 '\'' . pg_escape_string($identifier) . '\'',
-                isset($rights['search']) ? 'TRUE' : 'FALSE',
-                isset($rights['visualize']) ? 'TRUE' : 'FALSE',
-                isset($rights['download']) ? 'TRUE' : 'FALSE',
-                isset($rights['canpost']) ? 'TRUE' : 'FALSE',
-                isset($rights['canput']) ? 'TRUE' : 'FALSE',
-                isset($rights['candelete']) ? 'TRUE' : 'FALSE',
+                (isset($rights['search']) ? ($rights['search'] === 'true' ? 'TRUE' : 'FALSE') : 'NULL'),
+                (isset($rights['visualize']) ? ($rights['visualize'] === 'true' ? 'TRUE' : 'FALSE') : 'NULL'),
+                (isset($rights['download']) ? ($rights['download'] === 'true' ? 'TRUE' : 'FALSE') : 'NULL'),
+                (isset($rights['canpost']) ? ($rights['canpost'] === 'true' ? 'TRUE' : 'FALSE') : 'NULL'),
+                (isset($rights['canput']) ? ($rights['canput'] === 'true' ? 'TRUE' : 'FALSE') : 'NULL'),
+                (isset($rights['candelete']) ? ($rights['candelete'] === 'true' ? 'TRUE' : 'FALSE') : 'NULL'),
                 isset($rights['filters']) ? '\'' . pg_escape_string(json_encode($rights['filters'])) . '\'' : 'NULL'
             );
             $result = pg_query($this->dbh, 'INSERT INTO usermanagement.rights (collection,featureid,emailorgroup,search,visualize,download,canpost,canput,candelete,filters) VALUES (' . join(',', $values) . ')');    
@@ -907,6 +932,52 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             }
         } catch (Exception $e) {
             throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot create right', 500);
+        }
+    }
+    
+    /**
+     * Update rights to database
+     *     
+     *     array(
+     *          'search' => // true or false
+     *          'visualize' => // true or false
+     *          'download' => // true or false
+     *          'canpost' => // true or false
+     *          'canput' => // true or false
+     *          'candelete' => //true or false
+     *          'filters' => array(...)
+     *     )
+     * 
+     * @param array $rights
+     * @param string $identifier
+     * @param string $collectionName
+     * @param string $featureIdentifier
+     * 
+     * @throws Exception
+     */
+    public function updateRights($rights, $identifier, $collectionName, $featureIdentifier = null) {
+        try {
+            if (!$this->collectionExists($collectionName)) {
+                throw new Exception();
+            }
+            $values = array(
+                'collection=\'' . pg_escape_string($collectionName) . '\',',
+                (isset($featureIdentifier) ? 'featureid=\'' . pg_escape_string($featureIdentifier) . '\',' : '') ,
+                'emailorgroup=\'' . pg_escape_string($identifier) . '\'',
+                (isset($rights['search']) ? ($rights['search'] === 'true' ? ',search=TRUE' : ',search=FALSE') : ''),
+                (isset($rights['visualize']) ? ($rights['visualize'] === 'true' ? ',visualize=TRUE' : ',visualize=FALSE') : ''),
+                (isset($rights['download']) ? ($rights['download'] === 'true' ? ',download=TRUE' : ',download=FALSE') : ''),
+                (isset($rights['canpost']) ? ($rights['canpost'] === 'true' ? ',canpost=TRUE' : ',canpost=FALSE') : ''),
+                (isset($rights['canput']) ? ($rights['canput'] === 'true' ? ',canput=TRUE' : ',canput=FALSE') : ''),
+                (isset($rights['candelete']) ? ($rights['candelete'] === 'true' ? ',candelete=TRUE' : ',candelete=FALSE') : ''),
+                (isset($rights['filters']) ? 'filters=\'' . pg_escape_string(json_encode($rights['filters'])) . '\'' : '')
+            );
+            $result = pg_query($this->dbh, 'UPDATE usermanagement.rights SET ' . join('', $values) . ' WHERE collection=\'' . pg_escape_string($collectionName) . '\' AND emailorgroup=\'' . pg_escape_string($identifier) . '\' AND featureid' . (isset($featureIdentifier) ? ('=\'' . $featureIdentifier . '\'') : ' IS NULL'));    
+            if (!$result){
+                throw new Exception();
+            }
+        } catch (Exception $e) {
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot update right', 500);
         }
     }
     
@@ -2295,7 +2366,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      * @throws Exception
      */
     public function getSignedLicenses($identifier){
-        $results = pg_query($this->dbh, 'SELECT * from usermanagement.signatures WHERE email= \'' . pg_escape_string($identifier) . '\'');
+        $results = pg_query($this->dbh, 'SELECT collection, signdate from usermanagement.signatures WHERE email= \'' . pg_escape_string($identifier) . '\'');
         if (!$results) {
             throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
         }
@@ -2304,7 +2375,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             if (!$row) {
                 return $result;
             }
-            array_push($result, $row);
+            $result[$row['collection']] = $row['signdate'];
         }
         return $result;
     }
@@ -2386,7 +2457,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         return false;
     }
     
-     /**
+    /**
      * Deactivate user
      * 
      * @param integer $userid
