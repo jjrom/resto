@@ -100,6 +100,14 @@ abstract class RestoDatabaseDriver {
     abstract public function listCollections();
     
     /**
+     * List all groups
+     * 
+     * @return array
+     * @throws Exception
+     */
+    abstract public function listGroups();
+    
+    /**
      * Check if collection $name exists within resto database
      * 
      * @param string $name - collection name
@@ -290,6 +298,28 @@ abstract class RestoDatabaseDriver {
      * @throws Exception
      */
     abstract function storeRights($rights, $identifier, $collectionName, $featureIdentifier = null);
+    
+    /**
+     * Update rights to database
+     *     
+     *     array(
+     *          'search' => // true or false
+     *          'visualize' => // true or false
+     *          'download' => // true or false
+     *          'canpost' => // true or false
+     *          'canput' => // true or false
+     *          'candelete' => //true or false
+     *          'filters' => array(...)
+     *     )
+     * 
+     * @param array $rights
+     * @param string $identifier
+     * @param string $collectionName
+     * @param string $featureIdentifier
+     * 
+     * @throws Exception
+     */
+    abstract public function updateRights($rights, $identifier, $collectionName, $featureIdentifier = null);
     
     /**
      * Delete rights from database
