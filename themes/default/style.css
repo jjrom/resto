@@ -392,33 +392,35 @@ a.resto-keyword-herbaceous  {
     padding:3% 10%;
 }
 .resto-collection li {
-    background-color: rgba(0,0,0,0.3);
     color:#fff;
-    margin:10px;
-    padding:20px;
     overflow:auto;
     min-height:300px;
+}
+.resto-collection .collectionItem {
+    background-color: rgba(0,0,0,0.3);
+    color:#fff;
+    margin:5px;
+    padding:20px;
+    overflow:auto;
 }
 
 /*
  * Administration
  */
 #dropZone {
-    background-color:#4099FF;
+    background-color:rgba(255,255,255, 0.8);
     border: 2px dashed #FFF;
     border-radius: 5px 5px 5px 5px;
     font-size:1em;
-    padding: 30px;
-    margin:20px 10%;
-    text-align: center;
+    color:#000;
+}
+#dropZone p {
+    font-size:10em;
 }
 #dropZone.hover {
-    background-color:white;
-    color:#000;
+    background-color:#4099FF;
+    color:#fff;
     border: 2px dashed #000;
-}
-#dropZone.hover h1 {
-    color:#000;
 }
 #restoUserPanel {
     position: fixed;
