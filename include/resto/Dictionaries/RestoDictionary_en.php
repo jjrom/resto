@@ -86,6 +86,7 @@ class RestoDictionary_en extends RestoDictionary {
             'less' => 'lesser',
             'lesser' => 'lesser',
             'lower' => 'lesser',
+            'more' => 'greater',
             'greater' => 'greater',
             'equal' => 'equal',
             'and' => 'and',

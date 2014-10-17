@@ -379,7 +379,16 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     continue;
                 }
                 else {
-                    $values[] = '\'' . pg_escape_string($elements[$i][1]) . '\'';
+                    
+                    /*
+                     * Special case for array
+                     */
+                    if ($model->getDbType($elements[$i][0]) === 'array') {
+                        $values[] = '\'{' . pg_escape_string(join(',', $elements[$i][1])) . '}\'';'\'';
+                    }
+                    else {
+                        $values[] = '\'' . pg_escape_string($elements[$i][1]) . '\'';
+                    }
                     if (in_array($elements[$i][0], array_keys($this->validFacetTypes))) {
                         $facets[] = array(
                             'type' => $elements[$i][0],
