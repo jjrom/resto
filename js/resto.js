@@ -208,7 +208,16 @@
              * Update searchForm input
              */
             $("#resto-searchform").submit(function(e) {
+                
                 e.preventDefault();
+                
+                /*
+                 * Reload page instead of update page
+                 */
+                if ($(this).attr('changeLocation')) {
+                    window.R.showMask();
+                    this.submit();
+                }
                 
                 /*
                  * Bound search to map view
@@ -1509,13 +1518,10 @@
             
             if (window.confirm('Add resource to collection ' + collection + ' ?')) {
                 window.R.ajax({
-                    url: window.R.restoUrl + '/' + collection + '/',
+                    url: window.R.restoUrl + 'collections/' + collection + '/',
                     async: true,
                     type: 'POST',
-                    dataType: "json",
-                    data: {
-                        data: encodeURIComponent(JSON.stringify(resource))
-                    },
+                    data: JSON.stringify(resource),
                     success: function(obj, textStatus, XMLHttpRequest) {
                         if (XMLHttpRequest.status === 200) {
                             window.R.message('Resource added');
