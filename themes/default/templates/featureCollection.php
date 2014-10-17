@@ -4,7 +4,9 @@
     <body>
         
         <!-- Header -->
+        <form id="resto-searchform" action="<?php echo $self->context->baseUrl . 'collections/' . $self->collection->name. '/search.json' ?>">
         <?php include 'header.php' ?>
+        </form>
         
         <!-- Collection title and description -->
         <div class="row">
@@ -17,19 +19,7 @@
                 </p>
             </div>
         </div>
-        <!-- Search bar -->
-        <div class="row padded">
-            <div class="large-12 columns resto-search center">
-                <form id="resto-searchform" action="<?php echo $self->context->baseUrl . 'collections/' . $self->collection->name. '/search.json' ?>">
-                    <?php
-                    if ($self->context->dictionary->language) {
-                        echo '<input type="hidden" name="' . $self->model->searchFilters['language']['osKey'] . '" value="' . $self->context->dictionary->language . '" />';
-                    }
-                    ?>
-                    <input type="search" id="search" name="<?php echo $self->model->searchFilters['searchTerms']['osKey'] ?>" value="<?php echo isset($self->context->query[$self->model->searchFilters['searchTerms']['osKey']]) ? $self->context->query[$self->model->searchFilters['searchTerms']['osKey']] : ''; ?>" placeholder="<?php echo $self->context->dictionary->translate('_placeHolder', $self->collection->osDescription[$self->context->dictionary->language]['Query']); ?>"/><span id="searchsubmit" class="button zoom fa fa-search" title="search"></span>
-                </form>
-            </div>
-        </div>
+        
         <!-- mapshup display -->
         <div id="mapshup" class="noResizeHeight"></div>
         <!-- Administration -->

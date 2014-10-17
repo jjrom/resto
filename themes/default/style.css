@@ -1,13 +1,20 @@
 
+
 @import url(http://fonts.googleapis.com/css?family=Montserrat);
+@import url(http://fonts.googleapis.com/css?family=Roboto:300);
 
 /*
  * General styles
  */
 body {
-    font-family: 'Montserrat', Helvetica, sans-serif;
+    font-family: 'Roboto', Helvetica, sans-serif;
 }
-
+a {
+    color:darkorange;
+}
+a:hover {
+    color:orange;
+}
 .fixed {
     position:fixed;
 }
@@ -108,7 +115,6 @@ footer {
     text-align: center;
     font-size:0.8em;
 }
-
 .top-bar {
     background: #333333;
 }
@@ -120,6 +126,7 @@ footer {
     background: #333333;
 }
 #logo {
+    font-family: 'Montserrat';
     color:#fff;
     margin: 0px 10px;
     float: left;
@@ -384,32 +391,13 @@ a.resto-keyword-herbaceous  {
 .resto-collection {
     padding:3% 10%;
 }
-.resto-collection a {
+.resto-collection li {
+    background-color: rgba(0,0,0,0.3);
     color:#fff;
-}
-
-.resto-title {
-    padding:1% 10%;
-} 
-.resto-title a {
-    color: #fff;
-}
-.resto-title {
-    background:url('img/halfearth.png') no-repeat scroll 0px 0px #000;
-    -webkit-background-size:contain;
-    -moz-background-size:contain;
-    -o-background-size:contain;
-    background-size:contain;
-    color:lightgray;
-}
-.resto-title p, .resto-collection p {
-    font-style: italic;
-}
-.left {
-    text-align:left;
-}
-.right {
-    text-align:right;
+    margin:10px;
+    padding:20px;
+    overflow:auto;
+    min-height:300px;
 }
 
 /*
@@ -493,8 +481,4 @@ a.resto-keyword-herbaceous  {
 }
 .resto-admin a:hover {
     color:#000;
-}
-input[type="search"] {
-    display:inline;
-    width:80%;
 }

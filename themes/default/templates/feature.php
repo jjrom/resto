@@ -10,7 +10,7 @@
         $thumbnail = $quicklook;
     }
     else if (!isset($thumbnail) && !isset($quicklook)) {
-        $thumbnail = self.restoUrl + '/css/default/img/noimage.png';
+        $thumbnail = $self->context->baseUrl . 'themes/' . $self->context->config['theme'] . '/img/noimage.png';
     }
     if (!isset($quicklook)) {
         $quicklook = $thumbnail;
@@ -31,7 +31,7 @@
     <body>
         
         <!-- Header -->
-        <?php include 'header.php' ?>
+        <?php include 'header_nosearch.php' ?>
       
         <!-- Collection title and description -->
         <div class="row">

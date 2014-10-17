@@ -9,23 +9,22 @@
             <div class="large-12 columns"></div>
         </div>
         <div class="collections">
-            <?php
-            $left = false;
-            foreach ($self->getCollections() as $key => $collection) {
-                $left = !$left;
-                ?>
-                <div class="row  resto-collection" id="_<?php echo $key;?>"> 
-                    <div class="large-12 columns">
+            <div class="row resto-collection fullWidth"> 
+                <ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-3" id="_<?php echo $key;?>">
+                    <?php foreach ($self->getCollections() as $key => $collection) { ?>
+                    <li class="collectionItem">
                         <h1>
-                            <a class="fa fa-search" href="<?php echo $self->context->baseUrl . 'api/collections/' . $key . '/search.html?lang=' . $self->context->dictionary->language; ?>">  <?php echo $collection->osDescription[$self->context->dictionary->language]['ShortName']; ?></a><br/>
+                            <a class="fa" href="<?php echo $self->context->baseUrl . 'api/collections/' . $key . '/search.html?lang=' . $self->context->dictionary->language; ?>">  <?php echo $collection->osDescription[$self->context->dictionary->language]['ShortName']; ?></a><br/>
+                        </h1>
+                        <p><?php echo $collection->osDescription[$self->context->dictionary->language]['Description']; ?></p>
+                        <h1 class="center">
                             <?php if ($self->context->user->canPut($key)) { ?><a class="fa fa-edit button bggreen updateCollection admin" href="#" collection="<?php echo $key; ?>" title="<?php echo $self->context->dictionary->translate('_update'); ?>"></a><?php } ?>
                             <?php if ($self->context->user->canDelete($key)) { ?><a class="fa fa-trash-o button bgred removeCollection admin" href="#" collection="<?php echo $key; ?>" title="<?php echo $self->context->dictionary->translate('_remove'); ?>"></a><?php } ?>
                         </h1>
-                        <p><?php echo $collection->osDescription[$self->context->dictionary->language]['Description']; ?></p>
-                    </div>
-                </div>
-            <?php } ?>
-            </ul>
+                    </li>
+                    <?php } ?>
+                </ul>
+            </div>
             <?php if ($self->context->user->canPost()) { ?>
             <div class="row resto-admin">
                 <div class="large-12 columns center">
@@ -56,6 +55,25 @@
                     $('body').addClass('glass');
                 }
             });
+            
+            /*
+            $(window).bind('resize', function() {
+                fixMinSize($('.collectionItem'));
+            });
+            */  
+            
+            fixMinSize($('.collectionItem'));
+            function fixMinSize(groupOfItem){
+                var tallest = 0;
+                groupOfItem.each(function(){
+                    var thisHeight = $(this).height() + 20;
+                    if(thisHeight > tallest){
+                        tallest = thisHeight;
+                    }
+                });
+                groupOfItem.css('height', tallest);
+            }
+            
         </script>
     <div align="center" ><img src="<?php echo $self->context->baseUrl ?>themes/<?php echo $self->context->config['theme'] ?>/img/bg.jpg" border="0" class="bg" ></div>
     </body>
