@@ -2437,13 +2437,21 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     /**
      * Activate user
      * 
-     * @param integer $userid
+     * @param string $userid : can be userid or base64(email)
      * @param string $activationcode
      * 
      * @throws Exception
      */
     public function activateUser($userid, $activationcode = null) {
         try {
+            /*
+             * If $userid is not an integer we assume it is the email
+             * encoded in base64
+             */
+            if (!ctype_digit($userid)) {
+                $profile = $this->getUserProfile(base64_decode($userid));
+                $userid = $profile['userid'];
+            }
             $updateResults = pg_query($this->dbh, 'UPDATE usermanagement.users SET activated=true WHERE userid=\'' . pg_escape_string($userid) . '\'' . (isset($activationcode) ? ' AND activationcode=\'' . pg_escape_string($activationcode) . '\'' :'') . ' RETURNING userid');
             if (!$updateResults) {
                 throw new Exception();
@@ -2460,11 +2468,19 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     /**
      * Deactivate user
      * 
-     * @param integer $userid
+     * @param string $userid
      * @throws Exception
      */
     public function deactivateUser($userid) {
         try{
+            /*
+             * If $userid is not an integer we assume it is the email
+             * encoded in base64
+             */
+            if (!ctype_digit($userid)) {
+                $profile = $this->getUserProfile(base64_decode($userid));
+                $userid = $profile['userid'];
+            }
             $updateResults = pg_query($this->dbh, 'UPDATE usermanagement.users SET activated=false WHERE userid=\'' . pg_escape_string($userid) . '\'');
             if (!$updateResults) {
                 throw new Exception();

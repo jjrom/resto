@@ -99,6 +99,7 @@
  *    |  GET     users/{userid}/rights/{collection}            |  Show rights for {userid} on {collection}
  *    |  GET     users/{userid}/rights/{collection}/{feature}  |  Show rights for {userid} on {feature} from {collection}
  * 
+ *    Note: {userid} can be replaced by base64(email) 
  * 
  * ** Tags **
  * 
@@ -424,7 +425,7 @@ class Resto {
             case 'users':
                 if (isset($segments[2])) {
                     if ($segments[2] === 'rights') {
-                        $this->processUsers($segments[1], isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
+                        $this->processUserRights($segments[1], isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
                     }
                     else if ($segments[2] === 'cart') {
                         $this->processUserCart($segments[1], isset($segments[3]) ? $segments[3] : null);
@@ -543,16 +544,11 @@ class Resto {
      *    |  GET     users                                         |  List all users
      *    |  POST    users                                         |  Add a user
      *    |  GET     users/{userid}                                |  Show information on {userid}
-     *    |  GET     users/{userid}/rights                         |  Show rights for {userid}
-     *    |  GET     users/{userid}/rights/{collection}            |  Show rights for {userid} on {collection}
-     *    |  GET     users/{userid}/rights/{collection}/{feature}  |  Show rights for {userid} on {feature} from {collection}
-     *
+     * 
      * @param string $userid
-     * @param string $collectionName
-     * @param string $featureIdentifier
      * @throws Exception
      */
-    private function processUsers($userid = null, $collectionName = null, $featureIdentifier = null) {
+    private function processUsers($userid = null) {
         
         if (!isset($userid)) {
             
@@ -561,15 +557,11 @@ class Resto {
              */
             if ($this->method === 'POST') {
                 
-                /*
-                 * Check credentials
-                 */
-                if (!$this->user->canPost($collectionName)) {
-                    throw new Exception('Forbidden', 403);
-                }
-                
-                if (!isset($this->context->query['email']) || $this->dbDriver->userExists($this->context->query['email'])) {
+                if (!isset($this->context->query['email'])) {
                     throw new Exception('Bad Request', 400);
+                }
+                else if ($this->dbDriver->userExists($this->context->query['email'])) {
+                    throw new Exception('User exists', 400);
                 }
                 $userInfo = $this->dbDriver->storeUserProfile(array(
                     'email' => $this->context->query['email'],
@@ -601,9 +593,90 @@ class Resto {
             }
             
         }
-        else {
-            throw new Exception('Not Implemented', 501);
+        else if ($this->method === 'GET') {
+            
+            /*
+             * GET profile users/{userid}
+             * 
+             * Note : if userid is not an integer it is assumed that this is the
+             * email encoded in base64
+             */
+            if (!ctype_digit($userid)) {
+                if (isset($this->user->profile['email']) && $this->user->profile['email'] === strtolower(base64_decode($userid))) {
+                    $userid = $this->user->profile['userid'];
+                }
+            }
+            
+            /*
+             * Profile can only be seen by its owner or by admin
+             */
+            if ($this->user->profile['userid'] !== $userid || $this->user->profile['groupname'] !== 'admin') {
+                throw new Exception('Forbidden', 403);
+            }
+            
+            $this->response = $this->toJSON(array(
+                'status' => 'success',
+                'message' => 'Profie for ' . $this->user->profile['userid'],
+                'profile' => $this->user->profile
+            ));
+            
         }
+        else {
+            $this->process404();
+        }
+    }
+    
+    /**
+     * Process user rights requests
+     *   
+     *    |  GET     users/{userid}/rights                         |  Show rights for {userid}
+     *    |  GET     users/{userid}/rights/{collection}            |  Show rights for {userid} on {collection}
+     *    |  GET     users/{userid}/rights/{collection}/{feature}  |  Show rights for {userid} on {feature} from {collection}
+     *
+     * @param string $userid
+     * @param string $collectionName
+     * @param string $featureIdentifier
+     * @throws Exception
+     */
+    private function processUserRights($userid, $collectionName = null, $featureIdentifier = null) {
+        
+        /*
+         * GET only
+         */
+        if ($this->method !== 'GET') {
+            $this->process404();
+        }
+        
+       /*
+        * GET profile users/{userid}
+        * 
+        * Note : if userid is not an integer it is assumed that this is the
+        * email encoded in base64
+        */
+        if (!ctype_digit($userid)) {
+            if (isset($this->user->profile['email']) && $this->user->profile['email'] === strtolower(base64_decode($userid))) {
+                $userid = $this->user->profile['userid'];
+            }
+        }
+
+        /*
+         * Rights can only be seen by its owner or by admin
+         */
+        if ($this->user->profile['userid'] !== $userid) {
+            if (!$this->user->profile['groupname'] !== 'admin') {
+                throw new Exception('Forbidden', 403);
+            }
+        }
+
+        $this->response = $this->toJSON(array(
+            'status' => 'success',
+            'message' => 'Rights for ' . $this->user->profile['userid'],
+            'userid' => $this->user->profile['userid'],
+            'groupname' => $this->user->profile['groupname'],
+            'collection' => isset($collectionName) ? $collectionName : null,
+            'featureIdentifier' => isset($featureIdentifier) ? $featureIdentifier : null,
+            'rights' => $this->user->getRights($collectionName, $featureIdentifier)
+        ));
         
     }
     
@@ -620,10 +693,22 @@ class Resto {
      */
     private function processUserCart($userid, $itemid = null) {
         
+       /*
+        * GET profile users/{userid}
+        * 
+        * Note : if userid is not an integer it is assumed that this is the
+        * email encoded in base64
+        */
+        if (!ctype_digit($userid)) {
+            if (isset($this->user->profile['email']) && $this->user->profile['email'] === strtolower(base64_decode($userid))) {
+                $userid = $this->user->profile['userid'];
+            }
+        }
+        
         /*
-         * Cart can only be seen by its owner
+         * Cart can only be seen by its owner or by admin
          */
-        if ($this->user->profile['userid'] !== $userid) {
+        if ($this->user->profile['userid'] !== $userid || $this->user->profile['groupname'] !== 'admin') {
             throw new Exception('Forbidden', 403); 
         }
         

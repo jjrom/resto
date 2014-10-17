@@ -246,7 +246,7 @@ abstract class RestoDatabaseDriver {
     /**
      * Activate user
      * 
-     * @param integer $userid
+     * @param string $userid
      * @throws Exception
      */
     abstract public function activateUser($userid);
@@ -254,7 +254,7 @@ abstract class RestoDatabaseDriver {
      /**
      * Deactivate user
      * 
-     * @param integer $userid
+     * @param string $userid
      * @throws Exception
      */
     abstract public function deactivateUser($userid);
