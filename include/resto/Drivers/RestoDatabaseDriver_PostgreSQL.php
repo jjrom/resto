@@ -288,7 +288,12 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         
         $keys = array(pg_escape_string($model->getDbKey('collection')));
         $values = array('\'' . pg_escape_string($collectionName) . '\'');
-        $facets = array();
+        $facets = array(
+            array(
+                'type' => 'collection',
+                'value' => $collectionName
+            )
+        );
         try {
             for ($i = count($elements); $i--;) {
                 
@@ -389,7 +394,9 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     else {
                         $values[] = '\'' . pg_escape_string($elements[$i][1]) . '\'';
                     }
+                    
                     if (in_array($elements[$i][0], array_keys($this->validFacetTypes))) {
+                        
                         $facets[] = array(
                             'type' => $elements[$i][0],
                             'parentType' => $this->validFacetTypes[$elements[$i][0]],
@@ -507,7 +514,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     
     /**
      * Return facets elements from a type for a given collection
-     * Returned array structure
+     * 
+     * Returned array structure if collectionName is set
      * 
      *      array(
      *          'type#' => array(
@@ -524,6 +532,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      *          ),
      *          ...
      *      )
+     * 
+     * Or an array of array indexed by collection name if $collectionName is null
      *  
      * @param string $collectionName
      * @param array $type
@@ -548,40 +558,52 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              * Facet for one collection
              */
             if (isset($collectionName)) {
-                $results = pg_query($this->dbh, 'SELECT value, type, parent, counter FROM resto.facets WHERE counter > 0 AND collection=\'' . pg_escape_string($collectionName) . '\'' . (isset($in) ? ' AND type IN (' . $in . ')' : ''));
+                $results = pg_query($this->dbh, 'SELECT collection, value, type, parent, counter FROM resto.facets WHERE counter > 0 AND collection=\'' . pg_escape_string($collectionName) . '\'' . (isset($in) ? ' AND type IN (' . $in . ')' : ''));
             }
             /*
              * Facets for all collections
              */
             else {
-                $results = pg_query($this->dbh, 'SELECT value, type, parent, counter FROM resto.facets WHERE counter > 0' . (isset($in) ? ' AND type IN (' . $in . ')' : ''));
+                $results = pg_query($this->dbh, 'SELECT collection, value, type, parent, counter FROM resto.facets WHERE counter > 0' . (isset($in) ? ' AND type IN (' . $in . ')' : ''));
             }
             if (!$results) {
                 throw new Exception();
             }
             while ($result = pg_fetch_assoc($results)) {
-                if (!isset($facets[$result['type']])) {
-                    $facets[$result['type']] = array();
+                
+                /*
+                 * Set collection
+                 */
+                if (!isset($facets[$result['collection']])) {
+                    $facets[$result['collection']] = array();
+                }
+                if (!isset($facets[$result['collection']][$result['type']])) {
+                    $facets[$result['collection']][$result['type']] = array();
                 }
                 if (isset($result['parent'])) {
-                    if (!isset($facets[$result['type']][$result['parent']])) {
-                        $facets[$result['type']][$result['parent']] = array();
+                    if (!isset($facets[$result['collection']][$result['type']][$result['parent']])) {
+                        $facets[$result['collection']][$result['type']][$result['parent']] = array();
                     }
                 }
-                if (isset($facets[$result['type']][$result['value']])) {
+                if (isset($facets[$result['collection']][$result['type']][$result['value']])) {
                     if (isset($result['parent'])) {
-                        $facets[$result['type']][$result['parent']][$result['value']] += (integer) $result['counter'];
+                        if (isset($facets[$result['collection']][$result['type']][$result['parent']][$result['value']])) {
+                            $facets[$result['collection']][$result['type']][$result['parent']][$result['value']] += (integer) $result['counter'];
+                        }
+                        else {
+                            $facets[$result['collection']][$result['type']][$result['parent']][$result['value']] = (integer) $result['counter'];
+                        }
                     }
                     else {
-                        $facets[$result['type']][$result['value']] += (integer) $result['counter'];
+                        $facets[$result['collection']][$result['type']][$result['value']] += (integer) $result['counter'];
                     }
                 }
                 else {
                     if (isset($result['parent'])) {
-                        $facets[$result['type']][$result['parent']][$result['value']] = (integer) $result['counter'];
+                        $facets[$result['collection']][$result['type']][$result['parent']][$result['value']] = (integer) $result['counter'];
                     }
                     else {
-                        $facets[$result['type']][$result['value']] = (integer) $result['counter'];
+                        $facets[$result['collection']][$result['type']][$result['value']] = (integer) $result['counter'];
                     }
                 }
             }
@@ -589,7 +611,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot retrieve facets', 500);
         }
         
-        return $facets;
+        return isset($collectionName) && isset($facets[$collectionName]) ? $facets[$collectionName] : $facets;
     }
     
     /**
@@ -1156,10 +1178,11 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      * Get collection description
      * 
      * @param string $collectionName
+     * @param array $facetTypes
      * @return array
      * @throws Exception
      */
-    public function getCollectionDescription($collectionName) {
+    public function getCollectionDescription($collectionName, $facetTypes = array()) {
         $collectionDescription = array();
         try {
             $description = pg_query($this->dbh, 'SELECT collection, status, model, mapping, license, licenseurl FROM resto.collections WHERE collection=\'' . pg_escape_string($collectionName) . '\'');
@@ -1195,6 +1218,13 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                         'Query' => $description['query'],
                         'Attribution' => $description['attribution']
                     );
+                }
+                
+                /*
+                 * Get Facets
+                 */
+                if (isset($facetTypes)) {
+                    $collectionDescription['facets'] = $this->getFacets($collectionName, $facetTypes);
                 }
             }
             else {
@@ -1431,12 +1461,13 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     }
     
     /**
-     * Get description of all collections
+     * Get description of all collections including facets
      * 
+     * @param array $facetTypes
      * @return array
      * @throws Exception
      */
-     public function getCollectionsDescriptions() {
+     public function getCollectionsDescriptions($facetTypes = array()) {
         
          $collectionsDescriptions = array();
          
@@ -1473,6 +1504,13 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                         'Query' => $description['query'],
                         'Attribution' => $description['attribution']
                     );
+                }
+                
+                /*
+                 * Get Facets
+                 */
+                if (isset($facetTypes)) {
+                    $collectionsDescriptions[$collection['collection']]['facets'] = $this->getFacets($collection['collection'], $facetTypes);
                 }
             }
         } catch (Exception $e) {

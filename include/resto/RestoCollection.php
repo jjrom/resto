@@ -74,6 +74,11 @@ class RestoCollection {
     public $license = array();
     
     /*
+     * Facets
+     */
+    public $facets = array();
+    
+    /*
      * Array of options
      */
     private $options = array();
@@ -245,12 +250,13 @@ class RestoCollection {
      * Load collection parameters from RESTo database
      */
     public function loadFromStore() {
-        $collectionDescription = $this->context->dbDriver->getCollectionDescription($this->name);
+        $collectionDescription = $this->context->dbDriver->getCollectionDescription($this->name, array('collection'));
         $this->model = RestoUtil::instantiate($collectionDescription['model'], array($this->context));
         $this->osDescription = $collectionDescription['osDescription'];
         $this->status = $collectionDescription['status'];
         $this->licence = $collectionDescription['license'];
         $this->propertiesMapping = $collectionDescription['propertiesMapping'];
+        $this->facets = $collectionDescription['facets'];
         $this->synchronized = true;
         return $this;
     }
@@ -317,7 +323,8 @@ class RestoCollection {
             'status' => $this->status,
             'model' => $this->model->name,
             'osDescription' => $this->osDescription,
-            'propertiesMapping' => $this->propertiesMapping
+            'propertiesMapping' => $this->propertiesMapping,
+            'facets' => $this->facets
         );
     }
     
@@ -391,7 +398,7 @@ class RestoCollection {
                 $validFacets[] = $filter['key'];
             }
         }
-        $facets = $this->context->dbDriver->getFacets($this->name, $validFacets);
+        //$facets = $this->context->dbDriver->getFacets($this->name, $validFacets);
         
         /*
          * Generate search urls
@@ -448,14 +455,14 @@ class RestoCollection {
                             }
                         }
                         else if ($filter['options'] === 'auto') {
-                            if (isset($facets[$filter['key']])) {
-                                foreach (array_keys($facets[$filter['key']]) as $key) {
+                            if (isset($this->facets[$filter['key']])) {
+                                foreach (array_keys($this->facets[$filter['key']]) as $key) {
                                     
                                     /*
                                      * Facets with a parent are two levels
                                      */
-                                    if (is_array($facets[$filter['key']][$key])) {
-                                        foreach (array_keys($facets[$filter['key']][$key]) as $child) {
+                                    if (is_array($this->facets[$filter['key']][$key])) {
+                                        foreach (array_keys($this->facets[$filter['key']][$key]) as $child) {
                                             $xml->startElement('parameters:Options');
                                             $xml->writeAttribute('value', $child);
                                             $xml->endElement();

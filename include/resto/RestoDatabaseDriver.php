@@ -355,18 +355,20 @@ abstract class RestoDatabaseDriver {
      * Get collection description
      * 
      * @param string $collectionName
+     * @param array $facetTypes
      * @return array
      * @throws Exception
      */
-    abstract public function getCollectionDescription($collectionName);
+    abstract public function getCollectionDescription($collectionName, $facetTypes = array());
 
     /**
      * Get description of all collections
      * 
+     * @param array $facetTypes
      * @return array
      * @throws Exception
      */
-    abstract public function getCollectionsDescriptions();
+    abstract public function getCollectionsDescriptions($facetTypes = array());
 
     /**
      * Remove collection from RESTo database
@@ -458,7 +460,8 @@ abstract class RestoDatabaseDriver {
 
     /**
      * Return facets elements from a type for a given collection
-     * Returned array structure
+     * 
+     * Returned array structure if collectionName is set
      * 
      *      array(
      *          'type#' => array(
@@ -475,6 +478,8 @@ abstract class RestoDatabaseDriver {
      *          ),
      *          ...
      *      )
+     * 
+     * Or an array of array indexed by collection name if $collectionName is null
      *  
      * @param string $collectionName
      * @param array $type
