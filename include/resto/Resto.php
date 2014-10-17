@@ -423,6 +423,12 @@ class Resto {
              *      users/{userid}/cart/{itemid}
              */
             case 'users':
+                
+               /*
+                * Output is always in JSON
+                */
+                $this->outputFormat = 'json';
+                
                 if (isset($segments[2])) {
                     if ($segments[2] === 'rights') {
                         $this->processUserRights($segments[1], isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
@@ -616,7 +622,7 @@ class Resto {
             
             $this->response = $this->toJSON(array(
                 'status' => 'success',
-                'message' => 'Profie for ' . $this->user->profile['userid'],
+                'message' => 'Profile for ' . $this->user->profile['userid'],
                 'profile' => $this->user->profile
             ));
             
