@@ -120,15 +120,15 @@ class RestoRights{
          */
         if (isset($collectionName) && isset($featureIdentifier)) {
             $rights = $this->dbDriver->getRights($this->identifier, $collectionName, $featureIdentifier);
-            if (!$rights) {
+            if (!isset($rights)) {
                 return $this->getRights($collectionName);
             }
             else if ($this->isIncomplete($rights)) {
                 $collectionRights = $this->dbDriver->getRights($this->identifier, $collectionName);
-                if (!$collectionRights || $this->isIncomplete($collectionRights)) {
-                    $rights = $collectionRights ? $this->merge($rights, $collectionRights) : $rights;
+                if (!isset($collectionRights) || $this->isIncomplete($collectionRights)) {
+                    $rights = isset($collectionRights) ? $this->merge($rights, $collectionRights) : $rights;
                     $groupRights = $this->dbDriver->getRights($this->groupname, $collectionName);
-                    if (!$groupRights || $this->isIncomplete($groupRights)) {
+                    if (!isset($groupRights) || $this->isIncomplete($groupRights)) {
                         return $this->mergeRights(isset($groupRights) ? $this->merge($rights, $groupRights) : $rights, $this->groupRights[$this->groupname]);
                     }
                     return $this->mergeRights($rights, $groupRights);
@@ -143,12 +143,12 @@ class RestoRights{
          */
         if (isset($collectionName)){
             $collectionRights = $this->dbDriver->getRights($this->identifier, $collectionName);
-            if (!$collectionRights || $this->isIncomplete($collectionRights)) {
+            if (!isset($collectionRights) || $this->isIncomplete($collectionRights)) {
                 $groupRights = $this->dbDriver->getRights($this->groupname, $collectionName);
-                if (!$groupRights || $this->isIncomplete($groupRights)) {
+                if (!isset($groupRights) || $this->isIncomplete($groupRights)) {
                     $groupRights = !$groupRights ? $this->groupRights[$this->groupname] : $this->merge($groupRights, $this->groupRights[$this->groupname]);
                 }
-                return !$collectionRights ? $groupRights : $this->merge($collectionRights, $groupRights);
+                return !isset($collectionRights) ? $groupRights : $this->merge($collectionRights, $groupRights);
             }
             return $collectionRights;
         }
@@ -157,8 +157,8 @@ class RestoRights{
          * Return group rights
          */
         $groupRights = $this->dbDriver->getRights($this->groupname, $collectionName);
-        if (!$groupRights || $this->isIncomplete($groupRights)) {
-            return !$groupRights ? $this->groupRights[$this->groupname] : $this->merge($groupRights, $this->groupRights[$this->groupname]);
+        if (!isset($groupRights) || $this->isIncomplete($groupRights)) {
+            return !isset($groupRights) ? $this->groupRights[$this->groupname] : $this->merge($groupRights, $this->groupRights[$this->groupname]);
         }
         
         return $this->groupRights[$this->groupname];

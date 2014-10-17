@@ -841,7 +841,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         }
         $result = pg_fetch_assoc($results);
         if (!$result) {
-            return $result;
+            return null;
         }
         if (isset($result['filters'])) {
             $result['filters'] = json_decode($result['filters'], true);
