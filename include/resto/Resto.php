@@ -423,12 +423,6 @@ class Resto {
              *      users/{userid}/cart/{itemid}
              */
             case 'users':
-                
-               /*
-                * Output is always in JSON
-                */
-                $this->outputFormat = 'json';
-                
                 if (isset($segments[2])) {
                     if ($segments[2] === 'rights') {
                         $this->processUserRights($segments[1], isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
@@ -714,8 +708,8 @@ class Resto {
         /*
          * Cart can only be seen by its owner or by admin
          */
-        if ($this->user->profile['userid'] !== $userid || $this->user->profile['groupname'] !== 'admin') {
-            throw new Exception('Forbidden', 403); 
+        if ($this->user->profile['userid'] !== $userid) {
+            throw new Exception('Forbidden', 403);
         }
         
         /*

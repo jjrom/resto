@@ -165,12 +165,11 @@ abstract class RestoDatabaseDriver {
     /**
      * Return true if resource is within cart
      * 
-     * @param string $identifier
-     * @param string $resourceUrl
+     * @param string $itemId
      * @return boolean
      * @throws exception
      */
-    abstract public function isInCart($identifier, $resourceUrl);
+    abstract public function isInCart($itemId);
     
     /**
      * Return cart for user
@@ -185,13 +184,14 @@ abstract class RestoDatabaseDriver {
      * Add resource url to cart
      * 
      * @param string $identifier
-     * @param string $itemId
-     * @param string $resourceUrl
-     * @param array $resourceInfo
+     * @param array $item
+     *   
+     *   Must contain at least a 'url' entry
+     *   
      * @return boolean
      * @throws exception
      */
-    abstract public function addToCart($identifier, $itemId, $resourceUrl, $resourceInfo);
+    abstract public function addToCart($identifier, $item = array());
     
     /**
      * Remove resource from cart

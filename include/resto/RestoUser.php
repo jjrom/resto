@@ -111,7 +111,7 @@ class RestoUser{
          */
         if (isset($this->profile['email'])) {
             $this->rights = new RestoRights($this->profile['email'], $this->profile['groupname'], $this->dbDriver);
-            $this->cart = new RestoCart($this->profile['email'], $this->dbDriver, true);
+            $this->cart = new RestoCart($this, $this->dbDriver, true);
         }
         else {
             $this->rights = new RestoRights('unregistered', 'unregistered', $this->dbDriver);
@@ -263,25 +263,14 @@ class RestoUser{
     }
     
     /**
-     * Add item to cart - if you have right to do it !!
+     * Add item to cart
      * 
      * @param string $resourceUrl
      */
     public function addToCart($resourceUrl) {
-        if (isset($resourceUrl) && RestoUtil::isUrl($resourceUrl) && $this->cart) {
-            $exploded = parse_url($resourceUrl);
-            $segments = explode('/', $exploded['path']);
-            $last = count($segments) - 1;
-            if ($last > 2) {
-                list($modifier) = explode('.', $segments[$last], 1);
-                if ($modifier === 'download' && $this->canDownload($segments[$last - 2], $segments[$last - 1])) {
-                    if ($this->cart->add($resourceUrl, true)) {
-                        $_SESSION['cart'] = $this->getCart()->getItems();
-                        return true;
-                    }
-                }
-            }
-            return false;
+        if ($this->cart->add($resourceUrl, true)) {
+            $_SESSION['cart'] = $this->getCart()->getItems();
+            return true;
         }
         return false;
     }

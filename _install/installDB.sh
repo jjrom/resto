@@ -328,12 +328,10 @@ CREATE TABLE usermanagement.cart (
     email               VARCHAR(255),
     itemid              CHAR(40) NOT NULL,
     querytime           TIMESTAMP,
-    resource_url        TEXT DEFAULT NULL,
-    resource_mimetype   VARCHAR(20),
-    resource_size       INTEGER,
-    resource_checksum   TEXT -- Checksum should be on the form checksumtype=checksum (e.g. SHA1=.....)
+    item                TEXT NOT NULL -- item as JSON
 );
 CREATE INDEX idx_email_cart ON usermanagement.cart (email);
+CREATE INDEX idx_itemid_cart ON usermanagement.cart (itemid);
 
 --
 -- temporary download table

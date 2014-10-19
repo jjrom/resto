@@ -40,9 +40,9 @@
 class RestoCart{
     
     /*
-     * User identifier
+     * Owner of the cart
      */
-    private $identifier;
+    private $user;
     
     /*
      * Database driver
@@ -63,14 +63,14 @@ class RestoCart{
     /**
      * Constructor
      * 
-     * @param string $identifier
+     * @param RestoUser $user
      * @param RestoDatabaseDriver $dbDriver
      */
-    public function __construct($identifier, $dbDriver, $synchronize = false){
-        $this->identifier = $identifier;
+    public function __construct($user, $dbDriver, $synchronize = false){
+        $this->user = $user;
         $this->dbDriver = $dbDriver;
         if ($synchronize) {
-            $this->items = $this->dbDriver->getCartItems($this->identifier);
+            $this->items = $this->dbDriver->getCartItems($this->user->profile['email']);
         }
     }
     
@@ -101,18 +101,22 @@ class RestoCart{
         if (!isset($resourceInfo)) {
             $resourceInfo = array();
         }
-        $itemId = sha1(mt_rand() . microtime()); 
-        if ($synchronize) {
-            if (!$this->dbDriver->addToCart($this->identifier, $itemId, $resourceUrl, $resourceInfo)) {
-                return false;
-            }
-        }
-        $this->items[$itemId] = array(
+        $item = array(
             'url' => $resourceUrl,
             'size' => isset($resourceInfo['size']) ? $resourceInfo['size'] : null,
             'checksum' => isset($resourceInfo['checksum']) ? $resourceInfo['checksum'] : null,
-            'mimeType' => isset($resourceInfo['mimeType']) ? $resourceInfo['mimeType'] : null
+            'mimeType' => isset($resourceInfo['mimeType']) ? $resourceInfo['mimeType'] : null,
+            'collection' => isset($resourceInfo['collection']) ? $resourceInfo['collection'] : null,
+            'identifier' => isset($resourceInfo['identifier']) ? $resourceInfo['identifier'] : null
         );
+        $itemId = sha1($this->user->profile['email'] . $resourceUrl); 
+        if ($synchronize) {
+            if (!$this->dbDriver->addToCart($this->user->profile['email'], $item)) {
+                return false;
+            }
+        }
+        $this->items[$itemId] = $item;
+        
         return true;
     }
     
@@ -130,7 +134,7 @@ class RestoCart{
             if (isset($this->items[$itemId])) {
                 unset($this->items[$itemId]);
             }
-            return $this->dbDriver->removeFromCart($this->identifier, $itemId);
+            return $this->dbDriver->removeFromCart($this->user->profile['email'], $itemId);
         }
         else if (isset($this->items[$itemId])) {
             unset($this->items[$itemId]);
@@ -141,16 +145,25 @@ class RestoCart{
     }
     
     /**
-     * Returns cart for user
-     * 
-     * @param string $identifier : user identifier
+     * Returns all items from cart
      */
     public function getItems() {
         return $this->items;
     }
     
     /**
+     * Return the cart as a JSON file
+     * 
+     * @param boolean $pretty
+     */
+    public function toJSON($pretty) {
+        return RestoUtil::json_format($this->getItems(), $pretty);
+    }
+    
+    /**
      * Return the cart as a metalink XML file
+     * 
+     * Warning ! a link is created only for resource that can be downloaded by users
      */
     public function toMETA4() {
         
@@ -164,9 +177,20 @@ class RestoCart{
         $xml->writeElement('published', date('Y-m-d\TH:i:sO'));
         
         /*
-         * One metalink file per item
+         * One metalink file per item - if user has rights to download file
          */
         foreach (array_keys($this->items) as $key) {
+            if (isset($this->items[$key]['url']) && RestoUtil::isUrl($this->items[$key]['url'])) {
+                $exploded = parse_url($this->items[$key]['url']);
+                $segments = explode('/', $exploded['path']);
+                $last = count($segments) - 1;
+                if ($last > 2) {
+                    list($modifier) = explode('.', $segments[$last], 1);
+                    if ($modifier !== 'download' || !$this->user->canDownload($segments[$last - 2], $segments[$last - 1])) {
+                        continue;
+                    }
+                }
+            }
             $xml->startElement('file');
             if (isset($this->items[$key]['size'])) {
                 $xml->writeElement('size', $this->items[$key]['size']);

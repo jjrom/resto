@@ -1055,17 +1055,16 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     /**
      * Return true if resource is within cart
      * 
-     * @param string $identifier
-     * @param string $resourceUrl
+     * @param string $itemId
      * @return boolean
      * @throws exception
      */
-    public function isInCart($identifier, $resourceUrl) {
-        if (!isset($identifier) || !isset($resourceUrl)) {
+    public function isInCart($itemId) {
+        if (!isset($itemId)) {
             return false;
         }
         try {
-            $results = pg_query($this->dbh, 'SELECT 1 FROM usermanagement.cart WHERE resource_url=\'' . pg_escape_string($resourceUrl) . '\' AND email=\'' . pg_escape_string($identifier) .'\'');
+            $results = pg_query($this->dbh, 'SELECT 1 FROM usermanagement.cart WHERE itemid=\'' . pg_escape_string($itemId) . '\'');
             if (!$results) {
                 throw new Exception();
             }
@@ -1094,17 +1093,12 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             return $items;
         }
         try {
-            $results = pg_query($this->dbh, 'SELECT itemid, resource_url, resource_size, resource_checksum, resource_mimetype FROM usermanagement.cart WHERE email=\'' . pg_escape_string($identifier) . '\'');
+            $results = pg_query($this->dbh, 'SELECT itemid, item FROM usermanagement.cart WHERE email=\'' . pg_escape_string($identifier) . '\'');
             if (!$results) {
                 throw new Exception();
             }
             while ($result = pg_fetch_assoc($results)) {
-                $items[$result['itemid']] = array(
-                    'url' => $result['resource_url'],
-                    'size' => $result['resource_size'],
-                    'checksum' => $result['resource_checksum'],
-                    'mimeType' => $result['resource_mimetype']
-                );
+                $items[$result['itemid']] = json_decode($result['item'], true);
             }
         } catch (Exception $e) {
             throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot get cart items', 500);
@@ -1117,34 +1111,33 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      * Add resource url to cart
      * 
      * @param string $identifier
-     * @param string $itemId
-     * @param string $resourceUrl
-     * @param array $resourceInfo
+     * @param array $item
+     *   
+     *   Must contain at least a 'url' entry
+     *   
      * @return boolean
      * @throws exception
      */
-    public function addToCart($identifier, $itemId, $resourceUrl, $resourceInfo = array()) {
-        if (!isset($identifier) || !isset($itemId) || !isset($resourceUrl)) {
+    public function addToCart($identifier, $item = array()) {
+        if (!isset($identifier) || !isset($item) || !is_array($item) || !isset($item['url'])) {
             return false;
         }
+        $itemId = sha1($identifier . $item['url']);
         try {
-            if ($this->isInCart($identifier, $resourceUrl)) {
+            if ($this->isInCart($itemId)) {
                 return false;
             }
             $values = array(
-                '\'' . pg_escape_string($resourceUrl) . '\'',
-                '\'' . pg_escape_string($identifier) . '\'',
                 '\'' . pg_escape_string($itemId) . '\'',
-                'now()',
-                isset($resourceInfo['size']) ? $resourceInfo['size'] : 'NULL',
-                isset($resourceInfo['checksum']) ? '\'' . pg_escape_string($resourceInfo['checksum']) . '\'' : 'NULL',
-                isset($resourceInfo['mimeType']) ? '\'' . pg_escape_string($resourceInfo['mimeType']) . '\'' : 'NULL'
+                '\'' . pg_escape_string($identifier) . '\'',
+                '\'' . pg_escape_string(json_encode($item)) . '\'',
+                'now()'
             );
-            $results = pg_query($this->dbh, 'INSERT INTO usermanagement.cart (resource_url, email, itemid, querytime, resource_size, resource_checksum, resource_mimetype) VALUES (' . join(',', $values) . ')');
+            $results = pg_query($this->dbh, 'INSERT INTO usermanagement.cart (itemid, email, item, querytime) VALUES (' . join(',', $values) . ')');
             if (!$results) {
                 throw new Exception();
             }
-            return true;
+            return array($itemId => $item);
         } catch (Exception $e) {
             throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot add ' . $itemId . ' to cart', 500);
         }
@@ -1644,6 +1637,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      *  - resourceMimeType
      *  - resourceSize
      *  - resourceChecksum
+     *  - collection
+     *  - featureIdentifier
      * 
      * @param string $identifier
      * @param string $collectionName
@@ -1657,7 +1652,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             return null;
         }
         try {
-           $result = pg_query($this->dbh, 'SELECT resource AS path, resource_mimetype AS "mimeType", resource_size AS "size", resource_checksum AS "checksum" FROM ' . (isset($collectionName) ? $this->getSchemaName($collectionName) : 'resto') . '.features WHERE identifier=\'' . pg_escape_string($identifier) . '\'');
+           $result = pg_query($this->dbh, 'SELECT identifier, collection, resource AS path, resource_mimetype AS "mimeType", resource_size AS "size", resource_checksum AS "checksum" FROM ' . (isset($collectionName) ? $this->getSchemaName($collectionName) : 'resto') . '.features WHERE identifier=\'' . pg_escape_string($identifier) . '\'');
            if (!$result) {
                throw new Exception();
            }
