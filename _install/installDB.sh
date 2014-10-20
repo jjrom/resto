@@ -228,7 +228,7 @@ CREATE TABLE resto.features (
     metadata            VARCHAR(250),
     metadata_mimetype   VARCHAR(250),
     resource            VARCHAR(250),
-    resource_mimetype   VARCHAR(20),
+    resource_mimetype   VARCHAR(250),
     resource_size       INTEGER,
     resource_checksum   TEXT, -- Checksum should be on the form checksumtype=checksum (e.g. SHA1=.....)
     wms                 TEXT,
