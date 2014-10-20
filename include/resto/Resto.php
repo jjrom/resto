@@ -566,6 +566,7 @@ class Resto {
                 $userInfo = $this->dbDriver->storeUserProfile(array(
                     'email' => $this->context->query['email'],
                     'password' => isset($this->context->query['password']) ? $this->context->query['password'] : null,
+                    'username' => isset($this->context->query['username']) ? $this->context->query['username'] : null,
                     'givenname' => isset($this->context->query['givenname']) ? $this->context->query['givenname'] : null,
                     'lastname' => isset($this->context->query['lastname']) ? $this->context->query['lastname'] : null
                 ));
