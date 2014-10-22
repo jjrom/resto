@@ -1975,14 +1975,14 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     /*
                      * Check type
                      */
-                    $splitted = explode(':', $s);
+                    $splitted2 = explode(':', $s);
                  
                     /*
                      * Landuse columns are NUMERIC columns
                      */
-                    if (count($splitted) === 2 && $splitted[0] === 'landuse') {
-                        if (in_array($splitted[1], array('cultivated', 'desert', 'flooded', 'forest','herbaceous','snow','ice','urban','water'))) {
-                            $terms[] = 'lu_' . $splitted[1] . ($not ? ' = ' : ' > ') . '0';
+                    if (count($splitted2) === 2 && $splitted2[0] === 'landuse') {
+                        if (in_array($splitted2[1], array('cultivated', 'desert', 'flooded', 'forest','herbaceous','snow','ice','urban','water'))) {
+                            $terms[] = 'lu_' . $splitted2[1] . ($not ? ' = ' : ' > ') . '0';
                         }
                         else {
                             return 'INVALID';
@@ -1991,8 +1991,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     /*
                      * Country and Continents are stored within TEXT[] columns
                      */
-                    else if (count($splitted) === 2 && ($splitted[0] === 'country' || $splitted[0] === 'continent')) {
-                        $tmpKey = $splitted[0] === 'country' ? 'lo_countries' : 'lo_continents';
+                    else if (count($splitted2) === 2 && ($splitted2[0] === 'country' || $splitted2[0] === 'continent')) {
+                        $tmpKey = $splitted2[0] === 'country' ? 'lo_countries' : 'lo_continents';
                         $arr[$tmpKey][$not ? 'without' : 'with'][] = "'" . pg_escape_string($splitted[1]) . "'";
                     }
                     /*
