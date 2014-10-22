@@ -1993,7 +1993,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                      */
                     else if (count($splitted2) === 2 && ($splitted2[0] === 'country' || $splitted2[0] === 'continent')) {
                         $tmpKey = $splitted2[0] === 'country' ? 'lo_countries' : 'lo_continents';
-                        $arr[$tmpKey][$not ? 'without' : 'with'][] = "'" . pg_escape_string($splitted[1]) . "'";
+                        $arr[$tmpKey][$not ? 'without' : 'with'][] = "'" . pg_escape_string($splitted2[1]) . "'";
                     }
                     /*
                      * Everything other types are stored within hstore column
