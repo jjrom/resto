@@ -46,7 +46,7 @@ It is very important to specify strong passwords for this user.
 
 To install RESTo database, launch the following script
 
-        $RESTO_HOME/_install/installDB.sh -F -d <PostGIS directory> -D <data directory> -p <resto user password>
+        $RESTO_HOME/_install/installDB.sh -F -d <PostGIS directory> -p <resto user password>
 
 Note1 : <PostGIS directory> should be replaced by the directory containing both postgis.sql and spatial_ref_sys.sql (e.g. /usr/local/share/postgis/)
 
@@ -104,12 +104,23 @@ and 'AllowOverride All' are set in the apache directory configuration
 
 For instance to access resto at http://localhost/resto2 (change "/directory/to/resto2" by $RESTO_TARGET below):
 
+For Apache < 2.4 :
+
         Alias /resto2/ "/directory/to/resto2/"
         <Directory "/directory/to/resto2/">
             Options FollowSymLinks
             AllowOverride All
             Order allow,deny
             Allow from all
+        </Directory>
+
+For Apache >= 2.4 :
+
+        Alias /resto2/ "/directory/to/resto2/"
+        <Directory "/directory/to/resto2/">
+            Options FollowSymLinks
+            AllowOverride All
+            Require all granted
         </Directory>
 
 ### Check "RewriteBase" value within $RESTO_TARGET/.htaccess
