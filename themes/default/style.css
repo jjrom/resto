@@ -49,6 +49,8 @@ a:hover {
     color:#ccc;
 }
 .bg {
+    background-image: url('img/bg.jpg');
+    background-size: 100% 100%;
     width: 100%;
     position: fixed;
     top: 0;
@@ -126,17 +128,24 @@ footer {
     background: #333333;
 }
 #logo {
-    font-family: 'Montserrat';
     color:#fff;
-    margin: 0px 10px;
     float: left;
+    display: block;
+    font-family: 'Montserrat';
+    margin: 0px 10px;
     height: 45px;
     line-height: 45px;
-    display: block;
     font-size: 2em;
-    font-weight: bold;
 }
 #logo a {
+    color:#fff;
+}
+#breadcrumb {
+    position:fixed;
+    z-index: 90001;
+    top:55px;
+    left:25px;
+    font-size: 0.8em;
     color:#fff;
 }
 
@@ -201,7 +210,6 @@ nav a:active {
  */
 @media only screen and (max-width : 320px) {
 }
-
 
 /*
  * RESTo CSS
@@ -401,7 +409,6 @@ a.resto-keyword-herbaceous  {
     color:#fff;
     margin:5px;
     padding:20px;
-    overflow:auto;
 }
 
 /*
@@ -413,9 +420,6 @@ a.resto-keyword-herbaceous  {
     border-radius: 5px 5px 5px 5px;
     font-size:1em;
     color:#000;
-}
-#dropZone p {
-    font-size:10em;
 }
 #dropZone.hover {
     background-color:#4099FF;

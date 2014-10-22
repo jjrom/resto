@@ -222,7 +222,7 @@
                 /*
                  * Bound search to map view
                  */
-                window.History.pushState({randomize: window.Math.random()}, null, '?' + $(this).serialize() + (window.M && $('#mapshup').visible() ? '&box=' + window.M.Map.Util.p2d(M.Map.map.getExtent()).toBBOX() : ''));
+                window.History.pushState({randomize: window.Math.random()}, null, '?' + $(this).serialize() + (window.R.mapWorks() ? '&box=' + window.M.Map.Util.p2d(window.M.Map.map.getExtent()).toBBOX() : ''));
             });
             
             $("#searchsubmit").click(function(e) {
@@ -1359,6 +1359,17 @@
 
             }
 
+        },
+        
+        /**
+         * Check that mapshup works
+         * @returns boolean
+         */
+        mapWorks: function() {
+            if (window.M && window.M.Map && window.M.Map.map && $('#mapshup').visible()) {
+                return true;
+            }
+            return false;
         }
         
     };

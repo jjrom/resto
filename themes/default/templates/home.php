@@ -14,7 +14,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $self->context->dictionary->language ?>">
     <?php include 'head.php' ?>
-    <body class="glass">
+    <body class="bg glass">
         
         <!-- Header -->
         <?php include 'header.php' ?>
@@ -37,7 +37,11 @@
         
         <div class="row fullWidth" style="width:100%;text-align:center;color:#fff;font-size:2em;">
             <div class="large-12 columns">
+                <?php if ($nbOfProducts > 0) { ?>
                 Currently <?php echo $nbOfProducts;?> images available in <?php echo $nbOfCollections;?> <a href="<?php echo $self->context->baseUrl . 'collections'; ?>">collections</a>
+                <?php } else { ?>
+                Hey! there is nothing in the database yet
+                <?php } ?>
             </div>
         </div>
         
@@ -46,16 +50,15 @@
         <?php include 'footer.php' ?>
         </div>
         <script type="text/javascript">
-        $(document).ready(function() {
-            R.init({
-                language: '<?php echo $self->context->dictionary->language; ?>',
-                translation:<?php echo json_encode($self->context->dictionary->getTranslation()) ?>,
-                restoUrl: '<?php echo $self->context->baseUrl ?>',
-                ssoServices:<?php echo json_encode($self->context->config['ssoServices']) ?>,
-                userProfile:<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?> 
+            $(document).ready(function() {
+                R.init({
+                    language: '<?php echo $self->context->dictionary->language; ?>',
+                    translation:<?php echo json_encode($self->context->dictionary->getTranslation()) ?>,
+                    restoUrl: '<?php echo $self->context->baseUrl ?>',
+                    ssoServices:<?php echo json_encode($self->context->config['ssoServices']) ?>,
+                    userProfile:<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?> 
+                });
             });
-        });
-    </script>
-    <div align="center" ><img src="<?php echo $self->context->baseUrl ?>themes/<?php echo $self->context->config['theme'] ?>/img/bg.jpg" border="0" class="bg" ></div>
+        </script>
     </body>
 </html>

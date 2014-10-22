@@ -1,12 +1,14 @@
+<?php
+    $_noSearchBar = true;
+    $_noMap = true;
+?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $self->context->dictionary->language ?>">
     <?php include 'head.php' ?>
-    <body class="glass">
+    <body class="bg glass">
         
         <!-- Header -->
-        <form id="resto-searchform" changeLocation="true" action="<?php echo $self->context->baseUrl . 'api/collections/search.html' ?>">
         <?php include 'header.php' ?>
-        </form>
         
         <div class="row" style="height:100px;">
             <div class="large-12 columns"></div>
@@ -30,11 +32,9 @@
                     <?php } ?>
                     <?php if ($self->context->user->canPost()) { ?>
                     <li>
-                        <div id="dropZone" class="_dropCollection collectionItem">
-                            <h1 class="center">
-                                <?php echo $self->context->dictionary->translate('_addCollection'); ?>
-                            </h1>
-                            <p class="center">+</p>
+                        <div id="dropZone" class="_dropCollection collectionItem center">
+                            <h1><?php echo $self->context->dictionary->translate('_addCollection'); ?></h1>
+                            <p class="fa fa-5x fa-cloud-upload" style="padding-top:40px;"></p>
                         </div>
                     </li>
                     <?php } ?>
@@ -83,6 +83,5 @@
             }
             
         </script>
-        <div align="center" ><img src="<?php echo $self->context->baseUrl ?>themes/<?php echo $self->context->config['theme'] ?>/img/bg.jpg" border="0" class="bg" ></div>
     </body>
 </html>

@@ -3,7 +3,7 @@
     /*
      * !!! CHANGE THIS !!!
      */
-    c["general"].rootUrl = '//localhost/resto/';
+    c["general"].rootUrl = '//localhost/resto2/';
     
     /*
      * !! DO NOT EDIT UNDER THIS LINE !!
@@ -11,8 +11,8 @@
     c["general"].serverRootUrl = null;
     c["general"].proxyUrl = null;
     c["general"].confirmDeletion = false;
-    c["general"].themePath = "/js/css";
-    c["i18n"].path = "/js/i18n";
+    c["general"].themePath = "/js/lib/mapshup/theme/default";
+    c["i18n"].path = "/js/lib/mapshup/i18n";
     c["general"].displayContextualMenu = false;
     c["general"].displayCoordinates = true;
     c["general"].displayScale = false;

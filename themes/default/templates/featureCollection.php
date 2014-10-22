@@ -2,13 +2,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $self->context->dictionary->language ?>">
     <?php include 'head.php' ?>
     <body>
-        
         <!-- Header -->
-        <form id="resto-searchform" action="<?php echo $self->context->baseUrl . 'collections/' . $self->collection->name. '/search.json' ?>">
+        <form id="resto-searchform" action="<?php echo $self->context->baseUrl . 'collections/' . (isset($self->collection->name) ? $self->collection->name . '/' : '') . 'search.json' ?>">
         <?php include 'header.php' ?>
         </form>
         
         <!-- Collection title and description -->
+        <?php if (isset($self->collection)) { ?>
         <div class="row">
             <div class="large-6 columns">
                 <h1 class="right"><?php echo $self->collection->osDescription[$self->context->dictionary->language]['ShortName']; ?></h1>
@@ -19,11 +19,11 @@
                 </p>
             </div>
         </div>
-        
+        <?php } ?>
         <!-- mapshup display -->
         <div id="mapshup" class="noResizeHeight"></div>
         <!-- Administration -->
-        <?php if ($self->context->user->canPost($self->collection->name)) { ?>
+        <?php if (isset($self->collection) && $self->context->user->canPost($self->collection->name)) { ?>
             <div class="row fullWidth resto-admin">
                 <div class="large-12 columns center">
                     <div id="dropZone"><h1><?php echo $self->context->dictionary->translate('_addResource'); ?></h1><span class="fa fa-arrow-down"></span> <?php echo $self->context->dictionary->translate('_dropResource'); ?> <span class="fa fa-arrow-down"></span></div>
@@ -81,7 +81,7 @@
                     data: <?php echo $self->toJSON() ?>,
                     translation:<?php echo json_encode($self->context->dictionary->getTranslation()) ?>,
                     restoUrl: '<?php echo $self->context->baseUrl ?>',
-                    collection: '<?php echo $self->collection->name ?>',
+                    collection: '<?php echo isset($self->collection->name) ? $self->collection->name : null ?>',
                     ssoServices:<?php echo json_encode($self->context->config['ssoServices']) ?>,
                     userProfile:<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?> 
                 });

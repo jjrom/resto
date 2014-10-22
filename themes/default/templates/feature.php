@@ -1,5 +1,5 @@
 <?php
-    
+    $_noSearchBar = true;
     /*
      * Set variables
      */
@@ -31,7 +31,7 @@
     <body>
         
         <!-- Header -->
-        <?php include 'header_nosearch.php' ?>
+        <?php include 'header.php' ?>
       
         <!-- Collection title and description -->
         <div class="row">
