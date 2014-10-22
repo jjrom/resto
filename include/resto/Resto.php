@@ -249,6 +249,7 @@ class Resto {
         ob_start();
         header('HTTP/1.1 ' . $this->responseStatus . ' ' . (isset(RestoUtil::$codes[$this->responseStatus]) ? RestoUtil::$codes[$this->responseStatus] : RestoUtil::$codes[200]));
         header('Content-Type: ' . RestoUtil::$contentTypes[$this->outputFormat]);
+        $this->setCORS();
         echo $this->response;
         ob_end_flush();
 
@@ -265,27 +266,7 @@ class Resto {
          * CORS : Response to preflights - returns only headers
          */
         if ($this->method == 'OPTIONS') {
-            
-            /*
-             * Only set access to known servers
-             */
-            if (isset($_SERVER['HTTP_ORIGIN'])) {
-                header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
-                header('Access-Control-Allow-Credentials: true');
-                header('Access-Control-Max-Age: 3600');
-            }
-
-            /*
-             * Control header are received during OPTIONS requests
-             */
-            if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-                if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD'])) {
-                    header("Access-Control-Allow-Methods: GET, POST, OPTIONS");         
-                }
-                if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'])) {
-                    header("Access-Control-Allow-Headers: {$_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']}");
-                }
-            }
+            $this->setCORS();
             exit(0);
         }
         
@@ -723,15 +704,23 @@ class Resto {
             $this->response = $this->format($this->user->getCart());
         }
         /*
-         * Add item to cart - POST must contain a 'resourceUrl' property
+         * Add item to cart
          */
         else if ($this->method === 'POST') {
+            
             if (isset($itemid)) {
                 $this->process404();
             }
-            if (!isset($this->context->query['resourceUrl'])) {
-                throw new Exception('Bad Request', 400);
+            
+            /*
+             * Read POST data
+             */
+            $data = RestoUtil::readInputData();
+            
+            if (!is_array($data) || count($data) === 0) {
+                throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid cart', 400);
             }
+            
             if ($this->user->addToCart($this->context->query['resourceUrl'], true)) {
                 $this->response = $this->toJSON(array(
                     'status' => 'success',
@@ -866,7 +855,7 @@ class Resto {
             $data = RestoUtil::readInputData();
             
             if (!is_array($data) || count($data) === 0) {
-                throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid posted file', 500);
+                throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid posted file', 400);
             }
             
             /*
@@ -874,7 +863,7 @@ class Resto {
              */
             if (!isset($collection)) {
                 if (!isset($data['name'])) {
-                    throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid posted file', 500);
+                    throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid posted file', 400);
                 }
                 if ($this->dbDriver->collectionExists($data['name'])) {
                     throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Collection already exists', 500);
@@ -1510,4 +1499,30 @@ class Resto {
         return false;
     }
 
+    /**
+     * Set CORS headers
+     */
+    private function setCORS() {
+        
+       /*
+        * Only set access to known servers
+        */
+       if (isset($_SERVER['HTTP_ORIGIN'])) {
+           header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
+           header('Access-Control-Allow-Credentials: true');
+           header('Access-Control-Max-Age: 3600');
+       }
+
+       /*
+        * Control header are received during OPTIONS requests
+        */
+       if ($this->method === 'OPTIONS') {
+           if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD'])) {
+               header('Access-Control-Allow-Methods: GET, POST, OPTIONS');         
+           }
+           if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'])) {
+               header('Access-Control-Allow-Headers: ' . $_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']);
+           }
+       }
+    }
 }
