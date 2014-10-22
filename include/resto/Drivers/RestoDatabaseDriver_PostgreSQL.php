@@ -57,20 +57,20 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      */
     public function __construct($config = array(), $debug = false) {
         try {
-            $options = array(
+            $dbInfo = array(
                 'dbname=' . (isset($config['dbname']) ? $config['dbname'] : 'resto2'),
                 'user=' . (isset($config['user']) ? $config['user'] : 'resto'),
-                'password=' . (isset($config['password']) ? $config['password'] : 'resto'),
+                'password=' . (isset($config['password']) ? $config['password'] : 'resto')
             );
             /*
              * If host is specified, then TCP/IP connection is used
              * Otherwise socket connection is used
              */
             if (isset($config['host'])) {
-                array_push($options, 'host=' . $config['host']);
-                array_push($options, 'port=' . (isset($config['port']) ? $config['port'] : '5432'));
+                array_push($dbInfo, 'host=' . $config['host']);
+                array_push($dbInfo, 'port=' . (isset($config['port']) ? $config['port'] : '5432'));
             }
-            $this->dbh = pg_connect(join(' ', $options));
+            $this->dbh = pg_connect(join(' ', $dbInfo));
             if (!$this->dbh) {
                 throw new Exception();
             }
@@ -355,7 +355,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                                 'value' => $id
                             );
                         }
-                        $quote = count(split(' ', $hstoreKey)) > 1 ? '"' : '';
+                        $quote = count(explode(' ', $hstoreKey)) > 1 ? '"' : '';
                         $propertyTags[] = $quote . $hstoreKey . $quote . '=>"' . $value . '"';
                     }
                     $values[] = '\'' . pg_escape_string(join(',', $propertyTags)) . '\'';

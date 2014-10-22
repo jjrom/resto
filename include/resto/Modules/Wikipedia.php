@@ -93,13 +93,20 @@ class Wikipedia extends RestoModule {
              */
             if (isset($options['database']['dbname'])) {
                 try {
-                    $this->dbh = pg_connect(join(' ', array(
-                        'host=' . (isset($options['database']['host']) ? $options['database']['host'] : 'localhost'),
-                        'port=' . (isset($options['database']['port']) ? $options['database']['port'] : '5432'),
+                    $dbInfo = array(
                         'dbname=' . $options['database']['dbname'],
                         'user=' . (isset($options['database']['user']) ? $options['database']['user'] : 'resto'),
-                        'password=' . (isset($options['database']['password']) ? $options['database']['password'] : 'resto'),
-                    )));
+                        'password=' . (isset($options['database']['password']) ? $options['database']['password'] : 'resto')
+                    );
+                    /*
+                     * If host is specified, then TCP/IP connection is used
+                     * Otherwise socket connection is used
+                     */
+                    if (isset($options['database']['host'])) {
+                        array_push($dbInfo, 'host=' . $options['database']['host']);
+                        array_push($dbInfo, 'port=' . (isset($options['database']['port']) ? $options['database']['port'] : '5432'));
+                    }
+                    $this->dbh = pg_connect(join(' ', $dbInfo));
                     if (!$this->dbh) {
                         throw new Exception();
                     }

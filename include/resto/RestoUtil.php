@@ -813,7 +813,7 @@ class RestoUtil {
         if (!$bbox) {
             return null;
         }
-        $coords = preg_split('/,/', $bbox);
+        $coords = explode(',', $bbox);
         if (count($coords) !== 4) {
             return null;
         }
@@ -865,7 +865,7 @@ class RestoUtil {
                     }
                     // Outside the quote - split on space character
                     else {
-                        $exploded = preg_split('/ /', $quotted[$i]);
+                        $exploded = explode(' ', $quotted[$i]);
                         for ($j = 0, $m = count($exploded); $j < $m; $j++) {
                             if ($exploded[$j]) {
                                 $output[] = $exploded[$j];
@@ -876,7 +876,7 @@ class RestoUtil {
             }
         }
         else {
-            $output = preg_split('/ /', $str);
+            $output = explode(' ', $str);
         }
         
         return $output;

@@ -250,7 +250,19 @@ class RestoCollection {
      * Load collection parameters from RESTo database
      */
     public function loadFromStore() {
-        $collectionDescription = $this->context->dbDriver->getCollectionDescription($this->name, array('collection'));
+        
+        /*
+         * Retrieve facets
+         */
+        $facets = array('collection');
+        $model = new RestoModel_default($this->context);
+        foreach (array_values($model->searchFilters) as $filter) {
+            if (isset($filter['options']) && $filter['options'] === 'auto') {
+                $facets[] = $filter['key'];
+            }
+        }
+         
+        $collectionDescription = $this->context->dbDriver->getCollectionDescription($this->name, $facets);
         $this->model = RestoUtil::instantiate($collectionDescription['model'], array($this->context));
         $this->osDescription = $collectionDescription['osDescription'];
         $this->status = $collectionDescription['status'];
@@ -390,17 +402,6 @@ class RestoCollection {
         $xml->writeElement('Contact', $this->osDescription[$lang]['Contact']);
 
         /*
-         * Prepares facets
-         */
-        $validFacets = array();
-        foreach ($this->model->searchFilters as $filterName => $filter) {
-            if (isset($filter['options']) && $filter['options'] === 'auto') {
-                $validFacets[] = $filter['key'];
-            }
-        }
-        //$facets = $this->context->dbDriver->getFacets($this->name, $validFacets);
-        
-        /*
          * Generate search urls
          */
         $parameters = array('minimum', 'maximum', 'minExclusive', 'maxExclusive', 'minInclusive', 'maxInclusive', 'pattern', 'title');
@@ -416,7 +417,7 @@ class RestoCollection {
             $xml->writeAttribute('rel', 'results');
             $count = 0;
             foreach ($this->model->searchFilters as $filterName => $filter) {
-                if (isset($filter) && isset($filter['key']) && isset($this->model->properties[$filter['key']])) {
+                if (isset($filter)) {
                     $optional = isset($filter['minimum']) && $filter['minimum'] === 1 ? '' : '?';
                     $url .= ($count > 0 ? '&' : '') . $filter['osKey'] . '={' . $filterName . $optional . '}';
                     $count++;
@@ -428,7 +429,7 @@ class RestoCollection {
              * Parameter extension
              */
             foreach ($this->model->searchFilters as $filterName => $filter) {
-                if (isset($filter) && isset($filter['key']) && isset($this->model->properties[$filter['key']])) {
+                if (isset($filter)) {
                     $xml->startElement('parameters:Parameter');
                     $xml->writeAttribute('name', $filter['osKey']);
                     $xml->writeAttribute('value', '{' . $filterName . '}');
@@ -455,7 +456,7 @@ class RestoCollection {
                             }
                         }
                         else if ($filter['options'] === 'auto') {
-                            if (isset($this->facets[$filter['key']])) {
+                            if (isset($filter['key']) && isset($this->facets[$filter['key']])) {
                                 foreach (array_keys($this->facets[$filter['key']]) as $key) {
                                     
                                     /*
