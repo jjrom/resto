@@ -1207,7 +1207,7 @@ class Resto {
          */
         $modules = array();
         foreach (array_keys($this->config['modules']) as $moduleName) {
-            if ($this->config['modules'][$moduleName]['activate'] === true && class_exists($moduleName)) {
+            if (isset($this->config['modules'][$moduleName]['activate']) && $this->config['modules'][$moduleName]['activate'] === true && class_exists($moduleName)) {
                 $modules[$moduleName] = isset($this->config['modules'][$moduleName]['options']) ? array_merge($this->config['modules'][$moduleName]['options'], array('debug' => $this->debug)) : array('debug' => $this->debug);
             }
         }
