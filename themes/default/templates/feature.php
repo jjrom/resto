@@ -139,20 +139,19 @@
         </div>
         
         <!-- Wikipedia -->
+        <?php if (isset($wikipediaEntries) && is_array($wikipediaEntries) && count($wikipediaEntries) > 0) { ?>
         <div class="row resto-resource fullWidth dark">
             <div class="large-6 columns">
                 <h1 class="right"><?php echo $self->context->dictionary->translate('_poi'); ?></h1>
             </div>
             <div class="large-6 columns">
-                <?php
-                if (is_array($wikipediaEntries) && count($wikipediaEntries) > 0) {
-                    foreach ($wikipediaEntries as $wikipediaEntry) {
-                ?>
+                <?php foreach ($wikipediaEntries as $wikipediaEntry) { ?>
                 <h2><a href="<?php echo $wikipediaEntry['url']; ?>"><?php echo $wikipediaEntry['title']; ?></a></h2>
                 <p><?php echo $wikipediaEntry['summary']; ?></p>
-                <?php }} ?>
+                <?php } ?>
             </div>
         </div>
+        <?php } ?>
         
         <!-- Footer -->
         <?php include 'footer.php' ?>
