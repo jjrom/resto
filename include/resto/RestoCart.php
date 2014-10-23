@@ -95,16 +95,16 @@ class RestoCart{
         }
         
         /*
-         * Retrieve item info
+         * Add resource info to item description
+         * Note : existing info ARE NOT superseeded 
          */
         $resourceInfo = $this->getResourceInfo($item['url']);
         if (isset($resourceInfo)) {
             foreach (array_keys(array('size', 'checksum', 'mimeType', 'collection', 'identifier')) as $key) {
-                if ($resourceInfo[$key]) {
+                if (!isset($item[$key]) && $resourceInfo[$key]) {
                     $item[$key] = $resourceInfo[$key];
                 }
             }
-            
         }
         if ($synchronize) {
             if (!$this->dbDriver->addToCart($this->user->profile['email'], $item)) {
