@@ -52,10 +52,17 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      * Constructor
      * 
      * @param array $config
+     * @param RestoCache $cache
      * @param boolean $debug
      * @throws Exception
      */
-    public function __construct($config = array(), $debug = false) {
+    public function __construct($config, $cache, $debug) {
+        
+        parent::__construct($config, $cache, $debug);
+        
+        if (!isset($config) || !is_array($config)) {
+            $config = array();
+        }
         try {
             $dbInfo = array(
                 'dbname=' . (isset($config['dbname']) ? $config['dbname'] : 'resto2'),
@@ -81,8 +88,6 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         if (isset($config['resultsPerPage'])) {
             $this->resultsPerPage = $config['resultsPerPage'];
         }
-        
-        $this->debug = $debug;
         
     }
 
@@ -548,6 +553,11 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      */
     public function getFacets($collectionName = null, $type = array()) {
         $facets = array();
+        $cacheFileName = $this->getCacheFileName(array('getFacets', $collectionName, $type));
+        $cached = $this->retrieveFromCache($cacheFileName);
+        if (isset($cached)) {
+            return isset($collectionName) && isset($cached[$collectionName]) ? $cached[$collectionName] : $cached;
+        }
         try {
             if (isset($type)) {
                 if (!is_array($type)) {
@@ -614,6 +624,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     }
                 }
             }
+            $this->storeInCache($cacheFileName, $facets);
         } catch (Exception $e) {
             throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot retrieve facets', 500);
         }
@@ -1707,24 +1718,33 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      */
     public function getKeywords($language = 'en', $types = array()) {
         $keywords = array();
+        $cacheFileName = $this->getCacheFileName(array('getKeywords', $language, $types));
+        $cached = $this->retrieveFromCache($cacheFileName);
+        if (isset($cached)) {
+            return array('keywords' => $cached);
+        }
         try {
             $results = pg_query($this->dbh, 'SELECT name, lower(unaccent(name)) as normalized, type, value FROM resto.keywords WHERE ' . 'lang IN(\'' . pg_escape_string($language) . '\', \'**\')' . (count($types) > 0 ? ' AND type IN(' . join(',', $types) . ')' : ''));
             if (!$results) {
-               throw new Exception();
-           }
-           while ($result = pg_fetch_array($results)) {
-               if (!isset($keywords[$result['type']])) {
-                   $keywords[$result['type']] = array();
-               }
-               $keywords[$result['type']][$result['normalized']] = array(
-                   'name' => $result['name'],
-                   'value' => $result['value']
-               );
-           }
+                throw new Exception();
+            }
+            while ($result = pg_fetch_array($results)) {
+                if (!isset($keywords[$result['type']])) {
+                    $keywords[$result['type']] = array();
+                }
+                $keywords[$result['type']][$result['normalized']] = array(
+                    'name' => $result['name'],
+                    'value' => $result['value']
+                );
+            }
+            /*
+             * Store in cache
+             */
+            $this->storeInCache($cacheFileName, $keywords);
         } catch (Exception $e) {
             return new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
-        } 
-        
+        }
+
         return array('keywords' => $keywords);
     }
     
@@ -2405,6 +2425,46 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      */
     private function getSchemaName($collectionName) {
         return '_' . strtolower($collectionName);
+    }
+    
+    /**
+     * Retrieve cached request result
+     * 
+     * @param string $fileName
+     */
+    private function retrieveFromCache($fileName) {
+        if (!isset($fileName) || !isset($this->cache)) {
+            return null;
+        } 
+        if (!$this->cache->isInCache($fileName)) {
+            return null;
+        }
+        return $this->cache->read($fileName);
+    }
+    
+    /**
+     * Store result in cache
+     * 
+     * @param string $fileName
+     * @param array $obj
+     */
+    private function storeInCache($fileName, $obj) {
+        if (!isset($fileName) || !isset($this->cache) || !isset($obj)) {
+            return null;
+        } 
+        return $this->cache->write($fileName, $obj);
+    }
+    
+    /**
+     * Generate a unique cache fileName from input array
+     * 
+     * @param array $arr
+     */
+    private function getCacheFileName($arr) {
+        if (!isset($arr) || !is_array($arr) || count($arr) === 0) {
+            return null;
+        }
+        return sha1(serialize($arr)) . '.cache';
     }
     
     /**

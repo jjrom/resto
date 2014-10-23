@@ -73,6 +73,24 @@ abstract class RestoDatabaseDriver {
         'processingLevel' => null
     );
 
+    /*
+     * Cache object
+     */
+    protected $cache = null;
+    
+    /**
+     * Constructor
+     * 
+     * @param array $config
+     * @param RestoCache $cache
+     * @param boolean $debug
+     * @throws Exception
+     */
+    public function __construct($config, $cache, $debug) {
+        $this->debug = isset($debug) ? $debug : false;
+        $this->cache = isset($cache) ? $cache : null;
+    } 
+    
     /**
      * Return normalized $sentence i.e. in lowercase and without accents
      * This function is superseed in RestoDabaseDriver_PostgreSQL and use
@@ -83,7 +101,7 @@ abstract class RestoDatabaseDriver {
     public function normalize($sentence) {
         return $sentence;
     }
-
+    
     /**
      * Return database handler
      * 

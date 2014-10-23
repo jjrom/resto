@@ -1333,8 +1333,8 @@ class Resto {
         } catch (Exception $e) {
             throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'RestoDatabaseDriver_' . $this->config['database']['driver'] . ' is not insantiable', 500);
         }
-        $this->dbDriver = $databaseClass->newInstance($this->config['database'], $this->debug);
         
+        $this->dbDriver = $databaseClass->newInstance($this->config['database'], isset($this->config['database']['dircache']) ? new RestoCache($this->config['database']['dircache']) : null,$this->debug);
         
     }
     
