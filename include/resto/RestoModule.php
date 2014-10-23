@@ -75,8 +75,10 @@ abstract class RestoModule{
         if (isset($options['debug'])) {
             $this->debug = $options['debug'];
         }
-        if (isset($this->translations) && isset($this->translations[$this->context->dictionary->language])) {
-            $this->context->dictionary->addTranslations($this->translations[$this->context->dictionary->language]);
+        if (isset($this->context)) {
+            if (isset($this->translations) && isset($this->translations[$this->context->dictionary->language])) {
+                $this->context->dictionary->addTranslations($this->translations[$this->context->dictionary->language]);
+            }
         }
     }
     
