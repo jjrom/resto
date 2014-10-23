@@ -715,16 +715,18 @@ class Resto {
             /*
              * Read POST data
              */
-            $data = RestoUtil::readInputData();
+            $item= RestoUtil::readInputData();
             
-            if (!is_array($data) || count($data) === 0) {
+            if (!is_array($item) || count($item) === 0) {
                 throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid cart', 400);
             }
-            
-            if ($this->user->addToCart($this->context->query['resourceUrl'], true)) {
+            $itemId = $this->user->addToCart($item, true);
+            if ($itemId) {
                 $this->response = $this->toJSON(array(
                     'status' => 'success',
-                    'message' => 'Add item to cart'
+                    'message' => 'Add item to cart',
+                    'itemId' => $itemId,
+                    'item' => $item
                 ));
             }
             else {

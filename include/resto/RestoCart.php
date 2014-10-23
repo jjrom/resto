@@ -77,39 +77,35 @@ class RestoCart{
     /**
      * Add item to cart
      * 
-     * @param string $resourceUrl
+     * @param array $item
      * @param boolean $synchronize : true to synchronize with database
      */
-    public function add($resourceUrl, $synchronize = false) {
-        if (!isset($resourceUrl)) {
+    public function add($item, $synchronize = false) {
+        
+        if (!is_array($item) || !isset($item['url'])) {
             return false;
         }
         
         /*
          * Same resource cannot be added twice
          */
-        foreach(array_keys($this->items) as $key) {
-            if ($this->items[$key]['url'] === $resourceUrl) {
-                return false;
-            }
+        $itemId = sha1($this->user->profile['email'] . $item['url']);
+        if (isset($this->items[$itemId])) {
+            return false;
         }
         
         /*
          * Retrieve item info
          */
-        $resourceInfo = $this->getResourceInfo($resourceUrl);
-        if (!isset($resourceInfo)) {
-            $resourceInfo = array();
+        $resourceInfo = $this->getResourceInfo($item['url']);
+        if (isset($resourceInfo)) {
+            foreach (array_keys(array('size', 'checksum', 'mimeType', 'collection', 'identifier')) as $key) {
+                if ($resourceInfo[$key]) {
+                    $item[$key] = $resourceInfo[$key];
+                }
+            }
+            
         }
-        $item = array(
-            'url' => $resourceUrl,
-            'size' => isset($resourceInfo['size']) ? $resourceInfo['size'] : null,
-            'checksum' => isset($resourceInfo['checksum']) ? $resourceInfo['checksum'] : null,
-            'mimeType' => isset($resourceInfo['mimeType']) ? $resourceInfo['mimeType'] : null,
-            'collection' => isset($resourceInfo['collection']) ? $resourceInfo['collection'] : null,
-            'identifier' => isset($resourceInfo['identifier']) ? $resourceInfo['identifier'] : null
-        );
-        $itemId = sha1($this->user->profile['email'] . $resourceUrl); 
         if ($synchronize) {
             if (!$this->dbDriver->addToCart($this->user->profile['email'], $item)) {
                 return false;
@@ -117,7 +113,7 @@ class RestoCart{
         }
         $this->items[$itemId] = $item;
         
-        return true;
+        return $itemId;
     }
     
     /**
