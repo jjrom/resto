@@ -80,12 +80,15 @@ abstract class RestoDictionary {
     public function __construct($dbDriver) {
         $this->dbDriver = $dbDriver;
         $this->language = strtolower(substr(get_class($this), -2));
+        $this->dictionary = array_merge($this->dictionary, $this->dbDriver->getKeywords($this->language));
+        /*
         $keywords = $this->dbDriver->getKeywords($this->language);
         foreach (array_keys($keywords) as $type) {
             foreach ($keywords[$type] as $keyword => $value) {
                 $this->dictionary[$type][$keyword] = $value;
             }
         }
+         */
     }
     
     /**
@@ -344,9 +347,9 @@ abstract class RestoDictionary {
      */
     final public function getKeywordFromValue($inputValue, $type = null) {
         if (isset($type) && isset($this->dictionary['keywords'][$type])) {
-            foreach ($this->dictionary['keywords'][$type] as $key => $value) {
-                if ($inputValue === $value) {
-                    return $key;
+            foreach (array_values($this->dictionary['keywords'][$type]) as $obj) {
+                if ($inputValue === $obj['value']) {
+                    return $obj['name'];
                 }
             }
         }

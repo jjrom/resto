@@ -1975,14 +1975,14 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     /*
                      * Check type
                      */
-                    $splitted2 = explode(':', $s);
+                    $typeAndValue = explode(':', $s);
                  
                     /*
                      * Landuse columns are NUMERIC columns
                      */
-                    if (count($splitted2) === 2 && $splitted2[0] === 'landuse') {
-                        if (in_array($splitted2[1], array('cultivated', 'desert', 'flooded', 'forest','herbaceous','snow','ice','urban','water'))) {
-                            $terms[] = 'lu_' . $splitted2[1] . ($not ? ' = ' : ' > ') . '0';
+                    if (count($typeAndValue) === 2 && $typeAndValue[0] === 'landuse') {
+                        if (in_array($typeAndValue[1], array('cultivated', 'desert', 'flooded', 'forest','herbaceous','snow','ice','urban','water'))) {
+                            $terms[] = 'lu_' . $typeAndValue[1] . ($not ? ' = ' : ' > ') . '0';
                         }
                         else {
                             return 'INVALID';
@@ -1991,9 +1991,9 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     /*
                      * Country and Continents are stored within TEXT[] columns
                      */
-                    else if (count($splitted2) === 2 && ($splitted2[0] === 'country' || $splitted2[0] === 'continent')) {
-                        $tmpKey = $splitted2[0] === 'country' ? 'lo_countries' : 'lo_continents';
-                        $arr[$tmpKey][$not ? 'without' : 'with'][] = "'" . pg_escape_string($splitted2[1]) . "'";
+                    else if (count($typeAndValue) === 2 && ($typeAndValue[0] === 'country' || $typeAndValue[0] === 'continent')) {
+                        $tmpKey = $typeAndValue[0] === 'country' ? 'lo_countries' : 'lo_continents';
+                        $arr[$tmpKey][$not ? 'without' : 'with'][] = "'" . pg_escape_string($typeAndValue[1]) . "'";
                     }
                     /*
                      * Everything other types are stored within hstore column
