@@ -141,6 +141,15 @@ abstract class RestoDictionary {
     }
     
     /**
+     * Add translations to dictionary
+     * 
+     * @param array $translations
+     */
+    final public function addTranslations($translations = array()) {
+        $this->translations = array_merge($this->translations, $translations);
+    }
+    
+    /**
      * Return translation array
      */
     final public function getTranslation() {
