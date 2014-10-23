@@ -65,6 +65,6 @@ then
     curl -X POST -H "Content-Type: application/json" -d @$JSON https://$AUTH@$HOST/$PATH/collections
 else
     #curl -X POST -F "file[]=@$JSON" http://$AUTH@$HOST/$PATH/collections
-    curl -X POST -H "Content-Type: application/json" -d @$JSON https://$AUTH@$HOST/$PATH/collections
+    curl -X POST -H "Content-Type: application/json" -d @$JSON http://$AUTH@$HOST/$PATH/collections
 fi
 echo ""
