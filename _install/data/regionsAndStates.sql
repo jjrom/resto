@@ -215,7 +215,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Polog','polog', '*
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Pomurska','pomurska', '**', 'region');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Pristina','pristina', '**', 'region');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Prizren','prizren', '**', 'region');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Provence-Alpes-Côte-d'Azur','provence-alpes-cote-d'azur', '**', 'region');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Provence-Alpes-Côte-d''Azur','provence-alpes-cote-d''azur', '**', 'region');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Rasinski','rasinski', '**', 'region');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Repuplika Srpska','repuplika srpska', '**', 'region');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Réunion','reunion', '**', 'region');
@@ -269,7 +269,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Uturumæ̆da paḷ
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Uturu paḷāta','uturu paḷata', '**', 'region');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ūva paḷāta','uva paḷata', '**', 'region');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Valenciana','valenciana', '**', 'region');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Valle d'Aosta','valle d'aosta', '**', 'region');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Valle d''Aosta','valle d''aosta', '**', 'region');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Vardar','vardar', '**', 'region');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Vayamba paḷāta','vayamba paḷata', '**', 'region');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Veneto','veneto', '**', 'region');
@@ -291,7 +291,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Zapadno-Bački','z
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Zasavska','zasavska', '**', 'region');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Zemgale','zemgale', '**', 'region');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('','', '**', 'region');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('A'ana','a'ana', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('A''ana','a''ana', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Aargau','aargau', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Aberdeen','aberdeen', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Aberdeenshire','aberdeenshire', '**', 'state');
@@ -384,14 +384,14 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Al-Basrah','al-bas
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Al Batnah North','al batnah north', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Al Batnah South','al batnah south', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Albay','albay', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Al Bayda'','al bayda'', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Al Bayda''','al bayda''', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Alberta','alberta', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Alborz','alborz', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Al Buhayrah','al buhayrah', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Al Buraymi','al buraymi', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Al Butnan','al butnan', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Al Daayen','al daayen', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Al Dali'','al dali'', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Al Dali''','al dali''', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Al Dhahira','al dhahira', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Alebtong','alebtong', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Aleppo','aleppo', '**', 'state');
@@ -463,7 +463,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Amhara','amhara', 
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Amman','amman', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Amnat Charoen','amnat charoen', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Amolatar','amolatar', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Amoron'i Mania','amoron'i mania', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Amoron''i Mania','amoron''i mania', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ampāra','ampara', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Amran','amran', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Amudat','amudat', '**', 'state');
@@ -555,7 +555,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ariège','ariege',
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Arima','arima', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Arizona','arizona', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Arkansas','arkansas', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Arkhangel'sk','arkhangel'sk', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Arkhangel''sk','arkhangel''sk', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Armagh','armagh', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Armavir','armavir', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ar Raqqah','ar raqqah', '**', 'state');
@@ -577,17 +577,17 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ash Shamālīyah',
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ash Sharqiyah','ash sharqiyah', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ash Sharqiyah North','ash sharqiyah north', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ash Sharqiyah South','ash sharqiyah south', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ash Shati'','ash shati'', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ash Shati''','ash shati''', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('`Asir','`asir', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Assaba','assaba', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Assam','assam', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('As-Sulaymaniyah','as-sulaymaniyah', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('As Suwayda'','as suwayda'', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('As Suwayda''','as suwayda''', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('As Suways','as suways', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Astana','astana', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Astara','astara', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Asti','asti', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Astrakhan'','astrakhan'', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Astrakhan''','astrakhan''', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Asturias','asturias', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Asunción','asuncion', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Aswan','aswan', '**', 'state');
@@ -603,7 +603,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Atlantique','atlan
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Atsimo-Andrefana','atsimo-andrefana', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Atsimo-Atsinanana','atsimo-atsinanana', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Atsinanana','atsinanana', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('At-Ta'mim','at-ta'mim', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('At-Ta''mim','at-ta''mim', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Attapu','attapu', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Attard','attard', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Attiki','attiki', '**', 'state');
@@ -1231,8 +1231,8 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Çorum','corum', '
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Cosenza','cosenza', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Cospicua','cospicua', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Cotabato','cotabato', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Côte-d'Or','cote-d'or', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Côtes-d'Armor','cotes-d'armor', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Côte-d''Or','cote-d''or', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Côtes-d''Armor','cotes-d''armor', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Cotopaxi','cotopaxi', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Couva-Tabaquite-Talparo','couva-tabaquite-talparo', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Cova Lima','cova lima', '**', 'state');
@@ -1363,7 +1363,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Diyarbakir','diyar
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Djelfa','djelfa', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Djibouti','djibouti', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ð?ng Tháp','d?ng thap', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Dnipropetrovs'k','dnipropetrovs'k', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Dnipropetrovs''k','dnipropetrovs''k', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Dobele','dobele', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Dobje','dobje', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Doboj','doboj', '**', 'state');
@@ -1384,7 +1384,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Domžale','domzale
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Doncaster','doncaster', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Donduseni','donduseni', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Donegal','donegal', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Donets'k','donets'k', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Donets''k','donets''k', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Donga','donga', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Đông Bắc','nong bac', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Đồng Bằng Sông Hồng','nong bang song hong', '**', 'state');
@@ -1505,7 +1505,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Essonne','essonne'
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Est','est', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Estelí','esteli', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Estuaire','estuaire', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES (''Eua',''eua', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('''Eua','''eua', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Eure','eure', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Eure-et-Loir','eure-et-loir', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Évora','evora', '**', 'state');
@@ -1514,7 +1514,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Extrême-Nord','ex
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Exuma','exuma', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Eysturoyar','eysturoyar', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Faafu','faafu', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Fa'asaleleaga','fa'asaleleaga', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Fa''asaleleaga','fa''asaleleaga', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Faetano','faetano', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Falcón','falcon', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Făleşti','falesti', '**', 'state');
@@ -1581,8 +1581,8 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Gaborone','gaboron
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Gabrovo','gabrovo', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Gabú','gabu', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Gafsa','gafsa', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Gaga'emauga','gaga'emauga', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Gaga'ifomauga','gaga'ifomauga', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Gaga''emauga','gaga''emauga', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Gaga''ifomauga','gaga''ifomauga', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Galápagos','galapagos', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Galati','galati', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Galguduud','galguduud', '**', 'state');
@@ -1690,8 +1690,8 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Gradsko','gradsko'
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Grad Sofiya','grad sofiya', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Grad Zagreb','grad zagreb', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Granada','granada', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Grand'Anse','grand'anse', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Grand'Anse Praslin','grand'anse praslin', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Grand''Anse','grand''anse', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Grand''Anse Praslin','grand''anse praslin', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Grand Bassa','grand bassa', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Grand Cape Mount','grand cape mount', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Grand Casablanca','grand casablanca', '**', 'state');
@@ -1757,7 +1757,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Gżira','goira', '
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ha','ha', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Haa Alifu','haa alifu', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Haa Dhaalu','haa dhaalu', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ha'apai','ha'apai', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ha''apai','ha''apai', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Hackney','hackney', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('HaDarom','hadarom', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Hadjer-Lamis','hadjer-lamis', '**', 'state');
@@ -1765,7 +1765,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Hadramawt','hadram
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Hà Giang','ha giang', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Hải Dương','hải dusng', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Haifa','haifa', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ha'il','ha'il', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ha''il','ha''il', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Hainan','hainan', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Hainaut','hainaut', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Hải Phòng','hải phong', '**', 'state');
@@ -1827,7 +1827,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Hauts-de-Seine','h
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Havering','havering', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Hawaii','hawaii', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Hawalli','hawalli', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Hawke's Bay','hawke's bay', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Hawke''s Bay','hawke''s bay', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('HaZafon','hazafon', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Hebei','hebei', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Hedmark','hedmark', '**', 'state');
@@ -1918,7 +1918,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ijuw','ijuw', '**'
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Iklin','iklin', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ikskiles','ikskiles', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ilam','ilam', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Iles Eparses de l'ocean Indien','iles eparses de l'ocean indien', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Iles Eparses de l''ocean Indien','iles eparses de l''ocean indien', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Îles Loyauté','iles loyaute', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Iles Saint-Paul et Nouvelle-Amsterdam','iles saint-paul et nouvelle-amsterdam', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ilfov','ilfov', '**', 'state');
@@ -1981,7 +1981,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Istok','istok', '*
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Itapúa','itapua', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Itasy','itasy', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ivancna Gorica','ivancna gorica', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ivano-Frankivs'k','ivano-frankivs'k', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ivano-Frankivs''k','ivano-frankivs''k', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ivanovo','ivanovo', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Iwate','iwate', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Izabal','izabal', '**', 'state');
@@ -1997,7 +1997,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Jambi','jambi', '*
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Jammu and Kashmir','jammu and kashmir', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Jämtland','jamtland', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Janakpur','janakpur', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Janub Sina'','janub sina'', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Janub Sina''','janub sina''', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Jarash','jarash', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Järva','jarva', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Jarvis Island','jarvis island', '**', 'state');
@@ -2120,7 +2120,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Karak','karak', '*
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Karakalpakstan','karakalpakstan', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Karaman','karaman', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Karas','karas', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Karbala'','karbala'', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Karbala''','karbala''', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Karbinci','karbinci', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Kardzhali','kardzhali', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Karelia','karelia', '**', 'state');
@@ -2196,7 +2196,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Khartoum','khartou
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Khatlon','khatlon', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Khenchela','khenchela', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Kherson','kherson', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Khmel'nyts'kyy','khmel'nyts'kyy', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Khmel''nyts''kyy','khmel''nyts''kyy', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Khomas','khomas', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Khon Kaen','khon kaen', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Khorezm','khorezm', '**', 'state');
@@ -2401,14 +2401,14 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('La Pampa','la pamp
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('La Paz','la paz', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Lapland','lapland', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Lapu-Lapu','lapu-lapu', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('L'Aquila','l'aquila', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('L''Aquila','l''aquila', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Lara','lara', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('La Réunion','la reunion', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('La Rioja','la rioja', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Larnaca','larnaca', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Larne','larne', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('La Romana','la romana', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('L'Artibonite','l'artibonite', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('L''Artibonite','l''artibonite', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Laško','lasko', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Las Palmas','las palmas', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('La Spezia','la spezia', '**', 'state');
@@ -2454,7 +2454,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Lhaviyani','lhaviy
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Lhuntshi','lhuntshi', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Liaoning','liaoning', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Liberecký','liberecky', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Libertador General Bernardo O'Higgins','libertador general bernardo o'higgins', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Libertador General Bernardo O''Higgins','libertador general bernardo o''higgins', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Licko-Senjska','licko-senjska', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Liege','liege', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Lielvardes','lielvardes', '**', 'state');
@@ -2547,7 +2547,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Lucena','lucena', 
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Lucerne','lucerne', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ludzas','ludzas', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Lugo','lugo', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Luhans'k','luhans'k', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Luhans''k','luhans''k', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Lukovica','lukovica', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Lumbini','lumbini', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Lumparland','lumparland', '**', 'state');
@@ -2560,7 +2560,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Luuka','luuka', '*
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Luweero','luweero', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Luxembourg','luxembourg', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Luxor','luxor', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('L'viv','l'viv', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('L''viv','l''viv', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Lwengo','lwengo', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Lyantonde','lyantonde', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ma`an','ma`an', '**', 'state');
@@ -2649,7 +2649,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Mantova','mantova'
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Manubah','manubah', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Manufahi','manufahi', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Manus','manus', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Manu's','manu's', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Manu''s','manu''s', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Manyara','manyara', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Manzini','manzini', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Maputo','maputo', '**', 'state');
@@ -2662,7 +2662,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Maranhão','maranh
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Mardin','mardin', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Margibi','margibi', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('María Trinidad Sánchez','maria trinidad sanchez', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ma'rib','ma'rib', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ma''rib','ma''rib', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Maribor','maribor', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Mariehamn','mariehamn', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Marijampoles','marijampoles', '**', 'state');
@@ -2809,7 +2809,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Mizdah','mizdah', 
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Mizoram','mizoram', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Modena','modena', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Mogilev','mogilev', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Mohale's Hoek','mohale's hoek', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Mohale''s Hoek','mohale''s hoek', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Mojkovac','mojkovac', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Moka','moka', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Mokhotlong','mokhotlong', '**', 'state');
@@ -2833,7 +2833,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Montevideo','monte
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Mont Fleuri','mont fleuri', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Montserrado','montserrado', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Monza e Brianza','monza e brianza', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Moore's Island','moore's island', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Moore''s Island','moore''s island', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Mopti','mopti', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Moquegua','moquegua', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Moravce','moravce', '**', 'state');
@@ -2872,7 +2872,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Mpigi','mpigi', '*
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Mpumalanga','mpumalanga', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Mqabba','mqabba', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Msida','msida', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('M'Sila','m'sila', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('M''Sila','m''sila', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Mtskheta-Mtianeti','mtskheta-mtianeti', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Mtwara','mtwara', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Mubarak Al-Kabeer','mubarak al-kabeer', '**', 'state');
@@ -3143,7 +3143,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Nyanga','nyanga', 
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Nyanza','nyanza', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Nyíregyháza','nyiregyhaza', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Nzérékoré','nzerekore', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('N'zi-Comoé','n'zi-comoe', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('N''zi-Comoé','n''zi-comoe', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Oaxaca','oaxaca', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Oberösterreich','oberosterreich', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Obilić','obilic', '**', 'state');
@@ -3179,7 +3179,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Olongapo','olongap
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Olt','olt', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Omagh','omagh', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Omaheke','omaheke', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ombella-M'Poko','ombella-m'poko', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ombella-M''Poko','ombella-m''poko', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ömnögovi','omnogovi', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Omsk','omsk', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Omusati','omusati', '**', 'state');
@@ -3320,7 +3320,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Penza','penza', '*
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Perak','perak', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Peravia','peravia', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Perlis','perlis', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Perm'','perm'', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Perm''','perm''', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Pernambuco','pernambuco', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Pernik','pernik', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Perthshire and Kinross','perthshire and kinross', '**', 'state');
@@ -3437,7 +3437,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Priekules','prieku
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Priekulu','priekulu', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Prilep','prilep', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Primorsko-Goranska','primorsko-goranska', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Primor'ye','primor'ye', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Primor''ye','primor''ye', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Prince Edward Island','prince edward island', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Princes Town','princes town', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Príncipe','principe', '**', 'state');
@@ -3463,13 +3463,13 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Puttalama','puttal
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Putumayo','putumayo', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Puy-de-Dôme','puy-de-dome', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Pwani','pwani', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('P'yŏngan-bukto','p'yongan-bukto', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('P'yŏngan-namdo','p'yongan-namdo', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('P'yŏngyang','p'yongyang', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('P''yŏngan-bukto','p''yongan-bukto', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('P''yŏngan-namdo','p''yongan-namdo', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('P''yŏngyang','p''yongyang', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Pyrénées-Atlantiques','pyrenees-atlantiques', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Pyrénées-Orientales','pyrenees-orientales', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Qaasuitsup Kommunia','qaasuitsup kommunia', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Qacha's Nek','qacha's nek', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Qacha''s Nek','qacha''s nek', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Qala','qala', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Qaraghandy','qaraghandy', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Qax','qax', '**', 'state');
@@ -3640,7 +3640,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Rutland','rutland'
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ruvuma','ruvuma', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ruyigi','ruyigi', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ryanggang','ryanggang', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ryazan'','ryazan'', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ryazan''','ryazan''', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Saare','saare', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Saarland','saarland', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Saatlı','saatli', '**', 'state');
@@ -3672,7 +3672,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Saint George','sai
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Saint George Basseterre','saint george basseterre', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Saint George Gingerland','saint george gingerland', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Saint Georges','saint georges', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Saint George's','saint george's', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Saint George''s','saint george''s', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Saint Helena','saint helena', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Saint James','saint james', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Saint James Windward','saint james windward', '**', 'state');
@@ -3742,7 +3742,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Samut Prakan','sam
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Samut Sakhon','samut sakhon', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Samut Songkhram','samut songkhram', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Samux','samux', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Sana'a','sana'a', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Sana''a','sana''a', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('San Andrés y Providencia','san andres y providencia', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Sánchez Ramírez','sanchez ramirez', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('San Cristóbal','san cristobal', '**', 'state');
@@ -3823,7 +3823,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Sassari','sassari'
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Satakunta','satakunta', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Satu Mare','satu mare', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Satun','satun', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Satupa'itea','satupa'itea', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Satupa''itea','satupa''itea', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Saulkrastu','saulkrastu', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Sava','sava', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Savanes','savanes', '**', 'state');
@@ -3887,7 +3887,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Shaanxi','shaanxi'
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Shabeellaha Dhexe','shabeellaha dhexe', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Shabeellaha Hoose','shabeellaha hoose', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Shabwah','shabwah', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Shamal Sina'','shamal sina'', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Shamal Sina''','shamal sina''', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Sham Shui Po','sham shui po', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Shan','shan', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Shandong','shandong', '**', 'state');
@@ -3973,7 +3973,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Šmarje pri Jelša
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Šmartno in Litiji','smartno in litiji', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Šmartno ob Paki','smartno ob paki', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Smiltenes','smiltenes', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Smith's','smith's', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Smith''s','smith''s', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Smolensk','smolensk', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Smolyan','smolyan', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Sóc Trăng','soc trang', '**', 'state');
@@ -4065,7 +4065,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Staffordshire','st
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Stann Creek','stann creek', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Stara Zagora','stara zagora', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Starše','starse', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Stavropol'','stavropol'', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Stavropol''','stavropol''', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ştefan Voda','stefan voda', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Steiermark','steiermark', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Stepanakert','stepanakert', '**', 'state');
@@ -4075,7 +4075,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Štimlje','stimlje
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Stîngă Nistrului','stinga nistrului', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Štip','stip', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Stirling','stirling', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('St. Julian's','st. julian's', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('St. Julian''s','st. julian''s', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('St. Martin','st. martin', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Stockholm','stockholm', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Stockport','stockport', '**', 'state');
@@ -4085,7 +4085,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Stoke-on-Trent','s
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Stoney Ground','stoney ground', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Stopinu','stopinu', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Štore','store', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('St. Paul's Bay','st. paul's bay', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('St. Paul''s Bay','st. paul''s bay', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Strabane','strabane', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Străşeni','straseni', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Středočeský','středocesky', '**', 'state');
@@ -4144,7 +4144,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Sveta Ana','sveta 
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Sveti Andraž v Slovenskih Goricah','sveti andraz v slovenskih goricah', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Sveti Jurij','sveti jurij', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Sveti Nikole','sveti nikole', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Swain's Island','swain's island', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Swain''s Island','swain''s island', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Swansea','swansea', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Swieqi','swieqi', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Świętokrzyskie','owietokrzyskie', '**', 'state');
@@ -4180,7 +4180,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Taipei City','taip
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Tai Po','tai po', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Taitung','taitung', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ta`izz','ta`izz', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Tajura' wa an Nawahi al Arba','tajura' wa an nawahi al arba', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Tajura'' wa an Nawahi al Arba','tajura'' wa an nawahi al arba', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Tak','tak', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Takamaka','takamaka', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Takêv','takev', '**', 'state');
@@ -4228,7 +4228,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Taurages','taurage
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Tavastia Proper','tavastia proper', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Tavush','tavush', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Tawi-Tawi','tawi-tawi', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ta' Xbiex','ta' xbiex', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ta'' Xbiex','ta'' xbiex', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Tây Ninh','tay ninh', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Taza - Al Hoceima - Taounate','taza - al hoceima - taounate', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Tbilisi','tbilisi', '**', 'state');
@@ -4248,7 +4248,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Temotu','temotu', 
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Tennessee','tennessee', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Teramo','teramo', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Terni','terni', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ternopil'','ternopil'', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ternopil''','ternopil''', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Territoire de Belfort','territoire de belfort', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Tərtər','terter', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Teruel','teruel', '**', 'state');
@@ -4373,8 +4373,8 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Tuvalu','tuvalu', 
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Tuy','tuy', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Tuyên Quang','tuyen quang', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Tuzla','tuzla', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Tver'','tver'', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Tyumen'','tyumen'', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Tver''','tver''', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Tyumen''','tyumen''', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Uaboe','uaboe', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ubon Ratchathani','ubon ratchathani', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ucar','ucar', '**', 'state');
@@ -4386,7 +4386,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Uíge','uige', '**
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ulaanbaatar','ulaanbaatar', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ulcinj','ulcinj', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ulsan','ulsan', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ul'yanovsk','ul'yanovsk', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ul''yanovsk','ul''yanovsk', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Umm Al Qaywayn','umm al qaywayn', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Umm Salal','umm salal', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Una-Sana','una-sana', '**', 'state');
@@ -4416,7 +4416,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Uttar Pradesh','ut
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Uusimaa','uusimaa', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('`Uvea','`uvea', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Uvs','uvs', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Va'a-o-Fonoti','va'a-o-fonoti', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Va''a-o-Fonoti','va''a-o-fonoti', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Vaavu','vaavu', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Vacoas-Phoenix','vacoas-phoenix', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Vaduz','vaduz', '**', 'state');
@@ -4428,7 +4428,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Valais','valais', 
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Valandovo','valandovo', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Vâlcea','valcea', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Val-de-Marne','val-de-marne', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Val-d'Oise','val-d'oise', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Val-d''Oise','val-d''oise', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Valencia','valencia', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Valenzuela','valenzuela', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Vale of Glamorgan','vale of glamorgan', '**', 'state');
@@ -4465,7 +4465,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Vatovavy-Fitovinan
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Vaucluse','vaucluse', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Vaud','vaud', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Vaupés','vaupes', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Vava'u','vava'u', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Vava''u','vava''u', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Vavuniyāva','vavuniyava', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Vayots Dzor','vayots dzor', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Vecpiebalgas','vecpiebalgas', '**', 'state');
@@ -4508,7 +4508,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Vilanu','vilanu', 
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Vila Real','vila real', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Viljandi','viljandi', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Villa Clara','villa clara', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ville de N'Djamena','ville de n'djamena', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ville de N''Djamena','ville de n''djamena', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Vilniaus','vilniaus', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Vĩnh Long','vinh long', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Vĩnh Phúc','vinh phuc', '**', 'state');
@@ -4643,7 +4643,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Yāpanaya','yapana
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Yaracuy','yaracuy', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Yardımlı','yardimli', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Yaren','yaren', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Yaroslavl'','yaroslavl'', '**', 'state');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Yaroslavl''','yaroslavl''', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Yasothon','yasothon', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Yatenga','yatenga', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Yau Tsim Mong','yau tsim mong', '**', 'state');
