@@ -81,14 +81,6 @@ abstract class RestoDictionary {
         $this->dbDriver = $dbDriver;
         $this->language = strtolower(substr(get_class($this), -2));
         $this->dictionary = array_merge($this->dictionary, $this->dbDriver->getKeywords($this->language));
-        /*
-        $keywords = $this->dbDriver->getKeywords($this->language);
-        foreach (array_keys($keywords) as $type) {
-            foreach ($keywords[$type] as $keyword => $value) {
-                $this->dictionary[$type][$keyword] = $value;
-            }
-        }
-         */
     }
     
     /**

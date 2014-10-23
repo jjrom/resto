@@ -290,7 +290,12 @@ class RestoDictionary_fr extends RestoDictionary {
         '_dropResource' => 'Déposer un fichier de métadonnées',
         '_resultFor' => 'R&eacute;sultats correspondants &agrave; &#34;{a:1}&#34;',
         '_resourceSummary' => 'Image {a:1} ({a:2} m) acquise le {a:3}',
-        '_poi' => 'Point d\'int&eacute;r&ecirc;ts'
+        '_poi' => 'Point d\'int&eacute;r&ecirc;ts',
+        // Menu
+        '_menu_shareOn' => 'Partager sur {a:1}',
+        '_menu_viewCart' => 'Voir le panier',
+        '_menu_connexion' => 'Se connecter',
+        '_menu_search' => 'Chercher...'
     );
     
     /**

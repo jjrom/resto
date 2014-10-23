@@ -295,9 +295,6 @@ class RestoDictionary_en extends RestoDictionary {
         // Menu
         '_menu_shareOn' => 'Share on {a:1}',
         '_menu_viewCart' => 'View Cart',
-        '_menu_informations' => 'informations',
-        '_menu_didacticiel' => 'didacticiel',
-        '_menu_administration' => 'administration',
         '_menu_connexion' => 'Connexion',
         '_menu_search' => 'Search...',
         //Administration
