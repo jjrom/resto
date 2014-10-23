@@ -291,7 +291,6 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Zapadno-Bački','z
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Zasavska','zasavska', '**', 'region');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Zemgale','zemgale', '**', 'region');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('','', '**', 'region');
-'state' => array(
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('A'ana','a'ana', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Aargau','aargau', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Aberdeen','aberdeen', '**', 'state');
