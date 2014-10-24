@@ -553,8 +553,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      */
     public function getFacets($collectionName = null, $type = array()) {
         $facets = array();
-        $cacheFileName = $this->getCacheFileName(array('getFacets', $collectionName, $type));
-        $cached = $this->retrieveFromCache($cacheFileName);
+        $cached = $this->retrieveFromCache(array('getFacets', $collectionName, $type));
         if (isset($cached)) {
             return isset($collectionName) && isset($cached[$collectionName]) ? $cached[$collectionName] : $cached;
         }
@@ -624,7 +623,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     }
                 }
             }
-            $this->storeInCache($cacheFileName, $facets);
+            $this->storeInCache(array('getFacets', $collectionName, $type), $facets);
         } catch (Exception $e) {
             throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot retrieve facets', 500);
         }
@@ -634,6 +633,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     
     /**
      * Store facet within database (i.e. add 1 to the counter of facet if exist)
+     * Note : this function is thread safe
      * 
      * Input facet structure :
      *      array(
@@ -656,19 +656,13 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     public function storeFacets($facets, $collectionName) {
         try {
             foreach (array_values($facets) as $value) {
-                
                 /*
-                 * Insert new facet
+                 * Thread safe ingestion
                  */
-                if (!$this->facetExists($value['value'], $value['type'], isset($value['parentId']) ? $value['parentId'] : null, $collectionName)) {
-                    pg_query($this->dbh, 'INSERT INTO resto.facets (value, type, collection, parent, parenttype, counter) VALUES (\'' . pg_escape_string($value['value']) . '\',\'' . pg_escape_string($value['type']) . '\',\'' . pg_escape_string($collectionName) . '\',' . (isset($value['parentId']) ? '\'' . pg_escape_string($value['parentId']) . '\'' : 'NULL') . ',' . (isset($value['parentType']) ? '\'' . pg_escape_string($value['parentType']) . '\'' : 'NULL') . ', 1)');
-                }
-                /*
-                 * Update existing facet
-                 */
-                else {
-                    pg_query($this->dbh, 'UPDATE resto.facets SET counter = counter + 1 WHERE type = \'' . pg_escape_string($value['type']) . '\' AND collection = \'' . pg_escape_string($collectionName) . '\' AND value = \'' . pg_escape_string($value['value']) . '\'');
-                }
+                $lock = 'LOCK TABLE resto.facets IN SHARE ROW EXCLUSIVE MODE;';
+                $insert = 'INSERT INTO resto.facets (value, type, collection, parent, parenttype, counter) SELECT \'' . pg_escape_string($value['value']) . '\',\'' . pg_escape_string($value['type']) . '\',\'' . pg_escape_string($collectionName) . '\',' . (isset($value['parentId']) ? '\'' . pg_escape_string($value['parentId']) . '\'' : 'NULL') . ',' . (isset($value['parentType']) ? '\'' . pg_escape_string($value['parentType']) . '\'' : 'NULL') . ', 1';
+                $upsert = 'UPDATE resto.facets SET counter = counter + 1 WHERE type = \'' . pg_escape_string($value['type']) . '\' AND collection = \'' . pg_escape_string($collectionName) . '\' AND value = \'' . pg_escape_string($value['value']) . '\'';
+                pg_query($this->dbh, $lock . 'WITH upsert AS (' . $upsert . ' RETURNING *) ' . $insert . ' WHERE NOT EXISTS (SELECT * FROM upsert)');
             }
         } catch (Exception $e) {
             throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot insert facet for ' . $collectionName, 500);
@@ -1718,8 +1712,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      */
     public function getKeywords($language = 'en', $types = array()) {
         $keywords = array();
-        $cacheFileName = $this->getCacheFileName(array('getKeywords', $language, $types));
-        $cached = $this->retrieveFromCache($cacheFileName);
+        $cached = $this->retrieveFromCache(array('getKeywords', $language, $types));
         if (isset($cached)) {
             return array('keywords' => $cached);
         }
@@ -1740,7 +1733,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             /*
              * Store in cache
              */
-            $this->storeInCache($cacheFileName, $keywords);
+            $this->storeInCache(array('getKeywords', $language, $types), $keywords);
         } catch (Exception $e) {
             return new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
         }
@@ -2430,12 +2423,10 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     /**
      * Retrieve cached request result
      * 
-     * @param string $fileName
+     * @param array $arr
      */
-    private function retrieveFromCache($fileName) {
-        if (!isset($fileName) || !isset($this->cache)) {
-            return null;
-        } 
+    private function retrieveFromCache($arr) {
+        $fileName = $this->getCacheFileName($arr);
         if (!$this->cache->isInCache($fileName)) {
             return null;
         }
@@ -2445,13 +2436,11 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     /**
      * Store result in cache
      * 
-     * @param string $fileName
+     * @param array $arr
      * @param array $obj
      */
-    private function storeInCache($fileName, $obj) {
-        if (!isset($fileName) || !isset($this->cache) || !isset($obj)) {
-            return null;
-        } 
+    private function storeInCache($arr, $obj) {
+        $fileName = $this->getCacheFileName($arr);
         return $this->cache->write($fileName, $obj);
     }
     

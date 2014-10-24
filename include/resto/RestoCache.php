@@ -44,7 +44,7 @@
 class RestoCache {
     
     /*
-     * Cache directory
+     * Cache directory - if not set, no cache !
      */
     private $directory;
 
@@ -54,7 +54,9 @@ class RestoCache {
      * @param string $directory : cache directory (must be readable+writable for Webserver user)
      */
     public function __construct($directory) {
-        $this->directory = isset($directory) ? $directory : '/tmp';
+        if (isset($directory) && is_writable($directory)) {
+            $this->directory = $directory;
+        }
     }
 
     /**
@@ -63,8 +65,10 @@ class RestoCache {
      * @param type $fileName
      */
     public function isInCache($fileName) {
-        $fileName = $this->directory . DIRECTORY_SEPARATOR . $fileName;
-        if (file_exists($fileName)) {
+        if (!isset($fileName) || !isset($this->directory)) {
+            return false;
+        }
+        if (file_exists($this->directory . DIRECTORY_SEPARATOR . $fileName)) {
             return true;
         }
         return false;
@@ -93,6 +97,9 @@ class RestoCache {
      * @param object $obj - Object to store in cache
      */
     function write($fileName, $obj) {
+        if (!$this->directory) {
+            return null;
+        }
         $handle = fopen($this->directory . DIRECTORY_SEPARATOR . $fileName, 'a');
         fwrite($handle, serialize($obj));
         fclose($handle);
