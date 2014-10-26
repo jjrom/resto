@@ -104,20 +104,11 @@ psql -d $DB -U $SUPERUSER << EOF
 CREATE EXTENSION hstore;
 
 --
--- Create Unaccent function
+-- Use unaccent function from postgresql >= 9
+-- Set it as IMMUTABLE to use it in index
 --
-CREATE OR REPLACE FUNCTION unaccent(text)
-RETURNS text
-IMMUTABLE
-STRICT
-LANGUAGE SQL
-AS \$$
-SELECT translate(
-    \$1,
-    'ææ̆áàâãäåāăąạắằẵÀÁÂÃÄÅĀĂĄÆəèééêëēĕėęěệÈÉÊĒĔĖĘĚıìíîïìĩīĭịÌÍÎÏÌĨĪĬİḩòóồôõöōŏőợộÒÓÔÕÖŌŎŐØùúûüũūŭůưửÙÚÛÜŨŪŬŮČÇçćĉčċøơßýÿñşšŠŞŚŒŻŽžźżœðÝŸ¥µđÐĐÑŁţğġħňĠĦ',
-    'aaaaaaaaaaaaaaaAAAAAAAAAAeeeeeeeeeeeeEEEEEEEEiiiiiiiiiiIIIIIIIIIhoooooooooooOOOOOOOOOuuuuuuuuuuUUUUUUUUCCcccccoosyynssSSSOZZzzzooYYYudDDNLtgghnGH'
-);
-\$$;
+CREATE EXTENSION unaccent;
+ALTER FUNCTION unaccent(text) IMMUTABLE;
 
 -- 
 -- resto schema contains collections descriptions tables
