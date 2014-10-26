@@ -354,7 +354,7 @@ abstract class RestoDictionary {
                 }
             }
         }
-        return ucwords($inputValue);
+        return null;
     }
     
     /*

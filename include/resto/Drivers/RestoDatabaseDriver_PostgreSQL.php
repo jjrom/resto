@@ -74,8 +74,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              * Otherwise socket connection is used
              */
             if (isset($config['host'])) {
-                array_push($dbInfo, 'host=' . $config['host']);
-                array_push($dbInfo, 'port=' . (isset($config['port']) ? $config['port'] : '5432'));
+                $dbInfo[] = 'host=' . $config['host'];
+                $dbInfo[] = 'port=' . (isset($config['port']) ? $config['port'] : '5432');
             }
             $this->dbh = pg_connect(join(' ', $dbInfo));
             if (!$this->dbh) {
@@ -105,7 +105,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             }
             $collections = array();
             while ($row = pg_fetch_assoc($results)){
-                array_push($collections, $row);
+                $collections[] = $row;
             }
             return $collections;
             
@@ -128,7 +128,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             }
             $groups = array();
             while ($row = pg_fetch_assoc($results)){
-                array_push($groups, $row);
+                $groups[] = $row;
             }
             return $groups;
             
@@ -331,37 +331,40 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                  * It is assumed that $value has the same structure as
                  * the output keywords property i.e. 
                  *   
-                 *      $value = array(
-                 *          "name1" => array(
-                 *              "id" => id,
-                 *              "type" => type,
-                 *              "value" => value or array()
-                 *          ),
-                 *          "name2" => array(
-                 *              ...
-                 *          ),
-                 *          ...
-                 *      )
+                 *      $keywords = array(
+                 *          array(
+                 *              array(
+                 *                  "name" => name
+                 *                  "id" => id, // type:value
+                 *                  "parentId" => id, // parentType:parentValue
+                 *                  "value" => value or array()
+                 *              ),
+                 *              array(
+                 *                  ...
+                 *              )
+                 *          )
+                 *      );
                  * 
                  *  keyword storage convention within hstore :
                  * 
-                 *       "type:id" => pid:value
+                 *       "id" => name|parentId|value
                  */
                 else if ($elements[$i][0] === 'keywords' && is_array($elements[$i][1])) {
-                    foreach ($elements[$i][1] as $name => $keywords) {
-                        $value = (isset($keywords['parentId']) ? $keywords['parentId'] : '') . ':' . (isset($keywords['value']) ? $keywords['value'] : '');
-                        $id = trim((isset($keywords['id']) ? $keywords['id'] : strtolower($name)));
-                        $hstoreKey = $keywords['type'] . ':' . $id;
-                        if ($this->getFacetCategory($keywords['type'])) {
+                    foreach (array_values($elements[$i][1]) as $keyword) {
+                        list($idType, $idId) = explode(':', $keyword['id'], 2);
+                        if ($this->getFacetCategory($idType)) {
+                            if (isset($keyword['parentId'])) {
+                                list($parentIdType, $parentIdId) = explode(':', $keyword['parentId'], 2);
+                            }
                             $facets[] = array(
-                                'type' => $keywords['type'],
-                                'parentId' => isset($keywords['parentId']) ? $keywords['parentId'] : null,
-                                'parentType' => isset($keywords['parentType']) ? $keywords['parentType'] : $this->getFacetParent($keywords['type']),
-                                'value' => $id
+                                'type' => $idType,
+                                'parentId' => isset($parentIdId) ? $parentIdId : null,
+                                'parentType' => isset($parentIdType) ? $parentIdType : $this->getFacetParent($idType),
+                                'value' => $idId
                             );
                         }
-                        $quote = count(explode(' ', $hstoreKey)) > 1 ? '"' : '';
-                        $propertyTags[] = $quote . $hstoreKey . $quote . '=>"' . $value . '"';
+                        $quote = count(explode(' ', $keyword['id'])) > 1 ? '"' : '';
+                        $propertyTags[] = $quote . $keyword['id'] . $quote . '=>"' . (isset($keyword['name']) ? $keyword['name'] : '') . '|' . ((isset($keyword['parentId']) ? $keyword['parentId'] : '') . '|' . (isset($keyword['value']) ? $keyword['value'] : '')) . '"';
                     }
                     $values[] = '\'' . pg_escape_string(join(',', $propertyTags)) . '\'';
                     
@@ -371,16 +374,17 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                      */
                     $countries = array();
                     $continents = array();
-                    foreach ($elements[$i][1] as $name => $keywords) {
-                        if ($keywords['type'] === 'landuse') {
-                            $keys[] = 'lu_' . (isset($keywords['id']) ? $keywords['id'] : strtolower($name));
-                            $values[] = $keywords['value'];
+                    foreach (array_values($elements[$i][1]) as $keyword) {
+                        list($idType, $idId) = explode(':', $keyword['id'], 2);
+                        if ($idType === 'landuse') {
+                            $keys[] = 'lu_' . $idId;
+                            $values[] = $keyword['value'];
                         }
-                        else if ($keywords['type'] === 'country') {
-                            $countries[] = '"' . pg_escape_string(isset($keywords['id']) ? $keywords['id'] : $name) . '"';
+                        else if ($idType === 'country') {
+                            $countries[] = '"' . pg_escape_string($idId) . '"';
                         }
-                        else if ($keywords['type'] === 'continent') {
-                            $continents[] = '"' . pg_escape_string(isset($keywords['id']) ? $keywords['id'] : $name) . '"';
+                        else if ($idType === 'continent') {
+                            $continents[] = '"' . pg_escape_string($idId) . '"';
                         }
                     }
                     if (count($countries) > 0) {
@@ -865,11 +869,11 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     }
                 }
                 if ($create) {
-                    array_push($counters, array(
+                    $counters[] = array(
                         'field' => $pivotType,
                         'value' => $result['value'],
                         'count' => (integer) $result['counter']
-                    ));
+                    );
                 }
             }
             $this->storeInCache(array('getFacetPivot', $pivotType, $parentValue), $counters);
@@ -1106,7 +1110,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 $user['activated'] = $user['activated'] === 't' ? true : false;
                 $user['registrationdate'] = substr(str_replace(' ', 'T', $user['registrationdate']), 0, 19) . 'Z';
         
-                array_push($usersProfile, $user);
+                $usersProfile[] = $user;
         }
         
         return $usersProfile;
@@ -1176,7 +1180,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             for ($i = count($booleans); $i--;) {
                 $row[$booleans[$i]] = $row[$booleans[$i]] === 't' ? true : false;
             }
-            array_push($rights, $row);
+            $rights[] = $row;
         }
         return $rights;
     }
@@ -2110,10 +2114,10 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 $ors = array();
                 for ($i = count($requestParams[$filterName]); $i--;) {
                     if ($operation === '=' && substr($requestParams[$filterName][$i], -1) === '%') {
-                        array_push($ors, $model->getDbKey($model->searchFilters[$filterName]['key']) . ' LIKE ' . $quote . pg_escape_string($requestParams[$filterName][$i]) . $quote);
+                        $ors[] = $model->getDbKey($model->searchFilters[$filterName]['key']) . ' LIKE ' . $quote . pg_escape_string($requestParams[$filterName][$i]) . $quote;
                     }
                     else {
-                        array_push($ors, $model->getDbKey($model->searchFilters[$filterName]['key']) . ' ' . $operation . ' ' . $quote . pg_escape_string($requestParams[$filterName][$i]) . $quote);
+                        $ors[] = $model->getDbKey($model->searchFilters[$filterName]['key']) . ' ' . $operation . ' ' . $quote . pg_escape_string($requestParams[$filterName][$i]) . $quote;
                     }
                 }
                 if (count($ors) > 1) {
@@ -2528,44 +2532,36 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         foreach ($json as $key => $value) {
 
             /*
-             * $key format is "type:name"
+             * $key format is "type:id"
              */
-            $type = null;
-            $name = $key;
-            $splitted = explode(':', $key);
-            if (count($splitted) > 1) {
-
-                $type = $splitted[0];
-
-                /*
-                 * Do not display landuse_details
-                 */
-                if ($type === 'landuse_details') {
-                    continue;
-                }
-
-                $name = substr($key, strlen($splitted[0]) + 1);
-            }
+            list($type, $id) = explode(':', $key, 2);
+            $hrefKey = $key;
             
             /*
-             * Value format is "parent:value"
+             * Do not display landuse_details
              */
-            list($parent, $value) = explode(':', $value);
-            
-            $translated = trim($model->context->dictionary->getKeywordFromValue($name, $type));
-            $keywords[$translated] = array();
-            $keywords[$translated]['id'] = $name;
-            if ($type !== null) {
-                $keywords[$translated]['type'] = $type;
+            if ($type === 'landuse_details') {
+                continue;
             }
-            if ($parent) {
-                $keywords[$translated]['parent'] = $parent;
+
+            /*
+             * Value format is "name|parentId|value"
+             */
+            list($name, $parentId, $value) = explode('|', $value, 3);
+            if (!$name) {
+                $name = trim($model->context->dictionary->getKeywordFromValue($id, $type));
+                if (!isset($name)) {
+                    $name = ucwords($id);
+                }
+                $hrefKey = $name;
             }
-            if ($value) {
-                $keywords[$translated]['value'] = is_numeric($value) ? floatval($value) : $value;
-            }
-            $keywords[$translated]['href'] = RestoUtil::updateUrl($url, array($model->searchFilters['language']['osKey'] => $model->context->dictionary->language,  $model->searchFilters['searchTerms']['osKey'] => count(explode(' ', $translated)) > 1 ? '"'. $translated . '"' : $translated));
-            
+            $keywords[] = array(
+                'name' => $name,
+                'id' => $key,
+                'parentId' => $parentId ? $parentId : null,
+                'value' => $value ? (is_numeric($value) ? floatval($value) : $value) : null,
+                'href' => RestoUtil::updateUrl($url, array($model->searchFilters['language']['osKey'] => $model->context->dictionary->language,  $model->searchFilters['searchTerms']['osKey'] => count(explode(' ', $hrefKey)) > 1 ? '"'. $hrefKey . '"' : $hrefKey))
+            );
         }
 
         return $keywords;
@@ -2758,13 +2754,13 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         try {
             $where = array();
             if (isset($userid)) {
-                array_push($where, 'userid=' . pg_escape_string($userid));
+                $where[] = 'userid=' . pg_escape_string($userid);
             }
             if (isset($options['service'])) {
-                array_push($where, 'service=\'' . pg_escape_string($options['service']) . '\'');
+                $where[] = 'service=\'' . pg_escape_string($options['service']) . '\'';
             }
             if (isset($options['collectionName'])) {
-                array_push($where, 'collection=\'' . pg_escape_string($options['collectionName']) . '\'');
+                $where[] = 'collection=\'' . pg_escape_string($options['collectionName']) . '\'';
             }
             $results = pg_query($this->dbh, 'SELECT gid, userid, method, service, collection, resourceid, query, querytime, url, ip FROM usermanagement.history' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : '') . ' ORDER BY ' . pg_escape_string($options['orderBy']) . ' ' . pg_escape_string($options['ascOrDesc']) . ' LIMIT ' . $options['numberOfResults'] . ' OFFSET ' . $options['startIndex']);
             if (!$results) {

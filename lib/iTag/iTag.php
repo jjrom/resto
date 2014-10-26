@@ -301,7 +301,7 @@ class iTag {
                     $this->error();
                 }
                 while ($element = pg_fetch_assoc($results)) {
-                    array_push($continents, array('name' => $element['continent'], 'id' => $element['id']));
+                    array_push($continents, array('name' => $element['continent'], 'id' => 'continent:'.$element['id']));
                 }
             } else {
                 $continents = getKeywords($this->schema . ".continents", "continent", $footprint, "continent");
@@ -342,22 +342,22 @@ class iTag {
                     if ($index === -1) {
                         array_push($continents, array(
                             'name' => $element['continent'],
-                            'id' => $element['continentid'],
+                            'id' => 'continent:'.$element['continentid'],
                             'countries' => array()
                         ));
                         $index = count($continents) - 1;
                     }
                     if ($options['ordered']) {
-                        array_push($continents[$index]['countries'], array('name' => $element['name'], 'id' => $element['id'], 'pcover' => $this->percentage($element['area'], $element['totalarea'])));
+                        array_push($continents[$index]['countries'], array('name' => $element['name'], 'id' => 'country:'.$element['id'], 'pcover' => $this->percentage($element['area'], $element['totalarea'])));
                     } else {
-                        array_push($continents[$index]['countries'], array('name' => $element['name'], 'id' => $element['id']));
+                        array_push($continents[$index]['countries'], array('name' => $element['name'], 'id' => 'country:'.$element['id']));
                     }
                 } else {
-                    $continents[] = array('name' => $element['continent'], 'id' => $element['continentid']);
+                    $continents[] = array('name' => $element['continent'], 'id' => 'continent:'.$element['continentid']);
                     if ($options['ordered']) {
-                        array_push($countries, array('name' => $element['name'], 'id' => $element['id'], 'pcover' => $this->percentage($element['area'], $element['totalarea'])));
+                        array_push($countries, array('name' => $element['name'], 'id' => 'country:'.$element['id'], 'pcover' => $this->percentage($element['area'], $element['totalarea'])));
                     } else {
-                        array_push($countries, array('name' => $element['name'], 'id' => $element['id']));
+                        array_push($countries, array('name' => $element['name'], 'id' => 'country:'.$element['id']));
                     }
                 }
             }
@@ -401,11 +401,11 @@ class iTag {
                                         }
                                         $index = -1;
                                         for ($k = count($result['continents'][$i]['countries'][$j]['regions']); $k--;) {
-                                            if (!$element['regionid'] && !isset($result['continents'][$i]['countries'][$j]['regions'][$k]['regionid'])) {
+                                            if (!$element['regionid'] && !isset($result['continents'][$i]['countries'][$j]['regions'][$k]['id'])) {
                                                 $index = $k;
                                                 break;
                                             }
-                                            else if (isset($result['continents'][$i]['countries'][$j]['regions'][$k]['regionid']) && $result['continents'][$i]['countries'][$j]['regions'][$k]['regionid'] === $element['regionid']) {
+                                            else if (isset($result['continents'][$i]['countries'][$j]['regions'][$k]['id']) && $result['continents'][$i]['countries'][$j]['regions'][$k]['id'] === $element['regionid']) {
                                                 $index = $k;
                                                 break;
                                             }
@@ -419,7 +419,7 @@ class iTag {
                                             else {
                                                 array_push($result['continents'][$i]['countries'][$j]['regions'], array(
                                                     'name' => $element['region'],
-                                                    'id' => $element['regionid'],
+                                                    'id' => 'region:'.$element['regionid'],
                                                     'states' => array()
                                                 ));
                                             }
@@ -427,9 +427,9 @@ class iTag {
                                         }
                                         if (isset($result['continents'][$i]['countries'][$j]['regions'][$index]['states'])) {
                                             if ($options['ordered']) {
-                                                array_push($result['continents'][$i]['countries'][$j]['regions'][$index]['states'], array('name' => $element['state'], 'id' => $element['stateid'], 'pcover' => $this->percentage($element['area'], $element['totalarea'])));
+                                                array_push($result['continents'][$i]['countries'][$j]['regions'][$index]['states'], array('name' => $element['state'], 'id' => 'state:'.$element['stateid'], 'pcover' => $this->percentage($element['area'], $element['totalarea'])));
                                             } else {
-                                                array_push($result['continents'][$i]['countries'][$j]['regions'][$index]['states'], array('name' => $element['state'], 'id' => $element['stateid']));
+                                                array_push($result['continents'][$i]['countries'][$j]['regions'][$index]['states'], array('name' => $element['state'], 'id' => 'state:'.$element['stateid']));
                                             }
                                         }
                                         break;
@@ -440,13 +440,13 @@ class iTag {
                     }
                 } else {
                     if ($element['region']) {
-                        $regions[] = array('name' => $element['region'], 'id' => $element['regionid']);
+                        $regions[] = array('name' => $element['region'], 'id' => 'region:'.$element['regionid']);
                     }
                     if ($element['state']) {
                         if ($options['ordered']) {
-                            array_push($states, array('name' => $element['state'], 'id' => $element['stateid'], 'pcover' => $this->percentage($element['area'], $element['totalarea'])));
+                            array_push($states, array('name' => $element['state'], 'id' => 'state:'.$element['stateid'], 'pcover' => $this->percentage($element['area'], $element['totalarea'])));
                         } else {
-                            array_push($states, array('name' => $element['state'], 'id' => $element['stateid']));
+                            array_push($states, array('name' => $element['state'], 'id' => 'state:'.$element['stateid']));
                         }
                     }
                 }

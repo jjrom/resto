@@ -151,16 +151,21 @@ class RestoFeature {
             $year = substr($properties[$this->model->searchFilters['time:start']['key']], 0, 4);
             $month = substr($properties[$this->model->searchFilters['time:start']['key']], 5, 2);
             $day = substr($properties[$this->model->searchFilters['time:start']['key']], 8, 2);
-            $properties['keywords'][$year] = array(
-                'type' => 'year',
+            $properties['keywords'][] = array(
+                'name' => $year,
+                'id' => 'year:' . $year,
                 'href' => RestoUtil::updateUrl($searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $year, $this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
             );
-            $properties['keywords'][$year . '-' . $month] = array(
-                'type' => 'month',
+            $properties['keywords'][] = array(
+                'name' => $year . '-' . $month,
+                'id' => 'month:' . $year . '-' . $month,
+                'parentId' => 'year:' . $year,
                 'href' => RestoUtil::updateUrl($searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $year . '-' . $month, $this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
             );
-            $properties['keywords'][$year . '-' . $month . '-' . $day] = array(
-                'type' => 'day',
+            $properties['keywords'][] = array(
+                'name' => $year . '-' . $month . '-' . $day,
+                'id' => 'day:' . $year . '-' . $month . '-' . $day,
+                'parentId' => 'month:' . $year . '-' . $month,
                 'href' => RestoUtil::updateUrl($searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $year . '-' . $month . '-' . $day, $this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
             );
         }
@@ -179,8 +184,9 @@ class RestoFeature {
                 if (count($splitted) > 1) {
                     $v = '"' . $v . '"';
                 }
-                $properties['keywords'][$v] = array(
-                    'type' => $this->model->searchFilters[$key]['keyword']['type'],
+                $properties['keywords'][] = array(
+                    'name' => $v,
+                    'id' => $this->model->searchFilters[$key]['keyword']['type'] . ':' . $v,
                     'href' => RestoUtil::updateUrl($searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $v))
                 );
             }

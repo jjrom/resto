@@ -1128,7 +1128,7 @@
          */
         updateGetCollectionResultEntries: function(json) {
 
-            var i, l, j, k, p, thumbnail, feature, key, keyword, keywords, type, $content, $actions, value, title, addClass, platform, results, pageNumber, resolution, self = this;
+            var i, l, j, k, p, thumbnail, feature, key, keyword, keywords, type, $content, $actions, value, title, addClass, platform, results, resolution, self = this;
 
             json = json || {};
             p = json.properties || {};
@@ -1215,8 +1215,13 @@
                  * Satellite
                  */
                 platform = feature.properties['platform'];
-                if (feature.properties.keywords && feature.properties.keywords[feature.properties['platform']]) {
-                    platform = '<a href="' + self.updateUrlFormat(feature.properties.keywords[feature.properties['platform']]['href'], 'html') + '" class="resto-ajaxified resto-updatebbox resto-keyword resto-keyword-platform" title="' + self.translate('_thisResourceWasAcquiredBy', [feature.properties['platform']]) + '">' + feature.properties['platform'] + '</a> ';
+                if (feature.properties.keywords) {
+                    for (var z = feature.properties.keywords.length; z--;) {
+                        if (feature.properties.keywords[z]['name'] === feature.properties['platform']) {
+                            platform = '<a href="' + self.updateUrlFormat(feature.properties.keywords[z]['href'], 'html') + '" class="resto-ajaxified resto-updatebbox resto-keyword resto-keyword-platform" title="' + self.translate('_thisResourceWasAcquiredBy', [feature.properties['platform']]) + '">' + feature.properties['platform'] + '</a> ';
+                            break;
+                        }
+                    }
                 }
 
                 /*
@@ -1301,35 +1306,35 @@
                             keywords: []
                         }
                     };
-                    for (key in feature.properties.keywords) {
-
-                        keyword = feature.properties.keywords[key];
-                        value = key;
+                    for (var iterator in feature.properties.keywords) {
+                        keyword = feature.properties.keywords[iterator];
+                        var text = keyword['name'];
+                        var typeAndId = keyword.id.split(':'),
                         title = "";
                         addClass = null;
-                        if (keyword.type === 'landuse') {
+                        if (typeAndId[0] === 'landuse') {
                             type = 'landuse';
-                            value = value + ' (' + Math.round(keyword.value) + '%)';
-                            addClass = ' resto-updatebbox resto-keyword-' + keyword.id;
+                            text = text + ' (' + Math.round(keyword.value) + '%)';
+                            addClass = ' resto-updatebbox resto-keyword-' + typeAndId[0] + '_' + typeAndId[1];
                             title = self.translate('_thisResourceContainsLanduse', [keyword.value, key]);
                         }
-                        else if (keyword.type === 'country' || keyword.type === 'continent' || keyword.type === 'region' || keyword.type === 'state') {
+                        else if (typeAndId[0] === 'country' || typeAndId[0] === 'continent' || typeAndId[0] === 'region' || typeAndId[0] === 'state') {
                             type = 'location';
                             addClass = ' centerMap';
-                            title = self.translate('_thisResourceIsLocated', [key]);
+                            title = self.translate('_thisResourceIsLocated', [text]);
                         }
-                        else if (keyword.type === 'city') {
+                        else if (typeAndId[0] === 'city') {
                             type = 'location';
                             addClass = ' centerMap';
-                            title = self.translate('_thisResourceContainsCity', [key]);
+                            title = self.translate('_thisResourceContainsCity', [text]);
                         }
-                        else if (keyword.type === 'platform' || keyword.type === 'instrument') {
+                        else if (typeAndId[0] === 'platform' || typeAndId[0] === 'instrument') {
                             continue;
                         }
-                        else if (keyword.type === 'date') {
+                        else if (typeAndId[0] === 'date') {
                             continue;
                         }
-                        else if (key.indexOf("#") === 0) {
+                        else if (keyword.name.indexOf("#") === 0) {
                             type = 'tag';
                             addClass = ' resto-updatebbox';
                         }
@@ -1337,7 +1342,7 @@
                             type = 'other';
                             addClass = ' resto-updatebbox';
                         }
-                        keywords[type]['keywords'].push('<a href="' + self.updateUrlFormat(feature.properties.keywords[key]['href'], 'html') + '" class="resto-ajaxified resto-keyword' + (feature.properties.keywords[key]['type'] ? ' resto-keyword-' + feature.properties.keywords[key]['type'].replace(' ', '') : '') + (addClass ? addClass : '') + '" title="' + title + '">' + value + '</a> ');
+                        keywords[type]['keywords'].push('<a href="' + self.updateUrlFormat(keyword['href'], 'html') + '" class="resto-ajaxified resto-keyword' + (typeAndId[0] ? ' resto-keyword-' + typeAndId[0].replace(' ', '') : '') + (addClass ? addClass : '') + '" title="' + title + '">' + text + '</a> ');
                     }
 
                     /*

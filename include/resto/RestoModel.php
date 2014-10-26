@@ -749,58 +749,56 @@ abstract class RestoModel {
      * Return a RESTo keywords array from an iTag Hierarchical feature
      * 
      *      $keywords = array(
-     *          array("name1", array(
-     *              "id" => id,
-     *              "type" => type,
-     *              "parentId" => id,
-     *              "value" => value or array()
-     *          ),
-     *          array("name2", array(...))
+     *          array(
+     *              array(
+     *                  "name" => name
+     *                  "id" => id, // type:value
+     *                  "parentId" => id, // parentType:parentValue
+     *                  "value" => value or array()
+     *              ),
+     *              array(
+     *                  ...
+     *              )
+     *          )
      *      );
      * 
      * @param array $iTagFeature
      */
     private function iTagToKeywords($iTagFeature) {
-        
+
         $keywords = array();
-        
+
         if (!isset($iTagFeature) || !isset($iTagFeature['properties'])) {
             return $keywords;
         }
-        
+
         $properties = $iTagFeature['properties'];
-        
-        if ($properties['political']) {
+
+        if (isset($properties['political'])) {
             if (isset($properties['political']['continents'])) {
-                
+
                 // Continents
                 for ($i = 0, $li = count($properties['political']['continents']); $i < $li; $i++) {
                     $continent = $properties['political']['continents'][$i];
-                    $keywords[$continent['name']] = array(
-                        'id' => $continent['id'],
-                        'type' => 'continent'
+                    $keywords[] = array(
+                        'id' => $continent['id']
                     );
-                    
                     // Countries
                     for ($j = 0, $lj = count($continent['countries']); $j < $lj; $j++) {
                         $country = $continent['countries'][$j];
-                        $keywords[$country['name']] = array(
+                        $keywords[] = array(
                             'id' => $country['id'],
-                            'type' => 'country',
                             'parentId' => $continent['id'],
-                            'parentType' => 'continent',
                             'value' => $country['pcover']
                         );
-                        
+
                         // Regions
                         if (isset($country['regions'])) {
                             for ($k = 0, $lk = count($country['regions']); $k < $lk; $k++) {
                                 $region = $country['regions'][$k];
                                 if (isset($region['id'])) {
-                                    $keywords[$region['name']] = array(
+                                    $keywords[] = array(
                                         'id' => $region['id'],
-                                        'type' => 'region',
-                                        'parentType' => 'country',
                                         'parentId' => $country['id']
                                     );
                                 }
@@ -808,49 +806,38 @@ abstract class RestoModel {
                                 // States
                                 for ($l = 0, $ll = count($region['states']); $l < $ll; $l++) {
                                     $state = $region['states'][$l];
-                                    $keywords[$state['name']] = array(
+                                    $keywords[] = array(
                                         'id' => $state['id'],
-                                        'type' => 'state',
                                         'parentId' => isset($region['id']) ? $region['id'] : $country['id'],
-                                        'parentType' => isset($region['id']) ? 'region' : 'country',
                                         'value' => $state['pcover']
                                     );
                                 }
                             }
                         }
                     }
-                    
                 }
             }
-            
-            /*if (isset($properties['political']['cities'])) {
-                foreach (array_values($properties['political']['cities']) as $city) {
-                    $keywords[$city['name']] = array(
-                        'id' => $city['id'],
-                        'type' => 'city'
-                    );
-                }
-            }*/
         }
-        if ($properties['landCover']) {
+        if (isset($properties['landCover'])) {
             if (isset($properties['landCover']['landUse'])) {
                 foreach (array_values($properties['landCover']['landUse']) as $landuse) {
-                    $keywords[$landuse['name']] = array(
-                        'type' => 'landuse',
+                    $keywords[] = array(
+                        'id' => 'landuse:'.strtolower($landuse['name']),
                         'value' => $landuse['pcover']
                     );
                 }
             }
             if (isset($properties['landCover']['landUseDetails'])) {
                 foreach (array_values($properties['landCover']['landUseDetails']) as $landuse) {
-                    $keywords[$landuse['name']] = array(
-                        'type' => 'landuse_details',
+                    $keywords[] = array(
+                        'id' => 'landuse_details:'.strtolower($landuse['name']),
+                        'parentId' => 'landuse:'.strtolower($landuse['parent']),
                         'value' => $landuse['pcover']
                     );
                 }
             }
         }
-        
+
         return $keywords;
     }
     
