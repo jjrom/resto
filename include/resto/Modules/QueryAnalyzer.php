@@ -220,9 +220,9 @@ class QueryAnalyzer extends RestoModule {
         $rawSearchTerms = RestoUtil::splitString($this->context->dbDriver->normalize($params['searchTerms']));
        
         /*
-         * Extract explicit mapping i.e. words with '=' delimiter 
+         * Extract explicit mapping i.e. words with ':' delimiter 
          */
-        $this->extractExplicit($rawSearchTerms, $params, $model);
+        $explicits = $this->extractExplicits($rawSearchTerms, $params, $model);
         
         /*
          * Add a space between a numeric value and '%' character
@@ -275,26 +275,36 @@ class QueryAnalyzer extends RestoModule {
          */
         $this->extractKeywordsAndLocation($searchTerms, $params, $model);
         
+        /*
+         * Merge computed searchTerms with explicits keywords
+         */
+        if (count($explicits) > 0) {
+            $params['searchTerms'] = trim($params['searchTerms'] . ' ' . join(' ', array_keys($explicits)));
+        }
         return array('query' => $input, 'analyze' => $params, 'unProcessed' => $this->unProcessed, 'remaining' => implode(' ', $this->remaining), 'queryAnalyzeProcessingTime' => microtime(true) - $startTime);
         
     }
 
     /**
-     * Extract explicit mapping i.e. words with ':' delimiter 
+     * Extract explicit mapping i.e. words with '=' or ':' delimiters 
      * 
      * @param array $searchTerms
      * @param array $params
      * @param RestoModel $model
      */
-    private function extractExplicit(&$rawSearchTerms, &$params, $model) {
+    private function extractExplicits(&$rawSearchTerms, &$params, $model) {
        
-        $toRemove = array();
+        $explicits = array();
         
+        /*
+         * Explicit OpenSearch key=value
+         */
+        $toRemove = array();
         for ($i = 0, $l = count($rawSearchTerms); $i < $l; $i++) {
             $splitted = explode('=', $rawSearchTerms[$i]);
             if (count($splitted) === 2) {
                 foreach(array_keys($model->searchFilters) as $key) {
-                    if ($model->searchFilters[$key]['osKey'] === $splitted[0]) {
+                    if (strtolower($model->searchFilters[$key]['osKey']) === $splitted[0]) {
                         $params[$key] = $splitted[1];
                         break;
                     }
@@ -308,6 +318,23 @@ class QueryAnalyzer extends RestoModule {
          */
         $rawSearchTerms = $this->stripArray($rawSearchTerms, $toRemove);
         
+        /*
+         * Explicit keyword e.g. "landuse:forest"
+         */
+        for ($i = 0, $l = count($rawSearchTerms); $i < $l; $i++) {
+            $splitted = explode(':', $rawSearchTerms[$i]);
+            if (count($splitted) === 2) {
+                $explicits[$rawSearchTerms[$i]] = true;
+                $toRemove[] = $rawSearchTerms[$i];
+            }
+        }
+        
+        /*
+         * Update searchTerms passed by reference in the function
+         */
+        $rawSearchTerms = $this->stripArray($rawSearchTerms, $toRemove);
+        
+        return $explicits;
     }
     
     /**
