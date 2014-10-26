@@ -423,7 +423,7 @@ class iTag {
                                                     'states' => array()
                                                 ));
                                             }
-                                            $index = count($result['continents']) - 1;
+                                            $index = count($result['continents'][$i]['countries'][$j]['regions']) - 1;
                                         }
                                         if (isset($result['continents'][$i]['countries'][$j]['regions'][$index]['states'])) {
                                             if ($options['ordered']) {
