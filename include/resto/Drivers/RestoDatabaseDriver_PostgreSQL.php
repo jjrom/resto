@@ -316,6 +316,10 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     continue;
                 }
                 
+                if (in_array($elements[$i][0], array('updated', 'published', 'collection'))) {
+                    continue;
+                }
+                
                 $keys[] = pg_escape_string($model->getDbKey($elements[$i][0]));
                 
                 /*
@@ -395,9 +399,6 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                         $keys[] = $model->getDbKey('continents');
                         $values[] = '\'{' . join(',', $continents) . '}\'';
                     }
-                }
-                else if ($elements[$i][0] === 'updated' || $elements[$i][0] === 'published') {
-                    continue;
                 }
                 else {
                     
