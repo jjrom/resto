@@ -324,7 +324,7 @@ class QueryAnalyzer extends RestoModule {
         for ($i = 0, $l = count($rawSearchTerms); $i < $l; $i++) {
             $splitted = explode(':', $rawSearchTerms[$i]);
             if (count($splitted) === 2) {
-                $explicits[$rawSearchTerms[$i]] = true;
+                $explicits[RestoUtil::quoteIfNeeded($rawSearchTerms[$i])] = true;
                 $toRemove[] = $rawSearchTerms[$i];
             }
         }
