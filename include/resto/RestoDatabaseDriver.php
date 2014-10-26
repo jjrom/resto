@@ -54,25 +54,39 @@ abstract class RestoDatabaseDriver {
     public $resultsPerPage = 50;
 
     /*
-     * Valid facet type with parent hierarchy
+     * Facet hierarchy
      */
-    public $validFacetTypes = array(
-        'collection' => null,
-        'year' => null,
-        'month' => 'year',
-        'day' => 'month',
-        'continent' => null,
-        'country' => 'continent',
-        'region' => 'country',
-        'state' => 'region',
-        'landuse' => null,
-        'platform' => null,
-        'instrument' => 'platform',
-        'sensorMode' => 'instrument',
-        'productType' => null,
-        'processingLevel' => null
+    public $facetCategories = array(
+        array(
+            'collection'
+        ),
+        array(
+            'productType'
+        ),
+        array(
+            'processingLevel'
+        ),
+        array(
+            'platform',
+            'instrument',
+            'sensorMode'
+        ),
+        array(
+            'continent',
+            'country',
+            'region',
+            'state'
+        ),
+        array(
+            'year',
+            'month',
+            'day'
+        ),
+        array(
+            'landuse'
+        )
     );
-
+    
     /*
      * Cache object
      */
@@ -88,7 +102,7 @@ abstract class RestoDatabaseDriver {
      */
     public function __construct($config, $cache, $debug) {
         $this->debug = isset($debug) ? $debug : false;
-        $this->cache = isset($cache) ? $cache : null;
+        $this->cache = isset($cache) ? $cache : new RestoCache(null);
     } 
     
     /**
@@ -100,6 +114,62 @@ abstract class RestoDatabaseDriver {
      */
     public function normalize($sentence) {
         return $sentence;
+    }
+    
+    /**
+     * Return facet category or null if not exist
+     * 
+     * @param string $facetName
+     */
+    public function getFacetCategory($facetName) {
+        if (!isset($facetName)) {
+            return null;
+        }
+        for ($i = count($this->facetCategories); $i--;) {
+            for ($j = count($this->facetCategories[$i]); $j--;) {
+                if ($this->facetCategories[$i][$j] === $facetName) {
+                    return $this->facetCategories[$i];
+                }
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Return facet parent
+     * 
+     * @param string $facetName
+     */
+    public function getFacetParent($facetName) {
+        $category = $this->getFacetCategory($facetName);
+        if (!isset($category)) {
+            return null;
+        }
+        for ($i = count($category); $i--;) {
+            if ($facetName === $category[$i] && $i > 0) {
+                return $category[$i - 1];
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Return facet children
+     * 
+     * @param string $facetName
+     */
+    public function getFacetChildren($facetName) {
+        $category = $this->getFacetCategory($facetName);
+        if (!isset($category)) {
+            return null;
+        }
+        $l = count($category);
+        for ($i = $l; $i--;) {
+            if ($facetName === $category[$i] && $i < $l - 1) {
+                return $category[$i + 1];
+            }
+        }
+        return null;
     }
     
     /**

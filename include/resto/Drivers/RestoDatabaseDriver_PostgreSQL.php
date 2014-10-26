@@ -352,11 +352,11 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                         $value = (isset($keywords['parentId']) ? $keywords['parentId'] : '') . ':' . (isset($keywords['value']) ? $keywords['value'] : '');
                         $id = trim((isset($keywords['id']) ? $keywords['id'] : strtolower($name)));
                         $hstoreKey = $keywords['type'] . ':' . $id;
-                        if (in_array($keywords['type'], array_keys($this->validFacetTypes))) {
+                        if ($this->getFacetCategory($keywords['type'])) {
                             $facets[] = array(
                                 'type' => $keywords['type'],
                                 'parentId' => isset($keywords['parentId']) ? $keywords['parentId'] : null,
-                                'parentType' => isset($keywords['parentType']) ? $keywords['parentType'] : $this->validFacetTypes[$keywords['type']],
+                                'parentType' => isset($keywords['parentType']) ? $keywords['parentType'] : $this->getFacetParent($keywords['type']),
                                 'value' => $id
                             );
                         }
@@ -407,11 +407,10 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                         $values[] = '\'' . pg_escape_string($elements[$i][1]) . '\'';
                     }
                     
-                    if (in_array($elements[$i][0], array_keys($this->validFacetTypes))) {
-                        
+                    if ($this->getFacetCategory($elements[$i][0])) {
                         $facets[] = array(
                             'type' => $elements[$i][0],
-                            'parentType' => $this->validFacetTypes[$elements[$i][0]],
+                            'parentType' => $this->getFacetParent($elements[$i][0]),
                             'value' => $elements[$i][1]
                         );
                     }
@@ -473,7 +472,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             pg_query($this->dbh, 'BEGIN');
             $f = $feature->toArray();
             foreach($f['properties'] as $key => $value) {
-                if (in_array($key, array_keys($this->validFacetTypes))) {
+                if ($this->getFacetCategory($key)) {
                     $this->removeFacet(array(
                         'type' => $key,
                         'value' => $value
@@ -481,7 +480,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 }
                 else if ($key === 'keywords') {
                     foreach ($f['properties'][$key] as $keywordKey => $keywordValue) {
-                        if (isset($keywordValue['type']) && in_array($keywordValue['type'], array_keys($this->validFacetTypes))) {
+                        if (isset($keywordValue['type']) && $this->getFacetCategory($keywordValue['type'])) {
                             $this->removeFacet(array(
                                 'type' => $keywordValue['type'],
                                 'value' => isset($keywordValue['id']) ? $keywordValue['id'] : strtolower($keywordKey)
@@ -632,8 +631,258 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     }
     
     /**
+     * Return facets elements from a type for a given collection
+     * 
+     * Returned array structure if collectionName is set
+     * 
+     *      array(
+     *          'type#' => array(
+     *              'value1' => count1,
+     *              'value2' => count2,
+     *              'parent' => array(
+     *                  'value3' => count3,
+     *                  ...
+     *              )
+     *              ...
+     *          ),
+     *          'type2' => array(
+     *              ...
+     *          ),
+     *          ...
+     *      )
+     * 
+     * Or an array of array indexed by collection name if $collectionName is null
+     *  
+     * @param array $categories
+     * 
+     * @return array
+     */
+    public function getFacetsSOLR($collectionName, $facetFilter = array()) {
+        
+        $cached = $this->retrieveFromCache(array('getFacets', $facetFilter));
+        if (isset($cached)) {
+            return $cached;
+        }
+        
+        /*
+         * Get parent from category
+         */
+        $target = $this->getFacetCategory($facetFilter['field']);
+        $facet_pivots = array();
+        foreach (array_values($this->facetCategories) as $facetCategory) {
+            
+            if ($facetCategory[0] === 'collection') {
+                $collectionPivot = $this->getFacetPivots($collectionName, $facetCategory[0], null);
+                continue;
+            }
+            
+            /*
+             * Compute facet recursively
+             */
+            if (isset($target) && $target[0] === $facetCategory[0]) {
+                $parent = $this->getFacetParent($facetFilter['field']);
+                $current = null;
+                $names = array();
+                while(isset($parent)) {
+                    array_unshift($names, $parent);
+                    if (isset($current)) {
+                        $current['pivot'] = $this->getFacetPivots($collectionName, $parent, null);
+                    }
+                    else {
+                        $current = $this->getFacetPivots($collectionName, $parent, null);
+                    }
+                    $parent = $this->getFacetParent($parent);
+                }
+                $facet_pivots['collection,' . join(',', $names)] = $current;
+            }
+            
+            /*
+             * Compute pivot
+             */
+            $pivot = $this->getFacetPivots($collectionName, $facetCategory[0], null);
+            if (count($pivot) > 0) {
+                if (!isset($collectionName)) {
+                    $facet_pivots[$facetCategory[0]] = $this->getFacetPivots($collectionName, $facetCategory[0], null);
+                }
+                else {
+                    $facet_pivots['collection,' . $facetCategory[0]] = array_merge($collectionPivot[0], array('pivot' => $pivot));
+                }
+            }
+            
+        }
+        
+        return array(
+            'facet_counts' => array(
+                'facet_pivots' => $facet_pivots
+            )
+        );
+    }
+    
+    /**
+     * Return facets elements from a type for a given collection
+     * 
+     * Returned array structure if collectionName is set
+     * 
+     *      array(
+     *          'type#' => array(
+     *              'value1' => count1,
+     *              'value2' => count2,
+     *              'parent' => array(
+     *                  'value3' => count3,
+     *                  ...
+     *              )
+     *              ...
+     *          ),
+     *          'type2' => array(
+     *              ...
+     *          ),
+     *          ...
+     *      )
+     * 
+     * Or an array of array indexed by collection name if $collectionName is null
+     *  
+     * @param array $categories
+     * 
+     * @return array
+     */
+    public function getFacetsSOLR2($collectionName, $categories = array()) {
+        
+        $cached = $this->retrieveFromCache(array('getFacets', $categories));
+        if (isset($cached)) {
+            return $cached;
+        }
+        try {
+            foreach ($categories as $key => $value) {
+                $category = $this->getFacetCategory($key);
+                if (isset($category) && isset($category[0])) {
+                    $names = array();
+                    /*
+                     * Get first facet element
+                     */
+                    if (!isset($value)) {
+                        $facet_pivots[$category[0]] = $this->getFacetPivots($collectionName, $category[0], null);
+                    }
+                    else {
+                       
+                        
+                        /*
+                         * Loop on all parents
+                         */
+                        $names = array();
+                        $current_pivot = array();
+                        for ($i = 0, $l = count($category); $i < $l; $i++) {
+                            if ($category[$i] === $key) {
+                                $pivotType = $this->getFacetChildren($key);
+                                if (isset($pivotType)) {
+                                    $current_pivot['pivot'] = $this->getFacetPivots($collectionName, $pivotType, $value);
+                                }
+                                else {
+                                    $current_pivot['pivot'] = $this->getFacetPivots($collectionName, $key, $value);
+                                    array_unshift($names, $pivotType);
+                                }
+                                $this->getFacetPivots($collectionName, $category[$i], null);
+                                break;
+                            }
+                            
+                        }
+                        $parent = $this->getFacetParent($key);
+                        while(isset($parent)) {
+                            array_unshift($names, $parent);
+                            $this->getFacetPivots($collectionName, $parent, null);
+                            $parent = $this->getFacetParent($parent);
+                        }
+                        echo join(',', $names);
+                    }
+                }
+            }
+            
+            /*
+            $pivots = array();
+            for ($i = count($type); $i--;) {
+                $category = $this->getFacetCategory($type[$i]);
+                if (isset($category)) {
+                    $pivots[join(',', $category)] = array();
+                }
+            }
+             * 
+             */
+            //$this->storeInCache(array('getFacets', $collectionName, $type), $facets);
+            
+        } catch (Exception $e) {
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot retrieve facets', 500);
+        }
+        
+        $facets = array(
+            'facet_counts' => array(
+                'facet_pivots' => $facet_pivots
+            )
+        );
+        
+        return $facets;
+        //return isset($collectionName) && isset($facets[$collectionName]) ? $facets[$collectionName] : $facets;
+    }
+    
+    /**
+     * Return facet pivot (SOLR4 like)
+     * 
+     * @param string $collectionName
+     * @param string $pivotType
+     * @param string $parentValue
+     * @return array
+     */
+    private function getFacetPivots($collectionName, $pivotType, $parentValue) {
+        $counters = array();
+        $cached = $this->retrieveFromCache(array('getFacetPivot', $pivotType, $parentValue));
+        if (isset($cached)) {
+            return $cached;
+        }
+        try {
+            
+            /*
+             * Facet for one collection
+             */
+            if (isset($collectionName)) {
+                $results = pg_query($this->dbh, 'SELECT value, counter FROM resto.facets WHERE counter > 0 AND collection=\'' . pg_escape_string($collectionName) . '\' AND type=\'' . pg_escape_string($pivotType) . '\' AND ' . (isset($parentValue) ? 'parent=\'' . pg_escape_string($parentValue) . '\'' : 'parent IS NULL') . ' ORDER BY value');
+            }
+            /*
+             * Facets for all collections
+             */
+            else {
+                $results = pg_query($this->dbh, 'SELECT value, counter FROM resto.facets WHERE counter > 0 AND type=\'' . pg_escape_string($pivotType) . '\' AND ' . (isset($parentValue) ? 'parent=\'' . pg_escape_string($parentValue) . '\'' : 'parent IS NULL') . ' ORDER BY value');
+            }
+            if (!$results) {
+                throw new Exception();
+            }
+            while ($result = pg_fetch_assoc($results)) {
+                $create = true;
+                if (!isset($collectionName)) {
+                    for ($i = count($counters); $i--;) {
+                        if ($counters[$i]['value'] === $result['value']) {
+                            $counters[$i]['count'] += (integer) $result['counter'];
+                            $create = false;
+                            break;
+                        }
+                    }
+                }
+                if ($create) {
+                    array_push($counters, array(
+                        'field' => $pivotType,
+                        'value' => $result['value'],
+                        'count' => (integer) $result['counter']
+                    ));
+                }
+            }
+            $this->storeInCache(array('getFacetPivot', $pivotType, $parentValue), $counters);
+        } catch (Exception $e) {
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot retrieve facets', 500);
+        }
+        return $counters;
+    }
+    
+    /**
      * Store facet within database (i.e. add 1 to the counter of facet if exist)
-     * Note : this function is thread safe
+     * 
+     * !! THIS FUNCTION IS THREAD SAFE !!
      * 
      * Input facet structure :
      *      array(
