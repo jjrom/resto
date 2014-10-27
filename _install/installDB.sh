@@ -79,8 +79,8 @@ else
     # Example : $ROOTDIR = /usr/local/pgsql/share/contrib/postgis-1.5/
     postgis=`echo $ROOTDIR/postgis.sql`
     projections=`echo $ROOTDIR/spatial_ref_sys.sql`
-    psql -d $DB -U $SUPERUSER -f $postgis -h $HOSTNAME
-    psql -d $DB -U $SUPERUSER -f $projections -h $HOSTNAME
+    psql -d $DB -U $SUPERUSER -f $postgis
+    psql -d $DB -U $SUPERUSER -f $projections
 fi
 
 
