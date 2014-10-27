@@ -290,7 +290,6 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Zamboanga Peninsul
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Zapadno-Bački','zapadno-backi', '**', 'region');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Zasavska','zasavska', '**', 'region');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Zemgale','zemgale', '**', 'region');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('','', '**', 'region');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('A''ana','a''ana', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Aargau','aargau', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Aberdeen','aberdeen', '**', 'state');
@@ -4740,4 +4739,3 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Zürich','zurich',
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Żurrieq','zurrieq', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Žužemberk','zuzemberk', '**', 'state');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Zvečan','zvecan', '**', 'state');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('','', '**', 'state');
