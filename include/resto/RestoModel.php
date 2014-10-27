@@ -796,8 +796,12 @@ abstract class RestoModel {
                         if (isset($country['regions'])) {
                             for ($k = 0, $lk = count($country['regions']); $k < $lk; $k++) {
                                 $region = $country['regions'][$k];
+                                if (!isset($region['id'])) {
+                                    $arr = explode(':', $country['id']);
+                                    $region['id'] = 'region:_all_' . $arr[1];
+                                }
                                 $keywords[] = array(
-                                    'id' => isset($region['id']) ? $region['id'] : 'region:all',
+                                    'id' => $region['id'],
                                     'parentId' => $country['id']
                                 );
 
@@ -806,7 +810,7 @@ abstract class RestoModel {
                                     $state = $region['states'][$l];
                                     $keywords[] = array(
                                         'id' => $state['id'],
-                                        'parentId' => isset($region['id']) ? $region['id'] : 'region:all',
+                                        'parentId' => $region['id'],
                                         'value' => $state['pcover']
                                     );
                                 }

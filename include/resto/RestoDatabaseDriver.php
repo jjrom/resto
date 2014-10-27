@@ -117,7 +117,7 @@ abstract class RestoDatabaseDriver {
     }
     
     /**
-     * Return facet category or null if not exist
+     * Return facet category 
      * 
      * @param string $facetName
      */
@@ -136,11 +136,11 @@ abstract class RestoDatabaseDriver {
     }
     
     /**
-     * Return facet parent
+     * Return facet parent type
      * 
      * @param string $facetName
      */
-    public function getFacetParent($facetName) {
+    public function getFacetParentType($facetName) {
         $category = $this->getFacetCategory($facetName);
         if (!isset($category)) {
             return null;
@@ -158,7 +158,7 @@ abstract class RestoDatabaseDriver {
      * 
      * @param string $facetName
      */
-    public function getFacetChildren($facetName) {
+    public function getFacetChildrenType($facetName) {
         $category = $this->getFacetCategory($facetName);
         if (!isset($category)) {
             return null;
