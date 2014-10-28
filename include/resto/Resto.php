@@ -584,7 +584,8 @@ class Resto {
              * email encoded in base64
              */
             if (!ctype_digit($userid)) {
-                if (isset($this->user->profile['email']) && $this->user->profile['email'] === strtolower(base64_decode($userid))) {
+                $userid = strtolower(base64_decode($userid));
+                if (isset($this->user->profile['email']) && $this->user->profile['email'] === $userid) {
                     $userid = $this->user->profile['userid'];
                 }
             }
@@ -592,14 +593,20 @@ class Resto {
             /*
              * Profile can only be seen by its owner or by admin
              */
-            if ($this->user->profile['userid'] !== $userid || $this->user->profile['groupname'] !== 'admin') {
-                throw new Exception('Forbidden', 403);
+            $user = $this->user;
+            if ($user->profile['userid'] !== $userid) {
+                if (!$user->profile['groupname'] !== 'admin') {
+                    throw new Exception('Forbidden', 403);
+                }
+                else {
+                    $user = new RestoUser($userid, null, $this->dbDriver, false);
+                }
             }
             
             $this->response = $this->toJSON(array(
                 'status' => 'success',
-                'message' => 'Profile for ' . $this->user->profile['userid'],
-                'profile' => $this->user->profile
+                'message' => 'Profile for ' . $user->profile['userid'],
+                'profile' => $user->profile
             ));
             
         }
@@ -636,7 +643,8 @@ class Resto {
         * email encoded in base64
         */
         if (!ctype_digit($userid)) {
-            if (isset($this->user->profile['email']) && $this->user->profile['email'] === strtolower(base64_decode($userid))) {
+            $userid = strtolower(base64_decode($userid));
+            if (isset($this->user->profile['email']) && $this->user->profile['email'] === $userid) {
                 $userid = $this->user->profile['userid'];
             }
         }
@@ -644,20 +652,24 @@ class Resto {
         /*
          * Rights can only be seen by its owner or by admin
          */
-        if ($this->user->profile['userid'] !== $userid) {
-            if (!$this->user->profile['groupname'] !== 'admin') {
+        $user = $this->user;
+        if ($user->profile['userid'] !== $userid) {
+            if (!$user->profile['groupname'] !== 'admin') {
                 throw new Exception('Forbidden', 403);
+            }
+            else {
+                $user = new RestoUser($userid, null, $this->dbDriver, false);
             }
         }
 
         $this->response = $this->toJSON(array(
             'status' => 'success',
-            'message' => 'Rights for ' . $this->user->profile['userid'],
-            'userid' => $this->user->profile['userid'],
-            'groupname' => $this->user->profile['groupname'],
+            'message' => 'Rights for ' . $user->profile['userid'],
+            'userid' => $user->profile['userid'],
+            'groupname' => $user->profile['groupname'],
             'collection' => isset($collectionName) ? $collectionName : null,
             'featureIdentifier' => isset($featureIdentifier) ? $featureIdentifier : null,
-            'rights' => $this->user->getRights($collectionName, $featureIdentifier)
+            'rights' => $user->getRights($collectionName, $featureIdentifier)
         ));
         
     }
@@ -682,7 +694,8 @@ class Resto {
         * email encoded in base64
         */
         if (!ctype_digit($userid)) {
-            if (isset($this->user->profile['email']) && $this->user->profile['email'] === strtolower(base64_decode($userid))) {
+            $userid = strtolower(base64_decode($userid));
+            if (isset($this->user->profile['email']) && $this->user->profile['email'] === $userid) {
                 $userid = $this->user->profile['userid'];
             }
         }
@@ -690,8 +703,14 @@ class Resto {
         /*
          * Cart can only be seen by its owner or by admin
          */
-        if ($this->user->profile['userid'] !== $userid) {
-            throw new Exception('Forbidden', 403);
+        $user = $this->user;
+        if ($user->profile['userid'] !== $userid) {
+            if (!$user->profile['groupname'] !== 'admin') {
+                throw new Exception('Forbidden', 403);
+            }
+            else {
+                $user = new RestoUser($userid, null, $this->dbDriver, false);
+            }
         }
         
         /*
@@ -701,7 +720,7 @@ class Resto {
             if (isset($itemid)) {
                 $this->process404();
             }
-            $this->response = $this->format($this->user->getCart());
+            $this->response = $this->format($user->getCart());
         }
         /*
          * Add item to cart
@@ -720,7 +739,7 @@ class Resto {
             if (!is_array($item) || count($item) === 0) {
                 throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid cart', 400);
             }
-            $itemId = $this->user->addToCart($item, true);
+            $itemId = $user->addToCart($item, true);
             if ($itemId) {
                 $this->response = $this->toJSON(array(
                     'status' => 'success',
@@ -743,7 +762,7 @@ class Resto {
             if (!isset($itemid)) {
                 $this->process404();
             }
-            if ($this->user->removeFromCart($itemid, true)) {
+            if ($user->removeFromCart($itemid, true)) {
                 $this->response = $this->toJSON(array(
                     'status' => 'success',
                     'message' => 'Item removed from cart',
