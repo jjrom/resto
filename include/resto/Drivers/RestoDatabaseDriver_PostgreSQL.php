@@ -586,32 +586,6 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     }
     
     /**
-     * Return the number of resource matching the given facet
-     * 
-     * @param string $value
-     * @param string $type
-     * @param string $collectionName
-     */
-    public function getFacetCounter($value, $type, $collectionName = null) {
-        if (!isset($value) || !isset($type)) {
-            return 0;
-        }
-        try {
-            $results = pg_query($this->dbh, 'SELECT counter FROM resto.facets WHERE value=\'' . pg_escape_string($value) . '\' AND type=\'' . pg_escape_string($type) . '\'' . (isset($collectionName) ? ' AND collection=\'' . pg_escape_string($collectionName) . '\'' : ''));
-            if (!$results) {
-                throw new Exception();
-            }
-            $counter = 0;
-            while ($result = pg_fetch_assoc($results)) {
-                $counter += $result['counter'];
-            }
-            return $counter;
-        } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot retrieve facets', 500);
-        }
-    }
-    
-    /**
      * Return facets elements from a type for a given collection
      * 
      * Returned array structure if collectionName is set
@@ -751,7 +725,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     'hash' => $parent['hash'],
                     'parentHash' => $parent['parentHash']
                 );
-                $currentPivot['pivot'] = $pivot;
+                $currentPivot['pivot'] = array($pivot);
                 array_unshift($names, $splitted[0]);
             }
         }
@@ -789,7 +763,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              * Facets for all collections
              */
             else {
-                $results = pg_query($this->dbh, 'SELECT * FROM resto.facets WHERE counter > 0 AND type=\'' . pg_escape_string($field) . '\' AND ' . (isset($parentHash) ? 'parent=\'' . pg_escape_string($parentHash) . '\'' : 'pid IS NULL') . ' ORDER BY value');
+                $results = pg_query($this->dbh, 'SELECT * FROM resto.facets WHERE counter > 0 AND type=\'' . pg_escape_string($field) . '\' AND ' . (isset($parentHash) ? 'pid=\'' . pg_escape_string($parentHash) . '\'' : 'pid IS NULL') . ' ORDER BY value');
             }
             if (!$results) {
                 throw new Exception();
@@ -820,46 +794,6 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot retrieve facets', 500);
         }
         return $counters;
-    }
-    
-    /**
-     * Return facet pivot for parent (SOLR4 like)
-     * 
-     * @param string $collectionName
-     * @param string $field
-     * @param string $value
-     * @return array
-     */
-    private function getFacetParentPivot($collectionName, $field, $value) {
-        $pivot = null;
-        $cached = $this->retrieveFromCache(array('getFacetParentPivot', $field, $value));
-        if (isset($cached)) {
-            return $cached;
-        }
-        try {
-            
-            /*
-             * Get parent value
-             */
-            $results = pg_query($this->dbh, 'SELECT parent, parenttype FROM resto.facets WHERE type=\'' . pg_escape_string($field) . '\' AND value=\'' . pg_escape_string($value) . '\' LIMIT 1');
-            if (!$results) {
-                throw new Exception();
-            }
-            $result = pg_fetch_assoc($results);
-            if (isset($result)) {
-                if (isset($result['parent'])) {
-                    $pivot = array(
-                        'field' => $result['parenttype'],
-                        'value' => $result['parent'],
-                        'count' => $this->getFacetCounter($result['parent'], $result['parenttype'], $collectionName)
-                    );
-                    $this->storeInCache(array('getFacetParentPivot', $field, $value), $pivot);
-                }
-            }
-        } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot retrieve facets', 500);
-        }
-        return $pivot;
     }
     
     /**
@@ -937,18 +871,58 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      * @param string $hash
      * @param string $collectionName
      */
-    public function getFacet($hash, $collectionName) {
+    public function getFacet($hash, $collectionName = null) {
         if (!isset($hash)) {
             return null;
         }
         try {
-            $results = pg_query($this->dbh, 'SELECT * FROM resto.facets WHERE uid=\'' . pg_escape_string($hash) . '\' AND collection=\'' . pg_escape_string($collectionName) . '\'');
+            $results = pg_query($this->dbh, 'SELECT * FROM resto.facets WHERE uid=\'' . pg_escape_string($hash) . '\'' . (isset($collectionName) ? ' AND collection=\'' . pg_escape_string($collectionName) . '\'' : ''));
             if (!$results) {
                 throw new Exception();
             }
-            $result = pg_fetch_assoc($results);
-            if (isset($result)) {
-                return array(
+            $counter = 0;
+            while($result = pg_fetch_assoc($results)) {
+                if ($counter === 0) {
+                    $output = array(
+                        'id' => $result['type'] . ':' . $result['value'],
+                        'hash' => $result['uid'],
+                        'parentId' => isset($result['pvalue']) && isset($result['ptype']) ? $result['ptype'] . ':' . $result['pvalue'] : null,
+                        'parentHash' => isset($result['pid']) ? $result['pid'] : null,
+                        'collection' => $collectionName
+                    );
+                } 
+                $counter = (integer) $result['counter'];
+            }
+            if (isset($output)) {
+                $output['counter'] = $counter;
+                return $output;
+            }
+            return null;
+        } catch (Exception $e) {
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot get facet for ' . $collectionName, 500);
+        }
+    }
+    
+    /**
+     * Get facet
+     * 
+     * @param string $hash
+     * @param string $collectionName
+     * @return array();
+     */
+    /*
+    public function getFacets($hash, $collectionName = null) {
+        $facets = array();
+        if (!isset($hash)) {
+            return $facets;
+        }
+        try {
+            $results = pg_query($this->dbh, 'SELECT * FROM resto.facets WHERE uid=\'' . pg_escape_string($hash) . '\'' . isset($collectionName) ? ' AND collection=\'' . pg_escape_string($collectionName) . '\'' : '');
+            if (!$results) {
+                throw new Exception();
+            }
+            while($result = pg_fetch_assoc($results)) {
+                $facets[] = array(
                     'id' => $result['type'] . ':' . $result['value'],
                     'hash' => $result['uid'],
                     'parentId' => isset($result['pvalue']) && isset($result['ptype']) ? $result['ptype'] . ':' . $result['pvalue'] : null,
@@ -957,12 +931,12 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     'counter' => (integer) $result['counter']
                 );
             }
-            return null;
+            return $facets;
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot delete facet for ' . $collectionName, 500);
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot get facet for ' . $collectionName, 500);
         }
     }
-    
+    */
     /**
      * Save user profile to database i.e. create new entry if user does not exist
      * 
