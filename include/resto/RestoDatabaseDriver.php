@@ -119,15 +119,16 @@ abstract class RestoDatabaseDriver {
     /**
      * Return facet category 
      * 
-     * @param string $facetName
+     * @param string $facetId
      */
-    public function getFacetCategory($facetName) {
-        if (!isset($facetName)) {
+    public function getFacetCategory($facetId) {
+        if (!isset($facetId)) {
             return null;
         }
+        $splitted = explode(':', $facetId);
         for ($i = count($this->facetCategories); $i--;) {
             for ($j = count($this->facetCategories[$i]); $j--;) {
-                if ($this->facetCategories[$i][$j] === $facetName) {
+                if ($this->facetCategories[$i][$j] === $splitted[0]) {
                     return $this->facetCategories[$i];
                 }
             }
@@ -138,15 +139,16 @@ abstract class RestoDatabaseDriver {
     /**
      * Return facet parent type
      * 
-     * @param string $facetName
+     * @param string $facetId
      */
-    public function getFacetParentType($facetName) {
-        $category = $this->getFacetCategory($facetName);
+    public function getFacetParentType($facetId) {
+        $category = $this->getFacetCategory($facetId);
         if (!isset($category)) {
             return null;
         }
+        $splitted = explode(':', $facetId);
         for ($i = count($category); $i--;) {
-            if ($facetName === $category[$i] && $i > 0) {
+            if ($splitted[0] === $category[$i] && $i > 0) {
                 return $category[$i - 1];
             }
         }
@@ -154,18 +156,19 @@ abstract class RestoDatabaseDriver {
     }
     
     /**
-     * Return facet children
+     * Return facet children type
      * 
-     * @param string $facetName
+     * @param string $facetId
      */
-    public function getFacetChildrenType($facetName) {
-        $category = $this->getFacetCategory($facetName);
+    public function getFacetChildrenType($facetId) {
+        $category = $this->getFacetCategory($facetId);
         if (!isset($category)) {
             return null;
         }
+        $splitted = explode(':', $facetId);
         $l = count($category);
         for ($i = $l; $i--;) {
-            if ($facetName === $category[$i] && $i < $l - 1) {
+            if ($splitted[0] === $category[$i] && $i < $l - 1) {
                 return $category[$i + 1];
             }
         }
@@ -443,20 +446,20 @@ abstract class RestoDatabaseDriver {
      * Get collection description
      * 
      * @param string $collectionName
-     * @param array $facetTypes
+     * @param array $facetFields
      * @return array
      * @throws Exception
      */
-    abstract public function getCollectionDescription($collectionName, $facetTypes = array());
+    abstract public function getCollectionDescription($collectionName, $facetFields = array());
 
     /**
      * Get description of all collections
      * 
-     * @param array $facetTypes
+     * @param array $facetFields
      * @return array
      * @throws Exception
      */
-    abstract public function getCollectionsDescriptions($facetTypes = array());
+    abstract public function getCollectionsDescriptions($facetFields = array());
 
     /**
      * Remove collection from RESTo database
@@ -528,26 +531,46 @@ abstract class RestoDatabaseDriver {
     /**
      * Store facet within database (i.e. add 1 to the counter of facet if exist)
      * 
+     * !! THIS FUNCTION IS THREAD SAFE !!
+     * 
      * Input facet structure :
      *      array(
      *          array(
-     *              'type' => 'platform',
-     *              'value' => 'PHR'
+     *              'id' => 'instrument:PHR',
+     *              'hash' => '...'
+     *              'parentId' => 'platform:PHR',
+     *              'parentHash' => '...'
      *          ),
      *          array(
-     *              'type' => 'year',
-     *              'value' => '2011'
+     *              'id' => 'year:2011',
+     *              'hash' => 'xxxxxx'
      *          ),
      *          ...
      *      )
      * 
-     * @param array $facets 
+     * @param array $facets
      * @param type $collectionName
      */
     abstract public function storeFacets($facets, $collectionName);
 
     /**
-     * Return facets elements from a type for a given collection
+     * Get facet identifier by $hash for collection $collectionName
+     * 
+     * @param string $hash
+     * @param string $collectionName
+     */
+    abstract public function getFacet($hash, $collectionName);
+    
+    /**
+     * Remove facet for collection i.e. decrease by one counter
+     * 
+     * @param string $hash
+     * @param string $collectionName
+     */
+    abstract public function removeFacet($hash, $collectionName);
+
+    /**
+     * Return facets statistics from a type for a given collection
      * 
      * Returned array structure if collectionName is set
      * 
@@ -570,18 +593,12 @@ abstract class RestoDatabaseDriver {
      * Or an array of array indexed by collection name if $collectionName is null
      *  
      * @param string $collectionName
-     * @param array $type
+     * @param array $facetFields
+     * @param string $hash
+     * 
      * @return array
      */
-    abstract public function getFacets($collectionName = null, $type = array());
-
-    /**
-     * Remove facet for collection i.e. decrease by one counter
-     * 
-     * @param array $facet
-     * @param string $collectionName
-     */
-    abstract public function removeFacet($facet, $collectionName);
+    abstract public function getFacetsStatistics($collectionName = null, $facetFields = null, $hash = null);
 
     /**
      * Return resource description from database i.e. fields

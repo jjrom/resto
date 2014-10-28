@@ -170,15 +170,18 @@ CREATE INDEX idx_lang_keywords ON resto.keywords (lang);
 --
 CREATE TABLE resto.facets (
     gid                 SERIAL PRIMARY KEY, -- unique id
-    value               VARCHAR(255), -- keyword as stored in features keywords columns
+    uid                 CHAR(15),
+    value               VARCHAR(255), -- keyword value (without type)
     type                VARCHAR(50), -- type of keyword (i.e. region, state, location, etc.)
-    parent              VARCHAR(255), -- keyword parent (i.e. 'europe' for keyword 'france')
-    parenttype          VARCHAR(50), -- keyword parent type (i.e. 'continent' for 'country')
+    pid                 CHAR(15), -- parent hash (i.e. 'europe' for keyword 'france')
+    pvalue              VARCHAR(255), -- keyword parent (without type)
+    ptype               VARCHAR(50), -- keyword parent type (i.e. 'continent' for 'country')
     collection          VARCHAR(50), -- collection name
     counter             INTEGER -- number of appearance of this keyword within the collection
 );
-CREATE INDEX idx_value_facets ON resto.facets (value);
-CREATE INDEX idx_parent_facets ON resto.facets (parent);
+CREATE INDEX idx_type_facets ON resto.facets (type);
+CREATE INDEX idx_uid_facets ON resto.facets (uid);
+CREATE INDEX idx_pid_facets ON resto.facets (pid);
 CREATE INDEX idx_collection_facets ON resto.facets (collection);
 
 

@@ -780,15 +780,20 @@ abstract class RestoModel {
                 // Continents
                 for ($i = 0, $li = count($properties['political']['continents']); $i < $li; $i++) {
                     $continent = $properties['political']['continents'][$i];
+                    $continentHash = RestoUtil::getHash($continent['id']);
                     $keywords[] = array(
-                        'id' => $continent['id']
+                        'id' => $continent['id'],
+                        'hash' => $continentHash
                     );
                     // Countries
                     for ($j = 0, $lj = count($continent['countries']); $j < $lj; $j++) {
                         $country = $continent['countries'][$j];
+                        $countryHash = RestoUtil::getHash($country['id'], $continentHash);
                         $keywords[] = array(
                             'id' => $country['id'],
                             'parentId' => $continent['id'],
+                            'hash' => $countryHash,
+                            'parentHash' => $continentHash,
                             'value' => $country['pcover']
                         );
 
@@ -797,20 +802,28 @@ abstract class RestoModel {
                             for ($k = 0, $lk = count($country['regions']); $k < $lk; $k++) {
                                 $region = $country['regions'][$k];
                                 if (!isset($region['id'])) {
-                                    $arr = explode(':', $country['id']);
-                                    $region['id'] = 'region:_all_' . $arr[1];
+                                    $region['id'] = 'region:_all';
                                 }
+                                $regionHash = RestoUtil::getHash($region['id'], $countryHash);
                                 $keywords[] = array(
                                     'id' => $region['id'],
-                                    'parentId' => $country['id']
+                                    'parentId' => $country['id'],
+                                    'hash' => $regionHash,
+                                    'parentHash' => $countryHash,
                                 );
 
                                 // States
                                 for ($l = 0, $ll = count($region['states']); $l < $ll; $l++) {
                                     $state = $region['states'][$l];
+                                    if (!isset($state['id'])) {
+                                        $state['id'] = 'state:_unknown';
+                                    }
+                                    $stateHash = RestoUtil::getHash($state['id'], $regionHash);
                                     $keywords[] = array(
                                         'id' => $state['id'],
                                         'parentId' => $region['id'],
+                                        'hash' => $stateHash,
+                                        'parentHash' => $regionHash,
                                         'value' => $state['pcover']
                                     );
                                 }
@@ -823,8 +836,10 @@ abstract class RestoModel {
         if (isset($properties['landCover'])) {
             if (isset($properties['landCover']['landUse'])) {
                 foreach (array_values($properties['landCover']['landUse']) as $landuse) {
+                    $landUseHash = RestoUtil::getHash(array('landuse:'.strtolower($landuse['name'])));
                     $keywords[] = array(
                         'id' => 'landuse:'.strtolower($landuse['name']),
+                        'hash' => $landUseHash,
                         'value' => $landuse['pcover']
                     );
                 }
@@ -834,6 +849,8 @@ abstract class RestoModel {
                     $keywords[] = array(
                         'id' => 'landuse_details:'.strtolower($landuse['name']),
                         'parentId' => 'landuse:'.strtolower($landuse['parent']),
+                        'hash' => RestoUtil::getHash('landuse_details:'.strtolower($landuse['name']), $landUseHash),
+                        'parentHash' => $landUseHash,
                         'value' => $landuse['pcover']
                     );
                 }

@@ -149,24 +149,34 @@ class RestoFeature {
          */
         if (isset($properties[$this->model->searchFilters['time:start']['key']])) {
             $year = substr($properties[$this->model->searchFilters['time:start']['key']], 0, 4);
-            $month = substr($properties[$this->model->searchFilters['time:start']['key']], 5, 2);
-            $day = substr($properties[$this->model->searchFilters['time:start']['key']], 8, 2);
+            $idYear = 'year:' . $year;
+            $hashYear = RestoUtil::getHash($idYear);
+            $month = substr($properties[$this->model->searchFilters['time:start']['key']], 0, 7);
+            $idMonth = 'month:' . $month;
+            $hashMonth = RestoUtil::getHash($idMonth, $hashYear);
+            $day = substr($properties[$this->model->searchFilters['time:start']['key']], 0, 10);
+            $idDay = 'day:' . $day;
             $properties['keywords'][] = array(
                 'name' => $year,
-                'id' => 'year:' . $year,
+                'id' => $idYear,
+                'hash' => $hashYear,
                 'href' => RestoUtil::updateUrl($searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $year, $this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
             );
             $properties['keywords'][] = array(
-                'name' => $year . '-' . $month,
-                'id' => 'month:' . $year . '-' . $month,
-                'parentId' => 'year:' . $year,
-                'href' => RestoUtil::updateUrl($searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $year . '-' . $month, $this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
+                'name' => $month,
+                'id' => $idMonth,
+                'hash' => $hashMonth,
+                'parentId' => $idYear,
+                'parentHash' => $hashYear,
+                'href' => RestoUtil::updateUrl($searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $month, $this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
             );
             $properties['keywords'][] = array(
-                'name' => $year . '-' . $month . '-' . $day,
-                'id' => 'day:' . $year . '-' . $month . '-' . $day,
-                'parentId' => 'month:' . $year . '-' . $month,
-                'href' => RestoUtil::updateUrl($searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $year . '-' . $month . '-' . $day, $this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
+                'name' => $day,
+                'id' => $idDay,
+                'hash' => RestoUtil::getHash($idDay),
+                'parentId' => $idMonth,
+                'parentHash' => $hashMonth,
+                'href' => RestoUtil::updateUrl($searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $day, $this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
             );
         }
         

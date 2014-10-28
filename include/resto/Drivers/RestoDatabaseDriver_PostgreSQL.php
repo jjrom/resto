@@ -302,8 +302,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         $values = array('\'' . pg_escape_string($collectionName) . '\'');
         $facets = array(
             array(
-                'type' => 'collection',
-                'value' => $collectionName
+                'id' => 'collection:' . $collectionName,
+                'hash' => RestoUtil::getHash('collection:' . $collectionName)
             )
         );
         try {
@@ -341,6 +341,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                  *                  "name" => name
                  *                  "id" => id, // type:value
                  *                  "parentId" => id, // parentType:parentValue
+                 *                  "hash" => // unique hash for this id
+                 *                  "parentHash" => // parent unique hash
                  *                  "value" => value or array()
                  *              ),
                  *              array(
@@ -351,24 +353,43 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                  * 
                  *  keyword storage convention within hstore :
                  * 
-                 *       "id" => name|parentId|value
+                 *       hash => {"name":"...", "hash":"...", "parentHash":"...", "value":"..."}
                  */
                 else if ($elements[$i][0] === 'keywords' && is_array($elements[$i][1])) {
                     foreach (array_values($elements[$i][1]) as $keyword) {
-                        list($idType, $idId) = explode(':', $keyword['id'], 2);
-                        if ($this->getFacetCategory($idType)) {
-                            if (isset($keyword['parentId'])) {
-                                list($parentIdType, $parentIdId) = explode(':', $keyword['parentId'], 2);
-                            }
+                        
+                        /*
+                         * Compute hash from id if not specified
+                         * (this should be the case for input non iTag keywords)
+                         */
+                        if (isset($keyword['parentId']) && !isset($keyword['parentHash'])) {
+                            $keyword['parentHash'] = RestoUtil::getHash($keyword['parentId']);
+                        }
+                        if (!isset($keyword['hash'])) {
+                            $keyword['hash'] = RestoUtil::getHash($keyword['id'], isset($keyword['parentHash']) ? $keyword['parentHash'] : null);
+                        }
+                        if ($this->getFacetCategory($keyword['id'])) {
                             $facets[] = array(
-                                'type' => $idType,
-                                'parentId' => isset($parentIdId) ? $parentIdId : null,
-                                'parentType' => isset($parentIdType) ? $parentIdType : $this->getFacetParentType($idType),
-                                'value' => $idId
+                                'id' => $keyword['id'],
+                                'hash' => $keyword['hash'],
+                                'parentId' => isset($keyword['parentId']) ? $keyword['parentId'] : null,
+                                'parentHash' => isset($keyword['parentHash']) ? $keyword['parentHash'] : null
                             );
                         }
+                        
+                        /*
+                         * Prepare hstore value as a json string
+                         */
+                        $json = array(
+                            'hash' => $keyword['hash']
+                        );
+                        foreach (array_keys($keyword) as $property) {
+                            if (!in_array($property, array('id', 'parentId', 'hash'))) {
+                                $json[$property] = $keyword[$property];
+                            }
+                        }
                         $quote = count(explode(' ', $keyword['id'])) > 1 ? '"' : '';
-                        $propertyTags[] = $quote . $keyword['id'] . $quote . '=>"' . (isset($keyword['name']) ? $keyword['name'] : '') . '|' . ((isset($keyword['parentId']) ? $keyword['parentId'] : '') . '|' . (isset($keyword['value']) ? $keyword['value'] : '')) . '"';
+                        $propertyTags[] =  $quote . $keyword['id'] . $quote . '=>"' . urlencode(json_encode($json)) . '"';
                     }
                     $values[] = '\'' . pg_escape_string(join(',', $propertyTags)) . '\'';
                     
@@ -379,15 +400,15 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     $countries = array();
                     $continents = array();
                     foreach (array_values($elements[$i][1]) as $keyword) {
-                        list($idType, $idId) = explode(':', $keyword['id'], 2);
-                        if ($idType === 'landuse') {
+                        list($facetType, $idId) = explode(':', $keyword['id'], 2);
+                        if ($facetType === 'landuse') {
                             $keys[] = 'lu_' . $idId;
                             $values[] = $keyword['value'];
                         }
-                        else if ($idType === 'country') {
+                        else if ($facetType === 'country') {
                             $countries[] = '"' . pg_escape_string($idId) . '"';
                         }
-                        else if ($idType === 'continent') {
+                        else if ($facetType === 'continent') {
                             $continents[] = '"' . pg_escape_string($idId) . '"';
                         }
                     }
@@ -412,35 +433,72 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                         $values[] = '\'' . pg_escape_string($elements[$i][1]) . '\'';
                     }
                     
-                    if ($this->getFacetCategory($elements[$i][0])) {
-                        $facets[] = array(
-                            'type' => $elements[$i][0],
-                            'parentType' => $this->getFacetParentType($elements[$i][0]),
-                            'value' => $elements[$i][1]
-                        );
+                    $id = $elements[$i][0] . ':' . $elements[$i][1];
+                    if ($this->getFacetCategory($id)) {
+                        
+                        /*
+                         * Retrieve parent value from input elements
+                         */
+                        $parentType = $elements[$i][0];
+                        $parentIds = array();
+                        
+                        /*
+                         * Compute parentHash from ancestors !
+                         */
+                        while (isset($parentType)) {
+                            $parentType = $this->getFacetParentType($parentType);
+                            for ($j = count($elements); $j--;) {
+                                if ($elements[$j][0] === $parentType && $elements[$j][1]) {
+                                    $parentIds[] = $parentType . ':' . $elements[$j][1];
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        if (count($parentIds) > 0) {
+                            $parentHash = null;
+                            for ($k = count($parentIds); $k--;) {
+                                $parentHash = RestoUtil::getHash($parentIds[$k], $parentHash);
+                            }
+                            $facets[] = array(
+                                'id' => $id,
+                                'hash' => RestoUtil::getHash($id, $parentHash),
+                                'parentId' => $parentIds[0],
+                                'parentHash' => $parentHash
+                            );
+                        }
+                        else {
+                            $facets[] = array(
+                                'id' => $id,
+                                'hash' => RestoUtil::getHash($id)
+                            );
+                        }
+                        
                     }
                     /*
                      * Create facet for year/month/date
                      */
                     else if ($elements[$i][0] === 'startDate' && RestoUtil::isISO8601($elements[$i][1])) {
-                        $year = substr($elements[$i][1], 0, 4);
-                        $month = substr($elements[$i][1], 0, 7);
+                        $idYear = 'year:' . substr($elements[$i][1], 0, 4);
+                        $hashYear = RestoUtil::getHash($idYear);
+                        $idMonth = 'month:' . substr($elements[$i][1], 0, 7);
+                        $hashMonth = RestoUtil::getHash($idMonth, $hashYear);
+                        $idDay = 'day:' . substr($elements[$i][1], 0, 10);
                         $facets[] = array(
-                            'type' => 'year',
-                            'parentType' => null,
-                            'value' => $year
+                            'id' => $idYear,
+                            'hash' => $hashYear
                         );
                         $facets[] = array(
-                            'type' => 'month',
-                            'parentId' => $year,
-                            'parentType' => 'year',
-                            'value' => $month
+                            'id' => $idMonth,
+                            'hash' => $hashMonth,
+                            'parentId' => $idYear,
+                            'parentHash' => $hashYear
                         );
                         $facets[] = array(
-                            'type' => 'day',
-                            'parentId' => $month,
-                            'parentType' => 'month',
-                            'value' => substr($elements[$i][1], 0, 10)
+                            'id' => $idDay,
+                            'hash' => RestoUtil::getHash($idDay),
+                            'parentId' => $idMonth,
+                            'parentHash' => $hashMonth
                         );
                     }
                 }
@@ -474,22 +532,47 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      */
     public function removeFeature($feature) {
         try {
+            
             pg_query($this->dbh, 'BEGIN');
+            
+            /*
+             * Remove facets
+             */
             $f = $feature->toArray();
+            
             foreach($f['properties'] as $key => $value) {
-                if ($this->getFacetCategory($key)) {
-                    $this->removeFacet(array(
-                        'type' => $key,
-                        'value' => $value
-                    ), $f['properties']['collection']);
+                 
+                /*
+                 * Non keywords facets
+                 */
+                $id = $key . ':' . $value;
+                if ($this->getFacetCategory($id)) {
+                    $parentHash = null;
+                    $parentType = $key;
+                    $parentIds = array();
+                    while (isset($parentType)) {
+                        $parentType = $this->getFacetParentType($parentType);
+                        foreach ($f['properties'] as $pKey => $pValue) {
+                            if ($pKey === $parentType && $pValue) {
+                                $parentIds[] = $parentType . ':' . $pValue;
+                                break;
+                            }
+                        }
+                    }
+                    if (count($parentIds) > 0) {
+                        for ($k = count($parentIds); $k--;) {
+                            $parentHash = RestoUtil::getHash($parentIds[$k], $parentHash);
+                        }
+                    }
+                    $this->removeFacet(RestoUtil::getHash($id, $parentHash), $f['properties']['collection']);
                 }
+                /*
+                 * Keywords facets
+                 */
                 else if ($key === 'keywords') {
-                    foreach ($f['properties'][$key] as $keywordKey => $keywordValue) {
-                        if (isset($keywordValue['type']) && $this->getFacetCategory($keywordValue['type'])) {
-                            $this->removeFacet(array(
-                                'type' => $keywordValue['type'],
-                                'value' => isset($keywordValue['id']) ? $keywordValue['id'] : strtolower($keywordKey)
-                            ), $f['properties']['collection']);
+                    for ($i = count($f['properties'][$key]); $i--;) {
+                        if (isset($f['properties'][$key][$i]['hash'])) {
+                            $this->removeFacet($f['properties'][$key][$i]['hash'], $f['properties']['collection']);
                         }
                     }
                 }
@@ -552,238 +635,145 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      * Or an array of array indexed by collection name if $collectionName is null
      *  
      * @param string $collectionName
-     * @param array $type
-     * @return array
-     */
-    public function getFacets($collectionName = null, $type = array()) {
-        $facets = array();
-        $cached = $this->retrieveFromCache(array('getFacets', $collectionName, $type));
-        if (isset($cached)) {
-            return isset($collectionName) && isset($cached[$collectionName]) ? $cached[$collectionName] : $cached;
-        }
-        try {
-            if (isset($type)) {
-                if (!is_array($type)) {
-                    $type = array($type);
-                }
-                if (count($type) !== 0) {
-                    $in = '';
-                    for ($i = 0, $l = count($type); $i < $l; $i++) {
-                        $in .= ($i !== 0 ? ',' : '') . '\'' . pg_escape_string($type[$i]) . '\'';
-                    }
-                }
-            }
-            
-            /*
-             * Facet for one collection
-             */
-            if (isset($collectionName)) {
-                $results = pg_query($this->dbh, 'SELECT collection, value, type, parent, counter FROM resto.facets WHERE counter > 0 AND collection=\'' . pg_escape_string($collectionName) . '\'' . (isset($in) ? ' AND type IN (' . $in . ')' : ''));
-            }
-            /*
-             * Facets for all collections
-             */
-            else {
-                $results = pg_query($this->dbh, 'SELECT collection, value, type, parent, counter FROM resto.facets WHERE counter > 0' . (isset($in) ? ' AND type IN (' . $in . ')' : ''));
-            }
-            if (!$results) {
-                throw new Exception();
-            }
-            while ($result = pg_fetch_assoc($results)) {
-                
-                /*
-                 * Set collection
-                 */
-                if (!isset($facets[$result['collection']])) {
-                    $facets[$result['collection']] = array();
-                }
-                if (!isset($facets[$result['collection']][$result['type']])) {
-                    $facets[$result['collection']][$result['type']] = array();
-                }
-                if (isset($result['parent'])) {
-                    if (!isset($facets[$result['collection']][$result['type']][$result['parent']])) {
-                        $facets[$result['collection']][$result['type']][$result['parent']] = array();
-                    }
-                }
-                if (isset($facets[$result['collection']][$result['type']][$result['value']])) {
-                    if (isset($result['parent'])) {
-                        if (isset($facets[$result['collection']][$result['type']][$result['parent']][$result['value']])) {
-                            $facets[$result['collection']][$result['type']][$result['parent']][$result['value']] += (integer) $result['counter'];
-                        }
-                        else {
-                            $facets[$result['collection']][$result['type']][$result['parent']][$result['value']] = (integer) $result['counter'];
-                        }
-                    }
-                    else {
-                        $facets[$result['collection']][$result['type']][$result['value']] += (integer) $result['counter'];
-                    }
-                }
-                else {
-                    if (isset($result['parent'])) {
-                        $facets[$result['collection']][$result['type']][$result['parent']][$result['value']] = (integer) $result['counter'];
-                    }
-                    else {
-                        $facets[$result['collection']][$result['type']][$result['value']] = (integer) $result['counter'];
-                    }
-                }
-            }
-            $this->storeInCache(array('getFacets', $collectionName, $type), $facets);
-        } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot retrieve facets', 500);
-        }
-        
-        return isset($collectionName) && isset($facets[$collectionName]) ? $facets[$collectionName] : $facets;
-    }
-    
-    /**
-     * Return facets elements from a type for a given collection
-     * 
-     * Returned array structure if collectionName is set
-     * 
-     *      array(
-     *          'type#' => array(
-     *              'value1' => count1,
-     *              'value2' => count2,
-     *              'parent' => array(
-     *                  'value3' => count3,
-     *                  ...
-     *              )
-     *              ...
-     *          ),
-     *          'type2' => array(
-     *              ...
-     *          ),
-     *          ...
-     *      )
-     * 
-     * Or an array of array indexed by collection name if $collectionName is null
-     *  
-     * @param array $categories
+     * @param array $facetFields
+     * @param string $hash
      * 
      * @return array
      */
-    public function getFacetsSOLR($collectionName, $facetFilter = array()) {
+    public function getFacetsStatistics($collectionName = null, $facetFields = null, $hash = null) {
         
-        $cached = $this->retrieveFromCache(array('getFacets', $facetFilter));
+        $cached = $this->retrieveFromCache(array('getFacets', $collectionName, $facetFields, $hash));
         if (isset($cached)) {
             return $cached;
         }
-        
+          
         /*
-         * First retrieve pivot for each category master field
+         * Retrieve pivot for each input facet fields
          */
         $facet_fields = array();
-        foreach (array_values($this->facetCategories) as $facetCategory) {
-            $pivot = $this->getFacetPivot($collectionName, $facetCategory[0], null);
-            if (isset($pivot) && count($pivot) > 0) {
-                $facet_fields[$facetCategory[0]] = array();
-                for ($i = count($pivot); $i--;) {
-                    $facet_fields[$facetCategory[0]][] = $pivot[$i]['value'];
-                    $facet_fields[$facetCategory[0]][] = $pivot[$i]['count'];
-                }
-            }
-        }
-        
-        /*
-         * Initialize current facet type and value
-         */
-        list($currentField, $currentValue) = explode(':', $facetFilter['id'], 2);
-        
-        /*
-         * Get parent from category
-         */
-        $target = $this->getFacetCategory($currentField);
-        if (!isset($target)) {
-            return array(
-                'facet_counts' => array(
-                    'facet_fields' => $facet_fields
-                )
-            );
-        }
-        
-        /*
-         * Roll over master pivots and compute pivot for facetFilter(s)
-         */
-        $facet_pivots = array();
-        foreach (array_values($this->facetCategories) as $facetCategory) {
-            
-            if ($facetCategory[0] === 'collection') {
-                continue;
-            }
-            
-            /*
-             * Compute facets recursively
-             */
-            if ($target[0] === $facetCategory[0]) {
-   
-                /*
-                 * Compute pivot for children type if exists ot for itself otherwise
-                 */
-                $childrenType = $this->getFacetChildrenType($currentField);
-                $current = array(
-                    'field' => $currentField,
-                    'value' => $currentValue,
-                    'count' => $this->getFacetCounter($currentValue, $currentField, $collectionName)
-                );
-                $pivot = $this->getFacetPivot($collectionName, isset($childrenType) ? $childrenType : $currentField, $currentValue);
+        if (isset($facetFields) && count($facetFields) > 0) {
+            for ($i = 0, $l = count($facetFields); $i < $l; $i++) {
+                $pivot = $this->getFacetPivot($collectionName, $facetFields[$i], null);
                 if (isset($pivot) && count($pivot) > 0) {
-                    $current['pivot'] = $pivot;
-                }
-                
-                /*
-                 * Recursively process parents
-                 */
-                $names = array($currentField);
-                while(true) {
-                    
-                    /*
-                     * Get parent
-                     */
-                    $parent = $this->getFacetParentPivot($collectionName, $currentField, $currentValue);
-                    
-                    /*
-                     * No parent ? We reach the end
-                     */
-                    if (!isset($parent)) {
-                        break;
-                    }
-                    else {
-                        $currentField = $parent['field'];
-                        $currentValue = $parent['value'];
-                        $pivot = $current;
-                        $current = $parent;
-                        $current['pivot'] = $pivot;
-                        array_unshift($names, $currentField);
+                    $facet_fields[$facetFields[$i]] = array();
+                    for ($j = count($pivot); $j--;) {
+                        $facet_fields[$facetFields[$i]][] = $pivot[$j]['value'];
+                        $facet_fields[$facetFields[$i]][] = $pivot[$j]['count'];
                     }
                 }
-                for ($i = 0, $l = count($facet_fields[$facetCategory[0]]); $i < $l; $i = $i + 2) {
-                    if ($facet_fields[$facetCategory[0]][$i] === $currentValue) {
-                        $facet_pivots[join(',', $names) . (isset($childrenType) ? ',' . $childrenType : '')] = $current;
-                        break;
+            }
+        }
+        /*
+         * or for all master facet fields
+         */
+        else {
+            foreach (array_values($this->facetCategories) as $facetCategory) {
+                $pivot = $this->getFacetPivot($collectionName, $facetCategory[0], null);
+                if (isset($pivot) && count($pivot) > 0) {
+                    $facet_fields[$facetCategory[0]] = array();
+                    for ($i = count($pivot); $i--;) {
+                        $facet_fields[$facetCategory[0]][] = $pivot[$i]['value'];
+                        $facet_fields[$facetCategory[0]][] = $pivot[$i]['count'];
                     }
                 }
             }
         }
         
-        return array(
+        /*
+         * Initialize output
+         */
+        $facetsStatistics = array(
             'facet_counts' => array(
-                'facet_fields' => $facet_fields,
-                'facet_pivot' => $facet_pivots
+                'facet_fields' => $facet_fields
             )
         );
+        
+        /*
+         * Get facet for $hash
+         */
+        $facet = $this->getFacet($hash, $collectionName);
+        
+        /*
+         * No pivot required
+         */
+        if (!isset($facet)) {
+            return $facetsStatistics;
+        }
+        
+        /*
+         * Compute pivot for children type if exists ot for itself otherwise
+         */
+        $childrenField = $this->getFacetChildrenType($facet['id']);
+        $splitted = explode(':', $facet['id']);
+        if (isset($childrenField)) {
+            $pivot = $this->getFacetPivot($collectionName, $childrenField, $facet['hash']);
+        }
+        else {
+            $pivot = $this->getFacetPivot($collectionName, $splitted[0], $facet['hash']);
+        }
+        
+        $currentPivot = array(
+            'field' => $splitted[0],
+            'value' => $splitted[1],
+            'count' => $facet['counter'],
+            'hash' => $facet['hash'],
+            'parentHash' => $facet['parentHash']
+        );
+        
+        if (isset($pivot) && count($pivot) > 0) {
+            $currentPivot['pivot'] = $pivot;
+        }
+        
+        /*
+         * Recursively process parents
+         */
+        $names = array($splitted[0]);
+        while (true) {
+
+            /*
+             * Get parent
+             */
+            $parent = $this->getFacet($currentPivot['parentHash'], $collectionName);
+
+            /*
+             * No parent ? We reach the end
+             */
+            if (!isset($parent)) {
+                break;
+            }
+            else {
+                $splitted = explode(':', $parent['id']);
+                $pivot = $currentPivot;
+                $currentPivot = array(
+                    'field' => $splitted[0],
+                    'value' => $splitted[1],
+                    'count' => $parent['counter'],
+                    'hash' => $parent['hash'],
+                    'parentHash' => $parent['parentHash']
+                );
+                $currentPivot['pivot'] = $pivot;
+                array_unshift($names, $splitted[0]);
+            }
+        }
+        
+        $facetsStatistics['facet_counts']['facet_pivot'] = array(
+            join(',', $names) . (isset($childrenField) ? ',' . $childrenField : '') => $currentPivot
+        );
+        
+        return $facetsStatistics;
     }
 
     /**
      * Return facet pivot (SOLR4 like)
      * 
      * @param string $collectionName
-     * @param string $pivotType
-     * @param string $parentValue
+     * @param string $field
+     * @param string $parentHash : parent hash
      * @return array
      */
-    private function getFacetPivot($collectionName, $pivotType, $parentValue) {
+    private function getFacetPivot($collectionName, $field, $parentHash) {
         $counters = array();
-        $cached = $this->retrieveFromCache(array('getFacetPivot', $pivotType, $parentValue));
+        $cached = $this->retrieveFromCache(array('getFacetPivot', $field, $parentHash));
         if (isset($cached)) {
             return $cached;
         }
@@ -793,13 +783,13 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              * Facet for one collection
              */
             if (isset($collectionName)) {
-                $results = pg_query($this->dbh, 'SELECT value, counter FROM resto.facets WHERE counter > 0 AND collection=\'' . pg_escape_string($collectionName) . '\' AND type=\'' . pg_escape_string($pivotType) . '\' AND ' . (isset($parentValue) ? 'parent=\'' . pg_escape_string($parentValue) . '\'' : 'parent IS NULL') . ' ORDER BY value');
+                $results = pg_query($this->dbh, 'SELECT * FROM resto.facets WHERE counter > 0 AND collection=\'' . pg_escape_string($collectionName) . '\' AND type=\'' . pg_escape_string($field) . '\' AND ' . (isset($parentHash) ? 'pid=\'' . pg_escape_string($parentHash) . '\'' : 'pid IS NULL') . ' ORDER BY value');
             }
             /*
              * Facets for all collections
              */
             else {
-                $results = pg_query($this->dbh, 'SELECT value, counter FROM resto.facets WHERE counter > 0 AND type=\'' . pg_escape_string($pivotType) . '\' AND ' . (isset($parentValue) ? 'parent=\'' . pg_escape_string($parentValue) . '\'' : 'parent IS NULL') . ' ORDER BY value');
+                $results = pg_query($this->dbh, 'SELECT * FROM resto.facets WHERE counter > 0 AND type=\'' . pg_escape_string($field) . '\' AND ' . (isset($parentHash) ? 'parent=\'' . pg_escape_string($parentHash) . '\'' : 'pid IS NULL') . ' ORDER BY value');
             }
             if (!$results) {
                 throw new Exception();
@@ -817,13 +807,15 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 }
                 if ($create) {
                     $counters[] = array(
-                        'field' => $pivotType,
+                        'field' => $field,
                         'value' => $result['value'],
-                        'count' => (integer) $result['counter']
+                        'count' => (integer) $result['counter'],
+                        'hash' => $result['uid'],
+                        'parentHash' => isset($parentHash) ? $parentHash : null
                     );
                 }
             }
-            $this->storeInCache(array('getFacetPivot', $pivotType, $parentValue), $counters);
+            $this->storeInCache(array('getFacetPivot', $field, $parentHash), $counters);
         } catch (Exception $e) {
             throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot retrieve facets', 500);
         }
@@ -878,14 +870,14 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      * Input facet structure :
      *      array(
      *          array(
-     *              'type' => 'instrument',
-     *              'parentId' => 'PHR',
-     *              'parentType' => 'platform',
-     *              'value' => 'PHR'
+     *              'id' => 'instrument:PHR',
+     *              'hash' => '...'
+     *              'parentId' => 'platform:PHR',
+     *              'parentHash' => '...'
      *          ),
      *          array(
-     *              'type' => 'year',
-     *              'value' => '2011'
+     *              'id' => 'year:2011',
+     *              'hash' => 'xxxxxx'
      *          ),
      *          ...
      *      )
@@ -895,13 +887,27 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      */
     public function storeFacets($facets, $collectionName) {
         try {
-            foreach (array_values($facets) as $value) {
+            foreach (array_values($facets) as $facetElement) {
+                
+                list($ptype, $pvalue) = isset($facetElement['parentId']) ? explode(':', $facetElement['parentId'],2) : array(null, null);
+                list($type, $value) = explode(':', $facetElement['id'], 2);
+                
                 /*
                  * Thread safe ingestion
                  */
+                $arr = array(
+                    '\'' . pg_escape_string($facetElement['hash']) . '\'',
+                    '\'' . $value . '\'',
+                    '\'' . $type . '\'',
+                    isset($facetElement['parentHash']) ? '\'' . pg_escape_string($facetElement['parentHash']) . '\'' : 'NULL',
+                    isset($pvalue) ? '\'' . pg_escape_string($pvalue) . '\'' : 'NULL',
+                    isset($ptype) ? '\'' . pg_escape_string($ptype) . '\'' : 'NULL',
+                    isset($collectionName) ? '\'' . pg_escape_string($collectionName) . '\'' : 'NULL',
+                    '1'
+                );
                 $lock = 'LOCK TABLE resto.facets IN SHARE ROW EXCLUSIVE MODE;';
-                $insert = 'INSERT INTO resto.facets (value, type, collection, parent, parenttype, counter) SELECT \'' . pg_escape_string($value['value']) . '\',\'' . pg_escape_string($value['type']) . '\',\'' . pg_escape_string($collectionName) . '\',' . (isset($value['parentId']) ? '\'' . pg_escape_string($value['parentId']) . '\'' : 'NULL') . ',' . (isset($value['parentType']) ? '\'' . pg_escape_string($value['parentType']) . '\'' : 'NULL') . ', 1';
-                $upsert = 'UPDATE resto.facets SET counter = counter + 1 WHERE type = \'' . pg_escape_string($value['type']) . '\' AND collection = \'' . pg_escape_string($collectionName) . '\' AND value = \'' . pg_escape_string($value['value']) . '\'';
+                $insert = 'INSERT INTO resto.facets (uid, value, type, pid, pvalue, ptype, collection, counter) SELECT ' . join(',', $arr);
+                $upsert = 'UPDATE resto.facets SET counter = counter + 1 WHERE uid = \'' . pg_escape_string($facetElement['hash']) . '\' AND collection = \'' . pg_escape_string($collectionName) . '\'';
                 pg_query($this->dbh, $lock . 'WITH upsert AS (' . $upsert . ' RETURNING *) ' . $insert . ' WHERE NOT EXISTS (SELECT * FROM upsert)');
             }
         } catch (Exception $e) {
@@ -912,14 +918,46 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     /**
      * Remove facet for collection i.e. decrease by one counter
      * 
-     * @param array $facet
+     * @param string $hash
      * @param string $collectionName
      */
-    public function removeFacet($facet, $collectionName) {
+    public function removeFacet($hash, $collectionName) {
         try {
-            if ($this->facetExists($facet['value'], $facet['type'], isset($facet['parentId']) ? $facet['parentId'] : null, $collectionName)) {
-                pg_query($this->dbh, 'UPDATE resto.facets SET counter = counter - 1 WHERE value=\'' . pg_escape_string($facet['value']) . '\' AND  type=\'' . pg_escape_string($facet['type']) . '\' AND collection=\'' . pg_escape_string($collectionName) . '\'');
+            if ($this->facetExists($hash, $collectionName)) {
+                pg_query($this->dbh, 'UPDATE resto.facets SET counter = counter - 1 WHERE uid=\'' . pg_escape_string($hash) . '\' AND collection=\'' . pg_escape_string($collectionName) . '\'');
             }
+        } catch (Exception $e) {
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot delete facet for ' . $collectionName, 500);
+        }
+    }
+    
+    /**
+     * Get facet
+     * 
+     * @param string $hash
+     * @param string $collectionName
+     */
+    public function getFacet($hash, $collectionName) {
+        if (!isset($hash)) {
+            return null;
+        }
+        try {
+            $results = pg_query($this->dbh, 'SELECT * FROM resto.facets WHERE uid=\'' . pg_escape_string($hash) . '\' AND collection=\'' . pg_escape_string($collectionName) . '\'');
+            if (!$results) {
+                throw new Exception();
+            }
+            $result = pg_fetch_assoc($results);
+            if (isset($result)) {
+                return array(
+                    'id' => $result['type'] . ':' . $result['value'],
+                    'hash' => $result['uid'],
+                    'parentId' => isset($result['pvalue']) && isset($result['ptype']) ? $result['ptype'] . ':' . $result['pvalue'] : null,
+                    'parentHash' => isset($result['pid']) ? $result['pid'] : null,
+                    'collection' => $collectionName,
+                    'counter' => (integer) $result['counter']
+                );
+            }
+            return null;
         } catch (Exception $e) {
             throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot delete facet for ' . $collectionName, 500);
         }
@@ -1423,11 +1461,11 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      * Get collection description
      * 
      * @param string $collectionName
-     * @param array $facetTypes
+     * @param array $facetFields
      * @return array
      * @throws Exception
      */
-    public function getCollectionDescription($collectionName, $facetTypes = array()) {
+    public function getCollectionDescription($collectionName, $facetFields = array()) {
         $collectionDescription = array();
         try {
             $description = pg_query($this->dbh, 'SELECT collection, status, model, mapping, license, licenseurl FROM resto.collections WHERE collection=\'' . pg_escape_string($collectionName) . '\'');
@@ -1468,8 +1506,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 /*
                  * Get Facets
                  */
-                if (isset($facetTypes)) {
-                    $collectionDescription['facets'] = $this->getFacets($collectionName, $facetTypes);
+                if (isset($facetFields)) {
+                    $collectionDescription['facets'] = $this->getFacetsStatistics($collectionName, $facetFields);
                 }
             }
             else {
@@ -1708,11 +1746,11 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     /**
      * Get description of all collections including facets
      * 
-     * @param array $facetTypes
+     * @param array $facetFields
      * @return array
      * @throws Exception
      */
-     public function getCollectionsDescriptions($facetTypes = array()) {
+     public function getCollectionsDescriptions($facetFields = array()) {
         
          $collectionsDescriptions = array();
          
@@ -1754,8 +1792,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 /*
                  * Get Facets
                  */
-                if (isset($facetTypes)) {
-                    $collectionsDescriptions[$collection['collection']]['facets'] = $this->getFacets($collection['collection'], $facetTypes);
+                if (isset($facetFields)) {
+                    $collectionsDescriptions[$collection['collection']]['facets'] = $this->getFacetsStatistics($collection['collection'], $facetFields);
                 }
             }
         } catch (Exception $e) {
@@ -2485,9 +2523,9 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      * 
      * Return keyword array assuming an input hstore $string 
      * 
-     * Note : $string format is "type:name" => "parent:value" (parent and value can be empty)
+     * Note : $string format is "type:name" => urlencode(json)
      *
-     *      e.g. "disaster:flood"=>":", "country:canada"=>"north america:23.5", "continent:north america"=>":"
+     *      e.g. "continent:oceania"=>"%7B%22hash%22%3A%2262f4365c66c1f64%22%7D", "country:australia"=>"%7B%22hash%22%3A%228f36daace0ea948%22%2C%22parentHash%22%3A%2262f4365c66c1f64%22%2C%22value%22%3A100%7D"
      * 
      * 
      * Structure of output is 
@@ -2509,7 +2547,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             return null;
         }
         
-        $json = json_decode('{' . str_replace('}"', '}', str_replace('\"', '"', str_replace('"{', '{', str_replace('"=>"', '":"', str_replace('NULL', '""', $hstore))))) . '}', true);
+        $json = json_decode('{' . str_replace('}"', '}', str_replace('\"', '"', str_replace('"{', '{', str_replace('"=>"', '":"', $hstore)))) . '}', true);
         
         if (!isset($json) || !is_array($json)) {
             return null;
@@ -2532,23 +2570,26 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             }
 
             /*
-             * Value format is "name|parentId|value"
+             * Value format is urlencode(json)
              */
-            list($name, $parentId, $value) = explode('|', $value, 3);
-            if (!$name) {
-                $name = trim($model->context->dictionary->getKeywordFromValue($id, $type));
-                if (!isset($name)) {
-                    $name = ucwords($id);
+            $properties = json_decode(urldecode($value), true); 
+            if (!isset($properties['name'])) {
+                $properties['name'] = trim($model->context->dictionary->getKeywordFromValue($id, $type));
+                if (!isset($properties['name'])) {
+                    $properties['name'] = ucwords($id);
                 }
-                $hrefKey = $name;
+                $hrefKey = $properties['name'];
             }
             $keywords[] = array(
-                'name' => $name,
+                'name' => $properties['name'],
                 'id' => $key,
-                'parentId' => $parentId ? $parentId : null,
-                'value' => $value ? (is_numeric($value) ? floatval($value) : $value) : null,
                 'href' => RestoUtil::updateUrl($url, array($model->searchFilters['language']['osKey'] => $model->context->dictionary->language,  $model->searchFilters['searchTerms']['osKey'] => count(explode(' ', $hrefKey)) > 1 ? '"'. $hrefKey . '"' : $hrefKey))
             );
+            foreach (array_keys($properties) as $property) {
+                if (!in_array($property, array('name', 'id'))) {
+                    $keywords[count($keywords) - 1][$property] = $properties[$property];
+                }
+            }
         }
 
         return $keywords;
@@ -2557,15 +2598,13 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     /**
      * Check if facet exists
      * 
-     * @param string $value - facet value
-     * @param string $type - facet type
-     * @param string $parentId - facet parent identifier
+     * @param string $hash - facet hash
      * @param string $collectionName
      * @return boolean
      * @throws Exception
      */
-    private function facetExists($value, $type, $parentId, $collectionName) {
-        $results = pg_query($this->dbh, 'SELECT EXISTS(SELECT 1 FROM resto.facets WHERE type = \'' . pg_escape_string($type) . '\' AND collection = \'' . pg_escape_string($collectionName) . '\' AND value = \'' . pg_escape_string($value) . '\' ' . (isset($parentId) ? ' AND parent=\'' . pg_escape_string($parentId) . '\'' : '') . ') AS exists');
+    private function facetExists($hash, $collectionName) {
+        $results = pg_query($this->dbh, 'SELECT EXISTS(SELECT 1 FROM resto.facets WHERE uid=\'' . pg_escape_string($hash) . '\' AND collection = \'' . pg_escape_string($collectionName) . '\') AS exists');
         if (!$results) {
             throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
         }

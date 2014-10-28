@@ -909,4 +909,15 @@ class RestoUtil {
         }
         return false;
     }
+    
+    /**
+     * Compute a sha1 hash from $input,$parent truncated to 15 characters
+     * 
+     * @param string $input
+     * @param string $parent
+     * @return string
+     */
+    public static function getHash($input, $parent = null) {
+        return substr(sha1($input . (isset($parent) ? ',' . $parent : '')), 0, 15);
+    }
 }
