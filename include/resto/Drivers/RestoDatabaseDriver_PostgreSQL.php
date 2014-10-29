@@ -876,8 +876,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                  */
                 $arr = array(
                     '\'' . pg_escape_string($facetElement['hash']) . '\'',
-                    '\'' . $value . '\'',
-                    '\'' . $type . '\'',
+                    '\'' . pg_escape_string($value) . '\'',
+                    '\'' . pg_escape_string($type) . '\'',
                     isset($facetElement['parentHash']) ? '\'' . pg_escape_string($facetElement['parentHash']) . '\'' : 'NULL',
                     isset($pvalue) ? '\'' . pg_escape_string($pvalue) . '\'' : 'NULL',
                     isset($ptype) ? '\'' . pg_escape_string($ptype) . '\'' : 'NULL',
