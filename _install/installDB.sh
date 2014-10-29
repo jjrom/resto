@@ -379,6 +379,7 @@ GRANT SELECT,INSERT,UPDATE,DELETE ON usermanagement.signatures TO $USER;
 GRANT SELECT,INSERT,UPDATE,DELETE ON usermanagement.cart TO $USER;
 GRANT SELECT,INSERT,UPDATE,DELETE ON usermanagement.sharedlinks TO $USER;
 GRANT SELECT,INSERT,UPDATE ON usermanagement.history TO $USER;
+GRANT ALL ON usermanagement.rights_gid_seq TO $USER;
 
 GRANT SELECT,UPDATE ON usermanagement.users_userid_seq TO $USER;
 GRANT SELECT,UPDATE ON usermanagement.history_gid_seq TO $USER;
