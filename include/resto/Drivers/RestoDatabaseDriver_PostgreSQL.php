@@ -662,78 +662,45 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         return $statistics;
     }
 
-     /**
-     * Return facets elements from a type for a given collection
+    /**
+     * Return hierarchical facets (i.e. "SOLR4 like" pivot) for a $hash for a given collection
      * 
-     * Returned array structure if collectionName is set
+     * Returned array structure :
      * 
      *      array(
-     *          'type#' => array(
-     *              'value1' => count1,
-     *              'value2' => count2,
-     *              'parent' => array(
-     *                  'value3' => count3,
-     *                  ...
-     *              )
-     *              ...
-     *          ),
-     *          'type2' => array(
-     *              ...
-     *          ),
-     *          ...
+     *          'facet_counts' => array(
+     *              'facet_fields' => array(...),
+     *              'facet_pivot' => array(...)
+     *          )
      *      )
      * 
-     * Or an array of array indexed by collection name if $collectionName is null
-     *  
-     * @param string $collectionName
-     * @param array $facetFields
      * @param string $hash
+     * @param string $collectionName
      * 
      * @return array
      */
-    public function getHierarchicalFacets($collectionName = null, $facetFields = null, $hash = null) {
+    public function getHierarchicalFacets($hash, $collectionName = null) {
         
-        $cached = $this->retrieveFromCache(array('getFacets', $collectionName, $facetFields, $hash));
+        $cached = $this->retrieveFromCache(array('getFacets', $collectionName, $hash));
         if (isset($cached)) {
             return $cached;
         }
-          
+        
         /*
-         * Retrieve pivot for each input facet fields
+         * Set facet_fields from statistics
          */
         $facet_fields = array();
-        if (isset($facetFields) && count($facetFields) > 0) {
-            for ($i = 0, $l = count($facetFields); $i < $l; $i++) {
-                $pivot = $this->getFacetPivot($collectionName, $facetFields[$i], null);
-                if (isset($pivot) && count($pivot) > 0) {
-                    $facet_fields[$facetFields[$i]] = array();
-                    for ($j = count($pivot); $j--;) {
-                        $facet_fields[$facetFields[$i]][] = $pivot[$j]['value'];
-                        $facet_fields[$facetFields[$i]][] = $pivot[$j]['count'];
-                    }
-                }
+        $statistics = $this->getStatistics($collectionName);
+        foreach ($statistics as $facetField => $entry) {
+            foreach ($entry as $value => $count) {
+                $facet_fields[$facetField][] = $value;
+                $facet_fields[$facetField][] = $count;
             }
         }
-        /*
-         * or for all master facet fields
-         */
-        else {
-            foreach (array_values($this->facetCategories) as $facetCategory) {
-                $pivot = $this->getFacetPivot($collectionName, $facetCategory[0], null);
-                if (isset($pivot) && count($pivot) > 0) {
-                    $facet_fields[$facetCategory[0]] = array();
-                    for ($i = count($pivot); $i--;) {
-                        $facet_fields[$facetCategory[0]][] = $pivot[$i]['value'];
-                        $facet_fields[$facetCategory[0]][] = $pivot[$i]['count'];
-                    }
-                }
-            }
-        }
-        
         /*
          * Initialize output
          */
-        $facetsStatistics = array(
+        $hierarchicalFacets = array(
             'facet_counts' => array(
                 'facet_fields' => $facet_fields
             )
@@ -748,7 +715,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
          * No pivot required
          */
         if (!isset($facet)) {
-            return $facetsStatistics;
+            return $hierarchicalFacets;
         }
         
         /*
@@ -807,11 +774,11 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             }
         }
         
-        $facetsStatistics['facet_counts']['facet_pivot'] = array(
+        $hierarchicalFacets['facet_counts']['facet_pivot'] = array(
             join(',', $names) . (isset($childrenField) ? ',' . $childrenField : '') => $currentPivot
         );
         
-        return $facetsStatistics;
+        return $hierarchicalFacets;
     }
 
     /**
@@ -1558,7 +1525,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                  * Get Facets
                  */
                 if (isset($facetFields)) {
-                    $collectionDescription['facets'] = $this->getStatistics($collectionName, $facetFields);
+                    $collectionDescription['statistics'] = $this->getStatistics($collectionName, $facetFields);
                 }
             }
             else {
@@ -1844,7 +1811,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                  * Get Facets
                  */
                 if (isset($facetFields)) {
-                    $collectionsDescriptions[$collection['collection']]['facets'] = $this->getStatistics($collection['collection'], $facetFields);
+                    $collectionsDescriptions[$collection['collection']]['statistics'] = $this->getStatistics($collection['collection'], $facetFields);
                 }
             }
         } catch (Exception $e) {

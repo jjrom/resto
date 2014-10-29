@@ -74,9 +74,9 @@ class RestoCollection {
     public $license = array();
     
     /*
-     * Facets
+     * Statistics
      */
-    public $facets = array();
+    public $statistics = array();
     
     /*
      * Array of options
@@ -268,7 +268,7 @@ class RestoCollection {
         $this->status = $collectionDescription['status'];
         $this->licence = $collectionDescription['license'];
         $this->propertiesMapping = $collectionDescription['propertiesMapping'];
-        $this->facets = $collectionDescription['facets'];
+        $this->statistics = $collectionDescription['statistics'];
         $this->synchronized = true;
         return $this;
     }
@@ -336,7 +336,7 @@ class RestoCollection {
             'model' => $this->model->name,
             'osDescription' => $this->osDescription,
             'propertiesMapping' => $this->propertiesMapping,
-            'facets' => $this->facets
+            'statistics' => $this->statistics
         );
     }
     
@@ -456,8 +456,8 @@ class RestoCollection {
                             }
                         }
                         else if ($filter['options'] === 'auto') {
-                            if (isset($filter['key']) && isset($this->facets[$filter['key']])) {
-                                foreach (array_keys($this->facets[$filter['key']]) as $key) {
+                            if (isset($filter['key']) && isset($this->statistics[$filter['key']])) {
+                                foreach (array_keys($this->statistics[$filter['key']]) as $key) {
                                     $xml->startElement('parameters:Options');
                                     $xml->writeAttribute('value', $key);
                                     $xml->endElement();

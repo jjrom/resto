@@ -134,7 +134,7 @@ class RestoCollections {
             $collection->status = $collectionsDescriptions[$key]['status'];
             $collection->licence = $collectionsDescriptions[$key]['license'];
             $collection->propertiesMapping = $collectionsDescriptions[$key]['propertiesMapping'];
-            $collection->facets = $collectionsDescriptions[$key]['facets'];
+            $collection->statistics = $collectionsDescriptions[$key]['statistics'];
             $this->add($collection);
         }
         return $this;

@@ -600,6 +600,25 @@ abstract class RestoDatabaseDriver {
     abstract public function getStatistics($collectionName = null, $facetFields = null);
 
     /**
+     * Return hierarchical facets (i.e. "SOLR4 like" pivot) for a $hash for a given collection
+     * 
+     * Returned array structure :
+     * 
+     *      array(
+     *          'facet_counts' => array(
+     *              'facet_fields' => array(...),
+     *              'facet_pivot' => array(...)
+     *          )
+     *      )
+     * 
+     * @param string $hash
+     * @param string $collectionName
+     * 
+     * @return array
+     */
+    abstract function getHierarchicalFacets($hash, $collectionName = null);
+    
+    /**
      * Return resource description from database i.e. fields
      *  - resource
      *  - resourceMimeType
