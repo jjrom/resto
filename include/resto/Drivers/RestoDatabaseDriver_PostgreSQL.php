@@ -390,6 +390,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                         }
                         $quote = count(explode(' ', $keyword['id'])) > 1 ? '"' : '';
                         $propertyTags[] =  $quote . $keyword['id'] . $quote . '=>"' . urlencode(json_encode($json)) . '"';
+                        $propertyTags[] =  'hash:' . $keyword['hash'] . '=>"' . $keyword['id'] . '"';
                     }
                     $values[] = '\'' . pg_escape_string(join(',', $propertyTags)) . '\'';
                     
@@ -2581,9 +2582,9 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             $hrefKey = $key;
             
             /*
-             * Do not display landuse_details
+             * Do not display hash and landuse_details
              */
-            if ($type === 'landuse_details') {
+            if ($type === 'hash' || $type === 'landuse_details') {
                 continue;
             }
 

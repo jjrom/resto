@@ -1,13 +1,12 @@
 <?php
     $_noSearchBar = true;
     $_noMap = true;
-    $facetsStatistics = $self->context->dbDriver->getFacetsStatistics(null);
+    $statistics = $self->context->dbDriver->getStatistics();
     $nbOfProducts = 0;
     $nbOfCollections = 0;
-    if (isset($facetsStatistics['facet_counts']['facet_fields']['collection'])) {
-        $l = count($facetsStatistics['facet_counts']['facet_fields']['collection']);
-        for ($i = 1; $i < $l; $i = $i + 2) {
-            $nbOfProducts += $facetsStatistics['facet_counts']['facet_fields']['collection'][$i];
+    if (isset($statistics['collection'])) {
+        foreach (array_values($statistics['collection']) as $count) {
+            $nbOfProducts += $count;
             $nbOfCollections++;
         } 
     }
