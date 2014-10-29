@@ -126,7 +126,7 @@ class RestoCollections {
      * Load all collections from RESTo database and add them to this object
      */
     public function loadCollectionsFromStore() {
-        $collectionsDescriptions = $this->context->dbDriver->getCollectionsDescriptions(array('collection'));
+        $collectionsDescriptions = $this->context->dbDriver->getCollectionsDescriptions();
         foreach (array_keys($collectionsDescriptions) as $key) {
             $collection = new RestoCollection($key, $this->context);
             $collection->model = RestoUtil::instantiate($collectionsDescriptions[$key]['model'], array($collection->context));

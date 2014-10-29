@@ -594,11 +594,10 @@ abstract class RestoDatabaseDriver {
      *  
      * @param string $collectionName
      * @param array $facetFields
-     * @param string $hash
      * 
      * @return array
      */
-    abstract public function getFacetsStatistics($collectionName = null, $facetFields = null, $hash = null);
+    abstract public function getStatistics($collectionName = null, $facetFields = null);
 
     /**
      * Return resource description from database i.e. fields

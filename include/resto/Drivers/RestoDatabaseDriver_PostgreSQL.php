@@ -614,7 +614,84 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      * 
      * @return array
      */
-    public function getFacetsStatistics($collectionName = null, $facetFields = null, $hash = null) {
+    public function getStatistics($collectionName = null, $facetFields = null) {
+        
+        $cached = $this->retrieveFromCache(array('getStatistics', $collectionName, $facetFields));
+        if (isset($cached)) {
+            return $cached;
+        }
+        
+        /*
+         * Retrieve pivot for each input facet fields
+         */
+        $statistics = array();
+        if (isset($facetFields) && count($facetFields) > 0) {
+            for ($i = 0, $l = count($facetFields); $i < $l; $i++) {
+                $pivot = $this->getFacetPivot($collectionName, $facetFields[$i], null);
+                if (isset($pivot) && count($pivot) > 0) {
+                    for ($j = count($pivot); $j--;) {
+                        if (isset($statistics[$pivot[$j]['field']][$pivot[$j]['value']])) {
+                            $statistics[$pivot[$j]['field']][$pivot[$j]['value']] += (integer) $pivot[$j]['count'];
+                        }
+                        else {
+                            $statistics[$pivot[$j]['field']][$pivot[$j]['value']] = (integer) $pivot[$j]['count'];
+                        }
+                    }
+                }
+            }
+        }
+        /*
+         * or for all master facet fields
+         */
+        else {
+            foreach (array_values($this->facetCategories) as $facetCategory) {
+                $pivot = $this->getFacetPivot($collectionName, $facetCategory[0], null);
+                if (isset($pivot) && count($pivot) > 0) {
+                    for ($j = count($pivot); $j--;) {
+                        if (isset($statistics[$pivot[$j]['field']][$pivot[$j]['value']])) {
+                            $statistics[$pivot[$j]['field']][$pivot[$j]['value']] += (integer) $pivot[$j]['count'];
+                        }
+                        else {
+                            $statistics[$pivot[$j]['field']][$pivot[$j]['value']] = (integer) $pivot[$j]['count'];
+                        }
+                    }
+                }
+            }
+        }
+        
+        return $statistics;
+    }
+
+     /**
+     * Return facets elements from a type for a given collection
+     * 
+     * Returned array structure if collectionName is set
+     * 
+     *      array(
+     *          'type#' => array(
+     *              'value1' => count1,
+     *              'value2' => count2,
+     *              'parent' => array(
+     *                  'value3' => count3,
+     *                  ...
+     *              )
+     *              ...
+     *          ),
+     *          'type2' => array(
+     *              ...
+     *          ),
+     *          ...
+     *      )
+     * 
+     * Or an array of array indexed by collection name if $collectionName is null
+     *  
+     * @param string $collectionName
+     * @param array $facetFields
+     * @param string $hash
+     * 
+     * @return array
+     */
+    public function getHierarchicalFacets($collectionName = null, $facetFields = null, $hash = null) {
         
         $cached = $this->retrieveFromCache(array('getFacets', $collectionName, $facetFields, $hash));
         if (isset($cached)) {
@@ -757,13 +834,13 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              * Facet for one collection
              */
             if (isset($collectionName)) {
-                $results = pg_query($this->dbh, 'SELECT * FROM resto.facets WHERE counter > 0 AND collection=\'' . pg_escape_string($collectionName) . '\' AND type=\'' . pg_escape_string($field) . '\' AND ' . (isset($parentHash) ? 'pid=\'' . pg_escape_string($parentHash) . '\'' : 'pid IS NULL') . ' ORDER BY value');
+                $results = pg_query($this->dbh, 'SELECT * FROM resto.facets WHERE counter > 0 AND collection=\'' . pg_escape_string($collectionName) . '\' AND type=\'' . pg_escape_string($field) . '\'' . (isset($parentHash) ? ' AND pid=\'' . pg_escape_string($parentHash) . '\'' : '') . ' ORDER BY value');
             }
             /*
              * Facets for all collections
              */
             else {
-                $results = pg_query($this->dbh, 'SELECT * FROM resto.facets WHERE counter > 0 AND type=\'' . pg_escape_string($field) . '\' AND ' . (isset($parentHash) ? 'pid=\'' . pg_escape_string($parentHash) . '\'' : 'pid IS NULL') . ' ORDER BY value');
+                $results = pg_query($this->dbh, 'SELECT * FROM resto.facets WHERE counter > 0 AND type=\'' . pg_escape_string($field) . '\'' . (isset($parentHash) ? ' AND pid=\'' . pg_escape_string($parentHash) . '\'' : '') . ' ORDER BY value');
             }
             if (!$results) {
                 throw new Exception();
@@ -1476,12 +1553,12 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                         'Attribution' => $description['attribution']
                     );
                 }
-                
+     
                 /*
                  * Get Facets
                  */
                 if (isset($facetFields)) {
-                    $collectionDescription['facets'] = $this->getFacetsStatistics($collectionName, $facetFields);
+                    $collectionDescription['facets'] = $this->getStatistics($collectionName, $facetFields);
                 }
             }
             else {
@@ -1767,7 +1844,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                  * Get Facets
                  */
                 if (isset($facetFields)) {
-                    $collectionsDescriptions[$collection['collection']]['facets'] = $this->getFacetsStatistics($collection['collection'], $facetFields);
+                    $collectionsDescriptions[$collection['collection']]['facets'] = $this->getStatistics($collection['collection'], $facetFields);
                 }
             }
         } catch (Exception $e) {

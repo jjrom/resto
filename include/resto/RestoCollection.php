@@ -254,14 +254,14 @@ class RestoCollection {
         /*
          * Retrieve facets
          */
-        $facets = array('collection');
+        $facets = array('collection', 'continent');
         $model = new RestoModel_default($this->context);
         foreach (array_values($model->searchFilters) as $filter) {
             if (isset($filter['options']) && $filter['options'] === 'auto') {
                 $facets[] = $filter['key'];
             }
         }
-         
+        
         $collectionDescription = $this->context->dbDriver->getCollectionDescription($this->name, $facets);
         $this->model = RestoUtil::instantiate($collectionDescription['model'], array($this->context));
         $this->osDescription = $collectionDescription['osDescription'];
@@ -458,22 +458,9 @@ class RestoCollection {
                         else if ($filter['options'] === 'auto') {
                             if (isset($filter['key']) && isset($this->facets[$filter['key']])) {
                                 foreach (array_keys($this->facets[$filter['key']]) as $key) {
-                                    
-                                    /*
-                                     * Facets with a parent are two levels
-                                     */
-                                    if (is_array($this->facets[$filter['key']][$key])) {
-                                        foreach (array_keys($this->facets[$filter['key']][$key]) as $child) {
-                                            $xml->startElement('parameters:Options');
-                                            $xml->writeAttribute('value', $child);
-                                            $xml->endElement();
-                                        }
-                                    }
-                                    else {
-                                        $xml->startElement('parameters:Options');
-                                        $xml->writeAttribute('value', $key);
-                                        $xml->endElement();
-                                    }
+                                    $xml->startElement('parameters:Options');
+                                    $xml->writeAttribute('value', $key);
+                                    $xml->endElement();
                                 }
                             }
                         }
