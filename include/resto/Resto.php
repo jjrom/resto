@@ -438,7 +438,7 @@ class Resto {
         
         $module = null;
         foreach (array_keys($this->config['modules']) as $moduleName) {
-            if ($this->config['modules'][$moduleName]['activate'] === true && isset($this->config['modules'][$moduleName]['route'])) {
+            if (isset($this->config['modules'][$moduleName]['activate']) && $this->config['modules'][$moduleName]['activate'] === true && isset($this->config['modules'][$moduleName]['route'])) {
                 $moduleSegments = explode('/', $this->config['modules'][$moduleName]['route']);
                 $routeIsTheSame = true;
                 $count = 0;
