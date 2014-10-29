@@ -2878,5 +2878,37 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         }
     }
     
+    /**
+     * Count history logs per service
+     * 
+     * @param string $service : i.e. one of 'download', 'search', etc.
+     * @param string $collectionName
+     * @param integer $userid
+     * @return integer
+     * @throws Exception
+     */
+    public function countService($service, $collectionName = null, $userid = null){
+        $results = pg_query($this->dbh, 'SELECT count(gid) FROM usermanagement.history WHERE service=\'' . pg_escape_string($service) .'\'' . (isset($collectionName) ? ' AND collection=\'' . pg_escape_string($collectionName) . '\'' : '') . (isset($userid) ? ' AND userid=\'' . pg_escape_string($userid) . '\'' : ''));
+        if (!$results) {
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+        }
+        return (integer) pg_fetch_assoc($results);
+    }
+    
+    /**
+     * Count history logs per service
+     * 
+     * @param boolean $activated
+     * @param string $groupname
+     * @return integer
+     * @throws Exception
+     */
+    public function countUsers($activated = null, $groupname = null){
+        $results = pg_query($this->dbh, 'SELECT COUNT(*) FROM usermanagement.users ' . (isset($activated) ?  (' WHERE activated=\'' . ($activated === true ? 't' : 'f') . '\'') : '') . (isset($groupname) ? ' AND groupname=\'' . pg_escape_string($groupname) . '\'' : ''));
+        if (!$results) {
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+        }
+        return (integer) pg_fetch_assoc($results);
+    }
     
 }

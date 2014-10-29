@@ -652,4 +652,26 @@ abstract class RestoDatabaseDriver {
      * @throws Exception
      */
     abstract public function getHistory($userid = null, $options = array());
+    
+    /**
+     * Count history logs per service
+     * 
+     * @param string $service : i.e. one of 'download', 'search', etc.
+     * @param string $collectionName
+     * @param integer $userid
+     * @return integer
+     * @throws Exception
+     */
+    abstract public function countService($service, $collectionName = null, $userid = null);
+    
+    /**
+     * Count history logs per service
+     * 
+     * @param boolean $activated
+     * @param string $groupname
+     * @return integer
+     * @throws Exception
+     */
+    abstract public function countUsers($activated = null, $groupname = null);
+    
 }
