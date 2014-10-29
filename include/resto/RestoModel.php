@@ -836,117 +836,30 @@ abstract class RestoModel {
         if (isset($properties['landCover'])) {
             if (isset($properties['landCover']['landUse'])) {
                 foreach (array_values($properties['landCover']['landUse']) as $landuse) {
-                    $landUseHash = RestoUtil::getHash(array('landuse:'.strtolower($landuse['name'])));
+                    $id = 'landuse:' . strtolower($landuse['name']);
                     $keywords[] = array(
-                        'id' => 'landuse:'.strtolower($landuse['name']),
-                        'hash' => $landUseHash,
+                        'id' => $id,
+                        'hash' => RestoUtil::getHash($id),
                         'value' => $landuse['pcover']
                     );
                 }
             }
             if (isset($properties['landCover']['landUseDetails'])) {
                 foreach (array_values($properties['landCover']['landUseDetails']) as $landuse) {
+                    $id = 'landuse_details:' . strtolower($landuse['name']);
+                    $parentId = 'landuse:' . strtolower($landuse['parent']);
+                    $parentHash = RestoUtil::getHash($parentId);
                     $keywords[] = array(
-                        'id' => 'landuse_details:'.strtolower($landuse['name']),
-                        'parentId' => 'landuse:'.strtolower($landuse['parent']),
-                        'hash' => RestoUtil::getHash('landuse_details:'.strtolower($landuse['name']), $landUseHash),
-                        'parentHash' => $landUseHash,
+                        'id' => $id,
+                        'parentId' => $parentId,
+                        'hash' => RestoUtil::getHash($id, $parentHash),
+                        'parentHash' => $parentHash,
                         'value' => $landuse['pcover']
                     );
                 }
             }
         }
 
-        return $keywords;
-    }
-    
-    /**
-     * Return a RESTo keywords array from an iTag feature
-     * 
-     *      $keywords = array(
-     *          array("name1", array(
-     *              "id" => id,
-     *              "type" => type,
-     *              "value" => value or array()
-     *          ),
-     *          array("name2", array(...))
-     *      );
-     * 
-     * @param array $iTagFeature
-     */
-    private function iTagNoHierarchicalToKeywords($iTagFeature) {
-        
-        $keywords = array();
-        
-        if (!isset($iTagFeature) || !isset($iTagFeature['properties'])) {
-            return $keywords;
-        }
-        
-        $properties = $iTagFeature['properties'];
-        
-        if ($properties['political']) {
-            if (isset($properties['political']['continents'])) {
-                foreach (array_values($properties['political']['continents']) as $continent) {
-                    $keywords[$continent['name']] = array(
-                        'id' => $continent['id'],
-                        'type' => 'continent'
-                    );
-                }
-            }
-            if (isset($properties['political']['countries'])) {
-                foreach (array_values($properties['political']['countries']) as $country) {
-                    $keywords[$country['name']] = array(
-                        'id' => $country['id'],
-                        'type' => 'country',
-                        'value' => $country['pcover']
-                    );
-                }
-            }
-            if (isset($properties['political']['cities'])) {
-                foreach (array_values($properties['political']['cities']) as $city) {
-                    $keywords[$city['name']] = array(
-                        'id' => $city['id'],
-                        'type' => 'city'
-                    );
-                }
-            }
-            if (isset($properties['political']['regions'])) {
-                foreach (array_values($properties['political']['regions']) as $region) {
-                    $keywords[$region['name']] = array(
-                        'id' => $region['id'],
-                        'type' => 'region'
-                    );
-                }
-            }
-            if (isset($properties['political']['states'])) {
-                foreach (array_values($properties['political']['states']) as $state) {
-                    $keywords[$state['name']] =  array(
-                        'id' => $state['id'],
-                        'type' => 'state',
-                        'value' => $state['pcover']
-                    );
-                }
-            }
-        }
-        if ($properties['landCover']) {
-            if (isset($properties['landCover']['landUse'])) {
-                foreach (array_values($properties['landCover']['landUse']) as $landuse) {
-                    $keywords[$landuse['name']] = array(
-                        'type' => 'landuse',
-                        'value' => $landuse['pcover']
-                    );
-                }
-            }
-            if (isset($properties['landCover']['landUseDetails'])) {
-                foreach (array_values($properties['landCover']['landUseDetails']) as $landuse) {
-                    $keywords[$landuse['name']] = array(
-                        'type' => 'landuse_details',
-                        'value' => $landuse['pcover']
-                    );
-                }
-            }
-        }
-        
         return $keywords;
     }
     
