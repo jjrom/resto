@@ -265,10 +265,10 @@ class RestoUser{
     /**
      * Add item to cart
      * 
-     * @param string $resourceUrl
+     * @param array $item
      */
-    public function addToCart($resourceUrl) {
-        if ($this->cart->add($resourceUrl, true)) {
+    public function addToCart($item) {
+        if ($this->cart->add($item, true)) {
             $_SESSION['cart'] = $this->getCart()->getItems();
             return true;
         }
