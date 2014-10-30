@@ -163,15 +163,6 @@ abstract class RestoModel {
             'name' => 'published',
             'type' => 'TIMESTAMP'
         ),
-        'keywords' => array(
-            'name' => 'keywords',
-            'type' => 'hstore',
-            'constraint' => 'DEFAULT \'\''
-        ),
-        'geometry' => array(
-            'name' => 'geometry',
-            'type' => 'GEOMETRY'
-        ),
         'cultivatedCover' => array(
             'name' => 'lu_cultivated',
             'type' => 'NUMERIC',
@@ -212,14 +203,6 @@ abstract class RestoModel {
             'type' => 'NUMERIC',
             'constraint' => 'DEFAULT 0'
         ),
-        'continents' => array(
-            'name' => 'lo_continents',
-            'type' => 'TEXT[]'
-        ),
-        'countries' => array(
-            'name' => 'lo_countries',
-            'type' => 'TEXT[]'
-        ),
         'snowCover' => array(
             'name' => 'snowcover',
             'type' => 'NUMERIC'
@@ -227,6 +210,19 @@ abstract class RestoModel {
         'cloudCover' => array(
             'name' => 'cloudcover',
             'type' => 'NUMERIC'
+        ),
+        'keywords' => array(
+            'name' => 'keywords',
+            'type' => 'hstore',
+            'constraint' => 'DEFAULT \'\''
+        ),
+        'geometry' => array(
+            'name' => 'geometry',
+            'type' => 'GEOMETRY'
+        ),
+        'hashes' => array(
+            'name' => 'hashes',
+            'type' => 'TEXT[]'
         )
     );
     
@@ -271,7 +267,7 @@ abstract class RestoModel {
      */
     public $searchFilters = array(
         'searchTerms' => array(
-            'key' => 'keywords',
+            'key' => 'hashes',
             'osKey' => 'q',
             'operation' => 'keywords',
             'title' => 'Free text search'

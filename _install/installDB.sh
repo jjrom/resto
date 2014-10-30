@@ -237,8 +237,7 @@ CREATE TABLE resto.features (
     lu_ice              NUMERIC DEFAULT 0,
     lu_urban            NUMERIC DEFAULT 0,
     lu_water            NUMERIC DEFAULT 0,
-    lo_continents       TEXT[],
-    lo_countries        TEXT[],
+    hashes              CHAR(15)[],
     snowcover           NUMERIC,
     cloudcover          NUMERIC
 );

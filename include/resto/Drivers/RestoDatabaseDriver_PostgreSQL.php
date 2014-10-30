@@ -307,6 +307,12 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             )
         );
         try {
+            
+            /*
+             * Initialize hashes array
+             */
+            $hashes = array();
+                        
             for ($i = count($elements); $i--;) {
                 
                 /*
@@ -351,9 +357,11 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                  *          )
                  *      );
                  * 
-                 *  keyword storage convention within hstore :
+                 *  keyword are stored in hstore column with the following convention :
                  * 
-                 *       hash => {"name":"...", "hash":"...", "parentHash":"...", "value":"..."}
+                 *       hash => urlencode({"name":"...", "hash":"...", "parentHash":"...", "value":"..."})
+                 * 
+                 *  hash for each keyword is stored within the hases column for search purpose
                  */
                 else if ($elements[$i][0] === 'keywords' && is_array($elements[$i][1])) {
                     foreach (array_values($elements[$i][1]) as $keyword) {
@@ -376,7 +384,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                                 'parentHash' => isset($keyword['parentHash']) ? $keyword['parentHash'] : null
                             );
                         }
-                        
+                       
                         /*
                          * Prepare hstore value as a json string
                          */
@@ -390,36 +398,25 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                         }
                         $quote = count(explode(' ', $keyword['id'])) > 1 ? '"' : '';
                         $propertyTags[] =  $quote . $keyword['id'] . $quote . '=>"' . urlencode(json_encode($json)) . '"';
-                        $propertyTags[] =  'hash:' . $keyword['hash'] . '=>"' . $keyword['id'] . '"';
+                        
+                        /*
+                         * Add to hashes array
+                         */
+                        $hashes[] = '"' . pg_escape_string($keyword['hash']) . '"';
+                        
                     }
                     $values[] = '\'' . pg_escape_string(join(',', $propertyTags)) . '\'';
                     
                     /*
-                     * Special keywords type (i.e. landuse, country and continent) are
-                     * also stored in dedicated table columns to speed up search requests
+                     * landuse keywords are also stored in dedicated
+                     * table columns to speed up search requests
                      */
-                    $countries = array();
-                    $continents = array();
                     foreach (array_values($elements[$i][1]) as $keyword) {
                         list($facetType, $idId) = explode(':', $keyword['id'], 2);
                         if ($facetType === 'landuse') {
                             $keys[] = 'lu_' . $idId;
                             $values[] = $keyword['value'];
                         }
-                        else if ($facetType === 'country') {
-                            $countries[] = '"' . pg_escape_string($idId) . '"';
-                        }
-                        else if ($facetType === 'continent') {
-                            $continents[] = '"' . pg_escape_string($idId) . '"';
-                        }
-                    }
-                    if (count($countries) > 0) {
-                        $keys[] = $model->getDbKey('countries');
-                        $values[] = '\'{' . join(',', $countries) . '}\'';
-                    }
-                    if (count($continents) > 0) {
-                        $keys[] = $model->getDbKey('continents');
-                        $values[] = '\'{' . join(',', $continents) . '}\'';
                     }
                 }
                 else {
@@ -461,17 +458,21 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                             for ($k = count($parentIds); $k--;) {
                                 $parentHash = RestoUtil::getHash($parentIds[$k], $parentHash);
                             }
+                            $hash = RestoUtil::getHash($id, $parentHash);
+                            $hashes[] = '"' . pg_escape_string($hash) . '"';
                             $facets[] = array(
                                 'id' => $id,
-                                'hash' => RestoUtil::getHash($id, $parentHash),
+                                'hash' => $hash,
                                 'parentId' => $parentIds[0],
                                 'parentHash' => $parentHash
                             );
                         }
                         else {
+                            $hash = RestoUtil::getHash($id);
+                            $hashes[] = '"' . pg_escape_string($hash) . '"';
                             $facets[] = array(
                                 'id' => $id,
-                                'hash' => RestoUtil::getHash($id)
+                                'hash' => $hash
                             );
                         }
                         
@@ -485,6 +486,10 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                         $idMonth = 'month:' . substr($elements[$i][1], 0, 7);
                         $hashMonth = RestoUtil::getHash($idMonth, $hashYear);
                         $idDay = 'day:' . substr($elements[$i][1], 0, 10);
+                        $hashDay = RestoUtil::getHash($idDay);
+                        $hashes[] = '"' . pg_escape_string($hashYear) . '"';
+                        $hashes[] = '"' . pg_escape_string($hashMonth) . '"';
+                        $hashes[] = '"' . pg_escape_string($hashDay) . '"';
                         $facets[] = array(
                             'id' => $idYear,
                             'hash' => $hashYear
@@ -497,7 +502,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                         );
                         $facets[] = array(
                             'id' => $idDay,
-                            'hash' => RestoUtil::getHash($idDay),
+                            'hash' => $hashDay,
                             'parentId' => $idMonth,
                             'parentHash' => $hashMonth
                         );
@@ -512,6 +517,14 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             $values[] = 'now()';
             $keys[] = 'published';
             $values[] = 'now()';
+            
+            /*
+             * Hashes column
+             */
+            if (count($hashes) > 0) {
+                $keys[] = $model->getDbKey('hashes');
+                $values[] = '\'{' . join(',', $hashes) . '}\'';
+            }
             
             /*
              * Start transaction
@@ -1662,8 +1675,6 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     'resolution' => 'btree',
                     'startDate' => 'btree',
                     'completionDate' => 'btree',
-                    'geometry' => 'gist',
-                    'keywords' => 'gin',
                     'cultivatedCover' => 'btree',
                     'desertCover' => 'btree',
                     'floodedCover' => 'btree',
@@ -1672,8 +1683,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     'snowCover' => 'btree',
                     'urbanCover' => 'btree',
                     'waterCover' => 'btree',
-                    'continents' => 'gin',
-                    'countries' => 'gin'
+                    'geometry' => 'gist',
+                    'hashes' => 'gin'
                 );
                 foreach ($indices as $key => $indexType) {
                     pg_query($this->dbh, 'CREATE INDEX ' . $this->getSchemaName($collection->name) . '_features_' . $collection->model->getDbKey($key) . '_idx ON ' . $this->getSchemaName($collection->name) . '.features USING ' . $indexType . ' (' . $collection->model->getDbKey($key) . ')');
@@ -2230,21 +2241,12 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 }
             }
             /*
-             * keywords case - i.e. searchTerms in keywords column
+             * keywords case - i.e. searchTerms
              * 
-             * Keywords structure is "type:keyword".
+             * !! IMPORTANT NOTE !!
              * 
-             * Keyword storage (i.e. column in table) depends on keyword "type", i.e. 
-             * 
-             *  - country           :   column "lo_counties" (TEXT[]) 
-             *  - continent         :   column "lo_continents" (TEXT[])
-             *  - region            :   column "keywords" (hstore)
-             *  - state             :   column "keywords" (hstore)
-             *  - city              :   column "keywords" (hstore)
-             *  - landuse           :   columns "lu_*" (NUMERIC)
-             *  - landuse_details   :   column "keywords" (hstore)
-             *  - .etc.             :   column "keywords" (hstore)
-             * 
+             *      keywords are stored in hstore 'keywords' column
+             *      BUT searches are done on the array 'hashes' column
              * 
              */
             else if ($operation === 'keywords') {
@@ -2252,22 +2254,9 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 $terms = array();
                 $splitted = RestoUtil::splitString($requestParams[$filterName]);
                 $key = $model->getDbKey($model->searchFilters[$filterName]['key']);
-                $arr = array(
-                    'lo_countries' => array(
-                        'operator' => '@>',
-                        'with' => array(),
-                        'without' => array()
-                    ),
-                    'lo_continents' => array(
-                        'operator' => '@>',
-                        'with' => array(),
-                        'without' => array()
-                    ),
-                    $key => array(
-                        'operator' => '?&',
-                        'with' => array(),
-                        'without' => array()
-                    )
+                $filters = array(
+                    'with' => array(),
+                    'without' => array()
                 );
                 for ($i = 0, $l = count($splitted); $i < $l; $i++) {
 
@@ -2283,14 +2272,17 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     }
 
                     /*
-                     * Check type
+                     * Keywords structure is "type:value"
                      */
                     $typeAndValue = explode(':', $s);
-                 
+                    if (count($typeAndValue) !== 2) {
+                        return 'INVALID';
+                    }
+                    
                     /*
                      * Landuse columns are NUMERIC columns
                      */
-                    if (count($typeAndValue) === 2 && $typeAndValue[0] === 'landuse') {
+                    if ($typeAndValue[0] === 'landuse') {
                         if (in_array($typeAndValue[1], array('cultivated', 'desert', 'flooded', 'forest','herbaceous','snow','ice','urban','water'))) {
                             $terms[] = 'lu_' . $typeAndValue[1] . ($not ? ' = ' : ' > ') . '0';
                         }
@@ -2299,38 +2291,21 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                         }
                     }
                     /*
-                     * Country and Continents are stored within TEXT[] columns
-                     */
-                    else if (count($typeAndValue) === 2 && ($typeAndValue[0] === 'country' || $typeAndValue[0] === 'continent')) {
-                        $tmpKey = $typeAndValue[0] === 'country' ? 'lo_countries' : 'lo_continents';
-                        $arr[$tmpKey][$not ? 'without' : 'with'][] = "'" . pg_escape_string($typeAndValue[1]) . "'";
-                    }
-                    /*
-                     * Everything other types are stored within hstore column
+                     * Everything other types are stored within hashes column
+                     * If input keyword is a hash leave value unchanged, otherwise compute hash from keyword
                      */
                     else {
-
-                        /*
-                         * PostgresSQL < 9 has a limited hstore function support
-                         */
-                        if (pg_version($this->dbh) < 9) {
-                            $terms[] = ($not ? ' NOT ' : '') . $model->getDbKey($model->searchFilters[$filterName]['key']) . "?'" . pg_escape_string($s) . "'";
-                        }
-                        else {
-                            $arr[$key][$not ? 'without' : 'with'][] = "'" . pg_escape_string($s) . "'";
-                        }
+                        $filters[$not ? 'without' : 'with'][] = "'" . pg_escape_string($typeAndValue[0] !== 'hash' ? RestoUtil::getHash($s) : $typeAndValue[1]) . "'";
                     }
                 }
-
-                foreach (array_keys($arr) as $tmpKey) {
-                    if (count($arr[$tmpKey]['without']) > 0) {
-                        $terms[] = 'NOT ' . $tmpKey . $arr[$tmpKey]['operator'] . "ARRAY[" . join(',', $arr[$tmpKey]['without']) . "]";
-                    }
-                    if (count($arr[$tmpKey]['with']) > 0) {
-                        $terms[] = $tmpKey . $arr[$tmpKey]['operator'] . "ARRAY[" . join(',', $arr[$tmpKey]['with']) . "]";
-                    }
+                
+                if (count($filters['without']) > 0) {
+                    $terms[] = 'NOT ' . $key . " @> ARRAY[" . join(',', $filters['without']) . "]";
                 }
-
+                if (count($filters['with']) > 0) {
+                    $terms[] = $key . " @> ARRAY[" . join(',', $filters['with']) . "]";
+                }
+                
                 return join(' AND ', $terms);
                 
             }
@@ -2582,9 +2557,9 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             $hrefKey = $key;
             
             /*
-             * Do not display hash and landuse_details
+             * Do not display landuse_details
              */
-            if ($type === 'hash' || $type === 'landuse_details') {
+            if ($type === 'landuse_details') {
                 continue;
             }
 
