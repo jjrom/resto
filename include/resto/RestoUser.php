@@ -76,7 +76,7 @@ class RestoUser{
             /*
              * Search for valid profile in session
              */
-            if (isset($_SESSION) && isset($_SESSION['profile']) && $_SESSION['profile']['lastsessionid'] === session_id() && $_SESSION['profile']['activated'] && $setSession === true) {
+            if (isset($_SESSION) && isset($_SESSION['profile']) && isset($_SESSION['profile']['lastsessionid']) && $_SESSION['profile']['lastsessionid'] === session_id() && $_SESSION['profile']['activated'] && $setSession === true) {
                 $this->profile = $_SESSION['profile'];
             }
             else {
