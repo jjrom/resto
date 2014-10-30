@@ -1015,7 +1015,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             }
             return pg_fetch_array($results);
         } catch (Exception $e) {
-            throw new Exception(($this->context->debug ? ($this->debug ? __METHOD__ . ' - ' : '') . '' : '') . $e->getMessage(), $e->getCode());
+            throw new Exception(($this->debug ? ($this->debug ? __METHOD__ . ' - ' : '') . '' : '') . $e->getMessage(), $e->getCode());
         }
         
         return null;
