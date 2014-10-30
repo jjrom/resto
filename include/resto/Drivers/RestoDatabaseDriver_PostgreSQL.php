@@ -402,8 +402,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                         /*
                          * Add to hashes array
                          */
-                        $idHash = RestoUtil::getHash($keyword['id']);
                         $hashes[] = '"' . pg_escape_string($keyword['hash']) . '"';
+                        $idHash = RestoUtil::getHash($keyword['id']);
                         if ($idHash !== $keyword['hash']) {
                             $hashes[] = '"' . pg_escape_string($idHash) . '"';
                         
