@@ -491,12 +491,12 @@ class Gazetteer extends RestoModule {
         
         /*
          * If last character is '%' and search string length is greater than
-         * 4 characters then do a LIKE instead of strict search
+         * 2 characters then do a LIKE instead of strict search
          */
         $op = '=';
         $limit = '';
         if (substr($query['q'], -1) === '%') {
-            if (strlen($query['q']) > 4) {
+            if (strlen($query['q']) > 2) {
                 $op = ' LIKE ';
                 $limit = ' LIMIT 30';
             }
