@@ -440,8 +440,29 @@ class Gazetteer extends RestoModule {
      */
 
     final public function search($query = array()) {
-        $result = array();
-        $where = '';
+        
+        /*
+         * Returned fields
+         */
+        $resultFields = array(
+            'name',
+            'countryname',
+            'latitude',
+            'longitude',
+            'country as ccode',
+            'fclass',
+            'fcode',
+            'cc2',
+            'admin1',
+            'admin2',
+            'admin3',
+            'admin4',
+            'population',
+            'elevation',
+            'gtopo30',
+            'timezone',
+            'geonameid'
+        );
         
         /*
          * Order toponyms entry following convention
@@ -452,6 +473,8 @@ class Gazetteer extends RestoModule {
          */
         $orderBy = ' ORDER BY CASE fclass WHEN \'P\' then 1 WHEN \'A\' THEN 2 ELSE 3 END, CASE fcode WHEN \'PPLC\' then 1 WHEN \'PPLA\' then 2 WHEN \'PPLA2\' then 3 WHEN \'PPLA4\' then 4 WHEN \'PPL\' then 5 ELSE 6 END';
         
+        $result = array();
+        $where = '';
         if (!$this->dbh || !isset($query['q'])) {
             return $result;
         }
@@ -464,6 +487,20 @@ class Gazetteer extends RestoModule {
         if (count($splitted) > 1) {
             $query['q'] = $splitted[0];
             $query['country'] = $splitted[1];
+        }
+        
+        /*
+         * If last character is '%' and search string length is greater than
+         * 4 characters then do a LIKE instead of strict search
+         */
+        $op = '=';
+        if (substr($query['q'], -1) === '%') {
+            if (strlen($query['q']) > 4) {
+                $op = ' LIKE ';
+            }
+            else {
+                $query['q'] = substr($query['q'], 0, -1);
+            }  
         }
         
         /*
@@ -501,7 +538,7 @@ class Gazetteer extends RestoModule {
          * First search in native language within alternatename table
          */
         if ($this->context->dictionary->language !== 'en') {
-            $toponyms = pg_query($this->dbh, 'SELECT name, country as countrycode, latitude, longitude, fclass, fcode, population, geonameid FROM ' . $this->schema . '.geoname WHERE geonameid = ANY((SELECT array(SELECT geonameid FROM ' . $this->schema . '.alternatename WHERE lower(unaccent(alternatename)) =lower(unaccent(\'' . pg_escape_string($query['q']) . '\'))  AND isolanguage=\'' . $this->context->dictionary->language . '\'))::integer[])' . $where . $orderBy);
+            $toponyms = pg_query($this->dbh, 'SELECT ' . join(',', $resultFields) . ' FROM ' . $this->schema . '.geoname WHERE geonameid = ANY((SELECT array(SELECT geonameid FROM ' . $this->schema . '.alternatename WHERE lower(unaccent(alternatename))' . $op . 'lower(unaccent(\'' . pg_escape_string($query['q']) . '\'))  AND isolanguage=\'' . $this->context->dictionary->language . '\'))::integer[])' . $where . $orderBy);
             if (!$toponyms) {
                 return $result;
             }
@@ -511,7 +548,7 @@ class Gazetteer extends RestoModule {
          * No result - search in english
          */
         if ($this->context->dictionary->language === 'en' || pg_num_rows($toponyms) === 0) {
-            $toponyms = pg_query($this->dbh, 'SELECT name, country as countrycode, latitude, longitude, fclass, fcode, population, geonameid FROM ' . $this->schema . '.geoname WHERE lower(unaccent(name)) =lower(unaccent(\'' . pg_escape_string($query['q']) . '\'))' . $where . $bboxConstraint . $orderBy);
+            $toponyms = pg_query($this->dbh, 'SELECT ' . join(',', $resultFields) . ' FROM ' . $this->schema . '.geoname WHERE lower(unaccent(name))' . $op . 'lower(unaccent(\'' . pg_escape_string($query['q']) . '\'))' . $where . $bboxConstraint . $orderBy);
             if (!$toponyms) {
                 return $result;
             }
@@ -525,7 +562,7 @@ class Gazetteer extends RestoModule {
          * No result - check without bbox
          */
         if (pg_num_rows($toponyms) === 0 && $bboxConstraint) {
-            $toponyms = pg_query($this->dbh, 'SELECT name, country as countrycode, latitude, longitude, fclass, fcode, population, geonameid FROM ' . $this->schema . '.geoname WHERE lower(unaccent(name)) =lower(unaccent(\'' . pg_escape_string($query['q']) . '\'))' . $where . $orderBy);
+            $toponyms = pg_query($this->dbh, 'SELECT ' . join(',', $resultFields) . ' FROM ' . $this->schema . '.geoname WHERE lower(unaccent(name))' . $op . 'lower(unaccent(\'' . pg_escape_string($query['q']) . '\'))' . $where . $orderBy);
             if (!$toponyms) {
                 return $result;
             }
@@ -534,7 +571,7 @@ class Gazetteer extends RestoModule {
          * Retrieve first result
          */
         while ($toponym = pg_fetch_assoc($toponyms)) {
-            $toponym['country'] = ucwords(array_search($toponym['countrycode'], $this->countries));
+            $toponym['countryname'] = ucwords(array_search($toponym['ccode'], $this->countries));
             $result[] = $toponym;
         }
 
