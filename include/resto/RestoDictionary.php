@@ -243,10 +243,9 @@ abstract class RestoDictionary {
      * Return keyword entry in dictionary identified by $name
      * 
      * @param string $name : lower(unaccent(...)))
-     * @param string $type
      * @return array ('keywords', 'type')
      */
-    final public function getKeyword($name, $type = null) {
+    final public function getKeyword($name) {
         
         if (!is_array($this->dictionary['keywords'])) {
             return null;
@@ -257,7 +256,12 @@ abstract class RestoDictionary {
          */
         foreach(array_keys($this->dictionary['keywords']) as $type) {
             if (isset($this->dictionary['keywords'][$type][$name])) {
-                return array('keyword' => $this->dictionary['keywords'][$type][$name]['value'], 'type' => $type); 
+                if (!isset($this->dictionary['keywords'][$type][$name]['bbox'])) {
+                    return array('keyword' => $this->dictionary['keywords'][$type][$name]['value'], 'type' => $type);
+                }
+                else {
+                    return array('keyword' => $this->dictionary['keywords'][$type][$name]['value'], 'bbox' => $this->dictionary['keywords'][$type][$name]['bbox'], 'type' => $type);
+                }
             }
         }
         

@@ -2029,7 +2029,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             return array('keywords' => $cached);
         }
         try {
-            $results = pg_query($this->dbh, 'SELECT name, lower(unaccent(name)) as normalized, type, value FROM resto.keywords WHERE ' . 'lang IN(\'' . pg_escape_string($language) . '\', \'**\')' . (count($types) > 0 ? ' AND type IN(' . join(',', $types) . ')' : ''));
+            $results = pg_query($this->dbh, 'SELECT name, lower(unaccent(name)) as normalized, type, value, bbox FROM resto.keywords WHERE ' . 'lang IN(\'' . pg_escape_string($language) . '\', \'**\')' . (count($types) > 0 ? ' AND type IN(' . join(',', $types) . ')' : ''));
             if (!$results) {
                 throw new Exception();
             }
@@ -2041,6 +2041,9 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     'name' => $result['name'],
                     'value' => $result['value']
                 );
+                if (isset($result['bbox'])) {
+                    $keywords[$result['type']][$result['normalized']]['bbox'] = $result['bbox'];
+                }
             }
             /*
              * Store in cache

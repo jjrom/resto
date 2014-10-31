@@ -737,6 +737,9 @@ class QueryAnalyzer extends RestoModule {
                     if ($keyword['type'] === 'country') {
                         $countryName = $keyword['keyword'];
                     }
+                    else if ($keyword['type'] === 'state') {
+                        $stateName = $keyword['keyword'];
+                    }
                     $toRemove[] = $searchTerms[$i];
                 }
                 else {
@@ -749,6 +752,9 @@ class QueryAnalyzer extends RestoModule {
                         $keywords[] = RestoUtil::quoteIfNeeded($sign . $similar['type'] . ':' . $similar['keyword']['value']);
                         if ($keyword['type'] === 'country') {
                             $countryName = $keyword['keyword'];
+                        }
+                        else if ($keyword['type'] === 'state') {
+                            $stateName = $keyword['keyword'];
                         }
                         $toRemove[] = $searchTerms[$i];
                     }
@@ -779,6 +785,7 @@ class QueryAnalyzer extends RestoModule {
                 $locations = $this->gazetteer->search(array(
                     'q' => $searchTerms[$i],
                     'country' => isset($countryName) ? $countryName : null,
+                    'state' => isset($stateName) ? $stateName : null,
                     'bbox' => isset($params['geo:box']) ? $params['geo:box'] : null
                     )
                 );

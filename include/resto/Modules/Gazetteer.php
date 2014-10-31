@@ -406,7 +406,8 @@ class Gazetteer extends RestoModule {
      * 
      *    array(
      *      'q' => // location to search form (e.g. Paris or Paris, France) - MANDATORY
-     *      'country' => // country to restrict the search on (e.g France) - OPTIONAL
+     *      'country' => // country to restrict the search on (e.g 'France', 'Texas') - OPTIONAL
+     *      'state' => // state to restrict the search on (e.g 'Texas') - OPTIONAL
      *      'bbox' => // bounding box to restrict the search on - OPTIONAL
      *    )
      * Gazetteer tables format :
@@ -480,13 +481,13 @@ class Gazetteer extends RestoModule {
         }
         
         /*
-         * Country name could be defined in toponym
-         * (e.g. 'Paris, France')
+         * Country name or state could be defined in toponym
+         * (e.g. 'Paris, France' or 'Paris, Texas')
          */
         $splitted = explode(',', $query['q']);
         if (count($splitted) > 1) {
             $query['q'] = $splitted[0];
-            $query['country'] = $splitted[1];
+            $modifier = $splitted[1];
         }
         
         /*
@@ -506,18 +507,38 @@ class Gazetteer extends RestoModule {
         }
         
         /*
-         * Constrain search on country name
+         * Constrain search on country name or state
          */
+        if (isset($modifier)) {
+            $countryOrState = $this->context->dictionary->getKeyword(trim(strtolower($modifier)));
+            if (isset($countryOrState)) {
+                if ($countryOrState['type'] === 'country') {
+                    $code = $this->getCountryCode($countryOrState['keyword']);
+                    if (isset($code)) {
+                        $where .= ' AND country =\'' . pg_escape_string($code) . '\'';
+                    }
+                }
+                else if (isset($countryOrState['bbox'])) {
+                        $query['bbox'] = $countryOrState['bbox'];
+                }
+            }
+        }
         if (isset($query['country'])) {
-            $country = $this->context->dictionary->getKeyword(trim(strtolower($query['country'])), 'country');
-            if (isset($country)) {
+            $country = $this->context->dictionary->getKeyword(trim(strtolower($query['country'])));
+            if (isset($country) && $country['type'] === 'country') {
                 $code = $this->getCountryCode($country['keyword']);
                 if (isset($code)) {
                     $where .= ' AND country =\'' . pg_escape_string($code) . '\'';
                 }
             }
         }
-
+        if (isset($query['state'])) {
+            $state = $this->context->dictionary->getKeyword(trim(strtolower($query['state'])));
+            if (isset($state) && $state['type'] === 'state' && isset($state['bbox'])) {
+                $query['bbox'] = $state['bbox'];
+            }
+        }
+        
         /*
          * Constrain search on bbox
          */
@@ -546,7 +567,7 @@ class Gazetteer extends RestoModule {
          * First search in native language within alternatename table
          */
         if ($this->context->dictionary->language !== 'en') {
-            $toponyms = pg_query($this->dbh, 'SELECT ' . join(',', $resultFields) . ' FROM ' . $this->schema . '.geoname WHERE geonameid = ANY((SELECT array(SELECT geonameid FROM ' . $this->schema . '.alternatename WHERE lower(unaccent(alternatename))' . $op . 'lower(unaccent(\'' . pg_escape_string($query['q']) . '\'))  AND isolanguage=\'' . $this->context->dictionary->language . '\' ' . $limit . '))::integer[])' . $where . $orderBy);
+            $toponyms = pg_query($this->dbh, 'SELECT ' . join(',', $resultFields) . ' FROM ' . $this->schema . '.geoname WHERE geonameid = ANY((SELECT array(SELECT geonameid FROM ' . $this->schema . '.alternatename WHERE lower(unaccent(alternatename))' . $op . 'lower(unaccent(\'' . pg_escape_string($query['q']) . '\'))  AND isolanguage=\'' . $this->context->dictionary->language . '\' ' . $limit . '))::integer[])' . $where . $bboxConstraint . $orderBy);
             if (!$toponyms) {
                 return $result;
             }
