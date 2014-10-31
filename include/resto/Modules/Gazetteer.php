@@ -494,9 +494,11 @@ class Gazetteer extends RestoModule {
          * 4 characters then do a LIKE instead of strict search
          */
         $op = '=';
+        $limit = '';
         if (substr($query['q'], -1) === '%') {
             if (strlen($query['q']) > 4) {
                 $op = ' LIKE ';
+                $limit = ' LIMIT 30';
             }
             else {
                 $query['q'] = substr($query['q'], 0, -1);
@@ -538,7 +540,7 @@ class Gazetteer extends RestoModule {
          * First search in native language within alternatename table
          */
         if ($this->context->dictionary->language !== 'en') {
-            $toponyms = pg_query($this->dbh, 'SELECT ' . join(',', $resultFields) . ' FROM ' . $this->schema . '.geoname WHERE geonameid = ANY((SELECT array(SELECT geonameid FROM ' . $this->schema . '.alternatename WHERE lower(unaccent(alternatename))' . $op . 'lower(unaccent(\'' . pg_escape_string($query['q']) . '\'))  AND isolanguage=\'' . $this->context->dictionary->language . '\'))::integer[])' . $where . $orderBy);
+            $toponyms = pg_query($this->dbh, 'SELECT ' . join(',', $resultFields) . ' FROM ' . $this->schema . '.geoname WHERE geonameid = ANY((SELECT array(SELECT geonameid FROM ' . $this->schema . '.alternatename WHERE lower(unaccent(alternatename))' . $op . 'lower(unaccent(\'' . pg_escape_string($query['q']) . '\'))  AND isolanguage=\'' . $this->context->dictionary->language . '\' ' . $limit . '))::integer[])' . $where . $orderBy);
             if (!$toponyms) {
                 return $result;
             }
@@ -548,7 +550,7 @@ class Gazetteer extends RestoModule {
          * No result - search in english
          */
         if ($this->context->dictionary->language === 'en' || pg_num_rows($toponyms) === 0) {
-            $toponyms = pg_query($this->dbh, 'SELECT ' . join(',', $resultFields) . ' FROM ' . $this->schema . '.geoname WHERE lower(unaccent(name))' . $op . 'lower(unaccent(\'' . pg_escape_string($query['q']) . '\'))' . $where . $bboxConstraint . $orderBy);
+            $toponyms = pg_query($this->dbh, 'SELECT ' . join(',', $resultFields) . ' FROM ' . $this->schema . '.geoname WHERE lower(unaccent(name))' . $op . 'lower(unaccent(\'' . pg_escape_string($query['q']) . '\'))' . $where . $bboxConstraint . $orderBy . $limit);
             if (!$toponyms) {
                 return $result;
             }
@@ -562,7 +564,7 @@ class Gazetteer extends RestoModule {
          * No result - check without bbox
          */
         if (pg_num_rows($toponyms) === 0 && $bboxConstraint) {
-            $toponyms = pg_query($this->dbh, 'SELECT ' . join(',', $resultFields) . ' FROM ' . $this->schema . '.geoname WHERE lower(unaccent(name))' . $op . 'lower(unaccent(\'' . pg_escape_string($query['q']) . '\'))' . $where . $orderBy);
+            $toponyms = pg_query($this->dbh, 'SELECT ' . join(',', $resultFields) . ' FROM ' . $this->schema . '.geoname WHERE lower(unaccent(name))' . $op . 'lower(unaccent(\'' . pg_escape_string($query['q']) . '\'))' . $where . $orderBy . $limit);
             if (!$toponyms) {
                 return $result;
             }
