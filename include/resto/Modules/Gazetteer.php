@@ -508,8 +508,14 @@ class Gazetteer extends RestoModule {
         /*
          * Constrain search on country name
          */
-        if (isset($query['country']) && ($code = $this->getCountryCode(trim(strtolower($query['country']))))) {
-            $where .= ' AND country =\'' . pg_escape_string($code) . '\'';
+        if (isset($query['country'])) {
+            $country = $this->context->dictionary->getKeyword(trim(strtolower($query['country'])), 'country');
+            if (isset($country)) {
+                $code = $this->getCountryCode($country['keyword']);
+                if (isset($code)) {
+                    $where .= ' AND country =\'' . pg_escape_string($code) . '\'';
+                }
+            }
         }
 
         /*
@@ -545,7 +551,7 @@ class Gazetteer extends RestoModule {
                 return $result;
             }
             while ($toponym = pg_fetch_assoc($toponyms)) {
-                $toponym['countryname'] = ucwords(array_search($toponym['ccode'], $this->countries));
+                $toponym['countryname'] = $this->context->dictionary->getKeywordFromValue(array_search($toponym['ccode'], $this->countries), 'country');
                 $result[$toponym['geonameid']] = $toponym;
             }
         }
@@ -572,7 +578,9 @@ class Gazetteer extends RestoModule {
          */
         while ($toponym = pg_fetch_assoc($toponyms)) {
             if (!isset($result[$toponym['geonameid']])) {
-                $toponym['countryname'] = ucwords(array_search($toponym['ccode'], $this->countries));
+                if ($this->context->dictionary->language !== 'en') {
+                    $toponym['countryname'] = $this->context->dictionary->getKeywordFromValue(array_search($toponym['ccode'], $this->countries), 'country');
+                }
                 $result[$toponym['geonameid']] = $toponym;
             }
         }
@@ -586,10 +594,11 @@ class Gazetteer extends RestoModule {
      * @param string $countryName
      */
     final private function getCountryCode($countryName) {
-        if (!$countryName) {
+        if (!isset($countryName)) {
             return null;
         }
-        return $this->countries[strtolower($countryName)];
+        $countryName = strtolower($countryName);
+        return isset($this->countries[$countryName]) ? $this->countries[$countryName] : null;
     }
 
 }
