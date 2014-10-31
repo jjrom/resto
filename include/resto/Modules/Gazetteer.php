@@ -544,22 +544,20 @@ class Gazetteer extends RestoModule {
             if (!$toponyms) {
                 return $result;
             }
-        }
-        
-        /*
-         * No result - search in english
-         */
-        if ($this->context->dictionary->language === 'en' || pg_num_rows($toponyms) === 0) {
-            $toponyms = pg_query($this->dbh, 'SELECT ' . join(',', $resultFields) . ' FROM ' . $this->schema . '.geoname WHERE lower(unaccent(name))' . $op . 'lower(unaccent(\'' . pg_escape_string($query['q']) . '\'))' . $where . $bboxConstraint . $orderBy . $limit);
-            if (!$toponyms) {
-                return $result;
+            while ($toponym = pg_fetch_assoc($toponyms)) {
+                $toponym['countryname'] = ucwords(array_search($toponym['ccode'], $this->countries));
+                $result[$toponym['geonameid']] = $toponym;
             }
         }
         
+        /*
+         * Always search in english
+         */
+        $toponyms = pg_query($this->dbh, 'SELECT ' . join(',', $resultFields) . ' FROM ' . $this->schema . '.geoname WHERE lower(unaccent(name))' . $op . 'lower(unaccent(\'' . pg_escape_string($query['q']) . '\'))' . $where . $bboxConstraint . $orderBy . $limit);
         if (!$toponyms) {
             return $result;
         }
-
+        
         /*
          * No result - check without bbox
          */
@@ -573,11 +571,13 @@ class Gazetteer extends RestoModule {
          * Retrieve first result
          */
         while ($toponym = pg_fetch_assoc($toponyms)) {
-            $toponym['countryname'] = ucwords(array_search($toponym['ccode'], $this->countries));
-            $result[] = $toponym;
+            if (!isset($result[$toponym['geonameid']])) {
+                $toponym['countryname'] = ucwords(array_search($toponym['ccode'], $this->countries));
+                $result[$toponym['geonameid']] = $toponym;
+            }
         }
 
-        return $result;
+        return array_values($result);
     }
     
     /**
