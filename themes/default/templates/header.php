@@ -1,5 +1,20 @@
 <header>
     <span id="logo"><a title="<?php echo $self->context->dictionary->translate('_home'); ?>" href="<?php echo $self->context->baseUrl ?>">resto</a></span>
+    <span class="breadcrumb">
+    <?php if ($self->context->path !== '') {
+        $splitted = explode('/', $self->context->path);
+        if ($splitted[0] === 'collections' || (isset($splitted[1]) && $splitted[1] === 'collections')) {
+            echo ' <a href="' . $self->context->baseUrl . 'collections">collections</a>';
+        }
+        if ($splitted[0] === 'api' && isset($splitted[2])) {
+            echo ' > <a href="' . $self->context->baseUrl . 'api/collections/' . $splitted[2] . '/search.html" >' . $splitted[2] . '</a>';
+        }
+        if ($splitted[0] === 'collections' && isset($splitted[2])) {
+            echo ' > <a href="' . $self->context->baseUrl . 'api/collections/' . $splitted[1] . '/search.html" >' . $splitted[1] . '</a>';
+            echo ' > <a href="' . $self->context->baseUrl . 'collections/' . $splitted[1] . '/' . $splitted[2] . '" >' . $splitted[2] . '</a>';
+        }
+    } ?>
+    </span>
     <nav>
         <ul class="no-bullet">
             <?php if (!isset($_noSearchBar)) { ?>
@@ -22,21 +37,4 @@
         </ul>
     </nav>
 </header>
-<div id="breadcrumb">
-    <a href="<?php echo $self->context->baseUrl?>">home</a>
-<?php if ($self->context->path !== '') {
-    $splitted = explode('/', $self->context->path);
-    if ($splitted[0] === 'collections' || (isset($splitted[1]) && $splitted[1] === 'collections')) {
-        echo ' > <a href="' . $self->context->baseUrl . 'collections">collections</a>';
-    }
-    if ($splitted[0] === 'api' && isset($splitted[2])) {
-        echo ' > <a href="' . $self->context->baseUrl . 'api/collections/' . $splitted[2] . '/search.html" >' . $splitted[2] . '</a>';
-    }
-    if ($splitted[0] === 'collections' && isset($splitted[2])) {
-        echo ' > <a href="' . $self->context->baseUrl . 'api/collections/' . $splitted[1] . '/search.html" >' . $splitted[1] . '</a>';
-        echo ' > <a href="' . $self->context->baseUrl . 'collections/' . $splitted[1] . '/' . $splitted[2] . '" >' . $splitted[2] . '</a>';
-    }
-}
-?>
-</div>
         

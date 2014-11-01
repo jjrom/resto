@@ -136,13 +136,11 @@ footer {
 #logo a {
     color:#fff;
 }
-#breadcrumb {
-    position:fixed;
-    z-index: 90001;
-    top:55px;
-    left:25px;
-    font-size: 0.8em;
-    color:#000;
+.breadcrumb {
+    margin-left: 20px;
+    margin-top: 15px;
+    float: left;
+    color: white;
 }
 
 nav {
