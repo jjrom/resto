@@ -1929,7 +1929,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         foreach (array_keys($model->searchFilters) as $filterName) {
             if (!in_array($filterName, $exclude)) {
                 $filter = $this->prepareFilterQuery($model, $params, $filterName);
-                if (isset($filter)) {
+                if (isset($filter) && $filter !== '') {
                     
                     /*
                      * If one filter is invalid return an empty array
@@ -2326,6 +2326,12 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                         else {
                             return 'INVALID';
                         }
+                    }
+                    /*
+                     * TODO - need to be rewritten (see getFeaturesDescriptions)
+                     */
+                    else if ($typeAndValue[0] === 'city') {
+                        continue;
                     }
                     /*
                      * Everything other types are stored within hashes column
