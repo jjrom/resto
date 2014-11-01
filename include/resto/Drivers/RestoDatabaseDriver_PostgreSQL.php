@@ -1878,7 +1878,35 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     $arr = explode(':', $splitted[$i]);
                     if ($arr[0] === 'continent' || $arr[0] === 'country' || $arr[0] === 'region' || $arr[0] === 'state' || $arr[0] === 'city') {
                         unset($params['geo:box']);
-                        break;
+                    }
+                    if ($arr[0] === 'country') {
+                        $countryName = $arr[1];
+                    }
+                    if ($arr[0] === 'state') {
+                        $stateName = $arr[1];
+                    }
+                    if ($arr[0] === 'city') {
+                        $cityName = $arr[1];
+                    }
+                }
+                
+                /*
+                 * City exists
+                 */
+                if (isset($cityName)) {
+                    if (isset($model->context->config['modules']['Gazetteer'])) {
+                        $gazetteer = new Gazetteer($model->context, $model->context->config['modules']['Gazetteer']);
+                        $locations = $gazetteer->search(array(
+                            'q' => $cityName,
+                            'country' => isset($countryName) ? $countryName : null,
+                            'state' => isset($stateName) ? $stateName : null
+                            )
+                        );
+                        if (count($locations) > 0) {
+                            $params['geo:name'] = $locations[0]['name'] . ($locations[0]['countryname'] !== '' ? ', ' . $locations[0]['countryname'] : '');
+                            $params['geo:lon'] = $locations[0]['longitude'];
+                            $params['geo:lat'] = $locations[0]['latitude'];
+                        }
                     }
                 }
             }
@@ -2029,7 +2057,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             return array('keywords' => $cached);
         }
         try {
-            $results = pg_query($this->dbh, 'SELECT name, lower(unaccent(name)) as normalized, type, value, bbox FROM resto.keywords WHERE ' . 'lang IN(\'' . pg_escape_string($language) . '\', \'**\')' . (count($types) > 0 ? ' AND type IN(' . join(',', $types) . ')' : ''));
+            $results = pg_query($this->dbh, 'SELECT name, lower(unaccent(name)) as normalized, type, value, location FROM resto.keywords WHERE ' . 'lang IN(\'' . pg_escape_string($language) . '\', \'**\')' . (count($types) > 0 ? ' AND type IN(' . join(',', $types) . ')' : ''));
             if (!$results) {
                 throw new Exception();
             }
@@ -2041,8 +2069,10 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     'name' => $result['name'],
                     'value' => $result['value']
                 );
-                if (isset($result['bbox'])) {
-                    $keywords[$result['type']][$result['normalized']]['bbox'] = $result['bbox'];
+                if (isset($result['location'])) {
+                    list($isoa2, $bbox) = explode(':', $result['location']);
+                    $keywords[$result['type']][$result['normalized']]['bbox'] = $bbox;
+                    $keywords[$result['type']][$result['normalized']]['isoa2'] = $isoa2;
                 }
             }
             /*

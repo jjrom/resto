@@ -51,7 +51,7 @@ class Gazetteer extends RestoModule {
     /*
      * List of countries extract from Gazetteer database
      */
-    private $countries = array(
+    public $countries = array(
         'afghanistan' => 'AF',
         'aland islands' => 'AX',
         'albania' => 'AL',
@@ -519,7 +519,7 @@ class Gazetteer extends RestoModule {
                     }
                 }
                 else if (isset($countryOrState['bbox'])) {
-                        $query['bbox'] = $countryOrState['bbox'];
+                    $query['bbox'] = $countryOrState['bbox'];
                 }
             }
         }
@@ -588,12 +588,15 @@ class Gazetteer extends RestoModule {
         /*
          * No result - check without bbox
          */
+        /*
         if (pg_num_rows($toponyms) === 0 && $bboxConstraint) {
             $toponyms = pg_query($this->dbh, 'SELECT ' . join(',', $resultFields) . ' FROM ' . $this->schema . '.geoname WHERE lower(unaccent(name))' . $op . 'lower(unaccent(\'' . pg_escape_string($query['q']) . '\'))' . $where . $orderBy . $limit);
             if (!$toponyms) {
                 return $result;
             }
         }
+         * 
+         */
         /*
          * Retrieve first result
          */

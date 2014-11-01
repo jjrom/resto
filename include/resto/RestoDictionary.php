@@ -260,7 +260,7 @@ abstract class RestoDictionary {
                     return array('keyword' => $this->dictionary['keywords'][$type][$name]['value'], 'type' => $type);
                 }
                 else {
-                    return array('keyword' => $this->dictionary['keywords'][$type][$name]['value'], 'bbox' => $this->dictionary['keywords'][$type][$name]['bbox'], 'type' => $type);
+                    return array('keyword' => $this->dictionary['keywords'][$type][$name]['value'], 'bbox' => $this->dictionary['keywords'][$type][$name]['bbox'], 'isoa2' => $this->dictionary['keywords'][$type][$name]['isoa2'], 'type' => $type);
                 }
             }
         }

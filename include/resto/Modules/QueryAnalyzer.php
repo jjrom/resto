@@ -685,11 +685,13 @@ class QueryAnalyzer extends RestoModule {
          */
         $searchTerms = $this->stripArray($searchTerms, $toRemove);
     }
-    
+
     /**
-     * Extract keywords and location
+     * Extract keywords
      * 
-     * @param type $searchTerms
+     * @param array $searchTerms
+     * @param array $params
+     * @param RestoModel $model
      */
     private function extractKeywordsAndLocation(&$searchTerms, &$params, $model) {
         
@@ -737,9 +739,6 @@ class QueryAnalyzer extends RestoModule {
                     if ($keyword['type'] === 'country') {
                         $countryName = $keyword['keyword'];
                     }
-                    else if ($keyword['type'] === 'state') {
-                        $stateName = $keyword['keyword'];
-                    }
                     $toRemove[] = $searchTerms[$i];
                 }
                 else {
@@ -752,9 +751,6 @@ class QueryAnalyzer extends RestoModule {
                         $keywords[] = RestoUtil::quoteIfNeeded($sign . $similar['type'] . ':' . $similar['keyword']['value']);
                         if ($keyword['type'] === 'country') {
                             $countryName = $keyword['keyword'];
-                        }
-                        else if ($keyword['type'] === 'state') {
-                            $stateName = $keyword['keyword'];
                         }
                         $toRemove[] = $searchTerms[$i];
                     }
@@ -785,12 +781,11 @@ class QueryAnalyzer extends RestoModule {
                 $locations = $this->gazetteer->search(array(
                     'q' => $searchTerms[$i],
                     'country' => isset($countryName) ? $countryName : null,
-                    'state' => isset($stateName) ? $stateName : null,
                     'bbox' => isset($params['geo:box']) ? $params['geo:box'] : null
                     )
                 );
                 if (count($locations) > 0) {
-                    $countryFoundInGazetteer = $locations[0]['country'];
+                    $countryFoundInGazetteer = $locations[0]['countryname'];
                     $params['geo:name'] = $locations[0]['name'] . ($countryFoundInGazetteer !== '' ? ', ' . $countryFoundInGazetteer : '');
                     $params['geo:lon'] = $locations[0]['longitude'];
                     $params['geo:lat'] = $locations[0]['latitude'];
