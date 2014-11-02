@@ -45,6 +45,7 @@
 class RestoDictionary_en extends RestoDictionary {
 
     protected $dictionary = array(
+        
         /*
          * List of words in the query that are
          * considered as 'noise' for the query analysis
@@ -63,146 +64,113 @@ class RestoDictionary_en extends RestoDictionary {
         /*
          * Modifiers
          * 
-         * Valid modifiers values are
-         *  - with
-         *  - witout
-         *  - less
-         *  - greater
-         *  - and
-         * 
          * For each entry 
-         *   - the key (left side) is what the user types 
-         *   - the value (right side) is the equivalent modifier
+         *   - the key (left side) is the modifier key
+         *   - the value (right side) is an array of modifier homonyms
+         *     in the given language. The first value is the prefered one
+         *   
          */
         'modifiers' => array(
-            'ago' => 'ago',
-            'before' => 'before',
-            'after' => 'after',
-            'between' => 'between',
-            'containing' => 'with',
-            'with' => 'with',
-            'without' => 'without',
-            'no' => 'without',
-            '<' => 'lesser',
-            'less' => 'lesser',
-            'lesser' => 'lesser',
-            'lower' => 'lesser',
-            'more' => 'greater',
-            '>' => 'greater',
-            'greater' => 'greater',
-            'equal' => 'equal',
-            'and' => 'and',
-            'since' => 'since',
-            'last' => 'last',
-            'today' => 'today',
-            'yesterday' => 'yesterday'
+            'after' => array('after'),
+            'ago' => array('ago'),
+            'and' => array('and'),
+            'before' => array('before'),
+            'between' => array('between'),
+            'equal' => array('equal'),
+            'greater' => array('greater', 'more', '>'),
+            'last' => array('last'),
+            'lesser' => array('lesser', '<', 'less', 'lower'),
+            'since' => array('since'),
+            'today' => array('today'),
+            'with' => array('with', 'containing'),
+            'without' => array('without', 'no'),
+            'yesterday' => array('yesterday')
         ),
         /*
          * Units
          * 
          * For each entry 
-         *   - the key (left side) is what the user types
-         *   - the value (right side) is the equivalent unit
+         *   - the key (left side) is the unit key
+         *   - the value (right side) is an array of unit homonyms
+         *     in the given language. The first value is the prefered one
          * 
          */
         'units' => array(
-            'm' => 'm',
-            'meter' => 'm',
-            'meters' => 'm',
-            'km' => 'km',
-            'kilometer' => 'km',
-            'kilometers' => 'km',
-            'percent' => '%',
-            'percents' => '%',
-            'percentage' => '%',
-            '%' => '%',
-            'day' => 'days',
-            'days' => 'days',
-            'month' => 'months',
-            'months' => 'months',
-            'year' => 'years',
-            'years' => 'years'
+            'm' => array('m', 'meter', 'meters'),
+            'km' => array('km', 'kilometer', 'kilometers'),
+            '%' => array('%', 'percent', 'percents', 'percentage'),
+            'days' => array('days', 'day'),
+            'months' => array('month', 'months'),
+            'years' => array('year', 'years')
         ),
         /*
          * Numbers
          * 
          * For each entry 
-         *   - the key (left side) is the textual number
-         *   - the value (right side) is number
+         *   - the key (left side) is the number key
+         *   - the value (right side) is an array of number homonyms
+         *     in the given language. The first value is the prefered one
          * 
          */
         'numbers' => array(
-            'one' => '1',
-            'two' => '2',
-            'three' => '3',
-            'four' => '4',
-            'five' => '5',
-            'six' => '6',
-            'seven' => '7',
-            'eight' => '8',
-            'nine' => '9',
-            'ten' => '10',
-            'hundred' => '100',
-            'thousand' => '1000'
+            '1' => array('one'),
+            '2' => array('two'),
+            '3' => array('three'),
+            '4' => array('four'),
+            '5' => array('five'),
+            '6' => array('six'),
+            '7' => array('seven'),
+            '8' => array('eight'),
+            '9' => array('nine'),
+            '10' => array('ten'),
+            '100' => array('hundred'),
+            '1000' => array('thousand')
         ),
         /*
          * Months
          * 
          * For each entry 
-         *   - the key (left side) is the month
-         *   - the value (right side) is the equivalent
-         *     month number (from 01 to 12)
+         *   - the key (left side) is the month key
+         *   - the value (right side) is an array of month homonyms
+         *     in the given language. The first value is the prefered one
          * 
          */
         'months' => array(
-            'january' => '01',
-            'february' => '02',
-            'march' => '03',
-            'april' => '04',
-            'may' => '05',
-            'june' => '06',
-            'july' => '07',
-            'august' => '08',
-            'september' => '09',
-            'october' => '10',
-            'november' => '11',
-            'december' => '12'
+            '01' => array('january'),
+            '02' => array('february'),
+            '03' => array('march'),
+            '04' => array('april'),
+            '05' => array('may'),
+            '06' => array('june'),
+            '07' => array('july'),
+            '08' => array('august'),
+            '09' => array('september'),
+            '10' => array('october'),
+            '11' => array('november'),
+            '12' => array('december')
         ),
         /*
          * Quantities
          * 
-         * Quantity is the entity on which apply a comparaison modifier
-         * 
-         *  e.g.
-         *      "resolution   lesser    than 10  meters"
-         *       <quantity> <modifier>           <units>
+         * For each entry 
+         *   - the key (left side) is the quantity key
+         *   - the value (right side) is an array of quantity homonyms
+         *     in the given language. The first value is the prefered one
          * 
          */
         'quantities' => array(
-            'resolution' => 'resolution',
-            'orbit' => 'orbit',
-            'cloud' => 'cloud',
-            'clouds' => 'cloud',
-            'snow' => 'snow',
-            'ice' => 'ice',
-            'urban' => 'urban',
-            'city' => 'urban',
-            'cities' => 'urban',
-            'urban area' => 'urban',
-            'cultivated area' => 'cultivated',
-            'cropland' => 'cultivated',
-            'croplands' => 'cultivated',
-            'crop' => 'cultivated',
-            'crops' => 'cultivated',
-            'forest' => 'forest',
-            'forests' => 'forest',
-            'herbaceous area' => 'herbaceous',
-            'herbaceous' => 'herbaceous',
-            'grass' => 'herbaceous',
-            'desert' => 'desert',
-            'bare area' => 'desert',
-            'flooded' => 'flooded',
-            'water' => 'water'
+            'resolution' => array('resolution'),
+            'orbit' => array('orbit'),
+            'cloud' => array('cloud', 'clouds'),
+            'snow' => array('snow'),
+            'ice' => array('ice'),
+            'urban' => array('urban', 'city', 'cities', 'urban area'),
+            'cultivated' => array('cultivated', 'cultivated area', 'cropland', 'croplands', 'crop', 'crops'),
+            'forest' => array('forest', 'forests'),
+            'herbaceous' => array('herbaceous', 'herbaceous area', 'grass'),
+            'desert' => array('desert', 'bare area'),
+            'flooded' => array('flooded'),
+            'water' => array('water')
         )
     );
     

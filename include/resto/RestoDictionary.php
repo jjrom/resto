@@ -162,12 +162,18 @@ abstract class RestoDictionary {
      * @param string $property
      * @param string $name : lowered and unaccent name
      */
-    final public function get($property, $name) {
-        if (!is_array($this->dictionary[$property])) {
+    final private function get($property, $name) {
+        if (!is_array($this->dictionary[$property]) || !isset($name) || $name === '') {
             return null;
         }
-        
-        return isset($this->dictionary[$property][$name]) ? $this->dictionary[$property][$name] : null;
+        foreach ($this->dictionary[$property] as $key => $value) {
+            for ($i = 0, $l = count($value); $i < $l; $i++) {
+                if ($value[$i] === $name) {
+                    return $key;
+                }
+            }
+        }
+        return null;
     }
     
     /**

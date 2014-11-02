@@ -65,153 +65,112 @@ class RestoDictionary_fr extends RestoDictionary {
         /*
          * Modifiers
          * 
-         * Valid modifiers values are
-         *  - with
-         *  - witout
-         *  - less
-         *  - greater
-         *  - and
-         * 
          * For each entry 
-         *   - the key (left side) is what the user types 
-         *   - the value (right side) is the equivalent modifier
+         *   - the key (left side) is the modifier key
+         *   - the value (right side) is an array of modifier homonyms
+         *     in the given language. The first value is the prefered one
+         *   
          */
         'modifiers' => array(
-            'avant' => 'before',
-            'apres' => 'after',
-            'entre' => 'between',
-            'de' => 'between',
-            'a' => 'and',
-            'contenant' => 'with',
-            'avec' => 'with',
-            'sans' => 'without',
-            'pas' => 'without',
-            'moins' => 'lesser',
-            '<' => 'lesser',
-            'inferieur' => 'lesser',
-            'inferieure' => 'lesser',
-            'plus' => 'greater',
-            '>' => 'greater',
-            'superieur' => 'greater',
-            'superieure' => 'greater',
-            'egal' => 'equal',
-            'egale' => 'equal',
-            'egaux' => 'equal',
-            'et' => 'and',
-            'depuis' => 'since',
-            'dernier' => 'last',
-            'derniers' => 'last',
-            'derniere' => 'last',
-            'dernieres' => 'last',
-            'aujourd' => 'today',
-            'hier' => 'yesterday'
+            'after' => array('apres'),
+            'and' => array('et', 'a'),
+            'before' => array('avant'),
+            'between' => array('entre', 'de'),
+            'equal' => array('egal', 'egale', 'egaux'),
+            'greater' => array('plus', 'superieur', 'superieure', '>'),
+            'last' => array('dernier', 'derniers', 'derniere', 'dernieres'),
+            'lesser' => array('moins', '<', 'inferieur', 'inferieure'),
+            'since' => array('depuis'),
+            'today' => array('aujourd'),
+            'with' => array('avec', 'contenant'),
+            'without' => array('sans', 'pas'),
+            'yesterday' => array('hier')
         ),
         /*
          * Units
          * 
          * For each entry 
-         *   - the key (left side) is what the user types
-         *   - the value (right side) is the equivalent unit
+         *   - the key (left side) is the unit key
+         *   - the value (right side) is an array of unit homonyms
+         *     in the given language. The first value is the prefered one
          * 
          */
         'units' => array(
-            'm' => 'm',
-            'metre' => 'm',
-            'metres' => 'm',
-            'km' => 'km',
-            'kilometre' => 'km',
-            'kilometres' => 'km',
-            'pourcent' => '%',
-            'pourcents' => '%',
-            'pourcentage' => '%',
-            '%' => '%',
-            'jour' => 'days',
-            'jours' => 'days',
-            'mois' => 'months',
-            'an' => 'years',
-            'ans' => 'years',
-            'annee' => 'years',
-            'annees' => 'years'
+            'm' => array('m', 'metre', 'metres'),
+            'km' => array('km', 'kilometre', 'kilometres'),
+            '%' => array('%', 'pourcent', 'pourcents', 'pourcentage'),
+            'days' => array('jours', 'jour'),
+            'months' => array('mois'),
+            'years' => array('annee', 'annees', 'an', 'ans')
         ),
         /*
          * Numbers
          * 
          * For each entry 
-         *   - the key (left side) is the textual number
-         *   - the value (right side) is number
+         *   - the key (left side) is the number key
+         *   - the value (right side) is an array of number homonyms
+         *     in the given language. The first value is the prefered one
          * 
          */
         'numbers' => array(
-            'un' => '1',
-            'deux' => '2',
-            'trois' => '3',
-            'quatre' => '4',
-            'cinq' => '5',
-            'six' => '6',
-            'sept' => '7',
-            'huit' => '8',
-            'neuf' => '9',
-            'dix' => '10',
-            'cent' => '100',
-            'mille' => '1000'
+            '1' => array('un'),
+            '2' => array('deux'),
+            '3' => array('trois'),
+            '4' => array('quatre'),
+            '5' => array('cinq'),
+            '6' => array('six'),
+            '7' => array('sept'),
+            '8' => array('huit'),
+            '9' => array('neuf'),
+            '10' => array('dix'),
+            '100' => array('cent'),
+            '1000' => array('mille')
         ),
         /*
          * Months
          * 
          * For each entry 
-         *   - the key (left side) is the month
-         *   - the value (right side) is the equivalent
-         *     month number (from 01 to 12)
+         *   - the key (left side) is the month key
+         *   - the value (right side) is an array of month homonyms
+         *     in the given language. The first value is the prefered one
          * 
          */
         'months' => array(
-            'janvier' => '01',
-            'fevrier' => '02',
-            'mars' => '03',
-            'avril' => '04',
-            'mai' => '05',
-            'juin' => '06',
-            'juillet' => '07',
-            'aout' => '08',
-            'septembre' => '09',
-            'octobre' => '10',
-            'novembre' => '11',
-            'decembre' => '12',
+            '01' => array('janvier'),
+            '02' => array('fevrier'),
+            '03' => array('mars'),
+            '04' => array('avril'),
+            '05' => array('mai'),
+            '06' => array('juin'),
+            '07' => array('juillet'),
+            '08' => array('aout'),
+            '09' => array('septembre'),
+            '10' => array('octobre'),
+            '11' => array('novembre'),
+            '12' => array('decembre')
         ),
         /*
          * Quantities
          * 
-         * Quantity is the entity on which apply a comparaison modifier
-         * 
-         *  e.g.
-         *      "resolution   lesser    than 10  meters"
-         *       <quantity> <modifier>           <units>
+         * For each entry 
+         *   - the key (left side) is the quantity key
+         *   - the value (right side) is an array of quantity homonyms
+         *     in the given language. The first value is the prefered one
          * 
          */
         'quantities' => array(
-            'resolution' => 'resolution',
-            'orbite' => 'orbit',
-            'nuage' => 'cloud',
-            'nuages' => 'cloud',
-            'nuageuse' => 'cloud',
-            'neige' => 'snow',
-            'neigeuse' => 'snow',
-            'glace' => 'ice',
-            'urbain' => 'urban',
-            'urbaine' => 'urban',
-            'artificiel' => 'urban',
-            'ville' => 'urban',
-            'zone cultivee' => 'cultivated',
-            'cultivee' => 'cultivated',
-            'cultivees' => 'cultivated',
-            'foret' => 'forest',
-            'forets' => 'forest',
-            'herbace' => 'herbaceous',
-            'zone herbacee' => 'herbaceous',
-            'desert' => 'desert',
-            'zone inondable' => 'flooded',
-            'inondable' => 'flooded',
-            'eau' => 'water'
+            'resolution' => array('resolution'),
+            'orbit' => array('orbite'),
+            'cloud' => array('nuage', 'nuages', 'nuageuse'),
+            'snow' => array('neige', 'neigeuse'),
+            'ice' => array('glace'),
+            'urban' => array('urbain', 'urbaine', 'artificiel', 'ville'),
+            'cultivated' => array('cultivee', 'zone cultivee', 'cultivees', 'cultive', 'champ', 'champs'),
+            'forest' => array('foret', 'forets', 'forestier', 'forestiere'),
+            'herbaceous' => array('herbace', 'zone herbacee'),
+            'desert' => array('desert', 'erg'),
+            'flooded' => array('zone inondable', 'zone humide', 'humide'),
+            'water' => array('eau')
         )
     );
     
