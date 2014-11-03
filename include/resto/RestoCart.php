@@ -91,7 +91,7 @@ class RestoCart{
          */
         $itemId = sha1($this->user->profile['email'] . $item['url']);
         if (isset($this->items[$itemId])) {
-            return false;
+            return $itemId;
         }
         
         /*
