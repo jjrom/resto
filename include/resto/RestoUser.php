@@ -268,9 +268,10 @@ class RestoUser{
      * @param array $item
      */
     public function addToCart($item) {
-        if ($this->cart->add($item, true)) {
+        $itemId = $this->cart->add($item, true);
+        if ($itemId) {
             $_SESSION['cart'] = $this->getCart()->getItems();
-            return true;
+            return $itemId;
         }
         return false;
     }
