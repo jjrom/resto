@@ -159,7 +159,7 @@ CREATE TABLE resto.keywords (
     name                VARCHAR(255), -- keyword name in given language code
     type                VARCHAR(50), -- type of keyword (i.e. region, state, location, etc.)
     lang                VARCHAR(2), -- ISO A2 language code in lowercase
-    value               VARCHAR(255) -- keyword as stored in features keywords columns
+    value               VARCHAR(255), -- keyword as stored in features keywords columns
     location            TEXT DEFAULT NULL -- 'country code:bounding box'
 );
 CREATE INDEX idx_name_keywords ON resto.keywords (lower(unaccent(name)));
