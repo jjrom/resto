@@ -595,7 +595,7 @@ class Resto {
              */
             $user = $this->user;
             if ($user->profile['userid'] !== $userid) {
-                if (!$user->profile['groupname'] !== 'admin') {
+                if ($user->profile['groupname'] !== 'admin') {
                     throw new Exception('Forbidden', 403);
                 }
                 else {
@@ -654,7 +654,7 @@ class Resto {
          */
         $user = $this->user;
         if ($user->profile['userid'] !== $userid) {
-            if (!$user->profile['groupname'] !== 'admin') {
+            if ($user->profile['groupname'] !== 'admin') {
                 throw new Exception('Forbidden', 403);
             }
             else {
@@ -705,7 +705,7 @@ class Resto {
          */
         $user = $this->user;
         if ($user->profile['userid'] !== $userid) {
-            if (!$user->profile['groupname'] !== 'admin') {
+            if ($user->profile['groupname'] !== 'admin') {
                 throw new Exception('Forbidden', 403);
             }
             else {
