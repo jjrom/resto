@@ -1265,6 +1265,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         }
         $rights = array();
         while ($row = pg_fetch_assoc($results)){
+            
             if (!$row) {
                 return $rights;
             }
@@ -1285,7 +1286,9 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 $rights[$row['collection']]['features'][$row['featureid']] = $properties;
             }
             else {
-                $rights[$row['collection']] = $properties;
+                foreach ($properties as $key => $value) {
+                    $rights[$row['collection']][$key] = $value;
+                }
             }
         }
        
