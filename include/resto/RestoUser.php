@@ -130,6 +130,16 @@ class RestoUser{
     }
     
     /**
+     * Returns full rights for collection and/or identifier
+     * 
+     * @param string $collectionName
+     * @param string $featureIdentifier
+     */
+    public function getFullRights($collectionName = null, $featureIdentifier = null) {
+        return $this->profile['activated'] === false ? array('*' => $this->rights->groupRights['unregistered']) : $this->rights->getFullRights($collectionName, $featureIdentifier);
+    }
+    
+    /**
      * Store user query to database
      * 
      * @param string $method

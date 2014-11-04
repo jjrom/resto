@@ -371,6 +371,17 @@ abstract class RestoDatabaseDriver {
     abstract public function getRightsList($identifier);
     
     /**
+     * Get complete rights for $identifier for $collectionName or for all collections
+     * 
+     * @param string $identifier
+     * @param string $collectionName
+     * @param string $featureIdentifier
+     * @return array
+     * @throws Exception
+     */
+    abstract function getFullRights($identifier, $collectionName = null, $featureIdentifier = null);
+    
+    /**
      * Store a right to database
      *     
      *     array(

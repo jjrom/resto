@@ -1212,7 +1212,6 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         return $result;
     }
     
-    
     /**
      * Get complete rights list for $identifier
      * 
@@ -1222,7 +1221,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      */
     public function getRightsList($identifier) {
         try {
-            $results = pg_query($this->dbh, 'SELECT collection, featureid, search, download, visualize, canpost as post, canput as put, candelete as delete, filters FROM usermanagement.rights WHERE emailorgroup=\'' . pg_escape_string($identifier) . '\'' . (isset($collectionName) ?  ' AND collection=\'' . pg_escape_string($collectionName) . '\'' : '') . (isset($featureIdentifier) ? ' AND featureid=\'' . pg_escape_string($featureIdentifier) . '\'' : ''));
+            $results = pg_query($this->dbh, 'SELECT collection, featureid, search, download, visualize, canpost as post, canput as put, candelete as delete, filters FROM usermanagement.rights WHERE emailorgroup=\'' . pg_escape_string($identifier) . '\'');
             if (!$results) {
                 throw new Exception();
             }
@@ -1243,6 +1242,53 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             }
             $rights[] = $row;
         }
+        return $rights;
+    }
+    
+    /**
+     * Get complete rights for $identifier for $collectionName or for all collections
+     * 
+     * @param string $identifier
+     * @param string $collectionName
+     * @param string $featureIdentifier
+     * @return array
+     * @throws Exception
+     */
+    public function getFullRights($identifier, $collectionName = null, $featureIdentifier = null) {
+        try {
+            $results = pg_query($this->dbh, 'SELECT collection, featureid, search, download, visualize, canpost as post, canput as put, candelete as delete, filters FROM usermanagement.rights WHERE emailorgroup=\'' . pg_escape_string($identifier) . '\'' . (isset($collectionName) ?  ' AND collection=\'' . pg_escape_string($collectionName) . '\'' : '')  . (isset($featureIdentifier) ?  ' AND featureid=\'' . pg_escape_string($featureIdentifier) . '\'' : ''));
+            if (!$results) {
+                throw new Exception();
+            }
+        } catch (Exception $e) {
+            throw new Exception(__METHOD__ . 'Cannot get rights for ' . $identifier, 500);
+        }
+        $rights = array();
+        while ($row = pg_fetch_assoc($results)){
+            if (!$row) {
+                return $rights;
+            }
+            if (isset($row['collection']) && !isset($rights[$row['collection']])) {
+                $rights[$row['collection']] = array(
+                    'features' => array()
+                );
+            }
+            $properties = array();
+            if (isset($row['filters'])) {
+                $properties['filters'] = json_decode($row['filters'], true);
+            }
+            $booleans = array('search', 'download', 'visualize', 'post', 'put', 'delete');
+            for ($i = count($booleans); $i--;) {
+                $properties[$booleans[$i]] = $row[$booleans[$i]] === 't' ? true : false;
+            }
+            if (isset($row['featureid'])) {
+                $rights[$row['collection']]['features'][$row['featureid']] = $properties;
+            }
+            else {
+                $rights[$row['collection']] = $properties;
+            }
+        }
+       
         return $rights;
     }
     

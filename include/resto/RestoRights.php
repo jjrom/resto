@@ -166,6 +166,31 @@ class RestoRights{
     }
     
     /**
+     * Returns user full rights
+     * 
+     * Return array(
+     *      'Collection1' => array(
+     *          'search' => true/false,
+     *          'download' => true/false,
+     *          'visualize' => true/false,
+     *          'filters' => array(
+     *                  ...
+     *          ),
+     *          'features' => array(
+     *              ...
+     *          )
+     *       ),
+     *      'Collection2' => ...
+     * 
+     * 
+     * @param string $collectionName
+     * @param string $featureIdentifier
+     */
+    public function getFullRights($collectionName = null, $featureIdentifier = null) {
+        return array_merge(array('*' => $this->groupRights[$this->groupname]), $this->dbDriver->getFullRights($this->identifier, $collectionName, $featureIdentifier));
+    }
+    
+    /**
      * Replace true if rights array has null values
      * 
      * @param array $rights

@@ -667,9 +667,7 @@ class Resto {
             'message' => 'Rights for ' . $user->profile['userid'],
             'userid' => $user->profile['userid'],
             'groupname' => $user->profile['groupname'],
-            'collection' => isset($collectionName) ? $collectionName : null,
-            'featureIdentifier' => isset($featureIdentifier) ? $featureIdentifier : null,
-            'rights' => $user->getRights($collectionName, $featureIdentifier)
+            'rights' => $user->getFullRights($collectionName, $featureIdentifier)
         ));
         
     }
@@ -1470,7 +1468,7 @@ class Resto {
             return $this->context->query['callback'] . '(' . json_encode($array, $pretty) . ')';
         }
         
-        return json_encode($array, $pretty);
+        return RestoUtil::json_format($array, $pretty);
         
     }
     
@@ -1537,7 +1535,7 @@ class Resto {
         */
        if ($this->method === 'OPTIONS') {
            if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD'])) {
-               header('Access-Control-Allow-Methods: GET, POST, OPTIONS');         
+               header('Access-Control-Allow-Methods: GET, POST, DELETE, PUT, OPTIONS');         
            }
            if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'])) {
                header('Access-Control-Allow-Headers: ' . $_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']);
