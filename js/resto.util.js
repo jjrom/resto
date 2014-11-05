@@ -254,6 +254,39 @@
                 }
             });
             groupOfItem.css('height', tallest);
-        }   
+        },
+        
+        /**
+         * Create an alert button with specific message.
+         * 
+         * @param {jQueryObject} parent
+         * @param {String} text
+         */
+        alert: function(parent, text){
+            if(!$('#_alert').length){
+                parent.prepend('<a id="_alert" href="#" class="button expand alert hide"></a>');
+                
+                $("#_alert").on('click', function() {
+                    $('#_alert').hide();
+                });
+            }
+            $('#_alert').text(text);
+            $('#_alert').show();
+        },
+        
+        /**
+         * Inifinte scrolling by calling loadMore
+         * 
+         * WARNING : ajaxReady has to be global
+         * 
+         * @param {Object} loadMore
+         */
+        infiniteScroll: function(loadMore){
+            $(window).scroll(function() {
+                if($(window).scrollTop() + $(window).height() > $(document).height() - 100 && ajaxReady) {
+                    loadMore();
+                }
+             });
+        }
     };
 })(window);
