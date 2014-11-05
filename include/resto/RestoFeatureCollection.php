@@ -103,7 +103,14 @@ class RestoFeatureCollection {
          * Request start time
          */
         $requestStartTime = microtime(true);
-
+        
+        /*
+         * Real count - if set to true, each query include returns a real count
+         * of the total number of resources relative to the query
+         * Otherwise, the total count is not known
+         */
+        $realCount = isset($this->context->query['_rc']) && RestoUtil::toBoolean($this->context->query['_rc']) === true ? true : false;
+       
         /*
          * Change parameter keys to model parameter key
          * and remove unset parameters
@@ -136,7 +143,7 @@ class RestoFeatureCollection {
         else if (isset($params['startIndex']) && is_numeric($params['startIndex']) && $params['startIndex'] > 0) {
             $offset = ($params['startIndex']) - 1;
         }
-        
+         
         /*
          * Query Analyzer 
          */
@@ -152,7 +159,7 @@ class RestoFeatureCollection {
         /*
          * Get features array
          */
-        $featuresArray = $this->context->dbDriver->getFeaturesDescriptions($params, $this->model, isset($this->collection) ? $this->collection->name : null, $limit, $offset, $this->context->config['realCount']);
+        $featuresArray = $this->context->dbDriver->getFeaturesDescriptions($params, $this->model, isset($this->collection) ? $this->collection->name : null, $limit, $offset, $realCount);
         for ($i = 0, $l = count($featuresArray); $i < $l; $i++) {
             $this->restoFeatures[] = new RestoFeature($featuresArray[$i], $this->context, $this->collection);
             $total = isset($featuresArray[$i]['totalcount']) ? $featuresArray[$i]['totalcount'] : -1;

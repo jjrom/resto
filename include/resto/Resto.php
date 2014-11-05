@@ -137,6 +137,7 @@
  *    | _pretty            |     boolean    | (For JSON output only) true to return pretty print JSON
  *    | _showQuery         |     boolean    | (For HTML output only) true to display query analysis result
  *    | _tk                |     string     | (For download/visualize) sha1 token for resource access
+ *    | _rc                |     boolean    | (For search) true to perform the total count of search results
  *    | callback           |     string     | (For JSON output only) name of callback funtion for JSON-P
  * 
  * Returned error
@@ -1316,11 +1317,6 @@ class Resto {
                  * HTML Theme
                  */
                 'theme' => isset($this->config['general']['theme']) ? $this->config['general']['theme'] : 'default',
-                
-                /*
-                 * Count total result during searches 
-                 */
-                'realCount' => isset($this->config['general']['realCount']) ? $this->config['general']['realCount'] : false,
                 
                 /*
                  * Non routed modules

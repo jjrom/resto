@@ -95,7 +95,6 @@ class RestoContext {
         'languages' => array('en'),
         'timezone' => 'Europe/Paris',
         'theme' => 'default',
-        'realCount' => false,
         'modules' => array(),
         'ssoServices' => array()
     );
