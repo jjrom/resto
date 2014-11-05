@@ -112,10 +112,11 @@ class RestoFeatureCollection {
         $realCount = isset($this->context->query['_rc']) && RestoUtil::toBoolean($this->context->query['_rc']) === true ? true : false;
        
         /*
-         * Change parameter keys to model parameter key
-         * and remove unset parameters
-         * 
-         * Warning - remove all HTML tags from input to avoid XSS injection
+         * Input parameters :
+         *  - change parameter keys to model parameter key
+         *  - remove unset parameters
+         *  - remove all HTML tags from input to avoid XSS injection
+         *  - convert productIdentifier to identifier
          */
         $params = array();
         foreach ($this->context->query as $key => $value) {
@@ -154,6 +155,16 @@ class RestoFeatureCollection {
             $analyzis = $qa->analyze($params, $this->model);
             $params = $analyzis['analyze'];
             $queryAnalyzeProcessingTime = $analyzis['queryAnalyzeProcessingTime']; 
+        }
+        
+
+        /*
+         * Convert productIdentifier to identifier if needed
+         */
+        if (isset($params['geo:uid']) && !RestoUtil::isValidUUID($params['geo:uid'])) {
+            if (isset($this->collection)) {
+                $params['geo:uid'] = RestoUtil::UUIDv5($this->collection->name . ':' . strtoupper($params['geo:uid']));
+            }
         }
         
         /*

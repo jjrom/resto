@@ -658,7 +658,7 @@ abstract class RestoModel {
          * Otherwise it is replaced by a generated UUID based on productIdentifier and collection
          */
         if (!isset($data['id']) || !RestoUtil::isValidUUID($data['id'])) {
-            $data['id'] = RestoUtil::UUIDv5($collectionName . ':' . (isset($properties['productIdentifier']) ? $properties['productIdentifier'] : md5(microtime().rand())));
+            $data['id'] = RestoUtil::UUIDv5($collectionName . ':' . (isset($properties['productIdentifier']) ? strtoupper($properties['productIdentifier']) : md5(microtime().rand())));
         }
         
         /*
