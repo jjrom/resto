@@ -28,13 +28,12 @@
         
         <script type="text/javascript">
         $(document).ready(function() {
-            R.init({
-                language: '<?php echo $self->context->dictionary->language; ?>',
-                translation:<?php echo json_encode($self->context->dictionary->getTranslation()) ?>,
-                restoUrl: '<?php echo $self->context->baseUrl ?>',
-                ssoServices:<?php echo json_encode($self->context->config['ssoServices']) ?>,
-                userProfile:<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?> 
-            });
+            R.language = '<?php echo $self->context->dictionary->language; ?>';
+            R.translation = <?php echo json_encode($self->context->dictionary->getTranslation()) ?>;
+            R.restoUrl = '<?php echo $self->context->baseUrl ?>';
+            R.ssoServices = <?php echo json_encode($self->context->config['ssoServices']) ?>;
+            R.userProfile = <?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?>;
+            R.init();
         });
     </script>
         

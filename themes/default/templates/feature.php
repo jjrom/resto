@@ -92,33 +92,13 @@
             </div>
             <div class="large-6 columns">
             <?php
-                    if ($product['properties']['keywords']) {
-                        foreach ($product['properties']['keywords'] as $keyword => $value) {
-                            if (strtolower($value['type']) === 'continent') {
-            ?>
-                <h2><a title="<?php echo $self->context->dictionary->translate('_thisResourceIsLocated', $keyword) ?>" href="<?php echo RestoUtil::updateUrlFormat($value['href'], 'html') ?>"><?php echo $keyword; ?></a></h2>
-            <?php }}} ?>
-            <?php
-                    if ($product['properties']['keywords']) {
-                        foreach ($product['properties']['keywords'] as $keyword => $value) {
-                            if (strtolower($value['type']) === 'country') {
-            ?>
-                <h2><a title="<?php echo $self->context->dictionary->translate('_thisResourceIsLocated', $keyword) ?>" href="<?php echo RestoUtil::updateUrlFormat($value['href'], 'html') ?>"><?php echo $keyword; ?></a></h2>
-            <?php }}} ?>
-            <?php
-                    if ($product['properties']['keywords']) {
-                        foreach ($product['properties']['keywords'] as $keyword => $value) {
-                            if (strtolower($value['type']) === 'region') {
-            ?>
-                <h2><a title="<?php echo $self->context->dictionary->translate('_thisResourceIsLocated', $keyword) ?>" href="<?php echo RestoUtil::updateUrlFormat($value['href'], 'html') ?>"><?php echo $keyword; ?></a></h2>
-            <?php }}} ?>
-            <?php
-                    if ($product['properties']['keywords']) {
-                        foreach ($product['properties']['keywords'] as $keyword => $value) {
-                            if (strtolower($value['type']) === 'state') {
-            ?>
-                <h2><a title="<?php echo $self->context->dictionary->translate('_thisResourceIsLocated', $keyword) ?>" href="<?php echo RestoUtil::updateUrlFormat($value['href'], 'html') ?>"><?php echo $keyword; ?></a></h2>
-            <?php }}} ?>
+            foreach(array_values(array('continent', 'country', 'region', 'state')) as $key) {
+                if ($product['properties']['keywords']) {
+                        for ($i = 0, $l = count($product['properties']['keywords']); $i < $l; $i++) {
+                            list($type, $id) = explode(':', $product['properties']['keywords'][$i]['id'], 2);
+                            if (strtolower($type) === $key) { ?>
+                <h2><a title="<?php echo $self->context->dictionary->translate('_thisResourceIsLocated', $product['properties']['keywords'][$i]['name']) ?>" href="<?php echo RestoUtil::updateUrlFormat($product['properties']['keywords'][$i]['href'], 'html') ?>"><?php echo $product['properties']['keywords'][$i]['name']; ?></a></h2>
+            <?php }}}} ?>
             </div>
         </div>
         
@@ -130,10 +110,10 @@
             <div class="large-6 columns">
             <?php
                     if ($product['properties']['keywords']) {
-                        foreach ($product['properties']['keywords'] as $keyword => $value) {
-                            if (strtolower($value['type']) === 'landuse') {
-            ?>
-                <h2><?php echo round($value['value']); ?> % <a title="<?php echo $self->context->dictionary->translate('_thisResourceContainsLanduse', $value['value'], $keyword) ?>" href="<?php echo RestoUtil::updateUrlFormat($value['href'], 'html') ?>"><?php echo $keyword; ?></a></h2>
+                        for ($i = 0, $l = count($product['properties']['keywords']); $i < $l; $i++) {
+                            list($type, $id) = explode(':', $product['properties']['keywords'][$i]['id'], 2);
+                            if (strtolower($type) === 'landuse') { ?>
+                    <h2><?php echo round($product['properties']['keywords'][$i]['value']); ?> % <a title="<?php echo $self->context->dictionary->translate('_thisResourceContainsLanduse', $product['properties']['keywords'][$i]['value'], $keyword) ?>" href="<?php echo RestoUtil::updateUrlFormat($product['properties']['keywords'][$i]['href'], 'html') ?>"><?php echo $product['properties']['keywords'][$i]['name']; ?></a></h2>
             <?php }}} ?>
             </div>
         </div>
@@ -165,20 +145,20 @@
                 if (M) {
                     M.load();
                 }
-
+                
                 /*
                  * Initialize RESTo
                  */
-                R.init({
-                    issuer:'getResource',
-                    language: '<?php echo $self->context->dictionary->language; ?>',
-                    data:  <?php echo '{"type":"FeatureCollection","features":[' . $self->toJSON() . ']}' ?>,
-                    translation:<?php echo json_encode($self->context->dictionary->getTranslation()) ?>,
-                    restoUrl: '<?php echo $self->context->baseUrl ?>',
-                    collection: '<?php echo $self->collection->name ?>',
-                    ssoServices:<?php echo json_encode($self->context->config['ssoServices']) ?>,
-                    userProfile:<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?> 
-                });
+                R.issuer = 'getResource';
+                R.language = '<?php echo $self->context->dictionary->language; ?>';
+                R.translation = <?php echo json_encode($self->context->dictionary->getTranslation()) ?>;
+                R.restoUrl = '<?php echo $self->context->baseUrl ?>';
+                R.collection = '<?php echo isset($self->collection->name) ? $self->collection->name : null ?>';
+                R.ssoServices = <?php echo json_encode($self->context->config['ssoServices']) ?>;
+                R.userProfile = <?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?>;
+                R.init();
+                R.loadFeatures(<?php echo '{"type":"FeatureCollection","features":[' . $self->toJSON() . ']}' ?>);
+
             });
         </script>
     </body>

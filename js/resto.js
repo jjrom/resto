@@ -93,27 +93,11 @@
         
         /*
          * Initialize RESTo
-         * 
-         * @param {Object} options
          */
-        init: function(options) {
+        init: function() {
 
             var timer, self = this;
 
-            options = options || {};
-
-            self.translation = options.translation || {};
-            self.restoUrl = options.restoUrl;
-            self.issuer = options.issuer;
-            self.language = options.language || 'en';
-            self.collection = options.collection;
-            self.userProfile = options.userProfile;
-            
-            /*
-             * SSO authentication server is available
-             */
-            self.ssoServices = options.ssoServices || {};
-            
             /*
              * mapshup is defined
              */
@@ -129,70 +113,10 @@
                         window.M.events.trigger('resizeend');
                     }, 150);
                 });
-              
+                
                 /*
-                 * Display GeoJSON data within mapshup on startup
-                 * 
-                 * Note : setInterval function is needed to ensure that mapshup map
-                 * is loaded before sending the GeoJSON feed
+                 * Update bbox parameter in href attributes of all element with 'resto-updatebbox' class
                  */
-                if (options.data) {
-                    
-                    var fct = setInterval(function() {
-                        if (window.M.Map.map && window.M.isLoaded) {
-                            
-                            //self.initSearchLayer(options.data, options.data.query && options.data.query.hasLocation ? true : false);
-                            self.initSearchLayer(options.data, true);
-                            
-                            /*
-                             * Display full size WMS
-                             */
-                            if (self.issuer === 'getResource') {
-                                if (self.layer) {
-                                    window.M.Map.zoomTo(self.layer.getDataExtent(), false);
-                                    if (self.userRights && self.userRights['visualize']) {
-                                        if ($.isArray(options.data.features) && options.data.features[0]) {
-                                            if (options.data.features[0].properties['services']['browse'] && options.data.features[0].properties['services']['browse']['layer']) {
-                                                M.Map.addLayer({
-                                                    title: options.data.features[0].id,
-                                                    type: options.data.features[0].properties['services']['browse']['layer']['type'],
-                                                    layers: options.data.features[0].properties['services']['browse']['layer']['layers'],
-                                                    url: options.data.features[0].properties['services']['browse']['layer']['url'].replace('%5C', '')
-                                                });
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            
-                            /*
-                             * Add "Center on layer" action
-                             */
-                            (new M.Toolbar({
-                                position: 'nw',
-                                orientation: 'h'
-                            })).add({
-                                title: '<span class="fa fa-map-marker"></span>',
-                                tt: "Center",
-                                onoff: false,
-                                onactivate: function(scope, item) {
-                                    item.activate(false);
-                                    if (self.layer && self.layer.features && self.layer.features.length > 0) {
-                                        window.M.Map.zoomTo(self.layer.getDataExtent(), false);
-                                    }
-                                }
-                            });
-                    
-                            clearInterval(fct);
-                        }
-                    }, 500);
-                }
-            }
-
-            /*
-             * Update bbox parameter in href attributes of all element with 'resto-updatebbox' class
-             */
-            if (window.M) {
                 var uFct = setInterval(function() {
                     if (window.M.Map.map && window.M.isLoaded) {
                         window.M.Map.events.register("moveend", self, function(map, scope) {
@@ -202,6 +126,7 @@
                         clearInterval(uFct);
                     }
                 }, 500);
+                
             }
 
             /*
@@ -215,7 +140,7 @@
                  * Reload page instead of update page
                  */
                 if ($(this).attr('changeLocation')) {
-                    window.R.showMask();
+                    window.R.util.showMask();
                     this.submit();
                 }
                 
@@ -238,7 +163,7 @@
             /*
              * Set the admin actions
              */
-            self.Admin.updateAdminActions(options.collection);
+            self.Admin.updateAdminActions(self.collection);
 
             /*
              * Force focus on search input form
@@ -257,22 +182,80 @@
                 
             }
             
-            /*
-             * Display profile or login action
-             * depending if connected or not 
-             */
-            //self.userRights = self.userProfile['rights'] && self.userProfile['rights']['collections'] && self.userProfile['rights']['collections'][self.collection] ? $.extend(self.userProfile['rights']['default'], self.userProfile['rights']['collections'][self.collection]) : self.userProfile['rights']['default'];
+            //self.updateConnectionInfo();
+            self.util.hideMask();
 
+        },
+        
+        /**
+         * Load input GeoJSON FeatureCollection
+         * @param {Object} featureCollection
+         */
+        loadFeatures: function(featureCollection) {
+            
+            var self = this;
+            
             if (self.issuer === 'getCollection') {
-                self.updateGetCollection(options.data, {
+                self.updateGetCollection(featureCollection, {
                     updateMap: false,
-                    centerMap: options.data && options.data.query
+                    centerMap: featureCollection && featureCollection.query
                 });
             }
 
-            //self.updateConnectionInfo();
-            self.hideMask();
+            /* 
+             * Note : setInterval function is needed to ensure that mapshup map
+             * is loaded before sending the GeoJSON feed
+             */
+            if (window.M) {
+                var fct = setInterval(function () {
+                    if (window.M.Map.map && window.M.isLoaded) {
 
+                        //self.initSearchLayer(options.data, options.data.query && options.data.query.hasLocation ? true : false);
+                        self.initSearchLayer(featureCollection, true);
+
+                        /*
+                         * Display full size WMS
+                         */
+                        if (self.issuer === 'getResource') {
+                            if (self.layer) {
+                                window.M.Map.zoomTo(self.layer.getDataExtent(), false);
+                                if (self.userRights && self.userRights['visualize']) {
+                                    if ($.isArray(featureCollection.features) && featureCollection.features[0]) {
+                                        if (featureCollection.features[0].properties['services']['browse'] && featureCollection.features[0].properties['services']['browse']['layer']) {
+                                            M.Map.addLayer({
+                                                title: featureCollection.features[0].id,
+                                                type: featureCollection.features[0].properties['services']['browse']['layer']['type'],
+                                                layers: featureCollection.features[0].properties['services']['browse']['layer']['layers'],
+                                                url: featureCollection.features[0].properties['services']['browse']['layer']['url'].replace('%5C', '')
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        /*
+                         * Add "Center on layer" action
+                         */
+                        (new window.M.Toolbar({
+                            position: 'nw',
+                            orientation: 'h'
+                        })).add({
+                            title: '<span class="fa fa-map-marker"></span>',
+                            tt: "Center",
+                            onoff: false,
+                            onactivate: function (scope, item) {
+                                item.activate(false);
+                                if (self.layer && self.layer.features && self.layer.features.length > 0) {
+                                    window.M.Map.zoomTo(self.layer.getDataExtent(), false);
+                                }
+                            }
+                        });
+
+                        clearInterval(fct);
+                    }
+                }, 500);
+            } 
         },
         
         /**
@@ -291,16 +274,16 @@
             window.History.Adapter.bind(window, 'statechange', function() {
 
                 // Be sure that json is called !
-                var state = window.History.getState(), url = self.updateUrlFormat(state.cleanUrl, 'json');
+                var state = window.History.getState(), url = self.util.updateUrlFormat(state.cleanUrl, 'json');
 
-                self.showMask();
+                self.util.showMask();
 
                 $.ajax({
                     url: url,
                     async: true,
                     dataType: 'json',
                     success: function(json) {
-                        self.hideMask();
+                        self.util.hideMask();
                         if (typeof callback === 'function') {
                             callback(json, {
                                 updateMap:true,
@@ -309,25 +292,12 @@
                         }
                     },
                     error: function(e) {
-                        self.hideMask();
-                        self.message("Connection error");
+                        self.util.hideMask();
+                        self.util.message("Connection error");
                     }
                 });
             });
 
-        },
-        
-        /**
-         * Protect user input from XSS attacks by removing html tags
-         * from user input
-         * 
-         * @param {Object/String} jqueryObj
-         */
-        sanitizeValue: function(jqueryObj) {
-            if (!jqueryObj || !jqueryObj.length) {
-                return '';
-            }
-            return ($.type(jqueryObj) === 'string' ? jqueryObj : jqueryObj.val()).replace( /<.*?>/g, '' );
         },
         
         /**
@@ -341,7 +311,7 @@
              * Share on facebook
              */
             $('.shareOnFacebook').click(function() {
-                window.open('https://www.facebook.com/sharer.php?u=' + encodeURIComponent(window.History.getState().cleanUrl) + '&t=' + encodeURIComponent(self.sanitizeValue($('#search'))));
+                window.open('https://www.facebook.com/sharer.php?u=' + encodeURIComponent(window.History.getState().cleanUrl) + '&t=' + encodeURIComponent(self.util.sanitizeValue($('#search'))));
                 return false;
             });
 
@@ -349,20 +319,20 @@
              * Share to twitter
              */
             $('.shareOnTwitter').click(function() {
-                window.open('http://twitter.com/intent/tweet?status=' + encodeURIComponent(self.sanitizeValue($('#search')) + " - " + window.History.getState().cleanUrl));
+                window.open('http://twitter.com/intent/tweet?status=' + encodeURIComponent(self.util.sanitizeValue($('#search')) + " - " + window.History.getState().cleanUrl));
                 /*
                  * TODO use url shortener supporting CORS
                  * 
-                 self.showMask();
-                 self.ajax({
+                 self.util.showMask();
+                 self.util.ajax({
                  url:'http://tinyurl.com/api-create.php?url=' + encodeURIComponent(window.History.getState().cleanUrl),
                  success: function(txt) {
-                 self.hideMask();
-                 window.open('http://twitter.com/intent/tweet?status='+encodeURIComponent(self.sanitizeValue($('#search')) + " - " + txt));
+                 self.util.hideMask();
+                 window.open('http://twitter.com/intent/tweet?status='+encodeURIComponent(self.util.sanitizeValue($('#search')) + " - " + txt));
                  },
                  error: function(e) {
-                 self.hideMask();
-                 self.message('Error - cannot share on twitter');
+                 self.util.hideMask();
+                 self.util.message('Error - cannot share on twitter');
                  }
                  });
                  */
@@ -373,7 +343,7 @@
              * Display Atom feed
              */
             $('.displayRSS').click(function() {
-                window.location = self.updateUrlFormat(window.History.getState().cleanUrl, 'json');
+                window.location = self.util.updateUrlFormat(window.History.getState().cleanUrl, 'json');
                 return false;
             });
 
@@ -389,8 +359,8 @@
              */
             $('.gravatar')
                         .html('')
-                        .attr('title', this.userProfile.email)
-                        .css('background-image', 'url(' + this.getGravatar(this.userProfile.userhash, 200) + ')');
+                        .attr('title', self.userProfile.email)
+                        .css('background-image', 'url(' + self.util.getGravatar(this.userProfile.userhash, 200) + ')');
             
         },
         
@@ -401,119 +371,17 @@
             if (this.isConnected()) {
                 $('.viewUserPanel')
                         .html('')
-                        .attr('title', this.userProfile.email)
-                        .css('background-image', 'url(' + this.getGravatar(this.userProfile.userhash, 200) + ')');
+                        .attr('title', self.userProfile.email)
+                        .css('background-image', 'url(' + this.util.getGravatar(this.userProfile.userhash, 200) + ')');
             }
             else {
                 $('.viewUserPanel')
                         .html('<span class="fa fa-sign-in"></span>')
-                        .attr('title', this.translate('_login'))
+                        .attr('title', this.util.translate('_login'))
                         .css('background-image', 'auto');
             }
         },
         
-        /**
-         * Show mask overlay (during loading)
-         */
-        showMask: function() {
-            $('<div id="resto-mask-overlay"><span class="fa fa-3x fa-refresh fa-spin"></span></div>').appendTo($('body')).css({
-                'position': 'fixed',
-                'z-index': '100000',
-                'top': '0px',
-                'left': '0px',
-                'background-color': 'rgba(128, 128, 128, 0.7)',
-                'color': 'white',
-                'text-align': 'center',
-                'width': '100%',
-                'height': '100%',
-                'line-height': $(window).height() + 'px'
-            }).show();
-        },
-        
-        /**
-         * Clear mask overlay
-         */
-        hideMask: function() {
-            $('#resto-mask-overlay').remove();
-        },
-        
-        /**
-         * Replace {a:1}, {a:2}, etc within str by array values
-         * 
-         * @param {string} str (e.g. "My name is {a:1} {a:2}")
-         * @param {array} values (e.g. ['Jérôme', 'Gasperi'])
-         * 
-         */
-        translate: function(str, values) {
-            
-            if (!this.translation || !this.translation[str]) {
-                return str;
-            }
-
-            var i, l, out = this.translation[str];
-
-            /*
-             * Replace additional arguments
-             */
-            if (values && out.indexOf('{a:') !== -1) {
-                for (i = 0, l = values.length; i < l; i++) {
-                    out = out.replace('{a:' + (i + 1) + '}', values[i]);
-                }
-            }
-
-            return out;
-        },
-        /**
-         * Update key/value parameters from url by values
-         * 
-         * @param {string} url (e.g. 'http://localhost/resto/?format=json)
-         * @param {object} params (e.g. {format:'html'})
-         * 
-         */
-        updateUrl: function(url, params) {
-
-            var key, value, i, l, sourceParamsList, sourceParams = {}, newParamsString = "", sourceBase = url.split("?")[0];
-
-            try {
-                sourceParamsList = url.split("?")[1].split("&");
-            }
-            catch (e) {
-                sourceParamsList = [];
-            }
-            for (i = 0, l = sourceParamsList.length; i < l; i++) {
-                key = sourceParamsList[i].split('=')[0];
-                value = sourceParamsList[i].split('=')[1];
-                if (key) {
-                    sourceParams[key] = value ? value : '';
-                }
-            }
-
-            for (key in params) {
-                sourceParams[key] = params[key];
-            }
-
-            for (key in sourceParams) {
-                newParamsString += key + "=" + sourceParams[key] + "&";
-            }
-
-            return sourceBase + "?" + newParamsString;
-        },
-        /**
-         * Rewrite URL with new format
-         * 
-         * @param {string} url (e.g. 'http://localhost/resto/?format=json)
-         * @param {string} format (e.g. 'html')
-         * 
-         */
-        updateUrlFormat: function(url, format) {            
-           var splitted = url.split("?"), path = splitted[0], params = splitted[1];
-           var dotted = path.split(".");
-           if (dotted.length > 1) {
-               dotted.pop();
-               path = dotted.join(".");
-           }
-           return path + "." + format + "?" + params;
-        },
         /**
          * Post to mapshup
          * 
@@ -607,26 +475,7 @@
             });
 
         },
-        /**
-         * Return type from mimeType
-         * 
-         * @param {string} mimeType
-         */
-        mimeToType: function(mimeType) {
-            switch (mimeType) {
-                case 'application/json':
-                    return 'GeoJSON';
-                    break;
-                case 'application/atom+xml':
-                    return 'ATOM';
-                    break;
-                case 'text/html':
-                    return 'HTML';
-                    break;
-                default:
-                    return mimeType;
-            }
-        },
+        
         /**
          * Add map bounding box in EPSG:4326 to all element with a 'resto-updatebbox' class
          */
@@ -679,69 +528,6 @@
         },
         
         /**
-         * Get gravatar icon url
-         * 
-         * See http://en.gravatar.com
-         * 
-         * @param emailhash : md5 hash of an email adress
-         * @param size : size of the returned icon in pixel
-         */
-        getGravatar: function(emailhash, size) {
-            return 'http://www.gravatar.com/avatar/' + (emailhash ? emailhash : '') + '?d=mm' + (!size || !$.isNumeric(size) ? '' : '&s=' + size);
-        },
-
-        /**
-         * Launch an ajax call
-         * This function relies on jquery $.ajax function
-         * 
-         * @param {Object} obj
-         * @param {boolean} showMask
-         */
-        ajax: function(obj, showMask) {
-
-            var self = this;
-
-            /*
-             * Paranoid mode
-             */
-            if (typeof obj !== "object") {
-                return null;
-            }
-
-            /*
-             * Ask for a Mask
-             */
-            if (showMask) {
-                obj['complete'] = function(c) {
-                    self.hideMask();
-                };
-                self.showMask();
-            }
-
-            return $.ajax(obj);
-
-        },
-        /**
-         * Display non intrusive message to user
-         * 
-         * @param {string} message
-         * @param {integer} duration
-         */
-        message: function(message, duration) {
-            var $container = $('body'), $d;
-            $container.append('<div class="adminMessage"><div class="content">' + message + '</div></div>');
-            $d = $('.adminMessage', $container);
-            $d.fadeIn('slow').delay(duration || 2000).fadeOut('slow', function() {
-                $d.remove();
-            }).css({
-                'left': ($container.width() - $d.width()) / 2,
-                'top': 60
-            });
-            return $d;
-
-        },
-        
-        /**
          * Display user panel
          */
         showUserPanel: function() {
@@ -751,7 +537,7 @@
             /*
              * User panel is displayed on top of RESTo content
              */
-            $userPanel = $('<div id="restoUserPanel"><div class="close" title="' + self.translate('_close') + '"></div></div>').appendTo($('body')).show();
+            $userPanel = $('<div id="restoUserPanel"><div class="close" title="' + self.util.translate('_close') + '"></div></div>').appendTo($('body')).show();
             
             /*
              * Top-right close button to hide user panel
@@ -800,19 +586,19 @@
             
             var self = this, $userPanel = $('#restoUserPanel');
             
-            $userPanel.append('<div class="row"><div class="large-12 columns"><img src="' + self.getGravatar(this.userProfile.userhash, 200) + '"/><ul class="no-bullet"><li>' + self.userProfile.email + '</li></ul><a class="button signOut">' + self.translate('_logout') + '</a></div></div>');
+            $userPanel.append('<div class="row"><div class="large-12 columns"><img src="' + self.util.getGravatar(this.userProfile.userhash, 200) + '"/><ul class="no-bullet"><li>' + self.userProfile.email + '</li></ul><a class="button signOut">' + self.util.translate('_logout') + '</a></div></div>');
             $('.signOut').click(function() {
-                self.showMask();
-                self.ajax({
+                self.util.showMask();
+                self.util.ajax({
                     url: self.restoUrl + 'api/users/disconnect',
                     dataType:'json',
                     success: function(json) {
                         window.location.reload();
                     },
                     error: function(e) {
-                        self.hideMask();
+                        self.util.hideMask();
                         self.hideUserPanel();
-                        self.message('Error : cannot disconnect');
+                        self.util.message('Error : cannot disconnect');
                     }
                 });
                 return false;
@@ -834,7 +620,7 @@
             /*
              * Display login panel
              */
-            $userPanel.append('<div class="row" id="displayLogin"><div class="large-12 columns"><form action="#"><ul class="no-bullet"><li><input id="userEmail" type="text" placeholder="' + self.translate('_email') + '"/></li><li><input id="userPassword" type="password" placeholder="' + self.translate('_password') + '"/></li></ul><p><a class="button signIn">' + self.translate('_login') + '</a></p><div class="signWithOauth"></div><p><a class="register">' + self.translate('_createAccount') + '</a></p></form></div></div>');
+            $userPanel.append('<div class="row" id="displayLogin"><div class="large-12 columns"><form action="#"><ul class="no-bullet"><li><input id="userEmail" type="text" placeholder="' + self.util.translate('_email') + '"/></li><li><input id="userPassword" type="password" placeholder="' + self.util.translate('_password') + '"/></li></ul><p><a class="button signIn">' + self.util.translate('_login') + '</a></p><div class="signWithOauth"></div><p><a class="register">' + self.util.translate('_createAccount') + '</a></p></form></div></div>');
             $('#userEmail').focus();
             $('#userPassword').keypress(function (e) {
                 if (e.which === 13) {
@@ -857,25 +643,25 @@
              */
             $('.signIn').click(function(e) {
                 e.preventDefault();
-                self.showMask();
-                self.ajax({
+                self.util.showMask();
+                self.util.ajax({
                     url: self.restoUrl + 'api/users/connect',
                     headers: {
-                        'Authorization': "Basic " + btoa(self.sanitizeValue($('#userEmail')) + ":" + self.sanitizeValue($('#userPassword')))
+                        'Authorization': "Basic " + btoa(self.util.sanitizeValue($('#userEmail')) + ":" + self.util.sanitizeValue($('#userPassword')))
                     },
                     dataType:'json',
                     success: function(json) {
                         if (json && json.userid === -1) {
-                            self.hideMask();
-                            self.message('Error - unknown user or incorrect password');
+                            self.util.hideMask();
+                            self.util.message('Error - unknown user or incorrect password');
                         }
                         else {
                             window.location.reload();
                         }
                     },
                     error: function(e) {
-                        self.hideMask();
-                        self.message('Error - cannot sign in');
+                        self.util.hideMask();
+                        self.util.message('Error - cannot sign in');
                     }
                 });
                 return false;
@@ -886,7 +672,7 @@
              */
             for (key in self.ssoServices) {
                 (function(key) { 
-                    $('.signWithOauth').append('<p><a id="_oauth' + key + '">' + self.translate('_signWithOauth', [key]) + '</a></p>');
+                    $('.signWithOauth').append('<p><a id="_oauth' + key + '">' + self.util.translate('_signWithOauth', [key]) + '</a></p>');
                     $('#_oauth' + key).click(function(e) {
 
                         /*
@@ -924,15 +710,15 @@
             /*
              * Display register panel
              */
-            leftContent = '<li><input id="givenName" class="input-text" type="text" placeholder="' + self.translate('_givenName') + '"/></li>' +
-                          '<li><input id="lastName" class="input-text" type="text" placeholder="' + self.translate('_lastName') + '"/></li>' +
-                          '<li><input id="userName" class="input-text" type="text" placeholder="' + self.translate('_userName') + '"/></li>';
+            leftContent = '<li><input id="givenName" class="input-text" type="text" placeholder="' + self.util.translate('_givenName') + '"/></li>' +
+                          '<li><input id="lastName" class="input-text" type="text" placeholder="' + self.util.translate('_lastName') + '"/></li>' +
+                          '<li><input id="userName" class="input-text" type="text" placeholder="' + self.util.translate('_userName') + '"/></li>';
             
-            rightContent = '<li><input id="userEmail" class="input-text" type="text" placeholder="' + self.translate('_email') + '"/></li>' +
-                          '<li><input id="userPassword1" class="input-password" type="password" placeholder="' + self.translate('_password') + '"/></li>' +
-                          '<li><input id="userPassword2" class="input-password" type="password" placeholder="' + self.translate('_retypePassword') + '"/></li>';
+            rightContent = '<li><input id="userEmail" class="input-text" type="text" placeholder="' + self.util.translate('_email') + '"/></li>' +
+                          '<li><input id="userPassword1" class="input-password" type="password" placeholder="' + self.util.translate('_password') + '"/></li>' +
+                          '<li><input id="userPassword2" class="input-password" type="password" placeholder="' + self.util.translate('_retypePassword') + '"/></li>';
             
-            bottomContent = '<p><a class="button register">' + self.translate('_createAccount') + '</a></p><p><a class="signIn">' + self.translate('_back') + '</a></p>';
+            bottomContent = '<p><a class="button register">' + self.util.translate('_createAccount') + '</a></p><p><a class="signIn">' + self.util.translate('_back') + '</a></p>';
             
             $userPanel.append('<div class="row" id="displayRegister"><form class="nice" action="#"><div class="large-6 columns"><ul class="no-bullet">' + leftContent + '</ul></div><div class="large-6 columns"><ul class="no-bullet">' + rightContent + '</ul>' + bottomContent + '</div></form></div>');
             
@@ -952,21 +738,21 @@
             
             $('.register').click(function(e){
                 e.preventDefault();
-                var username = self.sanitizeValue($('#userName')), password1 = self.sanitizeValue($('#userPassword1')), password2 = self.sanitizeValue($('#userPassword2')), email = self.sanitizeValue($('#userEmail'));
-                if (!email || !self.isEmailAdress(email)) {
-                    self.message('Email is not valid');
+                var username = self.util.sanitizeValue($('#userName')), password1 = self.util.sanitizeValue($('#userPassword1')), password2 = self.util.sanitizeValue($('#userPassword2')), email = self.sanitizeValue($('#userEmail'));
+                if (!email || !self.util.isEmailAdress(email)) {
+                    self.util.message('Email is not valid');
                     return false;
                 }
                 if (!username) {
-                    self.message('Username is mandatory');
+                    self.util.message('Username is mandatory');
                     return false;
                 }
                 if (!password1 || !password2 || password1 !== password2) {
-                    self.message('Passwords differ');
+                    self.util.message('Passwords differ');
                     return false;
                 }
                 
-                window.R.ajax({
+                window.R.util.ajax({
                     url: window.R.restoUrl + 'users',
                     async: true,
                     type: 'POST',
@@ -975,43 +761,29 @@
                         email:email,
                         password:password1,
                         username:username,
-                        givenname:self.sanitizeValue($('#givenName')),
-                        lastname:self.sanitizeValue($('#lastName'))
+                        givenname:self.util.sanitizeValue($('#givenName')),
+                        lastname:self.util.sanitizeValue($('#lastName'))
                     },
                     success: function(json) {
                         if (json && json.Status === 'success') {
-                            self.message(json.Message);
+                            self.util.message(json.Message);
                             self.hideUserPanel();
                         }
                         else {
-                            self.message(json.ErrorMessage);
+                            self.util.message(json.ErrorMessage);
                         }
                     },
                     error: function(e) {
                         if (e.responseJSON) {
-                            self.message(e.responseJSON.ErrorMessage);
+                            self.util.message(e.responseJSON.ErrorMessage);
                         }
                         else {
-                            self.message('Error : cannot register');
+                            self.util.message('Error : cannot register');
                         }
                     }
                 }, true);
                 return false;
             });
-            
-        },
-        
-        /**
-         * Check if a string is a valid email adress
-         * 
-         * @param {String} str
-         */
-        isEmailAdress: function (str) {
-            if (!str || str.length === 0) {
-                return false;
-            }
-            var pattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,4}$/;
-            return pattern.test(str);
             
         },
         
@@ -1064,13 +836,13 @@
              * Update search input form
              */
             if ($('#search').length > 0) {
-                $('#search').val(p.query ? self.sanitizeValue(p.query.original.searchTerms) : '');
+                $('#search').val(p.query ? self.util.sanitizeValue(p.query.original.searchTerms) : '');
             }
             
             /*
              * Update result summary
              */
-            $('#resultsummary').html(self.translate('_resultFor', [(p.query.original.searchTerms ? '<font class="red">' + self.sanitizeValue(p.query.original.searchTerms) + '</font>' : '')]));
+            $('#resultsummary').html(self.util.translate('_resultFor', [(p.query.original.searchTerms ? '<font class="red">' + self.util.sanitizeValue(p.query.original.searchTerms) + '</font>' : '')]));
             
             /*
              * Update query analysis result
@@ -1088,7 +860,7 @@
                     $('.resto-queryanalyze').html('<div class="resto-query">' + foundFilters + '</div>');
                 }
                 else {
-                    $('.resto-queryanalyze').html('<div class="resto-query"><span class="resto-warning">' + self.translate('_notUnderstood') + '</span></div>');
+                    $('.resto-queryanalyze').html('<div class="resto-query"><span class="resto-warning">' + self.util.translate('_notUnderstood') + '</span></div>');
                 }
             }
             else if (p.missing) {
@@ -1118,7 +890,11 @@
                     $('html, body').scrollTop(0);
                 });
             });
-
+            
+            /*
+             * Align heights
+             */
+            self.util.alignHeight($('.resto-entry'));
         },
 
         /**
@@ -1142,23 +918,23 @@
                 pagination = '';
             }
             else if (p.totalResults === 0) {
-                pagination = self.translate('_noResult');
+                pagination = self.util.translate('_noResult');
             }
             else {
                 
                 if ($.isArray(p.links)) {
                     for (i = 0, l = p.links.length; i < l; i++) {
                         if (p.links[i]['rel'] === 'first') {
-                            first = ' <a class="resto-ajaxified" href="' + self.updateUrlFormat(p.links[i]['href'], 'html') + '">' + self.translate('_firstPage') + '</a> ';
+                            first = ' <a class="resto-ajaxified" href="' + self.util.updateUrlFormat(p.links[i]['href'], 'html') + '">' + self.util.translate('_firstPage') + '</a> ';
                         }
                         if (p.links[i]['rel'] === 'previous') {
-                            previous = ' <a class="resto-ajaxified" href="' + self.updateUrlFormat(p.links[i]['href'], 'html') + '">' + self.translate('_previousPage') + '</a> ';
+                            previous = ' <a class="resto-ajaxified" href="' + self.util.updateUrlFormat(p.links[i]['href'], 'html') + '">' + self.util.translate('_previousPage') + '</a> ';
                         }
                         if (p.links[i]['rel'] === 'next') {
-                            next = ' <a class="resto-ajaxified" href="' + self.updateUrlFormat(p.links[i]['href'], 'html') + '">' + self.translate('_nextPage') + '</a> ';
+                            next = ' <a class="resto-ajaxified" href="' + self.util.updateUrlFormat(p.links[i]['href'], 'html') + '">' + self.util.translate('_nextPage') + '</a> ';
                         }
                         if (p.links[i]['rel'] === 'last') {
-                            last = ' <a class="resto-ajaxified" href="' + self.updateUrlFormat(p.links[i]['href'], 'html') + '">' + self.translate('_lastPage') + '</a> ';
+                            last = ' <a class="resto-ajaxified" href="' + self.util.updateUrlFormat(p.links[i]['href'], 'html') + '">' + self.util.translate('_lastPage') + '</a> ';
                         }
                         if (p.links[i]['rel'] === 'self') {
                             selfUrl = p.links[i]['href'];
@@ -1169,7 +945,7 @@
                 /*
                  * Pagination text
                  */
-                pagination += first + previous + (p.itemsPerPage ? self.translate('_pageNumber', [Math.ceil(p.startIndex / p.itemsPerPage)]) : '') + next + last;
+                pagination += first + previous + (p.itemsPerPage ? self.util.translate('_pageNumber', [Math.ceil(p.startIndex / p.itemsPerPage)]) : '') + next + last;
 
             }
 
@@ -1218,7 +994,7 @@
                 if (feature.properties.keywords) {
                     for (var z = feature.properties.keywords.length; z--;) {
                         if (feature.properties.keywords[z]['name'] === feature.properties['platform']) {
-                            platform = '<a href="' + self.updateUrlFormat(feature.properties.keywords[z]['href'], 'html') + '" class="resto-ajaxified resto-updatebbox resto-keyword resto-keyword-platform" title="' + self.translate('_thisResourceWasAcquiredBy', [feature.properties['platform']]) + '">' + feature.properties['platform'] + '</a> ';
+                            platform = '<a href="' + self.util.updateUrlFormat(feature.properties.keywords[z]['href'], 'html') + '" class="resto-ajaxified resto-updatebbox resto-keyword resto-keyword-platform" title="' + self.util.translate('_thisResourceWasAcquiredBy', [feature.properties['platform']]) + '">' + feature.properties['platform'] + '</a> ';
                             break;
                         }
                     }
@@ -1231,25 +1007,25 @@
                 if ($.isArray(feature.properties['links'])) {
                     for (j = 0, k = feature.properties['links'].length; j < k; j++) {
                         if (feature.properties['links'][j]['type'] === 'text/html') {
-                            resourceUrl = self.updateUrl(feature.properties['links'][j]['href'], {lang:self.language});
+                            resourceUrl = self.util.updateUrl(feature.properties['links'][j]['href'], {lang:self.language});
                         }
                     }
                 }
 
-                $content.append('<li><div class="resto-entry" id="rid' + i + '" fid="' + feature.id + '"><div class="padded-bottom"><span class="platform">' + platform + (platform && feature.properties['instrument'] ? "/" + feature.properties['instrument'] : "") + '</span> | <span class="timestamp">' + feature.properties['startDate'] + '</span></div><div><a href="' + resourceUrl + '" title="' + self.translate('_viewMetadata', [feature.id]) + '"><img class="resto-image" src="' + thumbnail + '"/></a></div><div class="resto-actions"></div><div class="resto-keywords"></div></div></li>');
+                $content.append('<li><div class="resto-entry" id="rid' + i + '" fid="' + feature.id + '"><div class="padded-bottom"><span class="platform">' + platform + (platform && feature.properties['instrument'] ? "/" + feature.properties['instrument'] : "") + '</span> | <span class="timestamp">' + feature.properties['startDate'] + '</span></div><div><a href="' + resourceUrl + '" title="' + self.util.translate('_viewMetadata', [feature.id]) + '"><img class="resto-image" src="' + thumbnail + '"/></a></div><div class="resto-actions"></div><div class="resto-keywords"></div></div></li>');
                 $actions = $('.resto-actions', $('#rid' + i));
 
                 /*
                  * Zoom on feature
                  */
-                $actions.append('<a class="fa fa-map-marker showOnMap" href="#" title="' + self.translate('_showOnMap') + '"></a>');
+                $actions.append('<a class="fa fa-map-marker showOnMap" href="#" title="' + self.util.translate('_showOnMap') + '"></a>');
 
                 /*
                  * Download
                  */
                 if (feature.properties['services'] && feature.properties['services']['download'] && feature.properties['services']['download']['url']) {
                     if (self.userRights && self.userRights['download']) {
-                        $actions.append('<a class="fa fa-cloud-download" href="' + feature.properties['services']['download']['url'] + '"' + (feature.properties['services']['download']['mimeType'] === 'text/html' ? ' target="_blank"' : '') + ' title="' + self.translate('_download') + '"></a>');
+                        $actions.append('<a class="fa fa-cloud-download" href="' + feature.properties['services']['download']['url'] + '"' + (feature.properties['services']['download']['mimeType'] === 'text/html' ? ' target="_blank"' : '') + ' title="' + self.util.translate('_download') + '"></a>');
                     }
                 }
 
@@ -1316,17 +1092,17 @@
                             type = 'landuse';
                             text = text + ' (' + Math.round(keyword.value) + '%)';
                             addClass = ' resto-updatebbox resto-keyword-' + typeAndId[0] + '_' + typeAndId[1];
-                            title = self.translate('_thisResourceContainsLanduse', [keyword.value, key]);
+                            title = self.util.translate('_thisResourceContainsLanduse', [keyword.value, key]);
                         }
                         else if (typeAndId[0] === 'country' || typeAndId[0] === 'continent' || typeAndId[0] === 'region' || typeAndId[0] === 'state') {
                             type = 'location';
                             addClass = ' centerMap';
-                            title = self.translate('_thisResourceIsLocated', [text]);
+                            title = self.util.translate('_thisResourceIsLocated', [text]);
                         }
                         else if (typeAndId[0] === 'city') {
                             type = 'location';
                             addClass = ' centerMap';
-                            title = self.translate('_thisResourceContainsCity', [text]);
+                            title = self.util.translate('_thisResourceContainsCity', [text]);
                         }
                         else if (typeAndId[0] === 'platform' || typeAndId[0] === 'instrument') {
                             continue;
@@ -1342,7 +1118,7 @@
                             type = 'other';
                             addClass = ' resto-updatebbox';
                         }
-                        keywords[type]['keywords'].push('<a href="' + self.updateUrlFormat(keyword['href'], 'html') + '" class="resto-ajaxified resto-keyword' + (typeAndId[0] ? ' resto-keyword-' + typeAndId[0].replace(' ', '') : '') + (addClass ? addClass : '') + '" title="' + title + '">' + text + '</a> ');
+                        keywords[type]['keywords'].push('<a href="' + self.util.updateUrlFormat(keyword['href'], 'html') + '" class="resto-ajaxified resto-keyword' + (typeAndId[0] ? ' resto-keyword-' + typeAndId[0].replace(' ', '') : '') + (addClass ? addClass : '') + '" title="' + title + '">' + text + '</a> ');
                     }
 
                     /*
@@ -1350,12 +1126,12 @@
                      */
                     if (feature.properties['resolution']) {
                         resolution = self.getResolution(feature.properties['resolution']);
-                        keywords['resolution']['keywords'].push(feature.properties['resolution'] + 'm - <a href="' + self.updateUrl(self.updateUrlFormat(selfUrl, 'html'), {q: self.translate(resolution)}) + '" class="resto-ajaxified resto-updatebbox resto-keyword resto-keyword-resolution" title="' + self.translate(resolution) + '">' + resolution + '</a>');
+                        keywords['resolution']['keywords'].push(feature.properties['resolution'] + 'm - <a href="' + self.util.updateUrl(self.util.updateUrlFormat(selfUrl, 'html'), {q: self.util.translate(resolution)}) + '" class="resto-ajaxified resto-updatebbox resto-keyword resto-keyword-resolution" title="' + self.util.translate(resolution) + '">' + resolution + '</a>');
                     }
 
                     for (key in keywords) {
                         if (keywords[key]['keywords'].length > 0) {
-                            results.push('<td class="title">' + self.translate(keywords[key]['title']) + '</td><td class="values">' + keywords[key]['keywords'].join(', ') + '</td>');
+                            results.push('<td class="title">' + self.util.translate(keywords[key]['title']) + '</td><td class="values">' + keywords[key]['keywords'].join(', ') + '</td>');
                         }
                     }
 
@@ -1446,15 +1222,15 @@
                  * something else...a url for example !
                  */
                 if (files.length === 0) {
-                    window.R.message("Error : drop a file");
+                    window.R.util.message("Error : drop a file");
                 }
                 else if (files.length > 1) {
-                    window.R.message("Error : drop only one file at a time");
+                    window.R.util.message("Error : drop only one file at a time");
                 }
                 /* 
                  * Apparently "application/json" mimeType is not detected on Windows
                 else if (type === 'collection' && files[0].type.toLowerCase() !== "application/json") {
-                    window.R.message("Error : drop a json file");
+                    window.R.util.message("Error : drop a json file");
                 }
                 */
                 /*
@@ -1478,10 +1254,10 @@
                         }
                         catch (e) {
                             if (type === 'collection') {
-                                window.R.message('Error : collection description is not valid JSON');
+                                window.R.util.message('Error : collection description is not valid JSON');
                             }
                             else {
-                                window.R.message('Error : resource file is not valid');
+                                window.R.util.message('Error : resource file is not valid');
                             }
                         }
                     };
@@ -1499,7 +1275,7 @@
         addCollection: function(description) {
             
             if (window.confirm('Add collection ' + description.name + ' ?')) {
-                window.R.ajax({
+                window.R.util.ajax({
                     url: window.R.restoUrl + 'collections',
                     async: true,
                     type: 'POST',
@@ -1510,10 +1286,10 @@
                         if (XMLHttpRequest.status === 200) {
                             window.location = this.url;
                         }
-                        window.R.message(obj['message']);
+                        window.R.util.message(obj['message']);
                     },
                     error: function(e) {
-                        window.R.message(e.responseJSON['ErrorMessage']);
+                        window.R.util.message(e.responseJSON['ErrorMessage']);
                     }
                 }, true);
             }
@@ -1533,21 +1309,21 @@
             }
             
             if (window.confirm('Add resource to collection ' + collection + ' ?')) {
-                window.R.ajax({
+                window.R.util.ajax({
                     url: window.R.restoUrl + 'collections/' + collection + '/',
                     async: true,
                     type: 'POST',
                     data: JSON.stringify(resource),
                     success: function(obj, textStatus, XMLHttpRequest) {
                         if (XMLHttpRequest.status === 200) {
-                            window.R.message('Resource added');
+                            window.R.util.message('Resource added');
                         }
                         else {
-                            window.R.message(textStatus);
+                            window.R.util.message(textStatus);
                         }
                     },
                     error: function(e) {
-                        window.R.message(e.responseJSON['ErrorMessage']);
+                        window.R.util.message(e.responseJSON['ErrorMessage']);
                     }
                 }, true);
             }
@@ -1563,20 +1339,20 @@
         removeCollection: function(collection) {
 
             if (window.confirm('Remove collection ' + collection + ' ?')) {
-                window.R.ajax({
+                window.R.util.ajax({
                     url: window.R.restoUrl + 'collections/' + collection,
                     async: true,
                     type: 'DELETE',
                     dataType: "json",
                     success: function(obj, textStatus, XMLHttpRequest) {
                         if (XMLHttpRequest.status === 200) {
-                            window.R.message(obj['message']);
+                            window.R.util.message(obj['message']);
                             $('#_' + collection).fadeOut(300, function() {
                                 $(this).remove();
                             });
                         }
                         else {
-                            window.R.message(obj['message']);
+                            window.R.util.message(obj['message']);
                         }
                     },
                     error: function(e) {

@@ -179,41 +179,15 @@ nav a:active {
 }
 
 /*
- * Styles for screen 480px and lower
- */
-@media only screen and (max-width : 480px) {
-   
-    #logo {
-        display:none;
-    }
-    
-    /*
-     * Hide map
-     */
-    .resto-queryanalyze, .resto-addLayer, .showOnMap {
-        display:none;
-    }
-    
-    .button.zoom {
-        display:none;
-    }
-}
-
-/* 
- * Smartphone
- */
-@media only screen and (max-width : 320px) {
-}
-
-/*
  * RESTo CSS
  */
 .resto-entry {
     text-align:center;
     border-bottom:1px solid lightgrey;
+    background-color:lightgray;
 }
 .resto-entry.selected {
-    background-color:lightgray;
+    background-color:pink;
 }
 .resto-entry .platform {
     font-weight: bold;
@@ -481,4 +455,43 @@ a.resto-keyword-herbaceous  {
 }
 .resto-admin a:hover {
     color:#000;
+}
+
+/*
+ * Background sizing
+ */
+@media only screen and (max-width : 1280px) {
+    .bg {
+        -webkit-background-size: auto;
+        -moz-background-size: auto;
+        -o-background-size: auto;
+        background-size:auto;
+    }
+}
+
+/*
+ * Styles for screen 480px and lower
+ */
+@media only screen and (max-width : 480px) {
+   
+    #logo {
+        display:none;
+    }
+    
+    /*
+     * Hide map
+     */
+    .resto-queryanalyze, .resto-addLayer, .showOnMap {
+        display:none;
+    }
+    
+    .button.zoom {
+        display:none;
+    }
+}
+
+/* 
+ * Smartphone
+ */
+@media only screen and (max-width : 320px) {
 }

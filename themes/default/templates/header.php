@@ -18,7 +18,7 @@
     <nav>
         <ul class="no-bullet">
             <?php if (!isset($_noSearchBar)) { ?>
-            <li><span class="resto-search"><input type="text" id="search" name="q" placeholder="<?php echo $self->context->dictionary->translate('_menu_search'); ?>" value="<?php echo isset($self->context->query['q']) ? $self->context->query['q'] : ''; ?>"></span><li>
+            <li><span class="resto-search"><input type="text" id="search" name="q" placeholder="<?php echo $self->context->dictionary->translate('_menu_search'); ?>" value="<?php echo isset($self->context->query['q']) ? $self->context->query['q'] : ''; ?>"/></span><li>
             <?php
             if ($self->context->dictionary->language) {
                 echo '<input type="hidden" name="lang" value="' . $self->context->dictionary->language . '" />';

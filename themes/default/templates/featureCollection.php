@@ -47,7 +47,7 @@
             </div>
         </div>
         <!-- Search result -->
-        <div class="row">
+        <div class="row fullWidth">
             <div class="large-12 columns">
                 <ul class="small-block-grid-1 medium-block-grid-3 large-block-grid-4 resto-content center"></ul>
             </div>
@@ -68,24 +68,22 @@
                 /*
                  * Initialize mapshup
                  */
-                if (M) {
-                    M.load();
+                if (window.M) {
+                    window.M.load();
                 }
 
                 /*
                  * Initialize RESTo
                  */
-                R.init({
-                    issuer:'getCollection',
-                    language: '<?php echo $self->context->dictionary->language; ?>',
-                    data: <?php echo $self->toJSON() ?>,
-                    translation:<?php echo json_encode($self->context->dictionary->getTranslation()) ?>,
-                    restoUrl: '<?php echo $self->context->baseUrl ?>',
-                    collection: '<?php echo isset($self->collection->name) ? $self->collection->name : null ?>',
-                    ssoServices:<?php echo json_encode($self->context->config['ssoServices']) ?>,
-                    userProfile:<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?> 
-                });
-                
+                R.issuer = 'getCollection';
+                R.language = '<?php echo $self->context->dictionary->language; ?>';
+                R.translation = <?php echo json_encode($self->context->dictionary->getTranslation()) ?>;
+                R.restoUrl = '<?php echo $self->context->baseUrl ?>';
+                R.collection = '<?php echo isset($self->collection->name) ? $self->collection->name : null ?>';
+                R.ssoServices = <?php echo json_encode($self->context->config['ssoServices']) ?>;
+                R.userProfile = <?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?>;
+                R.init();
+                R.loadFeatures(<?php echo $self->toJSON();?>);
             });
         </script>
     </body>

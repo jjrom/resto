@@ -47,40 +47,26 @@
        
         <script type="text/javascript">
             $(document).ready(function() {
-                R.init({
-                    language: '<?php echo $self->context->dictionary->language; ?>',
-                    translation:<?php echo json_encode($self->context->dictionary->getTranslation()) ?>,
-                    restoUrl: '<?php echo $self->context->baseUrl ?>',
-                    ssoServices:<?php echo json_encode($self->context->config['ssoServices']) ?>,
-                    userProfile:<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?> 
-                });
-            });
-            $(document).scroll(function(){
-                if ($(this).scrollTop() > 100) {
-                    $('body').removeClass('glass');
-                }
-                else {
-                    $('body').addClass('glass');
-                }
-            });
-            
-            /*
-            $(window).bind('resize', function() {
-                fixMinSize($('.collectionItem'));
-            });
-            */  
-            
-            fixMinSize($('.collectionItem'));
-            function fixMinSize(groupOfItem){
-                var tallest = 0;
-                groupOfItem.each(function(){
-                    var thisHeight = $(this).height() + 20;
-                    if(thisHeight > tallest){
-                        tallest = thisHeight;
+                
+                R.language = '<?php echo $self->context->dictionary->language; ?>';
+                R.translation = <?php echo json_encode($self->context->dictionary->getTranslation()) ?>;
+                R.restoUrl = '<?php echo $self->context->baseUrl ?>';
+                R.ssoServices = <?php echo json_encode($self->context->config['ssoServices']) ?>;
+                R.userProfile = <?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?>;
+                R.init();
+                
+                $(document).scroll(function(){
+                    if ($(this).scrollTop() > 100) {
+                        $('body').removeClass('glass');
+                    }
+                    else {
+                        $('body').addClass('glass');
                     }
                 });
-                groupOfItem.css('height', tallest);
-            }
+
+                R.util.alignHeight($('.collectionItem'));
+            
+            });
             
         </script>
     </body>

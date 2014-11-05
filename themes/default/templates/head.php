@@ -26,7 +26,8 @@
     <?php } ?>
     <!-- RESTo -->
     <script type="text/javascript" src="<?php echo $self->context->baseUrl ?>/js/resto.js"></script>
-
+    <script type="text/javascript" src="<?php echo $self->context->baseUrl ?>/js/resto.util.js"></script>
+    
     <!--[if lt IE 9]>
     <script type="text/javascript" src="<?php echo $self->context->baseUrl ?>js/lib/modernizr.min.js"></script>
     <![endif]-->
