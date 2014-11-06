@@ -299,10 +299,14 @@
          * @param {int} limit
          */
         infiniteScroll: function(url, dataType, data, callback, limit){
-            var self = this;
-            var lastScrollTop = 0;
+            
+            var self = this, lastScrollTop = 0;
             self.limit = limit;
- 
+            
+            data = data || {};
+            if (typeof(callback) === "function") {
+                return false;
+            }
             $(window).scroll(function() {
                 var st = $(this).scrollTop();
                 if (st > lastScrollTop){
@@ -311,7 +315,7 @@
                         self.offset = self.offset + self.limit;
                         data['startIndex'] = self.offset;
 
-                        R.util.showMask();
+                        self.showMask();
 
                         $.ajax({
                             type: "GET",
@@ -320,13 +324,13 @@
                             async: true,
                             data: data,
                             success: function(data) {
-                                R.util.hideMask();
+                                self.hideMask();
                                 callback(data);
                                 self.ajaxReady = true;
                             },
                             error: function(e) {
-                                R.util.hideMask();
-                                alert('error : ' + e['responseJSON']['ErrorMessage']);
+                                self.hideMask();
+                                self.message('error : ' + e['responseJSON']['ErrorMessage']);
                                 self.offset = self.offset - self.limit;
                                 self.ajaxReady = true;
                             }
@@ -335,6 +339,7 @@
                 }
                 lastScrollTop = st;
              });
+             return false;
         }
     };
 })(window);
