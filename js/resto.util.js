@@ -44,6 +44,21 @@
      */
     window.R.util = {
         
+        /*
+         * Is ajax ready to do another request ?
+         */
+        ajaxReady: true,
+        
+        /*
+         * infinite scrolling offset
+         */
+        offset: 0,
+        
+        /*
+         * infinite scrolling limit
+         */
+        limit: 0,
+        
         /**
          * Protect user input from XSS attacks by removing html tags
          * from user input
@@ -254,6 +269,72 @@
                 }
             });
             groupOfItem.css('height', tallest);
-        }   
+        },
+        
+        /**
+         * Create an alert button with specific message.
+         * 
+         * @param {jQueryObject} parent
+         * @param {String} text
+         */
+        alert: function(parent, text){
+            if(!$('#_alert').length){
+                parent.prepend('<a id="_alert" href="#" class="button expand alert hide"></a>');
+                
+                $("#_alert").on('click', function() {
+                    $('#_alert').hide();
+                });
+            }
+            $('#_alert').text(text);
+            $('#_alert').show();
+        },
+        
+        /**
+         * Infinite scolling
+         * 
+         * @param {String} url
+         * @param {String} dataType
+         * @param {Json} data
+         * @param {method} callback
+         * @param {int} limit
+         */
+        infiniteScroll: function(url, dataType, data, callback, limit){
+            var self = this;
+            var lastScrollTop = 0;
+            self.limit = limit;
+ 
+            $(window).scroll(function() {
+                var st = $(this).scrollTop();
+                if (st > lastScrollTop){
+                    if($(window).scrollTop() + $(window).height() > $(document).height() - 100 && self.ajaxReady) {
+                        self.ajaxReady = false;
+                        self.offset = self.offset + self.limit;
+                        data['startIndex'] = self.offset;
+
+                        R.util.showMask();
+
+                        $.ajax({
+                            type: "GET",
+                            dataType: dataType,
+                            url: url,
+                            async: true,
+                            data: data,
+                            success: function(data) {
+                                R.util.hideMask();
+                                callback(data);
+                                self.ajaxReady = true;
+                            },
+                            error: function(e) {
+                                R.util.hideMask();
+                                alert('error : ' + e['responseJSON']['ErrorMessage']);
+                                self.offset = self.offset - self.limit;
+                                self.ajaxReady = true;
+                            }
+                        });
+                    }
+                }
+                lastScrollTop = st;
+             });
+        }
     };
 })(window);
