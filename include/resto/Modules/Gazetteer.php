@@ -588,15 +588,13 @@ class Gazetteer extends RestoModule {
         /*
          * No result - check without bbox
          */
-        /*
         if (pg_num_rows($toponyms) === 0 && $bboxConstraint) {
             $toponyms = pg_query($this->dbh, 'SELECT ' . join(',', $resultFields) . ' FROM ' . $this->schema . '.geoname WHERE lower(unaccent(name))' . $op . 'lower(unaccent(\'' . pg_escape_string($query['q']) . '\'))' . $where . $orderBy . $limit);
             if (!$toponyms) {
                 return $result;
             }
         }
-         * 
-         */
+        
         /*
          * Retrieve first result
          */
