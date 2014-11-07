@@ -119,12 +119,12 @@ CREATE SCHEMA resto;
 -- collections table list all RESTo collections
 --
 CREATE TABLE resto.collections (
-    collection          VARCHAR(50) PRIMARY KEY,
+    collection          TEXT PRIMARY KEY,
     creationdate        TIMESTAMP,
-    model               VARCHAR(50) DEFAULT 'RestoModel_default',
-    status              VARCHAR(10) DEFAULT 'public',
+    model               TEXT DEFAULT 'RestoModel_default',
+    status              TEXT DEFAULT 'public',
     license             TEXT,
-    licenseurl          VARCHAR(255),
+    licenseurl          TEXT,
     mapping             TEXT
 );
 CREATE INDEX idx_status_collections ON resto.collections (status);
@@ -134,16 +134,16 @@ CREATE INDEX idx_creationdate_collections ON resto.collections (creationdate);
 -- osdescriptions table describe all RESTo collections
 --
 CREATE TABLE resto.osdescriptions (
-    collection          VARCHAR(50),
-    lang                VARCHAR(2),
-    shortname           VARCHAR(50),
-    longname            VARCHAR(255),
+    collection          TEXT,
+    lang                CHAR(2),
+    shortname           TEXT,
+    longname            TEXT,
     description         TEXT,
     tags                TEXT,
-    developper          VARCHAR(50),
-    contact             VARCHAR(50),
-    query               VARCHAR(255),
-    attribution         VARCHAR(255)
+    developper          TEXT,
+    contact             TEXT,
+    query               TEXT,
+    attribution         TEXT
 );
 ALTER TABLE ONLY resto.osdescriptions ADD CONSTRAINT fk_collection FOREIGN KEY (collection) REFERENCES resto.collections(collection);
 ALTER TABLE ONLY resto.osdescriptions ADD CONSTRAINT cl_collection UNIQUE(collection, lang);
@@ -156,10 +156,10 @@ CREATE INDEX idx_lang_osdescriptions ON resto.osdescriptions (lang);
 --
 CREATE TABLE resto.keywords (
     gid                 SERIAL PRIMARY KEY, -- unique id
-    name                VARCHAR(255), -- keyword name in given language code
-    type                VARCHAR(50), -- type of keyword (i.e. region, state, location, etc.)
-    lang                VARCHAR(2), -- ISO A2 language code in lowercase
-    value               VARCHAR(255), -- keyword as stored in features keywords columns
+    name                TEXT, -- keyword name in given language code
+    type                TEXT, -- type of keyword (i.e. region, state, location, etc.)
+    lang                CHAR(2), -- ISO A2 language code in lowercase
+    value               TEXT, -- keyword as stored in features keywords columns
     location            TEXT DEFAULT NULL -- 'country code:bounding box'
 );
 CREATE INDEX idx_name_keywords ON resto.keywords (lower(unaccent(name)));
@@ -172,12 +172,12 @@ CREATE INDEX idx_lang_keywords ON resto.keywords (lang);
 CREATE TABLE resto.facets (
     gid                 SERIAL PRIMARY KEY, -- unique id
     uid                 CHAR(15),
-    value               VARCHAR(255), -- keyword value (without type)
-    type                VARCHAR(50), -- type of keyword (i.e. region, state, location, etc.)
+    value               TEXT, -- keyword value (without type)
+    type                TEXT, -- type of keyword (i.e. region, state, location, etc.)
     pid                 CHAR(15), -- parent hash (i.e. 'europe' for keyword 'france')
-    pvalue              VARCHAR(255), -- keyword parent (without type)
-    ptype               VARCHAR(50), -- keyword parent type (i.e. 'continent' for 'country')
-    collection          VARCHAR(50), -- collection name
+    pvalue              TEXT, -- keyword parent (without type)
+    ptype               TEXT, -- keyword parent type (i.e. 'continent' for 'country')
+    collection          TEXT, -- collection name
     counter             INTEGER -- number of appearance of this keyword within the collection
 );
 CREATE INDEX idx_type_facets ON resto.facets (type);
@@ -190,7 +190,7 @@ CREATE INDEX idx_collection_facets ON resto.facets (collection);
 -- tags table list all tags attached to data within collection
 --
 CREATE TABLE resto.tags (
-    tag                 VARCHAR(50) PRIMARY KEY,
+    tag                 TEXT PRIMARY KEY,
     creationdate        TIMESTAMP,
     updateddate         TIMESTAMP,
     occurence           INTEGER
@@ -203,27 +203,27 @@ CREATE INDEX idx_updated_tags ON resto.tags (updateddate);
 
 CREATE TABLE resto.features (
     identifier          CHAR(36) UNIQUE,
-    parentidentifier    VARCHAR(250),
-    collection          VARCHAR(50),
-    productidentifier   VARCHAR(250),
-    title               VARCHAR(250),
+    parentidentifier    TEXT,
+    collection          TEXT,
+    productidentifier   TEXT,
+    title               TEXT,
     description         TEXT,
-    authority           VARCHAR(50),
+    authority           TEXT,
     startdate           TIMESTAMP,
     completiondate      TIMESTAMP,
-    producttype         VARCHAR(50),
-    processinglevel     VARCHAR(50),
-    platform            VARCHAR(50),
-    instrument          VARCHAR(50),
+    producttype         TEXT,
+    processinglevel     TEXT,
+    platform            TEXT,
+    instrument          TEXT,
     resolution          NUMERIC(8,2),
-    sensormode          VARCHAR(20),
+    sensormode          TEXT,
     orbitnumber         INTEGER,
-    quicklook           VARCHAR(250),
-    thumbnail           VARCHAR(250),
-    metadata            VARCHAR(250),
-    metadata_mimetype   VARCHAR(250),
-    resource            VARCHAR(250),
-    resource_mimetype   VARCHAR(250),
+    quicklook           TEXT,
+    thumbnail           TEXT,
+    metadata            TEXT,
+    metadata_mimetype   TEXT,
+    resource            TEXT,
+    resource_mimetype   TEXT,
     resource_size       INTEGER,
     resource_checksum   TEXT, -- Checksum should be on the form checksumtype=checksum (e.g. SHA1=.....)
     wms                 TEXT,
@@ -254,16 +254,16 @@ CREATE SCHEMA usermanagement;
 --
 CREATE TABLE usermanagement.users (
     userid              SERIAL PRIMARY KEY,
-    email               VARCHAR(255) UNIQUE,  -- should be an email adress
-    groupname           VARCHAR(20), -- group name
-    username            VARCHAR(50),
-    givenname           VARCHAR(255),
-    lastname            VARCHAR(255),
+    email               TEXT UNIQUE,  -- should be an email adress
+    groupname           TEXT, -- group name
+    username            TEXT,
+    givenname           TEXT,
+    lastname            TEXT,
     password            CHAR(40) NOT NULL, -- stored as sha1
     registrationdate    TIMESTAMP NOT NULL,
     activationcode      CHAR(40) NOT NULL UNIQUE, -- activation code store as sha1
     activated           BOOLEAN NOT NULL DEFAULT FALSE,              
-    lastsessionid       VARCHAR(255)
+    lastsessionid       TEXT
 );
 CREATE INDEX idx_email_users ON usermanagement.users (email);
 CREATE INDEX idx_groupname_users ON usermanagement.users (groupname);
@@ -273,9 +273,9 @@ CREATE INDEX idx_groupname_users ON usermanagement.users (groupname);
 --
 CREATE TABLE usermanagement.rights (
     gid                 SERIAL PRIMARY KEY, -- unique id
-    collection          VARCHAR(50), -- same as collection in resto.collections
+    collection          TEXT, -- same as collection in resto.collections
     featureid           CHAR(36), -- same as collection in resto.collections
-    emailorgroup        VARCHAR(255) NOT NULL,  -- email or group name (from usermanagement.users)
+    emailorgroup        TEXT NOT NULL,  -- email or group name (from usermanagement.users)
     search              BOOLEAN DEFAULT FALSE,
     visualize           BOOLEAN DEFAULT FALSE,
     download            BOOLEAN DEFAULT FALSE,
@@ -290,8 +290,8 @@ CREATE INDEX idx_emailorgroup_rights ON usermanagement.rights (emailorgroup);
 -- list licenses signed by users
 --
 CREATE TABLE usermanagement.signatures (
-    email               VARCHAR(50), -- email from usermanagement.users
-    collection          VARCHAR(50), -- collection from resto.collections
+    email               TEXT, -- email from usermanagement.users
+    collection          TEXT, -- collection from resto.collections
     signdate            TIMESTAMP NOT NULL
 );
 CREATE INDEX idx_email_signatures ON usermanagement.signatures (email);
@@ -302,14 +302,14 @@ CREATE INDEX idx_email_signatures ON usermanagement.signatures (email);
 CREATE TABLE usermanagement.history (
     gid                 SERIAL PRIMARY KEY,
     userid              INTEGER DEFAULT -1,
-    method              VARCHAR(6),
-    service             VARCHAR(10),
-    collection          VARCHAR(50),
+    method              TEXT,
+    service             TEXT,
+    collection          TEXT,
     resourceid          CHAR(36),
     query               TEXT DEFAULT NULL,
     querytime           TIMESTAMP,
     url                 TEXT DEFAULT NULL,
-    ip                  VARCHAR(15)
+    ip                  TEXT
 );
 CREATE INDEX idx_service_history ON usermanagement.history (service);
 CREATE INDEX idx_userid_history ON usermanagement.history (userid);
@@ -319,7 +319,7 @@ CREATE INDEX idx_userid_history ON usermanagement.history (userid);
 --
 CREATE TABLE usermanagement.cart (
     gid                 SERIAL PRIMARY KEY,
-    email               VARCHAR(255),
+    email               TEXT,
     itemid              CHAR(40) NOT NULL,
     querytime           TIMESTAMP,
     item                TEXT NOT NULL -- item as JSON
