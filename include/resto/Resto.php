@@ -1406,7 +1406,7 @@ class Resto {
                     ));
                 }
                 $this->user = new RestoUser($trimed, null, $this->dbDriver);
-                $_SESSION['encrypted_access_token'] = sha1($_GET['access_token']);
+                $_SESSION['access_token'] = $_GET['access_token'];
             }
         }
         

@@ -158,7 +158,10 @@ class OAuth extends RestoModule {
                         ));
                     }
                     $_SESSION['profile'] = $this->context->dbDriver->getUserProfile($trimed);
-                    $_SESSION['encrypted_access_token'] = sha1($jsonData['access_token']);
+                    $_SESSION['access_token'] = $jsonData['access_token'];
+                    $_SESSION['expires_in']   = $jsonData['expires_in'];
+                    $_SESSION['expires_at']   = time() + $_SESSION['expires_in'];
+     
                     return RestoUtil::get_include_contents(realpath(dirname(__FILE__)) . '/../../../themes/' . $this->context->config['theme'] . '/Modules/OAuth/templates/success.php', $this);
                 }
             }
@@ -184,7 +187,7 @@ class OAuth extends RestoModule {
             /*
              * If access_token is set in the session avoid oauth authentication
              */
-            if (isset($_SESSION['profile']) && isset($_SESSION['encrypted_access_token']) && $_SESSION['encrypted_access_token'] === sha1($accessToken)) {
+            if (isset($_SESSION['profile']) && isset($_SESSION['access_token']) && $_SESSION['access_token'] === $accessToken) {
                 return $_SESSION['profile']['email'];
             }
             
@@ -211,12 +214,12 @@ class OAuth extends RestoModule {
              * Authenticate user and get profile
              */
             try {
-                $ch = curl_init($sso['issuer']['userInfoUrl']);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . $sso['access_token']));
-                $userInfo = json_decode(curl_exec($ch), true);
-                curl_close($ch);
+                $userInfo = json_decode(file_get_contents($sso['issuer']['userInfoUrl'], false, stream_context_create(array(
+                    'http' => array(
+                        'method' => 'GET',
+                        'header' => "Authorization: Bearer " . $sso['access_token'] . "\r\n" . "x-li-format: json\r\n"
+                    )
+                ))), true);
                 if (is_array($userInfo) && $userInfo[$sso['issuer']['uidKey']]) {
                     return $userInfo[$sso['issuer']['uidKey']];    
                 }
