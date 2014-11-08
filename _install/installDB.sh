@@ -135,7 +135,7 @@ CREATE INDEX idx_creationdate_collections ON resto.collections (creationdate);
 --
 CREATE TABLE resto.osdescriptions (
     collection          TEXT,
-    lang                CHAR(2),
+    lang                TEXT,
     shortname           TEXT,
     longname            TEXT,
     description         TEXT,
@@ -158,7 +158,7 @@ CREATE TABLE resto.keywords (
     gid                 SERIAL PRIMARY KEY, -- unique id
     name                TEXT, -- keyword name in given language code
     type                TEXT, -- type of keyword (i.e. region, state, location, etc.)
-    lang                CHAR(2), -- ISO A2 language code in lowercase
+    lang                TEXT, -- ISO A2 language code in lowercase
     value               TEXT, -- keyword as stored in features keywords columns
     location            TEXT DEFAULT NULL -- 'country code:bounding box'
 );
@@ -171,10 +171,10 @@ CREATE INDEX idx_lang_keywords ON resto.keywords (lang);
 --
 CREATE TABLE resto.facets (
     gid                 SERIAL PRIMARY KEY, -- unique id
-    uid                 CHAR(15),
+    uid                 TEXT,
     value               TEXT, -- keyword value (without type)
     type                TEXT, -- type of keyword (i.e. region, state, location, etc.)
-    pid                 CHAR(15), -- parent hash (i.e. 'europe' for keyword 'france')
+    pid                 TEXT, -- parent hash (i.e. 'europe' for keyword 'france')
     pvalue              TEXT, -- keyword parent (without type)
     ptype               TEXT, -- keyword parent type (i.e. 'continent' for 'country')
     collection          TEXT, -- collection name
@@ -202,7 +202,7 @@ CREATE INDEX idx_updated_tags ON resto.tags (updateddate);
 --
 
 CREATE TABLE resto.features (
-    identifier          CHAR(36) UNIQUE,
+    identifier          TEXT UNIQUE,
     parentidentifier    TEXT,
     collection          TEXT,
     productidentifier   TEXT,
@@ -259,9 +259,9 @@ CREATE TABLE usermanagement.users (
     username            TEXT,
     givenname           TEXT,
     lastname            TEXT,
-    password            CHAR(40) NOT NULL, -- stored as sha1
+    password            TEXT NOT NULL, -- stored as sha1
     registrationdate    TIMESTAMP NOT NULL,
-    activationcode      CHAR(40) NOT NULL UNIQUE, -- activation code store as sha1
+    activationcode      TEXT NOT NULL UNIQUE, -- activation code store as sha1
     activated           BOOLEAN NOT NULL DEFAULT FALSE,              
     lastsessionid       TEXT
 );
@@ -274,7 +274,7 @@ CREATE INDEX idx_groupname_users ON usermanagement.users (groupname);
 CREATE TABLE usermanagement.rights (
     gid                 SERIAL PRIMARY KEY, -- unique id
     collection          TEXT, -- same as collection in resto.collections
-    featureid           CHAR(36), -- same as collection in resto.collections
+    featureid           TEXT, -- same as collection in resto.collections
     emailorgroup        TEXT NOT NULL,  -- email or group name (from usermanagement.users)
     search              BOOLEAN DEFAULT FALSE,
     visualize           BOOLEAN DEFAULT FALSE,
@@ -305,7 +305,7 @@ CREATE TABLE usermanagement.history (
     method              TEXT,
     service             TEXT,
     collection          TEXT,
-    resourceid          CHAR(36),
+    resourceid          TEXT,
     query               TEXT DEFAULT NULL,
     querytime           TIMESTAMP,
     url                 TEXT DEFAULT NULL,
@@ -320,7 +320,7 @@ CREATE INDEX idx_userid_history ON usermanagement.history (userid);
 CREATE TABLE usermanagement.cart (
     gid                 SERIAL PRIMARY KEY,
     email               TEXT,
-    itemid              CHAR(40) NOT NULL,
+    itemid              TEXT NOT NULL,
     querytime           TIMESTAMP,
     item                TEXT NOT NULL -- item as JSON
 );
@@ -332,7 +332,7 @@ CREATE INDEX idx_itemid_cart ON usermanagement.cart (itemid);
 --
 CREATE TABLE usermanagement.sharedlinks (
     gid                 SERIAL PRIMARY KEY,
-    token               CHAR(40) UNIQUE NOT NULL,
+    token               TEXT UNIQUE NOT NULL,
     url                 TEXT NOT NULL,
     validity            TIMESTAMP
 );
