@@ -601,7 +601,8 @@ class QueryAnalyzer extends RestoModule {
             /*
              * Textual month
              */
-            else if (($month = $this->dictionary->getMonth($searchTerms[$i])) !== null) {
+            else if ($this->dictionary->getMonth($searchTerms[$i]) !== null) {
+                $month = $this->dictionary->getMonth($searchTerms[$i]);
                 $toRemove[] = $searchTerms[$i];
             }
             /*
