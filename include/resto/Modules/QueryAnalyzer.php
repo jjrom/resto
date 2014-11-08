@@ -51,7 +51,8 @@ class QueryAnalyzer extends RestoModule {
     private $dictionary;
     private $unProcessed = array();
     private $remaining = array();
-
+    private $explicits = array();
+    
     /**
      * Constructor
      * 
@@ -178,6 +179,9 @@ class QueryAnalyzer extends RestoModule {
      *      <since> "(year|day|month)" <last>
      * 
      *      "numeric" "units" <ago>
+     *      
+     *      <month>
+     *      <season>
      * 
      * @param array $params
      * @param RestoModel $model
@@ -222,7 +226,7 @@ class QueryAnalyzer extends RestoModule {
         /*
          * Extract explicit mapping i.e. words with ':' delimiter 
          */
-        $explicits = $this->extractExplicits($rawSearchTerms, $params, $model);
+        $this->explicits = $this->extractExplicits($rawSearchTerms, $params, $model);
         
         /*
          * Add a space between a numeric value and '%' character
@@ -278,8 +282,8 @@ class QueryAnalyzer extends RestoModule {
         /*
          * Merge computed searchTerms with explicits keywords
          */
-        if (count($explicits) > 0) {
-            $params['searchTerms'] = trim($params['searchTerms'] . ' ' . join(' ', array_keys($explicits)));
+        if (count($this->explicits) > 0) {
+            $params['searchTerms'] = trim($params['searchTerms'] . ' ' . join(' ', array_keys($this->explicits)));
         }
         return array('query' => $input, 'analyze' => $params, 'unProcessed' => $this->unProcessed, 'remaining' => implode(' ', $this->remaining), 'queryAnalyzeProcessingTime' => microtime(true) - $startTime);
         
@@ -360,6 +364,7 @@ class QueryAnalyzer extends RestoModule {
                      && !$this->isNumeric($searchTerms[$i])
                      && !$this->dictionary->getModifier($searchTerms[$i])
                      && !$this->dictionary->getMonth($searchTerms[$i])
+                     && !$this->dictionary->getSeason($searchTerms[$i])
                      && !$this->dictionary->getUnit($searchTerms[$i])
                      && !$this->dictionary->getQuantity($searchTerms[$i])
                      && !$this->dictionary->getKeyword($searchTerms[$i])
@@ -596,8 +601,7 @@ class QueryAnalyzer extends RestoModule {
             /*
              * Textual month
              */
-            else if ($this->dictionary->getMonth($searchTerms[$i]) !== null) {
-                $month = $this->dictionary->getMonth($searchTerms[$i]);
+            else if (($month = $this->dictionary->getMonth($searchTerms[$i])) !== null) {
                 $toRemove[] = $searchTerms[$i];
             }
             /*
@@ -612,6 +616,28 @@ class QueryAnalyzer extends RestoModule {
                         $toRemove[] = $searchTerms[$i];
                     }
                 }
+            }
+            /*
+             * Season
+             */
+            else if (($season = $this->dictionary->getSeason($searchTerms[$i])) !== null) {
+                switch($season) {
+                    case 'winter':
+                        $this->explicits['month:01|02|03'] = true;
+                        break;
+                    case 'spring':
+                        $this->explicits['month:04|05|06'] = true;
+                        break;
+                    case 'summer':
+                        $this->explicits['month:07|08|09'] = true;
+                        break;
+                    case 'automn':
+                        $this->explicits['month:10|11|12'] = true;
+                        break;
+                    default:
+                        break;
+                }
+                $toRemove[] = $searchTerms[$i];
             }
             
             /*
@@ -677,6 +703,14 @@ class QueryAnalyzer extends RestoModule {
             else {
                 $params['time:start'] = $year . '-' . $month . '-' . $day . 'T00:00:00Z';
                 $params['time:end'] = $year . '-' . $month . '-' . $day . 'T23:59:59Z';
+            }
+        }
+        else {
+            if (isset($month)) {
+                $this->explicits['month:' . $month] = true;
+            }
+            if (isset($day)) {
+                $this->explicits['day:' . $day] = true;
             }
         }
 

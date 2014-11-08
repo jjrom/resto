@@ -78,6 +78,7 @@ class RestoDictionary_fr extends RestoDictionary {
             'between' => array('entre', 'de'),
             'equal' => array('egal', 'egale', 'egaux'),
             'greater' => array('plus', 'superieur', 'superieure', '>'),
+            'in' => array('en', 'au'),
             'last' => array('dernier', 'derniers', 'derniere', 'dernieres'),
             'lesser' => array('moins', '<', 'inferieur', 'inferieure'),
             'since' => array('depuis'),
@@ -148,6 +149,15 @@ class RestoDictionary_fr extends RestoDictionary {
             '10' => array('octobre'),
             '11' => array('novembre'),
             '12' => array('decembre')
+        ),
+        /*
+         * Seasons
+         */
+        'seasons' => array(
+            'automn' => array('automne'),
+            'spring' => array('printemps'),
+            'summer' => array('ete'),
+            'winter' => array('hiver')
         ),
         /*
          * Quantities

@@ -2393,9 +2393,27 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     /*
                      * Everything other types are stored within hashes column
                      * If input keyword is a hash leave value unchanged
+                     * 
+                     * Structure is :
+                     * 
+                     *      type:id or type:id1|id2|id3|.etc.
+                     * 
+                     * In second case, '|' is understood as "OR"
                      */
                     else {
-                        $filters[$not ? 'without' : 'with'][] = "'" . pg_escape_string($typeAndValue[0] !== 'hash' ? $s : $typeAndValue[1]) . "'";
+                        $ors = array();
+                        $arr = explode('|', $typeAndValue[1]);
+                        if (count($arr) > 1) {
+                            for ($j = count($arr); $j--;) {
+                                $ors[] = $key . " @> ARRAY['" . pg_escape_string($typeAndValue[0] !== 'hash' ? $typeAndValue[0] . ':' . $arr[$j] : $arr[$j]) . "']";
+                            }
+                            if (count($ors) > 1) {
+                                $terms[] = ($not ? 'NOT (' : '(') . join(' OR ', $ors) . ')';
+                            }
+                        }
+                        else {
+                            $filters[$not ? 'without' : 'with'][] = "'" . pg_escape_string($typeAndValue[0] !== 'hash' ? $s : $typeAndValue[1]) . "'";
+                        }
                     }
                 }
                 

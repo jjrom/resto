@@ -60,6 +60,7 @@ abstract class RestoDictionary {
      *      modifiers => array(),
      *      units => array(),
      *      months => array(),
+     *      seasons => array(),
      *      numbers => array(),
      *      quantities => array()
      *      keywords => array() // Retrieve from database !
@@ -201,6 +202,15 @@ abstract class RestoDictionary {
      */
     final public function getMonth($name) {
         return $this->get('months', $name);
+    }
+    
+    /**
+     * Return season entry in dictionary identified by $name
+     * 
+     * @param string $name
+     */
+    final public function getSeason($name) {
+        return $this->get('seasons', $name);
     }
     
     /**
