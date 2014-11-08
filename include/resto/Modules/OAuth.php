@@ -114,6 +114,64 @@ class OAuth extends RestoModule {
          * First retrieve the oauth token using input code
          */
         try {
+            /*
+             *
+            if ($sso['useBearer']) {
+                $params = array(
+                    'grant_type' => 'authorization_code',
+                    'code' => $code,
+                    'redirect_uri' => $redirect_uri
+                );
+                $context = stream_context_create(array('http' => array(
+                        'method' => 'POST',
+                        'header' => array(
+                            "Authorization: Basic " . base64_encode($sso['clientId'] . ':' . $sso['clientSecret']),
+                            "Content-Type: application/x-www-form-urlencoded",
+                            "Host: " . $sso['host']
+                ))));
+            }
+            else {
+                $params = array(
+                    'grant_type' => 'authorization_code',
+                    'code' => $code,
+                    'redirect_uri' => $redirect_uri,
+                    'client_id' => $sso['clientId'],
+                    'client_secret' => $sso['clientSecret']
+                );
+                $context = stream_context_create(array('http' => array(
+                        'method' => 'POST',
+                        'header' => array(
+                            "Content-Length: 10"
+                ))));
+            }
+            
+            $token = json_decode(file_get_contents($sso['accessTokenUrl'] . http_build_query($params), false, $context));
+            if (isset($token) && $token->access_token) {
+                $userIdentifier = $this->authenticate($token->access_token, $issuerId);
+                if ($userIdentifier) {
+                    $trimed = trim(strtolower($userIdentifier));
+                    if (!$this->context->dbDriver->userExists($trimed)) {
+                        $this->context->dbDriver->storeUserProfile(array(
+                            'email' => $trimed,
+                            'activated' => true,
+                            'lastsessionid' => session_id()
+                        ));
+                    }
+                    else {
+                        $this->context->dbDriver->updateUserProfile(array(
+                            'email' => $trimed,
+                            'lastsessionid' => session_id()
+                        ));
+                    }
+                    $_SESSION['profile'] = $this->context->dbDriver->getUserProfile($trimed);
+                    $_SESSION['access_token'] = $token->access_token; 
+                    $_SESSION['expires_in'] = $token->expires_in;
+                    $_SESSION['expires_at'] = time() + $_SESSION['expires_in'];
+                    return RestoUtil::get_include_contents(realpath(dirname(__FILE__)) . '/../../../themes/' . $this->context->config['theme'] . '/Modules/OAuth/templates/success.php', $this);
+                }
+            }
+        } catch (Exception $e) {}
+             */
             $ch = curl_init($sso['accessTokenUrl']);
             curl_setopt($ch, CURLOPT_POST, true);
             //curl_setopt($ch, CURLOPT_CAPATH, CACERT_PATH);
@@ -161,13 +219,13 @@ class OAuth extends RestoModule {
                     $_SESSION['access_token'] = $jsonData['access_token'];
                     $_SESSION['expires_in']   = $jsonData['expires_in'];
                     $_SESSION['expires_at']   = time() + $_SESSION['expires_in'];
-     
+            
                     return RestoUtil::get_include_contents(realpath(dirname(__FILE__)) . '/../../../themes/' . $this->context->config['theme'] . '/Modules/OAuth/templates/success.php', $this);
                 }
             }
             curl_close($ch);
         } catch (Exception $e) {}
-        
+            
         return RestoUtil::get_include_contents(realpath(dirname(__FILE__)) . '/../../../themes/' . $this->context->config['theme'] . '/Modules/OAuth/templates/error.php', $this);
     
     }
