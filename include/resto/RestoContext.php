@@ -92,6 +92,7 @@ class RestoContext {
      * Configuration
      */
     public $config = array(
+        'title' => 'resto',
         'languages' => array('en'),
         'timezone' => 'Europe/Paris',
         'theme' => 'default',

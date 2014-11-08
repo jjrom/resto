@@ -247,6 +247,22 @@ class RestoCollection {
     }
    
     /**
+     * Return OpenSearch property in the current language
+     * or in english otherwise
+     * 
+     * @param string $property
+     */
+    public function getOSProperty($property) {
+        if (!isset($property)) {
+            return '';
+        }
+        if (!isset($this->osDescription[$this->context->dictionary->language]) || !isset($this->osDescription[$this->context->dictionary->language][$property])) {
+            return isset($this->osDescription['en'][$property]) ? $this->osDescription['en'][$property] : $property;
+        }
+        return $this->osDescription[$this->context->dictionary->language][$property];
+    }
+    
+    /**
      * Load collection parameters from RESTo database
      */
     public function loadFromStore() {

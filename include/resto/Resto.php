@@ -1299,6 +1299,11 @@ class Resto {
             'config' => array(
                 
                 /*
+                 * Title
+                 */
+                'title' => isset($this->config['general']['title']) ? $this->config['general']['title'] : 'resto',
+                
+                /*
                  * SSO Services
                  */
                 'ssoServices' => $ssoServices,
