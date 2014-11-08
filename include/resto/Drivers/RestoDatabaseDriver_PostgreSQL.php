@@ -480,7 +480,9 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                         /*
                          * In any case store unmodified id to hashes
                          */
-                        $hashes[] = '"' . pg_escape_string($id) . '"';
+                        if ($elements[$i][0] !== 'landuse_details') {
+                            $hashes[] = '"' . pg_escape_string($id) . '"';
+                        }
                     }
                     /*
                      * Create facet for year/month/date
@@ -492,9 +494,9 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                         $hashMonth = RestoUtil::getHash($idMonth, $hashYear);
                         $idDay = 'day:' . substr($elements[$i][1], 0, 10);
                         $hashDay = RestoUtil::getHash($idDay);
-                        $hashes[] = '"' . pg_escape_string($hashYear) . '"';
-                        $hashes[] = '"' . pg_escape_string($hashMonth) . '"';
-                        $hashes[] = '"' . pg_escape_string($hashDay) . '"';
+                        $hashes[] = '"' . pg_escape_string($idYear) . '"';
+                        $hashes[] = '"' . pg_escape_string($idMonth) . '"';
+                        $hashes[] = '"' . pg_escape_string($idDay) . '"';
                         $facets[] = array(
                             'id' => $idYear,
                             'hash' => $hashYear
