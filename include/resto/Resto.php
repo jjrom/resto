@@ -1240,7 +1240,8 @@ class Resto {
             if (isset($modules['OAuth']['providers'])) {
                 foreach (array_keys($modules['OAuth']['providers']) as $provider) {
                     $ssoServices[$provider] = array(
-                        'authorizeUrl' => $modules['OAuth']['providers'][$provider]['authorizeUrl'] . '&client_id=' . $modules['OAuth']['providers'][$provider]['clientId'] . '&redirect_uri=' . $this->getBaseURL() . 'api/oauth/callback?issuer_id=' . $modules['OAuth']['providers'][$provider]['issuer_id']
+                        'authorizeUrl' => $modules['OAuth']['providers'][$provider]['authorizeUrl'] . '&client_id=' . $modules['OAuth']['providers'][$provider]['clientId'] . '&redirect_uri=' . $this->getBaseURL() . 'api/oauth/callback?issuer_id=' . $modules['OAuth']['providers'][$provider]['issuer_id'],
+                        'button' => $modules['OAuth']['providers'][$provider]['button']
                     );
                 }
             }
