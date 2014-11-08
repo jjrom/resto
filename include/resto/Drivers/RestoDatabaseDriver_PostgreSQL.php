@@ -400,14 +400,11 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                         $propertyTags[] =  $quote . $keyword['id'] . $quote . '=>"' . urlencode(json_encode($json)) . '"';
                         
                         /*
-                         * Add to hashes array
+                         * Store both hashes and id to hashes
                          */
                         $hashes[] = '"' . pg_escape_string($keyword['hash']) . '"';
-                        $idHash = RestoUtil::getHash($keyword['id']);
-                        if ($idHash !== $keyword['hash']) {
-                            $hashes[] = '"' . pg_escape_string($idHash) . '"';
+                        $hashes[] = '"' . pg_escape_string($keyword['id']) . '"';
                         
-                        }
                     }
                     $values[] = '\'' . pg_escape_string(join(',', $propertyTags)) . '\'';
                     
@@ -2384,10 +2381,10 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     }
                     /*
                      * Everything other types are stored within hashes column
-                     * If input keyword is a hash leave value unchanged, otherwise compute hash from keyword
+                     * If input keyword is a hash leave value unchanged
                      */
                     else {
-                        $filters[$not ? 'without' : 'with'][] = "'" . pg_escape_string($typeAndValue[0] !== 'hash' ? RestoUtil::getHash($s) : $typeAndValue[1]) . "'";
+                        $filters[$not ? 'without' : 'with'][] = "'" . pg_escape_string($typeAndValue[0] !== 'hash' ? $s : $typeAndValue[1]) . "'";
                     }
                 }
                 
