@@ -477,6 +477,10 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                             );
                         }
                         
+                        /*
+                         * In any case store unmodified id to hashes
+                         */
+                        $hashes[] = '"' . pg_escape_string($id) . '"';
                     }
                     /*
                      * Create facet for year/month/date
