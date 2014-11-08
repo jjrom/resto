@@ -403,7 +403,12 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                          * Store both hashes and id to hashes
                          */
                         $hashes[] = '"' . pg_escape_string($keyword['hash']) . '"';
-                        $hashes[] = '"' . pg_escape_string($keyword['id']) . '"';
+                        
+                        
+                        $splitted = explode(':', $keyword['id']);
+                        if ($splitted[0] !== 'landuse_details') {
+                            $hashes[] = '"' . pg_escape_string($keyword['id']) . '"';
+                        }
                         
                     }
                     $values[] = '\'' . pg_escape_string(join(',', $propertyTags)) . '\'';
@@ -490,9 +495,9 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     else if ($elements[$i][0] === 'startDate' && RestoUtil::isISO8601($elements[$i][1])) {
                         $idYear = 'year:' . substr($elements[$i][1], 0, 4);
                         $hashYear = RestoUtil::getHash($idYear);
-                        $idMonth = 'month:' . substr($elements[$i][1], 0, 7);
+                        $idMonth = 'month:' . substr($elements[$i][1], 4, 7);
                         $hashMonth = RestoUtil::getHash($idMonth, $hashYear);
-                        $idDay = 'day:' . substr($elements[$i][1], 0, 10);
+                        $idDay = 'day:' . substr($elements[$i][1], 7, 10);
                         $hashDay = RestoUtil::getHash($idDay);
                         $hashes[] = '"' . pg_escape_string($idYear) . '"';
                         $hashes[] = '"' . pg_escape_string($idMonth) . '"';
