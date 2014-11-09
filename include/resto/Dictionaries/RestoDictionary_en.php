@@ -177,7 +177,7 @@ class RestoDictionary_en extends RestoDictionary {
             'urban' => array('urban', 'city', 'cities', 'urban area'),
             'cultivated' => array('cultivated', 'cultivated area', 'cropland', 'croplands', 'crop', 'crops'),
             'forest' => array('forest', 'forests'),
-            'herbaceous' => array('herbaceous', 'herbaceous area', 'grass'),
+            'herbaceous' => array('herbaceous', 'herbaceous area', 'grass', 'lowland', 'prairie'),
             'desert' => array('desert', 'bare area'),
             'flooded' => array('flooded'),
             'water' => array('water')
@@ -188,6 +188,7 @@ class RestoDictionary_en extends RestoDictionary {
      * Translations
      */
     protected $translations = array(
+        '_addToCart' => 'Add to cart',
         '_headerTitle' => 'resto',
         '_headerDescription' => '<b>resto</b> - <b>RE</b>stful <b>S</b>emantic search <b>T</b>ool for ge<b>O</b>spatial<br/>RESTo implements search service with semantic query analyzis on Earth Observation metadata database. It conforms to OGC 13-026 standard - OpenSearch Extension for Earth Observation.',
         '_selfCollectionLink' => 'self',
@@ -281,6 +282,8 @@ class RestoDictionary_en extends RestoDictionary {
         '_menu_signinwith' => 'Sign in with',
         '_menu_signout' => 'Sign out',
         '_menu_collections' => 'Collection',
+        '_menu_map' => 'map',
+        '_menu_list' => 'list',
         '_month01' => 'January',
         '_month02' => 'February',
         '_month03' => 'March',

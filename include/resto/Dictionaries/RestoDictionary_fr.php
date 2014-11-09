@@ -177,7 +177,7 @@ class RestoDictionary_fr extends RestoDictionary {
             'urban' => array('urbain', 'urbaine', 'artificiel', 'ville'),
             'cultivated' => array('cultivee', 'zone cultivee', 'cultivees', 'cultive', 'champ', 'champs'),
             'forest' => array('foret', 'forets', 'forestier', 'forestiere'),
-            'herbaceous' => array('herbace', 'zone herbacee'),
+            'herbaceous' => array('herbace', 'zone herbacee', 'plaine', 'steppe'),
             'desert' => array('desert', 'erg'),
             'flooded' => array('zone inondable', 'zone humide', 'humide'),
             'water' => array('eau')
@@ -185,6 +185,7 @@ class RestoDictionary_fr extends RestoDictionary {
     );
     
     protected $translations = array(
+        '_addToCart' => 'Ajouter au panier',
         '_headerTitle' => 'resto',
         '_headerDescription' => '<b>resto</b> - <b>RE</b>stful <b>S</b>emantic search <b>T</b>ool for ge<b>O</b>spatial<br/>RESTo est un service de recherche s&eacute;mantique de donn&eacute;es d\'observation de la Terreervice. Il suit le standard OGC 13-026 - OpenSearch Extension for Earth Observation.',
         '_selfCollectionLink' => 'self',
@@ -271,6 +272,8 @@ class RestoDictionary_fr extends RestoDictionary {
         '_menu_signinwith' => 'Se connecter avec',
         '_menu_signout' => 'Déconnection',
         '_menu_collections' => 'Collections',
+        '_menu_map' => 'carte',
+        '_menu_list' => 'liste',
         '_month01' => 'Janvier',
         '_month02' => 'Février',
         '_month03' => 'Mars',
