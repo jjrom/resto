@@ -16,9 +16,9 @@
             <div class="row fullWidth resto-collection" id="_<?php echo $self->name;?>"> 
                 <div class="large-12 columns left">
                     <h1>
-                        <a class="fa fa-search" href="<?php echo $self->context->baseUrl . 'api/collections/' . $self->name . '/search.html?lang=' . $self->context->dictionary->language; ?>">  <?php echo $self->osDescription[$self->context->dictionary->language]['ShortName']; ?></a><br/>
+                        <a class="fa fa-search" href="<?php echo $self->context->baseUrl . 'api/collections/' . $self->name . '/search.html?lang=' . $self->context->dictionary->language; ?>">  <?php echo $self->getOSProperty('ShortName'); ?></a><br/>
                     </h1>
-                    <p><?php echo $self->osDescription[$self->context->dictionary->language]['Description']; ?></p>
+                    <p><?php echo $self->getOSProperty('Description'); ?></p>
                 </div>
             </div>
         </div>
@@ -28,12 +28,13 @@
         
         <script type="text/javascript">
         $(document).ready(function() {
-            R.language = '<?php echo $self->context->dictionary->language; ?>';
-            R.translation = <?php echo json_encode($self->context->dictionary->getTranslation()) ?>;
-            R.restoUrl = '<?php echo $self->context->baseUrl ?>';
-            R.ssoServices = <?php echo json_encode($self->context->config['ssoServices']) ?>;
-            R.userProfile = <?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?>;
-            R.init();
+            Resto.init({
+                "translation":<?php echo json_encode($self->context->dictionary->getTranslation()) ?>,
+                "language":'<?php echo $self->context->dictionary->language; ?>',
+                "restoUrl":'<?php echo $self->context->baseUrl ?>',
+                "ssoServices":<?php echo json_encode($self->context->config['ssoServices']) ?>,
+                "userProfile":<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?>
+            });
         });
     </script>
         

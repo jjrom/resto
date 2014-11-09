@@ -13,22 +13,8 @@
     <link rel="stylesheet" href="<?php echo $self->context->baseUrl ?>js/lib/fontawesome/css/font-awesome.min.css" type="text/css" />
     <!-- CSS RESTo -->
     <link rel="stylesheet" href="<?php echo $self->context->baseUrl ?>themes/<?php echo $self->context->config['theme'] ?>/style.css" type="text/css" />
-    <!-- jQuery -->
-    <script type="text/javascript" src="<?php echo $self->context->baseUrl ?>/js/lib/jquery/jquery-1.11.1.min.js"></script>
-    <script type="text/javascript" src="<?php echo $self->context->baseUrl ?>/js/lib/jquery/jquery.history.js"></script>
-    <script type="text/javascript" src="<?php echo $self->context->baseUrl ?>/js/lib/jquery/jquery.visible.min.js"></script>
-    <?php if (!isset($_noMap)) { ?>
-    <!-- mapshup -->
-    <script type="text/javascript" src="<?php echo $self->context->baseUrl ?>/js/lib/mol/OpenLayers.js"></script>
-    <script type="text/javascript" src="<?php echo $self->context->baseUrl ?>/js/lib/mapshup/mapshup.js"></script>
-    <script type="text/javascript" src="<?php echo $self->context->baseUrl ?>/js/lib/mapshup/config/default.js"></script>
-    <script type="text/javascript" src="<?php echo $self->context->baseUrl ?>/themes/<?php echo $self->context->config['theme'] ?>/config.js"></script>
-    <?php } ?>
-    <!-- RESTo -->
-    <script type="text/javascript" src="<?php echo $self->context->baseUrl ?>/js/resto.js"></script>
-    <script type="text/javascript" src="<?php echo $self->context->baseUrl ?>/js/resto.util.js"></script>
     
     <!--[if lt IE 9]>
-    <script type="text/javascript" src="<?php echo $self->context->baseUrl ?>js/lib/modernizr.min.js"></script>
+    <script type="text/javascript" src="<?php echo $self->context->baseUrl ?>js/lib/foundation/vendor/modernizr.js"></script>
     <![endif]-->
 </head>

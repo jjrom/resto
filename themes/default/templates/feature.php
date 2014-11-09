@@ -1,5 +1,5 @@
 <?php
-    $_noSearchBar = true;
+    
     /*
      * Set variables
      */
@@ -138,27 +138,16 @@
         
         <script type="text/javascript">
             $(document).ready(function() {
-               
-                /*
-                 * Initialize mapshup
-                 */
-                if (M) {
-                    M.load();
-                }
-                
-                /*
-                 * Initialize RESTo
-                 */
-                R.issuer = 'getResource';
-                R.language = '<?php echo $self->context->dictionary->language; ?>';
-                R.translation = <?php echo json_encode($self->context->dictionary->getTranslation()) ?>;
-                R.restoUrl = '<?php echo $self->context->baseUrl ?>';
-                R.collection = '<?php echo isset($self->collection->name) ? $self->collection->name : null ?>';
-                R.ssoServices = <?php echo json_encode($self->context->config['ssoServices']) ?>;
-                R.userProfile = <?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?>;
-                R.init();
-                R.loadFeatures(<?php echo '{"type":"FeatureCollection","features":[' . $self->toJSON() . ']}' ?>);
-
+                Resto.init({
+                    "issuer":'getResource',
+                    "translation":<?php echo json_encode($self->context->dictionary->getTranslation()) ?>,
+                    "language":'<?php echo $self->context->dictionary->language; ?>',
+                    "restoUrl":'<?php echo $self->context->baseUrl ?>',
+                    "collection":'<?php echo isset($self->collection->name) ? $self->collection->name : null ?>',
+                    "ssoServices":<?php echo json_encode($self->context->config['ssoServices']) ?>,
+                    "userProfile":<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?>
+                    }, <?php echo '{"type":"FeatureCollection","features":[' . $self->toJSON() . ']}' ?>
+                );
             });
         </script>
     </body>

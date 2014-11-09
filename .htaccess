@@ -1,10 +1,3 @@
-AddType font/woff .woff 
-<FilesMatch "\.(woff)$">
-    <IfModule mod_headers.c>
-        Header set Access-Control-Allow-Origin "*"
-    </IfModule>
-</FilesMatch>
-
 <IfModule mod_rewrite.c>
 
     RewriteEngine On

@@ -20,21 +20,9 @@
                     <li id="_<?php echo $key;?>">
                         <div class="collectionItem">
                             <h1 class="center">
-                                <a class="fa" href="<?php echo $self->context->baseUrl . 'api/collections/' . $key . '/search.html?lang=' . $self->context->dictionary->language; ?>">  <?php echo $collection->osDescription[$self->context->dictionary->language]['ShortName']; ?></a>
+                                <a class="fa" href="<?php echo $self->context->baseUrl . 'api/collections/' . $key . '/search.html?lang=' . $self->context->dictionary->language; ?>">  <?php echo $collection->getOSProperty('ShortName'); ?></a>
                             </h1>
-                            <p><?php echo $collection->osDescription[$self->context->dictionary->language]['Description']; ?></p>
-                            <h1 class="center bottom">
-                                <?php if ($self->context->user->canPut($key)) { ?><a class="fa fa-edit button bggreen updateCollection admin" href="#" collection="<?php echo $key; ?>" title="<?php echo $self->context->dictionary->translate('_update'); ?>"></a><?php } ?>
-                                <?php if ($self->context->user->canDelete($key)) { ?><a class="fa fa-trash-o button bgred removeCollection admin" href="#" collection="<?php echo $key; ?>" title="<?php echo $self->context->dictionary->translate('_remove'); ?>"></a><?php } ?>
-                            </h1>
-                        </div>
-                    </li>
-                    <?php } ?>
-                    <?php if ($self->context->user->canPost()) { ?>
-                    <li>
-                        <div id="dropZone" class="_dropCollection collectionItem center">
-                            <h1><?php echo $self->context->dictionary->translate('_addCollection'); ?></h1>
-                            <p class="fa fa-5x fa-cloud-upload" style="padding-top:40px;"></p>
+                            <p><?php echo $collection->getOSProperty('Description'); ?></p>
                         </div>
                     </li>
                     <?php } ?>
@@ -47,27 +35,15 @@
        
         <script type="text/javascript">
             $(document).ready(function() {
-                
-                R.language = '<?php echo $self->context->dictionary->language; ?>';
-                R.translation = <?php echo json_encode($self->context->dictionary->getTranslation()) ?>;
-                R.restoUrl = '<?php echo $self->context->baseUrl ?>';
-                R.ssoServices = <?php echo json_encode($self->context->config['ssoServices']) ?>;
-                R.userProfile = <?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?>;
-                R.init();
-                
-                $(document).scroll(function(){
-                    if ($(this).scrollTop() > 100) {
-                        $('body').removeClass('glass');
-                    }
-                    else {
-                        $('body').addClass('glass');
-                    }
+                Resto.init({
+                    "translation":<?php echo json_encode($self->context->dictionary->getTranslation()) ?>;
+                    "language":'<?php echo $self->context->dictionary->language; ?>',
+                    "restoUrl":'<?php echo $self->context->baseUrl ?>',
+                    "ssoServices":<?php echo json_encode($self->context->config['ssoServices']) ?>,
+                    "userProfile":<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?>
                 });
-
-                R.util.alignHeight($('.collectionItem'));
-            
+                Resto.util.alignHeight($('.collectionItem'));
             });
-            
         </script>
     </body>
 </html>

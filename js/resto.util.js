@@ -37,12 +37,10 @@
  */
 (function(window) {
 
-    window.R = window.R || {};
-
     /**
      * Util
      */
-    window.R.util = {
+    window.Resto.Util = {
         
         /*
          * Is ajax ready to do another request ?
@@ -58,6 +56,11 @@
          * infinite scrolling limit
          */
         limit: 0,
+        
+        /*
+         * Translation array
+         */
+        translation: {},
         
         /**
          * Protect user input from XSS attacks by removing html tags
@@ -106,11 +109,11 @@
          */
         translate: function(str, values) {
             
-            if (!window.R.translation || !window.R.translation[str]) {
+            if (!this.translation || !this.translation[str]) {
                 return str;
             }
 
-            var i, l, out = window.R.translation[str];
+            var i, l, out = this.translation[str];
 
             /*
              * Replace additional arguments
@@ -272,21 +275,23 @@
         },
         
         /**
+         * Return nice date from ISO 8601 
+         * 
+         * @param {string} iso8601
+         */
+        niceDate: function(iso8601) {
+            var ymd = iso8601.split('T')[0].split('-');
+            return this.translate('_niceDate', [ymd[0], this.translate('_month' + ymd[1]), ymd[2]]);
+        },
+        
+        /**
          * Create an alert button with specific message.
          * 
          * @param {jQueryObject} parent
          * @param {String} text
          */
         alert: function(parent, text){
-            if(!$('#_alert').length){
-                parent.prepend('<a id="_alert" href="#" class="button expand alert hide"></a>');
-                
-                $("#_alert").on('click', function() {
-                    $('#_alert').hide();
-                });
-            }
-            $('#_alert').text(text);
-            $('#_alert').show();
+            alert(text);
         },
         
         /**

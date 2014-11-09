@@ -1,40 +1,94 @@
+<?php if (isset($self->collection)) { ?>
+<!-- Collection description -->
+<div class="row fullWidth resto-collection-info">
+    <div class="large-6 columns">
+        <h1 class="right"><?php echo $self->collection->getOSProperty('ShortName'); ?></h1>
+    </div>
+    <div class="large-6 columns">
+        <p class="text-light">
+            <?php echo $self->collection->getOSProperty('Description'); ?>
+        </p>
+    </div>
+</div>
+<?php } ?>  
 <header>
-    <span id="logo"><a title="<?php echo $self->context->dictionary->translate('_home'); ?>" href="<?php echo $self->context->baseUrl ?>">resto</a></span>
-    <span class="breadcrumb">
-    <?php if ($self->context->path !== '') {
-        $splitted = explode('/', $self->context->path);
-        if ($splitted[0] === 'collections' || (isset($splitted[1]) && $splitted[1] === 'collections')) {
-            echo ' <a href="' . $self->context->baseUrl . 'collections">collections</a>';
-        }
-        if ($splitted[0] === 'api' && isset($splitted[2])) {
-            echo ' > <a href="' . $self->context->baseUrl . 'api/collections/' . $splitted[2] . '/search.html" >' . $splitted[2] . '</a>';
-        }
-        if ($splitted[0] === 'collections' && isset($splitted[2])) {
-            echo ' > <a href="' . $self->context->baseUrl . 'api/collections/' . $splitted[1] . '/search.html" >' . $splitted[1] . '</a>';
-            echo ' > <a href="' . $self->context->baseUrl . 'collections/' . $splitted[1] . '/' . $splitted[2] . '" >' . $splitted[2] . '</a>';
-        }
-    } ?>
-    </span>
+    <span class="show-for-large-up logo" style="margin-left: 2%;"><a href="<?php echo $self->context->baseUrl;?>"><?php echo $self->context->config['title'];?></a></span>
+    <span class="show-for-small-only logo" style="margin-left: 1px;"><a href="<?php echo $self->context->baseUrl;?>"><?php echo $self->context->config['title'];?></a></span>
     <nav>
-        <ul class="no-bullet">
-            <?php if (!isset($_noSearchBar)) { ?>
-            <li><span class="resto-search"><input type="text" id="search" name="q" placeholder="<?php echo $self->context->dictionary->translate('_menu_search'); ?>" value="<?php echo isset($self->context->query['q']) ? $self->context->query['q'] : ''; ?>"/></span><li>
-            <?php
-            if ($self->context->dictionary->language) {
-                echo '<input type="hidden" name="lang" value="' . $self->context->dictionary->language . '" />';
-            }
-            ?>
+        <ul class="show-for-medium-up">
+            <?php if (isset($self->collection)) { ?>
+            <li><a class="resto-collection-info-trigger" href="#"><?php echo $self->collection->name ?></a>
             <?php } ?>
-            <li title="<?php echo $self->context->dictionary->translate('_menu_shareOn', 'Facebook'); ?>" class="fa fa-facebook link shareOnFacebook"></li>
-            <li title="<?php echo $self->context->dictionary->translate('_menu_shareOn', 'Twitter'); ?>" class="fa fa-twitter link shareOnTwitter"></li>
-            <li title="<?php echo $self->context->dictionary->translate('_menu_viewCart'); ?>" class="fa fa-shopping-cart link"></li>
-            <li></li>
+            <li><a class="shy" href="<?php echo $self->context->baseUrl . 'collections' ?>"><?php echo $self->context->dictionary->translate('_menu_collections'); ?></a></li>
+            <?php if ($self->context->user->profile['groupname'] === 'admin'){ ?>
+            <li><a href="<?php echo $self->context->baseUrl . '/administration' ?>" class="shy"><?php echo $self->context->dictionary->translate('_administration'); ?></a></li>
+            <?php } ?>
             <?php if ($self->context->user->profile['userid'] === -1) { ?>
-            <li title="<?php echo $self->context->dictionary->translate('_menu_connexion'); ?>" class="link viewUserPanel"><?php echo $self->context->dictionary->translate('_menu_connexion'); ?></li>
+            <li><a class="shy" href="#" data-reveal-id="displayLogin"><?php echo $self->context->dictionary->translate('_menu_signin'); ?></a></li>
+            <li><a class="hilite" href="#" data-reveal-id="displayRegister"><?php echo $self->context->dictionary->translate('_menu_signup'); ?></a></li>
             <?php } else { ?>
-            <li title="<?php echo $self->context->dictionary->translate('_menu_profile'); ?>" class="link gravatar center viewUserPanel"></li>
+            <li><a class="gravatar" href="#" data-reveal-id="displayProfile" title="<?php echo $self->context->dictionary->translate('_menu_profile'); ?>"></a></li>
             <?php } ?>
         </ul>
+        <a href="#" class="show-for-small-only small_menu_button" style="border-color: white; color: white; border: 2px solid white; background-color: transparent; ">Menu</a>
     </nav>
 </header>
-        
+<div id="displayRegister" class="reveal-modal small" data-reveal>
+    <div class="large-12 columns greenfield">
+        <div class="padded-top center">
+            <h1 class="fat upper text-light"><?php echo $self->context->dictionary->translate('_menu_signup')?></h1>
+            <p><?php echo $self->context->dictionary->translate('_menu_signup_explain')?></p>
+        </div>
+    </div>
+    <form action="#">
+        <div class="large-12 columns greenfield padded-left padded-right">
+            <label class="small fat text-light"><?php echo $self->context->dictionary->translate('_userName');?></label>
+            <input id="userName" class="input-text" type="text"/>
+        </div>
+        <div class="large-6 columns greenfield padded-left padded-right">
+            <label class="small fat text-light"><?php echo $self->context->dictionary->translate('_firstName');?></label>
+            <input id="givenName" class="input-text" type="text"/>
+        </div>
+        <div class="large-6 columns greenfield padded-left padded-right">
+            <label class="small fat text-light"><?php echo $self->context->dictionary->translate('_lastName');?></label>
+            <input id="lastName" class="input-text" type="text"/>
+        </div>
+        <div class="large-6 columns greenfield padded-left padded-right">
+            <label class="small fat text-light"><?php echo $self->context->dictionary->translate('_email');?></label>
+            <input id="r_userEmail" class="input-text" type="text"/>
+        </div>
+        <div class="large-6 columns greenfield padded-left padded-right">
+            <label class="small fat text-light"><?php echo $self->context->dictionary->translate('_password');?></label>
+            <input id="userPassword1" class="input-password" type="password"/>
+        </div>
+        <div class="large-6 columns padded-top padded-left padded-right">
+            <a><?php echo $self->context->dictionary->translate('_menu_signin');?></a>
+        </div>
+        <div class="large-6 columns padded-top padded-left padded-right">
+            <a class="button radius register"><?php echo $self->context->dictionary->translate('_createAccount');?></a>
+        </div>
+    </form>
+    <a class="close-reveal-modal">&#215;</a>
+</div>
+<div id="displayLogin" class="reveal-modal medium darkfield" data-reveal>
+    <div class="large-6 columns orangefield">
+        <div class="padded-top center">
+            <h3 class="fat upper text-light"><?php echo $self->context->dictionary->translate('_menu_signin')?></h3>
+        </div>
+        <form action="#">
+            <label class="small fat text-light"><?php echo $self->context->dictionary->translate('_email');?></label>
+            <input id="userEmail" type="text"/>
+            <label class="small fat text-light"><?php echo $self->context->dictionary->translate('_password');?></label>
+            <input id="userPassword" type="password"/>
+            <div class="center"><a class="button radius signIn"><?php echo $self->context->dictionary->translate('_login');?></a></div>
+        </form>
+    </div>
+    <div class="large-6 columns">
+        <div class="padded-top center">
+            <h3 class="fat upper text-light"><?php echo $self->context->dictionary->translate('_menu_signinwith')?></h3>
+        </div>
+        <div class="signWithOauth center"></div>
+    </div>
+    <a class="close-reveal-modal">&#215;</a>
+</div>
+<div id="displayProfile" class="reveal-modal small darkfield" data-reveal></div>

@@ -1,5 +1,4 @@
 <?php
-    $_noSearchBar = true;
     $_noMap = true;
     $statistics = $self->context->dbDriver->getStatistics();
     $nbOfProducts = 0;
@@ -18,24 +17,17 @@
         
         <!-- Header -->
         <?php include 'header.php' ?>
-        
-        <div class="row" style="height:250px;">
-            <div class="large-12 columns"></div>
-        </div>
-                    
-        <form id="resto-searchform" changeLocation="true" action="<?php echo $self->context->baseUrl . 'api/collections/search.html' ?>">
-            <div class="row fullWidth" style="width:100%;text-align:center;">
-                <div class="large-12 columns">
-                    <span class="resto-search"><input id="search" class="darker" type="text" name="q" placeholder="<?php echo $self->context->dictionary->translate('_menu_search'); ?>" value="<?php echo isset($self->context->query['q']) ? $self->context->query['q'] : ''; ?>" style="font-size:1.5em;height:50px;width:500px;"/></span>
-                </div>
+          
+        <div class="row fullWidth" style="padding:100px 0px 50px 0px;width:100%;text-align:center;">
+            <div class="large-12 columns">
+                <form id="resto-searchform" changeLocation="true" action="<?php echo $self->context->baseUrl . 'api/collections/search.html' ?>">
+                    <span class="resto-search"><input id="search" class="darker" type="text" name="q" placeholder="<?php echo $self->context->dictionary->translate('_menu_search'); ?>" value="<?php echo isset($self->context->query['q']) ? $self->context->query['q'] : ''; ?>" style="font-size:1.5em;height:50px;max-width:500px;width:80%;"/></span>
+                    <input type="hidden" name="lang" value="<?php echo $self->context->dictionary->language?>" /> 
+                </form>
             </div>
-        </form>
-        
-        <div class="row" style="height:50px">
-            <div class="large-12 columns"></div>
         </div>
         
-        <div class="row fullWidth" style="width:100%;text-align:center;color:#fff;font-size:2em;">
+        <div class="row fullWidth" style="min-height:600px;width:100%;text-align:center;color:#fff;font-size:2em;">
             <div class="large-12 columns">
                 <?php if ($nbOfProducts > 0) { ?>
                 Currently <?php echo $nbOfProducts;?> images available in <?php echo $nbOfCollections;?> <a href="<?php echo $self->context->baseUrl . 'collections'; ?>">collections</a>
@@ -46,17 +38,17 @@
         </div>
         
         <!-- Footer -->
-        <div style="position:fixed;bottom:0px;text-align:center;width:100%;">
         <?php include 'footer.php' ?>
-        </div>
+        
         <script type="text/javascript">
             $(document).ready(function() {
-                R.translation = <?php echo json_encode($self->context->dictionary->getTranslation()) ?>;
-                R.language = '<?php echo $self->context->dictionary->language; ?>';
-                R.restoUrl = '<?php echo $self->context->baseUrl ?>';
-                R.ssoServices = <?php echo json_encode($self->context->config['ssoServices']) ?>;
-                R.userProfile = <?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?>;
-                R.init();
+                Resto.init({
+                    "translation":<?php echo json_encode($self->context->dictionary->getTranslation()) ?>,
+                    "language":'<?php echo $self->context->dictionary->language; ?>',
+                    "restoUrl":'<?php echo $self->context->baseUrl ?>',
+                    "ssoServices":<?php echo json_encode($self->context->config['ssoServices']) ?>,
+                    "userProfile":<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?>
+                });
             });
         </script>
     </body>
