@@ -185,6 +185,7 @@
                                 async: true,
                                 success: function(data) {
                                     self.Util.hideMask();
+                                    self.unselectAll();
                                     self.updateFeaturesList(data, {
                                         updateMap: true,
                                         centerMap: false,
@@ -431,52 +432,23 @@
          */
         updateGetCollectionResultEntries: function(json, $container) {
 
-            var j, k, p, image,
-                    feature, key, keyword, keywords, type,
-                    $div, $actions, value, title, addClass,
-                    platform, results, resolution, self = this;
+            var i, ii, j, k, image, feature, $div, bottomInfos, topInfos, type, results, keywords, keyword, self = this;
 
             json = json || {};
-            p = json.properties || {};
-
-            var selfUrl = '#';
-
+            
             /*
              * Iterate on features and update result container
              */
-            for (var i = 0, ii = json.features.length; i < ii; i++) {
+            for (i = 0, ii = json.features.length; i < ii; i++) {
 
+                bottomInfos = [];
+                topInfos = [];
                 feature = json.features[i];
 
                 /*
                  * Quicklook
                  */
                 image = feature.properties['quicklook'] || feature.properties['thumbnail'] || self.restoUrl + '/css/default/img/noimage.png';
-
-                /*
-                 * Satellite
-                 */
-                platform = feature.properties['platform'];
-                if (feature.properties.keywords) {
-                    for (var z = feature.properties.keywords.length; z--;) {
-                        if (feature.properties.keywords[z]['name'] === feature.properties['platform']) {
-                            platform = '<a href="' + self.Util.updateUrlFormat(feature.properties.keywords[z]['href'], 'html') + '" class="resto-ajaxified resto-updatebbox resto-keyword resto-keyword-platform" title="' + self.Util.translate('_thisResourceWasAcquiredBy', [feature.properties['platform']]) + '">' + feature.properties['platform'] + '</a> ';
-                            break;
-                        }
-                    }
-                }
-
-                /*
-                 * Resource page
-                 */
-                var resourceUrl = '#';
-                if ($.isArray(feature.properties['links'])) {
-                    for (j = 0, k = feature.properties['links'].length; j < k; j++) {
-                        if (feature.properties['links'][j]['type'] === 'text/html') {
-                            resourceUrl = self.Util.updateUrl(feature.properties['links'][j]['href'], {lang:self.language});
-                        }
-                    }
-                }
 
                 /*
                  * Display structure
@@ -506,22 +478,25 @@
                         }).click(function (e) {
                             $(this).hasClass('selected') ? self.unselectAll() : self.selectFeature($(this).attr('id'), false);
                         });
-                        
-                        
-                /*
-                 * Feature info top
-                 */
-                $('.feature-info-top', $div).html('<h3 class="small text-light">' + self.Util.niceDate(feature.properties.startDate) + '</h3><h1 class="small text-light">Test</h1>');
-                
                 
                 /*
-                 * Zoom on feature
+                 * Feature infos (bottom)
                  */
-                $('.feature-info-bottom', $div).append('<a class="fa fa-2x fa-map-marker showOnMap" href="#" title="' + self.Util.translate('_showOnMap') + '"></a>');
-
-                /*
-                 * Show feature on map
-                 */
+                
+                // Show feature on map
+                bottomInfos.push('<a class="fa fa-2x fa-map-marker showOnMap" href="#" title="' + self.Util.translate('_showOnMap') + '"></a>');
+                
+                 // Download feature
+                if (feature.properties['services'] && feature.properties['services']['download'] && feature.properties['services']['download']['url']) {
+                    //if (self.userRights && self.userRights['download']) {
+                        bottomInfos.push('<a class="fa fa-2x fa-cloud-download" href="' + feature.properties['services']['download']['url'] + '"' + (feature.properties['services']['download']['mimeType'] === 'text/html' ? ' target="_blank"' : '') + ' title="' + self.Util.translate('_download') + '"></a>');
+                    //}
+                }
+                
+                // Add to cart
+                bottomInfos.push('<a class="fa fa-2x fa-shopping-cart addToCart" href="#" title="' + self.Util.translate('_addToCart') + '"></a>');
+                
+                $('.feature-info-bottom', $div).append(bottomInfos.join(''));
                 (function($div){
                     $('.showOnMap', $div).click(function (e) {
                         e.preventDefault();
@@ -533,119 +508,185 @@
                 })($div);
                 
                 /*
-                 * Download
+                 * Feature infos (top)
                  */
-                if (feature.properties['services'] && feature.properties['services']['download'] && feature.properties['services']['download']['url']) {
-                    //if (self.userRights && self.userRights['download']) {
-                        $('.feature-info-bottom', $div).append('<a class="fa fa-2x fa-cloud-download" href="' + feature.properties['services']['download']['url'] + '"' + (feature.properties['services']['download']['mimeType'] === 'text/html' ? ' target="_blank"' : '') + ' title="' + self.Util.translate('_download') + '"></a>');
-                    //}
-                }
+                topInfos.push('<h3 class="small text-light">' + self.Util.niceDate(feature.properties.startDate) + '</h3>');
                 
-                /*
-                 * Add to cart
-                 */
-                $('.feature-info-bottom', $div).append('<a class="fa fa-2x fa-shopping-cart addToCart" href="#" title="' + self.Util.translate('_addToCart') + '"></a>');
-                
-                continue;
-                
-                $container.append('<li><div class="resto-feature" id="rid' + i + '" fid="' + feature.id + '"><div class="padded-bottom"><span class="platform">' + platform + (platform && feature.properties['instrument'] ? "/" + feature.properties['instrument'] : "") + '</span> | <span class="timestamp">' + feature.properties['startDate'] + '</span></div><div><a href="' + resourceUrl + '" title="' + self.Util.translate('_viewMetadata', [feature.id]) + '"><img class="resto-image" src="' + thumbnail + '"/></a></div><div class="resto-actions"></div><div class="resto-keywords"></div></div></li>');
-                $actions = $('.resto-actions', $('#rid' + i));
-                
-                /*
-                 * Keywords are splitted in different types 
-                 * 
-                 *  - type = landuse (forest, water, etc.)
-                 *  - type = country/continent/region/state/city
-                 *  - type = platform/instrument
-                 *  - type = date
-                 *  - type = null and keyword start with a '#' = tags
-                 *  
-                 */
                 if (feature.properties.keywords) {
-                    results = [];
-                    keywords = {
-                        landuse: {
-                            title: '_landUse',
-                            keywords: []
-                        },
-                        location: {
-                            title: '_location',
-                            keywords: []
-                        },
-                        tag: {
-                            title: '_tags',
-                            keywords: []
-                        },
-                        resolution: {
-                            title: '_resolution',
-                            keywords: []
-                        },
-                        other: {
-                            title: '_other',
-                            keywords: []
-                        }
-                    };
-                    for (var iterator in feature.properties.keywords) {
-                        keyword = feature.properties.keywords[iterator];
-                        var text = keyword['name'];
-                        var typeAndId = keyword.id.split(':'),
-                        title = "";
-                        addClass = null;
-                        if (typeAndId[0] === 'day') {
-                            
-                        }
-                        else if (typeAndId[0] === 'landuse') {
-                            type = 'landuse';
-                            text = text + ' (' + Math.round(keyword.value) + '%)';
-                            addClass = ' resto-updatebbox resto-keyword-' + typeAndId[0] + '_' + typeAndId[1];
-                            title = self.Util.translate('_thisResourceContainsLanduse', [keyword.value, key]);
-                        }
-                        else if (typeAndId[0] === 'country' || typeAndId[0] === 'continent' || typeAndId[0] === 'region' || typeAndId[0] === 'state') {
-                            type = 'location';
-                            addClass = ' centerMap';
-                            title = self.Util.translate('_thisResourceIsLocated', [text]);
-                        }
-                        else if (typeAndId[0] === 'city') {
-                            type = 'location';
-                            addClass = ' centerMap';
-                            title = self.Util.translate('_thisResourceContainsCity', [text]);
-                        }
-                        else if (typeAndId[0] === 'platform' || typeAndId[0] === 'instrument') {
-                            continue;
-                        }
-                        else if (typeAndId[0] === 'date') {
-                            continue;
-                        }
-                        else if (keyword.name.indexOf("#") === 0) {
-                            type = 'tag';
-                            addClass = ' resto-updatebbox';
-                        }
-                        else {
-                            type = 'other';
-                            addClass = ' resto-updatebbox';
-                        }
-                        keywords[type]['keywords'].push('<a href="' + self.Util.updateUrlFormat(keyword['href'], 'html') + '" class="resto-ajaxified resto-keyword' + (typeAndId[0] ? ' resto-keyword-' + typeAndId[0].replace(' ', '') : '') + (addClass ? addClass : '') + '" title="' + title + '">' + text + '</a> ');
-                    }
-
-                    /*
-                     * Resolution
-                     */
-                    if (feature.properties['resolution']) {
-                        resolution = self.getResolution(feature.properties['resolution']);
-                        keywords['resolution']['keywords'].push(feature.properties['resolution'] + 'm - <a href="' + self.Util.updateUrl(self.Util.updateUrlFormat(selfUrl, 'html'), {q: self.Util.translate(resolution)}) + '" class="resto-ajaxified resto-updatebbox resto-keyword resto-keyword-resolution" title="' + self.Util.translate(resolution) + '">' + resolution + '</a>');
-                    }
-
-                    for (key in keywords) {
-                        if (keywords[key]['keywords'].length > 0) {
-                            results.push('<td class="title">' + self.Util.translate(keywords[key]['title']) + '</td><td class="values">' + keywords[key]['keywords'].join(', ') + '</td>');
+                    var best = -1, state = -1, region = -1, country = -1, continent = -1;
+                    for (j = feature.properties.keywords.length; j--;) {
+                        switch (feature.properties.keywords[j].id.split(':')[0]) {
+                            case 'state':
+                                state = j;
+                                break;
+                            case 'region':
+                                region = j;
+                                break;
+                            case 'country':
+                                country = j;
+                                break;
+                            case 'continent':
+                                country = j;
+                                break;
                         }
                     }
-
-                    $('.resto-keywords', $('#rid' + i)).html('<table>' + results.join('</tr>') + '</table>');
+                    if (state !== -1) {
+                        best = state;
+                    }
+                    else if (region !== -1) {
+                        best = region;
+                    }
+                    else if (country !== -1) {
+                        best = country;
+                    }
+                    else if (continent !== -1) {
+                        best = country;
+                    }
+                    if (best !== -1) {
+                        topInfos.push('<h2 class="small upper"><a href="' + feature.properties.keywords[best]['href'] + '" class="resto-ajaxified hilited">' + feature.properties.keywords[best]['name'] + '</a></h2>');
+                        var newHash, parentHash = feature.properties.keywords[best]['parentHash'];
+                        while (parentHash) {
+                            newHash = null;
+                            for (k = feature.properties.keywords.length; k--;) {
+                                if (feature.properties.keywords[k].hasOwnProperty('hash') && feature.properties.keywords[k]['hash'] === parentHash) {
+                                    topInfos.push('<h4 class="small"><a href="' + feature.properties.keywords[k]['href'] + '" class="resto-ajaxified text-light">' + feature.properties.keywords[k]['name'] + '</a></h4>');
+                                    newHash = feature.properties.keywords[k]['parentHash'];
+                                    break;
+                                }
+                            }
+                            parentHash = newHash;
+                        }
+                    }
+                    
                 }
-
+                $('.feature-info-top', $div).html(topInfos.join(''));
+                
             }
 
+        },
+        
+        TODO: function () {
+
+/*
+                 * Satellite
+                 */
+                platform = feature.properties['platform'];
+                if (feature.properties.keywords) {
+                    for (var z = feature.properties.keywords.length; z--;) {
+                        if (feature.properties.keywords[z]['name'] === feature.properties['platform']) {
+                            platform = '<a href="' + self.Util.updateUrlFormat(feature.properties.keywords[z]['href'], 'html') + '" class="resto-ajaxified resto-updatebbox resto-keyword resto-keyword-platform" title="' + self.Util.translate('_thisResourceWasAcquiredBy', [feature.properties['platform']]) + '">' + feature.properties['platform'] + '</a> ';
+                            break;
+                        }
+                    }
+                }
+                
+            /*
+             * Resource page
+             */
+            var resourceUrl = '#';
+            if ($.isArray(feature.properties['links'])) {
+                for (j = 0, k = feature.properties['links'].length; j < k; j++) {
+                    if (feature.properties['links'][j]['type'] === 'text/html') {
+                        resourceUrl = self.Util.updateUrl(feature.properties['links'][j]['href'], {lang: self.language});
+                    }
+                }
+            }
+
+            $container.append('<li><div class="resto-feature" id="rid' + i + '" fid="' + feature.id + '"><div class="padded-bottom"><span class="platform">' + platform + (platform && feature.properties['instrument'] ? "/" + feature.properties['instrument'] : "") + '</span> | <span class="timestamp">' + feature.properties['startDate'] + '</span></div><div><a href="' + resourceUrl + '" title="' + self.Util.translate('_viewMetadata', [feature.id]) + '"><img class="resto-image" src="' + thumbnail + '"/></a></div><div class="resto-actions"></div><div class="resto-keywords"></div></div></li>');
+            $actions = $('.resto-actions', $('#rid' + i));
+
+            /*
+             * Keywords are splitted in different types 
+             * 
+             *  - type = landuse (forest, water, etc.)
+             *  - type = country/continent/region/state/city
+             *  - type = platform/instrument
+             *  - type = date
+             *  - type = null and keyword start with a '#' = tags
+             *  
+             */
+            if (feature.properties.keywords) {
+                results = [];
+                keywords = {
+                    landuse: {
+                        title: '_landUse',
+                        keywords: []
+                    },
+                    location: {
+                        title: '_location',
+                        keywords: []
+                    },
+                    tag: {
+                        title: '_tags',
+                        keywords: []
+                    },
+                    resolution: {
+                        title: '_resolution',
+                        keywords: []
+                    },
+                    other: {
+                        title: '_other',
+                        keywords: []
+                    }
+                };
+                for (var iterator in feature.properties.keywords) {
+                    keyword = feature.properties.keywords[iterator];
+                    var text = keyword['name'];
+                    var typeAndId = keyword.id.split(':'),
+                            title = "";
+                    addClass = null;
+                    if (typeAndId[0] === 'day') {
+
+                    }
+                    else if (typeAndId[0] === 'landuse') {
+                        type = 'landuse';
+                        text = text + ' (' + Math.round(keyword.value) + '%)';
+                        addClass = ' resto-updatebbox resto-keyword-' + typeAndId[0] + '_' + typeAndId[1];
+                        title = self.Util.translate('_thisResourceContainsLanduse', [keyword.value, key]);
+                    }
+                    else if (typeAndId[0] === 'country' || typeAndId[0] === 'continent' || typeAndId[0] === 'region' || typeAndId[0] === 'state') {
+                        type = 'location';
+                        addClass = ' centerMap';
+                        title = self.Util.translate('_thisResourceIsLocated', [text]);
+                    }
+                    else if (typeAndId[0] === 'city') {
+                        type = 'location';
+                        addClass = ' centerMap';
+                        title = self.Util.translate('_thisResourceContainsCity', [text]);
+                    }
+                    else if (typeAndId[0] === 'platform' || typeAndId[0] === 'instrument') {
+                        continue;
+                    }
+                    else if (typeAndId[0] === 'date') {
+                        continue;
+                    }
+                    else if (keyword.name.indexOf("#") === 0) {
+                        type = 'tag';
+                        addClass = ' resto-updatebbox';
+                    }
+                    else {
+                        type = 'other';
+                        addClass = ' resto-updatebbox';
+                    }
+                    keywords[type]['keywords'].push('<a href="' + self.Util.updateUrlFormat(keyword['href'], 'html') + '" class="resto-ajaxified resto-keyword' + (typeAndId[0] ? ' resto-keyword-' + typeAndId[0].replace(' ', '') : '') + (addClass ? addClass : '') + '" title="' + title + '">' + text + '</a> ');
+                }
+
+                /*
+                 * Resolution
+                 */
+                if (feature.properties['resolution']) {
+                    resolution = self.getResolution(feature.properties['resolution']);
+                    keywords['resolution']['keywords'].push(feature.properties['resolution'] + 'm - <a href="' + self.Util.updateUrl(self.Util.updateUrlFormat(selfUrl, 'html'), {q: self.Util.translate(resolution)}) + '" class="resto-ajaxified resto-updatebbox resto-keyword resto-keyword-resolution" title="' + self.Util.translate(resolution) + '">' + resolution + '</a>');
+                }
+
+                for (key in keywords) {
+                    if (keywords[key]['keywords'].length > 0) {
+                        results.push('<td class="title">' + self.Util.translate(keywords[key]['title']) + '</td><td class="values">' + keywords[key]['keywords'].join(', ') + '</td>');
+                    }
+                }
+
+                $('.resto-keywords', $('#rid' + i)).html('<table>' + results.join('</tr>') + '</table>');
+            }
         },
         
         /**
