@@ -120,6 +120,11 @@
                 }
                 
                 /*
+                 * Unselect all
+                 */
+                self.unselectAll();
+                
+                /*
                  * Reload page instead of update page
                  * (For home.php and collections.php pages) 
                  */
