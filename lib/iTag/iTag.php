@@ -700,7 +700,7 @@ class iTag {
 
     /**
      * 
-     * Compute intersected geophysical information (i.e. plates, faults, volcanoes, etc.)
+     * Compute intersected geophysical information (i.e. plates, faults, volcanoes, rivers)
      * from input WKT footprint
      * 
      * @param string footprint
@@ -710,6 +710,12 @@ class iTag {
 
         $result = array();
 
+        // Rivers
+        $rivers = $this->getKeywords($this->schema . ".rivers", "name", $footprint);
+        if (count($rivers) > 0) {
+            $result['rivers'] = $rivers;
+        }
+        
         // Plates
         $plates = $this->getKeywords($this->schema . ".plates", "name", $footprint);
         if (count($plates) > 0) {
