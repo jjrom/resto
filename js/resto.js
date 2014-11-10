@@ -110,26 +110,30 @@
             $("#resto-searchform").submit(function(e) {
                 
                 e.preventDefault();
+                e.stopPropagation();
+                
+                /*
+                 * Avoid multiple simultaneous ajax calls
+                 */
+                if (!self.ajaxReady) {
+                    return false;
+                }
                 
                 /*
                  * Reload page instead of update page
                  * (For home.php and collections.php pages) 
                  */
                 if ($(this).attr('changeLocation')) {
+                    self.ajaxReady = false;
                     window.Resto.Util.showMask();
                     this.submit();
-                    return false;
+                    return true;
                 }
                 
                 /*
-                 * Bound search to map extent in map view only ! 
+                 * Bound search to map extent in map view only !
                  */
                 window.History.pushState({randomize: window.Math.random()}, null, '?' + $(this).serialize() + (window.Resto.Map.isVisible() ? '&box=' + window.Resto.Map.getBBOX() : ''));
-            });
-            
-            $("#searchsubmit").click(function(e) {
-                e.preventDefault();
-                $("#resto-searchform").submit();
             });
             
             /*
@@ -221,12 +225,13 @@
                 var state = window.History.getState(), url = self.Util.updateUrlFormat(state.cleanUrl, 'json');
 
                 self.Util.showMask();
-
+                self.ajaxReady = false;
                 $.ajax({
                     url: url,
                     async: true,
                     dataType: 'json',
                     success: function(json) {
+                        self.ajaxReady = true;
                         self.Util.hideMask();
                         if (typeof callback === 'function') {
                             callback(json, {
@@ -237,8 +242,9 @@
                         }
                     },
                     error: function(e) {
+                        self.ajaxReady = true;
                         self.Util.hideMask();
-                        self.Util.message("Connection error");
+                        self.Util.alert("Connection error");
                     }
                 });
             });
@@ -924,7 +930,6 @@
                     $('.signWithOauth').append('<span id="_oauth' + key + '">' + self.ssoServices[key].button + '</span>');
                     $('a', '#_oauth' + key).click(function (e) {
                         e.preventDefault();
-                        Resto.Util.showMask();
                         
                         /*
                          * Open SSO authentication window
@@ -937,6 +942,7 @@
                         var fct = setInterval(function () {
                             if (popup.closed) {
                                 clearInterval(fct);
+                                Resto.Util.showMask();
                                 window.location.reload();
                             }
                         }, 200);
