@@ -227,21 +227,29 @@
          * Update features layer
          * 
          * @param {Object} json - GeoJSON FeatureCollection
-         * @param {boolean} centerMap : true to center the map
-         * 
+         * @param {Object} options :
+         *              
+         *              {
+         *                  centerMap : //true to center the map
+         *                  append: // true to add features to existing features
+         *              } 
          */
-        updateLayer: function(json, centerMap) {
+        updateLayer: function(json, options) {
             
             if (!this.isLoaded) {
                 return false;
             }
             
+            var centerMap = options.hasOwnProperty('centerMap') ? options.centerMap : false,
+                append = options.hasOwnProperty('append') ? options.append : false;
+            
             /*
-             * Layer already exist => reload content
-             * i.e. remove old features and insert new ones
+             * Layer already exist 
              */
             if (this.layer) {
-                this.layer.destroyFeatures();
+                if (!append) {
+                    this.layer.destroyFeatures();
+                }
                 window.M.Map.layerTypes['GeoJSON'].load({
                     data: json,
                     layerDescription: this.layer['_M'].layerDescription,

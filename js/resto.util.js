@@ -297,7 +297,7 @@
         /**
          * Infinite scolling
          * 
-         * @param {String} url
+         * @param {String or Object} url
          * @param {String} dataType
          * @param {Json} data
          * @param {method} callback
@@ -319,9 +319,7 @@
                         self.ajaxReady = false;
                         self.offset = self.offset + self.limit;
                         data['startIndex'] = self.offset;
-
                         self.showMask();
-
                         $.ajax({
                             type: "GET",
                             dataType: dataType,

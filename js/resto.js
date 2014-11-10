@@ -40,6 +40,26 @@
      window.Resto = {  
         
         /*
+         * Is ajax ready to do another request ?
+         */
+        ajaxReady: true,
+        
+        /*
+         * infinite scrolling offset
+         */
+        offset: 0,
+        
+        /*
+         * infinite scrolling limit
+         */
+        limit: 0,
+        
+        /*
+         * Next page url for infiniteScroll
+         */
+        nextPageUrl: null,
+        
+        /*
          * Initialize RESTo
          * 
          * @param {array} options
@@ -62,12 +82,12 @@
             /*
              * Input data is a GeoJSON object
              */
-            this.data = data;
+            self.data = data;
             
             /*
              * Set header
              */
-            this.Header.init();
+            self.Header.init();
             
             /*
              * Show active panel and hide others
@@ -120,30 +140,64 @@
             /*
              * init(options) was called by getCollection
              */
-            if (this.issuer === 'getCollection') {
+            if (self.issuer === 'getCollection') {
                     
-                if (this.data) {
-                    this.updateGetCollection(data, {
+                if (self.data) {
+                    self.updateFeaturesList(data, {
                         updateMap: false,
-                        centerMap: data && data.query
+                        centerMap: data && data.query,
+                        append:false
                     });
                 }
                 
                 /*
                  * Bind history change with update collection action
                  */
-                this.onHistoryChange(this.updateGetCollection);
+                self.onHistoryChange(self.updateFeaturesList);
                 
                 /*
                  * Infinite scroll
                  */
-                /*
-                var state = window.History.getState(), url = self.Util.updateUrlFormat(state.cleanUrl, 'json');
-                self.Util.infiniteScroll(url, 'json', {'startIndex':1}, self.updateGetCollection, 500);
-                */
+                var lastScrollTop = 0;
+                $(window).scroll(function() {
+                    if (!self.nextPageUrl) {
+                        return false;
+                    }
+                    var st = $(this).scrollTop();
+                    if (st > lastScrollTop){
+                        if($(window).scrollTop() + $(window).height() > $(document).height() - $('.footer').height() - 100 && self.ajaxReady) {
+                            self.ajaxReady = false;
+                            self.offset = self.offset + self.limit;
+                            self.Util.showMask();
+                            $.ajax({
+                                type: "GET",
+                                dataType: 'json',
+                                url: self.nextPageUrl,
+                                async: true,
+                                success: function(data) {
+                                    self.Util.hideMask();
+                                    self.updateFeaturesList(data, {
+                                        updateMap: true,
+                                        centerMap: false,
+                                        append:true
+                                    });
+                                    self.ajaxReady = true;
+                                },
+                                error: function(e) {
+                                    self.Util.hideMask();
+                                    self.offset = self.offset - self.limit;
+                                    self.ajaxReady = true;
+                                    alert('error : ' + e['responseJSON']['ErrorMessage']);
+                                }
+                            });
+                        }
+                    }
+                    lastScrollTop = st;
+                 });
+                 
             }
             
-            this.Util.hideMask();
+            self.Util.hideMask();
 
         },
         
@@ -253,17 +307,18 @@
         },
         
        /**
-        * Update getCollection page
+        * Update features list
         * 
         * @param {array} json
         * @param {boolean} options 
         *          {
+        *              append: // true to append input features to existing features
         *              updateMap: // true to update map content
         *              centerMap: // true to center map on content
         *          }
         * 
         */
-        updateGetCollection: function(json, options) {
+        updateFeaturesList: function(json, options) {
 
             var foundFilters, key, p, self = window.Resto;
 
@@ -307,15 +362,35 @@
             }
 
             /*
+             * Update next page url (for infinite scroll)
+             */
+            self.nextPageUrl = null;
+            if (p.links) {
+                if ($.isArray(p.links)) {
+                    for (var i = p.links.length; i--;) {
+                        if (p.links[i]['rel'] === 'next') {
+                            self.nextPageUrl = self.Util.updateUrlFormat(p.links[i]['href'], 'json');
+                        }
+                    }
+                }
+            } 
+            /*
              * Update result
              */
-            self.updateGetCollectionResultEntries(json);
+            var $container = $('.resto-features-container');
+            if (!options.append) {
+                $container = $container.empty();
+            }
+            self.updateGetCollectionResultEntries(json, $container);
 
             /*
              * Update map view
              */
             if (options.updateMap) {
-                window.Resto.Map.updateLayer(json, options.centerMap);
+                window.Resto.Map.updateLayer(json, {
+                    'centerMap':options.centerMap,
+                    'append':options.append
+                });
             }
             
             /*
@@ -335,7 +410,7 @@
             /*
              * Align heights
              */
-            self.Util.alignHeight($('.resto-feature'));
+            //self.Util.alignHeight($('.resto-feature'));
         },
 
         /**
@@ -343,68 +418,22 @@
          * 
          * @param {array} json
          */
-        updateGetCollectionResultEntries: function(json) {
+        updateGetCollectionResultEntries: function(json, $container) {
 
-            var i, l, j, k, p, image,
+            var j, k, p, image,
                     feature, key, keyword, keywords, type,
-                    $div, $container, $actions, value, title, addClass,
+                    $div, $actions, value, title, addClass,
                     platform, results, resolution, self = this;
 
             json = json || {};
             p = json.properties || {};
 
-            /*
-             * Update pagination - TODO
-             */
-            var first = '', previous = '', next = '', last = '', pagination = '', selfUrl = '#';
-
-            if (p.missing) {
-                pagination = '';
-            }
-            else if (p.totalResults === 0) {
-                pagination = self.Util.translate('_noResult');
-            }
-            else {
-                
-                if ($.isArray(p.links)) {
-                    for (i = 0, l = p.links.length; i < l; i++) {
-                        if (p.links[i]['rel'] === 'first') {
-                            first = ' <a class="resto-ajaxified" href="' + self.Util.updateUrlFormat(p.links[i]['href'], 'html') + '">' + self.Util.translate('_firstPage') + '</a> ';
-                        }
-                        if (p.links[i]['rel'] === 'previous') {
-                            previous = ' <a class="resto-ajaxified" href="' + self.Util.updateUrlFormat(p.links[i]['href'], 'html') + '">' + self.Util.translate('_previousPage') + '</a> ';
-                        }
-                        if (p.links[i]['rel'] === 'next') {
-                            next = ' <a class="resto-ajaxified" href="' + self.Util.updateUrlFormat(p.links[i]['href'], 'html') + '">' + self.Util.translate('_nextPage') + '</a> ';
-                        }
-                        if (p.links[i]['rel'] === 'last') {
-                            last = ' <a class="resto-ajaxified" href="' + self.Util.updateUrlFormat(p.links[i]['href'], 'html') + '">' + self.Util.translate('_lastPage') + '</a> ';
-                        }
-                        if (p.links[i]['rel'] === 'self') {
-                            selfUrl = p.links[i]['href'];
-                        }
-                    }
-                }
-                
-                /*
-                 * Pagination text
-                 */
-                pagination += first + previous + (p.itemsPerPage ? self.Util.translate('_pageNumber', [Math.ceil(p.startIndex / p.itemsPerPage)]) : '') + next + last;
-
-            }
-
-            /*
-             * Update each pagination element - TODO
-             */
-            $('.resto-pagination').each(function() {
-                $(this).html(pagination);
-            });
+            var selfUrl = '#';
 
             /*
              * Iterate on features and update result container
              */
-            $container = $('.resto-features-container').empty();
-            for (i = 0, l = json.features.length; i < l; i++) {
+            for (var i = 0, ii = json.features.length; i < ii; i++) {
 
                 feature = json.features[i];
 
