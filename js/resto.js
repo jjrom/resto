@@ -55,7 +55,6 @@
             self.issuer = options.issuer || 'getCollection';
             self.language = options.language || 'en';
             self.restoUrl = options.restoUrl || '';
-            self.collection = options.collection || null;
             self.Util.translation = options.translation || {};
             self.Header.ssoServices = options.ssoServices || {};
             self.Header.userProfile = options.userProfile || {};
@@ -94,6 +93,7 @@
                 
                 /*
                  * Reload page instead of update page
+                 * (For home.php and collections.php pages) 
                  */
                 if ($(this).attr('changeLocation')) {
                     window.Resto.Util.showMask();
@@ -272,7 +272,7 @@
             options = options || {};
 
             /*
-             * Update search input form - TODO
+             * Update search input form
              */
             if ($('#search').length > 0) {
                 $('#search').val(p.query ? self.Util.sanitizeValue(p.query.original.searchTerms) : '');
