@@ -856,6 +856,7 @@
                 Resto.Util.alert($div, 'Password is mandatory');
             }
             else {
+                Resto.Util.showMask();
                 Resto.Util.ajax({
                     url: Resto.restoUrl + 'users',
                     async: true,
@@ -877,6 +878,7 @@
                         }
                     },
                     error: function (e) {
+                        Resto.Util.hideMask();
                         if (e.responseJSON) {
                             Resto.Util.alert($div, e.responseJSON.ErrorMessage);
                         }
@@ -921,8 +923,8 @@
                 (function (key) {
                     $('.signWithOauth').append('<span id="_oauth' + key + '">' + self.ssoServices[key].button + '</span>');
                     $('a', '#_oauth' + key).click(function (e) {
-                        
                         e.preventDefault();
+                        Resto.Util.showMask();
                         
                         /*
                          * Open SSO authentication window
