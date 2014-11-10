@@ -199,6 +199,23 @@ h3.small {
 }
 
 /*
+ * Go to top button
+ */
+#gototop {
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    z-index:10000;
+    display:none;
+    padding:10px;
+    color:#fff;
+    text-shadow: 2px 2px #000;
+}
+#gototop:hover {
+    color:limegreen;
+}
+    
+/*
  * Header
  */
 header {
