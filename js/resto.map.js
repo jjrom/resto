@@ -264,7 +264,7 @@
          */
         updateBBOX: function() {
             if (window.M && window.M.Map.map) {
-                if ($('#mapshup').visible()) {
+                if ($('#mapshup').is(':visible')) {
                     var box = this.getBBOX();
                     $('.resto-updatebbox').each(function() {
                         $(this).attr('href', window.M.Util.extendUrl($(this).attr('href'), {
@@ -283,14 +283,15 @@
         },
         
         /**
-         * Check that mapshup works
+         * Check that map panel is visible
+         * 
          * @returns boolean
          */
         isVisible: function() {
             if (!this.isLoaded) {
                 return false;
             }
-            if (window.M && window.M.Map && window.M.Map.map && $('#mapshup').visible()) {
+            if (window.M && window.M.Map && window.M.Map.map && $('#mapshup').is(':visible')) {
                 return true;
             }
             return false;

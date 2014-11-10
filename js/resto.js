@@ -102,7 +102,7 @@
                 }
                 
                 /*
-                 * Bound search to map view
+                 * Bound search to map extent in map view only ! 
                  */
                 window.History.pushState({randomize: window.Math.random()}, null, '?' + $(this).serialize() + (window.Resto.Map.isVisible() ? '&box=' + window.Resto.Map.getBBOX() : ''));
             });
