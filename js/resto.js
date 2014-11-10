@@ -411,11 +411,13 @@
             $('.resto-ajaxified').each(function() {
                 $(this).click(function(e) {
                     e.preventDefault();
+                    e.stopPropagation();
                     window.History.pushState({
                         randomize: window.Math.random(),
-                        centerMap: $(this).hasClass('centerMap')
-                    }, null, $(this).attr('href'));
+                        centerMap: false,
+                    }, null, self.Util.updateUrlFormat($(this).attr('href'), 'html'));
                     $('html, body').scrollTop(0);
+                    return false;
                 });
             });
             
@@ -432,7 +434,7 @@
          */
         updateGetCollectionResultEntries: function(json, $container) {
 
-            var i, ii, j, k, image, feature, $div, bottomInfos, topInfos, type, results, keywords, keyword, self = this;
+            var i, ii, j, k, image, feature, $div, bottomInfos, topInfos, self = this;
 
             json = json || {};
             

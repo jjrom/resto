@@ -104,7 +104,7 @@ h4.small {
 .text-light, a.text-light {
     color:#fff;
 }
-a.text-light {
+a.text-light:hover {
     color:darkgray;
 }
 .text-dark {
