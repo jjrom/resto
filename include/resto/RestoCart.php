@@ -101,7 +101,7 @@ class RestoCart{
         $resourceInfo = $this->getResourceInfo($item['url']);
         if (isset($resourceInfo)) {
             foreach (array_keys(array('size', 'checksum', 'mimeType', 'collection', 'identifier')) as $key) {
-                if (!isset($item[$key]) && $resourceInfo[$key]) {
+                if (!isset($item[$key]) && isset($resourceInfo[$key])) {
                     $item[$key] = $resourceInfo[$key];
                 }
             }
