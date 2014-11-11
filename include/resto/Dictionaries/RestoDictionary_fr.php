@@ -221,7 +221,7 @@ class RestoDictionary_fr extends RestoDictionary {
         '_atomLink' => 'Lien ATOM pour {a:1}',
         '_htmlLink' => 'Lien HTML pour {a:1}',
         '_jsonLink' => 'Lien GeoJSON pour {a:1}',
-        '_thisResourceContainsLanduse' => '{a:2} : {a:1} %',
+        '_thisResourceContainsLanduse' => '{a:2} : {a:1}%',
         '_thisResourceIsLocated' => 'Image situ&eacute;e en {a:1}',
         '_thisResourceContainsCity' => 'Image autour de {a:1}',
         '_thisResourceWasAcquiredBy' => 'Image acquise par le satellite {a:1}',
