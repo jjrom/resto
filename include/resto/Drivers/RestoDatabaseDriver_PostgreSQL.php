@@ -2693,7 +2693,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 $hrefKey = $properties['name'];
             }
             $keywords[] = array(
-                'name' => $properties['name'],
+                'name' => isset($properties['name']) && $properties['name'] !== '' ? $properties['name'] : $key,
                 'id' => $key,
                 'href' => RestoUtil::updateUrl($url, array($model->searchFilters['language']['osKey'] => $model->context->dictionary->language,  $model->searchFilters['searchTerms']['osKey'] => count(explode(' ', $hrefKey)) > 1 ? '"'. $hrefKey . '"' : $hrefKey))
             );
