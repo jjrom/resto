@@ -60,6 +60,11 @@
         nextPageUrl: null,
         
         /*
+         * Features array
+         */
+        features: {},
+        
+        /*
          * Initialize RESTo
          * 
          * @param {array} options
@@ -392,6 +397,7 @@
             var $container = $('.resto-features-container');
             if (!options.append) {
                 $container = $container.empty();
+                self.features = {};
             }
             self.updateGetCollectionResultEntries(json, $container);
 
@@ -421,10 +427,6 @@
                 });
             });
             
-            /*
-             * Align heights
-             */
-            //self.Util.alignHeight($('.resto-feature'));
         },
 
         /**
@@ -446,7 +448,12 @@
                 bottomInfos = [];
                 topInfos = [];
                 feature = json.features[i];
-
+                
+                /*
+                 * Update object features array 
+                 */
+                self.features[feature.id] = feature;
+                
                 /*
                  * Quicklook
                  */
@@ -456,7 +463,7 @@
                  * Display structure
                  *  
                  *  <li>
-                 *      <div id="rid...">
+                 *      <div id="...">
                  *          <div class="streched">
                  *              <div class="feature-info-top"></div>
                  *              <div class="feature-info-bottom"></div>
@@ -484,9 +491,19 @@
                 /*
                  * Feature infos (bottom)
                  */
-                
-                // Show feature on map
-                bottomInfos.push('<a class="fa fa-2x fa-map-marker showOnMap" href="#" title="' + self.Util.translate('_showOnMap') + '"></a>');
+                var keyword, typeAndId;
+                if (feature.properties.keywords) {
+                    for (j = feature.properties.keywords.length; j--;) {
+                        keyword = feature.properties.keywords[j];
+                        typeAndId = keyword.id.split(':');
+                        if (typeAndId[0] === 'landuse') {
+                            bottomInfos.push('<a href="' + self.Util.updateUrlFormat(keyword['href'], 'html') + '" class="small resto-ajaxified resto-keyword' + (typeAndId[0] ? ' resto-keyword-' + typeAndId[0].replace(' ', '') : '') + '" title="' + self.Util.translate('_thisResourceContainsLanduse', [Math.round(keyword.value), keyword.name]) + '"><img src="' + self.restoUrl + 'themes/default/img/landuse/' + typeAndId[1] + '.png"/></a> ');
+                        }
+                    }
+                }
+                $('.feature-info-bottom', $div).html(bottomInfos.join(''));
+                /*
+                 bottomInfos.push('<a class="fa fa-2x fa-map-marker showOnMap" href="#" title="' + self.Util.translate('_showOnMap') + '"></a>');
                 
                  // Download feature
                 if (feature.properties['services'] && feature.properties['services']['download'] && feature.properties['services']['download']['url']) {
@@ -507,8 +524,14 @@
                         self.Map.hilite($div.attr('id'), true);
                         return false;
                     });
+                    $('.addToCart', $div).click(function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('TODO');
+                        return false;
+                    });
                 })($div);
-                
+                */
                 /*
                  * Feature infos (top)
                  */
@@ -522,7 +545,9 @@
                                 state = j;
                                 break;
                             case 'region':
-                                region = j;
+                                if (feature.properties.keywords[j].id !== 'region:_all') {
+                                    region = j;
+                                }
                                 break;
                             case 'country':
                                 country = j;
@@ -551,7 +576,9 @@
                             newHash = null;
                             for (k = feature.properties.keywords.length; k--;) {
                                 if (feature.properties.keywords[k].hasOwnProperty('hash') && feature.properties.keywords[k]['hash'] === parentHash) {
-                                    topInfos.push('<h4 class="small"><a href="' + feature.properties.keywords[k]['href'] + '" class="resto-ajaxified text-light">' + feature.properties.keywords[k]['name'] + '</a></h4>');
+                                    if (feature.properties.keywords[k]['name'] !== 'region:_all') {
+                                        topInfos.push('<h4 class="small"><a href="' + feature.properties.keywords[k]['href'] + '" class="resto-ajaxified text-light">' + feature.properties.keywords[k]['name'] + '</a></h4>');
+                                    }
                                     newHash = feature.properties.keywords[k]['parentHash'];
                                     break;
                                 }
@@ -565,130 +592,6 @@
                 
             }
 
-        },
-        
-        TODO: function () {
-
-/*
-                 * Satellite
-                 */
-                platform = feature.properties['platform'];
-                if (feature.properties.keywords) {
-                    for (var z = feature.properties.keywords.length; z--;) {
-                        if (feature.properties.keywords[z]['name'] === feature.properties['platform']) {
-                            platform = '<a href="' + self.Util.updateUrlFormat(feature.properties.keywords[z]['href'], 'html') + '" class="resto-ajaxified resto-updatebbox resto-keyword resto-keyword-platform" title="' + self.Util.translate('_thisResourceWasAcquiredBy', [feature.properties['platform']]) + '">' + feature.properties['platform'] + '</a> ';
-                            break;
-                        }
-                    }
-                }
-                
-            /*
-             * Resource page
-             */
-            var resourceUrl = '#';
-            if ($.isArray(feature.properties['links'])) {
-                for (j = 0, k = feature.properties['links'].length; j < k; j++) {
-                    if (feature.properties['links'][j]['type'] === 'text/html') {
-                        resourceUrl = self.Util.updateUrl(feature.properties['links'][j]['href'], {lang: self.language});
-                    }
-                }
-            }
-
-            $container.append('<li><div class="resto-feature" id="rid' + i + '" fid="' + feature.id + '"><div class="padded-bottom"><span class="platform">' + platform + (platform && feature.properties['instrument'] ? "/" + feature.properties['instrument'] : "") + '</span> | <span class="timestamp">' + feature.properties['startDate'] + '</span></div><div><a href="' + resourceUrl + '" title="' + self.Util.translate('_viewMetadata', [feature.id]) + '"><img class="resto-image" src="' + thumbnail + '"/></a></div><div class="resto-actions"></div><div class="resto-keywords"></div></div></li>');
-            $actions = $('.resto-actions', $('#rid' + i));
-
-            /*
-             * Keywords are splitted in different types 
-             * 
-             *  - type = landuse (forest, water, etc.)
-             *  - type = country/continent/region/state/city
-             *  - type = platform/instrument
-             *  - type = date
-             *  - type = null and keyword start with a '#' = tags
-             *  
-             */
-            if (feature.properties.keywords) {
-                results = [];
-                keywords = {
-                    landuse: {
-                        title: '_landUse',
-                        keywords: []
-                    },
-                    location: {
-                        title: '_location',
-                        keywords: []
-                    },
-                    tag: {
-                        title: '_tags',
-                        keywords: []
-                    },
-                    resolution: {
-                        title: '_resolution',
-                        keywords: []
-                    },
-                    other: {
-                        title: '_other',
-                        keywords: []
-                    }
-                };
-                for (var iterator in feature.properties.keywords) {
-                    keyword = feature.properties.keywords[iterator];
-                    var text = keyword['name'];
-                    var typeAndId = keyword.id.split(':'),
-                            title = "";
-                    addClass = null;
-                    if (typeAndId[0] === 'day') {
-
-                    }
-                    else if (typeAndId[0] === 'landuse') {
-                        type = 'landuse';
-                        text = text + ' (' + Math.round(keyword.value) + '%)';
-                        addClass = ' resto-updatebbox resto-keyword-' + typeAndId[0] + '_' + typeAndId[1];
-                        title = self.Util.translate('_thisResourceContainsLanduse', [keyword.value, key]);
-                    }
-                    else if (typeAndId[0] === 'country' || typeAndId[0] === 'continent' || typeAndId[0] === 'region' || typeAndId[0] === 'state') {
-                        type = 'location';
-                        addClass = ' centerMap';
-                        title = self.Util.translate('_thisResourceIsLocated', [text]);
-                    }
-                    else if (typeAndId[0] === 'city') {
-                        type = 'location';
-                        addClass = ' centerMap';
-                        title = self.Util.translate('_thisResourceContainsCity', [text]);
-                    }
-                    else if (typeAndId[0] === 'platform' || typeAndId[0] === 'instrument') {
-                        continue;
-                    }
-                    else if (typeAndId[0] === 'date') {
-                        continue;
-                    }
-                    else if (keyword.name.indexOf("#") === 0) {
-                        type = 'tag';
-                        addClass = ' resto-updatebbox';
-                    }
-                    else {
-                        type = 'other';
-                        addClass = ' resto-updatebbox';
-                    }
-                    keywords[type]['keywords'].push('<a href="' + self.Util.updateUrlFormat(keyword['href'], 'html') + '" class="resto-ajaxified resto-keyword' + (typeAndId[0] ? ' resto-keyword-' + typeAndId[0].replace(' ', '') : '') + (addClass ? addClass : '') + '" title="' + title + '">' + text + '</a> ');
-                }
-
-                /*
-                 * Resolution
-                 */
-                if (feature.properties['resolution']) {
-                    resolution = self.getResolution(feature.properties['resolution']);
-                    keywords['resolution']['keywords'].push(feature.properties['resolution'] + 'm - <a href="' + self.Util.updateUrl(self.Util.updateUrlFormat(selfUrl, 'html'), {q: self.Util.translate(resolution)}) + '" class="resto-ajaxified resto-updatebbox resto-keyword resto-keyword-resolution" title="' + self.Util.translate(resolution) + '">' + resolution + '</a>');
-                }
-
-                for (key in keywords) {
-                    if (keywords[key]['keywords'].length > 0) {
-                        results.push('<td class="title">' + self.Util.translate(keywords[key]['title']) + '</td><td class="values">' + keywords[key]['keywords'].join(', ') + '</td>');
-                    }
-                }
-
-                $('.resto-keywords', $('#rid' + i)).html('<table>' + results.join('</tr>') + '</table>');
-            }
         },
         
         /**
@@ -714,8 +617,34 @@
                 $('html, body').scrollTop($id.offset().top);
             }
             
+            this.showFeatureInfoDetails(id);
+        },
+        
+        /**
+         * Unselect all features
+         */
+        unselectAll: function() {
+            $('.resto-feature').each(function () {
+                $(this).removeClass('selected darker').children().first().addClass('bg-alpha-dark-hover');
+            });
+            $('#feature-info-details').hide();
+        },
+        
+        /**
+         * Display detailled feature info panel
+         * 
+         * @param {string} id : feature identifier
+         */
+        showFeatureInfoDetails:function(id) {
+            
+            var $id = $('#' + id), $div, feature = this.features[id], self = this;
+            
+            if (!feature) {
+                return false;
+            }
+            
             /*
-             * Compute position
+             * Compute position of feature info panel
              */
             var left = $id.offset().left,
                 top = $id.offset().top;
@@ -730,25 +659,169 @@
             else {
                 left = left + $id.outerWidth();
             }
-            $('#feature-info-details').css({
+            
+            $div = $('#feature-info-details').addClass('lightfield').empty().css({
                 'position': 'absolute',
                 'height': $id.outerHeight() + 'px',
                 'top': top + 'px',
                 'left': left + 'px',
                 'width':$id.outerWidth() + 'px',
-                'z-index':'10000',
-                'background-color':'#000'
+                'z-index':'100'
             }).show();
+            
+            /*
+             * Refresh infos
+             */
+            var infos = [];
+            
+            infos.push('<a class="fa fa-3x fa-file-text viewMetadata" href="#" title="' + self.Util.translate('_viewMetadata') + '"></a>');
+            infos.push('<a class="fa fa-3x fa-map-marker showOnMap" href="#" title="' + self.Util.translate('_showOnMap') + '"></a>');
+            
+            // Download feature
+            //if (feature.properties['services'] && feature.properties['services']['download'] && feature.properties['services']['download']['url']) {
+                infos.push('<a class="fa fa-3x fa-cloud-download downloadProduct" href="#" title="' + self.Util.translate('_download') + '"></a>');
+            //}
+            
+            // Add to cart
+            if (self.Header.userProfile.userid !== -1) {
+                infos.push('<a class="fa fa-3x fa-shopping-cart addToCart" href="#" title="' + self.Util.translate('_addToCart') + '"></a>');
+            }
+            $div.append('<div class="feature-info-bottom">' + infos.join('') + '</div>');
+            
+            $('.viewMetadata', $div).click(function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                window.location = self.restoUrl + 'collections/' + feature.properties['collection'] + '/' + feature.id + '.html?lang=' + self.language;
+                return false;
+            });
+            $('.viewOnMap', $div).click(function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                self.switchTo($('#resto-panel-trigger-map'));
+                self.Map.hilite($div.attr('id'), true);
+                return false;
+            });
+            $('.showOnMap', $div).click(function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                self.switchTo($('#resto-panel-trigger-map'));
+                self.Map.hilite(id, true);
+                return false;
+            });
+            $('.addToCart', $div).click(function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                self.Util.ajax({
+                    url: self.restoUrl + 'users/' + self.Header.userProfile.userid + '/cart',
+                    async: true,
+                    type: 'POST',
+                    dataType: "json",
+                    data: JSON.stringify({'url':self.restoUrl + 'collections/' + feature.properties['collection'] + '/' + feature.id + '/download'}),
+                    contentType: 'application/json',
+                    success: function(obj, textStatus, XMLHttpRequest) {
+                        if (XMLHttpRequest.status === 200) {
+                            alert('added')
+                        }
+                    },
+                    error: function(e) {
+                        alert('TODO - error');
+                    }
+                }, true);
+                return false;
+            });
+            $('.downloadProduct', $div).click(function(e){
+                e.preventDefault();
+                e.stopPropagation();
+                alert('TODO');
+                return false;
+                //feature.properties['services']['download']['url'] + '"' + (feature.properties['services']['download']['mimeType'] === 'text/html' ? ' target="_blank"' : '') + 
+            });
+            
         },
         
-        /**
-         * Unselect all features
-         */
-        unselectAll: function() {
-            $('.resto-feature').each(function () {
-                $(this).removeClass('selected darker').children().first().addClass('bg-alpha-dark-hover');
-            });
-            $('#feature-info-details').hide();
+        TODO: function() {
+            
+            /*
+             * Keywords are splitted in different types 
+             * 
+             *  - type = landuse (forest, water, etc.)
+             *  - type = country/continent/region/state/city
+             *  - type = platform/instrument
+             *  - type = date
+             *  - type = null and keyword start with a '#' = tags
+             *  
+             */
+            infos =  {};
+            if (feature.properties.keywords) {
+                var keywords = {
+                    location: {
+                        title: '_location',
+                        keywords: []
+                    },
+                    landuse: {
+                        title: '_landUse',
+                        keywords: []
+                    },
+                    tag: {
+                        title: '_tags',
+                        keywords: []
+                    },
+                    resolution: {
+                        title: '_resolution',
+                        keywords: []
+                    },
+                    other: {
+                        title: '_other',
+                        keywords: []
+                    }
+                };
+                var j, keyword, text, typeAndId, type, title, resolution;
+                for (j = feature.properties.keywords.length; j--;) {
+                    keyword = feature.properties.keywords[j];
+                    text = keyword['name'];
+                    typeAndId = keyword.id.split(':'),
+                            title = "";
+                    if (typeAndId[0] === 'landuse') {
+                        type = 'landuse';
+                        text = text + ' (' + Math.round(keyword.value) + '%)';
+                        title = self.Util.translate('_thisResourceContainsLanduse', [keyword.value, key]);
+                    }
+                    else if (typeAndId[0] === 'country' || typeAndId[0] === 'continent' || typeAndId[0] === 'region' || typeAndId[0] === 'state') {
+                        type = 'location';
+                        title = self.Util.translate('_thisResourceIsLocated', [text]);
+                    }
+                    else if (typeAndId[0] === 'city') {
+                        type = 'location';
+                        title = self.Util.translate('_thisResourceContainsCity', [text]);
+                    }
+                    else if (keyword.name.indexOf("#") === 0) {
+                        type = 'tag';
+                    }
+                    else if (typeAndId[0] === 'other') {
+                        type = 'other';
+                    }
+                    else {
+                        continue;
+                    }
+                    keywords[type]['keywords'].push('<a href="' + self.Util.updateUrlFormat(keyword['href'], 'html') + '" class="resto-ajaxified resto-keyword' + (typeAndId[0] ? ' resto-keyword-' + typeAndId[0].replace(' ', '') : '') + '" title="' + title + '">' + text + '</a> ');
+                }
+
+                /*
+                 * Resolution
+                 */
+                if (feature.properties['resolution']) {
+                    resolution = self.getResolution(feature.properties['resolution']);
+                    keywords['resolution']['keywords'].push(feature.properties['resolution'] + 'm - <a href="' + self.Util.updateUrl(self.Util.updateUrlFormat(selfUrl, 'html'), {q: self.Util.translate(resolution)}) + '" class="resto-ajaxified resto-updatebbox resto-keyword resto-keyword-resolution" title="' + self.Util.translate(resolution) + '">' + resolution + '</a>');
+                }
+
+                for (var key in keywords) {
+                    if (keywords[key]['keywords'].length > 0) {
+                        infos.push('<p><span class="upper">' + self.Util.translate(keywords[key]['title']) + '</span>&nbsp;&nbsp;<span>' + keywords[key]['keywords'].join(', ') + '</span></p>');
+                    }
+                }
+                $('#feature-info-details').append('<div class="feature-info-details">' + infos.join('') + '</div>');
+            }
+            
         }
     };
     

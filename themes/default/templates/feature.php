@@ -35,9 +35,8 @@
       
         <!-- Collection title and description -->
         <div class="row">
-            <div class="large-6 columns center">
-                <h1>&nbsp;</h1>
-                <h2><?php echo $self->context->dictionary->translate('_resourceSummary', $product['properties']['platform'], $product['properties']['resolution'], substr($product['properties']['startDate'],0, 10)); ?></h2>
+            <div class="large-6 columns center text-dark padded-top">
+                <h2><?php echo $self->context->dictionary->translate('_resourceSummary', $product['properties']['platform'], substr($product['properties']['startDate'],0, 10)); ?></h2>
                 <h7 title="<?php echo $product['id']; ?>" style="overflow: hidden;"><?php echo $product['id']; ?></h7>
                 <?php
                     if (isset($product['properties']['services']) && isset($product['properties']['services']['download']) && isset($product['properties']['services']['download']['url'])) {
@@ -50,11 +49,10 @@
                       } 
                     }
                 ?>
-                <h1>&nbsp;</h1>
             </div>
-            <div class="large-6 columns grey">
+            <div class="large-6 columns text-dark padded-top">
                 <h3><?php echo $self->collection->osDescription[$self->context->dictionary->language]['ShortName']; ?></h3>
-                <p>
+                <p style="text-align:justify">
                     <?php echo $self->collection->osDescription[$self->context->dictionary->language]['Description']; ?>
                 </p>
             </div>

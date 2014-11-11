@@ -29,9 +29,6 @@ a.hilited {
 a.hilited:hover {
     color:#000;
 }
-h1 {
-    font-size:2.2em;
-}
 .small {
     font-size:0.9em;
 }
@@ -306,30 +303,31 @@ nav a.hilite {
     height: 400px;
     box-sizing: border-box;
 }
-
 .feature-info-bottom {
     text-align:center;
     width:100%;
+}
+.small img {
+    border-radius: 50%;
+    background-color:#fff;
+    height:40px;
 }
 .feature-info-bottom a {
     color:#fff;
     padding:0px 10px;
 }
 .feature-info-bottom a:hover {
-    color:limegreen;
+    color:darkorange;
 }
 
-.resto-keywords {
-    font-size: 14px;
+#feature-info-details {
+    background-color:rgb(248,248,248);
+    line-height:350px;
 }
-
-.resto-actions {
-    font-size: 2em;
+#feature-info-details a {
+    color:rgba(0,0,0,0.75);
+    padding:12px;
 }
-.resto-actions a {
-    padding:0 10px;
-}
-
 .resto-search {
     padding: 0 10px 0 20px;
     line-height:45px;
