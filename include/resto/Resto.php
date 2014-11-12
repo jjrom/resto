@@ -122,6 +122,7 @@
  *    |  GET     api/users/connect                             |  Connect user
  *    |  GET     api/users/disconnect                          |  Disconnect user
  *    |  GET     api/users/{userid}/activate                   |  Activate users with activation code
+ *    |  GET     api/users/{userid}/isConnected                |  Check is user is connected
  *    
  * Query
  * -----
@@ -138,6 +139,7 @@
  *    | _showQuery         |     boolean    | (For HTML output only) true to display query analysis result
  *    | _tk                |     string     | (For download/visualize) sha1 token for resource access
  *    | _rc                |     boolean    | (For search) true to perform the total count of search results
+ *    | _sid               |     string     | (For isConnected) current sessionid
  *    | callback           |     string     | (For JSON output only) name of callback funtion for JSON-P
  * 
  * Returned error
@@ -301,6 +303,7 @@ class Resto {
              *      api/users/connect
              *      api/users/disconnect
              *      api/users/{userid}/activate
+             *      api/users/{userid}/isConnected
              */
             case 'api':
                 if (!isset($segments[1])) {
@@ -370,6 +373,25 @@ class Resto {
                                 $this->response = $this->toJSON(array(
                                     'status' => 'error',
                                     'message' => 'User not activated'
+                                ));
+                            }
+                        }
+                        else {
+                            throw new Exception('Bad Request', 400);
+                        }
+                    }
+                    else if (isset($segments[3]) && $segments[3] === 'isConnected' && !isset($segments[4])) {
+                        if (isset($this->context->query['_sid'])) {
+                            if ($this->dbDriver->userIsConnected($segments[2], $this->context->query['_sid'])) {
+                                $this->response = $this->toJSON(array(
+                                    'status' => 'connected',
+                                    'message' => 'User is connected'
+                                ));
+                            }
+                            else {
+                                $this->response = $this->toJSON(array(
+                                    'status' => 'error',
+                                    'message' => 'User not connected'
                                 ));
                             }
                         }

@@ -342,13 +342,23 @@ abstract class RestoDatabaseDriver {
      */
     abstract public function activateUser($userid);
     
-     /**
+    /**
      * Deactivate user
      * 
      * @param string $userid
      * @throws Exception
      */
     abstract public function deactivateUser($userid);
+    
+    /**
+     * Return true if $userid is connected (from $sessionid)
+     * 
+     * @param string $userid
+     * @param string $sessionid
+     * 
+     * @throws Exception
+     */
+    abstract public function userIsConnected($userid, $sessionid);
     
     /**
      * Return rights from user $identifier

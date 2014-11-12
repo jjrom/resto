@@ -232,6 +232,31 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     }
     
     /**
+     * Return true if $userid is connected (from $sessionid)
+     * 
+     * @param string $identifier : userid or email
+     * @param string $sessionid
+     * 
+     * @throws Exception
+     */
+    public function userIsConnected($identifier, $sessionid) {
+        
+        if (!isset($identifier) || !isset($sessionid)) {
+            return false;
+        }
+        $where = !ctype_digit($identifier) ? 'userid=' . $identifier : 'email=\'' . pg_escape_string($identifier) . '\'';
+        $results = pg_query($this->dbh, 'SELECT lastsessionid FROM usermanagement.users WHERE ' . $where . ' AND lastesessionid=\'' . pg_escape_string($sessionid) . '\'');
+        if (!$results) {
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+        }
+        while ($result = pg_fetch_assoc($results)) {
+            return true;
+        }
+
+        return false;
+    }
+    
+    /**
      * Return true if resource is shared (checked with proof)
      * 
      * @param string $resourceUrl
