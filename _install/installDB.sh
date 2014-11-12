@@ -323,9 +323,11 @@ CREATE TABLE usermanagement.cart (
     itemid              TEXT NOT NULL,
     querytime           TIMESTAMP,
     item                TEXT NOT NULL -- item as JSON
+    cartid              TEXT
 );
 CREATE INDEX idx_email_cart ON usermanagement.cart (email);
 CREATE INDEX idx_itemid_cart ON usermanagement.cart (itemid);
+CREATE INDEX idx_cartid_cart ON usermanagement.cart (cartid);
 
 --
 -- temporary download table
