@@ -1741,9 +1741,11 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     'floodedCover' => 'btree',
                     'forestCover' => 'btree',
                     'herbaceousCover' => 'btree',
+                    'iceCover' => 'btree',
                     'snowCover' => 'btree',
                     'urbanCover' => 'btree',
                     'waterCover' => 'btree',
+                    'cloudCover' => 'btree',
                     'geometry' => 'gist',
                     'hashes' => 'gin'
                 );
