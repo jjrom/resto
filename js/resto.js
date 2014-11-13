@@ -927,12 +927,26 @@
                 }
             });
             
-            $(window).resize(function(){
-                $('.resto_menu').hide();
+            /*
+             * Show small menu
+             */
+            $('.show-small-menu').click(function(e){
+                e.preventDefault();
+                if ($('#small-menu').is(':visible')){
+                    $('#small-menu').hide();
+                    $('.show-small-menu').removeClass('icon-close');
+                    $('.show-small-menu').addClass('icon-menu');
+                }else{
+                    $('#small-menu').show();
+                    $('.show-small-menu').addClass('icon-close');
+                    $('.show-small-menu').removeClass('icon-menu');
+                }
+                return false;
             });
             
-            
-            this.createSmallMenu();
+            $(window).resize(function(){
+                $('#small-menu').hide();
+            });
             
         },
      
@@ -983,7 +997,6 @@
                 Resto.Util.alert($div, 'Password is mandatory');
             }
             else {
-                Resto.Util.showMask();
                 Resto.Util.ajax({
                     url: Resto.restoUrl + 'users',
                     async: true,
@@ -997,8 +1010,9 @@
                         lastname: Resto.Util.sanitizeValue($('#lastName'))
                     },
                     success: function (json) {
-                        if (json && json.Status === 'success') {
-                            window.location.reload();
+                        if (json && json.status === 'success') {
+                            Resto.Util.alert($div, Resto.Util.translate('_emailSent'));
+                            $div.hide();
                         }
                         else {
                             Resto.Util.alert($div, json.ErrorMessage);
@@ -1071,15 +1085,7 @@
                     });
                 })(key);
             }
-        },
-        
-        createSmallMenu: function(){
-            $('.small_menu').hide();
-            $('.small_menu_button').on('click', function(){
-                $('.small_menu').is(':visible') ? $('.small_menu').hide() : $('.small_menu').show();
-            });
-        }        
-
+        }
     };
 
 })(window);

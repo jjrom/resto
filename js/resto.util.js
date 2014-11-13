@@ -309,7 +309,7 @@
             self.limit = limit;
             
             data = data || {};
-            if (typeof(callback) === "function") {
+            if (typeof(callback) !== "function") {
                 return false;
             }
             $(window).scroll(function() {

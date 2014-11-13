@@ -284,14 +284,6 @@ nav a.hilite {
     color:#fff;
 }
 
-
-.breadcrumb {
-    margin-left: 20px;
-    margin-top: 30px;
-    float: left;
-    color: white;
-}
-
 /*
  * RESTo CSS
  */
@@ -375,30 +367,6 @@ nav a.hilite {
 
 a.resto-keyword {
     font-weight: 400;
-}
-a.resto-keyword-forest {
-    color:darkgreen;
-}
-a.resto-keyword-water {
-    color:darkblue;
-}
-a.resto-keyword-flooded {
-    color:blue;
-}
-a.resto-keyword-urban {
-    color:darkgrey;
-}
-a.resto-keyword-cultivated {
-    color:orange;
-}
-a.resto-keyword-desert {
-    color:red;
-}
-a.resto-keyword-snow {
-    color:lightgray;
-}
-a.resto-keyword-herbaceous  {
-    color:green;
 }
 
 /*
@@ -498,83 +466,11 @@ a.resto-keyword-herbaceous  {
     padding:20px;
 }
 
-/*
- * Administration
- */
-#dropZone {
-    background-color:rgba(255,255,255, 0.8);
-    border: 2px dashed #FFF;
-    border-radius: 5px 5px 5px 5px;
-    font-size:1em;
-    color:#000;
-}
-#dropZone.hover {
-    background-color:#4099FF;
-    color:#fff;
-    border: 2px dashed #000;
-}
-#restoUserPanel {
-    position: fixed;
-    z-index: 91000;
-    top: 0px;
-    left: 0px;
-    background-color: rgba(0, 0, 0, 0.9);
-    color: white;
-    text-align: center;
-    width: 100%;
-    height: 100%;
-    padding:10% 0 0 0
-}
-#restoUserPanel img {
-    padding:10px;
-    border-radius: 50%;
-}
-#restoUserPanel .close {
-    position:absolute;
-    top:0px;
-    right:20px;
-    cursor:pointer;
-    font-size:4em;
-    color:#fff;
-}
-#restoUserPanel .close:before {
-    content:"\00D7";
-}
-#restoUserPanel input[type="password"],#restoUserPanel input[type="text"] {
-    display: inline-block;
-    width:250px;
-}
-
 .button.zoom {
     font-size:1.5rem;
     padding:12px 20px 13px 20px;
 }
-.button.admin {
-    font-size:0.5em;
-    padding:15px;
-    border-radius:5px;
-}
-.adminMessage {
-    position:fixed;
-    z-index:95000;
-    height:auto;
-    padding:20px 20px;
-    background-color: orange;
-    color:#fff;
-    box-shadow: 1px 1px 1px #000;
-}
-.resto-admin {
-    color:#fff;
-}
-.resto-admin h1 {
-    color:#fff;
-}
-.resto-admin a {
-    color:#fff;
-}
-.resto-admin a:hover {
-    color:#000;
-}
+
 
 /*
  * Background sizing
@@ -587,12 +483,6 @@ a.resto-keyword-herbaceous  {
         background-size:auto;
     }
 }
-
-
-
-
-
-
 
 
 .resto_menu {
@@ -622,4 +512,32 @@ a.resto-keyword-herbaceous  {
 }
 .orangefield input, .orangefield input:focus {
     background-color:darkorange;
+}
+
+#small-menu {
+    background-color: rgba(0,0,0,0.4);
+}
+
+#small-menu ul {
+    padding: 0 10px 0 0;
+    margin: 0 auto;
+}
+#small-menu li {
+    line-height: 50px;
+    font-size: 0.8em;
+    letter-spacing: 1px;
+}
+#small-menu a {
+    padding:0 10px;
+    color:#fff;
+}
+
+.small-logo {
+    position:absolute;
+    left: 10px;
+    line-height: 80px;
+    height:80px;
+}
+.small-logo:hover {
+    cursor: pointer;
 }
