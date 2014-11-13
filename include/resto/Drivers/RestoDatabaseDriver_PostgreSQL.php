@@ -1533,7 +1533,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         $itemId = sha1($identifier . $item['url']);
         try {
             if ($this->isInCart($itemId)) {
-                return false;
+                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot add item : ' . $itemId . ' already exists', 500);
             }
             $values = array(
                 '\'' . pg_escape_string($itemId) . '\'',
@@ -1543,11 +1543,43 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             );
             $results = pg_query($this->dbh, 'INSERT INTO usermanagement.cart (itemid, email, item, querytime) VALUES (' . join(',', $values) . ')');
             if (!$results) {
-                throw new Exception();
+                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
             }
             return array($itemId => $item);
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot add ' . $itemId . ' to cart', 500);
+            throw new Exception($e->getMessage(), $e->getCode());
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Update cart
+     * 
+     * @param string $identifier
+     * @param string $itemId
+     * @param array $item
+     *   
+     *   Must contain at least a 'url' entry
+     *   
+     * @return boolean
+     * @throws exception
+     */
+    public function updateCart($identifier, $itemId, $item) {
+        if (!isset($identifier) || !isset($itemId) || !isset($item) || !is_array($item) || !isset($item['url'])) {
+            return false;
+        }
+        try {
+            if (!$this->isInCart($itemId)) {
+                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot update item : ' . $itemId . ' does not exist', 500);
+            }
+            $results = pg_query($this->dbh, 'UPDATE usermanagement.cart SET item = \''. pg_escape_string(json_encode($item)) . '\', querytime=now() WHERE email=\'' . pg_escape_string($identifier) . '\' AND itemid=\'' . pg_escape_string($itemId) . '\'');
+            if (!$results) {
+                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            }
+            return true;
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage(), $e->getCode());
         }
         
         return false;

@@ -91,7 +91,7 @@ class RestoCart{
          */
         $itemId = sha1($this->user->profile['email'] . $item['url']);
         if (isset($this->items[$itemId])) {
-            return $itemId;
+            throw new Exception('Cannot add item : ' . $itemId . ' already exists', 500);
         }
         
         /*
@@ -114,6 +114,32 @@ class RestoCart{
         $this->items[$itemId] = $item;
         
         return $itemId;
+    }
+    
+    /**
+     * Update item in cart
+     * 
+     * @param string $itemId
+     * @param array $item
+     * @param boolean $synchronize : true to synchronize with database
+     */
+    public function update($itemId, $item, $synchronize = false) {
+        if (!isset($itemId)) {
+            return false;
+        }
+        if (!isset($this->items[$itemId])) {
+            throw new Exception('Cannot update item : ' . $itemId . ' does not exist', 500);
+        }
+        if ($synchronize) {
+            $this->items[$itemId] = $item;
+            return $this->dbDriver->updateCart($this->user->profile['email'], $itemId, $item);
+        }
+        else {
+            $this->items[$itemId] = $item;
+            return true;
+        }
+        
+        return false;
     }
     
     /**

@@ -93,8 +93,12 @@
  *    |  POST    users                                         |  Add a user
  *    |  GET     users/{userid}                                |  Show {userid} information
  *    |  GET     users/{userid}/cart                           |  Show {userid} cart
- *    |  POST    users/{userid}/cart                           |  Add new item in {userid} cart (through 'resourceUrl' key)
+ *    |  POST    users/{userid}/cart                           |  Add new item in {userid} cart
+ *    |  PUT     users/{userid}/cart/{itemid}                  |  Modify item in {userid} cart
  *    |  DELETE  users/{userid}/cart/{itemid}                  |  Remove {itemid} from {userid} cart
+ *    |  GET     users/{userid}/orders                         |  Show orders for {userid}
+ *    |  POST    users/{userid}/orders                         |  Send an order for {userid}
+ *    |  GET     users/{userid}/orders/{orderid}               |  Show {orderid} order for {userid}
  *    |  GET     users/{userid}/rights                         |  Show rights for {userid}
  *    |  GET     users/{userid}/rights/{collection}            |  Show rights for {userid} on {collection}
  *    |  GET     users/{userid}/rights/{collection}/{feature}  |  Show rights for {userid} on {feature} from {collection}
@@ -251,6 +255,7 @@ class Resto {
          */
         ob_start();
         header('HTTP/1.1 ' . $this->responseStatus . ' ' . (isset(RestoUtil::$codes[$this->responseStatus]) ? RestoUtil::$codes[$this->responseStatus] : RestoUtil::$codes[200]));
+        header("Cache-Control: max-age=2592000, public");
         header('Content-Type: ' . RestoUtil::$contentTypes[$this->outputFormat]);
         $this->setCORS();
         echo $this->response;
@@ -425,6 +430,8 @@ class Resto {
              *      users/{userid}/rights/{collection}/{feature}
              *      users/{userid}/cart
              *      users/{userid}/cart/{itemid}
+             *      users/{userid}/orders
+             *      users/{userid}/orders/{orderid}
              */
             case 'users':
                 if (isset($segments[2])) {
@@ -433,6 +440,9 @@ class Resto {
                     }
                     else if ($segments[2] === 'cart') {
                         $this->processUserCart($segments[1], isset($segments[3]) ? $segments[3] : null);
+                    }
+                    else if ($segments[2] === 'orders') {
+                        $this->processUserOrders($segments[1], isset($segments[3]) ? $segments[3] : null);
                     }
                     else {
                         $this->process404();
@@ -700,6 +710,7 @@ class Resto {
      *   
      *    |  GET     users/{userid}/cart                           |  Show {userid} cart
      *    |  POST    users/{userid}/cart                           |  Add new item in {userid} cart
+     *    |  PUT     users/{userid}/cart/{itemid}                  |  Modify item in {userid} cart
      *    |  DELETE  users/{userid}/cart/{itemid}                  |  Remove {itemid} from {userid} cart
      *
      * @param string $userid
@@ -758,7 +769,7 @@ class Resto {
             $item= RestoUtil::readInputData();
             
             if (!is_array($item) || count($item) === 0) {
-                throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid cart', 400);
+                throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid item', 400);
             }
             $itemId = $user->addToCart($item, true);
             if ($itemId) {
@@ -773,6 +784,38 @@ class Resto {
                 $this->response = $this->toJSON(array(
                     'status' => 'error',
                     'message' => 'Cannot add item to cart'
+                ));
+            }
+        }
+        /*
+         * Update item from cart
+         */
+        else if ($this->method === 'PUT') {
+            
+            if (!isset($itemid)) {
+                $this->process404();
+            }
+            
+            /*
+             * Read PUT data
+             */
+            $item = RestoUtil::readInputData();
+            
+            if (!is_array($item) || count($item) === 0) {
+                throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid item', 400);
+            }
+            if ($user->updateCart($itemid, $item, true)) {
+                $this->response = $this->toJSON(array(
+                    'status' => 'success',
+                    'message' => 'Item ' . $itemid . ' updated',
+                    'itemId' => $itemid,
+                    'item' => $item
+                ));
+            }
+            else {
+                $this->response = $this->toJSON(array(
+                    'status' => 'error',
+                    'message' => 'Cannot update item ' . $itemid
                 ));
             }
         }
@@ -799,6 +842,79 @@ class Resto {
             }
         }
         
+    }
+    
+    /**
+     * Process 'users/{userid}/orders' requests
+     *   
+     *    |  GET     users/{userid}/orders                         |  Show orders for {userid}
+     *    |  POST    users/{userid}/orders                         |  Send an order for {userid}
+     *    |  GET     users/{userid}/orders/{orderid}               |  Show {orderid} order for {userid}
+     *
+     * @param string $userid
+     * @param string $orderid
+     * @throws Exception
+     */
+    private function processUserOrders($userid, $orderid = null) {
+        
+       /*
+        * Note : if userid is not an integer it is assumed that this is the
+        * email encoded in base64
+        */
+        if (!ctype_digit($userid)) {
+            $userid = strtolower(base64_decode($userid));
+            if (isset($this->user->profile['email']) && $this->user->profile['email'] === $userid) {
+                $userid = $this->user->profile['userid'];
+            }
+        }
+        
+        /*
+         * Orders can only be seen by its owner or by admin
+         */
+        $user = $this->user;
+        if ($user->profile['userid'] !== $userid) {
+            if ($user->profile['groupname'] !== 'admin') {
+                throw new Exception('Forbidden', 403);
+            }
+            else {
+                $user = new RestoUser($userid, null, $this->dbDriver, false);
+            }
+        }
+        
+        /*
+         * List orders
+         */
+        if ($this->method === 'GET') {
+            $this->response = $this->format($user->getOrders($orderid));
+        }
+        /*
+         * Add an order
+         */
+        else if ($this->method === 'POST') {
+            
+            if (isset($orderid)) {
+                $this->process404();
+            }
+            
+            /*
+             * Read POST data
+             */
+            $order = $user->placeOrder(RestoUtil::readInputData(), true);
+            if ($order) {
+                $this->response = $this->toJSON(array(
+                    'status' => 'success',
+                    'message' => 'Place order',
+                    'orderId' => $order['id'],
+                    'order' => $order['content']
+                ));
+            }
+            else {
+                $this->response = $this->toJSON(array(
+                    'status' => 'error',
+                    'message' => 'Cannot place order'
+                ));
+            }
+        } 
     }
     
     /**

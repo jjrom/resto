@@ -276,9 +276,10 @@ class RestoUser{
      * Add item to cart
      * 
      * @param array $item
+     * @param boolean $synchronize
      */
-    public function addToCart($item) {
-        $itemId = $this->cart->add($item, true);
+    public function addToCart($item, $synchronize = false) {
+        $itemId = $this->cart->add($item, $synchronize);
         if ($itemId) {
             $_SESSION['cart'] = $this->getCart()->getItems();
             return $itemId;
@@ -287,13 +288,31 @@ class RestoUser{
     }
     
     /**
+     * Add item to cart
+     * 
+     * @param string $itemId
+     * @param array $item
+     * @param boolean $synchronize
+     */
+    public function updateCart($itemId, $item, $synchronize = false) {
+        if ($this->cart) {
+            if ($this->cart->update($itemId, $item, $synchronize)) {
+                $_SESSION['cart'] = $this->getCart()->getItems();
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
      * Remove item from cart
      * 
      * @param string $itemId
+     * @param boolean $synchronize
      */
-    public function removeFromCart($itemId) {
+    public function removeFromCart($itemId, $synchronize = false) {
         if ($this->cart) {
-            if ($this->cart->remove($itemId, true)) {
+            if ($this->cart->remove($itemId, $synchronize)) {
                 $_SESSION['cart'] = $this->getCart()->getItems();
                 return true;
             }

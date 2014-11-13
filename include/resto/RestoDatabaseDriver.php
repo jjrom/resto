@@ -285,6 +285,20 @@ abstract class RestoDatabaseDriver {
     abstract public function addToCart($identifier, $item = array());
     
     /**
+     * Update cart
+     * 
+     * @param string $identifier
+     * @param string $itemId
+     * @param array $item
+     *   
+     *   Must contain at least a 'url' entry
+     *   
+     * @return boolean
+     * @throws exception
+     */
+    abstract public function updateCart($identifier, $itemId, $item);
+    
+    /**
      * Remove resource from cart
      * 
      * @param string $identifier
