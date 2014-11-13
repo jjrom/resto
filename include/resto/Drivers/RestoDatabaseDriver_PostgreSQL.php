@@ -244,8 +244,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         if (!isset($identifier) || !isset($sessionid)) {
             return false;
         }
-        $where = !ctype_digit($identifier) ? 'userid=' . $identifier : 'email=\'' . pg_escape_string($identifier) . '\'';
-        $results = pg_query($this->dbh, 'SELECT lastsessionid FROM usermanagement.users WHERE ' . $where . ' AND lastesessionid=\'' . pg_escape_string($sessionid) . '\'');
+        $where = ctype_digit($identifier) ? 'userid=' . $identifier : 'email=\'' . pg_escape_string($identifier) . '\'';
+        $results = pg_query($this->dbh, 'SELECT lastsessionid FROM usermanagement.users WHERE ' . $where . ' AND lastsessionid=\'' . pg_escape_string($sessionid) . '\'');
         if (!$results) {
             throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
         }
