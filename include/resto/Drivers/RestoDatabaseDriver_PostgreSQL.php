@@ -1608,6 +1608,91 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     }
     
     /**
+     * Return orders list for user
+     * 
+     * @param string $identifier
+     * @param string $orderId
+     * @return array
+     * @throws exception
+     */
+    public function getOrders($identifier, $orderId) {
+        $items = array();
+        
+        if (!isset($identifier)) {
+            return $items;
+        }
+        try {
+            $results = pg_query($this->dbh, 'SELECT orderid, items FROM usermanagement.orders WHERE email=\'' . pg_escape_string($identifier) . '\'' . (isset($orderId) ? ' AND orderid=\'' . pg_escape_string($orderId) . '\'' : ''));
+            if (!$results) {
+                throw new Exception();
+            }
+            while ($result = pg_fetch_assoc($results)) {
+                $items[] = json_decode($result['items'], true);
+            }
+        } catch (Exception $e) {
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+        }
+        
+        return $items;
+    }
+    
+    /**
+     * Place order for user
+     * 
+     * @param string $identifier
+     * 
+     * @return array
+     * @throws exception
+     */
+    public function placeOrder($identifier) {
+        
+        if (!isset($identifier)) {
+            return false;
+        }
+        
+        try {
+            
+            /*
+             * Transaction
+             */
+            pg_query($this->dbh, 'BEGIN');
+                
+            /*
+             * Do not create empty orders
+             */
+            $items = $this->getCartItems($identifier);
+            if (!isset($items) || count($items) === 0) {
+                return false;
+            }
+            
+            $orderId = sha1($identifier . microtime());
+            $values = array(
+                '\'' . pg_escape_string($orderId) . '\'',
+                '\'' . pg_escape_string($identifier) . '\'',
+                '\'' . pg_escape_string(json_encode($items)) . '\'',
+                'now()'
+            );
+            $results = pg_query($this->dbh, 'INSERT INTO usermanagement.orders (orderid, email, items, querytime) VALUES (' . join(',', $values) . ')');
+            if (!$results) {
+                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            }
+            
+            /*
+             * Empty cart
+             */
+            pg_query($this->dbh, 'DELETE FROM usermanagement.cart WHERE email=\'' . pg_escape_string($identifier) . '\'');
+            pg_query($this->dbh, 'COMMIT');
+            
+            return array($orderId => $items);
+        } catch (Exception $e) {
+            pg_query($this->dbh, 'ROLLBACK');
+            throw new Exception($e->getMessage(), $e->getCode());
+        }
+        
+        return false;
+    }
+    
+    /**
      * Get collection description
      * 
      * @param string $collectionName

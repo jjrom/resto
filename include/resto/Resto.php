@@ -885,7 +885,12 @@ class Resto {
          * List orders
          */
         if ($this->method === 'GET') {
-            $this->response = $this->format($user->getOrders($orderid));
+            $orders = $user->getOrders($orderid);
+            $this->response = $this->toJSON(array(
+                'status' => 'success',
+                'message' => 'Orders for user ' . $userid,
+                'orders' => $orders
+            ));
         }
         /*
          * Add an order
@@ -899,13 +904,12 @@ class Resto {
             /*
              * Read POST data
              */
-            $order = $user->placeOrder(RestoUtil::readInputData(), true);
+            $order = $user->placeOrder();
             if ($order) {
                 $this->response = $this->toJSON(array(
                     'status' => 'success',
                     'message' => 'Place order',
-                    'orderId' => $order['id'],
-                    'order' => $order['content']
+                    'order' => $order
                 ));
             }
             else {

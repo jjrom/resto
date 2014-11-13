@@ -309,6 +309,26 @@ abstract class RestoDatabaseDriver {
     abstract public function removeFromCart($identifier, $itemId);
     
     /**
+     * Return orders list for user
+     * 
+     * @param string $identifier
+     * @param string $orderId
+     * @return array
+     * @throws exception
+     */
+    abstract public function getOrders($identifier, $orderId);
+    
+    /**
+     * Place order for user
+     * 
+     * @param string $identifier
+     * 
+     * @return array
+     * @throws exception
+     */
+    abstract public function placeOrder($identifier);
+    
+    /**
      * Get user profile
      * 
      * @param string $identifier : can be email (or string) or integer (i.e. uid)

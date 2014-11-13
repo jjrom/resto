@@ -319,5 +319,21 @@ class RestoUser{
         }
         return false;
     }
+    
+    /**
+     * Return user orders
+     * 
+     * @param string $orderId
+     */
+    public function getOrders($orderId) {
+        return $this->dbDriver->getOrders($this->profile['email'], $orderId);
+    }
+    
+    /**
+     * Place order
+     */
+    public function placeOrder() {
+        return $this->dbDriver->placeOrder($this->profile['email']);
+    }
 }
 

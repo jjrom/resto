@@ -323,11 +323,22 @@ CREATE TABLE usermanagement.cart (
     itemid              TEXT NOT NULL,
     querytime           TIMESTAMP,
     item                TEXT NOT NULL -- item as JSON
-    cartid              TEXT
 );
 CREATE INDEX idx_email_cart ON usermanagement.cart (email);
 CREATE INDEX idx_itemid_cart ON usermanagement.cart (itemid);
-CREATE INDEX idx_cartid_cart ON usermanagement.cart (cartid);
+
+--
+-- orders table stores user orders
+--
+CREATE TABLE usermanagement.orders (
+    gid                 SERIAL PRIMARY KEY,
+    email               TEXT,
+    orderid             TEXT NOT NULL,
+    querytime           TIMESTAMP,
+    items               TEXT NOT NULL -- items as an array of JSON cart item
+);
+CREATE INDEX idx_email_orders ON usermanagement.orders (email);
+CREATE INDEX idx_orderid_orders ON usermanagement.orders (orderid);
 
 --
 -- temporary download table
@@ -379,6 +390,7 @@ GRANT SELECT,INSERT,UPDATE,DELETE ON usermanagement.users TO $USER;
 GRANT SELECT,INSERT,UPDATE,DELETE ON usermanagement.rights TO $USER;
 GRANT SELECT,INSERT,UPDATE,DELETE ON usermanagement.signatures TO $USER;
 GRANT SELECT,INSERT,UPDATE,DELETE ON usermanagement.cart TO $USER;
+GRANT SELECT,INSERT,UPDATE,DELETE ON usermanagement.orders TO $USER;
 GRANT SELECT,INSERT,UPDATE,DELETE ON usermanagement.sharedlinks TO $USER;
 GRANT SELECT,INSERT,UPDATE ON usermanagement.history TO $USER;
 GRANT ALL ON usermanagement.rights_gid_seq TO $USER;
@@ -387,6 +399,8 @@ GRANT SELECT,UPDATE ON usermanagement.users_userid_seq TO $USER;
 GRANT SELECT,UPDATE ON usermanagement.history_gid_seq TO $USER;
 GRANT SELECT,UPDATE ON usermanagement.sharedlinks_gid_seq TO $USER;
 GRANT SELECT,UPDATE ON usermanagement.cart_gid_seq TO $USER;
+GRANT SELECT,UPDATE ON usermanagement.orders_gid_seq TO $USER;
+
 
 EOF
 
