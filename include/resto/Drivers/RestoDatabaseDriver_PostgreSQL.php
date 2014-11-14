@@ -1046,6 +1046,9 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             if (!is_array($profile) || !isset($profile['email'])) {
                 throw new Exception('Cannot save user profile - invalid user identifier', 500);
             }
+            if ($this->userExists($profile['email'])) {
+                throw new Exception('Cannot save user profile - user already exist', 500);
+            }
             $email = trim(strtolower($profile['email']));
             $values = array(
                 '\'' . pg_escape_string($email) . '\'',
