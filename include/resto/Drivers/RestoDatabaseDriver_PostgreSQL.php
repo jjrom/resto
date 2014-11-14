@@ -232,31 +232,6 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     }
     
     /**
-     * Return true if $userid is connected (from $sessionid)
-     * 
-     * @param string $identifier : userid or email
-     * @param string $sessionid
-     * 
-     * @throws Exception
-     */
-    public function userIsConnected($identifier, $sessionid) {
-        
-        if (!isset($identifier) || !isset($sessionid)) {
-            return false;
-        }
-        $where = ctype_digit($identifier) ? 'userid=' . $identifier : 'email=\'' . pg_escape_string($identifier) . '\'';
-        $results = pg_query($this->dbh, 'SELECT lastsessionid FROM usermanagement.users WHERE ' . $where . ' AND lastsessionid=\'' . pg_escape_string($sessionid) . '\'');
-        if (!$results) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
-        }
-        while ($result = pg_fetch_assoc($results)) {
-            return true;
-        }
-
-        return false;
-    }
-    
-    /**
      * Return true if resource is shared (checked with proof)
      * 
      * @param string $resourceUrl
@@ -1239,7 +1214,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         $booleans = array('search', 'download', 'visualize', 'post', 'put', 'delete');
         for ($i = count($booleans); $i--;) {
             if (isset($result[$booleans[$i]])){
-                $result[$booleans[$i]] = $result[$booleans[$i]] === 't' ? true : false;
+                $result[$booleans[$i]] = $result[$booleans[$i]] === 't' ? true : ($result[$booleans[$i]] = $result[$booleans[$i]] === 'f' ? false : null);
             }
         }
         return $result;
@@ -1271,7 +1246,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             }
             $booleans = array('search', 'download', 'visualize', 'post', 'put', 'delete');
             for ($i = count($booleans); $i--;) {
-                $row[$booleans[$i]] = $row[$booleans[$i]] === 't' ? true : false;
+                $row[$booleans[$i]] = $row[$booleans[$i]] === 't' ? true : ($row[$booleans[$i]] = $row[$booleans[$i]] === 'f' ? false : null);
             }
             $rights[] = $row;
         }
@@ -1313,7 +1288,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             }
             $booleans = array('search', 'download', 'visualize', 'post', 'put', 'delete');
             for ($i = count($booleans); $i--;) {
-                $properties[$booleans[$i]] = $row[$booleans[$i]] === 't' ? true : false;
+                $properties[$booleans[$i]] = $row[$booleans[$i]] === 't' ? true : ($properties[$booleans[$i]] = $row[$booleans[$i]] === 'f' ? false : null);
             }
             if (isset($row['featureid'])) {
                 $rights[$row['collection']]['features'][$row['featureid']] = $properties;
@@ -1533,7 +1508,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         $itemId = sha1($identifier . $item['url']);
         try {
             if ($this->isInCart($itemId)) {
-                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot add item : ' . $itemId . ' already exists', 500);
+                return false;
             }
             $values = array(
                 '\'' . pg_escape_string($itemId) . '\'',
@@ -1543,43 +1518,11 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             );
             $results = pg_query($this->dbh, 'INSERT INTO usermanagement.cart (itemid, email, item, querytime) VALUES (' . join(',', $values) . ')');
             if (!$results) {
-                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+                throw new Exception();
             }
             return array($itemId => $item);
         } catch (Exception $e) {
-            throw new Exception($e->getMessage(), $e->getCode());
-        }
-        
-        return false;
-    }
-    
-    /**
-     * Update cart
-     * 
-     * @param string $identifier
-     * @param string $itemId
-     * @param array $item
-     *   
-     *   Must contain at least a 'url' entry
-     *   
-     * @return boolean
-     * @throws exception
-     */
-    public function updateCart($identifier, $itemId, $item) {
-        if (!isset($identifier) || !isset($itemId) || !isset($item) || !is_array($item) || !isset($item['url'])) {
-            return false;
-        }
-        try {
-            if (!$this->isInCart($itemId)) {
-                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot update item : ' . $itemId . ' does not exist', 500);
-            }
-            $results = pg_query($this->dbh, 'UPDATE usermanagement.cart SET item = \''. pg_escape_string(json_encode($item)) . '\', querytime=now() WHERE email=\'' . pg_escape_string($identifier) . '\' AND itemid=\'' . pg_escape_string($itemId) . '\'');
-            if (!$results) {
-                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
-            }
-            return true;
-        } catch (Exception $e) {
-            throw new Exception($e->getMessage(), $e->getCode());
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot add ' . $itemId . ' to cart', 500);
         }
         
         return false;
@@ -1602,95 +1545,6 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             return true;
         } catch (Exception $e) {
             throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot remove ' . $itemId . ' from cart', 500);
-        }
-        
-        return false;
-    }
-    
-    /**
-     * Return orders list for user
-     * 
-     * @param string $identifier
-     * @param string $orderId
-     * @return array
-     * @throws exception
-     */
-    public function getOrders($identifier, $orderId) {
-        $items = array();
-        
-        if (!isset($identifier)) {
-            return $items;
-        }
-        try {
-            $results = pg_query($this->dbh, 'SELECT orderid, querytime, items FROM usermanagement.orders WHERE email=\'' . pg_escape_string($identifier) . '\'' . (isset($orderId) ? ' AND orderid=\'' . pg_escape_string($orderId) . '\'' : ''));
-            if (!$results) {
-                throw new Exception();
-            }
-            while ($result = pg_fetch_assoc($results)) {
-                $items[] = array(
-                    'orderId' => $result['orderid'],
-                    'date' => $result['querytime'],
-                    'items' => json_decode($result['items'], true)
-                );
-            }
-        } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
-        }
-        
-        return $items;
-    }
-    
-    /**
-     * Place order for user
-     * 
-     * @param string $identifier
-     * 
-     * @return array
-     * @throws exception
-     */
-    public function placeOrder($identifier) {
-        
-        if (!isset($identifier)) {
-            return false;
-        }
-        
-        try {
-            
-            /*
-             * Transaction
-             */
-            pg_query($this->dbh, 'BEGIN');
-                
-            /*
-             * Do not create empty orders
-             */
-            $items = $this->getCartItems($identifier);
-            if (!isset($items) || count($items) === 0) {
-                return false;
-            }
-            
-            $orderId = sha1($identifier . microtime());
-            $values = array(
-                '\'' . pg_escape_string($orderId) . '\'',
-                '\'' . pg_escape_string($identifier) . '\'',
-                '\'' . pg_escape_string(json_encode($items)) . '\'',
-                'now()'
-            );
-            $results = pg_query($this->dbh, 'INSERT INTO usermanagement.orders (orderid, email, items, querytime) VALUES (' . join(',', $values) . ')');
-            if (!$results) {
-                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
-            }
-            
-            /*
-             * Empty cart
-             */
-            pg_query($this->dbh, 'DELETE FROM usermanagement.cart WHERE email=\'' . pg_escape_string($identifier) . '\'');
-            pg_query($this->dbh, 'COMMIT');
-            
-            return array($orderId => $items);
-        } catch (Exception $e) {
-            pg_query($this->dbh, 'ROLLBACK');
-            throw new Exception($e->getMessage(), $e->getCode());
         }
         
         return false;
@@ -1887,11 +1741,9 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     'floodedCover' => 'btree',
                     'forestCover' => 'btree',
                     'herbaceousCover' => 'btree',
-                    'iceCover' => 'btree',
                     'snowCover' => 'btree',
                     'urbanCover' => 'btree',
                     'waterCover' => 'btree',
-                    'cloudCover' => 'btree',
                     'geometry' => 'gist',
                     'hashes' => 'gin'
                 );
@@ -3133,7 +2985,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         if (!$results) {
             throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
         }
-        return (integer) pg_fetch_assoc($results);
+        return pg_fetch_assoc($results);
     }
     
     /**
@@ -3149,7 +3001,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         if (!$results) {
             throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
         }
-        return (integer) pg_fetch_assoc($results);
+        return pg_fetch_assoc($results);
     }
     
 }
