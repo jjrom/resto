@@ -253,13 +253,13 @@ class Resto {
          * Set headers including cross-origin resource sharing (CORS)
          * http://en.wikipedia.org/wiki/Cross-origin_resource_sharing
          */
-        ob_start();
+        //ob_start();
         header('HTTP/1.1 ' . $this->responseStatus . ' ' . (isset(RestoUtil::$codes[$this->responseStatus]) ? RestoUtil::$codes[$this->responseStatus] : RestoUtil::$codes[200]));
         header("Cache-Control: max-age=2592000, public");
         header('Content-Type: ' . RestoUtil::$contentTypes[$this->outputFormat]);
         $this->setCORS();
         echo $this->response;
-        ob_end_flush();
+        //ob_end_flush();
 
     }
    

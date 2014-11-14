@@ -263,7 +263,7 @@ class RestoDictionary_fr extends RestoDictionary {
         '_poi' => 'Point d\'int&eacute;r&ecirc;ts',
         // Menu
         '_menu_shareOn' => 'Partager sur {a:1}',
-        '_menu_viewCart' => 'Voir le panier',
+        '_menu_cart' => 'Panier',
         '_menu_connexion' => 'Se connecter',
         '_menu_search' => 'Chercher...',
         '_menu_signup' => 'Inscription',

@@ -3,6 +3,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <link rel="shortcut icon" href="<?php echo $self->context->baseUrl ?>favicon.ico" />
+    <link rel="stylesheet" href="<?php echo $self->context->baseUrl ?>js/lib/foundation/normalize.css" type="text/css" />
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:800' rel='stylesheet' type='text/css'>
     <?php if (!isset($_noMap)) { ?>
     <!-- CSS mapshup -->
     <link rel="stylesheet" href="<?php echo $self->context->baseUrl ?>js/lib/mol/theme/default/style.css" type="text/css" />

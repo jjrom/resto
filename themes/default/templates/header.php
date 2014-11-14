@@ -26,6 +26,7 @@
             <li><a class="shy" href="#" data-reveal-id="displayLogin"><?php echo $self->context->dictionary->translate('_menu_signin'); ?></a></li>
             <li><a class="hilite" href="#" data-reveal-id="displayRegister"><?php echo $self->context->dictionary->translate('_menu_signup'); ?></a></li>
             <?php } else { ?>
+            <li><a class="fa fa-shopping-cart" href="#"> <?php echo $self->context->dictionary->translate('_menu_cart'); ?></a></li>
             <li><a class="gravatar" href="#" data-reveal-id="displayProfile" title="<?php echo $self->context->dictionary->translate('_menu_profile'); ?>"></a></li>
             <?php } ?>
         </ul>
@@ -86,11 +87,8 @@
             <label class="small fat text-light"><?php echo $self->context->dictionary->translate('_password');?></label>
             <input id="userPassword1" class="input-password" type="password"/>
         </div>
-        <div class="large-6 columns padded-top padded-left padded-right">
-            <a><?php echo $self->context->dictionary->translate('_menu_signin');?></a>
-        </div>
-        <div class="large-6 columns padded-top padded-left padded-right">
-            <a class="button radius register"><?php echo $self->context->dictionary->translate('_createAccount');?></a>
+        <div class="large-12 columns padded-top padded-left padded-right center">
+            <a class="button radius register signUp"><?php echo $self->context->dictionary->translate('_createAccount');?></a>
         </div>
     </form>
     <a class="close-reveal-modal">&#215;</a>

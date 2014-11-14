@@ -273,7 +273,7 @@ class RestoDictionary_en extends RestoDictionary {
         '_poi' => 'Points of interest',
         // Menu
         '_menu_shareOn' => 'Share on {a:1}',
-        '_menu_viewCart' => 'View Cart',
+        '_menu_cart' => 'Cart',
         '_menu_connexion' => 'Connexion',
         '_menu_search' => 'Search...',
         '_menu_signup' => 'Sign up',
@@ -281,7 +281,7 @@ class RestoDictionary_en extends RestoDictionary {
         '_menu_signin' => 'Sign in',
         '_menu_signinwith' => 'Sign in with',
         '_menu_signout' => 'Sign out',
-        '_menu_collections' => 'Collection',
+        '_menu_collections' => 'Collections',
         '_menu_map' => 'map',
         '_menu_list' => 'list',
         '_month01' => 'January',

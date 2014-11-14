@@ -570,7 +570,7 @@
                         best = country;
                     }
                     if (best !== -1) {
-                        topInfos.push('<h2 class="small upper"><a href="' + feature.properties.keywords[best]['href'] + '" class="resto-ajaxified hilited">' + feature.properties.keywords[best]['name'] + '</a></h2>');
+                        topInfos.push('<h2 class="small upper"><a href="' + feature.properties.keywords[best]['href'] + '" class="resto-ajaxified">' + feature.properties.keywords[best]['name'] + '</a></h2>');
                         var newHash, parentHash = feature.properties.keywords[best]['parentHash'];
                         while (parentHash) {
                             newHash = null;

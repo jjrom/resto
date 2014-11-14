@@ -280,6 +280,9 @@
          * @param {string} iso8601
          */
         niceDate: function(iso8601) {
+            if (!iso8601) {
+                return '';
+            }
             var ymd = iso8601.split('T')[0].split('-');
             return this.translate('_niceDate', [ymd[0], this.translate('_month' + ymd[1]), ymd[2]]);
         },
