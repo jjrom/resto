@@ -1239,7 +1239,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         $booleans = array('search', 'download', 'visualize', 'post', 'put', 'delete');
         for ($i = count($booleans); $i--;) {
             if (isset($result[$booleans[$i]])){
-                $result[$booleans[$i]] = $result[$booleans[$i]] === 't' ? true : false;
+                $result[$booleans[$i]] = $result[$booleans[$i]] === 't' ? true : ($result[$booleans[$i]] = $result[$booleans[$i]] === 'f' ? false : null);
             }
         }
         return $result;
@@ -1271,7 +1271,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             }
             $booleans = array('search', 'download', 'visualize', 'post', 'put', 'delete');
             for ($i = count($booleans); $i--;) {
-                $row[$booleans[$i]] = $row[$booleans[$i]] === 't' ? true : false;
+                $row[$booleans[$i]] = $row[$booleans[$i]] === 't' ? true : ($row[$booleans[$i]] = $row[$booleans[$i]] === 'f' ? false : null);
             }
             $rights[] = $row;
         }
@@ -1313,7 +1313,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             }
             $booleans = array('search', 'download', 'visualize', 'post', 'put', 'delete');
             for ($i = count($booleans); $i--;) {
-                $properties[$booleans[$i]] = $row[$booleans[$i]] === 't' ? true : false;
+                $properties[$booleans[$i]] = $row[$booleans[$i]] === 't' ? true : ($properties[$booleans[$i]] = $row[$booleans[$i]] === 'f' ? false : null);
             }
             if (isset($row['featureid'])) {
                 $rights[$row['collection']]['features'][$row['featureid']] = $properties;
@@ -3133,7 +3133,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         if (!$results) {
             throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
         }
-        return (integer) pg_fetch_assoc($results);
+        return pg_fetch_assoc($results);
     }
     
     /**
@@ -3149,7 +3149,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         if (!$results) {
             throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
         }
-        return (integer) pg_fetch_assoc($results);
+        return pg_fetch_assoc($results);
     }
     
 }
