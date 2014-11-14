@@ -711,7 +711,8 @@
             $('.addToCart', $div).click(function (e) {
                 e.preventDefault();
                 e.stopPropagation();
-                self.Util.ajax({
+                self.Util.showMask();
+                $.ajax({
                     url: self.restoUrl + 'users/' + self.Header.userProfile.userid + '/cart',
                     async: true,
                     type: 'POST',
@@ -719,14 +720,16 @@
                     data: JSON.stringify({'url':self.restoUrl + 'collections/' + feature.properties['collection'] + '/' + feature.id + '/download'}),
                     contentType: 'application/json',
                     success: function(obj, textStatus, XMLHttpRequest) {
+                        self.Util.hideMask();                
                         if (XMLHttpRequest.status === 200) {
                             alert('added')
                         }
                     },
                     error: function(e) {
+                        self.Util.hideMask();
                         alert('TODO - error');
                     }
-                }, true);
+                });
                 return false;
             });
             $('.downloadProduct', $div).click(function(e){
@@ -956,7 +959,7 @@
         signIn: function() {
             
             Resto.Util.showMask();
-            Resto.Util.ajax({
+            $.ajax({
                 url: Resto.restoUrl + 'api/users/connect',
                 headers: {
                     'Authorization': "Basic " + btoa(Resto.Util.sanitizeValue($('#userEmail')) + ":" + Resto.Util.sanitizeValue($('#userPassword')))
@@ -997,7 +1000,8 @@
                 Resto.Util.alert($div, 'Password is mandatory');
             }
             else {
-                Resto.Util.ajax({
+                Resto.Util.showMask();
+                $.ajax({
                     url: Resto.restoUrl + 'users',
                     async: true,
                     type: 'POST',
@@ -1010,6 +1014,7 @@
                         lastname: Resto.Util.sanitizeValue($('#lastName'))
                     },
                     success: function (json) {
+                        Resto.Util.hideMask();
                         if (json && json.status === 'success') {
                             Resto.Util.alert($div, Resto.Util.translate('_emailSent'));
                             $div.hide();
@@ -1027,7 +1032,7 @@
                             Resto.Util.alert($div, 'Error : cannot register');
                         }
                     }
-                }, true);
+                });
             }
         },
         
@@ -1035,19 +1040,19 @@
          * Show user profile
          */
         showProfile: function() {
-            
             var $div = $('#displayProfile');
             $div.html('<div class="padded large-12 columns center"><img class="gravatar-big" src="' + window.Resto.Util.getGravatar(this.userProfile.userhash, 200) + '"/><a class="button signOut">' + window.Resto.Util.translate('_logout') + '</a></div>');
             $('.signOut').click(function() {
-                window.Resto.Util.showMask();
-                window.Resto.Util.ajax({
+                Resto.Util.showMask();
+                $.ajax({
                     url: window.Resto.restoUrl + 'api/users/disconnect',
                     dataType:'json',
                     success: function(json) {
+                        Resto.Util.hideMask();
                         window.location.reload();
                     },
                     error: function(e) {
-                        window.Resto.Util.hideMask();
+                        Resto.Util.hideMask();
                         Resto.Util.alert($div, 'Error : cannot disconnect');
                     }
                 });

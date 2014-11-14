@@ -191,38 +191,6 @@
         getGravatar: function(emailhash, size) {
             return 'http://www.gravatar.com/avatar/' + (emailhash ? emailhash : '') + '?d=mm' + (!size || !$.isNumeric(size) ? '' : '&s=' + size);
         },
-
-        /**
-         * Launch an ajax call
-         * This function relies on jquery $.ajax function
-         * 
-         * @param {Object} obj
-         * @param {boolean} showMask
-         */
-        ajax: function(obj, showMask) {
-
-            var self = this;
-
-            /*
-             * Paranoid mode
-             */
-            if (typeof obj !== "object") {
-                return null;
-            }
-
-            /*
-             * Ask for a Mask
-             */
-            if (showMask) {
-                obj['complete'] = function(c) {
-                    self.hideMask();
-                };
-                self.showMask();
-            }
-
-            return $.ajax(obj);
-
-        },
         
         /**
          * Display non intrusive message to user
