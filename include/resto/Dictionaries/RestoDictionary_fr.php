@@ -286,7 +286,11 @@ class RestoDictionary_fr extends RestoDictionary {
         '_month10' => 'Octobre',
         '_month11' => 'Novembre',
         '_month12' => 'Décembre',
-        '_niceDate' => '{a:3} {a:2} {a:1}'
+        '_niceDate' => '{a:3} {a:2} {a:1}',
+        '_facets_collections' => 'Collections',
+        '_facets_where' => 'Où',
+        '_facets_when' => 'Quand',
+        '_facets_what' => 'Quoi'
     );
     
     /**

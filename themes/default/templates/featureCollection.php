@@ -5,22 +5,57 @@
         <!-- Header -->
         <?php include 'header.php' ?>
         
+        <?php if (isset($self->collection)) { ?>
+        <!-- Collection description -->
+        <div class="row fullWidth resto-collection-info">
+            <div class="large-6 columns">
+                <h1 class="right"><?php echo $self->collection->getOSProperty('ShortName'); ?></h1>
+            </div>
+            <div class="large-6 columns">
+                <p class="text-light">
+                    <?php echo $self->collection->getOSProperty('Description'); ?>
+                </p>
+            </div>
+        </div>
+        <?php } ?>  
+
         <!-- Search panel -->
         <div class="row fullWidth resto-search-panel center">
             <div class="large-6 columns">
-                Facets
+                <ul class="small-block-grid-1 medium-block-grid-2 large-block-grid-4 facets">
+                    <li>
+                        <h4><?php echo $self->context->dictionary->translate('_facets_collections') ?></h4>
+                        <?php if (isset($self->collection)) { ?>
+                        <span class="facets_collections"><a class="resto-collection-info-trigger" href="#"><?php echo $self->collection->name ?></a></span>
+                        <?php } ?>
+                    </li>
+                    <li>
+                        <h4><?php echo $self->context->dictionary->translate('_facets_when') ?></h4>
+                        <span class="facets_when"></span>
+                    </li>
+                    <li>
+                        <h4><?php echo $self->context->dictionary->translate('_facets_where') ?></h4>
+                        <span class="facets_where"></span>
+                    </li>
+                    <li>
+                        <h4><?php echo $self->context->dictionary->translate('_facets_what') ?></h4>
+                        <span class="facets_what"></span>
+                    </li>
+                </ul>
             </div>
-            <div class="large-6 columns">
-                <form id="resto-searchform" action="<?php echo $self->context->baseUrl . 'collections/' . (isset($self->collection->name) ? $self->collection->name . '/' : '') . 'search.json' ?>">
-                    <span class="panel-triggers">
-                        <a href="#panel-list" class="fa fa-th resto-panel-trigger active" id="resto-panel-trigger-list"><font style="padding-left:5px"><?php echo $self->context->dictionary->translate('_menu_list'); ?></font></a> <a href="#panel-map" class="fa fa-map-marker resto-panel-trigger" id="resto-panel-trigger-map"><font style="padding-left:5px"><?php echo $self->context->dictionary->translate('_menu_map'); ?></font></a>
-                    </span>
+            <div class="large-5 columns">
+                <form id="resto-searchform" action="<?php echo $self->context->baseUrl . 'collections/' . (isset($self->collection->name) ? $self->collection->name . '/' : '') . 'search.json' ?>" style="padding-top:5px;">
                     <span class="resto-search">
-                        <input id="search" class="darker" type="text" name="q" placeholder="<?php echo $self->context->dictionary->translate('_menu_search'); ?>" value="<?php echo isset($self->context->query['q']) ? $self->context->query['q'] : ''; ?>" style="font-size:1em;height:30px;max-width:400px;width:90%;"/>
+                        <input id="search" class="darker" type="text" name="q" placeholder="<?php echo $self->context->dictionary->translate('_menu_search'); ?>" value="<?php echo isset($self->context->query['q']) ? $self->context->query['q'] : ''; ?>"/>
                         <input type="hidden" name="lang" value="<?php echo $self->context->dictionary->language?>" />
                     </span>
                 </form>
             </div>
+            <div  class="large-1 columns">
+                <span class="panel-triggers">
+                    <a href="#panel-list" class="fa fa-2x fa-th resto-panel-trigger active" id="resto-panel-trigger-list" title="<?php echo $self->context->dictionary->translate('_menu_list'); ?>"></a>&nbsp;<a href="#panel-map" class="fa fa-2x fa-map-marker resto-panel-trigger" id="resto-panel-trigger-map" title="<?php echo $self->context->dictionary->translate('_menu_map'); ?>"></a>
+                </span>
+            </div>    
         </div>
         
         <!-- Map view -->
@@ -39,7 +74,7 @@
             -->
             
             <!-- Search result -->
-            <div class="row fullWidth" style="padding-top:5px;min-height:800px;">
+            <div class="row fullWidth" style="min-height:800px;">
                 <div class="large-12 columns">
                     <ul class="resto-features-container small-block-grid-1 medium-block-grid-3 large-block-grid-4"></ul>
                 </div>

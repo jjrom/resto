@@ -323,61 +323,77 @@
 
         },
         
-       /**
-        * Update features list
-        * 
-        * @param {array} json
-        * @param {boolean} options 
-        *          {
-        *              append: // true to append input features to existing features
-        *              updateMap: // true to update map content
-        *              centerMap: // true to center map on content
-        *          }
-        * 
-        */
+        /**
+         * Update facets list
+         * 
+         * @param {array} query
+         * 
+         * @returns {undefined}
+         */
+        updateFacets: function (query) {
+            
+            var i, typeAndId, key, where = [], when = [], what = [], self = this;
+            query = query || {};
+            
+            /*
+             * Update search input form
+             */
+            if ($('#search').length > 0) {
+                $('#search').val(query ? self.Util.sanitizeValue(query.original.searchTerms) : '');
+            }
+            
+            /*
+             * Update query analysis result - TODO
+             */
+            if (query.analyzed) {
+                for (key in query.analyzed) {
+                    if (query.analyzed[key]) {
+                        if (key === 'searchTerms') {
+                            for (i = query.analyzed[key].length; i--;) {
+                                typeAndId = query.analyzed[key][i].split(':');
+                                if (typeAndId[0] === 'continent' || typeAndId[0] === 'country' || typeAndId[0] === 'region' || typeAndId[0] === 'state' || typeAndId[0] === 'city') {
+                                    where.push('<a href="#">' + self.Util.translate(typeAndId[1]) + '</a>');
+                                }
+                                else if (typeAndId[0] === 'year' || typeAndId[0] === 'month') {
+                                    when.push('<a href="#">' + typeAndId[1] + '</a>');
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            $('.facets_where').html(where.join('<br/>'));
+            $('.facets_when').html(when.join('<br/>'));
+            $('.facets_what').html(what.join('<br/>'));
+           
+        },
+        
+        /**
+         * Update features list
+         * 
+         * @param {array} json
+         * @param {boolean} options 
+         *          {
+         *              append: // true to append input features to existing features
+         *              updateMap: // true to update map content
+         *              centerMap: // true to center map on content
+         *          }
+         * 
+         */
         updateFeaturesList: function(json, options) {
 
-            var foundFilters, key, p, self = window.Resto;
+            var p, self = window.Resto;
 
             json = json || {};
             p = json.properties || {};
             options = options || {};
 
             /*
-             * Update search input form
+             * Update facets
              */
-            if ($('#search').length > 0) {
-                $('#search').val(p.query ? self.Util.sanitizeValue(p.query.original.searchTerms) : '');
-            }
+            self.updateFacets(p.query);
             
-            /*
-             * Update result summary - TODO
-             */
-            $('#resultsummary').html(self.Util.translate('_resultFor', [(p.query.original.searchTerms ? '<font class="red">' + self.Util.sanitizeValue(p.query.original.searchTerms) + '</font>' : '')]));
-            
-            /*
-             * Update query analysis result - TODO
-             */
-            if (p.query && p.query.real) {
-                foundFilters = "";
-                for (key in p.query.real) {
-                    if (p.query.real[key]) {
-                        if (key !== 'language') {
-                            foundFilters += '<b>' + key + '</b> ' + p.query.real[key] + '</br>';
-                        }
-                    }
-                }
-                if (foundFilters) {
-                    $('.resto-queryanalyze').html('<div class="resto-query">' + foundFilters + '</div>');
-                }
-                else {
-                    $('.resto-queryanalyze').html('<div class="resto-query"><span class="resto-warning">' + self.Util.translate('_notUnderstood') + '</span></div>');
-                }
-            }
-            else if (p.missing) {
-                $('.resto-queryanalyze').html('<div class="resto-query"><span class="resto-warning">Missing mandatory search filters - ' + p.missing.concat() + '</span></div>');
-            }
-
             /*
              * Update next page url (for infinite scroll)
              */

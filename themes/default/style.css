@@ -125,7 +125,7 @@ a.text-light:hover {
 }
 
 .resto-search-panel {
-    background-color:#28353D;
+    background-color:#000;
     width:100%;
     height: auto;
     padding:0px;
@@ -164,9 +164,17 @@ a.text-light:hover {
     height:75px;
 }
 
+.panel-triggers {
+    line-height: 50px;
+}
 .panel-triggers a {
     color:#fff;
     padding:5px;
+    display: inline;
+}
+.panel-triggers a.active {
+    color:darkorange;
+    background-color:transparent;
 }
 
 /*
@@ -322,10 +330,6 @@ a.landuse {
     color:rgba(0,0,0,0.75);
     padding:12px;
 }
-.resto-search {
-    padding: 0 10px 0 20px;
-    line-height:45px;
-}
 .resto-search input, .resto-search input:focus {
     background: url('img/search.png') no-repeat scroll 97% 50% / 20px 20px rgba(255, 255, 255, 0.25);
     border: medium none;
@@ -335,8 +339,7 @@ a.landuse {
     display: inline-block;
     font-size: 13px;
     margin: 0 1em 0 0;
-    padding: 0 8px;
-    width: 315px;
+    width: 100%;
 }
 
 .resto-search input.darker, .resto-search input.darker:focus {

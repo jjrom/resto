@@ -334,7 +334,7 @@ class RestoFeatureCollection {
                 'itemsPerPage' => $count,
                 'query' => array(
                     'original' => $original,
-                    'real' => $query,
+                    'analyzed' => array_merge($query, array('searchTerms' => RestoUtil::splitString($query['searchTerms']))),
                     'queryAnalyzeProcessingTime' => isset($queryAnalyzeProcessingTime) ? $queryAnalyzeProcessingTime : null,
                     'searchProcessingTime' => $requestStopTime - $requestStartTime,
                     'hasLocation' => $hasLocation

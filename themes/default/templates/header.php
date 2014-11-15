@@ -1,23 +1,7 @@
-<?php if (isset($self->collection)) { ?>
-<!-- Collection description -->
-<div class="row fullWidth resto-collection-info">
-    <div class="large-6 columns">
-        <h1 class="right"><?php echo $self->collection->getOSProperty('ShortName'); ?></h1>
-    </div>
-    <div class="large-6 columns">
-        <p class="text-light">
-            <?php echo $self->collection->getOSProperty('Description'); ?>
-        </p>
-    </div>
-</div>
-<?php } ?>  
 <header>
     <span class="show-for-medium-up logo" style="margin-left: 2%;"><a href="<?php echo $self->context->baseUrl;?>"><?php echo $self->context->config['title'];?></a></span>
     <nav class="show-for-medium-up">
         <ul>
-            <?php if (isset($self->collection)) { ?>
-            <li><a class="resto-collection-info-trigger" href="#"><?php echo $self->collection->name ?></a>
-            <?php } ?>
             <li><a class="shy" href="<?php echo $self->context->baseUrl . 'collections' ?>"><?php echo $self->context->dictionary->translate('_menu_collections'); ?></a></li>
             <?php if ($self->context->user->profile['groupname'] === 'admin'){ ?>
             <li><a href="<?php echo $self->context->baseUrl . '/administration' ?>" class="shy"><?php echo $self->context->dictionary->translate('_administration'); ?></a></li>
@@ -29,10 +13,8 @@
             <li><a class="fa fa-shopping-cart" href="#"> <?php echo $self->context->dictionary->translate('_menu_cart'); ?></a></li>
             <li><a class="gravatar" href="#" data-reveal-id="displayProfile" title="<?php echo $self->context->dictionary->translate('_menu_profile'); ?>"></a></li>
             <?php } ?>
-        </ul>
-        
+        </ul> 
     </nav>
-    
     <a class="show-for-small-down show-small-menu small-logo fa fa-3x fa-bars text-light"></a>
     <nav class="show-for-small-down small-menu">
         <ul>
