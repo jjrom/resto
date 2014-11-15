@@ -420,7 +420,7 @@
                     e.stopPropagation();
                     window.History.pushState({
                         randomize: window.Math.random(),
-                        centerMap: false,
+                        centerMap: false
                     }, null, self.Util.updateUrlFormat($(this).attr('href'), 'html'));
                     $('html, body').scrollTop(0);
                     return false;
@@ -472,7 +472,7 @@
                  *  </li>
                  * 
                  */
-                $container.append('<li style="position:relative;padding:0px;"><div id="' + feature.id + '" class="resto-feature"><div class="bg-alpha-dark-hover streched"><div class="padded pin-top feature-info-top"></div><div class="padded pin-bottom feature-info-bottom link-light"></div></div></div></li>');
+                $container.append('<li style="position:relative;padding:0px;"><div id="' + feature.id + '" class="resto-feature"><div class="bg-alpha-dark-hover streched"><div class="padded pin-top feature-info-top"></div><div class="padded pin-bottom feature-info-bottom link-light"></div><div class="padded pin-top pin-right feature-info-right"></div></div></div></li>');
                 $div = $('#' + feature.id)
                         .css({
                             'background': "url('" + image + "') no-repeat",
@@ -538,9 +538,10 @@
                 topInfos.push('<h3 class="small text-light">' + self.Util.niceDate(feature.properties.startDate) + '</h3>');
                 
                 if (feature.properties.keywords) {
-                    var best = -1, state = -1, region = -1, country = -1, continent = -1;
+                    var hash, typeAndValue, best = -1, state = -1, region = -1, country = -1, continent = -1;
                     for (j = feature.properties.keywords.length; j--;) {
-                        switch (feature.properties.keywords[j].id.split(':')[0]) {
+                        typeAndValue = feature.properties.keywords[j].id.split(':');
+                        switch (typeAndValue[0]) {
                             case 'state':
                                 state = j;
                                 break;
@@ -553,7 +554,7 @@
                                 country = j;
                                 break;
                             case 'continent':
-                                country = j;
+                                continent = j;
                                 break;
                         }
                     }
@@ -567,9 +568,10 @@
                         best = country;
                     }
                     else if (continent !== -1) {
-                        best = country;
+                        best = continent;
                     }
                     if (best !== -1) {
+                        hash = feature.properties.keywords[best]['hash'];
                         topInfos.push('<h2 class="small upper"><a href="' + feature.properties.keywords[best]['href'] + '" class="resto-ajaxified">' + feature.properties.keywords[best]['name'] + '</a></h2>');
                         var newHash, parentHash = feature.properties.keywords[best]['parentHash'];
                         while (parentHash) {
@@ -580,13 +582,14 @@
                                         topInfos.push('<h4 class="small"><a href="' + feature.properties.keywords[k]['href'] + '" class="resto-ajaxified text-light">' + feature.properties.keywords[k]['name'] + '</a></h4>');
                                     }
                                     newHash = feature.properties.keywords[k]['parentHash'];
+                                    hash = feature.properties.keywords[k]['hash'];
                                     break;
                                 }
                             }
                             parentHash = newHash;
                         }
                     }
-                    
+                    $('.feature-info-right', $div).html('<img src="' + self.restoUrl + 'themes/default/img/world/' + hash + '.png"/>');
                 }
                 $('.feature-info-top', $div).html(topInfos.join(''));
                 
@@ -1041,7 +1044,7 @@
          */
         showProfile: function() {
             var $div = $('#displayProfile');
-            $div.html('<div class="padded large-12 columns center"><img class="gravatar-big" src="' + window.Resto.Util.getGravatar(this.userProfile.userhash, 200) + '"/><a class="button signOut">' + window.Resto.Util.translate('_logout') + '</a></div>');
+            $div.html('<div class="padded large-12 columns center"><img class="gravatar-big" src="' + window.Resto.Util.getGravatar(this.userProfile.userhash, 200) + '"/><a class="button signOut">' + window.Resto.Util.translate('_logout') + '</a></div><a class="close-reveal-modal">&#215;</a>');
             $('.signOut').click(function() {
                 Resto.Util.showMask();
                 $.ajax({
@@ -1069,12 +1072,15 @@
                 (function (key) {
                     $('.signWithOauth').append('<span id="_oauth' + key + '">' + self.ssoServices[key].button + '</span>');
                     $('a', '#_oauth' + key).click(function (e) {
+                        
                         e.preventDefault();
+                        e.stopPropagation();
                         
                         /*
                          * Open SSO authentication window
                          */
-                        var popup = window.open(self.ssoServices[key].authorizeUrl);
+                        Resto.Util.showMask();
+                        var popup = Resto.Util.popupwindow(self.ssoServices[key].authorizeUrl, "oauth", 400, $(window).height());
                         
                         /*
                          * Load user profile after popup has been closed
@@ -1082,7 +1088,6 @@
                         var fct = setInterval(function () {
                             if (popup.closed) {
                                 clearInterval(fct);
-                                Resto.Util.showMask();
                                 window.location.reload();
                             }
                         }, 200);

@@ -314,6 +314,20 @@
                 lastScrollTop = st;
              });
              return false;
-        }
+        },
+        
+        /**
+         * Open a centered browser popup
+         * 
+         * @param {string} url
+         * @param {string} title
+         * @param {integer} w
+         * @param {integer} h
+         */
+        popupwindow: function(url, title, w, h) {
+            var left = (window.width/2)-(w/2);
+            var top = (window.height/2)-(h/2);
+            return window.open(url, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width='+w+', height='+h+', top='+top+', left='+left);
+        } 
     };
 })(window);
