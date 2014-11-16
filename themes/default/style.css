@@ -74,7 +74,7 @@ h1,h2,h3,h4 {
 .darker .bg-alpha-dark-hover {
     background-color:rgba(0,0,0,0.7);
 }
-.darker .feature-info-bottom, .darker .feature-info-top {
+.darker .feature-info-bottom, .darker .feature-info-top, .darker .feature-info-right {
     display:none;
 }
 .bg-alpha-dark, .bg-alpha-dark-hover {
@@ -534,4 +534,23 @@ a.resto-keyword {
 }
 .small-logo:hover {
     cursor: pointer;
+}
+
+.blur {
+    -webkit-filter: blur(10px);
+    filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'effect-blur-1\'><feGaussianBlur stdDeviation=\'10\' /></filter></svg>#effect-blur-1");
+}
+
+/* 
+ * Side navigation panel
+ */
+#sidenav {
+    position:fixed;
+    background-color:#000;
+    padding:20px;
+    top:0px;
+    height:100%;
+    left:0px;
+    width:300px;
+    z-index:1000;
 }

@@ -321,6 +321,23 @@ class RestoFeatureCollection {
         }
         
         /*
+         * Analyzed query
+         */
+        $analyzedSearchterms = array();
+        $splitted = RestoUtil::splitString($query['searchTerms']);
+        for ($i = count($splitted); $i--;) {
+            if (empty($splitted[$i])) {
+                continue;
+            }
+            $typeAndId = explode(':', $splitted[$i]);
+            $analyzedSearchterms[] = array(
+                'id' => $splitted[$i],
+                'type' => $typeAndId[0],
+                'name' => $this->context->dictionary->getKeywordFromValue($typeAndId[1], $typeAndId[0])
+            );
+        }    
+        
+        /*
          * Sort results
          */
         ksort($query);   
@@ -334,7 +351,7 @@ class RestoFeatureCollection {
                 'itemsPerPage' => $count,
                 'query' => array(
                     'original' => $original,
-                    'analyzed' => array_merge($query, array('searchTerms' => RestoUtil::splitString($query['searchTerms']))),
+                    'analyzed' => array_merge($query, array('searchTerms' => $analyzedSearchterms)),
                     'queryAnalyzeProcessingTime' => isset($queryAnalyzeProcessingTime) ? $queryAnalyzeProcessingTime : null,
                     'searchProcessingTime' => $requestStopTime - $requestStartTime,
                     'hasLocation' => $hasLocation

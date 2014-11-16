@@ -298,9 +298,9 @@ class RestoDictionary_en extends RestoDictionary {
         '_month12' => 'December',
         '_niceDate' => '{a:2} {a:3} {a:1}',
         '_facets_collections' => 'Collections',
-        '_facets_where' => 'Where',
-        '_facets_when' => 'When',
-        '_facets_what' => 'What'
+        '_facets_where' => 'Where ?',
+        '_facets_when' => 'When ?',
+        '_facets_what' => 'What ?'
     );
 
     /**

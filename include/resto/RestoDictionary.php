@@ -367,7 +367,13 @@ abstract class RestoDictionary {
      * @param string $inputValue
      */
     final public function getKeywordFromValue($inputValue, $type = null) {
-        if (isset($type) && isset($this->dictionary['keywords'][$type])) {
+        if (!isset($type)) {
+            return null;
+        }
+        if ($type === 'month') {
+            return isset($this->dictionary['months'][$inputValue]) ? ucfirst($this->dictionary['months'][$inputValue][0]) : null;
+        }
+        if (isset($this->dictionary['keywords'][$type])) {
             foreach (array_values($this->dictionary['keywords'][$type]) as $obj) {
                 if ($inputValue === $obj['value']) {
                     return $obj['name'];

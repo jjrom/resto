@@ -51,7 +51,7 @@ abstract class RestoDatabaseDriver {
     /*
      * Results per page
      */
-    public $resultsPerPage = 50;
+    public $resultsPerPage = 20;
 
     /*
      * Facet hierarchy

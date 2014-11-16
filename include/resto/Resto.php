@@ -140,7 +140,6 @@
  *    | Query parameter    |      Type      | Description
  *    |______________________________________________________________________________________________
  *    | _pretty            |     boolean    | (For JSON output only) true to return pretty print JSON
- *    | _showQuery         |     boolean    | (For HTML output only) true to display query analysis result
  *    | _tk                |     string     | (For download/visualize) sha1 token for resource access
  *    | _rc                |     boolean    | (For search) true to perform the total count of search results
  *    | _sid               |     string     | (For isConnected) current sessionid

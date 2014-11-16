@@ -106,7 +106,22 @@
              */
             $('.resto-panel-trigger').click(function(e){
                 e.preventDefault();
+                e.stopPropagation();
                 self.switchTo($(this));
+            });
+            
+            /*
+             * Side nav
+             */
+            $('#sidenav-on').click(function(e){
+                e.preventDefault();
+                e.stopPropagation();
+                $('#sidenav').show();
+            });
+            $('#sidenav-off').click(function(e){
+                e.preventDefault();
+                e.stopPropagation();
+                $('#sidenav').hide();
             });
             
             /*
@@ -350,12 +365,12 @@
                     if (query.analyzed[key]) {
                         if (key === 'searchTerms') {
                             for (i = query.analyzed[key].length; i--;) {
-                                typeAndId = query.analyzed[key][i].split(':');
-                                if (typeAndId[0] === 'continent' || typeAndId[0] === 'country' || typeAndId[0] === 'region' || typeAndId[0] === 'state' || typeAndId[0] === 'city') {
-                                    where.push('<a href="#">' + self.Util.translate(typeAndId[1]) + '</a>');
+                                var name = query.analyzed[key][i]['name'] || query.analyzed[key][i]['id'].split(':')[1];
+                                if (query.analyzed[key][i]['type'] === 'continent' || query.analyzed[key][i]['type'] === 'country' || query.analyzed[key][i]['type'] === 'region' || query.analyzed[key][i]['type'] === 'state' || query.analyzed[key][i]['type'] === 'city') {
+                                    where.push('<a href="#" class="resto-collection-info-trigger">' + name + '</a>');
                                 }
-                                else if (typeAndId[0] === 'year' || typeAndId[0] === 'month') {
-                                    when.push('<a href="#">' + typeAndId[1] + '</a>');
+                                else if (query.analyzed[key][i]['type'] === 'month') {
+                                    when.push('<a href="#">' + name + '</a>');
                                 }
                             }
                         }
@@ -518,36 +533,7 @@
                     }
                 }
                 $('.feature-info-bottom', $div).html(bottomInfos.join(''));
-                /*
-                 bottomInfos.push('<a class="fa fa-2x fa-map-marker showOnMap" href="#" title="' + self.Util.translate('_showOnMap') + '"></a>');
                 
-                 // Download feature
-                if (feature.properties['services'] && feature.properties['services']['download'] && feature.properties['services']['download']['url']) {
-                    //if (self.userRights && self.userRights['download']) {
-                        bottomInfos.push('<a class="fa fa-2x fa-cloud-download" href="' + feature.properties['services']['download']['url'] + '"' + (feature.properties['services']['download']['mimeType'] === 'text/html' ? ' target="_blank"' : '') + ' title="' + self.Util.translate('_download') + '"></a>');
-                    //}
-                }
-                
-                // Add to cart
-                bottomInfos.push('<a class="fa fa-2x fa-shopping-cart addToCart" href="#" title="' + self.Util.translate('_addToCart') + '"></a>');
-                
-                $('.feature-info-bottom', $div).append(bottomInfos.join(''));
-                (function($div){
-                    $('.showOnMap', $div).click(function (e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        self.switchTo($('#resto-panel-trigger-map'));
-                        self.Map.hilite($div.attr('id'), true);
-                        return false;
-                    });
-                    $('.addToCart', $div).click(function (e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('TODO');
-                        return false;
-                    });
-                })($div);
-                */
                 /*
                  * Feature infos (top)
                  */
