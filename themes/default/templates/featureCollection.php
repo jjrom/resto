@@ -78,6 +78,7 @@
             </ul>
             <a id="sidenav-off" class="fa fa-2x fa-caret-square-o-left pin-right pin-top padded"></a>
             <!--
+            <?php if (isset($self->collection)) { ?>
             <div class="row fullWidth resto-collection-info">
                 <div class="large-6 columns">
                     <h1 class="right"><?php echo $self->collection->getOSProperty('ShortName'); ?></h1>
@@ -88,6 +89,7 @@
                     </p>
                 </div>
             </div>
+            <?php } ?>
             -->
         </div>
         <script type="text/javascript">
