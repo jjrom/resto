@@ -164,9 +164,9 @@ a.text-light:hover {
     height:75px;
 }
 
-.panel-triggers {
+/*.panel-triggers {
     line-height: 50px;
-}
+}*/
 .panel-triggers a {
     color:#fff;
     padding:5px;
@@ -337,25 +337,13 @@ a.landuse {
     height:30px;
     color: #fff;
     display: inline-block;
-    font-size: 13px;
-    margin: 0 1em 0 0;
-    width: 100%;
+    margin: 1em 1em 0 0;
+    width: 70%;
 }
 
 .resto-search input.darker, .resto-search input.darker:focus {
    background: url('img/search_darker.png') no-repeat scroll 97% 50% / 20px 20px rgba(255, 255, 255, 0.8);
    color:#000;
-}
-
-.resto-queryanalyze {
-    position:fixed;
-    top:95px;
-    left:40px;
-    font-size:12px;
-    font-weight: 300;
-    text-shadow:1px 1px 1px #000; 
-    color:#fff;
-    z-index:30000;
 }
 
 .resto-keywords table {
