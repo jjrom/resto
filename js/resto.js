@@ -113,15 +113,12 @@
             /*
              * Side nav
              */
-            $('#sidenav-on').click(function(e){
+            $('#off-canvas-toggle').click(function(e){
                 e.preventDefault();
                 e.stopPropagation();
-                $('#sidenav').show();
-            });
-            $('#sidenav-off').click(function(e){
-                e.preventDefault();
-                e.stopPropagation();
-                $('#sidenav').hide();
+                $('.off-canvas-wrap').foundation('offcanvas', 'toggle', 'move-right');
+            }).css({
+                'line-height':$('.resto-search-panel').outerHeight() + 'px'
             });
             
             /*

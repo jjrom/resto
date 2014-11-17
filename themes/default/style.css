@@ -8,7 +8,7 @@
 body {
     font-family: 'Open Sans', sans-serif;
     font-size:15px;
-    color:#fff;
+    background-color:#000;
 }
 a {
     text-decoration:none;
@@ -24,8 +24,21 @@ a.active {
     background-color:limegreen;
 }
 h1,h2,h3,h4 {
-    margin:5px 0px;
+    font-family: 'Open Sans', sans-serif;
 }
+h1.small {
+    font-size:1.7em;
+}
+h2.small {
+    font-size:1.5em;
+}
+h3.small {
+    font-size:1.3em;
+}
+h4.small {
+    font-size:1.1em;
+}
+
 .bg {
     background: url(img/bg.jpg) no-repeat center center fixed; 
     -webkit-background-size: cover;
@@ -539,18 +552,4 @@ a.resto-keyword {
 .blur {
     -webkit-filter: blur(10px);
     filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'effect-blur-1\'><feGaussianBlur stdDeviation=\'10\' /></filter></svg>#effect-blur-1");
-}
-
-/* 
- * Side navigation panel
- */
-#sidenav {
-    position:fixed;
-    background-color:#000;
-    padding:20px;
-    top:0px;
-    height:100%;
-    left:0px;
-    width:300px;
-    z-index:1000;
 }

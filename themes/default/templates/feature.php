@@ -34,7 +34,7 @@
         <?php include 'header.php' ?>
       
         <!-- Collection title and description -->
-        <div class="row">
+        <div class="row fullWidth light">
             <div class="large-6 columns center text-dark padded-top">
                 <h2><?php echo $self->context->dictionary->translate('_resourceSummary', $product['properties']['platform'], substr($product['properties']['startDate'],0, 10)); ?></h2>
                 <h7 title="<?php echo $product['id']; ?>" style="overflow: hidden;"><?php echo $product['id']; ?></h7>
@@ -62,7 +62,7 @@
         <div id="mapshup" class="noResizeHeight"></div>
         
         <!-- Quicklook and metadata -->
-        <div class="row resto-resource">
+        <div class="row resto-resource fullWidth light">
             <div class="large-6 columns center">
                 <img title="<?php echo $product['id'];?>" class="resto-image" src="<?php echo $quicklook;?>"/>
             </div>
