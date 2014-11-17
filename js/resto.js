@@ -646,10 +646,11 @@
             }
             
             /*
-             * Compute position of feature info panel
+             * Compute position of feature info panel based on foundation grid system
+             * 
              */
-            var left = $id.offset().left,
-                top = $id.offset().top;
+            var $offCanvas = $('.left-off-canvas-menu'), left = $id.offset().left - (Math.abs($offCanvas.offset().left + $offCanvas.outerWidth()) < 20 ? 0 : $offCanvas.outerWidth()),
+                top = $id.offset().top - $('.inner-wrap').offset().top;
             if (left + (2 * $id.outerWidth()) > $(window).width()) {
                 if (left - $id.outerWidth() < 0) {
                     top = top + $id.outerHeight();

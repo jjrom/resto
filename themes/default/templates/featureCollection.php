@@ -55,7 +55,7 @@
                 </div>
                 
                 <div class="left-off-canvas-menu lightfield text-dark">
-                    <ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1 facets">
+                    <ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1 facets padded">
                         <li>
                             <h4><?php echo $self->context->dictionary->translate('_facets_collections') ?></h4>
                             <?php if (isset($self->collection)) { ?>
