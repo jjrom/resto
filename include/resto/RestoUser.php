@@ -260,9 +260,10 @@ class RestoUser{
      */
     public function disconnect() {
         if (isset($_SESSION)) {
+            session_regenerate_id(true); // Important ! Change session id
             unset($_SESSION['profile']);
         }
-        return true;
+        return $this->dbDriver->disconnectUser($this->identifier);
     }
     
     /**

@@ -385,6 +385,13 @@ abstract class RestoDatabaseDriver {
     abstract public function deactivateUser($userid);
     
     /**
+     * Disconnect user
+     * 
+     * @param string $identifier : can be email (or string) or integer (i.e. uid)
+     */
+    abstract public function disconnectUser($identifier);
+    
+    /**
      * Return true if $userid is connected (from $sessionid)
      * 
      * @param string $userid

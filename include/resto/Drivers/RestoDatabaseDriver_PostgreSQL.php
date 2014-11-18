@@ -1126,6 +1126,24 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     }
     
     /**
+     * Disconnect user
+     * 
+     * @param string $identifier : can be email (or string) or integer (i.e. uid)
+     */
+    public function disconnectUser($identifier) {
+        try {
+            $where = 'email=\'' . pg_escape_string($identifier) . '\'';
+            if (ctype_digit($identifier)) {
+                $where = 'userid=' . $identifier;
+            }
+            pg_query($this->dbh, 'UPDATE usermanagement.users SET lastsessionid=NULL WHERE ' . $where);
+        } catch (Exception $e) {
+            return false;
+        }   
+        return true;    
+    }
+    
+    /**
      * Get user profile
      * 
      * @param string $identifier : can be email (or string) or integer (i.e. uid)
