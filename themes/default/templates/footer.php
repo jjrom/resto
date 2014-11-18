@@ -1,7 +1,4 @@
-<div class="footer lightfield">
-
-</div>
-<div class="footer-bottom lightfield">
+<div class="footer">
     Powered by <a href="http://github.com/jjrom/resto">RESTo</a>, <a href="http://github.com/jjrom/itag">iTag</a> and <a href="http://mapshup.info">mapshup</a>
 </div>
 <a id="gototop" class="fa fa-3x fa-chevron-circle-up round"></a>

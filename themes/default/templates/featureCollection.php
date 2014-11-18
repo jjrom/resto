@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $self->context->dictionary->language ?>">
     <?php include 'head.php' ?>
-    <body>
+    <body class="darkfield">
         
         <!-- Header -->
         <?php include 'header.php' ?>
@@ -13,7 +13,7 @@
                 <!-- Search panel -->
                 <div class="row fullWidth resto-search-panel center">
                     <div class="large-12 columns">
-                        <form id="resto-searchform" action="<?php echo $self->context->baseUrl . 'collections/' . (isset($self->collection->name) ? $self->collection->name . '/' : '') . 'search.json' ?>" style="padding-top:5px;">
+                        <form id="resto-searchform" action="<?php echo $self->context->baseUrl . 'api/collections/' . (isset($self->collection->name) ? $self->collection->name . '/' : '') . 'search.json' ?>" style="padding-top:5px;">
                             <span class="resto-search">
                                 <input id="search" class="darker" type="text" name="q" placeholder="<?php echo $self->context->dictionary->translate('_menu_search'); ?>" value="<?php echo isset($self->context->query['q']) ? $self->context->query['q'] : ''; ?>"/>
                                 <input type="hidden" name="lang" value="<?php echo $self->context->dictionary->language?>" />

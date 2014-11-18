@@ -8,7 +8,6 @@
 body {
     font-family: 'Open Sans', sans-serif;
     font-size:15px;
-    background-color:#000;
 }
 a {
     text-decoration:none;
@@ -46,18 +45,12 @@ h4.small {
     -o-background-size: cover;
     background-size: cover;
 }
-.footer, .footer-bottom {
-    width:100%;
-    font-size:0.8em;
-}
 .footer {
-    height:265px;
-}
-.footer-bottom {
     text-align: center;
+    width: 100%;
     height:60px;
     line-height:60px;
-    color:rgba(0,0,0,0.75);
+    color:#fff;
 }
 
 .pin-top, .pin-bottom {
@@ -231,7 +224,7 @@ a.text-light:hover {
 #gototop {
     position:fixed;
     bottom:20px;
-    right:20px;
+    left:20px;
     z-index:10000;
     display:none;
     padding:10px;
