@@ -64,6 +64,11 @@ class RestoCollection {
     public $context = null;
     
     /*
+     * User
+     */
+    public $user = null;
+    
+    /*
      * Array of OpenSearch Description parameters per lang
      */
     public $osDescription = null;
@@ -93,9 +98,10 @@ class RestoCollection {
      * 
      * @param string $name : collection name
      * @param RestoContext $context : RESTo context
+     * @param RestoUser $user : RESTo user
      * @param array $options : constructor options
      */
-    public function __construct($name, $context, $options = array()) {
+    public function __construct($name, $context, $user, $options = array()) {
         
         /*
          * Context is mandatory
@@ -113,6 +119,7 @@ class RestoCollection {
         
         $this->name = $name;
         $this->context = $context;
+        $this->user = $user;
         $this->options = $options;
         
         /*
@@ -203,7 +210,7 @@ class RestoCollection {
          * Set model
          */
         else {
-            $this->model = RestoUtil::instantiate($object['model'], array($this->context));
+            $this->model = RestoUtil::instantiate($object['model'], array($this->context, $this->user));
         }
         
         /*
@@ -271,7 +278,7 @@ class RestoCollection {
          * Retrieve facets
          */
         $facets = array('collection', 'continent');
-        $model = new RestoModel_default($this->context);
+        $model = new RestoModel_default($this->context, $this->user);
         foreach (array_values($model->searchFilters) as $filter) {
             if (isset($filter['options']) && $filter['options'] === 'auto') {
                 $facets[] = $filter['key'];
@@ -279,7 +286,7 @@ class RestoCollection {
         }
         
         $collectionDescription = $this->context->dbDriver->getCollectionDescription($this->name, $facets);
-        $this->model = RestoUtil::instantiate($collectionDescription['model'], array($this->context));
+        $this->model = RestoUtil::instantiate($collectionDescription['model'], array($this->context, $this->user));
         $this->osDescription = $collectionDescription['osDescription'];
         $this->status = $collectionDescription['status'];
         $this->licence = $collectionDescription['license'];
@@ -320,7 +327,7 @@ class RestoCollection {
      * @return array (FeatureCollection)
      */
     public function search() {
-        return new RestoFeatureCollection($this->context, $this);
+        return new RestoFeatureCollection($this->context, $this->user, $this);
     }
     
     /**

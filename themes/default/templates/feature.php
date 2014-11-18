@@ -17,7 +17,7 @@
     }
     
     if (isset($self->context->config['modules']['Wikipedia'])) {
-        $self->wikipedia = new Wikipedia($self->context, $self->context->config['modules']['Wikipedia']);
+        $self->wikipedia = new Wikipedia($self->context, $self->user, $self->context->config['modules']['Wikipedia']);
         $wikipediaEntries = $self->wikipedia->search(array(
             'polygon' => RestoUtil::geoJSONGeometryToWKT($product['geometry']),
             'limit' => 10
@@ -40,7 +40,7 @@
                 <h7 title="<?php echo $product['id']; ?>" style="overflow: hidden;"><?php echo $product['id']; ?></h7>
                 <?php
                     if (isset($product['properties']['services']) && isset($product['properties']['services']['download']) && isset($product['properties']['services']['download']['url'])) {
-                        if ($self->context->user->canDownload($self->collection->name, $product['id'])) {
+                        if ($self->user->canDownload($self->collection->name, $product['id'])) {
                 ?>
                 <p class="center padded-top">
                     <a class="fa fa-4x fa-cloud-download" href="<?php echo $product['properties']['services']['download']['url']; ?>" <?php echo $product['properties']['services']['download']['mimeType'] === 'text/html' ? 'target="_blank"' : ''; ?> title="<?php echo $self->context->dictionary->translate('_download'); ?>"></a> 

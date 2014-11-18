@@ -49,6 +49,11 @@ class RestoCollections {
      */
     public $context;
     
+    /**
+     * RestoUser
+     */
+    public $user;
+    
     /*
      * Array of RestoCollection (key = collection name)
      */
@@ -58,9 +63,10 @@ class RestoCollections {
      * Constructor 
      * 
      * @param RestoContext $context
+     * @param RestoUser $user
      * @param array $options
      */
-    public function __construct($context, $options = array()) {
+    public function __construct($context, $user, $options = array()) {
         
         /*
          * Context is mandatory
@@ -70,6 +76,7 @@ class RestoCollections {
         }
         
         $this->context = $context;
+        $this->user = $user;
         
         /*
          * Load collection description from database 
@@ -119,7 +126,7 @@ class RestoCollections {
      * @return array (FeatureCollection)
      */
     public function search() {
-        return new RestoFeatureCollection($this->context, null);
+        return new RestoFeatureCollection($this->context, $this->user, null);
     }
     
     /**
@@ -128,8 +135,8 @@ class RestoCollections {
     public function loadCollectionsFromStore() {
         $collectionsDescriptions = $this->context->dbDriver->getCollectionsDescriptions();
         foreach (array_keys($collectionsDescriptions) as $key) {
-            $collection = new RestoCollection($key, $this->context);
-            $collection->model = RestoUtil::instantiate($collectionsDescriptions[$key]['model'], array($collection->context));
+            $collection = new RestoCollection($key, $this->context, $this->user);
+            $collection->model = RestoUtil::instantiate($collectionsDescriptions[$key]['model'], array($collection->context, $collection->user));
             $collection->osDescription = $collectionsDescriptions[$key]['osDescription'];
             $collection->status = $collectionsDescriptions[$key]['status'];
             $collection->licence = $collectionsDescriptions[$key]['license'];

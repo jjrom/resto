@@ -173,6 +173,11 @@ class Resto {
     public $context;
     
     /*
+     * RestoUser
+     */
+    public $user;
+    
+    /*
      * String storing response
      */
     private $response;
@@ -201,11 +206,6 @@ class Resto {
      * Method requested (i.e. GET, POST, PUT, DELETE, OPTIONS)
      */
     private $method;
-    
-    /*
-     * RestoUser
-     */
-    private $user;
     
     /*
      * Debug mode
@@ -482,7 +482,7 @@ class Resto {
                     } 
                 }
                 if ($routeIsTheSame) {
-                    $module = RestoUtil::instantiate($moduleName, array($this->context, isset($this->config['modules'][$moduleName]['options']) ? array_merge($this->config['modules'][$moduleName]['options'], array('debug' => $this->debug)) : array('debug' => $this->debug)));
+                    $module = RestoUtil::instantiate($moduleName, array($this->context, $this->user, isset($this->config['modules'][$moduleName]['options']) ? array_merge($this->config['modules'][$moduleName]['options'], array('debug' => $this->debug)) : array('debug' => $this->debug)));
                     for ($i = $count; $i--;) {
                         array_shift($segments);
                     }
@@ -517,7 +517,7 @@ class Resto {
         /*
          * Search in one collection...or in all collections
          */
-        $resource = isset($collectionName) ? new RestoCollection($collectionName, $this->context, array('autoload' => true)) : new RestoCollections($this->context); 
+        $resource = isset($collectionName) ? new RestoCollection($collectionName, $this->context, $this->user, array('autoload' => true)) : new RestoCollections($this->context, $this->user); 
         $this->response = $this->format($resource->search());
         $this->storeQuery('search', isset($collectionName) ? $collectionName : '*', null);
         
@@ -546,7 +546,7 @@ class Resto {
         if ($this->outputFormat !== 'xml') {
             $this->process404();
         }
-        $resource = isset($collectionName) ? new RestoCollection($collectionName, $this->context, array('autoload' => true)) : new RestoCollections($this->context); 
+        $resource = isset($collectionName) ? new RestoCollection($collectionName, $this->context, $this->user, array('autoload' => true)) : new RestoCollections($this->context, $this->user); 
         $this->response = $this->format($resource);
         $this->storeQuery('describe', $collectionName, null);
     }
@@ -631,7 +631,7 @@ class Resto {
                     throw new Exception('Forbidden', 403);
                 }
                 else {
-                    $user = new RestoUser($userid, null, $this->dbDriver, false);
+                    $user = new RestoUser($userid, null, $this->context, false);
                 }
             }
             
@@ -690,7 +690,7 @@ class Resto {
                 throw new Exception('Forbidden', 403);
             }
             else {
-                $user = new RestoUser($userid, null, $this->dbDriver, false);
+                $user = new RestoUser($userid, null, $this->context, false);
             }
         }
 
@@ -740,7 +740,7 @@ class Resto {
                 throw new Exception('Forbidden', 403);
             }
             else {
-                $user = new RestoUser($userid, null, $this->dbDriver, false);
+                $user = new RestoUser($userid, null, $this->context, false);
             }
         }
         
@@ -876,7 +876,7 @@ class Resto {
                 throw new Exception('Forbidden', 403);
             }
             else {
-                $user = new RestoUser($userid, null, $this->dbDriver, false);
+                $user = new RestoUser($userid, null, $this->context, false);
             }
         }
         
@@ -942,10 +942,10 @@ class Resto {
         $feature = null;
         
         if (isset($collectionName)) {
-            $collection = new RestoCollection($collectionName, $this->context, array('autoload' => true));
+            $collection = new RestoCollection($collectionName, $this->context, $this->user, array('autoload' => true));
         }
         if (isset($featureIdentifier)) {
-            $feature = new RestoFeature($featureIdentifier, $this->context, $collection);
+            $feature = new RestoFeature($featureIdentifier, $this->context, $this->user, $collection);
         }
         
         if ($this->method === 'GET') {
@@ -958,7 +958,7 @@ class Resto {
                     $this->outputFormat = 'json';
                     $this->process404();
                 }
-                $collections = new RestoCollections($this->context, array('autoload' => true));
+                $collections = new RestoCollections($this->context, $this->user, array('autoload' => true));
                 $this->response = $this->format($collections);
             }
             
@@ -1029,7 +1029,7 @@ class Resto {
                 if ($this->dbDriver->collectionExists($data['name'])) {
                     throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Collection already exists', 500);
                 }
-                $collection = new RestoCollection($data['name'], $this->context);
+                $collection = new RestoCollection($data['name'], $this->context, $this->user);
                 $collection->loadFromJSON($data, true);
                 $this->response = $this->toJSON(array(
                     'status' => 'success',
@@ -1268,16 +1268,6 @@ class Resto {
         $this->debug = isset($this->config['general']['debug']) ? $this->config['general']['debug'] : false;
         
         /*
-         * dbDriver
-         */
-        $this->setDbDriver();
-       
-        /*
-         * Set RestoUser
-         */
-        $this->setUser();
-
-        /*
          * Method is one of GET, POST, PUT or DELETE
          */
         $this->method = strtoupper($_SERVER['REQUEST_METHOD']);
@@ -1338,6 +1328,21 @@ class Resto {
             $this->process404();
         }
        
+        /*
+         * dbDriver
+         */
+        $this->setDbDriver();
+       
+        /*
+         * Context
+         */
+        $this->setContext();
+       
+        /*
+         * Set RestoUser
+         */
+        $this->setUser();
+
     }
     
     /**
@@ -1399,11 +1404,6 @@ class Resto {
              * Database config
              */
             'dbDriver' => $this->dbDriver,
-            
-            /*
-             * User
-             */
-            'user' => $this->user,
             
             /*
              * Base url is the root url of the webapp (e.g. http(s)://host/resto/)
@@ -1511,7 +1511,7 @@ class Resto {
          * Check session
          */
         if (isset($_SESSION) && isset($_SESSION['profile']) && isset($_SESSION['profile']['lastsessionid']) && $_SESSION['profile']['lastsessionid'] === session_id()) {
-            $this->user = new RestoUser($_SESSION['profile']['email'], null, $this->dbDriver);
+            $this->user = new RestoUser($_SESSION['profile']['email'], null, $this->context);
         }
         /*
          * HTTP user:password authentication method
@@ -1522,14 +1522,14 @@ class Resto {
         else if ((isset($_SERVER['HTTP_AUTHORIZATION']) && $_SERVER['HTTP_AUTHORIZATION']) || (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION']) && $_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
             $tmp = explode(':', base64_decode(substr(isset($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : $_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 6)));
             if (isset($tmp[0]) && $tmp[0] && isset($tmp[1]) && $tmp[1]) {
-                $this->user = new RestoUser(trim(strtolower($tmp[0])), trim($tmp[1]), $this->dbDriver);
+                $this->user = new RestoUser(trim(strtolower($tmp[0])), trim($tmp[1]), $this->context);
             }
         }
         /*
          * SSO through oAuth2 
          */
         else if ($this->config['modules']['OAuth'] && $this->config['modules']['OAuth']['activate'] === true && class_exists('OAuth')) {
-            $oauth = new OAuth(null, array_merge($this->config['modules']['OAuth']['options'], array('debug' => $this->debug)));
+            $oauth = new OAuth(null, null, array_merge($this->config['modules']['OAuth']['options'], array('debug' => $this->debug)));
             $userIdentifier = $oauth->authenticate(isset($_GET['access_token']) ? $_GET['access_token'] : null, isset($_GET['issuer_id']) ? $_GET['issuer_id'] : null);
             if ($userIdentifier) {
                 $trimed = trim(strtolower($userIdentifier));
@@ -1546,7 +1546,7 @@ class Resto {
                         'lastsessionid' => session_id()
                     ));
                 }
-                $this->user = new RestoUser($trimed, null, $this->dbDriver);
+                $this->user = new RestoUser($trimed, null, $this->context);
                 $_SESSION['access_token'] = $_GET['access_token'];
             }
         }
@@ -1555,7 +1555,7 @@ class Resto {
          * If we land here, create an unregistered user
          */
         if (!$this->user) {
-            $this->user = new RestoUser(null, null, $this->dbDriver);
+            $this->user = new RestoUser(null, null, $this->context);
         }
         
     }

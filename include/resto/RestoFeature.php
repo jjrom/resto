@@ -54,6 +54,11 @@ class RestoFeature {
     public $context;
     
     /*
+     * User
+     */
+    public $user;
+    
+    /*
      * Parent collection
      */
     public $collection;
@@ -73,19 +78,21 @@ class RestoFeature {
      * 
      * @param array or string $featureOrIdentifier : Feature identifier or properties
      * @param RestoResto $context : Resto Context
+     * @param RestoUser $user : Resto user
      * @param RestoCollection : Parent collection
      */
-    public function __construct($featureOrIdentifier, $context = null, $collection = null) {
+    public function __construct($featureOrIdentifier, $context, $user, $collection = null) {
         
         $this->identifier = is_array($featureOrIdentifier) ? $featureOrIdentifier['identifier'] : $featureOrIdentifier;
         $this->context = $context;
+        $this->user = $user;
         
         if (isset($collection)) {
             $this->collection = $collection;
             $this->model = $this->collection->model;
         }
         else {
-            $this->model = new RestoModel_default($this->context);
+            $this->model = new RestoModel_default($this->context, $this->user);
         }
         
         if (!isset($context) || !is_a($context, 'RestoContext')) {

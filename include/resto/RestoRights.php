@@ -50,9 +50,9 @@ class RestoRights{
     private $groupname;
     
     /*
-     * Database driver
+     * Context
      */
-    private $dbDriver;
+    private $context;
     
     /*
      * Group rights
@@ -89,12 +89,12 @@ class RestoRights{
      * 
      * @param string $identifier
      * @param string $groupname
-     * @param RestoDatabaseDriver $dbDriver
+     * @param RestoContext $context
      */
-    public function __construct($identifier, $groupname, $dbDriver){
+    public function __construct($identifier, $groupname, $context){
         $this->identifier = isset($identifier) ? $identifier : $groupname;
         $this->groupname = $groupname;
-        $this->dbDriver = $dbDriver;
+        $this->context = $context;
     }
     
     /**
@@ -119,15 +119,15 @@ class RestoRights{
          * Return feature rights
          */
         if (isset($collectionName) && isset($featureIdentifier)) {
-            $rights = $this->dbDriver->getRights($this->identifier, $collectionName, $featureIdentifier);
+            $rights = $this->context->dbDriver->getRights($this->identifier, $collectionName, $featureIdentifier);
             if (!isset($rights)) {
                 return $this->getRights($collectionName);
             }
             else if ($this->isIncomplete($rights)) {
-                $collectionRights = $this->dbDriver->getRights($this->identifier, $collectionName);
+                $collectionRights = $this->context->dbDriver->getRights($this->identifier, $collectionName);
                 if (!isset($collectionRights) || $this->isIncomplete($collectionRights)) {
                     $rights = isset($collectionRights) ? $this->mergeRights($rights, $collectionRights) : $rights;
-                    $groupRights = $this->dbDriver->getRights($this->groupname, $collectionName);
+                    $groupRights = $this->context->dbDriver->getRights($this->groupname, $collectionName);
                     if (!isset($groupRights) || $this->isIncomplete($groupRights)) {
                         return $this->mergeRights(isset($groupRights) ? $this->mergeRights($rights, $groupRights) : $rights, $this->groupRights[$this->groupname]);
                     }
@@ -142,9 +142,9 @@ class RestoRights{
          * Return collection rights
          */
         if (isset($collectionName)){
-            $collectionRights = $this->dbDriver->getRights($this->identifier, $collectionName);
+            $collectionRights = $this->context->dbDriver->getRights($this->identifier, $collectionName);
             if (!isset($collectionRights) || $this->isIncomplete($collectionRights)) {
-                $groupRights = $this->dbDriver->getRights($this->groupname, $collectionName);
+                $groupRights = $this->context->dbDriver->getRights($this->groupname, $collectionName);
                 if (!isset($groupRights) || $this->isIncomplete($groupRights)) {
                     $groupRights = !$groupRights ? $this->groupRights[$this->groupname] : $this->mergeRights($groupRights, $this->groupRights[$this->groupname]);
                 }
@@ -156,7 +156,7 @@ class RestoRights{
         /*
          * Return group rights
          */
-        $groupRights = $this->dbDriver->getRights($this->groupname, $collectionName);
+        $groupRights = $this->context->dbDriver->getRights($this->groupname, $collectionName);
         if (!isset($groupRights) || $this->isIncomplete($groupRights)) {
             return !isset($groupRights) ? $this->groupRights[$this->groupname] : $this->mergeRights($groupRights, $this->groupRights[$this->groupname]);
         }
@@ -187,7 +187,7 @@ class RestoRights{
      * @param string $featureIdentifier
      */
     public function getFullRights($collectionName = null, $featureIdentifier = null) {
-        return array_merge(array('*' => $this->groupRights[$this->groupname]), $this->dbDriver->getFullRights($this->identifier, $collectionName, $featureIdentifier));
+        return array_merge(array('*' => $this->groupRights[$this->groupname]), $this->context->dbDriver->getFullRights($this->identifier, $collectionName, $featureIdentifier));
     }
     
     /**

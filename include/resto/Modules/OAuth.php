@@ -54,10 +54,11 @@ class OAuth extends RestoModule {
      * Constructor
      * 
      * @param RestoContext $context
+     * @param RestoContext $user
      * @param array $options : array of module parameters
      */
-    public function __construct($context, $options = array()) {
-        parent::__construct($context, $options);
+    public function __construct($context, $user, $options = array()) {
+        parent::__construct($context, $user, $options);
         if (isset($options['providers']) && is_array($options['providers'])) {
             $this->providers = $options['providers'];
         }

@@ -59,11 +59,6 @@ class RestoContext {
     public $dbDriver;
     
     /**
-     * User
-     */
-    public $user;
-    
-    /**
      * Base url
      */
     public $baseUrl;
@@ -108,7 +103,6 @@ class RestoContext {
      *      array(
      *          'dictionary' => RestoDictionary,
      *          'dbDriver' => RestoDatabaseDriver,
-     *          'user' => RestoUser,
      *          'baseUrl' => '//localhost/resto/',
      *          'outputFormat' => 'json',
      *          'query' => array(
@@ -167,11 +161,6 @@ class RestoContext {
          * Database Driver
          */
         $this->dbDriver = isset($options['dbDriver']) ? $options['dbDriver'] : null;
-        
-        /*
-         * User
-         */
-        $this->user = isset($options['user']) ? $options['user'] : null; 
         
         /*
          * Query

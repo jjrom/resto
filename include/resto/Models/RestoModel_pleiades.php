@@ -64,9 +64,10 @@ class RestoModel_pleiades extends RestoModel {
      * Constructor
      * 
      * @param RestoContext $context : Resto context
+     * @param RestoContext $user : Resto user
      */
-    public function __construct($context) {
-        parent::__construct($context);
+    public function __construct($context, $user) {
+        parent::__construct($context, $user);
     }
 
 }

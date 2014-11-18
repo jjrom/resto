@@ -40,14 +40,14 @@
 class RestoCart{
     
     /*
-     * Owner of the cart
+     * Context
      */
-    private $user;
+    public $context;
     
     /*
-     * Database driver
+     * Owner of the cart
      */
-    private $dbDriver;
+    public $user;
     
     /*
      * Cart items 
@@ -64,13 +64,13 @@ class RestoCart{
      * Constructor
      * 
      * @param RestoUser $user
-     * @param RestoDatabaseDriver $dbDriver
+     * @param RestoContext $context
      */
-    public function __construct($user, $dbDriver, $synchronize = false){
+    public function __construct($user, $context, $synchronize = false){
         $this->user = $user;
-        $this->dbDriver = $dbDriver;
+        $this->context = $context;
         if ($synchronize) {
-            $this->items = $this->dbDriver->getCartItems($this->user->profile['email']);
+            $this->items = $this->context->dbDriver->getCartItems($this->user->profile['email']);
         }
     }
     
@@ -107,7 +107,7 @@ class RestoCart{
             }
         }
         if ($synchronize) {
-            if (!$this->dbDriver->addToCart($this->user->profile['email'], $item)) {
+            if (!$this->context->dbDriver->addToCart($this->user->profile['email'], $item)) {
                 return false;
             }
         }
@@ -132,7 +132,7 @@ class RestoCart{
         }
         if ($synchronize) {
             $this->items[$itemId] = $item;
-            return $this->dbDriver->updateCart($this->user->profile['email'], $itemId, $item);
+            return $this->context->dbDriver->updateCart($this->user->profile['email'], $itemId, $item);
         }
         else {
             $this->items[$itemId] = $item;
@@ -156,7 +156,7 @@ class RestoCart{
             if (isset($this->items[$itemId])) {
                 unset($this->items[$itemId]);
             }
-            return $this->dbDriver->removeFromCart($this->user->profile['email'], $itemId);
+            return $this->context->dbDriver->removeFromCart($this->user->profile['email'], $itemId);
         }
         else if (isset($this->items[$itemId])) {
             unset($this->items[$itemId]);
@@ -180,6 +180,15 @@ class RestoCart{
      */
     public function toJSON($pretty) {
         return RestoUtil::json_format($this->getItems(), $pretty);
+    }
+    
+    /**
+     * Return the cart as a HTML file
+     * 
+     * @param boolean $pretty
+     */
+    public function toHTML() {
+        return RestoUtil::get_include_contents(realpath(dirname(__FILE__)) . '/../../themes/' . $this->context->config['theme'] . '/templates/cart.php', $this);
     }
     
     /**
@@ -231,7 +240,7 @@ class RestoCart{
             $xml->startElement('url');
             //$xml->writeAttribute('location', 'TODO');
             $xml->writeAttribute('priority', 1);
-            $xml->text($this->dbDriver->createSharedLink($this->items[$key]['url']));
+            $xml->text($this->context->dbDriver->createSharedLink($this->items[$key]['url']));
             $xml->endElement(); // End url
             $xml->endElement(); // End file
         }
@@ -255,7 +264,7 @@ class RestoCart{
         if ($last > 2) {
             list($modifier) = explode('.', $segments[$last], 1);
             if ($modifier === 'download') {
-                return $this->dbDriver->getResourceFields($segments[$last - 1], $segments[$last - 2]);
+                return $this->context->dbDriver->getResourceFields($segments[$last - 1], $segments[$last - 2]);
             }
         }
         return null;

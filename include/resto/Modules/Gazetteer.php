@@ -320,11 +320,12 @@ class Gazetteer extends RestoModule {
      * Constructor
      * 
      * @param RestoContext $context
+     * @param RestoUser $user
      * @param array $options : array of module parameters
      */
-    public function __construct($context, $options = array()) {
+    public function __construct($context, $user, $options = array()) {
         
-        parent::__construct($context, $options);
+        parent::__construct($context, $user, $options);
         
         $this->schema = 'gazetteer';
         

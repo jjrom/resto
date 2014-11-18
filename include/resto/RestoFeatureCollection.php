@@ -59,6 +59,11 @@ class RestoFeatureCollection {
     public $context;
     
     /*
+     * User
+     */
+    public $user;
+    
+    /*
      * FeatureCollectionDescription
      */
     private $description;
@@ -72,18 +77,20 @@ class RestoFeatureCollection {
      * Constructor 
      * 
      * @param RestoResto $context : Resto Context
+     * @param RestoUser $user : Resto user
      * @param RestoCollection : Parent collection
      */
-    public function __construct($context = null, $collection = null) {
+    public function __construct($context, $user, $collection = null) {
         
         if (!isset($context) || !is_a($context, 'RestoContext')) {
             throw new Exception('Context is undefined or not valid', 500);
         }
         
         $this->context = $context;
+        $this->user = $user;
         
         if (!isset($collection)) {
-            $this->model = new RestoModel_default($this->context);
+            $this->model = new RestoModel_default($this->context, $this->user);
         }
         else {
             $this->collection = $collection;
@@ -151,7 +158,7 @@ class RestoFeatureCollection {
         $original = $params;
         $queryAnalyzeProcessingTime = null;
         if (isset($this->context->config['modules']['QueryAnalyzer'])) {
-            $qa = new QueryAnalyzer($this->context, array('debug' => $this->context->debug));
+            $qa = new QueryAnalyzer($this->context, $this->user, array('debug' => $this->context->debug));
             $analyzis = $qa->analyze($params, $this->model);
             $params = $analyzis['analyze'];
             $queryAnalyzeProcessingTime = $analyzis['queryAnalyzeProcessingTime']; 
@@ -172,7 +179,7 @@ class RestoFeatureCollection {
          */
         $featuresArray = $this->context->dbDriver->getFeaturesDescriptions($params, $this->model, isset($this->collection) ? $this->collection->name : null, $limit, $offset, $realCount);
         for ($i = 0, $l = count($featuresArray); $i < $l; $i++) {
-            $this->restoFeatures[] = new RestoFeature($featuresArray[$i], $this->context, $this->collection);
+            $this->restoFeatures[] = new RestoFeature($featuresArray[$i], $this->context, $this->user, $this->collection);
             $total = isset($featuresArray[$i]['totalcount']) ? $featuresArray[$i]['totalcount'] : -1;
         }
         

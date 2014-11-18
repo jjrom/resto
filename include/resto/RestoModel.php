@@ -530,12 +530,14 @@ abstract class RestoModel {
      * Constructor
      * 
      * @param RestoContext $context : Resto context
+     * @param RestoUser $user : Resto user
      */
-    public function __construct($context) {
+    public function __construct($context, $user) {
         if (!isset($context) || !is_a($context, 'RestoContext')) {
             throw new Exception('Context must be defined', 500);
         }
         $this->context = $context;
+        $this->user = $user;
         $this->name = get_class($this);
         $this->properties = array_merge($this->properties, $this->extendedProperties); 
         
@@ -737,7 +739,7 @@ abstract class RestoModel {
             throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Feature ' . $data['id'] . ' cannot be inserted in database', 500);
         }
         
-        return new RestoFeature($data['id'], $this->context);
+        return new RestoFeature($data['id'], $this->context, $this->user);
         
     }
     

@@ -57,13 +57,14 @@ class QueryAnalyzer extends RestoModule {
      * Constructor
      * 
      * @param RestoContext $context
+     * @param RestoUser $user
      * @param array $options : array of module parameters
      */
-    public function __construct($context, $options = array()) {
-        parent::__construct($context, $options);
+    public function __construct($context, $user, $options = array()) {
+        parent::__construct($context, $user, $options);
         $this->dictionary = $this->context->dictionary;
         if (isset($this->context->config['modules']['Gazetteer'])) {
-            $this->gazetteer = new Gazetteer($this->context, $this->context->config['modules']['Gazetteer']);
+            $this->gazetteer = new Gazetteer($this->context, $this->user, $this->context->config['modules']['Gazetteer']);
         }
     }
 
@@ -202,7 +203,7 @@ class QueryAnalyzer extends RestoModule {
          * Set Model
          */
         if (!isset($model)) {
-            $model = new RestoModel_default($this->context);
+            $model = new RestoModel_default($this->context, $this->user);
         }
         
         /*

@@ -45,6 +45,11 @@ class RestoUser{
     public $profile;
     
     /*
+     * Context
+     */
+    public $context;
+    
+    /*
      * User cart
      */
     private $cart;
@@ -54,22 +59,17 @@ class RestoUser{
      */
     private $rights;
     
-    /*
-     * Database driver
-     */
-    private $dbDriver;
-    
     /**
      * Constructor
      * 
      * @param string $identifier : can be email (or string) or integer (i.e. uid)
      * @param string $password
-     * @param RestoDatabaseDriver $dbDriver
+     * @param RestoContext $context
      * @param boolean $setSession
      */
-    public function __construct($identifier, $password, $dbDriver, $setSession = true) {
+    public function __construct($identifier, $password, $context, $setSession = true) {
         
-        $this->dbDriver = $dbDriver;
+        $this->context = $context;
         
         if (isset($identifier) && $identifier !== 'unregistered' && $identifier !== -1) {
             
@@ -81,14 +81,14 @@ class RestoUser{
             }
             else {
                 
-                $this->profile = $this->dbDriver->getUserProfile($identifier, $password);
+                $this->profile = $this->context->dbDriver->getUserProfile($identifier, $password);
                 
                 /*
                  * Invalid email/password or user not yet activated
                  */
                 if ($this->profile['userid'] !== -1) {
                     $this->profile['lastsessionid'] = session_id();
-                    $this->dbDriver->updateUserProfile(array(
+                    $this->context->dbDriver->updateUserProfile(array(
                         'email' => $identifier,
                         'lastsessionid' => $this->profile['lastsessionid']
                     ));
@@ -110,11 +110,11 @@ class RestoUser{
          * Set rights and cart
          */
         if (isset($this->profile['email'])) {
-            $this->rights = new RestoRights($this->profile['email'], $this->profile['groupname'], $this->dbDriver);
-            $this->cart = new RestoCart($this, $this->dbDriver, true);
+            $this->rights = new RestoRights($this->profile['email'], $this->profile['groupname'], $this->context);
+            $this->cart = new RestoCart($this, $this->context, true);
         }
         else {
-            $this->rights = new RestoRights('unregistered', 'unregistered', $this->dbDriver);
+            $this->rights = new RestoRights('unregistered', 'unregistered', $this->context);
         }
         
     }
@@ -151,7 +151,7 @@ class RestoUser{
      */
     public function storeQuery($method, $service, $collectionName, $featureIdentifier, $query, $url){
         try {
-            $this->dbDriver->storeQuery($this->profile['userid'], array(
+            $this->context->dbDriver->storeQuery($this->profile['userid'], array(
                 'method' => $method,
                 'service' => $service,
                 'collection' => $collectionName,
@@ -174,7 +174,7 @@ class RestoUser{
         if (!isset($resourceUrl) || !isset($token)) {
             return false;
         }
-        return $this->dbDriver->isValidSharedLink($resourceUrl, $token);
+        return $this->context->dbDriver->isValidSharedLink($resourceUrl, $token);
     }
     
     /**
@@ -252,7 +252,7 @@ class RestoUser{
      * @param string $collectionName
      */
     public function hasToSignLicense($collectionName) {
-        return $this->dbDriver->licenseSigned($this->identifier, $collectionName);
+        return $this->context->dbDriver->licenseSigned($this->identifier, $collectionName);
     }
     
     /**
@@ -263,7 +263,7 @@ class RestoUser{
             session_regenerate_id(true); // Important ! Change session id
             unset($_SESSION['profile']);
         }
-        return $this->dbDriver->disconnectUser($this->identifier);
+        return $this->context->dbDriver->disconnectUser($this->identifier);
     }
     
     /**
@@ -327,14 +327,14 @@ class RestoUser{
      * @param string $orderId
      */
     public function getOrders($orderId) {
-        return $this->dbDriver->getOrders($this->profile['email'], $orderId);
+        return $this->context->dbDriver->getOrders($this->profile['email'], $orderId);
     }
     
     /**
      * Place order
      */
     public function placeOrder() {
-        return $this->dbDriver->placeOrder($this->profile['email']);
+        return $this->context->dbDriver->placeOrder($this->profile['email']);
     }
 }
 

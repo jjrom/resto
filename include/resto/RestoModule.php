@@ -45,6 +45,11 @@ abstract class RestoModule{
     protected $context;
     
     /*
+     * Resto user
+     */
+    protected $user;
+    
+    /*
      * Debug mode
      */
     protected $debug = false;
@@ -68,10 +73,12 @@ abstract class RestoModule{
      * Constructor
      * 
      * @param RestoContext $context
+     * @param RestoUser $user
      * @param array $options : array of module parameters
      */
-    public function __construct($context, $options = array()) {
+    public function __construct($context, $user, $options = array()) {
         $this->context = $context;
+        $this->user = $user;
         if (isset($options['debug'])) {
             $this->debug = $options['debug'];
         }
