@@ -73,15 +73,22 @@ class RestoFeature {
      */
     private $feature;
     
+    /*
+     * Name to display in properties links
+     */
+    private $displayedCollectionName;
+    
     /**
      * Constructor 
      * 
      * @param array or string $featureOrIdentifier : Feature identifier or properties
      * @param RestoResto $context : Resto Context
      * @param RestoUser $user : Resto user
-     * @param RestoCollection : Parent collection
+     * @param RestoCollection $collection : Parent collection
+     * @param boolean $forceCollectionName : Force collection name in links
+     * 
      */
-    public function __construct($featureOrIdentifier, $context, $user, $collection = null) {
+    public function __construct($featureOrIdentifier, $context, $user, $collection, $forceCollectionName = true) {
         
         $this->identifier = is_array($featureOrIdentifier) ? $featureOrIdentifier['identifier'] : $featureOrIdentifier;
         $this->context = $context;
@@ -94,6 +101,8 @@ class RestoFeature {
         else {
             $this->model = new RestoModel_default($this->context, $this->user);
         }
+        
+        $this->displayedCollectionName = $forceCollectionName && isset($this->collection) ? $this->collection->name : null;
         
         if (!isset($context) || !is_a($context, 'RestoContext')) {
             throw new Exception('Context is undefined or not valid', 500);
@@ -112,7 +121,7 @@ class RestoFeature {
          * ...or load from database
          */
         else {
-            $this->setFeature($this->context->dbDriver->getFeatureDescription($this->identifier, $this->model, $this->collection), isset($this->collection) ? $this->collection->getUrl() : null);
+            $this->setFeature($this->context->dbDriver->getFeatureDescription($this->identifier, $this->model, $this->collection->name));
         }
         
         return $this;
@@ -148,7 +157,7 @@ class RestoFeature {
         /*
          * Set search url
          */
-        $searchUrl = $this->context->baseUrl . 'api/collections' . (isset($this->collection) ? '/' . $this->collection->name : '' ) . '/search.json';
+        $searchUrl = $this->context->baseUrl . 'api/collections' . (isset($this->displayedCollectionName) ? '/' . $this->displayedCollectionName : '' ) . '/search.json';
         $thisUrl = isset($this->collection) ? RestoUtil::restoUrl($this->collection->getUrl(), $this->identifier) : RestoUtil::restoUrl($this->context->baseUrl, 'collections/' . $properties['collection'] . '/' . $this->identifier);
         
         /*

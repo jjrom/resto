@@ -612,7 +612,7 @@ class RestoUtil {
             return $class->newInstance($params[0], $params[1]);
         }
         else if ($count === 3) {
-            return $class->newInstance($params[0], $params[1], $params[3]);
+            return $class->newInstance($params[0], $params[1], $params[2]);
         }
         
         return $class->newInstance();

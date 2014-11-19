@@ -44,14 +44,14 @@
 class RestoFeatureCollection {
     
     /*
-     * Model
+     * Model of the main collection
      */
-    public $model;
+    public $defaultModel;
     
     /*
      * Parent collection
      */
-    public $collection;
+    public $defaultCollection;
     
     /*
      * Context
@@ -73,14 +73,19 @@ class RestoFeatureCollection {
      */
     private $restoFeatures;
     
+    /*
+     * All collections
+     */
+    private $collections;
+    
     /**
      * Constructor 
      * 
      * @param RestoResto $context : Resto Context
      * @param RestoUser $user : Resto user
-     * @param RestoCollection : Parent collection
+     * @param RestoCollection or array of RestoCollection $collections => First collection is the master collection !!
      */
-    public function __construct($context, $user, $collection = null) {
+    public function __construct($context, $user, $collections) {
         
         if (!isset($context) || !is_a($context, 'RestoContext')) {
             throw new Exception('Context is undefined or not valid', 500);
@@ -89,12 +94,18 @@ class RestoFeatureCollection {
         $this->context = $context;
         $this->user = $user;
         
-        if (!isset($collection)) {
-            $this->model = new RestoModel_default($this->context, $this->user);
+        if (!isset($collections) || (is_array($collections) && count($collections) === 0)) {
+            $this->defaultModel = new RestoModel_default($this->context, $this->user);
+        }
+        else if (!is_array($collections)) {
+            $this->defaultCollection = $collections;
+            $this->defaultModel = $this->defaultCollection->model;
         }
         else {
-            $this->collection = $collection;
-            $this->model = $this->collection->model;
+            $this->collections = $collections;
+            reset($collections);
+            $this->defaultCollection = $this->collections[key($collections)];
+            $this->defaultModel = $this->defaultCollection->model;
         }
         
         return $this->loadFromStore();
@@ -127,8 +138,8 @@ class RestoFeatureCollection {
          */
         $params = array();
         foreach ($this->context->query as $key => $value) {
-            foreach (array_keys($this->model->searchFilters) as $filterKey) {
-                if ($key === $this->model->searchFilters[$filterKey]['osKey']) {
+            foreach (array_keys($this->defaultModel->searchFilters) as $filterKey) {
+                if ($key === $this->defaultModel->searchFilters[$filterKey]['osKey']) {
                     $params[$filterKey] = preg_replace('/<.*?>/', '', $value);
                 }
             }
@@ -137,7 +148,7 @@ class RestoFeatureCollection {
         /*
          * Number of returned results is never greater than MAXIMUM_LIMIT
          */
-        $limit = isset($params['count']) && is_numeric($params['count']) ? min($params['count'], isset($this->model->searchFilters['count']->maximumInclusive) ? $this->model->searchFilters['count']->maximumInclusive : 500) : $this->context->dbDriver->resultsPerPage;
+        $limit = isset($params['count']) && is_numeric($params['count']) ? min($params['count'], isset($this->defaultModel->searchFilters['count']->maximumInclusive) ? $this->defaultModel->searchFilters['count']->maximumInclusive : 500) : $this->context->dbDriver->resultsPerPage;
 
         /*
          * Search offset - first element starts at offset 0
@@ -159,7 +170,7 @@ class RestoFeatureCollection {
         $queryAnalyzeProcessingTime = null;
         if (isset($this->context->config['modules']['QueryAnalyzer'])) {
             $qa = new QueryAnalyzer($this->context, $this->user, array('debug' => $this->context->debug));
-            $analyzis = $qa->analyze($params, $this->model);
+            $analyzis = $qa->analyze($params, $this->defaultModel);
             $params = $analyzis['analyze'];
             $queryAnalyzeProcessingTime = $analyzis['queryAnalyzeProcessingTime']; 
         }
@@ -169,17 +180,17 @@ class RestoFeatureCollection {
          * Convert productIdentifier to identifier if needed
          */
         if (isset($params['geo:uid']) && !RestoUtil::isValidUUID($params['geo:uid'])) {
-            if (isset($this->collection)) {
-                $params['geo:uid'] = RestoUtil::UUIDv5($this->collection->name . ':' . strtoupper($params['geo:uid']));
+            if (isset($this->defaultCollection)) {
+                $params['geo:uid'] = RestoUtil::UUIDv5($this->defaultCollection->name . ':' . strtoupper($params['geo:uid']));
             }
         }
         
         /*
          * Get features array
          */
-        $featuresArray = $this->context->dbDriver->getFeaturesDescriptions($params, $this->model, isset($this->collection) ? $this->collection->name : null, $limit, $offset, $realCount);
+        $featuresArray = $this->context->dbDriver->getFeaturesDescriptions($params, $this->defaultModel, isset($this->defaultCollection) ? $this->defaultCollection->name : null, $limit, $offset, $realCount);
         for ($i = 0, $l = count($featuresArray); $i < $l; $i++) {
-            $this->restoFeatures[] = new RestoFeature($featuresArray[$i], $this->context, $this->user, $this->collection);
+            $this->restoFeatures[] = new RestoFeature($featuresArray[$i], $this->context, $this->user, isset($this->collections) && isset($featuresArray[$i]['properties']['collection']) && $this->collections[$featuresArray[$i]['properties']['collection']] ? $this->collections[$featuresArray[$i]['properties']['collection']] : $this->defaultCollection, isset($this->defaultCollection) ? true : false);
             $total = isset($featuresArray[$i]['totalcount']) ? $featuresArray[$i]['totalcount'] : -1;
         }
         
@@ -258,7 +269,7 @@ class RestoFeatureCollection {
                 'rel' => 'search',
                 'type' => 'application/opensearchdescription+xml',
                 'title' => $this->context->dictionary->translate('_osddLink'),
-                'href' => $this->context->baseUrl . 'api/collections/' . (isset($this->collection) ? $this->collection->name . '/' : '') . 'describe.xml'
+                'href' => $this->context->baseUrl . 'api/collections/' . (isset($this->defaultCollection) ? $this->defaultCollection->name . '/' : '') . 'describe.xml'
             )
         );
         
@@ -352,7 +363,7 @@ class RestoFeatureCollection {
             'type' => 'FeatureCollection',
             'properties' => array(
                 'title' => isset($query['searchTerms']) ? $query['searchTerms'] : '',
-                'id' => RestoUtil::UUIDv5((isset($this->collection) ?$this->collection->name : '*') . ':' . json_encode($query)),
+                'id' => RestoUtil::UUIDv5((isset($this->defaultCollection) ?$this->defaultCollection->name : '*') . ':' . json_encode($query)),
                 'totalResults' => $total !== -1 ? $total : null,
                 'startIndex' => $startIndex,
                 'itemsPerPage' => $count,
@@ -387,8 +398,8 @@ class RestoFeatureCollection {
              */
             if (is_array($value)) {
                 for ($i = 0, $l = count($value); $i < $l; $i++) {
-                    if (isset($this->model->searchFilters[$key]['osKey'])) {
-                        $arr[$this->model->searchFilters[$key]['osKey'] . '[]'] = $value[$i];
+                    if (isset($this->defaultModel->searchFilters[$key]['osKey'])) {
+                        $arr[$this->defaultModel->searchFilters[$key]['osKey'] . '[]'] = $value[$i];
                     }
                     else {
                         $arr[$key . '[]'] = $value;
@@ -396,8 +407,8 @@ class RestoFeatureCollection {
                 }
             }
             else {
-                if (isset($this->model->searchFilters[$key]['osKey'])) {
-                    $arr[$this->model->searchFilters[$key]['osKey']] = $value;
+                if (isset($this->defaultModel->searchFilters[$key]['osKey'])) {
+                    $arr[$this->defaultModel->searchFilters[$key]['osKey']] = $value;
                 }
                 else {
                     $arr[$key] = $value;

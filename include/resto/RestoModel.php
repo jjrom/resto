@@ -739,7 +739,7 @@ abstract class RestoModel {
             throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Feature ' . $data['id'] . ' cannot be inserted in database', 500);
         }
         
-        return new RestoFeature($data['id'], $this->context, $this->user);
+        return new RestoFeature($data['id'], $this->context, $this->user, null);
         
     }
     

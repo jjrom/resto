@@ -181,7 +181,7 @@ or one of the other distros that enable SELinux by default**
 RESTo configuration
 -------------------
 
-All configuration parameters are defined within $RESTO_TARGET/include/resto.ini file
+All configuration parameters are defined within $RESTO_TARGET/include/config.php file
 
 The configuration file is self explanatory. For a standard installation you should only check that :
 * The restoUrl points to your RESTo installation webpage

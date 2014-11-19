@@ -571,13 +571,13 @@ abstract class RestoDatabaseDriver {
      *
      * @param integer $identifier
      * @param RestoModel $model
-     * @param RestoCollection $collection
+     * @param string $collectionName
      * @param array $filters
      * 
      * @return array
      * @throws Exception
      */
-    abstract public function getFeatureDescription($identifier, $model, $collection = null, $filters = array());
+    abstract public function getFeatureDescription($identifier, $model, $collectionName = null, $filters = array());
 
     /**
      * 

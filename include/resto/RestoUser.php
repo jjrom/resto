@@ -252,7 +252,7 @@ class RestoUser{
      * @param string $collectionName
      */
     public function hasToSignLicense($collectionName) {
-        return $this->context->dbDriver->licenseSigned($this->identifier, $collectionName);
+        return $this->context->dbDriver->licenseSigned($this->profile['email'], $collectionName);
     }
     
     /**
@@ -263,7 +263,7 @@ class RestoUser{
             session_regenerate_id(true); // Important ! Change session id
             unset($_SESSION['profile']);
         }
-        return $this->context->dbDriver->disconnectUser($this->identifier);
+        return $this->context->dbDriver->disconnectUser($this->profile['email']);
     }
     
     /**

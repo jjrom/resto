@@ -126,7 +126,7 @@ class RestoCollections {
      * @return array (FeatureCollection)
      */
     public function search() {
-        return new RestoFeatureCollection($this->context, $this->user, null);
+        return new RestoFeatureCollection($this->context, $this->user, $this->getCollections());
     }
     
     /**

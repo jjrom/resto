@@ -1256,11 +1256,11 @@ class Resto {
         /*
          * Read resto.ini configuration file
          */
-        $iniFile = realpath(dirname(__FILE__)) . '/../resto.ini';
-        if (!file_exists($iniFile)) {
+        $configFile = realpath(dirname(__FILE__)) . '/../config.php';
+        if (!file_exists($configFile)) {
             throw new Exception(__METHOD__ . 'Missing mandatory configuration file', 500);
         }
-        $this->config = IniParser::read($iniFile);
+        $this->config = include($configFile);
         
         /*
          * Debug mode

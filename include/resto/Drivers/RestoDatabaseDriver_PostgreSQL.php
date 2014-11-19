@@ -2249,15 +2249,15 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      *
      * @param integer $identifier
      * @param RestoModel $model
-     * @param RestoCollection $collection
+     * @param string $collectionName
      * @param array $filters
      * 
      * @return array
      * @throws Exception
      */
-    public function getFeatureDescription($identifier, $model, $collection = null, $filters = array()) {
+    public function getFeatureDescription($identifier, $model, $collectionName = null, $filters = array()) {
         try {
-           $result = pg_query($this->dbh, 'SELECT ' . implode(',', $this->getSQLFields($model, array('continents', 'countries'))) . ' FROM ' . (isset($collection) ? $this->getSchemaName($collection->name) : 'resto') . '.features WHERE ' . $model->getDbKey('identifier') . "='" . pg_escape_string($identifier) . "'" . (count($filters) > 0 ? ' AND ' . join(' AND ', $filters) : ''));
+           $result = pg_query($this->dbh, 'SELECT ' . implode(',', $this->getSQLFields($model, array('continents', 'countries'))) . ' FROM ' . (isset($collectionName) ? $this->getSchemaName($collectionName) : 'resto') . '.features WHERE ' . $model->getDbKey('identifier') . "='" . pg_escape_string($identifier) . "'" . (count($filters) > 0 ? ' AND ' . join(' AND ', $filters) : ''));
            if (!$result) {
                throw new Exception();
            }
