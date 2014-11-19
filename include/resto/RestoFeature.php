@@ -121,7 +121,7 @@ class RestoFeature {
          * ...or load from database
          */
         else {
-            $this->setFeature($this->context->dbDriver->getFeatureDescription($this->identifier, $this->model, $this->collection->name));
+            $this->setFeature($this->context->dbDriver->getFeatureDescription($this->identifier, $this->model, isset($this->collection) ? $this->collection->name : null));
         }
         
         return $this;
