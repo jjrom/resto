@@ -64,13 +64,23 @@ class iTag {
         }
         else {
             try {
-                $this->dbh = pg_connect(join(' ', array(
-                    'host=' . (isset($options['host']) ? $options['host'] : 'localhost'),
-                    'port=' . (isset($options['port']) ? $options['port'] : '5432'),
+                
+                $dbInfo = array(
                     'dbname=' . (isset($options['dbname']) ? $options['dbname'] : 'itag'),
                     'user=' . (isset($options['user']) ? $options['user'] : 'itag'),
-                    'password=' . (isset($options['password']) ? $options['password'] : 'itag'),
-                )));
+                    'password=' . (isset($options['password']) ? $options['password'] : 'itag')
+                );
+                
+                /*
+                 * If host is specified, then TCP/IP connection is used
+                 * Otherwise socket connection is used
+                 */
+                if (isset($options['host'])) {
+                    $dbInfo[] = 'host=' . $options['host'];
+                    $dbInfo[] = 'port=' . (isset($options['port']) ? $options['port'] : '5432');
+                }
+                
+                $this->dbh = pg_connect(join(' ', $dbInfo));
                 if (!$this->dbh) {
                     throw new Exception();
                 }
@@ -1057,6 +1067,7 @@ class iTag {
             'ITA' => 'Italy',
             'JAM' => 'Jamaica',
             'JE' => 'Jersey',
+            'JEY' => 'Jersey',
             'JM' => 'Jamaica',
             'JO' => 'Jordan',
             'JOR' => 'Jordan',

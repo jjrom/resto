@@ -779,7 +779,7 @@ abstract class RestoModel {
                 for ($i = 0, $li = count($properties['political']['continents']); $i < $li; $i++) {
                     $continent = $properties['political']['continents'][$i];
                     $continentHash = RestoUtil::getHash($continent['id']);
-                    $keywords[] = array(
+                    $keywords[$continentHash] = array(
                         'id' => $continent['id'],
                         'hash' => $continentHash
                     );
@@ -787,7 +787,7 @@ abstract class RestoModel {
                     for ($j = 0, $lj = count($continent['countries']); $j < $lj; $j++) {
                         $country = $continent['countries'][$j];
                         $countryHash = RestoUtil::getHash($country['id'], $continentHash);
-                        $keywords[] = array(
+                        $keywords[$countryHash] = array(
                             'id' => $country['id'],
                             'parentId' => $continent['id'],
                             'hash' => $countryHash,
@@ -803,7 +803,7 @@ abstract class RestoModel {
                                     $region['id'] = 'region:_all';
                                 }
                                 $regionHash = RestoUtil::getHash($region['id'], $countryHash);
-                                $keywords[] = array(
+                                $keywords[$regionHash] = array(
                                     'id' => $region['id'],
                                     'parentId' => $country['id'],
                                     'hash' => $regionHash,
@@ -817,7 +817,7 @@ abstract class RestoModel {
                                         $state['id'] = 'state:_unknown';
                                     }
                                     $stateHash = RestoUtil::getHash($state['id'], $regionHash);
-                                    $keywords[] = array(
+                                    $keywords[$stateHash] = array(
                                         'id' => $state['id'],
                                         'parentId' => $region['id'],
                                         'hash' => $stateHash,
@@ -835,9 +835,10 @@ abstract class RestoModel {
             if (isset($properties['landCover']['landUse'])) {
                 foreach (array_values($properties['landCover']['landUse']) as $landuse) {
                     $id = 'landuse:' . strtolower($landuse['name']);
-                    $keywords[] = array(
+                    $hash = RestoUtil::getHash($id);
+                    $keywords[$hash] = array(
                         'id' => $id,
-                        'hash' => RestoUtil::getHash($id),
+                        'hash' => $hash,
                         'value' => $landuse['pcover']
                     );
                 }
@@ -847,10 +848,11 @@ abstract class RestoModel {
                     $id = 'landuse_details:' . strtolower($landuse['name']);
                     $parentId = 'landuse:' . strtolower($landuse['parent']);
                     $parentHash = RestoUtil::getHash($parentId);
-                    $keywords[] = array(
+                    $hash = RestoUtil::getHash($id, $parentHash);
+                    $keywords[$hash] = array(
                         'id' => $id,
                         'parentId' => $parentId,
-                        'hash' => RestoUtil::getHash($id, $parentHash),
+                        'hash' => $hash,
                         'parentHash' => $parentHash,
                         'value' => $landuse['pcover']
                     );
@@ -858,7 +860,7 @@ abstract class RestoModel {
             }
         }
 
-        return $keywords;
+        return array_values($keywords);
     }
     
 }
