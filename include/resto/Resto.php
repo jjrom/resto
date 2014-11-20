@@ -988,8 +988,8 @@ class Resto {
                 if (!$this->user->canDownload($collectionName, $featureIdentifier, $this->getBaseURL() .  $this->context->path, isset($this->context->query['_tk']) ? $this->context->query['_tk'] : null)) {
                     throw new Exception('Forbidden', 403);
                 }
-                $feature->download();
                 $this->storeQuery('download', $collectionName, $featureIdentifier);
+                $feature->download();
                 exit;
             }
             

@@ -671,6 +671,21 @@ class RestoFeature {
             }
             
             /*
+             * Optimized download with Apache module XsendFile
+             */
+            if (in_array('mod_xsendfile', apache_get_modules())) {
+                header('HTTP/1.1 200 OK');
+                header('Pragma: public');
+                header('Expires: -1');
+                header('Cache-Control: public, must-revalidate, post-check=0, pre-check=0');
+                header('X-Sendfile: ' . $resource['path']);
+                header('Content-Type: ' . isset($resource['mimeType']) ? $resource['mimeType'] : 'application/unknown');
+                header('Content-Disposition: attachment; filename="' . basename($resource['path']) . '"');
+                header('Accept-Ranges: bytes');
+                return;
+            }
+            
+            /*
              * Read file
              */
             $fileSize = filesize($resource['path']);
