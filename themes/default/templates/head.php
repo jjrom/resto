@@ -4,7 +4,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <link rel="shortcut icon" href="<?php echo $self->context->baseUrl ?>favicon.ico" />
     <link rel="stylesheet" href="<?php echo $self->context->baseUrl ?>js/lib/foundation/normalize.css" type="text/css" />
-    <link href='http://fonts.googleapis.com/css?family=Open+Sans:800' rel='stylesheet' type='text/css'>
+    <!--<link href='http://fonts.googleapis.com/css?family=Open+Sans:800' rel='stylesheet' type='text/css'>-->
+    <link href='http://fonts.googleapis.com/css?family=Roboto:300' rel='stylesheet' type='text/css'>
     <?php if (!isset($_noMap)) { ?>
     <!--<link rel="stylesheet" href="<?php echo $self->context->baseUrl ?>js/lib/ol3/ol.css" type="text/css" />-->
     <!-- CSS mapshup -->

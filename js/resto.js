@@ -116,7 +116,14 @@
             $('#off-canvas-toggle').click(function(e){
                 e.preventDefault();
                 e.stopPropagation();
-                $(this).hasClass('fa-chevron-right') ? $(this).removeClass('fa-chevron-right').addClass('fa-chevron-left') : $(this).removeClass('fa-chevron-left').addClass('fa-chevron-right');
+                if ($(this).hasClass('fa-chevron-right')) {
+                    $(this).removeClass('fa-chevron-right').addClass('fa-chevron-left');
+                    //$('#gototop').css({'right':($('.left-off-canvas-menu').width() + 20) + 'px'});
+                }
+                else {
+                    $(this).removeClass('fa-chevron-left').addClass('fa-chevron-right');
+                    //$('#gototop').css({'right':'20px'});
+                }
                 $('.off-canvas-wrap').foundation('offcanvas', 'toggle', 'move-right');
             }).css({
                 'line-height':$('.resto-search-panel').outerHeight() + 'px'
@@ -136,11 +143,6 @@
                 if (!self.ajaxReady) {
                     return false;
                 }
-                
-                /*
-                 * Unselect all
-                 */
-                self.unselectAll();
                 
                 /*
                  * Reload page instead of update page
@@ -249,6 +251,7 @@
                 var state = window.History.getState(), url = self.Util.updateUrlFormat(state.cleanUrl, 'json');
 
                 self.Util.showMask();
+                self.unselectAll();
                 self.ajaxReady = false;
                 $.ajax({
                     url: url,
@@ -501,7 +504,7 @@
                  *  </li>
                  * 
                  */
-                $container.append('<li style="position:relative;padding:0px;"><div id="' + feature.id + '" class="resto-feature"><div class="bg-alpha-dark-hover streched"><div class="padded pin-top feature-info-top"></div><div class="padded pin-bottom feature-info-bottom link-light"></div><div class="padded pin-top pin-right feature-info-right"></div></div></div></li>');
+                $container.append('<li style="position:relative;padding:0px;"><div id="' + feature.id + '" class="resto-feature"><div class="streched unselected"><div class="padded pin-top feature-info-top"></div><div class="padded pin-bottom pin-right feature-info-bottom link-light"></div><div class="padded pin-top pin-right feature-info-right"></div></div></div></li>');
                 $div = $('#' + feature.id)
                         .css({
                             'background': "url('" + image + "') no-repeat",
@@ -509,12 +512,12 @@
                             '-moz-background-size': 'cover',
                             '-o-background-size': 'cover',
                             'background-size': 'cover',
-                            'height': '350px',
+                            'height': '250px',
                             'box-sizing': 'border-box',
                             'padding': '0px',
                             'cursor': 'pointer'
                         }).click(function (e) {
-                            $(this).hasClass('selected') ? self.unselectAll() : self.selectFeature($(this).attr('id'), false);
+                            $(this).children().first().hasClass('selected') ? self.unselectAll() : self.selectFeature($(this).attr('id'), false);
                         });
                 
                 /*
@@ -612,10 +615,7 @@
              * Switch to list view
              */
             this.switchTo($('#resto-panel-trigger-list'));
-            $('.resto-feature').each(function () {
-                $(this).addClass('darker');
-            });
-            $id.addClass('selected').removeClass('darker').children().first().removeClass('bg-alpha-dark-hover');
+            $id.children().first().addClass('selected').removeClass('unselected');
             if (scroll) {
                 $('html, body').scrollTop($id.offset().top);
             }
@@ -628,7 +628,7 @@
          */
         unselectAll: function() {
             $('.resto-feature').each(function () {
-                $(this).removeClass('selected darker').children().first().addClass('bg-alpha-dark-hover');
+                $(this).children().first().removeClass('selected').addClass('unselected');
             });
             $('#feature-info-details').hide();
         },
@@ -664,7 +664,7 @@
                 left = left + $id.outerWidth();
             }
             
-            $div = $('#feature-info-details').addClass('lightfield').empty().css({
+            $div = $('#feature-info-details').empty().css({
                 'position': 'absolute',
                 'height': $id.outerHeight() + 'px',
                 'top': top + 'px',
@@ -690,7 +690,7 @@
             if (self.Header.userProfile.userid !== -1) {
                 infos.push('<a class="fa fa-3x fa-shopping-cart addToCart" href="#" title="' + self.Util.translate('_addToCart') + '"></a>');
             }
-            $div.append('<div class="feature-info-bottom">' + infos.join('') + '</div>');
+            $div.append('<div class="center">' + infos.join('') + '</div>');
             
             $('.viewMetadata', $div).click(function (e) {
                 e.preventDefault();

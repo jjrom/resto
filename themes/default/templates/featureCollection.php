@@ -43,7 +43,7 @@
                     <!-- Search result -->
                     <div class="row fullWidth" style="min-height:800px;">
                         <div class="large-12 columns">
-                            <ul class="resto-features-container small-block-grid-1 medium-block-grid-3 large-block-grid-4"></ul>
+                            <ul class="resto-features-container small-block-grid-1 medium-block-grid-2 large-block-grid-3"></ul>
                         </div>
                     </div>
 
@@ -53,7 +53,6 @@
                     <!-- Footer -->
                     <?php include 'footer.php' ?>
                 </div>
-                
                 <div class="left-off-canvas-menu lightfield text-dark">
                     <ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1 facets padded">
                         <li>
@@ -90,7 +89,7 @@
                     <?php } ?>
                     -->
                 </div>
-                
+                <a id="gototop" class="fa fa-3x fa-chevron-circle-up round"></a>
                 <span style="position:absolute;left:-5px;top:0px;">
                     <a id="off-canvas-toggle" href="#" class="fa fa-chevron-right text-dark lightfield" style="padding:0px 15px 0px 15px;"></a>
                 </span>
