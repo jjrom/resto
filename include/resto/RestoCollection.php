@@ -74,9 +74,16 @@ class RestoCollection {
     public $osDescription = null;
     
     /*
-     * Collection license (i.e. conditions of use)
+     * Collection licenses (i.e. conditions of use)
+     * 
+     * Structure
+     *      array(
+     *          'en' => //license url
+     *          'fr' => //license url
+     *          ...
+     *      )
      */
-    public $license = array();
+    public $license;
     
     /*
      * Statistics
@@ -254,6 +261,22 @@ class RestoCollection {
     }
    
     /**
+     * Return license in the current language
+     */
+    public function getLicense() {
+        if (!isset($this->license)) {
+            return null;
+        }
+        if (!isset($this->license[$this->context->dictionary->language])) {
+            if (isset($this->license['en'])) {
+                return $this->license['en'];
+            }
+            return null;
+        }
+        return $this->license[$this->context->dictionary->language];
+    }
+    
+    /**
      * Return OpenSearch property in the current language
      * or in english otherwise
      * 
@@ -289,7 +312,7 @@ class RestoCollection {
         $this->model = RestoUtil::instantiate($collectionDescription['model'], array($this->context, $this->user));
         $this->osDescription = $collectionDescription['osDescription'];
         $this->status = $collectionDescription['status'];
-        $this->licence = $collectionDescription['license'];
+        $this->license = $collectionDescription['license'];
         $this->propertiesMapping = $collectionDescription['propertiesMapping'];
         $this->statistics = $collectionDescription['statistics'];
         $this->synchronized = true;
@@ -357,6 +380,7 @@ class RestoCollection {
             'name' => $this->name,
             'status' => $this->status,
             'model' => $this->model->name,
+            'license' => isset($this->license) ? $this->license : null,
             'osDescription' => $this->osDescription,
             'propertiesMapping' => $this->propertiesMapping,
             'statistics' => $this->statistics

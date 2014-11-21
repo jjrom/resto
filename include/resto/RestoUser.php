@@ -249,10 +249,13 @@ class RestoUser{
     /**
      * Check if user has to sign license for collection
      * 
-     * @param string $collectionName
+     * @param RestoCollection $collection
      */
-    public function hasToSignLicense($collectionName) {
-        return $this->context->dbDriver->licenseSigned($this->profile['email'], $collectionName);
+    public function hasToSignLicense($collection) {
+        if (isset($collection->license) && !$this->context->dbDriver->licenseSigned($this->profile['email'], $collection->name)) {
+            return true;
+        }
+        return false;
     }
     
     /**
@@ -276,14 +279,14 @@ class RestoUser{
     /**
      * Add item to cart
      * 
-     * @param array $item
+     * @param array $data
      * @param boolean $synchronize
      */
-    public function addToCart($item, $synchronize = false) {
-        $itemId = $this->cart->add($item, $synchronize);
-        if ($itemId) {
+    public function addToCart($data, $synchronize = false) {
+        $items = $this->cart->add($data, $synchronize);
+        if ($items) {
             $_SESSION['cart'] = $this->getCart()->getItems();
-            return $itemId;
+            return $items;
         }
         return false;
     }

@@ -69,7 +69,7 @@
             if (window.M) {
                 
                 self.isLoaded = true;
-                $('#mapshup').height($(window).height() - $('.resto-search-panel').outerHeight() - $('.resto-search-panel').position().top);
+                $('#mapshup').height($(window).height() - $('.resto-search-panel').outerHeight() - $('.resto-search-panel').position().top - $('.left-off-canvas-menu').offset().top);
                 window.M.load();
                 
                 /*

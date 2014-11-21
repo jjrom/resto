@@ -116,6 +116,7 @@
             $('#off-canvas-toggle').click(function(e){
                 e.preventDefault();
                 e.stopPropagation();
+                $(this).hasClass('fa-chevron-right') ? $(this).removeClass('fa-chevron-right').addClass('fa-chevron-left') : $(this).removeClass('fa-chevron-left').addClass('fa-chevron-right');
                 $('.off-canvas-wrap').foundation('offcanvas', 'toggle', 'move-right');
             }).css({
                 'line-height':$('.resto-search-panel').outerHeight() + 'px'
@@ -681,10 +682,10 @@
             infos.push('<a class="fa fa-3x fa-map-marker showOnMap" href="#" title="' + self.Util.translate('_showOnMap') + '"></a>');
             
             // Download feature
-            //if (feature.properties['services'] && feature.properties['services']['download'] && feature.properties['services']['download']['url']) {
-                infos.push('<a class="fa fa-3x fa-cloud-download downloadProduct" href="#" title="' + self.Util.translate('_download') + '"></a>');
-            //}
-            
+            if (feature.properties['services'] && feature.properties['services']['download'] && feature.properties['services']['download']['url']) {
+                infos.push('<a class="fa fa-3x fa-cloud-download downloadProduct" href="' + feature.properties['services']['download']['url'] + '?lang=' + self.language + '" title="' + self.Util.translate('_download') + '"' + (feature.properties['services']['download']['mimeType'] === 'text/html' ? 'target="_blank"' : '') + '></a>');
+            }
+                
             // Add to cart
             if (self.Header.userProfile.userid !== -1) {
                 infos.push('<a class="fa fa-3x fa-shopping-cart addToCart" href="#" title="' + self.Util.translate('_addToCart') + '"></a>');
@@ -720,15 +721,27 @@
                     async: true,
                     type: 'POST',
                     dataType: "json",
-                    data: JSON.stringify({'url':self.restoUrl + 'collections/' + feature.properties['collection'] + '/' + feature.id + '/download'}),
+                    data: JSON.stringify([
+                        {
+                            'id': feature.id,
+                            'properties': {
+                                'productIdentifier': feature.properties['productIdentifier'],
+                                'productType': feature.properties['productType'],
+                                'quicklook': feature.properties['quicklook'], "collection": "DataTest",
+                                'services': {
+                                    'download': feature.properties['services']['download']
+                                }
+                            }
+                        }
+                    ]),
                     contentType: 'application/json',
-                    success: function(obj, textStatus, XMLHttpRequest) {
-                        self.Util.hideMask();                
+                    success: function (obj, textStatus, XMLHttpRequest) {
+                        self.Util.hideMask();
                         if (XMLHttpRequest.status === 200) {
                             alert('added')
                         }
                     },
-                    error: function(e) {
+                    error: function (e) {
                         self.Util.hideMask();
                         alert('TODO - error');
                     }
@@ -738,9 +751,26 @@
             $('.downloadProduct', $div).click(function(e){
                 e.preventDefault();
                 e.stopPropagation();
-                alert('TODO');
-                return false;
-                //feature.properties['services']['download']['url'] + '"' + (feature.properties['services']['download']['mimeType'] === 'text/html' ? ' target="_blank"' : '') + 
+                if ($(this).attr('target') !== '_blank') {
+                    $('<iframe id="hiddenDownloader">').attr('src', $(this).attr('href')).appendTo('body').load(function(){
+                        var error = {};
+                        try {
+                            error = JSON.parse($('body', $(this).contents()).text());
+                        }
+                        catch(e) {}
+                        
+                        if (error['ErrorCode']) {
+                            if (error['ErrorCode'] === 404) {
+                                alert('Error! Resource does not exist');
+                            }
+                            else if (error['ErrorCode'] === 403) {
+                                alert('Error! You don\'t have sufficient rights to access this resource');
+                            }
+                        }
+                    });
+                    return false;
+                }
+                return true;
             });
             
         },

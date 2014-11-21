@@ -75,45 +75,58 @@ class RestoCart{
     }
     
     /**
-     * Add item to cart
+     * Add items to cart
      * 
-     * @param array $item
+     * $data should be an array of array.
+     * 
+     * Structure :
+     *      array(
+     *          array(
+     *              'id' => //featureidentifier
+     *             'properties' => array(
+     *              
+     *              )
+     *          ),
+     *          array(
+     * 
+     *          ),
+     *          ...
+     *      )
+     * 
+     * @param array $data
      * @param boolean $synchronize : true to synchronize with database
      */
-    public function add($item, $synchronize = false) {
+    public function add($data, $synchronize = false) {
         
-        if (!is_array($item) || !isset($item['url'])) {
+        if (!is_array($data)) {
             return false;
         }
         
-        /*
-         * Same resource cannot be added twice
-         */
-        $itemId = sha1($this->user->profile['email'] . $item['url']);
-        if (isset($this->items[$itemId])) {
-            throw new Exception('Cannot add item : ' . $itemId . ' already exists', 500);
-        }
-        
-        /*
-         * Add resource info to item description
-         * Note : existing info ARE NOT superseeded 
-         */
-        $resourceInfo = $this->getResourceInfo($item['url']);
-        if (isset($resourceInfo)) {
-            foreach (array_keys(array('size', 'checksum', 'mimeType', 'collection', 'identifier')) as $key) {
-                if (!isset($item[$key]) && isset($resourceInfo[$key])) {
-                    $item[$key] = $resourceInfo[$key];
+        $items = array();
+        for ($i = count($data); $i--;) {
+            
+            if (!isset($data[$i]['id'])) {
+                continue;
+            }
+            
+            /*
+             * Same resource cannot be added twice
+             */
+            $itemId = sha1($this->user->profile['email'] . $data[$i]);
+            if (isset($this->items[$itemId])) {
+                continue;
+            }
+
+            if ($synchronize) {
+                if (!$this->context->dbDriver->addToCart($this->user->profile['email'], $data[$i])) {
+                    return false;
                 }
             }
+            $this->items[$itemId] = $data[$i];
+            $items[$itemId] = $data[$i];
         }
-        if ($synchronize) {
-            if (!$this->context->dbDriver->addToCart($this->user->profile['email'], $item)) {
-                return false;
-            }
-        }
-        $this->items[$itemId] = $item;
         
-        return $itemId;
+        return $items;
     }
     
     /**
@@ -251,22 +264,4 @@ class RestoCart{
         
     }
     
-    /**
-     * Return resource information from resource url
-     * 
-     * @param type $resourceUrl
-     * @return array
-     */
-    private function getResourceInfo($resourceUrl) {
-        $exploded = parse_url($resourceUrl);
-        $segments = explode('/', $exploded['path']);
-        $last = count($segments) - 1;
-        if ($last > 2) {
-            list($modifier) = explode('.', $segments[$last], 1);
-            if ($modifier === 'download') {
-                return $this->context->dbDriver->getResourceFields($segments[$last - 1], $segments[$last - 2]);
-            }
-        }
-        return null;
-    }
 }

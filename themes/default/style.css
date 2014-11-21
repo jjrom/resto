@@ -546,3 +546,10 @@ a.resto-keyword {
     -webkit-filter: blur(10px);
     filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'effect-blur-1\'><feGaussianBlur stdDeviation=\'10\' /></filter></svg>#effect-blur-1");
 }
+
+/*
+ * Avoid overflow bar to be shown (TODO : validate !!)
+ */
+.off-canvas-wrap.move-right, .off-canvas-wrap.move-left {
+    min-height:0px;
+}

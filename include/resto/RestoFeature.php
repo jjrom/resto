@@ -78,6 +78,11 @@ class RestoFeature {
      */
     private $displayedCollectionName;
     
+    /*
+     * Download path on disk
+     */
+    private $resourceInfos;
+    
     /**
      * Constructor 
      * 
@@ -141,9 +146,17 @@ class RestoFeature {
         }
         
         /*
+         * Retrieve collection if not set
+         */
+        if (!isset($this->collection)) {
+            $this->collection = new RestoCollection($properties['collection'], $this->context, $this->user, array('autoload' => true));
+            $this->model = $this->collection->model;
+        }
+        
+        /*
          * Modify properties as defined in collection propertiesMapping associative array
          */
-        if (isset($this->collection) && isset($this->collection->propertiesMapping)) {
+        if (isset($this->collection->propertiesMapping)) {
             foreach (array_keys($this->collection->propertiesMapping) as $key) {
                 $properties[$key] = RestoUtil::replaceInTemplate($this->collection->propertiesMapping[$key], $properties);
             }
@@ -273,6 +286,12 @@ class RestoFeature {
             if (isset($properties['resourceChecksum'])) {
                 $properties['services']['download']['checksum'] = $properties['resourceChecksum'];
             }
+            $this->resourceInfos = array(
+                'path' => $properties['resource'],
+                'mimeType' => $properties['services']['download']['mimeType'],
+                'size' => isset($properties['services']['download']['size']) ? $properties['services']['download']['size'] : null,
+                'checksum' => isset($properties['services']['download']['checksum']) ? $properties['services']['download']['checksum'] : null
+            );
         }
         
         /*
@@ -538,6 +557,7 @@ class RestoFeature {
          */
         $xml->endElement(); // entry
     }
+    
     /**
      * Output product description as a PHP array
      */
@@ -658,15 +678,12 @@ class RestoFeature {
             throw new Exception('Not Found', 404);
         }
         
-        $thisDownloadUrl = isset($this->collection) ? RestoUtil::restoUrl($this->collection->getUrl(), $this->identifier . '/download') : RestoUtil::restoUrl($this->context->baseUrl, 'collections/' . $this->feature['properties']['collection'] . '/' . $this->identifier . '/download');
-       
         /*
          * Download hosted resource with support of Range and Partial Content
          * (See http://stackoverflow.com/questions/157318/resumable-downloads-when-using-php-to-send-the-file)
          */
-        if (isset($this->feature['properties']['services']['download']['url']) && $this->feature['properties']['services']['download']['url'] === $thisDownloadUrl) {
-            $resource = $this->context->dbDriver->getResourceFields($this->identifier, isset($this->collection) ? $this->collection->name : null);
-            if (!isset($resource) || !isset($resource['path']) || !is_file($resource['path'])) {
+        if (isset($this->resourceInfos)) {
+            if (!isset($this->resourceInfos['path']) || !is_file($this->resourceInfos['path'])) {
                 throw new Exception('Not Found', 404);
             }
             
@@ -678,9 +695,9 @@ class RestoFeature {
                 header('Pragma: public');
                 header('Expires: -1');
                 header('Cache-Control: public, must-revalidate, post-check=0, pre-check=0');
-                header('X-Sendfile: ' . $resource['path']);
-                header('Content-Type: ' . isset($resource['mimeType']) ? $resource['mimeType'] : 'application/unknown');
-                header('Content-Disposition: attachment; filename="' . basename($resource['path']) . '"');
+                header('X-Sendfile: ' . $this->resourceInfos['path']);
+                header('Content-Type: ' . isset($this->resourceInfos['mimeType']) ? $this->resourceInfos['mimeType'] : 'application/unknown');
+                header('Content-Disposition: attachment; filename="' . basename($this->resourceInfos['path']) . '"');
                 header('Accept-Ranges: bytes');
                 return;
             }
@@ -688,8 +705,8 @@ class RestoFeature {
             /*
              * Read file
              */
-            $fileSize = filesize($resource['path']);
-            $file = @fopen($resource['path'], "rb");
+            $fileSize = filesize($this->resourceInfos['path']);
+            $file = @fopen($this->resourceInfos['path'], "rb");
             if (isset($file)) {
                 
                 /*
@@ -699,8 +716,8 @@ class RestoFeature {
                 header('Pragma: public');
                 header('Expires: -1');
                 header('Cache-Control: public, must-revalidate, post-check=0, pre-check=0');
-                header('Content-Disposition: attachment; filename="' . basename($resource['path']) . '"');
-                header('Content-Type: ' . isset($resource['mimeType']) ? $resource['mimeType'] : 'application/unknown');
+                header('Content-Disposition: attachment; filename="' . basename($this->resourceInfos['path']) . '"');
+                header('Content-Type: ' . isset($this->resourceInfos['mimeType']) ? $this->resourceInfos['mimeType'] : 'application/unknown');
                 header('Accept-Ranges: bytes');
                 
                 /*
@@ -764,7 +781,7 @@ class RestoFeature {
             }
         }
         /*
-         * Resource is an on an external url
+         * Resource is on an external url
          */
         else if (RestoUtil::isUrl($this->feature['properties']['services']['download']['url'])) {
             $handle = fopen($this->feature['properties']['services']['download']['url'], "rb");

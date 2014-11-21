@@ -277,7 +277,7 @@ abstract class RestoDatabaseDriver {
      * @param string $identifier
      * @param array $item
      *   
-     *   Must contain at least a 'url' entry
+     *   Must contain at least an 'id' entry
      *   
      * @return boolean
      * @throws exception
@@ -680,21 +680,6 @@ abstract class RestoDatabaseDriver {
      */
     abstract function getHierarchicalFacets($hash, $collectionName = null);
     
-    /**
-     * Return resource description from database i.e. fields
-     *  - resource
-     *  - resourceMimeType
-     *  - resourceSize
-     *  - resourceChecksum
-     * 
-     * @param string $identifier
-     * @param string $collectionName
-     * @return array  ('url', 'mimeType', 'size', 'checksum)
-     * 
-     * @throws Exception
-     */
-    abstract public function getResourceFields($identifier, $collectionName = null);
-
     /**
      * Get user history
      * 

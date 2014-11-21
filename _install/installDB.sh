@@ -124,7 +124,6 @@ CREATE TABLE resto.collections (
     model               TEXT DEFAULT 'RestoModel_default',
     status              TEXT DEFAULT 'public',
     license             TEXT,
-    licenseurl          TEXT,
     mapping             TEXT
 );
 CREATE INDEX idx_status_collections ON resto.collections (status);

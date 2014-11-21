@@ -1542,16 +1542,16 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      * @param string $identifier
      * @param array $item
      *   
-     *   Must contain at least a 'url' entry
+     *   Must contain at least an 'id' entry
      *   
      * @return boolean
      * @throws exception
      */
     public function addToCart($identifier, $item = array()) {
-        if (!isset($identifier) || !isset($item) || !is_array($item) || !isset($item['url'])) {
+        if (!isset($identifier) || !isset($item) || !is_array($item) || !isset($item['id'])) {
             return false;
         }
-        $itemId = sha1($identifier . $item['url']);
+        $itemId = sha1($identifier . $item['id']);
         try {
             if ($this->isInCart($itemId)) {
                 throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot add item : ' . $itemId . ' already exists', 500);
@@ -1728,7 +1728,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     public function getCollectionDescription($collectionName, $facetFields = array()) {
         $collectionDescription = array();
         try {
-            $description = pg_query($this->dbh, 'SELECT collection, status, model, mapping, license, licenseurl FROM resto.collections WHERE collection=\'' . pg_escape_string($collectionName) . '\'');
+            $description = pg_query($this->dbh, 'SELECT collection, status, model, mapping, license FROM resto.collections WHERE collection=\'' . pg_escape_string($collectionName) . '\'');
             if (!$description) {
                 throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
             }
@@ -1738,13 +1738,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 $collectionDescription['osDescription'] = array();
                 $collectionDescription['status'] = $collection['status'];
                 $collectionDescription['propertiesMapping'] = json_decode($collection['mapping'], true);
-                $collectionDescription['license'] = array();
-                if (isset($collection['license'])) {
-                    $collectionDescription['license']['description'] = $collection['license'];
-                }
-                if (isset($collection['licenseurl'])) {
-                    $collectionDescription['license']['href'] = $collection['licenseurl'];
-                }
+                $collectionDescription['license'] = isset($collection['license']) ? json_decode($collection['license'], true) : null;
                 
                 /*
                  * Get OpenSearch descriptions
@@ -1927,22 +1921,21 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              * Insert collection within collections table
              * 
              * CREATE TABLE resto.collections (
-             *  collection          VARCHAR(50) PRIMARY KEY,
+             *  collection          TEXT PRIMARY KEY,
              *  creationdate        TIMESTAMP,
-             *  model               VARCHAR(50) DEFAULT 'Default',
-             *  status              VARCHAR(10) DEFAULT 'public',
+             *  model               TEXT DEFAULT 'Default',
+             *  status              TEXT DEFAULT 'public',
              *  license             TEXT,
-             *  licenseurl          VARCHAR(255),
              *  mapping             TEXT
              * );
              * 
              */
+            $license = isset($collection->license) && count($collection->license) > 0 ? '\'' . pg_escape_string(json_encode($collection->license)) . '\'' : 'NULL';
             if (!$this->collectionExists($collection->name)) {
-                $license = isset($this->license['description']) ? '\'' . pg_escape_string($this->license['description']) . '\'' : 'NULL';
-                $licenseurl = isset($this->license['href']) ? '\'' . pg_escape_string($this->license['href']) . '\'' : 'NULL';
-                pg_query($this->dbh, 'INSERT INTO resto.collections (collection, creationdate, model, status, license, licenseurl, mapping) VALUES(' . join(',', array('\'' . pg_escape_string($collection->name) . '\'', 'now()', '\'' . pg_escape_string($collection->model->name) . '\'', '\'' . pg_escape_string($collection->status) . '\'', $license, $licenseurl, '\'' . pg_escape_string(json_encode($collection->propertiesMapping)) . '\'')) . ')');
-            } else {
-                pg_query($this->dbh, 'UPDATE resto.collections SET status = \'' . pg_escape_string($collection->status) . '\', mapping = \'' . pg_escape_string(json_encode($collection->propertiesMapping)) . '\' WHERE collection = \'' . pg_escape_string($collection->name) . '\'');
+                pg_query($this->dbh, 'INSERT INTO resto.collections (collection, creationdate, model, status, license, mapping) VALUES(' . join(',', array('\'' . pg_escape_string($collection->name) . '\'', 'now()', '\'' . pg_escape_string($collection->model->name) . '\'', '\'' . pg_escape_string($collection->status) . '\'', $license, '\'' . pg_escape_string(json_encode($collection->propertiesMapping)) . '\'')) . ')');
+            }
+            else {
+                pg_query($this->dbh, 'UPDATE resto.collections SET status = \'' . pg_escape_string($collection->status) . '\', mapping = \'' . pg_escape_string(json_encode($collection->propertiesMapping)) . '\', license=' . $license . ' WHERE collection = \'' . pg_escape_string($collection->name) . '\'');
             }
 
             /*
@@ -2015,7 +2008,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
          $collectionsDescriptions = array();
          
          try {
-            $descriptions = pg_query($this->dbh, 'SELECT collection, status, model, mapping FROM resto.collections');
+            $descriptions = pg_query($this->dbh, 'SELECT collection, status, model, mapping, license FROM resto.collections');
             if (!$descriptions) {
                 throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . ' - Database connection error', 500);
             }
@@ -2024,13 +2017,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 $collectionsDescriptions[$collection['collection']]['osDescription'] = array();
                 $collectionsDescriptions[$collection['collection']]['status'] = $collection['status'];
                 $collectionsDescriptions[$collection['collection']]['propertiesMapping'] = json_decode($collection['mapping'], true);
-                $collectionsDescriptions[$collection['collection']]['license'] = array();
-                if (isset($collection['license'])) {
-                    $collectionsDescriptions[$collection['collection']]['license']['description'] = $collection['license'];
-                }
-                if (isset($collection['licenseurl'])) {
-                    $collectionsDescriptions[$collection['collection']]['license']['href'] = $collection['licenseurl'];
-                }
+                $collectionsDescriptions[$collection['collection']]['license'] = isset($collection['license']) ? json_decode($collection['license'], true) : null;
 
                 /*
                  * Get OpenSearch descriptions
@@ -2207,40 +2194,6 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         }
         
         return $featuresArray;
-    }
-
-    /**
-     * Return resource description from database i.e. fields
-     *  - resource
-     *  - resourceMimeType
-     *  - resourceSize
-     *  - resourceChecksum
-     *  - collection
-     *  - featureIdentifier
-     * 
-     * @param string $identifier
-     * @param string $collectionName
-     * @return array ('url', 'mimeType', 'size', 'checksum)
-     * 
-     * @throws Exception
-     */
-    public function getResourceFields($identifier, $collectionName = null) {
-        
-        if (!isset($identifier) || !$identifier) {
-            return null;
-        }
-        try {
-           $result = pg_query($this->dbh, 'SELECT identifier, collection, resource AS path, resource_mimetype AS "mimeType", resource_size AS "size", resource_checksum AS "checksum" FROM ' . (isset($collectionName) ? $this->getSchemaName($collectionName) : 'resto') . '.features WHERE identifier=\'' . pg_escape_string($identifier) . '\'');
-           if (!$result) {
-               throw new Exception();
-           }
-           
-           return pg_fetch_assoc($result);
-           
-        } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
-        }
-        
     }
     
     /**
@@ -3009,7 +2962,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     }
     
     /**
-     * Get signed licenses for user
+     * Get signed license for user
      * 
      * @param string $identifier
      * @return array

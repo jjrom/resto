@@ -765,24 +765,23 @@ class Resto {
             /*
              * Read POST data
              */
-            $item= RestoUtil::readInputData();
+            $data = RestoUtil::readInputData();
             
-            if (!is_array($item) || count($item) === 0) {
-                throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid item', 400);
+            if (!is_array($data) || count($data) === 0) {
+                throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid items', 400);
             }
-            $itemId = $user->addToCart($item, true);
-            if ($itemId) {
+            $items = $user->addToCart($data, true);
+            if ($items) {
                 $this->response = $this->toJSON(array(
                     'status' => 'success',
-                    'message' => 'Add item to cart',
-                    'itemId' => $itemId,
-                    'item' => $item
+                    'message' => 'Add items to cart',
+                    'items' => $items
                 ));
             }
             else {
                 $this->response = $this->toJSON(array(
                     'status' => 'error',
-                    'message' => 'Cannot add item to cart'
+                    'message' => 'Cannot add items to cart'
                 ));
             }
         }
@@ -985,12 +984,23 @@ class Resto {
              * Download feature then exit
              */
             else if ($modifier === 'download') {
+                
+                /*
+                 * Set output format to json for errors
+                 */
+                $this->outputFormat = 'json';
+                
                 if (!$this->user->canDownload($collectionName, $featureIdentifier, $this->getBaseURL() .  $this->context->path, isset($this->context->query['_tk']) ? $this->context->query['_tk'] : null)) {
                     throw new Exception('Forbidden', 403);
                 }
-                $this->storeQuery('download', $collectionName, $featureIdentifier);
-                $feature->download();
-                exit;
+                else if ($this->user->hasToSignLicense($collection)) {
+                    $this->response = RestoUtil::json_format(array('ErrorMessage' => 'Forbidden', 'hasToSignLicense' => $collection->getLicense(), 'ErrorCode' => 403));
+                }
+                else {
+                    $this->storeQuery('download', $collectionName, $featureIdentifier);
+                    $feature->download();
+                    exit;
+                }
             }
             
             else {
