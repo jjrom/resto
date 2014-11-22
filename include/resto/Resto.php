@@ -154,6 +154,23 @@
  *   - HTTP 405 'Method Not Allowed' when accessing existing resource/service with unallowed HTTP method
  *   - HTTP 500 'Internal Server Error' for technical errors (i.e. database connection error, etc.)
  * 
+ * ErrorCode list
+ * --------------
+ * 
+ *   - 1000 : Cannot add item to cart because item already exist
+ *   - 1001 : Cannot update item in cart because item does not exist in cart
+ *   - 2000 : Abort create collection - schema does not exist
+ *   - 2001 : Abort create collection - collection not created
+ *   - 2003 : Cannot create collection - collection already exist
+ *   - 3000 : Cannot create user - user already exists
+ *   - 3001 : Cannot create user - cannot send activation code
+ *   - 3002 : User has to sign license
+ *   - 4000 : Configuration file problem
+ *   - 4001 : Dictionary is not instantiable
+ *   - 4002 : Database driver does not exist
+ *   - 4003 : Database driver is not instantiable
+ *   - 4004 : Invalid input object
+ *   - 4005 : Invalid input array
  */
 class Resto {
     
@@ -238,7 +255,13 @@ class Resto {
             $this->route(explode('/', $this->path));
             
         } catch (Exception $e) {
-            $this->responseStatus = $e->getCode();
+            
+            /*
+             * Code under 500 is an HTTP code - otherwise it is a resto error code
+             * All resto error codes lead to HTTP 200 error code
+             */
+            $this->responseStatus = $e->getCode() < 502 ? $e->getCode() : 200;
+            
             if ($e->getCode() === 404 && $this->outputFormat === 'html') {
                 $this->response = RestoUtil::get_include_contents(realpath(dirname(__FILE__)) . '/../../themes/' . $this->context->config['theme'] . '/templates/404.php', $this);
             }
@@ -571,10 +594,10 @@ class Resto {
             if ($this->method === 'POST') {
                 
                 if (!isset($this->context->query['email'])) {
-                    throw new Exception('Bad Request', 400);
+                    throw new Exception('Email is not set', 400);
                 }
                 else if ($this->dbDriver->userExists($this->context->query['email'])) {
-                    throw new Exception('User exists', 400);
+                    throw new Exception('User exists', 3000);
                 }
                 $userInfo = $this->dbDriver->storeUserProfile(array(
                     'email' => $this->context->query['email'],
@@ -585,7 +608,7 @@ class Resto {
                 ));
                 if (isset($userInfo)) {
                     if (!$this->sendActivationMail($this->context->query['email'], isset($this->config['authentication']['activationEmail']) ? $this->config['authentication']['activationEmail'] : null, $this->context->baseUrl . 'api/users/' . $userInfo['userid'] . '/activate?act=' . $userInfo['activationcode'])) {
-                        throw new Exception('Problem sending activation code', 500);
+                        throw new Exception('Problem sending activation code', 3001);
                     }
                 }
                 else {
@@ -994,7 +1017,7 @@ class Resto {
                     throw new Exception('Forbidden', 403);
                 }
                 else if ($this->user->hasToSignLicense($collection)) {
-                    $this->response = RestoUtil::json_format(array('ErrorMessage' => 'Forbidden', 'hasToSignLicense' => $collection->getLicense(), 'ErrorCode' => 403));
+                    $this->response = RestoUtil::json_format(array('ErrorMessage' => 'Forbidden', 'hasToSignLicense' => $collection->getLicense(), 'ErrorCode' => 3002));
                 }
                 else {
                     $this->storeQuery('download', $collectionName, $featureIdentifier);
@@ -1037,7 +1060,7 @@ class Resto {
                     throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid posted file', 400);
                 }
                 if ($this->dbDriver->collectionExists($data['name'])) {
-                    throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Collection already exists', 500);
+                    throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Collection already exists', 2003);
                 }
                 $collection = new RestoCollection($data['name'], $this->context, $this->user);
                 $collection->loadFromJSON($data, true);
@@ -1170,7 +1193,7 @@ class Resto {
         }
         
         if (!$this->config['general']['restoUrl']) {
-            throw new Exception('Missing mandatory restoUrl parameter in configuration file', 500);
+            throw new Exception('Missing mandatory restoUrl parameter in configuration file', 4000);
         }
         
         $restoUrl = $this->config['general']['restoUrl'];
@@ -1268,7 +1291,7 @@ class Resto {
          */
         $configFile = realpath(dirname(__FILE__)) . '/../config.php';
         if (!file_exists($configFile)) {
-            throw new Exception(__METHOD__ . 'Missing mandatory configuration file', 500);
+            throw new Exception(__METHOD__ . 'Missing mandatory configuration file', 4000);
         }
         $this->config = include($configFile);
         
@@ -1374,7 +1397,7 @@ class Resto {
                 throw new Exception();
             }
         } catch (Exception $e) {
-            throw new Exception((debug ? __METHOD__ . ' - ' : '') . 'RestDictionary_' . $lang . ' is not insantiable', 500);
+            throw new Exception((debug ? __METHOD__ . ' - ' : '') . 'RestDictionary_' . $lang . ' is not insantiable', 4001);
         }
         $dictionary = $dictionaryClass->newInstance($this->dbDriver);
         
@@ -1493,7 +1516,7 @@ class Resto {
          * Database
          */
         if (!class_exists('RestoDatabaseDriver_' . $this->config['database']['driver'])) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'No database driver defined', 500);
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'No database driver defined', 4002);
         }
         try {
             $databaseClass = new ReflectionClass('RestoDatabaseDriver_' . $this->config['database']['driver']);
@@ -1501,7 +1524,7 @@ class Resto {
                 throw new Exception();
             }
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'RestoDatabaseDriver_' . $this->config['database']['driver'] . ' is not insantiable', 500);
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'RestoDatabaseDriver_' . $this->config['database']['driver'] . ' is not insantiable', 4003);
         }   
         $this->dbDriver = $databaseClass->newInstance($this->config['database'], new RestoCache(isset($this->config['database']['dircache']) ? $this->config['database']['dircache'] : null),$this->debug);      
     }
@@ -1578,7 +1601,7 @@ class Resto {
      */
     private function format($object) {
         if (!isset($object) && !is_object($object)) {
-            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid object', 500);
+            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid object', 4004);
         }
         $methodName = 'to' . strtoupper($this->outputFormat);
         if (method_exists(get_class($object), $methodName)) {
@@ -1611,7 +1634,7 @@ class Resto {
     private function toJSON($array) {
         
         if (!is_array($array)) {
-            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Internal Server Error', 500);
+            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Internal Server Error', 4005);
         }
         /*
          * JSON-P case

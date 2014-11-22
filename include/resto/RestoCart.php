@@ -141,7 +141,7 @@ class RestoCart{
             return false;
         }
         if (!isset($this->items[$itemId])) {
-            throw new Exception('Cannot update item : ' . $itemId . ' does not exist', 500);
+            throw new Exception('Cannot update item : ' . $itemId . ' does not exist', 1001);
         }
         if ($synchronize) {
             $this->items[$itemId] = $item;

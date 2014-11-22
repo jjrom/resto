@@ -1554,7 +1554,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         $itemId = sha1($identifier . $item['id']);
         try {
             if ($this->isInCart($itemId)) {
-                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot add item : ' . $itemId . ' already exists', 500);
+                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot add item : ' . $itemId . ' already exists', 1000);
             }
             $values = array(
                 '\'' . pg_escape_string($itemId) . '\'',
@@ -1592,7 +1592,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         }
         try {
             if (!$this->isInCart($itemId)) {
-                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot update item : ' . $itemId . ' does not exist', 500);
+                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot update item : ' . $itemId . ' does not exist', 1001);
             }
             $results = pg_query($this->dbh, 'UPDATE usermanagement.cart SET item = \''. pg_escape_string(json_encode($item)) . '\', querytime=now() WHERE email=\'' . pg_escape_string($identifier) . '\' AND itemid=\'' . pg_escape_string($itemId) . '\'');
             if (!$results) {
@@ -1985,11 +1985,11 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             if (!$this->schemaExists($this->getSchemaName($collection->name))) {
                 pg_query($this->dbh, 'ROLLBACK');
-                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot create table ' . $this->getSchemaName($collection->name) . '.features', 500);
+                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot create table ' . $this->getSchemaName($collection->name) . '.features', 2000);
             }
             if (!$this->collectionExists($collection->name)) {
                 pg_query($this->dbh, 'ROLLBACK');
-                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot insert collection "' . $collection->name . '" in RESTo database', 500);
+                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot insert collection "' . $collection->name . '" in RESTo database', 2001);
             }
         } catch (Exception $e) {
             throw new Exception($e->getMessage(), $e->getCode());
@@ -2073,7 +2073,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         foreach (array_keys($model->searchFilters) as $filterName) {
             if (isset($model->searchFilters[$filterName])) {
                 if (isset($model->searchFilters[$filterName]['minimum']) && $model->searchFilters[$filterName]['minimum'] === 1 && (!isset($params[$filterName]))) {
-                    throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Missing mandatory filter ' . $filterName);
+                    throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Missing mandatory filter ' . $filterName, 400);
                 }
             } 
         }
@@ -3089,7 +3089,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 throw new Exception();
             }
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot activate/deactivate user : ' . $userid, 500);
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot deactivate user : ' . $userid, 500);
         }
     }
     

@@ -105,10 +105,10 @@ a.text-light:hover {
 .resto-feature .selected, .resto-feature .streched:hover {
     background-color:rgba(227, 65, 26, 0.8);
 }
-.unselected .feature-info-bottom, .unselected .feature-info-top, .unselected .feature-info-right {
+.unselected .feature-info-bottom, .unselected .feature-info-top {
     display:none;
 }
-.unselected:hover .feature-info-bottom, .unselected:hover .feature-info-top, .unselected:hover .feature-info-right {
+.unselected:hover .feature-info-bottom, .unselected:hover .feature-info-top {
     display:initial;
 }
 .shy {

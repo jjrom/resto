@@ -38,17 +38,14 @@
             <div class="large-6 columns center text-dark padded-top">
                 <h2><?php echo $self->context->dictionary->translate('_resourceSummary', $product['properties']['platform'], substr($product['properties']['startDate'],0, 10)); ?></h2>
                 <h7 title="<?php echo $product['id']; ?>" style="overflow: hidden;"><?php echo $product['id']; ?></h7>
-                <?php
-                    if (isset($product['properties']['services']) && isset($product['properties']['services']['download']) && isset($product['properties']['services']['download']['url'])) {
-                        if ($self->user->canDownload($self->collection->name, $product['id'])) {
-                ?>
+                <?php if (isset($product['properties']['services']) && isset($product['properties']['services']['download']) && isset($product['properties']['services']['download']['url'])) { ?>
                 <p class="center padded-top">
-                    <a class="fa fa-4x fa-cloud-download" href="<?php echo $product['properties']['services']['download']['url']; ?>" <?php echo $product['properties']['services']['download']['mimeType'] === 'text/html' ? 'target="_blank"' : ''; ?> title="<?php echo $self->context->dictionary->translate('_download'); ?>"></a> 
+                    <?php if ($self->user->canDownload($self->collection->name, $product['id'])) { ?>
+                    <a class="fa fa-3x fa-cloud-download downloadProduct" href="<?php echo $product['properties']['services']['download']['url'] . '?lang=' . $self->context->dictionary->language; ?>" <?php echo $product['properties']['services']['download']['mimeType'] === 'text/html' ? 'target="_blank"' : ''; ?> title="<?php echo $self->context->dictionary->translate('_download'); ?>"></a>&nbsp;&nbsp;
+                    <?php } ?>
+                    <a class="fa fa-3x fa-shopping-cart addToCart" href="#" title="<?php echo $self->context->dictionary->translate('_addToCart'); ?>"></a> 
                 </p>
-                <?php
-                      } 
-                    }
-                ?>
+                <?php } ?>
             </div>
             <div class="large-6 columns text-dark padded-top">
                 <h3><?php echo $self->collection->osDescription[$self->context->dictionary->language]['ShortName']; ?></h3>
@@ -145,6 +142,19 @@
                     "userProfile":<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?>
                     }, <?php echo '{"type":"FeatureCollection","features":[' . $self->toJSON() . ']}' ?>
                 );
+                
+                $('.downloadProduct').click(function(e){
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return Resto.download($(this));
+                });
+                
+                $('.addToCart').click(function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    Resto.addToCart(Resto.data.features[0]);
+                    return false;
+                });
             });
         </script>
     </body>

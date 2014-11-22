@@ -1,6 +1,7 @@
 <div class="footer">
     Powered by <a href="http://github.com/jjrom/resto2">resto</a>, <a href="http://github.com/jjrom/itag">iTag</a> and <a href="http://mapshup.info">mapshup</a>
 </div>
+<a id="gototop" class="fa fa-3x fa-chevron-circle-up round"></a>
 <!-- Dependencies -->
 <script type="text/javascript" src="<?php echo $self->context->baseUrl ?>/js/dependencies.min.js"></script>
 <?php if (!isset($_noMap)) { ?>

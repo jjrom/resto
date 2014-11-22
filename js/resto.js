@@ -715,62 +715,14 @@
             $('.addToCart', $div).click(function (e) {
                 e.preventDefault();
                 e.stopPropagation();
-                self.Util.showMask();
-                $.ajax({
-                    url: self.restoUrl + 'users/' + self.Header.userProfile.userid + '/cart',
-                    async: true,
-                    type: 'POST',
-                    dataType: "json",
-                    data: JSON.stringify([
-                        {
-                            'id': feature.id,
-                            'properties': {
-                                'productIdentifier': feature.properties['productIdentifier'],
-                                'productType': feature.properties['productType'],
-                                'quicklook': feature.properties['quicklook'], "collection": "DataTest",
-                                'services': {
-                                    'download': feature.properties['services']['download']
-                                }
-                            }
-                        }
-                    ]),
-                    contentType: 'application/json',
-                    success: function (obj, textStatus, XMLHttpRequest) {
-                        self.Util.hideMask();
-                        if (XMLHttpRequest.status === 200) {
-                            alert('added')
-                        }
-                    },
-                    error: function (e) {
-                        self.Util.hideMask();
-                        alert('TODO - error');
-                    }
-                });
+                self.addToCart(feature);
                 return false;
             });
+            
             $('.downloadProduct', $div).click(function(e){
                 e.preventDefault();
                 e.stopPropagation();
-                if ($(this).attr('target') !== '_blank') {
-                    $('<iframe id="hiddenDownloader">').attr('src', $(this).attr('href')).appendTo('body').load(function(){
-                        var error = {};
-                        try {
-                            error = JSON.parse($('body', $(this).contents()).text());
-                        }
-                        catch(e) {}
-                        
-                        if (error['ErrorCode']) {
-                            if (error['ErrorCode'] === 404) {
-                                alert('Error! Resource does not exist');
-                            }
-                            else if (error['ErrorCode'] === 403) {
-                                alert('Error! You don\'t have sufficient rights to access this resource');
-                            }
-                        }
-                    });
-                    return false;
-                }
-                return true;
+                return self.download($(this));
             });
             
         },
@@ -858,6 +810,78 @@
                 $('#feature-info-details').append('<div class="feature-info-details">' + infos.join('') + '</div>');
             }
             
+        },
+        
+        /**
+         * Download product
+         * 
+         * @param {jQuery object} $div
+         * @returns {Boolean}
+         */
+        download: function($div) {
+            if ($div.attr('target') !== '_blank') {
+                $('<iframe id="hiddenDownloader">').attr('src', $div.attr('href')).appendTo('body').load(function(){
+                    var error = {};
+                    try {
+                        error = JSON.parse($('body', $(this).contents()).text());
+                    }
+                    catch(e) {}
+
+                    if (error['ErrorCode']) {
+                        if (error['ErrorCode'] === 404) {
+                            alert('Error! Resource does not exist');
+                        }
+                        else if (error['ErrorCode'] === 3002) {
+                            alert('Error! You don\'t have sufficient rights to access this resource');
+                        }
+                    }
+                });
+                return false;
+            }
+            return true;
+        },
+        
+        /**
+         * Add feature to cart
+         * @param {Object} feature
+         * @returns {undefined}
+         */
+        addToCart: function(feature) {
+            var self = this;
+            self.Util.showMask();
+            $.ajax({
+                url: self.restoUrl + 'users/' + self.Header.userProfile.userid + '/cart',
+                async: true,
+                type: 'POST',
+                dataType: "json",
+                data: JSON.stringify([
+                    {
+                        'id': feature.id,
+                        'properties': {
+                            'productIdentifier': feature.properties['productIdentifier'],
+                            'productType': feature.properties['productType'],
+                            'quicklook': feature.properties['quicklook'], "collection": "DataTest",
+                            'services': {
+                                'download': feature.properties['services']['download']
+                            }
+                        }
+                    }
+                ]),
+                contentType: 'application/json',
+                success: function (obj, textStatus, XMLHttpRequest) {
+                    self.Util.hideMask();
+                    if (obj.ErrorCode && obj.ErrorCode === 1000) {
+                        alert('Item already in cart');
+                    }
+                    else {
+                        alert('Item added to cart');
+                    }
+                },
+                error: function (e) {
+                    self.Util.hideMask();
+                    alert(e.responseText);
+                }
+            });
         }
     };
     

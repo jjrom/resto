@@ -89,7 +89,6 @@
                     <?php } ?>
                     -->
                 </div>
-                <a id="gototop" class="fa fa-3x fa-chevron-circle-up round"></a>
                 <span style="position:absolute;left:-5px;top:0px;">
                     <a id="off-canvas-toggle" href="#" class="fa fa-chevron-right text-dark lightfield" style="padding:0px 15px 0px 15px;"></a>
                 </span>
