@@ -2240,7 +2240,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             if (!$results) {
                 throw new Exception();
             }
-            while ($result = pg_fetch_array($results)) {
+            while ($result = pg_fetch_assoc($results)) {
                 if (!isset($keywords[$result['type']])) {
                     $keywords[$result['type']] = array();
                 }
