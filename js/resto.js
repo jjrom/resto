@@ -864,7 +864,7 @@
                             'productType': feature.properties['productType'],
                             'quicklook': feature.properties['quicklook'], "collection": "DataTest",
                             'services': {
-                                'download': feature.properties['services']['download']
+                                'download': feature.properties['services'] ? feature.properties['services']['download'] : null
                             }
                         }
                     }
