@@ -190,7 +190,10 @@ class RestoFeatureCollection {
          */
         $featuresArray = $this->context->dbDriver->getFeaturesDescriptions($params, $this->defaultModel, isset($this->defaultCollection) ? $this->defaultCollection->name : null, $limit, $offset, $realCount);
         for ($i = 0, $l = count($featuresArray); $i < $l; $i++) {
-            $this->restoFeatures[] = new RestoFeature($featuresArray[$i], $this->context, $this->user, isset($this->collections) && isset($featuresArray[$i]['properties']['collection']) && $this->collections[$featuresArray[$i]['properties']['collection']] ? $this->collections[$featuresArray[$i]['properties']['collection']] : $this->defaultCollection, isset($this->defaultCollection) ? true : false);
+            if (!isset($this->collections) || !isset($this->collections[$featuresArray[$i]['collection']])) {
+                $this->collections[$featuresArray[$i]['collection']] = new RestoCollection($featuresArray[$i]['collection'], $this->context, $this->user, array('autoload' => true));
+            }
+            $this->restoFeatures[] = new RestoFeature($featuresArray[$i], $this->context, $this->user, isset($this->collections) && isset($featuresArray[$i]['collection']) && $this->collections[$featuresArray[$i]['collection']] ? $this->collections[$featuresArray[$i]['collection']] : $this->defaultCollection, isset($this->defaultCollection) ? true : false);
             $total = isset($featuresArray[$i]['totalcount']) ? $featuresArray[$i]['totalcount'] : -1;
         }
         

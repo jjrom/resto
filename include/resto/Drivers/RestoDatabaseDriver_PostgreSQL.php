@@ -677,8 +677,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
          */
         $statistics = array();
         if (isset($facetFields) && count($facetFields) > 0) {
-            for ($i = 0, $l = count($facetFields); $i < $l; $i++) {
-                $pivot = $this->getFacetPivot($collectionName, $facetFields[$i], null);
+            $pivots = $this->getFacetsPivots($collectionName, $facetFields, null);
+            foreach(array_values($pivots) as $pivot) {
                 if (isset($pivot) && count($pivot) > 0) {
                     for ($j = count($pivot); $j--;) {
                         if (isset($statistics[$pivot[$j]['field']][$pivot[$j]['value']])) {
@@ -695,8 +695,12 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
          * or for all master facet fields
          */
         else {
+            $fields = array();
             foreach (array_values($this->facetCategories) as $facetCategory) {
-                $pivot = $this->getFacetPivot($collectionName, $facetCategory[0], null);
+                $fields[] = $facetCategory[0];
+            }
+            $pivots = $this->getFacetsPivots($collectionName, $fields, null);
+            foreach(array_values($pivots) as $pivot) {
                 if (isset($pivot) && count($pivot) > 0) {
                     for ($j = count($pivot); $j--;) {
                         if (isset($statistics[$pivot[$j]['field']][$pivot[$j]['value']])) {
@@ -889,6 +893,68 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot retrieve facets', 500);
         }
         return $counters;
+    }
+    
+    /**
+     * Return facet pivots (SOLR4 like)
+     * 
+     * @param string $collectionName
+     * @param array $fields
+     * @param string $parentHash : parent hash
+     * @return array
+     */
+    private function getFacetsPivots($collectionName, $fields, $parentHash) {
+        $pivots = array();
+        $cached = $this->retrieveFromCache(array('getFacetsPivots', $fields, $parentHash));
+        if (isset($cached)) {
+            return $cached;
+        }
+        try {
+            
+            /*
+             * Facets for one collection
+             */
+            if (isset($collectionName)) {
+                $results = pg_query($this->dbh, 'SELECT * FROM resto.facets WHERE counter > 0 AND collection=\'' . pg_escape_string($collectionName) . '\' AND type IN(\'' . join('\',\'', $fields) . '\')' . (isset($parentHash) ? ' AND pid=\'' . pg_escape_string($parentHash) . '\'' : '') . ' ORDER BY type, value');
+            }
+            /*
+             * Facets for all collections
+             */
+            else {
+                $results = pg_query($this->dbh, 'SELECT * FROM resto.facets WHERE counter > 0 AND type IN(\'' . join('\',\'', $fields) . '\')' . (isset($parentHash) ? ' AND pid=\'' . pg_escape_string($parentHash) . '\'' : '') . ' ORDER BY type, value');
+            }
+            if (!$results) {
+                throw new Exception();
+            }
+            while ($result = pg_fetch_assoc($results)) {
+                if (!isset($pivots[$result['type']])) {
+                    $pivots[$result['type']] = array();
+                }
+                $create = true;
+                if (!isset($collectionName)) {
+                    for ($i = count($pivots[$result['type']]); $i--;) {
+                        if ($pivots[$result['type']][$i]['value'] === $result['value']) {
+                            $pivots[$result['type']][$i]['count'] += (integer) $result['counter'];
+                            $create = false;
+                            break;
+                        }
+                    }
+                }
+                if ($create) {
+                    $pivots[$result['type']][] = array(
+                        'field' => $result['type'],
+                        'value' => $result['value'],
+                        'count' => (integer) $result['counter'],
+                        'hash' => $result['uid'],
+                        'parentHash' => isset($parentHash) ? $parentHash : null
+                    );
+                }
+            }
+            $this->storeInCache(array('getFacetsPivots', $fields, $parentHash), $pivots);
+        } catch (Exception $e) {
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot retrieve facets', 500);
+        }
+        return $pivots;
     }
     
     /**
