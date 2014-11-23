@@ -113,7 +113,7 @@ class RestoFeature {
             throw new Exception('Context is undefined or not valid', 500);
         }
         if (!RestoUtil::isValidUUID($this->identifier)) {
-            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Feature identifier must be a valid UUID', 500);
+            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Not Found', 404);
         }
       
         /*

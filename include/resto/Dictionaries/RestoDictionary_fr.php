@@ -188,6 +188,8 @@ class RestoDictionary_fr extends RestoDictionary {
         '_headerTitle' => 'resto',
         '_headerDescription' => '<b>resto</b> - <b>RE</b>stful <b>S</b>emantic search <b>T</b>ool for ge<b>O</b>spatial<br/>RESTo est un service de recherche s&eacute;mantique de donn&eacute;es d\'observation de la Terreervice. Il suit le standard OGC 13-026 - OpenSearch Extension for Earth Observation.',
         '_administration' => 'Administration',
+        '_pageNotFoundTitle' => 'La page que vous recherchez n\'existe pas',
+        '_pageNotFoundDescription' => 'Avez-vous essayer de chercher autre chose ?',
         '_addToCart' => 'Ajouter au panier',
         '_itemAddedToCart' => 'Produit ajouté au panier',
         '_itemAlreadyInCart' => 'Le produit est déjà présent dans le panier',

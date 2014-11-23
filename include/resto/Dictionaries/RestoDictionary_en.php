@@ -191,6 +191,8 @@ class RestoDictionary_en extends RestoDictionary {
         '_headerTitle' => 'resto',
         '_headerDescription' => '<b>resto</b> - <b>RE</b>stful <b>S</b>emantic search <b>T</b>ool for ge<b>O</b>spatial<br/>RESTo implements search service with semantic query analyzis on Earth Observation metadata database. It conforms to OGC 13-026 standard - OpenSearch Extension for Earth Observation.',
         '_administration' => 'Administration',
+        '_pageNotFoundTitle' => 'It appears that the page you are looking for is empty',
+        '_pageNotFoundDescription' => 'Did you try searching for something else ?',
         '_addToCart' => 'Add to cart',
         '_itemAddedToCart' => 'Item added to cart',
         '_itemAlreadyInCart' => 'Item is already in cart',
