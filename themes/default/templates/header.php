@@ -73,7 +73,7 @@
             <a class="button radius register signUp"><?php echo $self->context->dictionary->translate('_createAccount');?></a>
         </div>
     </form>
-    <a class="close-reveal-modal">&#215;</a>
+    <a class="text-light close-reveal-modal">&#215;</a>
 </div>
 <div id="displayLogin" class="reveal-modal medium darkfield" data-reveal>
     <div class="large-6 columns orangefield">
@@ -94,7 +94,8 @@
         </div>
         <div class="signWithOauth center"></div>
     </div>
-    <a class="close-reveal-modal">&#215;</a>
+    <a class="text-light close-reveal-modal">&#215;</a>
 </div>
 <div id="displayProfile" class="reveal-modal small darkfield" data-reveal></div>
-
+<div id="dialog" class="reveal-modal" data-reveal></div>
+            

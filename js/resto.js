@@ -217,7 +217,7 @@
                                     self.Util.hideMask();
                                     self.offset = self.offset - self.limit;
                                     self.ajaxReady = true;
-                                    alert('error : ' + e['responseJSON']['ErrorMessage']);
+                                    self.Util.dialog(Resto.Util.translate('_error'), e['responseJSON']['ErrorMessage']);
                                 }
                             });
                         }
@@ -271,7 +271,7 @@
                     error: function(e) {
                         self.ajaxReady = true;
                         self.Util.hideMask();
-                        self.Util.alert("Connection error");
+                        self.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_connectionFailed'));
                     }
                 });
             });
@@ -695,6 +695,7 @@
             $('.viewMetadata', $div).click(function (e) {
                 e.preventDefault();
                 e.stopPropagation();
+                self.Util.showMask();
                 window.location = self.restoUrl + 'collections/' + feature.properties['collection'] + '/' + feature.id + '.html?lang=' + self.language;
                 return false;
             });
@@ -819,6 +820,7 @@
          * @returns {Boolean}
          */
         download: function($div) {
+            var self = this;
             if ($div.attr('target') !== '_blank') {
                 $('<iframe id="hiddenDownloader">').attr('src', $div.attr('href')).appendTo('body').load(function(){
                     var error = {};
@@ -829,10 +831,10 @@
 
                     if (error['ErrorCode']) {
                         if (error['ErrorCode'] === 404) {
-                            alert('Error! Resource does not exist');
+                            self.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_nonExistentResource'));
                         }
                         else if (error['ErrorCode'] === 3002) {
-                            alert('Error! You don\'t have sufficient rights to access this resource');
+                            self.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_unsufficientPrivileges'));
                         }
                     }
                 });
@@ -871,15 +873,15 @@
                 success: function (obj, textStatus, XMLHttpRequest) {
                     self.Util.hideMask();
                     if (obj.ErrorCode && obj.ErrorCode === 1000) {
-                        alert('Item already in cart');
+                        self.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_itemAlreadyInCart'));
                     }
                     else {
-                        alert('Item added to cart');
+                        self.Util.dialog(Resto.Util.translate('_info'), Resto.Util.translate('_itemAddedToCart'));
                     }
                 },
                 error: function (e) {
                     self.Util.hideMask();
-                    alert(e.responseText);
+                    self.Util.dialog(Resto.Util.translate('_error'), e.responseText);
                 }
             });
         }
@@ -1025,7 +1027,7 @@
                 success: function (json) {
                     if (json && json.userid === -1) {
                         Resto.Util.hideMask();
-                        Resto.Util.alert($('#displayLogin'), 'Error - unknown user or incorrect password');
+                        Resto.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_wrongPassword'));
                     }
                     else {
                         window.location.reload();
@@ -1033,7 +1035,7 @@
                 },
                 error: function (e) {
                     Resto.Util.hideMask();
-                    Resto.Util.alert($('#displayLogin'), 'Error - cannot sign in');
+                    Resto.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_cannotSignIn'));
                 }
             });
         },
@@ -1048,13 +1050,13 @@
                 $div = $('#displayRegister');
 
             if (!email || !Resto.Util.isEmailAdress(email)) {
-                Resto.Util.alert($div, 'Email is not valid');
+                Resto.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_invalidEmail'));
             }
             else if (!username) {
-                Resto.Util.alert($div, 'Username is mandatory');
+                Resto.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_usernameIsMandatory'));
             }
             else if (!password1) {
-                Resto.Util.alert($div, 'Password is mandatory');
+                Resto.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_passwordIsMandatory'));
             }
             else {
                 Resto.Util.showMask();
@@ -1073,20 +1075,20 @@
                     success: function (json) {
                         Resto.Util.hideMask();
                         if (json && json.status === 'success') {
-                            Resto.Util.alert($div, Resto.Util.translate('_emailSent'));
+                            Resto.Util.dialog(Resto.Util.translate('_info'), Resto.Util.translate('_emailSent'));
                             $div.hide();
                         }
                         else {
-                            Resto.Util.alert($div, json.ErrorMessage);
+                            Resto.Util.dialog(Resto.Util.translate('_error'), json.ErrorMessage);
                         }
                     },
                     error: function (e) {
                         Resto.Util.hideMask();
                         if (e.responseJSON) {
-                            Resto.Util.alert($div, e.responseJSON.ErrorMessage);
+                            Resto.Util.dialog(Resto.Util.translate('_error'), e.responseJSON.ErrorMessage);
                         }
                         else {
-                            Resto.Util.alert($div, 'Error : cannot register');
+                            Resto.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_registrationFailed'));
                         }
                     }
                 });
@@ -1110,7 +1112,7 @@
                     },
                     error: function(e) {
                         Resto.Util.hideMask();
-                        Resto.Util.alert($div, 'Error : cannot disconnect');
+                        Resto.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_disconnectFailed'));
                     }
                 });
                 return false;

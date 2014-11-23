@@ -132,29 +132,27 @@
         <?php include 'footer.php' ?>
         
         <script type="text/javascript">
-            $(document).ready(function() {
-                Resto.init({
-                    "issuer":'getResource',
-                    "translation":<?php echo json_encode($self->context->dictionary->getTranslation()) ?>,
-                    "language":'<?php echo $self->context->dictionary->language; ?>',
-                    "restoUrl":'<?php echo $self->context->baseUrl ?>',
-                    "ssoServices":<?php echo json_encode($self->context->config['ssoServices']) ?>,
-                    "userProfile":<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?>
-                    }, <?php echo '{"type":"FeatureCollection","features":[' . $self->toJSON() . ']}' ?>
-                );
-                
-                $('.downloadProduct').click(function(e){
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return Resto.download($(this));
-                });
-                
-                $('.addToCart').click(function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    Resto.addToCart(Resto.data.features[0]);
-                    return false;
-                });
+            Resto.init({
+                "issuer":'getResource',
+                "translation":<?php echo json_encode($self->context->dictionary->getTranslation()) ?>,
+                "language":'<?php echo $self->context->dictionary->language; ?>',
+                "restoUrl":'<?php echo $self->context->baseUrl ?>',
+                "ssoServices":<?php echo json_encode($self->context->config['ssoServices']) ?>,
+                "userProfile":<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?>
+                }, <?php echo '{"type":"FeatureCollection","features":[' . $self->toJSON() . ']}' ?>
+            );
+
+            $('.downloadProduct').click(function(e){
+                e.preventDefault();
+                e.stopPropagation();
+                return Resto.download($(this));
+            });
+
+            $('.addToCart').click(function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                Resto.addToCart(Resto.data.features[0]);
+                return false;
             });
         </script>
     </body>

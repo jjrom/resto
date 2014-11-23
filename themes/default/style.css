@@ -189,9 +189,11 @@ a.text-light:hover {
 .reveal-modal {
     padding:0px;
 }
-.reveal-modal .close-reveal-modal {
+.close-reveal-modal.text-light {
     color:#fff;
-    font-size:1em;
+}
+.close-reveal-modal.text-dark {
+    color:#000;
 }
 .row {
     max-width: 1280px;

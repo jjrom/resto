@@ -193,26 +193,6 @@
         },
         
         /**
-         * Display non intrusive message to user
-         * 
-         * @param {string} message
-         * @param {integer} duration
-         */
-        message: function(message, duration) {
-            var $container = $('body'), $d;
-            $container.append('<div class="adminMessage"><div class="content">' + message + '</div></div>');
-            $d = $('.adminMessage', $container);
-            $d.fadeIn('slow').delay(duration || 2000).fadeOut('slow', function() {
-                $d.remove();
-            }).css({
-                'left': ($container.width() - $d.width()) / 2,
-                'top': 60
-            });
-            return $d;
-
-        },
-        
-        /**
          * Check if a string is a valid email adress
          * 
          * @param {String} str
@@ -256,13 +236,15 @@
         },
         
         /**
-         * Create an alert button with specific message.
+         * Display a dialog popup
+         * (i.e. Foundation modal popup)
          * 
-         * @param {jQueryObject} parent
-         * @param {String} text
+         * @param {String} title
+         * @param {String} content
+         * 
          */
-        alert: function(parent, text){
-            alert(text);
+        dialog: function(title, content) {
+            $('#dialog').html('<div class="padded center"><h2>' + title + '</h2><p class="text-dark">' + content + '</p><a class="text-dark close-reveal-modal">&#215;</a></div>').foundation('reveal', 'open');
         },
         
         /**
@@ -304,7 +286,7 @@
                             },
                             error: function(e) {
                                 self.hideMask();
-                                self.message('error : ' + e['responseJSON']['ErrorMessage']);
+                                self.dialog('Error', e['responseJSON']['ErrorMessage']);
                                 self.offset = self.offset - self.limit;
                                 self.ajaxReady = true;
                             }
