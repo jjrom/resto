@@ -78,20 +78,17 @@ class RestoUser{
              */
             if (isset($_SESSION) && isset($_SESSION['profile']) && isset($_SESSION['profile']['lastsessionid']) && $_SESSION['profile']['lastsessionid'] === session_id() && $_SESSION['profile']['activated'] && $setSession === true) {
                 $this->profile = $_SESSION['profile'];
+                $this->cart = new RestoCart($this, $this->context, isset($_SESSION['cart']) ? false : true);
             }
             else {
-                
                 $this->profile = $this->context->dbDriver->getUserProfile($identifier, $password);
-                
-                /*
-                 * Invalid email/password or user not yet activated
-                 */
                 if ($this->profile['userid'] !== -1) {
                     $this->profile['lastsessionid'] = session_id();
                     $this->context->dbDriver->updateUserProfile(array(
                         'email' => $identifier,
                         'lastsessionid' => $this->profile['lastsessionid']
                     ));
+                    $this->cart = new RestoCart($this, $this->context, true);
                 }
                 if ($setSession) {
                     $_SESSION['profile'] = $this->profile;
@@ -111,7 +108,6 @@ class RestoUser{
          */
         if (isset($this->profile['email'])) {
             $this->rights = new RestoRights($this->profile['email'], $this->profile['groupname'], $this->context);
-            $this->cart = new RestoCart($this, $this->context, true);
         }
         else {
             $this->rights = new RestoRights('unregistered', 'unregistered', $this->context);
@@ -264,7 +260,7 @@ class RestoUser{
     public function disconnect() {
         if (isset($_SESSION)) {
             session_regenerate_id(true); // Important ! Change session id
-            unset($_SESSION['profile']);
+            unset($_SESSION['profile'], $_SESSION['cart'], $_SESSION['rights']);
         }
         return $this->context->dbDriver->disconnectUser($this->profile['email']);
     }

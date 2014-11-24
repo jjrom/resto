@@ -553,11 +553,4 @@ class RestoCollection {
         
     }
     
-    /**
-     * Output collection description as an HTML page
-     */
-    public function toHTML() {
-        return RestoUtil::get_include_contents(realpath(dirname(__FILE__)) . '/../../themes/' . $this->context->config['theme'] . '/templates/collection.php', $this);
-    }
-    
 }

@@ -525,12 +525,9 @@ class Gazetteer extends RestoModule {
             }
         }
         if (isset($query['country'])) {
-            $country = $this->context->dictionary->getKeyword(trim(strtolower($query['country'])));
-            if (isset($country) && $country['type'] === 'country') {
-                $code = $this->getCountryCode($country['keyword']);
-                if (isset($code)) {
-                    $where .= ' AND country =\'' . pg_escape_string($code) . '\'';
-                }
+            $code = $this->getCountryCode($query['country']);
+            if (isset($code)) {
+                $where .= ' AND country =\'' . pg_escape_string($code) . '\'';
             }
         }
         if (isset($query['state'])) {

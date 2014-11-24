@@ -1792,6 +1792,12 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      * @throws Exception
      */
     public function getCollectionDescription($collectionName, $facetFields = array()) {
+        
+        $cached = $this->retrieveFromCache(array('getCollectionDescription', $collectionName, $facetFields));
+        if (isset($cached)) {
+            return $cached;
+        }
+        
         $collectionDescription = array();
         try {
             $description = pg_query($this->dbh, 'SELECT collection, status, model, mapping, license FROM resto.collections WHERE collection=\'' . pg_escape_string($collectionName) . '\'');
@@ -1829,6 +1835,10 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 if (isset($facetFields)) {
                     $collectionDescription['statistics'] = $this->getStatistics($collectionName, $facetFields);
                 }
+                /*
+                 * Store in cache
+                 */
+                $this->storeInCache(array('getCollectionDescription', $collectionName, $facetFields), $collectionDescription);
             }
             else {
                 throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Not Found', 404);
@@ -2070,10 +2080,15 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      * @throws Exception
      */
      public function getCollectionsDescriptions($facetFields = array()) {
-        
-         $collectionsDescriptions = array();
          
-         try {
+        $cached = $this->retrieveFromCache(array('getCollectionsDescriptions', $facetFields));
+        if (isset($cached)) {
+            return $cached;
+        }
+
+        $collectionsDescriptions = array();
+
+        try {
             $descriptions = pg_query($this->dbh, 'SELECT collection, status, model, mapping, license FROM resto.collections');
             if (!$descriptions) {
                 throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . ' - Database connection error', 500);
@@ -2101,20 +2116,24 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                         'Attribution' => $description['attribution']
                     );
                 }
-                
+
                 /*
                  * Get Facets
                  */
                 if (isset($facetFields)) {
                     $collectionsDescriptions[$collection['collection']]['statistics'] = $this->getStatistics($collection['collection'], $facetFields);
                 }
+                
             }
+            /*
+             * Store in cache
+             */
+            $this->storeInCache(array('getCollectionsDescriptions', $facetFields), $collectionsDescriptions);
         } catch (Exception $e) {
             throw new Exception($e->getMessage(), $e->getCode());
         }
-        
+
         return $collectionsDescriptions;
-        
     }
     
     /**

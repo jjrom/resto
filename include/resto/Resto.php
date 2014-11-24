@@ -245,11 +245,6 @@ class Resto {
             $this->initialize();
             
             /*
-             * Set RESTo context
-             */
-            $this->setContext();
-        
-            /*
              * Route action
              */
             $this->route(explode('/', $this->path));
@@ -1391,15 +1386,7 @@ class Resto {
         if (!in_array($lang, $languages) || !class_exists('RestoDictionary_' . $lang)) {
             $lang = 'en';
         }
-        try {
-            $dictionaryClass = new ReflectionClass('RestoDictionary_' . $lang);
-            if (!$dictionaryClass->isInstantiable()) {
-                throw new Exception();
-            }
-        } catch (Exception $e) {
-            throw new Exception((debug ? __METHOD__ . ' - ' : '') . 'RestDictionary_' . $lang . ' is not insantiable', 4001);
-        }
-        $dictionary = $dictionaryClass->newInstance($this->dbDriver);
+        $dictionary = RestoUtil::instantiate('RestoDictionary_' . $lang, array($this->dbDriver));
         
         /*
          * Activated modules are reference within context

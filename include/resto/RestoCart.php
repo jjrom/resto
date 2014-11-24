@@ -71,6 +71,12 @@ class RestoCart{
         $this->context = $context;
         if ($synchronize) {
             $this->items = $this->context->dbDriver->getCartItems($this->user->profile['email']);
+            if (isset($_SESSION)) {
+                $_SESSION['cart'] = $this->items;
+            }
+        }
+        else if (isset($_SESSION) && isset($_SESSION['cart'])) {
+            $this->items = $_SESSION['cart'];
         }
     }
     
@@ -101,10 +107,10 @@ class RestoCart{
         if (!is_array($data)) {
             return false;
         }
-        
+                    
         $items = array();
         for ($i = count($data); $i--;) {
-            
+                    
             if (!isset($data[$i]['id'])) {
                 continue;
             }
@@ -112,11 +118,11 @@ class RestoCart{
             /*
              * Same resource cannot be added twice
              */
-            $itemId = sha1($this->user->profile['email'] . $data[$i]);
+            $itemId = sha1($this->user->profile['email'] . $data[$i]['id']);
             if (isset($this->items[$itemId])) {
-                continue;
-            }
-
+                throw new Exception('Cannot add item : ' . $itemId . ' already exist', 1000);
+            }   
+            
             if ($synchronize) {
                 if (!$this->context->dbDriver->addToCart($this->user->profile['email'], $data[$i])) {
                     return false;
@@ -193,15 +199,6 @@ class RestoCart{
      */
     public function toJSON($pretty) {
         return RestoUtil::json_format($this->getItems(), $pretty);
-    }
-    
-    /**
-     * Return the cart as a HTML file
-     * 
-     * @param boolean $pretty
-     */
-    public function toHTML() {
-        return RestoUtil::get_include_contents(realpath(dirname(__FILE__)) . '/../../themes/' . $this->context->config['theme'] . '/templates/cart.php', $this);
     }
     
     /**

@@ -36,13 +36,13 @@
         </div>
         <script type="text/javascript">
             Resto.init({
-                "translation":<?php echo json_encode($self->context->dictionary->getTranslation()) ?>;
+                "translation":<?php echo json_encode($self->context->dictionary->getTranslation()) ?>,
                 "language":'<?php echo $self->context->dictionary->language; ?>',
                 "restoUrl":'<?php echo $self->context->baseUrl ?>',
                 "ssoServices":<?php echo json_encode($self->context->config['ssoServices']) ?>,
-                "userProfile":<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?>
+                "userProfile":<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()),  array('cart' => isset($_SESSION['cart']) ? $_SESSION['cart'] : array()))) ?>
             });
-            Resto.util.alignHeight($('.collectionItem'));
+            Resto.Util.alignHeight($('.collectionItem'));
         </script>
     </body>
 </html>

@@ -2,15 +2,15 @@
     <span class="show-for-medium-up logo" style="margin-left: 2%;"><a href="<?php echo $self->context->baseUrl;?>"><?php echo $self->context->config['title'];?></a></span>
     <nav class="show-for-medium-up">
         <ul>
-            <li><a class="shy" href="<?php echo $self->context->baseUrl . 'collections' ?>"><?php echo $self->context->dictionary->translate('_menu_collections'); ?></a></li>
+            <li><a href="<?php echo $self->context->baseUrl . 'collections' ?>"><?php echo $self->context->dictionary->translate('_menu_collections'); ?></a></li>
             <?php if ($self->user->profile['groupname'] === 'admin'){ ?>
-            <li><a href="<?php echo $self->context->baseUrl . '/administration' ?>" class="shy"><?php echo $self->context->dictionary->translate('_administration'); ?></a></li>
+            <li><a href="<?php echo $self->context->baseUrl . '/administration' ?>"><?php echo $self->context->dictionary->translate('_administration'); ?></a></li>
             <?php } ?>
             <?php if ($self->user->profile['userid'] === -1) { ?>
-            <li><a class="shy" href="#" data-reveal-id="displayLogin"><?php echo $self->context->dictionary->translate('_menu_signin'); ?></a></li>
+            <li><a href="#" data-reveal-id="displayLogin"><?php echo $self->context->dictionary->translate('_menu_signin'); ?></a></li>
             <li><a class="hilite" href="#" data-reveal-id="displayRegister"><?php echo $self->context->dictionary->translate('_menu_signup'); ?></a></li>
             <?php } else { ?>
-            <li><a href="<?php echo $self->context->baseUrl . 'users/' . $self->user->profile['userid'] . '/cart.html'?>"><span class="fa fa-shopping-cart"></span>&nbsp;<?php echo $self->context->dictionary->translate('_menu_cart'); ?></a></li>
+            <li><a href="#" data-reveal-id="displayCart"><span class="fa fa-shopping-cart"></span>&nbsp;<?php echo $self->context->dictionary->translate('_menu_cart'); ?></a></li>
             <li><a class="gravatar" href="#" data-reveal-id="displayProfile" title="<?php echo $self->context->dictionary->translate('_menu_profile'); ?>"></a></li>
             <?php } ?>
         </ul> 
@@ -19,7 +19,7 @@
     <nav class="show-for-small-down small-menu">
         <ul>
             <?php if ($self->user->profile['userid'] === -1) { ?>
-            <li><a class="shy" href="#" data-reveal-id="displayLogin"><?php echo $self->context->dictionary->translate('_menu_signin'); ?></a></li>
+            <li><a href="#" data-reveal-id="displayLogin"><?php echo $self->context->dictionary->translate('_menu_signin'); ?></a></li>
             <li><a class="hilite" href="#" data-reveal-id="displayRegister"><?php echo $self->context->dictionary->translate('_menu_signup'); ?></a></li>
             <?php } else { ?>
             <li><a class="gravatar" href="#" data-reveal-id="displayProfile" title="<?php echo $self->context->dictionary->translate('_menu_profile'); ?>"></a></li>
@@ -34,9 +34,12 @@
         <?php if (isset($self->collection)) { ?>
         <li><a class="" href="#"><?php echo $self->collection->name ?></a>
         <?php } ?>
-        <li><a class="shy" href="<?php echo $self->context->baseUrl . 'collections' ?>"><?php echo $self->context->dictionary->translate('_menu_collections'); ?></a></li>
+        <li><a href="<?php echo $self->context->baseUrl . 'collections' ?>"><?php echo $self->context->dictionary->translate('_menu_collections'); ?></a></li>
         <?php if ($self->user->profile['groupname'] === 'admin'){ ?>
-        <li><a href="<?php echo $self->context->baseUrl . '/administration' ?>" class="shy"><?php echo $self->context->dictionary->translate('_administration'); ?></a></li>
+        <li><a href="<?php echo $self->context->baseUrl . '/administration' ?>"><?php echo $self->context->dictionary->translate('_administration'); ?></a></li>
+        <?php } ?>
+        <?php if ($self->user->profile['userid'] !== -1) { ?>
+        <li><a href="#" data-reveal-id="displayCart"><span class="fa fa-shopping-cart"></span>&nbsp;<?php echo $self->context->dictionary->translate('_menu_cart'); ?></a></li>
         <?php } ?>
     </ul>
 </div>
@@ -96,6 +99,15 @@
     </div>
     <a class="text-light close-reveal-modal">&#215;</a>
 </div>
+<?php if ($self->user->profile['userid'] !== -1) { ?>
+<div id="displayCart" class="reveal-modal darkfield" data-reveal>
+    <div class="large-12 columns padded">
+        <h1 class="text-light center small"><?php echo $self->context->dictionary->translate('_myCart');?></h1>
+    </div>
+    <div class="large-12 columns resto-cart-content padded center"></div>
+    <a class="text-light close-reveal-modal">&#215;</a>
+</div>
+<?php } ?>
 <div id="displayProfile" class="reveal-modal small darkfield" data-reveal></div>
 <div id="dialog" class="reveal-modal" data-reveal></div>
             

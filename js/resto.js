@@ -85,14 +85,16 @@
             self.Header.userProfile = options.userProfile || {};
             
             /*
-             * Input data is a GeoJSON object
-             */
-            self.data = data;
-            
-            /*
              * Set header
              */
             self.Header.init();
+            
+            /*
+             * Set features
+             */
+            if (self.issuer === 'getResource' && data && data.features.length === 1) {
+                self.features[data.features[0].id] = data.features[0];
+            }
             
             /*
              * Show active panel and hide others
@@ -171,7 +173,7 @@
              */
             if (self.issuer === 'getCollection') {
                     
-                if (self.data) {
+                if (data) {
                     self.updateFeaturesList(data, {
                         updateMap: false,
                         centerMap: data && data.query,
@@ -308,7 +310,7 @@
              * Map special case
              */
             if ($panel.attr('id') === 'panel-map') {
-                this.Map.init(this.data);
+                this.Map.init(this.Util.associativeToArray(this.features));
             }
         },
         
@@ -437,7 +439,7 @@
              * Update map view
              */
             if (options.updateMap) {
-                window.Resto.Map.updateLayer(json, {
+                window.Resto.Map.updateLayer(self.Util.associativeToArray(json.features), {
                     'centerMap':options.centerMap,
                     'append':options.append
                 });
@@ -499,26 +501,30 @@
                  *          <div class="streched">
                  *              <div class="feature-info-top"></div>
                  *              <div class="feature-info-bottom"></div>
+                 *              <div class="feature-info-left"></div>
+                 *              <div class="feature-info-right"></div>
                  *          </div>
                  *      </div>
                  *  </li>
                  * 
                  */
-                $container.append('<li style="position:relative;padding:0px;"><div id="' + feature.id + '" class="resto-feature"><div class="streched unselected"><div class="padded pin-top feature-info-top"></div><div class="padded pin-bottom pin-right feature-info-bottom link-light"></div><div class="padded pin-top pin-right feature-info-right"></div></div></div></li>');
-                $div = $('#' + feature.id)
-                        .css({
-                            'background': "url('" + image + "') no-repeat",
-                            '-webkit-background-size': 'cover',
-                            '-moz-background-size': 'cover',
-                            '-o-background-size': 'cover',
-                            'background-size': 'cover',
-                            'height': '250px',
-                            'box-sizing': 'border-box',
-                            'padding': '0px',
-                            'cursor': 'pointer'
-                        }).click(function (e) {
-                            $(this).children().first().hasClass('selected') ? self.unselectAll() : self.selectFeature($(this).attr('id'), false);
-                        });
+                $container.append('<li style="position:relative;padding:0px;"><div id="' + feature.id + '" class="resto-feature"><div class="streched unselected"><div class="padded pin-top feature-info-top"></div><div class="padded pin-bottom pin-right feature-info-bottom link-light"></div><div class="padded pin-bottom pin-left feature-info-left"></div><div class="padded pin-top pin-right feature-info-right"></div></div></div></li>');
+                $div = $('#' + feature.id).css({
+                    'background': "url('" + image + "') no-repeat",
+                    '-webkit-background-size': 'cover',
+                    '-moz-background-size': 'cover',
+                    '-o-background-size': 'cover',
+                    'background-size': 'cover',
+                    'height': '250px',
+                    'box-sizing': 'border-box',
+                    'padding': '0px'
+                });
+        
+                /*
+                 * $div.click(function(e) {
+                 *      ($(this).children().first().hasClass('selected') ? self.unselectAll() : self.selectFeature($(this).attr('id'), false);
+                 * });
+                 */
                 
                 /*
                  * Feature infos (bottom)
@@ -541,7 +547,7 @@
                 topInfos.push('<h3 class="small text-light">' + self.Util.niceDate(feature.properties.startDate) + '</h3>');
                 
                 if (feature.properties.keywords) {
-                    var hash, typeAndValue, best = -1, state = -1, region = -1, country = -1, continent = -1;
+                    var hash, typeAndValue, best = -1, state = -1, region = -1, country = -1;
                     for (j = feature.properties.keywords.length; j--;) {
                         typeAndValue = feature.properties.keywords[j].id.split(':');
                         switch (typeAndValue[0]) {
@@ -556,9 +562,6 @@
                             case 'country':
                                 country = j;
                                 break;
-                            case 'continent':
-                                continent = j;
-                                break;
                         }
                     }
                     if (state !== -1) {
@@ -570,9 +573,6 @@
                     else if (country !== -1) {
                         best = country;
                     }
-                    else if (continent !== -1) {
-                        best = continent;
-                    }
                     if (best !== -1) {
                         hash = feature.properties.keywords[best]['hash'];
                         topInfos.push('<h2 class="small upper"><a href="' + feature.properties.keywords[best]['href'] + '" class="resto-ajaxified">' + feature.properties.keywords[best]['name'] + '</a></h2>');
@@ -581,8 +581,9 @@
                             newHash = null;
                             for (k = feature.properties.keywords.length; k--;) {
                                 if (feature.properties.keywords[k].hasOwnProperty('hash') && feature.properties.keywords[k]['hash'] === parentHash) {
-                                    if (feature.properties.keywords[k]['name'] !== 'region:_all') {
-                                        topInfos.push('<h4 class="small"><a href="' + feature.properties.keywords[k]['href'] + '" class="resto-ajaxified text-light">' + feature.properties.keywords[k]['name'] + '</a></h4>');
+                                    typeAndValue = feature.properties.keywords[k].id.split(':');
+                                    if (feature.properties.keywords[k]['name'] !== 'region:_all' && typeAndValue[0] !== 'continent') {
+                                        topInfos.push('<h4 class="small"><a href="' + feature.properties.keywords[k]['href'] + '" class="resto-ajaxified text-light hideOnUnselected">' + feature.properties.keywords[k]['name'] + '</a></h4>');
                                     }
                                     newHash = feature.properties.keywords[k]['parentHash'];
                                     hash = feature.properties.keywords[k]['hash'];
@@ -592,7 +593,57 @@
                             parentHash = newHash;
                         }
                     }
-                    $('.feature-info-right', $div).html('<img src="' + self.restoUrl + 'themes/default/img/world/' + hash + '.png"/>');
+                    $('.feature-info-right', $div).html('<a class="showOnMap" href="#" title="' + self.Util.translate('_showOnMap') + '"><img src="' + self.restoUrl + 'themes/default/img/world/' + hash + '.png"/></a>');
+                    
+                    /*
+                     * Actions
+                     */
+                    var actions = [];
+
+                    actions.push('<a class="fa fa-2x fa-file-text viewMetadata hideOnUnselected text-dark" href="#" title="' + self.Util.translate('_viewMetadata') + '"></a>');
+
+                    // Download feature
+                    if (feature.properties['services'] && feature.properties['services']['download'] && feature.properties['services']['download']['url']) {
+                        actions.push('<a class="fa fa-2x fa-cloud-download downloadProduct hideOnUnselected text-dark" href="' + feature.properties['services']['download']['url'] + '?lang=' + self.language + '" title="' + self.Util.translate('_download') + '"' + (feature.properties['services']['download']['mimeType'] === 'text/html' ? 'target="_blank"' : '') + '></a>');
+                    }
+
+                    // Add to cart
+                    if (self.Header.userProfile.userid !== -1) {
+                        actions.push('<a class="fa fa-2x fa-shopping-cart addToCart hideOnUnselected text-dark" href="#" title="' + self.Util.translate('_addToCart') + '"></a>');
+                    }
+                    $('.feature-info-left', $div).html('<div>' + actions.join('') + '</div>');
+                    
+                    (function($d, f) {
+                        $('.showOnMap', $d).click(function (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            self.switchTo($('#resto-panel-trigger-map'));
+                            self.Map.hilite(f.id, true);
+                            return false;
+                        });
+      
+                        $('.viewMetadata', $d).click(function (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            self.Util.showMask();
+                            window.location = self.restoUrl + 'collections/' + f.properties['collection'] + '/' + f.id + '.html?lang=' + self.language;
+                            return false;
+                        });
+                        $('.addToCart', $d).click(function (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            self.addToCart(f);
+                            return false;
+                        });
+
+                        $('.downloadProduct', $d).click(function (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            return self.download($(this));
+                        });
+                        
+                    })($div, feature);
+                    
                 }
                 $('.feature-info-top', $div).html(topInfos.join(''));
                 
@@ -620,7 +671,7 @@
                 $('html, body').scrollTop($id.offset().top);
             }
             
-            this.showFeatureInfoDetails(id);
+            //this.showFeatureInfoDetails(id);
         },
         
         /**
@@ -679,7 +730,6 @@
             var infos = [];
             
             infos.push('<a class="fa fa-3x fa-file-text viewMetadata" href="#" title="' + self.Util.translate('_viewMetadata') + '"></a>');
-            infos.push('<a class="fa fa-3x fa-map-marker showOnMap" href="#" title="' + self.Util.translate('_showOnMap') + '"></a>');
             
             // Download feature
             if (feature.properties['services'] && feature.properties['services']['download'] && feature.properties['services']['download']['url']) {
@@ -697,20 +747,6 @@
                 e.stopPropagation();
                 self.Util.showMask();
                 window.location = self.restoUrl + 'collections/' + feature.properties['collection'] + '/' + feature.id + '.html?lang=' + self.language;
-                return false;
-            });
-            $('.viewOnMap', $div).click(function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                self.switchTo($('#resto-panel-trigger-map'));
-                self.Map.hilite($div.attr('id'), true);
-                return false;
-            });
-            $('.showOnMap', $div).click(function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                self.switchTo($('#resto-panel-trigger-map'));
-                self.Map.hilite(id, true);
                 return false;
             });
             $('.addToCart', $div).click(function (e) {
@@ -849,7 +885,14 @@
          * @returns {undefined}
          */
         addToCart: function(feature) {
+            
             var self = this;
+            
+            if (!feature) {
+                self.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_nonExistentResource'));
+                return false;
+            }
+            
             self.Util.showMask();
             $.ajax({
                 url: self.restoUrl + 'users/' + self.Header.userProfile.userid + '/cart',
@@ -862,7 +905,8 @@
                         'properties': {
                             'productIdentifier': feature.properties['productIdentifier'],
                             'productType': feature.properties['productType'],
-                            'quicklook': feature.properties['quicklook'], "collection": "DataTest",
+                            'quicklook': feature.properties['quicklook'],
+                            'collection': feature.properties['collection'],
                             'services': {
                                 'download': feature.properties['services'] ? feature.properties['services']['download'] : null
                             }
@@ -877,6 +921,9 @@
                     }
                     else {
                         self.Util.dialog(Resto.Util.translate('_info'), Resto.Util.translate('_itemAddedToCart'));
+                        for (var key in obj.items) {
+                            Resto.Header.userProfile.cart[key] = obj.items[key];
+                        }
                     }
                 },
                 error: function (e) {
@@ -973,7 +1020,15 @@
                 }
             });
             
-            $(document).on('opened.fndtn.reveal', '[data-reveal]', function () {
+            $(document).on('opened.fndtn.reveal', '[data-reveal]', function (e) {
+                
+                /*
+                 * Workaround to foundation bug in reveal
+                 * (see https://github.com/zurb/foundation/issues/5482)
+                 */
+                if (e.namespace !== 'fndtn.reveal') {
+                    return;
+                }
                 switch($(this).attr('id')) {
                     case 'displayRegister':
                         $('#userName').focus();
@@ -983,6 +1038,9 @@
                         break;
                     case 'displayProfile':
                         self.showProfile();
+                        break;
+                    case 'displayCart':
+                        self.showCart();
                         break;
                     default:
                         break;
@@ -1117,6 +1175,27 @@
                 });
                 return false;
             });
+        },
+        
+        /**
+         * Show user profile
+         */
+        showCart: function() {
+            var self = this, $div = $('#displayCart .resto-cart-content');
+            if (self.userProfile.cart) {
+                var content = [];
+                for (var key in self.userProfile.cart) {
+                    if (self.userProfile.cart[key]['properties']) {
+                        content.push('<tr><td><img src="' + (self.userProfile.cart[key]['properties']['quicklook'] ? self.userProfile.cart[key]['properties']['quicklook'] : '') + '"/></td><td>' + self.userProfile.cart[key]['properties']['collection'] + '</td><td><a href="'+ Resto.restoUrl + 'collections/' + self.userProfile.cart[key]['properties']['collection'] + '/' + self.userProfile.cart[key]['id'] + '.html" target="_blank">' + self.userProfile.cart[key]['id'] + '</a></td></tr>');
+                    }
+                }
+                if (content.length > 0) {
+                    $div.html('<table>' + content.join('') + '</table><div class="padded"><a class="button signIn">' + Resto.Util.translate('_downloadCart') + '</div>');
+                }
+                else {
+                    $div.html('<h2 class="text-light center small">' + Resto.Util.translate('_cartIsEmpty') + '</h2>');
+                }
+            }
         },
         
         /**

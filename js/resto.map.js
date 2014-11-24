@@ -53,9 +53,9 @@
         layer: null,
         
         /**
-         * Initialize map with input GeoJSON FeatureCollection
+         * Initialize map with input features array
          */
-        init: function(data) {
+        init: function(features) {
             
             var timer, self = this;
             
@@ -102,11 +102,11 @@
              * Note : setInterval function is needed to ensure that mapshup map
              * is loaded before sending the GeoJSON feed
              */
-            if (window.M && data) {
+            if (window.M && features) {
                 var fct = setInterval(function () {
                     if (window.M.Map.map && window.M.isLoaded) {
 
-                        self.initLayer(data, true);
+                        self.initLayer(features, true);
 
                         /*
                          * Display full size WMS
@@ -115,13 +115,13 @@
                             if (self.layer) {
                                 window.M.Map.zoomTo(self.layer.getDataExtent(), false);
                                 if (self.userRights && self.userRights['visualize']) {
-                                    if ($.isArray(data.features) && data.features[0]) {
-                                        if (data.features[0].properties['services']['browse'] && data.features[0].properties['services']['browse']['layer']) {
+                                    if ($.isArray(features) && features[0]) {
+                                        if (features[0].properties['services']['browse'] && features[0].properties['services']['browse']['layer']) {
                                             M.Map.addLayer({
-                                                title: data.features[0].id,
-                                                type: data.features[0].properties['services']['browse']['layer']['type'],
-                                                layers: data.features[0].properties['services']['browse']['layer']['layers'],
-                                                url: data.features[0].properties['services']['browse']['layer']['url'].replace('%5C', '')
+                                                title: features[0].id,
+                                                type: features[0].properties['services']['browse']['layer']['type'],
+                                                layers: features[0].properties['services']['browse']['layer']['layers'],
+                                                url: features[0].properties['services']['browse']['layer']['url'].replace('%5C', '')
                                             });
                                         }
                                     }
@@ -176,17 +176,20 @@
         /**
          * Initialize search result layer
          * 
-         * @param {object} json - GeoJSON FeatureCollection
+         * @param {object} features - GeoJSON Feature array
          * @param {boolean} centerMap - if true, force map centering on FeatureCollection 
          */
-        initLayer: function(json, centerMap) {
+        initLayer: function(features, centerMap) {
             if (!this.isLoaded) {
                 return false;
             }
             this.layer = this.addLayer({
                 type: 'GeoJSON',
                 clusterized: false,
-                data: json,
+                data: {
+                    'type':'FeatureCollection',
+                    'features':features
+                },
                 zoomOnNew: centerMap ? 'always' : false,
                 MID: '__resto__',
                 color: '#FFF1FB',
@@ -226,7 +229,7 @@
         /**
          * Update features layer
          * 
-         * @param {Object} json - GeoJSON FeatureCollection
+         * @param {Object} json - Feature array
          * @param {Object} options :
          *              
          *              {
@@ -234,7 +237,7 @@
          *                  append: // true to add features to existing features
          *              } 
          */
-        updateLayer: function(json, options) {
+        updateLayer: function(features, options) {
             
             if (!this.isLoaded) {
                 return false;
@@ -251,7 +254,10 @@
                     this.layer.destroyFeatures();
                 }
                 window.M.Map.layerTypes['GeoJSON'].load({
-                    data: json,
+                    data: {
+                        'type':'FeatureCollection',
+                        'features':features
+                    },
                     layerDescription: this.layer['_M'].layerDescription,
                     layer: this.layer,
                     zoomOnNew: centerMap ? 'always' : false
@@ -322,7 +328,7 @@
          * @param {boolean} zoomOn
          */
         hilite: function(fid, zoomOn) {
-            if (!this.isLoaded) {
+            if (!this.isLoaded || !window.M || !window.M.Map || !window.M.Map.map) {
                 return false;
             }
             var f = window.M.Map.Util.getFeature(window.M.Map.Util.getLayerByMID('__resto__'), fid);

@@ -59,7 +59,7 @@
         <div id="mapshup" class="noResizeHeight"></div>
         
         <!-- Quicklook and metadata -->
-        <div class="row resto-resource fullWidth light">
+        <div class="row resto-resource fullWidth light" style="padding-bottom: 20px;">
             <div class="large-6 columns center">
                 <img title="<?php echo $product['id'];?>" class="resto-image" src="<?php echo $quicklook;?>"/>
             </div>
@@ -80,7 +80,7 @@
             </div>
         </div>
         
-        <!-- Location content (Landcover) -->
+        <!-- Location content -->
         <div class="row resto-resource fullWidth dark">
             <div class="large-6 columns">
                 <h1><span class="right"><?php echo $self->context->dictionary->translate('_location'); ?></span></h1>
@@ -91,7 +91,7 @@
                 if ($product['properties']['keywords']) {
                         for ($i = 0, $l = count($product['properties']['keywords']); $i < $l; $i++) {
                             list($type, $id) = explode(':', $product['properties']['keywords'][$i]['id'], 2);
-                            if (strtolower($type) === $key) { ?>
+                            if (strtolower($type) === $key && $product['properties']['keywords'][$i]['id'] !== 'region:_all') { ?>
                 <h2><a title="<?php echo $self->context->dictionary->translate('_thisResourceIsLocated', $product['properties']['keywords'][$i]['name']) ?>" href="<?php echo RestoUtil::updateUrlFormat($product['properties']['keywords'][$i]['href'], 'html') ?>"><?php echo $product['properties']['keywords'][$i]['name']; ?></a></h2>
             <?php }}}} ?>
             </div>
@@ -138,7 +138,7 @@
                 "language":'<?php echo $self->context->dictionary->language; ?>',
                 "restoUrl":'<?php echo $self->context->baseUrl ?>',
                 "ssoServices":<?php echo json_encode($self->context->config['ssoServices']) ?>,
-                "userProfile":<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?>
+                "userProfile":<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()),  array('cart' => isset($_SESSION['cart']) ? $_SESSION['cart'] : array()))) ?>
                 }, <?php echo '{"type":"FeatureCollection","features":[' . $self->toJSON() . ']}' ?>
             );
 
@@ -151,7 +151,7 @@
             $('.addToCart').click(function (e) {
                 e.preventDefault();
                 e.stopPropagation();
-                Resto.addToCart(Resto.data.features[0]);
+                Resto.addToCart(Resto.features['<?php echo $product['id']; ?>']);
                 return false;
             });
         </script>

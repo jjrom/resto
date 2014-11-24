@@ -310,6 +310,20 @@
             var left = (window.width/2)-(w/2);
             var top = (window.height/2)-(h/2);
             return window.open(url, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width='+w+', height='+h+', top='+top+', left='+left);
-        } 
+        },
+        
+        /**
+         * Convert associative array to array
+         * 
+         * @param {Array} arr
+         */
+        associativeToArray: function(associativeArray) {
+            var normalArray = [];
+            for (var item in associativeArray){
+                normalArray.push(associativeArray[item]); 
+            }
+            return normalArray;
+        }
+        
     };
 })(window);
