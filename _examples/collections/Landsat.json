@@ -24,10 +24,6 @@
             "Attribution": "CNES. Copyright 2014, All Rights Reserved"
         }
     },
-    "license":{
-        "description":"Il faut signer la licence",
-        "href":"http://test.com"
-    },
     "propertiesMapping":{
         "authority": "CNES",
         "parentIdentifier": "urn:ogc:def:EOP:CNES::Landsat:",
