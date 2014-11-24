@@ -27,11 +27,11 @@
     "propertiesMapping":{
         "authority": "CNES",
         "parentIdentifier": "urn:ogc:def:EOP:CNES::Landsat:",
-        "quicklook" : "http://spirit.cnes.fr/landsat/ql/{:identifier:}.png",
-        "thumbnail" : "http://spirit.cnes.fr/landsat/ql/{:identifier:}_thumb.png",
-        "metadata" : "http://spirit.cnes.fr/landsat/md/{:identifier:}.xml",
-        "resource" : "/mount/landsat/archives/{:identifier:}.tgz",
+        "quicklook" : "http://spirit.cnes.fr/landsat/ql/{:productIdentifier:}.png",
+        "thumbnail" : "http://spirit.cnes.fr/landsat/ql/{:productIdentifier:}_thumb.png",
+        "metadata" : "http://spirit.cnes.fr/landsat/md/{:productIdentifier:}.xml",
+        "resource" : "/mount/landsat/archives/{:productIdentifier:}.tgz",
         "resourceMimeType": "application/x-gzip",
-        "wms" : "http://spirit.cnes.fr/cgi-bin/mapserv?map=/mount/landsat/wms/map.map&file={:identifier:}&LAYERS=landsat&FORMAT=image%2Fpng&TRANSITIONEFFECT=resize&TRANSPARENT=true&VERSION=1.1.1&SERVICE=WMS&REQUEST=GetMap&STYLES=&SRS=EPSG%3A3857&BBOX={:bbox4326:}&WIDTH=256&HEIGHT=256"
+        "wms" : "http://spirit.cnes.fr/cgi-bin/mapserv?map=/mount/landsat/wms/map.map&file={:productIdentifier:}&LAYERS=landsat&FORMAT=image%2Fpng&TRANSITIONEFFECT=resize&TRANSPARENT=true&VERSION=1.1.1&SERVICE=WMS&REQUEST=GetMap&STYLES=&SRS=EPSG%3A3857&BBOX={:bbox3857:}&WIDTH=256&HEIGHT=256"
     }
 }
