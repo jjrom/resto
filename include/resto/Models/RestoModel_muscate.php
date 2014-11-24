@@ -49,11 +49,11 @@ class RestoModel_muscate extends RestoModel {
         'orbitNumber' => null,
         'location' => array(
             'name' => 'zonegeo',
-            'type' => 'VARCHAR(50)'
+            'type' => 'TEXT'
         ),
         'version' => array(
             'name' => 'version',
-            'type' => 'VARCHAR(10)'
+            'type' => 'TEXT'
         ),
         'productionDate' => array(
             'name' => 'dateprod',
@@ -61,11 +61,11 @@ class RestoModel_muscate extends RestoModel {
         ),
         'bands' => array(
             'name' => 'bands',
-            'type' => 'VARCHAR(50)'
+            'type' => 'TEXT'
         ),
         'thermBands' => array(
             'name' => 'thermbands',
-            'type' => 'VARCHAR(50)'
+            'type' => 'TEXT'
         ),
         'nb_cols' => array(
             'name' => 'nbcols',
@@ -77,7 +77,7 @@ class RestoModel_muscate extends RestoModel {
         ),
         'tileId' => array(
             'name' => 'tileid',
-            'type' => 'VARCHAR(20)'
+            'type' => 'TEXT'
         )
     );
     
