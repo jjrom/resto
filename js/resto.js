@@ -858,18 +858,21 @@
         download: function($div) {
             var self = this;
             if ($div.attr('target') !== '_blank') {
-                $('<iframe id="hiddenDownloader">').attr('src', $div.attr('href')).appendTo('body').load(function(){
+                var $frame = $('#hiddenDownloader');
+                if ($frame.length === 0) {
+                    $frame = $('<iframe id="hiddenDownloader" style="display:none;">').appendTo('body');
+                }
+                $frame.attr('src', $div.attr('href')).load(function(){
                     var error = {};
                     try {
                         error = JSON.parse($('body', $(this).contents()).text());
                     }
                     catch(e) {}
-
                     if (error['ErrorCode']) {
                         if (error['ErrorCode'] === 404) {
                             self.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_nonExistentResource'));
                         }
-                        else if (error['ErrorCode'] === 3002) {
+                        else if (error['ErrorCode'] === 403 || error['ErrorCode'] === 3002) {
                             self.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_unsufficientPrivileges'));
                         }
                     }
