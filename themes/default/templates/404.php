@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $self->context->dictionary->language ?>">
     <?php include 'head.php' ?>
     <body class="bg-404 glass">
-        <div class="bg-alpha-dark fullCover">
+        <div class="darkened">
             <!-- Header -->
             <?php include 'header.php' ?>
 

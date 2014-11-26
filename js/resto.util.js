@@ -278,18 +278,15 @@
                             dataType: dataType,
                             url: url,
                             async: true,
-                            data: data,
-                            success: function(data) {
-                                self.hideMask();
-                                callback(data);
-                                self.ajaxReady = true;
-                            },
-                            error: function(e) {
-                                self.hideMask();
-                                self.dialog('Error', e['responseJSON']['ErrorMessage']);
-                                self.offset = self.offset - self.limit;
-                                self.ajaxReady = true;
-                            }
+                            data: data
+                        }).done(function(data) {
+                            callback(data);
+                        }).fail(function(jqXHR, textStatus) {
+                            self.dialog('Error', textStatus);
+                            self.offset = self.offset - self.limit;
+                        }).always(function(){
+                            self.ajaxReady = true;
+                            self.hideMask();
                         });
                     }
                 }

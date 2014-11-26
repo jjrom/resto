@@ -204,23 +204,20 @@
                                 type: "GET",
                                 dataType: 'json',
                                 url: self.nextPageUrl,
-                                async: true,
-                                success: function(data) {
-                                    self.Util.hideMask();
-                                    self.unselectAll();
-                                    self.updateFeaturesList(data, {
-                                        updateMap: true,
-                                        centerMap: false,
-                                        append:true
-                                    });
-                                    self.ajaxReady = true;
-                                },
-                                error: function(e) {
-                                    self.Util.hideMask();
-                                    self.offset = self.offset - self.limit;
-                                    self.ajaxReady = true;
-                                    self.Util.dialog(Resto.Util.translate('_error'), e['responseJSON']['ErrorMessage']);
-                                }
+                                async: true
+                            }).done(function(data) {
+                                self.unselectAll();
+                                self.updateFeaturesList(data, {
+                                    updateMap: true,
+                                    centerMap: false,
+                                    append:true
+                                });
+                            }).fail(function(jqXHR, textStatus) {
+                                self.offset = self.offset - self.limit;
+                                self.Util.dialog(Resto.Util.translate('_error'), textStatus);
+                            }).always(function(){
+                                self.ajaxReady = true;
+                                self.Util.hideMask();
                             });
                         }
                     }
@@ -258,23 +255,19 @@
                 $.ajax({
                     url: url,
                     async: true,
-                    dataType: 'json',
-                    success: function(json) {
-                        self.ajaxReady = true;
-                        self.Util.hideMask();
-                        if (typeof callback === 'function') {
-                            callback(json, {
-                                updateMap:true,
-                                centerMap:true
-                                //centerMap:(state.data && state.data.centerMap) || (json.query && json.query.hasLocation) ? true : false
-                            });
-                        }
-                    },
-                    error: function(e) {
-                        self.ajaxReady = true;
-                        self.Util.hideMask();
-                        self.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_connectionFailed'));
+                    dataType: 'json'
+                }).done(function(data) {
+                    if (typeof callback === 'function') {
+                        callback(data, {
+                            updateMap:true,
+                            centerMap:true
+                        });
                     }
+                }).fail(function() {
+                    self.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_connectionFailed'));
+                }).always(function(){
+                    self.ajaxReady = true;
+                    self.Util.hideMask();
                 });
             });
             
@@ -424,7 +417,7 @@
                         }
                     }
                 }
-            } 
+            }
             /*
              * Update result
              */
@@ -443,6 +436,10 @@
                     'centerMap':options.centerMap,
                     'append':options.append
                 });
+            }
+            
+            if (!options.append && json.features.length === 0) {
+                self.Util.dialog(self.Util.translate('_noSearchResultsTitle'), self.Util.translate('_noSearchResultsFor', [json.properties.query ? self.Util.sanitizeValue(json.properties.query.original.searchTerms) : '']));
             }
             
             /*
@@ -895,7 +892,7 @@
                 self.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_nonExistentResource'));
                 return false;
             }
-            
+     
             self.Util.showMask();
             $.ajax({
                 url: self.restoUrl + 'users/' + self.Header.userProfile.userid + '/cart',
@@ -916,23 +913,27 @@
                         }
                     }
                 ]),
-                contentType: 'application/json',
-                success: function (obj, textStatus, XMLHttpRequest) {
-                    self.Util.hideMask();
-                    if (obj.ErrorCode && obj.ErrorCode === 1000) {
-                        self.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_itemAlreadyInCart'));
-                    }
-                    else {
-                        self.Util.dialog(Resto.Util.translate('_info'), Resto.Util.translate('_itemAddedToCart'));
-                        for (var key in obj.items) {
-                            Resto.Header.userProfile.cart[key] = obj.items[key];
-                        }
-                    }
-                },
-                error: function (e) {
-                    self.Util.hideMask();
-                    self.Util.dialog(Resto.Util.translate('_error'), e.responseText);
+                contentType: 'application/json'
+            }).done(function (data) {
+                if (data.ErrorCode && data.ErrorCode === 1000) {
+                    $.growl.error({
+                        title: Resto.Util.translate('_error'),
+                        message: Resto.Util.translate('_itemAlreadyInCart')
+                    });
                 }
+                else {
+                    $.growl.notice({
+                        title: Resto.Util.translate('_info'),
+                        message: Resto.Util.translate('_itemAddedToCart')
+                    });
+                    for (var key in data.items) {
+                        Resto.Header.userProfile.cart[key] = data.items[key];
+                    }
+                }
+            }).fail(function (jqXHR, textStatus) {
+                self.Util.dialog(Resto.Util.translate('_error'), textStatus);
+            }).always(function() {
+                self.Util.hideMask();
             });
         }
     };
@@ -1077,27 +1078,24 @@
          * Sign in
          */
         signIn: function() {
-            
             Resto.Util.showMask();
             $.ajax({
                 url: Resto.restoUrl + 'api/users/connect',
                 headers: {
                     'Authorization': "Basic " + btoa(Resto.Util.sanitizeValue($('#userEmail')) + ":" + Resto.Util.sanitizeValue($('#userPassword')))
                 },
-                dataType: 'json',
-                success: function (json) {
-                    if (json && json.userid === -1) {
-                        Resto.Util.hideMask();
-                        Resto.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_wrongPassword'));
-                    }
-                    else {
-                        window.location.reload();
-                    }
-                },
-                error: function (e) {
-                    Resto.Util.hideMask();
-                    Resto.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_cannotSignIn'));
+                dataType: 'json'
+            }).done(function(data) {
+                if (data && data.userid === -1) {
+                    Resto.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_wrongPassword'));
                 }
+                else {
+                    window.location.reload();
+                }
+            }).error(function () {
+                Resto.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_cannotSignIn'));
+            }).always(function(){
+                Resto.Util.hideMask();
             });
         },
         
@@ -1132,26 +1130,24 @@
                         username: username,
                         givenname: Resto.Util.sanitizeValue($('#firstName')),
                         lastname: Resto.Util.sanitizeValue($('#lastName'))
-                    },
-                    success: function (json) {
-                        Resto.Util.hideMask();
-                        if (json && json.status === 'success') {
-                            Resto.Util.dialog(Resto.Util.translate('_info'), Resto.Util.translate('_emailSent'));
-                            $div.hide();
-                        }
-                        else {
-                            Resto.Util.dialog(Resto.Util.translate('_error'), json.ErrorMessage);
-                        }
-                    },
-                    error: function (e) {
-                        Resto.Util.hideMask();
-                        if (e.responseJSON) {
-                            Resto.Util.dialog(Resto.Util.translate('_error'), e.responseJSON.ErrorMessage);
-                        }
-                        else {
-                            Resto.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_registrationFailed'));
-                        }
                     }
+                }).done(function (data) {
+                    if (data && data.status === 'success') {
+                        Resto.Util.dialog(Resto.Util.translate('_info'), Resto.Util.translate('_emailSent'));
+                        $div.hide();
+                    }
+                    else {
+                        Resto.Util.dialog(Resto.Util.translate('_error'), data.ErrorMessage);
+                    }
+                }).fail(function (jqXHR, textStatus) {
+                    if (e.responseJSON) {
+                        Resto.Util.dialog(Resto.Util.translate('_error'), textStatus);
+                    }
+                    else {
+                        Resto.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_registrationFailed'));
+                    }
+                }).always(function() {
+                    Resto.Util.hideMask();
                 });
             }
         },
@@ -1166,15 +1162,13 @@
                 Resto.Util.showMask();
                 $.ajax({
                     url: window.Resto.restoUrl + 'api/users/disconnect',
-                    dataType:'json',
-                    success: function(json) {
-                        Resto.Util.hideMask();
-                        window.location.reload();
-                    },
-                    error: function(e) {
-                        Resto.Util.hideMask();
-                        Resto.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_disconnectFailed'));
-                    }
+                    dataType:'json'
+                }).done(function(data) {
+                    window.location.reload();
+                }).fail(function() {
+                    Resto.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_disconnectFailed'));
+                }).always(function() {
+                    Resto.Util.hideMask();
                 });
                 return false;
             });

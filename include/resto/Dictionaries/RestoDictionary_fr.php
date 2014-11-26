@@ -194,6 +194,8 @@ class RestoDictionary_fr extends RestoDictionary {
         '_numberOfCollections' => 'Collections',
         '_numberOfProducts' => 'Produits',
         '_statistics' => 'Statistiques',
+        '_noSearchResultsTitle' => 'Pas de résultats',
+        '_noSearchResultsFor' => 'Il n\'y a pas de résultats pour <b>"{a:1}"</b>. Veuillez essayer une autre recherche !',
         '_pageNotFoundTitle' => 'La page que vous recherchez n\'existe pas',
         '_pageNotFoundDescription' => 'Avez-vous essayer de chercher autre chose ?',
         '_myCart' => 'Mon panier',

@@ -7,7 +7,7 @@
     <?php include 'head.php' ?>
     <body class="bg glass">
         
-        <div class="bg-alpha-dark fullCover">
+        <div class="darkened">
             <!-- Header -->
             <?php include 'header.php' ?>
 
