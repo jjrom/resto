@@ -255,6 +255,18 @@ class RestoUser{
     }
     
     /**
+     * Sign license for collection
+     * 
+     * @param string $collectionName
+     */
+    public function signLicense($collectionName) {
+        if ($this->context->dbDriver->signLicense($this->profile['email'], $collectionName)) {
+            return true;
+        }
+        return false;
+    }
+    
+    /**
      * Disconnect user i.e. clear session informations
      */
     public function disconnect() {

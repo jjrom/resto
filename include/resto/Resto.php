@@ -127,6 +127,7 @@
  *    |  GET     api/users/disconnect                          |  Disconnect user
  *    |  GET     api/users/{userid}/activate                   |  Activate users with activation code
  *    |  GET     api/users/{userid}/isConnected                |  Check is user is connected
+ *    |  POST    api/users/{userid}/signLicense                |  Sign license for input collection
  *    
  * Query
  * -----
@@ -326,6 +327,7 @@ class Resto {
              *      api/users/disconnect
              *      api/users/{userid}/activate
              *      api/users/{userid}/isConnected
+             *      api/users/{userid}/signLicense
              */
             case 'api':
                 if (!isset($segments[1])) {
@@ -420,6 +422,54 @@ class Resto {
                         else {
                             throw new Exception('Bad Request', 400);
                         }
+                    }
+                    else if (isset($segments[3]) && $segments[3] === 'signLicense' && !isset($segments[4])) {
+                        
+                        if ($this->method !== 'POST') {
+                            $this->process404();
+                        }
+                        
+                        /*
+                         * Only user can sign its license
+                         */
+                        $userid = $segments[2];
+                        if (!ctype_digit($userid)) {
+                            $userid = strtolower(base64_decode($userid));
+                            if (isset($this->user->profile['email']) && $this->user->profile['email'] === $segments[2]) {
+                                $userid = $this->user->profile['userid'];
+                            }
+                        }
+
+                        /*
+                         * Profile can only be seen by its owner or by admin
+                         */
+                        $user = $this->user;
+                        if ($user->profile['userid'] !== $userid) {
+                            throw new Exception('Forbidden', 403);
+                        }
+                        
+                        /*
+                         * Read POST data
+                         */
+                        $data = RestoUtil::readInputData();
+
+                        if (!is_array($data) || count($data) === 0) {
+                            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Bad Request', 400);
+                        }
+                        
+                        if ($this->user->signLicense($data[0], true)) {
+                            $this->response = $this->toJSON(array(
+                                'status' => 'success',
+                                'message' => 'License signed'
+                            ));
+                        }
+                        else {
+                            $this->response = $this->toJSON(array(
+                                'status' => 'error',
+                                'message' => 'Cannot sign license'
+                            ));
+                        }
+                        
                     }
                     else {
                         $this->process404();
@@ -1012,7 +1062,7 @@ class Resto {
                     throw new Exception('Forbidden', 403);
                 }
                 else if ($this->user->hasToSignLicense($collection)) {
-                    $this->response = RestoUtil::json_format(array('ErrorMessage' => 'Forbidden', 'hasToSignLicense' => $collection->getLicense(), 'ErrorCode' => 3002));
+                    $this->response = RestoUtil::json_format(array('ErrorMessage' => 'Forbidden', 'collection' => $collection->name, 'license' => $collection->getLicense(), 'ErrorCode' => 3002));
                 }
                 else {
                     $this->storeQuery('download', $collectionName, $featureIdentifier);

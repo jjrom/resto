@@ -761,91 +761,6 @@
             
         },
         
-        TODO: function() {
-            
-            /*
-             * Keywords are splitted in different types 
-             * 
-             *  - type = landuse (forest, water, etc.)
-             *  - type = country/continent/region/state/city
-             *  - type = platform/instrument
-             *  - type = date
-             *  - type = null and keyword start with a '#' = tags
-             *  
-             */
-            infos =  {};
-            if (feature.properties.keywords) {
-                var keywords = {
-                    location: {
-                        title: '_location',
-                        keywords: []
-                    },
-                    landuse: {
-                        title: '_landUse',
-                        keywords: []
-                    },
-                    tag: {
-                        title: '_tags',
-                        keywords: []
-                    },
-                    resolution: {
-                        title: '_resolution',
-                        keywords: []
-                    },
-                    other: {
-                        title: '_other',
-                        keywords: []
-                    }
-                };
-                var j, keyword, text, typeAndId, type, title, resolution;
-                for (j = feature.properties.keywords.length; j--;) {
-                    keyword = feature.properties.keywords[j];
-                    text = keyword['name'];
-                    typeAndId = keyword.id.split(':'),
-                            title = "";
-                    if (typeAndId[0] === 'landuse') {
-                        type = 'landuse';
-                        text = text + ' (' + Math.round(keyword.value) + '%)';
-                        title = self.Util.translate('_thisResourceContainsLanduse', [keyword.value, key]);
-                    }
-                    else if (typeAndId[0] === 'country' || typeAndId[0] === 'continent' || typeAndId[0] === 'region' || typeAndId[0] === 'state') {
-                        type = 'location';
-                        title = self.Util.translate('_thisResourceIsLocated', [text]);
-                    }
-                    else if (typeAndId[0] === 'city') {
-                        type = 'location';
-                        title = self.Util.translate('_thisResourceContainsCity', [text]);
-                    }
-                    else if (keyword.name.indexOf("#") === 0) {
-                        type = 'tag';
-                    }
-                    else if (typeAndId[0] === 'other') {
-                        type = 'other';
-                    }
-                    else {
-                        continue;
-                    }
-                    keywords[type]['keywords'].push('<a href="' + self.Util.updateUrlFormat(keyword['href'], 'html') + '" class="resto-ajaxified resto-keyword' + (typeAndId[0] ? ' resto-keyword-' + typeAndId[0].replace(' ', '') : '') + '" title="' + title + '">' + text + '</a> ');
-                }
-
-                /*
-                 * Resolution
-                 */
-                if (feature.properties['resolution']) {
-                    resolution = self.getResolution(feature.properties['resolution']);
-                    keywords['resolution']['keywords'].push(feature.properties['resolution'] + 'm - <a href="' + self.Util.updateUrl(self.Util.updateUrlFormat(selfUrl, 'html'), {q: self.Util.translate(resolution)}) + '" class="resto-ajaxified resto-updatebbox resto-keyword resto-keyword-resolution" title="' + self.Util.translate(resolution) + '">' + resolution + '</a>');
-                }
-
-                for (var key in keywords) {
-                    if (keywords[key]['keywords'].length > 0) {
-                        infos.push('<p><span class="upper">' + self.Util.translate(keywords[key]['title']) + '</span>&nbsp;&nbsp;<span>' + keywords[key]['keywords'].join(', ') + '</span></p>');
-                    }
-                }
-                $('#feature-info-details').append('<div class="feature-info-details">' + infos.join('') + '</div>');
-            }
-            
-        },
-        
         /**
          * Download product
          * 
@@ -869,7 +784,10 @@
                         if (error['ErrorCode'] === 404) {
                             self.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_nonExistentResource'));
                         }
-                        else if (error['ErrorCode'] === 403 || error['ErrorCode'] === 3002) {
+                        else if (error['ErrorCode'] === 3002) {
+                            self.Header.signLicense(error['license'], error['collection'], $div);
+                        }
+                        else if (error['ErrorCode'] === 403) {
                             self.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_unsufficientPrivileges'));
                         }
                     }
@@ -1193,6 +1111,36 @@
                     $div.html('<h2 class="text-light center small">' + Resto.Util.translate('_cartIsEmpty') + '</h2>');
                 }
             }
+        },
+        
+        /**
+         * Open "Sign license popup" and start downloading product
+         * if needed
+         * 
+         * @param {string} licenseUrl : license url
+         * @param {string} collection : collection name
+         * @param {jQueryObject} $target : target download
+         */
+        signLicense: function(licenseUrl, collection, $target) {
+            $('#dialog').html('<div class="padded center"><h2>' + Resto.Util.translate('_info') + '</h2><p class="text-dark">' + Resto.Util.translate('_termsOfLicense', [licenseUrl, collection]) + '</p><p class="center"><a href="#" class="center button signLicense">' + Resto.Util.translate('_iAgree') + '</a></p><a class="text-dark close-reveal-modal">&#215;</a></div>').foundation('reveal', 'open');
+            $('#dialog .signLicense').click(function(){
+                Resto.Util.showMask();
+                $.ajax({
+                    type: 'POST',
+                    dataType: 'json',
+                    data:collection,
+                    url: Resto.restoUrl + 'api/users/' + Resto.Header.userProfile['userid'] + '/signLicense.json',
+                    async: true
+                }).done(function (data) {
+                    Resto.download($target);
+                }).fail(function (jqXHR, textStatus) {
+                    Resto.Util.dialog(Resto.Util.translate('_error'), textStatus);
+                }).always(function () {
+                    Resto.ajaxReady = true;                   
+                    Resto.Util.hideMask();
+                    $('#dialog').foundation('reveal', 'close');
+                });
+            });
         },
         
         /**

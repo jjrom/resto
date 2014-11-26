@@ -3068,6 +3068,35 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         return $result;
     }
     
+    /**
+     * Sign license for collection collectionName
+     * 
+     * @param string $identifier : user identifier 
+     * @param string $collectionName
+     * @return boolean
+     * @throws Exception
+     */
+    public function signLicense($identifier, $collectionName) {
+        try {
+            if (!$this->collectionExists($collectionName)) {
+                throw new Exception();
+            }
+            $results = pg_query($this->dbh, 'SELECT email FROM usermanagement.signatures WHERE email=\'' . pg_escape_string($identifier) . '\' AND collection=\'' . pg_escape_string($collectionName) . '\'');
+            if (!$results) {
+                throw new Exception();
+            }
+            if (pg_fetch_assoc($results)) {
+                pg_query($this->dbh, 'UPDATE usermanagement.signatures SET signdate=now() WHERE email=\'' . pg_escape_string($identifier) . '\' AND collection=\'' . pg_escape_string($collectionName) . '\'');
+            }
+            else {
+                pg_query($this->dbh, 'INSERT INTO usermanagement.signatures (email, collection, signdate) VALUES (\'' . pg_escape_string($identifier) . '\',\'' . pg_escape_string($collectionName) . '\',now())');
+            }
+            return true;
+        } catch (Exception $e) {
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot sign license', 500);
+        }
+        return false;
+    }
     
     /**
      * Get user history
