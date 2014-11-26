@@ -503,7 +503,17 @@ abstract class RestoDatabaseDriver {
      * @throws Exception
      */
     abstract public function getSignedLicenses($identifier);
-
+    
+    /**
+     * Sign license for collection collectionName
+     * 
+     * @param string $identifier : user identifier 
+     * @param string $collectionName
+     * @return boolean
+     * @throws Exception
+     */
+    abstract public function signLicense($identifier, $collectionName);
+    
     /**
      * Get collection description
      * 
