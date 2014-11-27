@@ -22,6 +22,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('kompsat2', 'KOMPSA
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('landsat', 'LANDSAT%','**', 'platform');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('landsat5', 'LANDSAT5','**', 'platform');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('landsat7', 'LANDSAT7','**', 'platform');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('landsat8', 'LANDSAT8','**', 'platform');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('nigeriasat', 'NIGERIASAT','**', 'platform');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('pleiades', 'PHR%','**', 'platform');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('phr', 'PHR%','**', 'platform');

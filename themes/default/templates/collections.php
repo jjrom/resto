@@ -1,6 +1,16 @@
 <?php
     $_noSearchBar = true;
     $_noMap = true;
+    $statistics = $self->context->dbDriver->getStatistics();
+    $nbOfProducts = 0;
+    $nbOfCollections = 0;
+    if (isset($statistics['collection'])) {
+        foreach (array_values($statistics['collection']) as $count) {
+            $nbOfProducts += $count;
+            $nbOfCollections++;
+        } 
+    }
+    print_r($statistics);
 ?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $self->context->dictionary->language ?>">
@@ -22,6 +32,7 @@
                             <h1 class="center">
                                 <a class="fa" href="<?php echo $self->context->baseUrl . 'api/collections/' . $key . '/search.html?lang=' . $self->context->dictionary->language; ?>">  <?php echo $collection->getOSProperty('ShortName'); ?></a>
                             </h1>
+                            <h5 class='text-light center'><?php echo $self->context->dictionary->translate('_nbOfProducts', isset($statistics['collection'][$collection->name]) ? $statistics['collection'][$collection->name] : 0); ?></h5>
                             <p><?php echo $collection->getOSProperty('Description'); ?></p>
                         </div>
                     </li>

@@ -544,7 +544,7 @@
                 topInfos.push('<h3 class="small text-light">' + self.Util.niceDate(feature.properties.startDate) + '</h3>');
                 
                 if (feature.properties.keywords) {
-                    var hash, typeAndValue, best = -1, state = -1, region = -1, country = -1;
+                    var hash, img = 'world', typeAndValue, best = -1, state = -1, region = -1, country = -1;
                     for (j = feature.properties.keywords.length; j--;) {
                         typeAndValue = feature.properties.keywords[j].id.split(':');
                         switch (typeAndValue[0]) {
@@ -584,13 +584,19 @@
                                     }
                                     newHash = feature.properties.keywords[k]['parentHash'];
                                     hash = feature.properties.keywords[k]['hash'];
+                                    try {
+                                        img = feature.properties.keywords[k]['id'].split(':')[1].replace(' ', '');
+                                    }
+                                    catch (e) {
+                                        img = 'world';
+                                    }
                                     break;
                                 }
                             }
                             parentHash = newHash;
                         }
                     }
-                    $('.feature-info-right', $div).html('<a class="showOnMap" href="#" title="' + self.Util.translate('_showOnMap') + '"><img src="' + self.restoUrl + 'themes/default/img/world/' + hash + '.png"/></a>');
+                    $('.feature-info-right', $div).html('<a class="showOnMap" href="#" title="' + self.Util.translate('_showOnMap') + '"><img src="' + self.restoUrl + 'themes/default/img/world/' + img + '.png"/></a>');
                     
                     /*
                      * Actions

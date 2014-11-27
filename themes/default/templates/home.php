@@ -30,40 +30,65 @@
             </div>
         </div>
 
-        <!-- Statistics -->
-        <div class="center padded">
+        <div class="collections">
+            <div class="row fullWidth" style="padding:1% 10%;">
+                <h1 class="text-light padded center"><?php echo $self->context->dictionary->translate('_searchBy');?></h1>
+                <ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-3">
+                    <?php foreach ($statistics as $key => $stats) { ?>
+                    <li>
+                        <div class="resto-box detailedstats">
+                            <h2 class="text-light"><?php echo $self->context->dictionary->translate($key === 'continent' ? 'location' : $key); ?></h2>
+                            <?php if ($key === 'continent') { ?>
+                            <h4 class='text-light'>
+                                <?php foreach ($stats as $item => $count) { ?>
+                                    <?php $value = $self->context->dictionary->getKeywordFromValue($item, $key); ?>
+                                <a href="<?php echo $self->context->baseUrl . 'api/collections/search.html?q=' . urlencode(RestoUtil::quoteIfNeeded($value)) . '&lang=' . $self->context->dictionary->language ?>"><span style="display:block"><img src="<?php echo $self->context->baseUrl . 'themes/default/img/world/' . $item . '.png'; ?>"/><?php echo '(' . $count . ')'; ?></a></span>
+                                <?php } ?>
+                            </h4>
+                            <?php } else { ?>
+                                <?php foreach ($stats as $item => $count) {
+                                    if ($key === 'collection') { ?>
+                            <h4 class='text-light'><a href="<?php echo $self->context->baseUrl . 'api/collections/' . $item . '/search.html?lang=' . $self->context->dictionary->language ?>"><?php echo $item . ' (' . $count . ')'; ?></a></h4>
+                                    <?php } else if ($key === 'processingLevel' || $key === 'productType' || $key === 'platform') { ?>
+                            <h4 class='text-light'><a href="<?php echo $self->context->baseUrl . 'api/collections/search.html?q=' . urlencode(RestoUtil::quoteIfNeeded($item)) .'&lang=' . $self->context->dictionary->language ?>"><?php echo $item . ' (' . $count . ')'; ?></a></h4>
+                                    <?php } else {
+                                    $value = $self->context->dictionary->getKeywordFromValue($item, $key); ?>
+                            <h4 class='text-light'><a href="<?php echo $self->context->baseUrl . 'api/collections/search.html?q=' . urlencode(RestoUtil::quoteIfNeeded($value)) . '&lang=' . $self->context->dictionary->language ?>"><?php echo $value . ' (' . $count . ')'; ?></a></h4>
+                                <?php }}} ?>
+                        </div>
+                    </li>
+                    <?php } ?>
+                </ul>
+            </div>     
+        </div>
+
+        <div class="center">
             <?php if ($nbOfProducts > 0) { ?>
-            <ul class="small-block-grid-1 large-block-grid-3" style="padding-top:100px">
-                <li>
-                    <div class="resto-box"> 
-                        <a href="<?php echo $self->context->baseUrl . 'collections'; ?>">
-                            <h1 class="text-light"><?php echo $self->context->dictionary->translate('_numberOfCollections'); ?></h1>
-                            <h1 class="text-light"><?php echo $nbOfCollections;?></h1>
-                        </a>
-                    </div>
-                </li>
-                <li>
-                    <div class="resto-box"> 
-                        <a href="<?php echo $self->context->baseUrl . 'api/collections/search.html'; ?>">
-                            <h1 class="text-light"><?php echo $self->context->dictionary->translate('_numberOfProducts'); ?></h1>
-                            <h1 class="text-light"><?php echo $nbOfProducts;?></h1>
-                        </a>
-                    </div>
-                </li>
-                <li>
-                    <div class="resto-box">
-                        <a href="<?php echo $self->context->baseUrl . 'TODO'; ?>">
-                            <h1 class="text-light"><?php echo $self->context->dictionary->translate('_statistics'); ?></h1>
-                            <h1 class="text-light fa fa-3x fa-bar-chart"></h1>
-                        </a>
-                    </div>
-                </li>
-            </ul>
+            <div class="row fullWidth" style="padding:1% 10%;"> 
+                <ul class="small-block-grid-1 large-block-grid-2">
+                    <li>
+                        <div class="resto-box mainstats"> 
+                            <a href="<?php echo $self->context->baseUrl . 'collections'; ?>">
+                                <h1 class="text-light"><?php echo $self->context->dictionary->translate('_numberOfCollections'); ?></h1>
+                                <h1 class="text-light"><?php echo $nbOfCollections;?></h1>
+                            </a>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="resto-box mainstats"> 
+                            <a href="<?php echo $self->context->baseUrl . 'api/collections/search.html'; ?>">
+                                <h1 class="text-light"><?php echo $self->context->dictionary->translate('_numberOfProducts'); ?></h1>
+                                <h1 class="text-light"><?php echo $nbOfProducts;?></h1>
+                            </a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
             <?php } else { ?>
                 Hey! there is nothing in the database yet
             <?php } ?>
         </div>
-
+        
         <!-- Footer -->
         <?php include 'footer.php' ?>
            
@@ -75,7 +100,8 @@
                 "ssoServices":<?php echo json_encode($self->context->config['ssoServices']) ?>,
                 "userProfile":<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()),  array('cart' => isset($_SESSION['cart']) ? $_SESSION['cart'] : array()))) ?>
             });
-            Resto.Util.alignHeight($('.resto-box'));
+            Resto.Util.alignHeight($('.detailedstats'));
+            Resto.Util.alignHeight($('.mainstats'));
         </script>
     </body>
 </html>
