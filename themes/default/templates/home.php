@@ -32,7 +32,6 @@
 
         <div class="collections">
             <div class="row fullWidth" style="padding:1% 10%;">
-                <h1 class="text-light padded center"><?php echo $self->context->dictionary->translate('_searchBy');?></h1>
                 <ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-3">
                     <?php foreach ($statistics as $key => $stats) { ?>
                     <li>

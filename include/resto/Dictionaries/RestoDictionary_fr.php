@@ -191,7 +191,6 @@ class RestoDictionary_fr extends RestoDictionary {
         '_termsOfLicense' => 'Vous devez accepter les <b><a href="{a:1}" target="_blank">termes de la licence</a></b> afin d\'accéder aux produits de la collection <b>{a:2}</b>',
         '_iAgree' => 'J\'accepte',
         '_nbOfProducts' => '{a:1} produit(s)',
-        '_searchBy' => 'Chercher par...',
         'year' => 'Année',
         'platform' => 'Satellite',
         'instrument' => 'Instrument',
