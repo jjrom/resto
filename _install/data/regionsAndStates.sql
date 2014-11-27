@@ -3834,7 +3834,7 @@ INSERT INTO resto.keywords (name, value, lang, type, location) VALUES ('Sédhiou
 INSERT INTO resto.keywords (name, value, lang, type, location) VALUES ('Sefton','sefton', '**', 'state', 'GB:-3.10191809799994,53.4810204280684,-2.89612331174146,53.7094461670941');
 INSERT INTO resto.keywords (name, value, lang, type, location) VALUES ('Ségou','segou', '**', 'state', 'ML:-7.08100928355157,12.5549445663387,-3.95802161280716,15.5529527859423');
 INSERT INTO resto.keywords (name, value, lang, type, location) VALUES ('Segovia','segovia', '**', 'state', 'ES:-4.71385317698247,40.6333680206177,-3.19879147015018,41.5832459861134');
-INSERT INTO resto.keywords (name, value, lang, type, location) VALUES ('Seien-et-Marne','seien-et-marne', '**', 'state', 'FR:2.39066074359846,48.1216605422002,3.53780241165202,49.1062003749473');
+INSERT INTO resto.keywords (name, value, lang, type, location) VALUES ('Seine-et-Marne','seine-et-marne', '**', 'state', 'FR:2.39066074359846,48.1216605422002,3.53780241165202,49.1062003749473');
 INSERT INTO resto.keywords (name, value, lang, type, location) VALUES ('Seine-Maritime','seine-maritime', '**', 'state', 'FR:0.0753686860000755,49.2563065818833,1.76948691408978,50.0657196742449');
 INSERT INTO resto.keywords (name, value, lang, type, location) VALUES ('Seine-Saint-Denis','seine-saint-denis', '**', 'state', 'FR:2.26659630857279,48.8074711157993,2.59238489464721,49.0097843551639');
 INSERT INTO resto.keywords (name, value, lang, type, location) VALUES ('Sejas','sejas', '**', 'state', 'LV:24.3724480774169,57.105949890575,24.6815739283941,57.3163467473045');
