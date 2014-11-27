@@ -1,9 +1,9 @@
-RESTo2
+resto2
 ======
 
-RESTo - REstful Semantic search Tool for geOspatial v2
+[resto](http://mapshup.com/resto2/) - an Earth Observation products search engine 
 
-You can try the [RESTo demo] (http://mapshup.info/resto)
+Try the [demo] (http://mapshup.com/resto2/) !
 
 Installation
 ============
@@ -12,7 +12,7 @@ In the following, we suppose that $RESTO_HOME is the directory where resto sourc
 
         export RESTO_HOME=/wherever/you/want/resto
 
-If not already done, download RESTo to $RESTO_HOME
+If not already done, download resto to $RESTO_HOME
 
         git clone https://github.com/jjrom/resto.git $RESTO_HOME
 
@@ -24,14 +24,14 @@ Prerequesites
 * PostgreSQL (v9.0+) with **hstore** and **unaccent** extensions
 * PostGIS (v1.5.1+)
 
-Note: RESTo could work with lower version of the specified requirements.
+Note: resto could work with lower version of the specified requirements.
 However there is no guaranty of success and unwanted result may occured !
 
 
-Install RESTo database
+Install resto database
 ----------------------
 
-RESTo installs a PostgreSQL database named 'resto2'. 
+resto installs a PostgreSQL database named 'resto2'. 
 
 The 'resto' database is created with PostGIS and hstore extension enabled within the 'public' schema.
 
@@ -44,7 +44,7 @@ The user 'resto' is automatically created within this database :
 
 It is very important to specify strong passwords for this user.
 
-To install RESTo database, launch the following script
+To install resto database, launch the following script
 
         $RESTO_HOME/_install/installDB.sh -F -d <PostGIS directory> -p <resto user password>
 
@@ -61,7 +61,7 @@ by the web server so it could be either directly under the DocumentRoot web serv
 or in whatever directory accessed through web server Alias configuration. The latter case is prefered
 (see Apache configuration part below for Alias configuration)
 
-To install RESTo launch the following script
+To install resto launch the following script
 
         # Note : RESTO_TARGET should not exist - it will be created by deploy.sh script
         export RESTO_TARGET=/your/installation/directory
@@ -74,9 +74,9 @@ Install iTag
 [iTag] (http://github.com/jjrom/itag) is an application to automatically tag geospatial metadata
 with geographical information (such as location, landuse, etc.)
 
-RESTo uses iTag during the ressource ingestion process and also for the Gazetteer and the Wikipedia modules
+resto uses iTag during the ressource ingestion process and also for the Gazetteer and the Wikipedia modules
 
-If you want to use iTag with RESTo, you should install it (follow the [instructions] (http://github.com/jjrom/itag/))
+If you want to use iTag with resto, you should install it (follow the [instructions] (http://github.com/jjrom/itag/))
 
 
 Configuration
@@ -87,8 +87,8 @@ Apache Configuration
 
 The first thing to do is to configure Apache (or wathever is your web server) to support URL rewriting.
 
-Basically, with URLs rewriting every request sent to RESTo application will end up to index.php. For example,
-http://localhost/resto2/whatever/youwant/to/access will be rewrite as http://localhost/resto2/index.php?RESToURL=/whatever/youwant/to/access
+Basically, with URLs rewriting every request sent to resto application will end up to index.php. For example,
+http://localhost/resto2/whatever/youwant/to/access will be rewrite as http://localhost/resto2/index.php?restoURL=/whatever/youwant/to/access
 
 
 ### Check that mod_rewrite is installed
@@ -130,10 +130,10 @@ there is no need to edit $RESTO_TARGET/.htaccess file
 
 ### Configure apache to support https (optional)
 
-RESTo can be accessed either in http or https. For security reason, https is prefered when
+resto can be accessed either in http or https. For security reason, https is prefered when
 dealing with authenticated request (e.g. creation of a collection, insertion of a resource in the collection, etc.)
 
-Thus, turning https in apache is optional to make RESTo work.
+Thus, turning https in apache is optional to make resto work.
 
 This document does not explain how to turn https on - but your system administrator should know how to do it !
 
@@ -151,7 +151,7 @@ Note: the following configuration is optional but it is safer from a security po
 
 Edit the PostgreSQL pg_hba.conf file and add the following rules :
 
-        # Configuration for RESTo framework
+        # Configuration for resto framework
         local  all     resto                                        password
         host   resto   resto                   127.0.0.1/32            md5
         host   resto   resto                   ::1/128                 md5
@@ -178,13 +178,13 @@ or one of the other distros that enable SELinux by default**
         service httpd start
         service postgresql start
 
-RESTo configuration
+resto configuration
 -------------------
 
 All configuration parameters are defined within $RESTO_TARGET/include/config.php file
 
 The configuration file is self explanatory. For a standard installation you should only check that :
-* The restoUrl points to your RESTo installation webpage
+* The restoUrl points to your resto installation webpage
 * **database.password** value is **the same as the 'resto' user password set during database installation**
 
 Create an admin user within the database
