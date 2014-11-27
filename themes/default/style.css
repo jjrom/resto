@@ -37,7 +37,9 @@ h3.small {
 h4.small {
     font-size:1.1em;
 }
-
+.hilite {
+    font-weight: bold;
+}
 .bg {
     background: url(img/bg2.jpg) no-repeat center center fixed; 
     -webkit-background-size: cover;
@@ -524,6 +526,8 @@ a.resto-keyword {
 
 li .resto-box {
     background-color: rgba(255,255,255,0.3);
+    margin:5px;
+    padding:20px;
 }
 li .resto-box:hover {
     background-color: rgba(227, 65, 26, 0.8);
