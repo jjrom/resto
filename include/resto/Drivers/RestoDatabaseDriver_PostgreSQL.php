@@ -915,13 +915,13 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              * Facets for one collection
              */
             if (isset($collectionName)) {
-                $results = pg_query($this->dbh, 'SELECT * FROM resto.facets WHERE counter > 0 AND collection=\'' . pg_escape_string($collectionName) . '\' AND type IN(\'' . join('\',\'', $fields) . '\')' . (isset($parentHash) ? ' AND pid=\'' . pg_escape_string($parentHash) . '\'' : '') . ' ORDER BY type, value');
+                $results = pg_query($this->dbh, 'SELECT * FROM resto.facets WHERE counter > 0 AND collection=\'' . pg_escape_string($collectionName) . '\' AND type IN(\'' . join('\',\'', $fields) . '\')' . (isset($parentHash) ? ' AND pid=\'' . pg_escape_string($parentHash) . '\'' : '') . ' ORDER BY type ASC, value DESC');
             }
             /*
              * Facets for all collections
              */
             else {
-                $results = pg_query($this->dbh, 'SELECT * FROM resto.facets WHERE counter > 0 AND type IN(\'' . join('\',\'', $fields) . '\')' . (isset($parentHash) ? ' AND pid=\'' . pg_escape_string($parentHash) . '\'' : '') . ' ORDER BY type, value');
+                $results = pg_query($this->dbh, 'SELECT * FROM resto.facets WHERE counter > 0 AND type IN(\'' . join('\',\'', $fields) . '\')' . (isset($parentHash) ? ' AND pid=\'' . pg_escape_string($parentHash) . '\'' : '') . ' ORDER BY type ASC, value DESC');
             }
             if (!$results) {
                 throw new Exception();

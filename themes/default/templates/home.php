@@ -41,15 +41,18 @@
                             <?php if ($key === 'continent') { ?>
                             <h4 class='text-light'>
                                 <?php foreach ($stats as $item => $count) { ?>
-                                    <?php $value = $self->context->dictionary->getKeywordFromValue($item, $key); ?>
-                                <a href="<?php echo $self->context->baseUrl . 'api/collections/search.html?q=' . urlencode(RestoUtil::quoteIfNeeded($value)) . '&lang=' . $self->context->dictionary->language ?>"><span style="display:block"><img src="<?php echo $self->context->baseUrl . 'themes/default/img/world/' . $item . '.png'; ?>"/><?php echo '(' . $count . ')'; ?></a></span>
-                                <?php } ?>
+                                    <?php
+                                        $value = $self->context->dictionary->getKeywordFromValue($item, $key);
+                                        if (!empty($value)) {
+                                        ?>
+                                <a href="<?php echo $self->context->baseUrl . 'api/collections/search.html?q=' . urlencode(RestoUtil::quoteIfNeeded($value)) . '&lang=' . $self->context->dictionary->language ?>"><span style="white-space:nowrap;"><img src="<?php echo $self->context->baseUrl . 'themes/default/img/world/' . str_replace(' ', '', $item) . '.png'; ?>"/><?php echo '(' . $count . ')'; ?></a></span>
+                                <?php }} ?>
                             </h4>
                             <?php } else { ?>
                                 <?php foreach ($stats as $item => $count) {
                                     if ($key === 'collection') { ?>
                             <h4 class='text-light'><a href="<?php echo $self->context->baseUrl . 'api/collections/' . $item . '/search.html?lang=' . $self->context->dictionary->language ?>"><?php echo $item . ' (' . $count . ')'; ?></a></h4>
-                                    <?php } else if ($key === 'processingLevel' || $key === 'productType' || $key === 'platform') { ?>
+                                    <?php } else if ($key === 'year' || $key === 'processingLevel' || $key === 'productType' || $key === 'platform') { ?>
                             <h4 class='text-light'><a href="<?php echo $self->context->baseUrl . 'api/collections/search.html?q=' . urlencode(RestoUtil::quoteIfNeeded($item)) .'&lang=' . $self->context->dictionary->language ?>"><?php echo $item . ' (' . $count . ')'; ?></a></h4>
                                     <?php } else {
                                     $value = $self->context->dictionary->getKeywordFromValue($item, $key); ?>

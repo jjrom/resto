@@ -192,6 +192,7 @@ class RestoDictionary_fr extends RestoDictionary {
         '_iAgree' => 'J\'accepte',
         '_nbOfProducts' => '{a:1} produit(s)',
         '_searchBy' => 'Chercher par...',
+        'year' => 'Année',
         'platform' => 'Satellite',
         'instrument' => 'Instrument',
         'productType' => 'Type de produit',

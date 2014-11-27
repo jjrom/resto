@@ -195,6 +195,7 @@ class RestoDictionary_en extends RestoDictionary {
         '_iAgree' => 'I agree',
         '_nbOfProducts' => '{a:1} product(s)',
         '_searchBy' => 'Search by...',
+        'year' => 'Year',
         'platform' => 'Satellite',
         'instrument' => 'Instrument',
         'productType' => 'Product type',
