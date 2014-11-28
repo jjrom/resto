@@ -1,0 +1,39 @@
+{
+    "name": "S1",
+    "model": "RestoModel_sentinel1",
+    "status": "public",
+    "license":{
+        "en":"https://sentinel.esa.int/documents/247904/690755/TC_Sentinel_Data_31072014.pdf"
+    },
+    "osDescription": {
+        "fr": {
+            "ShortName": "Sentinel-1",
+            "LongName": "Images radar Sentinel-1 Niveau 1",
+            "Description": "La mission SENTINEL-1 comprend une constellation deux satellites SAR en bande C en orbite polaire opérant jour et nuit quelque soit les conditions météorologiques",
+            "Tags": "CNES ESA sentinel1 radar",
+            "Developper": "J\u00e9r\u00f4me Gasperi",
+            "Contact": "jerome.gasperi@gmail.com",
+            "Query": "Japon",
+            "Attribution": "ESA. Copyright 2014, All Rights Reserved"
+        },
+        "en": {
+            "ShortName": "Sentinel-1",
+            "LongName": "Images radar Sentinel-1 Niveau 1",
+            "Description": "The SENTINEL-1 mission comprises a constellation of two polar-orbiting satellites, operating day and night performing C-band synthetic aperture radar imaging, enabling them to acquire imagery regardless of the weather",
+            "Tags": "CNES ESA sentinel1 radar",
+            "Developper": "J\u00e9r\u00f4me Gasperi",
+            "Contact": "jerome.gasperi@gmail.com",
+            "Query": "Japan",
+            "Attribution": "ESA. Copyright 2014, All Rights Reserved"
+        }
+    },
+    "propertiesMapping":{
+        "parentIdentifier": "urn:ogc:def:EOP:ESA::SENTINEL-1:",
+        "quicklook" : "http://mapshup.com/landsat/ql/{:identifier:}.png",
+        "thumbnail" : "http://spirit.cnes.fr/landsat/ql/{:identifier:}_thumb.png",
+        "metadata" : "http://spirit.cnes.fr/landsat/md/{:identifier:}.xml",
+        "resource" : "/mount/landsat/archives/{:identifier:}.tgz",
+        "resourceMimeType": "application/x-gzip",
+        "wms" : "http://spirit.cnes.fr/cgi-bin/mapserv?map=/mount/landsat/wms/map.map&file={:productIdentifier:}&LAYERS=landsat&FORMAT=image%2Fpng&TRANSITIONEFFECT=resize&TRANSPARENT=true&VERSION=1.1.1&SERVICE=WMS&REQUEST=GetMap&STYLES=&SRS=EPSG%3A3857&BBOX={:bbox3857:}&WIDTH=256&HEIGHT=256"
+    }
+}
