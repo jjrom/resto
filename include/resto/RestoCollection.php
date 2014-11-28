@@ -382,7 +382,7 @@ class RestoCollection {
             'model' => $this->model->name,
             'license' => isset($this->license) ? $this->license : null,
             'osDescription' => $this->osDescription,
-            'propertiesMapping' => $this->propertiesMapping,
+            //'propertiesMapping' => $this->propertiesMapping,
             'statistics' => $this->statistics
         );
     }

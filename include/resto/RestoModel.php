@@ -223,6 +223,10 @@ abstract class RestoModel {
         'hashes' => array(
             'name' => 'hashes',
             'type' => 'TEXT[]'
+        ),
+        'visible' => array(
+            'name' => 'visible',
+            'type' => 'BOOLEAN'
         )
     );
     

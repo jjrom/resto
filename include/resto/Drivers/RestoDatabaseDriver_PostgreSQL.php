@@ -1988,7 +1988,9 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     'hashes' => 'gin'
                 );
                 foreach ($indices as $key => $indexType) {
-                    pg_query($this->dbh, 'CREATE INDEX ' . $this->getSchemaName($collection->name) . '_features_' . $collection->model->getDbKey($key) . '_idx ON ' . $this->getSchemaName($collection->name) . '.features USING ' . $indexType . ' (' . $collection->model->getDbKey($key) . ($key === 'startDate' || $key === 'completionDate' ? ' DESC)' : ')'));
+                    if (!empty($key)) {
+                        pg_query($this->dbh, 'CREATE INDEX ' . $this->getSchemaName($collection->name) . '_features_' . $collection->model->getDbKey($key) . '_idx ON ' . $this->getSchemaName($collection->name) . '.features USING ' . $indexType . ' (' . $collection->model->getDbKey($key) . ($key === 'startDate' || $key === 'completionDate' ? ' DESC)' : ')'));
+                    }
                 }
                 pg_query($this->dbh, 'GRANT SELECT ON TABLE ' . $this->getSchemaName($collection->name) . '.features TO resto');
             }
