@@ -29,12 +29,13 @@
     c.remove("layers", "Satellite");
     c.remove("layers", "Relief");
     c.remove("layers", "MapQuest OSM");
-    c.remove("layers", "OpenStreetMap");
+    //c.remove("layers", "OpenStreetMap");
+    /*
     c.add("layers", {
         type: "Bing",
         title: "Satellite",
         key: "AmraZAAcRFVn6Vbxk_TVhhVZNt66x4_4SV_EvlfzvRC9qZ_2y6k1aNsuuoYS0UYy",
         bingType: "AerialWithLabels"
-    });
+    });*/
 
 })(window.M.Config);
