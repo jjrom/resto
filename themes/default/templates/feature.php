@@ -43,7 +43,9 @@
                     <?php if ($self->user->canDownload($self->collection->name, $product['id'])) { ?>
                     <a class="fa fa-3x fa-cloud-download downloadProduct" href="<?php echo $product['properties']['services']['download']['url'] . '?lang=' . $self->context->dictionary->language; ?>" <?php echo $product['properties']['services']['download']['mimeType'] === 'text/html' ? 'target="_blank"' : ''; ?> title="<?php echo $self->context->dictionary->translate('_download'); ?>"></a>&nbsp;&nbsp;
                     <?php } ?>
+                    <?php if ($self->user->profile['userid'] !== -1) { ?>
                     <a class="fa fa-3x fa-shopping-cart addToCart" href="#" title="<?php echo $self->context->dictionary->translate('_addToCart'); ?>"></a> 
+                    <?php } ?>
                 </p>
                 <?php } ?>
             </div>
