@@ -1969,6 +1969,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 pg_query($this->dbh, 'CREATE TABLE ' . $this->getSchemaName($collection->name) . '.features (' . (count($table) > 0 ? join(',', $table) . ',' : '') . 'CHECK( collection = \'' . $collection->name . '\')) INHERITS (resto.features);');
                 $indices = array(
                     'identifier' => 'btree',
+                    'visible' => 'btree',
                     'platform' => 'btree',
                     'resolution' => 'btree',
                     'startDate' => 'btree',
@@ -1987,7 +1988,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     'hashes' => 'gin'
                 );
                 foreach ($indices as $key => $indexType) {
-                    pg_query($this->dbh, 'CREATE INDEX ' . $this->getSchemaName($collection->name) . '_features_' . $collection->model->getDbKey($key) . '_idx ON ' . $this->getSchemaName($collection->name) . '.features USING ' . $indexType . ' (' . $collection->model->getDbKey($key) . ')');
+                    pg_query($this->dbh, 'CREATE INDEX ' . $this->getSchemaName($collection->name) . '_features_' . $collection->model->getDbKey($key) . '_idx ON ' . $this->getSchemaName($collection->name) . '.features USING ' . $indexType . ' (' . $collection->model->getDbKey($key) . ($key === 'startDate' || $key === 'completionDate' ? ' DESC)' : ')'));
                 }
                 pg_query($this->dbh, 'GRANT SELECT ON TABLE ' . $this->getSchemaName($collection->name) . '.features TO resto');
             }

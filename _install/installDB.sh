@@ -204,6 +204,7 @@ CREATE TABLE resto.features (
     identifier          TEXT UNIQUE,
     parentidentifier    TEXT,
     collection          TEXT,
+    visible             BOOLEAN,
     productidentifier   TEXT,
     title               TEXT,
     description         TEXT,
