@@ -32,6 +32,16 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('radarsat', 'RADARS
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('radarsat1', 'RADARSAT1','**', 'platform');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('radarsat2', 'RADARSAT2','**', 'platform');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('sacc', 'SACC','**', 'platform');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('s1', 'S1%','**', 'platform');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('s1A', 'S1A','**', 'platform');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('s1B', 'S1B','**', 'platform');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('sentinel1', 'S1%','**', 'platform');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('sentinel-1', 'S1%','**', 'platform');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('s2', 'S2%','**', 'platform');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('s2A', 'S2A','**', 'platform');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('s2B', 'S2B','**', 'platform');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('sentinel2', 'S2%','**', 'platform');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('sentinel-2', 'S2%','**', 'platform');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('spot', 'SPOT%','**', 'platform');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('spot1', 'SPOT1','**', 'platform');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('spot2', 'SPOT2','**', 'platform');
