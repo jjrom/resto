@@ -320,6 +320,21 @@
                 normalArray.push(associativeArray[item]); 
             }
             return normalArray;
+        },
+        
+        /**
+         * Return true if client device is a touch device.
+         * False otherwise
+         * 
+         * @returns {Boolean}
+         */
+        isMobile: function() {
+            try {
+                document.createEvent("TouchEvent");
+                return true;     
+            } catch (e) {
+                return false;
+            }
         }
         
     };

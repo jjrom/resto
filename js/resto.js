@@ -166,7 +166,9 @@
             /*
              * Force focus on search input form
              */
-            $('#search').focus();
+            if (!self.Util.isMobile()) {
+                $('#search').focus();
+            }
             
             /*
              * init(options) was called by getCollection
@@ -959,10 +961,14 @@
                 }
                 switch($(this).attr('id')) {
                     case 'displayRegister':
-                        $('#userName').focus();
+                        if (!Resto.Util.isMobile()) {
+                            $('#userName').focus();
+                        }
                         break;
                     case 'displayLogin':
-                        $('#userEmail').focus();
+                        if (!Resto.Util.isMobile()) {
+                            $('#userEmail').focus();
+                        }
                         break;
                     case 'displayProfile':
                         self.showProfile();
