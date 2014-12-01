@@ -23,9 +23,11 @@
     $(document).foundation().scroll(function () {
         $(this).scrollTop() > 200 ? $('#gototop').show() : $('#gototop').hide();
     });
-    $('#gototop').click(function(e){
-       e.preventDefault();
-       e.stopPropagation();
-       $('html, body').animate({scrollTop:0}, 'fast');
+    $(document).ready(function(){
+        $('#gototop').click(function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            $('html, body').animate({scrollTop:0}, 'fast');
+        });         
     });
 </script>

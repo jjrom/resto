@@ -143,18 +143,18 @@
                 "userProfile":<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()),  array('cart' => isset($_SESSION['cart']) ? $_SESSION['cart'] : array()))) ?>
                 }, <?php echo '{"type":"FeatureCollection","features":[' . $self->toJSON() . ']}' ?>
             );
-
-            $('.downloadProduct').click(function(e){
-                e.preventDefault();
-                e.stopPropagation();
-                return Resto.download($(this));
-            });
-
-            $('.addToCart').click(function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                Resto.addToCart(Resto.features['<?php echo $product['id']; ?>']);
-                return false;
+            $(document).ready(function(){
+                $('.downloadProduct').click(function(e){
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return Resto.download($(this));
+                });
+                $('.addToCart').click(function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    Resto.addToCart(Resto.features['<?php echo $product['id']; ?>']);
+                    return false;
+                });
             });
         </script>
     </body>

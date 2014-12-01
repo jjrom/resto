@@ -51,7 +51,9 @@
                 "ssoServices":<?php echo json_encode($self->context->config['ssoServices']) ?>,
                 "userProfile":<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()),  array('cart' => isset($_SESSION['cart']) ? $_SESSION['cart'] : array()))) ?>
             });
-            Resto.Util.alignHeight($('.collectionItem'));
+            $(document).ready(function(){
+                Resto.Util.alignHeight($('.collectionItem'));
+            });
         </script>
     </body>
 </html>
