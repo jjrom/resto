@@ -12,9 +12,9 @@ In the following, we suppose that $RESTO_HOME is the directory where resto sourc
 
         export RESTO_HOME=/wherever/you/want/resto
 
-If not already done, download resto to $RESTO_HOME
+If not already done, download resto sources to $RESTO_HOME
 
-        git clone https://github.com/jjrom/resto.git $RESTO_HOME
+        git clone https://github.com/jjrom/resto2.git $RESTO_HOME
 
 Prerequesites
 -------------
@@ -33,7 +33,7 @@ Install resto database
 
 resto installs a PostgreSQL database named 'resto2'. 
 
-The 'resto' database is created with PostGIS and hstore extension enabled within the 'public' schema.
+The 'resto2' database is created with PostGIS and hstore extension enabled within the 'public' schema.
 
 During the installation, two additional schemas are created :
 * 'resto' schema - among others, it stores the table containing the collections description
@@ -44,7 +44,7 @@ The user 'resto' is automatically created within this database :
 
 It is very important to specify strong passwords for this user.
 
-To install resto database, launch the following script
+To install resto2 database, launch the following script
 
         $RESTO_HOME/_install/installDB.sh -F -d <PostGIS directory> -p <resto user password>
 
@@ -190,7 +190,7 @@ The configuration file is self explanatory. For a standard installation you shou
 Create an admin user within the database
         
         # Change password !!!
-        $SHA1PASSWORD=`php -r "echo sha1('admin');"`
+        SHA1PASSWORD=`php -r "echo sha1('admin');"`
         psql -d resto2 << EOF
         INSERT INTO usermanagement.users (email,groupname,username,password,activationcode,activated,registrationdate) VALUES ('admin','admin','admin','$SHA1PASSWORD','$SHA1PASSWORD', TRUE, now());
         EOF
