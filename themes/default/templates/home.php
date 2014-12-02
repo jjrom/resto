@@ -44,7 +44,7 @@
                                         $value = $self->context->dictionary->getKeywordFromValue($item, $key);
                                         if (!empty($value)) {
                                         ?>
-                                <a href="<?php echo $self->context->baseUrl . 'api/collections/search.html?q=' . urlencode(RestoUtil::quoteIfNeeded($value)) . '&lang=' . $self->context->dictionary->language ?>"><span style="white-space:nowrap;"><img src="<?php echo $self->context->baseUrl . 'themes/default/img/world/' . str_replace(' ', '', $item) . '.png'; ?>"/><?php echo '(' . $count . ')'; ?></a></span>
+                                <a href="<?php echo $self->context->baseUrl . 'api/collections/search.html?q=' . urlencode(RestoUtil::quoteIfNeeded($value)) . '&lang=' . $self->context->dictionary->language ?>"><span style="white-space:nowrap;"><img width="110px" height="110px" src="<?php echo $self->context->baseUrl . 'themes/default/img/world/' . str_replace(' ', '', $item) . '.png'; ?>"/><?php echo '(' . $count . ')'; ?></a></span>
                                 <?php }} ?>
                             </h4>
                             <?php } else { ?>
