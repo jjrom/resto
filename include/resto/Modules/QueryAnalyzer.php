@@ -47,7 +47,6 @@
  */
 class QueryAnalyzer extends RestoModule {
 
-    private $gazetteer;
     private $dictionary;
     private $unProcessed = array();
     private $remaining = array();
@@ -63,9 +62,6 @@ class QueryAnalyzer extends RestoModule {
     public function __construct($context, $user, $options = array()) {
         parent::__construct($context, $user, $options);
         $this->dictionary = $this->context->dictionary;
-        if (isset($this->context->config['modules']['Gazetteer'])) {
-            $this->gazetteer = new Gazetteer($this->context, $this->user, $this->context->config['modules']['Gazetteer']);
-        }
     }
 
     /**
@@ -808,35 +804,40 @@ class QueryAnalyzer extends RestoModule {
          * occurence has greater probability to be defined at the end
          * of the sentence 
          */
-        for ($i = count($searchTerms); $i--;) {
-            
-            /*
-             * Check in Gazetteer except if a toponym was already found !
-             */
-            if ($this->gazetteer && !$countryFoundInGazetteer) {
-                $locations = $this->gazetteer->search(array(
-                    'q' => $searchTerms[$i],
-                    'country' => isset($countryName) ? $countryName : null,
-                    'bbox' => isset($params['geo:box']) ? $params['geo:box'] : null
-                    )
-                );
-                if (count($locations) > 0) {
-                    $countryFoundInGazetteer = $locations[0]['countryname'];
-                    $params['geo:name'] = $locations[0]['name'] . ($countryFoundInGazetteer !== '' ? ', ' . $countryFoundInGazetteer : '');
-                    $params['geo:lon'] = $locations[0]['longitude'];
-                    $params['geo:lat'] = $locations[0]['latitude'];
+        $ii = count($searchTerms);
+        if ($ii > 0) {
+            if (isset($this->context->config['modules']['Gazetteer'])) {
+                $gazetteer = new Gazetteer($this->context, $this->user, $this->context->config['modules']['Gazetteer']);
+            }
+            for ($i = $ii; $i--;) {
+
+                /*
+                 * Check in Gazetteer except if a toponym was already found !
+                 */
+                if ($gazetteer && !$countryFoundInGazetteer) {
+                    $locations = $gazetteer->search(array(
+                        'q' => $searchTerms[$i],
+                        'country' => isset($countryName) ? $countryName : null,
+                        'bbox' => isset($params['geo:box']) ? $params['geo:box'] : null
+                        )
+                    );
+                    if (count($locations) > 0) {
+                        $countryFoundInGazetteer = $locations[0]['countryname'];
+                        $params['geo:name'] = $locations[0]['name'] . ($countryFoundInGazetteer !== '' ? ', ' . $countryFoundInGazetteer : '');
+                        $params['geo:lon'] = $locations[0]['longitude'];
+                        $params['geo:lat'] = $locations[0]['latitude'];
+                    }
+                    else {
+                        $this->unProcessed[] = $searchTerms[$i];
+                        $this->remaining[] = $searchTerms[$i];
+                    }
                 }
                 else {
                     $this->unProcessed[] = $searchTerms[$i];
                     $this->remaining[] = $searchTerms[$i];
                 }
             }
-            else {
-                $this->unProcessed[] = $searchTerms[$i];
-                $this->remaining[] = $searchTerms[$i];
-            }
         }
-        
         /*
          * Remove $countryFoundInGazetteer within keywords if any to avoid duplication
          */
