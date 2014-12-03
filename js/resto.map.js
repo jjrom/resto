@@ -35,194 +35,216 @@
  * knowledge of the CeCILL-B license and that you accept its terms.
  * 
  */
-(function(window) {
-    
+(function (window) {
+
     /**
      * map view
      */
     window.Resto.Map = {
         
         /*
-         * True when map is loaded
+         * True if map is already initialized
          */
         isLoaded: false,
         
         /*
-         * Layer
+         * Result layer
          */
         layer: null,
         
+        /*
+         * Feature overlay
+         */
+        featureOverlay: null,
+        
+        /*
+         * GeoJSON formatter
+         */
+        geoJSONFormatter: null,
+            
         /**
          * Initialize map with input features array
          */
-        init: function(features) {
+        init: function (features) {
+
+            var self = this;
             
-            var timer, self = this;
-            
-            if (self.isLoaded) {
+            if (!window.ol || self.isLoaded) {
                 return false;
             }
             
-            /*
-             * mapshup is defined
-             */
-            if (window.M) {
-                
-                self.isLoaded = true;
-                $('#mapshup').height($(window).height() - $('.resto-search-panel').outerHeight() - $('.resto-search-panel').position().top - $('.left-off-canvas-menu').offset().top);
-                window.M.load();
-                
-                /*
-                 * mapshup bug ?
-                 * Force map size refresh when user scroll RESTo page
-                 */
-                $('#resto-container').bind('scroll', function() {
-                    clearTimeout(timer);
-                    timer = setTimeout(function() {
-                        window.M.events.trigger('resizeend');
-                    }, 150);
-                });
-                
-                /*
-                 * Update bbox parameter in href attributes of all element with 'resto-updatebbox' class
-                 */
-                var uFct = setInterval(function() {
-                    if (window.M.Map.map && window.M.isLoaded) {
-                        window.M.Map.events.register("moveend", self, function(map, scope) {
-                            scope.updateBBOX();
-                        });
-                        self.updateBBOX();
-                        clearInterval(uFct);
-                    }
-                }, 500);
-                
-            }
+            self.isLoaded = true;
             
-            /* 
-             * Note : setInterval function is needed to ensure that mapshup map
-             * is loaded before sending the GeoJSON feed
+            /*
+             * Initialize OpenStreetMap background layer
              */
-            if (window.M && features) {
-                var fct = setInterval(function () {
-                    if (window.M.Map.map && window.M.isLoaded) {
-
-                        self.initLayer(features, true);
-
-                        /*
-                         * Display full size WMS
-                         */
-                        if (window.Resto.issuer === 'getResource') {
-                            if (self.layer) {
-                                window.M.Map.zoomTo(self.layer.getDataExtent(), false);
-                                if (self.userRights && self.userRights['visualize']) {
-                                    if ($.isArray(features) && features[0]) {
-                                        if (features[0].properties['services']['browse'] && features[0].properties['services']['browse']['layer']) {
-                                            M.Map.addLayer({
-                                                title: features[0].id,
-                                                type: features[0].properties['services']['browse']['layer']['type'],
-                                                layers: features[0].properties['services']['browse']['layer']['layers'],
-                                                url: features[0].properties['services']['browse']['layer']['url'].replace('%5C', '')
-                                            });
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        /*
-                         * Add "Center on layer" action
-                         */
-                        (new window.M.Toolbar({
-                            position: 'nw',
-                            orientation: 'h'
-                        })).add({
-                            title: '<span class="fa fa-map-marker"></span>',
-                            tt: "Center",
-                            onoff: false,
-                            onactivate: function (scope, item) {
-                                item.activate(false);
-                                if (self.layer && self.layer.features && self.layer.features.length > 0) {
-                                    window.M.Map.zoomTo(self.layer.getDataExtent(), false);
-                                }
-                            }
-                        });
-
-                        clearInterval(fct);
+            var bgLayer = new ol.layer.Tile({
+                source: new ol.source.OSM()
+            });
+            
+            /*
+             * Initialize GeoJSON formatter
+             */
+            self.geoJSONFormatter = new ol.format.GeoJSON({
+                defaultDataProjection: "EPSG:4326"
+            });
+                    
+            /*
+             * Initialize result vector layer
+             */
+            self.layer = new ol.layer.Vector({
+                source: new ol.source.Vector(),
+                style: new ol.style.Style({
+                    fill: new ol.style.Fill({
+                        color: 'rgba(255, 128, 128, 0.2)'
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: '#000',
+                        width: 1
+                    })
+                })
+            });
+            
+            /*
+             * Initialize map
+             */
+            self.map = new ol.Map({
+                controls: ol.control.defaults(),
+                layers:[bgLayer, self.layer],
+                renderer: 'canvas',
+                target: 'map',
+                view: new ol.View({
+                    center: [0, 0],
+                    zoom: 2
+                })
+            });
+            
+            /*
+             * Initialize feature overlay for selected feature
+             */
+            self.featureOverlay = new ol.FeatureOverlay({
+                map: self.map,
+                style: function (feature, resolution) {
+                    return [new ol.style.Style({
+                            fill: new ol.style.Fill({
+                                color: 'rgba(255, 128, 128, 0.4)'
+                            }),
+                            stroke: new ol.style.Stroke({
+                                color: '#ff0',
+                                width: 3
+                            }),
+                            text: new ol.style.Text({
+                                font: '12px Roboto,sans-serif',
+                                text: resolution < 1000 ? feature.getId() : '',
+                                fill: new ol.style.Fill({
+                                    color: '#000'
+                                })
+                            })
+                        })];
+                }
+            });
+            
+            /*
+             * Map event - mousemove
+             * Hilite hovered feature on mousemove
+             */
+            $(self.map.getViewport()).on('mousemove', function (evt) {
+                var feature = self.map.forEachFeatureAtPixel(self.map.getEventPixel(evt.originalEvent), function (feature, layer) {
+                    return feature;
+                });
+                if (feature !== self.highlighted) {
+                    if (self.highlighted) {
+                        self.featureOverlay.removeFeature(self.highlighted);
                     }
-                }, 500);
-            } 
+                    if (feature) {
+                        self.featureOverlay.addFeature(feature);
+                    }
+                    self.highlighted = feature;
+                }
+            });
+
+            /*
+             * Map event - click
+             * Display menu
+             */
+            self.map.on('click', function (evt) {
+                self.map.forEachFeatureAtPixel(self.map.getEventPixel(evt.originalEvent), function (feature, layer) {
+                    if (feature) {
+                        Resto.selectFeature(feature.getId(), true);
+                    }
+                });
+            });
+
+            /*
+             * Detect window resize to resize map
+             */
+            $(window).bind('resize', function () {
+                self.updateSize();
+            });
+
+            /*
+             * Add input features to map
+             */
+            self.layer.getSource().addFeatures(self.geoJSONFormatter.readFeatures(JSON.stringify({
+                'type': 'FeatureCollection',
+                'features': features
+            }), {
+                featureProjection: 'EPSG:3857'
+            }));
+            
+            /*
+             * TODO
+             * SELECT : window.Resto.selectFeature(f.fid, true);
+             * UNSELECT : $('.resto-feature').each(function () {
+                            $(this).removeClass('selected');
+                        });
+             */
+            
+            /*
+             * Initialize map size and repaint
+             */
+            self.updateSize();
         },
         
         /**
-         * Post to mapshup
-         * 
-         * @param {string/object} json
+         * Update map size
          */
-        addLayer: function(json) {
+        updateSize: function () {
+            $('#map').height($(window).height() - $('.resto-search-panel').outerHeight() - $('.resto-search-panel').position().top - $('.left-off-canvas-menu').offset().top);
+            if (this.isLoaded && this.map) {
+                this.map.updateSize();
+            }
+        },
+        
+        /**
+         * Add a WMS layer to map
+         * 
+         * @param {string} url : WMS GetMap url
+         */
+        addWMSLayer: function (url) {
 
             if (!this.isLoaded) {
                 return null;
             }
-
-            if (typeof json === 'string') {
-                json = JSON.parse(decodeURI(json));
-            }
-
-            return window.M.Map.addLayer(json, {
-                noDeletionCheck: true
-            });
-
-        },
-        /**
-         * Initialize search result layer
-         * 
-         * @param {object} features - GeoJSON Feature array
-         * @param {boolean} centerMap - if true, force map centering on FeatureCollection 
-         */
-        initLayer: function(features, centerMap) {
-            if (!this.isLoaded) {
-                return false;
-            }
-            this.layer = this.addLayer({
-                type: 'GeoJSON',
-                clusterized: false,
-                data: {
-                    'type':'FeatureCollection',
-                    'features':features
-                },
-                zoomOnNew: centerMap ? 'always' : false,
-                MID: '__resto__',
-                color: '#FFF1FB',
-                selectable:window.Resto.issuer === 'getCollection' ? true : false,
-                featureInfo: {
-                    noMenu: true,
-                    onSelect: function(f) {
-                        if (f && f.fid) {
-                            window.M.Map.featureInfo.unhilite(window.M.Map.featureInfo.hilited);
-                            window.Resto.selectFeature(f.fid, true);
-                        }
+            
+            //Resto.Map.addWMSLayer('http://spirit.cnes.fr/cgi-bin/mapserv?map=/mount/landsat/wms/map.map&file=LANDSAT8_OLITIRS_XS_20141031_N2A_France-MetropoleD0003H0008&service=WMS&LAYERS=landsat&FORMAT=image%2Fpng&TRANSITIONEFFECT=resize&TRANSPARENT=true&VERSION=1.1.1&REQUEST=GetMap&STYLES=&SRS=EPSG%3A3857&BBOX=-278120.21901876,6153474.6465768,-101753.50345638,6330340.8077245&WIDTH=256&HEIGHT=256');
+            var parsedWMS = Resto.Util.parseWMSGetMap(url);
+            var wms = new ol.layer.Tile({
+                source: new ol.source.TileWMS({
+                    attributions: [new ol.Attribution({
+                            html: 'Test'
+                        })],
+                    params: {
+                        'LAYERS': parsedWMS.layers,
+                        'FORMAT': parsedWMS.format
                     },
-                    onUnselect: function(f) {
-                        $('.resto-feature').each(function() {
-                            $(this).removeClass('selected');
-                        });
-                    }
-                },
-                ol:{
-                    styleMap:new OpenLayers.StyleMap({
-                        "default": new OpenLayers.Style(OpenLayers.Util.applyDefaults({
-                            fillOpacity: window.Resto.issuer === 'getCollection' ? 0.2 : 0.001,
-                            strokeColor: "#ffff00",
-                            strokeWidth: 1,
-                            fillColor: "#fff"
-                        })),
-                        "select": {
-                            strokeColor:"#ffa500",
-                            fillOpacity:window.Resto.issuer === 'getCollection' ? 0.7 : 0.001
-                        }
-                    })
-                }
+                    url: parsedWMS.url
+                })
             });
+            
+            this.map.addLayer(wms);
+            
+            return wms;
 
         },
         
@@ -237,88 +259,81 @@
          *                  append: // true to add features to existing features
          *              } 
          */
-        updateLayer: function(features, options) {
+        updateLayer: function (features, options) {
             
             if (!this.isLoaded) {
-                return false;
+                return null;
             }
             
-            var centerMap = options.hasOwnProperty('centerMap') ? options.centerMap : false,
-                append = options.hasOwnProperty('append') ? options.append : false;
+            var centerMap = options.hasOwnProperty('centerMap') ? options.centerMap : false;
+
+            /*
+             * Erase previous features unless "append" is set to true
+             */
+            if (!options.hasOwnProperty('append') || options.append === false) {
+                this.layer.getSource().clear();
+            }
             
             /*
-             * Layer already exist 
+             * Add features to result layer
              */
-            if (this.layer) {
-                if (!append) {
-                    this.layer.destroyFeatures();
-                }
-                window.M.Map.layerTypes['GeoJSON'].load({
-                    data: {
-                        'type':'FeatureCollection',
-                        'features':features
-                    },
-                    layerDescription: this.layer['_M'].layerDescription,
-                    layer: this.layer,
-                    zoomOnNew: centerMap ? 'always' : false
-                });
-            }
-            /*
-             * Layer does not exist => create it
-             */
-            else {
-                this.initLayer(json, centerMap);
-            }
-            
+            this.layer.getSource().addFeatures(this.geoJSONFormatter.readFeatures(JSON.stringify({
+                'type': 'FeatureCollection',
+                'features': features
+            }), {
+                featureProjection: 'EPSG:3857'
+            }));
+        
             this.updateBBOX();
         },
         
         /**
          * Add map bounding box in EPSG:4326 to all element with a 'resto-updatebbox' class
          */
-        updateBBOX: function() {
-            if (window.M && window.M.Map.map) {
-                if ($('#mapshup').is(':visible')) {
-                    var box = this.getBBOX();
-                    $('.resto-updatebbox').each(function() {
-                        $(this).attr('href', window.M.Util.extendUrl($(this).attr('href'), {
-                            box: box
-                        }));
-                    });
-                }
-                else {
-                    $('.resto-updatebbox').each(function() {
-                        $(this).attr('href', window.M.Util.extendUrl($(this).attr('href'), {
-                            box:null
-                        }));
-                    });
-                }
+        updateBBOX: function () {
+            
+            if (this.isVisible()) {
+                var bbox = this.getExtent().join(',');
+                $('.resto-updatebbox').each(function () {
+                    $(this).attr('href', Resto.Util.updateUrl($(this).attr('href'), {
+                        box: bbox
+                    }));
+                });
+            }
+            else {
+                $('.resto-updatebbox').each(function () {
+                    $(this).attr('href', Resto.Util.updateUrl($(this).attr('href'), {
+                        box: null
+                    }));
+                });
             }
         },
         
         /**
          * Check that map panel is visible
          * 
-         * @returns boolean
+         * @returns {boolean}
          */
-        isVisible: function() {
-            if (!this.isLoaded) {
+        isVisible: function () {
+            if (!this.isLoaded || !$('#map').is(':visible')) {
                 return false;
             }
-            if (window.M && window.M.Map && window.M.Map.map && $('#mapshup').is(':visible')) {
-                return true;
-            }
-            return false;
+            return true;
         },
         
         /**
-         * Return current map bounding box
+         * Return current map extent in EPSG:4326 projection
+         * 
+         * @returns {array}
          */
-        getBBOX: function() {
+        getExtent: function () {
+            var extent = [-180, -90, 180, 90];
             if (!this.isLoaded) {
-                return false;
+                try {
+                    extent = ol.extent.applyTransform(this.map.getView().calculateExtent(this.map.getSize()), ol.proj.getTransform('EPSG:3857', 'EPSG:4326'));
+                } catch (e) {}
             }
-            return window.M.Map.Util.p2d(window.M.Map.map.getExtent()).toBBOX();
+            return extent;
         },
         
         /**
@@ -327,19 +342,21 @@
          * @param {string} fid
          * @param {boolean} zoomOn
          */
-        hilite: function(fid, zoomOn) {
-            if (!this.isLoaded || !window.M || !window.M.Map || !window.M.Map.map) {
+        hilite: function (fid, zoomOn) {
+            
+            if (!this.isLoaded) {
                 return false;
             }
-            var f = window.M.Map.Util.getFeature(window.M.Map.Util.getLayerByMID('__resto__'), fid);
+            
+            var f = this.layer.getSource().getFeatureById(fid);
             if (f) {
                 if (zoomOn) {
-                    window.M.Map.zoomTo(f.geometry.getBounds(), false);
+                    this.map.getView().fitExtent(f.getGeometry().getExtent(), this.map.getSize());
                 }
-                window.M.Map.featureInfo.hilite(f);
+                //window.M.Map.featureInfo.hilite(f);
             }
         }
-        
+
     };
 
 })(window);

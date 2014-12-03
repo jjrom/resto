@@ -27,7 +27,7 @@
 
                 <!-- Map view -->
                 <div class="resto-panel" id="panel-map">
-                    <div id="mapshup"></div>
+                    <div id="map" class="map"></div>
                 </div>
 
                 <!-- Result view -->

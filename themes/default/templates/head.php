@@ -4,13 +4,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <link rel="shortcut icon" href="<?php echo $self->context->baseUrl ?>favicon.ico" />
     <link rel="stylesheet" href="<?php echo $self->context->baseUrl ?>js/lib/foundation/normalize.css" type="text/css" />
-    <!--<link href='http://fonts.googleapis.com/css?family=Open+Sans:800' rel='stylesheet' type='text/css'>-->
     <link href='http://fonts.googleapis.com/css?family=Roboto:300' rel='stylesheet' type='text/css'>
     <?php if (!isset($_noMap)) { ?>
-    <!--<link rel="stylesheet" href="<?php echo $self->context->baseUrl ?>js/lib/ol3/ol.css" type="text/css" />-->
-    <!-- CSS mapshup -->
-    <link rel="stylesheet" href="<?php echo $self->context->baseUrl ?>js/lib/mol/theme/default/style.css" type="text/css" />
-    <link rel="stylesheet" href="<?php echo $self->context->baseUrl ?>js/lib/mapshup/theme/default/mapshup.css" type="text/css" />
+    <!-- OL3 -->
+    <link rel="stylesheet" href="<?php echo $self->context->baseUrl ?>js/lib/ol3/ol.css" type="text/css" />
     <?php } ?>
     <!-- CSS foundation -->
     <link rel="stylesheet" href="<?php echo $self->context->baseUrl ?>js/lib/foundation/foundation.min.css" type="text/css" />

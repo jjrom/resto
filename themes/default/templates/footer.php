@@ -5,12 +5,8 @@
 <!-- Dependencies -->
 <script type="text/javascript" src="<?php echo $self->context->baseUrl ?>/js/dependencies.min.js"></script>
 <?php if (!isset($_noMap)) { ?>
-    <!-- <script type="text/javascript" src="<?php echo $self->context->baseUrl ?>/js/lib/ol3/ol.js"></script> --> 
-    <!-- mapshup -->
-    <script type="text/javascript" src="<?php echo $self->context->baseUrl ?>/js/lib/mol/OpenLayers.js"></script>
-    <script type="text/javascript" src="<?php echo $self->context->baseUrl ?>/js/lib/mapshup/mapshup.js"></script>
-    <script type="text/javascript" src="<?php echo $self->context->baseUrl ?>/js/lib/mapshup/config/default.js"></script>
-    <script type="text/javascript" src="<?php echo $self->context->baseUrl ?>/themes/<?php echo $self->context->config['theme'] ?>/config.js"></script>
+<!-- OpenLayers3 -->
+<script type="text/javascript" src="<?php echo $self->context->baseUrl ?>/js/lib/ol3/ol.js"></script>
 <?php } ?>
 <!-- RESTo -->
 <script type="text/javascript" src="<?php echo $self->context->baseUrl ?>/js/resto.js"></script>

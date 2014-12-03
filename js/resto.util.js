@@ -335,6 +335,152 @@
             } catch (e) {
                 return false;
             }
+        },
+        
+        /**
+         * (From https://github.com/jjrom/mapshup/blob/master/client/js/mapshup/lib/core/Util.js)
+         * 
+         * Return a layerDescription from a WMS GetMap url i.e. 
+         *  {
+         *      url: base WMS url endpoint (i.e. without request=GetMap and without GetMap parameters)
+         *      version: WMS version extracted from WMS GetMap url
+         *      format:WMS format extracted from WMS GetMap url
+         *      srs: WMS srs extracted from WMS GetMap url
+         *      bbox : WMS bbox extracted from WMS GetMap url
+         *      layers: WMS layers extracted from WMS GetMap url
+         *      preview: GetMap url
+         *  }
+         *  
+         *  If input url is not a GetMap url, then url is returned as is :
+         *  {
+         *      url: input url
+         *  }
+         *  
+         * @param {String} url
+         */
+        parseWMSGetMap: function(url) {
+
+            /*
+             * Default - returns url within an object
+             */
+            var o = {
+                url: url
+            };
+
+            if (!url) {
+                return o;
+            }
+
+            var kvps = this.extractKVP(url, true);
+
+            /*
+             * If url is not a GetMap request then returns input url
+             * within object
+             */
+            if (!kvps["request"] || kvps["request"].toLowerCase() !== "getmap") {
+                return o;
+            }
+
+            /*
+             * Extract interesting parts from WMS GetMap url i.e.
+             * LAYERS, VERSION, SRS and BBOX
+             * 
+             * Complete baseUrl with non GetMap parameters i.e.
+             * constructs baseUrl from baseUrl plus all kvp url parameters
+             * minus the specific parameters
+             * 
+             *      LAYERS=
+             *      FORMAT=
+             *      TRANSITIONEFFECT=
+             *      TRANSPARENT=
+             *      VERSION=
+             *      REQUEST=
+             *      STYLES=
+             *      SRS=
+             *      BBOX=
+             *      WIDTH=
+             *      HEIGHT=
+             */
+            $.extend(o, {
+                url: this.extractBaseUrl(url, ['layers', 'format', 'transparent', 'transitioneffect', 'styles', 'version', 'request', 'styles', 'srs', 'crs', 'bbox', 'width', 'height']),
+                preview: this.extractBaseUrl(url, ['width', 'height']) + 'width=125&height=125',
+                layers: kvps["layers"],
+                version: kvps["version"],
+                format: kvps["format"] || "image/jpeg",
+                bbox: {
+                    bounds: kvps["bbox"],
+                    srs: kvps["srs"],
+                    crs: kvps["crs"]
+                },
+                srs: kvps["srs"] || kvps["crs"]
+            });
+
+            return o;
+
+        },
+        
+        /**
+         * (From https://github.com/jjrom/mapshup/blob/master/client/js/mapshup/lib/core/Util.js)
+         * 
+         * Extract Key/Value pair from an url like string
+         * (e.g. &lon=123.5&lat=2.3&zoom=5)
+         * 
+         * @param {String} str
+         * @param {boolean} lowerCasedKey
+         */
+        extractKVP: function(str, lowerCasedKey) {
+            var c = {};
+            str = str || "";
+            str.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+                c[decodeURIComponent(lowerCasedKey ? key.toLowerCase() : key )] = (value === undefined) ? true : decodeURIComponent(value);
+            });
+            return c;
+        },
+        
+        /**
+         * (From https://github.com/jjrom/mapshup/blob/master/client/js/mapshup/lib/core/Util.js)
+         * 
+         * Return base url (i.e. url without parameters) from an input url
+         * E.g. extractBaseUrl("http://myserver.com/test?foo=bar") will return "http://myserver.com/test?"
+         * 
+         * @param {String} url
+         * @param {Array} arr : if arr is not specified remove all url parameters
+         *                      otherwiser only remove parameters set in arr
+         */
+        extractBaseUrl: function(url, arr) {
+            
+            var baseUrl;
+            
+            if (!url) {
+                return null;
+            }
+            
+            /*
+             * Extract base url i.e. everything befor '?'
+             */
+            baseUrl = url.match(/.+\?/)[0];
+            
+            if (!arr || arr.length === 0) {
+                return baseUrl;
+            }
+        
+            var addToBaseUrl, key, i, l, kvps = this.extractKVP(url, true);
+            
+            for (key in kvps) {
+                addToBaseUrl = true;
+                for (i = 0, l = arr.length;i<l;i++) {
+                    if (key === arr[i]) {
+                        addToBaseUrl = false;
+                        break;
+                    }
+                }
+                if (addToBaseUrl) {
+                    baseUrl += encodeURIComponent(key) + "=" + encodeURIComponent(kvps[key]) + "&";
+                }
+            }
+        
+            return baseUrl;
+            
         }
         
     };

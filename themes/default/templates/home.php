@@ -35,7 +35,7 @@
                 <ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-3">
                     <?php foreach ($statistics as $key => $stats) { ?>
                     <li>
-                        <div class="resto-box detailedstats">
+                        <div class="resto-box detailedstats" style="display:block">
                             <h2 class="text-light"><?php echo $self->context->dictionary->translate($key === 'continent' ? 'location' : $key); ?></h2>
                             <?php if ($key === 'continent') { ?>
                             <h4 class='text-light'>
