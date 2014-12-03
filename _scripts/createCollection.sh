@@ -37,14 +37,14 @@
 #  
 HTTPS=0
 HOST=localhost
-PATH=resto
+TARGET=resto
 usage="## Create a new collection within RESTo database\n\n  Usage $0 -f <Collection description file (i.e. JSON file)>  -u <username:password> [-s (use https if set) -H server (default localhost) -p resto path (default resto)]\n"
 while getopts "sf:u:H:p:h" options; do
     case $options in
         u ) AUTH=`echo $OPTARG`;;
         H ) HOST=`echo $OPTARG`;;
         f ) JSON=`echo $OPTARG`;;
-        p ) PATH=`echo $OPTARG`;; 
+        p ) TARGET=`echo $OPTARG`;; 
         s ) HTTPS=1;;
         h ) echo -e $usage;;
         \? ) echo -e $usage
@@ -61,10 +61,10 @@ fi
 
 if [ "$HTTPS" = "1" ]
 then
-    #curl -k -X POST -F "file[]=@$JSON" https://$AUTH@$HOST/$PATH/collections
-    curl -X POST -H "Content-Type: application/json" -d @$JSON https://$AUTH@$HOST/$PATH/collections
+    #curl -k -X POST -F "file[]=@$JSON" https://$AUTH@$HOST/$TARGET/collections
+    curl -X POST -H "Content-Type: application/json" -d @$JSON https://$AUTH@$HOST/$TARGET/collections
 else
-    #curl -X POST -F "file[]=@$JSON" http://$AUTH@$HOST/$PATH/collections
-    curl -X POST -H "Content-Type: application/json" -d @$JSON http://$AUTH@$HOST/$PATH/collections
+    #curl -X POST -F "file[]=@$JSON" http://$AUTH@$HOST/$TARGET/collections
+    curl -X POST -H "Content-Type: application/json" -d @$JSON http://$AUTH@$HOST/$TARGET/collections
 fi
 echo ""

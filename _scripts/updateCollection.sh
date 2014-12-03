@@ -37,13 +37,13 @@
 #  
 HTTPS=0
 HOST=localhost
-PATH=resto
+TARGET=resto
 usage="## Update a collection\n\n  Usage $0 -c <Collection name> -f <Collection description file (i.e. Text file with data=xxx where xxx is the encodeURIComponent of the JSON collection description)>  -u <username:password> [-s (use https if set) -H server (default localhost) -p resto path (default resto)]\n"
 while getopts "c:sf:up::hH:" options; do
     case $options in
         c ) COLLECTION=`echo $OPTARG`;;
         H ) HOST=`echo $OPTARG`;;
-        p ) PATH=`echo $OPTARG`;;
+        p ) TARGET=`echo $OPTARG`;;
         u ) AUTH=`echo $OPTARG`;;
         f ) JSON=`echo $OPTARG`;;
         s ) HTTPS=1;;
@@ -67,8 +67,8 @@ fi
 
 if [ "$HTTPS" = "1" ]
 then
-    curl -k -X PUT -d @$JSON https://$AUTH@$HOST/$PATH/collections/$COLLECTION
+    curl -k -X PUT -d @$JSON https://$AUTH@$HOST/$TARGET/collections/$COLLECTION
 else
-    curl -X PUT -d @$JSON http://$AUTH@$HOST/$PATH/collections/$COLLECTION
+    curl -X PUT -d @$JSON http://$AUTH@$HOST/$TARGET/collections/$COLLECTION
 fi
 echo ""

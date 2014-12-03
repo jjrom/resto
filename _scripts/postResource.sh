@@ -37,13 +37,13 @@
 #  
 HTTPS=0
 HOST=localhost
-PATH=resto
+TARGET=resto
 usage="## Post a resource to collection\n\n  Usage $0 -c <Collection name> -f <Resource description file> -u <username:password> [-s (use https if set)  -H server (default localhost) -p resto path (default resto)]\n"
 while getopts "sf:c:u:p:hH:" options; do
     case $options in
         u ) AUTH=`echo $OPTARG`;;
         H ) HOST=`echo $OPTARG`;;
-        p ) PATH=`echo $OPTARG`;;
+        p ) TARGET=`echo $OPTARG`;;
         f ) FILE=`echo $OPTARG`;;
         s ) HTTPS=1;;
         c ) COLLECTION=`echo $OPTARG`;;
@@ -67,8 +67,8 @@ fi
 
 if [ "$HTTPS" = "1" ]
 then
-    curl -k -X POST -F "file[]=@$FILE" https://$AUTH@$HOST/$PATH/collections/$COLLECTION
+    curl -k -X POST -F "file[]=@$FILE" https://$AUTH@$HOST/$TARGET/collections/$COLLECTION
 else
-    curl -X POST -F "file[]=@$FILE" http://$AUTH@$HOST/$PATH/collections/$COLLECTION
+    curl -X POST -F "file[]=@$FILE" http://$AUTH@$HOST/$TARGET/collections/$COLLECTION
 fi
 echo ""
