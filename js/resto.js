@@ -401,7 +401,7 @@
             json = json || {};
             p = json.properties || {};
             options = options || {};
-
+            
             /*
              * Update facets
              */

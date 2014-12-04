@@ -281,7 +281,7 @@
             /*
              * Erase previous features unless "append" is set to true
              */
-            if (!options.hasOwnProperty('append') || options.append === false) {
+            if (!options.append) {
                 this.layer.getSource().clear();
             }
             
