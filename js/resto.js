@@ -623,7 +623,7 @@
                             e.preventDefault();
                             e.stopPropagation();
                             self.switchTo($('#resto-panel-trigger-map'));
-                            self.Map.hilite(f.id, true);
+                            self.Map.select(f.id, true);
                             return false;
                         });
       

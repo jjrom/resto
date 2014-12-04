@@ -55,7 +55,7 @@
         /*
          * Feature overlay
          */
-        featureOverlay: null,
+        selectOverlay: null,
         
         /*
          * GeoJSON formatter
@@ -127,7 +127,7 @@
             /*
              * Initialize feature overlay for selected feature
              */
-            self.featureOverlay = new ol.FeatureOverlay({
+            self.selectOverlay = new ol.FeatureOverlay({
                 map: self.map,
                 style: function (feature, resolution) {
                     return [new ol.style.Style({
@@ -150,6 +150,22 @@
             });
             
             /*
+             * Initialize feature overlay for selected feature
+             */
+            self.hiliteOverlay = new ol.FeatureOverlay({
+                map: self.map,
+                style: [new ol.style.Style({
+                        fill: new ol.style.Fill({
+                            color: 'rgba(225, 225, 225, 0.2)'
+                        }),
+                        stroke: new ol.style.Stroke({
+                            color: '#fff',
+                            width: 1
+                        })
+                })]
+            });
+            
+            /*
              * Map event - mousemove
              * Hilite hovered feature on mousemove
              */
@@ -157,14 +173,14 @@
                 var feature = self.map.forEachFeatureAtPixel(self.map.getEventPixel(evt.originalEvent), function (feature, layer) {
                     return feature;
                 });
-                if (feature !== self.highlighted) {
-                    if (self.highlighted) {
-                        self.featureOverlay.removeFeature(self.highlighted);
+                if (feature !== self.hilited) {
+                    if (self.hilited) {
+                        self.hiliteOverlay.removeFeature(self.hilited);
                     }
                     if (feature) {
-                        self.featureOverlay.addFeature(feature);
+                        self.hiliteOverlay.addFeature(feature);
                     }
-                    self.highlighted = feature;
+                    self.hilited = feature;
                 }
             });
 
@@ -176,13 +192,14 @@
                 var pixel = self.map.getEventPixel(evt.originalEvent);
                 var test = self.map.forEachFeatureAtPixel(pixel, function (feature, layer) {
                     if (feature) {
+                        self.select(feature.getId());
                         self.mapMenu.show(pixel, feature);
                         return true;
                     }
                     return false;
                 });
                 if (!test) {
-                    self.mapMenu.hide();
+                    self.unSelect();
                 }
             });
 
@@ -348,17 +365,17 @@
         },
         
         /**
-         * Hilite feature
+         * Select feature
          * 
          * @param {string} fid
          * @param {boolean} zoomOn
          */
-        hilite: function (fid, zoomOn) {
+        select: function (fid, zoomOn) {
             
             if (!this.isLoaded) {
                 return false;
             }
-            
+                        
             var f = this.layer.getSource().getFeatureById(fid);
             if (f) {
                 var extent = f.getGeometry().getExtent();
@@ -366,6 +383,23 @@
                     this.map.getView().fitExtent(extent, this.map.getSize());
                     this.mapMenu.show([$('#map').width() / 2, $('#map').height() / 2], f);
                 }
+                if (f !== this.selected) {
+                    this.selectOverlay.addFeature(f);
+                    this.selected = f;
+                }
+            }
+        },
+        
+        /**
+         * Unselect all feature
+         * 
+         * @param {string} fid
+         */
+        unSelect: function() {
+            this.mapMenu.hide();
+            if (this.selected) {
+                this.selectOverlay.removeFeature(this.selected);
+                this.selected = null;
             }
         }
 
@@ -604,7 +638,7 @@
                     text:'<span class="fa fa-3x fa-close"></span>',
                     title:window.Resto.Util.translate('_close'),
                     callback:function(scope) {
-                        scope.hide();
+                        window.Resto.Map.unSelect();
                     }
                 }
             ]);
