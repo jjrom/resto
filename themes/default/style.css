@@ -520,7 +520,7 @@ li .resto-box:hover {
  * 1.2.4
  */
 #growls {
-  z-index: 50000;
+  z-index: 2147483647; // 32bits limit - to appear even in fullscreen mode !
   position: fixed; }
   #growls.default {
     top: 10px;

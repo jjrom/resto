@@ -114,7 +114,9 @@
              * Initialize map
              */
             self.map = new ol.Map({
-                controls: ol.control.defaults(),
+                controls: ol.control.defaults().extend([
+                    new ol.control.FullScreen()
+                ]),
                 layers:[bgLayer, self.layer],
                 renderer: 'canvas',
                 target: 'map',
@@ -202,7 +204,11 @@
                     self.unSelect();
                 }
             });
-
+            
+            self.map.on('moveend', function () {
+                self.mapMenu.updatePosition();
+            });
+            
             /*
              * Detect window resize to resize map
              */
@@ -697,7 +703,7 @@
              */
             this.$m.css({
                 'left': pixel[0],
-                'top': pixel[1] + $('.resto-search-panel').outerHeight() - $('.resto-search-panel').position().top
+                'top': pixel[1] + (window.Resto.Util.isFullScreen() ? 0 : $('.resto-search-panel').outerHeight() - $('.resto-search-panel').position().top)
             }).show();
 
             return true;
@@ -707,6 +713,9 @@
          * Update menu position
          */
         this.updatePosition = function() {
+            if (!this.coordinate) {
+                return false;
+            }
             var xy = window.Resto.Map.map.getPixelFromCoordinate(this.coordinate);
             this.$m.css({
                 'left': xy[0],

@@ -493,6 +493,16 @@
          */
         getId: function() {
             return "rid"+this.sequence++;
+        },
+        
+        /**
+         * Return true if browser window is in fullscreen mode
+         */
+        isFullScreen: function() {
+            if (!window.screenTop && !window.screenY) {
+                return true;
+            }
+            return false;
         }
         
     };
