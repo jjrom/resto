@@ -189,11 +189,11 @@
                 self.onHistoryChange(self.updateFeaturesList);
                 
                 /*
-                 * Infinite scroll
+                 * Infinite scroll - in list view only !
                  */
                 var lastScrollTop = 0;
                 $(window).scroll(function() {
-                    if (!self.nextPageUrl) {
+                    if (!self.nextPageUrl || !$('#panel-list').is(':visible')) {
                         return false;
                     }
                     var st = $(this).scrollTop();
