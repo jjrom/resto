@@ -379,6 +379,7 @@
             var f = this.layer.getSource().getFeatureById(fid);
             if (f) {
                 var extent = f.getGeometry().getExtent();
+                this.unSelect();
                 if (zoomOn) {
                     this.map.getView().fitExtent(extent, this.map.getSize());
                     this.mapMenu.show([$('#map').width() / 2, $('#map').height() / 2], f);
