@@ -369,71 +369,6 @@ a.resto-keyword {
 }
 
 /*
- * mapshup 
- */
-#mapshup {
-    position:relative;
-    top:0px;
-    width:100%;
-    margin:auto;
-    overflow:hidden;
-    z-index:1000;
-}
-
-#mapshup-tools {
-    position:relative;
-    top:310px;
-    height:40px;
-    width:100%;
-    text-align:center;
-    margin:auto;
-    background-color:#2BA6CB;
-    z-index:1000;
-    display: table;
-}
-#mapshup-tools ul {
-    display: table-row;
-}
-#mapshup-tools li {
-    font-size:1.5em;
-    color:#fff;
-    display: table-cell;
-    cursor:pointer;
-    margin: 0;
-    line-height:40px;
-    border-bottom: 2px solid #fff;
-}
-#mapshup-tools li.black {
-    color:#000;
-}
-#mapshup-tools li:hover {
-    background-color:darkgrey;
-}
-#mapshup #theBar {
-    display:none;
-}
-#mapshup #__CONTROL_ATTRIBUTION__ {
-    background-color:transparent;
-    color: #000000;
-    font-size: 0.9em;
-}   
-.olControlAttribution {
-    left:10px;
-    bottom:30px;
-    height:18px;
-    width:auto;
-    max-width:600px;
-    text-align:left;
-}
-/* Navigation */
-#mapshup .tbnwh {
-    top:15px;
-    background-color:#E4E4E4;
-    color:#000;
-    border:1px solid #fff;
-}
-
-/*
  * home and admin
  */
 .fullWidth {
@@ -549,6 +484,35 @@ li .resto-box:hover {
 .resto-cart-content table td.title {
     white-space: nowrap;
 }
+
+/*
+ * Map menu
+ */
+#map #mapmenu {
+    position:absolute;
+    cursor:pointer;
+    width:auto;
+    display:none;
+    z-index:1000;
+}
+#map #mapmenu .item {
+    position:absolute;
+    height:50px;
+    width:50px;
+    line-height: 50px;
+    padding:5px;
+    background-color:#fff;
+    color:#000;
+    border-radius: 50%;
+    text-align:center;
+}
+
+#map #mapmenu .item:hover {
+    background-color:darkorange;
+    color:#fff;
+}
+
+
 
 /* 
  * From jQuery Growl

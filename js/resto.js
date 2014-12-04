@@ -644,7 +644,10 @@
                         $('.downloadProduct', $d).click(function (e) {
                             e.preventDefault();
                             e.stopPropagation();
-                            return self.download($(this));
+                            if ($(this).attr('target') === '_blank') {
+                                return true;
+                            }
+                            return self.download($(this).attr('href'));
                         });
                         
                     })($div, feature);
@@ -772,37 +775,35 @@
         /**
          * Download product
          * 
-         * @param {jQuery object} $div
+         * @param {string} url
          * @returns {Boolean}
          */
-        download: function($div) {
+        download: function(url) {
             var self = this;
-            if ($div.attr('target') !== '_blank') {
-                var $frame = $('#hiddenDownloader');
-                if ($frame.length === 0) {
-                    $frame = $('<iframe id="hiddenDownloader" style="display:none;">').appendTo('body');
-                }
-                $frame.attr('src', $div.attr('href')).load(function(){
-                    var error = {};
-                    try {
-                        error = JSON.parse($('body', $(this).contents()).text());
-                    }
-                    catch(e) {}
-                    if (error['ErrorCode']) {
-                        if (error['ErrorCode'] === 404) {
-                            self.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_nonExistentResource'));
-                        }
-                        else if (error['ErrorCode'] === 3002) {
-                            self.Header.signLicense(error['license'], error['collection'], $div);
-                        }
-                        else if (error['ErrorCode'] === 403) {
-                            self.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_unsufficientPrivileges'));
-                        }
-                    }
-                });
-                return false;
+            
+            var $frame = $('#hiddenDownloader');
+            if ($frame.length === 0) {
+                $frame = $('<iframe id="hiddenDownloader" style="display:none;">').appendTo('body');
             }
-            return true;
+            $frame.attr('src', url).load(function(){
+                var error = {};
+                try {
+                    error = JSON.parse($('body', $(this).contents()).text());
+                }
+                catch(e) {}
+                if (error['ErrorCode']) {
+                    if (error['ErrorCode'] === 404) {
+                        self.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_nonExistentResource'));
+                    }
+                    else if (error['ErrorCode'] === 3002) {
+                        self.Header.signLicense(error['license'], error['collection'], url);
+                    }
+                    else if (error['ErrorCode'] === 403) {
+                        self.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_unsufficientPrivileges'));
+                    }
+                }
+            });
+            return false;
         },
         
         /**
@@ -1131,9 +1132,9 @@
          * 
          * @param {string} licenseUrl : license url
          * @param {string} collection : collection name
-         * @param {jQueryObject} $target : target download
+         * @param {string} url : target download url
          */
-        signLicense: function(licenseUrl, collection, $target) {
+        signLicense: function(licenseUrl, collection, url) {
             $('#dialog').html('<div class="padded center"><h2>' + Resto.Util.translate('_info') + '</h2><p class="text-dark">' + Resto.Util.translate('_termsOfLicense', [licenseUrl, collection]) + '</p><p class="center"><a href="#" class="center button signLicense">' + Resto.Util.translate('_iAgree') + '</a></p><a class="text-dark close-reveal-modal">&#215;</a></div>').foundation('reveal', 'open');
             $('#dialog .signLicense').click(function(){
                 Resto.Util.showMask();
@@ -1144,7 +1145,7 @@
                     url: Resto.restoUrl + 'api/users/' + Resto.Header.userProfile['userid'] + '/signLicense.json',
                     async: true
                 }).done(function (data) {
-                    Resto.download($target);
+                    Resto.download(url);
                 }).fail(function (jqXHR, textStatus) {
                     Resto.Util.dialog(Resto.Util.translate('_error'), textStatus);
                 }).always(function () {

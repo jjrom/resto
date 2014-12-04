@@ -58,6 +58,11 @@
         limit: 0,
         
         /*
+         * Sequence for unique id
+         */
+        sequence:1,
+        
+        /*
          * Translation array
          */
         translation: {},
@@ -481,6 +486,13 @@
         
             return baseUrl;
             
+        },
+        
+        /**
+         * Return a unique id
+         */
+        getId: function() {
+            return "rid"+this.sequence++;
         }
         
     };

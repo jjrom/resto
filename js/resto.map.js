@@ -76,6 +76,11 @@
             self.isLoaded = true;
             
             /*
+             * Initialize menu
+             */
+            self.mapMenu = new self.Menu();
+            
+            /*
              * Initialize OpenStreetMap background layer
              */
             var bgLayer = new ol.layer.Tile({
@@ -168,11 +173,17 @@
              * Display menu
              */
             self.map.on('click', function (evt) {
-                self.map.forEachFeatureAtPixel(self.map.getEventPixel(evt.originalEvent), function (feature, layer) {
+                var pixel = self.map.getEventPixel(evt.originalEvent);
+                var test = self.map.forEachFeatureAtPixel(pixel, function (feature, layer) {
                     if (feature) {
-                        Resto.selectFeature(feature.getId(), true);
+                        self.mapMenu.show(pixel, feature);
+                        return true;
                     }
+                    return false;
                 });
+                if (!test) {
+                    self.mapMenu.hide();
+                }
             });
 
             /*
@@ -350,13 +361,345 @@
             
             var f = this.layer.getSource().getFeatureById(fid);
             if (f) {
+                var extent = f.getGeometry().getExtent();
                 if (zoomOn) {
-                    this.map.getView().fitExtent(f.getGeometry().getExtent(), this.map.getSize());
+                    this.map.getView().fitExtent(extent, this.map.getSize());
+                    this.mapMenu.show([$('#map').width() / 2, $('#map').height() / 2], f);
                 }
-                //window.M.Map.featureInfo.hilite(f);
             }
         }
 
     };
+    
+})(window);
 
+/**
+ * resto contextual menu
+ * 
+ * Code mainly from mapshup https://github.com/jjrom/mapshup/blob/master/client/js/mapshup/lib/core/Menu.js
+ */
+(function (window) {
+
+    window.Resto.Map.Menu = function () {
+
+        /*
+         * Only one Map Menu object is created
+         */
+        if (window.Resto.Map.Menu._o) {
+            return window.Resto.Map.Menu._o;
+        }
+        
+        /**
+         * Last mouse click is stored to display menu
+         */
+        this.coordinate = [0,0];
+
+        /**
+         * Check is menu is loaded
+         */
+        this.isLoaded = false;
+        
+        /**
+         * Menu items array
+         */
+        this.items = [];
+        
+        /**
+         * Menu is not displayed within the inner border of the map
+         * of a size of "limit" pixels (default is 0 pixels)
+         */
+        this.limit = 0;
+        
+        /**
+         * Menu initialisation
+         *
+         * <div id="menu">
+         * </div>
+         */
+        this.init = function() {
+            
+            /*
+             * Variables initialisation
+             */
+            var self = this;
+
+            /*
+             * menu is already initialized ? => do nothing
+             */
+            if (self.isLoaded) {
+                return self;
+            }
+
+            /*
+             * Create the menu div
+             */
+            $('#map').append('<div id="mapmenu"></div>');
+            
+            /*
+             * Set jquery reference
+             */
+            self.$m = $('#mapmenu');
+            
+            /*
+             * Menu is successfully loaded
+             */
+            self.isLoaded = true;
+            
+            return self;
+
+        };
+        
+        /*
+         * Add an external item to the menu
+         * This function should be called by plugins
+         * that require additionnal item in the menu
+         * 
+         * @param items : array of menu items
+         * 
+         * Menu item structure :
+         * {
+         *      id: // identifier
+         *      text: // Displayed title
+         *      title: // Title
+         *      callback: // function to execute on click
+         * }
+         */
+        this.add = function (items) {
+
+            /*
+             * Add new item
+             */
+            if ($.isArray(items)) {
+                for (var i = 0, l = items.length; i < l; i++) {
+                    this.items.push(items[i]);
+                }
+
+                /*
+                 * Recompute items position within the menu
+                 */
+                this.refresh();
+            }
+
+            return true;
+            
+        };
+        
+        /**
+         * Force menu to init
+         */
+        this.refresh = function() {
+            
+            /*
+             * Items are displayed on a circle :
+             *  - first item position is 180 degrees
+             *  - trigonometric direction
+             */
+            var i,ii,x,y,rad,
+                scope = this,
+                offsetX = 0,
+                angle = 180,
+                step = 45,
+                a = 75,
+                b = a;
+            
+            /*
+             * Clean menu
+             */
+            $('.item', scope.$m).remove();
+            
+            for (i = 0, ii = scope.items.length; i < ii; i++) {
+                (function(item, $m) {
+                
+                    /*
+                     * Convert angle in radians
+                     */
+                    rad = (angle * Math.PI) / 180;
+
+                    $m.append('<div class="item right" id="'+item.id+'" title="'+item.title+'">'+item.text+'</div>');
+                    x = Math.cos(rad) * a + offsetX;
+                    y = Math.sin(rad) * b - 10;
+                    $('#'+item.id).click(function(){
+                        item.callback(scope);
+                        return false;
+                    }).css({
+                        'left': Math.round(x),
+                        'top': Math.round(y)
+                    });
+
+                    /*
+                     * Increment angle
+                     */ 
+                    angle = angle + step;
+                })(scope.items[i], scope.$m);
+            }
+
+        };
+        
+        /*
+         * Remove an item from the menu
+         * 
+         * @param id : id of item to remove
+         * 
+         */
+        this.remove = function(id) {
+            
+            /*
+             * Roll over items
+             */
+            for (var i = 0, l = this.items.length;i<l;i++) {
+                
+                /*
+                 * Remove item with corresponding id
+                 */
+                if (this.items[i].id === id) {
+                    
+                    this.items.splice(i,1);
+                    
+                    /*
+                     * Recompute items position within the menu
+                     */
+                    this.refresh();
+                    
+                    return true;
+                }
+            }
+            
+            return false;
+
+        };
+        
+        /*
+         * Remove all item from menu
+         */
+        this.clean = function() {
+            this.items = [];
+            this.refresh();
+            return true;
+        };
+
+        /**
+         * Feature menu is displayed at "pixel" position
+         * If pixel is not given as input, it is inferred
+         * from this.coordinate position (i.e. last click on #map div)
+         * 
+         * @param {array} pixel : [x,y] position to display menu
+         * @param {Object} feature
+         */
+        this.show = function(pixel, feature) {
+            
+            /**
+             * menu is not loaded ? => initialize it
+             */
+            if (!this.isLoaded) {
+                this.init();
+            }
+            
+            /*
+             * Add contextual menu item
+             */
+            this.clean();
+            this.add([
+                {
+                    id:window.Resto.Util.getId(),
+                    text:'<span class="fa fa-3x fa-close"></span>',
+                    title:window.Resto.Util.translate('_close'),
+                    callback:function(scope) {
+                        scope.hide();
+                    }
+                }
+            ]);
+            if (feature) {
+                var properties = feature.getProperties();
+                this.add([
+                    {
+                        id:window.Resto.Util.getId(),
+                        text:'<span class="fa fa-3x fa-info"></span>',
+                        title:window.Resto.Util.translate('_viewMetadata'),
+                        callback:function(scope) {
+                            if (feature) {
+                                window.location = window.Resto.restoUrl + 'collections/' + properties['collection'] + '/' + feature.getId() + '.html?lang=' + window.Resto.language;
+                            }
+                        }
+                    }
+                ]);
+                
+                if (properties['services'] && properties['services']['download'] && properties['services']['download']['url']) {
+                    this.add([
+                        {
+                            id:window.Resto.Util.getId(),
+                            text:'<span class="fa fa-3x fa-cloud-download"></span>',
+                            title:window.Resto.Util.translate('_download'),
+                            callback:function(scope) {
+                                window.Resto.download(properties['services']['download']['url'] + '?lang=' + window.Resto.language);
+                            }
+                        }
+                    ]);
+                    if (window.Resto.Header.userProfile['userid'] !== -1) {
+                        this.add([
+                            {
+                                id:window.Resto.Util.getId(),
+                                text:'<span class="fa fa-3x fa-shopping-cart"></span>',
+                                title:window.Resto.Util.translate('_addToCart'),
+                                callback:function(scope) {
+                                    window.Resto.addToCart({
+                                        'id':feature.getId(),
+                                        'properties':properties
+                                    });
+                                }
+                            }
+                        ]);
+                    }
+                }
+            }
+            
+            pixel = pixel || [0, 0];
+            
+            this.coordinate = window.Resto.Map.map.getCoordinateFromPixel(pixel);
+            
+            /**
+             * Show '#menu' at the right position
+             * within #map div
+             */
+            this.$m.css({
+                'left': pixel[0],
+                'top': pixel[1] + $('.resto-search-panel').outerHeight() - $('.resto-search-panel').position().top
+            }).show();
+
+            return true;
+        };
+        
+        /*
+         * Update menu position
+         */
+        this.updatePosition = function() {
+            var xy = window.Resto.Map.map.getPixelFromCoordinate(this.coordinate);
+            this.$m.css({
+                'left': xy[0],
+                'top': xy[1]
+            });
+            return true;
+        };
+        
+
+        /**
+         * Hide menu
+         */
+        this.hide = function() {
+            this.$m.hide();
+            return true;
+        };
+        
+        /*
+         * Initialize object
+         */
+        this.init();
+        
+        /*
+         * Set unique instance
+         */
+        window.Resto.Map.Menu._o = this;
+        
+        return this;
+    };
+    
 })(window);
