@@ -260,6 +260,7 @@ class RestoDictionary_en extends RestoDictionary {
         '_viewMapshup' => 'View on map',
         '_viewMapshupFullResolution' => 'View on map',
         '_download' => 'Download',
+        '_visualizeFullResolution' => 'Visualize product in full resolution',
         '_keywords' => 'Keywords',
         '_atomLink' => 'ATOM link for {a:1}',
         '_htmlLink' => 'HTML link for {a:1}',

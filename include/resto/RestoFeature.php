@@ -260,7 +260,7 @@ class RestoFeature {
          * Services - Visualize / Download / etc.
          */
         // WMS
-        if (isset($properties['wms'])) {
+        if (isset($properties['wms']) && $this->user->canVisualize($this->collection->name, $this->identifier)) {
             if (!isset($properties['services'])) {
                 $properties['services'] = array();
             }

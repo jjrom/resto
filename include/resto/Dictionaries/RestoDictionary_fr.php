@@ -257,6 +257,7 @@ class RestoDictionary_fr extends RestoDictionary {
         '_viewMapshup' => 'Afficher sur une carte',
         '_viewMapshupFullResolution' => 'Afficher sur la carte',
         '_download' => 'Télécharger',
+        '_visualizeFullResolution' => 'Voir le produit en pleine résolution',
         '_keywords' => 'Mots clés',
         '_atomLink' => 'Lien ATOM pour {a:1}',
         '_htmlLink' => 'Lien HTML pour {a:1}',

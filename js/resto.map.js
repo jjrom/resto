@@ -101,7 +101,7 @@
                 source: new ol.source.Vector(),
                 style: new ol.style.Style({
                     fill: new ol.style.Fill({
-                        color: 'rgba(255, 128, 128, 0.2)'
+                        color: 'rgba(255, 128, 128, 0.001)'
                     }),
                     stroke: new ol.style.Stroke({
                         color: '#000',
@@ -131,23 +131,24 @@
              */
             self.selectOverlay = new ol.FeatureOverlay({
                 map: self.map,
-                style: function (feature, resolution) {
-                    return [new ol.style.Style({
-                            fill: new ol.style.Fill({
-                                color: 'rgba(255, 128, 128, 0.4)'
-                            }),
+                style: function () {
+                    if (self.productLayer) {
+                        return [new ol.style.Style({
                             stroke: new ol.style.Stroke({
                                 color: '#ff0',
                                 width: 3
-                            }),
-                            text: new ol.style.Text({
-                                font: '12px Roboto,sans-serif',
-                                text: resolution < 1000 ? feature.getId() : '',
-                                fill: new ol.style.Fill({
-                                    color: '#000'
-                                })
                             })
                         })];
+                    }
+                    return [new ol.style.Style({
+                        fill: new ol.style.Fill({
+                            color: 'rgba(128, 128, 128, 0.2)'
+                        }),
+                        stroke: new ol.style.Stroke({
+                            color: '#ff0',
+                            width: 3
+                        })
+                    })];
                 }
             });
             
@@ -156,7 +157,16 @@
              */
             self.hiliteOverlay = new ol.FeatureOverlay({
                 map: self.map,
-                style: [new ol.style.Style({
+                style: function () {
+                    if (self.productLayer) {
+                        return [new ol.style.Style({
+                            stroke: new ol.style.Stroke({
+                                color: '#fff',
+                                width: 1
+                            })
+                        })];
+                    }
+                    return [new ol.style.Style({
                         fill: new ol.style.Fill({
                             color: 'rgba(225, 225, 225, 0.2)'
                         }),
@@ -164,7 +174,8 @@
                             color: '#fff',
                             width: 1
                         })
-                })]
+                    })];
+                }
             });
             
             /*
@@ -255,15 +266,21 @@
          * 
          * @param {string} url : WMS GetMap url
          */
-        addWMSLayer: function (url) {
+        setProductLayer: function (url) {
 
             if (!this.isLoaded) {
                 return null;
             }
             
-            //Resto.Map.addWMSLayer('http://spirit.cnes.fr/cgi-bin/mapserv?map=/mount/landsat/wms/map.map&file=LANDSAT8_OLITIRS_XS_20141031_N2A_France-MetropoleD0003H0008&service=WMS&LAYERS=landsat&FORMAT=image%2Fpng&TRANSITIONEFFECT=resize&TRANSPARENT=true&VERSION=1.1.1&REQUEST=GetMap&STYLES=&SRS=EPSG%3A3857&BBOX=-278120.21901876,6153474.6465768,-101753.50345638,6330340.8077245&WIDTH=256&HEIGHT=256');
-            var parsedWMS = Resto.Util.parseWMSGetMap(url);
-            var wms = new ol.layer.Tile({
+            /*
+             * Remove existing productLayer if any
+             */
+            if (this.productLayer) {
+                this.map.removeLayer(this.productLayer);
+            }
+            
+            var parsedWMS = window.Resto.Util.parseWMSGetMap(url);
+            this.productLayer = new ol.layer.Tile({
                 source: new ol.source.TileWMS({
                     attributions: [new ol.Attribution({
                             html: 'Test'
@@ -276,10 +293,8 @@
                 })
             });
             
-            this.map.addLayer(wms);
+            this.map.addLayer(this.productLayer);
             
-            return wms;
-
         },
         
         /**
@@ -385,6 +400,7 @@
             var f = this.layer.getSource().getFeatureById(fid);
             if (f) {
                 var extent = f.getGeometry().getExtent();
+                var properties = f.getProperties();
                 this.unSelect();
                 if (zoomOn) {
                     this.map.getView().fitExtent(extent, this.map.getSize());
@@ -393,6 +409,9 @@
                 if (f !== this.selected) {
                     this.selectOverlay.addFeature(f);
                     this.selected = f;
+                }
+                if (properties['services'] && properties['services']['browse'] && properties['services']['browse']['layer']) {
+                    this.setProductLayer(properties['services']['browse']['layer']['url']);
                 }
             }
         },
@@ -628,18 +647,20 @@
          */
         this.show = function(pixel, feature) {
             
+            var self = this;
+            
             /**
              * menu is not loaded ? => initialize it
              */
-            if (!this.isLoaded) {
-                this.init();
+            if (!self.isLoaded) {
+                self.init();
             }
             
             /*
              * Add contextual menu item
              */
-            this.clean();
-            this.add([
+            self.clean();
+            self.add([
                 {
                     id:window.Resto.Util.getId(),
                     text:'<span class="fa fa-3x fa-close"></span>',
@@ -651,11 +672,11 @@
             ]);
             if (feature) {
                 var properties = feature.getProperties();
-                this.add([
+                self.add([
                     {
                         id:window.Resto.Util.getId(),
                         text:'<span class="fa fa-3x fa-info"></span>',
-                        title:window.Resto.Util.translate('_viewMetadata'),
+                        title:window.Resto.Util.translate('_viewMetadata', [feature.getId()]),
                         callback:function(scope) {
                             if (feature) {
                                 window.location = window.Resto.restoUrl + 'collections/' + properties['collection'] + '/' + feature.getId() + '.html?lang=' + window.Resto.language;
@@ -664,8 +685,20 @@
                     }
                 ]);
                 
+                /*if (properties['services'] && properties['services']['browse'] && properties['services']['browse']['layer']) {
+                    self.add([
+                        {
+                            id:window.Resto.Util.getId(),
+                            text:'<span class="fa fa-3x fa-eye"></span>',
+                            title:window.Resto.Util.translate('_visualizeFullResolution'),
+                            callback:function(scope) {
+                                window.Resto.Map.setProductLayer(properties['services']['browse']['layer']['url']);
+                            }
+                        }
+                    ]);
+                }*/
                 if (properties['services'] && properties['services']['download'] && properties['services']['download']['url']) {
-                    this.add([
+                    self.add([
                         {
                             id:window.Resto.Util.getId(),
                             text:'<span class="fa fa-3x fa-cloud-download"></span>',
@@ -676,7 +709,7 @@
                         }
                     ]);
                     if (window.Resto.Header.userProfile['userid'] !== -1) {
-                        this.add([
+                        self.add([
                             {
                                 id:window.Resto.Util.getId(),
                                 text:'<span class="fa fa-3x fa-shopping-cart"></span>',
@@ -695,13 +728,13 @@
             
             pixel = pixel || [0, 0];
             
-            this.coordinate = window.Resto.Map.map.getCoordinateFromPixel(pixel);
+            self.coordinate = window.Resto.Map.map.getCoordinateFromPixel(pixel);
             
             /**
              * Show '#menu' at the right position
              * within #map div
              */
-            this.$m.css({
+            self.$m.css({
                 'left': pixel[0],
                 'top': pixel[1] + (window.Resto.Util.isFullScreen() ? 0 : $('.resto-search-panel').outerHeight() - $('.resto-search-panel').position().top)
             }).show();
