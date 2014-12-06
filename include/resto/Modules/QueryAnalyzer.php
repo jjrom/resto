@@ -814,7 +814,7 @@ class QueryAnalyzer extends RestoModule {
                 /*
                  * Check in Gazetteer except if a toponym was already found !
                  */
-                if ($gazetteer && !$countryFoundInGazetteer) {
+                if (isset($gazetteer) && !$countryFoundInGazetteer) {
                     $locations = $gazetteer->search(array(
                         'q' => $searchTerms[$i],
                         'country' => isset($countryName) ? $countryName : null,
