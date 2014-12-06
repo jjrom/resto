@@ -348,6 +348,9 @@
              */
             if (!options.append) {
                 this.layer.getSource().clear();
+                for (var key in this.productLayers) {
+                    this.removeProductLayer(key);
+                }
             }
             
             /*
