@@ -1720,6 +1720,9 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     'items' => json_decode($result['items'], true)
                 );
             }
+            if (isset($orderId) && isset($items[0])) {
+                return $items[0];
+            }
         } catch (Exception $e) {
             throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
         }
@@ -1774,7 +1777,10 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             pg_query($this->dbh, 'DELETE FROM usermanagement.cart WHERE email=\'' . pg_escape_string($identifier) . '\'');
             pg_query($this->dbh, 'COMMIT');
             
-            return array($orderId => $items);
+            return array(
+                'orderId' => $orderId,
+                'items' => $items
+            );
         } catch (Exception $e) {
             pg_query($this->dbh, 'ROLLBACK');
             throw new Exception($e->getMessage(), $e->getCode());

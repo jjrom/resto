@@ -248,8 +248,10 @@ class RestoUser{
      * @param RestoCollection $collection
      */
     public function hasToSignLicense($collection) {
-        if (isset($collection->license) && !$this->context->dbDriver->licenseSigned($this->profile['email'], $collection->name)) {
-            return true;
+        if (isset($collection->license)) {
+            if (!isset($this->profile['email']) || !$this->context->dbDriver->licenseSigned($this->profile['email'], $collection->name)) {
+                return true;
+            }
         }
         return false;
     }
@@ -334,18 +336,21 @@ class RestoUser{
     
     /**
      * Return user orders
-     * 
-     * @param string $orderId
      */
-    public function getOrders($orderId) {
-        return $this->context->dbDriver->getOrders($this->profile['email'], $orderId);
+    public function getOrders() {
+        return $this->context->dbDriver->getOrders($this->profile['email']);
     }
     
     /**
      * Place order
      */
     public function placeOrder() {
-        return $this->context->dbDriver->placeOrder($this->profile['email']);
+        $order = $this->context->dbDriver->placeOrder($this->profile['email']);
+        if (isset($order) && isset($this->cart)) {
+            $this->cart->clear();
+            unset($_SESSION['cart']);
+        }
+        return $order;
     }
 }
 

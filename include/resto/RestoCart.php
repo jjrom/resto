@@ -186,6 +186,13 @@ class RestoCart{
     }
     
     /**
+     * Remove all items from cart
+     */
+    public function clear() {
+        $this->items = array();
+    }
+    
+    /**
      * Returns all items from cart
      */
     public function getItems() {

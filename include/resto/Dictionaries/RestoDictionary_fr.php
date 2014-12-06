@@ -259,6 +259,7 @@ class RestoDictionary_fr extends RestoDictionary {
         '_download' => 'Télécharger',
         '_visualizeFullResolution' => 'Voir le produit en pleine résolution',
         '_hideFullResolution' => 'Masquer le produit',
+        '_placeOrder' => 'Commander',
         '_keywords' => 'Mots clés',
         '_atomLink' => 'Lien ATOM pour {a:1}',
         '_htmlLink' => 'Lien HTML pour {a:1}',

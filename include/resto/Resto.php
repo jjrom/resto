@@ -951,12 +951,21 @@ class Resto {
          * List orders
          */
         if ($this->method === 'GET') {
-            $orders = $user->getOrders($orderid);
-            $this->response = $this->toJSON(array(
-                'status' => 'success',
-                'message' => 'Orders for user ' . $userid,
-                'orders' => $orders
-            ));
+            
+            /*
+             * Special case of metalink for single order
+             */
+            if (isset($orderid)) {
+                $this->response = $this->format(new RestoOrder($user, $this->context, $orderid));
+            }
+            else {
+                $orders = $user->getOrders();
+                $this->response = $this->toJSON(array(
+                    'status' => 'success',
+                    'message' => 'Orders for user ' . $userid,
+                    'orders' => $orders
+                ));
+            }
         }
         /*
          * Add an order

@@ -1119,12 +1119,31 @@
                     }
                 }
                 if (content.length > 0) {
-                    $div.html('<table>' + content.join('') + '</table><div class="padded"><a class="button signIn">' + Resto.Util.translate('_downloadCart') + '</div>');
+                    $div.html('<table>' + content.join('') + '</table><div class="padded"><a class="button signIn placeOrder">' + Resto.Util.translate('_placeOrder') + '</div>');
                 }
                 else {
                     $div.html('<h2 class="text-light center small">' + Resto.Util.translate('_cartIsEmpty') + '</h2>');
                 }
             }
+            $('.placeOrder').click(function() {
+                Resto.Util.showMask();
+                $.ajax({
+                    url: window.Resto.restoUrl + 'users/' + self.userProfile['userid'] + '/orders.json',
+                    type: 'POST',
+                    dataType:'json'
+                }).done(function(data) {
+                    self.userProfile.cart = [];
+                    $('#displayCart').foundation('reveal', 'close');
+                    if (data['order']) {
+                        window.Resto.download(window.Resto.restoUrl + 'users/' + self.userProfile['userid'] + '/orders/' + data['order']['orderId'] + '.meta4');
+                    }
+                }).fail(function() {
+                    Resto.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_orderFailed'));
+                }).always(function() {
+                    Resto.Util.hideMask();
+                });
+                return false;
+            });
         },
         
         /**
@@ -1136,6 +1155,7 @@
          * @param {string} url : target download url
          */
         signLicense: function(licenseUrl, collection, url) {
+            var self = this;
             $('#dialog').html('<div class="padded center"><h2>' + Resto.Util.translate('_info') + '</h2><p class="text-dark">' + Resto.Util.translate('_termsOfLicense', [licenseUrl, collection]) + '</p><p class="center"><a href="#" class="center button signLicense">' + Resto.Util.translate('_iAgree') + '</a></p><a class="text-dark close-reveal-modal">&#215;</a></div>').foundation('reveal', 'open');
             $('#dialog .signLicense').click(function(){
                 Resto.Util.showMask();
@@ -1143,7 +1163,7 @@
                     type: 'POST',
                     dataType: 'json',
                     data:collection,
-                    url: Resto.restoUrl + 'api/users/' + Resto.Header.userProfile['userid'] + '/signLicense.json',
+                    url: Resto.restoUrl + 'api/users/' + self.userProfile['userid'] + '/signLicense.json',
                     async: true
                 }).done(function (data) {
                     Resto.download(url);
