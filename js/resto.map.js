@@ -212,7 +212,7 @@
                     return false;
                 });
                 if (!test) {
-                    self.unSelect();
+                    self.unselectAll();
                 }
             });
             
@@ -401,7 +401,7 @@
             if (f) {
                 var extent = f.getGeometry().getExtent();
                 var properties = f.getProperties();
-                this.unSelect();
+                this.unselectAll();
                 if (zoomOn) {
                     this.map.getView().fitExtent(extent, this.map.getSize());
                     this.mapMenu.show([$('#map').width() / 2, $('#map').height() / 2], f);
@@ -418,10 +418,8 @@
         
         /**
          * Unselect all feature
-         * 
-         * @param {string} fid
          */
-        unSelect: function() {
+        unselectAll: function() {
             this.mapMenu.hide();
             if (this.selected) {
                 this.selectOverlay.removeFeature(this.selected);
@@ -666,7 +664,7 @@
                     text:'<span class="fa fa-3x fa-close"></span>',
                     title:window.Resto.Util.translate('_close'),
                     callback:function(scope) {
-                        window.Resto.Map.unSelect();
+                        window.Resto.Map.unselectAll();
                     }
                 }
             ]);
