@@ -2260,7 +2260,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
          * is retrieved with PostgreSQL "count(*) OVER()" technique
          */
         $query = 'SELECT ' . implode(',', $this->getSQLFields($model)) . ($count ? ', count(' . $model->getDbKey('identifier') . ') OVER() AS totalcount' : '') . ' FROM ' . (isset($collectionName) ? $this->getSchemaName($collectionName) : 'resto') . '.features' . ($oFilter ? ' WHERE ' . $oFilter : '') . ' ORDER BY startdate DESC LIMIT ' . $limit . ' OFFSET ' . $offset;
-    
+     
         /*
          * Retrieve products from database
          */
@@ -2502,9 +2502,6 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     $latmin = is_numeric($coords[1]) ? $coords[1] : -90;
                     $lonmax = is_numeric($coords[2]) ? $coords[2] : 180;
                     $latmax = is_numeric($coords[3]) ? $coords[3] : 90;
-                    if ($lonmin <= -180 && $latmin <= -90 && $lonmax >= 180 && $latmax >= 90) {
-                        return 'INVALID';
-                    }
                     
                     return ($exclusion ? 'NOT ' : '') . 'ST_intersects(' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ", ST_GeomFromText('" . pg_escape_string('POLYGON((' . $lonmin . ' ' . $latmin . ',' . $lonmin . ' ' . $latmax . ',' . $lonmax . ' ' . $latmax . ',' . $lonmax . ' ' . $latmin . ',' . $lonmin . ' ' . $latmin . '))') . "', 4326))";
                     
