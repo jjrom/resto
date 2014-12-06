@@ -100,7 +100,24 @@ class RestoUtil {
         504 => 'Gateway Timeout',
         505 => 'HTTP Version Not Supported'
     );
-
+    
+    /**
+     * Return extension from mimeType
+     */
+    public static function getExtension($mimeType) {
+        if (!isset($mimeType)) {
+            return '';
+        }
+        switch ($mimeType) {
+            case 'application/zip':
+                return '.zip';
+            case 'application/x-gzip':
+                return '.gzip';
+            default:
+                return '';
+        }
+    }
+    
     /**
      * Format a flat JSON string to make it more human-readable
      *

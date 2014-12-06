@@ -119,8 +119,13 @@ class RestoOrder{
                         continue;
                     }
                 }
-            
+                
+                /*
+                 * Compute file name from productIdentifier and mimeType - identifier otherwise
+                 */
+                $name = (isset($items[$key]['productIdentifier']) ? $items[$key]['productIdentifier'] : $items[$key]['id']) . (isset($items[$key]['properties']['services']['download']['mimeType']) ? RestoUtil::mimeTypeToExtension($items[$key]['properties']['services']['download']['mimeType']) : '');
                 $xml->startElement('file');
+                $xml->writeAttribute('name', $name);
                 if (isset($items[$key]['properties']['services']['download']['size'])) {
                     $xml->writeElement('size', $items[$key]['properties']['services']['download']['size']);
                 }
