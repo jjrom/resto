@@ -605,7 +605,7 @@
                      */
                     var actions = [];
 
-                    actions.push('<a class="fa fa-2x fa-file-text viewMetadata hideOnUnselected text-dark" href="#" title="' + self.Util.translate('_viewMetadata') + '"></a>');
+                    actions.push('<a class="fa fa-2x fa-info viewMetadata hideOnUnselected text-dark" href="#" title="' + self.Util.translate('_viewMetadata') + '"></a>');
 
                     // Download feature
                     if (feature.properties['services'] && feature.properties['services']['download'] && feature.properties['services']['download']['url']) {
@@ -663,6 +663,7 @@
          * Select feature id
          * 
          * @param {string} id
+         * @param {booelan} scroll : true to scroll page to the selected feature
          */
         selectFeature: function(id, scroll) {
             
@@ -737,7 +738,7 @@
              */
             var infos = [];
             
-            infos.push('<a class="fa fa-3x fa-file-text viewMetadata" href="#" title="' + self.Util.translate('_viewMetadata') + '"></a>');
+            infos.push('<a class="fa fa-3x fa-info viewMetadata" href="#" title="' + self.Util.translate('_viewMetadata') + '"></a>');
             
             // Download feature
             if (feature.properties['services'] && feature.properties['services']['download'] && feature.properties['services']['download']['url']) {

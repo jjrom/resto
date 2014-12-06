@@ -29,7 +29,34 @@
                 <p class="text-light"><?php echo $self->context->dictionary->translate('_eg')?> "<a href="<?php echo $self->context->baseUrl . 'api/collections/search.html?q=' . $self->context->dictionary->translate('_homeSearchExample') . '&lang=' . $self->context->dictionary->language ?>"><?php echo $self->context->dictionary->translate('_homeSearchExample')?></a>"</p>
             </div>
         </div>
-
+        <!--
+        <div class="center">
+            <?php if ($nbOfProducts > 0) { ?>
+            <div class="row fullWidth" style="padding:1% 10%;"> 
+                <ul class="small-block-grid-1 large-block-grid-2">
+                    <li>
+                        <div class="resto-box mainstats"> 
+                            <a href="<?php echo $self->context->baseUrl . 'collections'; ?>">
+                                <h1 class="text-light"><?php echo $self->context->dictionary->translate('_numberOfCollections'); ?></h1>
+                                <h1 class="text-light"><?php echo $nbOfCollections;?></h1>
+                            </a>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="resto-box mainstats"> 
+                            <a href="<?php echo $self->context->baseUrl . 'api/collections/search.html'; ?>">
+                                <h1 class="text-light"><?php echo $self->context->dictionary->translate('_numberOfProducts'); ?></h1>
+                                <h1 class="text-light"><?php echo $nbOfProducts;?></h1>
+                            </a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <?php } else { ?>
+                Hey! there is nothing in the database yet
+            <?php } ?>
+        </div>
+        -->
         <div class="collections">
             <div class="row fullWidth" style="padding:1% 10%;">
                 <ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-3">
@@ -64,33 +91,6 @@
             </div>     
         </div>
 
-        <div class="center">
-            <?php if ($nbOfProducts > 0) { ?>
-            <div class="row fullWidth" style="padding:1% 10%;"> 
-                <ul class="small-block-grid-1 large-block-grid-2">
-                    <li>
-                        <div class="resto-box mainstats"> 
-                            <a href="<?php echo $self->context->baseUrl . 'collections'; ?>">
-                                <h1 class="text-light"><?php echo $self->context->dictionary->translate('_numberOfCollections'); ?></h1>
-                                <h1 class="text-light"><?php echo $nbOfCollections;?></h1>
-                            </a>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="resto-box mainstats"> 
-                            <a href="<?php echo $self->context->baseUrl . 'api/collections/search.html'; ?>">
-                                <h1 class="text-light"><?php echo $self->context->dictionary->translate('_numberOfProducts'); ?></h1>
-                                <h1 class="text-light"><?php echo $nbOfProducts;?></h1>
-                            </a>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-            <?php } else { ?>
-                Hey! there is nothing in the database yet
-            <?php } ?>
-        </div>
-        
         <!-- Footer -->
         <?php include 'footer.php' ?>
            
