@@ -53,6 +53,13 @@
         layer: null,
         
         /*
+         * Array of product layers
+         * For a product image, the product layer is usually a WMS service
+         * linked to the full resolution product
+         */
+        productLayers: [],
+        
+        /*
          * Feature overlay
          */
         selectOverlay: null,
@@ -131,8 +138,8 @@
              */
             self.selectOverlay = new ol.FeatureOverlay({
                 map: self.map,
-                style: function () {
-                    if (self.productLayer) {
+                style: function (f) {
+                    if (self.productLayers[f.getId()]) {
                         return [new ol.style.Style({
                             stroke: new ol.style.Stroke({
                                 color: '#ff0',
@@ -157,8 +164,8 @@
              */
             self.hiliteOverlay = new ol.FeatureOverlay({
                 map: self.map,
-                style: function () {
-                    if (self.productLayer) {
+                style: function (f) {
+                    if (self.productLayers[f.getId()]) {
                         return [new ol.style.Style({
                             stroke: new ol.style.Stroke({
                                 color: '#fff',
@@ -264,23 +271,31 @@
         /**
          * Add a WMS layer to map
          * 
-         * @param {string} url : WMS GetMap url
+         * @param {Object} feature
          */
-        setProductLayer: function (url) {
-
-            if (!this.isLoaded) {
+        addProductLayer: function (feature) {
+            
+            var id, properties, parsedWMS;
+            
+            if (!this.isLoaded || !feature) {
+                return null;
+            }
+            
+            id = feature.getId();
+            properties = feature.getProperties();
+            if (!properties['services'] || !properties['services']['browse'] || !properties['services']['browse']['layer']) {
                 return null;
             }
             
             /*
-             * Remove existing productLayer if any
+             * Remove existing product layer from map if any
              */
-            if (this.productLayer) {
-                this.map.removeLayer(this.productLayer);
+            if (this.productLayers[id]) {
+                this.map.removeLayer(this.productLayers[id]);
             }
             
-            var parsedWMS = window.Resto.Util.parseWMSGetMap(url);
-            this.productLayer = new ol.layer.Tile({
+            parsedWMS = window.Resto.Util.parseWMSGetMap(properties['services']['browse']['layer']['url']);
+            this.productLayers[id] = new ol.layer.Tile({
                 source: new ol.source.TileWMS({
                     attributions: [new ol.Attribution({
                             html: 'Test'
@@ -293,8 +308,20 @@
                 })
             });
             
-            this.map.addLayer(this.productLayer);
+            this.map.addLayer(this.productLayers[id]);
             
+        },
+        
+        /**
+         * Remove a WMS layer from map
+         * 
+         * @param {string} id : Feature id
+         */
+        removeProductLayer: function (id) {
+            if (this.productLayers[id]) {
+                this.map.removeLayer(this.productLayers[id]);
+                this.productLayers[id] = null;
+            }
         },
         
         /**
@@ -400,7 +427,6 @@
             var f = this.layer.getSource().getFeatureById(fid);
             if (f) {
                 var extent = f.getGeometry().getExtent();
-                var properties = f.getProperties();
                 this.unselectAll();
                 if (zoomOn) {
                     this.map.getView().fitExtent(extent, this.map.getSize());
@@ -409,9 +435,6 @@
                 if (f !== this.selected) {
                     this.selectOverlay.addFeature(f);
                     this.selected = f;
-                }
-                if (properties['services'] && properties['services']['browse'] && properties['services']['browse']['layer']) {
-                    this.setProductLayer(properties['services']['browse']['layer']['url']);
                 }
             }
         },
@@ -670,6 +693,10 @@
             ]);
             if (feature) {
                 var properties = feature.getProperties();
+                
+                /*
+                 * View metadata
+                 */
                 self.add([
                     {
                         id:window.Resto.Util.getId(),
@@ -683,18 +710,41 @@
                     }
                 ]);
                 
-                /*if (properties['services'] && properties['services']['browse'] && properties['services']['browse']['layer']) {
-                    self.add([
-                        {
-                            id:window.Resto.Util.getId(),
-                            text:'<span class="fa fa-3x fa-eye"></span>',
-                            title:window.Resto.Util.translate('_visualizeFullResolution'),
-                            callback:function(scope) {
-                                window.Resto.Map.setProductLayer(properties['services']['browse']['layer']['url']);
+                /*
+                 * Visualize/Hide full resolution product
+                 */
+                if (properties['services'] && properties['services']['browse'] && properties['services']['browse']['layer']) {
+                    if (!window.Resto.Map.productLayers[feature.getId()]) {
+                        self.add([
+                            {
+                                id:window.Resto.Util.getId(),
+                                text:'<span class="fa fa-3x fa-eye"></span>',
+                                title:window.Resto.Util.translate('_visualizeFullResolution'),
+                                callback:function(scope) {
+                                    window.Resto.Map.addProductLayer(feature);
+                                    window.Resto.Map.unselectAll();
+                                }
                             }
-                        }
-                    ]);
-                }*/
+                        ]);
+                    }
+                    else {
+                        self.add([
+                            {
+                                id:window.Resto.Util.getId(),
+                                text:'<span class="fa fa-3x fa-eye-slash"></span>',
+                                title:window.Resto.Util.translate('_hideFullResolution'),
+                                callback:function(scope) {
+                                    window.Resto.Map.removeProductLayer(feature.getId());
+                                    window.Resto.Map.unselectAll();
+                                }
+                            }
+                        ]);
+                    }
+                }
+                
+                /*
+                 * Download
+                 */
                 if (properties['services'] && properties['services']['download'] && properties['services']['download']['url']) {
                     self.add([
                         {
