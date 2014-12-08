@@ -512,8 +512,6 @@ li .resto-box:hover {
     color:#fff;
 }
 
-
-
 /* 
  * From jQuery Growl
  * Copyright 2013 Kevin Sylvestre
@@ -521,6 +519,8 @@ li .resto-box:hover {
  */
 #growls {
   z-index: 2147483647; // 32bits limit - to appear even in fullscreen mode !
+  top:10px;
+  right:10px;
   position: fixed; }
   #growls.default {
     top: 10px;
