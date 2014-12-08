@@ -264,6 +264,8 @@ class RestoDictionary_en extends RestoDictionary {
         '_hideFullResolution' => 'Hide full resolution product',
         '_keywords' => 'Keywords',
         '_placeOrder' => 'Order',
+        '_estimatedPopulation' => 'Estimated population',
+        '_people' => '{a:1} people',
         '_atomLink' => 'ATOM link for {a:1}',
         '_htmlLink' => 'HTML link for {a:1}',
         '_jsonLink' => 'GeoJSON link for {a:1}',

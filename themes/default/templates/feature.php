@@ -16,6 +16,9 @@
         $quicklook = $thumbnail;
     }
     
+    /*
+     * Wikipedia
+     */
     if (isset($self->context->config['modules']['Wikipedia'])) {
         $self->wikipedia = new Wikipedia($self->context, $self->user, $self->context->config['modules']['Wikipedia']);
         $wikipediaEntries = $self->wikipedia->search(array(
@@ -24,6 +27,9 @@
         ));
     }
     
+    if (isset($self->context->config['modules']['PopulationCounter'])) {
+        $self->populationCounter = new PopulationCounter($self->context, $self->user, $self->context->config['modules']['PopulationCounter']);
+    }
 ?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $self->context->dictionary->language ?>">
@@ -115,9 +121,21 @@
             </div>
         </div>
         
+        <!-- Population counter -->
+        <?php if (isset($self->populationCounter)) { ?>
+        <div class="row resto-resource fullWidth dark">
+            <div class="large-6 columns">
+                <h1 class="right"><?php echo $self->context->dictionary->translate('_estimatedPopulation'); ?></h1>
+            </div>
+            <div class="large-6 columns">
+                <h2 class="text-light"><?php echo $self->context->dictionary->translate('_people', $self->populationCounter->count($product['geometry'])) ?></h2>
+            </div>
+        </div>
+        <?php } ?>
+        
         <!-- Wikipedia -->
         <?php if (isset($wikipediaEntries) && is_array($wikipediaEntries) && count($wikipediaEntries) > 0) { ?>
-        <div class="row resto-resource fullWidth dark">
+        <div class="row resto-resource fullWidth light">
             <div class="large-6 columns">
                 <h1 class="right"><?php echo $self->context->dictionary->translate('_poi'); ?></h1>
             </div>

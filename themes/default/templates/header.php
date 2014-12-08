@@ -100,7 +100,7 @@
     <a class="text-light close-reveal-modal">&#215;</a>
 </div>
 <?php if ($self->user->profile['userid'] !== -1) { ?>
-<div id="displayCart" class="reveal-modal darkfield" data-reveal>
+<div id="displayCart" class="reveal-modal darkfield x-large" data-reveal style="max-height: 80%;overflow:auto;">
     <div class="large-12 columns padded">
         <h1 class="text-light center small"><?php echo $self->context->dictionary->translate('_myCart');?></h1>
     </div>
@@ -108,6 +108,5 @@
     <a class="text-light close-reveal-modal">&#215;</a>
 </div>
 <?php } ?>
-<div id="displayProfile" class="reveal-modal small darkfield" data-reveal></div>
+<div id="displayProfile" class="reveal-modal small darkfield x-large" data-reveal style="max-height: 80%;overflow:auto;"></div>
 <div id="dialog" class="reveal-modal" data-reveal></div>
-            

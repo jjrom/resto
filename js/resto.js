@@ -954,6 +954,8 @@
             
             $(document).on('opened.fndtn.reveal', '[data-reveal]', function (e) {
                 
+                $('body').css('overflow', 'hidden');
+                
                 /*
                  * Workaround to foundation bug in reveal
                  * (see https://github.com/zurb/foundation/issues/5482)
@@ -981,6 +983,17 @@
                     default:
                         break;
                 }
+            });
+            
+            $(document).on('close.fndtn.reveal', '[data-reveal]', function (e) {
+                /*
+                 * Workaround to foundation bug in reveal
+                 * (see https://github.com/zurb/foundation/issues/5482)
+                 */
+                if (e.namespace !== 'fndtn.reveal') {
+                    return;
+                }
+                $('body').css('overflow', 'auto');
             });
             
             /*

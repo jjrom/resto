@@ -260,6 +260,8 @@ class RestoDictionary_fr extends RestoDictionary {
         '_visualizeFullResolution' => 'Voir le produit en pleine résolution',
         '_hideFullResolution' => 'Masquer le produit',
         '_placeOrder' => 'Commander',
+        '_estimatedPopulation' => 'Population estimée',
+        '_people' => '{a:1} personnes',
         '_keywords' => 'Mots clés',
         '_atomLink' => 'Lien ATOM pour {a:1}',
         '_htmlLink' => 'Lien HTML pour {a:1}',
