@@ -14,6 +14,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Neige', 'snow','fr
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Zone Inondable', 'herbaceous','fr', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Inondable', 'flooded','fr', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Eau', 'water','fr', 'landuse');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Glace', 'ice','fr', 'landuse');
 
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Urban', 'urban','en', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('City', 'urban','en', 'landuse');
@@ -35,3 +36,4 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Bare area', 'deser
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Snow', 'snow', 'en', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Flooded', 'flooded','en', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Water', 'water','en', 'landuse');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ice', 'ice','en', 'landuse');
