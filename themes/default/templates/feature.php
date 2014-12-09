@@ -74,14 +74,16 @@
             <div class="large-6 columns">
                 <table style="width:100%;">
                     <?php
-                    $excluded = array('quicklook', 'thumbnail', 'links', 'services', 'keywords', 'updated', 'productId', 'landUse');
-                    foreach(array_keys($product['properties']) as $key) {
-                        if (in_array($key, $excluded)) {
-                            continue;
+                    if (isset($product['properties']) && is_array($product['properties'])) {
+                        $excluded = array('quicklook', 'thumbnail', 'links', 'services', 'keywords', 'updated', 'productId', 'landUse');
+                        foreach(array_keys($product['properties']) as $key) {
+                            if (in_array($key, $excluded)) {
+                                continue;
+                            }
+                            if (!is_array($product['properties'][$key])) {
+                                echo '<tr><td>' . $self->context->dictionary->translate($key) . '</td><td>' . $product['properties'][$key] . '</td></tr>';
+                            }   
                         }
-                        if (!is_array($product['properties'][$key])) {
-                            echo '<tr><td>' . $self->context->dictionary->translate($key) . '</td><td>' . $product['properties'][$key] . '</td></tr>';
-                        }   
                     }
                     ?>
                 </table>
@@ -96,7 +98,7 @@
             <div class="large-6 columns">
             <?php
             foreach(array_values(array('continent', 'country', 'region', 'state')) as $key) {
-                if ($product['properties']['keywords']) {
+                if (isset($product['properties']['keywords'])) {
                         for ($i = 0, $l = count($product['properties']['keywords']); $i < $l; $i++) {
                             list($type, $id) = explode(':', $product['properties']['keywords'][$i]['id'], 2);
                             if (strtolower($type) === $key && $product['properties']['keywords'][$i]['id'] !== 'region:_all') { ?>
@@ -112,11 +114,11 @@
             </div>
             <div class="large-6 columns">
             <?php
-                    if ($product['properties']['keywords']) {
+                    if (isset($product['properties']['keywords'])) {
                         for ($i = 0, $l = count($product['properties']['keywords']); $i < $l; $i++) {
                             list($type, $id) = explode(':', $product['properties']['keywords'][$i]['id'], 2);
                             if (strtolower($type) === 'landuse') { ?>
-                    <h2><?php echo round($product['properties']['keywords'][$i]['value']); ?> % <a title="<?php echo $self->context->dictionary->translate('_thisResourceContainsLanduse', $product['properties']['keywords'][$i]['value'], $keyword) ?>" href="<?php echo RestoUtil::updateUrlFormat($product['properties']['keywords'][$i]['href'], 'html') ?>"><?php echo $product['properties']['keywords'][$i]['name']; ?></a></h2>
+                    <h2><?php echo round($product['properties']['keywords'][$i]['value']); ?> % <a title="<?php echo $self->context->dictionary->translate('_thisResourceContainsLanduse', $product['properties']['keywords'][$i]['value'], $product['properties']['keywords'][$i]['name']) ?>" href="<?php echo RestoUtil::updateUrlFormat($product['properties']['keywords'][$i]['href'], 'html') ?>"><?php echo $product['properties']['keywords'][$i]['name']; ?></a></h2>
             <?php }}} ?>
             </div>
         </div>

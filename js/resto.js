@@ -206,7 +206,7 @@
                                 type: "GET",
                                 dataType: 'json',
                                 url: self.nextPageUrl,
-                                async: true
+                                cache:false
                             }).done(function(data) {
                                 self.unselectAll();
                                 self.updateFeaturesList(data, {
@@ -256,8 +256,8 @@
                 self.ajaxReady = false;
                 $.ajax({
                     url: url,
-                    async: true,
-                    dataType: 'json'
+                    dataType: 'json',
+                    cache:false
                 }).done(function(data) {
                     if (typeof callback === 'function') {
                         callback(data, {
@@ -824,7 +824,6 @@
             self.Util.showMask();
             $.ajax({
                 url: self.restoUrl + 'users/' + self.Header.userProfile.userid + '/cart',
-                async: true,
                 type: 'POST',
                 dataType: "json",
                 data: JSON.stringify([
@@ -1029,7 +1028,8 @@
                 headers: {
                     'Authorization': "Basic " + btoa(Resto.Util.sanitizeValue($('#userEmail')) + ":" + Resto.Util.sanitizeValue($('#userPassword')))
                 },
-                dataType: 'json'
+                dataType: 'json',
+                cache:false
             }).done(function(data) {
                 if (data && data.userid === -1) {
                     Resto.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_wrongPassword'));
@@ -1066,7 +1066,6 @@
                 Resto.Util.showMask();
                 $.ajax({
                     url: Resto.restoUrl + 'users',
-                    async: true,
                     type: 'POST',
                     dataType: "json",
                     data: {
@@ -1107,7 +1106,8 @@
                 Resto.Util.showMask();
                 $.ajax({
                     url: window.Resto.restoUrl + 'api/users/disconnect',
-                    dataType:'json'
+                    dataType:'json',
+                    cache:false
                 }).done(function(data) {
                     window.location.reload();
                 }).fail(function() {
@@ -1176,8 +1176,7 @@
                     type: 'POST',
                     dataType: 'json',
                     data:collection,
-                    url: Resto.restoUrl + 'api/users/' + self.userProfile['userid'] + '/signLicense.json',
-                    async: true
+                    url: Resto.restoUrl + 'api/users/' + self.userProfile['userid'] + '/signLicense.json'
                 }).done(function (data) {
                     Resto.download(url);
                 }).fail(function (jqXHR, textStatus) {

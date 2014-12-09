@@ -282,8 +282,8 @@
                             type: "GET",
                             dataType: dataType,
                             url: url,
-                            async: true,
-                            data: data
+                            data: data,
+                            cache:false
                         }).done(function(data) {
                             callback(data);
                         }).fail(function(jqXHR, textStatus) {
