@@ -127,8 +127,6 @@
                     //$('#gototop').css({'right':'20px'});
                 }
                 $('.off-canvas-wrap').foundation('offcanvas', 'toggle', 'move-right');
-            }).css({
-                'line-height':$('.resto-search-panel').outerHeight() + 'px'
             });
             
             /*
@@ -178,7 +176,7 @@
                 if (data) {
                     self.updateFeaturesList(data, {
                         updateMap: false,
-                        centerMap: data && data.query,
+                        centerMap: true,
                         append:false
                     });
                 }
@@ -211,7 +209,7 @@
                                 self.unselectAll();
                                 self.updateFeaturesList(data, {
                                     updateMap: true,
-                                    centerMap: false,
+                                    centerMap: true,
                                     append:true
                                 });
                             }).fail(function(jqXHR, textStatus) {
@@ -543,7 +541,7 @@
                 /*
                  * Feature infos (top)
                  */
-                topInfos.push('<h3 class="small text-light">' + self.Util.niceDate(feature.properties.startDate) + '</h3>');
+                topInfos.push('<h3 class="small date">' + self.Util.niceDate(feature.properties.startDate) + '</h3>');
                 
                 if (feature.properties.keywords) {
                     var hash, img = 'world', typeAndValue, best = -1, state = -1, region = -1, country = -1;
@@ -1135,7 +1133,7 @@
                     $div.html('<table>' + content.join('') + '</table><div class="padded"><a class="button signIn placeOrder">' + Resto.Util.translate('_placeOrder') + '</div>');
                 }
                 else {
-                    $div.html('<h2 class="text-light center small">' + Resto.Util.translate('_cartIsEmpty') + '</h2>');
+                    $div.html('<h2 class="text-dark center small">' + Resto.Util.translate('_cartIsEmpty') + '</h2>');
                 }
             }
             $('.placeOrder').click(function() {

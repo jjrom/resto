@@ -1,30 +1,16 @@
 <!DOCTYPE html>
+<?php $_searchBar = true; ?>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $self->context->dictionary->language ?>">
     <?php include 'head.php' ?>
-    <body class="darkfield">
+    <body>
         
         <!-- Header -->
         <?php include 'header.php' ?>
-
+        
         <div class="off-canvas-wrap" data-offcanvas>
             
             <div class="inner-wrap">
                     
-                <!-- Search panel -->
-                <div class="row fullWidth resto-search-panel center">
-                    <div class="large-12 columns">
-                        <form id="resto-searchform" action="<?php echo $self->context->baseUrl . 'api/collections/' . (isset($self->collection->name) ? $self->collection->name . '/' : '') . 'search.json' ?>" style="padding-top:5px;">
-                            <span class="resto-search">
-                                <input id="search" class="darker" type="text" name="q" placeholder="<?php echo $self->context->dictionary->translate('_menu_search'); ?>" value="<?php echo isset($self->context->query['q']) ? $self->context->query['q'] : ''; ?>"/>
-                                <input type="hidden" name="lang" value="<?php echo $self->context->dictionary->language?>" />
-                            </span>
-                            <span class="panel-triggers" style="display:inline-block;">
-                                <a href="#panel-list" class="resto-panel-trigger active" id="resto-panel-trigger-list"><span class="fa fa-th"></span>&nbsp;<?php echo $self->context->dictionary->translate('_menu_list'); ?></a>&nbsp;<a href="#panel-map" class="resto-panel-trigger" id="resto-panel-trigger-map"><span class="fa fa-map-marker"></span>&nbsp;<?php echo $self->context->dictionary->translate('_menu_map'); ?></a>
-                            </span>
-                        </form>
-                    </div>
-                </div>
-
                 <!-- Map view -->
                 <div class="resto-panel" id="panel-map">
                     <div id="map" class="map"></div>
@@ -89,9 +75,9 @@
                     <?php } ?>
                     -->
                 </div>
-                <span style="position:absolute;left:-5px;top:0px;">
+                <!--<span style="position:absolute;left:-5px;top:0px;">
                     <a id="off-canvas-toggle" href="#" class="fa fa-chevron-right text-dark lightfield" style="padding:0px 15px 0px 15px;"></a>
-                </span>
+                </span>-->
             </div>
                 
         </div>

@@ -1,5 +1,17 @@
 <header>
-    <span class="show-for-medium-up logo" style="margin-left: 2%;"><a href="<?php echo $self->context->baseUrl;?>"><?php echo $self->context->config['title'];?></a></span>
+    <form id="resto-searchform" action="<?php echo $self->context->baseUrl . 'api/collections/' . (isset($self->collection->name) ? $self->collection->name . '/' : '') . 'search.json' ?>" style="margin:0px;padding:0px;">
+    <div class="show-for-medium-up" style="float:left;">
+        <span class="logo"><a href="<?php echo $self->context->baseUrl;?>"><?php echo $self->context->config['title'];?></a></span>
+        <?php if (isset($_searchBar)) { ?>
+        <span class="resto-search">
+            <input id="search" class="darker" type="text" name="q" placeholder="<?php echo $self->context->dictionary->translate('_menu_search'); ?>" value="<?php echo isset($self->context->query['q']) ? $self->context->query['q'] : ''; ?>"/>
+            <input type="hidden" name="lang" value="<?php echo $self->context->dictionary->language?>" />
+        </span>
+        <span class="panel-triggers">
+            <a href="#panel-list" class="fa fa-th resto-panel-trigger active" id="resto-panel-trigger-list" title="<?php echo $self->context->dictionary->translate('_menu_list'); ?>"></a>&nbsp;<a href="#panel-map" class="fa fa-map-marker resto-panel-trigger" id="resto-panel-trigger-map" title="<?php echo $self->context->dictionary->translate('_menu_map'); ?>"></a>
+        </span>
+        <?php } ?>
+    </div>
     <nav class="show-for-medium-up">
         <ul>
             <li><a href="<?php echo $self->context->baseUrl . 'collections' ?>"><?php echo $self->context->dictionary->translate('_menu_collections'); ?></a></li>
@@ -15,7 +27,7 @@
             <?php } ?>
         </ul> 
     </nav>
-    <a class="show-for-small-down show-small-menu small-logo fa fa-3x fa-bars text-light"></a>
+    <a class="show-for-small-down show-small-menu small-logo fa fa-3x fa-bars text-dark"></a>
     <nav class="show-for-small-down small-menu">
         <ul>
             <?php if ($self->user->profile['userid'] === -1) { ?>
@@ -26,6 +38,7 @@
             <?php } ?>
         </ul>
     </nav>
+    </form>
 </header>
 
 <div id="small-menu" hidden="true">
@@ -100,13 +113,13 @@
     <a class="text-light close-reveal-modal">&#215;</a>
 </div>
 <?php if ($self->user->profile['userid'] !== -1) { ?>
-<div id="displayCart" class="reveal-modal darkfield x-large" data-reveal style="max-height: 80%;overflow:auto;">
+<div id="displayCart" class="reveal-modal full" data-reveal style="max-height: 80%;overflow:auto;">
     <div class="large-12 columns padded">
-        <h1 class="text-light center small"><?php echo $self->context->dictionary->translate('_myCart');?></h1>
+        <h1 class="text-dark center small"><?php echo $self->context->dictionary->translate('_myCart');?></h1>
     </div>
     <div class="large-12 columns resto-cart-content padded center"></div>
-    <a class="text-light close-reveal-modal">&#215;</a>
+    <a class="text-dark close-reveal-modal">&#215;</a>
 </div>
 <?php } ?>
-<div id="displayProfile" class="reveal-modal small darkfield x-large" data-reveal style="max-height: 80%;overflow:auto;"></div>
+<div id="displayProfile" class="reveal-modal small full" data-reveal style="max-height: 80%;overflow:auto;"></div>
 <div id="dialog" class="reveal-modal" data-reveal></div>

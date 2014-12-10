@@ -245,12 +245,9 @@
             }));
             
             /*
-             * TODO
-             * SELECT : window.Resto.selectFeature(f.fid, true);
-             * UNSELECT : $('.resto-feature').each(function () {
-                            $(this).removeClass('selected');
-                        });
+             * Center on input data
              */
+            self.map.getView().fitExtent(self.layer.getSource().getExtent(), self.map.getSize());
             
             /*
              * Initialize map size and repaint
@@ -262,7 +259,7 @@
          * Update map size
          */
         updateSize: function () {
-            $('#map').height($(window).height() - $('.resto-search-panel').outerHeight() - $('.resto-search-panel').position().top - $('.left-off-canvas-menu').offset().top);
+            $('#map').height($(window).height() - $('.left-off-canvas-menu').offset().top);
             if (this.isLoaded && this.map) {
                 this.map.updateSize();
             }
@@ -341,8 +338,6 @@
                 return null;
             }
             
-            var centerMap = options.hasOwnProperty('centerMap') ? options.centerMap : false;
-
             /*
              * Erase previous features unless "append" is set to true
              */
@@ -363,6 +358,10 @@
                 featureProjection: 'EPSG:3857'
             }));
         
+            if (options.hasOwnProperty('centerMap') && options.centerMap === true) {
+                this.map.getView().fitExtent(this.layer.getSource().getExtent(), this.map.getSize());
+            }
+            
             this.updateBBOX();
         },
         
@@ -787,7 +786,7 @@
              */
             self.$m.css({
                 'left': pixel[0],
-                'top': pixel[1] + (window.Resto.Util.isFullScreen() ? 0 : $('.resto-search-panel').outerHeight() - $('.resto-search-panel').position().top)
+                'top': pixel[1]
             }).show();
 
             return true;
