@@ -532,7 +532,7 @@
                         keyword = feature.properties.keywords[j];
                         typeAndId = keyword.id.split(':');
                         if (typeAndId[0] === 'landuse') {
-                            bottomInfos.push('<a href="' + self.Util.updateUrlFormat(keyword['href'], 'html') + '" class="landuse resto-ajaxified resto-keyword' + (typeAndId[0] ? ' resto-keyword-' + typeAndId[0].replace(' ', '') : '') + '" title="' + self.Util.translate('_thisResourceContainsLanduse', [Math.round(keyword.value), keyword.name]) + '"><img src="' + self.restoUrl + 'themes/default/img/landuse/' + typeAndId[1] + '.png"/></a> ');
+                            bottomInfos.push('<a href="' + self.Util.updateUrlFormat(keyword['href'], 'html') + '" class="landuse resto-ajaxified resto-keyword' + (typeAndId[0] ? ' resto-keyword-' + typeAndId[0].replace(' ', '') : '') + '" title="' + self.Util.translate('_thisResourceContainsLanduse', [Math.round(keyword.value), keyword.name]) + '"><img src="' + self.restoUrl + 'themes/default/img/landuse.white/' + typeAndId[1] + '.png"/></a> ');
                         }
                     }
                 }
