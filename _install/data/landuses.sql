@@ -1,4 +1,3 @@
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Artificiel', 'urban','fr', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Urbain', 'urban','fr', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Urbaine', 'urban','fr', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ville', 'urban','fr', 'landuse');
