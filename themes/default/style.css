@@ -329,7 +329,7 @@ nav a.hilite {
 }
 .landuse img {
     border-radius: 50%;
-    background-color:#000;
+    background-color:darkgray;
     height:40px;
     width:40px;
 }
