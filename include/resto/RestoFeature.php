@@ -291,6 +291,7 @@ class RestoFeature {
                 'size' => isset($properties['services']['download']['size']) ? $properties['services']['download']['size'] : null,
                 'checksum' => isset($properties['services']['download']['checksum']) ? $properties['services']['download']['checksum'] : null
             );
+            
         }
         
         /*
@@ -702,9 +703,18 @@ class RestoFeature {
             }
             
             /*
+             * Direct download for small files
+             */
+            $chunkSize = 1024 * 8;
+            $fileSize = filesize($this->resourceInfos['path']);
+            if ($fileSize > $chunkSize) {
+                echo file_get_contents($this->resourceInfos['path']);
+                return true;
+            }
+            
+            /*
              * Read file
              */
-            $fileSize = filesize($this->resourceInfos['path']);
             $file = @fopen($this->resourceInfos['path'], "rb");
             if (isset($file)) {
                 
@@ -744,7 +754,7 @@ class RestoFeature {
                 $bounds = explode('-', $range, 2);
                 $seekEnd = empty($bounds[1]) ? ($fileSize - 1) : min(abs(intval($bounds[1])), ($fileSize - 1));
                 $seekStart = (empty($bounds[0]) || $seekEnd < abs(intval($bounds[0]))) ? 0 : max(abs(intval($bounds[0])), 0);
-
+                
                 /*
                  * Only send partial content header if downloading a piece of the file
                  * (IE workaround)
@@ -765,7 +775,7 @@ class RestoFeature {
                 set_time_limit(0);
                 fseek($file, $seekStart);
                 while (!feof($file)) {
-                    $buffer = @fread($file, 1024 * 8);
+                    $buffer = @fread($file, $chunkSize);
                     echo $buffer;
                     ob_flush();
                     flush();
