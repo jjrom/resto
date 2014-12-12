@@ -272,11 +272,14 @@ class RestoUser{
      * Disconnect user i.e. clear session informations
      */
     public function disconnect() {
+        if (!$this->context->dbDriver->disconnectUser($this->profile['email'])) {
+            return false;
+        }
         if (isset($_SESSION)) {
             session_regenerate_id(true); // Important ! Change session id
             unset($_SESSION['profile'], $_SESSION['cart'], $_SESSION['rights']);
         }
-        return $this->context->dbDriver->disconnectUser($this->profile['email']);
+        return true;
     }
     
     /**
