@@ -625,9 +625,9 @@ class RestoFeature {
          * Updated time is now
          */
         $xml->startElement('generator');
-        $xml->writeAttribute('uri', 'http://mapshup.info');
-        $xml->writeAttribute('version', '1.0');
-        $xml->text('RESTo');
+        $xml->writeAttribute('uri', 'http://github.com/jjrom/resto2');
+        $xml->writeAttribute('version', Resto::version);
+        $xml->text('resto');
         $xml->endElement(); // generator
         $xml->writeElement('updated', date('Y-m-dTH:i:sO'));
 
