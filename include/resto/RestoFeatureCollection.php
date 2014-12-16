@@ -162,7 +162,7 @@ class RestoFeatureCollection {
         else if (isset($params['startIndex']) && is_numeric($params['startIndex']) && $params['startIndex'] > 0) {
             $offset = ($params['startIndex']) - 1;
         }
-         
+        
         /*
          * Query Analyzer 
          */

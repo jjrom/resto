@@ -56,24 +56,24 @@ abstract class RestoModel {
     public $properties = array(
         'identifier' => array(
             'name' => 'identifier',
-            'type' => 'CHAR(36)',
+            'type' => 'TEXT',
             'constraint' => 'UNIQUE'
         ),
         'collection' => array(
             'name' => 'collection',
-            'type' => 'VARCHAR(50)'
+            'type' => 'TEXT'
         ),
         'productIdentifier' => array(
             'name' => 'productidentifier',
-            'type' => 'VARCHAR(250)'
+            'type' => 'TEXT'
         ),
         'parentIdentifier' => array(
             'name' => 'parentIdentifier',
-            'type' => 'VARCHAR(250)'
+            'type' => 'TEXT'
         ),
         'title' => array(
             'name' => 'title',
-            'type' => 'VARCHAR(250)'
+            'type' => 'TEXT'
         ),
         'description' => array(
             'name' => 'description',
@@ -81,7 +81,7 @@ abstract class RestoModel {
         ),
         'authority' => array(
             'name' => 'authority',
-            'type' => 'VARCHAR(50)'
+            'type' => 'TEXT'
         ),
         'startDate' => array(
             'name' => 'startdate',
@@ -93,19 +93,19 @@ abstract class RestoModel {
         ),
         'productType' => array(
             'name' => 'producttype',
-            'type' => 'VARCHAR(50)'
+            'type' => 'TEXT'
         ),
         'processingLevel' => array(
             'name' => 'processinglevel',
-            'type' => 'VARCHAR(250)'
+            'type' => 'TEXT'
         ),
         'platform' => array(
             'name' => 'platform',
-            'type' => 'VARCHAR(250)'
+            'type' => 'TEXT'
         ),
         'instrument' => array(
             'name' => 'instrument',
-            'type' => 'VARCHAR(250)'
+            'type' => 'TEXT'
         ),
         'resolution' => array(
             'name' => 'resolution',
@@ -113,7 +113,7 @@ abstract class RestoModel {
         ),
         'sensorMode' => array(
             'name' => 'sensormode',
-            'type' => 'VARCHAR(20)'
+            'type' => 'TEXT'
         ),
         'orbitNumber' => array(
             'name' => 'orbitnumber',
@@ -121,27 +121,27 @@ abstract class RestoModel {
         ),
         'quicklook' => array(
             'name' => 'quicklook',
-            'type' => 'VARCHAR(250)'
+            'type' => 'TEXT'
         ),
         'thumbnail' => array(
             'name' => 'thumbnail',
-            'type' => 'VARCHAR(250)'
+            'type' => 'TEXT'
         ),
         'metadata' => array(
             'name' => 'metadata',
-            'type' => 'VARCHAR(250)'
+            'type' => 'TEXT'
         ),
         'metadataMimeType' => array(
             'name' => 'metadata_mimetype',
-            'type' => 'VARCHAR(250)'
+            'type' => 'TEXT'
         ),
         'resource' => array(
             'name' => 'resource',
-            'type' => 'VARCHAR(250)'
+            'type' => 'TEXT'
         ),
         'resourceMimeType' => array(
             'name' => 'resource_mimetype',
-            'type' => 'VARCHAR(250)'
+            'type' => 'TEXT'
         ),
         'resourceSize' => array(
             'name' => 'resource_size',
