@@ -39,9 +39,9 @@
  */
 
 /**
- * RESTo model for PHR satellites
+ * RESTo model for Airbus Defence and Space satellites
  */
-class RestoModel_pleiades extends RestoModel {
+class RestoModel_ads extends RestoModel {
     
     public $extendedProperties = array(
         'title' => null,
@@ -56,6 +56,38 @@ class RestoModel_pleiades extends RestoModel {
         ),
         'orientationAngle' => array(
             'name' => 'orientationangle',
+            'type' => 'NUMERIC'
+        ),
+        'acrossTrackIncidenceAngle' => array(
+            'name' => 'acrosstrackincidenceangle',
+            'type' => 'NUMERIC'
+        ),
+        'alongTrackIncidenceAngle' => array(
+            'name' => 'alongtrackincidenceangle',
+            'type' => 'NUMERIC'
+        ),
+        'archivingStation' => array(
+            'name' => 'archivingstation',
+            'type' => 'TEXT'
+        ),
+        'receivingStation' => array(
+            'name' => 'receivingstation',
+            'type' => 'TEXT'
+        ),
+        'pitch' => array(
+            'name' => 'pitch',
+            'type' => 'NUMERIC'
+        ),
+        'roll' => array(
+            'name' => 'roll',
+            'type' => 'NUMERIC'
+        ),
+        'qualityQuotes' => array(
+            'name' => 'qualityquotes',
+            'type' => 'TEXT'
+        ),
+        'sunElevation' => array(
+            'name' => 'sunelevation',
             'type' => 'NUMERIC'
         )
     );
