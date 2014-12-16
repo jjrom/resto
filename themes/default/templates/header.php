@@ -8,7 +8,7 @@
             <input type="hidden" name="lang" value="<?php echo $self->context->dictionary->language?>" />
         </span>
         <span class="panel-triggers">
-            <a href="#panel-list" class="fa fa-th resto-panel-trigger active" id="resto-panel-trigger-list" title="<?php echo $self->context->dictionary->translate('_menu_list'); ?>"></a>&nbsp;<a href="#panel-map" class="fa fa-map-marker resto-panel-trigger" id="resto-panel-trigger-map" title="<?php echo $self->context->dictionary->translate('_menu_map'); ?>"></a>
+            <a href="#panel-list" class="fa fa-th resto-panel-trigger active" id="panel-list-trigger" title="<?php echo $self->context->dictionary->translate('_menu_list'); ?>"></a>&nbsp;<a href="#panel-map" class="fa fa-map-marker resto-panel-trigger" id="panel-map-trigger" title="<?php echo $self->context->dictionary->translate('_menu_map'); ?>"></a>
         </span>
         <?php } ?>
     </div>

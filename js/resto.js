@@ -60,6 +60,11 @@
         nextPageUrl: null,
         
         /*
+         * Current panel
+         */
+        currentPanel:null,
+        
+        /*
          * Features array
          */
         features: {},
@@ -109,7 +114,7 @@
             $('.resto-panel-trigger').click(function(e){
                 e.preventDefault();
                 e.stopPropagation();
-                self.switchTo($(this));
+                self.switchTo($(this).attr('href'));
             });
             
             /*
@@ -120,11 +125,9 @@
                 e.stopPropagation();
                 if ($(this).hasClass('fa-chevron-right')) {
                     $(this).removeClass('fa-chevron-right').addClass('fa-chevron-left');
-                    //$('#gototop').css({'right':($('.left-off-canvas-menu').width() + 20) + 'px'});
                 }
                 else {
                     $(this).removeClass('fa-chevron-left').addClass('fa-chevron-right');
-                    //$('#gototop').css({'right':'20px'});
                 }
                 $('.off-canvas-wrap').foundation('offcanvas', 'toggle', 'move-right');
             });
@@ -155,10 +158,14 @@
                     return true;
                 }
                 
+                var serialized = '?', kvps = $.extend(self.Util.extractKVP(window.History.getState().cleanUrl), self.Util.extractKVP('&' + $(this).serialize()));
+                
+                //'?' + $(this).serialize() + (window.Resto.Map.isVisible() ? '&box=' + window.Resto.Map.getExtent().join(',') : '')
+                
                 /*
                  * Bound search to map extent in map view only !
                  */
-                window.History.pushState({randomize: window.Math.random()}, null, '?' + $(this).serialize() + (window.Resto.Map.isVisible() ? '&box=' + window.Resto.Map.getExtent().join(',') : ''));
+                window.History.pushState({randomize: window.Math.random()}, null, Resto.Util.updateUrl(serialized, kvps));
             });
             
             /*
@@ -226,6 +233,12 @@
                  
             }
             
+            /*
+             * Switch to the right panel
+             */
+            var kvps = self.Util.extractKVP(window.History.getState().cleanUrl);
+            self.switchTo(kvps['_p']);
+            
             self.Util.hideMask();
 
         },
@@ -272,10 +285,16 @@
             });
             
             /*
-             * Anchor change ===> panel switch TODO
-             *
+             * Anchor change
+             * Note : Issue in History.js => anchorchange is called twice
+             */
+            /*
             window.History.Adapter.bind(window, 'anchorchange', function() {
-                //self.switchTo($('#' + window.History.getHash()));
+                console.log(window.History.getState());
+                var hash = '#' + window.History.getHash();
+                if (this.currentPanel !== hash) {
+                    self.switchTo(hash);
+                }
             });
             */
         },
@@ -283,11 +302,15 @@
         /**
          * Switch view to input panel triggered by $trigger
          * 
-         * @param {jQueryObject} $trigger
+         * @param {string} panel
          */
-        switchTo: function($trigger) {
+        switchTo: function(panel) {
             
-            var $panel = $($trigger.attr('href'));
+            if (!panel || $(panel).length === 0) {
+                panel = '#panel-list';
+            }
+            
+            var $panel = $(panel);
             
             $('.resto-panel').each(function() {
                 $(this).removeClass('active').hide();
@@ -295,16 +318,18 @@
             $('.resto-panel-trigger').each(function() {
                 $(this).removeClass('active');
             });
-            $trigger.addClass('active');
+            $(panel + '-trigger').addClass('active');
             $panel.addClass('active').show();
-            //window.History.pushState({randomize: window.Math.random()}, null, window.History.getState().cleanUrl.split('#')[0] + '#' + $panel.attr('id'));
+            window.location.hash = panel;
+            this.currentPanel = panel;
             
             /*
              * Map special case
              */
-            if ($panel.attr('id') === 'panel-map') {
+            if (panel === '#panel-map') {
                 this.Map.init(this.Util.associativeToArray(this.features));
             }
+            
         },
         
         /**
@@ -620,7 +645,7 @@
                         $('.showOnMap', $d).click(function (e) {
                             e.preventDefault();
                             e.stopPropagation();
-                            self.switchTo($('#resto-panel-trigger-map'));
+                            self.switchTo('#panel-map');
                             self.Map.select(f.id, true);
                             return false;
                         });
@@ -672,7 +697,7 @@
             /*
              * Switch to list view
              */
-            this.switchTo($('#resto-panel-trigger-list'));
+            this.switchTo('#panel-list');
             $id.children().first().addClass('selected').removeClass('unselected');
             if (scroll) {
                 $('html, body').scrollTop($id.offset().top);
@@ -960,6 +985,14 @@
                 if (e.namespace !== 'fndtn.reveal') {
                     return;
                 }
+                
+                /*
+                 * Remove focus from search
+                 */
+                if ($('#search').is(':focus')) {
+                    $('#search').blur();
+                }
+                
                 switch($(this).attr('id')) {
                     case 'displayRegister':
                         if (!Resto.Util.isMobile()) {
@@ -990,7 +1023,16 @@
                 if (e.namespace !== 'fndtn.reveal') {
                     return;
                 }
+                
+                /*
+                 * Set focus on search
+                 */
+                if (!Resto.Util.isMobile()) {
+                    $('#search').focus();
+                }
+                
                 $('body').css('overflow', 'auto');
+                
             });
             
             /*

@@ -317,7 +317,7 @@
         /**
          * Convert associative array to array
          * 
-         * @param {Array} arr
+         * @param {Array} associativeArray
          */
         associativeToArray: function(associativeArray) {
             var normalArray = [];
@@ -437,7 +437,18 @@
             var c = {};
             str = str || "";
             str.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
-                c[decodeURIComponent(lowerCasedKey ? key.toLowerCase() : key )] = (value === undefined) ? true : decodeURIComponent(value);
+                if (value === undefined) {
+                    c[decodeURIComponent(lowerCasedKey ? key.toLowerCase() : key )] = true;
+                }
+                else {
+                    try {
+                        value = decodeURIComponent(value);
+                    }
+                    catch (e) {
+                        value = unescape(value);
+                    }
+                    c[decodeURIComponent(lowerCasedKey ? key.toLowerCase() : key )] = value;
+                }
             });
             return c;
         },
