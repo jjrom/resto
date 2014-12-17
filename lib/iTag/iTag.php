@@ -179,6 +179,7 @@ class iTag {
         for ($i = 1; $i <= 22; $i++) {
             $out[$i] = 0;
         }
+        $totalarea = 0;
         while ($product = pg_fetch_assoc($results)) {
             if (isset($out[$product['dn']])) {
                 $out[$product['dn']] += $product['area'];
@@ -857,6 +858,9 @@ class iTag {
      * @return <float>
      */
     private function percentage($part, $total) {
+        if (!isset($total) || $total === 0) {
+            return 100;
+        }
         return min(array(100, floor(10000 * ($part / $total)) / 100));
     }
 
@@ -949,6 +953,7 @@ class iTag {
             'CI' => 'Ivory Coast',
             'CIV' => 'Ivory Coast',
             'CK' => 'Cook Islands',
+            'COK' => 'Cook Islands',
             'CL' => 'Chile',
             'CM' => 'Cameroon',
             'CMR' => 'Cameroon',
@@ -1018,6 +1023,7 @@ class iTag {
             'GI' => 'Gibraltar',
             'GIB' => 'Gibraltar',
             'GI' => 'Guinea',
+            'GIN' => 'Guinea',
             'GL' => 'Greenland',
             'GM' => 'Gambia',
             'GMB' => 'Gambia',
@@ -1052,6 +1058,7 @@ class iTag {
             'IE' => 'Ireland',
             'IL' => 'Israel',
             'IM' => 'Isle of Man',
+            'IMN' => 'Isle of Man',
             'IN' => 'India',
             'IND' => 'India',
             'IO' => 'British Indian Ocean Territory',
@@ -1100,6 +1107,7 @@ class iTag {
             'LBY' => 'Libya',
             'LC' => 'Saint Lucia',
             'LI' => 'Liechtenstein',
+            'LIE' => 'Liechtenstein',
             'LK' => 'Sri Lanka',
             'LKA' => 'Sri Lanka',
             'LR' => 'Liberia',
@@ -1134,6 +1142,7 @@ class iTag {
             'MNE' => 'Montenegro',
             'MNG' => 'Mongolia',
             'MO' => 'Macao',
+            'MAC' => 'Macao',
             'MOZ' => 'Mozambique',
             'MP' => 'Northern Mariana Islands',
             'MQ' => 'Martinique',
@@ -1142,6 +1151,7 @@ class iTag {
             'MS' => 'Montserrat',
             'MT' => 'Malta',
             'MU' => 'Mauritius',
+            'MUS' => 'Mauritius',
             'MV' => 'Maldives',
             'MW' => 'Malawi',
             'MWI' => 'Malawi',
@@ -1178,6 +1188,7 @@ class iTag {
             'PE' => 'Peru',
             'PER' => 'Peru',
             'PF' => 'French Polynesia',
+            'PYF' => 'French Polynesia',
             'PG' => 'Papua New Guinea',
             'PH' => 'Philippines',
             'PHL' => 'Philippines',
@@ -1264,6 +1275,7 @@ class iTag {
             'TM' => 'Turkmenistan',
             'TN' => 'Tunisia',
             'TO' => 'Tonga',
+            'TON' => 'Tonga',
             'TR' => 'Turkey',
             'TT' => 'Trinidad and Tobago',
             'TTO' => 'Trinidad and Tobago',
