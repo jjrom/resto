@@ -68,7 +68,15 @@
          * GeoJSON formatter
          */
         geoJSONFormatter: null,
-            
+        
+        /*
+         * Size
+         */
+        size:{
+            'w':null,
+            'h':null
+        },
+        
         /**
          * Initialize map with input features array
          */
@@ -231,23 +239,28 @@
              * Detect window resize to resize map
              */
             $(window).bind('resize', function () {
-                self.updateSize();
+                if (!self.size.w || $(window).width() !== self.size.w || !self.size.h || $(window).height() !== self.size.h) {
+                    self.updateSize();
+                }
             });
 
             /*
              * Add input features to map
              */
-            self.layer.getSource().addFeatures(self.geoJSONFormatter.readFeatures(JSON.stringify({
-                'type': 'FeatureCollection',
-                'features': features
-            }), {
-                featureProjection: 'EPSG:3857'
-            }));
-            
-            /*
-             * Center on input data
-             */
-            self.map.getView().fitExtent(self.layer.getSource().getExtent(), self.map.getSize());
+            if (features && features.length > 0) {
+                self.layer.getSource().addFeatures(self.geoJSONFormatter.readFeatures(JSON.stringify({
+                    'type': 'FeatureCollection',
+                    'features': features
+                }), {
+                    featureProjection: 'EPSG:3857'
+                }));
+
+                /*
+                 * Center on input data
+                 */
+                self.map.getView().fitExtent(self.layer.getSource().getExtent(), self.map.getSize());
+                
+            }
             
             /*
              * Initialize map size and repaint
@@ -260,6 +273,10 @@
          */
         updateSize: function () {
             $('#map').height($(window).height() - $('.left-off-canvas-menu').offset().top);
+            this.size = {
+                w:$(window).width(),
+                h:$(window).height()
+            }
             if (this.isLoaded && this.map) {
                 this.map.updateSize();
             }
@@ -271,7 +288,6 @@
          * @param {Object} feature
          */
         addProductLayer: function (feature) {
-            
             var id, properties, parsedWMS;
             
             if (!this.isLoaded || !feature) {
@@ -324,7 +340,7 @@
         /**
          * Update features layer
          * 
-         * @param {Object} json - Feature array
+         * @param {Object} features - Feature array
          * @param {Object} options :
          *              
          *              {
@@ -333,7 +349,6 @@
          *              } 
          */
         updateLayer: function (features, options) {
-            
             if (!this.isLoaded) {
                 return null;
             }
@@ -351,15 +366,20 @@
             /*
              * Add features to result layer
              */
-            this.layer.getSource().addFeatures(this.geoJSONFormatter.readFeatures(JSON.stringify({
-                'type': 'FeatureCollection',
-                'features': features
-            }), {
-                featureProjection: 'EPSG:3857'
-            }));
-        
-            if (options.hasOwnProperty('centerMap') && options.centerMap === true) {
-                this.map.getView().fitExtent(this.layer.getSource().getExtent(), this.map.getSize());
+            if (features && features.length > 0) {
+                this.layer.getSource().addFeatures(this.geoJSONFormatter.readFeatures(JSON.stringify({
+                    'type': 'FeatureCollection',
+                    'features': features
+                }), {
+                    featureProjection: 'EPSG:3857'
+                }));
+                
+                if (this.layer.getSource() && this.layer.getSource().getFeatures().length > 0) {
+                    if (options.hasOwnProperty('centerMap') && options.centerMap === true) {
+                        this.map.getView().fitExtent(this.layer.getSource().getExtent(), this.map.getSize());
+                    }
+                }
+            
             }
             
             this.updateBBOX();
@@ -369,7 +389,6 @@
          * Add map bounding box in EPSG:4326 to all element with a 'resto-updatebbox' class
          */
         updateBBOX: function () {
-            
             if (this.isVisible()) {
                 var bbox = this.getExtent().join(',');
                 $('.resto-updatebbox').each(function () {
@@ -411,6 +430,7 @@
                     extent = ol.extent.applyTransform(this.map.getView().calculateExtent(this.map.getSize()), ol.proj.getTransform('EPSG:3857', 'EPSG:4326'));
                 } catch (e) {}
             }
+            console.log(extent);
             return extent;
         },
         
@@ -421,7 +441,7 @@
          * @param {boolean} zoomOn
          */
         select: function (fid, zoomOn) {
-            
+            console.log('select');
             if (!this.isLoaded) {
                 return false;
             }
@@ -445,6 +465,7 @@
          * Unselect all feature
          */
         unselectAll: function() {
+            console.log('unselectall');
             this.mapMenu.hide();
             if (this.selected) {
                 this.selectOverlay.removeFeature(this.selected);

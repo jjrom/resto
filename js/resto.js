@@ -160,7 +160,12 @@
                 
                 var serialized = '?', kvps = $.extend(self.Util.extractKVP(window.History.getState().cleanUrl), self.Util.extractKVP('&' + $(this).serialize()));
                 
-                //'?' + $(this).serialize() + (window.Resto.Map.isVisible() ? '&box=' + window.Resto.Map.getExtent().join(',') : '')
+                if (window.Resto.Map.isVisible()) {
+                    kvps['box'] = window.Resto.Map.getExtent().join(',');
+                }
+                else {
+                    delete kvps['box'];
+                }
                 
                 /*
                  * Bound search to map extent in map view only !

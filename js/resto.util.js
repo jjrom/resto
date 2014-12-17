@@ -162,7 +162,9 @@
             }
 
             for (key in sourceParams) {
-                newParamsString += key + "=" + sourceParams[key] + "&";
+                if (sourceParams[key] !== null) {
+                    newParamsString += key + "=" + sourceParams[key] + "&";
+                }
             }
 
             return sourceBase + "?" + newParamsString;
