@@ -436,8 +436,12 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                         }
                         
                     }
-                    $values[] = '\'' . pg_escape_string(join(',', $propertyTags)) . '\'';
-                    
+                    if (isset($propertyTags)) {
+                        $values[] = '\'' . pg_escape_string(join(',', $propertyTags)) . '\'';
+                    }
+                    else {
+                        $values[] = '\'\'';
+                    }
                     /*
                      * landuse keywords are also stored in dedicated
                      * table columns to speed up search requests
