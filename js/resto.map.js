@@ -430,7 +430,6 @@
                     extent = ol.extent.applyTransform(this.map.getView().calculateExtent(this.map.getSize()), ol.proj.getTransform('EPSG:3857', 'EPSG:4326'));
                 } catch (e) {}
             }
-            console.log(extent);
             return extent;
         },
         
@@ -441,7 +440,6 @@
          * @param {boolean} zoomOn
          */
         select: function (fid, zoomOn) {
-            console.log('select');
             if (!this.isLoaded) {
                 return false;
             }
@@ -465,7 +463,6 @@
          * Unselect all feature
          */
         unselectAll: function() {
-            console.log('unselectall');
             this.mapMenu.hide();
             if (this.selected) {
                 this.selectOverlay.removeFeature(this.selected);

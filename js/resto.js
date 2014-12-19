@@ -60,9 +60,9 @@
         nextPageUrl: null,
         
         /*
-         * Current panel
+         * Last state url
          */
-        currentPanel:null,
+        lastStateUrl:null,
         
         /*
          * Features array
@@ -242,7 +242,7 @@
              * Switch to the right panel
              */
             var kvps = self.Util.extractKVP(window.History.getState().cleanUrl);
-            self.switchTo(kvps['_p']);
+            self.switchTo(kvps['_view']);
             
             self.Util.hideMask();
 
@@ -263,45 +263,79 @@
              * State change - Ajax call to RESTo backend server
              */
             window.History.Adapter.bind(window, 'statechange', function() {
-
-                // Be sure that json is called !
-                var state = window.History.getState(), url = self.Util.updateUrlFormat(state.cleanUrl, 'json');
-
-                self.Util.showMask();
-                self.unselectAll();
-                self.ajaxReady = false;
-                $.ajax({
-                    url: url,
-                    dataType: 'json',
-                    cache:false
-                }).done(function(data) {
-                    if (typeof callback === 'function') {
-                        callback(data, {
-                            updateMap:true,
-                            centerMap:true
-                        });
+                
+                var reload, kvps, lastKvps, state = window.History.getState();
+                    
+                if (!self.lastStateUrl) {
+                    self.lastStateUrl = state.cleanUrl;
+                    reload = true;
+                }
+                else {
+                    kvps = self.Util.extractKVP(state.cleanUrl);
+                    lastKvps = self.Util.extractKVP(self.lastStateUrl);
+                    for (var kvp in kvps) {
+                        if (kvp === '_view') {
+                            continue;
+                        }
+                        if (!lastKvps.hasOwnProperty(kvp) || kvps[kvp] !== lastKvps[kvp]) {
+                            reload = true;
+                        }
                     }
-                }).fail(function() {
-                    self.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_connectionFailed'));
-                }).always(function(){
-                    self.ajaxReady = true;
-                    self.Util.hideMask();
-                });
-            });
-            
-            /*
-             * Anchor change
-             * Note : Issue in History.js => anchorchange is called twice
-             */
-            /*
-            window.History.Adapter.bind(window, 'anchorchange', function() {
-                console.log(window.History.getState());
-                var hash = '#' + window.History.getHash();
-                if (this.currentPanel !== hash) {
-                    self.switchTo(hash);
+                    if (!reload) {
+                        for (var kvp in lastKvps) {
+                            if (kvp === '_view') {
+                                continue;
+                            }
+                            if (!kvps.hasOwnProperty(kvp) || kvps[kvp] !== lastKvps[kvp]) {
+                                reload = true;
+                            }
+                        }
+                    }
+                }
+                
+                /*
+                 * Change view
+                 */
+                if (kvps && kvps['_view'] && kvps['_view'] !== self.currentView) {
+                    $('.resto-panel').each(function() {
+                        $(this).removeClass('active').hide();
+                    });
+                    $('.resto-panel-trigger').each(function() {
+                        $(this).removeClass('active');
+                    });
+                    $('#' + kvps['_view'] + '-trigger').addClass('active');
+                    $('#' + kvps['_view']).addClass('active').show();
+                    self.currentView = kvps['_view'];
+                    if (kvps['_view'] === 'panel-map') {
+                        self.Map.init(self.Util.associativeToArray(self.features));
+                    }
+                }
+                
+                if (reload) {
+                    self.Util.showMask();
+                    self.unselectAll();
+                    self.ajaxReady = false;
+                    self.lastStateUrl = state.cleanUrl;
+                    $.ajax({
+                        url: self.Util.updateUrlFormat(state.cleanUrl, 'json'),
+                        dataType: 'json',
+                        cache:false
+                    }).done(function(data) {
+                        if (typeof callback === 'function') {
+                            callback(data, {
+                                updateMap:true,
+                                centerMap:true
+                            });
+                        }
+                    }).fail(function() {
+                        self.Util.dialog(Resto.Util.translate('_error'), Resto.Util.translate('_connectionFailed'));
+                    }).always(function(){
+                        self.ajaxReady = true;
+                        self.Util.hideMask();
+                    });
                 }
             });
-            */
+            
         },
         
         /**
@@ -310,12 +344,14 @@
          * @param {string} panel
          */
         switchTo: function(panel) {
-            
-            if (!panel || $(panel).length === 0) {
-                panel = '#panel-list';
+            if (!panel) {
+                panel = 'panel-list';
+            }
+            else if (panel.substring(0, 1) === '#') {
+                panel = panel.substring(1);
             }
             
-            var $panel = $(panel);
+            var $panel = $('#' + panel);
             
             $('.resto-panel').each(function() {
                 $(this).removeClass('active').hide();
@@ -323,15 +359,26 @@
             $('.resto-panel-trigger').each(function() {
                 $(this).removeClass('active');
             });
-            $(panel + '-trigger').addClass('active');
+            $('#' + panel + '-trigger').addClass('active');
             $panel.addClass('active').show();
-            window.location.hash = panel;
-            this.currentPanel = panel;
+            if (panel !== this.currentPanel) {
+                var kvps = $.extend(this.Util.extractKVP(window.History.getState().cleanUrl), {'_view':panel});
+                /*if (window.Resto.Map.isVisible()) {
+                    kvps['box'] = window.Resto.Map.getExtent().join(',');
+                }
+                else {
+                    delete kvps['box'];
+                }*/
+                window.History.pushState({
+                    randomize: window.Math.random()
+                }, null, Resto.Util.updateUrl('?', kvps));
+                this.currentPanel = panel;
+            }
             
             /*
              * Map special case
              */
-            if (panel === '#panel-map') {
+            if (panel === 'panel-map') {
                 this.Map.init(this.Util.associativeToArray(this.features));
             }
             
@@ -650,7 +697,7 @@
                         $('.showOnMap', $d).click(function (e) {
                             e.preventDefault();
                             e.stopPropagation();
-                            self.switchTo('#panel-map');
+                            self.switchTo('panel-map');
                             self.Map.select(f.id, true);
                             return false;
                         });
@@ -702,7 +749,7 @@
             /*
              * Switch to list view
              */
-            this.switchTo('#panel-list');
+            this.switchTo('panel-list');
             $id.children().first().addClass('selected').removeClass('unselected');
             if (scroll) {
                 $('html, body').scrollTop($id.offset().top);
