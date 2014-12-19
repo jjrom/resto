@@ -361,20 +361,17 @@
             });
             $('#' + panel + '-trigger').addClass('active');
             $panel.addClass('active').show();
-            if (panel !== this.currentPanel) {
-                var kvps = $.extend(this.Util.extractKVP(window.History.getState().cleanUrl), {'_view':panel});
-                /*if (window.Resto.Map.isVisible()) {
-                    kvps['box'] = window.Resto.Map.getExtent().join(',');
-                }
-                else {
-                    delete kvps['box'];
-                }*/
-                window.History.pushState({
-                    randomize: window.Math.random()
-                }, null, Resto.Util.updateUrl('?', kvps));
-                this.currentPanel = panel;
+            var kvps = $.extend(this.Util.extractKVP(window.History.getState().cleanUrl), {'_view':panel});
+            /*if (window.Resto.Map.isVisible()) {
+                kvps['box'] = window.Resto.Map.getExtent().join(',');
             }
-            
+            else {
+                delete kvps['box'];
+            }*/
+            window.History.pushState({
+                randomize: window.Math.random()
+            }, null, Resto.Util.updateUrl('?', kvps));
+
             /*
              * Map special case
              */
@@ -738,7 +735,7 @@
          * Select feature id
          * 
          * @param {string} id
-         * @param {booelan} scroll : true to scroll page to the selected feature
+         * @param {boolean} scroll : true to scroll page to the selected feature
          */
         selectFeature: function(id, scroll) {
             
