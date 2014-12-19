@@ -191,6 +191,8 @@ Create an admin user within the database
         
         $RESTO_HOME/_scripts/createAdminUser.sh -u admin -p admin
 
+**Note : you should change the above script parameters to set a stronger password than 'admin' !!!**
+
 masphup configuration
 ---------------------
 
