@@ -82,6 +82,7 @@
             /*
              * Initialize variables
              */
+            self.issuer = options.issuer;
             self.language = options.language || 'en';
             self.restoUrl = options.restoUrl || '';
             self.Util.translation = options.translation || {};
