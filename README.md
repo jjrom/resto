@@ -28,8 +28,8 @@ Note: resto could work with lower version of the specified requirements.
 However there is no guaranty of success and unwanted result may occured !
 
 
-Install resto database
-----------------------
+Install resto2 database
+-----------------------
 
 resto installs a PostgreSQL database named 'resto2'. 
 
@@ -153,8 +153,8 @@ Edit the PostgreSQL pg_hba.conf file and add the following rules :
 
         # Configuration for resto framework
         local  all     resto                                        password
-        host   resto   resto                   127.0.0.1/32            md5
-        host   resto   resto                   ::1/128                 md5
+        host   resto2   resto                   127.0.0.1/32            md5
+        host   resto2   resto                   ::1/128                 md5
 
 Edit the PostreSQL postgresql.conf and be sure that postgres accept tcp_ip connection.
 
@@ -189,11 +189,7 @@ The configuration file is self explanatory. For a standard installation you shou
 
 Create an admin user within the database
         
-        # Change password !!!
-        SHA1PASSWORD=`php -r "echo sha1('admin');"`
-        psql -d resto2 << EOF
-        INSERT INTO usermanagement.users (email,groupname,username,password,activationcode,activated,registrationdate) VALUES ('admin','admin','admin','$SHA1PASSWORD','$SHA1PASSWORD', TRUE, now());
-        EOF
+        $RESTO_HOME/_scripts/createAdminUser.sh -u admin -p admin
 
 masphup configuration
 ---------------------
