@@ -82,7 +82,6 @@
             /*
              * Initialize variables
              */
-            self.issuer = options.issuer || 'getCollection';
             self.language = options.language || 'en';
             self.restoUrl = options.restoUrl || '';
             self.Util.translation = options.translation || {};
@@ -97,7 +96,7 @@
             /*
              * Set features
              */
-            if (self.issuer === 'getResource' && data && data.features.length === 1) {
+            if (self.issuer && self.issuer === 'getResource' && data && data.features.length === 1) {
                 self.features[data.features[0].id] = data.features[0];
             }
             
@@ -183,7 +182,7 @@
             /*
              * init(options) was called by getCollection
              */
-            if (self.issuer === 'getCollection') {
+            if (self.issuer && self.issuer === 'getCollection') {
                     
                 if (data) {
                     self.updateFeaturesList(data, {
@@ -235,14 +234,14 @@
                     }
                     lastScrollTop = st;
                  });
-                 
+
+                /*
+                 * Switch to the right panel
+                 */
+                var kvps = self.Util.extractKVP(window.History.getState().cleanUrl);
+                self.switchTo(kvps['_view']);
+                
             }
-            
-            /*
-             * Switch to the right panel
-             */
-            var kvps = self.Util.extractKVP(window.History.getState().cleanUrl);
-            self.switchTo(kvps['_view']);
             
             self.Util.hideMask();
 
