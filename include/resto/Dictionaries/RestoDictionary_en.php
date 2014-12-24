@@ -306,7 +306,7 @@ class RestoDictionary_en extends RestoDictionary {
         '_addResource' => 'Add a resource',
         '_dropResource' => 'Drop a resource metadata file',
         '_resultFor' => 'Search results for &#34;{a:1}&#34;',
-        '_resourceSummary' => '{a:1} image acquired on {a:2}',
+        '_resourceSummary' => '{a:2}<br/><font class="smaller">{a:1}</font>',
         '_poi' => 'Points of interest',
         // Menu
         '_menu_shareOn' => 'Share on {a:1}',

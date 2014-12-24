@@ -3,7 +3,7 @@
 /*
  * RESTo
  * 
- * REST OpenSearch - Very Lightweigt PHP REST Library for OpenSearch EO
+ * RESTo - REstful Semantic search Tool for geOspatial 
  * 
  * Copyright 2013 Jérôme Gasperi <https://github.com/jjrom>
  * 

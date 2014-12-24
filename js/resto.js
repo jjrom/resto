@@ -168,6 +168,13 @@
                 }
                 
                 /*
+                 * Switch to list view if in metadata panel
+                 */
+                if (kvps['_view'] && (kvps['_view'] !== 'panel-list' || kvps['_view'] !== 'panel-map')) {
+                    kvps['_view'] = 'panel-list';
+                }
+                
+                /*
                  * Bound search to map extent in map view only !
                  */
                 window.History.pushState({randomize: window.Math.random()}, null, Resto.Util.updateUrl(serialized, kvps));
@@ -237,11 +244,16 @@
                  });
 
                 /*
-                 * Switch to the right panel
+                 * Change view
                  */
-                var kvps = self.Util.extractKVP(window.History.getState().cleanUrl);
-                self.switchTo(kvps['_view']);
-                
+                var kvps = self.Util.extractKVP(window.History.getState().cleanUrl), panelId = kvps['_view'];
+                if (panelId && panelId.substr(0, 5) !== 'panel' && self.features[panelId]) {
+                    self.selectedId = panelId;
+                    self.switchTo('panel-metadata');
+                }
+                else {
+                    self.switchTo(panelId);
+                }
             }
             
             self.Util.hideMask();
@@ -265,7 +277,7 @@
             window.History.Adapter.bind(window, 'statechange', function() {
                 
                 var reload, kvps, lastKvps, state = window.History.getState();
-                    
+                
                 if (!self.lastStateUrl) {
                     self.lastStateUrl = state.cleanUrl;
                     reload = true;
@@ -275,6 +287,12 @@
                     lastKvps = self.Util.extractKVP(self.lastStateUrl);
                     for (var kvp in kvps) {
                         if (kvp === '_view') {
+                            if (kvps[kvp].substr(0, 5) === 'panel') {
+                                $('#panel-metadata-trigger').hide();
+                            }
+                            else {
+                                $('#panel-metadata-trigger').show();
+                            }
                             continue;
                         }
                         if (!lastKvps.hasOwnProperty(kvp) || kvps[kvp] !== lastKvps[kvp]) {
@@ -303,8 +321,15 @@
                     $('.resto-panel-trigger').each(function() {
                         $(this).removeClass('active');
                     });
-                    $('#' + kvps['_view'] + '-trigger').addClass('active');
-                    $('#' + kvps['_view']).addClass('active').show();
+                    if (kvps['_view'].substr(0, 5) !== 'panel' && self.features[kvps['_view']]) {
+                        self.selectedId = kvps['_view'];
+                        $('#panel-metadata-trigger').addClass('active');
+                        $('#panel-metadata').addClass('active').show();
+                    }
+                    else {
+                        $('#' + kvps['_view'] + '-trigger').addClass('active');
+                        $('#' + kvps['_view']).addClass('active').show();
+                    }
                     self.currentView = kvps['_view'];
                     if (kvps['_view'] === 'panel-map') {
                         self.Map.init(self.Util.associativeToArray(self.features));
@@ -341,17 +366,27 @@
         /**
          * Switch view to input panel triggered by $trigger
          * 
-         * @param {string} panel
+         * @param {string} panelId
          */
-        switchTo: function(panel) {
-            if (!panel) {
-                panel = 'panel-list';
+        switchTo: function(panelId) {
+            
+            if (!panelId) {
+                panelId = 'panel-list';
             }
-            else if (panel.substring(0, 1) === '#') {
-                panel = panel.substring(1);
+            else if (panelId.substring(0, 1) === '#') {
+                panelId = panelId.substring(1);
             }
             
-            var $panel = $('#' + panel);
+            /*
+             * Metadata special case
+             */
+            if (panelId === 'panel-metadata') {
+                $('#panel-metadata-trigger').show();
+                this.showMetadataPanel();
+            }
+            else {
+                $('#panel-metadata-trigger').hide();
+            }
             
             $('.resto-panel').each(function() {
                 $(this).removeClass('active').hide();
@@ -359,9 +394,11 @@
             $('.resto-panel-trigger').each(function() {
                 $(this).removeClass('active');
             });
-            $('#' + panel + '-trigger').addClass('active');
-            $panel.addClass('active').show();
-            var kvps = $.extend(this.Util.extractKVP(window.History.getState().cleanUrl), {'_view':panel});
+            
+            $('#' + panelId + '-trigger').addClass('active');
+            $('#' + panelId).addClass('active').show();
+            
+            var kvps = $.extend(this.Util.extractKVP(window.History.getState().cleanUrl), {'_view': panelId === 'panel-metadata' && this.selectedId ? this.selectedId : panelId})
             /*if (window.Resto.Map.isVisible()) {
                 kvps['box'] = window.Resto.Map.getExtent().join(',');
             }
@@ -375,7 +412,7 @@
             /*
              * Map special case
              */
-            if (panel === 'panel-map') {
+            if (panelId === 'panel-map') {
                 this.Map.init(this.Util.associativeToArray(this.features));
             }
             
@@ -417,7 +454,7 @@
          */
         updateFacets: function (query) {
             
-            var i, typeAndId, key, where = [], when = [], what = [], self = this;
+            var i, key, where = [], when = [], what = [], self = this;
             query = query || {};
             
             /*
@@ -538,6 +575,7 @@
          * Update GetCollection result entries after a search
          * 
          * @param {array} json
+         * @param {jQueryObject} $container
          */
         updateGetCollectionResultEntries: function(json, $container) {
 
@@ -702,8 +740,8 @@
                         $('.viewMetadata', $d).click(function (e) {
                             e.preventDefault();
                             e.stopPropagation();
-                            self.Util.showMask();
-                            window.location = self.restoUrl + 'collections/' + f.properties['collection'] + '/' + f.id + '.html?lang=' + self.language;
+                            self.selectedId = f.id;
+                            self.switchTo('panel-metadata');
                             return false;
                         });
                         $('.addToCart', $d).click(function (e) {
@@ -752,7 +790,6 @@
                 $('html, body').scrollTop($id.offset().top);
             }
             
-            //this.showFeatureInfoDetails(id);
         },
         
         /**
@@ -762,86 +799,123 @@
             $('.resto-feature').each(function () {
                 $(this).children().first().removeClass('selected').addClass('unselected');
             });
-            $('#feature-info-details').hide();
         },
         
         /**
          * Display detailled feature info panel
-         * 
-         * @param {string} id : feature identifier
          */
-        showFeatureInfoDetails:function(id) {
+        showMetadataPanel:function() {
             
-            var $id = $('#' + id), $div, feature = this.features[id], self = this;
+            var key, content, self = this, $div = $('#panel-metadata'), feature;
             
-            if (!feature) {
+            if (!self.selectedId || !self.features[self.selectedId]) {
                 return false;
             }
             
-            /*
-             * Compute position of feature info panel based on foundation grid system
-             * 
-             */
-            var $offCanvas = $('.left-off-canvas-menu'), left = $id.offset().left - (Math.abs($offCanvas.offset().left + $offCanvas.outerWidth()) < 20 ? 0 : $offCanvas.outerWidth()),
-                top = $id.offset().top - $('.inner-wrap').offset().top;
-            if (left + (2 * $id.outerWidth()) > $(window).width()) {
-                if (left - $id.outerWidth() < 0) {
-                    top = top + $id.outerHeight();
-                }
-                else {
-                    left = left - $id.outerWidth();
-                }
-            }
-            else {
-                left = left + $id.outerWidth();
-            }
-            
-            $div = $('#feature-info-details').empty().css({
-                'position': 'absolute',
-                'height': $id.outerHeight() + 'px',
-                'top': top + 'px',
-                'left': left + 'px',
-                'width':$id.outerWidth() + 'px',
-                'z-index':'100'
-            }).show();
+            feature = self.features[self.selectedId];
             
             /*
-             * Refresh infos
+             * Collection title and description
              */
-            var infos = [];
+            content = [];
+            content.push('<div class="row fullWidth light"><div class="large-6 columns center text-dark padded-top"><h2>' + self.Util.translate('_resourceSummary', [feature['properties']['platform'], self.Util.niceDate(feature['properties']['startDate'])]) + '</h2>');
+            content.push('<h7 title="' + self.selectedId + '" style="overflow: hidden;">' + self.selectedId + '</h7>');
+            content.push('<p class="center padded-top">');
             
-            infos.push('<a class="fa fa-3x fa-info viewMetadata" href="#" title="' + self.Util.translate('_viewMetadata') + '"></a>');
-            
-            // Download feature
-            if (feature.properties['services'] && feature.properties['services']['download'] && feature.properties['services']['download']['url']) {
-                infos.push('<a class="fa fa-3x fa-cloud-download downloadProduct" href="' + feature.properties['services']['download']['url'] + '?lang=' + self.language + '" title="' + self.Util.translate('_download') + '"' + (feature.properties['services']['download']['mimeType'] === 'text/html' ? 'target="_blank"' : '') + '></a>');
+            /*
+             * Download and add to cart actions
+             */
+            if (feature['properties']['services'] && feature['properties']['services']['download'] && feature['properties']['services']['download']['url']) {
+                content.push('<a class="fa fa-3x fa-cloud-download downloadProduct padded-right" href="' + feature.properties['services']['download']['url'] + '?lang=' + self.language + '" title="' + self.Util.translate('_download') + '"' + (feature.properties['services']['download']['mimeType'] === 'text/html' ? 'target="_blank"' : '') + '></a>');
             }
-                
-            // Add to cart
             if (self.Header.userProfile.userid !== -1) {
-                infos.push('<a class="fa fa-3x fa-shopping-cart addToCart" href="#" title="' + self.Util.translate('_addToCart') + '"></a>');
+                content.push('<a class="fa fa-3x fa-shopping-cart addToCart padded-right" href="#" title="' + self.Util.translate('_addToCart') + '"></a>');
             }
-            $div.append('<div class="center">' + infos.join('') + '</div>');
+            content.push('</p></div>');
             
-            $('.viewMetadata', $div).click(function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                self.Util.showMask();
-                window.location = self.restoUrl + 'collections/' + feature.properties['collection'] + '/' + feature.id + '.html?lang=' + self.language;
-                return false;
-            });
-            $('.addToCart', $div).click(function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                self.addToCart(feature);
-                return false;
-            });
+            content.push('<div class="large-6 columns text-dark padded-top"></div></div>');
             
-            $('.downloadProduct', $div).click(function(e){
-                e.preventDefault();
-                e.stopPropagation();
-                return self.download($(this));
-            });
+            /*
+             * Quicklook and metadata
+             */
+            content.push('<div class="row resto-resource fullWidth light" style="padding-bottom:20px;"><div class="large-6 columns center"><img title="' + self.selectedId + '" class="resto-image" src="' + feature['properties']['quicklook'] + '"/></div>');
+            content.push('<div class="large-6 columns"><table style="width:100%;"><table>');
+            
+            for (key in feature['properties']) {
+                if ($.inArray(key, ['quicklook', 'thumbnail', 'links', 'services', 'keywords', 'updated', 'productId', 'landUse']) !== -1) {
+                    continue;
+                }
+                if (typeof feature['properties'][key] !== "object") {
+                    content.push('<tr><td>' + self.Util.translate(key) + '</td><td>' + feature['properties'][key] + '</td></tr>');
+                }
+            }
+            
+            content.push('</table></div></div>');
+            $div.html(content.join(''));
+        
+        /*
+        <!-- Location content -->
+        <div class="row resto-resource fullWidth dark">
+            <div class="large-6 columns">
+                <h1><span class="right"><?php echo $self->context->dictionary->translate('_location'); ?></span></h1>
+            </div>
+            <div class="large-6 columns">
+            <?php
+            foreach(array_values(array('continent', 'country', 'region', 'state')) as $key) {
+                if (isset($product['properties']['keywords'])) {
+                        for ($i = 0, $l = count($product['properties']['keywords']); $i < $l; $i++) {
+                            list($type, $id) = explode(':', $product['properties']['keywords'][$i]['id'], 2);
+                            if (strtolower($type) === $key && $product['properties']['keywords'][$i]['id'] !== 'region:_all') { ?>
+                <h2><a title="<?php echo $self->context->dictionary->translate('_thisResourceIsLocated', $product['properties']['keywords'][$i]['name']) ?>" href="<?php echo RestoUtil::updateUrlFormat($product['properties']['keywords'][$i]['href'], 'html') ?>"><?php echo $product['properties']['keywords'][$i]['name']; ?></a></h2>
+            <?php }}}} ?>
+            </div>
+        </div>
+        
+        <!-- Thematic content (Landcover) -->
+        <div class="row resto-resource fullWidth light">
+            <div class="large-6 columns">
+                <h1><span class="right"><?php echo $self->context->dictionary->translate('_landUse'); ?></span></h1>
+            </div>
+            <div class="large-6 columns">
+            <?php
+                    if (isset($product['properties']['keywords'])) {
+                        for ($i = 0, $l = count($product['properties']['keywords']); $i < $l; $i++) {
+                            list($type, $id) = explode(':', $product['properties']['keywords'][$i]['id'], 2);
+                            if (strtolower($type) === 'landuse') { ?>
+                    <h2><?php echo round($product['properties']['keywords'][$i]['value']); ?> % <a title="<?php echo $self->context->dictionary->translate('_thisResourceContainsLanduse', $product['properties']['keywords'][$i]['value'], $product['properties']['keywords'][$i]['name']) ?>" href="<?php echo RestoUtil::updateUrlFormat($product['properties']['keywords'][$i]['href'], 'html') ?>"><?php echo $product['properties']['keywords'][$i]['name']; ?></a></h2>
+            <?php }}} ?>
+            </div>
+        </div>
+        
+        <!-- Population counter -->
+        <?php if (isset($self->populationCounter)) { ?>
+        <div class="row resto-resource fullWidth dark">
+            <div class="large-6 columns">
+                <h1 class="right"><?php echo $self->context->dictionary->translate('_estimatedPopulation'); ?></h1>
+            </div>
+            <div class="large-6 columns">
+                <h2 class="text-light"><?php echo $self->context->dictionary->translate('_people', $self->populationCounter->count($product['geometry'])) ?></h2>
+            </div>
+        </div>
+        <?php } ?>
+        
+        <!-- Wikipedia -->
+        <?php if (isset($wikipediaEntries) && is_array($wikipediaEntries) && count($wikipediaEntries) > 0) { ?>
+        <div class="row resto-resource fullWidth light">
+            <div class="large-6 columns">
+                <h1 class="right"><?php echo $self->context->dictionary->translate('_poi'); ?></h1>
+            </div>
+            <div class="large-6 columns">
+                <?php foreach ($wikipediaEntries as $wikipediaEntry) { ?>
+                <h2><a href="<?php echo $wikipediaEntry['url']; ?>"><?php echo $wikipediaEntry['title']; ?></a></h2>
+                <p><?php echo $wikipediaEntry['summary']; ?></p>
+                <?php } ?>
+            </div>
+        </div>
+        <?php } ?>
+        
+             */
+            
             
         },
         

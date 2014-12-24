@@ -37,6 +37,9 @@ h3.small {
 h4.small {
     font-size:1.1em;
 }
+.smaller{
+    font-size:0.6em;
+}
 .hilite {
     font-weight: bold;
 }

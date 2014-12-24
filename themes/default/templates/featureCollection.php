@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <?php $_searchBar = true; ?>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $self->context->dictionary->language ?>">
-    <?php include 'head.php' ?>
+    <?php include '_head.php' ?>
     <body>
         
         <!-- Header -->
-        <?php include 'header.php' ?>
+        <?php include '_header.php' ?>
         
         <div class="off-canvas-wrap" data-offcanvas>
             
             <div class="inner-wrap">
                     
+                <!-- Metadata view -->
+                <div class="resto-panel" id="panel-metadata"></div>
+                
                 <!-- Map view -->
                 <div class="resto-panel" id="panel-map">
                     <div id="map" class="map"></div>
@@ -19,26 +22,16 @@
                 <!-- Result view -->
                 <div class="resto-panel active" id="panel-list">
 
-                    <!-- Query analyze result -->
-                    <!--
-                    <?php if (isset($self->context->query['_showQuery']) && $self->context->query['_showQuery']) { ?>
-                        <div class="resto-queryanalyze fixed"></div>
-                    <?php } ?>
-                    -->
-
                     <!-- Search result -->
                     <div class="row fullWidth" style="min-height:800px;">
                         <div class="large-12 columns">
                             <ul class="resto-features-container small-block-grid-1 medium-block-grid-2 large-block-grid-3"></ul>
                         </div>
                     </div>
-
-                    <!-- Detailed info -->
-                    <div id="feature-info-details" style="display:none"></div>
-
-                    <!-- Footer -->
-                    <?php include 'footer.php' ?>
+                    
                 </div>
+                
+                <!-- Left menu -->
                 <div class="left-off-canvas-menu lightfield text-dark">
                     <ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1 facets padded">
                         <li>
@@ -60,37 +53,24 @@
                             <span class="facets_what"></span>
                         </li>
                     </ul>
-                    <!--
-                    <?php if (isset($self->collection)) { ?>
-                    <div class="row fullWidth resto-collection-info">
-                        <div class="large-6 columns">
-                            <h1 class="right"><?php echo $self->collection->getOSProperty('ShortName'); ?></h1>
-                        </div>
-                        <div class="large-6 columns">
-                            <p class="text-light">
-                                <?php echo $self->collection->getOSProperty('Description'); ?>
-                            </p>
-                        </div>
-                    </div>
-                    <?php } ?>
-                    -->
                 </div>
+                
                 <!--<span style="position:absolute;left:-5px;top:0px;">
                     <a id="off-canvas-toggle" href="#" class="fa fa-chevron-right text-dark lightfield" style="padding:0px 15px 0px 15px;"></a>
                 </span>-->
+                
+                <!-- Footer -->
+                <?php include '_footer.php' ?>
+                    
             </div>
                 
         </div>
-        <script type="text/javascript">
-            Resto.init({
-                "issuer":'getCollection',
-                "translation":<?php echo json_encode($self->context->dictionary->getTranslation()) ?>,
-                "language":'<?php echo $self->context->dictionary->language; ?>',
-                "restoUrl":'<?php echo $self->context->baseUrl ?>',
-                "ssoServices":<?php echo json_encode($self->context->config['ssoServices']) ?>,
-                "userProfile":<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()),  array('cart' => isset($_SESSION['cart']) ? $_SESSION['cart'] : array()))) ?>
-                }, <?php echo $self->toJSON(); ?>
-            );
-        </script>
+        
+        <!-- Scripts -->
+        <?php
+            $_issuer = 'getCollection';
+            $_data = $self->toJSON();
+        ?>
+        <?php include '_scripts.php' ?>
     </body>
 </html>

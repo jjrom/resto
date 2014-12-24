@@ -79,6 +79,8 @@
         
         /**
          * Initialize map with input features array
+         * 
+         * @param {array} features
          */
         init: function (features) {
 
@@ -272,11 +274,11 @@
          * Update map size
          */
         updateSize: function () {
-            $('#map').height($(window).height() - $('.left-off-canvas-menu').offset().top);
+            $('#map').height($(window).height() - $('.left-off-canvas-menu').offset().top - $('.footer').height());
             this.size = {
                 w:$(window).width(),
                 h:$(window).height()
-            }
+            };
             if (this.isLoaded && this.map) {
                 this.map.updateSize();
             }
@@ -478,6 +480,8 @@
  * resto contextual menu
  * 
  * Code mainly from mapshup https://github.com/jjrom/mapshup/blob/master/client/js/mapshup/lib/core/Menu.js
+ * 
+ * @param {Object} window
  */
 (function (window) {
 

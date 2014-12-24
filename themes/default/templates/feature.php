@@ -3,7 +3,11 @@
     /*
      * Set variables
      */
-    $product = $self->toArray();          
+    $product = $self->toArray();  
+    
+    $_data = '{"type":"FeatureCollection","features":[' . $self->toJSON() . ']}';
+    $_issuer = 'getResource';
+    
     $thumbnail = $product['properties']['thumbnail'];
     $quicklook = $product['properties']['quicklook'];
     if (!isset($thumbnail) && isset($quicklook)) {
@@ -33,11 +37,11 @@
 ?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $self->context->dictionary->language ?>">
-    <?php include 'head.php' ?>
+    <?php include '_head.php' ?>
     <body>
         
         <!-- Header -->
-        <?php include 'header.php' ?>
+        <?php include '_header.php' ?>
       
         <!-- Collection title and description -->
         <div class="row fullWidth light">
@@ -151,18 +155,11 @@
         <?php } ?>
         
         <!-- Footer -->
-        <?php include 'footer.php' ?>
+        <?php include '_footer.php' ?>
         
+        <!-- scripts -->
+        <?php include '_scripts.php' ?>
         <script type="text/javascript">
-            Resto.init({
-                "issuer":'getResource',
-                "translation":<?php echo json_encode($self->context->dictionary->getTranslation()) ?>,
-                "language":'<?php echo $self->context->dictionary->language; ?>',
-                "restoUrl":'<?php echo $self->context->baseUrl ?>',
-                "ssoServices":<?php echo json_encode($self->context->config['ssoServices']) ?>,
-                "userProfile":<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()),  array('cart' => isset($_SESSION['cart']) ? $_SESSION['cart'] : array()))) ?>
-                }, <?php echo '{"type":"FeatureCollection","features":[' . $self->toJSON() . ']}' ?>
-            );
             $(document).ready(function(){
                 $('.downloadProduct').click(function(e){
                     e.preventDefault();

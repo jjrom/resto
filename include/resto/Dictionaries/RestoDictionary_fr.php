@@ -304,7 +304,7 @@ class RestoDictionary_fr extends RestoDictionary {
         '_addResource' => 'Ajouter une resource',
         '_dropResource' => 'Déposer un fichier de métadonnées',
         '_resultFor' => 'R&eacute;sultats correspondants &agrave; &#34;{a:1}&#34;',
-        '_resourceSummary' => 'Image {a:1} acquise le {a:2}',
+        '_resourceSummary' => '{a:2}</br><font class="smaller">{a:1}</font>',
         '_poi' => 'Point d\'int&eacute;r&ecirc;ts',
         // Menu
         '_menu_shareOn' => 'Partager sur {a:1}',

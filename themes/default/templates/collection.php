@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $self->context->dictionary->language ?>">
-    <?php include 'head.php' ?>
+    <?php include '_head.php' ?>
     <body>
         
         <!-- Header -->
-        <?php include 'header.php' ?>
+        <?php include '_header.php' ?>
         
         <div class="row fullWidth resto-title">
             <div class="large-12 columns">
@@ -24,18 +24,10 @@
         </div>
         
         <!-- Footer -->
-        <?php include 'footer.php' ?>
+        <?php include '_footer.php' ?>
         
-        <script type="text/javascript">
-            Resto.init({
-                "translation":<?php echo json_encode($self->context->dictionary->getTranslation()) ?>,
-                "language":'<?php echo $self->context->dictionary->language; ?>',
-                "restoUrl":'<?php echo $self->context->baseUrl ?>',
-                "ssoServices":<?php echo json_encode($self->context->config['ssoServices']) ?>,
-                "userProfile":<?php echo json_encode(!isset($_SESSION['profile']) ? array('userid' => -1) : array_merge($_SESSION['profile'], array('rights' => isset($_SESSION['rights']) ? $_SESSION['rights'] : array()))) ?>
-            });
-    </script>
-        
+        <!-- scripts -->
+        <?php include '_scripts.php' ?>
     </body>
     
 </html>
