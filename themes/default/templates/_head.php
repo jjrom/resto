@@ -1,7 +1,10 @@
 <head>
     <title><?php echo $self->context->dictionary->translate('_headerTitle'); ?></title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="shortcut icon" href="<?php echo $self->context->baseUrl ?>favicon.ico" />
     <link rel="stylesheet" href="<?php echo $self->context->baseUrl ?>js/lib/foundation/normalize.css" type="text/css" />
     <link href='http://fonts.googleapis.com/css?family=Roboto:300' rel='stylesheet' type='text/css'>
