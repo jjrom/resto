@@ -806,7 +806,7 @@
          */
         showMetadataPanel:function() {
             
-            var key, content, self = this, $div = $('#panel-metadata'), feature;
+            var i, ii, key, typeAndId, types, content, self = this, $div = $('#panel-metadata'), feature;
             
             if (!self.selectedId || !self.features[self.selectedId]) {
                 return false;
@@ -823,7 +823,7 @@
             content.push('<p class="center padded-top">');
             
             /*
-             * Download and add to cart actions
+             * "Download" and "Add to cart" actions
              */
             if (feature['properties']['services'] && feature['properties']['services']['download'] && feature['properties']['services']['download']['url']) {
                 content.push('<a class="fa fa-3x fa-cloud-download downloadProduct padded-right" href="' + feature.properties['services']['download']['url'] + '?lang=' + self.language + '" title="' + self.Util.translate('_download') + '"' + (feature.properties['services']['download']['mimeType'] === 'text/html' ? 'target="_blank"' : '') + '></a>');
@@ -833,6 +833,9 @@
             }
             content.push('</p></div>');
             
+            /*
+             * TODO : Collection description
+             */
             content.push('<div class="large-6 columns text-dark padded-top"></div></div>');
             
             /*
@@ -840,7 +843,6 @@
              */
             content.push('<div class="row resto-resource fullWidth light" style="padding-bottom:20px;"><div class="large-6 columns center"><img title="' + self.selectedId + '" class="resto-image" src="' + feature['properties']['quicklook'] + '"/></div>');
             content.push('<div class="large-6 columns"><table style="width:100%;"><table>');
-            
             for (key in feature['properties']) {
                 if ($.inArray(key, ['quicklook', 'thumbnail', 'links', 'services', 'keywords', 'updated', 'productId', 'landUse']) !== -1) {
                     continue;
@@ -849,43 +851,47 @@
                     content.push('<tr><td>' + self.Util.translate(key) + '</td><td>' + feature['properties'][key] + '</td></tr>');
                 }
             }
-            
             content.push('</table></div></div>');
+            
+            /*
+             * Location content
+             */
+            content.push('<div class="row resto-resource fullWidth dark"><div class="large-6 columns"><h1><span class="right">' + self.Util.translate('_location') + '</span></h1></div><div class="large-6 columns">');
+            if (feature['properties']['keywords']) {
+                types = ['continent', 'country', 'region', 'state'];
+                for (key in types) {
+                    for (i = 0, ii = feature['properties']['keywords'].length; i < ii; i++) {
+                        typeAndId = feature['properties']['keywords'][i]['id'].split(':');
+                        if (typeAndId[0].toLowerCase() === types[key] && feature['properties']['keywords'][i]['id'] !== 'region:_all') {
+                            content.push('<h2><a title="' + self.Util.translate('_thisResourceIsLocated', feature['properties']['keywords'][i]['name']) + '" href="' + self.Util.updateUrlFormat(feature['properties']['keywords'][i]['href'], 'html') + '">' + feature['properties']['keywords'][i]['name'] + '</a></h2>');
+                        }
+                    }
+                }
+            }
+            content.push('</div></div>');
+            
+            /*
+             * Thematic content (Landcover)
+             */
+            content.push('<div class="row resto-resource fullWidth light"><div class="large-6 columns"><h1><span class="right">' + self.Util.translate('_landUse') + '</span></h1></div><div class="large-6 columns">');
+            if (feature['properties']['keywords']) {
+                for (i = 0, ii = feature['properties']['keywords'].length; i < ii; i++) {
+                    typeAndId = feature['properties']['keywords'][i]['id'].split(':');
+                    if (typeAndId[0].toLowerCase() === 'landuse') {
+                        content.push('<h2>' + Math.round(feature['properties']['keywords'][i]['value']) + ' % <a title="' + self.Util.translate('_thisResourceContainsLanduse', feature['properties']['keywords'][i]['value'], feature['properties']['keywords'][i]['name']) + '" href="' + self.Util.updateUrlFormat(feature['properties']['keywords'][i]['href'], 'html') + '">' + feature['properties']['keywords'][i]['name'] + '</a></h2>');
+                    }
+                }
+            }
+            content.push('</div></div>');
+            
+            /*
+             * Population count
+             */
+            
             $div.html(content.join(''));
+            
+            /*
         
-        /*
-        <!-- Location content -->
-        <div class="row resto-resource fullWidth dark">
-            <div class="large-6 columns">
-                <h1><span class="right"><?php echo $self->context->dictionary->translate('_location'); ?></span></h1>
-            </div>
-            <div class="large-6 columns">
-            <?php
-            foreach(array_values(array('continent', 'country', 'region', 'state')) as $key) {
-                if (isset($product['properties']['keywords'])) {
-                        for ($i = 0, $l = count($product['properties']['keywords']); $i < $l; $i++) {
-                            list($type, $id) = explode(':', $product['properties']['keywords'][$i]['id'], 2);
-                            if (strtolower($type) === $key && $product['properties']['keywords'][$i]['id'] !== 'region:_all') { ?>
-                <h2><a title="<?php echo $self->context->dictionary->translate('_thisResourceIsLocated', $product['properties']['keywords'][$i]['name']) ?>" href="<?php echo RestoUtil::updateUrlFormat($product['properties']['keywords'][$i]['href'], 'html') ?>"><?php echo $product['properties']['keywords'][$i]['name']; ?></a></h2>
-            <?php }}}} ?>
-            </div>
-        </div>
-        
-        <!-- Thematic content (Landcover) -->
-        <div class="row resto-resource fullWidth light">
-            <div class="large-6 columns">
-                <h1><span class="right"><?php echo $self->context->dictionary->translate('_landUse'); ?></span></h1>
-            </div>
-            <div class="large-6 columns">
-            <?php
-                    if (isset($product['properties']['keywords'])) {
-                        for ($i = 0, $l = count($product['properties']['keywords']); $i < $l; $i++) {
-                            list($type, $id) = explode(':', $product['properties']['keywords'][$i]['id'], 2);
-                            if (strtolower($type) === 'landuse') { ?>
-                    <h2><?php echo round($product['properties']['keywords'][$i]['value']); ?> % <a title="<?php echo $self->context->dictionary->translate('_thisResourceContainsLanduse', $product['properties']['keywords'][$i]['value'], $product['properties']['keywords'][$i]['name']) ?>" href="<?php echo RestoUtil::updateUrlFormat($product['properties']['keywords'][$i]['href'], 'html') ?>"><?php echo $product['properties']['keywords'][$i]['name']; ?></a></h2>
-            <?php }}} ?>
-            </div>
-        </div>
         
         <!-- Population counter -->
         <?php if (isset($self->populationCounter)) { ?>
