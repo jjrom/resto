@@ -189,7 +189,7 @@ The configuration file is self explanatory. For a standard installation you shou
 
 Create an admin user within the database
         
-        $RESTO_HOME/_scripts/createAdminUser.sh -u admin -p admin
+        $RESTO_HOME/_install/createAdminUser.sh -u admin -p admin
 
 **Note : you should change the above script parameters to set a stronger password than 'admin' !!!**
 
@@ -204,7 +204,7 @@ Quick Start
 Create a collection
 -------------------
         
-        $RESTO_HOME/_scripts/createCollection.sh -f $RESTO_HOME/_examples/collections/Example.json -u admin:nimda
+        $RESTO_HOME/_scripts/createCollection.sh -f $RESTO_HOME/_examples/collections/Example.json -u admin:admin
 
 Access OpenSearch Description for a collection
 ----------------------------------------------
@@ -216,7 +216,7 @@ Delete a collection
 -------------------
 WARNING ! This will also destroy all the resources within the collection
 
-        $RESTO_HOME/_scripts/deleteCollection.sh -p -c Example -u admin:nimda
+        $RESTO_HOME/_scripts/deleteCollection.sh -p -c Example -u admin:admin
 
 List all collections
 --------------------
@@ -227,7 +227,7 @@ Insert a resource
 -----------------
 Only works for an existing collection (so create a collection first !)
 
-        $RESTO_HOME/_scripts/postResource.sh -c Example -f $RESTO_HOME/_examples/resources/resource_Example.json -u admin:nimda
+        $RESTO_HOME/_scripts/postResource.sh -c Example -f $RESTO_HOME/_examples/resources/resource_Example.json -u admin:admin
 
 
 Search for resources
@@ -269,7 +269,7 @@ You can POST collections descriptions using a "key=value" mechanism instead of f
 
 To do so, you need to encode the json file (using javascript encodeURIComponent for instance) - see $RESTO_HOME/_examples/collections/Example.txt - and run the following command
 
-        curl -X POST -d @$RESTO_HOME/_examples/collections/Example.txt http://admin:nimda@localhost/resto2/
+        curl -X POST -d @$RESTO_HOME/_examples/collections/Example.txt http://admin:admin@localhost/resto2/
 
 
 My collection contains products but the welcome page of my collection is empty 
