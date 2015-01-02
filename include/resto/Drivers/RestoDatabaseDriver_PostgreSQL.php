@@ -2225,8 +2225,9 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         
         /*
          * Prepare WHERE clause from filters
+         * NOTE : do not return features with visible property set to FALSE
          */
-        $filters = array();
+        $filters = array('visible=\'t\'');
         $exclude = array(
             'count',
             'startIndex',
