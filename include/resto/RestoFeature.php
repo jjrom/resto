@@ -342,7 +342,8 @@ class RestoFeature {
               $properties['resourceSize'],
               $properties['resourceChecksum'],
               $properties['bbox3857'],
-              $properties['bbox4326']  
+              $properties['bbox4326'],
+              $properties['visible']
         );
         
         $this->feature = array(
