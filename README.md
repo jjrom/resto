@@ -241,14 +241,14 @@ See resource metadata in Atom
 -----------------------------
 Only works on an existing resource (so insert resource first !)
 
-        curl "http://localhost/resto2/collections/Example/DS_SPOT6_201211101947221_FR1_FR1_FR1_FR1_W152S17_01809.atom"
+        curl "http://localhost/resto2/collections/Example/dda9cd5f-b3b9-5665-b1de-c78df8d3f1fb.atom"
 
 
 See resource metadata in GeoJSON
 --------------------------------
 Only works on an existing resource (so insert resource first !)
 
-        curl "http://localhost/resto2/collections/Example/DS_SPOT6_201211101947221_FR1_FR1_FR1_FR1_W152S17_01809.json"
+        curl "http://localhost/resto2/collections/Example/dda9cd5f-b3b9-5665-b1de-c78df8d3f1fb.json"
 
 
 Frequently Asked Questions
