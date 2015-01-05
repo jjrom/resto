@@ -671,7 +671,7 @@ class RestoFeature {
      * Download feature product
      */
     public function download() {
-        
+        $this->resourceInfos['path'] = '/tmp/velofull.mp4';
         /*
          * Not downloadable
          */
@@ -708,7 +708,7 @@ class RestoFeature {
              */
             $chunkSize = 1024 * 8;
             $fileSize = filesize($this->resourceInfos['path']);
-            if ($fileSize > $chunkSize) {
+            if ($fileSize < $chunkSize) {
                 echo file_get_contents($this->resourceInfos['path']);
                 return true;
             }
