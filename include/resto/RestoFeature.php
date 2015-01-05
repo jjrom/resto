@@ -671,7 +671,7 @@ class RestoFeature {
      * Download feature product
      */
     public function download() {
-        $this->resourceInfos['path'] = '/tmp/velofull.mp4';
+        
         /*
          * Not downloadable
          */
@@ -684,6 +684,7 @@ class RestoFeature {
          * (See http://stackoverflow.com/questions/157318/resumable-downloads-when-using-php-to-send-the-file)
          */
         if (isset($this->resourceInfos)) {
+            
             if (!isset($this->resourceInfos['path']) || !is_file($this->resourceInfos['path'])) {
                 throw new Exception('Not Found', 404);
             }
@@ -700,95 +701,11 @@ class RestoFeature {
                 header('Content-Type: ' . isset($this->resourceInfos['mimeType']) ? $this->resourceInfos['mimeType'] : 'application/unknown');
                 header('Content-Disposition: attachment; filename="' . basename($this->resourceInfos['path']) . '"');
                 header('Accept-Ranges: bytes');
-                return;
-            }
-            
-            /*
-             * Direct download for small files
-             */
-            $chunkSize = 1024 * 8;
-            $fileSize = filesize($this->resourceInfos['path']);
-            if ($fileSize < $chunkSize) {
-                echo file_get_contents($this->resourceInfos['path']);
-                return true;
-            }
-            
-            /*
-             * Read file
-             */
-            $file = @fopen($this->resourceInfos['path'], "rb");
-            if (isset($file)) {
-                
-                /*
-                 * Default headers with prevent caching
-                 */
-                header('HTTP/1.1 200 OK');
-                header('Pragma: public');
-                header('Expires: -1');
-                header('Cache-Control: public, must-revalidate, post-check=0, pre-check=0');
-                header('Content-Disposition: attachment; filename="' . basename($this->resourceInfos['path']) . '"');
-                header('Content-Type: ' . isset($this->resourceInfos['mimeType']) ? $this->resourceInfos['mimeType'] : 'application/unknown');
-                header('Accept-Ranges: bytes');
-                
-                /*
-                 * Range support
-                 * 
-                 * In case of multiple ranges requested, only the first range is served
-                 * (http://tools.ietf.org/id/draft-ietf-http-range-retrieval-00.txt)
-                 */
-                $range = '';
-                if (isset($_SERVER['HTTP_RANGE'])) {
-                    $splitted = explode('=', $_SERVER['HTTP_RANGE'], 2);
-                    if ($splitted[0] === 'bytes') {
-                        list($range, $unusued) = explode(',', $splitted[1], 2);
-                    }
-                    else {
-                        $range = '';
-                        header('HTTP/1.1 416 Requested Range Not Satisfiable');
-                        exit;
-                    }
-                }
-
-                /*
-                 * Partial download based on range
-                 */
-                $bounds = explode('-', $range, 2);
-                $seekEnd = empty($bounds[1]) ? ($fileSize - 1) : min(abs(intval($bounds[1])), ($fileSize - 1));
-                $seekStart = (empty($bounds[0]) || $seekEnd < abs(intval($bounds[0]))) ? 0 : max(abs(intval($bounds[0])), 0);
-                
-                /*
-                 * Only send partial content header if downloading a piece of the file
-                 * (IE workaround)
-                 */
-                if ($seekStart > 0 || $seekEnd < ($fileSize - 1)) {
-                    header('HTTP/1.1 206 Partial Content');
-                    header('Content-Range: bytes ' . $seekStart . '-' . $seekEnd . '/' . $fileSize);
-                    header('Content-Length: ' . ($seekEnd - $seekStart + 1));
-                }
-                else {
-                    header('Content-Length: ' . $fileSize);
-                }
-                
-                /*
-                 * Output without buffering to support large file 
-                 * downloads
-                 */
-                set_time_limit(0);
-                fseek($file, $seekStart);
-                while (!feof($file)) {
-                    $buffer = @fread($file, $chunkSize);
-                    echo $buffer;
-                    ob_flush();
-                    flush();
-                    if (connection_status() != 0) {
-                        return fclose($file);
-                    }
-                }
-                return fclose($file);
             }
             else {
-                throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Resource cannot be downloaded', 500);
+                RestoUtil::download($this->resourceInfos['path'], isset($this->resourceInfos['mimeType']) ? $this->resourceInfos['mimeType'] : 'application/octet-stream');
             }
+            return;
         }
         /*
          * Resource is on an external url
@@ -802,15 +719,15 @@ class RestoFeature {
             header('Content-Disposition: attachment; filename="' . basename($this->feature['properties']['services']['download']['url']) . '"');
             header('Content-Type: ' . isset($this->feature['properties']['services']['download']['mimeType']) ? $this->feature['properties']['services']['download']['mimeType'] : 'application/unknown');
             while (!feof($handle)) {
-                $buffer = @fread($handle, 1024 * 8);
+                $buffer = fread($handle, 10 * 1024 * 8);
                 echo $buffer;
                 ob_flush();
                 flush();
                 if (connection_status() != 0) {
-                    return fclose($file);
+                    return fclose($handle);
                 }
             }
-            return fclose($file);
+            return fclose($handle);
         }
         /*
          * Not Found
