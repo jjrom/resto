@@ -2289,7 +2289,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 $featuresArray[] = $this->correctTypes($model, $result);
             }
         } catch (Exception $e) {
-            return new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
         }
         
         return $featuresArray;
@@ -2315,7 +2315,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
            }
            return $this->correctTypes($model, pg_fetch_assoc($result));
         } catch (Exception $e) {
-            return new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
         }      
     }
     
@@ -2358,7 +2358,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             $this->storeInCache(array('getKeywords', $language, $types), $keywords);
         } catch (Exception $e) {
-            return new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
         }
 
         return array('keywords' => $keywords);
