@@ -1033,5 +1033,67 @@ class RestoUtil {
         }
 
     }
+    
+    /**
+     * Sanitize input parameter to avoid code injection
+     *   - remove hexadecimal input
+     *   - remove html tags
+     * 
+     * @param {String or Array} $strOrArray
+     */
+    public static function sanitize($strOrArray) {
+        
+        if (!isset($strOrArray)) {
+            return null;
+        }
+        
+        if (is_array($strOrArray)) {
+            $result = array();
+            foreach ($strOrArray as $key => $value) {
+                
+                /*
+                 * No Hexadecimal allowed
+                 */
+                if (ctype_xdigit($value)) {
+                    continue;
+                }
+                /*
+                 * Remove html tags
+                 */
+                else if (is_string($value)) {
+                    $result[$key] = strip_tags($value);
+                }
+                /*
+                 * Let value untouched
+                 */
+                else {
+                    $result[$key] = $value;
+                }
+            }
+            return $result;
+        }
+        else {
+
+            /*
+             * No Hexadecimal allowed
+             */
+            if (ctype_xdigit($strOrArray)) {
+                return null;
+            }
+            /*
+             * Remove html tags
+             */
+            else if (is_string($strOrArray)) {
+                return strip_tags($strOrArray);
+            }
+            /*
+             * Let value untouched
+             */
+            else {
+                return $strOrArray;
+            }
+        }
+        
+    }
 
 }

@@ -838,7 +838,7 @@ class Resto {
             if (!is_array($data) || count($data) === 0) {
                 throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid items', 400);
             }
-            $items = $user->addToCart($data, true);
+            $items = $user->addToCart($data, true);            
             if ($items) {
                 $this->response = $this->toJSON(array(
                     'status' => 'success',
@@ -1306,13 +1306,13 @@ class Resto {
         $params = array();
         switch ($this->method) {
             case 'GET':
-                $params = $_GET;
+                $params = RestoUtil::sanitize($_GET);
                 break;
             case 'POST':
-                $params = array_merge($_POST, $_GET);
+                $params = array_merge($_POST, RestoUtil::sanitize($_GET));
                 break;
             case 'DELETE':
-                $params = $_GET;
+                $params = RestoUtil::sanitize($_GET);
                 break;
             default:
                 break;
@@ -1362,20 +1362,23 @@ class Resto {
         /*
          * Extract path
          */
-        $this->path = trim(isset($_GET['RESToURL']) && !empty($_GET['RESToURL']) ? (substr($_GET['RESToURL'], -1) === '/' ? substr($_GET['RESToURL'], 0, strlen($_GET['RESToURL']) - 1) : $_GET['RESToURL']) : '');
-        
-        $splitted = explode('.', $this->path);
-        $size = count($splitted);
-        if ($size > 1) {
-            if (array_key_exists($splitted[$size - 1], RestoUtil::$contentTypes)) {
-                $this->outputFormat = $splitted[$size - 1];
-                array_pop($splitted);
-                $this->path = join('.', $splitted);
-            } else {
-                throw new Exception(($this->config['general']['debug'] ? __METHOD__ . ' - ' : '') . 'Not Found', 404);
+        $this->path = '';
+        if (isset($_GET['RESToURL']) && !empty($_GET['RESToURL'])) {
+            $restoUrl = RestoUtil::sanitize($_GET['RESToURL']);
+            $this->path = substr($restoUrl, -1) === '/' ? substr($restoUrl, 0, strlen($restoUrl) - 1) : $restoUrl;
+            $splitted = explode('.', $this->path);
+            $size = count($splitted);
+            if ($size > 1) {
+                if (array_key_exists($splitted[$size - 1], RestoUtil::$contentTypes)) {
+                    $this->outputFormat = $splitted[$size - 1];
+                    array_pop($splitted);
+                    $this->path = join('.', $splitted);
+                } else {
+                    throw new Exception(($this->config['general']['debug'] ? __METHOD__ . ' - ' : '') . 'Not Found', 404);
+                }
             }
+            unset($_GET['RESToURL']);
         }
-        unset($_GET['RESToURL']);
         
         /*
          * Output format is always JSON for HTTP methods except GET
@@ -1441,7 +1444,7 @@ class Resto {
          * Dictionary
          */
         $languages = isset($this->config['general']['languages']) ? $this->config['general']['languages'] : array('en');
-        $lang = substr(isset($_GET['lang']) ? $_GET['lang'] : $this->getLanguage(), 0, 2);
+        $lang = substr(isset($_GET['lang']) ? RestoUtil::sanitize($_GET['lang']) : $this->getLanguage(), 0, 2);
         if (!in_array($lang, $languages) || !class_exists('RestoDictionary_' . $lang)) {
             $lang = 'en';
         }
@@ -1609,7 +1612,7 @@ class Resto {
          */
         else if ($this->config['modules']['OAuth'] && $this->config['modules']['OAuth']['activate'] === true && class_exists('OAuth')) {
             $oauth = new OAuth(null, null, array_merge($this->config['modules']['OAuth']['options'], array('debug' => $this->debug)));
-            $userIdentifier = $oauth->authenticate(isset($_GET['access_token']) ? $_GET['access_token'] : null, isset($_GET['issuer_id']) ? $_GET['issuer_id'] : null);
+            $userIdentifier = $oauth->authenticate(isset($_GET['access_token']) ? RestoUtil::sanitize($_GET['access_token']) : null, isset($_GET['issuer_id']) ? RestoUtil::sanitize($_GET['issuer_id']) : null);
             if ($userIdentifier) {
                 $trimed = trim(strtolower($userIdentifier));
                 if (!$this->dbDriver->userExists($trimed)) {
@@ -1626,7 +1629,7 @@ class Resto {
                     ));
                 }
                 $this->user = new RestoUser($trimed, null, $this->context);
-                $_SESSION['access_token'] = $_GET['access_token'];
+                $_SESSION['access_token'] = RestoUtil::sanitize($_GET['access_token']);
             }
         }
         

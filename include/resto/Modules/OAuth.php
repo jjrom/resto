@@ -86,8 +86,8 @@ class OAuth extends RestoModule {
         /*
          * No code - no authorization
          */
-        $code = isset($_GET['code']) ? $_GET['code'] : null;
-        $issuerId = isset($_GET['issuer_id']) ? $_GET['issuer_id'] : null;
+        $code = isset($_GET['code']) ? RestoUser::sanitize($_GET['code']) : null;
+        $issuerId = isset($_GET['issuer_id']) ? RestoUser::sanitize($_GET['issuer_id']) : null;
         if (!$code || !$issuerId) {
             throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Bad Request', 400);
         }
