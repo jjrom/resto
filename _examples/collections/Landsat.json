@@ -25,7 +25,7 @@
         }
     },
     "propertiesMapping":{
-        "authority": "CNES",
+        "oragnisationName": "CNES",
         "parentIdentifier": "urn:ogc:def:EOP:CNES::Landsat:",
         "quicklook" : "http://spirit.cnes.fr/landsat/ql/{:productIdentifier:}.png",
         "thumbnail" : "http://spirit.cnes.fr/landsat/ql/{:productIdentifier:}_thumb.png",

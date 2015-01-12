@@ -174,7 +174,7 @@ class RestoCollection {
      *          },
      *          "propertiesMapping": {
      *              "identifier": "{a:1} will be replaced by identifier property value",
-     *              "authority": "This is a constant"
+     *              "organisationName": "This is a constant"
      *              ...
      *          }
      *      }

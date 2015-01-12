@@ -79,7 +79,7 @@ abstract class RestoModel {
             'name' => 'description',
             'type' => 'TEXT'
         ),
-        'authority' => array(
+        'organisationName' => array(
             'name' => 'authority',
             'type' => 'TEXT'
         ),
@@ -401,8 +401,8 @@ abstract class RestoModel {
             )
         ),
         'eo:organisationName' => array(
-            'key' => 'authority',
-            'osKey' => 'authority',
+            'key' => 'organisationName',
+            'osKey' => 'organisationName',
             'operation' => '='
         ),
         'eo:orbitNumber' => array(
