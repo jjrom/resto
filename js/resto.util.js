@@ -77,7 +77,7 @@
             if (!jqueryObj || !jqueryObj.length) {
                 return '';
             }
-            return ($.type(jqueryObj) === 'string' ? jqueryObj : jqueryObj.val()).replace( /<.*?>/g, '' );
+            return ($.type(jqueryObj) === 'string' ? jqueryObj : jqueryObj.val()).replace( /<.*?>/g, '' ).replace(/"/g, '&quot;').replace(/&/g, '&amp;');
         },
         
         /**
@@ -163,7 +163,7 @@
 
             for (key in sourceParams) {
                 if (sourceParams[key] !== null) {
-                    newParamsString += key + "=" + sourceParams[key] + "&";
+                    newParamsString += key + "=" + encodeURIComponent(sourceParams[key]) + "&";
                 }
             }
 
