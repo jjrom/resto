@@ -135,7 +135,7 @@
                     new ol.control.FullScreen()
                 ]),
                 layers:[bgLayer, self.layer],
-                renderer: 'canvas',
+                /*renderer: 'canvas',*/
                 target: 'map',
                 view: new ol.View({
                     center: [0, 0],
@@ -728,7 +728,9 @@
                         title:window.Resto.Util.translate('_viewMetadata', [feature.getId()]),
                         callback:function(scope) {
                             if (feature) {
-                                window.location = window.Resto.restoUrl + 'collections/' + properties['collection'] + '/' + feature.getId() + '.html?lang=' + window.Resto.language;
+                                window.Resto.selectedId = feature.getId();
+                                window.Resto.switchTo('panel-metadata');
+                                //window.location = window.Resto.restoUrl + 'collections/' + properties['collection'] + '/' + feature.getId() + '.html?lang=' + window.Resto.language;
                             }
                         }
                     }
