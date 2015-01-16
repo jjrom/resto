@@ -46,11 +46,9 @@ It is very important to specify strong passwords for this user.
 
 To install resto2 database, launch the following script
 
-        $RESTO_HOME/_install/installDB.sh -F -d <PostGIS directory> -p <resto user password>
+        $RESTO_HOME/_install/installDB.sh -F -p <resto user password>
 
-Note1 : <PostGIS directory> should be replaced by the directory containing both postgis.sql and spatial_ref_sys.sql (e.g. /usr/local/share/postgis/)
-
-Note2 : installation script supposed that the PostgreSQL superuser name is 'postgres' (otherwise add '-s <superusername>' to the above command)
+Note1 : installation script supposed that the PostgreSQL superuser name is 'postgres' (otherwise add '-s <superusername>' to the above command)
 and that it has access to psql on localhost without password.
 
 Deploy application
