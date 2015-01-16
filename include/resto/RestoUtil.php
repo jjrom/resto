@@ -1036,7 +1036,6 @@ class RestoUtil {
     
     /**
      * Sanitize input parameter to avoid code injection
-     *   - remove hexadecimal input
      *   - remove html tags
      * 
      * @param {String or Array} $strOrArray
@@ -1052,15 +1051,9 @@ class RestoUtil {
             foreach ($strOrArray as $key => $value) {
                 
                 /*
-                 * No Hexadecimal allowed
-                 */
-                if (ctype_xdigit($value)) {
-                    continue;
-                }
-                /*
                  * Remove html tags
                  */
-                else if (is_string($value)) {
+                if (is_string($value)) {
                     $result[$key] = strip_tags($value);
                 }
                 /*
