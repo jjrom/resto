@@ -248,7 +248,7 @@ class RestoUser{
      * @param RestoCollection $collection
      */
     public function hasToSignLicense($collection) {
-        if (isset($collection->license)) {
+        if (!empty($collection->license)) {
             if (!isset($this->profile['email']) || !$this->context->dbDriver->licenseSigned($this->profile['email'], $collection->name)) {
                 return true;
             }

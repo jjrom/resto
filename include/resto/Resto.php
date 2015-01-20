@@ -1067,10 +1067,10 @@ class Resto {
                  */
                 $this->outputFormat = 'json';
                 
-                if (!$this->user->canDownload($collectionName, $featureIdentifier, $this->getBaseURL() .  $this->context->path, isset($this->context->query['_tk']) ? $this->context->query['_tk'] : null)) {
+                if (!$this->user->canDownload($collectionName, $featureIdentifier, $this->getBaseURL() .  $this->context->path, !empty($this->context->query['_tk']) ? $this->context->query['_tk'] : null)) {
                     throw new Exception('Forbidden', 403);
                 }
-                else if ($this->user->hasToSignLicense($collection)) {
+                else if ($this->user->hasToSignLicense($collection) && empty($this->context->query['_tk'])) {
                     $this->response = RestoUtil::json_format(array('ErrorMessage' => 'Forbidden', 'collection' => $collection->name, 'license' => $collection->getLicense(), 'ErrorCode' => 3002));
                 }
                 else {
