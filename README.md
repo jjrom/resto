@@ -145,12 +145,29 @@ Note: a step by step guide for installing https on Mac OS X is provided in the F
 PostgreSQL configuration
 ------------------------
 
-Note: the following configuration is optional but it is safer from a security point of view to do it like this.
+Two configurations are possible :
+
+* A socket configuration (**prefered** if PostgreSQL and Apache are on the same server you should)
+* A TCP/IP configuration
+
+** Socket configuration **
+
+Edit $RESTO_TARGET/include/config.php and comment the general/host parameter
 
 Edit the PostgreSQL pg_hba.conf file and add the following rules :
 
         # Configuration for resto framework
-        local  all     resto                                        password
+        local  resto2     resto                                        md5
+
+Then restart postgresql (e.g. "pg_ctl restart")
+
+** TCP/IP configuration **
+
+Edit $RESTO_TARGET/include/config.php and uncomment the general/host parameter to set the right IP of the PostgreSQL server (default 'localhost')
+
+Edit the PostgreSQL pg_hba.conf file and add the following rules :
+
+        # Configuration for resto framework
         host   resto2   resto                   127.0.0.1/32            md5
         host   resto2   resto                   ::1/128                 md5
 
