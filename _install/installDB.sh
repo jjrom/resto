@@ -371,6 +371,9 @@ ALTER TABLE public.spatial_ref_sys OWNER TO $USER;
 ALTER TABLE resto.features OWNER TO $USER;
 ALTER DATABASE $DB OWNER TO $USER;
 
+-- REVOKE rights on public schema
+REVOKE CREATE ON SCHEMA public FROM PUBLIC;
+
 -- SET user RIGHTS
 GRANT ALL ON geometry_columns TO $USER;
 GRANT ALL ON geography_columns TO $USER;
