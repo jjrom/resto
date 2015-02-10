@@ -369,6 +369,7 @@ ALTER TABLE public.geometry_columns OWNER TO $USER;
 ALTER TABLE public.geography_columns OWNER TO $USER;
 ALTER TABLE public.spatial_ref_sys OWNER TO $USER;
 ALTER TABLE resto.features OWNER TO $USER;
+ALTER DATABASE $DB OWNER TO $USER;
 
 -- SET user RIGHTS
 GRANT ALL ON geometry_columns TO $USER;
