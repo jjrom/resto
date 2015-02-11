@@ -158,8 +158,11 @@
                     return true;
                 }
                 
-                var serialized = '?', kvps = $.extend(self.Util.extractKVP(window.History.getState().cleanUrl), self.Util.extractKVP('&' + $(this).serialize()));
-                
+                var serialized = '?', kvps = [];
+                $('#resto-searchform :input').each(function(index) {
+                    kvps[$(this).get(0).name] = $(this).val();
+                });
+                kvps = $.extend(self.Util.extractKVP(window.History.getState().cleanUrl), kvps);
                 if (window.Resto.Map.isVisible()) {
                     kvps['box'] = window.Resto.Map.getExtent().join(',');
                 }
@@ -454,14 +457,14 @@
          */
         updateFacets: function (query) {
             
-            var i, key, where = [], when = [], what = [], self = this;
+            var i, key, where = [], when = [], what = [];
             query = query || {};
             
             /*
              * Update search input form
              */
             if ($('#search').length > 0) {
-                $('#search').val(query ? self.Util.sanitizeValue(query.original.searchTerms) : '');
+                $('#search').val(query ? query.original.searchTerms : '');
             }
             
             /*
@@ -550,7 +553,7 @@
             }
             
             if (!options.append && json.features.length === 0) {
-                self.Util.dialog(self.Util.translate('_noSearchResultsTitle'), self.Util.translate('_noSearchResultsFor', [json.properties.query ? self.Util.sanitizeValue(json.properties.query.original.searchTerms) : '']));
+                self.Util.dialog(self.Util.translate('_noSearchResultsTitle'), self.Util.translate('_noSearchResultsFor', [json.properties.query ? json.properties.query.original.searchTerms : '']));
             }
             
             /*
@@ -578,7 +581,7 @@
          * @param {jQueryObject} $container
          */
         updateGetCollectionResultEntries: function(json, $container) {
-
+            
             var i, ii, j, k, image, feature, $div, bottomInfos, topInfos, self = this;
 
             json = json || {};
@@ -1035,7 +1038,7 @@
              */
             $('.shareOnFacebook').click(function(e) {
                 e.preventDefault();
-                window.open('https://www.facebook.com/sharer.php?u=' + encodeURIComponent(window.History.getState().cleanUrl) + '&t=' + encodeURIComponent(self.Util.sanitizeValue($('#search'))));
+                window.open('https://www.facebook.com/sharer.php?u=' + encodeURIComponent(window.History.getState().cleanUrl) + '&t=' + encodeURIComponent($('#search')));
                 return false;
             });
 
@@ -1044,7 +1047,7 @@
              */
             $('.shareOnTwitter').click(function(e) {
                 e.preventDefault();
-                window.open('http://twitter.com/intent/tweet?status=' + encodeURIComponent(self.Util.sanitizeValue($('#search')) + " - " + window.History.getState().cleanUrl));
+                window.open('http://twitter.com/intent/tweet?status=' + encodeURIComponent($('#search') + " - " + window.History.getState().cleanUrl));
                 return false;
             });
 
@@ -1195,7 +1198,7 @@
             $.ajax({
                 url: Resto.restoUrl + 'api/users/connect',
                 headers: {
-                    'Authorization': "Basic " + btoa(Resto.Util.sanitizeValue($('#userEmail')) + ":" + Resto.Util.sanitizeValue($('#userPassword')))
+                    'Authorization': "Basic " + btoa($('#userEmail') + ":" + $('#userPassword'))
                 },
                 dataType: 'json',
                 cache:false
@@ -1217,9 +1220,9 @@
          * Register
          */
         signUp: function() {
-            var username = Resto.Util.sanitizeValue($('#userName')), 
-                password1 = Resto.Util.sanitizeValue($('#userPassword1')),
-                email = Resto.Util.sanitizeValue($('#r_userEmail')),
+            var username = $('#userName'), 
+                password1 = $('#userPassword1'),
+                email = $('#r_userEmail'),
                 $div = $('#displayRegister');
 
             if (!email || !Resto.Util.isEmailAdress(email)) {
@@ -1241,8 +1244,8 @@
                         email: email,
                         password: password1,
                         username: username,
-                        givenname: Resto.Util.sanitizeValue($('#firstName')),
-                        lastname: Resto.Util.sanitizeValue($('#lastName'))
+                        givenname: $('#firstName'),
+                        lastname: $('#lastName')
                     }
                 }).done(function (data) {
                     if (data && data.status === 'success') {
