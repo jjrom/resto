@@ -208,11 +208,6 @@ Create an admin user within the database
 
 **Note : you should change the above script parameters to set a stronger password than 'admin' !!!**
 
-masphup configuration
----------------------
-
-Edit $RESTO_TARGET/themes/default/config.js and set c["general"].rootUrl value to $RESTO_TARGET url  
-
 Quick Start
 ===========
 
