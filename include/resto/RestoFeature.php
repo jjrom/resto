@@ -42,7 +42,7 @@
  * RESTo Feature
  */
 class RestoFeature {
-    
+
     /*
      * Feature unique identifier 
      */
@@ -153,6 +153,21 @@ class RestoFeature {
             $this->model = $this->collection->model;
         }
         
+        /*
+         * Update dynamically metadata, quicklook and thumbnail path if required before the replaceInTemplate
+         */
+        if (method_exists($this->model,'generateMetadataPath')) {
+            $properties['metadata'] = $this->model->generateMetadataPath($properties);
+        }
+
+        if (method_exists($this->model,'generateQuicklookPath')) {
+            $properties['quicklook'] = $this->model->generateQuicklookPath($properties);
+        }
+
+        if (method_exists($this->model,'generateThumbnailPath')) {
+            $properties['thumbnail'] = $this->model->generateThumbnailPath($properties);
+        }
+
         /*
          * Modify properties as defined in collection propertiesMapping associative array
          */
@@ -286,7 +301,7 @@ class RestoFeature {
                 $properties['services']['download']['checksum'] = $properties['resourceChecksum'];
             }
             $this->resourceInfos = array(
-                'path' => $properties['resource'],
+                'path' => method_exists($this->model,'generateResourcePath') ? $this->model->generateResourcePath($properties) : $properties['resource'],
                 'mimeType' => $properties['services']['download']['mimeType'],
                 'size' => isset($properties['services']['download']['size']) ? $properties['services']['download']['size'] : null,
                 'checksum' => isset($properties['services']['download']['checksum']) ? $properties['services']['download']['checksum'] : null
