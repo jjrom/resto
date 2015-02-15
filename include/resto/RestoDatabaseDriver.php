@@ -392,14 +392,13 @@ abstract class RestoDatabaseDriver {
     abstract public function disconnectUser($identifier);
     
     /**
-     * Return true if $userid is connected (from $sessionid)
+     * Return true if $userid is connected
      * 
      * @param string $userid
-     * @param string $sessionid
      * 
      * @throws Exception
      */
-    abstract public function userIsConnected($userid, $sessionid);
+    abstract public function userIsConnected($userid);
     
     /**
      * Return rights from user $identifier

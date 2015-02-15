@@ -2,3 +2,6 @@
 /include/resto/Modules/Administration.php
 /themes/default/Modules/Administration/
 /include/resto/Modules/PopulationCounter.php
+/js/lib/ol3-cesium/
+/js/lib/slick/
+/js/lib/responsiveslides/

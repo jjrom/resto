@@ -63,12 +63,6 @@ return array(
         'languages' => array('en', 'fr'),
         
         /*
-         * Default theme directory name for HTML display
-         * Theme directory must be located under $RESTO_BUILD/themes
-         */
-        'theme' => 'default',
-        
-        /*
          * Debug mode
          */
         'debug' => true,
@@ -87,7 +81,13 @@ return array(
          * Shared links validity duration (in seconds)
          * Default is 1 day (i.e. 86400 seconds)
          */
-        'sharedLinksDuration' => 86400
+        'sharedLinksDuration' => 86400,
+        
+        /*
+         * JSON Web Token passphrase
+         * (see https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32)
+         */
+        'passphrase' => 'Super secret passphrase'
     ),
     
     /*
@@ -157,32 +157,25 @@ return array(
         /*
          * OAuth authentication module
          */
-        'OAuth' => array(
+        'Auth' => array(
             'activate' => true,
-            'route' => 'api/oauth/callback',
+            'route' => 'api/auth',
             'options' => array(
                 'providers' => array(
                     'google' => array(
-                        'button' => '<a class="fa fa-3x fa-google-plus-square" style="color:#fff;padding:20px 5px;" title="Google"></a>',
-                        'issuer_id' => 'accounts.google.com',
-                        'clientId' => '===>INSERT YOUR OWN<===',
-                        'clientSecret' => '===>INSERT YOUR OWN<===',
-                        'authorizeUrl' => 'https://accounts.google.com/o/oauth2/auth?response_type=code&scope=openid%20email%20profile',
-                        'accessTokenUrl' => 'https://accounts.google.com/o/oauth2/token?',
-                        'userInfoUrl' => 'https://www.googleapis.com/plus/v1/people/me/openIdConnect?',
-                        'uidKey' => 'email',
-                        'useBearer' => false
+                        'clientId' => '===>Insert your clienId here<===',
+                        'clientSecret' => '===>Insert your clienSecret here<==='
                     ),
                     'linkedin' => array(
-                        'button' => '<a class="fa fa-3x fa-linkedin-square" style="color:#fff;padding:20px 5px;" title="Linkedin"></a>',
-                        'issuer_id' => 'linkedin.com',
-                        'clientId' => '===>INSERT YOUR OWN<===',
-                        'clientSecret' => '===>INSERT YOUR OWN<===',
-                        'authorizeUrl' => 'https://www.linkedin.com/uas/oauth2/authorization?response_type=code&scope=r_basicprofile%20r_emailaddress&state=DCEEFWF45453sdffef424',
-                        'accessTokenUrl' => 'https://www.linkedin.com/uas/oauth2/accessToken?',
-                        'userInfoUrl' => 'https://api.linkedin.com/v1/people/~:(email-address,picture-url,id)?',
-                        'uidKey' => 'emailAddress',
-                        'useBearer' => false
+                        'clientId' => '===>Insert your clienId here<===',
+                        'clientSecret' => '===>Insert your clienSecret here<==='
+                    ),
+                    'theiatest' => array(
+                        'protocol' => 'oauth2',
+                        'clientId' => '===>Insert your clienSecret here<===',
+                        'clientSecret' => '===>Insert your clienSecret here<===',
+                        'accessTokenUrl' => 'https://ids-psc.kalimsat.eu:9443/oauth2/token',
+                        'peopleApiUrl' => 'https://sso.kalimsat.eu/oauth2/userinfo?schema=openid'
                     )
                 )
             )
@@ -199,54 +192,32 @@ return array(
         /*
          * Gazetteer module - enable location based search
          * Note : set database options if gazetteer is not installed in RESTo database
+         * 
+         * !!! Require iTag !!!
          */
         'Gazetteer' => array(
-            'activate' => true,
-            'route' => 'api/gazetteer/search',
-            'options' => array(
-                'database' => array(
-                    'dbname' => 'itag',
-                    'schema' => 'gazetteer',
-                    'host' => 'localhost',
-                    'port' => 5432,
-                    'user' => 'itag',
-                    'password' => 'itag'
-                )
-            )
+            'activate' => false,
+            'route' => 'api/gazetteer/search'
         ),
         
         /*
          * Wikipedia module - enable location based wikipedia entries display
+         * 
+         * !!! Require iTag !!!
          */
         'Wikipedia' => array(
-            'activate' => true,
-            'route' => 'api/wikipedia/search',
-            'options' => array(
-                'database' => array(
-                    'dbname' => 'itag',
-                    'schema' => 'gazetteer',
-                    'host' => 'localhost',
-                    'port' => 5432,
-                    'user' => 'itag',
-                    'password' => 'itag'
-                )
-            )
+            'activate' => false,
+            'route' => 'api/wikipedia/search'
         ),
         
         /*
          * iTag module - automatically tag posted feature 
+         * 
+         * !!! Require iTag !!!
          */
         'iTag' => array(
-            'activate' => true,
-            'options' => array(
-                'database' => array(
-                    'dbname' => 'itag',
-                    'host' => 'localhost',
-                    'port' => 5432,
-                    'user' => 'itag',
-                    'password' => 'itag'
-                )
-            )
+            'activate' => false
         )
+        
     )
 );

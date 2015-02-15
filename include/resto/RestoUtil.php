@@ -961,12 +961,9 @@ class RestoUtil {
             $size = sprintf('%u', filesize($path));
            
             if (is_resource($file) === true) {
+                
                 set_time_limit(0);
 
-                if (strlen(session_id()) > 0) {
-                    session_write_close();
-                }
-                
                 /*
                  * Range support
                  * 

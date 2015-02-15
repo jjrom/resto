@@ -71,12 +71,6 @@ class RestoCart{
         $this->context = $context;
         if ($synchronize) {
             $this->items = $this->context->dbDriver->getCartItems($this->user->profile['email']);
-            if (isset($_SESSION)) {
-                $_SESSION['cart'] = $this->items;
-            }
-        }
-        else if (isset($_SESSION) && isset($_SESSION['cart'])) {
-            $this->items = $_SESSION['cart'];
         }
     }
     

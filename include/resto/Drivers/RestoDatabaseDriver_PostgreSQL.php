@@ -232,20 +232,19 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     }
     
     /**
-     * Return true if $userid is connected (from $sessionid)
+     * Return true if $userid is connected
      * 
      * @param string $identifier : userid or email
-     * @param string $sessionid
      * 
      * @throws Exception
      */
-    public function userIsConnected($identifier, $sessionid) {
+    public function userIsConnected($identifier) {
         
-        if (!isset($identifier) || !isset($sessionid)) {
+        if (!isset($identifier)) {
             return false;
         }
         $where = ctype_digit($identifier) ? 'userid=' . $identifier : 'email=\'' . pg_escape_string($identifier) . '\'';
-        $results = pg_query($this->dbh, 'SELECT lastsessionid FROM usermanagement.users WHERE ' . $where . ' AND lastsessionid=\'' . pg_escape_string($sessionid) . '\'');
+        $results = pg_query($this->dbh, 'SELECT connected FROM usermanagement.users WHERE ' . $where);
         if (!$results) {
             throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
         }
@@ -1129,10 +1128,9 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 isset($profile['lastname']) ? '\'' . pg_escape_string($profile['lastname']) . '\'' : 'NULL',
                 '\'' . pg_escape_string(sha1($email . microtime())) . '\'',
                 isset($profile['activated']) ? 'TRUE' : 'FALSE',
-                'now()',
-                isset($profile['lastsessionid']) ? '\'' . pg_escape_string($profile['lastsessionid']) . '\'' : 'NULL'
+                'now()'
             );
-            $results = pg_query($this->dbh, 'INSERT INTO usermanagement.users (email,password,groupname,username,givenname,lastname,activationcode,activated,registrationdate,lastsessionid) VALUES (' . join(',', $values) . ') RETURNING userid, activationcode');
+            $results = pg_query($this->dbh, 'INSERT INTO usermanagement.users (email,password,groupname,username,givenname,lastname,activationcode,activated,registrationdate) VALUES (' . join(',', $values) . ') RETURNING userid, activationcode');
             if (!$results) {
                 throw new Exception('Database connection error', 500);
             }
@@ -1160,7 +1158,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             }
             
             /*
-             * Only password, groupname, activated and lastsessionid fields can be updated
+             * Only password, groupname, activated and connected fields can be updated
              */
             $values = array();
             if (isset($profile['password'])) {
@@ -1177,8 +1175,13 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     $values[] = 'activated=FALSE';
                 }
             }
-            if (isset($profile['lastsessionid'])) {
-                $values[] = 'lastsessionid=\'' .  pg_escape_string($profile['lastsessionid']) . '\'';
+            if (isset($profile['connected'])) {
+                if ($profile['connected'] === true) {
+                    $values[] = 'connected=TRUE';
+                }
+                else if ($profile['connected'] === false) {
+                    $values[] = 'connected=FALSE';
+                }
             }
             $results = pg_query($this->dbh, 'UPDATE usermanagement.users SET ' . join(',', $values) . ' WHERE email=\'' . pg_escape_string(trim(strtolower($profile['email']))) .'\' RETURNING userid');
             if (!$results) {
@@ -1206,7 +1209,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             if (ctype_digit($identifier)) {
                 $where = 'userid=' . $identifier;
             }
-            pg_query($this->dbh, 'UPDATE usermanagement.users SET lastsessionid=NULL WHERE ' . $where);
+            pg_query($this->dbh, 'UPDATE usermanagement.users SET connected=FALSE WHERE ' . $where);
         } catch (Exception $e) {
             return false;
         }   
@@ -1249,7 +1252,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 $idColumn = 'userid';
                 $idValue = $identifier;
             }
-            $results = pg_query($this->dbh, 'SELECT userid, email, groupname, username, givenname, lastname, registrationdate, activated, lastsessionid FROM usermanagement.users WHERE ' . $idColumn . '=' . $idValue . '' . $checkpassword);
+            $results = pg_query($this->dbh, 'SELECT userid, email, groupname, username, givenname, lastname, registrationdate, activated, connected FROM usermanagement.users WHERE ' . $idColumn . '=' . $idValue . '' . $checkpassword);
             if (!$results) {
                 throw new Exception();
             }
@@ -1280,7 +1283,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      */
     public function getUsersProfiles($keyword = null, $min = 0, $number = 50) {
         try {
-            $results = pg_query($this->dbh, 'SELECT userid, email, groupname, username, givenname, lastname, registrationdate, activated, lastsessionid FROM usermanagement.users ' . (isset($keyword) ? 'WHERE email LIKE \'%'  . $keyword . '%\' OR username LIKE \'%' . $keyword .'%\' OR groupname LIKE \'%' . $keyword . '%\' OR givenname LIKE \'%' . $keyword . '%\' OR lastname LIKE \'%' . $keyword . '%\'' : '') . ' LIMIT ' . $number . ' OFFSET ' . $min);
+            $results = pg_query($this->dbh, 'SELECT userid, email, groupname, username, givenname, lastname, registrationdate, activated, connected FROM usermanagement.users ' . (isset($keyword) ? 'WHERE email LIKE \'%'  . $keyword . '%\' OR username LIKE \'%' . $keyword .'%\' OR groupname LIKE \'%' . $keyword . '%\' OR givenname LIKE \'%' . $keyword . '%\' OR lastname LIKE \'%' . $keyword . '%\'' : '') . ' LIMIT ' . $number . ' OFFSET ' . $min);
             if (!$results) {
                 throw new Exception();
             }

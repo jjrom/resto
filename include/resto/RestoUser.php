@@ -62,55 +62,36 @@ class RestoUser{
     /**
      * Constructor
      * 
-     * @param string $identifier : can be email (or string) or integer (i.e. uid)
-     * @param string $password
+     * @param array $profile : User profile
      * @param RestoContext $context
-     * @param boolean $setSession
      */
-    public function __construct($identifier, $password, $context, $setSession = true) {
+    public function __construct($profile, $context) {
         
         $this->context = $context;
         
-        if (isset($identifier) && $identifier !== 'unregistered' && $identifier !== -1) {
-            
-            /*
-             * Search for valid profile in session
-             */
-            if (isset($_SESSION) && isset($_SESSION['profile']) && isset($_SESSION['profile']['lastsessionid']) && $_SESSION['profile']['lastsessionid'] === session_id() && $_SESSION['profile']['activated'] && $setSession === true) {
-                $this->profile = $_SESSION['profile'];
-                $this->cart = new RestoCart($this, $this->context, isset($_SESSION['cart']) ? false : true);
-            }
-            else {
-                $this->profile = $this->context->dbDriver->getUserProfile($identifier, $password);
-                if ($this->profile['userid'] !== -1) {
-                    $this->profile['lastsessionid'] = session_id();
-                    $this->context->dbDriver->updateUserProfile(array(
-                        'email' => $identifier,
-                        'lastsessionid' => $this->profile['lastsessionid']
-                    ));
-                    $this->cart = new RestoCart($this, $this->context, true);
-                }
-                if ($setSession) {
-                    $_SESSION['profile'] = $this->profile;
-                }
-            }
-        }
-        else {
+        /*
+         * Assign default profile for unauthentified user
+         */
+        if (!isset($profile)) {
             $this->profile = array(
                 'userid' => -1,
                 'groupname' => 'unregistered',
                 'activated' => false
             );
         }
+        else {
+            $this->profile = $profile;
+        }
         
         /*
-         * Set rights and cart
+         * Set rights and cart for identified user
          */
-        if (isset($this->profile['email'])) {
-            $this->rights = new RestoRights($this->profile['email'], $this->profile['groupname'], $this->context);
+        if ($this->profile['userid'] === -1) {
+            $this->rights = new RestoRights('unregistered', 'unregistered', $this->context);
         }
         else {
-            $this->rights = new RestoRights('unregistered', 'unregistered', $this->context);
+            $this->rights = new RestoRights($this->profile['email'], $this->profile['groupname'], $this->context);
+            $this->cart = new RestoCart($this, $this->context, true);
         }
         
     }
@@ -269,15 +250,11 @@ class RestoUser{
     }
     
     /**
-     * Disconnect user i.e. clear session informations
+     * Disconnect user
      */
     public function disconnect() {
         if (!$this->context->dbDriver->disconnectUser($this->profile['email'])) {
             return false;
-        }
-        if (isset($_SESSION)) {
-            session_regenerate_id(true); // Important ! Change session id
-            unset($_SESSION['profile'], $_SESSION['cart'], $_SESSION['rights']);
         }
         return true;
     }
@@ -296,12 +273,7 @@ class RestoUser{
      * @param boolean $synchronize
      */
     public function addToCart($data, $synchronize = false) {
-        $items = $this->cart->add($data, $synchronize);
-        if ($items) {
-            $_SESSION['cart'] = $this->getCart()->getItems();
-            return $items;
-        }
-        return false;
+        return isset($this->cart) ? $this->cart->add($data, $synchronize) : false;
     }
     
     /**
@@ -312,13 +284,7 @@ class RestoUser{
      * @param boolean $synchronize
      */
     public function updateCart($itemId, $item, $synchronize = false) {
-        if ($this->cart) {
-            if ($this->cart->update($itemId, $item, $synchronize)) {
-                $_SESSION['cart'] = $this->getCart()->getItems();
-                return true;
-            }
-        }
-        return false;
+        return isset($this->cart) ? $this->cart->update($itemId, $item, $synchronize) : false;
     }
     
     /**
@@ -328,13 +294,7 @@ class RestoUser{
      * @param boolean $synchronize
      */
     public function removeFromCart($itemId, $synchronize = false) {
-        if ($this->cart) {
-            if ($this->cart->remove($itemId, $synchronize)) {
-                $_SESSION['cart'] = $this->getCart()->getItems();
-                return true;
-            }
-        }
-        return false;
+        return isset($this->cart) ? $this->cart->remove($itemId, $synchronize) : false;
     }
     
     /**
@@ -351,9 +311,9 @@ class RestoUser{
         $order = $this->context->dbDriver->placeOrder($this->profile['email']);
         if (isset($order) && isset($this->cart)) {
             $this->cart->clear();
-            unset($_SESSION['cart']);
         }
         return $order;
     }
+    
 }
 

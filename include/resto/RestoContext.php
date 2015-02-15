@@ -95,6 +95,12 @@ class RestoContext {
         'ssoServices' => array()
     );
     
+    /*
+     *  JSON Web Token passphrase*
+     * (see https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32)
+     */
+    private $passphrase;
+    
     /**
      * Constructor
      * 
@@ -205,6 +211,23 @@ class RestoContext {
             }
         }
         return $this->baseUrl . $this->path . '.' . $this->outputFormat . (isset($paramsStr) ? '?' . $paramsStr : '');
+    }
+    
+    /**
+     * Create a Json Web Token
+     * 
+     * @param string $identifier
+     * @param json $jsonData
+     * @return string
+     */
+    public function createToken($identifier, $jsonData) {
+        return JWT::encode(array(
+            'iss' => 'resto:server',
+            'sub' => $identifier,
+            'iat' => time(),
+            'exp' => time() + (2 * 7 * 24 * 60 * 60), // 14 days
+            'data' => $jsonData
+        ), $this->passphrase);
     }
     
 }

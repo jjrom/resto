@@ -1,12 +1,10 @@
-resto2
-======
+#resto2
 
 [resto](http://mapshup.com/resto2/) - an Earth Observation products search engine 
 
 Try the [demo] (http://mapshup.com/resto2/) !
 
-Installation
-============
+## Installation
 
 In the following, we suppose that $RESTO_HOME is the directory where resto sources will be installed
 
@@ -16,8 +14,7 @@ If not already done, download resto sources to $RESTO_HOME
 
         git clone https://github.com/jjrom/resto2.git $RESTO_HOME
 
-Prerequesites
--------------
+### Prerequesites
 
 * Apache (v2.0+) with **mod_rewrite** support
 * PHP (v5.3+) with **curl, XMLWriter and PGConnect** extensions
@@ -27,9 +24,7 @@ Prerequesites
 Note: resto could work with lower version of the specified requirements.
 However there is no guaranty of success and unwanted result may occured !
 
-
-Install resto2 database
------------------------
+### Install resto2 database
 
 resto installs a PostgreSQL database named 'resto2'. 
 
@@ -51,8 +46,7 @@ To install resto2 database, launch the following script
 Note1 : installation script supposed that the PostgreSQL superuser name is 'postgres' (otherwise add '-s <superusername>' to the above command)
 and that it has access to psql on localhost without password.
 
-Deploy application
-------------------
+### Deploy application
 
 Last step is to install application to the target directory. This directory will be accessed
 by the web server so it could be either directly under the DocumentRoot web server directory
@@ -66,8 +60,7 @@ To install resto launch the following script
         $RESTO_HOME/_install/deploy.sh -s $RESTO_HOME -t $RESTO_TARGET
 
 
-Install iTag
-------------
+### Install iTag
 
 [iTag] (http://github.com/jjrom/itag) is an application to automatically tag geospatial metadata
 with geographical information (such as location, landuse, etc.)
@@ -77,11 +70,9 @@ resto uses iTag during the ressource ingestion process and also for the Gazettee
 If you want to use iTag with resto, you should install it (follow the [instructions] (http://github.com/jjrom/itag/))
 
 
-Configuration
-=============
+## Configuration
 
-Apache Configuration
---------------------
+### Apache Configuration
 
 The first thing to do is to configure Apache (or wathever is your web server) to support URL rewriting.
 
@@ -89,13 +80,13 @@ Basically, with URLs rewriting every request sent to resto application will end 
 http://localhost/resto2/whatever/youwant/to/access will be rewrite as http://localhost/resto2/index.php?restoURL=/whatever/youwant/to/access
 
 
-### Check that mod_rewrite is installed
+**Check that mod_rewrite is installed**
 
 For instance on MacOS X, looks for something like this in /etc/apache2/httpd.conf
 
         LoadModule rewrite_module libexec/apache2/mod_rewrite.so 
 
-### Configure target directory
+**Configure target directory**
 
 Set an alias to the resto directory. To make mod_rewrite works, you need to verify that both 'FollowSymLinks'
 and 'AllowOverride All' are set in the apache directory configuration
@@ -121,12 +112,12 @@ For Apache >= 2.4 :
             Require all granted
         </Directory>
 
-### Check "RewriteBase" value within $RESTO_TARGET/.htaccess
+**Check "RewriteBase" value within $RESTO_TARGET/.htaccess**
 
 Edit this value so it matches your alias name. If you use the same alias as in 2. (i.e. '/resto2/')
 there is no need to edit $RESTO_TARGET/.htaccess file
 
-### Configure apache to support https (optional)
+**Configure apache to support https (optional)**
 
 resto can be accessed either in http or https. For security reason, https is prefered when
 dealing with authenticated request (e.g. creation of a collection, insertion of a resource in the collection, etc.)
@@ -137,20 +128,19 @@ This document does not explain how to turn https on - but your system administra
 
 Note: a step by step guide for installing https on Mac OS X is provided in the FAQ section below
 
-### Restart apache
+**Restart apache**
 
         apachectl restart
 
 
-PostgreSQL configuration
-------------------------
+### PostgreSQL configuration
 
 Two configurations are possible :
 
 * A socket configuration (**prefered** if PostgreSQL and Apache are on the same server you should)
 * A TCP/IP configuration
 
-** Socket configuration **
+**Socket configuration**
 
 Edit $RESTO_TARGET/include/config.php and comment the general/host parameter
 
@@ -161,7 +151,7 @@ Edit the PostgreSQL pg_hba.conf file and add the following rules :
 
 Then restart postgresql (e.g. "pg_ctl restart")
 
-** TCP/IP configuration **
+**TCP/IP configuration**
 
 Edit $RESTO_TARGET/include/config.php and uncomment the general/host parameter to set the right IP of the PostgreSQL server (default 'localhost')
 
@@ -193,8 +183,7 @@ or one of the other distros that enable SELinux by default**
         service httpd start
         service postgresql start
 
-resto configuration
--------------------
+### resto configuration
 
 All configuration parameters are defined within $RESTO_TARGET/include/config.php file
 
@@ -208,72 +197,73 @@ Create an admin user within the database
 
 **Note : you should change the above script parameters to set a stronger password than 'admin' !!!**
 
-Quick Start
-===========
+**If you are using Fedora, Red Hat Enterprise Linux, CentOS, Scientific Linux, or one of the other distros that enable SELinux by default**
 
-Create a collection
--------------------
+        # 
+        #  Enable sendmail
+        #
+        setsebool -P httpd_can_sendmail on
+
+## Quick Start
+
+### Create a collection
         
         $RESTO_HOME/_scripts/createCollection.sh -f $RESTO_HOME/_examples/collections/Example.json -u admin:admin
 
-Access OpenSearch Description for a collection
-----------------------------------------------
+### Access OpenSearch Description for a collection
+
 Only works for an existing collection (so create a collection first !)
 
         Open you browser to http://localhost/resto2/api/collections/Example/describe.xml
 
-Delete a collection
--------------------
+###Delete a collection
+
 WARNING ! This will also destroy all the resources within the collection
 
         $RESTO_HOME/_scripts/deleteCollection.sh -p -c Example -u admin:admin
 
-List all collections
---------------------
+### List all collections
 
         Open your browser to http://localhost/resto2/collections/
 
-Insert a resource
------------------
+### Insert a resource
+
 Only works for an existing collection (so create a collection first !)
 
         $RESTO_HOME/_scripts/postResource.sh -c Example -f $RESTO_HOME/_examples/resources/resource_Example.json -u admin:admin
 
 
-Search for resources
---------------------
+### Search for resources in GeoJSON
+
 Only works for an existing collection (so create a collection first !)
 
-        Open your browser to http://localhost/resto2/api/collections/Example/search
+        Open your browser to http://localhost/resto2/api/collections/Example/search.json
 
 
-See resource metadata in Atom
------------------------------
+### See resource metadata in Atom
+
 Only works on an existing resource (so insert resource first !)
 
         curl "http://localhost/resto2/collections/Example/dda9cd5f-b3b9-5665-b1de-c78df8d3f1fb.atom"
 
 
-See resource metadata in GeoJSON
---------------------------------
+### See resource metadata in GeoJSON
+
 Only works on an existing resource (so insert resource first !)
 
         curl "http://localhost/resto2/collections/Example/dda9cd5f-b3b9-5665-b1de-c78df8d3f1fb.json"
 
 
-Frequently Asked Questions
-==========================
+## Frequently Asked Questions
 
-How to configure Apache for https ?
------------------------------------
+### How to configure Apache for https ?
 
 For [Mac OS X] (http://blog.andyhunt.info/2011/11/26/apache-ssl-on-max-osx-lion-10-7/)
 
 (Warning http://stackoverflow.com/questions/18251128/why-am-i-suddenly-getting-a-blocked-loading-mixed-active-content-issue-in-fire)
 
 
-For security reasons i cannot POST file through PHP
----------------------------------------------------
+### For security reasons i cannot POST file through PHP
 
 You can POST collections descriptions using a "key=value" mechanism instead of file upload.
 
@@ -282,8 +272,7 @@ To do so, you need to encode the json file (using javascript encodeURIComponent 
         curl -X POST -d @$RESTO_HOME/_examples/collections/Example.txt http://admin:admin@localhost/resto2/
 
 
-My collection contains products but the welcome page of my collection is empty 
-------------------------------------------------------------------------------
+### My collection contains products but my collection is empty 
 
 Check if all the mandatory search terms are defined. Mandatory search terms are the OpenSearch terms
 without a question mark '?' defined within the Url template of the OpenSearch Document Description (i.e. http://localhost/resto2/api/collections/{collection}/describe)

@@ -160,10 +160,4 @@ class RestoCollections {
         return RestoUtil::json_format($collections, $pretty);
     }
     
-    /**
-     * Output collection description as an HTML page
-     */
-    public function toHTML() {
-        return RestoUtil::get_include_contents(realpath(dirname(__FILE__)) . '/../../themes/' . $this->context->config['theme'] . '/templates/collections.php', $this);
-    }
 }

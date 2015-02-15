@@ -4,7 +4,7 @@
  * Autoload controllers and modules
  */
 function autoload($className) {
-    foreach (array('include/resto/', 'include/resto/Drivers/','include/resto/Collections/', 'include/resto/Models/', 'include/resto/Dictionaries/', 'include/resto/Modules/', 'lib/iTag/') as $current_dir) {
+    foreach (array('include/resto/', 'include/resto/Drivers/','include/resto/Collections/', 'include/resto/Models/', 'include/resto/Dictionaries/', 'include/resto/Modules/', 'lib/iTag/', 'lib/JWT/') as $current_dir) {
         $path = $current_dir . sprintf('%s.php', $className);
         if (file_exists($path)) {
             include $path;
@@ -13,11 +13,6 @@ function autoload($className) {
     }
 }
 spl_autoload_register('autoload');
-
-/*
- * Start a session for user management
- */
-session_start();
 
 /*
  * Launch RESTo

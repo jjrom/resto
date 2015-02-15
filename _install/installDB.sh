@@ -263,7 +263,7 @@ CREATE TABLE usermanagement.users (
     registrationdate    TIMESTAMP NOT NULL,
     activationcode      TEXT NOT NULL UNIQUE, -- activation code store as sha1
     activated           BOOLEAN NOT NULL DEFAULT FALSE,              
-    lastsessionid       TEXT
+    connected           BOOLEAN NOT NULL DEFAULT FALSE
 );
 CREATE INDEX idx_email_users ON usermanagement.users (email);
 CREATE INDEX idx_groupname_users ON usermanagement.users (groupname);

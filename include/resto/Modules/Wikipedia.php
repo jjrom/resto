@@ -96,8 +96,8 @@ class Wikipedia extends RestoModule {
                 try {
                     $dbInfo = array(
                         'dbname=' . $options['database']['dbname'],
-                        'user=' . (isset($options['database']['user']) ? $options['database']['user'] : 'resto'),
-                        'password=' . (isset($options['database']['password']) ? $options['database']['password'] : 'resto')
+                        'user=' . (isset($options['database']['user']) ? $options['database']['user'] : 'itag'),
+                        'password=' . (isset($options['database']['password']) ? $options['database']['password'] : 'itag')
                     );
                     /*
                      * If host is specified, then TCP/IP connection is used

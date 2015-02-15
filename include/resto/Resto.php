@@ -123,7 +123,7 @@
  *    |  GET     api/collections/{collection}/search           |  Search on {collection}
  *    |  GET     api/collections/describe                      |  Opensearch service description at collections level
  *    |  GET     api/collections/{collection}/describe         |  Opensearch service description for products on {collection}
- *    |  GET     api/users/connect                             |  Connect user
+ *    |  POST    api/users/connect                             |  Connect user
  *    |  GET     api/users/disconnect                          |  Disconnect user
  *    |  GET     api/users/{userid}/activate                   |  Activate users with activation code
  *    |  GET     api/users/{userid}/isConnected                |  Check is user is connected
@@ -143,7 +143,6 @@
  *    | _pretty            |     boolean    | (For JSON output only) true to return pretty print JSON
  *    | _tk                |     string     | (For download/visualize) sha1 token for resource access
  *    | _rc                |     boolean    | (For search) true to perform the total count of search results
- *    | _sid               |     string     | (For isConnected) current sessionid
  *    | callback           |     string     | (For JSON output only) name of callback funtion for JSON-P
  * 
  * Returned error
@@ -183,7 +182,7 @@ class Resto {
     /*
      * Default output format if not specified in request
      */
-    const DEFAULT_GET_OUTPUT_FORMAT = 'html';
+    const DEFAULT_GET_OUTPUT_FORMAT = 'json';
     
     /*
      * RestoContext
@@ -258,13 +257,12 @@ class Resto {
              */
             $this->responseStatus = $e->getCode() < 502 ? $e->getCode() : 200;
             
-            if ($e->getCode() === 404 && $this->outputFormat === 'html') {
-                $this->response = RestoUtil::get_include_contents(realpath(dirname(__FILE__)) . '/../../themes/' . $this->context->config['theme'] . '/templates/404.php', $this);
-            }
-            else {
-                $this->outputFormat = 'json';
-                $this->response = RestoUtil::json_format(array('ErrorMessage' => $e->getMessage(), 'ErrorCode' => $e->getCode()));
-            }
+            /*
+             * Error are always in JSON
+             */
+            $this->outputFormat = 'json';
+            $this->response = RestoUtil::json_format(array('ErrorMessage' => $e->getMessage(), 'ErrorCode' => $e->getCode()));
+            
         }
         
         /*
@@ -299,10 +297,10 @@ class Resto {
         switch ($segments[0]) {
             
             /*
-             * Homepage
+             * Root
              */
             case '':
-                $this->processHome();
+                $this->process404();
                 break;
             /*
              * Collections
@@ -363,15 +361,39 @@ class Resto {
                     if (!isset($segments[2])) {
                         $this->process404();
                     }
-                    /*
-                     * User should already be connected with setUser
-                     */
                     else if ($segments[2] === 'connect' && !isset($segments[3])) {
-                        if (isset($this->user->profile['email'])) {
+                        
+                        /*
+                         * Implicit POST to "connect" service
+                         */
+                        if ($this->method == 'POST') {
+                            $data = RestoUtil::readInputData();
+                            if (!is_array($data) || count($data) === 0 || !isset($data['email']) || !isset($data['password'])) {
+                                throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Bad Request', 400);
+                            }
+                            
+                            /*
+                             * Disconnect user
+                             */
+                            if (isset($this->user->profile['email'])) {
+                                $this->user->disconnect();
+                            }
+                            $this->user = new RestoUser($this->context->dbDriver->getUserProfile(strtolower($data['email']), $data['password']), $this->context);
+                            if (isset($this->user->profile['email'])) {
+                                $this->response = $this->toJSON(array(
+                                    'token' => $this->context->createToken($this->user->profile['userid'], $this->user->profile)
+                                ));
+                            }
+                            else {
+                                throw new Exception('Forbidden', 403);
+                            }
+                        }
+                        /*
+                         * User is already authenticated
+                         */
+                        else if (isset($this->user->profile['email'])) {
                             $this->response = $this->toJSON(array(
-                                'status' => 'success', 
-                                'message' => 'User ' . $this->user->profile['email'] . ' connected',
-                                'profile' => $this->user->profile
+                                'token' => $this->context->createToken($this->user->profile['userid'], $this->user->profile)
                             ));
                         }
                         else {
@@ -388,10 +410,23 @@ class Resto {
                     else if (isset($segments[3]) && $segments[3] === 'activate' && !isset($segments[4])) {
                         if (isset($this->context->query['act'])) {
                             if ($this->dbDriver->activateUser($segments[2], $this->context->query['act'])) {
-                                $this->response = $this->toJSON(array(
-                                    'status' => 'success',
-                                    'message' => 'User activated'
-                                ));
+                                
+                                /*
+                                 * Redirect to a human readable page...
+                                 */
+                                if (isset($this->context->query['redirect'])) {
+                                    header('Location: ' . $this->context->query['redirect']);
+                                    exit;
+                                }
+                                /*
+                                 * ...or return json stream otherwise
+                                 */
+                                else {
+                                    $this->response = $this->toJSON(array(
+                                        'status' => 'success',
+                                        'message' => 'User activated'
+                                    ));
+                                }
                             }
                             else {
                                 $this->response = $this->toJSON(array(
@@ -638,21 +673,27 @@ class Resto {
              */
             if ($this->method === 'POST') {
                 
-                if (!isset($this->context->query['email'])) {
+                $data = RestoUtil::readInputData();
+
+                if (!is_array($data) || count($data) === 0) {
+                    throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Bad Request', 400);
+                }
+                else if (!isset($data['email'])) {
                     throw new Exception('Email is not set', 400);
                 }
-                else if ($this->dbDriver->userExists($this->context->query['email'])) {
+                else if ($this->dbDriver->userExists($data['email'])) {
                     throw new Exception('User exists', 3000);
                 }
+                $redirect = isset($data['confirm_success_url']) ? '&redirect=' . urlencode($data['confirm_success_url']) : ''; 
                 $userInfo = $this->dbDriver->storeUserProfile(array(
-                    'email' => $this->context->query['email'],
-                    'password' => isset($this->context->query['password']) ? $this->context->query['password'] : null,
-                    'username' => isset($this->context->query['username']) ? $this->context->query['username'] : null,
-                    'givenname' => isset($this->context->query['givenname']) ? $this->context->query['givenname'] : null,
-                    'lastname' => isset($this->context->query['lastname']) ? $this->context->query['lastname'] : null
+                    'email' => $data['email'],
+                    'password' => isset($data['password']) ? $data['password'] : null,
+                    'username' => isset($data['username']) ? $data['username'] : null,
+                    'givenname' => isset($data['givenname']) ? $data['givenname'] : null,
+                    'lastname' => isset($data['lastname']) ? $data['lastname'] : null
                 ));
                 if (isset($userInfo)) {
-                    if (!$this->sendActivationMail($this->context->query['email'], isset($this->config['authentication']['activationEmail']) ? $this->config['authentication']['activationEmail'] : null, $this->context->baseUrl . 'api/users/' . $userInfo['userid'] . '/activate?act=' . $userInfo['activationcode'])) {
+                    if (!$this->sendActivationMail($data['email'], isset($this->config['authentication']['activationEmail']) ? $this->config['authentication']['activationEmail'] : null, $this->context->baseUrl . 'api/users/' . $userInfo['userid'] . '/activate?act=' . $userInfo['activationcode'] . $redirect)) {
                         throw new Exception('Problem sending activation code', 3001);
                     }
                 }
@@ -661,7 +702,7 @@ class Resto {
                 }
                 $this->response = $this->toJSON(array(
                     'status' => 'success',
-                    'message' => 'User ' . $this->context->query['email'] . ' created'
+                    'message' => 'User ' . $data['email'] . ' created'
                 ));
             }
             /*
@@ -699,7 +740,7 @@ class Resto {
                     throw new Exception('Forbidden', 403);
                 }
                 else {
-                    $user = new RestoUser($userid, null, $this->context, false);
+                    $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);
                 }
             }
             
@@ -758,7 +799,7 @@ class Resto {
                 throw new Exception('Forbidden', 403);
             }
             else {
-                $user = new RestoUser($userid, null, $this->context, false);
+                $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);
             }
         }
 
@@ -808,7 +849,7 @@ class Resto {
                 throw new Exception('Forbidden', 403);
             }
             else {
-                $user = new RestoUser($userid, null, $this->context, false);
+                $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);
             }
         }
         
@@ -943,7 +984,7 @@ class Resto {
                 throw new Exception('Forbidden', 403);
             }
             else {
-                $user = new RestoUser($userid, null, $this->context, false);
+                $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);
             }
         }
         
@@ -1224,16 +1265,6 @@ class Resto {
         throw new Exception('Not Found', 404);
     }
     
-    /*
-     * Display homepage
-     */
-    private function processHome() {
-        if ($this->method !== 'GET') {
-            throw new Exception('Not Found', 404);
-        }
-        $this->response = RestoUtil::get_include_contents(realpath(dirname(__FILE__)) . '/../../themes/' . $this->context->config['theme'] . '/templates/home.php', $this);
-    }
-    
     /**
      * Get url with no parameters
      * 
@@ -1343,11 +1374,18 @@ class Resto {
         /*
          * Read resto.ini configuration file
          */
-        $configFile = realpath(dirname(__FILE__)) . '/../config.php';
+        $configFile = realpath(dirname(__FILE__)) . '/../config.ori.php';
         if (!file_exists($configFile)) {
             throw new Exception(__METHOD__ . 'Missing mandatory configuration file', 4000);
         }
         $this->config = include($configFile);
+        
+        /*
+         * JSON Web Token is mandatory
+         */
+        if (!isset($this->config['general']['passphrase'])) {
+            throw new Exception(__METHOD__ . 'Missing mandatory passphrase in configuration file', 4000);
+        }
         
         /*
          * Debug mode
@@ -1429,9 +1467,9 @@ class Resto {
         $this->setContext();
        
         /*
-         * Set RestoUser
+         * Authenticate user
          */
-        $this->setUser();
+        $this->authenticate();
 
     }
     
@@ -1468,7 +1506,7 @@ class Resto {
             if (isset($modules['OAuth']['providers'])) {
                 foreach (array_keys($modules['OAuth']['providers']) as $provider) {
                     $ssoServices[$provider] = array(
-                        'authorizeUrl' => $modules['OAuth']['providers'][$provider]['authorizeUrl'] . '&client_id=' . $modules['OAuth']['providers'][$provider]['clientId'] . '&redirect_uri=' . $this->getBaseURL() . 'api/oauth/callback?issuer_id=' . $modules['OAuth']['providers'][$provider]['issuer_id'],
+                        'authorizeUrl' => $modules['OAuth']['providers'][$provider]['authorizeUrl'] . '&client_id=' . $modules['OAuth']['providers'][$provider]['clientId'] . '&redirect_uri=' . $this->getBaseURL() . 'api/oauth/' . $provider,
                         'button' => $modules['OAuth']['providers'][$provider]['button']
                     );
                 }
@@ -1518,6 +1556,12 @@ class Resto {
             'method' => $this->method,
             
             /*
+             * JSON Web Token passphrase
+             * (see https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32)
+             */
+            'passphrase' => $this->config['general']['passphrase'],
+            
+            /*
              * RESTo Config
              */
             'config' => array(
@@ -1551,7 +1595,7 @@ class Resto {
                  * Non routed modules
                  */
                 'modules' => $modules
-                
+                    
             )
         ));
     }
@@ -1587,57 +1631,43 @@ class Resto {
      *   - Single Sign On request with oAuth2
      * 
      */
-    private function setUser() {
+    private function authenticate() {
+          
+        /*
+         * Use authorization headers
+         */
+        $authorization = !empty($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : (!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION']) ? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] : null);
+        if (isset($authorization)) {
             
-        /*
-         * Check session
-         */
-        if (isset($_SESSION) && isset($_SESSION['profile']) && isset($_SESSION['profile']['lastsessionid']) && $_SESSION['profile']['lastsessionid'] === session_id()) {
-            $this->user = new RestoUser($_SESSION['profile']['email'], null, $this->context);
-        }
-        /*
-         * HTTP user:password authentication method
-         * 
-         * Set PHP_AUTH_USER and PHP_AUTH_PW from HTTP_AUTHORIZATION
-         * (http://stackoverflow.com/questions/3663520/php-auth-user-not-set)
-         */
-        else if ((isset($_SERVER['HTTP_AUTHORIZATION']) && $_SERVER['HTTP_AUTHORIZATION']) || (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION']) && $_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
-            $tmp = explode(':', base64_decode(substr(isset($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : $_SERVER['REDIRECT_HTTP_AUTHORIZATION'], 6)));
-            if (isset($tmp[0]) && $tmp[0] && isset($tmp[1]) && $tmp[1]) {
-                $this->user = new RestoUser(trim(strtolower($tmp[0])), trim($tmp[1]), $this->context);
+            list($method, $token) = explode(' ', $authorization, 2);
+            
+            /*
+             * Basic authentication method
+             */
+            if ($method === 'Basic') {
+                list($username, $password) = explode(':', base64_decode($token), 2);
+                if (!empty($username) && !empty($password)) {
+                    $this->user = new RestoUser($this->context->dbDriver->getUserProfile(strtolower($username), $password), $this->context);
+                }
+            }
+            /*
+             * Bearer method
+             * Assume a JSON Web Token encoded by resto
+             */
+            if ($method === 'Bearer') {
+                try {
+                    $payloadObject = JWT::decode($token, $this->config['general']['passphrase']);
+                    $this->user = new RestoUser($payloadObject['data'], $this->context);
+                } catch (Exception $ex) {
+                    $this->user = new RestoUser(null, $this->context);
+                }
             }
         }
         /*
-         * SSO through oAuth2 
+         * Otherwise user is unregistered
          */
-        else if ($this->config['modules']['OAuth'] && $this->config['modules']['OAuth']['activate'] === true && class_exists('OAuth')) {
-            $oauth = new OAuth(null, null, array_merge($this->config['modules']['OAuth']['options'], array('debug' => $this->debug)));
-            $userIdentifier = $oauth->authenticate(isset($_GET['access_token']) ? RestoUtil::sanitize($_GET['access_token']) : null, isset($_GET['issuer_id']) ? RestoUtil::sanitize($_GET['issuer_id']) : null);
-            if ($userIdentifier) {
-                $trimed = trim(strtolower($userIdentifier));
-                if (!$this->dbDriver->userExists($trimed)) {
-                    $this->dbDriver->storeUserProfile(array(
-                        'email' => $trimed,
-                        'activated' => true,
-                        'lastsessionid' => session_id()
-                    ));
-                }
-                else {
-                    $this->dbDriver->updateUserProfile(array(
-                        'email' => $trimed,
-                        'lastsessionid' => session_id()
-                    ));
-                }
-                $this->user = new RestoUser($trimed, null, $this->context);
-                $_SESSION['access_token'] = RestoUtil::sanitize($_GET['access_token']);
-            }
-        }
-        
-        /*
-         * If we land here, create an unregistered user
-         */
-        if (!$this->user) {
-            $this->user = new RestoUser(null, null, $this->context);
+        else {
+            $this->user = new RestoUser(null, $this->context);
         }
         
     }
@@ -1767,4 +1797,5 @@ class Resto {
            }
        }
     }
+    
 }

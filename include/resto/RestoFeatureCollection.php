@@ -443,13 +443,6 @@ class RestoFeatureCollection {
     }
     
     /**
-     * Output as an HTML page
-     */
-    public function toHTML() {
-        return RestoUtil::get_include_contents(realpath(dirname(__FILE__)) . '/../../themes/' . $this->context->config['theme'] . '/templates/featureCollection.php', $this);
-    }
-    
-    /**
      * Output product description as an ATOM feed
      */
     public function toATOM() {

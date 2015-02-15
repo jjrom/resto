@@ -183,7 +183,7 @@ class RestoModel_sentinel1 extends RestoModel {
                 'coordinates' => array($polygon)
             ),
             'properties' => array(
-                'authority' => 'ESA',
+                'organisationName' => 'ESA',
                 'startDate' => $dom->getElementsByTagName('startTime')->item(0)->nodeValue,
                 'completionDate' => $dom->getElementsByTagName('stopTime')->item(0)->nodeValue,
                 'productType' => $dom->getElementsByTagName('productType')->item(0)->nodeValue,
