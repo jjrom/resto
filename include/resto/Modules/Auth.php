@@ -333,20 +333,12 @@ class Auth extends RestoModule {
             curl_setopt_array($ch, array(
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_SSL_VERIFYPEER => false,
-                CURLOPT_HTTPHEADER, array("Authorization: Bearer " . $access_token)
+                CURLOPT_HTTPHEADER => array("Authorization: Bearer " . $access_token)
             ));
             $profileResponse = json_decode(curl_exec($ch), true);
             curl_close($ch);
             error_log(json_encode($profileResponse));
             
-            /*
-            $profileResponse = json_decode(file_get_contents($this->providers[$issuerId]['peopleApiUrl'], false, stream_context_create(array(
-                'http' => array(
-                    'method' => 'GET',
-                    'header' => "Authorization: Bearer " . $access_token
-                )
-            ))), true);*/
-            error_log(json_encode($profileResponse));
             if (isset($profileResponse)) {
                 $profile = $this->context->dbDriver->getUserProfile(strtolower($profileResponse['email']));
                 return RestoUtil::json_format(array(

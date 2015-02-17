@@ -169,6 +169,11 @@ class RestoContext {
         $this->dbDriver = isset($options['dbDriver']) ? $options['dbDriver'] : null;
         
         /*
+         * Passphrase for JSON Web Token encoding
+         */
+        $this->passphrase = isset($options['passphrase']) ? $options['passphrase'] : 'Not so secret!';
+        
+        /*
          * Query
          */
         if (isset($options['query'])) {
