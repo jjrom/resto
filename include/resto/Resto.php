@@ -125,6 +125,7 @@
  *    |  GET     api/collections/{collection}/describe         |  Opensearch service description for products on {collection}
  *    |  POST    api/users/connect                             |  Connect user
  *    |  GET     api/users/disconnect                          |  Disconnect user
+ *    |  GET     api/users/resetPassword                       |  Ask for password reset (i.e. reset link sent to user email adress)
  *    |  GET     api/users/{userid}/activate                   |  Activate users with activation code
  *    |  GET     api/users/{userid}/isConnected                |  Check is user is connected
  *    |  POST    api/users/{userid}/signLicense                |  Sign license for input collection
@@ -165,6 +166,7 @@
  *   - 3000 : Cannot create user - user already exists
  *   - 3001 : Cannot create user - cannot send activation code
  *   - 3002 : User has to sign license
+ *   - 3003 : Cannot send password reset link
  *   - 4000 : Configuration file problem
  *   - 4001 : Dictionary is not instantiable
  *   - 4002 : Database driver does not exist
@@ -323,19 +325,30 @@ class Resto {
              *      api/collections/{collection}/describe (Opensearch description endpoint)
              *      api/users/connect
              *      api/users/disconnect
+             *      api/users/resetPassword
              *      api/users/{userid}/activate
              *      api/users/{userid}/isConnected
              *      api/users/{userid}/signLicense
              */
             case 'api':
+                
                 if (!isset($segments[1])) {
                     $this->process404();
                 }
-                else if ($segments[1] === 'collections') {
-                    if (!isset($segments[2])) {
+                
+                /*
+                 * api/collections
+                 */
+                else if ($segments[1] === 'collections' && isset($segments[2])) {
+                    
+                    /*
+                     * Only GET method is allowed
+                     */
+                    if ($this->method !== 'GET') {
                         $this->process404();
                     }
-                    else if ($segments[2] === 'search' && !isset($segments[3])) {
+                    
+                    if ($segments[2] === 'search' && !isset($segments[3])) {
                         $this->processAPISearch(null);
                     }
                     else if ($segments[2] === 'describe' && !isset($segments[3])) {
@@ -351,22 +364,21 @@ class Resto {
                         $this->process404();
                     }
                 }
-                else if ($segments[1] === 'users') {
+                
+                /*
+                 * api/users
+                 */
+                else if ($segments[1] === 'users' && isset($segments[2])) {
                     
                     /*
-                     * Output is always in JSON
+                     * api/users/connect
                      */
-                    $this->outputFormat = 'json';
-                    
-                    if (!isset($segments[2])) {
-                        $this->process404();
-                    }
-                    else if ($segments[2] === 'connect' && !isset($segments[3])) {
+                    if ($segments[2] === 'connect' && !isset($segments[3])) {
                         
                         /*
                          * Implicit POST to "connect" service
                          */
-                        if ($this->method == 'POST') {
+                        if ($this->method === 'POST') {
                             $data = RestoUtil::readInputData();
                             if (!is_array($data) || count($data) === 0 || !isset($data['email']) || !isset($data['password'])) {
                                 throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Bad Request', 400);
@@ -400,14 +412,55 @@ class Resto {
                             throw new Exception('Forbidden', 403);
                         }
                     }
+                    
+                    /*
+                     * api/users/disconnect
+                     */
                     else if ($segments[2] === 'disconnect' && !isset($segments[3])) {
+                        
+                        if ($this->method !== 'GET') {
+                            $this->process404();
+                        }
+                        
                         $this->user->disconnect();
                         $this->response = $this->toJSON(array(
                             'status' => 'success',
                             'message' => 'User disconnected'
                         ));
                     }
+                    
+                    /*
+                     * api/users/resetPassword
+                     */
+                    else if ($segments[2] === 'resetPassword' && !isset($segments[3])) {
+                        
+                        if ($this->method !== 'GET') {
+                            $this->process404();
+                        }
+                        
+                        if (!isset($this->context->query['email'])) {
+                            throw new Exception('Bad Request', 400);
+                        }
+                        
+                        /*
+                         * Send email with reset link
+                         */
+                        $resetLink = "TODO";
+                        if (!$this->sendMail($this->context->query['email'], $this->config['mail']['senderName'], $this->config['mail']['senderEmail'], $this->context->dictionary->translate('resetPasswordSubject', $this->config['general']['title']), $this->context->dictionary->translate('resetPasswordMessage', $this->config['general']['title'], $resetLink))) {
+                            throw new Exception('Cannot send password reset link', 3003);
+                        }
+                        
+                    }
+                    
+                    /*
+                     * api/users/activate
+                     */
                     else if (isset($segments[3]) && $segments[3] === 'activate' && !isset($segments[4])) {
+                        
+                        if ($this->method !== 'GET') {
+                            $this->process404();
+                        }
+                        
                         if (isset($this->context->query['act'])) {
                             if ($this->dbDriver->activateUser($segments[2], $this->context->query['act'])) {
                                 
@@ -439,6 +492,10 @@ class Resto {
                             throw new Exception('Bad Request', 400);
                         }
                     }
+                    
+                    /*
+                     * api/users/isConnected
+                     */
                     else if (isset($segments[3]) && $segments[3] === 'isConnected' && !isset($segments[4])) {
                         if (isset($this->context->query['_sid'])) {
                             if ($this->dbDriver->userIsConnected($segments[2], $this->context->query['_sid'])) {
@@ -458,6 +515,10 @@ class Resto {
                             throw new Exception('Bad Request', 400);
                         }
                     }
+                    
+                    /*
+                     * api/users/signLicense
+                     */
                     else if (isset($segments[3]) && $segments[3] === 'signLicense' && !isset($segments[4])) {
                         
                         if ($this->method !== 'POST') {
@@ -510,6 +571,10 @@ class Resto {
                         $this->process404();
                     }
                 }
+                
+                /*
+                 * Modules
+                 */
                 else {
                     $this->processModule($segments);
                 }
@@ -693,7 +758,8 @@ class Resto {
                     'lastname' => isset($data['lastname']) ? $data['lastname'] : null
                 ));
                 if (isset($userInfo)) {
-                    if (!$this->sendActivationMail($data['email'], isset($this->config['authentication']['activationEmail']) ? $this->config['authentication']['activationEmail'] : null, $this->context->baseUrl . 'api/users/' . $userInfo['userid'] . '/activate?act=' . $userInfo['activationcode'] . $redirect)) {
+                    $activationLink = $this->context->baseUrl . 'api/users/' . $userInfo['userid'] . '/activate?act=' . $userInfo['activationcode'] . $redirect;
+                    if (!$this->sendMail($data['email'], $this->config['mail']['senderName'], $this->config['mail']['senderEmail'], $this->context->dictionary->translate('activationSubject', $this->config['general']['title']), $this->context->dictionary->translate('activationMessage', $this->config['general']['title'], $activationLink))) {
                         throw new Exception('Problem sending activation code', 3001);
                     }
                 }
@@ -1374,7 +1440,7 @@ class Resto {
         /*
          * Read resto.ini configuration file
          */
-        $configFile = realpath(dirname(__FILE__)) . '/../config.ori.php';
+        $configFile = realpath(dirname(__FILE__)) . '/../config.php';
         if (!file_exists($configFile)) {
             throw new Exception(__METHOD__ . 'Missing mandatory configuration file', 4000);
         }
@@ -1743,28 +1809,20 @@ class Resto {
      * Send user activation code by email
      * 
      * @param string $to
-     * @param string $sender
-     * @param $userid
-     * @param $activationcode
+     * @param string $senderName
+     * @param string $senderEmail
+     * @param string $subject
+     * @param string $message
      */
-    private function sendActivationMail($to, $sender, $activationUrl) {
-        
-        $subject = "[RESTo] Activation code for user " . $to;
-        $message = "Hi,\r\n\r\n" .
-                "You have registered an account to RESTo application\r\n\r\n" .
-                "To validate this account, go to " . $activationUrl . "\r\n\r\n" .
-                "Regards" . "\r\n\r\n" .
-                "RESTo administrator";
-
-        if (!isset($sender)) {
-            $sender = 'restobot@' . $_SERVER['SERVER_NAME'];
-        }
-        $headers = "From: " . $_SERVER['SERVER_NAME'] . " <" . $sender . ">\r\n";
-        $headers .= "Reply-To: doNotReply <" . $sender . ">\r\n";
-        $headers .= "X-Mailer: PHP/" . phpversion();
-        $headers .= "MIME-Version: 1.0\r\n";
-        $headers .= "Content-type: text/plain; charset=iso-8859-1\r\n";
-        if (mail($to, $subject, $message, $headers, '-f' . $sender)) {
+    private function sendMail($to, $senderName, $senderEmail, $subject, $message) {
+        $headers = array(
+            "From: " . $senderName . " <" . $senderEmail . ">\r\n",
+            "Reply-To: doNotReply <" . $senderEmail . ">\r\n",
+            "X-Mailer: PHP/" . phpversion(),
+            "MIME-Version: 1.0\r\n",
+            "Content-type: text/plain; charset=iso-8859-1\r\n"
+        );
+        if (mail($to, $subject, $message, join('', $headers), '-f' . $senderEmail)) {
             return true;
         }
 

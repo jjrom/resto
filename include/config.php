@@ -139,13 +139,17 @@ return array(
     /*
      * Authentication
      */
-    'authentication' => array(
+    'mail' => array(
         
         /*
-         * This is the email adress displayed when activation code is sent to user
-         * If not set, it will be automatically built as 'restobot@hostname'
+         * Name display to users when they receive email from application
          */
-        //'activationEmail' => 'restobot@localhost',
+        'senderName' => 'admin',
+        
+        /*
+         * Email display to users when they receive email from application
+         */
+        'senderEmail' => 'restoadmin@localhost',
         
     ),
     
@@ -174,8 +178,9 @@ return array(
                         'protocol' => 'oauth2',
                         'clientId' => '===>Insert your clienSecret here<===',
                         'clientSecret' => '===>Insert your clienSecret here<===',
-                        'accessTokenUrl' => 'https://ids-psc.kalimsat.eu:9443/oauth2/token',
-                        'peopleApiUrl' => 'https://sso.kalimsat.eu/oauth2/userinfo?schema=openid'
+                        'accessTokenUrl' => 'https://sso.kalimsat.eu/oauth2/token',
+                        'peopleApiUrl' => 'https://sso.kalimsat.eu/oauth2/userinfo?schema=openid',
+                        'uidKey' => 'http://theia.org/claims/emailaddress'
                     )
                 )
             )
