@@ -60,9 +60,52 @@ class Auth extends RestoModule {
     private $providers = array();
     
     /*
-     * Route to module
+     * Known providers configuration
      */
-    private $route = 'api/auth/';
+    private $providersConfig = array(
+        
+        /*
+         *  {
+         *    "kind": "plus#personOpenIdConnect",
+         *    "gender": "male",
+         *    "sub": "123456",
+         *    "name": "John Doe",
+         *    "given_name": "John",
+         *    "family_name": "Do",
+         *    "profile": "https:\\\/\\\/plus.google.com\\\/123456",
+         *    "picture": "https:\\\/\\\/lh4.googleusercontent.com\\\/-sdsdf\\\/sdfqsd\\\/qsdfsqd\\\/qsdf\\\/photo.jpg?sz=50",
+         *    "email": "john.doe@dev.null",
+         *    "email_verified": "true",
+         *    "locale": "fr"
+         *  } 
+         */
+        'google' => array(
+            'protocol' => 'oauth2',
+            'accessTokenUrl' => 'https://accounts.google.com/o/oauth2/token',
+            'peopleApiUrl' => 'https://www.googleapis.com/plus/v1/people/me/openIdConnect',
+            'uidKey' => 'email'
+        ),
+        
+        /*
+         * linkedin
+         * 
+         *  {
+         *      "emailAddress": "john.doe@dev.null",
+         *      "firstName": "John",
+         *      "id": "xxxx",
+         *      "lastName": "Doe",
+         *      "pictureUrl": "https:\\\/\\\/media.licdn.com\\\/mpr\\\/mprx\\\/dvsdgfsdfgs9B-TjLa1rdXl2a"
+         *  }
+         * 
+         */
+        'linkedin' => array(
+            'protocol' => 'oauth2',
+            'accessTokenUrl' => 'https://www.linkedin.com/uas/oauth2/accessToken',
+            'peopleApiUrl' => 'https://api.linkedin.com/v1/people/~:(id,first-name,last-name,email-address,picture-url)',
+            'uidKey' => 'emailAddress',
+            'forceJSON' => true
+        )
+    );
     
     /**
      * Constructor
@@ -73,9 +116,7 @@ class Auth extends RestoModule {
      */
     public function __construct($context, $user, $options = array()) {
         parent::__construct($context, $user, $options);
-        if (isset($options['providers']) && is_array($options['providers'])) {
-            $this->providers = $options['providers'];
-        }
+        $this->providers = isset($options['providers']) && is_array($options['providers']) ? $options['providers'] : array();
     }
 
     /**
@@ -96,38 +137,129 @@ class Auth extends RestoModule {
         $issuerId = isset($params[0]) ? RestoUtil::sanitize($params[0]) : null;
         
         /*
-         * Identity Provider configuration is mandatory (see config.php)
+         * Get provider
          */
-        foreach (array_keys($this->providers) as $key) {
-    
+        if (isset($this->providers[$issuerId])) {
+
             /*
-             * Redirect to known providers
+             * Search for known providers first
              */
-            if ($issuerId === $key) {
-                switch ($issuerId) {
-                    case 'google':
-                        return $this->google();
-                    case 'linkedin':
-                        return $this->linkedin();
-                    default:
-                        if (!isset($this->providers[$key]['protocol'])) {
-                            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Unknown sso protocol for issuer "' . $issuerId . '"', 400);
-                        }
-                        if ($this->providers[$key]['protocol'] === 'oauth2') {
-                            return $this->oauth2($key);
-                        }
-                        else if ($this->providers[$key]['protocol'] === 'oauth1') {
-                            return $this->oauth1();
-                        }
-                        else {
-                            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Unknown sso protocol for issuer "' . $issuerId . '"', 400);
-                        }
-                }
+            if (isset($this->providersConfig[$issuerId])) {
+                $provider = $this->providersConfig[$issuerId];
             }
+            else {
+                $provider = $this->providers[$issuerId];
+            }
+            
         }
         
-        throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'No configuration found for issuer "' . $issuerId . '"', 400);
-
+        /*
+         * No provider => exit
+         */
+        if (!isset($provider)) {
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'No configuration found for issuer "' . $issuerId . '"', 400);
+        }
+        
+        /*
+         * Authenticate from input protocol
+         */
+        switch ($provider['protocol']) {
+            
+            case 'oauth2':
+                return $this->oauth2(array(
+                    'issuerId' => $issuerId,
+                    'accessTokenUrl' => $provider['accessTokenUrl'],
+                    'peopleApiUrl' => $provider['peopleApiUrl'],
+                    'forceJSON' => isset($provider['forceJSON']) ? $provider['forceJSON'] : false,
+                    'uidKey' => $provider['uidKey']
+                ));
+            default:
+                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Unknown sso protocol for issuer "' . $issuerId . '"', 400);
+          
+        }
+    }
+    
+    
+    /**
+     * Authenticate with generic Oauth2 API
+     * 
+     * @param array $config
+     * 
+     * @return json
+     */
+    private function oauth2($config) {
+        
+        /*
+         * Step 1. Get access token
+         */
+        $access_token = $this->oauth2GetAccessToken($config['issuerId'], $config['accessTokenUrl']);
+        
+        /*
+         * Step 2. Return profile
+         */
+        return $this->oauth2GetProfile($config['peopleApiUrl'], $access_token, isset($config['uidKey']) ? $config['uidKey'] : 'email', isset($config['forceJSON']) ? $config['forceJSON'] : false);
+        
+    }
+    
+    /**
+     * Get OAuth2 access token
+     * 
+     * @param string $issuerId
+     * @param string $accessTokenUrl
+     * 
+     * @return string
+     */
+    private function oauth2GetAccessToken($issuerId, $accessTokenUrl) {
+        
+        $params = $this->getParams();
+        
+        if (!isset($params['code']) || !isset($params['redirectUri'])) {
+            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Bad Request', 400);
+        }
+        
+        $postResponse = json_decode(file_get_contents($accessTokenUrl, false, stream_context_create(array(
+            'http' => array(
+                'method' => 'POST',
+                'header' => 'Content-Type: application/x-www-form-urlencoded',
+                'content' => http_build_query(array(
+                    'code' => $params['code'],
+                    'client_id' => $this->providers[$issuerId]['clientId'],
+                    'redirect_uri' => $params['redirectUri'],
+                    'grant_type' => 'authorization_code',
+                    'client_secret' => $this->providers[$issuerId]['clientSecret']
+                ))
+            )
+        ))), true);
+        
+        return $postResponse['access_token'];
+        
+    }
+    
+    /**
+     * Return resto profile using from OAuth2 server
+     * 
+     * @param string $peopleApiUrl
+     * @param string $access_token
+     * @param string $uidKey
+     * @param boolean $forceJSON
+     * 
+     * @throws Exception
+     */
+    private function oauth2GetProfile($peopleApiUrl, $access_token, $uidKey, $forceJSON = false) {
+        
+        $profileResponse = json_decode(file_get_contents($peopleApiUrl, false, stream_context_create(array(
+            'http' => array(
+                'method' => 'GET',
+                'header' => 'Authorization: Bearer ' . $access_token . ($forceJSON ? "\r\nx-li-format: json\r\n" : '')
+            )
+        ))), true);
+        
+        if (!isset($profileResponse) || empty($profileResponse[$uidKey])) {
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Authorization failed', 400);
+        }
+        
+        return $this->token($profileResponse[$uidKey]);
+        
     }
     
     /**
@@ -161,198 +293,21 @@ class Auth extends RestoModule {
     }
     
     /**
-     * Get OAuth2 access token
-     * 
-     * @param string $issuerId
-     * @param string $accessTokenUrl
-     * 
-     * @return string
+     * Return profile token
+     * @param string $key
+     * @return json
      */
-    private function getOAuth2AccessToken($issuerId, $accessTokenUrl) {
+    private function token($key) {
         
-        $params = $this->getParams();
-        if (!isset($params['code']) || !isset($params['redirectUri'])) {
-            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Bad Request', 400);
-        }
-        $ch = curl_init($accessTokenUrl);
-        curl_setopt_array($ch, array(
-            CURLOPT_POST => true,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_POSTFIELDS => http_build_query(array(
-                'code' => $params['code'],
-                'client_id' => $this->providers[$issuerId]['clientId'],
-                'redirect_uri' => $params['redirectUri'],
-                'grant_type' => 'authorization_code',
-                'client_secret' => $this->providers[$issuerId]['clientSecret']
-            ))
-        ));
-        $jsonData = json_decode(curl_exec($ch), true);
-        curl_close($ch);
-        if (!isset($jsonData) || !isset($jsonData['access_token'])) {
+        if (!isset($key)) {
             throw new Exception();
         }
         
-        return $jsonData['access_token'];
-    }
-    
-    /**
-     * Authenticate with google Oauth2 API
-     * 
-     * @return json
-     */
-    private function google() {
+        $profile = $this->context->dbDriver->getUserProfile(strtolower($key));
         
-        /*
-         * Google configuration
-         */
-        $issuerId = 'google';
-        $accessTokenUrl = 'https://accounts.google.com/o/oauth2/token';
-        $peopleApiUrl = 'https://www.googleapis.com/plus/v1/people/me/openIdConnect';
-        
-        try {
-            
-            /*
-             * Step 1. Exchange authorization code for access token
-             */
-            $access_token = $this->getOAuth2AccessToken($issuerId, $accessTokenUrl);
-            
-            /*
-             * Step 2. Get profile from access_token
-             * 
-             * {
-             *    "kind": "plus#personOpenIdConnect",
-             *    "gender": "male",
-             *    "sub": "123456",
-             *    "name": "John Doe",
-             *    "given_name": "John",
-             *    "family_name": "Do",
-             *    "profile": "https:\\\/\\\/plus.google.com\\\/123456",
-             *    "picture": "https:\\\/\\\/lh4.googleusercontent.com\\\/-sdsdf\\\/sdfqsd\\\/qsdfsqd\\\/qsdf\\\/photo.jpg?sz=50",
-             *    "email": "john.doe@dev.null",
-             *    "email_verified": "true",
-             *    "locale": "fr"
-             *  }
-             */
-            $profileResponse = json_decode(file_get_contents($peopleApiUrl, false, stream_context_create(array(
-                'http' => array(
-                    'method' => 'GET',
-                    'header' => "Authorization: Bearer " . $access_token
-                )
-            ))), true);
-            
-            if (isset($profileResponse)) {
-                $profile = $this->context->dbDriver->getUserProfile(strtolower($profileResponse['email']));
-                return RestoUtil::json_format(array(
-                    'token' => $this->context->createToken($profile['userid'], $profile
-                )));
-            }
-            else {
-                throw new Exception();
-            }
-            
-        } catch (Exception $ex) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Authorization failed', 400);
-        }
-
-    }
-    
-    /**
-     * Authenticate with Linkedin Oauth2 API
-     * 
-     * @return json
-     */
-    private function linkedin() {
-        
-        /*
-         * Linkedin configuration
-         */
-        $issuerId = 'linkedin';
-        $accessTokenUrl = 'https://www.linkedin.com/uas/oauth2/accessToken';
-        $peopleApiUrl = 'https://api.linkedin.com/v1/people/~:(id,first-name,last-name,email-address,picture-url)';
-        
-        try {
-            
-            /*
-             * Step 1. Exchange authorization code for access token
-             */
-            $access_token = $this->getOAuth2AccessToken($issuerId, $accessTokenUrl);
-            
-            /*
-             * Step 2. Get profile from access_token
-             * 
-             * {
-             *      "emailAddress": "john.doe@dev.null",
-             *      "firstName": "John",
-             *      "id": "xxxx",
-             *      "lastName": "Doe",
-             *      "pictureUrl": "https:\\\/\\\/media.licdn.com\\\/mpr\\\/mprx\\\/dvsdgfsdfgs9B-TjLa1rdXl2a"
-             *  }
-             */
-            $profileResponse = json_decode(file_get_contents($peopleApiUrl, false, stream_context_create(array(
-                'http' => array(
-                    'method' => 'GET',
-                    'header' => "Authorization: Bearer " . $access_token . "\r\n" . "x-li-format: json\r\n"
-                )
-            ))), true);
-            if (isset($profileResponse)) {
-                $profile = $this->context->dbDriver->getUserProfile(strtolower($profileResponse['emailAddress']));
-                return RestoUtil::json_format(array(
-                    'token' => $this->context->createToken($profile['userid'], $profile
-                )));
-            }
-            else {
-                throw new Exception();
-            }
-            
-        } catch (Exception $ex) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Authorization failed', 400);
-        }
-
-    }
-    
-    /**
-     * Authenticate with generic Oauth2 API
-     * 
-     * @param string $issuerId
-     * @return json
-     */
-    private function oauth2($issuerId) {
-        
-        try {
-            
-            /*
-             * Step 1. Exchange authorization code for access token
-             */
-            $access_token = $this->getOAuth2AccessToken($issuerId, $this->providers[$issuerId]['accessTokenUrl']);
-            
-            /*
-             * Step 2. Get profile from access_token
-             */
-            $ch = curl_init($this->providers[$issuerId]['peopleApiUrl']);
-            curl_setopt_array($ch, array(
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_SSL_VERIFYPEER => false,
-                CURLOPT_HTTPHEADER => array("Authorization: Bearer " . $access_token)
-            ));
-            $profileResponse = json_decode(curl_exec($ch), true);
-            curl_close($ch);
-            error_log(json_encode($profileResponse));
-            
-            if (isset($profileResponse)) {
-                $profile = $this->context->dbDriver->getUserProfile(strtolower($profileResponse['email']));
-                return RestoUtil::json_format(array(
-                    'token' => $this->context->createToken($profile['userid'], $profile
-                )));
-            }
-            else {
-                throw new Exception();
-            }
-            
-        } catch (Exception $ex) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Authorization failed', 400);
-        }
-
+        return RestoUtil::json_format(array(
+            'token' => $this->context->createToken($profile['userid'], $profile
+        )));
     }
     
 }
