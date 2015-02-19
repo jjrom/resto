@@ -1198,7 +1198,7 @@
             $.ajax({
                 url: Resto.restoUrl + 'api/users/connect',
                 headers: {
-                    'Authorization': "Basic " + btoa($('#userEmail') + ":" + $('#userPassword'))
+                    'Authorization': "Basic " + btoa($('#userEmail').val() + ":" + $('#userPassword').val())
                 },
                 dataType: 'json',
                 cache:false
@@ -1220,9 +1220,9 @@
          * Register
          */
         signUp: function() {
-            var username = $('#userName'), 
-                password1 = $('#userPassword1'),
-                email = $('#r_userEmail'),
+            var username = $('#userName').val(), 
+                password1 = $('#userPassword1').val(),
+                email = $('#r_userEmail').val(),
                 $div = $('#displayRegister');
 
             if (!email || !Resto.Util.isEmailAdress(email)) {
@@ -1244,8 +1244,8 @@
                         email: email,
                         password: password1,
                         username: username,
-                        givenname: $('#firstName'),
-                        lastname: $('#lastName')
+                        givenname: $('#firstName').val(),
+                        lastname: $('#lastName').val()
                     }
                 }).done(function (data) {
                     if (data && data.status === 'success') {

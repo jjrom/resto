@@ -1,6 +1,8 @@
 resto2
 ======
 
+!!!WARNING - This branch is for PEPS only !!!
+
 [resto](http://mapshup.com/resto2/) - an Earth Observation products search engine 
 
 Try the [demo] (http://mapshup.com/resto2/) !

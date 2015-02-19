@@ -47,12 +47,12 @@ return array(
         /*
          * Title
          */
-        'title' => 'resto',
+        'title' => 'PEPS',
         
         /*
          * Root url for the application - do not specify protocol
          */
-        'restoUrl' => '//localhost/resto2',
+        'restoUrl' => '//132.149.129.1/resto2',
         
         /*
          * Supported languages
@@ -116,7 +116,7 @@ return array(
         /*
          * Database host - if not specified connect through socket instead of TCP/IP
          */
-        //'host' => 'localhost',
+        'host' => 'localhost',
         
         /*
          * Database port
@@ -133,7 +133,7 @@ return array(
          * Database user with READ+WRITE privileges (see http://github.com/jjrom/resto/README.md)
          */
         'user' => 'resto',
-        'password' => 'resto'
+        'password' => 'resto2015'
     ),
     
     /*
@@ -161,30 +161,7 @@ return array(
             'activate' => true,
             'route' => 'api/oauth/callback',
             'options' => array(
-                'providers' => array(
-                    'google' => array(
-                        'button' => '<a class="fa fa-3x fa-google-plus-square" style="color:#fff;padding:20px 5px;" title="Google"></a>',
-                        'issuer_id' => 'accounts.google.com',
-                        'clientId' => '===>INSERT YOUR OWN<===',
-                        'clientSecret' => '===>INSERT YOUR OWN<===',
-                        'authorizeUrl' => 'https://accounts.google.com/o/oauth2/auth?response_type=code&scope=openid%20email%20profile',
-                        'accessTokenUrl' => 'https://accounts.google.com/o/oauth2/token?',
-                        'userInfoUrl' => 'https://www.googleapis.com/plus/v1/people/me/openIdConnect?',
-                        'uidKey' => 'email',
-                        'useBearer' => false
-                    ),
-                    'linkedin' => array(
-                        'button' => '<a class="fa fa-3x fa-linkedin-square" style="color:#fff;padding:20px 5px;" title="Linkedin"></a>',
-                        'issuer_id' => 'linkedin.com',
-                        'clientId' => '===>INSERT YOUR OWN<===',
-                        'clientSecret' => '===>INSERT YOUR OWN<===',
-                        'authorizeUrl' => 'https://www.linkedin.com/uas/oauth2/authorization?response_type=code&scope=r_basicprofile%20r_emailaddress&state=DCEEFWF45453sdffef424',
-                        'accessTokenUrl' => 'https://www.linkedin.com/uas/oauth2/accessToken?',
-                        'userInfoUrl' => 'https://api.linkedin.com/v1/people/~:(email-address,picture-url,id)?',
-                        'uidKey' => 'emailAddress',
-                        'useBearer' => false
-                    )
-                )
+                'providers' => array()
             )
         ),
         
@@ -246,6 +223,17 @@ return array(
                     'user' => 'itag',
                     'password' => 'itag'
                 )
+            )
+        ),
+        
+        /*
+         * Administration
+        */
+        'Administration' => array(
+            'activate' => true,
+            'route' => 'administration',
+            'options' => array(
+                'templatesRoot' => '/templates'
             )
         )
     )

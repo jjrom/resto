@@ -1729,7 +1729,7 @@ class Resto {
         if (!isset($sender)) {
             $sender = 'restobot@' . $_SERVER['SERVER_NAME'];
         }
-        $headers = "From: " . $_SERVER['SERVER_NAME'] . " <" . $sender . ">\r\n";
+        $headers = "From: PEPS <" . $sender . ">\r\n";
         $headers .= "Reply-To: doNotReply <" . $sender . ">\r\n";
         $headers .= "X-Mailer: PHP/" . phpversion();
         $headers .= "MIME-Version: 1.0\r\n";

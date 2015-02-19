@@ -82,16 +82,25 @@ class RestoUser{
             }
             else {
                 $this->profile = $this->context->dbDriver->getUserProfile($identifier, $password);
-                if ($this->profile['userid'] !== -1) {
-                    $this->profile['lastsessionid'] = session_id();
-                    $this->context->dbDriver->updateUserProfile(array(
-                        'email' => $identifier,
-                        'lastsessionid' => $this->profile['lastsessionid']
-                    ));
-                    $this->cart = new RestoCart($this, $this->context, true);
+                if ($this->profile['activated']) {
+                    if ($this->profile['userid'] !== -1) {
+                        $this->profile['lastsessionid'] = session_id();
+                        $this->context->dbDriver->updateUserProfile(array(
+                            'email' => $identifier,
+                            'lastsessionid' => $this->profile['lastsessionid']
+                        ));
+                        $this->cart = new RestoCart($this, $this->context, true);
+                    }
+                    if ($setSession) {
+                        $_SESSION['profile'] = $this->profile;
+                    }
                 }
-                if ($setSession) {
-                    $_SESSION['profile'] = $this->profile;
+                else {
+                    $this->profile = array(
+                        'userid' => -1,
+                        'groupname' => 'unregistered',
+                        'activated' => false
+                    );
                 }
             }
         }
