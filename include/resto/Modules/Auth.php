@@ -55,6 +55,11 @@
 class Auth extends RestoModule {
     
     /*
+     * Data
+     */
+    private $data = array();
+    
+    /*
      * Identity providers
      */
     private $providers = array();
@@ -112,24 +117,30 @@ class Auth extends RestoModule {
      * 
      * @param RestoContext $context
      * @param RestoContext $user
-     * @param array $options : array of module parameters
      */
-    public function __construct($context, $user, $options = array()) {
-        parent::__construct($context, $user, $options);
-        $this->providers = isset($options['providers']) && is_array($options['providers']) ? $options['providers'] : array();
+    public function __construct($context, $user) {
+        parent::__construct($context, $user);
+        $this->providers = isset($this->context->config['modules'][get_class($this)]['providers']) ? $this->context->config['modules'][get_class($this)]['providers'] : array();
     }
 
     /**
      * Run module - this function should be called by Resto.php
      * 
      * @param array $params : input parameters
+     * @param array $data : POST or PUT parameters
+     * 
      * @return string : result from run process in the $context->outputFormat
      */
-    public function run($params) {
+    public function run($params, $data = array()) {
         
         if (!$this->context) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Invalid Context', 500);
+            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid Context', 500);
         }
+        
+        /*
+         * Set POST data from resto
+         */
+        $this->data = $data;
         
         /*
          * Authentication issuer is identified as the first $params
@@ -157,7 +168,7 @@ class Auth extends RestoModule {
          * No provider => exit
          */
         if (!isset($provider)) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'No configuration found for issuer "' . $issuerId . '"', 400);
+            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'No configuration found for issuer "' . $issuerId . '"', 400);
         }
         
         /*
@@ -174,7 +185,7 @@ class Auth extends RestoModule {
                     'uidKey' => $provider['uidKey']
                 ));
             default:
-                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Unknown sso protocol for issuer "' . $issuerId . '"', 400);
+                throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Unknown sso protocol for issuer "' . $issuerId . '"', 400);
           
         }
     }
@@ -211,9 +222,7 @@ class Auth extends RestoModule {
      */
     private function oauth2GetAccessToken($issuerId, $accessTokenUrl) {
         
-        $params = $this->getParams();
-        
-        if (!isset($params['code']) || !isset($params['redirectUri'])) {
+        if (!isset($this->data['code']) || !isset($this->data['redirectUri'])) {
             throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Bad Request', 400);
         }
         
@@ -222,9 +231,9 @@ class Auth extends RestoModule {
                 'method' => 'POST',
                 'header' => 'Content-Type: application/x-www-form-urlencoded',
                 'content' => http_build_query(array(
-                    'code' => $params['code'],
+                    'code' => $this->data['code'],
                     'client_id' => $this->providers[$issuerId]['clientId'],
-                    'redirect_uri' => $params['redirectUri'],
+                    'redirect_uri' => $this->data['redirectUri'],
                     'grant_type' => 'authorization_code',
                     'client_secret' => $this->providers[$issuerId]['clientSecret']
                 ))
@@ -255,40 +264,10 @@ class Auth extends RestoModule {
         ))), true);
         
         if (!isset($profileResponse) || empty($profileResponse[$uidKey])) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Authorization failed', 400);
+            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Authorization failed', 400);
         }
         
         return $this->token($profileResponse[$uidKey]);
-        
-    }
-    
-    /**
-     * Get params from input request
-     * 
-     * @throws Exception
-     * @return string
-     */
-    private function getParams() {
-        
-        if ($this->context->method === 'GET') {
-            return RestoUtil::sanitize($_GET);
-        }
-        /*
-         * POST request : code is provided within JSON stream
-         */
-        else if ($this->context->method === 'POST') {
-            $data = RestoUtil::readInputData();
-            if (!is_array($data) || count($data) === 0) {
-                throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Bad Request', 400);
-            }
-            return $data;
-        }
-        /*
-         * Other HTTP methods are not allowed
-         */
-        else {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Not Found', 404);
-        }
         
     }
     
@@ -305,9 +284,9 @@ class Auth extends RestoModule {
         
         $profile = $this->context->dbDriver->getUserProfile(strtolower($key));
         
-        return RestoUtil::json_format(array(
+        return array(
             'token' => $this->context->createToken($profile['userid'], $profile
-        )));
+        ));
     }
     
 }

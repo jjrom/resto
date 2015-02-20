@@ -72,13 +72,14 @@ class Wikipedia extends RestoModule {
      * 
      * @param RestoContext $context
      * @param RestoUser $user
-     * @param array $options : array of module parameters
      */
-    public function __construct($context, $user, $options = array()) {
+    public function __construct($context, $user) {
         
-        parent::__construct($context, $user, $options);
+        parent::__construct($context, $user);
         
         $this->schema = 'gazetteer';
+        
+        $options = $this->context->config['modules'][get_class($this)];
         
         if (isset($options['database'])) {
             
@@ -112,7 +113,7 @@ class Wikipedia extends RestoModule {
                         throw new Exception();
                     }
                 } catch (Exception $e) {
-                    throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+                    throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
                 }
             }
             
@@ -126,7 +127,7 @@ class Wikipedia extends RestoModule {
                 $this->dbh = $this->context->dbDriver->getHandler();
             }
             else {
-                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Wikipedia module only support PostgreSQL database handler', 500);
+                throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Wikipedia module only support PostgreSQL database handler', 500);
             }
         }
         
@@ -136,15 +137,17 @@ class Wikipedia extends RestoModule {
      * Run module - this function should be called by Resto.php
      * 
      * @param array $params : input parameters
+     * @param array $data : POST or PUT parameters
+     * 
      * @return string : result from run process in the $context->outputFormat
      */
-    public function run($params) {
+    public function run($params, $data = array()) {
        
         /*
          * Only GET method on 'search' route with json outputformat is accepted
          */
         if ($this->context->method !== 'GET' || $this->context->outputFormat !== 'json' || count($params) !== 0) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Not Found', 404);
+            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Not Found', 404);
         }
         
         return RestoUtil::json_format($this->search($this->context->query), true);

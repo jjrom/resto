@@ -57,10 +57,9 @@ class QueryAnalyzer extends RestoModule {
      * 
      * @param RestoContext $context
      * @param RestoUser $user
-     * @param array $options : array of module parameters
      */
-    public function __construct($context, $user, $options = array()) {
-        parent::__construct($context, $user, $options);
+    public function __construct($context, $user) {
+        parent::__construct($context, $user);
         $this->dictionary = $this->context->dictionary;
     }
 
@@ -68,18 +67,20 @@ class QueryAnalyzer extends RestoModule {
      * Run module - this function should be called by Resto.php
      * 
      * @param array $params : input parameters
+     * @param array $data : POST or PUT parameters
+     * 
      * @return string : result from run process in the $context->outputFormat
      */
-    public function run($params) {
-       
+    public function run($params, $data = array()) {
+        
         /*
          * Only GET method on 'search' route with json outputformat is accepted
          */
-        if ($this->context->method !== 'GET' || $this->context->outputFormat !== 'json' || count($params) !== 0) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Not Found', 404);
+        if ($this->context->method !== 'GET' || count($params) !== 0) {
+            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Not Found', 404);
         }
         
-        return RestoUtil::json_format($this->analyze($this->context->query), true);
+        return $this->analyze($this->context->query);
         
     }
     

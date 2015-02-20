@@ -50,11 +50,6 @@ abstract class RestoModule{
     protected $user;
     
     /*
-     * Debug mode
-     */
-    protected $debug = false;
-    
-    /*
      * Translations array
      *  array(
      *      'en' => array(
@@ -74,14 +69,10 @@ abstract class RestoModule{
      * 
      * @param RestoContext $context
      * @param RestoUser $user
-     * @param array $options : array of module parameters
      */
-    public function __construct($context, $user, $options = array()) {
+    public function __construct($context, $user) {
         $this->context = $context;
         $this->user = $user;
-        if (isset($options['debug'])) {
-            $this->debug = $options['debug'];
-        }
         if (isset($this->context)) {
             if (isset($this->translations) && isset($this->translations[$this->context->dictionary->language])) {
                 $this->context->dictionary->addTranslations($this->translations[$this->context->dictionary->language]);

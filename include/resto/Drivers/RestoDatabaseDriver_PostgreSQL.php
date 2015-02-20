@@ -77,7 +77,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 $dbInfo[] = 'host=' . $config['host'];
                 $dbInfo[] = 'port=' . (isset($config['port']) ? $config['port'] : '5432');
             }
-            $this->dbh = pg_connect(join(' ', $dbInfo));
+            $this->dbh = @pg_connect(join(' ', $dbInfo));
             if (!$this->dbh) {
                 throw new Exception();
             }

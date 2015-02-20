@@ -63,72 +63,7 @@
  * List of "path"
  * --------------
  * 
- * ** Collections **
- *  
- *      A collection contains a list of products. Usually a collection contains homogeneous products
- *      (e.g. "Spot" collection should contains products from Spot satellites; "France" collection should
- *      contains products linked to France) 
- *                           
- *    |          Resource                                      |      Description
- *    |________________________________________________________|________________________________________________
- *    |  GET     collections                                   |  List all collections            
- *    |  POST    collections                                   |  Create a new {collection}            
- *    |  GET     collections/{collection}                      |  Get {collection} description
- *    |  DELETE  collections/{collection}                      |  Delete {collection}
- *    |  PUT     collections/{collection}                      |  Update {collection}
- *    |  GET     collections/{collection}/{feature}            |  Get {feature} description within {collection}
- *    |  GET     collections/{collection}/{feature}/download   |  Download {feature}
- *    |  POST    collections/{collection}                      |  Insert new product within {collection}
- *    |  PUT     collections/{collection}/{feature}            |  Update {feature}
- *    |  DELETE  collections/{collection}/{feature}            |  Delete {feature}
- * 
- *
- * ** Users **
- * 
- *      Users have rights on collections and/or products
- * 
- *    |          Resource                                      |     Description
- *    |________________________________________________________|______________________________________
- *    |  GET     users                                         |  List all users
- *    |  POST    users                                         |  Add a user
- *    |  GET     users/{userid}                                |  Show {userid} information
- *    |  GET     users/{userid}/cart                           |  Show {userid} cart
- *    |  POST    users/{userid}/cart                           |  Add new item in {userid} cart
- *    |  PUT     users/{userid}/cart/{itemid}                  |  Modify item in {userid} cart
- *    |  DELETE  users/{userid}/cart/{itemid}                  |  Remove {itemid} from {userid} cart
- *    |  GET     users/{userid}/orders                         |  Show orders for {userid}
- *    |  POST    users/{userid}/orders                         |  Send an order for {userid}
- *    |  GET     users/{userid}/orders/{orderid}               |  Show {orderid} order for {userid}
- *    |  GET     users/{userid}/rights                         |  Show rights for {userid}
- *    |  GET     users/{userid}/rights/{collection}            |  Show rights for {userid} on {collection}
- *    |  GET     users/{userid}/rights/{collection}/{feature}  |  Show rights for {userid} on {feature} from {collection}
- * 
- *    Note: {userid} can be replaced by base64(email) 
- * 
- * ** Tags **
- * 
- *      Tags are associated to a product
- * 
- *    |          Resource                                      |     Description
- *    |________________________________________________________|______________________________________
- *    |  GET     tags/{collection}/{feature}                   |  Returns tags for {feature}
- *    |  POST    tags/{collection}/{feature}                   |  Add tags to {feature}
- * 
- * 
- * ** API **
- * 
- *    |          Resource                                      |     Description
- *    |________________________________________________________|______________________________________
- *    |  GET     api/collections/search                        |  Search on all collections
- *    |  GET     api/collections/{collection}/search           |  Search on {collection}
- *    |  GET     api/collections/describe                      |  Opensearch service description at collections level
- *    |  GET     api/collections/{collection}/describe         |  Opensearch service description for products on {collection}
- *    |  POST    api/users/connect                             |  Connect user
- *    |  GET     api/users/disconnect                          |  Disconnect user
- *    |  GET     api/users/resetPassword                       |  Ask for password reset (i.e. reset link sent to user email adress)
- *    |  GET     api/users/{userid}/activate                   |  Activate users with activation code
- *    |  GET     api/users/{userid}/isConnected                |  Check is user is connected
- *    |  POST    api/users/{userid}/signLicense                |  Sign license for input collection
+ *  Available routes are described in RestoRoute.php
  *    
  * Query
  * -----
@@ -197,15 +132,10 @@ class Resto {
     public $user;
     
     /*
-     * String storing response
+     * REST path
      */
-    private $response;
-
-    /*
-     * Response HTTP status
-     */
-    private $responseStatus = 200;
-    
+    private $path = '';
+            
     /*
      * Configuration
      */
@@ -238,18 +168,53 @@ class Resto {
      * 
      */
     public function __construct() {
-
+        
+        /*
+         * By default everything runs fine :)
+         */
+        $responseStatus = 200;
+        
         try {
            
             /*
-             * Initialization (includes user authentication)
+             * Read configuration file (i.e. config.php)
              */
-            $this->initialize();
+            $this->setConfig();
             
             /*
-             * Route action
+             * HTTP Method is one of GET, POST, PUT or DELETE
              */
-            $this->route(explode('/', $this->path));
+            $this->method = strtoupper($_SERVER['REQUEST_METHOD']);
+            
+            /*
+             * Set REST path
+             */
+            $this->setPath();
+            
+            /*
+             * Set output format
+             */
+            $this->setOutputFormat();
+            
+            /*
+             * Context
+             */
+            $this->setContext();
+       
+            /*
+             * Authenticate user
+             */
+            $this->authenticate();
+
+            /*
+             * Initialize route
+             */
+            $route = new RestoRoute($this->context, $this->user);
+            
+            /*
+             * Process route
+             */
+            $response = $this->format($route->route());
             
         } catch (Exception $e) {
             
@@ -257,1071 +222,436 @@ class Resto {
              * Code under 500 is an HTTP code - otherwise it is a resto error code
              * All resto error codes lead to HTTP 200 error code
              */
-            $this->responseStatus = $e->getCode() < 502 ? $e->getCode() : 200;
+            $responseStatus = $e->getCode() < 502 ? $e->getCode() : 200;
             
             /*
              * Error are always in JSON
              */
             $this->outputFormat = 'json';
-            $this->response = RestoUtil::json_format(array('ErrorMessage' => $e->getMessage(), 'ErrorCode' => $e->getCode()));
+            $response = RestoUtil::json_format(array('ErrorMessage' => $e->getMessage(), 'ErrorCode' => $e->getCode()));
             
         }
+        
+        /*
+         * HTTP 1.1 headers
+         */
+        header('HTTP/1.1 ' . $responseStatus . ' ' . (isset(RestoUtil::$codes[$responseStatus]) ? RestoUtil::$codes[$responseStatus] : RestoUtil::$codes[200]));
+        header("Cache-Control: max-age=2592000, public");
+        header('Content-Type: ' . RestoUtil::$contentTypes[$this->outputFormat]);
         
         /*
          * Set headers including cross-origin resource sharing (CORS)
          * http://en.wikipedia.org/wiki/Cross-origin_resource_sharing
          */
-        //ob_start();
-        header('HTTP/1.1 ' . $this->responseStatus . ' ' . (isset(RestoUtil::$codes[$this->responseStatus]) ? RestoUtil::$codes[$this->responseStatus] : RestoUtil::$codes[200]));
-        header("Cache-Control: max-age=2592000, public");
-        header('Content-Type: ' . RestoUtil::$contentTypes[$this->outputFormat]);
-        $this->setCORS();
-        echo $this->response;
-        //ob_end_flush();
-
-    }
-   
-    /**
-     * Route to resource
-     * 
-     * @param array $segments - path (i.e. a/b/c/d) exploded as an array (i.e. array('a', 'b', 'c', 'd')
-     */
-    private function route($segments) {
-        
-        /*
-         * CORS : Response to preflights - returns only headers
-         */
-        if ($this->method == 'OPTIONS') {
-            $this->setCORS();
-            exit(0);
+        if (isset($_SERVER['HTTP_ORIGIN'])) {
+           header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
+           header('Access-Control-Allow-Credentials: true');
+           header('Access-Control-Max-Age: 3600');
         }
         
-        switch ($segments[0]) {
+        /*
+         * Stream data
+         */
+        echo $response;
+    }
+ 
+    /**
+     * Authenticate and set user accordingly
+     * 
+     * Various authentication method
+     * 
+     *   - HTTP user:password (i.e. http authorization mechanism) 
+     *   - Single Sign On request with oAuth2
+     * 
+     */
+    private function authenticate() {
+          
+        /*
+         * Use authorization headers
+         */
+        $authorization = !empty($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : (!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION']) ? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] : null);
+        if (isset($authorization)) {
+            
+            list($method, $token) = explode(' ', $authorization, 2);
             
             /*
-             * Root
+             * Basic authentication method
              */
-            case '':
+            if ($method === 'Basic') {
+                list($username, $password) = explode(':', base64_decode($token), 2);
+                if (!empty($username) && !empty($password)) {
+                    $this->user = new RestoUser($this->context->dbDriver->getUserProfile(strtolower($username), $password), $this->context);
+                }
+            }
+            /*
+             * Bearer method
+             * Assume a JSON Web Token encoded by resto
+             */
+            if ($method === 'Bearer') {
+                try {
+                    $payloadObject = JWT::decode($token, $this->config['general']['passphrase']);
+                    $this->user = new RestoUser($payloadObject['data'], $this->context);
+                } catch (Exception $ex) {
+                    $this->user = new RestoUser(null, $this->context);
+                }
+            }
+        }
+        /*
+         * Otherwise user is unregistered
+         */
+        else {
+            $this->user = new RestoUser(null, $this->context);
+        }
+        
+    }
+  
+    /**
+     * Set configuration from config.php file
+     */
+    private function setConfig() {
+        
+        $configFile = realpath(dirname(__FILE__)) . '/../config.php';
+        
+        if (!file_exists($configFile)) {
+            throw new Exception(__METHOD__ . 'Missing mandatory configuration file', 4000);
+        }
+        
+        $this->config = include($configFile);
+        
+        /*
+         * JSON Web Token is mandatory
+         */
+        if (!isset($this->config['general']['passphrase'])) {
+            throw new Exception(__METHOD__ . 'Missing mandatory passphrase in configuration file', 4000);
+        }
+        
+        /*
+         * Debug mode
+         */
+        $this->debug = isset($this->config['general']['debug']) ? $this->config['general']['debug'] : false;
+        
+    }
+    
+    /**
+     * Set REST path
+     */
+    private function setPath() {
+        if (isset($_GET['RESToURL']) && !empty($_GET['RESToURL'])) {
+            
+            $restoUrl = RestoUtil::sanitize($_GET['RESToURL']);
+            $this->path = substr($restoUrl, -1) === '/' ? substr($restoUrl, 0, strlen($restoUrl) - 1) : $restoUrl;
+            
+            /*
+             * Avoid bug with special characters ' and " in path
+             */
+            if (strrpos($this->path, '\'') !== false || strrpos($this->path, '"') !== false) {
                 $this->process404();
-                break;
-            /*
-             * Collections
-             * 
-             *      collections/
-             *      collections/{collection}
-             *      collections/{collection}/{feature}
-             *      collections/{collection}/{feature}/download
-             * 
-             */
-            case 'collections':
-                $this->processCollections(isset($segments[1]) ? $segments[1] : null, isset($segments[2]) ? $segments[2] : null, isset($segments[3]) ? $segments[3] : null);
-                break;
-            /*
-             * API
-             * 
-             *      api/collections/search
-             *      api/collections/{collection}/search
-             *      api/collections/describe (Opensearch description endpoint)
-             *      api/collections/{collection}/describe (Opensearch description endpoint)
-             *      api/users/connect
-             *      api/users/disconnect
-             *      api/users/resetPassword
-             *      api/users/{userid}/activate
-             *      api/users/{userid}/isConnected
-             *      api/users/{userid}/signLicense
-             */
-            case 'api':
-                
-                if (!isset($segments[1])) {
-                    $this->process404();
+            }
+            
+            unset($_GET['RESToURL']);
+
+        }
+    }
+
+    /**
+     * Set output format from suffix or HTTP_ACCEPT
+     * 
+     */
+    private function setOutputFormat() {
+        
+        $splitted = explode('.', $this->path);
+        $size = count($splitted);
+        
+        if ($size > 1) {
+            if (array_key_exists($splitted[$size - 1], RestoUtil::$contentTypes)) {
+                $this->outputFormat = $splitted[$size - 1];
+                array_pop($splitted);
+                $this->path = join('.', $splitted);
+            }
+            else {
+                $this->process404();
+            }
+        }
+        
+        /*
+         * Extract outputFormat from HTTP_ACCEPT 
+         */
+        if (!isset($this->outputFormat)) {
+            $acceptedFormats = explode(',', strtolower(str_replace(' ', '', $_SERVER['HTTP_ACCEPT'])));
+            foreach ($acceptedFormats as $format) {
+                $weight = 1;
+                if (strpos($format, ';q=')) {
+                    list($format, $weight) = explode(';q=', $format);
                 }
+                $AcceptTypes[$format] = $weight;
+            }
+            foreach (RestoUtil::$contentTypes as $key => $value) {
+                if (isset($AcceptTypes[$value]) && $AcceptTypes[$value] !== 0) {
+                    $this->outputFormat = $key;
+                    break;
+                }
+            }
+            
+            if (!isset($this->outputFormat)) {
+                $this->outputFormat = Resto::DEFAULT_GET_OUTPUT_FORMAT;
+            }
+        }
+        
+    }
+    
+    /**
+     * Set context from configuration file
+     */
+    private function setContext() {
+        
+        /*
+         * Get Database driver
+         */
+        $dbDriver = $this->getDbDriver();
+        
+        $this->context = new RestoContext(array(
+            
+            /*
+             * Dictionary
+             */
+            'dictionary' => $this->getDictionary($dbDriver),
+            
+            /*
+             * Database config
+             */
+            'dbDriver' => $dbDriver,
+            
+            /*
+             * Base url is the root url of the webapp (e.g. http(s)://host/resto/)
+             */
+            'baseUrl' => $this->getBaseURL(),
+            
+            /*
+             * Path set after the baseUrl
+             */
+            'path' => $this->path,
+            
+            /*
+             * Query parameters
+             */
+            'query' => $this->getParams(),
+            
+            /*
+             * Output format
+             */
+            'outputFormat' => $this->outputFormat,
+            
+            /*
+             * Debug mode
+             */
+            'debug' => $this->debug,
+            
+            /*
+             * Store query
+             */
+            'storeQuery' => isset($this->config['general']['storeQuery']) ? $this->config['general']['storeQuery'] : false,
+            
+            /*
+             * Method
+             */
+            'method' => $this->method,
+            
+            /*
+             * JSON Web Token passphrase
+             * (see https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32)
+             */
+            'passphrase' => $this->config['general']['passphrase'],
+            
+            /*
+             * RESTo Config
+             */
+            'config' => array(
                 
                 /*
-                 * api/collections
+                 * Title
                  */
-                else if ($segments[1] === 'collections' && isset($segments[2])) {
-                    
-                    /*
-                     * Only GET method is allowed
-                     */
-                    if ($this->method !== 'GET') {
-                        $this->process404();
-                    }
-                    
-                    if ($segments[2] === 'search' && !isset($segments[3])) {
-                        $this->processAPISearch(null);
-                    }
-                    else if ($segments[2] === 'describe' && !isset($segments[3])) {
-                        $this->processAPIDescribeSearch(null);
-                    }
-                    else if (isset($segments[3]) && $segments[3] === 'search' && !isset($segments[4])) {
-                        $this->processAPISearch($segments[2]);
-                    }
-                    else if (isset($segments[3]) && $segments[3] === 'describe' && !isset($segments[4])) {
-                        $this->processAPIDescribeSearch($segments[2]);
-                    }
-                    else {
-                        $this->process404();
-                    }
-                }
+                'title' => isset($this->config['general']['title']) ? $this->config['general']['title'] : 'resto',
                 
                 /*
-                 * api/users
+                 * Accepted language
                  */
-                else if ($segments[1] === 'users' && isset($segments[2])) {
-                    
-                    /*
-                     * api/users/connect
-                     */
-                    if ($segments[2] === 'connect' && !isset($segments[3])) {
-                        
-                        /*
-                         * Implicit POST to "connect" service
-                         */
-                        if ($this->method === 'POST') {
-                            $data = RestoUtil::readInputData();
-                            if (!is_array($data) || count($data) === 0 || !isset($data['email']) || !isset($data['password'])) {
-                                throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Bad Request', 400);
-                            }
-                            
-                            /*
-                             * Disconnect user
-                             */
-                            if (isset($this->user->profile['email'])) {
-                                $this->user->disconnect();
-                            }
-                            $this->user = new RestoUser($this->context->dbDriver->getUserProfile(strtolower($data['email']), $data['password']), $this->context);
-                            if (isset($this->user->profile['email'])) {
-                                $this->response = $this->toJSON(array(
-                                    'token' => $this->context->createToken($this->user->profile['userid'], $this->user->profile)
-                                ));
-                            }
-                            else {
-                                throw new Exception('Forbidden', 403);
-                            }
-                        }
-                        /*
-                         * User is already authenticated
-                         */
-                        else if (isset($this->user->profile['email'])) {
-                            $this->response = $this->toJSON(array(
-                                'token' => $this->context->createToken($this->user->profile['userid'], $this->user->profile)
-                            ));
-                        }
-                        else {
-                            throw new Exception('Forbidden', 403);
-                        }
-                    }
-                    
-                    /*
-                     * api/users/disconnect
-                     */
-                    else if ($segments[2] === 'disconnect' && !isset($segments[3])) {
-                        
-                        if ($this->method !== 'GET') {
-                            $this->process404();
-                        }
-                        
-                        $this->user->disconnect();
-                        $this->response = $this->toJSON(array(
-                            'status' => 'success',
-                            'message' => 'User disconnected'
-                        ));
-                    }
-                    
-                    /*
-                     * api/users/resetPassword
-                     */
-                    else if ($segments[2] === 'resetPassword' && !isset($segments[3])) {
-                        
-                        if ($this->method !== 'GET') {
-                            $this->process404();
-                        }
-                        
-                        if (!isset($this->context->query['email'])) {
-                            throw new Exception('Bad Request', 400);
-                        }
-                        
-                        /*
-                         * Send email with reset link
-                         */
-                        $resetLink = "TODO";
-                        if (!$this->sendMail($this->context->query['email'], $this->config['mail']['senderName'], $this->config['mail']['senderEmail'], $this->context->dictionary->translate('resetPasswordSubject', $this->config['general']['title']), $this->context->dictionary->translate('resetPasswordMessage', $this->config['general']['title'], $resetLink))) {
-                            throw new Exception('Cannot send password reset link', 3003);
-                        }
-                        
-                    }
-                    
-                    /*
-                     * api/users/activate
-                     */
-                    else if (isset($segments[3]) && $segments[3] === 'activate' && !isset($segments[4])) {
-                        
-                        if ($this->method !== 'GET') {
-                            $this->process404();
-                        }
-                        
-                        if (isset($this->context->query['act'])) {
-                            if ($this->dbDriver->activateUser($segments[2], $this->context->query['act'])) {
-                                
-                                /*
-                                 * Redirect to a human readable page...
-                                 */
-                                if (isset($this->context->query['redirect'])) {
-                                    header('Location: ' . $this->context->query['redirect']);
-                                    exit;
-                                }
-                                /*
-                                 * ...or return json stream otherwise
-                                 */
-                                else {
-                                    $this->response = $this->toJSON(array(
-                                        'status' => 'success',
-                                        'message' => 'User activated'
-                                    ));
-                                }
-                            }
-                            else {
-                                $this->response = $this->toJSON(array(
-                                    'status' => 'error',
-                                    'message' => 'User not activated'
-                                ));
-                            }
-                        }
-                        else {
-                            throw new Exception('Bad Request', 400);
-                        }
-                    }
-                    
-                    /*
-                     * api/users/isConnected
-                     */
-                    else if (isset($segments[3]) && $segments[3] === 'isConnected' && !isset($segments[4])) {
-                        if (isset($this->context->query['_sid'])) {
-                            if ($this->dbDriver->userIsConnected($segments[2], $this->context->query['_sid'])) {
-                                $this->response = $this->toJSON(array(
-                                    'status' => 'connected',
-                                    'message' => 'User is connected'
-                                ));
-                            }
-                            else {
-                                $this->response = $this->toJSON(array(
-                                    'status' => 'error',
-                                    'message' => 'User not connected'
-                                ));
-                            }
-                        }
-                        else {
-                            throw new Exception('Bad Request', 400);
-                        }
-                    }
-                    
-                    /*
-                     * api/users/signLicense
-                     */
-                    else if (isset($segments[3]) && $segments[3] === 'signLicense' && !isset($segments[4])) {
-                        
-                        if ($this->method !== 'POST') {
-                            $this->process404();
-                        }
-                        
-                        /*
-                         * Only user can sign its license
-                         */
-                        $userid = $segments[2];
-                        if (!ctype_digit($userid)) {
-                            $userid = strtolower(base64_decode($userid));
-                            if (isset($this->user->profile['email']) && $this->user->profile['email'] === $segments[2]) {
-                                $userid = $this->user->profile['userid'];
-                            }
-                        }
-
-                        /*
-                         * Profile can only be seen by its owner or by admin
-                         */
-                        $user = $this->user;
-                        if ($user->profile['userid'] !== $userid) {
-                            throw new Exception('Forbidden', 403);
-                        }
-                        
-                        /*
-                         * Read POST data
-                         */
-                        $data = RestoUtil::readInputData();
-
-                        if (!is_array($data) || count($data) === 0) {
-                            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Bad Request', 400);
-                        }
-                        
-                        if ($this->user->signLicense($data[0], true)) {
-                            $this->response = $this->toJSON(array(
-                                'status' => 'success',
-                                'message' => 'License signed'
-                            ));
-                        }
-                        else {
-                            $this->response = $this->toJSON(array(
-                                'status' => 'error',
-                                'message' => 'Cannot sign license'
-                            ));
-                        }
-                        
-                    }
-                    else {
-                        $this->process404();
-                    }
-                }
+                'languages' => isset($this->config['general']['languages']) ? $this->config['general']['languages'] : array('en'),
+                
+                /*
+                 * Timezone
+                 */
+                'timezone' => isset($this->config['general']['timezone']) ? $this->config['general']['timezone'] : 'Europe/Paris',
+            
+                /*
+                 * HTML Theme
+                 */
+                'theme' => isset($this->config['general']['theme']) ? $this->config['general']['theme'] : 'default',
                 
                 /*
                  * Modules
                  */
-                else {
-                    $this->processModule($segments);
-                }
-                break;
-            /*
-             * Tags
-             * 
-             *      tags/{collection}/{feature}
-             */
-            case 'tags':
-                $this->processTags(isset($segments[1]) ? $segments[1] : null, isset($segments[2]) ? $segments[2] : null);
-                break;
-            /*
-             * Users
-             *  
-             *      users
-             *      users/{userid}
-             *      users/{userid}/rights
-             *      users/{userid}/rights/{collection}
-             *      users/{userid}/rights/{collection}/{feature}
-             *      users/{userid}/cart
-             *      users/{userid}/cart/{itemid}
-             *      users/{userid}/orders
-             *      users/{userid}/orders/{orderid}
-             */
-            case 'users':
-                if (isset($segments[2])) {
-                    if ($segments[2] === 'rights') {
-                        $this->processUserRights($segments[1], isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
-                    }
-                    else if ($segments[2] === 'cart') {
-                        $this->processUserCart($segments[1], isset($segments[3]) ? $segments[3] : null);
-                    }
-                    else if ($segments[2] === 'orders') {
-                        $this->processUserOrders($segments[1], isset($segments[3]) ? $segments[3] : null);
-                    }
-                    else {
-                        $this->process404();
-                    }
-                }
-                else {
-                    $this->processUsers(isset($segments[1]) ? $segments[1] : null);
-                }
-                break;
-            /*
-             * Otherwise check for module routes
-             * or return 404 Not Found
-             */
-            default:
-                $this->processModule($segments);
-        }
-        
-    }
-    
-    /**
-     * Launch module run() function if exist otherwise returns 404 Not Found
-     * 
-     * @param array $segments - path (i.e. a/b/c/d) exploded as an array (i.e. array('a', 'b', 'c', 'd')
-     */
-    private function processModule($segments) {
-        
-        $module = null;
-        foreach (array_keys($this->config['modules']) as $moduleName) {
-            if (isset($this->config['modules'][$moduleName]['activate']) && $this->config['modules'][$moduleName]['activate'] === true && isset($this->config['modules'][$moduleName]['route'])) {
-                $moduleSegments = explode('/', $this->config['modules'][$moduleName]['route']);
-                $routeIsTheSame = true;
-                $count = 0;
-                for ($i = 0, $l = count($moduleSegments); $i < $l; $i++) {
-                    $count++;
-                    if ($moduleSegments[$i] !== $segments[$i]) {
-                        $routeIsTheSame = false;
-                        break;
-                    } 
-                }
-                if ($routeIsTheSame) {
-                    $module = RestoUtil::instantiate($moduleName, array($this->context, $this->user, isset($this->config['modules'][$moduleName]['options']) ? array_merge($this->config['modules'][$moduleName]['options'], array('debug' => $this->debug)) : array('debug' => $this->debug)));
-                    for ($i = $count; $i--;) {
-                        array_shift($segments);
-                    }
-                    $this->response = $module->run($segments);
-                    break;
-                }
-            }
-        }
-        if (!isset($module)) {
-            $this->process404();
-        }
-    }
-
-    /**
-     * Process 'search' requests
-     * 
-     *    |  GET     api/collections/search                             |  Search on all collections
-     *    |  GET     api/collections/{collection}/search                |  Search on {collection}
-     *    
-     * @param string $collectionName
-     * @throws Exception
-     */
-    private function processAPISearch($collectionName = null) {
-        
-        /*
-         * Only GET method is allowed
-         */
-        if ($this->method !== 'GET') {
-            $this->process404();
-        }
-        
-        /*
-         * Search in one collection...or in all collections
-         */
-        $resource = isset($collectionName) ? new RestoCollection($collectionName, $this->context, $this->user, array('autoload' => true)) : new RestoCollections($this->context, $this->user); 
-        $this->response = $this->format($resource->search());
-        $this->storeQuery('search', isset($collectionName) ? $collectionName : '*', null);
-        
-    }
-    
-    /**
-     * Process 'describesearch' requests
-     * 
-     *    |  GET     api/collections/describe                      |  Opensearch description file for collections search
-     *    |  GET     api/collections/{collection}/describe         |  Opensearch description file for products search in {collection}
-     *    
-     * @param string $collectionName
-     * @throws Exception
-     */
-    private function processAPIDescribeSearch($collectionName = null) {
-        
-        /*
-         * Only GET method is allowed
-         */
-        if ($this->method !== 'GET') {
-            $this->process404();
-        }
-        /*
-         * Only XML format is allowed
-         */
-        if ($this->outputFormat !== 'xml') {
-            $this->process404();
-        }
-        $resource = isset($collectionName) ? new RestoCollection($collectionName, $this->context, $this->user, array('autoload' => true)) : new RestoCollections($this->context, $this->user); 
-        $this->response = $this->format($resource);
-        $this->storeQuery('describe', $collectionName, null);
-    }
-    
-    /**
-     * Process 'users' requests
-     *   
-     *    |  GET     users                                         |  List all users
-     *    |  POST    users                                         |  Add a user
-     *    |  GET     users/{userid}                                |  Show information on {userid}
-     * 
-     * @param string $userid
-     * @throws Exception
-     */
-    private function processUsers($userid = null) {
-        
-        if (!isset($userid)) {
-            
-            /*
-             * Add user
-             */
-            if ($this->method === 'POST') {
-                
-                $data = RestoUtil::readInputData();
-
-                if (!is_array($data) || count($data) === 0) {
-                    throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Bad Request', 400);
-                }
-                else if (!isset($data['email'])) {
-                    throw new Exception('Email is not set', 400);
-                }
-                else if ($this->dbDriver->userExists($data['email'])) {
-                    throw new Exception('User exists', 3000);
-                }
-                $redirect = isset($data['confirm_success_url']) ? '&redirect=' . urlencode($data['confirm_success_url']) : ''; 
-                $userInfo = $this->dbDriver->storeUserProfile(array(
-                    'email' => $data['email'],
-                    'password' => isset($data['password']) ? $data['password'] : null,
-                    'username' => isset($data['username']) ? $data['username'] : null,
-                    'givenname' => isset($data['givenname']) ? $data['givenname'] : null,
-                    'lastname' => isset($data['lastname']) ? $data['lastname'] : null
-                ));
-                if (isset($userInfo)) {
-                    $activationLink = $this->context->baseUrl . 'api/users/' . $userInfo['userid'] . '/activate?act=' . $userInfo['activationcode'] . $redirect;
-                    if (!$this->sendMail($data['email'], $this->config['mail']['senderName'], $this->config['mail']['senderEmail'], $this->context->dictionary->translate('activationSubject', $this->config['general']['title']), $this->context->dictionary->translate('activationMessage', $this->config['general']['title'], $activationLink))) {
-                        throw new Exception('Problem sending activation code', 3001);
-                    }
-                }
-                else {
-                    throw new Exception('Database connection error', 500);
-                }
-                $this->response = $this->toJSON(array(
-                    'status' => 'success',
-                    'message' => 'User ' . $data['email'] . ' created'
-                ));
-            }
-            /*
-             * List all users
-             */
-            else if ($this->method === 'GET') {
-                throw new Exception('Not Implemented', 501);
-            }
-            else {
-                $this->process404();
-            }
-            
-        }
-        else if ($this->method === 'GET') {
-            
-            /*
-             * GET profile users/{userid}
-             * 
-             * Note : if userid is not an integer it is assumed that this is the
-             * email encoded in base64
-             */
-            if (!ctype_digit($userid)) {
-                $userid = strtolower(base64_decode($userid));
-                if (isset($this->user->profile['email']) && $this->user->profile['email'] === $userid) {
-                    $userid = $this->user->profile['userid'];
-                }
-            }
-            
-            /*
-             * Profile can only be seen by its owner or by admin
-             */
-            $user = $this->user;
-            if ($user->profile['userid'] !== $userid) {
-                if ($user->profile['groupname'] !== 'admin') {
-                    throw new Exception('Forbidden', 403);
-                }
-                else {
-                    $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);
-                }
-            }
-            
-            $this->response = $this->toJSON(array(
-                'status' => 'success',
-                'message' => 'Profile for ' . $user->profile['userid'],
-                'profile' => $user->profile
-            ));
-            
-        }
-        else {
-            $this->process404();
-        }
-    }
-    
-    /**
-     * Process user rights requests
-     *   
-     *    |  GET     users/{userid}/rights                         |  Show rights for {userid}
-     *    |  GET     users/{userid}/rights/{collection}            |  Show rights for {userid} on {collection}
-     *    |  GET     users/{userid}/rights/{collection}/{feature}  |  Show rights for {userid} on {feature} from {collection}
-     *
-     * @param string $userid
-     * @param string $collectionName
-     * @param string $featureIdentifier
-     * @throws Exception
-     */
-    private function processUserRights($userid, $collectionName = null, $featureIdentifier = null) {
-        
-        /*
-         * GET only
-         */
-        if ($this->method !== 'GET') {
-            $this->process404();
-        }
-        
-       /*
-        * GET profile users/{userid}
-        * 
-        * Note : if userid is not an integer it is assumed that this is the
-        * email encoded in base64
-        */
-        if (!ctype_digit($userid)) {
-            $userid = strtolower(base64_decode($userid));
-            if (isset($this->user->profile['email']) && $this->user->profile['email'] === $userid) {
-                $userid = $this->user->profile['userid'];
-            }
-        }
-
-        /*
-         * Rights can only be seen by its owner or by admin
-         */
-        $user = $this->user;
-        if ($user->profile['userid'] !== $userid) {
-            if ($user->profile['groupname'] !== 'admin') {
-                throw new Exception('Forbidden', 403);
-            }
-            else {
-                $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);
-            }
-        }
-
-        $this->response = $this->toJSON(array(
-            'status' => 'success',
-            'message' => 'Rights for ' . $user->profile['userid'],
-            'userid' => $user->profile['userid'],
-            'groupname' => $user->profile['groupname'],
-            'rights' => $user->getFullRights($collectionName, $featureIdentifier)
-        ));
-        
-    }
-    
-    /**
-     * Process 'users/{userid}/cart' requests
-     *   
-     *    |  GET     users/{userid}/cart                           |  Show {userid} cart
-     *    |  POST    users/{userid}/cart                           |  Add new item in {userid} cart
-     *    |  PUT     users/{userid}/cart/{itemid}                  |  Modify item in {userid} cart
-     *    |  DELETE  users/{userid}/cart/{itemid}                  |  Remove {itemid} from {userid} cart
-     *
-     * @param string $userid
-     * @param string $itemid
-     * @throws Exception
-     */
-    private function processUserCart($userid, $itemid = null) {
-        
-       /*
-        * GET profile users/{userid}
-        * 
-        * Note : if userid is not an integer it is assumed that this is the
-        * email encoded in base64
-        */
-        if (!ctype_digit($userid)) {
-            $userid = strtolower(base64_decode($userid));
-            if (isset($this->user->profile['email']) && $this->user->profile['email'] === $userid) {
-                $userid = $this->user->profile['userid'];
-            }
-        }
-        
-        /*
-         * Cart can only be seen by its owner or by admin
-         */
-        $user = $this->user;
-        if ($user->profile['userid'] !== $userid) {
-            if ($user->profile['groupname'] !== 'admin') {
-                throw new Exception('Forbidden', 403);
-            }
-            else {
-                $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);
-            }
-        }
-        
-        /*
-         * List cart
-         */
-        if ($this->method === 'GET') {
-            if (isset($itemid)) {
-                $this->process404();
-            }
-            $this->response = $this->format($user->getCart());
-        }
-        /*
-         * Add item to cart
-         */
-        else if ($this->method === 'POST') {
-            
-            if (isset($itemid)) {
-                $this->process404();
-            }
-            
-            /*
-             * Read POST data
-             */
-            $data = RestoUtil::readInputData();
-            
-            if (!is_array($data) || count($data) === 0) {
-                throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid items', 400);
-            }
-            $items = $user->addToCart($data, true);            
-            if ($items) {
-                $this->response = $this->toJSON(array(
-                    'status' => 'success',
-                    'message' => 'Add items to cart',
-                    'items' => $items
-                ));
-            }
-            else {
-                $this->response = $this->toJSON(array(
-                    'status' => 'error',
-                    'message' => 'Cannot add items to cart'
-                ));
-            }
-        }
-        /*
-         * Update item from cart
-         */
-        else if ($this->method === 'PUT') {
-            
-            if (!isset($itemid)) {
-                $this->process404();
-            }
-            
-            /*
-             * Read PUT data
-             */
-            $item = RestoUtil::readInputData();
-            
-            if (!is_array($item) || count($item) === 0) {
-                throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid item', 400);
-            }
-            if ($user->updateCart($itemid, $item, true)) {
-                $this->response = $this->toJSON(array(
-                    'status' => 'success',
-                    'message' => 'Item ' . $itemid . ' updated',
-                    'itemId' => $itemid,
-                    'item' => $item
-                ));
-            }
-            else {
-                $this->response = $this->toJSON(array(
-                    'status' => 'error',
-                    'message' => 'Cannot update item ' . $itemid
-                ));
-            }
-        }
-        /*
-         * Remove item from cart
-         */
-        else if ($this->method === 'DELETE') {
-            if (!isset($itemid)) {
-                $this->process404();
-            }
-            if ($user->removeFromCart($itemid, true)) {
-                $this->response = $this->toJSON(array(
-                    'status' => 'success',
-                    'message' => 'Item removed from cart',
-                    'itemid' => $itemid
-                ));
-            }
-            else {
-                $this->response = $this->toJSON(array(
-                    'status' => 'error',
-                    'message' => 'Item cannot be removed',
-                    'itemid' => $itemid
-                ));
-            }
-        }
-        
-    }
-    
-    /**
-     * Process 'users/{userid}/orders' requests
-     *   
-     *    |  GET     users/{userid}/orders                         |  Show orders for {userid}
-     *    |  POST    users/{userid}/orders                         |  Send an order for {userid}
-     *    |  GET     users/{userid}/orders/{orderid}               |  Show {orderid} order for {userid}
-     *
-     * @param string $userid
-     * @param string $orderid
-     * @throws Exception
-     */
-    private function processUserOrders($userid, $orderid = null) {
-        
-       /*
-        * Note : if userid is not an integer it is assumed that this is the
-        * email encoded in base64
-        */
-        if (!ctype_digit($userid)) {
-            $userid = strtolower(base64_decode($userid));
-            if (isset($this->user->profile['email']) && $this->user->profile['email'] === $userid) {
-                $userid = $this->user->profile['userid'];
-            }
-        }
-        
-        /*
-         * Orders can only be seen by its owner or by admin
-         */
-        $user = $this->user;
-        if ($user->profile['userid'] !== $userid) {
-            if ($user->profile['groupname'] !== 'admin') {
-                throw new Exception('Forbidden', 403);
-            }
-            else {
-                $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);
-            }
-        }
-        
-        /*
-         * List orders
-         */
-        if ($this->method === 'GET') {
-            
-            /*
-             * Special case of metalink for single order
-             */
-            if (isset($orderid)) {
-                $this->response = $this->format(new RestoOrder($user, $this->context, $orderid));
-            }
-            else {
-                $orders = $user->getOrders();
-                $this->response = $this->toJSON(array(
-                    'status' => 'success',
-                    'message' => 'Orders for user ' . $userid,
-                    'orders' => $orders
-                ));
-            }
-        }
-        /*
-         * Add an order
-         */
-        else if ($this->method === 'POST') {
-            
-            if (isset($orderid)) {
-                $this->process404();
-            }
-            
-            /*
-             * Read POST data
-             */
-            $order = $user->placeOrder();
-            if ($order) {
-                $this->response = $this->toJSON(array(
-                    'status' => 'success',
-                    'message' => 'Place order',
-                    'order' => $order
-                ));
-            }
-            else {
-                $this->response = $this->toJSON(array(
-                    'status' => 'error',
-                    'message' => 'Cannot place order'
-                ));
-            }
-        } 
-    }
-    
-    /**
-     * 
-     * Process 'collections' request
-     * 
-     *    |  GET     collections                                   |  List all collections descriptions            
-     *    |  GET     collections/{collection}                      |  Get {collection} description
-     *    |  GET     collections/{collection}/{feature}            |  Get {feature} description within {collection}
-     *    |  GET     collections/{collection}/{feature}/download   |  Download {feature}
-     *    |  POST    collections                                   |  Create a new {collection}            
-     *    |  POST    collections/{collection}                      |  Insert new product within {collection}
-     *    |  PUT     collections/{collection}                      |  Update {collection}
-     *    |  PUT     collections/{collection}/{feature}            |  Update {feature}
-     *    |  DELETE  collections/{collection}                      |  Delete {collection}
-     *    |  DELETE  collections/{collection}/{feature}            |  Delete {feature}
-     * 
-     */
-    private function processCollections($collectionName, $featureIdentifier, $modifier) {
-        
-        $collection = null;
-        $feature = null;
-        
-        if (isset($collectionName)) {
-            $collection = new RestoCollection($collectionName, $this->context, $this->user, array('autoload' => true));
-        }
-        if (isset($featureIdentifier)) {
-            $feature = new RestoFeature($featureIdentifier, $this->context, $this->user, $collection);
-        }
-        
-        if ($this->method === 'GET') {
-            
-            /*
-             * All collections description (XML is not allowed - see api/describe/collections)
-             */
-            if (!isset($collection)) {
-                if ($this->outputFormat === 'xml') {
-                    $this->outputFormat = 'json';
-                    $this->process404();
-                }
-                $collections = new RestoCollections($this->context, $this->user, array('autoload' => true));
-                $this->response = $this->format($collections);
-            }
-            
-            /*
-             * Collection description (XML is not allowed - see api/describe/collections)
-             */
-            else if (!isset($featureIdentifier)) {
-                if ($this->outputFormat === 'xml') {
-                    $this->outputFormat = 'json';
-                    $this->process404();
-                }
-                $this->response = $this->format($collection);
-            }
-            
-            /*
-             * Feature description
-             */
-            else if (!isset($modifier)) {
-                $this->response = $this->format($feature);
-                $this->storeQuery('resource', $collectionName, $featureIdentifier);
-            }
-            
-            /*
-             * Download feature then exit
-             */
-            else if ($modifier === 'download') {
+                'modules' => $this->getModules(),
                 
                 /*
-                 * Set output format to json for errors
+                 * Mail configuration
                  */
-                $this->outputFormat = 'json';
+                'mail' => isset($this->config['mail']) ? $this->config['mail'] : array(),
+                    
+            )
+        ));
+    }
+    
+    /**
+     * Get Database driver
+     */
+    private function getDbDriver() {
+        
+        /*
+         * Database
+         */
+        if (!class_exists('RestoDatabaseDriver_' . $this->config['database']['driver'])) {
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'No database driver defined', 4002);
+        }
+        try {
+            $databaseClass = new ReflectionClass('RestoDatabaseDriver_' . $this->config['database']['driver']);
+            if (!$databaseClass->isInstantiable()) {
+                throw new Exception();
+            }
+        } catch (Exception $e) {
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'RestoDatabaseDriver_' . $this->config['database']['driver'] . ' is not insantiable', 4003);
+        }   
+        
+        return $databaseClass->newInstance($this->config['database'], new RestoCache(isset($this->config['database']['dircache']) ? $this->config['database']['dircache'] : null),$this->debug);      
+    }
+   
+    /**
+     * Get dictionary from input language
+     * 
+     * @param RestoDatabaseDriver $dbDriver
+     */
+    private function getDictionary($dbDriver) {
+        
+        $languages = isset($this->config['general']['languages']) ? $this->config['general']['languages'] : array('en');
+        $lang = substr(isset($_GET['lang']) ? RestoUtil::sanitize($_GET['lang']) : $this->getLanguage(), 0, 2);
+        if (!in_array($lang, $languages) || !class_exists('RestoDictionary_' . $lang)) {
+            $lang = 'en';
+        }
+        
+        return RestoUtil::instantiate('RestoDictionary_' . $lang, array($dbDriver));
+        
+    }
+    
+    /**
+     * Get activate modules from config.php
+     */
+    private function getModules() {
+        
+        $modules = array();
+        
+        foreach (array_keys($this->config['modules']) as $moduleName) {
+            
+            /*
+             * Only activated module are registered
+             */
+            if (isset($this->config['modules'][$moduleName]['activate']) && $this->config['modules'][$moduleName]['activate'] === true && class_exists($moduleName)) {
                 
-                if (!$this->user->canDownload($collectionName, $featureIdentifier, $this->getBaseURL() .  $this->context->path, !empty($this->context->query['_tk']) ? $this->context->query['_tk'] : null)) {
-                    throw new Exception('Forbidden', 403);
+                $modules[$moduleName] = isset($this->config['modules'][$moduleName]['options']) ? $this->config['modules'][$moduleName]['options'] : array();
+                
+                /*
+                 * Add route to module
+                 */
+                if (isset($this->config['modules'][$moduleName]['route'])) {
+                    $modules[$moduleName] = array_merge($modules[$moduleName], array('route' => $this->config['modules'][$moduleName]['route']));
                 }
-                else if ($this->user->hasToSignLicense($collection) && empty($this->context->query['_tk'])) {
-                    $this->response = RestoUtil::json_format(array('ErrorMessage' => 'Forbidden', 'collection' => $collection->name, 'license' => $collection->getLicense(), 'ErrorCode' => 3002));
+                
+            }
+            
+        }
+        
+        return $modules;
+        
+    }
+    
+    
+    /**
+     * Call one of the output method from $object (i.e. toJSON(), toATOM(), etc.)
+     * 
+     * @param object $object
+     * @throws Exception
+     */
+    private function format($object) {
+        
+        /*
+         * Case 0 - Object is null
+         */
+        if (!isset($object)) {
+            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid object', 4004);
+        }
+        
+        /*
+         * Case 1 - Object is an array 
+         */
+        if (is_array($object)) {
+            
+            /*
+             * Only JSON is supported for arrays
+             */
+            $this->outputFormat = 'json';
+            return $this->toJSON($object);
+        }
+        
+        /*
+         * Case 2 - Object is an object
+         */
+        else if (is_object($object)) {
+            $methodName = 'to' . strtoupper($this->outputFormat);
+            if (method_exists(get_class($object), $methodName)) {
+
+                /*
+                 * JSON-P case
+                 */
+                if ($this->outputFormat === 'json') {
+                    $pretty = isset($this->context->query['_pretty']) ? RestoUtil::toBoolean($this->context->query['_pretty']) : false;
+                    if (isset($this->context->query['callback'])) {
+                        return $this->context->query['callback'] . '(' . $object->$methodName($pretty) . ')';
+                    }
+                    return $object->$methodName($pretty);
                 }
                 else {
-                    $this->storeQuery('download', $collectionName, $featureIdentifier);
-                    $feature->download();
-                    exit;
+                    return $object->$methodName();
                 }
             }
-            
             else {
-                throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Not Implemented', 501); 
-            }
-        }
-        else if ($this->method === 'POST') {
-            
-           /*
-            * Check credentials
-            */
-            if (!$this->user->canPost($collectionName)) {
-                throw new Exception('Forbidden', 403);
-            }
-
-            if (isset($modifier)) {
                 $this->process404();
             }
-            
-            /*
-             * Read POST data (input files or 'data' property)
-             */
-            $data = RestoUtil::readInputData();
-            
-            if (!is_array($data) || count($data) === 0) {
-                throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid posted file', 400);
-            }
-            
-            /*
-             * Create new collection
-             */
-            if (!isset($collection)) {
-                if (!isset($data['name'])) {
-                    throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid posted file', 400);
-                }
-                if ($this->dbDriver->collectionExists($data['name'])) {
-                    throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Collection already exists', 2003);
-                }
-                $collection = new RestoCollection($data['name'], $this->context, $this->user);
-                $collection->loadFromJSON($data, true);
-                $this->response = $this->toJSON(array(
-                    'status' => 'success',
-                    'message' => 'Collection ' . $data['name'] . ' created'
-                ));
-                $this->storeQuery('create', $data['name'], null);
-            }
-            /*
-             * Insert new feature in collection
-             */
-            else {
-                $feature = $collection->addFeature($data);
-                $this->response = $this->toJSON(array(
-                    'status' => 'success',
-                    'message' => 'Feature ' . $feature->identifier . ' inserted within '. $collection->name,
-                    'featureIdentifier' => $feature->identifier
-                ));
-                $this->storeQuery('insert', $collection->name, $feature->identifier);
-            }
         }
-        else if ($this->method === 'PUT') {
-            
-           /*
-            * Check credentials
-            */
-            if (!$this->user->canPut($collectionName, $featureIdentifier)) {
-                throw new Exception('Forbidden', 403);
-            }
-            
-            if (isset($modifier) || !isset($collection)) {
-                $this->process404();
-            }
-            
-            /*
-             * Read PUT data (input files or 'data' property)
-             */
-            $data = RestoUtil::readInputData();
-            
-            if (!is_array($data) || count($data) === 0) {
-                throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid posted file', 500);
-            }
-            
-            /*
-             * Update collection
-             */
-            if (!isset($feature)) {
-                $collection->loadFromJSON($data, true);
-                $this->response = $this->toJSON(array(
-                    'status' => 'success',
-                    'message' => 'Collection ' . $collectionName . ' updated'
-                ));
-                $this->storeQuery('update', $collectionName, null);
-            }
-            /*
-             * Update feature
-             */
-            else {
-                $this->storeQuery('update', $collectionName, $featureIdentifier);
-                throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Not Implemented', 501);
-            }
+        /*
+         * Unknown stuff
+         */
+        else {
+            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid object', 4004);
         }
-        else if ($this->method === 'DELETE') {
-            
-           /*
-            * Check credentials
-            */
-            if (!$this->user->canDelete($collectionName, $featureIdentifier)) {
-                throw new Exception('Forbidden', 403);
-            }
-            
-            if (isset($modifier) || !isset($collection)) {
-                $this->process404();
-            }
-            
-            /*
-             * Delete collection
-             */
-            if (!isset($feature)) {
-                $collection->removeFromStore();
-                $this->response = $this->toJSON(array(
-                    'status' => 'success',
-                    'message' => 'Collection ' . $collectionName . ' deleted'
-                ));
-                $this->storeQuery('remove', $collectionName, null);
-            }
-            /*
-             * Delete feature
-             */
-            else {
-                $feature->removeFromStore();
-                $this->response = $this->toJSON(array(
-                    'status' => 'success',
-                    'message' => 'Feature ' . $featureIdentifier . ' deleted',
-                    'featureIdentifier' => $featureIdentifier
-                ));
-                $this->storeQuery('remove', $collectionName, $featureIdentifier);
-            }
+        
+    }
+    
+    /**
+     * Encode input $array to JSON
+     * 
+     * @param array $array
+     * @throws Exception
+     */
+    private function toJSON($array) {
+        
+        /*
+         * JSON-P case
+         */
+        $pretty = isset($this->context->query['_pretty']) ? RestoUtil::toBoolean($this->context->query['_pretty']) : false;
+        if (isset($this->context->query['callback'])) {
+            return $this->context->query['callback'] . '(' . json_encode($array, $pretty) . ')';
         }
+        
+        return RestoUtil::json_format($array, $pretty);
+        
     }
     
     /*
@@ -1431,429 +761,5 @@ class Resto {
         
     }
 
-    /**
-     * Initialize essential variables from config file 
-     * and input url
-     */
-    private function initialize() {
-        
-        /*
-         * Read resto.ini configuration file
-         */
-        $configFile = realpath(dirname(__FILE__)) . '/../config.php';
-        if (!file_exists($configFile)) {
-            throw new Exception(__METHOD__ . 'Missing mandatory configuration file', 4000);
-        }
-        $this->config = include($configFile);
-        
-        /*
-         * JSON Web Token is mandatory
-         */
-        if (!isset($this->config['general']['passphrase'])) {
-            throw new Exception(__METHOD__ . 'Missing mandatory passphrase in configuration file', 4000);
-        }
-        
-        /*
-         * Debug mode
-         */
-        $this->debug = isset($this->config['general']['debug']) ? $this->config['general']['debug'] : false;
-        
-        /*
-         * Method is one of GET, POST, PUT or DELETE
-         */
-        $this->method = strtoupper($_SERVER['REQUEST_METHOD']);
-
-        /*
-         * Extract path
-         */
-        $this->path = '';
-        if (isset($_GET['RESToURL']) && !empty($_GET['RESToURL'])) {
-            $restoUrl = RestoUtil::sanitize($_GET['RESToURL']);
-            $this->path = substr($restoUrl, -1) === '/' ? substr($restoUrl, 0, strlen($restoUrl) - 1) : $restoUrl;
-            $splitted = explode('.', $this->path);
-            $size = count($splitted);
-            if ($size > 1) {
-                if (array_key_exists($splitted[$size - 1], RestoUtil::$contentTypes)) {
-                    $this->outputFormat = $splitted[$size - 1];
-                    array_pop($splitted);
-                    $this->path = join('.', $splitted);
-                } else {
-                    throw new Exception(($this->config['general']['debug'] ? __METHOD__ . ' - ' : '') . 'Not Found', 404);
-                }
-            }
-            unset($_GET['RESToURL']);
-        }
-        
-        /*
-         * Output format is always JSON for HTTP methods except GET
-         */
-        if ($this->method !== 'GET') {
-            $this->outputFormat = 'json';
-        }
-        
-        /*
-         * Extract outputFormat from HTTP_ACCEPT 
-         */
-        if (!isset($this->outputFormat)) {
-            $accepted = explode(',', strtolower(str_replace(' ', '', $_SERVER['HTTP_ACCEPT'])));
-            foreach ($accepted as $a) {
-                $q = 1;
-                if (strpos($a, ';q=')) {
-                    list($a, $q) = explode(';q=', $a);
-                }
-                $AcceptTypes[$a] = $q;
-            }
-            foreach (RestoUtil::$contentTypes as $key => $value) {
-                if (isset($AcceptTypes[$value]) && $AcceptTypes[$value] !== 0) {
-                    $this->outputFormat = $key;
-                    break;
-                }
-            }
-            
-            if (!isset($this->outputFormat)) {
-                $this->outputFormat = Resto::DEFAULT_GET_OUTPUT_FORMAT;
-            }
-        }
-        
-        /*
-         * Avoid bug with special characters ' and " in path
-         */
-        if (strrpos($this->path, '\'') !== false || strrpos($this->path, '"') !== false) {
-            $this->process404();
-        }
-       
-        /*
-         * dbDriver
-         */
-        $this->setDbDriver();
-       
-        /*
-         * Context
-         */
-        $this->setContext();
-       
-        /*
-         * Authenticate user
-         */
-        $this->authenticate();
-
-    }
-    
-    /**
-     * Set context from configuration file
-     */
-    private function setContext() {
-        
-        /*
-         * Dictionary
-         */
-        $languages = isset($this->config['general']['languages']) ? $this->config['general']['languages'] : array('en');
-        $lang = substr(isset($_GET['lang']) ? RestoUtil::sanitize($_GET['lang']) : $this->getLanguage(), 0, 2);
-        if (!in_array($lang, $languages) || !class_exists('RestoDictionary_' . $lang)) {
-            $lang = 'en';
-        }
-        $dictionary = RestoUtil::instantiate('RestoDictionary_' . $lang, array($this->dbDriver));
-        
-        /*
-         * Activated modules are reference within context
-         */
-        $modules = array();
-        foreach (array_keys($this->config['modules']) as $moduleName) {
-            if (isset($this->config['modules'][$moduleName]['activate']) && $this->config['modules'][$moduleName]['activate'] === true && class_exists($moduleName)) {
-                $modules[$moduleName] = isset($this->config['modules'][$moduleName]['options']) ? array_merge($this->config['modules'][$moduleName]['options'], array('debug' => $this->debug)) : array('debug' => $this->debug);
-            }
-        }
-        
-        /*
-         * Identity providers
-         */
-        $ssoServices = array();
-        if (isset($modules['OAuth'])) {
-            if (isset($modules['OAuth']['providers'])) {
-                foreach (array_keys($modules['OAuth']['providers']) as $provider) {
-                    $ssoServices[$provider] = array(
-                        'authorizeUrl' => $modules['OAuth']['providers'][$provider]['authorizeUrl'] . '&client_id=' . $modules['OAuth']['providers'][$provider]['clientId'] . '&redirect_uri=' . $this->getBaseURL() . 'api/oauth/' . $provider,
-                        'button' => $modules['OAuth']['providers'][$provider]['button']
-                    );
-                }
-            }
-        }
-        
-        $this->context = new RestoContext(array(
-            
-            /*
-             * Dictionary
-             */
-            'dictionary' => $dictionary,
-            
-            /*
-             * Database config
-             */
-            'dbDriver' => $this->dbDriver,
-            
-            /*
-             * Base url is the root url of the webapp (e.g. http(s)://host/resto/)
-             */
-            'baseUrl' => $this->getBaseURL(),
-            
-            /*
-             * Path set after the baseUrl
-             */
-            'path' => $this->path,
-            
-            /*
-             * Query parameters
-             */
-            'query' => $this->getParams(),
-            
-            /*
-             * Output format
-             */
-            'outputFormat' => $this->outputFormat,
-            
-            /*
-             * Debug mode
-             */
-            'debug' => $this->debug,
-            
-            /*
-             * Method
-             */
-            'method' => $this->method,
-            
-            /*
-             * JSON Web Token passphrase
-             * (see https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32)
-             */
-            'passphrase' => $this->config['general']['passphrase'],
-            
-            /*
-             * RESTo Config
-             */
-            'config' => array(
-                
-                /*
-                 * Title
-                 */
-                'title' => isset($this->config['general']['title']) ? $this->config['general']['title'] : 'resto',
-                
-                /*
-                 * SSO Services
-                 */
-                'ssoServices' => $ssoServices,
-                
-                /*
-                 * Accepted language
-                 */
-                'languages' => isset($this->config['general']['languages']) ? $this->config['general']['languages'] : array('en'),
-                
-                /*
-                 * Timezone
-                 */
-                'timezone' => isset($this->config['general']['timezone']) ? $this->config['general']['timezone'] : 'Europe/Paris',
-            
-                /*
-                 * HTML Theme
-                 */
-                'theme' => isset($this->config['general']['theme']) ? $this->config['general']['theme'] : 'default',
-                
-                /*
-                 * Non routed modules
-                 */
-                'modules' => $modules
-                    
-            )
-        ));
-    }
-    
-    /*
-     * Database driver
-     */
-    private function setDbDriver() {
-        
-        /*
-         * Database
-         */
-        if (!class_exists('RestoDatabaseDriver_' . $this->config['database']['driver'])) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'No database driver defined', 4002);
-        }
-        try {
-            $databaseClass = new ReflectionClass('RestoDatabaseDriver_' . $this->config['database']['driver']);
-            if (!$databaseClass->isInstantiable()) {
-                throw new Exception();
-            }
-        } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'RestoDatabaseDriver_' . $this->config['database']['driver'] . ' is not insantiable', 4003);
-        }   
-        $this->dbDriver = $databaseClass->newInstance($this->config['database'], new RestoCache(isset($this->config['database']['dircache']) ? $this->config['database']['dircache'] : null),$this->debug);      
-    }
-    
-    /**
-     * Authenticate and set user accordingly
-     * 
-     * Various authentication method
-     * 
-     *   - HTTP user:password (i.e. http authorization mechanism) 
-     *   - Single Sign On request with oAuth2
-     * 
-     */
-    private function authenticate() {
-          
-        /*
-         * Use authorization headers
-         */
-        $authorization = !empty($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : (!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION']) ? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] : null);
-        if (isset($authorization)) {
-            
-            list($method, $token) = explode(' ', $authorization, 2);
-            
-            /*
-             * Basic authentication method
-             */
-            if ($method === 'Basic') {
-                list($username, $password) = explode(':', base64_decode($token), 2);
-                if (!empty($username) && !empty($password)) {
-                    $this->user = new RestoUser($this->context->dbDriver->getUserProfile(strtolower($username), $password), $this->context);
-                }
-            }
-            /*
-             * Bearer method
-             * Assume a JSON Web Token encoded by resto
-             */
-            if ($method === 'Bearer') {
-                try {
-                    $payloadObject = JWT::decode($token, $this->config['general']['passphrase']);
-                    $this->user = new RestoUser($payloadObject['data'], $this->context);
-                } catch (Exception $ex) {
-                    $this->user = new RestoUser(null, $this->context);
-                }
-            }
-        }
-        /*
-         * Otherwise user is unregistered
-         */
-        else {
-            $this->user = new RestoUser(null, $this->context);
-        }
-        
-    }
-    
-    /**
-     * Call one of the output method from $object (i.e. toJSON(), toATOM(), etc.)
-     * 
-     * @param object $object
-     * @throws Exception
-     */
-    private function format($object) {
-        if (!isset($object) && !is_object($object)) {
-            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid object', 4004);
-        }
-        $methodName = 'to' . strtoupper($this->outputFormat);
-        if (method_exists(get_class($object), $methodName)) {
-            
-            /*
-             * JSON-P case
-             */
-            if ($this->outputFormat === 'json') {
-                $pretty = isset($this->context->query['_pretty']) ? RestoUtil::toBoolean($this->context->query['_pretty']) : false;
-                if (isset($this->context->query['callback'])) {
-                    return $this->context->query['callback'] . '(' . $object->$methodName($pretty) . ')';
-                }
-                return $object->$methodName($pretty);
-            }
-            else {
-                return $object->$methodName();
-            }
-        }
-        else {
-            $this->process404();
-        }
-    }
-    
-    /**
-     * Encode input $array to JSON
-     * 
-     * @param array $array
-     * @throws Exception
-     */
-    private function toJSON($array) {
-        
-        if (!is_array($array)) {
-            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Internal Server Error', 4005);
-        }
-        /*
-         * JSON-P case
-         */
-        $pretty = isset($this->context->query['_pretty']) ? RestoUtil::toBoolean($this->context->query['_pretty']) : false;
-        if (isset($this->context->query['callback'])) {
-            return $this->context->query['callback'] . '(' . json_encode($array, $pretty) . ')';
-        }
-        
-        return RestoUtil::json_format($array, $pretty);
-        
-    }
-    
-    /**
-     * Store query to database
-     * 
-     * @param string $serviceName
-     * @param string $collectionName
-     */
-    private function storeQuery($serviceName, $collectionName, $featureIdentifier) {
-        if ($this->config['general']['storeQuery'] === true && isset($this->user)) {
-            $this->user->storeQuery($this->method, $serviceName, isset($collectionName) ? $collectionName : null, isset($featureIdentifier) ? $featureIdentifier : null, $this->context->query, $this->context->getUrl());
-        }
-    }
-    
-    /**
-     * Send user activation code by email
-     * 
-     * @param string $to
-     * @param string $senderName
-     * @param string $senderEmail
-     * @param string $subject
-     * @param string $message
-     */
-    private function sendMail($to, $senderName, $senderEmail, $subject, $message) {
-        $headers = array(
-            "From: " . $senderName . " <" . $senderEmail . ">\r\n",
-            "Reply-To: doNotReply <" . $senderEmail . ">\r\n",
-            "X-Mailer: PHP/" . phpversion(),
-            "MIME-Version: 1.0\r\n",
-            "Content-type: text/plain; charset=iso-8859-1\r\n"
-        );
-        if (mail($to, $subject, $message, join('', $headers), '-f' . $senderEmail)) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Set CORS headers
-     */
-    private function setCORS() {
-        
-       /*
-        * Only set access to known servers
-        */
-       if (isset($_SERVER['HTTP_ORIGIN'])) {
-           header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
-           header('Access-Control-Allow-Credentials: true');
-           header('Access-Control-Max-Age: 3600');
-       }
-
-       /*
-        * Control header are received during OPTIONS requests
-        */
-       if ($this->method === 'OPTIONS') {
-           if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD'])) {
-               header('Access-Control-Allow-Methods: GET, POST, DELETE, PUT, OPTIONS');         
-           }
-           if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'])) {
-               header('Access-Control-Allow-Headers: ' . $_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']);
-           }
-       }
-    }
     
 }

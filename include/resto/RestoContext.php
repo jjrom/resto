@@ -92,7 +92,7 @@ class RestoContext {
         'timezone' => 'Europe/Paris',
         'theme' => 'default',
         'modules' => array(),
-        'ssoServices' => array()
+        'mail' => array()
     );
     
     /*
@@ -137,6 +137,11 @@ class RestoContext {
          * Debug mode
          */
         $this->debug = isset($options['debug']) ? $options['debug'] : false;
+        
+        /*
+         * Store query
+         */
+        $this->storeQuery = isset($options['storeQuery']) ? $options['storeQuery'] : false;
         
         /*
          * Base Url - (default is '//localhost/')
