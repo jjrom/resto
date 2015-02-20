@@ -336,20 +336,10 @@ class Resto {
      * Set REST path
      */
     private function setPath() {
-        if (isset($_GET['RESToURL']) && !empty($_GET['RESToURL'])) {
-            
-            $restoUrl = RestoUtil::sanitize($_GET['RESToURL']);
+        $restoUrl = filter_input(INPUT_GET, 'RESToURL', FILTER_SANITIZE_STRING);
+        if (isset($restoUrl)) {
             $this->path = substr($restoUrl, -1) === '/' ? substr($restoUrl, 0, strlen($restoUrl) - 1) : $restoUrl;
             
-            /*
-             * Avoid bug with special characters ' and " in path
-             */
-            if (strrpos($this->path, '\'') !== false || strrpos($this->path, '"') !== false) {
-                $this->process404();
-            }
-            
-            unset($_GET['RESToURL']);
-
         }
     }
 
@@ -532,7 +522,10 @@ class Resto {
     private function getDictionary($dbDriver) {
         
         $languages = isset($this->config['general']['languages']) ? $this->config['general']['languages'] : array('en');
-        $lang = substr(isset($_GET['lang']) ? RestoUtil::sanitize($_GET['lang']) : $this->getLanguage(), 0, 2);
+        $lang = filter_input(INPUT_GET, 'lang', FILTER_SANITIZE_STRING);
+        if (!isset($lang)) {
+            $lang = substr($this->getLanguage(), 0, 2);
+        }
         if (!in_array($lang, $languages) || !class_exists('RestoDictionary_' . $lang)) {
             $lang = 'en';
         }
