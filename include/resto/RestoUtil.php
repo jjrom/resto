@@ -457,10 +457,7 @@ class RestoUtil {
                 $paramsStr .= (isset($paramsStr) ? '&' : '') . urlencode($key) . '=' . urlencode($value);
             }
         }
-        return (isset($exploded['scheme']) ? $exploded['scheme'] . ':' : '') . '//' .
-               (isset($exploded['user']) ? $exploded['user'] . ':' . $exploded['pass'] . '@' : '') .
-               $exploded['host'] . (isset($exploded['port']) ? ':' . $exploded['port'] : '') .
-               $exploded['path'] . (isset($paramsStr) ? '?' . $paramsStr : '');
+        return RestoUtil::baseUrl($exploded) . $exploded['path'] . (isset($paramsStr) ? '?' . $paramsStr : '');
     }
     
     /**
@@ -477,10 +474,18 @@ class RestoUtil {
             array_pop($splitted);
             $path = join('.', $splitted);
         }
+        return RestoUtil::baseUrl($exploded) . $path . '.' . $format . (isset($exploded['query']) ? '?' . $exploded['query'] : '');
+    }
+    
+    /**
+     * Construct base url from parse_url fragments
+     * 
+     * @param array $exploded
+     */
+    public static function baseUrl($exploded) {
         return (isset($exploded['scheme']) ? $exploded['scheme'] . ':' : '') . '//' .
                (isset($exploded['user']) ? $exploded['user'] . ':' . $exploded['pass'] . '@' : '') .
-               $exploded['host'] . (isset($exploded['port']) ? ':' . $exploded['port'] : '') .
-               $path . '.' . $format . (isset($exploded['query']) ? '?' . $exploded['query'] : '');
+               $exploded['host'] . (isset($exploded['port']) ? ':' . $exploded['port'] : '');
     }
     
     /**
