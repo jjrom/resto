@@ -708,24 +708,11 @@ abstract class RestoModel {
             }
             
             /*
-             * Default tags are
-             *  - continents
-             *  - countries
-             *  - regions
-             *  - landcover
+             * Default tags are set in config.php
              */
-            $options = array(
-                'continents' => isset($this->context->config['modules']['iTag']['tags']['continents']) ? $this->context->config['modules']['iTag']['tags']['continents'] : true,
-                'countries' => isset($this->context->config['modules']['iTag']['tags']['countries']) ? $this->context->config['modules']['iTag']['tags']['countries'] : true,
-                'cities' => isset($this->context->config['modules']['iTag']['tags']['cities']) ? $this->context->config['modules']['iTag']['tags']['cities'] : null,
-                'regions' => isset($this->context->config['modules']['iTag']['tags']['regions']) ? $this->context->config['modules']['iTag']['tags']['regions'] : true,
-                'geophysical' => isset($this->context->config['modules']['iTag']['tags']['geophysical']) ? $this->context->config['modules']['iTag']['tags']['geophysical'] : false,
-                'population' => isset($this->context->config['modules']['iTag']['tags']['population']) ? $this->context->config['modules']['iTag']['tags']['population'] : false,
-                'landcover' => isset($this->context->config['modules']['iTag']['tags']['landcover']) ? $this->context->config['modules']['iTag']['tags']['landcover'] : true,
-                'french' => isset($this->context->config['modules']['iTag']['tags']['french']) ? $this->context->config['modules']['iTag']['tags']['french'] : false,
-                'ordered' => true,
-                'hierarchical' => true
-            );
+            $options = isset($this->context->config['modules']['iTag']['tags']) ? $this->context->config['modules']['iTag']['tags'] : array();
+            
+            
             if (isset($keywords)) {
                 $keywords[1] = array_merge($keywords[1], $this->iTagToKeywords($iTag->tag(RestoUtil::geoJSONGeometryToWKT($data['geometry']), $options)));
             }

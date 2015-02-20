@@ -221,7 +221,19 @@ return array(
          * !!! Require iTag !!!
          */
         'iTag' => array(
-            'activate' => false
+            'activate' => false,
+            'options' => array(
+                'continents' => true,
+                'countries' => true,
+                'cities' => null,
+                'regions' => true,
+                'geophysical' => false,
+                'population' => false,
+                'landcover' => true,
+                'french' => false,
+                'ordered' => true,
+                'hierarchical' => true
+            )
         )
         
     )
