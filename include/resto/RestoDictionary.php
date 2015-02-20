@@ -237,10 +237,7 @@ abstract class RestoDictionary {
      * @param string $name
      */
     final public function getInstrument($name) {
-        if (!is_array($this->dictionary['keywords']) || !is_array($this->dictionary['keywords']['instrument'])) {
-            return null;
-        }
-        return isset($this->dictionary['keywords']['instrument'][$name]) ? $this->dictionary['keywords']['instrument'][$name]['value'] : null;
+        return $this->getPlatformOrInstrument($name, 'instrument');
     }
  
     /**
@@ -249,10 +246,20 @@ abstract class RestoDictionary {
      * @param string $name
      */
     final public function getPlatform($name) {
-        if (!is_array($this->dictionary['keywords']) || !is_array($this->dictionary['keywords']['platform'])) {
+        return $this->getPlatformOrInstrument($name, 'platform');
+    }
+    
+    /**
+     * Return platform or instrument entry in dictionary identified by $name
+     * 
+     * @param string $name
+     * @param string $type
+     */
+    final public function getPlatformOrInstrument($name, $type) {
+        if (!is_array($this->dictionary['keywords']) || !is_array($this->dictionary['keywords'][$type])) {
             return null;
         }
-        return isset($this->dictionary['keywords']['platform'][$name]) ? $this->dictionary['keywords']['platform'][$name]['value'] : null;
+        return isset($this->dictionary['keywords'][$type][$name]) ? $this->dictionary['keywords'][$type][$name]['value'] : null;
     }
     
     /**
