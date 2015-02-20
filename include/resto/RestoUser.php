@@ -142,20 +142,6 @@ class RestoUser{
     }
     
     /**
-     * Can User access resource url (i.e. download or visualize) ?
-     * 
-     * @param string $resourceUrl
-     * @param string $token
-     * @return boolean
-     */
-    public function canAccess($resourceUrl, $token) {
-        if (!isset($resourceUrl) || !isset($token)) {
-            return false;
-        }
-        return $this->context->dbDriver->isValidSharedLink($resourceUrl, $token);
-    }
-    
-    /**
      * Can User visualize ?
      * 
      * @param string $collectionName
@@ -165,11 +151,7 @@ class RestoUser{
      * @return boolean
      */
     public function canVisualize($collectionName = null, $featureIdentifier = null, $resourceUrl = null, $token = null){
-        if ($this->canAccess($resourceUrl, $token)) {
-            return true;
-        }
-        $rights = $this->rights->getRights($collectionName, $featureIdentifier);
-        return $rights['visualize'];
+        return $this->canDownloadOrVisualize('visualize', $collectionName, $featureIdentifier, $resourceUrl, $token);
     }
     
     /**
@@ -182,11 +164,7 @@ class RestoUser{
      * @return boolean
      */
     public function canDownload($collectionName = null, $featureIdentifier = null, $resourceUrl = null, $token = null){
-        if ($this->canAccess($resourceUrl, $token)) {
-            return true;
-        }
-        $rights = $this->rights->getRights($collectionName, $featureIdentifier);
-        return $rights['download'];
+        return $this->canDownloadOrVisualize('download', $collectionName, $featureIdentifier, $resourceUrl, $token);
     }
     
     /**
@@ -315,6 +293,30 @@ class RestoUser{
         }
         return $order;
     }
+    
+    /**
+     * Can User download or visualize 
+     * 
+     * @param string $action
+     * @param string $collectionName
+     * @param string $featureIdentifier
+     * @param string $resourceUrl
+     * @param string $token
+     * @return boolean
+     */
+    private function canDownloadOrVisualize($action, $collectionName = null, $featureIdentifier = null, $resourceUrl = null, $token = null){
+        
+        if (!isset($resourceUrl) || !isset($token)) {
+            return false;
+        }
+        if ($this->context->dbDriver->isValidSharedLink($resourceUrl, $token)) {
+            return true;
+        }
+    
+        $rights = $this->rights->getRights($collectionName, $featureIdentifier);
+        return $rights[$action];
+    }
+    
     
 }
 
