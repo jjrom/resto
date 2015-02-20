@@ -972,9 +972,9 @@ class RestoUtil {
                  */
                 if ($multipart === true) {
                     $range = array(0, $size - 1);
-
-                    if (array_key_exists('HTTP_RANGE', $_SERVER) === true) {
-                        $range = array_map('intval', explode('-', preg_replace('~.*=([^,]*).*~', '$1', $_SERVER['HTTP_RANGE'])));
+                    $httpRange = filter_input(INPUT_SERVER, 'HTTP_RANGE', FILTER_SANITIZE_STRING);
+                    if (isset($httpRange)) {
+                        $range = array_map('intval', explode('-', preg_replace('~.*=([^,]*).*~', '$1', $httpRange)));
 
                         if (empty($range[1]) === true) {
                             $range[1] = $size - 1;

@@ -184,7 +184,7 @@ class Resto {
             /*
              * HTTP Method is one of GET, POST, PUT or DELETE
              */
-            $this->method = strtoupper($_SERVER['REQUEST_METHOD']);
+            $this->method = strtoupper(filter_input(INPUT_SERVER, 'REQUEST_METHOD', FILTER_SANITIZE_STRING));
             
             /*
              * Set REST path
@@ -243,8 +243,9 @@ class Resto {
          * Set headers including cross-origin resource sharing (CORS)
          * http://en.wikipedia.org/wiki/Cross-origin_resource_sharing
          */
-        if (isset($_SERVER['HTTP_ORIGIN'])) {
-           header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
+        $httpOrigin = filter_input(INPUT_SERVER, 'HTTP_ORIGIN', FILTER_SANITIZE_STRING);
+        if (isset($httpOrigin)) {
+           header('Access-Control-Allow-Origin: ' . $httpOrigin);
            header('Access-Control-Allow-Credentials: true');
            header('Access-Control-Max-Age: 3600');
         }
@@ -269,7 +270,9 @@ class Resto {
         /*
          * Use authorization headers
          */
-        $authorization = !empty($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : (!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION']) ? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] : null);
+        $httpAuth = filter_input(INPUT_SERVER, 'HTTP_AUTHORIZATION', FILTER_SANITIZE_STRING);
+        $rhttpAuth = filter_input(INPUT_SERVER, 'REDIRECT_HTTP_AUTHORIZATION', FILTER_SANITIZE_STRING);
+        $authorization = !empty($httpAuth) ? $httpAuth : (!empty($rhttpAuth) ? $rhttpAuth : null);
         if (isset($authorization)) {
             
             list($method, $token) = explode(' ', $authorization, 2);
@@ -367,7 +370,8 @@ class Resto {
          * Extract outputFormat from HTTP_ACCEPT 
          */
         if (!isset($this->outputFormat)) {
-            $acceptedFormats = explode(',', strtolower(str_replace(' ', '', $_SERVER['HTTP_ACCEPT'])));
+            $httpAccept = filter_input(INPUT_SERVER, 'HTTP_ACCEPT', FILTER_SANITIZE_STRING);
+            $acceptedFormats = explode(',', strtolower(str_replace(' ', '', $httpAccept)));
             foreach ($acceptedFormats as $format) {
                 $weight = 1;
                 if (strpos($format, ';q=')) {
@@ -662,7 +666,8 @@ class Resto {
     private function getBaseURL() {
         
         $pageURL = 'http';
-        if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
+        $https = filter_input(INPUT_SERVER, 'HTTPS', FILTER_SANITIZE_STRING);
+        if (isset($https) && $https === 'on') {
             $pageURL .= 's';
         }
         
@@ -687,9 +692,10 @@ class Resto {
     private function getLanguage() {
         $langs = array();
         $lang_parse = array();
-        if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
+        $acceptLanguage = filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE', FILTER_SANITIZE_STRING);
+        if (isset($acceptLanguage)) {
             // break up string into pieces (languages and q factors)
-            preg_match_all('/([a-z]{1,8}(-[a-z]{1,8})?)\s*(;\s*q\s*=\s*(1|0\.[0-9]+))?/i', $_SERVER['HTTP_ACCEPT_LANGUAGE'], $lang_parse);
+            preg_match_all('/([a-z]{1,8}(-[a-z]{1,8})?)\s*(;\s*q\s*=\s*(1|0\.[0-9]+))?/i', $acceptLanguage, $lang_parse);
 
             if (count($lang_parse[1])) {
                 // create a list like "en" => 0.8

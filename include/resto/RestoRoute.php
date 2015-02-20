@@ -1463,29 +1463,31 @@ class RestoRoute {
      * Set CORS headers (HTTP OPTIONS request)
      */
     private function setCORSHeaders() {
-        
-       /*
-        * Only set access to known servers
-        */
-       if (isset($_SERVER['HTTP_ORIGIN'])) {
-           header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
-           header('Access-Control-Allow-Credentials: true');
-           header('Access-Control-Max-Age: 3600');
-       }
 
-       /*
-        * Control header are received during OPTIONS requests
-        */
-        if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD'])) {
-            header('Access-Control-Allow-Methods: GET, POST, DELETE, PUT, OPTIONS');         
+        $httpOrigin = filter_input(INPUT_SERVER, 'HTTP_ORIGIN', FILTER_SANITIZE_STRING);
+        $httpRequestMethod = filter_input(INPUT_SERVER, 'HTTP_ACCESS_CONTROL_REQUEST_METHOD', FILTER_SANITIZE_STRING);
+        $httpRequestHeaders = filter_input(INPUT_SERVER, 'HTTP_ACCESS_CONTROL_REQUEST_HEADERS', FILTER_SANITIZE_STRING);
+        
+        /*
+         * Only set access to known servers
+         */
+        if (isset($httpOrigin)) {
+            header('Access-Control-Allow-Origin: ' . $httpOrigin);
+            header('Access-Control-Allow-Credentials: true');
+            header('Access-Control-Max-Age: 3600');
         }
-        if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'])) {
-            header('Access-Control-Allow-Headers: ' . $_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']);
+
+        /*
+         * Control header are received during OPTIONS requests
+         */
+        if (isset($httpRequestMethod)) {
+            header('Access-Control-Allow-Methods: GET, POST, DELETE, PUT, OPTIONS');
         }
-       
+        if (isset($httpRequestHeaders)) {
+            header('Access-Control-Allow-Headers: ' . $httpRequestHeaders);
+        }
     }
-    
-    
+
     /**
      * Return userid from base64 encoded email or id string
      * 

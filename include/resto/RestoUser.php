@@ -128,6 +128,7 @@ class RestoUser{
      */
     public function storeQuery($method, $service, $collectionName, $featureIdentifier, $query, $url){
         try {
+            $remoteAdress = filter_input(INPUT_SERVER, 'REMOTE_ADDR', FILTER_SANITIZE_STRING); 
             $this->context->dbDriver->storeQuery($this->profile['userid'], array(
                 'method' => $method,
                 'service' => $service,
@@ -135,7 +136,7 @@ class RestoUser{
                 'resourceid' => $featureIdentifier,
                 'query' => $query,
                 'url' => $url,
-                'ip' => $_SERVER['REMOTE_ADDR'],
+                'ip' => $remoteAdress,
             ));
         } catch (Exception $e) {}
     }
