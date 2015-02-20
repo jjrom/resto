@@ -595,9 +595,9 @@ abstract class RestoModel {
     }
     
     /**
-     * Remap properties array accordingly to $inputPropertiesMapping array
+     * Remap properties array accordingly to $inputMapping array
      * 
-     *  $inputPropertiesMapping array strucuture:
+     *  $inputMapping array strucuture:
      *      
      *          array(
      *              'propertyNameInInputFile' => 'restoPropertyName' or array('restoPropertyName1', 'restoPropertyName2)
@@ -606,8 +606,8 @@ abstract class RestoModel {
      * @param Array $properties
      */
     final public function mapInputProperties($properties) {
-        if (property_exists($this, 'inputPropertiesMapping')) {
-            foreach ($this->inputPropertiesMapping as $key => $arr) {
+        if (property_exists($this, 'inputMapping')) {
+            foreach ($this->inputMapping as $key => $arr) {
                 if (isset($properties[$key])) {
                     if (!is_array($arr)) {
                         $arr = Array($arr);

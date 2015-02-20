@@ -47,7 +47,7 @@ class RestoModel_example extends RestoModel {
      * GeoJSON Feature file
      */
 
-    public $inputPropertiesMapping = array(
+    public $inputMapping = array(
         'productId' => 'productIdentifier',
         'acquisitionDate' => array('startDate', 'completionDate'),
         'satellite' => 'platform',
