@@ -347,7 +347,7 @@ class Resto {
         $restoUrl = filter_input(INPUT_GET, 'RESToURL', FILTER_SANITIZE_STRING);
         if (isset($restoUrl)) {
             $this->path = substr($restoUrl, -1) === '/' ? substr($restoUrl, 0, strlen($restoUrl) - 1) : $restoUrl;
-            //
+            unset($_GET['RESToURL']);
         }
     }
 
@@ -547,6 +547,7 @@ class Resto {
         }
         if (!in_array($lang, $languages) || !class_exists('RestoDictionary_' . $lang)) {
             $lang = 'en';
+            unset($_GET['lang']);
         }
         
         return RestoUtil::instantiate('RestoDictionary_' . $lang, array($dbDriver));
