@@ -92,7 +92,7 @@ abstract class RestoModule{
      * @param array $config
      * @throws Exception
      */
-    protected function getDatabaseHandler($config) {
+    protected function getDatabaseHandler() {
     
         if (isset($this->options['database'])) {
             
@@ -103,8 +103,8 @@ abstract class RestoModule{
                 try {
                     $dbInfo = array(
                         'dbname=' . $this->options['database']['dbname'],
-                        'user=' . (isset($this->options['database']['user']) ? $this->options['database']['user'] : $config['user']),
-                        'password=' . (isset($this->options['database']['password']) ? $this->options['database']['password'] : $config['password'])
+                        'user=' . $this->options['database']['user'],
+                        'password=' . $this->options['database']['password']
                     );
                     /*
                      * If host is specified, then TCP/IP connection is used
@@ -112,7 +112,7 @@ abstract class RestoModule{
                      */
                     if (isset($this->options['database']['host'])) {
                         array_push($dbInfo, 'host=' . $this->options['database']['host']);
-                        array_push($dbInfo, 'port=' . (isset($this->options['database']['port']) ? $this->options['database']['port'] : $config['port']));
+                        array_push($dbInfo, 'port=' . (isset($this->options['database']['port']) ? $this->options['database']['port'] : '5432'));
                     }
                     $dbh = pg_connect(join(' ', $dbInfo));
                     if (!$dbh) {

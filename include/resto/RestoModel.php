@@ -708,9 +708,9 @@ abstract class RestoModel {
             }
             
             /*
-             * Default tags are set in config.php
+             * Default keywords are set in config.php
              */
-            $options = isset($this->context->config['modules']['iTag']['tags']) ? $this->context->config['modules']['iTag']['tags'] : array();
+            $options = isset($this->context->config['modules']['iTag']['keywords']) ? $this->context->config['modules']['iTag']['keywords'] : array();
             
             
             if (isset($keywords)) {

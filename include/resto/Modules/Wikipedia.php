@@ -55,7 +55,7 @@ class Wikipedia extends RestoModule {
     /*
      * Wikipedia schema name
      */
-    private $schema;
+    private $schema = 'gazetteer';
     
     /*
      * Default number of articles returned
@@ -75,12 +75,7 @@ class Wikipedia extends RestoModule {
      */
     public function __construct($context, $user) {
         parent::__construct($context, $user);
-        $this->schema = isset($this->options['database']['schema']) ? $this->options['database']['schema'] : 'gazetteer';
-        $this->dbh = $this->getDatabaseHandler(array(
-            'user' => 'itag',
-            'password' => 'itag',
-            'port' => 5432
-        ));   
+        $this->dbh = $this->getDatabaseHandler();   
     }
 
     /**

@@ -202,7 +202,15 @@ return array(
          */
         'Gazetteer' => array(
             'activate' => false,
-            'route' => 'api/gazetteer/search'
+            'route' => 'api/gazetteer/search',
+            'options' => array(
+                'database' => array(
+                    'dbname' => 'itag',
+                    'schema' => 'gazetteer',
+                    'user' => 'itag',
+                    'password' => 'itag'
+                )
+            )
         ),
         
         /*
@@ -212,7 +220,15 @@ return array(
          */
         'Wikipedia' => array(
             'activate' => false,
-            'route' => 'api/wikipedia/search'
+            'route' => 'api/wikipedia/search',
+            'options' => array(
+                'database' => array(
+                    'dbname' => 'itag',
+                    'schema' => 'gazetteer',
+                    'user' => 'itag',
+                    'password' => 'itag'
+                )
+            )
         ),
         
         /*
@@ -223,16 +239,23 @@ return array(
         'iTag' => array(
             'activate' => false,
             'options' => array(
-                'continents' => true,
-                'countries' => true,
-                'cities' => null,
-                'regions' => true,
-                'geophysical' => false,
-                'population' => false,
-                'landcover' => true,
-                'french' => false,
-                'ordered' => true,
-                'hierarchical' => true
+                'database' => array(
+                    'dbname' => 'itag',
+                    'user' => 'itag',
+                    'password' => 'itag'
+                ),
+                'keywords' => array(
+                    'continents' => true,
+                    'countries' => true,
+                    'cities' => null,
+                    'regions' => true,
+                    'geophysical' => false,
+                    'population' => false,
+                    'landcover' => true,
+                    'french' => false,
+                    'ordered' => true,
+                    'hierarchical' => true
+                )
             )
         )
         
