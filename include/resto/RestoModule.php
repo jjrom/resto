@@ -81,6 +81,61 @@ abstract class RestoModule{
     }
     
     /**
+     * Set the database handler from config.php
+     * 
+     * @param array $config
+     * @throws Exception
+     */
+    protected function setDatabaseHandler($config) {
+    
+        $options = $this->context->config['modules'][get_class($this)];
+        
+        if (isset($options['database'])) {
+
+            /*
+             * Database schema
+             */
+            if (isset($options['database']['schema'])) {
+                $this->schema = $options['database']['schema'];
+            }
+
+            /*
+             * Set database handler from configuration
+             */
+            if (isset($options['database']['dbname'])) {
+                try {
+                    $dbInfo = array(
+                        'dbname=' . $options['database']['dbname'],
+                        'user=' . (isset($options['database']['user']) ? $options['database']['user'] : $config['user']),
+                        'password=' . (isset($options['database']['password']) ? $options['database']['password'] : $config['password'])
+                    );
+                    /*
+                     * If host is specified, then TCP/IP connection is used
+                     * Otherwise socket connection is used
+                     */
+                    if (isset($options['database']['host'])) {
+                        array_push($dbInfo, 'host=' . $options['database']['host']);
+                        array_push($dbInfo, 'port=' . (isset($options['database']['port']) ? $options['database']['port'] : $config['port']));
+                    }
+                    $this->dbh = pg_connect(join(' ', $dbInfo));
+                    if (!$this->dbh) {
+                        throw new Exception();
+                    }
+                } catch (Exception $e) {
+                    throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+                }
+            }
+        }
+
+        /*
+         * Get default database handler 
+         */
+        if (!isset($this->dbh)) {
+            $this->dbh = $this->context->dbDriver->getHandler();
+        }
+    }
+    
+    /**
      * Run module - this function should be called by Resto.php
      * 
      * @param array $params : input parameters

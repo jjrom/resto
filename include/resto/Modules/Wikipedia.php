@@ -74,63 +74,13 @@ class Wikipedia extends RestoModule {
      * @param RestoUser $user
      */
     public function __construct($context, $user) {
-        
         parent::__construct($context, $user);
-        
         $this->schema = 'gazetteer';
-        
-        $options = $this->context->config['modules'][get_class($this)];
-        
-        if (isset($options['database'])) {
-            
-            /*
-             * Database schema
-             */
-            if (isset($options['database']['schema'])) {
-                $this->schema = $options['database']['schema'];
-            }
-        
-            /*
-             * Set database handler from configuration
-             */
-            if (isset($options['database']['dbname'])) {
-                try {
-                    $dbInfo = array(
-                        'dbname=' . $options['database']['dbname'],
-                        'user=' . (isset($options['database']['user']) ? $options['database']['user'] : 'itag'),
-                        'password=' . (isset($options['database']['password']) ? $options['database']['password'] : 'itag')
-                    );
-                    /*
-                     * If host is specified, then TCP/IP connection is used
-                     * Otherwise socket connection is used
-                     */
-                    if (isset($options['database']['host'])) {
-                        array_push($dbInfo, 'host=' . $options['database']['host']);
-                        array_push($dbInfo, 'port=' . (isset($options['database']['port']) ? $options['database']['port'] : '5432'));
-                    }
-                    $this->dbh = pg_connect(join(' ', $dbInfo));
-                    if (!$this->dbh) {
-                        throw new Exception();
-                    }
-                } catch (Exception $e) {
-                    throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
-                }
-            }
-            
-        }
-        
-        /*
-         * Default database handler is RestoDatabaseDriver_PostgreSQL handler
-         */
-        if (!isset($this->dbh)) {
-            if (get_class($this->context->dbDriver) === 'RestoDabaseDriver_PostgreSQL') {
-                $this->dbh = $this->context->dbDriver->getHandler();
-            }
-            else {
-                throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Wikipedia module only support PostgreSQL database handler', 500);
-            }
-        }
-        
+        $this->setDatabaseHandler(array(
+            'user' => 'itag',
+            'password' => 'itag',
+            'port' => 5432
+        ));   
     }
 
     /**
