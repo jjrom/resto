@@ -75,8 +75,8 @@ class Wikipedia extends RestoModule {
      */
     public function __construct($context, $user) {
         parent::__construct($context, $user);
-        $this->schema = 'gazetteer';
-        $this->setDatabaseHandler(array(
+        $this->schema = isset($this->options['database']['schema']) ? $this->options['database']['schema'] : 'gazetteer';
+        $this->dbh = $this->getDatabaseHandler(array(
             'user' => 'itag',
             'password' => 'itag',
             'port' => 5432
@@ -91,16 +91,16 @@ class Wikipedia extends RestoModule {
      * 
      * @return string : result from run process in the $context->outputFormat
      */
-    public function run($params, $data = array()) {
+    public function run($params) {
        
         /*
          * Only GET method on 'search' route with json outputformat is accepted
          */
-        if ($this->context->method !== 'GET' || $this->context->outputFormat !== 'json' || count($params) !== 0) {
+        if ($this->context->method !== 'GET' || count($params) !== 0) {
             throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Not Found', 404);
         }
         
-        return RestoUtil::json_format($this->search($this->context->query), true);
+        return $this->search($this->context->query);
         
     }
     /**

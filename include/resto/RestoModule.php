@@ -50,6 +50,11 @@ abstract class RestoModule{
     protected $user;
     
     /*
+     * Modules options
+     */
+    protected $options;
+    
+    /*
      * Translations array
      *  array(
      *      'en' => array(
@@ -73,6 +78,7 @@ abstract class RestoModule{
     public function __construct($context, $user) {
         $this->context = $context;
         $this->user = $user;
+        $this->options = $this->context->config['modules'][get_class($this)];
         if (isset($this->context)) {
             if (isset($this->translations) && isset($this->translations[$this->context->dictionary->language])) {
                 $this->context->dictionary->addTranslations($this->translations[$this->context->dictionary->language]);
@@ -86,39 +92,30 @@ abstract class RestoModule{
      * @param array $config
      * @throws Exception
      */
-    protected function setDatabaseHandler($config) {
+    protected function getDatabaseHandler($config) {
     
-        $options = $this->context->config['modules'][get_class($this)];
-        
-        if (isset($options['database'])) {
-
-            /*
-             * Database schema
-             */
-            if (isset($options['database']['schema'])) {
-                $this->schema = $options['database']['schema'];
-            }
-
+        if (isset($this->options['database'])) {
+            
             /*
              * Set database handler from configuration
              */
-            if (isset($options['database']['dbname'])) {
+            if (isset($this->options['database']['dbname'])) {
                 try {
                     $dbInfo = array(
-                        'dbname=' . $options['database']['dbname'],
-                        'user=' . (isset($options['database']['user']) ? $options['database']['user'] : $config['user']),
-                        'password=' . (isset($options['database']['password']) ? $options['database']['password'] : $config['password'])
+                        'dbname=' . $this->options['database']['dbname'],
+                        'user=' . (isset($this->options['database']['user']) ? $this->options['database']['user'] : $config['user']),
+                        'password=' . (isset($this->options['database']['password']) ? $this->options['database']['password'] : $config['password'])
                     );
                     /*
                      * If host is specified, then TCP/IP connection is used
                      * Otherwise socket connection is used
                      */
-                    if (isset($options['database']['host'])) {
-                        array_push($dbInfo, 'host=' . $options['database']['host']);
-                        array_push($dbInfo, 'port=' . (isset($options['database']['port']) ? $options['database']['port'] : $config['port']));
+                    if (isset($this->options['database']['host'])) {
+                        array_push($dbInfo, 'host=' . $this->options['database']['host']);
+                        array_push($dbInfo, 'port=' . (isset($this->options['database']['port']) ? $this->options['database']['port'] : $config['port']));
                     }
-                    $this->dbh = pg_connect(join(' ', $dbInfo));
-                    if (!$this->dbh) {
+                    $dbh = pg_connect(join(' ', $dbInfo));
+                    if (!$dbh) {
                         throw new Exception();
                     }
                 } catch (Exception $e) {
@@ -130,9 +127,11 @@ abstract class RestoModule{
         /*
          * Get default database handler 
          */
-        if (!isset($this->dbh)) {
-            $this->dbh = $this->context->dbDriver->getHandler();
+        if (!isset($dbh)) {
+            $dbh = $this->context->dbDriver->getHandler();
         }
+        
+        return $dbh;
     }
     
     /**

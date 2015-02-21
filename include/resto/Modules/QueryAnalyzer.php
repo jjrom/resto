@@ -71,7 +71,7 @@ class QueryAnalyzer extends RestoModule {
      * 
      * @return string : result from run process in the $context->outputFormat
      */
-    public function run($params, $data = array()) {
+    public function run($params) {
         
         /*
          * Only GET method on 'search' route with json outputformat is accepted
