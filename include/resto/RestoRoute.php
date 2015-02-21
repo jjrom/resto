@@ -178,7 +178,7 @@ class RestoRoute {
              */    
             case 'OPTIONS':
                 $this->setCORSHeaders();
-                exit(0);
+                return null;
                 
             /*
              * Send an HTTP 404 Not Found
@@ -438,7 +438,7 @@ class RestoRoute {
                          */
                         if (isset($this->context->query['redirect'])) {
                             header('Location: ' . $this->context->query['redirect']);
-                            exit;
+                            return null;
                         }
                         /*
                          * ...or return json stream otherwise
@@ -600,7 +600,7 @@ class RestoRoute {
             else {
                 $this->storeQuery('download', $collectionName, $featureIdentifier);
                 $feature->download();
-                exit;
+                return null;
             }
         }
         else {
@@ -1509,7 +1509,7 @@ class RestoRoute {
      */
     private function error($code, $message = null, $method = null) {
         $error = isset($message) ? $message : isset(RestoUtil::$codes[$code]) ? RestoUtil::$codes[$code] : 'Unknown error';
-        throw new Exception(($this->context->debug && isset($method) ? $method . ' - ' : '') . $error, 404);
+        throw new Exception(($this->context->debug && isset($method) ? $method . ' - ' : '') . $error, $code);
     }
     
     

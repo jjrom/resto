@@ -114,7 +114,7 @@ class Resto {
     /*
      * RESTo major version number
      */
-    const version = '2.0';
+    const VERSION = '2.0';
     
     /*
      * Default output format if not specified in request
@@ -142,11 +142,6 @@ class Resto {
     private $config = array();
     
     /*
-     * Resto Database driver
-     */
-    private $dbDriver;
-    
-    /*
      * Output format
      */
     private $outputFormat;
@@ -168,11 +163,6 @@ class Resto {
      * 
      */
     public function __construct() {
-        
-        /*
-         * By default everything runs fine :)
-         */
-        $responseStatus = 200;
         
         try {
            
@@ -214,23 +204,37 @@ class Resto {
             /*
              * Process route
              */
-            $response = $this->format($route->route());
+            $responseObject = $route->route();
+            
+            $response = isset($responseObject) ? $this->format($responseObject) : null; 
+            
             
         } catch (Exception $e) {
+            
+            /*
+             * Error are always in JSON
+             */
+            $this->outputFormat = 'json';
             
             /*
              * Code under 500 is an HTTP code - otherwise it is a resto error code
              * All resto error codes lead to HTTP 200 error code
              */
             $responseStatus = $e->getCode() < 502 ? $e->getCode() : 200;
-            
-            /*
-             * Error are always in JSON
-             */
-            $this->outputFormat = 'json';
             $response = RestoUtil::json_format(array('ErrorMessage' => $e->getMessage(), 'ErrorCode' => $e->getCode()));
             
         }
+        
+        if (isset($response)) {
+            $this->answer($response, isset($responseStatus) ? $responseStatus : 200);
+        }
+        
+    }
+    
+    /**
+     * Stream HTTP result and exit
+     */
+    private function answer($response, $responseStatus) {
         
         /*
          * HTTP 1.1 headers
@@ -254,8 +258,9 @@ class Resto {
          * Stream data
          */
         echo $response;
+        
     }
- 
+    
     /**
      * Authenticate and set user accordingly
      * 
@@ -348,23 +353,10 @@ class Resto {
 
     /**
      * Set output format from suffix or HTTP_ACCEPT
-     * 
      */
     private function setOutputFormat() {
         
-        $splitted = explode('.', $this->path);
-        $size = count($splitted);
-        
-        if ($size > 1) {
-            if (array_key_exists($splitted[$size - 1], RestoUtil::$contentTypes)) {
-                $this->outputFormat = $splitted[$size - 1];
-                array_pop($splitted);
-                $this->path = join('.', $splitted);
-            }
-            else {
-                $this->process404();
-            }
-        }
+        $this->outputFormat = $this->getPathSuffix();
         
         /*
          * Extract outputFormat from HTTP_ACCEPT 
@@ -391,6 +383,28 @@ class Resto {
             }
         }
         
+    }
+    
+    /**
+     * Return suffix from input url
+     * @return string
+     */
+    private function getPathSuffix() {
+        
+        $splitted = explode('.', $this->path);
+        $size = count($splitted);
+        if ($size > 1) {
+            if (array_key_exists($splitted[$size - 1], RestoUtil::$contentTypes)) {
+                $suffix = $splitted[$size - 1];
+                array_pop($splitted);
+                $this->path = join('.', $splitted);
+            }
+            else {
+                $this->process404();
+            }
+        }
+        
+        return $suffix;
     }
     
     /**
@@ -601,26 +615,7 @@ class Resto {
          * Case 2 - Object is an object
          */
         else if (is_object($object)) {
-            $methodName = 'to' . strtoupper($this->outputFormat);
-            if (method_exists(get_class($object), $methodName)) {
-
-                /*
-                 * JSON-P case
-                 */
-                if ($this->outputFormat === 'json') {
-                    $pretty = isset($this->context->query['_pretty']) ? RestoUtil::toBoolean($this->context->query['_pretty']) : false;
-                    if (isset($this->context->query['callback'])) {
-                        return $this->context->query['callback'] . '(' . $object->$methodName($pretty) . ')';
-                    }
-                    return $object->$methodName($pretty);
-                }
-                else {
-                    return $object->$methodName();
-                }
-            }
-            else {
-                $this->process404();
-            }
+            return $this->formatObject($object);
         }
         /*
          * Unknown stuff
@@ -649,6 +644,35 @@ class Resto {
         
         return RestoUtil::json_format($array, $pretty);
         
+    }
+    
+    /**
+     * Encode input $array to JSON
+     * 
+     * @param array $array
+     * @throws Exception
+     */
+    private function formatObject($array) {
+        $methodName = 'to' . strtoupper($this->outputFormat);
+        if (method_exists(get_class($object), $methodName)) {
+
+            /*
+             * JSON-P case
+             */
+            if ($this->outputFormat === 'json') {
+                $pretty = isset($this->context->query['_pretty']) ? RestoUtil::toBoolean($this->context->query['_pretty']) : false;
+                if (isset($this->context->query['callback'])) {
+                    return $this->context->query['callback'] . '(' . $object->$methodName($pretty) . ')';
+                }
+                return $object->$methodName($pretty);
+            }
+            else {
+                return $object->$methodName();
+            }
+        }
+        else {
+            $this->process404();
+        }
     }
     
     /*
