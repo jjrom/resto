@@ -318,7 +318,7 @@ class Resto {
      */
     private function setConfig() {
         
-        $configFile = realpath(dirname(__FILE__)) . '/../config.php';
+        $configFile = realpath(dirname(__FILE__)) . '/../config.dev.php';
         
         if (!file_exists($configFile)) {
             throw new Exception(__METHOD__ . 'Missing mandatory configuration file', 4000);
@@ -347,7 +347,7 @@ class Resto {
         $restoUrl = filter_input(INPUT_GET, 'RESToURL', FILTER_SANITIZE_STRING);
         if (isset($restoUrl)) {
             $this->path = substr($restoUrl, -1) === '/' ? substr($restoUrl, 0, strlen($restoUrl) - 1) : $restoUrl;
-            
+            //
         }
     }
 
@@ -650,10 +650,10 @@ class Resto {
     /**
      * Encode input $array to JSON
      * 
-     * @param array $array
+     * @param array $object
      * @throws Exception
      */
-    private function formatObject($array) {
+    private function formatObject($object) {
         $methodName = 'to' . strtoupper($this->outputFormat);
         if (method_exists(get_class($object), $methodName)) {
 
