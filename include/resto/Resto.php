@@ -398,13 +398,14 @@ class Resto {
                 $suffix = $splitted[$size - 1];
                 array_pop($splitted);
                 $this->path = join('.', $splitted);
+                return $suffix;
             }
             else {
                 $this->process404();
             }
         }
         
-        return $suffix;
+        return null;
     }
     
     /**
