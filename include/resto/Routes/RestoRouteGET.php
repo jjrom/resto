@@ -122,135 +122,14 @@ class RestoRouteGET extends RestoRoute {
          * api/collections
          */
         if ($segments[1] === 'collections' && isset($segments[2])) {
-            
-            if ($segments[2] === 'search' || (isset($segments[3]) && $segments[3] === 'search')) {
-                return $this->GET_apiCollectionsSearch(isset($segments[3]) ? $segments[2] : null);
-            }
-            else if ($segments[2] === 'describe' || (isset($segments[3]) && $segments[3] === 'describe')) {
-                return $this->GET_apiCollectionsDescribe(isset($segments[3]) ? $segments[2] : null);
-            }
-            else {
-                $this->error(404, null, __METHOD__);
-            }
+            return $this->GET_apiCollections($segments);
         }
 
         /*
          * api/users
          */
         else if ($segments[1] === 'users' && isset($segments[2])) {
-
-            /*
-             * api/users/connect
-             */
-            if ($segments[2] === 'connect' && !isset($segments[3])) {
-                if (isset($this->user->profile['email'])) {
-                    return array(
-                        'token' => $this->context->createToken($this->user->profile['userid'], $this->user->profile)
-                    );
-                }
-                else {
-                    $this->error(403, null, __METHOD__);
-                }
-            }
-
-            /*
-             * api/users/disconnect
-             */
-            else if ($segments[2] === 'disconnect' && !isset($segments[3])) {
-                $this->user->disconnect();
-                return array(
-                    'status' => 'success',
-                    'message' => 'User disconnected'
-                );
-            }
-
-            /*
-             * api/users/resetPassword
-             */
-            else if ($segments[2] === 'resetPassword' && !isset($segments[3])) {
-
-                if (!isset($this->context->query['email'])) {
-                    $this->error(400, null, __METHOD__);
-                }
-
-                /*
-                 * Send email with reset link
-                 */
-                $resetLink = "TODO";
-                if (!$this->sendMail(array(
-                            'to' => $this->context->query['email'],
-                            'senderName' => $this->context->config['mail']['senderName'],
-                            'senderEmail' => $this->context->config['mail']['senderEmail'],
-                            'subject' => $this->context->dictionary->translate('resetPasswordSubject', $this->context->config['title']),
-                            'message' => $this->context->dictionary->translate('resetPasswordMessage', $this->context->config['title'], $resetLink)
-                        ))) {
-                    $this->error(3003, 'Cannot send password reset link', __METHOD__);
-                } else {
-                    return array(
-                        'status' => 'success',
-                        'message' => 'Reset link sent to ' . $this->context->query['email']
-                    );
-                }
-            }
-
-            /*
-             * api/users/activate
-             */
-            else if (isset($segments[3]) && $segments[3] === 'activate' && !isset($segments[4])) {
-
-                if (isset($this->context->query['act'])) {
-                    if ($this->dbDriver->activateUser($segments[2], $this->context->query['act'])) {
-
-                        /*
-                         * Redirect to a human readable page...
-                         */
-                        if (isset($this->context->query['redirect'])) {
-                            header('Location: ' . $this->context->query['redirect']);
-                            return null;
-                        }
-                        /*
-                         * ...or return json stream otherwise
-                         */
-                        else {
-                            return array(
-                                'status' => 'success',
-                                'message' => 'User activated'
-                            );
-                        }
-                    }
-                    else {
-                        return array(
-                            'status' => 'error',
-                            'message' => 'User not activated'
-                        );
-                    }
-                } else {
-                    $this->error(400, null, __METHOD__);
-                }
-            }
-
-            /*
-             * api/users/isConnected
-             */
-            else if (isset($segments[3]) && $segments[3] === 'isConnected' && !isset($segments[4])) {
-                if (isset($this->context->query['_sid'])) {
-                    if ($this->dbDriver->userIsConnected($segments[2], $this->context->query['_sid'])) {
-                        return array(
-                            'status' => 'connected',
-                            'message' => 'User is connected'
-                        );
-                    }
-                    else {
-                        return array(
-                            'status' => 'error',
-                            'message' => 'User not connected'
-                        );
-                    }
-                }
-                else {
-                    $this->error(400, null, __METHOD__);
-                }
-            }
+            return $this->GET_apiUsers($segments);
         }
         /*
          * Process module
@@ -261,9 +140,26 @@ class RestoRouteGET extends RestoRoute {
         
     }
     
+    /**
+     * Process api/collections
+     * 
+     * @param array $segments
+     * @return type
+     */
+    private function GET_apiCollections($segments) {
+        if ($segments[2] === 'search' || (isset($segments[3]) && $segments[3] === 'search')) {
+            return $this->GET_apiCollectionsSearch(isset($segments[3]) ? $segments[2] : null);
+        }
+        else if ($segments[2] === 'describe' || (isset($segments[3]) && $segments[3] === 'describe')) {
+            return $this->GET_apiCollectionsDescribe(isset($segments[3]) ? $segments[2] : null);
+        }
+        else {
+            $this->error(404, null, __METHOD__);
+        }
+    }
     
     /**
-     *Process HTTP GET request on api collections search
+     * Process
      * 
      *    api/collections/search                        |  Search on all collections
      *    api/collections/{collection}/search           |  Search on {collection}
@@ -302,7 +198,173 @@ class RestoRouteGET extends RestoRoute {
         
     }
     
+    /**
+     * Process api/users
+     * 
+     * @param array $segments
+     * @return type
+     */
+    private function GET_apiUsers($segments) {
+        
+       /*
+        * api/users/connect
+        */
+       if ($segments[2] === 'connect' && !isset($segments[3])) {
+           return $this->GET_apiUsersConnect();
+       }
+
+       /*
+        * api/users/disconnect
+        */
+       else if ($segments[2] === 'disconnect' && !isset($segments[3])) {
+          return $this->GET_apiUsersDisconnect();
+       }
+
+       /*
+        * api/users/resetPassword
+        */
+       else if ($segments[2] === 'resetPassword' && !isset($segments[3])) {
+           return $this->GET_apiUsersResetPassword($segments);
+       }
+
+       /*
+        * api/users/{userid}/activate
+        */
+       else if (isset($segments[3]) && $segments[3] === 'activate' && !isset($segments[4])) {
+           return $this->GET_apiUsersActivate($segments[2]);
+       }
+
+       /*
+        * api/users/{userid}/isConnected
+        */
+       else if (isset($segments[3]) && $segments[3] === 'isConnected' && !isset($segments[4])) {
+           return $this->GET_apiUsersIsConnected($segments[2]);
+       }
+       
+       /*
+        * 404
+        */
+       else {
+           $this->error(403, null, __METHOD__);
+       }
+    }
     
+    /**
+     * Process api/users/connect
+     */
+    private function GET_apiUsersConnect() {
+        if (isset($this->user->profile['email'])) {
+            return array(
+                'token' => $this->context->createToken($this->user->profile['userid'], $this->user->profile)
+            );
+        }
+        else {
+            $this->error(403, null, __METHOD__);
+        }
+    }
+    
+    /**
+     * Process api/users/disconnect
+     */
+    private function GET_apiUsersDisconnect() {
+        $this->user->disconnect();
+        return array(
+            'status' => 'success',
+            'message' => 'User disconnected'
+        );
+    }
+
+    /**
+     * Process api/users/resetPassword
+     */
+    private function GET_apiUsersResetPassword() {
+
+        if (!isset($this->context->query['email'])) {
+            $this->error(400, null, __METHOD__);
+        }
+
+        /*
+         * Send email with reset link
+         */
+        $resetLink = "TODO";
+        if (!$this->sendMail(array(
+                    'to' => $this->context->query['email'],
+                    'senderName' => $this->context->config['mail']['senderName'],
+                    'senderEmail' => $this->context->config['mail']['senderEmail'],
+                    'subject' => $this->context->dictionary->translate('resetPasswordSubject', $this->context->config['title']),
+                    'message' => $this->context->dictionary->translate('resetPasswordMessage', $this->context->config['title'], $resetLink)
+                ))) {
+            $this->error(3003, 'Cannot send password reset link', __METHOD__);
+        }
+        
+        return array(
+            'status' => 'success',
+            'message' => 'Reset link sent to ' . $this->context->query['email']
+        );
+    }
+    
+    /**
+     * Process api/users/{userid}/activate
+     * 
+     * @param string $userid
+     */
+    private function GET_apiUsersActivate($userid) {
+        if (isset($this->context->query['act'])) {
+            if ($this->dbDriver->activateUser($userid, $this->context->query['act'])) {
+
+                /*
+                 * Redirect to a human readable page...
+                 */
+                if (isset($this->context->query['redirect'])) {
+                    header('Location: ' . $this->context->query['redirect']);
+                    return null;
+                }
+                /*
+                 * ...or return json stream otherwise
+                 */
+                else {
+                    return array(
+                        'status' => 'success',
+                        'message' => 'User activated'
+                    );
+                }
+            }
+            else {
+                return array(
+                    'status' => 'error',
+                    'message' => 'User not activated'
+                );
+            }
+        }
+        else {
+            $this->error(400, null, __METHOD__);
+        }
+    }
+    
+    /**
+     * Process api/users/userid}/isConnected
+     * 
+     * @param string $userid
+     */
+    private function GET_apiUsersIsConnected($userid) {
+        if (isset($this->context->query['_sid'])) {
+            if ($this->dbDriver->userIsConnected($userid, $this->context->query['_sid'])) {
+                return array(
+                    'status' => 'connected',
+                    'message' => 'User is connected'
+                );
+            }
+            else {
+                return array(
+                    'status' => 'error',
+                    'message' => 'User not connected'
+                );
+            }
+        } else {
+            $this->error(400, null, __METHOD__);
+        }
+    }
+
     /**
      * 
      * Process HTTP GET request on collections
@@ -316,15 +378,11 @@ class RestoRouteGET extends RestoRoute {
      */
     private function GET_collections($segments) {
         
-        $collectionName = isset($segments[1]) ? $segments[1] : null;
-        $featureIdentifier = isset($segments[2]) ? $segments[2] : null;
-        $modifier = isset($segments[3]) ? $segments[3] : null;
-        
-        if (isset($collectionName)) {
-            $collection = new RestoCollection($collectionName, $this->context, $this->user, array('autoload' => true));
+        if (isset($segments[1])) {
+            $collection = new RestoCollection($segments[1], $this->context, $this->user, array('autoload' => true));
         }
-        if (isset($featureIdentifier)) {
-            $feature = new RestoFeature($featureIdentifier, $this->context, $this->user, $collection);
+        if (isset($segments[2])) {
+            $feature = new RestoFeature($segments[2], $this->context, $this->user, $collection);
         }
         
         /*
@@ -337,46 +395,70 @@ class RestoRouteGET extends RestoRoute {
         /*
          * Collection description (XML is not allowed - see api/describe/collections)
          */
-        else if (!isset($featureIdentifier)) {
+        else if (!isset($feature->identifier)) {
             return $collection;
         }
 
         /*
          * Feature description
          */
-        else if (!isset($modifier)) {
-            $this->storeQuery('resource', $collectionName, $featureIdentifier);
+        else if (!$segments[3]) {
+            $this->storeQuery('resource', $collection->name, $feature->identifier);
             return $feature;
         }
 
         /*
          * Download feature then exit
          */
-        else if ($modifier === 'download') {
-
-            if (!$this->user->canDownload($collectionName, $featureIdentifier, $this->context->baseUrl . $this->context->path, !empty($this->context->query['_tk']) ? $this->context->query['_tk'] : null)) {
-                $this->error(403, null, __METHOD__);
-            }
-            else if ($this->user->hasToSignLicense($collection) && empty($this->context->query['_tk'])) {
-                return array(
-                    'ErrorMessage' => 'Forbidden',
-                    'collection' => $collection->name,
-                    'license' => $collection->getLicense(),
-                    'ErrorCode' => 3002
-                );
-            }
-            else {
-                $this->storeQuery('download', $collectionName, $featureIdentifier);
-                $feature->download();
-                return null;
-            }
+        else if ($segments[3] === 'download') {
+            return $this->GET_featureDownload();
         }
+        
+        /*
+         * 404
+         */
         else {
-            $this->error(501, null, __METHOD__);
+            $this->error(404, null, __METHOD__);
         }
         
     }
     
+    /**
+     * Download feature
+     * 
+     * @param RestoCollection $collection
+     * @param RestoFeature $feature
+     * @return type
+     */
+    private function GET_featureDownload($collection, $feature) {
+        
+        /*
+         * User do not have right to download product
+         */
+        if (!$this->user->canDownload($collection->name, $feature->identifier, $this->context->baseUrl . $this->context->path, !empty($this->context->query['_tk']) ? $this->context->query['_tk'] : null)) {
+            $this->error(403, null, __METHOD__);
+        }
+        /*
+         * Or user has rigth but hasn't sign the license yet
+         */
+        else if ($this->user->hasToSignLicense($collection) && empty($this->context->query['_tk'])) {
+            return array(
+                'ErrorMessage' => 'Forbidden',
+                'collection' => $collection->name,
+                'license' => $collection->getLicense(),
+                'ErrorCode' => 3002
+            );
+        }
+        /*
+         * Rights + license signed = download and exit
+         */
+        else {
+            $this->storeQuery('download', $collection->name, $feature->identifier);
+            $feature->download();
+            return null;
+        }
+        
+    }
     
     /**
      * 
@@ -407,29 +489,7 @@ class RestoRouteGET extends RestoRoute {
          * users/{userid}
          */
         else if (!isset($segments[2])) {
-            
-            /*
-             * Profile can only be seen by its owner or by admin
-             */
-            $user = $this->user;
-            $userid = $this->userid($segments[1]);
-            
-            if ($user->profile['userid'] !== $userid) {
-                if ($user->profile['groupname'] !== 'admin') {
-                    $this->error(403, null, __METHOD__);
-                }
-                else {
-                    $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);
-                }
-            }
-            else {
-                return array(
-                    'status' => 'success',
-                    'message' => 'Profile for ' . $user->profile['userid'],
-                    'profile' => $user->profile
-                );
-            }
-            
+            return $this->GET_userProfile($segments[1]);
         }
         else {
             
@@ -456,6 +516,26 @@ class RestoRouteGET extends RestoRoute {
         
     }
     
+    /**
+     * Process users/{userid}     
+     * 
+     * @param string $emailOrId
+     * @throws Exception
+     */
+    private function GET_userProfile($emailOrId) {
+    
+        /*
+         * Profile can only be seen by its owner or by admin
+         */
+        $user = $this->getAuthorizedUser($emailOrId);
+        
+        return array(
+            'status' => 'success',
+            'message' => 'Profile for ' . $user->profile['userid'],
+            'profile' => $user->profile
+        );
+        
+    }
     
     /**
      * Process HTTP GET request on user rights
@@ -474,17 +554,8 @@ class RestoRouteGET extends RestoRoute {
         /*
          * Rights can only be seen by its owner or by admin
          */
-        $user = $this->user;
-        $userid = $this->userid($emailOrId);
-        if ($user->profile['userid'] !== $userid) {
-            if ($user->profile['groupname'] !== 'admin') {
-                $this->error(403, null, __METHOD__);
-            }
-            else {
-                $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);
-            }
-        }
-
+        $user = $this->getAuthorizedUser($emailOrId);
+        
         return array(
             'status' => 'success',
             'message' => 'Rights for ' . $user->profile['userid'],
@@ -510,16 +581,7 @@ class RestoRouteGET extends RestoRoute {
         /*
          * Cart can only be seen by its owner or by admin
          */
-        $user = $this->user;
-        $userid = $this->userid($emailOrId);
-        if ($user->profile['userid'] !== $userid) {
-            if ($user->profile['groupname'] !== 'admin') {
-                $this->error(403, null, __METHOD__);
-            }
-            else {
-                $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);
-            }
-        }
+        $user = $this->getAuthorizedUser($emailOrId);
         
         if (isset($itemid)) {
             $this->error(404, null, __METHOD__);
@@ -544,16 +606,7 @@ class RestoRouteGET extends RestoRoute {
         /*
          * Orders can only be seen by its owner or by admin
          */
-        $user = $this->user;
-        $userid = $this->userid($emailOrId);
-        if ($user->profile['userid'] !== $userid) {
-            if ($user->profile['groupname'] !== 'admin') {
-                $this->error(403, null, __METHOD__);
-            }
-            else {
-                $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);
-            }
-        }
+        $user = $this->getAuthorizedUser($emailOrId);
         
         /*
          * Special case of metalink for single order
@@ -564,7 +617,7 @@ class RestoRouteGET extends RestoRoute {
         else {
             return array(
                 'status' => 'success',
-                'message' => 'Orders for user ' . $userid,
+                'message' => 'Orders for user ' . $user->profile['userid'],
                 'orders' => $user->getOrders()
             );
         }

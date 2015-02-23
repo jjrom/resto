@@ -394,26 +394,5 @@ class RestoRoutePOST extends RestoRoute {
         }
         
     }
-    
-    /**
-     * Return user object if authorized
-     * 
-     * @param string $emailOrId
-     */
-    private function getAuthorizedUser($emailOrId) {
-        
-        $user = $this->user;
-        $userid = $this->userid($emailOrId);
-        if ($user->profile['userid'] !== $userid) {
-            if ($user->profile['groupname'] !== 'admin') {
-                $this->error(403, null, __METHOD__);
-            }
-            else {
-                $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);
-            }
-        }
-        
-        return $user;
-        
-    }
+
 }
