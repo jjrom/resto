@@ -197,16 +197,9 @@ class Resto {
             $this->authenticate();
 
             /*
-             * Initialize route
+             * Route
              */
-            $route = new RestoRoute($this->context, $this->user);
-            
-            /*
-             * Process route
-             */
-            $responseObject = $route->route();
-            
-            $response = isset($responseObject) ? $this->format($responseObject) : null; 
+            $response = $this->getResponse();
             
             
         } catch (Exception $e) {
@@ -232,6 +225,61 @@ class Resto {
     }
     
     /**
+     * Initialize route and get response from server
+     */
+    private function getResponse() {
+        
+        /*
+         * Initialize route from HTTP method
+         */
+        switch ($this->context->method) {
+            
+            /*
+             * GET
+             */
+            case 'GET':
+                $route = new RestoRouteGET($this->context, $this->user);
+                break;
+            /*
+             * POST
+             */
+            case 'POST':
+                $route = new RestoRoutePOST($this->context, $this->user);
+                break;
+            /*
+             * PUT
+             */
+            case 'PUT':
+                $route = new RestoRoutePUT($this->context, $this->user);
+                break;
+            /*
+             * DELETE
+             */
+            case 'DELETE':
+                $route = new RestoRouteDELETE($this->context, $this->user);
+                break;
+            /*
+             * OPTIONS
+             */    
+            case 'OPTIONS':
+                $this->setCORSHeaders();
+                return null;
+            /*
+             * Send an HTTP 404 Not Found
+             */
+            default:
+                throw new Exception('Not Found', 404);
+        }
+        
+        /*
+         * Process route
+         */
+        $responseObject = $route->route(explode('/', $this->context->path));
+
+        return isset($responseObject) ? $this->format($responseObject) : null;
+    }
+
+    /**
      * Stream HTTP result and exit
      */
     private function answer($response, $responseStatus) {
@@ -247,12 +295,7 @@ class Resto {
          * Set headers including cross-origin resource sharing (CORS)
          * http://en.wikipedia.org/wiki/Cross-origin_resource_sharing
          */
-        $httpOrigin = filter_input(INPUT_SERVER, 'HTTP_ORIGIN', FILTER_SANITIZE_STRING);
-        if (isset($httpOrigin)) {
-           header('Access-Control-Allow-Origin: ' . $httpOrigin);
-           header('Access-Control-Allow-Credentials: true');
-           header('Access-Control-Max-Age: 3600');
-        }
+        $this->setCORSHeaders();
         
         /*
          * Stream data
@@ -794,6 +837,34 @@ class Resto {
         return $params;
         
     }
+    
+    /**
+     * Set CORS headers (HTTP OPTIONS request)
+     */
+    private function setCORSHeaders() {
 
+        $httpOrigin = filter_input(INPUT_SERVER, 'HTTP_ORIGIN', FILTER_SANITIZE_STRING);
+        $httpRequestMethod = filter_input(INPUT_SERVER, 'HTTP_ACCESS_CONTROL_REQUEST_METHOD', FILTER_SANITIZE_STRING);
+        $httpRequestHeaders = filter_input(INPUT_SERVER, 'HTTP_ACCESS_CONTROL_REQUEST_HEADERS', FILTER_SANITIZE_STRING);
+        
+        /*
+         * Only set access to known servers
+         */
+        if (isset($httpOrigin)) {
+            header('Access-Control-Allow-Origin: ' . $httpOrigin);
+            header('Access-Control-Allow-Credentials: true');
+            header('Access-Control-Max-Age: 3600');
+        }
+
+        /*
+         * Control header are received during OPTIONS requests
+         */
+        if (isset($httpRequestMethod)) {
+            header('Access-Control-Allow-Methods: GET, POST, DELETE, PUT, OPTIONS');
+        }
+        if (isset($httpRequestHeaders)) {
+            header('Access-Control-Allow-Headers: ' . $httpRequestHeaders);
+        }
+    }
     
 }
