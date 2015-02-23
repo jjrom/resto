@@ -135,7 +135,7 @@ abstract class RestoRoute {
      * @param array $segments - path (i.e. a/b/c/d) exploded as an array (i.e. array('a', 'b', 'c', 'd')
      * @param array $data - data (POST or PUT)
      */
-    protected function processModule($segments, $data = array()) {
+    protected function processModuleRoute($segments, $data = array()) {
         
         $module = null;
         
@@ -163,7 +163,7 @@ abstract class RestoRoute {
             }
         }
         if (!isset($module)) {
-            $this->error(404, null, __METHOD__);
+            $this->httpError(404, null, __METHOD__);
         }
     }
 
@@ -219,7 +219,7 @@ abstract class RestoRoute {
     /*
      * Throw 404 Not Found exception
      */
-    protected function error($code, $message = null, $method = null) {
+    protected function httpError($code, $message = null, $method = null) {
         $error = isset($message) ? $message : isset(RestoUtil::$codes[$code]) ? RestoUtil::$codes[$code] : 'Unknown error';
         throw new Exception(($this->context->debug && isset($method) ? $method . ' - ' : '') . $error, $code);
     }
@@ -235,7 +235,7 @@ abstract class RestoRoute {
         $userid = $this->userid($emailOrId);
         if ($user->profile['userid'] !== $userid) {
             if ($user->profile['groupname'] !== 'admin') {
-                $this->error(403, null, __METHOD__);
+                $this->httpError(403, null, __METHOD__);
             }
             else {
                 $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);
@@ -246,5 +246,30 @@ abstract class RestoRoute {
         
     }
     
+    /**
+     * Return output execution status as an array
+     *  
+     * @param string $message
+     * @param array $additional
+     */
+    protected function success($message, $additional = array()) {
+        return $this->message('success', $message, $additional);
+    }
     
+    /**
+     * Return output execution status as an array
+     *  
+     * @param string $message
+     * @param array $additional
+     */
+    protected function error($message, $additional = array()) {
+        return $this->message('error', $message, $additional);
+    }
+    
+    private function message($status, $message, $additional = array()) {
+        return array_merge(array(
+            'status' => $status,
+            'message' => $message
+        ), $additional);
+    }
 }

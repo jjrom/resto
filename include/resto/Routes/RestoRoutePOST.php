@@ -73,7 +73,7 @@ class RestoRoutePOST extends RestoRoute {
          */
         $data = RestoUtil::readInputData();
         if (!is_array($data) || count($data) === 0) {
-            $this->error(400, null, __METHOD__);
+            $this->httpError(400, null, __METHOD__);
         }
 
         switch($segments[0]) {
@@ -84,7 +84,7 @@ class RestoRoutePOST extends RestoRoute {
             case 'users':
                 return $this->POST_users($segments, $data);
             default:
-                return $this->processModule($segments, $data);
+                return $this->processModuleRoute($segments, $data);
         }
     }
    
@@ -102,7 +102,7 @@ class RestoRoutePOST extends RestoRoute {
         
         
         if (!isset($segments[1])) {
-            $this->error(404, null, __METHOD__);
+            $this->httpError(404, null, __METHOD__);
         }
 
         /*
@@ -111,70 +111,82 @@ class RestoRoutePOST extends RestoRoute {
         if ($segments[1] === 'users') {
             
             if (!isset($segments[2])) {
-                $this->error(404, null, __METHOD__);
+                $this->httpError(404, null, __METHOD__);
             }
             
             if ($segments[2] === 'connect' && !isset($segments[3])) {
-
-                if (!isset($data['email']) || !isset($data['password'])) {
-                    $this->error(400, null, __METHOD__);
-                }
-
-                /*
-                 * Disconnect user
-                 */
-                if (isset($this->user->profile['email'])) {
-                    $this->user->disconnect();
-                }
-
-                $this->user = new RestoUser($this->context->dbDriver->getUserProfile(strtolower($data['email']), $data['password']), $this->context);
-                if (isset($this->user->profile['email'])) {
-                    return array(
-                        'token' => $this->context->createToken($this->user->profile['userid'], $this->user->profile)
-                    );
-                }
-                else {
-                    $this->error(403, null, __METHOD__);
-                }
-
+                return $this->POST_apiUsersConnect($data);
             }
 
             /*
-             * api/users/signLicense
+             * api/users/{userid}/signLicense
              */
-            else if (isset($segments[3]) && $segments[3] === 'signLicense' && !isset($segments[4])) {
-
-                /*
-                 * Only user can sign its license
-                 */
-                if ($this->user->profile['userid'] !== $this->userid($segments[2])) {
-                    $this->error(403, null, __METHOD__);
-                }
-
-                if ($this->user->signLicense($data[0], true)) {
-                    return array(
-                        'status' => 'success',
-                        'message' => 'License signed'
-                    );
-                }
-                else {
-                    return array(
-                        'status' => 'error',
-                        'message' => 'Cannot sign license'
-                    );
-                }
+            if (isset($segments[3]) && $segments[3] === 'signLicense' && !isset($segments[4])) {
+                return $this->POST_apiUsersSignLicense($segments[2], $data);
             }
         }
         /*
          * Process module
          */
         else {
-            return $this->processModule($segments, $data);
+            return $this->processModuleRoute($segments, $data);
         }
         
     }
     
+    /**
+     * Process api/users/connect
+     * 
+     * @param array $data
+     * @return type
+     */
+    private function POST_apiUsersConnect($data) {
+        
+        if (!isset($data['email']) || !isset($data['password'])) {
+            $this->httpError(400, null, __METHOD__);
+        }
+
+        /*
+         * Disconnect user
+         */
+        if (isset($this->user->profile['email'])) {
+            $this->user->disconnect();
+        }
+
+        $this->user = new RestoUser($this->context->dbDriver->getUserProfile(strtolower($data['email']), $data['password']), $this->context);
+        if (isset($this->user->profile['email'])) {
+            return array(
+                'token' => $this->context->createToken($this->user->profile['userid'], $this->user->profile)
+            );
+        }
+        else {
+            $this->httpError(403, null, __METHOD__);
+        }
+    }
     
+    /**
+     * Process api/users/{userid}/signLicense
+     * 
+     * @param string $userid
+     * @param array $data
+     * @return type
+     */
+    private function POST_apiUsersSignLicense($userid, $data) {
+        
+        /*
+         * Only user can sign its license
+         */
+        if ($this->user->profile['userid'] !== $this->userid($userid)) {
+            $this->httpError(403, null, __METHOD__);
+        }
+
+        if ($this->user->signLicense($data[0], true)) {
+            return $this->success('License signed');
+        }
+        else {
+            return $this->error('Cannot sign license');
+        }
+    }
     /**
      * 
      * Process HTTP POST request on collections
@@ -188,61 +200,70 @@ class RestoRoutePOST extends RestoRoute {
     private function POST_collections($segments, $data) {
         
         /*
-         * No modifier allowed
+         * No feature allowed
          */
-        if (isset($segments[3]) ? $segments[3] : null) {
-            $this->error(404, null, __METHOD__);
+        if (isset($segments[2]) ? $segments[2] : null) {
+            $this->httpError(404, null, __METHOD__);
         }
         
-        $collectionName = isset($segments[1]) ? $segments[1] : null;
-        $featureIdentifier = isset($segments[2]) ? $segments[2] : null;
-        
-        if (isset($collectionName)) {
-            $collection = new RestoCollection($collectionName, $this->context, $this->user, array('autoload' => true));
-        }
-        if (isset($featureIdentifier)) {
-            $feature = new RestoFeature($featureIdentifier, $this->context, $this->user, $collection);
+        if (isset($segments[1])) {
+            $collection = new RestoCollection($segments[1], $this->context, $this->user, array('autoload' => true));
         }
         
         /*
          * Check credentials
          */
-        if (!$this->user->canPost($collectionName)) {
-            $this->error(403, null, __METHOD__);
+        if (!$this->user->canPost(isset($collection) ? $collection->name : null)) {
+            $this->httpError(403, null, __METHOD__);
         }
 
         /*
          * Create new collection
          */
         if (!isset($collection)) {
-            if (!isset($data['name'])) {
-                $this->error(400, null, __METHOD__);
-            }
-            if ($this->context->dbDriver->collectionExists($data['name'])) {
-                $this->error(2003, 'Collection already exists', __METHOD__);
-            }
-            $collection = new RestoCollection($data['name'], $this->context, $this->user);
-            $collection->loadFromJSON($data, true);
-            $this->storeQuery('create', $data['name'], null);
-            return array(
-                'status' => 'success',
-                'message' => 'Collection ' . $data['name'] . ' created'
-            );
+            return $this->POST_createCollection($data);
         }
         /*
          * Insert new feature in collection
          */
         else {
-            $feature = $collection->addFeature($data);
-            $this->storeQuery('insert', $collection->name, $feature->identifier);
-            return array(
-                'status' => 'success',
-                'message' => 'Feature ' . $feature->identifier . ' inserted within ' . $collection->name,
-                'featureIdentifier' => $feature->identifier
-            );
+            return $this->POST_insertFeature($collection, $data);
         }
     }
     
+    /**
+     * Create collection from input data
+     * @param array $data
+     * @return type
+     */
+    private function POST_createCollection($data) {
+        
+        if (!isset($data['name'])) {
+            $this->httpError(400, null, __METHOD__);
+        }
+        if ($this->context->dbDriver->collectionExists($data['name'])) {
+            $this->httpError(2003, 'Collection already exists', __METHOD__);
+        }
+        $collection = new RestoCollection($data['name'], $this->context, $this->user);
+        $collection->loadFromJSON($data, true);
+        $this->storeQuery('create', $data['name'], null);
+        
+        return $this->success('Collection ' . $data['name'] . ' created');
+    }
+    
+    /**
+     * Insert feature into collection 
+     * 
+     * @param array $data
+     * @return type
+     */
+    private function POST_insertFeature($collection, $data) {
+        $feature = $collection->addFeature($data);
+        $this->storeQuery('insert', $collection->name, $feature->identifier);
+        return $this->success('Feature ' . $feature->identifier . ' inserted within ' . $collection->name, array(
+            'featureIdentifier' => $feature->identifier
+        ));
+    }
     
     /**
      * 
@@ -261,50 +282,14 @@ class RestoRoutePOST extends RestoRoute {
          * No modifier allwed
          */
         if (isset($segments[3])) {
-            $this->error(404, null, __METHOD__);
+            $this->httpError(404, null, __METHOD__);
         }
         
         /*
          * users
          */
         if (!isset($segments[1])) {
-            
-            if (!isset($data['email'])) {
-                $this->error(400, 'Email is not set', __METHOD__);
-            }
-            
-            if ($this->dbDriver->userExists($data['email'])) {
-                $this->error(3000, 'User exists', __METHOD__);
-            }
-            
-            $redirect = isset($data['confirm_success_url']) ? '&redirect=' . urlencode($data['confirm_success_url']) : '';
-            $userInfo = $this->dbDriver->storeUserProfile(array(
-                'email' => $data['email'],
-                'password' => isset($data['password']) ? $data['password'] : null,
-                'username' => isset($data['username']) ? $data['username'] : null,
-                'givenname' => isset($data['givenname']) ? $data['givenname'] : null,
-                'lastname' => isset($data['lastname']) ? $data['lastname'] : null
-            ));
-            if (isset($userInfo)) {
-                $activationLink = $this->context->baseUrl . 'api/users/' . $userInfo['userid'] . '/activate?act=' . $userInfo['activationcode'] . $redirect;
-                if (!$this->sendMail(array(
-                            'to' => $data['email'],
-                            'senderName' => $this->context->config['mail']['senderName'],
-                            'senderEmail' => $this->context->config['mail']['senderEmail'],
-                            'subject' => $this->context->dictionary->translate('activationSubject', $this->context->config['title']),
-                            'message' => $this->context->dictionary->translate('activationMessage', $this->context->config['title'], $activationLink)
-                        ))) {
-                    $this->error(3001, 'Problem sending activation code', __METHOD__);
-                }
-            } else {
-                $this->error(500, 'Database connection error', __METHOD__);
-            }
-            
-            return array(
-                'status' => 'success',
-                'message' => 'User ' . $data['email'] . ' created'
-            );
-            
+            return $this->POST_createUser($data);
         }
      
         /*
@@ -318,18 +303,58 @@ class RestoRoutePOST extends RestoRoute {
          * users/{userid}/orders
          */
         else if (isset($segments[2]) && $segments[2] === 'orders') {
-            return $this->POST_userOrders($segments[1], $data);
+            return $this->POST_userOrders($segments[1]);
         }
         
         /*
          * Unknown route
          */
         else {
-            $this->error(404, null, __METHOD__);
+            $this->httpError(404, null, __METHOD__);
         }
         
     }
     
+    /**
+     * Create user
+     * 
+     * @param array $data
+     */
+    private function POST_createUser($data) {
+        
+        if (!isset($data['email'])) {
+            $this->httpError(400, 'Email is not set', __METHOD__);
+        }
+
+        if ($this->dbDriver->userExists($data['email'])) {
+            $this->httpError(3000, 'User exists', __METHOD__);
+        }
+
+        $redirect = isset($data['confirm_success_url']) ? '&redirect=' . urlencode($data['confirm_success_url']) : '';
+        $userInfo = $this->dbDriver->storeUserProfile(array(
+            'email' => $data['email'],
+            'password' => isset($data['password']) ? $data['password'] : null,
+            'username' => isset($data['username']) ? $data['username'] : null,
+            'givenname' => isset($data['givenname']) ? $data['givenname'] : null,
+            'lastname' => isset($data['lastname']) ? $data['lastname'] : null
+        ));
+        if (isset($userInfo)) {
+            $activationLink = $this->context->baseUrl . 'api/users/' . $userInfo['userid'] . '/activate?act=' . $userInfo['activationcode'] . $redirect;
+            if (!$this->sendMail(array(
+                        'to' => $data['email'],
+                        'senderName' => $this->context->config['mail']['senderName'],
+                        'senderEmail' => $this->context->config['mail']['senderEmail'],
+                        'subject' => $this->context->dictionary->translate('activationSubject', $this->context->config['title']),
+                        'message' => $this->context->dictionary->translate('activationMessage', $this->context->config['title'], $activationLink)
+                    ))) {
+                $this->httpError(3001, 'Problem sending activation code', __METHOD__);
+            }
+        } else {
+            $this->httpError(500, 'Database connection error', __METHOD__);
+        }
+
+        return $this->success('User ' . $data['email'] . ' created');
+    }
     
     /**
      * Process HTTP POST request on user cart
@@ -348,17 +373,12 @@ class RestoRoutePOST extends RestoRoute {
         $items = $this->getAuthorizedUser($emailOrId)->addToCart($data, true);
         
         if ($items) {
-            return array(
-                'status' => 'success',
-                'message' => 'Add items to cart',
+            return $this->success('Add items to cart', array(
                 'items' => $items
-            );
+            ));
         }
         else {
-            return array(
-                'status' => 'error',
-                'message' => 'Cannot add items to cart'
-            );
+            return $this->error('Cannot add items to cart');
         }
         
     }
@@ -370,27 +390,21 @@ class RestoRoutePOST extends RestoRoute {
      *    users/{userid}/orders                         |  Send an order for {userid}
      * 
      * @param string $emailOrId
-     * @param array $data
      * @throws Exception
      */
-    private function POST_userOrders($emailOrId, $data) {
+    private function POST_userOrders($emailOrId) {
         
         /*
          * Order can only be modified by its owner or by admin
          */
         $order = $this->getAuthorizedUser($emailOrId)->placeOrder();
         if ($order) {
-            return array(
-                'status' => 'success',
-                'message' => 'Place order',
+            return $this->success('Place order', array(
                 'order' => $order
-            );
+            ));
         }
         else {
-            return array(
-                'status' => 'error',
-                'message' => 'Cannot place order'
-            );
+            return $this->error('Cannot place order');
         }
         
     }

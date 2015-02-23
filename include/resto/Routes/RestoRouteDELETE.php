@@ -68,7 +68,7 @@ class RestoRouteDELETE extends RestoRoute {
             case 'users':
                 return $this->DELETE_users($segments);
             default:
-                return $this->processModule($segments);
+                return $this->processModuleRoute($segments);
         }
     }
     
@@ -87,20 +87,19 @@ class RestoRouteDELETE extends RestoRoute {
          * {collection} is mandatory and no modifier is allowed
          */
         if (!isset($segments[1]) || isset($segments[3])) {
-            $this->error(404, null, __METHOD__);
+            $this->httpError(404, null, __METHOD__);
         }
         
         $collection = new RestoCollection($segments[1], $this->context, $this->user, array('autoload' => true));
-        $featureIdentifier = isset($segments[2]) ? $segments[2] : null;
-        if (isset($featureIdentifier)) {
-            $feature = new RestoFeature($featureIdentifier, $this->context, $this->user, $collection);
+        if (isset($segments[2])) {
+            $feature = new RestoFeature($segments[2], $this->context, $this->user, $collection);
         }
         
         /*
          * Check credentials
          */
-        if (!$this->user->canDelete($collection->name, $featureIdentifier)) {
-            $this->error(403, null, __METHOD__);
+        if (!$this->user->canDelete($collection->name, $feature->identifier)) {
+            $this->httpError(403, null, __METHOD__);
         }
 
         /*
@@ -109,22 +108,17 @@ class RestoRouteDELETE extends RestoRoute {
         if (!isset($feature)) {
             $collection->removeFromStore();
             $this->storeQuery('remove', $collection->name, null);
-            return array(
-                'status' => 'success',
-                'message' => 'Collection ' . $collection->name . ' deleted'
-            );
+            return $this->success('Collection ' . $collection->name . ' deleted');
         }
         /*
          * collections/{collection}/{feature}
          */
         else {
             $feature->removeFromStore();
-            $this->storeQuery('remove', $collection->name, $featureIdentifier);
-            return array(
-                'status' => 'success',
-                'message' => 'Feature ' . $featureIdentifier . ' deleted',
-                'featureIdentifier' => $featureIdentifier
-            );
+            $this->storeQuery('remove', $collection->name, $feature->identifier);
+            return $this->success('Feature ' . $feature->identifier . ' deleted', array(
+                'featureIdentifier' => $feature->identifier
+            ));
         }
         
     }
@@ -144,14 +138,14 @@ class RestoRouteDELETE extends RestoRoute {
          * Mandatory {itemid}
          */
         if (!isset($segments[3])) {
-            $this->error(404, null, __METHOD__);
+            $this->httpError(404, null, __METHOD__);
         }
         
         if ($segments[1] === 'cart') {
             return $this->DELETE_userCart($segments[1], $segments[3]);
         }
         else {
-            $this->error(404, null, __METHOD__);
+            $this->httpError(404, null, __METHOD__);
         }
         
     }
@@ -175,7 +169,7 @@ class RestoRouteDELETE extends RestoRoute {
         $userid = $this->userid($emailOrId);
         if ($user->profile['userid'] !== $userid) {
             if ($user->profile['groupname'] !== 'admin') {
-                $this->error(403, null, __METHOD__);
+                $this->httpError(403, null, __METHOD__);
             }
             else {
                 $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);
@@ -186,18 +180,14 @@ class RestoRouteDELETE extends RestoRoute {
          * users/{userid}/cart/{itemid} 
          */
         if ($user->removeFromCart($itemId, true)) {
-            return array(
-                'status' => 'success',
-                'message' => 'Item removed from cart',
+            return $this->success('Item removed from cart', array(
                 'itemid' => $itemId
-            );
+            ));
         }
         else {
-            return array(
-                'status' => 'error',
-                'message' => 'Item cannot be removed',
+            return $this->error('Item cannot be removed', array(
                 'itemid' => $itemId
-            );
+            ));
         }
     }
 }

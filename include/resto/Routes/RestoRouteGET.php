@@ -91,7 +91,7 @@ class RestoRouteGET extends RestoRoute {
             case 'users':
                 return $this->GET_users($segments);
             default:
-                return $this->processModule($segments);
+                return $this->processModuleRoute($segments);
         }
     }
     
@@ -115,7 +115,7 @@ class RestoRouteGET extends RestoRoute {
         
         
         if (!isset($segments[1]) || isset($segments[4])) {
-            $this->error(404, null, __METHOD__);
+            $this->httpError(404, null, __METHOD__);
         }
 
         /*
@@ -135,7 +135,7 @@ class RestoRouteGET extends RestoRoute {
          * Process module
          */
         else {
-            return $this->processModule($segments);
+            return $this->processModuleRoute($segments);
         }
         
     }
@@ -154,7 +154,7 @@ class RestoRouteGET extends RestoRoute {
             return $this->GET_apiCollectionsDescribe(isset($segments[3]) ? $segments[2] : null);
         }
         else {
-            $this->error(404, null, __METHOD__);
+            $this->httpError(404, null, __METHOD__);
         }
     }
     
@@ -216,37 +216,36 @@ class RestoRouteGET extends RestoRoute {
        /*
         * api/users/disconnect
         */
-       else if ($segments[2] === 'disconnect' && !isset($segments[3])) {
+       if ($segments[2] === 'disconnect' && !isset($segments[3])) {
           return $this->GET_apiUsersDisconnect();
        }
 
        /*
         * api/users/resetPassword
         */
-       else if ($segments[2] === 'resetPassword' && !isset($segments[3])) {
+       if ($segments[2] === 'resetPassword' && !isset($segments[3])) {
            return $this->GET_apiUsersResetPassword($segments);
        }
 
        /*
         * api/users/{userid}/activate
         */
-       else if (isset($segments[3]) && $segments[3] === 'activate' && !isset($segments[4])) {
+       if (isset($segments[3]) && $segments[3] === 'activate' && !isset($segments[4])) {
            return $this->GET_apiUsersActivate($segments[2]);
        }
 
        /*
         * api/users/{userid}/isConnected
         */
-       else if (isset($segments[3]) && $segments[3] === 'isConnected' && !isset($segments[4])) {
+       if (isset($segments[3]) && $segments[3] === 'isConnected' && !isset($segments[4])) {
            return $this->GET_apiUsersIsConnected($segments[2]);
        }
        
        /*
         * 404
         */
-       else {
-           $this->error(403, null, __METHOD__);
-       }
+       $this->httpError(403, null, __METHOD__);
+       
     }
     
     /**
@@ -259,7 +258,7 @@ class RestoRouteGET extends RestoRoute {
             );
         }
         else {
-            $this->error(403, null, __METHOD__);
+            $this->httpError(403, null, __METHOD__);
         }
     }
     
@@ -268,10 +267,7 @@ class RestoRouteGET extends RestoRoute {
      */
     private function GET_apiUsersDisconnect() {
         $this->user->disconnect();
-        return array(
-            'status' => 'success',
-            'message' => 'User disconnected'
-        );
+        return $this->success('User disconnected');
     }
 
     /**
@@ -280,7 +276,7 @@ class RestoRouteGET extends RestoRoute {
     private function GET_apiUsersResetPassword() {
 
         if (!isset($this->context->query['email'])) {
-            $this->error(400, null, __METHOD__);
+            $this->httpError(400, null, __METHOD__);
         }
 
         /*
@@ -294,13 +290,10 @@ class RestoRouteGET extends RestoRoute {
                     'subject' => $this->context->dictionary->translate('resetPasswordSubject', $this->context->config['title']),
                     'message' => $this->context->dictionary->translate('resetPasswordMessage', $this->context->config['title'], $resetLink)
                 ))) {
-            $this->error(3003, 'Cannot send password reset link', __METHOD__);
+            $this->httpError(3003, 'Cannot send password reset link', __METHOD__);
         }
         
-        return array(
-            'status' => 'success',
-            'message' => 'Reset link sent to ' . $this->context->query['email']
-        );
+        return $this->success('Reset link sent to ' . $this->context->query['email']);
     }
     
     /**
@@ -323,21 +316,15 @@ class RestoRouteGET extends RestoRoute {
                  * ...or return json stream otherwise
                  */
                 else {
-                    return array(
-                        'status' => 'success',
-                        'message' => 'User activated'
-                    );
+                    return $this->success('User activated');
                 }
             }
             else {
-                return array(
-                    'status' => 'error',
-                    'message' => 'User not activated'
-                );
+                return $this->error('User not activated');
             }
         }
         else {
-            $this->error(400, null, __METHOD__);
+            $this->httpError(400, null, __METHOD__);
         }
     }
     
@@ -349,19 +336,13 @@ class RestoRouteGET extends RestoRoute {
     private function GET_apiUsersIsConnected($userid) {
         if (isset($this->context->query['_sid'])) {
             if ($this->dbDriver->userIsConnected($userid, $this->context->query['_sid'])) {
-                return array(
-                    'status' => 'connected',
-                    'message' => 'User is connected'
-                );
+                return $this->success('User is connected');
             }
             else {
-                return array(
-                    'status' => 'error',
-                    'message' => 'User not connected'
-                );
+                return $this->error('User not connected');
             }
         } else {
-            $this->error(400, null, __METHOD__);
+            $this->httpError(400, null, __METHOD__);
         }
     }
 
@@ -418,7 +399,7 @@ class RestoRouteGET extends RestoRoute {
          * 404
          */
         else {
-            $this->error(404, null, __METHOD__);
+            $this->httpError(404, null, __METHOD__);
         }
         
     }
@@ -436,7 +417,7 @@ class RestoRouteGET extends RestoRoute {
          * User do not have right to download product
          */
         if (!$this->user->canDownload($collection->name, $feature->identifier, $this->context->baseUrl . $this->context->path, !empty($this->context->query['_tk']) ? $this->context->query['_tk'] : null)) {
-            $this->error(403, null, __METHOD__);
+            $this->httpError(403, null, __METHOD__);
         }
         /*
          * Or user has rigth but hasn't sign the license yet
@@ -483,7 +464,7 @@ class RestoRouteGET extends RestoRoute {
          * users
          */
         if (!isset($segments[1])) {
-            $this->error(501, null, __METHOD__);
+            $this->httpError(501, null, __METHOD__);
         }
         /*
          * users/{userid}
@@ -529,12 +510,9 @@ class RestoRouteGET extends RestoRoute {
          */
         $user = $this->getAuthorizedUser($emailOrId);
         
-        return array(
-            'status' => 'success',
-            'message' => 'Profile for ' . $user->profile['userid'],
+        return $this->success('Profile for ' . $user->profile['userid'], array(
             'profile' => $user->profile
-        );
-        
+        ));
     }
     
     /**
@@ -556,14 +534,11 @@ class RestoRouteGET extends RestoRoute {
          */
         $user = $this->getAuthorizedUser($emailOrId);
         
-        return array(
-            'status' => 'success',
-            'message' => 'Rights for ' . $user->profile['userid'],
+        return $this->success('Rights for ' . $user->profile['userid'], array(
             'userid' => $user->profile['userid'],
             'groupname' => $user->profile['groupname'],
             'rights' => $user->getFullRights($collectionName, $featureIdentifier)
-        );
-        
+        ));
     }
     
     
@@ -584,7 +559,7 @@ class RestoRouteGET extends RestoRoute {
         $user = $this->getAuthorizedUser($emailOrId);
         
         if (isset($itemid)) {
-            $this->error(404, null, __METHOD__);
+            $this->httpError(404, null, __METHOD__);
         }
         
         return $user->getCart();
@@ -615,11 +590,9 @@ class RestoRouteGET extends RestoRoute {
             return new RestoOrder($user, $this->context, $orderid);
         }
         else {
-            return array(
-                'status' => 'success',
-                'message' => 'Orders for user ' . $user->profile['userid'],
+            return $this->success('Orders for user ' . $user->profile['userid'], array(
                 'orders' => $user->getOrders()
-            );
+            ));
         }
         
     }

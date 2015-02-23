@@ -68,7 +68,7 @@ class RestoRoutePUT extends RestoRoute {
          */
         $data = RestoUtil::readInputData();
         if (!is_array($data) || count($data) === 0) {
-            $this->error(400, null, __METHOD__);
+            $this->httpError(400, null, __METHOD__);
         }
 
         switch($segments[0]) {
@@ -77,7 +77,7 @@ class RestoRoutePUT extends RestoRoute {
             case 'users':
                 return $this->PUT_users($segments, $data);
             default:
-                return $this->processModule($segments, $data);
+                return $this->processModuleRoute($segments, $data);
         }
         
     }
@@ -98,7 +98,7 @@ class RestoRoutePUT extends RestoRoute {
          * {collection} is mandatory and no modifier is allowed
          */
         if (!isset($segments[1]) || isset($segments[3])) {
-            $this->error(404, null, __METHOD__);
+            $this->httpError(404, null, __METHOD__);
         }
         
         $collection = new RestoCollection($segments[1], $this->context, $this->user, array('autoload' => true));
@@ -111,7 +111,7 @@ class RestoRoutePUT extends RestoRoute {
          * Check credentials
          */
         if (!$this->user->canPut($collection->name, $featureIdentifier)) {
-            $this->error(403, null, __METHOD__);
+            $this->httpError(403, null, __METHOD__);
         }
 
         /*
@@ -120,17 +120,14 @@ class RestoRoutePUT extends RestoRoute {
         if (!isset($feature)) {
             $collection->loadFromJSON($data, true);
             $this->storeQuery('update', $collection->name, null);
-            return array(
-                'status' => 'success',
-                'message' => 'Collection ' . $collection->name . ' updated'
-            );
+            return $this->success('Collection ' . $collection->name . ' updated');
         }
         /*
          * collections/{collection}/{feature}
          */
         else {
             //$this->storeQuery('update', $collection->name, $featureIdentifier);
-            $this->error(501, null, __METHOD__);
+            $this->httpError(501, null, __METHOD__);
         }
         
     }
@@ -151,14 +148,14 @@ class RestoRoutePUT extends RestoRoute {
          * Mandatory {itemid}
          */
         if (!isset($segments[3])) {
-            $this->error(404, null, __METHOD__);
+            $this->httpError(404, null, __METHOD__);
         }
         
         if ($segments[1] === 'cart') {
             return $this->PUT_userCart($segments[1], $segments[3], $data);
         }
         else {
-            $this->error(404, null, __METHOD__);
+            $this->httpError(404, null, __METHOD__);
         }
         
     }
@@ -183,7 +180,7 @@ class RestoRoutePUT extends RestoRoute {
         $userid = $this->userid($emailOrId);
         if ($user->profile['userid'] !== $userid) {
             if ($user->profile['groupname'] !== 'admin') {
-                $this->error(403, null, __METHOD__);
+                $this->httpError(403, null, __METHOD__);
             }
             else {
                 $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);
@@ -191,18 +188,13 @@ class RestoRoutePUT extends RestoRoute {
         }
          
         if ($user->updateCart($itemId, $data, true)) {
-            return array(
-                'status' => 'success',
-                'message' => 'Item ' . $itemId . ' updated',
+            return $this->success('Item ' . $itemId . ' updated', array(
                 'itemId' => $itemId,
                 'item' => $data
-            );
+            ));
         }
         else {
-            return array(
-                'status' => 'error',
-                'message' => 'Cannot update item ' . $itemId
-            );
+            return $this->error('Cannot update item ' . $itemId);
         }
         
     }
