@@ -345,18 +345,8 @@ class RestoRoutePOST extends RestoRoute {
         /*
          * Cart can only be modified by its owner or by admin
          */
-        $user = $this->user;
-        $userid = $this->userid($emailOrId);
-        if ($user->profile['userid'] !== $userid) {
-            if ($user->profile['groupname'] !== 'admin') {
-                $this->error(403, null, __METHOD__);
-            }
-            else {
-                $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);
-            }
-        }
+        $items = $this->getAuthorizedUser($emailOrId)->addToCart($data, true);
         
-        $items = $user->addToCart($data, true);           
         if ($items) {
             return array(
                 'status' => 'success',
@@ -386,20 +376,9 @@ class RestoRoutePOST extends RestoRoute {
     private function POST_userOrders($emailOrId, $data) {
         
         /*
-         * Cart can only be modified by its owner or by admin
+         * Order can only be modified by its owner or by admin
          */
-        $user = $this->user;
-        $userid = $this->userid($emailOrId);
-        if ($user->profile['userid'] !== $userid) {
-            if ($user->profile['groupname'] !== 'admin') {
-                $this->error(403, null, __METHOD__);
-            }
-            else {
-                $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);
-            }
-        }
-            
-        $order = $user->placeOrder();
+        $order = $this->getAuthorizedUser($emailOrId)->placeOrder();
         if ($order) {
             return array(
                 'status' => 'success',
@@ -413,6 +392,28 @@ class RestoRoutePOST extends RestoRoute {
                 'message' => 'Cannot place order'
             );
         }
+        
+    }
+    
+    /**
+     * Return user object if authorized
+     * 
+     * @param string $emailOrId
+     */
+    private function getAuthorizedUser($emailOrId) {
+        
+        $user = $this->user;
+        $userid = $this->userid($emailOrId);
+        if ($user->profile['userid'] !== $userid) {
+            if ($user->profile['groupname'] !== 'admin') {
+                $this->error(403, null, __METHOD__);
+            }
+            else {
+                $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);
+            }
+        }
+        
+        return $user;
         
     }
 }
