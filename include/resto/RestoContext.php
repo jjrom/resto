@@ -101,7 +101,6 @@ class RestoContext {
         'title' => 'resto',
         'languages' => array('en'),
         'timezone' => 'Europe/Paris',
-        'theme' => 'default',
         'modules' => array(),
         'mail' => array()
     );
@@ -122,8 +121,7 @@ class RestoContext {
      *          ),
      *          'config' => array(
      *              'languages' => array('en', 'fr'),
-     *              'timezone' => 'Europe/Paris',
-     *              'theme' => 'default'
+     *              'timezone' => 'Europe/Paris'
      *          )
      *      )
      * 

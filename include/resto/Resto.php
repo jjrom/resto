@@ -330,9 +330,7 @@ class Resto {
         try {
             $payloadObject = JWT::decode($token, $this->config['general']['passphrase']);
             $this->user = new RestoUser($payloadObject['data'], $this->context);
-        } catch (Exception $ex) {
-            $this->user = new RestoUser(null, $this->context);
-        }
+        } catch (Exception $ex) {}
     }
     
     /**
@@ -511,11 +509,6 @@ class Resto {
                  * Timezone
                  */
                 'timezone' => isset($this->config['general']['timezone']) ? $this->config['general']['timezone'] : 'Europe/Paris',
-            
-                /*
-                 * HTML Theme
-                 */
-                'theme' => isset($this->config['general']['theme']) ? $this->config['general']['theme'] : 'default',
                 
                 /*
                  * Modules
