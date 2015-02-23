@@ -564,11 +564,9 @@ abstract class RestoModel {
             case 'INT':
                 return 'integer';
             case 'FLO':
-                return 'float';
             case 'NUM':
                 return 'float';
             case 'TIM':
-                return 'date';
             case 'DAT':
                 return 'date';
             case 'GEO':
@@ -645,11 +643,7 @@ abstract class RestoModel {
         /*
          * Assume input file or stream is a JSON Feature
          */
-        try {
-            if (!RestoUtil::isValidGeoJSONFeature($data)) {
-                throw new Exception();
-            }
-        } catch (Exception $e) {
+        if (!RestoUtil::isValidGeoJSONFeature($data)) {
             throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid feature description', 500);
         }
         
@@ -699,31 +693,19 @@ abstract class RestoModel {
          * Add tags with iTag
          */
         if (isset($this->context->config['modules']['iTag'])) {
-            
-            if (isset($this->context->config['modules']['iTag']['database']) && isset($this->context->config['modules']['iTag']['database']['dbname'])) {
-                $iTag = new iTag($this->context->config['modules']['iTag']['database']);
-            }
-            else {
-                $iTag = new iTag(array('dbh' => $this->context->dbDriver->getHandler()));
-            }
-            
-            /*
-             * Default keywords are set in config.php
-             */
-            $options = isset($this->context->config['modules']['iTag']['keywords']) ? $this->context->config['modules']['iTag']['keywords'] : array();
-            
-            
+            $iTagKeywords = $this->getKeywords($data['geometry']);
             if (isset($keywords)) {
-                $keywords[1] = array_merge($keywords[1], $this->iTagToKeywords($iTag->tag(RestoUtil::geoJSONGeometryToWKT($data['geometry']), $options)));
+                $keywords[1] = array_merge($keywords[1], $iTagKeywords);
             }
             else {
-                $keywords = array('keywords', $this->iTagToKeywords($iTag->tag(RestoUtil::geoJSONGeometryToWKT($data['geometry']), $options)));
+                $keywords = array('keywords', $iTagKeywords);
             }
         }
         
         if (isset($keywords)) {
             $elements = array_merge($elements, array($keywords));
         }
+        
         try {
             $this->context->dbDriver->storeFeature($collectionName, $elements, $this);
         } catch (Exception $e) {
@@ -732,6 +714,24 @@ abstract class RestoModel {
         
         return new RestoFeature($data['id'], $this->context, $this->user, null);
         
+    }
+    
+    /**
+     * Extract iTag keywords from input geometry
+     * 
+     * @param string $geometry
+     * @return array
+     */
+    private function getKeywords($geometry) {
+        
+        if (isset($this->context->config['modules']['iTag']['database']) && isset($this->context->config['modules']['iTag']['database']['dbname'])) {
+            $iTag = new iTag($this->context->config['modules']['iTag']['database']);
+        }
+        else {
+            $iTag = new iTag(array('dbh' => $this->context->dbDriver->getHandler()));
+        }
+        return $this->iTagToKeywords($iTag->tag(RestoUtil::geoJSONGeometryToWKT($geometry, isset($this->context->config['modules']['iTag']['keywords']) ? $this->context->config['modules']['iTag']['keywords'] : array())));
+
     }
     
     /**
@@ -853,5 +853,4 @@ abstract class RestoModel {
 
         return array_values($keywords);
     }
-    
 }
