@@ -141,10 +141,10 @@ class RestoModel_sentinel1 extends RestoModel {
         $dom->loadXML(rawurldecode($xml));
         
         $geolocationGridPoint = $dom->getElementsByTagName('geolocationGridPoint');
-        $ul = array();
-        $ur = array();
-        $ll = array();
-        $lr = array();
+        $upperLeft = array();
+        $upperRight = array();
+        $lowerLeft = array();
+        $lowerRight = array();
         $lineMax = 0;
         $pixelMax = 0;
         for ($i = 0, $ii = $geolocationGridPoint->length; $i < $ii; $i++) { 
@@ -153,25 +153,25 @@ class RestoModel_sentinel1 extends RestoModel {
             $coordinates = array($geolocationGridPoint->item($i)->getElementsByTagName('longitude')->item(0)->nodeValue, $geolocationGridPoint->item($i)->getElementsByTagName('latitude')->item(0)->nodeValue);      
             if ($line === 0) {
                 if ($pixel === 0) {
-                    $ul = $coordinates;
+                    $upperLeft = $coordinates;
                 }
                 else if ($pixel >= $pixelMax) {
                     $pixelMax = $pixel;
-                    $ur = $coordinates;
+                    $upperRight = $coordinates;
                 }
             }
             else if ($line >= $lineMax) {
                 $lineMax = $line;
                 if ($pixel === 0) {
-                    $ll = $coordinates;
+                    $lowerLeft = $coordinates;
                 }
                 else if ($pixel >= $pixelMax) {
                     $pixelMax = $pixel;
-                    $lr = $coordinates;
+                    $lowerRight = $coordinates;
                 }
             }
         } 
-        $polygon = array($ul, $ur, $lr, $ll, $ul);
+        $polygon = array($upperLeft, $upperRight, $lowerRight, $lowerLeft, $upperLeft);
         
         /*
          * Initialize feature

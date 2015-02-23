@@ -119,38 +119,14 @@ class RestoRights{
          * Return feature rights
          */
         if (isset($collectionName) && isset($featureIdentifier)) {
-            $rights = $this->context->dbDriver->getRights($this->identifier, $collectionName, $featureIdentifier);
-            if (!isset($rights)) {
-                return $this->getRights($collectionName);
-            }
-            else if ($this->isIncomplete($rights)) {
-                $collectionRights = $this->context->dbDriver->getRights($this->identifier, $collectionName);
-                if (!isset($collectionRights) || $this->isIncomplete($collectionRights)) {
-                    $rights = isset($collectionRights) ? $this->mergeRights($rights, $collectionRights) : $rights;
-                    $groupRights = $this->context->dbDriver->getRights($this->groupname, $collectionName);
-                    if (!isset($groupRights) || $this->isIncomplete($groupRights)) {
-                        return $this->mergeRights(isset($groupRights) ? $this->mergeRights($rights, $groupRights) : $rights, $this->groupRights[$this->groupname]);
-                    }
-                    return $this->mergeRights($rights, $groupRights);
-                }
-                return $this->mergeRights($rights, $collectionRights);
-            }
-            return $rights;
+            return $this->getFeatureRights($collectionName, $featureIdentifier);
         }
         
         /*
          * Return collection rights
          */
         if (isset($collectionName)){
-            $collectionRights = $this->context->dbDriver->getRights($this->identifier, $collectionName);
-            if (!isset($collectionRights) || $this->isIncomplete($collectionRights)) {
-                $groupRights = $this->context->dbDriver->getRights($this->groupname, $collectionName);
-                if (!isset($groupRights) || $this->isIncomplete($groupRights)) {
-                    $groupRights = !$groupRights ? $this->groupRights[$this->groupname] : $this->mergeRights($groupRights, $this->groupRights[$this->groupname]);
-                }
-                return !isset($collectionRights) ? $groupRights : $this->mergeRights($collectionRights, $groupRights);
-            }
-            return $collectionRights;
+            return $this->getCollectionRights($collectionName);
         }
         
         /*
@@ -163,6 +139,50 @@ class RestoRights{
         
         return $this->groupRights[$this->groupname];
         
+    }
+    
+    /**
+     * Returns user rights for feature
+     * 
+     * @param string $collectionName
+     * @param string $featureIdentifier
+     */
+    private function getFeatureRights($collectionName, $featureIdentifier) {
+        
+        $rights = $this->context->dbDriver->getRights($this->identifier, $collectionName, $featureIdentifier);
+        if (!isset($rights)) {
+            return $this->getRights($collectionName);
+        }
+        else if ($this->isIncomplete($rights)) {
+            $collectionRights = $this->context->dbDriver->getRights($this->identifier, $collectionName);
+            if (!isset($collectionRights) || $this->isIncomplete($collectionRights)) {
+                $rights = isset($collectionRights) ? $this->mergeRights($rights, $collectionRights) : $rights;
+                $groupRights = $this->context->dbDriver->getRights($this->groupname, $collectionName);
+                if (!isset($groupRights) || $this->isIncomplete($groupRights)) {
+                    return $this->mergeRights(isset($groupRights) ? $this->mergeRights($rights, $groupRights) : $rights, $this->groupRights[$this->groupname]);
+                }
+                return $this->mergeRights($rights, $groupRights);
+            }
+            return $this->mergeRights($rights, $collectionRights);
+        }
+        return $rights;
+    }
+    
+    /**
+     * Returns user rights for feature
+     * 
+     * @param string $collectionName
+     */
+    private function getCollectionRights($collectionName) {
+        $collectionRights = $this->context->dbDriver->getRights($this->identifier, $collectionName);
+        if (!isset($collectionRights) || $this->isIncomplete($collectionRights)) {
+            $groupRights = $this->context->dbDriver->getRights($this->groupname, $collectionName);
+            if (!isset($groupRights) || $this->isIncomplete($groupRights)) {
+                $groupRights = !$groupRights ? $this->groupRights[$this->groupname] : $this->mergeRights($groupRights, $this->groupRights[$this->groupname]);
+            }
+            return !isset($collectionRights) ? $groupRights : $this->mergeRights($collectionRights, $groupRights);
+        }
+        return $collectionRights;
     }
     
     /**

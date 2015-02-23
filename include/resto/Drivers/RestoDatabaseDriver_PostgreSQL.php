@@ -2155,19 +2155,26 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     /**
      * 
      * Get array of features descriptions
-     *
+     * 
      * @param array $params
      * @param RestoModel $model
      * @param string $collectionName
-     * @param integer $limit
-     * @param integer $offset
-     * @param boolean $count : true to return the total number of results without pagination
+     * @param array $options
+     *      array(
+     *          'limit',
+     *          'offset',
+     *          'count'// true to return the total number of results without pagination
      * 
      * @return array
      * @throws Exception
      */
-    public function getFeaturesDescriptions($params, $model, $collectionName, $limit, $offset, $count = false) {
-
+    public function getFeaturesDescriptions($params, $model, $collectionName, $options) {
+        
+        $limit = $options['limit'];
+        $offset = $options['offset'];
+        $count = isset($options['count']) ? $options['count'] : false;
+        
+        
         /*
          * Check that mandatory filters are set
          */

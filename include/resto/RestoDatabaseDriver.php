@@ -166,9 +166,9 @@ abstract class RestoDatabaseDriver {
             return null;
         }
         $splitted = explode(':', $facetId);
-        $l = count($category);
-        for ($i = $l; $i--;) {
-            if ($splitted[0] === $category[$i] && $i < $l - 1) {
+        $count = count($category);
+        for ($i = $count; $i--;) {
+            if ($splitted[0] === $category[$i] && $i < $count - 1) {
                 return $category[$i + 1];
             }
         }
@@ -561,18 +561,20 @@ abstract class RestoDatabaseDriver {
     /**
      * 
      * Get array of features descriptions
-     *
+     * 
      * @param array $params
      * @param RestoModel $model
      * @param string $collectionName
-     * @param integer $limit
-     * @param integer $offset
-     * @param boolean $count : true to return the total number of results without pagination
+     * @param array $options
+     *      array(
+     *          'limit',
+     *          'offset',
+     *          'count'// true to return the total number of results without pagination
      * 
      * @return array
      * @throws Exception
      */
-    abstract public function getFeaturesDescriptions($params, $model, $collectionName, $limit, $offset, $count = false);
+    abstract public function getFeaturesDescriptions($params, $model, $collectionName, $options);
 
     /**
      * 
