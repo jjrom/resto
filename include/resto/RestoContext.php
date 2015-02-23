@@ -144,9 +144,9 @@ class RestoContext {
         /*
          * Set object values
          */
-        foreach (array_keys(array('baseUrl', 'dbDriver', 'debug', 'dictionary', 'method', 'outputFormat', 'passphrase', 'path', 'query', 'storeQuery')) as $key) {
+        foreach (array_values(array('baseUrl', 'dbDriver', 'debug', 'dictionary', 'method', 'outputFormat', 'passphrase', 'path', 'query', 'storeQuery')) as $key) {
             if (isset($options[$key])) {
-                $this->$key = $options[$key];
+                $this->{$key} = $options[$key];
             }
         }
         
