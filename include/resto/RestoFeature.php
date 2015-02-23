@@ -475,7 +475,7 @@ class RestoFeature {
             for ($j = 0, $k = count($this->feature['properties']['links']); $j < $k; $j++) {
                 $xml->startElement('link');
                 $xml->writeAttribute('rel', $this->feature['properties']['links'][$j]['rel']);
-                $xml->writeAttribute('type', $this->feature['properties']['links'][$j]['rel']);
+                $xml->writeAttribute('type', $this->feature['properties']['links'][$j]['type']);
                 $xml->writeAttribute('title', $this->feature['properties']['links'][$j]['title']);
                 $xml->writeAttribute('href', $this->feature['properties']['links'][$j]['href']);
                 $xml->endElement(); // link
@@ -582,13 +582,6 @@ class RestoFeature {
     }
     
     /**
-     * Output as an HTML page
-     */
-    public function toHTML() {
-        return RestoUtil::get_include_contents(realpath(dirname(__FILE__)) . '/../../themes/' . $this->context->config['theme'] . '/templates/feature.php', $this);
-    }
-    
-    /**
      * Output product description as a GeoJSON Feature
      * 
      * @param boolean $pretty : true to return pretty print
@@ -642,7 +635,7 @@ class RestoFeature {
          */
         $xml->startElement('generator');
         $xml->writeAttribute('uri', 'http://github.com/jjrom/resto2');
-        $xml->writeAttribute('version', Resto::version);
+        $xml->writeAttribute('version', Resto::VERSION);
         $xml->text('resto');
         $xml->endElement(); // generator
         $xml->writeElement('updated', date('Y-m-dTH:i:sO'));
@@ -651,20 +644,6 @@ class RestoFeature {
          * Element 'id'
          */
         $xml->writeElement('id', $this->feature['id']);
-
-        /*
-         * Links
-         */
-        if (is_array($this->feature['properties']['links'])) {
-            for ($i = 0, $l = count($this->description['properties']['links']); $i < $l; $i++) {
-                $xml->startElement('link');
-                $xml->writeAttribute('rel', $this->feature['properties']['links'][$i]['rel']);
-                $xml->writeAttribute('type', RestoUtil::$contentTypes['atom']);
-                $xml->writeAttribute('title', $this->feature['properties']['links'][$i]['title']);
-                $xml->writeAttribute('href', RestoUtil::updateURLFormat($this->feature['properties']['links'][$i]['href'], 'atom'));
-                $xml->endElement(); // link
-            }
-        }
 
         /*
          * Entry for feature
