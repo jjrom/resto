@@ -273,46 +273,68 @@ class Resto {
     private function authenticate() {
           
         /*
-         * Use authorization headers
+         * Get authorization headers
          */
         $httpAuth = filter_input(INPUT_SERVER, 'HTTP_AUTHORIZATION', FILTER_SANITIZE_STRING);
         $rhttpAuth = filter_input(INPUT_SERVER, 'REDIRECT_HTTP_AUTHORIZATION', FILTER_SANITIZE_STRING);
         $authorization = !empty($httpAuth) ? $httpAuth : (!empty($rhttpAuth) ? $rhttpAuth : null);
+        
+        /*
+         * Authenticate
+         */
         if (isset($authorization)) {
-            
             list($method, $token) = explode(' ', $authorization, 2);
-            
-            /*
-             * Basic authentication method
-             */
-            if ($method === 'Basic') {
-                list($username, $password) = explode(':', base64_decode($token), 2);
-                if (!empty($username) && !empty($password)) {
-                    $this->user = new RestoUser($this->context->dbDriver->getUserProfile(strtolower($username), $password), $this->context);
-                }
-            }
-            /*
-             * Bearer method
-             * Assume a JSON Web Token encoded by resto
-             */
-            if ($method === 'Bearer') {
-                try {
-                    $payloadObject = JWT::decode($token, $this->config['general']['passphrase']);
-                    $this->user = new RestoUser($payloadObject['data'], $this->context);
-                } catch (Exception $ex) {
-                    $this->user = new RestoUser(null, $this->context);
-                }
+            switch ($method) {
+                case 'Basic':
+                    $this->authenticateBasic($token);
+                    break;
+                case 'Bearer':
+                    $this->authenticateBearer($token);
+                    break;
+                default:
+                    break;
             }
         }
+        
         /*
          * Otherwise user is unregistered
          */
-        else {
+        if (!isset($this->user)) {
             $this->user = new RestoUser(null, $this->context);
         }
         
     }
-  
+    
+    /**
+     * Authenticate user from Basic authentication
+     * (i.e. HTTP user:password)
+     * 
+     * @param string $token
+     */
+    private function authenticateBasic($token) {
+        list($username, $password) = explode(':', base64_decode($token), 2);
+        if (!empty($username) && !empty($password)) {
+            $this->user = new RestoUser($this->context->dbDriver->getUserProfile(strtolower($username), $password), $this->context);
+        }
+    }
+    
+    /**
+     * Authenticate user from Bearer authentication
+     * (i.e. Single Sign On request with oAuth2)
+     * 
+     * Assume a JSON Web Token encoded by resto
+     * 
+     * @param string $token
+     */
+    private function authenticateBearer($token) {
+        try {
+            $payloadObject = JWT::decode($token, $this->config['general']['passphrase']);
+            $this->user = new RestoUser($payloadObject['data'], $this->context);
+        } catch (Exception $ex) {
+            $this->user = new RestoUser(null, $this->context);
+        }
+    }
+    
     /**
      * Set configuration from config.php file
      */
@@ -400,7 +422,7 @@ class Resto {
                 return $suffix;
             }
             else {
-                $this->process404();
+                throw new Exception('Not Found', 404);
             }
         }
         
@@ -671,15 +693,8 @@ class Resto {
             }
         }
         else {
-            $this->process404();
+            throw new Exception('Not Found', 404);
         }
-    }
-    
-    /*
-     * Throw 404 Not Found exception
-     */
-    private function process404() {
-        throw new Exception('Not Found', 404);
     }
     
     /**
