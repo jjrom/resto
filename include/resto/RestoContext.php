@@ -44,45 +44,56 @@
 class RestoContext {
     
     /**
-     * Debug mode
+     * Base url
      */
-    public $debug = false;
+    public $baseUrl = '//localhost/';
     
-    /**
-     * Dictionary
-     */
-    public $dictionary;
-
     /**
      * Database driver
      */
     public $dbDriver;
     
     /**
-     * Base url
+     * Debug mode
      */
-    public $baseUrl;
-    
+    public $debug = false;
+     
     /**
-     * Path
+     * Dictionary
      */
-    public $path;
+    public $dictionary;
+
+    /**
+     * HTTP method
+     */
+    public $method = 'GET';
     
     /**
      * Format
      */
-    public $outputFormat;
+    public $outputFormat = 'json';
+    
+    /*
+     *  JSON Web Token passphrase*
+     * (see https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32)
+     */
+    private $passphrase = 'Not so secret!';
     
     /**
-     * HTTP method
+     * Path
      */
-    public $method;
+    public $path = '';
     
     /**
      * Query
      */
     public $query = array();
     
+    /**
+     * Store query
+     */
+    public $storeQuery = false;
+   
     /**
      * Configuration
      */
@@ -95,11 +106,6 @@ class RestoContext {
         'mail' => array()
     );
     
-    /*
-     *  JSON Web Token passphrase*
-     * (see https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32)
-     */
-    private $passphrase;
     
     /**
      * Constructor
@@ -125,64 +131,23 @@ class RestoContext {
      * @throws Exception
      */
     public function __construct($options) {
-        
-        if (!isset($options) || !is_array($options)) {
-            $options = array();
-        } 
-        if (!isset($options['config'])) {
-            $options['config'] = array();
-        }
-        
-        /*
-         * Debug mode
-         */
-        $this->debug = isset($options['debug']) ? $options['debug'] : false;
+        $this->initialize(!isset($options) || !is_array($options) ? array() : $options);
+    }
+    
+    /**
+     * Initialize context variable
+     * 
+     * @param array $options configuration
+     */
+    private function initialize($options) {
         
         /*
-         * Store query
+         * Set object values
          */
-        $this->storeQuery = isset($options['storeQuery']) ? $options['storeQuery'] : false;
-        
-        /*
-         * Base Url - (default is '//localhost/')
-         */
-        $this->baseUrl = isset($options['baseUrl']) ? $options['baseUrl'] : '//localhost/';
-        
-        /*
-         * Path
-         */
-        $this->path = isset($options['path']) ? $options['path'] : '';
-        
-        /*
-         * Output format - (default is 'json')
-         */
-        $this->outputFormat = isset($options['outputFormat']) ? $options['outputFormat'] : 'json';
-        
-        /*
-         * HTTP method - (default is 'GET')
-         */
-        $this->method = isset($options['method']) ? $options['method'] : 'GET';
-        
-        /*
-         * Dictionary
-         */
-        $this->dictionary = isset($options['dictionary']) ? $options['dictionary'] : null;
-        
-        /*
-         * Database Driver
-         */
-        $this->dbDriver = isset($options['dbDriver']) ? $options['dbDriver'] : null;
-        
-        /*
-         * Passphrase for JSON Web Token encoding
-         */
-        $this->passphrase = isset($options['passphrase']) ? $options['passphrase'] : 'Not so secret!';
-        
-        /*
-         * Query
-         */
-        if (isset($options['query'])) {
-            $this->query = $options['query'];
+        foreach (array_keys(array('baseUrl', 'dbDriver', 'debug', 'dictionary', 'method', 'outputFormat', 'passphrase', 'path', 'query', 'storeQuery')) as $key) {
+            if (isset($options[$key])) {
+                $this->$key = $options[$key];
+            }
         }
         
         /*
@@ -198,7 +163,7 @@ class RestoContext {
          * Set TimeZone
          */
         date_default_timezone_set($this->config['timezone']);
-        
+           
     }
     
     /**
