@@ -207,20 +207,7 @@ class RestoContext {
      * @param boolean $withparams : true to return url with parameters (i.e. with ?key=value&...) / false otherwise
      */
     public function getUrl($withparams = true) {
-        $paramsStr = null;
-        if ($withparams) {
-            foreach ($this->query as $key => $value) {
-                if (is_array($value)) {
-                    for ($i = count($value); $i--;) {
-                        $paramsStr .= (isset($paramsStr) ? '&' : '') . urlencode($key) . '[]=' . urlencode($value[$i]);
-                    }
-                }
-                else {
-                    $paramsStr .= (isset($paramsStr) ? '&' : '') . urlencode($key) . '=' . urlencode($value);
-                }
-            }
-        }
-        return $this->baseUrl . $this->path . '.' . $this->outputFormat . (isset($paramsStr) ? '?' . $paramsStr : '');
+        return $this->baseUrl . $this->path . '.' . $this->outputFormat . (isset($withparams) ? RestoUtil::kvpsToQueryString($this->query) : '');
     }
     
     /**

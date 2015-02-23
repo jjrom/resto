@@ -440,24 +440,12 @@ class RestoUtil {
      * @param array $newParams
      */
     public static function updateUrl($url, $newParams = array()) {
-        $paramsStr = null;
         $existingParams = array();
         $exploded = parse_url($url);
         if (isset($exploded['query'])) {
             parse_str($exploded['query'], $existingParams);
         }
-        $params = array_merge($existingParams, $newParams);
-        foreach ($params as $key => $value) {
-            if (is_array($value)) {
-                for ($i = count($value); $i--;) {
-                    $paramsStr .= (isset($paramsStr) ? '&' : '') . urlencode($key) . '[]=' . urlencode($value[$i]);
-                }
-            }
-            else {
-                $paramsStr .= (isset($paramsStr) ? '&' : '') . urlencode($key) . '=' . urlencode($value);
-            }
-        }
-        return RestoUtil::baseUrl($exploded) . $exploded['path'] . (isset($paramsStr) ? '?' . $paramsStr : '');
+        return RestoUtil::baseUrl($exploded) . $exploded['path'] . RestUtil::kvpsToQueryString(array_merge($existingParams, $newParams));
     }
     
     /**
@@ -1089,6 +1077,30 @@ class RestoUtil {
             }
         }
         
+    }
+    
+    /**
+     * Format input Key/Value pairs array to query string
+     * 
+     * @param array $kvps
+     * @return string
+     */
+    public static function kvpsToQueryString($kvps) {
+        $paramsStr = '';
+        if (!is_array($kvps)) {
+            return $paramsStr;
+        }
+        foreach ($kvps as $key => $value) {
+            if (is_array($value)) {
+                for ($i = count($value); $i--;) {
+                    $paramsStr .= (isset($paramsStr) ? '&' : '') . urlencode($key) . '[]=' . urlencode($value[$i]);
+                }
+            }
+            else {
+                $paramsStr .= (isset($paramsStr) ? '&' : '') . urlencode($key) . '=' . urlencode($value);
+            }
+        }
+        return '?' . $paramsStr;
     }
 
 }
