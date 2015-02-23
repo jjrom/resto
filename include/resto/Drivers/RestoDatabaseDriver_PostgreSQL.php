@@ -2174,7 +2174,6 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         $offset = $options['offset'];
         $count = isset($options['count']) ? $options['count'] : false;
         
-        
         /*
          * Check that mandatory filters are set
          */
