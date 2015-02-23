@@ -106,24 +106,24 @@ abstract class RestoDictionary {
      */
     final public function add($dictionary = array()) {
         
-        $a = 'dictionary_' . $this->language;
+        $default = 'dictionary_' . $this->language;
         
-        if (is_array($dictionary) && isset($dictionary[$a])) {
+        if (is_array($dictionary) && isset($dictionary[$default])) {
             
             /*
              * Update "quantities"
              */
-            if (is_array($dictionary[$a]['quantities'])) {
-                foreach ($dictionary[$a]['quantities'] as $keyword => $value) {
+            if (is_array($dictionary[$default]['quantities'])) {
+                foreach ($dictionary[$default]['quantities'] as $keyword => $value) {
                     $this->dictionary['quantities'][$keyword] = $value;
                 }
             }
             /*
              * Update "keywords"
              */
-            if (is_array($dictionary[$a]['keywords'])) {
-                foreach (array_keys($dictionary[$a]['keywords']) as $type) {
-                    foreach ($dictionary[$a]['keywords'][$type] as $keyword => $value) {
+            if (is_array($dictionary[$default]['keywords'])) {
+                foreach (array_keys($dictionary[$default]['keywords']) as $type) {
+                    foreach ($dictionary[$default]['keywords'][$type] as $keyword => $value) {
                         $this->dictionary['keywords'][$type][$keyword] = $value;
                     }
                 }
@@ -131,8 +131,8 @@ abstract class RestoDictionary {
             /*
              * Update "translation"
              */
-            if (is_array($dictionary[$a]['translations'])) {
-                foreach ($dictionary[$a]['translations'] as $keyword => $value) {
+            if (is_array($dictionary[$default]['translations'])) {
+                foreach ($dictionary[$default]['translations'] as $keyword => $value) {
                     $this->translations[$keyword] = $value;
                 }
             }
@@ -396,16 +396,16 @@ abstract class RestoDictionary {
      * 
      * @param {String} $s
      */
-    final public function getSimilar($s, $percentage = 90) {
+    final public function getSimilar($s, $limit = 90) {
         
         $similar = null;
         foreach(array_keys($this->dictionary['keywords']) as $type) {
             foreach(array_keys($this->dictionary['keywords'][$type]) as $key) {
-                $p = 0.0;
-                similar_text($s, $key, $p);
-                if ($p >= $percentage) {
-                    $similar = array('keyword' => $this->dictionary['keywords'][$type][$key], 'type' => $type, 'similarity' => $p);
-                    $percentage = $p;
+                $percentage = 0.0;
+                similar_text($s, $key, $percentage);
+                if ($percentage >= $limit) {
+                    $similar = array('keyword' => $this->dictionary['keywords'][$type][$key], 'type' => $type, 'similarity' => $percentage);
+                    $limit = $percentage;
                 }
             }
         }
