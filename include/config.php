@@ -50,9 +50,11 @@ return array(
         'title' => 'resto',
         
         /*
-         * Root url for the application - do not specify protocol
+         * Relative endpoint to directory containing index.php
+         * i.e. if index.php is at http://localhost/resto2 then
+         * rootEndPoint would be '/resto2'
          */
-        'restoUrl' => '//localhost/resto2',
+        'rootEndpoint' => '/resto2',
         
         /*
          * Supported languages
@@ -65,7 +67,7 @@ return array(
         /*
          * Debug mode
          */
-        'debug' => true,
+        'debug' => false,
         
         /*
          * Timezone
@@ -87,7 +89,12 @@ return array(
          * JSON Web Token passphrase
          * (see https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32)
          */
-        'passphrase' => 'Super secret passphrase'
+        'passphrase' => 'Super secret passphrase',
+        
+        /*
+         * Url to call for password reset
+         */
+        'resetPasswordUrl' => 'http://localhost/resto2-client/#/resetPassword'
     ),
     
     /*

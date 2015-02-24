@@ -739,23 +739,9 @@ class Resto {
      * @return string $pageUrl
      */
     private function getBaseURL() {
-        
-        $pageURL = 'http';
         $https = filter_input(INPUT_SERVER, 'HTTPS', FILTER_SANITIZE_STRING);
-        if (isset($https) && $https === 'on') {
-            $pageURL .= 's';
-        }
-        
-        if (!$this->config['general']['restoUrl']) {
-            throw new Exception('Missing mandatory restoUrl parameter in configuration file', 4000);
-        }
-        
-        $restoUrl = $this->config['general']['restoUrl'];
-        if (substr($restoUrl, -1) !== '/') {
-            $restoUrl .= '/';
-        }
-        
-        return substr($restoUrl, 0, 2) === '//' ? $pageURL . ':' . $restoUrl : $restoUrl;
+        $host = filter_input(INPUT_SERVER, 'HTTP_HOST', FILTER_SANITIZE_STRING);
+        return (isset($https) && $https === 'on' ? 'https' : 'http') . '//:' . $host . $this->config['general']['rootEndpoint'];
     }
 
     /**
@@ -820,7 +806,7 @@ class Resto {
         /*
          * Remove unwanted parameters
          */
-        if ($params['RESToURL']) {
+        if (isset($params['RESToURL'])) {
             unset($params['RESToURL']);
         }
         
