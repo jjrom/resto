@@ -131,66 +131,21 @@ class Resto {
      */
     public $user;
     
-    /*
-     * REST path
-     */
-    private $path = '';
-            
-    /*
-     * Configuration
-     */
-    private $config = array();
-    
-    /*
-     * Output format
-     */
-    private $outputFormat;
-    
-    /*
-     * Method requested (i.e. GET, POST, PUT, DELETE, OPTIONS)
-     */
-    private $method;
-    
-    /*
-     * Debug mode
-     */
-    private $debug = false;
-    
     /**
      * Constructor
      * 
-     * Note : throws HTTP error 500 if resto.ini file does not exist or cannot be read
+     * @param string $configFile
      * 
      */
-    public function __construct() {
+    public function __construct($configFile) {
         
         try {
            
             /*
-             * Read configuration file (i.e. config.php)
-             */
-            $this->setConfig();
-            
-            /*
-             * HTTP Method is one of GET, POST, PUT or DELETE
-             */
-            $this->method = strtoupper(filter_input(INPUT_SERVER, 'REQUEST_METHOD', FILTER_SANITIZE_STRING));
-            
-            /*
-             * Set REST path
-             */
-            $this->setPath();
-            
-            /*
-             * Set output format
-             */
-            $this->setOutputFormat();
-            
-            /*
              * Context
              */
-            $this->setContext();
-       
+            $this->context = new RestoContext($this->readConfig($configFile));
+            
             /*
              * Authenticate user
              */
@@ -207,7 +162,7 @@ class Resto {
             /*
              * Error are always in JSON
              */
-            $this->outputFormat = 'json';
+            $this->context->outputFormat = 'json';
             
             /*
              * Code under 500 is an HTTP code - otherwise it is a resto error code
@@ -289,7 +244,7 @@ class Resto {
          */
         header('HTTP/1.1 ' . $responseStatus . ' ' . (isset(RestoUtil::$codes[$responseStatus]) ? RestoUtil::$codes[$responseStatus] : RestoUtil::$codes[200]));
         header("Cache-Control: max-age=2592000, public");
-        header('Content-Type: ' . RestoUtil::$contentTypes[$this->outputFormat]);
+        header('Content-Type: ' . RestoUtil::$contentTypes[$this->context->outputFormat]);
         
         /*
          * Set headers including cross-origin resource sharing (CORS)
@@ -371,276 +326,21 @@ class Resto {
      */
     private function authenticateBearer($token) {
         try {
-            $payloadObject = JWT::decode($token, $this->config['general']['passphrase']);
+            $payloadObject = $this->context->decodeJWT($token);
             $this->user = new RestoUser($payloadObject['data'], $this->context);
         } catch (Exception $ex) {}
     }
     
     /**
-     * Set configuration from config.php file
+     * Read configuration from config.php file
      */
-    private function setConfig() {
-        
-        $configFile = realpath(dirname(__FILE__)) . '/../config.dev.php';
-        
+    private function readConfig($configFile) {
         if (!file_exists($configFile)) {
             throw new Exception(__METHOD__ . 'Missing mandatory configuration file', 4000);
         }
-        
-        $this->config = include($configFile);
-        
-        /*
-         * JSON Web Token is mandatory
-         */
-        if (!isset($this->config['general']['passphrase'])) {
-            throw new Exception(__METHOD__ . 'Missing mandatory passphrase in configuration file', 4000);
-        }
-        
-        /*
-         * Debug mode
-         */
-        $this->debug = isset($this->config['general']['debug']) ? $this->config['general']['debug'] : false;
-        
+        $config = include($configFile);
+        return $config;
     }
-    
-    /**
-     * Set REST path
-     */
-    private function setPath() {
-        $restoUrl = filter_input(INPUT_GET, 'RESToURL', FILTER_SANITIZE_STRING);
-        if (isset($restoUrl)) {
-            $this->path = substr($restoUrl, -1) === '/' ? substr($restoUrl, 0, strlen($restoUrl) - 1) : $restoUrl;
-        }
-    }
-
-    /**
-     * Set output format from suffix or HTTP_ACCEPT
-     */
-    private function setOutputFormat() {
-        
-        $this->outputFormat = $this->getPathSuffix();
-        
-        /*
-         * Extract outputFormat from HTTP_ACCEPT 
-         */
-        if (!isset($this->outputFormat)) {
-            $httpAccept = filter_input(INPUT_SERVER, 'HTTP_ACCEPT', FILTER_SANITIZE_STRING);
-            $acceptedFormats = explode(',', strtolower(str_replace(' ', '', $httpAccept)));
-            foreach ($acceptedFormats as $format) {
-                $weight = 1;
-                if (strpos($format, ';q=')) {
-                    list($format, $weight) = explode(';q=', $format);
-                }
-                $AcceptTypes[$format] = $weight;
-            }
-            foreach (RestoUtil::$contentTypes as $key => $value) {
-                if (isset($AcceptTypes[$value]) && $AcceptTypes[$value] !== 0) {
-                    $this->outputFormat = $key;
-                    break;
-                }
-            }
-            
-            if (!isset($this->outputFormat)) {
-                $this->outputFormat = Resto::DEFAULT_GET_OUTPUT_FORMAT;
-            }
-        }
-        
-    }
-    
-    /**
-     * Return suffix from input url
-     * @return string
-     */
-    private function getPathSuffix() {
-        
-        $splitted = explode('.', $this->path);
-        $size = count($splitted);
-        if ($size > 1) {
-            if (array_key_exists($splitted[$size - 1], RestoUtil::$contentTypes)) {
-                $suffix = $splitted[$size - 1];
-                array_pop($splitted);
-                $this->path = join('.', $splitted);
-                return $suffix;
-            }
-            else {
-                throw new Exception('Not Found', 404);
-            }
-        }
-        
-        return null;
-    }
-    
-    /**
-     * Set context from configuration file
-     */
-    private function setContext() {
-        
-        /*
-         * Get Database driver
-         */
-        $dbDriver = $this->getDbDriver();
-        
-        $this->context = new RestoContext(array(
-            
-            /*
-             * Dictionary
-             */
-            'dictionary' => $this->getDictionary($dbDriver),
-            
-            /*
-             * Database config
-             */
-            'dbDriver' => $dbDriver,
-            
-            /*
-             * Base url is the root url of the webapp (e.g. http(s)://host/resto/)
-             */
-            'baseUrl' => $this->getBaseURL(),
-            
-            /*
-             * Path set after the baseUrl
-             */
-            'path' => $this->path,
-            
-            /*
-             * Query parameters
-             */
-            'query' => $this->getParams(),
-            
-            /*
-             * Output format
-             */
-            'outputFormat' => $this->outputFormat,
-            
-            /*
-             * Debug mode
-             */
-            'debug' => $this->debug,
-            
-            /*
-             * Store query
-             */
-            'storeQuery' => isset($this->config['general']['storeQuery']) ? $this->config['general']['storeQuery'] : false,
-            
-            /*
-             * Method
-             */
-            'method' => $this->method,
-            
-            /*
-             * JSON Web Token passphrase
-             * (see https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32)
-             */
-            'passphrase' => $this->config['general']['passphrase'],
-            
-            /*
-             * RESTo Config
-             */
-            'config' => array(
-                
-                /*
-                 * Title
-                 */
-                'title' => isset($this->config['general']['title']) ? $this->config['general']['title'] : 'resto',
-                
-                /*
-                 * Accepted language
-                 */
-                'languages' => isset($this->config['general']['languages']) ? $this->config['general']['languages'] : array('en'),
-                
-                /*
-                 * Timezone
-                 */
-                'timezone' => isset($this->config['general']['timezone']) ? $this->config['general']['timezone'] : 'Europe/Paris',
-                
-                /*
-                 * Modules
-                 */
-                'modules' => $this->getModules(),
-                
-                /*
-                 * Mail configuration
-                 */
-                'mail' => isset($this->config['mail']) ? $this->config['mail'] : array(),
-                    
-            )
-        ));
-    }
-    
-    /**
-     * Get Database driver
-     */
-    private function getDbDriver() {
-        
-        /*
-         * Database
-         */
-        if (!class_exists('RestoDatabaseDriver_' . $this->config['database']['driver'])) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'No database driver defined', 4002);
-        }
-        try {
-            $databaseClass = new ReflectionClass('RestoDatabaseDriver_' . $this->config['database']['driver']);
-            if (!$databaseClass->isInstantiable()) {
-                throw new Exception();
-            }
-        } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'RestoDatabaseDriver_' . $this->config['database']['driver'] . ' is not insantiable', 4003);
-        }   
-        
-        return $databaseClass->newInstance($this->config['database'], new RestoCache(isset($this->config['database']['dircache']) ? $this->config['database']['dircache'] : null),$this->debug);      
-    }
-   
-    /**
-     * Get dictionary from input language
-     * 
-     * @param RestoDatabaseDriver $dbDriver
-     */
-    private function getDictionary($dbDriver) {
-        
-        $languages = isset($this->config['general']['languages']) ? $this->config['general']['languages'] : array('en');
-        $lang = filter_input(INPUT_GET, 'lang', FILTER_SANITIZE_STRING);
-        if (!isset($lang)) {
-            $lang = substr($this->getLanguage(), 0, 2);
-        }
-        if (!in_array($lang, $languages) || !class_exists('RestoDictionary_' . $lang)) {
-            $lang = 'en';
-        }
-        
-        return RestoUtil::instantiate('RestoDictionary_' . $lang, array($dbDriver));
-        
-    }
-    
-    /**
-     * Get activate modules from config.php
-     */
-    private function getModules() {
-        
-        $modules = array();
-        
-        foreach (array_keys($this->config['modules']) as $moduleName) {
-            
-            /*
-             * Only activated module are registered
-             */
-            if (isset($this->config['modules'][$moduleName]['activate']) && $this->config['modules'][$moduleName]['activate'] === true && class_exists($moduleName)) {
-                
-                $modules[$moduleName] = isset($this->config['modules'][$moduleName]['options']) ? $this->config['modules'][$moduleName]['options'] : array();
-                
-                /*
-                 * Add route to module
-                 */
-                if (isset($this->config['modules'][$moduleName]['route'])) {
-                    $modules[$moduleName] = array_merge($modules[$moduleName], array('route' => $this->config['modules'][$moduleName]['route']));
-                }
-                
-            }
-            
-        }
-        
-        return $modules;
-        
-    }
-    
     
     /**
      * Call one of the output method from $object (i.e. toJSON(), toATOM(), etc.)
@@ -665,7 +365,7 @@ class Resto {
             /*
              * Only JSON is supported for arrays
              */
-            $this->outputFormat = 'json';
+            $this->context->outputFormat = 'json';
             return $this->toJSON($object);
         }
         
@@ -711,13 +411,13 @@ class Resto {
      * @throws Exception
      */
     private function formatObject($object) {
-        $methodName = 'to' . strtoupper($this->outputFormat);
+        $methodName = 'to' . strtoupper($this->context->outputFormat);
         if (method_exists(get_class($object), $methodName)) {
 
             /*
              * JSON-P case
              */
-            if ($this->outputFormat === 'json') {
+            if ($this->context->outputFormat === 'json') {
                 $pretty = isset($this->context->query['_pretty']) ? RestoUtil::toBoolean($this->context->query['_pretty']) : false;
                 if (isset($this->context->query['callback'])) {
                     return $this->context->query['callback'] . '(' . $object->$methodName($pretty) . ')';
@@ -731,97 +431,6 @@ class Resto {
         else {
             throw new Exception('Not Found', 404);
         }
-    }
-    
-    /**
-     * Get url with no parameters
-     * 
-     * @return string $pageUrl
-     */
-    private function getBaseURL() {
-        $https = filter_input(INPUT_SERVER, 'HTTPS', FILTER_SANITIZE_STRING);
-        $host = filter_input(INPUT_SERVER, 'HTTP_HOST', FILTER_SANITIZE_STRING);
-        return (isset($https) && $https === 'on' ? 'https' : 'http') . '//:' . $host . $this->config['general']['rootEndpoint'];
-    }
-
-    /**
-     * Get browser language
-     * (see http://www.thefutureoftheweb.com/blog/use-accept-language-header)
-     * 
-     * @return string $lang
-     */
-    private function getLanguage() {
-        $langs = array();
-        $lang_parse = array();
-        $acceptLanguage = filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE', FILTER_SANITIZE_STRING);
-        if (isset($acceptLanguage)) {
-            // break up string into pieces (languages and q factors)
-            preg_match_all('/([a-z]{1,8}(-[a-z]{1,8})?)\s*(;\s*q\s*=\s*(1|0\.[0-9]+))?/i', $acceptLanguage, $lang_parse);
-
-            if (count($lang_parse[1])) {
-                // create a list like "en" => 0.8
-                $langs = array_combine($lang_parse[1], $lang_parse[4]);
-
-                // set default to 1 for any without q factor
-                foreach ($langs as $lang => $val) {
-                    if ($val === '') {
-                        $langs[$lang] = 1;
-                    }
-                }
-
-                // sort list based on value	
-                arsort($langs, SORT_NUMERIC);
-
-                // Return prefered language
-                foreach ($langs as $lang => $val) {
-                    return $lang;
-                }
-            }
-        }
-    }
-
-    /**
-     * Return url parameters from method
-     */
-    private function getParams() {
-        
-        /*
-         * Aggregate input parameters
-         * 
-         * Note: PUT is handled by RestoUtil::readInputData() function
-         */
-        $params = array();
-        switch ($this->method) {
-            case 'GET':
-            case 'DELETE':
-                $params = RestoUtil::sanitize($_GET);
-                break;
-            case 'POST':
-                $params = array_merge($_POST, RestoUtil::sanitize($_GET));
-                break;
-            default:
-                break;
-        }
-        
-        /*
-         * Remove unwanted parameters
-         */
-        if (isset($params['RESToURL'])) {
-            unset($params['RESToURL']);
-        }
-        
-        /*
-         * Trim all values
-         */
-        if (!function_exists('trim_value')) {
-            function trim_value(&$value) {
-                $value = trim($value);
-            }
-        }
-        array_walk_recursive($params, 'trim_value');
-        
-        return $params;
-        
     }
     
     /**

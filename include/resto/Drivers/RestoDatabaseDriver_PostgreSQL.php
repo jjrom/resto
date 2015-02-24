@@ -2214,8 +2214,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                  * City exists
                  */
                 if (isset($cityName)) {
-                    if (isset($model->context->config['modules']['Gazetteer'])) {
-                        $gazetteer = new Gazetteer($model->context, $model->user, $model->context->config['modules']['Gazetteer']);
+                    if (isset($model->context->modules['Gazetteer'])) {
+                        $gazetteer = new Gazetteer($model->context, $model->user, $model->context->modules['Gazetteer']);
                         $locations = $gazetteer->search(array(
                             'q' => $cityName,
                             'country' => isset($countryName) ? $countryName : null,

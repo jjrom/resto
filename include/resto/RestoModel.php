@@ -692,7 +692,7 @@ abstract class RestoModel {
         /* 
          * Add tags with iTag
          */
-        if (isset($this->context->config['modules']['iTag'])) {
+        if (isset($this->context->modules['iTag'])) {
             $iTagKeywords = $this->getKeywords($data['geometry']);
             if (isset($keywords)) {
                 $keywords[1] = array_merge($keywords[1], $iTagKeywords);
@@ -724,13 +724,13 @@ abstract class RestoModel {
      */
     private function getKeywords($geometry) {
         
-        if (isset($this->context->config['modules']['iTag']['database']) && isset($this->context->config['modules']['iTag']['database']['dbname'])) {
-            $iTag = new iTag($this->context->config['modules']['iTag']['database']);
+        if (isset($this->context->modules['iTag']['database']) && isset($this->context->modules['iTag']['database']['dbname'])) {
+            $iTag = new iTag($this->context->modules['iTag']['database']);
         }
         else {
             $iTag = new iTag(array('dbh' => $this->context->dbDriver->getHandler()));
         }
-        return $this->iTagToKeywords($iTag->tag(RestoUtil::geoJSONGeometryToWKT($geometry, isset($this->context->config['modules']['iTag']['keywords']) ? $this->context->config['modules']['iTag']['keywords'] : array())));
+        return $this->iTagToKeywords($iTag->tag(RestoUtil::geoJSONGeometryToWKT($geometry, isset($this->context->modules['iTag']['keywords']) ? $this->context->modules['iTag']['keywords'] : array())));
 
     }
     

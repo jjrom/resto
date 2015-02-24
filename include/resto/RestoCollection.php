@@ -538,8 +538,8 @@ class RestoCollection {
         $xml->writeElement('Attribution', $this->osDescription[$lang]['Attribution']);
         $xml->writeElement('SyndicationRight', 'open');
         $xml->writeElement('AdultContent', 'false');
-        for ($i = 0, $l = count($this->context->config['languages']); $i < $l; $i++) {
-            $xml->writeElement('Language', $this->context->config['languages'][$i]);
+        for ($i = 0, $l = count($this->context->languages); $i < $l; $i++) {
+            $xml->writeElement('Language', $this->context->languages[$i]);
         }
         $xml->writeElement('OutputEncoding', 'UTF-8');
         $xml->writeElement('InputEncoding', 'UTF-8');

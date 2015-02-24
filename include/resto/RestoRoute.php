@@ -139,11 +139,11 @@ abstract class RestoRoute {
         
         $module = null;
         
-        foreach (array_keys($this->context->config['modules']) as $moduleName) {
+        foreach (array_keys($this->context->modules) as $moduleName) {
             
-            if (isset($this->context->config['modules'][$moduleName]['route'])) {
+            if (isset($this->context->modules[$moduleName]['route'])) {
                 
-                $moduleSegments = explode('/', $this->context->config['modules'][$moduleName]['route']);
+                $moduleSegments = explode('/', $this->context->modules[$moduleName]['route']);
                 $routeIsTheSame = true;
                 $count = 0;
                 for ($i = 0, $l = count($moduleSegments); $i < $l; $i++) {

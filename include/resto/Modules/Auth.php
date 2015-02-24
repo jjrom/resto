@@ -120,7 +120,7 @@ class Auth extends RestoModule {
      */
     public function __construct($context, $user) {
         parent::__construct($context, $user);
-        $this->providers = isset($this->context->config['modules'][get_class($this)]['providers']) ? $this->context->config['modules'][get_class($this)]['providers'] : array();
+        $this->providers = isset($this->context->modules[get_class($this)]['providers']) ? $this->context->modules[get_class($this)]['providers'] : array();
     }
 
     /**

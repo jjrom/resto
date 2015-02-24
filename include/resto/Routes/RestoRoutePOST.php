@@ -342,10 +342,10 @@ class RestoRoutePOST extends RestoRoute {
             $activationLink = $this->context->baseUrl . 'api/users/' . $userInfo['userid'] . '/activate?act=' . $userInfo['activationcode'] . $redirect;
             if (!$this->sendMail(array(
                         'to' => $data['email'],
-                        'senderName' => $this->context->config['mail']['senderName'],
-                        'senderEmail' => $this->context->config['mail']['senderEmail'],
-                        'subject' => $this->context->dictionary->translate('activationSubject', $this->context->config['title']),
-                        'message' => $this->context->dictionary->translate('activationMessage', $this->context->config['title'], $activationLink)
+                        'senderName' => $this->context->mail['senderName'],
+                        'senderEmail' => $this->context->mail['senderEmail'],
+                        'subject' => $this->context->dictionary->translate('activationSubject', $this->context->title),
+                        'message' => $this->context->dictionary->translate('activationMessage', $this->context->title, $activationLink)
                     ))) {
                 $this->httpError(3001, 'Problem sending activation code', __METHOD__);
             }

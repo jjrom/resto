@@ -285,10 +285,10 @@ class RestoRouteGET extends RestoRoute {
         $resetLink = "TODO";
         if (!$this->sendMail(array(
                     'to' => $this->context->query['email'],
-                    'senderName' => $this->context->config['mail']['senderName'],
-                    'senderEmail' => $this->context->config['mail']['senderEmail'],
-                    'subject' => $this->context->dictionary->translate('resetPasswordSubject', $this->context->config['title']),
-                    'message' => $this->context->dictionary->translate('resetPasswordMessage', $this->context->config['title'], $resetLink)
+                    'senderName' => $this->context->mail['senderName'],
+                    'senderEmail' => $this->context->mail['senderEmail'],
+                    'subject' => $this->context->dictionary->translate('resetPasswordSubject', $this->context->title),
+                    'message' => $this->context->dictionary->translate('resetPasswordMessage', $this->context->title, $resetLink)
                 ))) {
             $this->httpError(3003, 'Cannot send password reset link', __METHOD__);
         }

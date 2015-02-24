@@ -807,8 +807,8 @@ class QueryAnalyzer extends RestoModule {
          */
         $ii = count($searchTerms);
         if ($ii > 0) {
-            if (isset($this->context->config['modules']['Gazetteer'])) {
-                $gazetteer = new Gazetteer($this->context, $this->user, $this->context->config['modules']['Gazetteer']);
+            if (isset($this->context->modules['Gazetteer'])) {
+                $gazetteer = new Gazetteer($this->context, $this->user, $this->context->modules['Gazetteer']);
             }
             for ($i = $ii; $i--;) {
 

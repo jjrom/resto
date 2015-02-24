@@ -78,7 +78,7 @@ abstract class RestoModule{
     public function __construct($context, $user) {
         $this->context = $context;
         $this->user = $user;
-        $this->options = $this->context->config['modules'][get_class($this)];
+        $this->options = $this->context->modules[get_class($this)];
         if (isset($this->context)) {
             if (isset($this->translations) && isset($this->translations[$this->context->dictionary->language])) {
                 $this->context->dictionary->addTranslations($this->translations[$this->context->dictionary->language]);
