@@ -290,7 +290,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      * @return boolean
      */
     public function createSharedLink($resourceUrl, $duration = 86400) {
-        error_log($resourceUrl);
+        
         if (!isset($resourceUrl) || !RestoUtil::isUrl($resourceUrl)) {
             return null;
         }
