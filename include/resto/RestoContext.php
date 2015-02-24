@@ -92,7 +92,7 @@ class RestoContext {
      *  JSON Web Token passphrase*
      * (see https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32)
      */
-    private $passphrase = 'Not so secret!';
+    private $passphrase = 'Super secret passphrase';
     
     /**
      * Path
@@ -103,6 +103,11 @@ class RestoContext {
      * Query
      */
     public $query = array();
+    
+    /**
+     * Reset password page url
+     */
+    public $resetPasswordUrl = 'http://localhost/resto2-client/#/resetPassword';
     
     /**
      * Store query
@@ -267,8 +272,15 @@ class RestoContext {
         /*
          * Mail configuration
          */
-        if (isset($config['general']['mail'])) {
-            $this->mail = $config['general']['mail'];
+        if (isset($config['mail'])) {
+            $this->mail = $config['mail'];
+        }
+      
+        /*
+         * Reset password url
+         */
+        if (isset($config['general']['resetPasswordUrl'])) {
+            $this->resetPasswordUrl = $config['general']['resetPasswordUrl'];
         }
         
         /*

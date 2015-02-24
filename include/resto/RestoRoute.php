@@ -217,7 +217,7 @@ abstract class RestoRoute {
     }
     
     /*
-     * Throw 404 Not Found exception
+     * Throw HTTP error
      */
     protected function httpError($code, $message = null, $method = null) {
         $error = isset($message) ? $message : isset(RestoUtil::$codes[$code]) ? RestoUtil::$codes[$code] : 'Unknown error';
