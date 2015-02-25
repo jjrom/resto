@@ -187,7 +187,7 @@ abstract class RestoRoute {
     protected function sendMail($params) {
         $headers = 'From: ' . $params['senderName'] . ' <' . $params['senderEmail'] . '>' . "\r\n";
         $headers .= 'Reply-To: doNotReply <' . $params['senderEmail'] . '>' . "\r\n";
-        $headers .= 'X-Mailer: PHP/' . phpversion();
+        $headers .= 'X-Mailer: PHP/' . phpversion() . "\r\n";
         $headers .= 'X-Priority: 3' . "\r\n";
         $headers .= 'MIME-Version: 1.0' . "\r\n";
         $headers .= 'Content-type: text/plain; charset=iso-8859-1' . "\r\n";
