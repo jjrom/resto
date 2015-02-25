@@ -178,25 +178,22 @@ abstract class RestoRoute {
             $this->user->storeQuery($this->context->method, $serviceName, isset($collectionName) ? $collectionName : null, isset($featureIdentifier) ? $featureIdentifier : null, $this->context->query, $this->context->getUrl());
         }
     }
-    
-    
+   
     /**
      * Send user activation code by email
      * 
      * @param array $params
      */
     protected function sendMail($params) {
-        $headers = array(
-            "From: " . $params['senderName'] . " <" . $params['senderEmail'] . ">\r\n",
-            "Reply-To: doNotReply <" . $params['senderEmail'] . ">\r\n",
-            "X-Mailer: PHP/" . phpversion(),
-            "MIME-Version: 1.0\r\n",
-            "Content-type: text/plain; charset=iso-8859-1\r\n"
-        );
-        if (mail($params['to'], $params['subject'], $params['message'] , join('', $headers), '-f' . $params['senderEmail'])) {
+        $headers = 'From: ' . $params['senderName'] . ' <' . $params['senderEmail'] . '>' . "\r\n";
+        $headers .= 'Reply-To: doNotReply <' . $params['senderEmail'] . '>' . "\r\n";
+        $headers .= 'X-Mailer: PHP/' . phpversion();
+        $headers .= 'X-Priority: 3' . "\r\n";
+        $headers .= 'MIME-Version: 1.0' . "\r\n";
+        $headers .= 'Content-type: text/plain; charset=iso-8859-1' . "\r\n";
+        if (mail($params['to'], $params['subject'], $params['message'] , $headers, '-f' . $params['senderEmail'])) {
             return true;
         }
-
         return false;
     }
 
