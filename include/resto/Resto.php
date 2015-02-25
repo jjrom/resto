@@ -103,6 +103,7 @@
  *   - 3002 : User has to sign license
  *   - 3003 : Cannot send password reset link
  *   - 3004 : Cannot reset password for a non local user
+ *   - 3005 : Invalid user
  *   - 4000 : Configuration file problem
  *   - 4001 : Dictionary is not instantiable
  *   - 4002 : Database driver does not exist
@@ -224,7 +225,7 @@ class Resto {
              * Send an HTTP 404 Not Found
              */
             default:
-                throw new Exception('Not Found', 404);
+                RestoLogUtil::httpError(404);
         }
         
         /*
@@ -337,9 +338,17 @@ class Resto {
      */
     private function readConfig($configFile) {
         if (!file_exists($configFile)) {
-            throw new Exception(__METHOD__ . 'Missing mandatory configuration file', 4000);
+            RestoLogUtil::httpError(4000);
         }
         $config = include($configFile);
+        
+        /*
+         * Set global debug mode
+         */
+        if (isset($config['general']['debug'])) {
+            RestoLogUtil::$debug = $config['general']['debug'];
+        }
+        
         return $config;
     }
     
@@ -355,7 +364,7 @@ class Resto {
          * Case 0 - Object is null
          */
         if (!isset($object)) {
-            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid object', 4004);
+            RestoLogUtil::httpError(4004);
         }
         
         /*
@@ -380,7 +389,7 @@ class Resto {
          * Unknown stuff
          */
         else {
-            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid object', 4004);
+            RestoLogUtil::httpError(4004);
         }
         
     }
@@ -430,7 +439,7 @@ class Resto {
             }
         }
         else {
-            throw new Exception('Not Found', 404);
+            RestoLogUtil::httpError(404);
         }
     }
     

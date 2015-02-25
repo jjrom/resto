@@ -163,7 +163,7 @@ abstract class RestoRoute {
             }
         }
         if (!isset($module)) {
-            $this->httpError(404, null, __METHOD__);
+            RestoLogUtil::httpError(404);
         }
     }
 
@@ -213,14 +213,6 @@ abstract class RestoRoute {
         return $emailOrId;
     }
     
-    /*
-     * Throw HTTP error
-     */
-    protected function httpError($code, $message = null, $method = null) {
-        $error = isset($message) ? $message : (isset(RestoUtil::$codes[$code]) ? RestoUtil::$codes[$code] : 'Unknown error');
-        throw new Exception(($this->context->debug && isset($method) ? $method . ' - ' : '') . $error, $code);
-    }
-    
     /**
      * Return user object if authorized
      * 
@@ -232,7 +224,7 @@ abstract class RestoRoute {
         $userid = $this->userid($emailOrId);
         if ($user->profile['userid'] !== $userid) {
             if ($user->profile['groupname'] !== 'admin') {
-                $this->httpError(403, null, __METHOD__);
+                RestoLogUtil::httpError(403);
             }
             else {
                 $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);
@@ -242,31 +234,5 @@ abstract class RestoRoute {
         return $user;
         
     }
-    
-    /**
-     * Return output execution status as an array
-     *  
-     * @param string $message
-     * @param array $additional
-     */
-    protected function success($message, $additional = array()) {
-        return $this->message('success', $message, $additional);
-    }
-    
-    /**
-     * Return output execution status as an array
-     *  
-     * @param string $message
-     * @param array $additional
-     */
-    protected function error($message, $additional = array()) {
-        return $this->message('error', $message, $additional);
-    }
-    
-    private function message($status, $message, $additional = array()) {
-        return array_merge(array(
-            'status' => $status,
-            'message' => $message
-        ), $additional);
-    }
+   
 }

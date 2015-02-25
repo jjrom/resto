@@ -134,7 +134,7 @@ class Auth extends RestoModule {
     public function run($params, $data = array()) {
         
         if (!$this->context) {
-            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid Context', 500);
+            RestoLogUtil::httpError(500, 'Invalid Context');
         }
         
         /*
@@ -168,7 +168,7 @@ class Auth extends RestoModule {
          * No provider => exit
          */
         if (!isset($provider)) {
-            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'No configuration found for issuer "' . $issuerId . '"', 400);
+            RestoLogUtil::httpError(400, 'No configuration found for issuer "' . $issuerId . '"');
         }
         
         /*
@@ -185,7 +185,7 @@ class Auth extends RestoModule {
                     'uidKey' => $provider['uidKey']
                 ));
             default:
-                throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Unknown sso protocol for issuer "' . $issuerId . '"', 400);
+                RestoLogUtil::httpError(400, 'Unknown sso protocol for issuer "' . $issuerId . '"');
           
         }
     }
@@ -223,7 +223,7 @@ class Auth extends RestoModule {
     private function oauth2GetAccessToken($issuerId, $accessTokenUrl) {
         
         if (!isset($this->data['code']) || !isset($this->data['redirectUri'])) {
-            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Bad Request', 400);
+            RestoLogUtil::httpError(400);
         }
         
         $postResponse = json_decode(file_get_contents($accessTokenUrl, false, stream_context_create(array(
@@ -264,7 +264,7 @@ class Auth extends RestoModule {
         ))), true);
         
         if (!isset($profileResponse) || empty($profileResponse[$uidKey])) {
-            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Authorization failed', 400);
+            RestoLogUtil::httpError(500, 'Authorization failed');
         }
         
         return $this->token($profileResponse[$uidKey]);

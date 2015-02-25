@@ -68,7 +68,7 @@ class RestoRoutePUT extends RestoRoute {
          */
         $data = RestoUtil::readInputData();
         if (!is_array($data) || count($data) === 0) {
-            $this->httpError(400, null, __METHOD__);
+            RestoLogUtil::httpError(400);
         }
 
         switch($segments[0]) {
@@ -98,7 +98,7 @@ class RestoRoutePUT extends RestoRoute {
          * {collection} is mandatory and no modifier is allowed
          */
         if (!isset($segments[1]) || isset($segments[3])) {
-            $this->httpError(404, null, __METHOD__);
+            RestoLogUtil::httpError(404);
         }
         
         $collection = new RestoCollection($segments[1], $this->context, $this->user, array('autoload' => true));
@@ -111,7 +111,7 @@ class RestoRoutePUT extends RestoRoute {
          * Check credentials
          */
         if (!$this->user->canPut($collection->name, $featureIdentifier)) {
-            $this->httpError(403, null, __METHOD__);
+            RestoLogUtil::httpError(403);
         }
 
         /*
@@ -127,7 +127,7 @@ class RestoRoutePUT extends RestoRoute {
          */
         else {
             //$this->storeQuery('update', $collection->name, $featureIdentifier);
-            $this->httpError(501, null, __METHOD__);
+            RestoLogUtil::httpError(501);
         }
         
     }
@@ -148,14 +148,14 @@ class RestoRoutePUT extends RestoRoute {
          * Mandatory {itemid}
          */
         if (!isset($segments[3])) {
-            $this->httpError(404, null, __METHOD__);
+            RestoLogUtil::httpError(404);
         }
         
         if ($segments[1] === 'cart') {
             return $this->PUT_userCart($segments[1], $segments[3], $data);
         }
         else {
-            $this->httpError(404, null, __METHOD__);
+            RestoLogUtil::httpError(404);
         }
         
     }
@@ -180,7 +180,7 @@ class RestoRoutePUT extends RestoRoute {
         $userid = $this->userid($emailOrId);
         if ($user->profile['userid'] !== $userid) {
             if ($user->profile['groupname'] !== 'admin') {
-                $this->httpError(403, null, __METHOD__);
+                RestoLogUtil::httpError(403);
             }
             else {
                 $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);

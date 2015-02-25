@@ -364,7 +364,7 @@ class Gazetteer extends RestoModule {
          * Only GET method on 'search' route with json outputformat is accepted
          */
         if ($this->context->method !== 'GET' || count($params) !== 0) {
-            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Not Found', 404);
+            RestoLogUtil::httpError(404);
         }
         
         return $this->search($this->context->query);

@@ -169,7 +169,7 @@ class RestoFeatureCollection {
         $original = $params;
         $queryAnalyzeProcessingTime = null;
         if (isset($this->context->modules['QueryAnalyzer'])) {
-            $qa = new QueryAnalyzer($this->context, $this->user, array('debug' => $this->context->debug));
+            $qa = new QueryAnalyzer($this->context, $this->user);
             $analyzis = $qa->analyze($params, $this->defaultModel);
             $params = $analyzis['analyze'];
             $queryAnalyzeProcessingTime = $analyzis['queryAnalyzeProcessingTime']; 

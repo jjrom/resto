@@ -74,7 +74,7 @@ class RestoRoutePOST extends RestoRoute {
          */
         $data = RestoUtil::readInputData();
         if (!is_array($data) || count($data) === 0) {
-            $this->httpError(400, null, __METHOD__);
+            RestoLogUtil::httpError(400);
         }
 
         switch($segments[0]) {
@@ -103,7 +103,7 @@ class RestoRoutePOST extends RestoRoute {
         
         
         if (!isset($segments[1])) {
-            $this->httpError(404, null, __METHOD__);
+            RestoLogUtil::httpError(404);
         }
 
         /*
@@ -112,7 +112,7 @@ class RestoRoutePOST extends RestoRoute {
         if ($segments[1] === 'users') {
             
             if (!isset($segments[2])) {
-                $this->httpError(404, null, __METHOD__);
+                RestoLogUtil::httpError(404);
             }
             
             /*
@@ -154,7 +154,7 @@ class RestoRoutePOST extends RestoRoute {
     private function POST_apiUsersConnect($data) {
         
         if (!isset($data['email']) || !isset($data['password'])) {
-            $this->httpError(400, null, __METHOD__);
+            RestoLogUtil::httpError(400);
         }
 
         /*
@@ -171,7 +171,7 @@ class RestoRoutePOST extends RestoRoute {
             );
         }
         else {
-            $this->httpError(403, null, __METHOD__);
+            RestoLogUtil::httpError(403);
         }
     }
     
@@ -184,7 +184,7 @@ class RestoRoutePOST extends RestoRoute {
     private function POST_apiUsersResetPassword($data) {
         
         if (!isset($data['url']) || !isset($data['email']) || !isset($data['password'])) {
-            $this->httpError(400, null, __METHOD__);
+            RestoLogUtil::httpError(400);
         }
         
         $email = base64_decode($data['email']);
@@ -194,23 +194,23 @@ class RestoRoutePOST extends RestoRoute {
          */
         $pair = explode('?', $data['url']);
         if (!isset($pair[1])) {
-            $this->httpError(403, null, __METHOD__);
+            RestoLogUtil::httpError(403);
         }
         $query = array();
         parse_str($pair[1], $query);
         if (!isset($query['_tk']) || !$this->context->dbDriver->isValidSharedLink($pair[0], $query['_tk'])) {
-            $this->httpError(403, null, __METHOD__);
+            RestoLogUtil::httpError(403);
         }
         
         if ($this->context->dbDriver->getUserPassword($email) === str_repeat('*', 40)) {
-            $this->httpError(3004, 'Cannot reset password for non local user', __METHOD__);
+            RestoLogUtil::httpError(3004);
         }
         
         if ($this->context->dbDriver->updateUserProfile(array('email' => $email, 'password' => $data['password']))) {
             return $this->success('Password updated');
         }
         else {
-            $this->httpError(400, null, __METHOD__);
+            RestoLogUtil::httpError(400);
         }
         
     }
@@ -228,7 +228,7 @@ class RestoRoutePOST extends RestoRoute {
          * Only user can sign its license
          */
         if ($this->user->profile['userid'] !== $this->userid($userid)) {
-            $this->httpError(403, null, __METHOD__);
+            RestoLogUtil::httpError(403);
         }
 
         if ($this->user->signLicense($data[0], true)) {
@@ -255,7 +255,7 @@ class RestoRoutePOST extends RestoRoute {
          * No feature allowed
          */
         if (isset($segments[2]) ? $segments[2] : null) {
-            $this->httpError(404, null, __METHOD__);
+            RestoLogUtil::httpError(404);
         }
         
         if (isset($segments[1])) {
@@ -266,7 +266,7 @@ class RestoRoutePOST extends RestoRoute {
          * Check credentials
          */
         if (!$this->user->canPost(isset($collection) ? $collection->name : null)) {
-            $this->httpError(403, null, __METHOD__);
+            RestoLogUtil::httpError(403);
         }
 
         /*
@@ -291,10 +291,10 @@ class RestoRoutePOST extends RestoRoute {
     private function POST_createCollection($data) {
         
         if (!isset($data['name'])) {
-            $this->httpError(400, null, __METHOD__);
+            RestoLogUtil::httpError(400);
         }
         if ($this->context->dbDriver->collectionExists($data['name'])) {
-            $this->httpError(2003, 'Collection already exists', __METHOD__);
+            RestoLogUtil::httpError(2003);
         }
         $collection = new RestoCollection($data['name'], $this->context, $this->user);
         $collection->loadFromJSON($data, true);
@@ -334,7 +334,7 @@ class RestoRoutePOST extends RestoRoute {
          * No modifier allwed
          */
         if (isset($segments[3])) {
-            $this->httpError(404, null, __METHOD__);
+            RestoLogUtil::httpError(404);
         }
         
         /*
@@ -362,7 +362,7 @@ class RestoRoutePOST extends RestoRoute {
          * Unknown route
          */
         else {
-            $this->httpError(404, null, __METHOD__);
+            RestoLogUtil::httpError(404);
         }
         
     }
@@ -375,11 +375,11 @@ class RestoRoutePOST extends RestoRoute {
     private function POST_createUser($data) {
         
         if (!isset($data['email'])) {
-            $this->httpError(400, 'Email is not set', __METHOD__);
+            RestoLogUtil::httpError(400, 'Email is not set');
         }
 
         if ($this->dbDriver->userExists($data['email'])) {
-            $this->httpError(3000, 'User exists', __METHOD__);
+            RestoLogUtil::httpError(3000);
         }
 
         $redirect = isset($data['confirm_success_url']) ? '&redirect=' . urlencode($data['confirm_success_url']) : '';
@@ -399,10 +399,10 @@ class RestoRoutePOST extends RestoRoute {
                         'subject' => $this->context->dictionary->translate('activationSubject', $this->context->title),
                         'message' => $this->context->dictionary->translate('activationMessage', $this->context->title, $activationLink)
                     ))) {
-                $this->httpError(3001, 'Problem sending activation code', __METHOD__);
+                RestoLogUtil::httpError(3001);
             }
         } else {
-            $this->httpError(500, 'Database connection error', __METHOD__);
+            RestoLogUtil::httpError(500, 'Database connection error');
         }
 
         return $this->success('User ' . $data['email'] . ' created');

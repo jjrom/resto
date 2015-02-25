@@ -54,11 +54,6 @@ class RestoContext {
     public $dbDriver;
     
     /**
-     * Debug mode
-     */
-    public $debug = false;
-     
-    /**
      * Dictionary
      */
     public $dictionary;
@@ -136,7 +131,7 @@ class RestoContext {
          * JSON Web Token is mandatory
          */
         if (!isset($config['general']['passphrase'])) {
-            throw new Exception(__METHOD__ . 'Missing mandatory passphrase in configuration file', 4000);
+            RestoLogUtil::httpError(4000);
         }
         
         /*
@@ -242,13 +237,6 @@ class RestoContext {
          * HTTP Method is one of GET, POST, PUT or DELETE
          */
         $this->method = strtoupper(filter_input(INPUT_SERVER, 'REQUEST_METHOD', FILTER_SANITIZE_STRING));
-        
-        /*
-         * Debug mode
-         */
-        if (isset($config['general']['debug'])) {
-            $this->debug = $config['general']['debug'];
-        }
         
         /*
          * True to store queries within database
@@ -380,7 +368,7 @@ class RestoContext {
          * Database
          */
         if (!class_exists('RestoDatabaseDriver_' . $databaseConfig['driver'])) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'No database driver defined', 4002);
+            RestoLogUtil::httpError(4002);
         }
         try {
             $databaseClass = new ReflectionClass('RestoDatabaseDriver_' . $databaseConfig['driver']);
@@ -388,10 +376,10 @@ class RestoContext {
                 throw new Exception();
             }
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'RestoDatabaseDriver_' . $databaseConfig['driver'] . ' is not insantiable', 4003);
+            RestoLogUtil::httpError(4003);
         }   
         
-        $this->dbDriver = $databaseClass->newInstance($databaseConfig, new RestoCache(isset($databaseConfig['dircache']) ? $databaseConfig['dircache'] : null),$this->debug);      
+        $this->dbDriver = $databaseClass->newInstance($databaseConfig, new RestoCache(isset($databaseConfig['dircache']) ? $databaseConfig['dircache'] : null));      
     }
     
     /**
@@ -454,7 +442,7 @@ class RestoContext {
                 return $suffix;
             }
             else {
-                throw new Exception('Not Found', 404);
+                RestoLogUtil::httpError(404);
             }
         }
         

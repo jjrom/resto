@@ -538,7 +538,7 @@ abstract class RestoModel {
      */
     public function __construct($context, $user) {
         if (!isset($context) || !is_a($context, 'RestoContext')) {
-            throw new Exception('Context must be defined', 500);
+            RestoUtil::httpError(500, 'Context must be defined');
         }
         $this->context = $context;
         $this->user = $user;
@@ -637,14 +637,14 @@ abstract class RestoModel {
     public function addFeature($data, $collectionName) {
          
         if (!isset($collectionName)) {
-            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Collection name must be defined', 500);
+            RestoLogUtil::httpError(500, 'Collection name must be defined');
         }
         
         /*
          * Assume input file or stream is a JSON Feature
          */
         if (!RestoUtil::isValidGeoJSONFeature($data)) {
-            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid feature description', 500);
+            RestoLogUtil::httpError(500, 'Invalid feature description');
         }
         
         /*
@@ -665,7 +665,7 @@ abstract class RestoModel {
          * Check that resource does not already exist in database
          */
         if ($this->context->dbDriver->featureExists($data['id'])) {
-            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Feature ' . $data['id'] . ' already in database', 500);
+            RestoLogUtil::httpError(500, 'Feature ' . $data['id'] . ' already in database');
         }
         
         /*
@@ -709,7 +709,7 @@ abstract class RestoModel {
         try {
             $this->context->dbDriver->storeFeature($collectionName, $elements, $this);
         } catch (Exception $e) {
-            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Feature ' . $data['id'] . ' cannot be inserted in database', 500);
+            RestoUtil::httpError(500, 'Feature ' . $data['id'] . ' cannot be inserted in database');
         }
         
         return new RestoFeature($data['id'], $this->context, $this->user, null);

@@ -115,7 +115,7 @@ class RestoRouteGET extends RestoRoute {
         
         
         if (!isset($segments[1]) || isset($segments[4])) {
-            $this->httpError(404, null, __METHOD__);
+            RestoLogUtil::httpError(404);
         }
 
         /*
@@ -154,7 +154,7 @@ class RestoRouteGET extends RestoRoute {
             return $this->GET_apiCollectionsDescribe(isset($segments[3]) ? $segments[2] : null);
         }
         else {
-            $this->httpError(404, null, __METHOD__);
+            RestoLogUtil::httpError(404);
         }
     }
     
@@ -244,7 +244,7 @@ class RestoRouteGET extends RestoRoute {
        /*
         * 404
         */
-       $this->httpError(403, null, __METHOD__);
+       RestoLogUtil::httpError(403);
        
     }
     
@@ -258,7 +258,7 @@ class RestoRouteGET extends RestoRoute {
             );
         }
         else {
-            $this->httpError(403, null, __METHOD__);
+            RestoLogUtil::httpError(403);
         }
     }
     
@@ -276,14 +276,14 @@ class RestoRouteGET extends RestoRoute {
     private function GET_apiUsersResetPassword() {
 
         if (!isset($this->context->query['email'])) {
-            $this->httpError(400, null, __METHOD__);
+            RestoLogUtil::httpError(400);
         }
         
         /*
          * Only existing local user can change there password
          */
         if (!$this->context->dbDriver->userExists($this->context->query['email']) || $this->context->dbDriver->getUserPassword($this->context->query['email']) === str_repeat('*', 40)) {
-            $this->httpError(3005, 'Invalid user', __METHOD__);
+            RestoLogUtil::httpError(3005);
         }
         
         /*
@@ -297,7 +297,7 @@ class RestoRouteGET extends RestoRoute {
                     'subject' => $this->context->dictionary->translate('resetPasswordSubject', $this->context->title),
                     'message' => $this->context->dictionary->translate('resetPasswordMessage', $this->context->title, $shared['resourceUrl'] . '?_tk=' . $shared['token'])
                 ))) {
-            $this->httpError(3003, 'Cannot send password reset link', __METHOD__);
+            RestoLogUtil::httpError(3003);
         }
         
         return $this->success('Reset link sent to ' . $this->context->query['email']);
@@ -331,7 +331,7 @@ class RestoRouteGET extends RestoRoute {
             }
         }
         else {
-            $this->httpError(400, null, __METHOD__);
+            RestoLogUtil::httpError(400);
         }
     }
     
@@ -349,7 +349,7 @@ class RestoRouteGET extends RestoRoute {
                 return $this->error('User not connected');
             }
         } else {
-            $this->httpError(400, null, __METHOD__);
+            RestoLogUtil::httpError(400);
         }
     }
 
@@ -406,7 +406,7 @@ class RestoRouteGET extends RestoRoute {
          * 404
          */
         else {
-            $this->httpError(404, null, __METHOD__);
+            RestoLogUtil::httpError(404);
         }
         
     }
@@ -424,7 +424,7 @@ class RestoRouteGET extends RestoRoute {
          * User do not have right to download product
          */
         if (!$this->user->canDownload($collection->name, $feature->identifier, $this->context->baseUrl . $this->context->path, !empty($this->context->query['_tk']) ? $this->context->query['_tk'] : null)) {
-            $this->httpError(403, null, __METHOD__);
+            RestoLogUtil::httpError(403);
         }
         /*
          * Or user has rigth but hasn't sign the license yet
@@ -471,7 +471,7 @@ class RestoRouteGET extends RestoRoute {
          * users
          */
         if (!isset($segments[1])) {
-            $this->httpError(501, null, __METHOD__);
+            RestoLogUtil::httpError(501);
         }
         /*
          * users/{userid}
@@ -566,7 +566,7 @@ class RestoRouteGET extends RestoRoute {
         $user = $this->getAuthorizedUser($emailOrId);
         
         if (isset($itemid)) {
-            $this->httpError(404, null, __METHOD__);
+            RestoLogUtil::httpError(404);
         }
         
         return $user->getCart();

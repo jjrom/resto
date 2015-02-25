@@ -114,14 +114,14 @@ class RestoCollection {
          * Context is mandatory
          */
         if (!isset($context) || !is_a($context, 'RestoContext')) {
-            throw new Exception('Context must be defined', 500);
+            RestoLogUtil::httpError(500, 'Context must be defined');
         }
         
         /*
          * Collection name should be alphanumeric based only
          */
         if (!isset($name) || !ctype_alnum($name) || is_numeric(substr($name, 0, 1))) {
-            throw new Exception(($context->debug ? __METHOD__ . ' - ' : '') . 'Collection name must be an alphanumeric string not starting with a digit', 500);
+            RestoLogUtil::httpError(500, 'Collection name must be an alphanumeric string not starting with a digit');
         }
         
         $this->name = $name;
@@ -188,21 +188,21 @@ class RestoCollection {
          * Input $object should be JSON
          */
         if (!isset($object) || !is_array($object)) {
-            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Invalid input JSON', 500);
+            RestoLogUtil::httpError(500, 'Invalid input JSON');
         }
         
         /*
          * Check that input file is for the current collection
          */
         if (!isset($object['name']) ||$this->name !== $object['name']) {
-            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Property "name" and collection name differ', 500);
+            RestoLogUtil::httpError(500, 'Property "name" and collection name differ');
         }
         
         /*
          * Model name must be set in JSON file
          */
         if (!isset($object['model'])) {
-            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Property "model" is mandatory', 500);
+            RestoLogUtil::httpError(500, 'Property "model" is mandatory');
         }
       
         /*
@@ -210,7 +210,7 @@ class RestoCollection {
          */
         if (isset($this->model)) {
             if ($this->model->name !== $object['model']) {
-                throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Property "model" and collection model differ', 500);
+                RestoLogUtil::httpError(500, 'Property "model" and collection name differ');
             }
         }
         /*
@@ -229,7 +229,7 @@ class RestoCollection {
          * At least an english OpenSearch Description object is mandatory
          */
         if (!is_array($object['osDescription']) || !is_array($object['osDescription']['en'])) {
-            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'English OpenSearch description is mandatory', 500);
+            RestoLogUtil::httpError(500, 'English OpenSearch description is mandatory');
         }
         $this->osDescription = $object['osDescription'];
         

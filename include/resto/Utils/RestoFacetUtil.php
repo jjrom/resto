@@ -79,11 +79,6 @@ class RestoFacetUtil {
     
     /**
      * Constructor
-     * 
-     * @param array $config
-     * @param RestoCache $cache
-     * @param boolean $debug
-     * @throws Exception
      */
     public function __construct() {
     } 

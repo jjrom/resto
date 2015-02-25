@@ -58,12 +58,11 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      * 
      * @param array $config
      * @param RestoCache $cache
-     * @param boolean $debug
      * @throws Exception
      */
-    public function __construct($config, $cache, $debug) {
+    public function __construct($config, $cache) {
         
-        parent::__construct($config, $cache, $debug);
+        parent::__construct($config, $cache);
         
         $this->dbh = RestoUtil::getPostgresHandler($config);
         
@@ -94,7 +93,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             return $collections;
             
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            RestoLogUtil::httpError(500, 'Database connection error');
         }
     }
     
@@ -117,7 +116,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             return $groups;
             
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            RestoLogUtil::httpError(500, 'Database connection error');
         }
     }
     
@@ -164,7 +163,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
 
         $results = pg_query($this->dbh, 'SELECT collection FROM resto.collections WHERE collection=\'' . pg_escape_string($name) . '\'');
         if (!$results) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            RestoLogUtil::httpError(500, 'Database connection error');
         }
         while ($result = pg_fetch_assoc($results)) {
             return true;
@@ -185,7 +184,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         
         $results = pg_query($this->dbh, 'SELECT 1 FROM ' . (isset($schema) ? pg_escape_string($schema) : 'resto') . '.features WHERE identifier=\'' . pg_escape_string($identifier) . '\'');
         if (!$results) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            RestoLogUtil::httpError(500, 'Database connection error');
         }
         while ($result = pg_fetch_assoc($results)) {
             return true;
@@ -206,7 +205,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         
         $results = pg_query($this->dbh, 'SELECT 1 FROM usermanagement.users WHERE email=\'' . pg_escape_string($identifier) . '\'');
         if (!$results) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            RestoLogUtil::httpError(500, 'Database connection error');
         }
         while ($result = pg_fetch_assoc($results)) {
             return true;
@@ -225,7 +224,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     public function getUserPassword($identifier) {
         $results = pg_query($this->dbh, 'SELECT password FROM usermanagement.users WHERE email=\'' . pg_escape_string($identifier) . '\'');
         if (!$results) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            RestoLogUtil::httpError(500, 'Database connection error');
         }
         while ($result = pg_fetch_assoc($results)) {
             return $result['password'];
@@ -249,7 +248,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         $where = ctype_digit($identifier) ? 'userid=' . $identifier : 'email=\'' . pg_escape_string($identifier) . '\'';
         $results = pg_query($this->dbh, 'SELECT connected FROM usermanagement.users WHERE ' . $where);
         if (!$results) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            RestoLogUtil::httpError(500, 'Database connection error');
         }
         while ($result = pg_fetch_assoc($results)) {
             return true;
@@ -279,7 +278,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 return true;
             }
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            RestoLogUtil::httpError(500, 'Database connection error');
         }
         
         return false;
@@ -311,7 +310,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 'token' => $result['token']
             );
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot share link', 500);
+            RestoLogUtil::httpError(500, 'Cannot share link');
         }
         
         return null;
@@ -580,7 +579,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             pg_query($this->dbh, 'COMMIT');
         } catch (Exception $e) {
             pg_query($this->dbh, 'ROLLBACK');
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Feature ' . $keys['identifier'] . ' cannot be inserted in database', 500);
+            RestoLogUtil::httpError(500, 'Feature ' . $keys['identifier'] . ' cannot be inserted in database');
         }
     }
     
@@ -640,7 +639,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             pg_query($this->dbh, 'COMMIT');    
         } catch (Exception $e) {
             pg_query($this->dbh, 'ROLLBACK'); 
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot delete feature ' . $feature->identifier, 500);
+            RestoLogUtil::httpError(500, 'Cannot delete feature ' . $feature->identifier);
         }
     }
     
@@ -898,7 +897,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             }
             $this->storeInCache(array('getFacetPivot', $field, $parentHash), $counters);
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot retrieve facets', 500);
+            RestoLogUtil::httpError(500, 'Cannot retrieve facets');
         }
         return $counters;
     }
@@ -960,7 +959,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             }
             $this->storeInCache(array('getFacetsPivots', $fields, $parentHash), $pivots);
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot retrieve facets', 500);
+            RestoLogUtil::httpError(500, 'Cannot retrieve facets');
         }
         return $pivots;
     }
@@ -1014,7 +1013,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 pg_query($this->dbh, $lock . 'WITH upsert AS (' . $upsert . ' RETURNING *) ' . $insert . ' WHERE NOT EXISTS (SELECT * FROM upsert)');
             }
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot insert facet for ' . $collectionName, 500);
+            RestoLogUtil::httpError(500, 'Cannot insert facet for ' . $collectionName);
         }
     }
     
@@ -1030,7 +1029,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 pg_query($this->dbh, 'UPDATE resto.facets SET counter = counter - 1 WHERE uid=\'' . pg_escape_string($hash) . '\' AND collection=\'' . pg_escape_string($collectionName) . '\'');
             }
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot delete facet for ' . $collectionName, 500);
+            RestoLogUtil::httpError(500, 'Cannot delete facet for ' . $collectionName);
         }
     }
     
@@ -1068,7 +1067,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             }
             return null;
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot get facet for ' . $collectionName, 500);
+            RestoLogUtil::httpError(500, 'Cannot get facet for ' . $collectionName);
         }
     }
     
@@ -1118,10 +1117,10 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         try {
             
             if (!is_array($profile) || !isset($profile['email'])) {
-                throw new Exception('Cannot save user profile - invalid user identifier', 500);
+                RestoLogUtil::httpError(500, 'Cannot save user profile - invalid user identifier');
             }
             if ($this->userExists($profile['email'])) {
-                throw new Exception('Cannot save user profile - user already exist', 500);
+                RestoLogUtil::httpError(500, 'Cannot save user profile - user already exist');
             }
             $email = trim(strtolower($profile['email']));
             $values = array(
@@ -1137,11 +1136,11 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             );
             $results = pg_query($this->dbh, 'INSERT INTO usermanagement.users (email,password,groupname,username,givenname,lastname,activationcode,activated,registrationdate) VALUES (' . join(',', $values) . ') RETURNING userid, activationcode');
             if (!$results) {
-                throw new Exception('Database connection error', 500);
+                RestoLogUtil::httpError(500, 'Database connection error');
             }
             return pg_fetch_array($results);
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? ($this->debug ? __METHOD__ . ' - ' : '') . '' : '') . $e->getMessage(), $e->getCode());
+            throw new Exception($e->getMessage(), $e->getCode());
         }
         
         return null;
@@ -1159,7 +1158,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         try {
             
             if (!is_array($profile) || !isset($profile['email'])) {
-                throw new Exception('Cannot update user profile - invalid user identifier', 500);
+                RestoLogUtil::httpError(500, 'Cannot update user profile - invalid user identifier');
             }
             
             /*
@@ -1190,14 +1189,14 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             }
             $results = pg_query($this->dbh, 'UPDATE usermanagement.users SET ' . join(',', $values) . ' WHERE email=\'' . pg_escape_string(trim(strtolower($profile['email']))) .'\' RETURNING userid');
             if (!$results) {
-                throw new Exception('Database connection error', 500);
+                RestoLogUtil::httpError(500, 'Database connection error');
             }
             $result = pg_fetch_array($results);
             if (isset($result) && $result['userid']) {
                 return $result['userid'];
             }
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . $e->getMessage(), $e->getCode());
+             throw new Exception($e->getMessage(), $e->getCode());
         }
         
         return null;
@@ -1262,7 +1261,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 throw new Exception();
             }
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot get profile for user ' . $identifier, 500);
+             RestoLogUtil::httpError(500, 'Cannot get profile for user ' . $identifier);
         }
         $user = pg_fetch_assoc($results);
         if (!$user) {
@@ -1293,7 +1292,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 throw new Exception();
             }
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot get profiles for users', 500);
+            RestoLogUtil::httpError(500, 'Cannot get profiles for users');
         }
        $usersProfile = array();
         while ($user = pg_fetch_assoc($results)){
@@ -1326,7 +1325,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 throw new Exception();
             }
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot get rights for ' . $identifier, 500);
+            RestoLogUtil::httpError(500, 'Cannot get rights for ' . $identifier);
         }
         $result = pg_fetch_assoc($results);
         if (!$result) {
@@ -1358,7 +1357,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 throw new Exception();
             }
         } catch (Exception $e) {
-            throw new Exception(__METHOD__ . 'Cannot get rights for ' . $identifier, 500);
+            RestoLogUtil::httpError(500, 'Cannot get rights for ' . $identifier);
         }
         $rights = array();
         while ($row = pg_fetch_assoc($results)){
@@ -1393,7 +1392,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 throw new Exception();
             }
         } catch (Exception $e) {
-            throw new Exception(__METHOD__ . 'Cannot get rights for ' . $identifier, 500);
+            RestoLogUtil::httpError(500, 'Cannot get rights for ' . $identifier);
         }
         $rights = array();
         while ($row = pg_fetch_assoc($results)){
@@ -1469,7 +1468,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 throw new Exception();
             }
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot create right', 500);
+            RestoLogUtil::httpError(500, 'Cannot create right');
         }
     }
     
@@ -1515,7 +1514,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 throw new Exception();
             }
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot update right', 500);
+            RestoLogUtil::httpError(500, 'Cannot update right');
         }
     }
     
@@ -1535,7 +1534,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 throw new Exception;
             }
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot delete rights for ' . $identifier, 500);
+            RestoLogUtil::httpError(500, 'Cannot delete rights for ' . $identifier);
         }
     }
    
@@ -1550,7 +1549,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     public function licenseSigned($identifier, $collectionName) {
         $results = pg_query($this->dbh, 'SELECT EXISTS(SELECT 1 FROM usermanagement.signatures WHERE email= \'' . pg_escape_string($identifier) . '\' AND collection= \'' . pg_escape_string($collectionName) . '\') AS exists');
         if (!$results) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            RestoLogUtil::httpError(500, 'Database connection error');
         }
         $result = pg_fetch_assoc($results);
         if ($result['exists'] === 't') {
@@ -1579,7 +1578,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 return true;
             }
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            RestoLogUtil::httpError(500, 'Database connection error');
         }
         
         return false;
@@ -1608,7 +1607,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 $items[$result['itemid']] = json_decode($result['item'], true);
             }
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot get cart items', 500);
+            RestoLogUtil::httpError(500, 'Cannot get cart items');
         }
         
         return $items;
@@ -1632,7 +1631,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         $itemId = sha1($identifier . $item['id']);
         try {
             if ($this->isInCart($itemId)) {
-                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot add item : ' . $itemId . ' already exists', 1000);
+                RestoLogUtil::httpError(1000, 'Cannot add item : ' . $itemId . ' already exists');
             }
             $values = array(
                 '\'' . pg_escape_string($itemId) . '\'',
@@ -1642,7 +1641,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             );
             $results = pg_query($this->dbh, 'INSERT INTO usermanagement.cart (itemid, email, item, querytime) VALUES (' . join(',', $values) . ')');
             if (!$results) {
-                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+                RestoLogUtil::httpError(500, 'Database connection error');
             }
             return array($itemId => $item);
         } catch (Exception $e) {
@@ -1670,11 +1669,11 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         }
         try {
             if (!$this->isInCart($itemId)) {
-                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot update item : ' . $itemId . ' does not exist', 1001);
+                RestoLogUtil::httpError(1001, 'Cannot update item : ' . $itemId . ' does not exist');
             }
             $results = pg_query($this->dbh, 'UPDATE usermanagement.cart SET item = \''. pg_escape_string(json_encode($item)) . '\', querytime=now() WHERE email=\'' . pg_escape_string($identifier) . '\' AND itemid=\'' . pg_escape_string($itemId) . '\'');
             if (!$results) {
-                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+                RestoLogUtil::httpError(500, 'Database connection error');
             }
             return true;
         } catch (Exception $e) {
@@ -1700,7 +1699,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             pg_query($this->dbh, 'DELETE FROM usermanagement.cart WHERE itemid=\'' . pg_escape_string($itemId) . '\' AND email=\'' . pg_escape_string($identifier) . '\'');
             return true;
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot remove ' . $itemId . ' from cart', 500);
+            RestoLogUtil::httpError(500, 'Cannot remove ' . $itemId . ' from cart');
         }
         
         return false;
@@ -1736,7 +1735,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 return $items[0];
             }
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            RestoLogUtil::httpError(500, 'Database connection error');
         }
         
         return $items;
@@ -1780,7 +1779,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             );
             $results = pg_query($this->dbh, 'INSERT INTO usermanagement.orders (orderid, email, items, querytime) VALUES (' . join(',', $values) . ')');
             if (!$results) {
-                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+                RestoLogUtil::httpError(500, 'Database connection error');
             }
             
             /*
@@ -1820,7 +1819,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         try {
             $description = pg_query($this->dbh, 'SELECT collection, status, model, mapping, license FROM resto.collections WHERE collection=\'' . pg_escape_string($collectionName) . '\'');
             if (!$description) {
-                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+                RestoLogUtil::httpError(500, 'Database connection error');
             }
             $collection = pg_fetch_assoc($description);
             if (isset($collection['collection'])) {
@@ -1859,7 +1858,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 $this->storeInCache(array('getCollectionDescription', $collectionName, $facetFields), $collectionDescription);
             }
             else {
-                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Not Found', 404);
+                RestoLogUtil::httpError(404);
             }
         } catch (Exception $e) {
             throw new Exception($e->getMessage(), $e->getCode());
@@ -1881,7 +1880,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         try {
             $results = pg_query($this->dbh, 'SELECT collection FROM resto.collections WHERE collection=\'' . pg_escape_string($collection->name) . '\'');
             if (!$results) {
-                throw new Exception( ($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+                RestoLogUtil::httpError(500, 'Database connection error');
             }
             
             if (pg_fetch_assoc($results)) {
@@ -1909,7 +1908,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                  */
                 if ($this->collectionExists($collection->name)) {
                     pg_query($this->dbh, 'ROLLBACK');
-                    throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot delete collection ' . $collection->name, 500);
+                    RestoLogUtil::httpError(500, 'Cannot delete collection ' . $collection->name);
                 }
             }
         } catch (Exception $e) {
@@ -1942,7 +1941,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 throw new Exception();
             }
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot store query', 500);
+            RestoLogUtil::httpError(500, 'Cannot store query');
         }
     }
     
@@ -2082,11 +2081,11 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             if (!$this->schemaExists($this->getSchemaName($collection->name))) {
                 pg_query($this->dbh, 'ROLLBACK');
-                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot create table ' . $this->getSchemaName($collection->name) . '.features', 2000);
+                RestoLogUtil::httpError(2000);
             }
             if (!$this->collectionExists($collection->name)) {
                 pg_query($this->dbh, 'ROLLBACK');
-                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot insert collection "' . $collection->name . '" in RESTo database', 2001);
+                RestoLogUtil::httpError(2000);
             }
         } catch (Exception $e) {
             throw new Exception($e->getMessage(), $e->getCode());
@@ -2112,7 +2111,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         try {
             $descriptions = pg_query($this->dbh, 'SELECT collection, status, model, mapping, license FROM resto.collections');
             if (!$descriptions) {
-                throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . ' - Database connection error', 500);
+                RestoLogUtil::httpError(500, 'Database connection error');
             }
             while ($collection = pg_fetch_assoc($descriptions)) {
                 $collectionsDescriptions[$collection['collection']]['model'] = $collection['model'];
@@ -2185,7 +2184,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         foreach (array_keys($model->searchFilters) as $filterName) {
             if (isset($model->searchFilters[$filterName])) {
                 if (isset($model->searchFilters[$filterName]['minimum']) && $model->searchFilters[$filterName]['minimum'] === 1 && (!isset($params[$filterName]))) {
-                    throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Missing mandatory filter ' . $filterName, 400);
+                    RestoLogUtil::httpError(400, 'Missing mandatory filter ' . $filterName);
                 }
             } 
         }
@@ -2303,7 +2302,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 $featuresArray[] = $this->correctTypes($model, $result);
             }
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            RestoLogUtil::httpError(500, 'Database connection error');
         }
         
         return $featuresArray;
@@ -2329,7 +2328,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
            }
            return $this->correctTypes($model, pg_fetch_assoc($result));
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            RestoLogUtil::httpError(500, 'Database connection error');
         }      
     }
     
@@ -2372,7 +2371,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             $this->storeInCache(array('getKeywords', $language, $types), $keywords);
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            RestoLogUtil::httpError(500, 'Database connection error');
         }
 
         return array('keywords' => $keywords);
@@ -2950,7 +2949,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     private function facetExists($hash, $collectionName) {
         $results = pg_query($this->dbh, 'SELECT EXISTS(SELECT 1 FROM resto.facets WHERE uid=\'' . pg_escape_string($hash) . '\' AND collection = \'' . pg_escape_string($collectionName) . '\') AS exists');
         if (!$results) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            RestoLogUtil::httpError(500, 'Database connection error');
         }
         $result = pg_fetch_assoc($results);
         if ($result['exists'] === 't') {
@@ -2970,7 +2969,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         
         $results = pg_query($this->dbh, 'SELECT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = \'' . pg_escape_string($name) . '\') AS exists');
         if (!$results) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            RestoLogUtil::httpError(500, 'Database connection error');
         }
         $result = pg_fetch_assoc($results);
         if ($result['exists'] === 't') {
@@ -2993,7 +2992,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         $results = pg_query($this->dbh, 'select EXISTS(SELECT 1 FROM pg_tables WHERE schemaname=\'' . pg_escape_string($schema) . '\' AND tablename=\'' . pg_escape_string($name) . '\') AS exists');
         
         if (!$results) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            RestoLogUtil::httpError(500, 'Database connection error');
         }
         $result = pg_fetch_assoc($results);
         if ($result['exists'] === 't') {
@@ -3015,7 +3014,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
 
         $results = pg_query($this->dbh, 'SELECT EXISTS(SELECT 1 FROM ' . pg_escape_string($schema) . '.' . pg_escape_string($name) . ') AS exists');
         if (!$results) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            RestoLogUtil::httpError(500, 'Database connection error');
         }
         $result = pg_fetch_assoc($results);
         if ($result['exists'] === 't') {
@@ -3081,7 +3080,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     public function getSignedLicenses($identifier){
         $results = pg_query($this->dbh, 'SELECT collection, signdate from usermanagement.signatures WHERE email= \'' . pg_escape_string($identifier) . '\'');
         if (!$results) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            RestoLogUtil::httpError(500, 'Database connection error');
         }
         $result = array();
         while ($row = pg_fetch_assoc($results)){
@@ -3118,7 +3117,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             }
             return true;
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot sign license', 500);
+            RestoLogUtil::httpError(500, 'Cannot sign license');
         }
         return false;
     }
@@ -3171,7 +3170,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             }
             return $result;
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot get history', 500);
+            RestoLogUtil::httpError(500, 'Cannot get history');
         }
         
     }
@@ -3202,7 +3201,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 return true;
             }
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot activate user : ' . $userid, 500);
+            RestoLogUtil::httpError(500, 'Cannot activate user : ' . $userid);
         }
         return false;
     }
@@ -3228,7 +3227,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 throw new Exception();
             }
         } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot deactivate user : ' . $userid, 500);
+            RestoLogUtil::httpError(500, 'Cannot deactivate user : ' . $userid);
         }
     }
     
@@ -3244,7 +3243,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     public function countService($service, $collectionName = null, $userid = null){
         $results = pg_query($this->dbh, 'SELECT count(gid) FROM usermanagement.history WHERE service=\'' . pg_escape_string($service) .'\'' . (isset($collectionName) ? ' AND collection=\'' . pg_escape_string($collectionName) . '\'' : '') . (isset($userid) ? ' AND userid=\'' . pg_escape_string($userid) . '\'' : ''));
         if (!$results) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            RestoLogUtil::httpError(500, 'Database connection error');
         }
         return pg_fetch_assoc($results);
     }
@@ -3260,7 +3259,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     public function countUsers($activated = null, $groupname = null){
         $results = pg_query($this->dbh, 'SELECT COUNT(*) FROM usermanagement.users ' . (isset($activated) ?  (' WHERE activated=\'' . ($activated === true ? 't' : 'f') . '\'') : '') . (isset($groupname) ? ' AND groupname=\'' . pg_escape_string($groupname) . '\'' : ''));
         if (!$results) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+            RestoLogUtil::httpError(500, 'Database connection error');
         }
         return pg_fetch_assoc($results);
     }

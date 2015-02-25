@@ -87,7 +87,7 @@ class RestoRouteDELETE extends RestoRoute {
          * {collection} is mandatory and no modifier is allowed
          */
         if (!isset($segments[1]) || isset($segments[3])) {
-            $this->httpError(404, null, __METHOD__);
+            RestoLogUtil::httpError(404);
         }
         
         $collection = new RestoCollection($segments[1], $this->context, $this->user, array('autoload' => true));
@@ -99,7 +99,7 @@ class RestoRouteDELETE extends RestoRoute {
          * Check credentials
          */
         if (!$this->user->canDelete($collection->name, $feature->identifier)) {
-            $this->httpError(403, null, __METHOD__);
+            RestoLogUtil::httpError(403);
         }
 
         /*
@@ -138,14 +138,14 @@ class RestoRouteDELETE extends RestoRoute {
          * Mandatory {itemid}
          */
         if (!isset($segments[3])) {
-            $this->httpError(404, null, __METHOD__);
+            RestoLogUtil::httpError(404);
         }
         
         if ($segments[1] === 'cart') {
             return $this->DELETE_userCart($segments[1], $segments[3]);
         }
         else {
-            $this->httpError(404, null, __METHOD__);
+            RestoLogUtil::httpError(404);
         }
         
     }
@@ -169,7 +169,7 @@ class RestoRouteDELETE extends RestoRoute {
         $userid = $this->userid($emailOrId);
         if ($user->profile['userid'] !== $userid) {
             if ($user->profile['groupname'] !== 'admin') {
-                $this->httpError(403, null, __METHOD__);
+                RestoLogUtil::httpError(403);
             }
             else {
                 $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);

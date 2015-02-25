@@ -991,7 +991,7 @@ class RestoUtil {
 
         }
         else {
-            throw new Exception('Not Found', 404);
+            RestoLogUtil::httpError(404);
         }
 
     }

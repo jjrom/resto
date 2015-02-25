@@ -113,7 +113,7 @@ class RestoFeature {
             throw new Exception('Context is undefined or not valid', 500);
         }
         if (!RestoUtil::isValidUUID($this->identifier)) {
-            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Not Found', 404);
+            RestoLogUtil::httpError(404);
         }
       
         /*
@@ -142,7 +142,7 @@ class RestoFeature {
          * No result - throw Not Found exception
          */
         if (!$properties) {
-            throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Not Found', 404);
+            RestoLogUtil::httpError(404);
         }
         
         /*
@@ -670,7 +670,7 @@ class RestoFeature {
          * Not downloadable
          */
         if (!isset($this->feature['properties']['services']) || !isset($this->feature['properties']['services']['download']))  {
-            throw new Exception('Not Found', 404);
+            RestoLogUtil::httpError(404);;
         }
         
         /*
@@ -680,7 +680,7 @@ class RestoFeature {
         if (isset($this->resourceInfos)) {
             
             if (!isset($this->resourceInfos['path']) || !is_file($this->resourceInfos['path'])) {
-                throw new Exception('Not Found', 404);
+                RestoLogUtil::httpError(404);;
             }
             
             /*
@@ -707,7 +707,7 @@ class RestoFeature {
         else if (RestoUtil::isUrl($this->feature['properties']['services']['download']['url'])) {
             $handle = fopen($this->feature['properties']['services']['download']['url'], "rb");
             if ($handle === false) {
-                throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Resource cannot be downloaded', 500);
+                RestoLogUtil::httpError(500, 'Resource cannot be downloaded');
             }
             header('HTTP/1.1 200 OK');
             header('Content-Disposition: attachment; filename="' . basename($this->feature['properties']['services']['download']['url']) . '"');
@@ -727,7 +727,7 @@ class RestoFeature {
          * Not Found
          */
         else {
-            throw new Exception('Not Found', 404);
+            RestoLogUtil::httpError(404);;
         }
         
     }

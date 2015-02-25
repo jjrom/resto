@@ -44,11 +44,6 @@
 abstract class RestoDatabaseDriver {
     
     /*
-     * Debug mode
-     */
-    public $debug = false;
-    
-    /*
      * Results per page
      */
     public $resultsPerPage = 20;
@@ -63,11 +58,9 @@ abstract class RestoDatabaseDriver {
      * 
      * @param array $config
      * @param RestoCache $cache
-     * @param boolean $debug
      * @throws Exception
      */
-    public function __construct($config, $cache, $debug) {
-        $this->debug = isset($debug) ? $debug : false;
+    public function __construct($config, $cache) {
         $this->cache = isset($cache) ? $cache : new RestoCache(null);
     } 
     
