@@ -208,11 +208,14 @@ class RestoRoutePOST extends RestoRoute {
         $email = base64_decode($query['email']);
         
         if ($this->context->dbDriver->getUserPassword($email) === str_repeat('*', 40)) {
-            $this->httpError(3004, 'Cannot reset password for a non local user', __METHOD__);
+            $this->httpError(3004, 'Cannot reset password for non local user', __METHOD__);
         }
         
         if ($this->context->dbDriver->updateUserProfile(array('email' => $email, 'password' => $data['password']))) {
             return $this->success('Password updated');
+        }
+        else {
+            $this->httpError(400, null, __METHOD__);
         }
         
     }

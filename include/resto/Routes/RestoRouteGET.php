@@ -278,7 +278,14 @@ class RestoRouteGET extends RestoRoute {
         if (!isset($this->context->query['email'])) {
             $this->httpError(400, null, __METHOD__);
         }
-
+        
+        /*
+         * Only existing local user can change there password
+         */
+        if (!$this->context->dbDriver->userExists($this->context->query['email']) || $this->context->dbDriver->getUserPassword($this->context->query['email']) === str_repeat('*', 40)) {
+            $this->httpError(3005, 'Invalid user', __METHOD__);
+        }
+        
         /*
          * Send email with reset link
          */
@@ -287,7 +294,7 @@ class RestoRouteGET extends RestoRoute {
                     'senderName' => $this->context->mail['senderName'],
                     'senderEmail' => $this->context->mail['senderEmail'],
                     'subject' => $this->context->dictionary->translate('resetPasswordSubject', $this->context->title),
-                    'message' => $this->context->dictionary->translate('resetPasswordMessage', $this->context->title, $this->context->dbDriver->createSharedLink($this->context->resetPasswordUrl . '?email=' . base64_encode($this->context->query['email'])))
+                    'message' => $this->context->dictionary->translate('resetPasswordMessage', $this->context->title, $this->context->dbDriver->createSharedLink($this->context->resetPasswordUrl . '/' . urlencode(base64_encode($this->context->query['email']))))
                 ))) {
             $this->httpError(3003, 'Cannot send password reset link', __METHOD__);
         }
