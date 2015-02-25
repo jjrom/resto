@@ -148,7 +148,7 @@ abstract class RestoRoute {
                 $count = 0;
                 for ($i = 0, $l = count($moduleSegments); $i < $l; $i++) {
                     $count++;
-                    if ($moduleSegments[$i] !== $segments[$i]) {
+                    if (!isset($segments[$i]) || $moduleSegments[$i] !== $segments[$i]) {
                         $routeIsTheSame = false;
                         break;
                     } 
