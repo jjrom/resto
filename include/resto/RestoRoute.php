@@ -217,7 +217,7 @@ abstract class RestoRoute {
      * Throw HTTP error
      */
     protected function httpError($code, $message = null, $method = null) {
-        $error = isset($message) ? $message : isset(RestoUtil::$codes[$code]) ? RestoUtil::$codes[$code] : 'Unknown error';
+        $error = isset($message) ? $message : (isset(RestoUtil::$codes[$code]) ? RestoUtil::$codes[$code] : 'Unknown error');
         throw new Exception(($this->context->debug && isset($method) ? $method . ' - ' : '') . $error, $code);
     }
     

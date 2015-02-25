@@ -232,6 +232,25 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     }
     
     /**
+     * Return encrypted user password
+     * 
+     * @param string $identifier : email
+     * 
+     * @throws Exception
+     */
+    public function getUserPassword($identifier) {
+        $results = pg_query($this->dbh, 'SELECT password FROM usermanagement.users WHERE email=\'' . pg_escape_string($identifier) . '\'');
+        if (!$results) {
+            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
+        }
+        while ($result = pg_fetch_assoc($results)) {
+            return $result['password'];
+        }
+
+        return null;
+    }
+    
+    /**
      * Return true if $userid is connected
      * 
      * @param string $identifier : userid or email

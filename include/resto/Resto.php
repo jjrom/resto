@@ -102,6 +102,7 @@
  *   - 3001 : Cannot create user - cannot send activation code
  *   - 3002 : User has to sign license
  *   - 3003 : Cannot send password reset link
+ *   - 3004 : Cannot reset password for a non local user
  *   - 4000 : Configuration file problem
  *   - 4001 : Dictionary is not instantiable
  *   - 4002 : Database driver does not exist
@@ -243,7 +244,7 @@ class Resto {
          * HTTP 1.1 headers
          */
         header('HTTP/1.1 ' . $responseStatus . ' ' . (isset(RestoUtil::$codes[$responseStatus]) ? RestoUtil::$codes[$responseStatus] : RestoUtil::$codes[200]));
-        header("Cache-Control: max-age=2592000, public");
+        header('Cache-Control:  no-cache');
         header('Content-Type: ' . RestoUtil::$contentTypes[$this->context->outputFormat]);
         
         /*

@@ -334,16 +334,6 @@ class RestoUtil {
     }
     
     /**
-     * Transform input string to 7bits ascii equivalent
-     * (i.e. remove accent on letters and so on)
-     * 
-     * @param {string} $text
-     */
-    public static function asciify($text) {
-        return strtr(utf8_decode($text), utf8_decode('ææ̆áàâãäåāăąạắằẵÀÁÂÃÄÅĀĂĄÆəèééêëēĕėęěệÈÉÊĒĔĖĘĚıìíîïìĩīĭịÌÍÎÏÌĨĪĬİḩòóồôõöōŏőợộÒÓÔÕÖŌŎŐØùúûüũūŭůưửÙÚÛÜŨŪŬŮČÇçćĉčċøơßýÿñşšŠŞŚŒŻŽžźżœðÝŸ¥µđÐĐÑŁţğġħňĠĦ'), 'aaaaaaaaaaaaaaaAAAAAAAAAAeeeeeeeeeeeeEEEEEEEEiiiiiiiiiiIIIIIIIIIhoooooooooooOOOOOOOOOuuuuuuuuuuUUUUUUUUCCcccccoosyynssSSSOZZzzzooYYYudDDNLtgghnGH');
-    }
-
-    /**
      * Return WKT from geometry
      * @param array $geometry - GeoJSON geometry
      */
@@ -752,24 +742,6 @@ class RestoUtil {
      */
     public static function radiusInDegrees($radius, $lat) {
         return ($radius * cos(deg2rad($lat))) / 111110.0;
-    }
-
-    /**
-     * Read include content from a file
-     * 
-     * @param type $filename
-     * @param Object $self
-     * @return boolean
-     */
-    public static function get_include_contents($filename, $self) {
-        if (is_file($filename)) {
-            ob_start();
-            include $filename;
-            $contents = ob_get_contents();
-            ob_end_clean();
-            return $contents;
-        }
-        return false;
     }
 
     /**

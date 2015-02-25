@@ -56,6 +56,7 @@ class RestoRoutePOST extends RestoRoute {
      * 
      *    api/users/connect                             |  Connect user
      *    api/users/{userid}/signLicense                |  Sign license for input collection
+     *    api/users/resetPassword                       |  Reset password
      * 
      *    collections                                   |  Create a new {collection}            
      *    collections/{collection}                      |  Insert new product within {collection}
@@ -63,7 +64,7 @@ class RestoRoutePOST extends RestoRoute {
      *    users                                         |  Add a user
      *    users/{userid}/cart                           |  Add new item in {userid} cart
      *    users/{userid}/orders                         |  Send an order for {userid}
-     *    
+     * 
      * @param array $segments
      */
     public function route($segments) {
@@ -106,7 +107,7 @@ class RestoRoutePOST extends RestoRoute {
         }
 
         /*
-         * api/users/connect
+         * api/users
          */
         if ($segments[1] === 'users') {
             
@@ -114,10 +115,20 @@ class RestoRoutePOST extends RestoRoute {
                 $this->httpError(404, null, __METHOD__);
             }
             
+            /*
+             * api/users/connect
+             */
             if ($segments[2] === 'connect' && !isset($segments[3])) {
                 return $this->POST_apiUsersConnect($data);
             }
-
+            
+            /*
+             * api/users/resetPassword
+             */
+            if ($segments[2] === 'resetPassword' && !isset($segments[3])) {
+                return $this->POST_apiUsersResetPassword($data);
+            }
+            
             /*
              * api/users/{userid}/signLicense
              */
@@ -165,6 +176,48 @@ class RestoRoutePOST extends RestoRoute {
     }
     
     /**
+     * Process api/users/resetPassword
+     * 
+     * @param array $data
+     * @return type
+     */
+    private function POST_apiUsersResetPassword($data) {
+        
+        if (!isset($data['url']) || !isset($data['password'])) {
+            $this->httpError(400, null, __METHOD__);
+        }
+        
+        /*
+         * Check if url/token pair is valid
+         */
+        list($url, $token) = explode('&_tk=', $data['url'], 2); 
+        if (!$this->context->dbDriver->isValidSharedLink($url, $token)) {
+            $this->httpError(403, null, __METHOD__);
+        }
+        
+        /*
+         * Extract email from query/fragment
+         */
+        $exploded = explode('?', $url);
+        parse_str($exploded[1], $query);
+        
+        if (!isset($query['email'])) {
+            $this->httpError(400, null, __METHOD__);
+        }
+        
+        $email = base64_decode($query['email']);
+        
+        if ($this->context->dbDriver->getUserPassword($email) === str_repeat('*', 40)) {
+            $this->httpError(3004, 'Cannot reset password for a non local user', __METHOD__);
+        }
+        
+        if ($this->context->dbDriver->updateUserProfile(array('email' => $email, 'password' => $data['password']))) {
+            return $this->success('Password updated');
+        }
+        
+    }
+    
+    /**
      * Process api/users/{userid}/signLicense
      * 
      * @param string $userid
@@ -187,6 +240,7 @@ class RestoRoutePOST extends RestoRoute {
             return $this->error('Cannot sign license');
         }
     }
+    
     /**
      * 
      * Process HTTP POST request on collections

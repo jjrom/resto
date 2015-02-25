@@ -401,6 +401,15 @@ abstract class RestoDatabaseDriver {
     abstract public function userIsConnected($userid);
     
     /**
+     * Return encrypted user password
+     * 
+     * @param string $identifier : email
+     * 
+     * @throws Exception
+     */
+    abstract public function getUserPassword($identifier);
+    
+    /**
      * Return rights from user $identifier
      * 
      * @param string $identifier
