@@ -289,12 +289,13 @@ class RestoRouteGET extends RestoRoute {
         /*
          * Send email with reset link
          */
+        $shared = $this->context->dbDriver->createSharedLink($this->context->resetPasswordUrl . '/' . base64_encode($this->context->query['email']));
         if (!$this->sendMail(array(
                     'to' => $this->context->query['email'],
                     'senderName' => $this->context->mail['senderName'],
                     'senderEmail' => $this->context->mail['senderEmail'],
                     'subject' => $this->context->dictionary->translate('resetPasswordSubject', $this->context->title),
-                    'message' => $this->context->dictionary->translate('resetPasswordMessage', $this->context->title, $this->context->dbDriver->createSharedLink($this->context->resetPasswordUrl . '/' . urlencode(base64_encode($this->context->query['email']))))
+                    'message' => $this->context->dictionary->translate('resetPasswordMessage', $this->context->title, $shared['resourceUrl'] . '?_tk=' . $shared['token'])
                 ))) {
             $this->httpError(3003, 'Cannot send password reset link', __METHOD__);
         }

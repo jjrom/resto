@@ -143,7 +143,7 @@ class RestoOrder{
                 $xml->startElement('url');
                 //$xml->writeAttribute('location', 'TODO');
                 $xml->writeAttribute('priority', 1);
-                $xml->text($this->context->dbDriver->createSharedLink($items[$key]['properties']['services']['download']['url']));
+                $xml->text($this->getSharedLink($items[$key]['properties']['services']['download']['url']));
                 $xml->endElement(); // End url
                 $xml->endElement(); // End file
             }
@@ -153,6 +153,17 @@ class RestoOrder{
         
         return $xml->outputMemory(true);
         
+    }
+    
+    /**
+     * Return a sharable public link from input resourceUrl
+     * 
+     * @param string $resourceUrl
+     * @return string
+     */
+    private function getSharedLink($resourceUrl) {
+        $shared = $this->context->dbDriver->createSharedLink($resourceUrl);
+        return $resourceUrl . (strrpos($resourceUrl, '?') === false ? '?_tk=' : '&_tk=') . $shared['token'];       
     }
     
 }

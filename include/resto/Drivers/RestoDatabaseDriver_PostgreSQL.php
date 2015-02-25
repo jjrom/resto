@@ -306,7 +306,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      * Create a shared resource and return it
      * 
      * @param string $resourceUrl
-     * @return boolean
+     * @return array
      */
     public function createSharedLink($resourceUrl, $duration = 86400) {
         
@@ -322,8 +322,10 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 throw new Exception();
             }
             $result = pg_fetch_assoc($results);
-            return $resourceUrl . (strrpos($resourceUrl, '?') === false ? '?_tk=' : '&_tk=') . $result['token'];
-            
+            return array(
+                'resourceUrl' => $resourceUrl,
+                'token' => $result['token']
+            );
         } catch (Exception $e) {
             throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Cannot share link', 500);
         }

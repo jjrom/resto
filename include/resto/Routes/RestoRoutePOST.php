@@ -183,29 +183,24 @@ class RestoRoutePOST extends RestoRoute {
      */
     private function POST_apiUsersResetPassword($data) {
         
-        if (!isset($data['url']) || !isset($data['password'])) {
+        if (!isset($data['url']) || !isset($data['email']) || !isset($data['password'])) {
             $this->httpError(400, null, __METHOD__);
         }
         
+        $email = base64_decode($data['email']);
+        
         /*
-         * Check if url/token pair is valid
+         * Explod data['url'] into resourceUrl and queryString
          */
-        list($url, $token) = explode('&_tk=', $data['url'], 2); 
-        if (!$this->context->dbDriver->isValidSharedLink($url, $token)) {
+        $pair = explode('?', $data['url']);
+        if (!isset($pair[1])) {
             $this->httpError(403, null, __METHOD__);
         }
-        
-        /*
-         * Extract email from query/fragment
-         */
-        $exploded = explode('?', $url);
-        parse_str($exploded[1], $query);
-        
-        if (!isset($query['email'])) {
-            $this->httpError(400, null, __METHOD__);
+        $query = array();
+        parse_str($pair[1], $query);
+        if (!isset($query['_tk']) || !$this->context->dbDriver->isValidSharedLink($pair[0], $query['_tk'])) {
+            $this->httpError(403, null, __METHOD__);
         }
-        
-        $email = base64_decode($query['email']);
         
         if ($this->context->dbDriver->getUserPassword($email) === str_repeat('*', 40)) {
             $this->httpError(3004, 'Cannot reset password for non local user', __METHOD__);
