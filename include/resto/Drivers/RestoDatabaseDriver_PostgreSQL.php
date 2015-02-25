@@ -60,30 +60,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         
         parent::__construct($config, $cache, $debug);
         
-        if (!isset($config) || !is_array($config)) {
-            $config = array();
-        }
-        try {
-            $dbInfo = array(
-                'dbname=' . (isset($config['dbname']) ? $config['dbname'] : 'resto2'),
-                'user=' . (isset($config['user']) ? $config['user'] : 'resto'),
-                'password=' . (isset($config['password']) ? $config['password'] : 'resto')
-            );
-            /*
-             * If host is specified, then TCP/IP connection is used
-             * Otherwise socket connection is used
-             */
-            if (isset($config['host'])) {
-                $dbInfo[] = 'host=' . $config['host'];
-                $dbInfo[] = 'port=' . (isset($config['port']) ? $config['port'] : '5432');
-            }
-            $this->dbh = @pg_connect(join(' ', $dbInfo));
-            if (!$this->dbh) {
-                throw new Exception();
-            }
-        } catch (Exception $e) {
-            throw new Exception(($this->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
-        }
+        $this->dbh = RestoUtil::getPostgresHandler($config);
         
         if (isset($config['resultsPerPage'])) {
             $this->resultsPerPage = $config['resultsPerPage'];

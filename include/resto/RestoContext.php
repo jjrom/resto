@@ -305,7 +305,7 @@ class RestoContext {
     private function setBaseURL($endPoint) {
         $https = filter_input(INPUT_SERVER, 'HTTPS', FILTER_SANITIZE_STRING);
         $host = filter_input(INPUT_SERVER, 'HTTP_HOST', FILTER_SANITIZE_STRING);
-        return (isset($https) && $https === 'on' ? 'https' : 'http') . '//:' . $host . $endPoint;
+        $this->baseUrl = (isset($https) && $https === 'on' ? 'https' : 'http') . '://' . $host . $endPoint;
     }
     
     /**

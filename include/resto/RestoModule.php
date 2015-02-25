@@ -94,34 +94,11 @@ abstract class RestoModule{
      */
     protected function getDatabaseHandler() {
     
+        /*
+         * Set database handler from configuration
+         */
         if (isset($this->options['database'])) {
-            
-            /*
-             * Set database handler from configuration
-             */
-            if (isset($this->options['database']['dbname'])) {
-                try {
-                    $dbInfo = array(
-                        'dbname=' . $this->options['database']['dbname'],
-                        'user=' . $this->options['database']['user'],
-                        'password=' . $this->options['database']['password']
-                    );
-                    /*
-                     * If host is specified, then TCP/IP connection is used
-                     * Otherwise socket connection is used
-                     */
-                    if (isset($this->options['database']['host'])) {
-                        array_push($dbInfo, 'host=' . $this->options['database']['host']);
-                        array_push($dbInfo, 'port=' . (isset($this->options['database']['port']) ? $this->options['database']['port'] : '5432'));
-                    }
-                    $dbh = pg_connect(join(' ', $dbInfo));
-                    if (!$dbh) {
-                        throw new Exception();
-                    }
-                } catch (Exception $e) {
-                    throw new Exception(($this->context->debug ? __METHOD__ . ' - ' : '') . 'Database connection error', 500);
-                }
-            }
+            $dbh = RestoUtil::getPostgresHandler($this->options['database']);
         }
 
         /*
