@@ -122,7 +122,7 @@ class RestoLogUtil {
      * Throw HTTP error
      */
     public static function httpError($code, $message = null) {
-        $error = isset($message) ? $message : (isset(RestoUtil::$codes[$code]) ? RestoUtil::$codes[$code] : 'Unknown error');
+        $error = isset($message) ? $message : (isset(RestoLogUtil::$codes[$code]) ? RestoLogUtil::$codes[$code] : 'Unknown error');
         if (RestoLogUtil::$debug) {
             $trace = debug_backtrace();
             throw new Exception($trace[1]['function'] . ' - ' . $error, $code);

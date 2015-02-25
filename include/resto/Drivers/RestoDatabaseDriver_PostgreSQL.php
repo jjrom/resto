@@ -360,7 +360,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                  * Convert geometry to PostgreSQL WKT
                  */
                 if ($elements[$i][0] === 'geometry') {
-                    $values[] = 'ST_GeomFromText(\'' . RestoUtil::geoJSONGeometryToWKT($elements[$i][1]) . '\', 4326)';
+                    $values[] = 'ST_GeomFromText(\'' . RestoGeometryUtil::geoJSONGeometryToWKT($elements[$i][1]) . '\', 4326)';
                 }
                 
                 /*
@@ -2552,7 +2552,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                  * (avoid double call to Gazetteer)
                  */
                 if (isset($requestParams['geo:lon']) && isset($requestParams['geo:lat'])) {
-                    $radius = RestoUtil::radiusInDegrees(isset($requestParams['geo:radius']) ? floatval($requestParams['geo:radius']) : 10000, $requestParams['geo:lat']);
+                    $radius = RestoGeometryUtil::radiusInDegrees(isset($requestParams['geo:radius']) ? floatval($requestParams['geo:radius']) : 10000, $requestParams['geo:lat']);
                     if ($use_distance) {
                         return 'ST_distance(' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ', ST_GeomFromText(\'' . pg_escape_string('POINT(' . $requestParams['geo:lon'] . ' ' . $lat = $requestParams['geo:lat'] . ')') . '\', 4326)) < ' . $radius;
                     }
@@ -2815,7 +2815,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                /*
                 * Compute EPSG:3857 bbox
                 */
-               $pgResult['bbox3857'] = RestoUtil::bboxToMercator($pgResult[$key]);
+               $pgResult['bbox3857'] = RestoGeometryUtil::bboxToMercator($pgResult[$key]);
             
             }
             else if ($key === 'totalcount') {

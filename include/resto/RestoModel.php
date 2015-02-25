@@ -643,7 +643,7 @@ abstract class RestoModel {
         /*
          * Assume input file or stream is a JSON Feature
          */
-        if (!RestoUtil::isValidGeoJSONFeature($data)) {
+        if (!RestoGeometryUtil::isValidGeoJSONFeature($data)) {
             RestoLogUtil::httpError(500, 'Invalid feature description');
         }
         
@@ -730,7 +730,7 @@ abstract class RestoModel {
         else {
             $iTag = new iTag(array('dbh' => $this->context->dbDriver->getHandler()));
         }
-        return $this->iTagToKeywords($iTag->tag(RestoUtil::geoJSONGeometryToWKT($geometry, isset($this->context->modules['iTag']['keywords']) ? $this->context->modules['iTag']['keywords'] : array())));
+        return $this->iTagToKeywords($iTag->tag(RestoGeometryUtil::geoJSONGeometryToWKT($geometry, isset($this->context->modules['iTag']['keywords']) ? $this->context->modules['iTag']['keywords'] : array())));
 
     }
     

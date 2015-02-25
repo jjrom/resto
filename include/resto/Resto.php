@@ -244,7 +244,7 @@ class Resto {
         /*
          * HTTP 1.1 headers
          */
-        header('HTTP/1.1 ' . $responseStatus . ' ' . (isset(RestoUtil::$codes[$responseStatus]) ? RestoUtil::$codes[$responseStatus] : RestoUtil::$codes[200]));
+        header('HTTP/1.1 ' . $responseStatus . ' ' . (isset(RestoLogUtil::$codes[$responseStatus]) ? RestoLogUtil::$codes[$responseStatus] : RestoLogUtil::$codes[200]));
         header('Cache-Control:  no-cache');
         header('Content-Type: ' . RestoUtil::$contentTypes[$this->context->outputFormat]);
         
