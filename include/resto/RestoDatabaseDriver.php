@@ -54,40 +54,6 @@ abstract class RestoDatabaseDriver {
     public $resultsPerPage = 20;
 
     /*
-     * Facet hierarchy
-     */
-    public $facetCategories = array(
-        array(
-            'collection'
-        ),
-        array(
-            'productType'
-        ),
-        array(
-            'processingLevel'
-        ),
-        array(
-            'platform',
-            'instrument',
-            'sensorMode'
-        ),
-        array(
-            'continent',
-            'country',
-            'region',
-            'state'
-        ),
-        array(
-            'year',
-            'month',
-            'day'
-        ),
-        array(
-            'landuse'
-        )
-    );
-    
-    /*
      * Cache object
      */
     protected $cache = null;
@@ -114,65 +80,6 @@ abstract class RestoDatabaseDriver {
      */
     public function normalize($sentence) {
         return $sentence;
-    }
-    
-    /**
-     * Return facet category 
-     * 
-     * @param string $facetId
-     */
-    public function getFacetCategory($facetId) {
-        if (!isset($facetId)) {
-            return null;
-        }
-        $splitted = explode(':', $facetId);
-        for ($i = count($this->facetCategories); $i--;) {
-            for ($j = count($this->facetCategories[$i]); $j--;) {
-                if ($this->facetCategories[$i][$j] === $splitted[0]) {
-                    return $this->facetCategories[$i];
-                }
-            }
-        }
-        return null;
-    }
-    
-    /**
-     * Return facet parent type
-     * 
-     * @param string $facetId
-     */
-    public function getFacetParentType($facetId) {
-        $category = $this->getFacetCategory($facetId);
-        if (!isset($category)) {
-            return null;
-        }
-        $splitted = explode(':', $facetId);
-        for ($i = count($category); $i--;) {
-            if ($splitted[0] === $category[$i] && $i > 0) {
-                return $category[$i - 1];
-            }
-        }
-        return null;
-    }
-    
-    /**
-     * Return facet children type
-     * 
-     * @param string $facetId
-     */
-    public function getFacetChildrenType($facetId) {
-        $category = $this->getFacetCategory($facetId);
-        if (!isset($category)) {
-            return null;
-        }
-        $splitted = explode(':', $facetId);
-        $count = count($category);
-        for ($i = $count; $i--;) {
-            if ($splitted[0] === $category[$i] && $i < $count - 1) {
-                return $category[$i + 1];
-            }
-        }
-        return null;
     }
     
     /**

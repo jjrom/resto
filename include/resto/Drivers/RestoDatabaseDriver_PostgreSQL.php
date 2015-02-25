@@ -48,6 +48,11 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      */
     private $dbh;
     
+    /*
+     * Facet Util reference
+     */
+    private $facetUtil;
+    
     /**
      * Constructor
      * 
@@ -61,6 +66,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         parent::__construct($config, $cache, $debug);
         
         $this->dbh = RestoUtil::getPostgresHandler($config);
+        
+        $this->facetUtil = new RestoFacetUtil();
         
         if (isset($config['resultsPerPage'])) {
             $this->resultsPerPage = $config['resultsPerPage'];
@@ -398,7 +405,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                         if (!isset($keyword['hash'])) {
                             $keyword['hash'] = RestoUtil::getHash($keyword['id'], isset($keyword['parentHash']) ? $keyword['parentHash'] : null);
                         }
-                        if ($this->getFacetCategory($keyword['id'])) {
+                        if ($this->facetUtil->getFacetCategory($keyword['id'])) {
                             $facets[] = array(
                                 'id' => $keyword['id'],
                                 'hash' => $keyword['hash'],
@@ -464,7 +471,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     }
                     
                     $id = $elements[$i][0] . ':' . $elements[$i][1];
-                    if ($this->getFacetCategory($id)) {
+                    if ($this->facetUtil->getFacetCategory($id)) {
                         
                         /*
                          * Retrieve parent value from input elements
@@ -476,7 +483,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                          * Compute parentHash from ancestors !
                          */
                         while (isset($parentType)) {
-                            $parentType = $this->getFacetParentType($parentType);
+                            $parentType = $this->facetUtil->getFacetParentType($parentType);
                             for ($j = count($elements); $j--;) {
                                 if ($elements[$j][0] === $parentType && $elements[$j][1]) {
                                     $parentIds[] = $parentType . ':' . $elements[$j][1];
@@ -598,12 +605,12 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                  * Non keywords facets
                  */
                 $id = $key . ':' . $value;
-                if ($this->getFacetCategory($id)) {
+                if ($this->facetUtil->getFacetCategory($id)) {
                     $parentHash = null;
                     $parentType = $key;
                     $parentIds = array();
                     while (isset($parentType)) {
-                        $parentType = $this->getFacetParentType($parentType);
+                        $parentType = $this->facetUtil->getFacetParentType($parentType);
                         foreach ($f['properties'] as $pKey => $pValue) {
                             if ($pKey === $parentType && $pValue) {
                                 $parentIds[] = $parentType . ':' . $pValue;
@@ -697,7 +704,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
          */
         else {
             $fields = array();
-            foreach (array_values($this->facetCategories) as $facetCategory) {
+            foreach (array_values($this->facetUtil->facetCategories) as $facetCategory) {
                 $fields[] = $facetCategory[0];
             }
             $pivots = $this->getFacetsPivots($collectionName, $fields, null);
@@ -777,7 +784,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         /*
          * Compute pivot for children type if exists ot for itself otherwise
          */
-        $childrenField = $this->getFacetChildrenType($facet['id']);
+        $childrenField = $this->facetUtil->getFacetChildrenType($facet['id']);
         $splitted = explode(':', $facet['id']);
         if (isset($childrenField)) {
             $pivot = $this->getFacetPivot($collectionName, $childrenField, $facet['hash']);
