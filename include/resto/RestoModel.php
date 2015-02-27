@@ -664,7 +664,7 @@ abstract class RestoModel {
         /*
          * Check that resource does not already exist in database
          */
-        if ($this->context->dbDriver->featureExists($data['id'])) {
+        if ($this->context->dbDriver->is(RestoDatabaseDriver::FEATURE, array('featureIdentifier' => $data['id']))) {
             RestoLogUtil::httpError(500, 'Feature ' . $data['id'] . ' already in database');
         }
         
@@ -707,7 +707,11 @@ abstract class RestoModel {
         }
         
         try {
-            $this->context->dbDriver->storeFeature($collectionName, $elements, $this);
+            $this->context->dbDriver->store(RestoDatabaseDriver::FEATURE, array(
+                'collectionName' => $collectionName,
+                'elements' => $elements,
+                'model' => $this
+            ));
         } catch (Exception $e) {
             RestoUtil::httpError(500, 'Feature ' . $data['id'] . ' cannot be inserted in database');
         }

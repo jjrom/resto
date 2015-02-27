@@ -60,11 +60,47 @@ class RestoCache {
     }
 
     /**
+     * Retrieve cached request result
+     * 
+     * @param array $arr
+     */
+    public function retrieve($arr) {
+        $fileName = $this->getCacheFileName($arr);
+        if (!$this->isInCache($fileName)) {
+            return null;
+        }
+        return $this->read($fileName);
+    }
+    
+    /**
+     * Store result in cache
+     * 
+     * @param array $arr
+     * @param array $obj
+     */
+    public function store($arr, $obj) {
+        $fileName = $this->getCacheFileName($arr);
+        return $this->write($fileName, $obj);
+    }
+    
+    /**
+     * Generate a unique cache fileName from input array
+     * 
+     * @param array $arr
+     */
+    private function getCacheFileName($arr) {
+        if (!isset($arr) || !is_array($arr) || count($arr) === 0) {
+            return null;
+        }
+        return sha1(serialize($arr)) . '.cache';
+    }
+    
+    /**
      * Return true if fileName is in cache
      * 
      * @param type $fileName
      */
-    public function isInCache($fileName) {
+    private function isInCache($fileName) {
         if (!isset($fileName) || !isset($this->directory)) {
             return false;
         }
@@ -79,7 +115,7 @@ class RestoCache {
      * 
      * @param $fileName - name of the cached file
      */
-    public function read($fileName) {
+    private function read($fileName) {
         if (!$this->isInCache($fileName)) {
             return null;
         }
@@ -96,7 +132,7 @@ class RestoCache {
      * @param string $fileName - name of the cached file
      * @param object $obj - Object to store in cache
      */
-    function write($fileName, $obj) {
+    private function write($fileName, $obj) {
         if (!$this->directory) {
             return null;
         }
@@ -111,8 +147,8 @@ class RestoCache {
      * 
      * @param $fileName - name of the cached file
      */
-    function delete($fileName) {
-        @unlink($this->directory . DIRECTORY_SEPARATOR . $fileName);
+    private function delete($fileName) {
+        unlink($this->directory . DIRECTORY_SEPARATOR . $fileName);
     }
 
 }

@@ -129,15 +129,18 @@ class RestoUser{
     public function storeQuery($method, $service, $collectionName, $featureIdentifier, $query, $url){
         try {
             $remoteAdress = filter_input(INPUT_SERVER, 'REMOTE_ADDR', FILTER_SANITIZE_STRING); 
-            $this->context->dbDriver->storeQuery($this->profile['userid'], array(
-                'method' => $method,
-                'service' => $service,
-                'collection' => $collectionName,
-                'resourceid' => $featureIdentifier,
-                'query' => $query,
-                'url' => $url,
-                'ip' => $remoteAdress,
-            ));
+            $this->context->dbDriver->store(RestoDatabaseDriver::QUERY, array(
+                'userid' => $this->profile['userid'],
+                'query' => array(
+                    'method' => $method,
+                    'service' => $service,
+                    'collection' => $collectionName,
+                    'resourceid' => $featureIdentifier,
+                    'query' => $query,
+                    'url' => $url,
+                    'ip' => $remoteAdress,
+                ))
+            );
         } catch (Exception $e) {}
     }
     
@@ -209,7 +212,7 @@ class RestoUser{
      */
     public function hasToSignLicense($collection) {
         if (!empty($collection->license)) {
-            if (!isset($this->profile['email']) || !$this->context->dbDriver->licenseSigned($this->profile['email'], $collection->name)) {
+            if (!isset($this->profile['email']) || !$this->context->dbDriver->is(RestoDatabaseDriver::LICENSE_SIGNED, array('email' => $this->profile['email'], 'collectionName' => $collection->name))) {
                 return true;
             }
         }
@@ -222,7 +225,7 @@ class RestoUser{
      * @param string $collectionName
      */
     public function signLicense($collectionName) {
-        if ($this->context->dbDriver->signLicense($this->profile['email'], $collectionName)) {
+        if ($this->context->dbDriver->execute(RestoDatabaseDriver::SIGN_LICENSE, array('email' => $this->profile['email'], 'collectionName' => $collectionName))) {
             return true;
         }
         return false;
@@ -232,7 +235,7 @@ class RestoUser{
      * Disconnect user
      */
     public function disconnect() {
-        if (!$this->context->dbDriver->disconnectUser($this->profile['email'])) {
+        if (!$this->context->dbDriver->execute(RestoDatabaseDriver::DISCONNECT_USER, array('email' => $this->profile['email']))) {
             return false;
         }
         return true;
@@ -280,14 +283,14 @@ class RestoUser{
      * Return user orders
      */
     public function getOrders() {
-        return $this->context->dbDriver->getOrders($this->profile['email']);
+        return $this->context->dbDriver->get(RestoDatabaseDriver::ORDERS, array('email' => $this->profile['email']));
     }
     
     /**
      * Place order
      */
     public function placeOrder() {
-        $order = $this->context->dbDriver->placeOrder($this->profile['email']);
+        $order = $this->context->dbDriver->store(RestoDatabaseDriver::ORDER, array('email' => $this->profile['email']));
         if (isset($order) && isset($this->cart)) {
             $this->cart->clear();
         }
@@ -309,7 +312,7 @@ class RestoUser{
         if (!isset($resourceUrl) || !isset($token)) {
             return false;
         }
-        if ($this->context->dbDriver->isValidSharedLink($resourceUrl, $token)) {
+        if ($this->context->dbDriver->is(RestoDatabaseDriver::SHARED_LINK, array('resourceUrl' => $resourceUrl, 'token' => $token))) {
             return true;
         }
     

@@ -126,7 +126,12 @@ class RestoFeature {
          * ...or load from database
          */
         else {
-            $this->setFeature($this->context->dbDriver->getFeatureDescription($this->identifier, $this->model, isset($this->collection) ? $this->collection->name : null));
+            $this->setFeature($this->context->dbDriver->get(RestoDatabaseDriver::FEATURE_DESCRIPTION, array(
+                'featureIdentifier' => $this->identifier,
+                'model' => $this->model,
+                'collectionName' => isset($this->collection) ? $this->collection->name : null
+                ))
+            );
         }
         
         return $this;
@@ -374,7 +379,7 @@ class RestoFeature {
      * Remove feature from database
      */
     public function removeFromStore() {
-        $this->context->dbDriver->removeFeature($this);
+        $this->context->dbDriver->remove(RestoDatabaseDriver::FEATURE, array('feature' => $this));
     }
     
     /**

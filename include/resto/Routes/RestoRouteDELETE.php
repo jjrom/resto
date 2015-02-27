@@ -108,7 +108,7 @@ class RestoRouteDELETE extends RestoRoute {
         if (!isset($feature)) {
             $collection->removeFromStore();
             $this->storeQuery('remove', $collection->name, null);
-            return $this->success('Collection ' . $collection->name . ' deleted');
+            return RestoLogUtil::success('Collection ' . $collection->name . ' deleted');
         }
         /*
          * collections/{collection}/{feature}
@@ -116,7 +116,7 @@ class RestoRouteDELETE extends RestoRoute {
         else {
             $feature->removeFromStore();
             $this->storeQuery('remove', $collection->name, $feature->identifier);
-            return $this->success('Feature ' . $feature->identifier . ' deleted', array(
+            return RestoLogUtil::success('Feature ' . $feature->identifier . ' deleted', array(
                 'featureIdentifier' => $feature->identifier
             ));
         }
@@ -172,7 +172,7 @@ class RestoRouteDELETE extends RestoRoute {
                 RestoLogUtil::httpError(403);
             }
             else {
-                $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);
+                $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('userid' => $userid)), $this->context);
             }
         }
         
@@ -180,12 +180,12 @@ class RestoRouteDELETE extends RestoRoute {
          * users/{userid}/cart/{itemid} 
          */
         if ($user->removeFromCart($itemId, true)) {
-            return $this->success('Item removed from cart', array(
+            return RestoLogUtil::success('Item removed from cart', array(
                 'itemid' => $itemId
             ));
         }
         else {
-            return $this->error('Item cannot be removed', array(
+            return RestoLogUtil::error('Item cannot be removed', array(
                 'itemid' => $itemId
             ));
         }

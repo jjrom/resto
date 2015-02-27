@@ -69,7 +69,7 @@ class RestoOrder{
     public function __construct($user, $context, $orderId){
         $this->user = $user;
         $this->context = $context;
-        $this->order = $this->context->dbDriver->getOrders($this->user->profile['email'], $orderId);
+        $this->order = $this->context->dbDriver->get(RestoDatabaseDriver::ORDER, array('email' => $this->user->profile['email'], 'orderId' => $orderId));
     }
     
     /**
@@ -162,7 +162,7 @@ class RestoOrder{
      * @return string
      */
     private function getSharedLink($resourceUrl) {
-        $shared = $this->context->dbDriver->createSharedLink($resourceUrl);
+        $shared = $this->context->dbDriver->get(RestoDatabaseDriver::SHARED_LINK, array('resourceUrl' => $resourceUrl));
         return $resourceUrl . (strrpos($resourceUrl, '?') === false ? '?_tk=' : '&_tk=') . $shared['token'];       
     }
     

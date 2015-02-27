@@ -164,7 +164,7 @@ class RestoRoutePOST extends RestoRoute {
             $this->user->disconnect();
         }
 
-        $this->user = new RestoUser($this->context->dbDriver->getUserProfile(strtolower($data['email']), $data['password']), $this->context);
+        $this->user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('email' => strtolower($data['email']), 'password' => $data['password'])), $this->context);
         if (isset($this->user->profile['email'])) {
             return array(
                 'token' => $this->context->createToken($this->user->profile['userid'], $this->user->profile)
@@ -198,16 +198,16 @@ class RestoRoutePOST extends RestoRoute {
         }
         $query = array();
         parse_str($pair[1], $query);
-        if (!isset($query['_tk']) || !$this->context->dbDriver->isValidSharedLink($pair[0], $query['_tk'])) {
+        if (!isset($query['_tk']) || !$this->context->dbDriver->is(RestoDatabaseDriver::SHARED_LINK, array('resourceUrl' => $pair[0], 'token' => $query['_tk']))) {
             RestoLogUtil::httpError(403);
         }
         
-        if ($this->context->dbDriver->getUserPassword($email) === str_repeat('*', 40)) {
+        if ($this->context->dbDriver->get(RestoDatabaseDriver::USER_PASSWORD, array('email' => $email)) === str_repeat('*', 40)) {
             RestoLogUtil::httpError(3004);
         }
         
-        if ($this->context->dbDriver->updateUserProfile(array('email' => $email, 'password' => $data['password']))) {
-            return $this->success('Password updated');
+        if ($this->context->dbDriver->update(RestoDatabaseDriver::USER_PROFILE, array('profile' => array('email' => $email, 'password' => $data['password'])))) {
+            return RestoLogUtil::success('Password updated');
         }
         else {
             RestoLogUtil::httpError(400);
@@ -232,10 +232,10 @@ class RestoRoutePOST extends RestoRoute {
         }
 
         if ($this->user->signLicense($data[0], true)) {
-            return $this->success('License signed');
+            return RestoLogUtil::success('License signed');
         }
         else {
-            return $this->error('Cannot sign license');
+            return RestoLogUtil::error('Cannot sign license');
         }
     }
     
@@ -293,14 +293,14 @@ class RestoRoutePOST extends RestoRoute {
         if (!isset($data['name'])) {
             RestoLogUtil::httpError(400);
         }
-        if ($this->context->dbDriver->collectionExists($data['name'])) {
+        if ($this->context->dbDriver->is(RestoDatabaseDriver::COLLECTION, array('collectionName' => $data['name']))) {
             RestoLogUtil::httpError(2003);
         }
         $collection = new RestoCollection($data['name'], $this->context, $this->user);
         $collection->loadFromJSON($data, true);
         $this->storeQuery('create', $data['name'], null);
         
-        return $this->success('Collection ' . $data['name'] . ' created');
+        return RestoLogUtil::success('Collection ' . $data['name'] . ' created');
     }
     
     /**
@@ -312,7 +312,7 @@ class RestoRoutePOST extends RestoRoute {
     private function POST_insertFeature($collection, $data) {
         $feature = $collection->addFeature($data);
         $this->storeQuery('insert', $collection->name, $feature->identifier);
-        return $this->success('Feature ' . $feature->identifier . ' inserted within ' . $collection->name, array(
+        return RestoLogUtil::success('Feature ' . $feature->identifier . ' inserted within ' . $collection->name, array(
             'featureIdentifier' => $feature->identifier
         ));
     }
@@ -378,18 +378,20 @@ class RestoRoutePOST extends RestoRoute {
             RestoLogUtil::httpError(400, 'Email is not set');
         }
 
-        if ($this->dbDriver->userExists($data['email'])) {
+        if ($this->dbDriver->is(RestoDatabaseDriver::USER, array('email' => $data['email']))) {
             RestoLogUtil::httpError(3000);
         }
 
         $redirect = isset($data['confirm_success_url']) ? '&redirect=' . urlencode($data['confirm_success_url']) : '';
-        $userInfo = $this->dbDriver->storeUserProfile(array(
-            'email' => $data['email'],
-            'password' => isset($data['password']) ? $data['password'] : null,
-            'username' => isset($data['username']) ? $data['username'] : null,
-            'givenname' => isset($data['givenname']) ? $data['givenname'] : null,
-            'lastname' => isset($data['lastname']) ? $data['lastname'] : null
-        ));
+        $userInfo = $this->dbDriver->store(RestoDatabaseDriver::USER_PROFILE, array(
+            array(
+                'email' => $data['email'],
+                'password' => isset($data['password']) ? $data['password'] : null,
+                'username' => isset($data['username']) ? $data['username'] : null,
+                'givenname' => isset($data['givenname']) ? $data['givenname'] : null,
+                'lastname' => isset($data['lastname']) ? $data['lastname'] : null
+            ))
+        );
         if (isset($userInfo)) {
             $activationLink = $this->context->baseUrl . 'api/users/' . $userInfo['userid'] . '/activate?act=' . $userInfo['activationcode'] . $redirect;
             if (!$this->sendMail(array(
@@ -405,7 +407,7 @@ class RestoRoutePOST extends RestoRoute {
             RestoLogUtil::httpError(500, 'Database connection error');
         }
 
-        return $this->success('User ' . $data['email'] . ' created');
+        return RestoLogUtil::success('User ' . $data['email'] . ' created');
     }
     
     /**
@@ -425,12 +427,12 @@ class RestoRoutePOST extends RestoRoute {
         $items = $this->getAuthorizedUser($emailOrId)->addToCart($data, true);
         
         if ($items) {
-            return $this->success('Add items to cart', array(
+            return RestoLogUtil::success('Add items to cart', array(
                 'items' => $items
             ));
         }
         else {
-            return $this->error('Cannot add items to cart');
+            return RestoLogUtil::error('Cannot add items to cart');
         }
         
     }
@@ -451,12 +453,12 @@ class RestoRoutePOST extends RestoRoute {
          */
         $order = $this->getAuthorizedUser($emailOrId)->placeOrder();
         if ($order) {
-            return $this->success('Place order', array(
+            return RestoLogUtil::success('Place order', array(
                 'order' => $order
             ));
         }
         else {
-            return $this->error('Cannot place order');
+            return RestoLogUtil::error('Cannot place order');
         }
         
     }

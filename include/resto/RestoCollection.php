@@ -308,7 +308,7 @@ class RestoCollection {
             }
         }
         
-        $collectionDescription = $this->context->dbDriver->getCollectionDescription($this->name, $facets);
+        $collectionDescription = $this->context->dbDriver->get(RestoDatabaseDriver::COLLECTIONS_DESCRIPTIONS, array('collectionName' => $this->name, 'facetFields' => $facets));
         $this->model = RestoUtil::instantiate($collectionDescription['model'], array($this->context, $this->user));
         $this->osDescription = $collectionDescription['osDescription'];
         $this->status = $collectionDescription['status'];
@@ -323,7 +323,7 @@ class RestoCollection {
      * Remove collection  from RESTo database
      */
     public function removeFromStore() {
-        $this->context->dbDriver->removeCollection($this);
+        $this->context->dbDriver->remove(RestoDatabaseDriver::COLLECTION, array('collection' => $this));
         $this->synchronized = false;
     }
     
@@ -331,7 +331,7 @@ class RestoCollection {
      * Save collection to RESTo database
      */
     public function saveToStore() {
-        $this->context->dbDriver->storeCollection($this);
+        $this->context->dbDriver->store(RestoDatabaseDriver::COLLECTION, array('collection' => $this));
         $this->synchronized = true;
         return $this;
     }

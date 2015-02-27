@@ -44,6 +44,43 @@
 abstract class RestoDatabaseDriver {
     
     /*
+     * Constant
+     */
+    const CART_ITEMS = 1;
+    const COLLECTION = 2;
+    const COLLECTIONS = 3;
+    const FACETS = 4;
+    const FEATURE = 5;
+    const FEATURES = 6;
+    const GROUPS = 7;
+    const HIERACHICAL_FACETS = 8;
+    const QUERY = 9;
+    const ORDERS = 10;
+    const RIGHTS = 11;
+    const STATISTICS = 12;
+    const USER = 13;
+    const USER_PASSWORD = 14;
+    const USER_PROFILE = 15;
+    const COLLECTIONS_DESCRIPTIONS = 16;
+    const FEATURE_DESCRIPTION = 17;
+    const FEATURES_DESCRIPTIONS = 18;
+    const KEYWORDS = 19;
+    const FACET = 20;
+    const CART_ITEM = 21;
+    const ORDER = 22;
+    const SHARED_LINK = 23;
+    const USER_CONNECTED = 24;
+    const LICENSE_SIGNED = 25;
+    const SCHEMA = 26;
+    const TABLE = 27;
+    const TABLE_EMPTY = 28;
+    const ACTIVATE_USER = 29;
+    const DEACTIVATE_USER = 30;
+    const DISCONNECT_USER = 31;
+    const SIGN_LICENSE = 32;
+    const RIGHTS_FULL = 33;
+    
+    /*
      * Results per page
      */
     public $resultsPerPage = 20;
@@ -51,7 +88,7 @@ abstract class RestoDatabaseDriver {
     /*
      * Cache object
      */
-    protected $cache = null;
+    public $cache = null;
     
     /**
      * Constructor
@@ -65,15 +102,12 @@ abstract class RestoDatabaseDriver {
     } 
     
     /**
-     * Return normalized $sentence i.e. in lowercase and without accents
-     * This function is superseed in RestoDabaseDriver_PostgreSQL and use
-     * the inner function lower(unaccent($sentence)) defined in installDB.sh
+     * List object by type name
      * 
-     * @param string $sentence
+     * @return array
+     * @throws Exception
      */
-    public function normalize($sentence) {
-        return $sentence;
-    }
+    abstract public function get($typeName);
     
     /**
      * Return database handler
@@ -81,564 +115,59 @@ abstract class RestoDatabaseDriver {
      * @return database handler
      */
     abstract public function getHandler();
-
-    /**
-     * List all collections
-     * 
-     * @return array
-     * @throws Exception
-     */
-    abstract public function listCollections();
     
     /**
-     * List all groups
+     * Check if $typeName constraint is true
      * 
-     * @return array
-     * @throws Exception
-     */
-    abstract public function listGroups();
-    
-    /**
-     * Check if collection $name exists within resto database
-     * 
-     * @param string $name - collection name
-     * @return boolean
-     * @throws Exception
-     */
-    abstract public function collectionExists($name);
-
-    /**
-     * Check if feature identified by $identifier exists within {schemaName}.features table
-     * 
-     * @param string $identifier - feature unique identifier 
-     * @param string $schema - schema name
-     * @return boolean
-     * @throws Exception
-     */
-    abstract public function featureExists($identifier, $schema = null);
-
-    /**
-     * Check if user identified by $identifier exists within database
-     * 
-     * @param string $identifier - user email
-     * 
-     * @return boolean
-     * @throws Exception
-     */
-    abstract public function userExists($identifier);
-    
-    /**
-     * Insert feature within collection
-     * 
-     * @param string $collectionName
-     * @param array $elements
-     * @param RestoModel $model
-     * @throws Exception
-     */
-    abstract public function storeFeature($collectionName, $elements, $model);
-
-    /**
-     * Remove feature from database
-     * 
-     * @param RestoFeature $feature
-     */
-    abstract public function removeFeature($feature);
-
-    /**
-     * Return true if resource is shared (checked with proof)
-     * 
-     * @param string $resourceUrl
-     * @param string $token
-     * @return boolean
-     */
-    abstract public function isValidSharedLink($resourceUrl, $token);
-    
-    /**
-     * Return true if resource is within cart
-     * 
-     * @param string $itemId
-     * @return boolean
-     * @throws exception
-     */
-    abstract public function isInCart($itemId);
-    
-    /**
-     * Return cart for user
-     * 
-     * @param string $identifier
-     * @return array
-     * @throws exception
-     */
-    abstract public function getCartItems($identifier);
-    
-    /**
-     * Add resource url to cart
-     * 
-     * @param string $identifier
-     * @param array $item
-     *   
-     *   Must contain at least an 'id' entry
-     *   
-     * @return boolean
-     * @throws exception
-     */
-    abstract public function addToCart($identifier, $item = array());
-    
-    /**
-     * Update cart
-     * 
-     * @param string $identifier
-     * @param string $itemId
-     * @param array $item
-     *   
-     *   Must contain at least a 'url' entry
-     *   
-     * @return boolean
-     * @throws exception
-     */
-    abstract public function updateCart($identifier, $itemId, $item);
-    
-    /**
-     * Remove resource from cart
-     * 
-     * @param string $identifier
-     * @param string $itemId
-     * @return boolean
-     * @throws exception
-     */
-    abstract public function removeFromCart($identifier, $itemId);
-    
-    /**
-     * Return orders list for user
-     * 
-     * @param string $identifier
-     * @param string $orderId
-     * @return array
-     * @throws exception
-     */
-    abstract public function getOrders($identifier, $orderId);
-    
-    /**
-     * Place order for user
-     * 
-     * @param string $identifier
-     * 
-     * @return array
-     * @throws exception
-     */
-    abstract public function placeOrder($identifier);
-    
-    /**
-     * Get user profile
-     * 
-     * @param string $identifier : can be email (or string) or integer (i.e. uid)
-     * @param string $password : if set then profile is returned only if password is valid
-     * @return array : this function should return array('userid' => -1, 'groupname' => 'unregistered')
-     *                 if user is not found in database
-     * @throws exception
-     */
-    abstract public function getUserProfile($identifier, $password = null);
-
-    /**
-     * Get users profile
-     * 
-     * @param type $keyword
-     * @param type $min
-     * @param type $number
-     * @return array
-     * @throws Exception
-     */
-    abstract public function getUsersProfiles($keyword = null, $min = 0, $number = 50);
-
-    /**
-     * Save user profile to database i.e. create new entry if user does not exist
-     * 
-     * @param array $profile
-     * @return integer (userid)
-     * @throws exception
-     */
-    abstract public function storeUserProfile($profile);
-
-    /**
-     * Update user profile to database
-     * 
-     * @param array $profile
-     * @return integer (userid)
-     * @throws exception
-     */
-    abstract public function updateUserProfile($profile);
-    
-    /**
-     * Activate user
-     * 
-     * @param string $userid
-     * @throws Exception
-     */
-    abstract public function activateUser($userid);
-    
-    /**
-     * Deactivate user
-     * 
-     * @param string $userid
-     * @throws Exception
-     */
-    abstract public function deactivateUser($userid);
-    
-    /**
-     * Disconnect user
-     * 
-     * @param string $identifier : can be email (or string) or integer (i.e. uid)
-     */
-    abstract public function disconnectUser($identifier);
-    
-    /**
-     * Return true if $userid is connected
-     * 
-     * @param string $userid
-     * 
-     * @throws Exception
-     */
-    abstract public function userIsConnected($userid);
-    
-    /**
-     * Return encrypted user password
-     * 
-     * @param string $identifier : email
-     * 
-     * @throws Exception
-     */
-    abstract public function getUserPassword($identifier);
-    
-    /**
-     * Return rights from user $identifier
-     * 
-     * @param string $identifier
-     * @param string $collectionName
-     * @param string $featureIdentifier
-     * @return array
-     * @throws Exception
-     */
-    abstract public function getRights($identifier, $collectionName, $featureIdentifier = null);
-
-    /**
-     * Get complete rights list for $identifier
-     * 
-     * @param string $identifier
-     * @return array
-     * @throws Exception
-     */
-    abstract public function getRightsList($identifier);
-    
-    /**
-     * Get complete rights for $identifier for $collectionName or for all collections
-     * 
-     * @param string $identifier
-     * @param string $collectionName
-     * @param string $featureIdentifier
-     * @return array
-     * @throws Exception
-     */
-    abstract function getFullRights($identifier, $collectionName = null, $featureIdentifier = null);
-    
-    /**
-     * Store a right to database
-     *     
-     *     array(
-     *          'search' => // true or false
-     *          'visualize' => // true or false
-     *          'download' => // true or false
-     *          'canpost' => // true or false
-     *          'canput' => // true or false
-     *          'candelete' => //true or false
-     *          'filters' => array(...)
-     * 
-     * @param array $rights
-     * @param string $identifier
-     * @param string $collectionName
-     * @param string $featureIdentifier
-     * @throws Exception
-     */
-    abstract function storeRights($rights, $identifier, $collectionName, $featureIdentifier = null);
-    
-    /**
-     * Update rights to database
-     *     
-     *     array(
-     *          'search' => // true or false
-     *          'visualize' => // true or false
-     *          'download' => // true or false
-     *          'canpost' => // true or false
-     *          'canput' => // true or false
-     *          'candelete' => //true or false
-     *          'filters' => array(...)
-     *     )
-     * 
-     * @param array $rights
-     * @param string $identifier
-     * @param string $collectionName
-     * @param string $featureIdentifier
-     * 
-     * @throws Exception
-     */
-    abstract public function updateRights($rights, $identifier, $collectionName, $featureIdentifier = null);
-    
-    /**
-     * Delete rights from database
-     * 
-     * @param string $identifier
-     * @param string $collectionName
-     * @param string $featureIdentifier
-     * 
-     * @throws Exception
-     */
-    abstract public function deleteRights($identifier, $collectionName = null, $featureIdentifier = null);
-    
-    /**
-     * Check if user signed collection license
-     * 
-     * @param string $identifier
-     * @param string $collectionName
-     * @return boolean
-     * @throws Exception
-     */
-    abstract public function licenseSigned($identifier, $collectionName);
-
-    /**
-     * Get signed licenses for user
-     * 
-     * @param string $identifier
-     * @return array
-     * @throws Exception
-     */
-    abstract public function getSignedLicenses($identifier);
-    
-    /**
-     * Sign license for collection collectionName
-     * 
-     * @param string $identifier : user identifier 
-     * @param string $collectionName
-     * @return boolean
-     * @throws Exception
-     */
-    abstract public function signLicense($identifier, $collectionName);
-    
-    /**
-     * Get collection description
-     * 
-     * @param string $collectionName
-     * @param array $facetFields
-     * @return array
-     * @throws Exception
-     */
-    abstract public function getCollectionDescription($collectionName, $facetFields = array());
-
-    /**
-     * Get description of all collections
-     * 
-     * @param array $facetFields
-     * @return array
-     * @throws Exception
-     */
-    abstract public function getCollectionsDescriptions($facetFields = array());
-
-    /**
-     * Remove collection from RESTo database
-     * 
-     * @param RestoCollection $collection
-     * @return array
-     * @throws Exception
-     */
-    abstract public function removeCollection($collection);
-
-    /**
-     * Save collection to database
-     * 
-     * @param RestoCollection $collection
-     * @throws Exception
-     */
-    abstract public function storeCollection($collection);
-
-    /**
-     * Save query to database
-     * 
-     * @param string $userid : User id
-     * @param array $query
-     * @throws Exception
-     */
-    abstract public function storeQuery($userid, $query);
-
-    /**
-     * 
-     * Get array of features descriptions
-     * 
+     * @param string $typeName - object type name ('collection', 'feature', 'user')
      * @param array $params
-     * @param RestoModel $model
-     * @param string $collectionName
-     * @param array $options
-     *      array(
-     *          'limit',
-     *          'offset',
-     *          'count'// true to return the total number of results without pagination
-     * 
-     * @return array
+     * @return boolean
      * @throws Exception
      */
-    abstract public function getFeaturesDescriptions($params, $model, $collectionName, $options);
+    abstract public function is($typeName, $params);
 
     /**
+     * Execute action
      * 
-     * Get feature description
-     *
-     * @param integer $identifier
-     * @param RestoModel $model
-     * @param string $collectionName
-     * @param array $filters
-     * 
-     * @return array
+     * @param string $typeName - object type name ('collection', 'feature', 'user')
+     * @param array $params
+     * @return boolean
      * @throws Exception
      */
-    abstract public function getFeatureDescription($identifier, $model, $collectionName = null, $filters = array());
-
-    /**
-     * 
-     * Return keywords from database
-     *
-     * @param string $language : ISO A2 language code
-     * 
-     * @return array
-     * @throws Exception
-     */
-    abstract public function getKeywords($language);
-
-    /**
-     * Store facet within database (i.e. add 1 to the counter of facet if exist)
-     * 
-     * !! THIS FUNCTION IS THREAD SAFE !!
-     * 
-     * Input facet structure :
-     *      array(
-     *          array(
-     *              'id' => 'instrument:PHR',
-     *              'hash' => '...'
-     *              'parentId' => 'platform:PHR',
-     *              'parentHash' => '...'
-     *          ),
-     *          array(
-     *              'id' => 'year:2011',
-     *              'hash' => 'xxxxxx'
-     *          ),
-     *          ...
-     *      )
-     * 
-     * @param array $facets
-     * @param type $collectionName
-     */
-    abstract public function storeFacets($facets, $collectionName);
-
-    /**
-     * Get facet identifier by $hash for collection $collectionName
-     * 
-     * @param string $hash
-     * @param string $collectionName
-     */
-    abstract public function getFacet($hash, $collectionName);
+    abstract public function execute($typeName, $params);
     
     /**
-     * Remove facet for collection i.e. decrease by one counter
+     * Return normalized $sentence i.e. in lowercase and without accents
+     * This function is superseed in RestoDabaseDriver_PostgreSQL and use
+     * the inner function lower(unaccent($sentence)) defined in installDB.sh
      * 
-     * @param string $hash
-     * @param string $collectionName
+     * @param string $sentence
      */
-    abstract public function removeFacet($hash, $collectionName);
+    abstract public function normalize($sentence);
+    
+    /**
+     * Remove object from database
+     * 
+     * @param Object $object
+     */
+    abstract public function remove($object);
 
     /**
-     * Return facets statistics from a type for a given collection
+     * Store object within database
      * 
-     * Returned array structure if collectionName is set
-     * 
-     *      array(
-     *          'type#' => array(
-     *              'value1' => count1,
-     *              'value2' => count2,
-     *              'parent' => array(
-     *                  'value3' => count3,
-     *                  ...
-     *              )
-     *              ...
-     *          ),
-     *          'type2' => array(
-     *              ...
-     *          ),
-     *          ...
-     *      )
-     * 
-     * Or an array of array indexed by collection name if $collectionName is null
-     *  
-     * @param string $collectionName
-     * @param array $facetFields
-     * 
-     * @return array
+     * @param string $typeName
+     * @param array $params
+     * @throws Exception
      */
-    abstract public function getStatistics($collectionName = null, $facetFields = null);
+    abstract public function store($typeName, $params);
 
     /**
-     * Return hierarchical facets (i.e. "SOLR4 like" pivot) for a $hash for a given collection
+     * Update object within database
      * 
-     * Returned array structure :
-     * 
-     *      array(
-     *          'facet_counts' => array(
-     *              'facet_fields' => array(...),
-     *              'facet_pivot' => array(...)
-     *          )
-     *      )
-     * 
-     * @param string $hash
-     * @param string $collectionName
-     * 
-     * @return array
-     */
-    abstract function getHierarchicalFacets($hash, $collectionName = null);
-    
-    /**
-     * Get user history
-     * 
-     * @param integer $userid
-     * @param array $options
-     *          
-     *      array(
-     *         'orderBy' => // order field (default querytime),
-     *         'ascOrDesc' => // ASC or DESC (default DESC)
-     *         'collectionName' => // collection name
-     *         'service' => // 'search', 'download' or 'visualize' (default null),
-     *         'startIndex' => // (default 0),
-     *         'numberOfResults' => // (default 50)
-     *     )
-     *          
-     * @return array
+     * @param string $typeName
+     * @param array $params
      * @throws Exception
      */
-    abstract public function getHistory($userid = null, $options = array());
-    
-    /**
-     * Count history logs per service
-     * 
-     * @param string $service : i.e. one of 'download', 'search', etc.
-     * @param string $collectionName
-     * @param integer $userid
-     * @return integer
-     * @throws Exception
-     */
-    abstract public function countService($service, $collectionName = null, $userid = null);
-    
-    /**
-     * Count history logs per service
-     * 
-     * @param boolean $activated
-     * @param string $groupname
-     * @return integer
-     * @throws Exception
-     */
-    abstract public function countUsers($activated = null, $groupname = null);
+    abstract public function update($typeName, $params);
     
 }

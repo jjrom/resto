@@ -81,7 +81,7 @@ abstract class RestoDictionary {
     public function __construct($dbDriver) {
         $this->dbDriver = $dbDriver;
         $this->language = strtolower(substr(get_class($this), -2));
-        $this->dictionary = array_merge($this->dictionary, $this->dbDriver->getKeywords($this->language));
+        $this->dictionary = array_merge($this->dictionary, $this->dbDriver->get(RestoDatabaseDriver::KEYWORDS, array('language' => $this->language)));
     }
     
     /**

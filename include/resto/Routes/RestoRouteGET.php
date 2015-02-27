@@ -267,7 +267,7 @@ class RestoRouteGET extends RestoRoute {
      */
     private function GET_apiUsersDisconnect() {
         $this->user->disconnect();
-        return $this->success('User disconnected');
+        return RestoLogUtil::success('User disconnected');
     }
 
     /**
@@ -282,14 +282,14 @@ class RestoRouteGET extends RestoRoute {
         /*
          * Only existing local user can change there password
          */
-        if (!$this->context->dbDriver->userExists($this->context->query['email']) || $this->context->dbDriver->getUserPassword($this->context->query['email']) === str_repeat('*', 40)) {
+        if (!$this->context->dbDriver->is(RestoDatabaseDriver::USER, array('email' => $this->context->query['email'])) || $this->context->dbDriver->get(RestoDatabaseDriver::USER_PASSWORD, array('email' => $this->context->query['email'])) === str_repeat('*', 40)) {
             RestoLogUtil::httpError(3005);
         }
         
         /*
          * Send email with reset link
          */
-        $shared = $this->context->dbDriver->createSharedLink($this->context->resetPasswordUrl . '/' . base64_encode($this->context->query['email']));
+        $shared = $this->context->dbDriver->get(RestoDatabaseDriver::SHARED_LINK, array('resourceUrl' => $this->context->resetPasswordUrl . '/' . base64_encode($this->context->query['email'])));
         if (!$this->sendMail(array(
                     'to' => $this->context->query['email'],
                     'senderName' => $this->context->mail['senderName'],
@@ -300,7 +300,7 @@ class RestoRouteGET extends RestoRoute {
             RestoLogUtil::httpError(3003);
         }
         
-        return $this->success('Reset link sent to ' . $this->context->query['email']);
+        return RestoLogUtil::success('Reset link sent to ' . $this->context->query['email']);
     }
     
     /**
@@ -310,7 +310,7 @@ class RestoRouteGET extends RestoRoute {
      */
     private function GET_apiUsersActivate($userid) {
         if (isset($this->context->query['act'])) {
-            if ($this->dbDriver->activateUser($userid, $this->context->query['act'])) {
+            if ($this->dbDriver->execute(RestoDatabaseDriver::ACTIVATE_USER, array('userid' => $this->user($userid), 'activationCode' => $this->context->query['act']))) {
 
                 /*
                  * Redirect to a human readable page...
@@ -323,11 +323,11 @@ class RestoRouteGET extends RestoRoute {
                  * ...or return json stream otherwise
                  */
                 else {
-                    return $this->success('User activated');
+                    return RestoLogUtil::success('User activated');
                 }
             }
             else {
-                return $this->error('User not activated');
+                return RestoLogUtil::error('User not activated');
             }
         }
         else {
@@ -336,17 +336,17 @@ class RestoRouteGET extends RestoRoute {
     }
     
     /**
-     * Process api/users/userid}/isConnected
+     * Process api/users/{userid}/isConnected
      * 
      * @param string $userid
      */
     private function GET_apiUsersIsConnected($userid) {
         if (isset($this->context->query['_sid'])) {
-            if ($this->dbDriver->userIsConnected($userid, $this->context->query['_sid'])) {
-                return $this->success('User is connected');
+            if ($this->dbDriver->execute(RestoDatabaseDriver::USER_CONNECTED, array('userid' => $userid))) {
+                return RestoLogUtil::success('User is connected');
             }
             else {
-                return $this->error('User not connected');
+                return RestoLogUtil::error('User not connected');
             }
         } else {
             RestoLogUtil::httpError(400);
@@ -517,7 +517,7 @@ class RestoRouteGET extends RestoRoute {
          */
         $user = $this->getAuthorizedUser($emailOrId);
         
-        return $this->success('Profile for ' . $user->profile['userid'], array(
+        return RestoLogUtil::success('Profile for ' . $user->profile['userid'], array(
             'profile' => $user->profile
         ));
     }
@@ -541,7 +541,7 @@ class RestoRouteGET extends RestoRoute {
          */
         $user = $this->getAuthorizedUser($emailOrId);
         
-        return $this->success('Rights for ' . $user->profile['userid'], array(
+        return RestoLogUtil::success('Rights for ' . $user->profile['userid'], array(
             'userid' => $user->profile['userid'],
             'groupname' => $user->profile['groupname'],
             'rights' => $user->getFullRights($collectionName, $featureIdentifier)
@@ -597,7 +597,7 @@ class RestoRouteGET extends RestoRoute {
             return new RestoOrder($user, $this->context, $orderid);
         }
         else {
-            return $this->success('Orders for user ' . $user->profile['userid'], array(
+            return RestoLogUtil::success('Orders for user ' . $user->profile['userid'], array(
                 'orders' => $user->getOrders()
             ));
         }

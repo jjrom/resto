@@ -139,7 +139,7 @@ class RestoLogUtil {
      * @param array $additional
      */
     public static function success($message, $additional = array()) {
-        return RestoLog::message('success', $message, $additional);
+        return RestoLogUtil::message('success', $message, $additional);
     }
     
     /**
@@ -149,7 +149,7 @@ class RestoLogUtil {
      * @param array $additional
      */
     public static function error($message, $additional = array()) {
-        return RestoLog::message('error', $message, $additional);
+        return RestoLogUtil::message('error', $message, $additional);
     }
     
     /**

@@ -188,11 +188,16 @@ class RestoFeatureCollection {
         /*
          * Get features array
          */
-        $featuresArray = $this->context->dbDriver->getFeaturesDescriptions($params, $this->defaultModel, isset($this->defaultCollection) ? $this->defaultCollection->name : null, array(
-            'limit' => $limit,
-            'offset' => $offset,
-            'count' => $realCount
-        ));
+        $featuresArray = $this->context->dbDriver->get(RestoDatabaseDriver::FEATURES_DESCRIPTIONS, array(
+            'model' => $this->defaultModel,
+            'collectionName' => isset($this->defaultCollection) ? $this->defaultCollection->name : null,
+            'filters' => $params,
+                'options' => array(
+                'limit' => $limit,
+                'offset' => $offset,
+                'count' => $realCount
+            ))
+        );
         for ($i = 0, $l = count($featuresArray); $i < $l; $i++) {
             if (isset($this->collections) && !isset($this->collections[$featuresArray[$i]['collection']])) {
                 $this->collections[$featuresArray[$i]['collection']] = new RestoCollection($featuresArray[$i]['collection'], $this->context, $this->user, array('autoload' => true));

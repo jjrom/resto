@@ -227,7 +227,7 @@ abstract class RestoRoute {
                 RestoLogUtil::httpError(403);
             }
             else {
-                $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);
+                $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('userid' => $userid)), $this->context);
             }
         }
         

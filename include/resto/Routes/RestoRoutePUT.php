@@ -120,7 +120,7 @@ class RestoRoutePUT extends RestoRoute {
         if (!isset($feature)) {
             $collection->loadFromJSON($data, true);
             $this->storeQuery('update', $collection->name, null);
-            return $this->success('Collection ' . $collection->name . ' updated');
+            return RestoLogUtil::success('Collection ' . $collection->name . ' updated');
         }
         /*
          * collections/{collection}/{feature}
@@ -183,18 +183,18 @@ class RestoRoutePUT extends RestoRoute {
                 RestoLogUtil::httpError(403);
             }
             else {
-                $user = new RestoUser($this->context->dbDriver->getUserProfile($userid), $this->context);
+                $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('userid' => $userid)), $this->context);
             }
         }
          
         if ($user->updateCart($itemId, $data, true)) {
-            return $this->success('Item ' . $itemId . ' updated', array(
+            return RestoLogUtil::success('Item ' . $itemId . ' updated', array(
                 'itemId' => $itemId,
                 'item' => $data
             ));
         }
         else {
-            return $this->error('Cannot update item ' . $itemId);
+            return RestoLogUtil::error('Cannot update item ' . $itemId);
         }
         
     }

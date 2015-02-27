@@ -273,6 +273,7 @@ class Auth extends RestoModule {
     
     /**
      * Return profile token
+     * 
      * @param string $key
      * @return json
      */
@@ -282,8 +283,9 @@ class Auth extends RestoModule {
             throw new Exception();
         }
         
-        $profile = $this->context->dbDriver->getUserProfile(strtolower($key));
-        
+        $profile = $this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array(
+            'email' => strtolower($key)
+        ));
         return array(
             'token' => $this->context->createToken($profile['userid'], $profile
         ));

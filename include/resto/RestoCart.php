@@ -70,7 +70,7 @@ class RestoCart{
         $this->user = $user;
         $this->context = $context;
         if ($synchronize) {
-            $this->items = $this->context->dbDriver->getCartItems($this->user->profile['email']);
+            $this->items = $this->context->dbDriver->get(RestoDatabaseDriver::CART_ITEM, array('email' => $this->user->profile['email']));
         }
     }
     
@@ -118,7 +118,7 @@ class RestoCart{
             }   
             
             if ($synchronize) {
-                if (!$this->context->dbDriver->addToCart($this->user->profile['email'], $data[$i])) {
+                if (!$this->context->dbDriver->store(RestoDatabaseDriver::CART_ITEM, array('email' => $this->user->profile['email'], 'item' => $data[$i]))) {
                     return false;
                 }
             }
@@ -145,7 +145,7 @@ class RestoCart{
         }
         if ($synchronize) {
             $this->items[$itemId] = $item;
-            return $this->context->dbDriver->updateCart($this->user->profile['email'], $itemId, $item);
+            return $this->context->dbDriver->update(RestoDatabaseDriver::CART_ITEM, array('email' => $this->user->profile['email'], 'itemId' => $itemId, 'item' => $item));
         }
         else {
             $this->items[$itemId] = $item;
@@ -169,7 +169,7 @@ class RestoCart{
             if (isset($this->items[$itemId])) {
                 unset($this->items[$itemId]);
             }
-            return $this->context->dbDriver->removeFromCart($this->user->profile['email'], $itemId);
+            return $this->context->dbDriver->remove(RestoDatabaseDriver::CART_ITEM, array('email' => $this->user->profile['email'], 'itemId' => $itemId));
         }
         else if (isset($this->items[$itemId])) {
             unset($this->items[$itemId]);
