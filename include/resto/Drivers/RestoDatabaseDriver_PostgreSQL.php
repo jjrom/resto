@@ -123,8 +123,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              * Get groups list
              */
             case parent::GROUPS:
-                $usersFunctions = new Functions_users($this);
-                return $usersFunctions->getGroups();
+                $rightsFunctions = new Functions_rights($this);
+                return $rightsFunctions->getGroups();
             
             /*
              * Get hierarchical facets
@@ -150,15 +150,15 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              * Get rights
              */
             case parent::RIGHTS:
-                $usersFunctions = new Functions_users($this);
-                return $usersFunctions->getRights($params['emailOrGroup'], isset($params['collectionName']) ? $params['collectionName'] : null, isset($params['featureIdentifier']) ? $params['featureIdentifier'] : null);
+                $rightsFunctions = new Functions_rights($this);
+                return $rightsFunctions->getRights($params['emailOrGroup'], isset($params['collectionName']) ? $params['collectionName'] : null, isset($params['featureIdentifier']) ? $params['featureIdentifier'] : null);
             
             /*
              * Get rights
              */
             case parent::RIGHTS_FULL:
-                $usersFunctions = new Functions_users($this);
-                return $usersFunctions->getFullRights($params['emailOrGroup'], isset($params['collectionName']) ? $params['collectionName'] : null, isset($params['featureIdentifier']) ? $params['featureIdentifier'] : null);
+                $rightsFunctions = new Functions_rights($this);
+                return $rightsFunctions->getFullRights($params['emailOrGroup'], isset($params['collectionName']) ? $params['collectionName'] : null, isset($params['featureIdentifier']) ? $params['featureIdentifier'] : null);
             
             /*
              * Get statistics
@@ -365,8 +365,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              * Remove collection/feature rights for user
              */
             case parent::RIGHTS:
-                $usersFunctions = new Functions_users($this);
-                return $usersFunctions->deleteRights($params['emailOrGroup'], $params['collectionName'],  $params['featureIdentifier']);
+                $rightsFunctions = new Functions_rights($this);
+                return $rightsFunctions->deleteRights($params['emailOrGroup'], $params['collectionName'],  $params['featureIdentifier']);
                 
             default:
                 return null;
@@ -429,8 +429,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              * Store rights
              */
             case parent::RIGHTS:
-                $usersFunctions = new Functions_users($this);
-                return $usersFunctions->storeRights($params['rights'], $params['emailOrGroup'], $params['collectionName'], $params['featureIdentifier']);
+                $rightsFunctions = new Functions_rights($this);
+                return $rightsFunctions->storeRights($params['rights'], $params['emailOrGroup'], $params['collectionName'], $params['featureIdentifier']);
             
             /*
              * Store user profile
@@ -465,8 +465,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              * Update rights
              */
             case parent::RIGHTS:
-                $usersFunctions = new Functions_users($this);
-                return $usersFunctions->updateRights($params['rights'], $params['emailOrGroup'], $params['collectionName'], $params['featureIdentifier']);
+                $rightsFunctions = new Functions_rights($this);
+                return $rightsFunctions->updateRights($params['rights'], $params['emailOrGroup'], $params['collectionName'], $params['featureIdentifier']);
             
             /*
              * Update user profile

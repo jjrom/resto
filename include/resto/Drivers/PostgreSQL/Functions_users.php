@@ -57,17 +57,6 @@ class Functions_users {
         $this->dbDriver = $dbDriver;
         $this->dbh = $dbDriver->getHandler();
     }
-
-    /**
-     * List all groups
-     * 
-     * @return array
-     * @throws Exception
-     */
-    public function getGroups() {
-        $query = 'SELECT DISTINCT groupname FROM usermanagement.users';
-        return $this->dbDriver->fetch($this->dbDriver->query($query));
-    }
     
     /**
      * Return encrypted user password
@@ -114,64 +103,7 @@ class Functions_users {
         return count($results) === 1 ? $results[0] : $profile;
         
     }
-    
-    /**
-     * Return rights from user $identifier
-     * 
-     * @param string $identifier
-     * @param string $collectionName
-     * @param string $featureIdentifier
-     * 
-     * @return array
-     * @throws exception
-     */
-    public function getRights($identifier, $collectionName, $featureIdentifier = null) {
-        $query = 'SELECT search, download, visualize, canpost as post, canput as put, candelete as delete, filters FROM usermanagement.rights WHERE emailorgroup=\'' . pg_escape_string($identifier) . '\' AND collection=\'' . pg_escape_string($collectionName) . '\' AND featureid' . (isset($featureIdentifier) ? '=\'' . pg_escape_string($featureIdentifier) . '\'' : ' IS NULL');
-        $results = $this->dbDriver->fetch($this->dbDriver->query($query));
-        if (count($results) === 1) {
-            if (isset($results[0]['filters'])) {
-                $results[0]['filters'] = json_decode($results[0]['filters'], true);
-            }
-            return $results[0];
-        }
-        return null;
-    }
-    
-    /**
-     * Get complete rights for $identifier for $collectionName or for all collections
-     * 
-     * @param string $identifier
-     * @param string $collectionName
-     * @param string $featureIdentifier
-     * @return array
-     * @throws Exception
-     */
-    public function getFullRights($identifier, $collectionName = null, $featureIdentifier = null) {
-        $query = 'SELECT collection, featureid, search, download, visualize, canpost as post, canput as put, candelete as delete, filters FROM usermanagement.rights WHERE emailorgroup=\'' . pg_escape_string($identifier) . '\'' . (isset($collectionName) ?  ' AND collection=\'' . pg_escape_string($collectionName) . '\'' : '')  . (isset($featureIdentifier) ?  ' AND featureid=\'' . pg_escape_string($featureIdentifier) . '\'' : '');
-        $results = $this->dbDriver->query($query);
-        $rights = array();
-        while ($row = pg_fetch_assoc($results)){
-            $properties = array();
-            if (isset($row['collection']) && !isset($rights[$row['collection']])) {
-                $rights[$row['collection']] = array(
-                    'features' => array()
-                );
-            }
-            if (isset($row['filters'])) {
-                $properties['filters'] = json_decode($row['filters'], true);
-            }
-            if (isset($row['featureid'])) {
-                $rights[$row['collection']]['features'][$row['featureid']] = $properties;
-            }
-            else {
-                foreach ($properties as $key => $value) {
-                    $rights[$row['collection']][$key] = $value;
-                }
-            }
-        }
-        return $rights;
-    }
-    
+
     /**
      * Return cart for user
      * 
@@ -231,7 +163,7 @@ class Functions_users {
     /**
      * Check if user identified by $identifier exists within database
      * 
-     * @param string $identifier - user email
+     * @param string $email - user email
      * 
      * @return boolean
      * @throws Exception
@@ -313,20 +245,10 @@ class Functions_users {
             $values[] = 'groupname=\'' . pg_escape_string($profile['groupname']) . '\'';
         }
         if (isset($profile['activated'])) {
-            if ($profile['activated'] === true) {
-                $values[] = 'activated=TRUE';
-            }
-            else if ($profile['activated'] === false) {
-                $values[] = 'activated=FALSE';
-            }
+            $values[] = 'activated=' . $profile['activated'];
         }
         if (isset($profile['connected'])) {
-            if ($profile['connected'] === true) {
-                $values[] = 'connected=TRUE';
-            }
-            else if ($profile['connected'] === false) {
-                $values[] = 'connected=FALSE';
-            }
+            $values[] = 'connected=' . $profile['connected'];
         }
         
         $results = $this->dbDriver->fetch($this->dbDriver->query('UPDATE usermanagement.users SET ' . join(',', $values) . ' WHERE email=\'' . pg_escape_string(trim(strtolower($profile['email']))) .'\' RETURNING userid'));
@@ -346,114 +268,6 @@ class Functions_users {
         return true;
     }
 
-    /**
-     * Store rights to database
-     *     
-     *     array(
-     *          'search' => // true or false
-     *          'visualize' => // true or false
-     *          'download' => // true or false
-     *          'canpost' => // true or false
-     *          'canput' => // true or false
-     *          'candelete' => //true or false
-     *          'filters' => array(...)
-     *     )
-     * 
-     * @param array $rights
-     * @param string $identifier
-     * @param string $collectionName
-     * @param string $featureIdentifier
-     * 
-     * @throws Exception
-     */
-    public function storeRights($rights, $identifier, $collectionName, $featureIdentifier = null) {
-        try {
-            if (!$this->collectionExists($collectionName)) {
-                throw new Exception();
-            }
-            $values = array(
-                '\'' . pg_escape_string($collectionName) . '\'',
-                isset($featureIdentifier) ? '\'' . pg_escape_string($featureIdentifier) . '\'' : 'NULL',
-                '\'' . pg_escape_string($identifier) . '\'',
-                (isset($rights['search']) ? ($rights['search'] === 'true' ? 'TRUE' : 'FALSE') : 'NULL'),
-                (isset($rights['visualize']) ? ($rights['visualize'] === 'true' ? 'TRUE' : 'FALSE') : 'NULL'),
-                (isset($rights['download']) ? ($rights['download'] === 'true' ? 'TRUE' : 'FALSE') : 'NULL'),
-                (isset($rights['canpost']) ? ($rights['canpost'] === 'true' ? 'TRUE' : 'FALSE') : 'NULL'),
-                (isset($rights['canput']) ? ($rights['canput'] === 'true' ? 'TRUE' : 'FALSE') : 'NULL'),
-                (isset($rights['candelete']) ? ($rights['candelete'] === 'true' ? 'TRUE' : 'FALSE') : 'NULL'),
-                isset($rights['filters']) ? '\'' . pg_escape_string(json_encode($rights['filters'])) . '\'' : 'NULL'
-            );
-            $result = pg_query($this->dbh, 'INSERT INTO usermanagement.rights (collection,featureid,emailorgroup,search,visualize,download,canpost,canput,candelete,filters) VALUES (' . join(',', $values) . ')');    
-            if (!$result){
-                throw new Exception();
-            }
-        } catch (Exception $e) {
-            RestoLogUtil::httpError(500, 'Cannot create right');
-        }
-    }
-    
-    /**
-     * Update rights to database
-     *     
-     *     array(
-     *          'search' => // true or false
-     *          'visualize' => // true or false
-     *          'download' => // true or false
-     *          'canpost' => // true or false
-     *          'canput' => // true or false
-     *          'candelete' => //true or false
-     *          'filters' => array(...)
-     *     )
-     * 
-     * @param array $rights
-     * @param string $identifier
-     * @param string $collectionName
-     * @param string $featureIdentifier
-     * 
-     * @throws Exception
-     */
-    public function updateRights($rights, $identifier, $collectionName, $featureIdentifier = null) {
-        
-        if (!$this->collectionExists($collectionName)) {
-            throw new Exception();
-        }
-        $values = array(
-            'collection=\'' . pg_escape_string($collectionName) . '\',',
-            (isset($featureIdentifier) ? 'featureid=\'' . pg_escape_string($featureIdentifier) . '\',' : '') ,
-            'emailorgroup=\'' . pg_escape_string($identifier) . '\'',
-            (isset($rights['search']) ? ($rights['search'] === 'true' ? ',search=TRUE' : ',search=FALSE') : ''),
-            (isset($rights['visualize']) ? ($rights['visualize'] === 'true' ? ',visualize=TRUE' : ',visualize=FALSE') : ''),
-            (isset($rights['download']) ? ($rights['download'] === 'true' ? ',download=TRUE' : ',download=FALSE') : ''),
-            (isset($rights['canpost']) ? ($rights['canpost'] === 'true' ? ',canpost=TRUE' : ',canpost=FALSE') : ''),
-            (isset($rights['canput']) ? ($rights['canput'] === 'true' ? ',canput=TRUE' : ',canput=FALSE') : ''),
-            (isset($rights['candelete']) ? ($rights['candelete'] === 'true' ? ',candelete=TRUE' : ',candelete=FALSE') : ''),
-            (isset($rights['filters']) ? 'filters=\'' . pg_escape_string(json_encode($rights['filters'])) . '\'' : '')
-        );
-        $this->dbDriver->query('UPDATE usermanagement.rights SET ' . join('', $values) . ' WHERE collection=\'' . pg_escape_string($collectionName) . '\' AND emailorgroup=\'' . pg_escape_string($identifier) . '\' AND featureid' . (isset($featureIdentifier) ? ('=\'' . $featureIdentifier . '\'') : ' IS NULL'));    
-        return true;
-        
-    }
-    
-    /**
-     * Delete rights from database
-     * 
-     * @param string $identifier
-     * @param string $collectionName
-     * @param string $featureIdentifier
-     * 
-     * @throws Exception
-     */
-    public function deleteRights($identifier, $collectionName = null, $featureIdentifier = null) {
-        try{
-            $result = pg_query($this->dbh, 'DELETE from usermanagement.rights WHERE emailorgroup=\'' . pg_escape_string($identifier) . '\'' . (isset($collectionName) ? ' AND collection=\'' . pg_escape_string($collectionName) . '\'' : '') . (isset($featureIdentifier) ? ' AND featureid=\'' . pg_escape_string($featureIdentifier) . '\'' : ''));
-            if (!$result){
-                throw new Exception;
-            }
-        } catch (Exception $e) {
-            RestoLogUtil::httpError(500, 'Cannot delete rights for ' . $identifier);
-        }
-    }
-   
     /**
      * Check if user signed collection license
      * 
@@ -569,7 +383,7 @@ class Functions_users {
             /*
              * Transaction
              */
-            pg_query($this->dbh, 'BEGIN');
+            $this->dbDriver->query('BEGIN');
                 
             /*
              * Do not create empty orders
@@ -586,23 +400,21 @@ class Functions_users {
                 '\'' . pg_escape_string(json_encode($items)) . '\'',
                 'now()'
             );
-            $results = pg_query($this->dbh, 'INSERT INTO usermanagement.orders (orderid, email, items, querytime) VALUES (' . join(',', $values) . ')');
-            if (!$results) {
-                RestoLogUtil::httpError(500, 'Database connection error');
-            }
+            $this->dbDriver->query('INSERT INTO usermanagement.orders (orderid, email, items, querytime) VALUES (' . join(',', $values) . ')');
             
             /*
              * Empty cart
              */
-            pg_query($this->dbh, 'DELETE FROM usermanagement.cart WHERE email=\'' . pg_escape_string($identifier) . '\'');
-            pg_query($this->dbh, 'COMMIT');
+            $this->dbDriver->query('DELETE FROM usermanagement.cart WHERE email=\'' . pg_escape_string($identifier) . '\'');
+            $this->dbDriver->query('COMMIT');
             
             return array(
                 'orderId' => $orderId,
                 'items' => $items
             );
+            
         } catch (Exception $e) {
-            pg_query($this->dbh, 'ROLLBACK');
+            $this->dbDriver->query('ROLLBACK');
             throw new Exception($e->getMessage(), $e->getCode());
         }
         
@@ -651,37 +463,30 @@ class Functions_users {
      * @throws Exception
      */
     public function getHistory($userid = null, $options = array()) {
-        $options = array(
-            'orderBy' => isset($options['orderBy']) ? $options['orderBy'] : 'querytime',
-            'ascOrDesc' => isset($options['ascOrDesc']) ? $options['ascOrDesc'] : 'DESC',
-            'collectionName' => isset($options['collectionName']) ? $options['collectionName'] : null,
-            'service' => isset($options['service']) ? $options['service'] : null,
-            'startIndex' => isset($options['startIndex']) ? $options['startIndex'] : 0,
-            'numberOfResults' => isset($options['numberOfResults']) ? $options['numberOfResults'] : 50
-        );
-        try {
-            $where = array();
-            if (isset($userid)) {
-                $where[] = 'userid=' . pg_escape_string($userid);
-            }
-            if (isset($options['service'])) {
-                $where[] = 'service=\'' . pg_escape_string($options['service']) . '\'';
-            }
-            if (isset($options['collectionName'])) {
-                $where[] = 'collection=\'' . pg_escape_string($options['collectionName']) . '\'';
-            }
-            $results = pg_query($this->dbh, 'SELECT gid, userid, method, service, collection, resourceid, query, querytime, url, ip FROM usermanagement.history' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : '') . ' ORDER BY ' . pg_escape_string($options['orderBy']) . ' ' . pg_escape_string($options['ascOrDesc']) . ' LIMIT ' . $options['numberOfResults'] . ' OFFSET ' . $options['startIndex']);
-            if (!$results) {
-                throw new Exception();
-            } 
-            $result = array();
-            while ($row = pg_fetch_assoc($results)) {
-                $result[$row['gid']] = $row;
-            }
-            return $result;
-        } catch (Exception $e) {
-            RestoLogUtil::httpError(500, 'Cannot get history');
+        
+        $result = array();
+        
+        $orderBy = isset($options['orderBy']) ? $options['orderBy'] : 'querytime';
+        $ascOrDesc = isset($options['ascOrDesc']) ? $options['ascOrDesc'] : 'DESC';
+        $startIndex = isset($options['startIndex']) ? $options['startIndex'] : 0;
+        $numberOfResults = isset($options['numberOfResults']) ? $options['numberOfResults'] : 50;
+        
+        $where = array();
+        if (isset($userid)) {
+            $where[] = 'userid=' . pg_escape_string($userid);
         }
+        if (isset($options['service'])) {
+            $where[] = 'service=\'' . pg_escape_string($options['service']) . '\'';
+        }
+        if (isset($options['collectionName'])) {
+            $where[] = 'collection=\'' . pg_escape_string($options['collectionName']) . '\'';
+        }
+
+        $results = $this->dbDriver->query('SELECT gid, userid, method, service, collection, resourceid, query, querytime, url, ip FROM usermanagement.history' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : '') . ' ORDER BY ' . pg_escape_string($orderBy) . ' ' . pg_escape_string($ascOrDesc) . ' LIMIT ' . $numberOfResults . ' OFFSET ' . $startIndex, 500, 'Cannot get history');
+        while ($row = pg_fetch_assoc($results)) {
+            $result[$row['gid']] = $row;
+        }
+        return $result;
         
     }
     
