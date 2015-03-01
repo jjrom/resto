@@ -664,7 +664,7 @@ abstract class RestoModel {
         /*
          * Check that resource does not already exist in database
          */
-        if ($this->context->dbDriver->is(RestoDatabaseDriver::FEATURE, array('featureIdentifier' => $data['id']))) {
+        if ($this->context->dbDriver->check(RestoDatabaseDriver::FEATURE, array('featureIdentifier' => $data['id']))) {
             RestoLogUtil::httpError(500, 'Feature ' . $data['id'] . ' already in database');
         }
         

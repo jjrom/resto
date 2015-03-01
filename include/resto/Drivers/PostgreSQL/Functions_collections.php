@@ -144,7 +144,7 @@ class Functions_collections {
             /*
              * Do not drop schema if product table is not empty
              */
-            if ($this->dbDriver->is(RestoDatabaseDriver::SCHEMA, array('name' => $schemaName)) && $this->dbDriver->is(RestoDatabaseDriver::TABLE_EMPTY, array('name' => 'features', 'schema' => $schemaName))) {
+            if ($this->dbDriver->check(RestoDatabaseDriver::SCHEMA, array('name' => $schemaName)) && $this->dbDriver->check(RestoDatabaseDriver::TABLE_EMPTY, array('name' => 'features', 'schema' => $schemaName))) {
                 $query .= 'DROP SCHEMA ' . $schemaName . ' CASCADE;';
             }
 
@@ -201,7 +201,7 @@ class Functions_collections {
             /*
              * Rollback on errors
              */
-            if (!$this->dbDriver->is(RestoDatabaseDriver::SCHEMA, array('name' => $schemaName))) {
+            if (!$this->dbDriver->check(RestoDatabaseDriver::SCHEMA, array('name' => $schemaName))) {
                 $this->dbDriver->query('ROLLBACK');
                 RestoLogUtil::httpError(2000);
             }
@@ -249,7 +249,7 @@ class Functions_collections {
      * @param string $schemaName
      */
     private function createSchema($schemaName) {
-        if (!$this->dbDriver->is(RestoDatabaseDriver::SCHEMA, array('name' => $schemaName))) {
+        if (!$this->dbDriver->check(RestoDatabaseDriver::SCHEMA, array('name' => $schemaName))) {
             $this->dbDriver->query('CREATE SCHEMA ' . $schemaName);
             $this->dbDriver->query('GRANT ALL ON SCHEMA ' . $schemaName . ' TO resto');
             return true;
@@ -280,7 +280,7 @@ class Functions_collections {
         /*
          * Create schema.features if needed with a CHECK on collection name
          */
-        if (!$this->dbDriver->is(RestoDatabaseDriver::TABLE, array('name' => 'features', 'schema' => $schemaName))) {
+        if (!$this->dbDriver->check(RestoDatabaseDriver::TABLE, array('name' => 'features', 'schema' => $schemaName))) {
             $this->dbDriver->query('CREATE TABLE ' . $schemaName . '.features (' . (count($table) > 0 ? join(',', $table) . ',' : '') . 'CHECK( collection = \'' . $collection->name . '\')) INHERITS (resto.features);');
             $indices = array(
                 'identifier' => 'btree',

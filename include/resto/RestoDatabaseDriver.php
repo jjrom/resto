@@ -124,7 +124,7 @@ abstract class RestoDatabaseDriver {
      * @return boolean
      * @throws Exception
      */
-    abstract public function is($typeName, $params);
+    abstract public function check($typeName, $params);
 
     /**
      * Execute action

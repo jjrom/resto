@@ -212,7 +212,7 @@ class RestoUser{
      */
     public function hasToSignLicense($collection) {
         if (!empty($collection->license)) {
-            if (!isset($this->profile['email']) || !$this->context->dbDriver->is(RestoDatabaseDriver::LICENSE_SIGNED, array('email' => $this->profile['email'], 'collectionName' => $collection->name))) {
+            if (!isset($this->profile['email']) || !$this->context->dbDriver->check(RestoDatabaseDriver::LICENSE_SIGNED, array('email' => $this->profile['email'], 'collectionName' => $collection->name))) {
                 return true;
             }
         }
@@ -312,7 +312,7 @@ class RestoUser{
         if (!isset($resourceUrl) || !isset($token)) {
             return false;
         }
-        if ($this->context->dbDriver->is(RestoDatabaseDriver::SHARED_LINK, array('resourceUrl' => $resourceUrl, 'token' => $token))) {
+        if ($this->context->dbDriver->check(RestoDatabaseDriver::SHARED_LINK, array('resourceUrl' => $resourceUrl, 'token' => $token))) {
             return true;
         }
     

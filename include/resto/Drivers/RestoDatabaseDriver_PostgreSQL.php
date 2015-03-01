@@ -245,7 +245,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      * @param array $params
      * @return type
      */
-    public function is($typeName, $params = array()) {
+    public function check($typeName, $params = array()) {
         switch ($typeName) {
             
             /*

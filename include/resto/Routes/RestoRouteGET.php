@@ -282,7 +282,7 @@ class RestoRouteGET extends RestoRoute {
         /*
          * Only existing local user can change there password
          */
-        if (!$this->context->dbDriver->is(RestoDatabaseDriver::USER, array('email' => $this->context->query['email'])) || $this->context->dbDriver->get(RestoDatabaseDriver::USER_PASSWORD, array('email' => $this->context->query['email'])) === str_repeat('*', 40)) {
+        if (!$this->context->dbDriver->check(RestoDatabaseDriver::USER, array('email' => $this->context->query['email'])) || $this->context->dbDriver->get(RestoDatabaseDriver::USER_PASSWORD, array('email' => $this->context->query['email'])) === str_repeat('*', 40)) {
             RestoLogUtil::httpError(3005);
         }
         

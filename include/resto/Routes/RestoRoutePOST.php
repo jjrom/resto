@@ -198,7 +198,7 @@ class RestoRoutePOST extends RestoRoute {
         }
         $query = array();
         parse_str($pair[1], $query);
-        if (!isset($query['_tk']) || !$this->context->dbDriver->is(RestoDatabaseDriver::SHARED_LINK, array('resourceUrl' => $pair[0], 'token' => $query['_tk']))) {
+        if (!isset($query['_tk']) || !$this->context->dbDriver->check(RestoDatabaseDriver::SHARED_LINK, array('resourceUrl' => $pair[0], 'token' => $query['_tk']))) {
             RestoLogUtil::httpError(403);
         }
         
@@ -293,7 +293,7 @@ class RestoRoutePOST extends RestoRoute {
         if (!isset($data['name'])) {
             RestoLogUtil::httpError(400);
         }
-        if ($this->context->dbDriver->is(RestoDatabaseDriver::COLLECTION, array('collectionName' => $data['name']))) {
+        if ($this->context->dbDriver->check(RestoDatabaseDriver::COLLECTION, array('collectionName' => $data['name']))) {
             RestoLogUtil::httpError(2003);
         }
         $collection = new RestoCollection($data['name'], $this->context, $this->user);
@@ -378,7 +378,7 @@ class RestoRoutePOST extends RestoRoute {
             RestoLogUtil::httpError(400, 'Email is not set');
         }
 
-        if ($this->dbDriver->is(RestoDatabaseDriver::USER, array('email' => $data['email']))) {
+        if ($this->dbDriver->check(RestoDatabaseDriver::USER, array('email' => $data['email']))) {
             RestoLogUtil::httpError(3000);
         }
 
