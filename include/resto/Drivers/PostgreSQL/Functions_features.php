@@ -495,19 +495,18 @@ class Functions_features {
              */
             $featureArray = $feature->toArray();
             foreach($featureArray['properties'] as $key => $value) {
-                 
-                /*
-                 * Property facets
-                 */
-                $id = $key . ':' . $value;
-                if ($this->dbDriver->facetUtil->getFacetCategory($id)) {
-                    $this->removePropertyFacet($featureArray['properties'], $id, $featureArray['properties']['collection']);
-                }
+                
                 /*
                  * Keywords facets
                  */
-                else if ($key === 'keywords') {
+                if ($key === 'keywords') {
                     $this->removeKeywordsFacets($featureArray['properties'][$key], $featureArray['properties']['collection']);
+                }
+                /*
+                 * Property facets
+                 */
+                else {
+                    $this->removePropertyFacet($featureArray['properties'], $key . ':' . $value, $featureArray['properties']['collection']);
                 }
                 
             }
@@ -1161,6 +1160,11 @@ class Functions_features {
      * @param string $collectionName
      */
     private function removePropertyFacet($properties, $id, $collectionName) {
+        
+        if (!$this->dbDriver->facetUtil->getFacetCategory($id)) {
+            return false;
+        }
+                
         $parentHash = null;
         list($parentType) = explode(':', $id, 1);
         $parentIds = array();
@@ -1178,9 +1182,11 @@ class Functions_features {
                 $parentHash = RestoUtil::getHash($parentIds[$k], $parentHash);
             }
         }
-        $this->dbDriver->remove(RestoDatabaseDriver::FACET, array(
+        
+        return $this->dbDriver->remove(RestoDatabaseDriver::FACET, array(
            'hash' => RestoUtil::getHash($id, $parentHash),
            'collectionName' => $collectionName
         ));
+        
     }
 }
