@@ -104,6 +104,7 @@ class Functions_facets {
     public function getStatistics($collectionName = null, $facetFields = null) {
         
         $cached = $this->dbDriver->cache->retrieve(array('getStatistics', $collectionName, $facetFields));
+        
         if (isset($cached)) {
             return $cached;
         }
@@ -113,19 +114,7 @@ class Functions_facets {
          */
         $statistics = array();
         if (isset($facetFields) && count($facetFields) > 0) {
-            $pivots = $this->getFacetsPivots($collectionName, $facetFields, null);
-            foreach(array_values($pivots) as $pivot) {
-                if (isset($pivot) && count($pivot) > 0) {
-                    for ($j = count($pivot); $j--;) {
-                        if (isset($statistics[$pivot[$j]['field']][$pivot[$j]['value']])) {
-                            $statistics[$pivot[$j]['field']][$pivot[$j]['value']] += (integer) $pivot[$j]['count'];
-                        }
-                        else {
-                            $statistics[$pivot[$j]['field']][$pivot[$j]['value']] = (integer) $pivot[$j]['count'];
-                        }
-                    }
-                }
-            }
+            $statistics = $this->getCounts($this->getFacetsPivots($collectionName, $facetFields, null));
         }
         /*
          * or for all master facet fields
@@ -135,19 +124,7 @@ class Functions_facets {
             foreach (array_values($this->dbDriver->facetUtil->facetCategories) as $facetCategory) {
                 $fields[] = $facetCategory[0];
             }
-            $pivots = $this->getFacetsPivots($collectionName, $fields, null);
-            foreach(array_values($pivots) as $pivot) {
-                if (isset($pivot) && count($pivot) > 0) {
-                    for ($j = count($pivot); $j--;) {
-                        if (isset($statistics[$pivot[$j]['field']][$pivot[$j]['value']])) {
-                            $statistics[$pivot[$j]['field']][$pivot[$j]['value']] += (integer) $pivot[$j]['count'];
-                        }
-                        else {
-                            $statistics[$pivot[$j]['field']][$pivot[$j]['value']] = (integer) $pivot[$j]['count'];
-                        }
-                    }
-                }
-            }
+            $statistics = $this->getCounts($this->getFacetsPivots($collectionName, $fields, null));
         }
         
         $this->dbDriver->cache->store(array('getStatistics', $collectionName, $facetFields), $statistics);
@@ -164,56 +141,53 @@ class Functions_facets {
      * @return array
      */
     private function getFacetsPivots($collectionName, $fields, $parentHash) {
+        
         $pivots = array();
         $cached = $this->dbDriver->cache->retrieve(array('getFacetsPivots', $fields, $parentHash));
         if (isset($cached)) {
             return $cached;
         }
-        try {
-            
-            /*
-             * Facets for one collection
-             */
-            if (isset($collectionName)) {
-                $results = pg_query($this->dbh, 'SELECT * FROM resto.facets WHERE counter > 0 AND collection=\'' . pg_escape_string($collectionName) . '\' AND type IN(\'' . join('\',\'', $fields) . '\')' . (isset($parentHash) ? ' AND pid=\'' . pg_escape_string($parentHash) . '\'' : '') . ' ORDER BY type ASC, value DESC');
+       
+        /*
+         * Facets for one collection
+         */
+        $query = 'SELECT * FROM resto.facets WHERE counter > 0 AND ';
+        if (isset($collectionName)) {
+            $results = $this->dbDriver->query($query . 'collection=\'' . pg_escape_string($collectionName) . '\' AND type IN(\'' . join('\',\'', $fields) . '\')' . (isset($parentHash) ? ' AND pid=\'' . pg_escape_string($parentHash) . '\'' : '') . ' ORDER BY type ASC, value DESC');
+        }
+        /*
+         * Facets for all collections
+         */
+        else {
+            $results = $this->dbDriver->query($query . 'type IN(\'' . join('\',\'', $fields) . '\')' . (isset($parentHash) ? ' AND pid=\'' . pg_escape_string($parentHash) . '\'' : '') . ' ORDER BY type ASC, value DESC');
+        }
+        
+        while ($result = pg_fetch_assoc($results)) {
+            if (!isset($pivots[$result['type']])) {
+                $pivots[$result['type']] = array();
             }
-            /*
-             * Facets for all collections
-             */
-            else {
-                $results = pg_query($this->dbh, 'SELECT * FROM resto.facets WHERE counter > 0 AND type IN(\'' . join('\',\'', $fields) . '\')' . (isset($parentHash) ? ' AND pid=\'' . pg_escape_string($parentHash) . '\'' : '') . ' ORDER BY type ASC, value DESC');
-            }
-            if (!$results) {
-                throw new Exception();
-            }
-            while ($result = pg_fetch_assoc($results)) {
-                if (!isset($pivots[$result['type']])) {
-                    $pivots[$result['type']] = array();
-                }
-                $create = true;
-                if (!isset($collectionName)) {
-                    for ($i = count($pivots[$result['type']]); $i--;) {
-                        if ($pivots[$result['type']][$i]['value'] === $result['value']) {
-                            $pivots[$result['type']][$i]['count'] += (integer) $result['counter'];
-                            $create = false;
-                            break;
-                        }
+            $create = true;
+            if (!isset($collectionName)) {
+                for ($i = count($pivots[$result['type']]); $i--;) {
+                    if ($pivots[$result['type']][$i]['value'] === $result['value']) {
+                        $pivots[$result['type']][$i]['count'] += (integer) $result['counter'];
+                        $create = false;
+                        break;
                     }
                 }
-                if ($create) {
-                    $pivots[$result['type']][] = array(
-                        'field' => $result['type'],
-                        'value' => $result['value'],
-                        'count' => (integer) $result['counter'],
-                        'hash' => $result['uid'],
-                        'parentHash' => isset($parentHash) ? $parentHash : null
-                    );
-                }
             }
-            $this->dbDriver->cache->store(array('getFacetsPivots', $fields, $parentHash), $pivots);
-        } catch (Exception $e) {
-            RestoLogUtil::httpError(500, 'Cannot retrieve facets');
+            if ($create) {
+                $pivots[$result['type']][] = array(
+                    'field' => $result['type'],
+                    'value' => $result['value'],
+                    'count' => (integer) $result['counter'],
+                    'hash' => $result['uid'],
+                    'parentHash' => isset($parentHash) ? $parentHash : null
+                );
+            }
         }
+        $this->dbDriver->cache->store(array('getFacetsPivots', $fields, $parentHash), $pivots);
+       
         return $pivots;
     }
 
@@ -241,6 +215,7 @@ class Functions_facets {
      * @param type $collectionName
      */
     public function storeFacets($facets, $collectionName) {
+        
         foreach (array_values($facets) as $facetElement) {
                 
             list($ptype, $pvalue) = isset($facetElement['parentId']) ? explode(':', $facetElement['parentId'],2) : array(null, null);
@@ -280,4 +255,26 @@ class Functions_facets {
         return !$this->dbDriver->isEmpty($this->dbDriver->fetch($this->dbDriver->query($query)));
     }
     
+    /**
+     * Return counts for all pivots elements
+     * 
+     * @param array $pivots
+     * @return type
+     */
+    private function getCounts($pivots) {
+        $statistics = array();
+        foreach(array_values($pivots) as $pivot) {
+            if (isset($pivot) && count($pivot) > 0) {
+                for ($j = count($pivot); $j--;) {
+                    if (isset($statistics[$pivot[$j]['field']][$pivot[$j]['value']])) {
+                        $statistics[$pivot[$j]['field']][$pivot[$j]['value']] += (integer) $pivot[$j]['count'];
+                    }
+                    else {
+                        $statistics[$pivot[$j]['field']][$pivot[$j]['value']] = (integer) $pivot[$j]['count'];
+                    }
+                }
+            }
+        }
+        return $statistics;
+    }
 }
