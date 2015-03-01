@@ -77,74 +77,23 @@ class RestoGeometryUtil {
      * @param array $geometry - GeoJSON geometry
      */
     public static function geoJSONGeometryToWKT($geometry) {
-        
         $type = strtoupper($geometry['type']);
-        if ($type === 'POINT') {
-            $wkt = $type . RestoUtil::toPoint($geometry['coordinates']);
+        switch($type) {
+            case 'POINT':
+                return $type . RestoUtil::toPoint($geometry['coordinates']);
+            case 'MULTIPOINT':
+                return $type . RestoUtil::toMultiPoint($geometry['coordinates']);
+            case 'LINESTRING':
+                return $type . RestoUtil::toLineString($geometry['coordinates']);
+            case 'MULTILINESTRING':
+                return $type . RestoUtil::toMultiLineString($geometry['coordinates']);
+            case 'POLYGON':
+                return $type . RestoUtil::toPolygon($geometry['coordinates']);
+            case 'MULTIPOLYGON':
+                return $type . RestoUtil::toMultiPolygon($geometry['coordinates']);
+            default:
+                return null;
         }
-        else if ($type === 'MULTIPOINT') {
-            $points = array();
-            for ($i = 0, $l = count($geometry['coordinates']); $i < $l; $i++) {
-                $points[] = RestoUtil::toPoint($geometry['coordinates'][$i]);
-            }
-            $wkt = $type . '(' . join(',', $points) . ')';
-        }
-        else if ($type === 'LINESTRING') {
-            $wkt = $type . RestoUtil::toLineString($geometry['coordinates']);
-        }
-        else if ($type === 'MULTILINESTRING') {
-            $lineStrings = array();
-            for ($i = 0, $l = count($geometry['coordinates']); $i < $l; $i++) {
-                $lineStrings[] = RestoUtil::toLineString($geometry['coordinates'][$i]);
-            }
-            $wkt = $type . '(' . join(',', $lineStrings) . ')';
-        }
-        else if ($type === 'POLYGON') {
-            $wkt = $type . RestoUtil::toPolygon($geometry['coordinates']);
-        }
-        else if ($type === 'MULTIPOLYGON') {
-            $polygons = array();
-            for ($i = 0, $l = count($geometry['coordinates']); $i < $l; $i++) {
-                $polygons[] = RestoUtil::toPolygon($geometry['coordinates'][$i]);
-            }
-            $wkt = $type . '(' . join(',', $polygons) . ')';
-        }
-        return $wkt;
-    }
-    
-    /**
-     * Return POINT WKT from coordinates (without WKT type)
-     * 
-     * @param array $coordinates - GeoJSON geometry
-     */
-    public static function toPoint($coordinates) {
-        return '(' . join(' ', $coordinates) . ')';
-    }
-    
-    /**
-     * Return LINESTRING WKT from coordinates (without WKT type)
-     * 
-     * @param array $coordinates - GeoJSON geometry
-     */
-    public static function toLineString($coordinates) {
-        $pairs = array();
-        for ($i = 0, $l = count($coordinates); $i < $l; $i++) {
-            $pairs[] = join(' ', $coordinates[$i]);
-        }
-        return '(' . join(',', $pairs) . ')';
-    }
-    
-    /**
-     * Return POLYGON WKT from coordinates (without WKT type)
-     * 
-     * @param array $coordinates - GeoJSON geometry
-     */
-    public static function toPolygon($coordinates) {
-        $rings = array();
-        for ($i = 0, $l = count($coordinates); $i < $l; $i++) {
-            $rings[] = RestoUtil::toLineString($coordinates[$i]);
-        }
-        return '(' . join(',', $rings) . ')';
     }
     
     /**
@@ -217,20 +166,93 @@ class RestoGeometryUtil {
         /*
          * Lower left coordinate
          */
-        $ll = RestoGeometryUtil::forwardMercator(array(floatval($coords[0]), floatval($coords[1])));
-        if (!$ll) {
+        $lowerLeft = RestoGeometryUtil::forwardMercator(array(floatval($coords[0]), floatval($coords[1])));
+        if (!$lowerLeft) {
             return null;
         }
 
         /*
          * Upper right coordinate
          */
-        $ur = RestoGeometryUtil::forwardMercator(array(floatval($coords[2]), floatval($coords[3])));
-        if (!$ur) {
+        $upperRight = RestoGeometryUtil::forwardMercator(array(floatval($coords[2]), floatval($coords[3])));
+        if (!$upperRight) {
             return null;
         }
 
-        return join(',', $ll) . ',' . join(',', $ur);
+        return join(',', $lowerLeft) . ',' . join(',', $upperRight);
     }
     
+    /**
+     * Return POINT WKT from coordinates (without WKT type)
+     * 
+     * @param array $coordinates - GeoJSON geometry
+     */
+    private static function toPoint($coordinates) {
+        return '(' . join(' ', $coordinates) . ')';
+    }
+    
+    /**
+     * Return MULTIPOINT WKT from coordinates (without WKT type)
+     * 
+     * @param array $coordinates - GeoJSON geometry
+     */
+    private static function toMultiPoint($coordinates) {
+        $points = array();
+        for ($i = 0, $l = count($coordinates); $i < $l; $i++) {
+            $points[] = RestoUtil::toPoint($coordinates[$i]);
+        }
+        return '(' . join(',', $points) . ')';
+    }
+    
+    /**
+     * Return LINESTRING WKT from coordinates (without WKT type)
+     * 
+     * @param array $coordinates - GeoJSON geometry
+     */
+    private static function toLineString($coordinates) {
+        $pairs = array();
+        for ($i = 0, $l = count($coordinates); $i < $l; $i++) {
+            $pairs[] = join(' ', $coordinates[$i]);
+        }
+        return '(' . join(',', $pairs) . ')';
+    }
+    
+    /**
+     * Return MULTILINESTRING WKT from coordinates (without WKT type)
+     * 
+     * @param array $coordinates - GeoJSON geometry
+     */
+    private static function toMultiLineString($coordinates) {
+        $lineStrings = array();
+        for ($i = 0, $l = count($coordinates); $i < $l; $i++) {
+            $lineStrings[] = RestoUtil::toLineString($coordinates[$i]);
+        }
+        return '(' . join(',', $lineStrings) . ')';
+    }
+    
+    /**
+     * Return POLYGON WKT from coordinates (without WKT type)
+     * 
+     * @param array $coordinates - GeoJSON geometry
+     */
+    private static function toPolygon($coordinates) {
+        $rings = array();
+        for ($i = 0, $l = count($coordinates); $i < $l; $i++) {
+            $rings[] = RestoUtil::toLineString($coordinates[$i]);
+        }
+        return '(' . join(',', $rings) . ')';
+    }
+    
+    /**
+     * Return MULTIPOLYGON WKT from coordinates (without WKT type)
+     * 
+     * @param array $coordinates - GeoJSON geometry
+     */
+    private static function toMultiPolygon($coordinates) {
+        $polygons = array();
+        for ($i = 0, $l = count($coordinates); $i < $l; $i++) {
+            $polygons[] = RestoUtil::toPolygon($coordinates[$i]);
+        }
+        return '(' . join(',', $polygons) . ')';
+    }
 }
