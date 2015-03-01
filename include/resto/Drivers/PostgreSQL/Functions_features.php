@@ -761,6 +761,7 @@ class Functions_features {
         /*
          * Remove box filter if location filter is set
          */
+        /* TODO
         if (isset($params['geo:name'])) {
             unset($params['geo:box']);
         }
@@ -783,9 +784,7 @@ class Functions_features {
                     }
                 }
                 
-                /*
-                 * City exists
-                 */
+                
                 if (isset($cityName)) {
                     if (isset($model->context->modules['Gazetteer'])) {
                         $gazetteer = new Gazetteer($model->context, $model->user, $model->context->modules['Gazetteer']);
@@ -804,7 +803,7 @@ class Functions_features {
                 }
             }
         }
-        
+        */
         /*
          * Only visible features are returned
          */
