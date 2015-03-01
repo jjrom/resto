@@ -259,7 +259,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             case parent::COLLECTION:
                 $collectionsFunctions = new Functions_collections($this);
-                return $collectionsFunctions->collectionExists($params['name']);
+                return $collectionsFunctions->collectionExists($params['collectionName']);
             
             /*
              * True if feature exists

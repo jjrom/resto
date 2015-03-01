@@ -98,7 +98,7 @@ class RestoRouteDELETE extends RestoRoute {
         /*
          * Check credentials
          */
-        if (!$this->user->canDelete($collection->name, $feature->identifier)) {
+        if (!$this->user->canDelete($collection->name, isset($feature) ? $feature->identifier : null)) {
             RestoLogUtil::httpError(403);
         }
 

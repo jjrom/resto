@@ -65,6 +65,9 @@ class RestoCache {
      * @param array $arr
      */
     public function retrieve($arr) {
+        if (!$this->directory) {
+            return null;
+        }
         $fileName = $this->getCacheFileName($arr);
         if (!$this->isInCache($fileName)) {
             return null;
@@ -79,6 +82,9 @@ class RestoCache {
      * @param array $obj
      */
     public function store($arr, $obj) {
+        if (!$this->directory) {
+            return null;
+        }
         $fileName = $this->getCacheFileName($arr);
         return $this->write($fileName, $obj);
     }
