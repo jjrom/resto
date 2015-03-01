@@ -500,267 +500,35 @@ class Functions_features {
         }
 
         /*
-         * Set quote to "'" for non numeric filter types
+         * Prepare filter from operation
          */
-        $quote = $type === 'numeric' ? '' : '\'';
-        
-        /*
-         * Get operation
-         */
-        $operation = $model->searchFilters[$filterName]['operation'];
-
-        /*
-         * Simple case - non 'interval' operation on value or arrays
-         * 
-         * if operation is '=' and last character of input value is a '%' sign then perform a like instead of an =
-         */
-        if ($operation === '=' || $operation === '>' || $operation === '>=' || $operation === '<' || $operation === '<=') {
-
+        switch ($model->searchFilters[$filterName]['operation']) {
+            
             /*
-             * Array of values assumes a 'OR' operation
+             * Keywords i.e. searchTerms
              */
-            if (!is_array($requestParams[$filterName])) {
-                $requestParams[$filterName] = array($requestParams[$filterName]);
-            }
-            $ors = array();
-            for ($i = count($requestParams[$filterName]); $i--;) {
-                if ($operation === '=' && substr($requestParams[$filterName][$i], -1) === '%') {
-                    $ors[] = $model->getDbKey($model->searchFilters[$filterName]['key']) . ' LIKE ' . $quote . pg_escape_string($requestParams[$filterName][$i]) . $quote;
-                }
-                else {
-                    $ors[] = $model->getDbKey($model->searchFilters[$filterName]['key']) . ' ' . $operation . ' ' . $quote . pg_escape_string($requestParams[$filterName][$i]) . $quote;
-                }
-            }
-            if (count($ors) > 1) {
-                return '(' . join(' OR ', $ors) . ')';
-            }
-            return $ors[0];
-
-        }
-        /*
-         * Spatial operation ST_Intersects (Input bbox or polygon)
-         */
-        else if ($operation === 'intersects') {
-
+            case 'keywords':
+                return $this->prepareFilterQuery_keywords($model, $filterName, $requestParams, $exclusion);
             /*
-             * Default bounding box is the whole earth
+             * Intersects i.e. geo:*
              */
-            if ($filterName === 'geo:box') {
-                $coords = explode(',', $requestParams[$filterName]);
-                if (count($coords) !== 4) {
-                    return 'INVALID';
-                }
-                $lonmin = is_numeric($coords[0]) ? $coords[0] : -180;
-                $latmin = is_numeric($coords[1]) ? $coords[1] : -90;
-                $lonmax = is_numeric($coords[2]) ? $coords[2] : 180;
-                $latmax = is_numeric($coords[3]) ? $coords[3] : 90;
-
-                return ($exclusion ? 'NOT ' : '') . 'ST_intersects(' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ", ST_GeomFromText('" . pg_escape_string('POLYGON((' . $lonmin . ' ' . $latmin . ',' . $lonmin . ' ' . $latmax . ',' . $lonmax . ' ' . $latmax . ',' . $lonmax . ' ' . $latmin . ',' . $lonmin . ' ' . $latmin . '))') . "', 4326))";
-
-            }
-            else if ($filterName === 'geo:geometry') {
-                return ($exclusion ? 'NOT ' : '') . 'ST_intersects(' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ", ST_GeomFromText('" . pg_escape_string($requestParams[$filterName]) . "', 4326))";
-            }
-
-        }
-        /*
-         * Spatial operation ST_Distance (Center point + radius)
-         * 
-         * WARNING ! Quick benchmark show that st_distance is 100x slower than st_intersects
-         * 
-         * TODO - check if st_distance performance can be improved.
-         * 
-         */
-        else if ($operation === 'distance') {
-
-            $use_distance = false;
-
+            case 'intersects':
+                return $this->prepareFilterQuery_intersects($model, $filterName, $requestParams, $exclusion);
             /*
-             * geo:lon and geo:lat have preseance to geo:name
-             * (avoid double call to Gazetteer)
+             * Distance i.e. geo:lon, geo:lat and geo:radius
              */
-            if (isset($requestParams['geo:lon']) && isset($requestParams['geo:lat'])) {
-                $radius = RestoGeometryUtil::radiusInDegrees(isset($requestParams['geo:radius']) ? floatval($requestParams['geo:radius']) : 10000, $requestParams['geo:lat']);
-                if ($use_distance) {
-                    return 'ST_distance(' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ', ST_GeomFromText(\'' . pg_escape_string('POINT(' . $requestParams['geo:lon'] . ' ' . $lat = $requestParams['geo:lat'] . ')') . '\', 4326)) < ' . $radius;
-                }
-                else {
-                    $lonmin = $requestParams['geo:lon'] - $radius;
-                    $latmin = $requestParams['geo:lat'] - $radius;
-                    $lonmax = $requestParams['geo:lon'] + $radius;
-                    $latmax = $requestParams['geo:lat'] + $radius;
-                    return ($exclusion ? 'NOT ' : '') . 'ST_intersects(' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ", ST_GeomFromText('" . pg_escape_string('POLYGON((' . $lonmin . ' ' . $latmin . ',' . $lonmin . ' ' . $latmax . ',' . $lonmax . ' ' . $latmax . ',' . $lonmax . ' ' . $latmin . ',' . $lonmin . ' ' . $latmin . '))') . "', 4326))";
-                }
-            }
-        }
-        /*
-         * keywords case - i.e. searchTerms
-         * 
-         * !! IMPORTANT NOTE !!
-         * 
-         *      keywords are stored in hstore 'keywords' column
-         *      BUT searches are done on the array 'hashes' column
-         * 
-         */
-        else if ($operation === 'keywords') {
-
-            $terms = array();
-            $splitted = RestoUtil::splitString($requestParams[$filterName]);
-            $key = $model->getDbKey($model->searchFilters[$filterName]['key']);
-            $filters = array(
-                'with' => array(),
-                'without' => array()
-            );
-            for ($i = 0, $l = count($splitted); $i < $l; $i++) {
-
-                /*
-                 * If term as a '-' prefix then performs a "NOT keyword"
-                 * If keyword contain a + then transform it into a ' '
-                 */
-                $s = ($exclusion ? '-' : '') . $splitted[$i];
-                $not = false;
-                if (substr($s, 0, 1) === '-') {
-                    $not = true;
-                    $s = substr($s, 1);
-                }
-
-                /*
-                 * Keywords structure is "type:value"
-                 */
-                $typeAndValue = explode(':', $s);
-                if (count($typeAndValue) !== 2) {
-                    return 'INVALID';
-                }
-
-                /*
-                 * Landuse columns are NUMERIC columns
-                 */
-                if ($typeAndValue[0] === 'landuse') {
-                    if (in_array($typeAndValue[1], array('cultivated', 'desert', 'flooded', 'forest','herbaceous','snow','ice','urban','water'))) {
-                        $terms[] = 'lu_' . $typeAndValue[1] . ($not ? ' = ' : ' > ') . '0';
-                    }
-                    else {
-                        return 'INVALID';
-                    }
-                }
-                /*
-                 * TODO - need to be rewritten (see search(...))
-                 */
-                else if ($typeAndValue[0] === 'city') {
-                    continue;
-                }
-                /*
-                 * Everything other types are stored within hashes column
-                 * If input keyword is a hash leave value unchanged
-                 * 
-                 * Structure is :
-                 * 
-                 *      type:id or type:id1|id2|id3|.etc.
-                 * 
-                 * In second case, '|' is understood as "OR"
-                 */
-                else {
-                    $ors = array();
-                    $arr = explode('|', $typeAndValue[1]);
-                    if (count($arr) > 1) {
-                        for ($j = count($arr); $j--;) {
-                            $ors[] = $key . " @> ARRAY['" . pg_escape_string($typeAndValue[0] !== 'hash' ? $typeAndValue[0] . ':' . $arr[$j] : $arr[$j]) . "']";
-                        }
-                        if (count($ors) > 1) {
-                            $terms[] = ($not ? 'NOT (' : '(') . join(' OR ', $ors) . ')';
-                        }
-                    }
-                    else {
-                        $filters[$not ? 'without' : 'with'][] = "'" . pg_escape_string($typeAndValue[0] !== 'hash' ? $s : $typeAndValue[1]) . "'";
-                    }
-                }
-            }
-
-            if (count($filters['without']) > 0) {
-                $terms[] = 'NOT ' . $key . " @> ARRAY[" . join(',', $filters['without']) . "]";
-            }
-            if (count($filters['with']) > 0) {
-                $terms[] = $key . " @> ARRAY[" . join(',', $filters['with']) . "]";
-            }
-
-            return join(' AND ', $terms);
-
-        }
-
-        /*
-         * Interval case 
-         * 
-         *  If
-         *      A is the value of $this->request['params'][$this->description['searchFilters'][$filterName]['osKey']]
-         *  Then
-         *      A = n1 then returns value = n1
-         *      A = {n1,n2} then returns  value = n1 or value = n2
-         *      A = [n1,n2] then returns  n1 ≤ value ≤ n2
-         *      A = [n1,n2[ then returns  n1 ≤ value < n2
-         *      A = ]n1,n2[ then returns  n1 < value < n2
-         *      A = ]n1 then returns n1 < value
-         *      A = [n1 then returns  n1 ≤ value
-         *      A = n1[ then returns value < n2
-         *      A = n1] then returns value ≤ n2 
-         */
-        else if ($operation === 'interval') {
-
-            $values = explode(',', $requestParams[$filterName]);
-
+            case 'distance':
+                return $this->prepareFilterQuery_distance($model, $filterName, $requestParams, $exclusion);
             /*
-             * No ',' present i.e. simple equality or non closed interval
+             * Intervals 
              */
-            if (count($values) === 1) {
-
-                /* 
-                 * Non closed interval
-                 */
-                $op1 = substr(trim($values[0]), 0, 1);
-                $val1 = substr(trim($values[0]), 1);
-                if ($op1 === '[' || $op1 === ']') {
-                    return $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op1 === '[' ? ' >= ' : ' > ') . pg_escape_string($val1);
-                }
-                $op2 = substr(trim($values[0]), -1);
-                $val2 = substr(trim($values[0]), 0, strlen(trim($values[0])) - 1);
-                if ($op2 === '[' || $op2 === ']') {
-                    return $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op2 === ']' ? ' <= ' : ' < ') . pg_escape_string($val2);
-                }
-                /*
-                 * Simple equality
-                 */
-                return $model->getDbKey($model->searchFilters[$filterName]['key']) . ' = ' . pg_escape_string($requestParams[$filterName]);
-            }
+            case 'interval':
+                return $this->prepareFilterQuery_interval($model, $filterName, $requestParams);
             /*
-             * Two values
+             * Simple case - non 'interval' operation on value or arrays
              */
-            else if (count($values) === 2) {
-
-                /*
-                 * First and last characters give operators
-                 */
-                $op1 = substr(trim($values[0]), 0, 1);
-                $val1 = substr(trim($values[0]), 1);
-                $op2 = substr(trim($values[1]), -1);
-                $val2 = substr(trim($values[1]), 0, strlen(trim($values[1])) - 1);
-
-                /*
-                 * A = {n1,n2} then returns  = n1 or = n2
-                 */
-                if ($op1 === '{' && $op2 === '}') {
-                    return '(' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ' = ' . pg_escape_string($val1) . ' OR ' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ' = ' . pg_escape_string($val2) . ')';
-                }
-
-                /*
-                 * Other cases i.e. 
-                 * A = [n1,n2] then returns <= n1 and <= n2
-                 * A = [n1,n2[ then returns <= n1 and B < n2
-                 * A = ]n1,n2[ then returns < n1 and B < n2
-                 * 
-                 */
-                if (($op1 === '[' || $op1 === ']') && ($op2 === '[' || $op2 === ']')) {
-                    return $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op1 === '[' ? ' >= ' : ' > ') . pg_escape_string($val1) . ' AND ' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op2 === ']' ? ' <= ' : ' < ') . pg_escape_string($val2);
-                }
-            }
+            default:
+                return $this->prepareFilterQuery_general($model, $filterName, $requestParams, $type);
         }
     }
     
@@ -1140,6 +908,301 @@ class Functions_features {
             default:
                 return null;
         }
+    }
+    
+    /**
+     * Prepare SQL query for non 'interval' operation on value or arrays
+     * If operation is '=' and last character of input value is a '%' sign then perform a like instead of an =
+     * 
+     * @param RestoModel $model
+     * @param string $filterName
+     * @param array $requestParams
+     * @paral string $type
+     * @return type
+     */
+    private function prepareFilterQuery_general($model, $filterName, $requestParams, $type) {
+        
+        if (!is_array($requestParams[$filterName])) {
+            $requestParams[$filterName] = array($requestParams[$filterName]);
+        }
+        
+        /*
+         * Set quote to "'" for non numeric filter types
+         */
+        $quote = $type === 'numeric' ? '' : '\'';
+        
+        /*
+         * Set operation
+         */
+        $operation = $model->searchFilters[$filterName]['operation'];
+        
+        /*
+         * Array of values assumes a 'OR' operation
+         */
+        $ors = array();
+        for ($i = count($requestParams[$filterName]); $i--;) {
+            
+            /*
+             * LIKE case
+             */
+            if ($operation === '=' && substr($requestParams[$filterName][$i], -1) === '%') {
+                $ors[] = $model->getDbKey($model->searchFilters[$filterName]['key']) . ' LIKE ' . $quote . pg_escape_string($requestParams[$filterName][$i]) . $quote;
+            }
+            /*
+             * Otherwise use operation
+             */
+            else {
+                $ors[] = $model->getDbKey($model->searchFilters[$filterName]['key']) . ' ' . $operation . ' ' . $quote . pg_escape_string($requestParams[$filterName][$i]) . $quote;
+            }
+        }
+        
+        return count($ors) > 1 ? '(' . join(' OR ', $ors) . ')' : $ors[0];
+    }
+    
+    /**
+     * Prepare SQL query for spatial operation ST_Intersects (Input bbox or polygon)
+     * 
+     * @param RestoModel $model
+     * @param string $filterName
+     * @param array $requestParams
+     * @param boolean $exclusion
+     * @return type
+     */
+    private function prepareFilterQuery_intersects($model, $filterName, $requestParams, $exclusion) {
+        
+        /*
+         * Default bounding box is the whole earth
+         */
+        if ($filterName === 'geo:box') {
+            $coords = explode(',', $requestParams[$filterName]);
+            if (count($coords) !== 4) {
+                RestoLogUtil::httpError(400, 'Invalid geo:box');
+            }
+            $lonmin = is_numeric($coords[0]) ? $coords[0] : -180;
+            $latmin = is_numeric($coords[1]) ? $coords[1] : -90;
+            $lonmax = is_numeric($coords[2]) ? $coords[2] : 180;
+            $latmax = is_numeric($coords[3]) ? $coords[3] : 90;
+            return ($exclusion ? 'NOT ' : '') . 'ST_intersects(' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ", ST_GeomFromText('" . pg_escape_string('POLYGON((' . $lonmin . ' ' . $latmin . ',' . $lonmin . ' ' . $latmax . ',' . $lonmax . ' ' . $latmax . ',' . $lonmax . ' ' . $latmin . ',' . $lonmin . ' ' . $latmin . '))') . "', 4326))";
+        }
+        else if ($filterName === 'geo:geometry') {
+            return ($exclusion ? 'NOT ' : '') . 'ST_intersects(' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ", ST_GeomFromText('" . pg_escape_string($requestParams[$filterName]) . "', 4326))";
+        }
+    }
+    
+    /**
+     * Prepare SQL query for spatial operation ST_Distance (Input bbox or polygon)
+     * 
+     * @param RestoModel $model
+     * @param string $filterName
+     * @param array $requestParams
+     * @param boolean $exclusion
+     * @return type
+     */
+    private function prepareFilterQuery_distance($model, $filterName, $requestParams, $exclusion) {
+        
+        /*
+         * WARNING ! Quick benchmark show that st_distance is 100x slower than st_intersects
+         * TODO - check if st_distance performance can be improved.
+         */
+        $use_distance = false;
 
+        /*
+         * geo:lon and geo:lat have preseance to geo:name
+         * (avoid double call to Gazetteer)
+         */
+        if (isset($requestParams['geo:lon']) && isset($requestParams['geo:lat'])) {
+            $radius = RestoGeometryUtil::radiusInDegrees(isset($requestParams['geo:radius']) ? floatval($requestParams['geo:radius']) : 10000, $requestParams['geo:lat']);
+            if ($use_distance) {
+                return 'ST_distance(' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ', ST_GeomFromText(\'' . pg_escape_string('POINT(' . $requestParams['geo:lon'] . ' ' . $lat = $requestParams['geo:lat'] . ')') . '\', 4326)) < ' . $radius;
+            }
+            else {
+                $lonmin = $requestParams['geo:lon'] - $radius;
+                $latmin = $requestParams['geo:lat'] - $radius;
+                $lonmax = $requestParams['geo:lon'] + $radius;
+                $latmax = $requestParams['geo:lat'] + $radius;
+                return ($exclusion ? 'NOT ' : '') . 'ST_intersects(' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ", ST_GeomFromText('" . pg_escape_string('POLYGON((' . $lonmin . ' ' . $latmin . ',' . $lonmin . ' ' . $latmax . ',' . $lonmax . ' ' . $latmax . ',' . $lonmax . ' ' . $latmin . ',' . $lonmin . ' ' . $latmin . '))') . "', 4326))";
+            }
+        }
+    }
+    
+    /**
+     * Prepare SQL query for keywords- i.e. searchTerms
+     * 
+     * !! IMPORTANT NOTE !!
+     * 
+     *      keywords are stored in hstore 'keywords' column
+     *      BUT searches are done on the array 'hashes' column
+     * 
+     * @param RestoModel $model
+     * @param string $filterName
+     * @param array $requestParams
+     * @param boolean $exclusion
+     * @return type
+     */
+    private function prepareFilterQuery_keywords($model, $filterName, $requestParams, $exclusion) {
+        
+        $terms = array();
+        $splitted = RestoUtil::splitString($requestParams[$filterName]);
+        $key = $model->getDbKey($model->searchFilters[$filterName]['key']);
+        $filters = array(
+            'with' => array(),
+            'without' => array()
+        );
+        for ($i = 0, $l = count($splitted); $i < $l; $i++) {
+
+            /*
+             * If term as a '-' prefix then performs a "NOT keyword"
+             * If keyword contain a + then transform it into a ' '
+             */
+            $searchTerm = ($exclusion ? '-' : '') . $splitted[$i];
+            $not = false;
+            if (substr($searchTerm, 0, 1) === '-') {
+                $not = true;
+                $searchTerm = substr($searchTerm, 1);
+            }
+
+            /*
+             * Keywords structure is "type:value"
+             */
+            $typeAndValue = explode(':', $searchTerm);
+            if (count($typeAndValue) !== 2) {
+                RestoLogUtil::httpError(400, 'Invalid keyword strucuture ' . $searchTerm);
+            }
+
+            /*
+             * Landuse columns are NUMERIC columns
+             */
+            if ($typeAndValue[0] === 'landuse') {
+                if (in_array($typeAndValue[1], array('cultivated', 'desert', 'flooded', 'forest','herbaceous','snow','ice','urban','water'))) {
+                    $terms[] = 'lu_' . $typeAndValue[1] . ($not ? ' = ' : ' > ') . '0';
+                }
+                else {
+                    RestoLogUtil::httpError(400, 'Invalid landuse - should be numerice value ');
+                }
+            }
+            /*
+             * TODO - need to be rewritten (see search(...))
+             */
+            else if ($typeAndValue[0] === 'city') {
+                continue;
+            }
+            /*
+             * Everything other types are stored within hashes column
+             * If input keyword is a hash leave value unchanged
+             * 
+             * Structure is :
+             * 
+             *      type:id or type:id1|id2|id3|.etc.
+             * 
+             * In second case, '|' is understood as "OR"
+             */
+            else {
+                $ors = array();
+                $arr = explode('|', $typeAndValue[1]);
+                if (count($arr) > 1) {
+                    for ($j = count($arr); $j--;) {
+                        $ors[] = $key . " @> ARRAY['" . pg_escape_string($typeAndValue[0] !== 'hash' ? $typeAndValue[0] . ':' . $arr[$j] : $arr[$j]) . "']";
+                    }
+                    if (count($ors) > 1) {
+                        $terms[] = ($not ? 'NOT (' : '(') . join(' OR ', $ors) . ')';
+                    }
+                }
+                else {
+                    $filters[$not ? 'without' : 'with'][] = "'" . pg_escape_string($typeAndValue[0] !== 'hash' ? $searchTerm : $typeAndValue[1]) . "'";
+                }
+            }
+        }
+
+        if (count($filters['without']) > 0) {
+            $terms[] = 'NOT ' . $key . " @> ARRAY[" . join(',', $filters['without']) . "]";
+        }
+        if (count($filters['with']) > 0) {
+            $terms[] = $key . " @> ARRAY[" . join(',', $filters['with']) . "]";
+        }
+
+        return join(' AND ', $terms);
+
+    }
+    
+    /**
+     * Prepare SQL query for intervals
+     * 
+     * If
+     *      A is the value of $this->request['params'][$this->description['searchFilters'][$filterName]['osKey']]
+     * Then
+     *      A = n1 then returns value = n1
+     *      A = {n1,n2} then returns  value = n1 or value = n2
+     *      A = [n1,n2] then returns  n1 ≤ value ≤ n2
+     *      A = [n1,n2[ then returns  n1 ≤ value < n2
+     *      A = ]n1,n2[ then returns  n1 < value < n2
+     *      A = ]n1 then returns n1 < value
+     *      A = [n1 then returns  n1 ≤ value
+     *      A = n1[ then returns value < n2
+     *      A = n1] then returns value ≤ n2 
+     * 
+     * @param RestoModel $model
+     * @param string $filterName
+     * @param array $requestParams
+     * @return type
+     */
+    private function prepareFilterQuery_interval($model, $filterName, $requestParams) {
+        
+        $values = explode(',', $requestParams[$filterName]);
+
+        /*
+         * No ',' present i.e. simple equality or non closed interval
+         */
+        if (count($values) === 1) {
+
+            /* 
+             * Non closed interval
+             */
+            $op1 = substr(trim($values[0]), 0, 1);
+            $val1 = substr(trim($values[0]), 1);
+            if ($op1 === '[' || $op1 === ']') {
+                return $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op1 === '[' ? ' >= ' : ' > ') . pg_escape_string($val1);
+            }
+            $op2 = substr(trim($values[0]), -1);
+            $val2 = substr(trim($values[0]), 0, strlen(trim($values[0])) - 1);
+            if ($op2 === '[' || $op2 === ']') {
+                return $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op2 === ']' ? ' <= ' : ' < ') . pg_escape_string($val2);
+            }
+            /*
+             * Simple equality
+             */
+            return $model->getDbKey($model->searchFilters[$filterName]['key']) . ' = ' . pg_escape_string($requestParams[$filterName]);
+        }
+        /*
+         * Two values
+         */
+        else if (count($values) === 2) {
+
+            /*
+             * First and last characters give operators
+             */
+            $op1 = substr(trim($values[0]), 0, 1);
+            $val1 = substr(trim($values[0]), 1);
+            $op2 = substr(trim($values[1]), -1);
+            $val2 = substr(trim($values[1]), 0, strlen(trim($values[1])) - 1);
+
+            /*
+             * A = {n1,n2} then returns  = n1 or = n2
+             */
+            if ($op1 === '{' && $op2 === '}') {
+                return '(' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ' = ' . pg_escape_string($val1) . ' OR ' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ' = ' . pg_escape_string($val2) . ')';
+            }
+
+            /*
+             * Other cases i.e. 
+             * A = [n1,n2] then returns <= n1 and <= n2
+             * A = [n1,n2[ then returns <= n1 and B < n2
+             * A = ]n1,n2[ then returns < n1 and B < n2
+             * 
+             */
+            if (($op1 === '[' || $op1 === ']') && ($op2 === '[' || $op2 === ']')) {
+                return $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op1 === '[' ? ' >= ' : ' > ') . pg_escape_string($val1) . ' AND ' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op2 === ']' ? ' <= ' : ' < ') . pg_escape_string($val2);
+            }
+        }
+        
     }
 }
