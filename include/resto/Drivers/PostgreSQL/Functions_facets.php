@@ -252,7 +252,7 @@ class Functions_facets {
      */
     private function facetExists($hash, $collectionName) {
         $query = 'SELECT 1 FROM resto.facets WHERE uid=\'' . pg_escape_string($hash) . '\' AND collection = \'' . pg_escape_string($collectionName) . '\'';
-        return !$this->dbDriver->isEmpty($this->dbDriver->fetch($this->dbDriver->query($query)));
+        return !empty($this->dbDriver->fetch($this->dbDriver->query($query)));
     }
     
     /**

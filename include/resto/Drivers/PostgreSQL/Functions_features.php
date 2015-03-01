@@ -157,7 +157,7 @@ class Functions_features {
      */
     public function featureExists($identifier, $schema = null) {
         $query = 'SELECT 1 FROM ' . (isset($schema) ? pg_escape_string($schema) : 'resto') . '.features WHERE identifier=\'' . pg_escape_string($identifier) . '\'';
-        return !$this->dbDriver->isEmpty($this->dbDriver->fetch($this->dbDriver->query($query)));
+        return !empty($this->dbDriver->fetch($this->dbDriver->query($query)));
     }
     
     /**
@@ -565,7 +565,7 @@ class Functions_features {
                 $columns[] = 'Box2D(' . $value . ') AS bbox4326';
             }
             else if ($model->getDbType($key) === 'date') {
-                $columns[] = $this->dbDriver->formatTimeStamp($value) . ' AS "' . $key . '"';
+                $columns[] = 'to_char(' . $value . ', \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') AS "' . $key . '"';
             }
             /*
              * Other fields are retrieved normally

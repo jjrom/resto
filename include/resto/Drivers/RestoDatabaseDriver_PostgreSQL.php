@@ -73,7 +73,16 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         }
         
     }
-
+    
+    /**
+     * Return database handler
+     * 
+     * @return database handler
+     */
+    public function getHandler() {
+        return $this->dbh;
+    }
+    
     /**
      * Get object by typename
      * 
@@ -514,15 +523,6 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     }
     
     /**
-     * Return database handler
-     * 
-     * @return database handler
-     */
-    public function getHandler() {
-        return $this->dbh;
-    }
-    
-    /**
      * Perform query on database
      * 
      * @param string $query
@@ -556,26 +556,6 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             $output[] = $row;
         }
         return $output;
-    }
-    
-    /**
-     * Return true if $arr is empty
-     * 
-     * @param array $arr
-     * @return boolean
-     */
-    public function isEmpty($arr) {
-        return count($arr) === 0 ? true : false;
-    }
-    
-    /**
-     * Return PostgreSQL 8601 format
-     * 
-     * @param string $timestamp
-     * @return string
-     */
-    public function formatTimestamp($timestamp) {
-        return 'to_char(' .$timestamp . ', \'YYYY-MM-DD"T"HH24:MI:SS"Z"\')';
     }
     
 }

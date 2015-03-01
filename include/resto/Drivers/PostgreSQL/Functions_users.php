@@ -97,7 +97,7 @@ class Functions_users {
             return $profile;
         }
         
-        $query = 'SELECT userid, email, md5(email) as userhash, groupname, username, givenname, lastname, ' . $this->dbDriver->formatTimestamp('registrationdate') . ', activated, connected FROM usermanagement.users WHERE ' . $this->useridOrEmailFilter($identifier) . (isset($password) ? ' AND password=\'' . pg_escape_string(sha1($password)). '\'' : '');
+        $query = 'SELECT userid, email, md5(email) as userhash, groupname, username, givenname, lastname, to_char(registrationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\'), activated, connected FROM usermanagement.users WHERE ' . $this->useridOrEmailFilter($identifier) . (isset($password) ? ' AND password=\'' . pg_escape_string(sha1($password)). '\'' : '');
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         
         return count($results) === 1 ? $results[0] : $profile;
@@ -170,7 +170,7 @@ class Functions_users {
      */
     public function userExists($email) {
         $query = 'SELECT 1 FROM usermanagement.users WHERE email=\'' . pg_escape_string($email) . '\'';
-        return !$this->dbDriver->isEmpty($this->dbDriver->fetch($this->dbDriver->query($query)));
+        return !empty($this->dbDriver->fetch($this->dbDriver->query($query)));
     }
     
     /**
@@ -185,7 +185,7 @@ class Functions_users {
             return false;
         }
         $query = 'SELECT 1 FROM usermanagement.users WHERE ' . $this->useridOrEmailFilter($identifier) . ' AND connected=1';
-        return !$this->dbDriver->isEmpty($this->dbDriver->fetch($this->dbDriver->query(($query))));
+        return !empty($this->dbDriver->fetch($this->dbDriver->query(($query))));
     }
     
     /**
@@ -278,7 +278,7 @@ class Functions_users {
      */
     public function isLicenseSigned($identifier, $collectionName) {
         $query = 'SELECT 1 FROM usermanagement.signatures WHERE email= \'' . pg_escape_string($identifier) . '\' AND collection= \'' . pg_escape_string($collectionName) . '\'';
-        return !$this->dbDriver->isEmpty($this->dbDriver->fetch($this->dbDriver->query(($query))));
+        return !empty($this->dbDriver->fetch($this->dbDriver->query(($query))));
     }
     
     /**
@@ -293,7 +293,7 @@ class Functions_users {
             return false;
         }
         $query = 'SELECT 1 FROM usermanagement.cart WHERE itemid=\'' . pg_escape_string($itemId) . '\'';
-        return !$this->dbDriver->isEmpty($this->dbDriver->fetch($this->dbDriver->query(($query))));
+        return !empty($this->dbDriver->fetch($this->dbDriver->query(($query))));
     }
     
     /**
