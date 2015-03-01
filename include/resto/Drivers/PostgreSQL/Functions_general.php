@@ -55,7 +55,7 @@ class Functions_general {
      */
     public function __construct($dbDriver) {
         $this->dbDriver = $dbDriver;
-        $this->dbh = $dbDriver->getHandler();
+        $this->dbh = $dbDriver->dbh();
     }
 
     /**

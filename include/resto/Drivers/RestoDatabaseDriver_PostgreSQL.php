@@ -44,11 +44,6 @@
 class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     
     /*
-     * Database handler
-     */
-    private $dbh;
-    
-    /*
      * Facet Util reference
      */
     public $facetUtil;
@@ -72,15 +67,6 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             $this->resultsPerPage = $config['resultsPerPage'];
         }
         
-    }
-    
-    /**
-     * Return database handler
-     * 
-     * @return database handler
-     */
-    public function getHandler() {
-        return $this->dbh;
     }
     
     /**

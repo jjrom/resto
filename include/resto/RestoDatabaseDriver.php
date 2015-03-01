@@ -90,6 +90,11 @@ abstract class RestoDatabaseDriver {
      */
     public $cache = null;
     
+    /*
+     * Database handler
+     */
+    public $dbh;
+    
     /**
      * Constructor
      * 
@@ -108,13 +113,6 @@ abstract class RestoDatabaseDriver {
      * @throws Exception
      */
     abstract public function get($typeName);
-    
-    /**
-     * Return database handler
-     * 
-     * @return database handler
-     */
-    abstract public function getHandler();
     
     /**
      * Check if $typeName constraint is true

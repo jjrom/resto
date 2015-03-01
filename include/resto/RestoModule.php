@@ -105,7 +105,7 @@ abstract class RestoModule{
          * Get default database handler 
          */
         if (!isset($dbh)) {
-            $dbh = $this->context->dbDriver->getHandler();
+            $dbh = $this->context->dbDriver->dbh();
         }
         
         return $dbh;
