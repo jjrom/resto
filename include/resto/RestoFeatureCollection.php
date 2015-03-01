@@ -193,10 +193,11 @@ class RestoFeatureCollection {
             'collectionName' => isset($this->defaultCollection) ? $this->defaultCollection->name : null,
             'filters' => $params,
                 'options' => array(
-                'limit' => $limit,
-                'offset' => $offset,
-                'count' => $realCount
-            ))
+                    'limit' => $limit,
+                    'offset' => $offset,
+                    'count' => $realCount
+                )
+            )
         );
         for ($i = 0, $l = count($featuresArray); $i < $l; $i++) {
             if (isset($this->collections) && !isset($this->collections[$featuresArray[$i]['collection']])) {

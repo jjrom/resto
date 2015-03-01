@@ -117,7 +117,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             case parent::FEATURES_DESCRIPTIONS:
                 $featuresFunctions = new Functions_features($this);
-                return $featuresFunctions->getFeaturesDescriptions($params['model'], $params['collectionName'], $params['filters'], $params['options']);
+                return $featuresFunctions->search($params['model'], $params['collectionName'], $params['filters'], $params['options']);
             
             /*
              * Get groups list
@@ -192,14 +192,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 return null;
         }
     }
-    /*
-     * 
-    /**
     
-    abstract public function disconnectUser($identifier);
     
-    abstract public function signLicense($identifier, $collectionName);
-     */
     /**
      * Execute action
      * 
@@ -351,7 +345,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             case parent::FACET:
                 $facetsFunctions = new Functions_facets($this);
-                return $facetsFunctions->removeFacet($params['hash'], $params['collectioName']);
+                return $facetsFunctions->removeFacet($params['hash'], $params['collectionName']);
                 
             /*
              * Remove feature
@@ -372,7 +366,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             case parent::RIGHTS:
                 $usersFunctions = new Functions_users($this);
-                return $usersFunctions->deleteRights($params['emailOrGroup'], $params['collectioName'],  $params['featureIdentifier']);
+                return $usersFunctions->deleteRights($params['emailOrGroup'], $params['collectionName'],  $params['featureIdentifier']);
                 
             default:
                 return null;
@@ -472,7 +466,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             case parent::RIGHTS:
                 $usersFunctions = new Functions_users($this);
-                return $usersFunctions->updateRights($params['rights'], $params['emailOrGroup'], $params['collectioName'], $params['featureIdentifier']);
+                return $usersFunctions->updateRights($params['rights'], $params['emailOrGroup'], $params['collectionName'], $params['featureIdentifier']);
             
             /*
              * Update user profile

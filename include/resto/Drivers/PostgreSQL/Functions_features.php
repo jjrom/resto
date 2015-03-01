@@ -44,7 +44,21 @@
 class Functions_features {
     
     private $dbDriver = null;
+    
     private $dbh = null;
+    
+    /*
+     * Non search filters are excluded from search
+     */
+    private $excludedFilters = array(
+        'count',
+        'startIndex',
+        'startPage',
+        'language',
+        'geo:name',
+        'geo:lat', // linked to geo:lon
+        'geo:radius' // linked to geo:lon
+    );
     
     /**
      * Constructor
@@ -60,7 +74,7 @@ class Functions_features {
 
     /**
      * 
-     * Get array of features descriptions
+     * Get an array of features descriptions
      * 
      * @param RestoModel $model
      * @param string $collectionName
@@ -74,22 +88,12 @@ class Functions_features {
      * @return array
      * @throws Exception
      */
-    public function getFeaturesDescriptions($model, $collectionName, $params, $options) {
-        
-        $limit = $options['limit'];
-        $offset = $options['offset'];
-        $count = isset($options['count']) ? $options['count'] : false;
+    public function search($model, $collectionName, $params, $options) {
         
         /*
          * Check that mandatory filters are set
          */
-        foreach (array_keys($model->searchFilters) as $filterName) {
-            if (isset($model->searchFilters[$filterName])) {
-                if (isset($model->searchFilters[$filterName]['minimum']) && $model->searchFilters[$filterName]['minimum'] === 1 && (!isset($params[$filterName]))) {
-                    RestoLogUtil::httpError(400, 'Missing mandatory filter ' . $filterName);
-                }
-            } 
-        }
+        $this->checkMandatoryFilters($model, $params);
         
         /*
          * Remove box filter if location filter is set
@@ -139,37 +143,10 @@ class Functions_features {
         }
         
         /*
-         * Prepare WHERE clause from filters
-         * NOTE : do not return features with visible property set to 0
+         * Check that mandatory filters are set
          */
-        $filters = array('visible=1');
-        $exclude = array(
-            'count',
-            'startIndex',
-            'startPage',
-            'language',
-            'geo:name',
-            'geo:lat', // linked to geo:lon
-            'geo:radius' // linked to geo:lon
-        );
-
-        foreach (array_keys($model->searchFilters) as $filterName) {
-            if (!in_array($filterName, $exclude)) {
-                $filter = $this->prepareFilterQuery($model, $params, $filterName);
-                if (isset($filter) && $filter !== '') {
-                    
-                    /*
-                     * If one filter is invalid return an empty array
-                     * without launching the request
-                     */
-                    if ($filter === 'INVALID') {
-                        return array();
-                    }
-                    $filters[] = $filter;
-                    
-                }
-            }
-        }
+        $filters = $this->prepareFilters($model, $params);
+        
         /*
          * TODO - get count from facet statistic and not from count() OVER()
          */
@@ -185,7 +162,7 @@ class Functions_features {
          * Note that the total number of results (i.e. with no LIMIT constraint)
          * is retrieved with PostgreSQL "count(*) OVER()" technique
          */
-        $query = 'SELECT ' . implode(',', $this->getSQLFields($model)) . ($count ? ', count(' . $model->getDbKey('identifier') . ') OVER() AS totalcount' : '') . ' FROM ' . (isset($collectionName) ? $this->dbDriver->getSchemaName($collectionName) : 'resto') . '.features' . ($oFilter ? ' WHERE ' . $oFilter : '') . ' ORDER BY startdate DESC LIMIT ' . $limit . ' OFFSET ' . $offset;
+        $query = 'SELECT ' . implode(',', $this->getSQLFields($model)) . ($options['count'] ? ', count(' . $model->getDbKey('identifier') . ') OVER() AS totalcount' : '') . ' FROM ' . (isset($collectionName) ? $this->dbDriver->getSchemaName($collectionName) : 'resto') . '.features' . ($oFilter ? ' WHERE ' . $oFilter : '') . ' ORDER BY startdate DESC LIMIT ' . $options['limit'] . ' OFFSET ' . $options['offset'];
      
         /*
          * Retrieve products from database
@@ -219,7 +196,6 @@ class Functions_features {
         $result = $this->dbDriver->query('SELECT ' . implode(',', $this->getSQLFields($model, array('continents', 'countries'))) . ' FROM ' . (isset($collectionName) ? $this->dbDriver->getSchemaName($collectionName) : 'resto') . '.features WHERE ' . $model->getDbKey('identifier') . "='" . pg_escape_string($identifier) . "'" . (count($filters) > 0 ? ' AND ' . join(' AND ', $filters) : ''));
         return $this->correctTypes($model, pg_fetch_assoc($result));
     }
-    
     
     /**
      * Check if feature identified by $identifier exists within {schemaName}.features table
@@ -492,9 +468,9 @@ class Functions_features {
              */
             pg_query($this->dbh, 'BEGIN');
             pg_query($this->dbh, 'INSERT INTO ' . pg_escape_string($this->dbDriver->getSchemaName($collectionName)) . '.features (' . join(',', $keys) . ') VALUES (' . join(',', $values) . ')');
-            $this->dbDriver->remove(RestoDatabaseDriver::FACETS, array(
+            $this->dbDriver->store(RestoDatabaseDriver::FACETS, array(
                 'facets' => $facets,
-                'collectioName' => $collectionName
+                'collectionName' => $collectionName
             ));
             pg_query($this->dbh, 'COMMIT');
         } catch (Exception $e) {
@@ -512,60 +488,33 @@ class Functions_features {
         
         try {
             
-            pg_query($this->dbh, 'BEGIN');
+            $this->dbDriver->query('BEGIN');
             
             /*
              * Remove facets
              */
-            $f = $feature->toArray();
-            
-            foreach($f['properties'] as $key => $value) {
+            $featureArray = $feature->toArray();
+            foreach($featureArray['properties'] as $key => $value) {
                  
                 /*
-                 * Non keywords facets
+                 * Property facets
                  */
                 $id = $key . ':' . $value;
                 if ($this->dbDriver->facetUtil->getFacetCategory($id)) {
-                    $parentHash = null;
-                    $parentType = $key;
-                    $parentIds = array();
-                    while (isset($parentType)) {
-                        $parentType = $this->dbDriver->facetUtil->getFacetParentType($parentType);
-                        foreach ($f['properties'] as $pKey => $pValue) {
-                            if ($pKey === $parentType && $pValue) {
-                                $parentIds[] = $parentType . ':' . $pValue;
-                                break;
-                            }
-                        }
-                    }
-                    if (count($parentIds) > 0) {
-                        for ($k = count($parentIds); $k--;) {
-                            $parentHash = RestoUtil::getHash($parentIds[$k], $parentHash);
-                        }
-                    }
-                    $this->dbDriver->remove(RestoDatabaseDriver::FACET, array(
-                       'hash' => RestoUtil::getHash($id, $parentHash),
-                        'collectioName' => $f['properties']['collection']
-                    ));
+                    $this->removePropertyFacet($featureArray['properties'], $id, $featureArray['properties']['collection']);
                 }
                 /*
                  * Keywords facets
                  */
                 else if ($key === 'keywords') {
-                    for ($i = count($f['properties'][$key]); $i--;) {
-                        if (isset($f['properties'][$key][$i]['hash'])) {
-                            $this->dbDriver->remove(RestoDatabaseDriver::FACET, array(
-                                'hash' => $f['properties'][$key][$i]['hash'],
-                                'collectioName' => $f['properties']['collection']
-                            ));
-                        }
-                    }
+                    $this->removeKeywordsFacets($featureArray['properties'][$key], $featureArray['properties']['collection']);
                 }
+                
             }
-            pg_query($this->dbh, 'DELETE FROM ' . (isset($feature->collection) ? $this->dbDriver->getSchemaName($feature->collection->name): 'resto') . '.features WHERE identifier=\'' . pg_escape_string($feature->identifier) . '\'');
-            pg_query($this->dbh, 'COMMIT');    
+            $this->dbDriver->query('DELETE FROM ' . (isset($feature->collection) ? $this->dbDriver->getSchemaName($feature->collection->name): 'resto') . '.features WHERE identifier=\'' . pg_escape_string($feature->identifier) . '\'');
+            $this->dbDriver->query('COMMIT');    
         } catch (Exception $e) {
-            pg_query($this->dbh, 'ROLLBACK'); 
+            $this->dbDriver->query('ROLLBACK'); 
             RestoLogUtil::httpError(500, 'Cannot delete feature ' . $feature->identifier);
         }
     }
@@ -809,7 +758,7 @@ class Functions_features {
                         }
                     }
                     /*
-                     * TODO - need to be rewritten (see getFeaturesDescriptions)
+                     * TODO - need to be rewritten (see search(...))
                      */
                     else if ($typeAndValue[0] === 'city') {
                         continue;
@@ -1130,5 +1079,108 @@ class Functions_features {
 
         return $keywords;
     }
+ 
+    /**
+     * Check that mandatory filters are set
+     * 
+     * @param RestoModel $model
+     * @param Array $params
+     * @return boolean
+     */
+    private function checkMandatoryFilters($model, $params) {
+        $missing = array();
+        foreach (array_keys($model->searchFilters) as $filterName) {
+            if (isset($model->searchFilters[$filterName])) {
+                if (isset($model->searchFilters[$filterName]['minimum']) && $model->searchFilters[$filterName]['minimum'] === 1 && (!isset($params[$filterName]))) {
+                    $missing[] = $filterName;
+                }
+            } 
+        }
+        if (count($missing) > 0) {
+            RestoLogUtil::httpError(400, 'Missing mandatory filter(s) ' . join(', ', $filterName));
+        }
+        
+        return true;
+        
+    }
     
+    /**
+     * Return search filters based on model and input search parameters
+     * 
+     * @param RestoModel $model
+     * @param Array $params
+     * @return boolean
+     */
+    private function prepareFilters($model, $params) {
+        
+        /*
+         * Only visible features are returned
+         */
+        $filters = array(
+            'visible=1'
+        );
+        
+        /*
+         * Process each input search filter excepted excluded filters
+         */
+        foreach (array_keys($model->searchFilters) as $filterName) {
+            if (!in_array($filterName, $this->excludedFilters)) {
+                $filter = $this->prepareFilterQuery($model, $params, $filterName);
+                if (isset($filter) && $filter !== '') {
+                    $filters[] = $filter;
+                }
+            }
+        }
+        
+        return $filters;
+        
+    }
+    
+    /**
+     * Remove keywords facets
+     * 
+     * @param array $keywords
+     * @param string $collectionName
+     */
+    private function removeKeywordsFacets($keywords, $collectionName) {
+        for ($i = count($keywords); $i--;) {
+            if (isset($keywords[$i]['hash'])) {
+                $this->dbDriver->remove(RestoDatabaseDriver::FACET, array(
+                    'hash' => $keywords[$i]['hash'],
+                    'collectionName' => $collectionName
+                ));
+            }
+        }
+    }
+    
+    /**
+     * Remove non-keywords facets
+     * 
+     * @param array $properties
+     * @param array $id
+     * @param string $collectionName
+     */
+    private function removePropertyFacet($properties, $id, $collectionName) {
+        $parentHash = null;
+        list($parentType) = explode(':', $id, 1);
+        $parentIds = array();
+        while (isset($parentType)) {
+            $parentType = $this->dbDriver->facetUtil->getFacetParentType($parentType);
+            foreach ($properties as $pKey => $pValue) {
+                if ($pKey === $parentType && $pValue) {
+                    $parentIds[] = $parentType . ':' . $pValue;
+                    break;
+                }
+            }
+        }
+        if (count($parentIds) > 0) {
+            for ($k = count($parentIds); $k--;) {
+                $parentHash = RestoUtil::getHash($parentIds[$k], $parentHash);
+            }
+        }
+        $this->dbDriver->remove(RestoDatabaseDriver::FACET, array(
+           'hash' => RestoUtil::getHash($id, $parentHash),
+           'collectionName' => $collectionName
+        ));
+    }
 }
