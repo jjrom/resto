@@ -155,12 +155,12 @@ class Functions_rights {
                 '\'' . pg_escape_string($collectionName) . '\'',
                 isset($featureIdentifier) ? '\'' . pg_escape_string($featureIdentifier) . '\'' : 'NULL',
                 '\'' . pg_escape_string($identifier) . '\'',
-                (isset($rights['search']) ? ($rights['search'] === 'true' ? 'TRUE' : 'FALSE') : 'NULL'),
-                (isset($rights['visualize']) ? ($rights['visualize'] === 'true' ? 'TRUE' : 'FALSE') : 'NULL'),
-                (isset($rights['download']) ? ($rights['download'] === 'true' ? 'TRUE' : 'FALSE') : 'NULL'),
-                (isset($rights['canpost']) ? ($rights['canpost'] === 'true' ? 'TRUE' : 'FALSE') : 'NULL'),
-                (isset($rights['canput']) ? ($rights['canput'] === 'true' ? 'TRUE' : 'FALSE') : 'NULL'),
-                (isset($rights['candelete']) ? ($rights['candelete'] === 'true' ? 'TRUE' : 'FALSE') : 'NULL'),
+                $this->valueOrNull($rights['search']),
+                $this->valueOrNull($rights['visualize']),
+                $this->valueOrNull($rights['download']),
+                $this->valueOrNull($rights['canpost']),
+                $this->valueOrNull($rights['canput']),
+                $this->valueOrNull($rights['candelete']),
                 isset($rights['filters']) ? '\'' . pg_escape_string(json_encode($rights['filters'])) . '\'' : 'NULL'
             );
             $result = pg_query($this->dbh, 'INSERT INTO usermanagement.rights (collection,featureid,emailorgroup,search,visualize,download,canpost,canput,candelete,filters) VALUES (' . join(',', $values) . ')');    
@@ -197,19 +197,19 @@ class Functions_rights {
         if (!$this->collectionExists($collectionName)) {
             throw new Exception();
         }
-        $values = array(
-            'collection=\'' . pg_escape_string($collectionName) . '\',',
-            (isset($featureIdentifier) ? 'featureid=\'' . pg_escape_string($featureIdentifier) . '\',' : '') ,
-            'emailorgroup=\'' . pg_escape_string($identifier) . '\'',
-            (isset($rights['search']) ? ($rights['search'] === 'true' ? ',search=TRUE' : ',search=FALSE') : ''),
-            (isset($rights['visualize']) ? ($rights['visualize'] === 'true' ? ',visualize=TRUE' : ',visualize=FALSE') : ''),
-            (isset($rights['download']) ? ($rights['download'] === 'true' ? ',download=TRUE' : ',download=FALSE') : ''),
-            (isset($rights['canpost']) ? ($rights['canpost'] === 'true' ? ',canpost=TRUE' : ',canpost=FALSE') : ''),
-            (isset($rights['canput']) ? ($rights['canput'] === 'true' ? ',canput=TRUE' : ',canput=FALSE') : ''),
-            (isset($rights['candelete']) ? ($rights['candelete'] === 'true' ? ',candelete=TRUE' : ',candelete=FALSE') : ''),
-            (isset($rights['filters']) ? 'filters=\'' . pg_escape_string(json_encode($rights['filters'])) . '\'' : '')
-        );
-        $this->dbDriver->query('UPDATE usermanagement.rights SET ' . join('', $values) . ' WHERE collection=\'' . pg_escape_string($collectionName) . '\' AND emailorgroup=\'' . pg_escape_string($identifier) . '\' AND featureid' . (isset($featureIdentifier) ? ('=\'' . $featureIdentifier . '\'') : ' IS NULL'));    
+        
+        $values = "collection='" . pg_escape_string($collectionName) . "',";
+        if (isset($featureIdentifier)) {
+            $values .= "featureid='" . pg_escape_string($featureIdentifier) . "',";
+        }
+        foreach (array_values(array('search', 'visualize', 'download', 'canpost', 'canput', 'candelete')) as $action) {
+            if (isset($rights[$action])) {
+                $values .= $action ."=" . $rights[$action] . ",";
+            }
+        }
+        $values .= "emailorgroup='" . pg_escape_string($identifier) . "'";
+        
+        $this->dbDriver->query('UPDATE usermanagement.rights SET ' . $values . ' WHERE collection=\'' . pg_escape_string($collectionName) . '\' AND emailorgroup=\'' . pg_escape_string($identifier) . '\' AND featureid' . (isset($featureIdentifier) ? ('=\'' . $featureIdentifier . '\'') : ' IS NULL'));    
         return true;
         
     }
@@ -232,6 +232,14 @@ class Functions_rights {
         } catch (Exception $e) {
             RestoLogUtil::httpError(500, 'Cannot delete rights for ' . $identifier);
         }
+    }
+    
+    /**
+     * Return $value or NULL
+     * @param string $value
+     */
+    private function valueOrNull($value) {
+        return isset($value) ? $value : 'NULL';
     }
    
 }
