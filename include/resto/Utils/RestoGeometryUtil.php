@@ -80,17 +80,17 @@ class RestoGeometryUtil {
         $type = strtoupper($geometry['type']);
         switch($type) {
             case 'POINT':
-                return $type . RestoUtil::toPoint($geometry['coordinates']);
+                return $type . RestoGeometryUtil::toPoint($geometry['coordinates']);
             case 'MULTIPOINT':
-                return $type . RestoUtil::toMultiPoint($geometry['coordinates']);
+                return $type . RestoGeometryUtil::toMultiPoint($geometry['coordinates']);
             case 'LINESTRING':
-                return $type . RestoUtil::toLineString($geometry['coordinates']);
+                return $type . RestoGeometryUtil::toLineString($geometry['coordinates']);
             case 'MULTILINESTRING':
-                return $type . RestoUtil::toMultiLineString($geometry['coordinates']);
+                return $type . RestoGeometryUtil::toMultiLineString($geometry['coordinates']);
             case 'POLYGON':
-                return $type . RestoUtil::toPolygon($geometry['coordinates']);
+                return $type . RestoGeometryUtil::toPolygon($geometry['coordinates']);
             case 'MULTIPOLYGON':
-                return $type . RestoUtil::toMultiPolygon($geometry['coordinates']);
+                return $type . RestoGeometryUtil::toMultiPolygon($geometry['coordinates']);
             default:
                 return null;
         }
@@ -197,11 +197,7 @@ class RestoGeometryUtil {
      * @param array $coordinates - GeoJSON geometry
      */
     private static function toMultiPoint($coordinates) {
-        $points = array();
-        for ($i = 0, $l = count($coordinates); $i < $l; $i++) {
-            $points[] = RestoUtil::toPoint($coordinates[$i]);
-        }
-        return '(' . join(',', $points) . ')';
+        return RestoGeometryUtil::coordinatesToString($coordinates, 'toPoint');
     }
     
     /**
@@ -210,11 +206,7 @@ class RestoGeometryUtil {
      * @param array $coordinates - GeoJSON geometry
      */
     private static function toLineString($coordinates) {
-        $pairs = array();
-        for ($i = 0, $l = count($coordinates); $i < $l; $i++) {
-            $pairs[] = join(' ', $coordinates[$i]);
-        }
-        return '(' . join(',', $pairs) . ')';
+        return RestoGeometryUtil::coordinatesToString($coordinates);
     }
     
     /**
@@ -223,11 +215,7 @@ class RestoGeometryUtil {
      * @param array $coordinates - GeoJSON geometry
      */
     private static function toMultiLineString($coordinates) {
-        $lineStrings = array();
-        for ($i = 0, $l = count($coordinates); $i < $l; $i++) {
-            $lineStrings[] = RestoUtil::toLineString($coordinates[$i]);
-        }
-        return '(' . join(',', $lineStrings) . ')';
+        return RestoGeometryUtil::toPolygon($coordinates);
     }
     
     /**
@@ -236,11 +224,7 @@ class RestoGeometryUtil {
      * @param array $coordinates - GeoJSON geometry
      */
     private static function toPolygon($coordinates) {
-        $rings = array();
-        for ($i = 0, $l = count($coordinates); $i < $l; $i++) {
-            $rings[] = RestoUtil::toLineString($coordinates[$i]);
-        }
-        return '(' . join(',', $rings) . ')';
+        return RestoGeometryUtil::coordinatesToString($coordinates, 'toLineString');
     }
     
     /**
@@ -249,10 +233,33 @@ class RestoGeometryUtil {
      * @param array $coordinates - GeoJSON geometry
      */
     private static function toMultiPolygon($coordinates) {
-        $polygons = array();
+        return RestoGeometryUtil::coordinatesToString($coordinates, 'toPolygon');
+    }
+    
+    /**
+     * Generic code to transform input coordinates array to WKT string
+     * 
+     * @param array $coordinates
+     * @param function $func
+     * @return type
+     */
+    private static function coordinatesToString($coordinates, $functionName = null) {
+        $output = array();
         for ($i = 0, $l = count($coordinates); $i < $l; $i++) {
-            $polygons[] = RestoUtil::toPolygon($coordinates[$i]);
+            switch ($functionName) {
+                case 'toPoint':
+                    $output[] = RestoGeometryUtil::toPoint($coordinates[$i]);
+                    break;
+                case 'toLineString':
+                    $output[] = RestoGeometryUtil::toLineString($coordinates[$i]);
+                    break;
+                case 'toPolygon':
+                    $output[] = RestoGeometryUtil::toPolygon($coordinates[$i]);
+                    break;
+                default:
+                    $output[] = join(' ', $coordinates[$i]);
+            }
         }
-        return '(' . join(',', $polygons) . ')';
+        return '(' . join(',', $output) . ')';
     }
 }

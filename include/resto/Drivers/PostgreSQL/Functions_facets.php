@@ -132,7 +132,7 @@ class Functions_facets {
          */
         else {
             $fields = array();
-            foreach (array_values($this->facetUtil->facetCategories) as $facetCategory) {
+            foreach (array_values($this->dbDriver->facetUtil->facetCategories) as $facetCategory) {
                 $fields[] = $facetCategory[0];
             }
             $pivots = $this->getFacetsPivots($collectionName, $fields, null);

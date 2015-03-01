@@ -321,7 +321,7 @@ class Functions_features {
                         if (!isset($keyword['hash'])) {
                             $keyword['hash'] = RestoUtil::getHash($keyword['id'], isset($keyword['parentHash']) ? $keyword['parentHash'] : null);
                         }
-                        if ($this->facetUtil->getFacetCategory($keyword['id'])) {
+                        if ($this->dbDriver->facetUtil->getFacetCategory($keyword['id'])) {
                             $facets[] = array(
                                 'id' => $keyword['id'],
                                 'hash' => $keyword['hash'],
@@ -387,7 +387,7 @@ class Functions_features {
                     }
                     
                     $id = $elements[$i][0] . ':' . $elements[$i][1];
-                    if ($this->facetUtil->getFacetCategory($id)) {
+                    if ($this->dbDriver->facetUtil->getFacetCategory($id)) {
                         
                         /*
                          * Retrieve parent value from input elements
@@ -399,7 +399,7 @@ class Functions_features {
                          * Compute parentHash from ancestors !
                          */
                         while (isset($parentType)) {
-                            $parentType = $this->facetUtil->getFacetParentType($parentType);
+                            $parentType = $this->dbDriver->facetUtil->getFacetParentType($parentType);
                             for ($j = count($elements); $j--;) {
                                 if ($elements[$j][0] === $parentType && $elements[$j][1]) {
                                     $parentIds[] = $parentType . ':' . $elements[$j][1];
@@ -492,7 +492,10 @@ class Functions_features {
              */
             pg_query($this->dbh, 'BEGIN');
             pg_query($this->dbh, 'INSERT INTO ' . pg_escape_string($this->dbDriver->getSchemaName($collectionName)) . '.features (' . join(',', $keys) . ') VALUES (' . join(',', $values) . ')');
-            $this->storeFacets($facets, $collectionName);
+            $this->dbDriver->remove(RestoDatabaseDriver::FACETS, array(
+                'facets' => $facets,
+                'collectioName' => $collectionName
+            ));
             pg_query($this->dbh, 'COMMIT');
         } catch (Exception $e) {
             pg_query($this->dbh, 'ROLLBACK');
@@ -506,6 +509,7 @@ class Functions_features {
      * @param RestoFeature $feature
      */
     public function removeFeature($feature) {
+        
         try {
             
             pg_query($this->dbh, 'BEGIN');
@@ -521,12 +525,12 @@ class Functions_features {
                  * Non keywords facets
                  */
                 $id = $key . ':' . $value;
-                if ($this->facetUtil->getFacetCategory($id)) {
+                if ($this->dbDriver->facetUtil->getFacetCategory($id)) {
                     $parentHash = null;
                     $parentType = $key;
                     $parentIds = array();
                     while (isset($parentType)) {
-                        $parentType = $this->facetUtil->getFacetParentType($parentType);
+                        $parentType = $this->dbDriver->facetUtil->getFacetParentType($parentType);
                         foreach ($f['properties'] as $pKey => $pValue) {
                             if ($pKey === $parentType && $pValue) {
                                 $parentIds[] = $parentType . ':' . $pValue;
@@ -539,7 +543,10 @@ class Functions_features {
                             $parentHash = RestoUtil::getHash($parentIds[$k], $parentHash);
                         }
                     }
-                    $this->removeFacet(RestoUtil::getHash($id, $parentHash), $f['properties']['collection']);
+                    $this->dbDriver->remove(RestoDatabaseDriver::FACET, array(
+                       'hash' => RestoUtil::getHash($id, $parentHash),
+                        'collectioName' => $f['properties']['collection']
+                    ));
                 }
                 /*
                  * Keywords facets
@@ -547,7 +554,10 @@ class Functions_features {
                 else if ($key === 'keywords') {
                     for ($i = count($f['properties'][$key]); $i--;) {
                         if (isset($f['properties'][$key][$i]['hash'])) {
-                            $this->removeFacet($f['properties'][$key][$i]['hash'], $f['properties']['collection']);
+                            $this->dbDriver->remove(RestoDatabaseDriver::FACET, array(
+                                'hash' => $f['properties'][$key][$i]['hash'],
+                                'collectioName' => $f['properties']['collection']
+                            ));
                         }
                     }
                 }
