@@ -108,7 +108,7 @@ class Functions_users {
             return $profile;
         }
         
-        $query = 'SELECT userid, email, md5(email) as userhash, groupname, username, givenname, lastname, ' . $this->formatTimestamp('registrationdate') . ', activated, connected FROM usermanagement.users WHERE ' . $this->useridOrEmailFilter($identifier) . (isset($password) ? ' AND password=\'' . pg_escape_string(sha1($password)). '\'' : '');
+        $query = 'SELECT userid, email, md5(email) as userhash, groupname, username, givenname, lastname, ' . $this->dbDriver->formatTimestamp('registrationdate') . ', activated, connected FROM usermanagement.users WHERE ' . $this->useridOrEmailFilter($identifier) . (isset($password) ? ' AND password=\'' . pg_escape_string(sha1($password)). '\'' : '');
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         
         return count($results) === 1 ? $results[0] : $profile;
@@ -726,13 +726,4 @@ class Functions_users {
         return ctype_digit($identifier) ? 'userid=' . $identifier : 'email=\'' . pg_escape_string($identifier) . '\'';
     }
     
-    /**
-     * Return PostgreSQL 8601 format
-     * 
-     * @param string $timestamp
-     * @return string
-     */
-    private function formatTimestamp($timestamp) {
-        return 'to_char(' .$timestamp . ', \'YYYY-MM-DD"T"HH24:MI:SS"Z"\')';
-    }
 }

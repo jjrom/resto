@@ -568,4 +568,14 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         return count($arr) === 0 ? true : false;
     }
     
+    /**
+     * Return PostgreSQL 8601 format
+     * 
+     * @param string $timestamp
+     * @return string
+     */
+    public function formatTimestamp($timestamp) {
+        return 'to_char(' .$timestamp . ', \'YYYY-MM-DD"T"HH24:MI:SS"Z"\')';
+    }
+    
 }
