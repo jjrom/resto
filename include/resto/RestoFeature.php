@@ -567,10 +567,6 @@ class RestoFeature {
      */
     private function stream($path, $mimeType = 'application/octet-stream', $multipart = true) {
 
-        while (ob_get_level() > 0) {
-            ob_end_clean();
-        }
-        
         /*
          * File does not exist
          */
@@ -600,17 +596,21 @@ class RestoFeature {
          */
         $range = $multipart === true ? $this->getRange($size) : array(0, $size - 1);
 
-        header('Pragma: public');
-        header('Cache-Control: public, no-cache');
-        header('Content-Type: ' . $mimeType);
-        header('Content-Length: ' . sprintf('%u', $range[1] - $range[0] + 1));
-        header('Content-Disposition: attachment; filename="' . basename($path) . '"');
-        header('Content-Transfer-Encoding: binary');
-
+        /*
+         * Set headers
+         */
+        $this->setDownloadHeaders($mimeType, $path, $range);
+        
+        /*
+         * Multipart case
+         */
         if ($range[0] > 0) {
             fseek($file, $range[0]);
         }
 
+        /*
+         * Stream result
+         */
         while ((feof($file) !== true) && (connection_status() === CONNECTION_NORMAL)) {
             echo fread($file, 10 * 1024 * 1024);
             flush();
@@ -648,6 +648,22 @@ class RestoFeature {
     }
     
     /**
+     * Set HTTP headers for download
+     * 
+     * @param type $mimeType
+     * @param type $path
+     * @param type $range
+     */
+    private function setDownloadHeaders($mimeType, $path, $range) {
+        header('Pragma: public');
+        header('Cache-Control: public, no-cache');
+        header('Content-Type: ' . $mimeType);
+        header('Content-Length: ' . sprintf('%u', $range[1] - $range[0] + 1));
+        header('Content-Disposition: attachment; filename="' . basename($path) . '"');
+        header('Content-Transfer-Encoding: binary');
+    }
+    
+    /**
      * Stream file using Apache XSendFile
      * 
      * @return type
@@ -676,14 +692,9 @@ class RestoFeature {
         header('HTTP/1.1 200 OK');
         header('Content-Disposition: attachment; filename="' . basename($this->feature['properties']['services']['download']['url']) . '"');
         header('Content-Type: ' . isset($this->feature['properties']['services']['download']['mimeType']) ? $this->feature['properties']['services']['download']['mimeType'] : 'application/unknown');
-        while (!feof($handle)) {
-            $buffer = fread($handle, 10 * 1024 * 8);
-            echo $buffer;
-            ob_flush();
+        while (!feof($handle) && (connection_status() === CONNECTION_NORMAL)) {
+            echo fread($handle, 10 * 1024 * 1024);
             flush();
-            if (connection_status() != 0) {
-                return fclose($handle);
-            }
         }
         return fclose($handle);
     }
