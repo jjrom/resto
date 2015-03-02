@@ -135,7 +135,7 @@ class RestoFeatureCollection {
          * of the total number of resources relative to the query
          * Otherwise, the total count is not known
          */
-        $realCount = isset($this->context->query['_rc']) && RestoUtil::toBoolean($this->context->query['_rc']) === true ? true : false;
+        $realCount = isset($this->context->query['_rc']) && filter_var($this->context->query['_rc'], FILTER_VALIDATE_BOOLEAN) ? true : false;
        
         /*
          * Input parameters :

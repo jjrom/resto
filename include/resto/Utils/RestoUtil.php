@@ -74,11 +74,8 @@ class RestoUtil {
     /**
      * Format a flat JSON string to make it more human-readable
      *
-     * Code modified from https://github.com/GerHobbelt/nicejson-php
+     * @param array $json JSON as an array
      * 
-     * @param string $json The original JSON string to process
-     *        When the input is not a string it is assumed the input is RAW
-     *        and should be converted to JSON first of all.
      * @return string Indented version of the original JSON string
      */
     public static function json_format($json, $pretty = false) {
@@ -87,70 +84,20 @@ class RestoUtil {
          * No pretty print - easy part
          */
         if (!$pretty) {
-            if (!is_string($json)) {
-                return json_encode($json);
-            }
-            return $json;
+            return json_encode($json);
         }
-
-        if (!is_string($json)) {
-            if (phpversion() && phpversion() >= 5.4) {
-                return json_encode($json, JSON_PRETTY_PRINT);
-            }
-            $json = json_encode($json);
+        
+        /*
+         * Pretty print only works for PHP >= 5.4
+         * Home made pretty print otherwise
+         */
+        if (phpversion() && phpversion() >= 5.4) {
+            return json_encode($json, JSON_PRETTY_PRINT);
         }
-        $result = '';
-        $pos = 0;               // indentation level
-        $strLen = strlen($json);
-        $indentStr = "\t";
-        $newLine = "\n";
-        $prevChar = '';
-        $outOfQuotes = true;
-
-        for ($i = 0; $i < $strLen; $i++) {
-            // Grab the next character in the string
-            $char = substr($json, $i, 1);
-
-            // Are we inside a quoted string?
-            if ($char == '"' && $prevChar != '\\') {
-                $outOfQuotes = !$outOfQuotes;
-            }
-            // If this character is the end of an element,
-            // output a new line and indent the next line
-            else if (($char == '}' || $char == ']') && $outOfQuotes) {
-                $result .= $newLine;
-                $pos--;
-                for ($j = 0; $j < $pos; $j++) {
-                    $result .= $indentStr;
-                }
-            }
-            // eat all non-essential whitespace in the input as we do our own here and it would only mess up our process
-            else if ($outOfQuotes && false !== strpos(" \t\r\n", $char)) {
-                continue;
-            }
-
-            // Add the character to the result string
-            $result .= $char;
-            // always add a space after a field colon:
-            if ($char == ':' && $outOfQuotes) {
-                $result .= ' ';
-            }
-
-            // If the last character was the beginning of an element,
-            // output a new line and indent the next line
-            if (($char == ',' || $char == '{' || $char == '[') && $outOfQuotes) {
-                $result .= $newLine;
-                if ($char == '{' || $char == '[') {
-                    $pos++;
-                }
-                for ($j = 0; $j < $pos; $j++) {
-                    $result .= $indentStr;
-                }
-            }
-            $prevChar = $char;
+        else {
+             return RestoUtil::prettyPrintJsonString(json_encode($json));
         }
-
-        return $result;
+     
     }
 
     /**
@@ -349,61 +296,60 @@ class RestoUtil {
     public static function isISO8601($dateStr) {
 
         /* Pattern for matching : YYYY */
-        $patternYear = '\d{4}';
+        $pYear = '\d{4}';
 
         /* Pattern for matching : YYYY-MM */
-        $patternMonthExtend = '\d{4}-\d{2}';
+        $pMonthExtend = '\d{4}-\d{2}';
 
         /* Pattern for matching : YYYY-MM-DD */
-        $patternDateExtend = '\d{4}-\d{2}-\d{2}';
+        $pDateExtend = '\d{4}-\d{2}-\d{2}';
 
         /* Pattern for matching : YYYY-MM-DDTHH:MM:SS */
-        $patternDateAndTimeExtend = '\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}';
+        $pDateAndTimeExtend = '\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}';
 
         /* Pattern for matching : +HH:MM or -HH:MM */
-        $patternTimeZoneExtend = '[\+|\-]\d{2}\:\d{2}';
+        $pTimeZoneExtend = '[\+|\-]\d{2}\:\d{2}';
 
         /** Pattern for matching : ,n or .n 
          *  where n is the fraction of seconds to one or more digits
          */
-        $patternFractionSeconds = '[,|\.]\d+';
+        $pFractionSeconds = '[,|\.]\d+';
 
         /* Pattern for matching : YYYYMM */
-        $patternMonth = '\d{4}\d{2}';
+        $pMonth = '\d{4}\d{2}';
 
         /* Pattern for matching : YYYYMMDD */
-        $patternDate = '\d{4}\d{2}\d{2}';
+        $pDate = '\d{4}\d{2}\d{2}';
 
         /* Pattern for matching : YYYYMMDDTHHMMSS */
-        $patternDateAndTime = '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}';
+        $pDateAndTime = '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}';
 
         /* Pattern for matching : +HHMM or -HHMM */
-        $patternTimeZone = '[\+|\-]\d{2}\d{2}';
+        $pTimeZone = '[\+|\-]\d{2}\d{2}';
 
         /**
          * Construct the regex to match all ISO 8601 format date case
          * The regex is constructed as a combination of all pattern       
          */
-        $completePattern = '/^'
-                . $patternYear . '$|^'
-                . $patternMonthExtend . '$|^'
-                . $patternDateExtend . '$|^'
-                . $patternDateAndTimeExtend . '$|^'
-                . $patternDateAndTimeExtend . 'Z$|^'
-                . $patternDateAndTimeExtend . '' . $patternTimeZoneExtend . '$|^'
-                . $patternDateAndTimeExtend . '' . $patternFractionSeconds . '$|^'
-                . $patternDateAndTimeExtend . '' . $patternFractionSeconds . 'Z$|^'
-                . $patternDateAndTimeExtend . '' . $patternFractionSeconds . '' . $patternTimeZoneExtend . '$|^'
-                . $patternMonth . '$|^'
-                . $patternDate . '$|^'
-                . $patternDateAndTime . '$|^'
-                . $patternDateAndTime . 'Z$|^'
-                . $patternDateAndTime . '' . $patternTimeZone . '$|^'
-                . $patternDateAndTime . '' . $patternFractionSeconds . '$|^'
-                . $patternDateAndTime . '' . $patternFractionSeconds . 'Z$|^'
-                . $patternDateAndTime . '' . $patternFractionSeconds . '' . $patternTimeZone . '$/i';
-
-        return preg_match($completePattern, $dateStr);
+        $completePattern = array(
+            $pYear,
+            $pMonthExtend,
+            $pDateExtend,
+            $pDateExtend,
+            $pDateAndTimeExtend . 'Z',
+            $pDateAndTimeExtend . '' . $pTimeZoneExtend,
+            $pDateAndTimeExtend . '' . $pFractionSeconds,
+            $pDateAndTimeExtend . '' . $pFractionSeconds . 'Z',
+            $pDateAndTimeExtend . '' . $pFractionSeconds . '' . $pTimeZoneExtend,
+            $pMonth,
+            $pDate,
+            $pDateAndTime,
+            $pDateAndTime . 'Z',
+            $pDateAndTime . '' . $pTimeZone,
+            $pDateAndTime . '' . $pTimeZone . 'Z',
+            $pDateAndTime . '' . $pFractionSeconds . '' . $pTimeZone
+        );
+        return preg_match('/^' . join('$|^', $completePattern) .'$/i', $dateStr);
     }
 
     /**
@@ -469,25 +415,6 @@ class RestoUtil {
     }
 
     /**
-     * Return true if $str value is true, 1 or yes
-     * Return false otherwise
-     * 
-     * @param string $str
-     */
-    public static function toBoolean($str) {
-
-        if (!isset($str)) {
-            return false;
-        }
-
-        if (strtolower($str) === 'true' || strtolower($str) === 'yes') {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
      * Return an array of posted/put files or POST stream within HTTP request Body
      * 
      * @param array $params - query parameters
@@ -497,47 +424,38 @@ class RestoUtil {
      */
     public static function readInputData() {
 
-        $output = null;
-
         /*
          * True by default, False if no file is posted but data posted through parameters
          */
         $isFile = true;
 
         /*
-         * No file is posted
+         * No file is posted - check HTTP request body
          */
         if (count($_FILES) === 0 || !is_array($_FILES['file'])) {
-
-            /*
-             * Is data posted within HTTP request body ?
-             */
             $body = file_get_contents('php://input');
             if (isset($body)) {
                 $isFile = false;
                 $tmpFiles = array($body);
             }
-            /*
-             * Nothing posted
-             */
-            else {
-                return $output;
-            }
         }
         /*
-         * A file is posted
+         * A file is posted -
+         * Read file assuming this is ascii file (i.e. plain text, GeoJSON, etc.)
          */
         else {
-
-            /*
-             * Read file assuming this is ascii file (i.e. plain text, GeoJSON, etc.)
-             */
             $tmpFiles = $_FILES['file']['tmp_name'];
             if (!is_array($tmpFiles)) {
                 $tmpFiles = array($tmpFiles);
             }
         }
-
+        
+        /*
+         * Nothing was post - or post was empty
+         */
+        if (!isset($tmpFiles)) {
+            return null;
+        }
         if (count($tmpFiles) > 1) {
             throw new Exception('Only one file can be posted at a time', 500);
         }
@@ -546,15 +464,7 @@ class RestoUtil {
          * Assume that input data format is JSON by default
          */
         try {
-            /*
-             * Decode json data
-             */
-            if ($isFile) {
-                $output = json_decode(join('', file($tmpFiles[0])), true);
-            }
-            else {
-                $output = json_decode($tmpFiles[0], true);
-            }
+            $output = json_decode($isFile ? join('', file($tmpFiles[0])) : $tmpFiles[0], true);
         } catch (Exception $e) {
             throw new Exception('Invalid posted file(s)', 500);
         }
@@ -569,7 +479,11 @@ class RestoUtil {
              * The file content is transformed as array by file function
              */
             if ($isFile) {
-                $output = file($tmpFiles[0]);
+                try {
+                    $output = file($tmpFiles[0]);
+                } catch (Exception $e) {
+                    throw new Exception('Invalid posted file(s)', 500);
+                } 
             }
             /*
              * By default, the exploding character is "\n"
@@ -600,9 +514,9 @@ class RestoUtil {
         /*
          * Search for quotted (i.e. text within " ") parts
          */
-        $l = count($quotted);
-        if ($l > 1 && $l % 2 === 1) {
-            for ($i = 0; $i < $l; $i++) {
+        $count = count($quotted);
+        if ($count > 1 && $count % 2 === 1) {
+            for ($i = 0; $i < $count; $i++) {
                 if ($quotted[$i]) {
                     // Inside the quote
                     if ($i % 2 === 1) {
@@ -673,90 +587,85 @@ class RestoUtil {
      *
      * @param string $path
      * @param string $mimeType
-     * @param integer $speed : speed limit (in MBps)
      * @param type $multipart
      * @return boolean
      */
-    public static function download($path, $mimeType = 'application/octet-stream', $speed = -1, $multipart = true) {
+    public static function download($path, $mimeType = 'application/octet-stream', $multipart = true) {
 
         while (ob_get_level() > 0) {
             ob_end_clean();
         }
-
-        if (is_file($path = realpath($path)) === true) {
-
-            $file = @fopen($path, 'rb');
-            $size = sprintf('%u', filesize($path));
-           
-            if (is_resource($file) === true) {
-                
-                set_time_limit(0);
-
-                /*
-                 * Range support
-                 * 
-                 * In case of multiple ranges requested, only the first range is served
-                 * (http://tools.ietf.org/id/draft-ietf-http-range-retrieval-00.txt)
-                 */
-                if ($multipart === true) {
-                    $range = array(0, $size - 1);
-                    $httpRange = filter_input(INPUT_SERVER, 'HTTP_RANGE', FILTER_SANITIZE_STRING);
-                    if (isset($httpRange)) {
-                        $range = array_map('intval', explode('-', preg_replace('~.*=([^,]*).*~', '$1', $httpRange)));
-
-                        if (empty($range[1]) === true) {
-                            $range[1] = $size - 1;
-                        }
-
-                        foreach ($range as $key => $value) {
-                            $range[$key] = max(0, min($value, $size - 1));
-                        }
-
-                        if (($range[0] > 0) || ($range[1] < ($size - 1))) {
-                            header(sprintf('%s %03u %s', 'HTTP/1.1', 206, 'Partial Content'), true, 206);
-                        }
-                    }
-
-                    header('Accept-Ranges: bytes');
-                    header('Content-Range: bytes ' . sprintf('%u-%u/%u', $range[0], $range[1], $size));
-                } else {
-                    $range = array(0, $size - 1);
-                }
-                
-                header('Pragma: public');
-                header('Cache-Control: public, no-cache');
-                header('Content-Type: ' . $mimeType);
-                header('Content-Length: ' . sprintf('%u', $range[1] - $range[0] + 1));
-                header('Content-Disposition: attachment; filename="' . basename($path) . '"');
-                header('Content-Transfer-Encoding: binary');
-
-                if ($range[0] > 0) {
-                    fseek($file, $range[0]);
-                }
-
-                while ((feof($file) !== true) && (connection_status() === CONNECTION_NORMAL)) {
-                    if ($speed !== -1) {
-                        echo fread($file, $speed * 1024 * 1024);
-                        flush();
-                        sleep(1);
-                    }
-                    else {
-                        echo fread($file, 10 * 1024 * 1024);
-                        flush();
-                    }
-                }
-
-                fclose($file);
-            }
-            else {
-                
-            }
-
-        }
-        else {
+        
+        /*
+         * File does not exist
+         */
+        if (is_file($path = realpath($path)) === false) {
             RestoLogUtil::httpError(404);
         }
 
+        /*
+         * File cannot be read
+         */
+        $file = @fopen($path, 'rb');
+        if (is_resource($file) === true) {
+            RestoLogUtil::httpError(404);
+        }
+        
+        /*
+         * Avoid timeouts
+         */
+        set_time_limit(0);
+        
+        /*
+         * Range support
+         * 
+         * In case of multiple ranges requested, only the first range is served
+         * (http://tools.ietf.org/id/draft-ietf-http-range-retrieval-00.txt)
+         */
+        $size = sprintf('%u', filesize($path));
+        if ($multipart === true) {
+            $range = array(0, $size - 1);
+            $httpRange = filter_input(INPUT_SERVER, 'HTTP_RANGE', FILTER_SANITIZE_STRING);
+            if (isset($httpRange)) {
+                $range = array_map('intval', explode('-', preg_replace('~.*=([^,]*).*~', '$1', $httpRange)));
+
+                if (empty($range[1]) === true) {
+                    $range[1] = $size - 1;
+                }
+
+                foreach ($range as $key => $value) {
+                    $range[$key] = max(0, min($value, $size - 1));
+                }
+
+                if (($range[0] > 0) || ($range[1] < ($size - 1))) {
+                    header(sprintf('%s %03u %s', 'HTTP/1.1', 206, 'Partial Content'), true, 206);
+                }
+            }
+            header('Accept-Ranges: bytes');
+            header('Content-Range: bytes ' . sprintf('%u-%u/%u', $range[0], $range[1], $size));
+        }
+        else {
+            $range = array(0, $size - 1);
+        }
+
+        header('Pragma: public');
+        header('Cache-Control: public, no-cache');
+        header('Content-Type: ' . $mimeType);
+        header('Content-Length: ' . sprintf('%u', $range[1] - $range[0] + 1));
+        header('Content-Disposition: attachment; filename="' . basename($path) . '"');
+        header('Content-Transfer-Encoding: binary');
+
+        if ($range[0] > 0) {
+            fseek($file, $range[0]);
+        }
+
+        while ((feof($file) !== true) && (connection_status() === CONNECTION_NORMAL)) {
+            echo fread($file, 10 * 1024 * 1024);
+            flush();
+        }
+
+        fclose($file);
+        
     }
     
     /**
@@ -874,4 +783,67 @@ class RestoUtil {
 
         return $dbh;
     }
+    
+    /**
+     * Pretty print a json string
+     * Code modified from https://github.com/GerHobbelt/nicejson-php
+     * 
+     * @param string $json
+     */
+    private static function prettyPrintJsonString($json) {
+        
+        $result = '';
+        $pos = 0;               // indentation level
+        $strLen = strlen($json);
+        $indentStr = "\t";
+        $newLine = "\n";
+        $prevChar = '';
+        $outOfQuotes = true;
+
+        for ($i = 0; $i < $strLen; $i++) {
+            // Grab the next character in the string
+            $char = substr($json, $i, 1);
+
+            // Are we inside a quoted string?
+            if ($char == '"' && $prevChar != '\\') {
+                $outOfQuotes = !$outOfQuotes;
+            }
+            // If this character is the end of an element,
+            // output a new line and indent the next line
+            else if (($char == '}' || $char == ']') && $outOfQuotes) {
+                $result .= $newLine;
+                $pos--;
+                for ($j = 0; $j < $pos; $j++) {
+                    $result .= $indentStr;
+                }
+            }
+            // eat all non-essential whitespace in the input as we do our own here and it would only mess up our process
+            else if ($outOfQuotes && false !== strpos(" \t\r\n", $char)) {
+                continue;
+            }
+
+            // Add the character to the result string
+            $result .= $char;
+            // always add a space after a field colon:
+            if ($char == ':' && $outOfQuotes) {
+                $result .= ' ';
+            }
+
+            // If the last character was the beginning of an element,
+            // output a new line and indent the next line
+            if (($char == ',' || $char == '{' || $char == '[') && $outOfQuotes) {
+                $result .= $newLine;
+                if ($char == '{' || $char == '[') {
+                    $pos++;
+                }
+                for ($j = 0; $j < $pos; $j++) {
+                    $result .= $indentStr;
+                }
+            }
+            $prevChar = $char;
+        }
+
+        return $result;
+    }
+    
 }
