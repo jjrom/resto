@@ -148,19 +148,17 @@ class Functions_users {
             RestoLogUtil::httpError(500, 'Cannot save user profile - user already exist');
         }
         $email = trim(strtolower($profile['email']));
-        $values = array(
-            '\'' . pg_escape_string($email) . '\'',
-            '\'' . (isset($profile['password']) ? sha1($profile['password']) : str_repeat('*', 40)) . '\'',
-            isset($profile['groupname']) ? '\'' . pg_escape_string($profile['groupname']) . '\'' : '\'default\'',
-            isset($profile['username']) ? '\'' . pg_escape_string($profile['username']) . '\'' : 'NULL',
-            isset($profile['givenname']) ? '\'' . pg_escape_string($profile['givenname']) . '\'' : 'NULL',
-            isset($profile['lastname']) ? '\'' . pg_escape_string($profile['lastname']) . '\'' : 'NULL',
-            '\'' . pg_escape_string(sha1($email . microtime())) . '\'',
-            $profile['activated'],
-            'now()'
-        );
+        $values = "'" . pg_escape_string($email) . "',";
+        $values .= "'" . (isset($profile['password']) ? sha1($profile['password']) : str_repeat('*', 40)) . "',";
+        $values .= "'" . (isset($profile['groupname']) ? pg_escape_string($profile['groupname']) : 'default') . "',";
+        foreach (array_values(array('username', 'givenname', 'lastname')) as $field) {
+            $values .= (isset($profile[$field]) ? "'". $profile[$field] . "'" : 'NULL') . ",";
+        }
+        $values .= "'" . pg_escape_string(sha1($email . microtime())) . "',";
+        $values .= $profile['activated'] . ',now()';
+        
         // TODO change to pg_fetch_assoc ?
-        $results = $this->dbDriver->query('INSERT INTO usermanagement.users (email,password,groupname,username,givenname,lastname,activationcode,activated,registrationdate) VALUES (' . join(',', $values) . ') RETURNING userid, activationcode');
+        $results = $this->dbDriver->query('INSERT INTO usermanagement.users (email,password,groupname,username,givenname,lastname,activationcode,activated,registrationdate) VALUES (' . $values . ') RETURNING userid, activationcode');
         return pg_fetch_array($results);
         
     }
@@ -246,52 +244,6 @@ class Functions_users {
             $this->dbDriver->query('INSERT INTO usermanagement.signatures (email, collection, signdate) VALUES (\'' . pg_escape_string($identifier) . '\',\'' . pg_escape_string($collectionName) . '\',now())');
         }
         return true;
-    }
-    
-    /**
-     * Get user history
-     * 
-     * @param integer $userid
-     * @param array $options
-     *          
-     *      array(
-     *         'orderBy' => // order field (default querytime),
-     *         'ascOrDesc' => // ASC or DESC (default DESC)
-     *         'collectionName' => // collection name
-     *         'service' => // 'search', 'download' or 'visualize' (default null),
-     *         'startIndex' => // (default 0),
-     *         'numberOfResults' => // (default 50)
-     *     )
-     *          
-     * @return array
-     * @throws Exception
-     */
-    public function getHistory($userid = null, $options = array()) {
-        
-        $result = array();
-        
-        $orderBy = isset($options['orderBy']) ? $options['orderBy'] : 'querytime';
-        $ascOrDesc = isset($options['ascOrDesc']) ? $options['ascOrDesc'] : 'DESC';
-        $startIndex = isset($options['startIndex']) ? $options['startIndex'] : 0;
-        $numberOfResults = isset($options['numberOfResults']) ? $options['numberOfResults'] : 50;
-        
-        $where = array();
-        if (isset($userid)) {
-            $where[] = 'userid=' . pg_escape_string($userid);
-        }
-        if (isset($options['service'])) {
-            $where[] = 'service=\'' . pg_escape_string($options['service']) . '\'';
-        }
-        if (isset($options['collectionName'])) {
-            $where[] = 'collection=\'' . pg_escape_string($options['collectionName']) . '\'';
-        }
-
-        $results = $this->dbDriver->query('SELECT gid, userid, method, service, collection, resourceid, query, querytime, url, ip FROM usermanagement.history' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : '') . ' ORDER BY ' . pg_escape_string($orderBy) . ' ' . pg_escape_string($ascOrDesc) . ' LIMIT ' . $numberOfResults . ' OFFSET ' . $startIndex, 500, 'Cannot get history');
-        while ($row = pg_fetch_assoc($results)) {
-            $result[$row['gid']] = $row;
-        }
-        return $result;
-        
     }
     
     /**
