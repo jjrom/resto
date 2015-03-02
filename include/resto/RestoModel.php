@@ -716,7 +716,7 @@ abstract class RestoModel {
             RestoUtil::httpError(500, 'Feature ' . $data['id'] . ' cannot be inserted in database');
         }
         
-        return new RestoFeature($data['id'], $this->context, $this->user, null);
+        return new RestoFeature($data['id'], $this->context, $this->user);
         
     }
     

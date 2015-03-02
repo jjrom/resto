@@ -76,7 +76,7 @@ class RestoFeature {
     /*
      * Name to display in properties links
      */
-    private $displayedCollectionName;
+    private $displayedName;
     
     /*
      * Download path on disk
@@ -89,33 +89,45 @@ class RestoFeature {
      * @param array or string $featureOrIdentifier : Feature identifier or properties
      * @param RestoResto $context : Resto Context
      * @param RestoUser $user : Resto user
-     * @param RestoCollection $collection : Parent collection
-     * @param boolean $forceCollectionName : Force collection name in links
+     * @param array $options
      * 
      */
-    public function __construct($featureOrIdentifier, $context, $user, $collection, $forceCollectionName = true) {
+    public function __construct($featureOrIdentifier, $context, $user, $options = array()) {
         
-        $this->identifier = is_array($featureOrIdentifier) ? $featureOrIdentifier['identifier'] : $featureOrIdentifier;
+        if (!isset($context) || !is_a($context, 'RestoContext')) {
+            throw new Exception('Context is undefined or not valid', 500);
+        }
+        
         $this->context = $context;
         $this->user = $user;
+        $this->identifier = is_array($featureOrIdentifier) ? $featureOrIdentifier['identifier'] : $featureOrIdentifier;
+        if (!RestoUtil::isValidUUID($this->identifier)) {
+            RestoLogUtil::httpError(404);
+        }
         
-        if (isset($collection)) {
-            $this->collection = $collection;
+        $this->initialize($featureOrIdentifier, $options);
+        
+        return $this;
+        
+    }
+    
+    /**
+     * Set feature either from input description or from database
+     * 
+     * @param string/array $featureOrIdentifier
+     * @param array $options
+     */
+    private function initialize($featureOrIdentifier, $options) {
+        
+        if (isset($options['collection'])) {
+            $this->collection = $options['collection'];
+            $this->displayedName = isset($options['forceCollectionName']) && $options['forceCollectionName'] ? $this->collection->name : null;
             $this->model = $this->collection->model;
         }
         else {
             $this->model = new RestoModel_default($this->context, $this->user);
         }
         
-        $this->displayedCollectionName = $forceCollectionName && isset($this->collection) ? $this->collection->name : null;
-        
-        if (!isset($context) || !is_a($context, 'RestoContext')) {
-            throw new Exception('Context is undefined or not valid', 500);
-        }
-        if (!RestoUtil::isValidUUID($this->identifier)) {
-            RestoLogUtil::httpError(404);
-        }
-      
         /*
          * Load from input array
          */
@@ -133,9 +145,6 @@ class RestoFeature {
                 ))
             );
         }
-        
-        return $this;
-        
     }
     
     /**
@@ -151,225 +160,57 @@ class RestoFeature {
         }
         
         /*
-         * Retrieve collection if not set
+         * Variables
          */
-        if (!isset($this->collection)) {
-            $this->collection = new RestoCollection($properties['collection'], $this->context, $this->user, array('autoload' => true));
-            $this->model = $this->collection->model;
-        }
-        
-        /*
-         * Update dynamically metadata, quicklook and thumbnail path if required before the replaceInTemplate
-         */
-        if (method_exists($this->model,'generateMetadataPath')) {
-            $properties['metadata'] = $this->model->generateMetadataPath($properties);
-        }
-
-        if (method_exists($this->model,'generateQuicklookPath')) {
-            $properties['quicklook'] = $this->model->generateQuicklookPath($properties);
-        }
-
-        if (method_exists($this->model,'generateThumbnailPath')) {
-            $properties['thumbnail'] = $this->model->generateThumbnailPath($properties);
-        }
-
-        /*
-         * Modify properties as defined in collection propertiesMapping associative array
-         */
-        if (isset($this->collection->propertiesMapping)) {
-            foreach (array_keys($this->collection->propertiesMapping) as $key) {
-                $properties[$key] = RestoUtil::replaceInTemplate($this->collection->propertiesMapping[$key], $properties);
-            }
-        }
-        
-        /*
-         * Extract geometry
-         */
-        $geometry = isset($properties['geometry']) ? $properties['geometry'] : null;
-        
-        /*
-         * Set search url
-         */
-        $searchUrl = $this->context->baseUrl . 'api/collections' . (isset($this->displayedCollectionName) ? '/' . $this->displayedCollectionName : '' ) . '/search.json';
+        $searchUrl = $this->context->baseUrl . 'api/collections' . (isset($this->displayedName) ? '/' . $this->displayedName : '' ) . '/search.json';
         $thisUrl = isset($this->collection) ? RestoUtil::restoUrl($this->collection->getUrl(), $this->identifier) : RestoUtil::restoUrl($this->context->baseUrl, 'collections/' . $properties['collection'] . '/' . $this->identifier);
         
         /*
-         * Add a keyword for year, month and day of acquisition
+         * Set collection
+         */
+        $this->setCollection($properties['collection']);
+        
+        /*
+         * Update metadata values from propertiesMapping
+         */
+        $this->updatePaths($properties);
+        
+        /*
+         * Set date keywords
          */
         if (isset($properties[$this->model->searchFilters['time:start']['key']])) {
-            $year = substr($properties[$this->model->searchFilters['time:start']['key']], 0, 4);
-            $idYear = 'year:' . $year;
-            $hashYear = RestoUtil::getHash($idYear);
-            $month = substr($properties[$this->model->searchFilters['time:start']['key']], 0, 7);
-            $idMonth = 'month:' . $month;
-            $hashMonth = RestoUtil::getHash($idMonth, $hashYear);
-            $day = substr($properties[$this->model->searchFilters['time:start']['key']], 0, 10);
-            $idDay = 'day:' . $day;
-            $properties['keywords'][] = array(
-                'name' => $year,
-                'id' => $idYear,
-                'hash' => $hashYear,
-                'href' => RestoUtil::updateUrl($searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $year, $this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
-            );
-            $properties['keywords'][] = array(
-                'name' => $month,
-                'id' => $idMonth,
-                'hash' => $hashMonth,
-                'parentId' => $idYear,
-                'parentHash' => $hashYear,
-                'href' => RestoUtil::updateUrl($searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $month, $this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
-            );
-            $properties['keywords'][] = array(
-                'name' => $day,
-                'id' => $idDay,
-                'hash' => RestoUtil::getHash($idDay),
-                'parentId' => $idMonth,
-                'parentHash' => $hashMonth,
-                'href' => RestoUtil::updateUrl($searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $day, $this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
-            );
+            $this->setDateKeywords($properties, $searchUrl);
         }
         
         /*
-         * Add keywords for dedicated filters
+         * Set other keywords
          */
-        foreach (array_keys($this->model->searchFilters) as $key) {
-            if (isset($this->model->searchFilters[$key]['keyword']) && isset($properties[$this->model->searchFilters[$key]['key']])) {
-                /*
-                 * Set multiple words within quotes 
-                 */
-                $v = RestoUtil::replaceInTemplate($this->model->searchFilters[$key]['keyword']['value'], $properties);
-                $splitted = explode(' ', $v);
-                
-                if (count($splitted) > 1) {
-                    $v = '"' . $v . '"';
-                }
-                $properties['keywords'][] = array(
-                    'name' => $v,
-                    'id' => $this->model->searchFilters[$key]['keyword']['type'] . ':' . $v,
-                    'href' => RestoUtil::updateUrl($searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $v))
-                );
-            }
-        }
+        $this->setKeywords($properties, $searchUrl);
         
         /*
-         * LandUse
+         * Set landuse
          */
-        $landUse = array(
-            'cultivatedCover',
-            'desertCover',
-            'floodedCover',
-            'forestCover',
-            'herbaceousCover',
-            'iceCover',
-            'urbanCover',
-            'waterCover'
-        );
-        if (!isset($properties['landUse']) || !is_array($properties['landUse'])) {
-            $properties['landUse'] = array();
-        }
-        for ($i = count($landUse); $i--;) {
-            if (isset($properties[$landUse[$i]])) {
-                if ($properties[$landUse[$i]]) {
-                    $properties['landUse'][$landUse[$i]] = $properties[$landUse[$i]];
-                }
-                unset($properties[$landUse[$i]]);
-            }
-        }
+        $this->setLanduse($properties);
         
         /*
-         * Services - Visualize / Download / etc.
+         * Set services
          */
-        if (isset($properties['wms'])) {
-            if (!isset($properties['services'])) {
-                $properties['services'] = array();
-            }
-            $properties['services']['browse'] = array(
-                'title' => 'Display full resolution product on map',
-                'layer' => array(
-                    'type' => 'WMS',
-                    'url' => $properties['wms'],
-                    // mapshup needs layers to be set -> to be changed in mapshup
-                    'layers' => ''
-                )
-            );
-        }
-        // Download
-        if (isset($properties['resource'])) {
-            $properties['services']['download'] = array(
-                'url' => RestoUtil::isUrl($properties['resource']) ? $properties['resource'] : $thisUrl. '/download'
-            );
-            $properties['services']['download']['mimeType'] = isset($properties['resourceMimeType']) ? $properties['resourceMimeType'] : 'application/unknown';
-            if (isset($properties['resourceSize']) && $properties['resourceSize']) {
-                $properties['services']['download']['size'] = $properties['resourceSize'];
-            }
-            if (isset($properties['resourceChecksum'])) {
-                $properties['services']['download']['checksum'] = $properties['resourceChecksum'];
-            }
-            $this->resourceInfos = array(
-                'path' => method_exists($this->model,'generateResourcePath') ? $this->model->generateResourcePath($properties) : $properties['resource'],
-                'mimeType' => $properties['services']['download']['mimeType'],
-                'size' => isset($properties['services']['download']['size']) ? $properties['services']['download']['size'] : null,
-                'checksum' => isset($properties['services']['download']['checksum']) ? $properties['services']['download']['checksum'] : null
-            );
-            
-        }
+        $this->setServices($properties, $thisUrl);
         
         /*
          * Set links
          */
-        if (!isset($properties['links']) || !is_array($properties['links'])) {
-            $properties['links'] = array();
-        }
-        $properties['links'][] = array(
-            'rel' => 'alternate',
-            'type' => RestoUtil::$contentTypes['html'],
-            'title' => $this->context->dictionary->translate('_htmlLink', $this->identifier),
-            'href' => RestoUtil::updateUrl($thisUrl . '.html', array($this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
-        );
-        $properties['links'][] = array(
-            'rel' => 'alternate',
-            'type' => RestoUtil::$contentTypes['json'],
-            'title' => $this->context->dictionary->translate('_jsonLink', $this->identifier),
-            'href' => RestoUtil::updateUrl($thisUrl . '.json', array($this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
-        );
-        $properties['links'][] = array(
-            'rel' => 'alternate',
-            'type' => RestoUtil::$contentTypes['atom'],
-            'title' => $this->context->dictionary->translate('_atomLink', $this->identifier),
-            'href' => RestoUtil::updateUrl($thisUrl . '.atom', array($this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
-        );
-        
-        if (isset($properties['metadata'])) {
-            $properties['links'][] = array(
-                'rel' => 'via',
-                'type' => isset($properties['metadataMimeType']) ? $properties['metadataMimeType'] : 'application/unknown',
-                'title' => $this->context->dictionary->translate('_metadataLink', $this->identifier),
-                'href' => $properties['metadata']
-            );    
-        }
+        $this->setLinks($properties, $thisUrl);
         
         /*
-         * Remove redondant or unwanted properties
+         * Clean properties
          */
-        unset($properties['totalcount'],
-              $properties['identifier'],
-              $properties['geometry'], 
-              $properties['metadata'], 
-              $properties['metadataMimeType'],
-              $properties['wms'],
-              $properties['resource'],
-              $properties['resourceMimeType'],
-              $properties['resourceSize'],
-              $properties['resourceChecksum'],
-              $properties['bbox3857'],
-              $properties['bbox4326'],
-              $properties['visible']
-        );
+        $this->cleanProperties($properties);
         
         $this->feature = array(
             'type' => 'Feature',
             'id' => $this->identifier,
-            'geometry' => $geometry,
+            'geometry' => isset($properties['geometry']) ? $properties['geometry'] : null,
             'properties' => $properties
         );
         
@@ -825,4 +666,280 @@ class RestoFeature {
         
     }
     
+    /**
+     * Retrieve collection if not set
+     * 
+     * @param string $collectionName
+     */
+    private function setCollection($collectionName) {
+        if (!isset($this->collection)) {
+            $this->collection = new RestoCollection($collectionName, $this->context, $this->user, array('autoload' => true));
+            $this->model = $this->collection->model;
+        }
+    }
+    
+    /**
+     * Update metadata values from propertiesMapping
+     * 
+     * @param array $properties
+     */
+    private function updatePaths(&$properties) {
+        
+        /*
+         * Update dynamically metadata, quicklook and thumbnail path if required before the replaceInTemplate
+         */
+        if (method_exists($this->model,'generateMetadataPath')) {
+            $properties['metadata'] = $this->model->generateMetadataPath($properties);
+        }
+
+        if (method_exists($this->model,'generateQuicklookPath')) {
+            $properties['quicklook'] = $this->model->generateQuicklookPath($properties);
+        }
+
+        if (method_exists($this->model,'generateThumbnailPath')) {
+            $properties['thumbnail'] = $this->model->generateThumbnailPath($properties);
+        }
+        
+        /*
+         * Modify properties as defined in collection propertiesMapping associative array
+         */
+        if (isset($this->collection->propertiesMapping)) {
+            foreach (array_keys($this->collection->propertiesMapping) as $key) {
+                $properties[$key] = RestoUtil::replaceInTemplate($this->collection->propertiesMapping[$key], $properties);
+            }
+        }
+        
+    }
+    
+    /**
+     * Add keywords for dedicated filters
+     * 
+     * @param array $properties
+     * @param string $searchUrl
+     */
+    private function setKeywords(&$properties, $searchUrl) {
+        foreach (array_keys($this->model->searchFilters) as $key) {
+            if (isset($this->model->searchFilters[$key]['keyword']) && isset($properties[$this->model->searchFilters[$key]['key']])) {
+                
+                /*
+                 * Set multiple words within quotes 
+                 */
+                $name = RestoUtil::replaceInTemplate($this->model->searchFilters[$key]['keyword']['value'], $properties);
+                $splitted = explode(' ', $name);
+                
+                if (count($splitted) > 1) {
+                    $name = '"' . $name . '"';
+                }
+                $properties['keywords'][] = array(
+                    'name' => $name,
+                    'id' => $this->model->searchFilters[$key]['keyword']['type'] . ':' . $name,
+                    'href' => RestoUtil::updateUrl($searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $name))
+                );
+            }
+        }
+    }
+    
+    /**
+     * Add a keyword for year, month and day of acquisition
+     * 
+     * @param array $properties
+     * @param string $searchUrl
+     */
+    private function setDateKeywords(&$properties, $searchUrl) {
+        $year = substr($properties[$this->model->searchFilters['time:start']['key']], 0, 4);
+        $idYear = 'year:' . $year;
+        $hashYear = RestoUtil::getHash($idYear);
+        $month = substr($properties[$this->model->searchFilters['time:start']['key']], 0, 7);
+        $idMonth = 'month:' . $month;
+        $hashMonth = RestoUtil::getHash($idMonth, $hashYear);
+        $day = substr($properties[$this->model->searchFilters['time:start']['key']], 0, 10);
+        $idDay = 'day:' . $day;
+        $properties['keywords'][] = array(
+            'name' => $year,
+            'id' => $idYear,
+            'hash' => $hashYear,
+            'href' => RestoUtil::updateUrl($searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $year, $this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
+        );
+        $properties['keywords'][] = array(
+            'name' => $month,
+            'id' => $idMonth,
+            'hash' => $hashMonth,
+            'parentId' => $idYear,
+            'parentHash' => $hashYear,
+            'href' => RestoUtil::updateUrl($searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $month, $this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
+        );
+        $properties['keywords'][] = array(
+            'name' => $day,
+            'id' => $idDay,
+            'hash' => RestoUtil::getHash($idDay),
+            'parentId' => $idMonth,
+            'parentHash' => $hashMonth,
+            'href' => RestoUtil::updateUrl($searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $day, $this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
+        );
+        
+    }
+    
+    /**
+     * Add a keyword for year, month and day of acquisition
+     * 
+     * @param array $properties
+     */
+    private function setLanduse(&$properties) {
+        $landUse = array(
+            'cultivatedCover',
+            'desertCover',
+            'floodedCover',
+            'forestCover',
+            'herbaceousCover',
+            'iceCover',
+            'urbanCover',
+            'waterCover'
+        );
+        if (!isset($properties['landUse']) || !is_array($properties['landUse'])) {
+            $properties['landUse'] = array();
+        }
+        for ($i = count($landUse); $i--;) {
+            if (isset($properties[$landUse[$i]])) {
+                if ($properties[$landUse[$i]]) {
+                    $properties['landUse'][$landUse[$i]] = $properties[$landUse[$i]];
+                }
+                unset($properties[$landUse[$i]]);
+            }
+        }
+        
+    }
+    
+    /**
+     * Set services - Visualize / Download / etc.
+     * 
+     * @param array $properties
+     * @param string $thisUrl
+     */
+    private function setServices(&$properties, $thisUrl) {
+        
+        if (!isset($properties['services'])) {
+            $properties['services'] = array();
+        }
+            
+        /*
+         * Visualize
+         */
+        if (isset($properties['wms'])) {
+            $this->setVisualizeService($properties);
+        }
+        
+        /*
+         * Download
+         */
+        if (isset($properties['resource'])) {
+            $this->setDownloadService($properties, $thisUrl);
+        }
+        
+    }
+    
+    /**
+     * Set visualize service
+     * 
+     * @param array $properties
+     */
+    private function setVisualizeService(&$properties) {
+        $properties['services']['browse'] = array(
+            'title' => 'Display full resolution product on map',
+            'layer' => array(
+                'type' => 'WMS',
+                'url' => $properties['wms'],
+                // TODO mapshup needs layers to be set -> to be changed in mapshup
+                'layers' => ''
+            )
+        );
+    }
+    
+    /**
+     * Set download service
+     * 
+     * @param array $properties
+     * @param string $thisUrl
+     */
+    private function setDownloadService(&$properties, $thisUrl) {
+        $properties['services']['download'] = array(
+            'url' => RestoUtil::isUrl($properties['resource']) ? $properties['resource'] : $thisUrl. '/download'
+        );
+        $properties['services']['download']['mimeType'] = isset($properties['resourceMimeType']) ? $properties['resourceMimeType'] : 'application/unknown';
+        if (isset($properties['resourceSize']) && $properties['resourceSize']) {
+            $properties['services']['download']['size'] = $properties['resourceSize'];
+        }
+        if (isset($properties['resourceChecksum'])) {
+            $properties['services']['download']['checksum'] = $properties['resourceChecksum'];
+        }
+        $this->resourceInfos = array(
+            'path' => method_exists($this->model,'generateResourcePath') ? $this->model->generateResourcePath($properties) : $properties['resource'],
+            'mimeType' => $properties['services']['download']['mimeType'],
+            'size' => isset($properties['services']['download']['size']) ? $properties['services']['download']['size'] : null,
+            'checksum' => isset($properties['services']['download']['checksum']) ? $properties['services']['download']['checksum'] : null
+        );
+    }
+    
+    /**
+     * Set links
+     * 
+     * @param array $properties
+     * @param string $thisUrl
+     */
+    private function setLinks(&$properties, $thisUrl) {
+        
+        if (!isset($properties['links']) || !is_array($properties['links'])) {
+            $properties['links'] = array();
+        }
+        $properties['links'][] = array(
+            'rel' => 'alternate',
+            'type' => RestoUtil::$contentTypes['html'],
+            'title' => $this->context->dictionary->translate('_htmlLink', $this->identifier),
+            'href' => RestoUtil::updateUrl($thisUrl . '.html', array($this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
+        );
+        $properties['links'][] = array(
+            'rel' => 'alternate',
+            'type' => RestoUtil::$contentTypes['json'],
+            'title' => $this->context->dictionary->translate('_jsonLink', $this->identifier),
+            'href' => RestoUtil::updateUrl($thisUrl . '.json', array($this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
+        );
+        $properties['links'][] = array(
+            'rel' => 'alternate',
+            'type' => RestoUtil::$contentTypes['atom'],
+            'title' => $this->context->dictionary->translate('_atomLink', $this->identifier),
+            'href' => RestoUtil::updateUrl($thisUrl . '.atom', array($this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
+        );
+        
+        if (isset($properties['metadata'])) {
+            $properties['links'][] = array(
+                'rel' => 'via',
+                'type' => isset($properties['metadataMimeType']) ? $properties['metadataMimeType'] : 'application/unknown',
+                'title' => $this->context->dictionary->translate('_metadataLink', $this->identifier),
+                'href' => $properties['metadata']
+            );    
+        }
+        
+    }
+    
+    /**
+     * Remove redondant or unwanted properties
+     * 
+     * @param array $properties
+     */
+    private function cleanProperties(&$properties) {
+        unset($properties['totalcount'],
+              $properties['identifier'],
+              $properties['geometry'], 
+              $properties['metadata'], 
+              $properties['metadataMimeType'],
+              $properties['wms'],
+              $properties['resource'],
+              $properties['resourceMimeType'],
+              $properties['resourceSize'],
+              $properties['resourceChecksum'],
+              $properties['bbox3857'],
+              $properties['bbox4326'],
+              $properties['visible']
+        );
+        
+    }
 }

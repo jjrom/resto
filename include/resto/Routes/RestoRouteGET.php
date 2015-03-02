@@ -370,7 +370,7 @@ class RestoRouteGET extends RestoRoute {
             $collection = new RestoCollection($segments[1], $this->context, $this->user, array('autoload' => true));
         }
         if (isset($segments[2])) {
-            $feature = new RestoFeature($segments[2], $this->context, $this->user, $collection);
+            $feature = new RestoFeature($segments[2], $this->context, $this->user, array('collection' => $collection));
         }
         
         /*

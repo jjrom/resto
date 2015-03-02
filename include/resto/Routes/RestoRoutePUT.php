@@ -104,7 +104,7 @@ class RestoRoutePUT extends RestoRoute {
         $collection = new RestoCollection($segments[1], $this->context, $this->user, array('autoload' => true));
         $featureIdentifier = isset($segments[2]) ? $segments[2] : null;
         if (isset($featureIdentifier)) {
-            $feature = new RestoFeature($featureIdentifier, $this->context, $this->user, $collection);
+            $feature = new RestoFeature($featureIdentifier, $this->context, $this->user, array('collection' => $collection));
         }
         
         /*
