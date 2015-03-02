@@ -132,7 +132,7 @@ class RestoFeature {
             if (!isset($this->resourceInfos['path']) || !is_file($this->resourceInfos['path'])) {
                 RestoLogUtil::httpError(404);;
             }
-            
+           
             /*
              * Optimized download with Apache module XsendFile
              */
@@ -140,7 +140,7 @@ class RestoFeature {
                 return $this->streamApache();
             }
             
-            return $this->stream($this->resourceInfos['path'], isset($this->resourceInfos['mimeType']) ? $this->resourceInfos['mimeType'] : 'application/octet-stream');
+            return $this->stream(realpath($this->resourceInfos['path']), isset($this->resourceInfos['mimeType']) ? $this->resourceInfos['mimeType'] : 'application/octet-stream');
             
         }
         /*
@@ -568,18 +568,10 @@ class RestoFeature {
     private function stream($path, $mimeType = 'application/octet-stream', $multipart = true) {
 
         /*
-         * File does not exist
-         */
-        if (is_file($path = realpath($path)) === false) {
-            RestoLogUtil::httpError(404);
-        }
-
-        /*
          * File cannot be read
          */
         $file = fopen($path, 'rb');
-        $size = sprintf('%u', filesize($path));
-        if (is_resource($file) === true) {
+        if (!is_resource($file)) {
             RestoLogUtil::httpError(404);
         }
         
@@ -594,6 +586,7 @@ class RestoFeature {
          * In case of multiple ranges requested, only the first range is served
          * (http://tools.ietf.org/id/draft-ietf-http-range-retrieval-00.txt)
          */
+        $size = sprintf('%u', filesize($path));
         $range = $multipart === true ? $this->getRange($size) : array(0, $size - 1);
 
         /*
