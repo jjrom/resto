@@ -119,6 +119,11 @@ class RestoContext {
      */
     public $title = 'resto';
     
+    /*
+     * Upload directory
+     */
+    public $uploadDirectory = '/tmp/resto_uploads';
+    
     /**
      * Constructor
      * 
@@ -279,6 +284,13 @@ class RestoContext {
         }
         
         /*
+         * Upload directory
+         */
+        if (isset($config['general']['uploadDirectory'])) {
+            $this->uploadDirectory = $config['general']['uploadDirectory'];
+        }
+        
+        /*
          * Initialize modules
          */
         $this->setModules($config['modules']);
@@ -310,10 +322,8 @@ class RestoContext {
         switch ($this->method) {
             case 'GET':
             case 'DELETE':
-                $query = RestoUtil::sanitize($_GET);
-                break;
             case 'POST':
-                $query = array_merge($_POST, RestoUtil::sanitize($_GET));
+                $query = RestoUtil::sanitize($_GET);
                 break;
             default:
                 break;

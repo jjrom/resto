@@ -252,17 +252,6 @@ class RestoUtil {
     }
     
     /**
-     * Construct base url from parse_url fragments
-     * 
-     * @param array $exploded
-     */
-    public static function baseUrl($exploded) {
-        return (isset($exploded['scheme']) ? $exploded['scheme'] . ':' : '') . '//' .
-               (isset($exploded['user']) ? $exploded['user'] . ':' . $exploded['pass'] . '@' : '') .
-               $exploded['host'] . (isset($exploded['port']) ? ':' . $exploded['port'] : '');
-    }
-    
-    /**
      * Write a valid RESTo URL
      * 
      * @param string $baseUrl
@@ -295,61 +284,28 @@ class RestoUtil {
      */
     public static function isISO8601($dateStr) {
 
-        /* Pattern for matching : YYYY */
-        $pYear = '\d{4}';
-
-        /* Pattern for matching : YYYY-MM */
-        $pMonthExtend = '\d{4}-\d{2}';
-
-        /* Pattern for matching : YYYY-MM-DD */
-        $pDateExtend = '\d{4}-\d{2}-\d{2}';
-
-        /* Pattern for matching : YYYY-MM-DDTHH:MM:SS */
-        $pDateAndTimeExtend = '\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}';
-
-        /* Pattern for matching : +HH:MM or -HH:MM */
-        $pTimeZoneExtend = '[\+|\-]\d{2}\:\d{2}';
-
-        /** Pattern for matching : ,n or .n 
-         *  where n is the fraction of seconds to one or more digits
-         */
-        $pFractionSeconds = '[,|\.]\d+';
-
-        /* Pattern for matching : YYYYMM */
-        $pMonth = '\d{4}\d{2}';
-
-        /* Pattern for matching : YYYYMMDD */
-        $pDate = '\d{4}\d{2}\d{2}';
-
-        /* Pattern for matching : YYYYMMDDTHHMMSS */
-        $pDateAndTime = '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}';
-
-        /* Pattern for matching : +HHMM or -HHMM */
-        $pTimeZone = '[\+|\-]\d{2}\d{2}';
-
         /**
          * Construct the regex to match all ISO 8601 format date case
          * The regex is constructed as a combination of all pattern       
          */
-        $completePattern = array(
-            $pYear,
-            $pMonthExtend,
-            $pDateExtend,
-            $pDateExtend,
-            $pDateAndTimeExtend . 'Z',
-            $pDateAndTimeExtend . '' . $pTimeZoneExtend,
-            $pDateAndTimeExtend . '' . $pFractionSeconds,
-            $pDateAndTimeExtend . '' . $pFractionSeconds . 'Z',
-            $pDateAndTimeExtend . '' . $pFractionSeconds . '' . $pTimeZoneExtend,
-            $pMonth,
-            $pDate,
-            $pDateAndTime,
-            $pDateAndTime . 'Z',
-            $pDateAndTime . '' . $pTimeZone,
-            $pDateAndTime . '' . $pTimeZone . 'Z',
-            $pDateAndTime . '' . $pFractionSeconds . '' . $pTimeZone
-        );
-        return preg_match('/^' . join('$|^', $completePattern) .'$/i', $dateStr);
+        return preg_match('/^' . join('$|^', array(
+                    '\d{4}', // YYYY
+                    '\d{4}-\d{2}', // YYYY-MM
+                    '\d{4}-\d{2}-\d{2}', // YYYY-MM-DD
+                    '\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}', // YYYY-MM-DDTHH:MM:SS
+                    '\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}Z', // YYYY-MM-DDTHH:MM:SSZ
+                    '\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}' . '' . '[\+|\-]\d{2}\:\d{2}', // YYYY-MM-DDTHH:MM:SS +HH:MM or -HH:MM
+                    '\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}' . '' . '[,|\.]\d+', // YYYY-MM-DDTHH:MM:SS(. or ,)n
+                    '\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}' . '' . '[,|\.]\d+' . 'Z', // YYYY-MM-DDTHH:MM:SS(. or ,)nZ
+                    '\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}' . '' . '[,|\.]\d+' . '' . '[\+|\-]\d{2}\:\d{2}', // // YYYY-MM-DDTHH:MM:SS(. or ,)n +HH:MM or -HH:MM
+                    '\d{4}\d{2}', // YYYYMM
+                    '\d{4}\d{2}\d{2}', // YYYYMMDD
+                    '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}', // YYYYMMDDTHHMMSS
+                    '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}' . 'Z', // YYYYMMDDTHHMMSSZ
+                    '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}' . '' . '[\+|\-]\d{2}\d{2}', // YYYYMMDDTHHMMSSZ +HHMM or -HHMM
+                    '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}' . '' . '[\+|\-]\d{2}\d{2}' . 'Z', // // YYYYMMDDTHHMMSSZ(. or ,)nZ
+                    '\d{4}\d{2}\d{2}T\d{2}\d{2}\d{2}' . '' . '[,|\.]\d+' . '' . '[\+|\-]\d{2}\d{2}' // YYYYMMDDTHHMMSSZ(. or ,)n +HHMM or -HHMM
+                )) . '$/i', $dateStr);
     }
 
     /**
@@ -399,101 +355,41 @@ class RestoUtil {
             throw new Exception(__METHOD__ . ' - ' . $className . ' is not instantiable', 500);
         }
         
-        $count = count($params);
-        if ($count === 1) {
-            return $class->newInstance($params[0]);
+        switch (count($params)) {
+            case 1:
+                return $class->newInstance($params[0]);
+            case 2:
+                return $class->newInstance($params[0], $params[1]);
+            case 3:
+                return $class->newInstance($params[0], $params[1], $params[2]);
+            default:
+                return $class->newInstance();
         }
-        else if ($count === 2) {
-            return $class->newInstance($params[0], $params[1]);
-        }
-        else if ($count === 3) {
-            return $class->newInstance($params[0], $params[1], $params[2]);
-        }
-        
-        return $class->newInstance();
-        
     }
 
     /**
      * Return an array of posted/put files or POST stream within HTTP request Body
      * 
-     * @param array $params - query parameters
+     * @param string $uploadDirectory - Upload directory
      * 
      * @return array
      * @throws Exception
      */
-    public static function readInputData() {
-
-        /*
-         * True by default, False if no file is posted but data posted through parameters
-         */
-        $isFile = true;
+    public static function readInputData($uploadDirectory) {
 
         /*
          * No file is posted - check HTTP request body
          */
         if (count($_FILES) === 0 || !is_array($_FILES['file'])) {
-            $body = file_get_contents('php://input');
-            if (isset($body)) {
-                $isFile = false;
-                $tmpFiles = array($body);
-            }
+            return RestoUtil::readStream();
         }
         /*
-         * A file is posted -
-         * Read file assuming this is ascii file (i.e. plain text, GeoJSON, etc.)
+         * A file is posted - read attachement
          */
         else {
-            $tmpFiles = $_FILES['file']['tmp_name'];
-            if (!is_array($tmpFiles)) {
-                $tmpFiles = array($tmpFiles);
-            }
+            return RestoUtil::readFile($uploadDirectory);
         }
         
-        /*
-         * Nothing was post - or post was empty
-         */
-        if (!isset($tmpFiles)) {
-            return null;
-        }
-        if (count($tmpFiles) > 1) {
-            throw new Exception('Only one file can be posted at a time', 500);
-        }
-
-        /*
-         * Assume that input data format is JSON by default
-         */
-        try {
-            $output = json_decode($isFile ? join('', file($tmpFiles[0])) : $tmpFiles[0], true);
-        } catch (Exception $e) {
-            throw new Exception('Invalid posted file(s)', 500);
-        }
-        
-        /*
-         * The data's format is not JSON
-         */
-        if ($output === null) {
-            
-            /*
-             * Push the file content in return array.
-             * The file content is transformed as array by file function
-             */
-            if ($isFile) {
-                try {
-                    $output = file($tmpFiles[0]);
-                } catch (Exception $e) {
-                    throw new Exception('Invalid posted file(s)', 500);
-                } 
-            }
-            /*
-             * By default, the exploding character is "\n"
-             */
-            else {
-                $output = explode("\n", $tmpFiles[0]);
-            }
-        }
-
-        return $output;
     }
     
     /**
@@ -649,6 +545,7 @@ class RestoUtil {
         foreach ($kvps as $key => $value) {
             if (is_array($value)) {
                 for ($i = count($value); $i--;) {
+                    //echo $key . ' : ' . $value[$i] . "\n";
                     $paramsStr .= (isset($paramsStr) ? '&' : '') . urlencode($key) . '[]=' . urlencode($value[$i]);
                 }
             }
@@ -720,5 +617,67 @@ class RestoUtil {
 
         return $result;
     }
+    
+    /**
+     * Construct base url from parse_url fragments
+     * 
+     * @param array $exploded
+     */
+    private static function baseUrl($exploded) {
+        return (isset($exploded['scheme']) ? $exploded['scheme'] . ':' : '') . '//' .
+               (isset($exploded['user']) ? $exploded['user'] . ':' . $exploded['pass'] . '@' : '') .
+               $exploded['host'] . (isset($exploded['port']) ? ':' . $exploded['port'] : '');
+    }
+    
+    /**
+     * Read file content attached in POST request
+     * 
+     * @param string $uploadDirectory
+     * @return type
+     * @throws Exception
+     */
+    private static function readFile($uploadDirectory) {
+        try {
+            if (is_uploaded_file($_FILES['file']['tmp_name'][0])) {
+                if (!is_dir($uploadDirectory)) {
+                    mkdir($uploadDirectory);
+                }
+                $fileName = $uploadDirectory . DIRECTORY_SEPARATOR . (substr(sha1(mt_rand() . microtime()), 0, 15));
+                move_uploaded_file($_FILES['file']['tmp_name'][0], $fileName);
+                $lines = file($fileName);
+            }
+        } catch (Exception $e) {
+            throw new Exception('Cannot upload file(s)', 500);
+        }
+        
+        /*
+         * Assume that input data format is JSON by default
+         */
+        $json = json_decode(join('', $lines), true);
+        
+        return $json === null ? $lines : $json;
+    }
+    
+    /**
+     * Read file content within header body of POST request
+     * 
+     * @return type
+     * @throws Exception
+     */
+    private static function readStream() {
+        
+        $content = file_get_contents('php://input');
+        if (!isset($content)) {
+            return null;
+        }
+        
+        /*
+         * Assume that input data format is JSON by default
+         */
+        $json = json_decode($content, true);
+        
+        return $json === null ? explode("\n", $content) : $json;
+    }
+    
     
 }
