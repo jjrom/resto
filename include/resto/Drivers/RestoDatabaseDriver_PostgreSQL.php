@@ -544,4 +544,14 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         return $output;
     }
     
+    /**
+     * Return true if results exists
+     * 
+     * @param string $query
+     * @return boolean
+     */
+    public function exists($query) {
+        $results = $this->fetch($this->query(($query)));
+        return !empty($results);
+    }
 }

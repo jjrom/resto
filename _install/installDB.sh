@@ -204,7 +204,7 @@ CREATE TABLE resto.features (
     identifier          TEXT UNIQUE,
     parentidentifier    TEXT,
     collection          TEXT,
-    visible             BOOLEAN DEFAULT TRUE,
+    visible             INTEGER DEFAULT 1,
     productidentifier   TEXT,
     title               TEXT,
     description         TEXT,
@@ -262,8 +262,8 @@ CREATE TABLE usermanagement.users (
     password            TEXT NOT NULL, -- stored as sha1
     registrationdate    TIMESTAMP NOT NULL,
     activationcode      TEXT NOT NULL UNIQUE, -- activation code store as sha1
-    activated           BOOLEAN NOT NULL DEFAULT FALSE,              
-    connected           BOOLEAN NOT NULL DEFAULT FALSE
+    activated           INTEGER DEFAULT 0,              
+    connected           INTEGER DEFAULT 0
 );
 CREATE INDEX idx_email_users ON usermanagement.users (email);
 CREATE INDEX idx_groupname_users ON usermanagement.users (groupname);
@@ -276,12 +276,12 @@ CREATE TABLE usermanagement.rights (
     collection          TEXT, -- same as collection in resto.collections
     featureid           TEXT, -- same as collection in resto.collections
     emailorgroup        TEXT NOT NULL,  -- email or group name (from usermanagement.users)
-    search              BOOLEAN DEFAULT FALSE,
-    visualize           BOOLEAN DEFAULT FALSE,
-    download            BOOLEAN DEFAULT FALSE,
-    canpost             BOOLEAN DEFAULT FALSE,
-    canput              BOOLEAN DEFAULT FALSE,
-    candelete           BOOLEAN DEFAULT FALSE,
+    search              INTEGER DEFAULT 0,
+    visualize           INTEGER DEFAULT 0,
+    download            INTEGER DEFAULT 0,
+    canpost             INTEGER DEFAULT 0,
+    canput              INTEGER DEFAULT 0,
+    candelete           INTEGER DEFAULT 0,
     filters             TEXT -- serialized json representation of services rights
 );
 CREATE INDEX idx_emailorgroup_rights ON usermanagement.rights (emailorgroup);

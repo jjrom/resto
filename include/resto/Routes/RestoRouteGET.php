@@ -310,7 +310,7 @@ class RestoRouteGET extends RestoRoute {
      */
     private function GET_apiUsersActivate($userid) {
         if (isset($this->context->query['act'])) {
-            if ($this->dbDriver->execute(RestoDatabaseDriver::ACTIVATE_USER, array('userid' => $this->user($userid), 'activationCode' => $this->context->query['act']))) {
+            if ($this->context->dbDriver->execute(RestoDatabaseDriver::ACTIVATE_USER, array('userid' => $userid, 'activationCode' => $this->context->query['act']))) {
 
                 /*
                  * Redirect to a human readable page...
@@ -342,7 +342,7 @@ class RestoRouteGET extends RestoRoute {
      */
     private function GET_apiUsersIsConnected($userid) {
         if (isset($this->context->query['_sid'])) {
-            if ($this->dbDriver->execute(RestoDatabaseDriver::USER_CONNECTED, array('userid' => $userid))) {
+            if ($this->context->dbDriver->execute(RestoDatabaseDriver::USER_CONNECTED, array('userid' => $userid))) {
                 return RestoLogUtil::success('User is connected');
             }
             else {

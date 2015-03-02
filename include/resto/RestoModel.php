@@ -732,7 +732,7 @@ abstract class RestoModel {
             $iTag = new iTag($this->context->modules['iTag']['database']);
         }
         else {
-            $iTag = new iTag(array('dbh' => $this->context->dbDriver->dbh()));
+            $iTag = new iTag(array('dbh' => $this->context->dbDriver->dbh));
         }
         return $this->iTagToKeywords($iTag->tag(RestoGeometryUtil::geoJSONGeometryToWKT($geometry, isset($this->context->modules['iTag']['keywords']) ? $this->context->modules['iTag']['keywords'] : array())));
 

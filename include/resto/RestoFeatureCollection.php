@@ -93,7 +93,17 @@ class RestoFeatureCollection {
         
         $this->context = $context;
         $this->user = $user;
+        return $this->initialize($collections);
         
+    }
+    
+    /**
+     * Initialize RestoFeatureCollection from database
+     * 
+     * @param RestoCollection or array of RestoCollection $collections
+     * @return type
+     */
+    private function initialize($collections) {
         if (!isset($collections) || (is_array($collections) && count($collections) === 0)) {
             $this->defaultModel = new RestoModel_default($this->context, $this->user);
         }
@@ -107,9 +117,7 @@ class RestoFeatureCollection {
             $this->defaultCollection = $this->collections[key($collections)];
             $this->defaultModel = $this->defaultCollection->model;
         }
-        
         return $this->loadFromStore();
-        
     }
 
     /**
@@ -167,12 +175,12 @@ class RestoFeatureCollection {
          * Query Analyzer 
          */
         $original = $params;
-        $queryAnalyzeProcessingTime = null;
+        $processingTime = null;
         if (isset($this->context->modules['QueryAnalyzer'])) {
             $qa = new QueryAnalyzer($this->context, $this->user);
             $analyzis = $qa->analyze($params, $this->defaultModel);
             $params = $analyzis['analyze'];
-            $queryAnalyzeProcessingTime = $analyzis['queryAnalyzeProcessingTime']; 
+            $processingTime = $analyzis['queryAnalyzeProcessingTime']; 
         }
         
 
@@ -383,7 +391,7 @@ class RestoFeatureCollection {
                 'query' => array(
                     'original' => $original,
                     'analyzed' => array_merge($query, array('searchTerms' => $analyzedSearchterms)),
-                    'queryAnalyzeProcessingTime' => isset($queryAnalyzeProcessingTime) ? $queryAnalyzeProcessingTime : null,
+                    'queryAnalyzeProcessingTime' => isset($processingTime) ? $processingTime : null,
                     'searchProcessingTime' => $requestStopTime - $requestStartTime,
                     'hasLocation' => $hasLocation
                 ),

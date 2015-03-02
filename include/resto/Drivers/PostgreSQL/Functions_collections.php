@@ -55,7 +55,7 @@ class Functions_collections {
      */
     public function __construct($dbDriver) {
         $this->dbDriver = $dbDriver;
-        $this->dbh = $dbDriver->dbh();
+        $this->dbh = $dbDriver->dbh;
     }
 
     /**
@@ -115,7 +115,7 @@ class Functions_collections {
      */
     public function collectionExists($name) {
         $query = 'SELECT collection FROM resto.collections WHERE collection=\'' . pg_escape_string($name) . '\'';
-        return !empty($this->dbDriver->fetch($this->dbDriver->query($query)));
+        return $this->dbDriver->exists($query);
     }
     
     /**

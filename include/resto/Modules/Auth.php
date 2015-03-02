@@ -267,8 +267,40 @@ class Auth extends RestoModule {
             RestoLogUtil::httpError(500, 'Authorization failed');
         }
         
+        /*
+         * Insert user in resto database if needed
+         */
+        $this->insertUserIfNeeded($profileResponse[$uidKey]);
+        
         return $this->token($profileResponse[$uidKey]);
         
+    }
+    
+    /**
+     * Insert user into resto database if needed
+     * @param string $email
+     * @throws Exception
+     */
+    private function insertUserIfNeeded($email) {
+        
+        $profile = $this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array(
+            'email' => strtolower($email)
+        ));
+        
+        /*
+         * User does not exist - create it
+         */
+        if ($profile['userid'] === -1) {
+            $this->context->dbDriver->store(RestoDatabaseDriver::USER_PROFILE, array(
+                'profile' => array(
+                    'email' => $email,
+                    'activated' => 1
+                ))
+            );
+            return true;
+        }
+        
+        return false;
     }
     
     /**
@@ -279,13 +311,10 @@ class Auth extends RestoModule {
      */
     private function token($key) {
         
-        if (!isset($key)) {
-            throw new Exception();
-        }
-        
         $profile = $this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array(
             'email' => strtolower($key)
         ));
+        
         return array(
             'token' => $this->context->createToken($profile['userid'], $profile
         ));

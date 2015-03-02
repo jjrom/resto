@@ -55,7 +55,7 @@ class Functions_rights {
      */
     public function __construct($dbDriver) {
         $this->dbDriver = $dbDriver;
-        $this->dbh = $dbDriver->dbh();
+        $this->dbh = $dbDriver->dbh;
     }
 
     /**

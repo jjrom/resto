@@ -55,7 +55,7 @@ class Functions_cart{
      */
     public function __construct($dbDriver) {
         $this->dbDriver = $dbDriver;
-        $this->dbh = $dbDriver->dbh();
+        $this->dbh = $dbDriver->dbh;
     }
     
     /**
@@ -126,7 +126,7 @@ class Functions_cart{
             return false;
         }
         $query = 'SELECT 1 FROM usermanagement.cart WHERE itemid=\'' . pg_escape_string($itemId) . '\'';
-        return !empty($this->dbDriver->fetch($this->dbDriver->query(($query))));
+        return $this->dbDriver->exists($query);
     }
     
     /**

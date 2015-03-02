@@ -378,22 +378,23 @@ class RestoRoutePOST extends RestoRoute {
             RestoLogUtil::httpError(400, 'Email is not set');
         }
 
-        if ($this->dbDriver->check(RestoDatabaseDriver::USER, array('email' => $data['email']))) {
+        if ($this->context->dbDriver->check(RestoDatabaseDriver::USER, array('email' => $data['email']))) {
             RestoLogUtil::httpError(3000);
         }
 
-        $redirect = isset($data['confirm_success_url']) ? '&redirect=' . urlencode($data['confirm_success_url']) : '';
-        $userInfo = $this->dbDriver->store(RestoDatabaseDriver::USER_PROFILE, array(
-            array(
+        $redirect = isset($data['activateUrl']) ? '&redirect=' . urlencode($data['activateUrl']) : '';
+        $userInfo = $this->context->dbDriver->store(RestoDatabaseDriver::USER_PROFILE, array(
+            'profile' => array(
                 'email' => $data['email'],
                 'password' => isset($data['password']) ? $data['password'] : null,
                 'username' => isset($data['username']) ? $data['username'] : null,
                 'givenname' => isset($data['givenname']) ? $data['givenname'] : null,
-                'lastname' => isset($data['lastname']) ? $data['lastname'] : null
+                'lastname' => isset($data['lastname']) ? $data['lastname'] : null,
+                'activated' => 0
             ))
         );
         if (isset($userInfo)) {
-            $activationLink = $this->context->baseUrl . 'api/users/' . $userInfo['userid'] . '/activate?act=' . $userInfo['activationcode'] . $redirect;
+            $activationLink = $this->context->baseUrl . '/api/users/' . $userInfo['userid'] . '/activate?act=' . $userInfo['activationcode'] . $redirect;
             if (!$this->sendMail(array(
                         'to' => $data['email'],
                         'senderName' => $this->context->mail['senderName'],

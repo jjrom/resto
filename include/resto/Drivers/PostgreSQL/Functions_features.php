@@ -69,7 +69,7 @@ class Functions_features {
      */
     public function __construct($dbDriver) {
         $this->dbDriver = $dbDriver;
-        $this->dbh = $dbDriver->dbh();
+        $this->dbh = $dbDriver->dbh;
     }
 
     /**
@@ -157,7 +157,7 @@ class Functions_features {
      */
     public function featureExists($identifier, $schema = null) {
         $query = 'SELECT 1 FROM ' . (isset($schema) ? pg_escape_string($schema) : 'resto') . '.features WHERE identifier=\'' . pg_escape_string($identifier) . '\'';
-        return !empty($this->dbDriver->fetch($this->dbDriver->query($query)));
+        return $this->dbDriver->exists($query);
     }
     
     /**

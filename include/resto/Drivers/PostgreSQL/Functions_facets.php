@@ -55,7 +55,7 @@ class Functions_facets {
      */
     public function __construct($dbDriver) {
         $this->dbDriver = $dbDriver;
-        $this->dbh = $dbDriver->dbh();
+        $this->dbh = $dbDriver->dbh;
     }
 
     /**
@@ -252,7 +252,7 @@ class Functions_facets {
      */
     private function facetExists($hash, $collectionName) {
         $query = 'SELECT 1 FROM resto.facets WHERE uid=\'' . pg_escape_string($hash) . '\' AND collection = \'' . pg_escape_string($collectionName) . '\'';
-        return !empty($this->dbDriver->fetch($this->dbDriver->query($query)));
+        return $this->dbDriver->exists($query);
     }
     
     /**

@@ -76,7 +76,7 @@ class RestoUser{
             $this->profile = array(
                 'userid' => -1,
                 'groupname' => 'unregistered',
-                'activated' => false
+                'activated' => 0
             );
         }
         else {
@@ -103,7 +103,7 @@ class RestoUser{
      * @param string $featureIdentifier
      */
     public function getRights($collectionName = null, $featureIdentifier = null) {
-        return $this->profile['activated'] === false ? $this->rights->groupRights['unregistered'] : $this->rights->getRights($collectionName, $featureIdentifier);
+        return $this->profile['activated'] === 0 ? $this->rights->groupRights['unregistered'] : $this->rights->getRights($collectionName, $featureIdentifier);
     }
     
     /**
@@ -113,7 +113,7 @@ class RestoUser{
      * @param string $featureIdentifier
      */
     public function getFullRights($collectionName = null, $featureIdentifier = null) {
-        return $this->profile['activated'] === false ? array('*' => $this->rights->groupRights['unregistered']) : $this->rights->getFullRights($collectionName, $featureIdentifier);
+        return $this->profile['activated'] === 0 ? array('*' => $this->rights->groupRights['unregistered']) : $this->rights->getFullRights($collectionName, $featureIdentifier);
     }
     
     /**

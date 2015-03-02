@@ -55,7 +55,7 @@ class Functions_users {
      */
     public function __construct($dbDriver) {
         $this->dbDriver = $dbDriver;
-        $this->dbh = $dbDriver->dbh();
+        $this->dbh = $dbDriver->dbh;
     }
     
     /**
@@ -114,7 +114,7 @@ class Functions_users {
      */
     public function userExists($email) {
         $query = 'SELECT 1 FROM usermanagement.users WHERE email=\'' . pg_escape_string($email) . '\'';
-        return !empty($this->dbDriver->fetch($this->dbDriver->query($query)));
+        return $this->dbDriver->exists($query);
     }
     
     /**
@@ -129,7 +129,7 @@ class Functions_users {
             return false;
         }
         $query = 'SELECT 1 FROM usermanagement.users WHERE ' . $this->useridOrEmailFilter($identifier) . ' AND connected=1';
-        return !empty($this->dbDriver->fetch($this->dbDriver->query(($query))));
+        return $this->dbDriver->exists($query);
     }
     
     /**
@@ -220,7 +220,7 @@ class Functions_users {
      */
     public function isLicenseSigned($identifier, $collectionName) {
         $query = 'SELECT 1 FROM usermanagement.signatures WHERE email= \'' . pg_escape_string($identifier) . '\' AND collection= \'' . pg_escape_string($collectionName) . '\'';
-        return !empty($this->dbDriver->fetch($this->dbDriver->query(($query))));
+        return $this->dbDriver->exists($query);
     }
     
     /**
