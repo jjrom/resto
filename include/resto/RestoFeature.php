@@ -702,7 +702,7 @@ class RestoFeature {
                 header('Accept-Ranges: bytes');
             }
             else {
-                RestoUtil::download($this->resourceInfos['path'], isset($this->resourceInfos['mimeType']) ? $this->resourceInfos['mimeType'] : 'application/octet-stream');
+                $this->stream($this->resourceInfos['path'], isset($this->resourceInfos['mimeType']) ? $this->resourceInfos['mimeType'] : 'application/octet-stream');
             }
             return;
         }
@@ -734,6 +734,94 @@ class RestoFeature {
         else {
             RestoLogUtil::httpError(404);;
         }
+        
+    }
+    
+    /**
+     * 
+     * Download hosted resource with support of Range and Partial Content
+     * (See http://stackoverflow.com/questions/3697748/fastest-way-to-serve-a-file-using-php)
+     *
+     * @param string $path
+     * @param string $mimeType
+     * @param type $multipart
+     * @return boolean
+     */
+    private function stream($path, $mimeType = 'application/octet-stream', $multipart = true) {
+
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+        
+        /*
+         * File does not exist
+         */
+        if (is_file($path = realpath($path)) === false) {
+            RestoLogUtil::httpError(404);
+        }
+
+        /*
+         * File cannot be read
+         */
+        $file = fopen($path, 'rb');
+        if (is_resource($file) === true) {
+            RestoLogUtil::httpError(404);
+        }
+        
+        /*
+         * Avoid timeouts
+         */
+        set_time_limit(0);
+        
+        /*
+         * Range support
+         * 
+         * In case of multiple ranges requested, only the first range is served
+         * (http://tools.ietf.org/id/draft-ietf-http-range-retrieval-00.txt)
+         */
+        $size = sprintf('%u', filesize($path));
+        if ($multipart === true) {
+            $range = array(0, $size - 1);
+            $httpRange = filter_input(INPUT_SERVER, 'HTTP_RANGE', FILTER_SANITIZE_STRING);
+            if (isset($httpRange)) {
+                $range = array_map('intval', explode('-', preg_replace('~.*=([^,]*).*~', '$1', $httpRange)));
+
+                if (empty($range[1]) === true) {
+                    $range[1] = $size - 1;
+                }
+
+                foreach ($range as $key => $value) {
+                    $range[$key] = max(0, min($value, $size - 1));
+                }
+
+                if (($range[0] > 0) || ($range[1] < ($size - 1))) {
+                    header(sprintf('%s %03u %s', 'HTTP/1.1', 206, 'Partial Content'), true, 206);
+                }
+            }
+            header('Accept-Ranges: bytes');
+            header('Content-Range: bytes ' . sprintf('%u-%u/%u', $range[0], $range[1], $size));
+        }
+        else {
+            $range = array(0, $size - 1);
+        }
+
+        header('Pragma: public');
+        header('Cache-Control: public, no-cache');
+        header('Content-Type: ' . $mimeType);
+        header('Content-Length: ' . sprintf('%u', $range[1] - $range[0] + 1));
+        header('Content-Disposition: attachment; filename="' . basename($path) . '"');
+        header('Content-Transfer-Encoding: binary');
+
+        if ($range[0] > 0) {
+            fseek($file, $range[0]);
+        }
+
+        while ((feof($file) !== true) && (connection_status() === CONNECTION_NORMAL)) {
+            echo fread($file, 10 * 1024 * 1024);
+            flush();
+        }
+
+        fclose($file);
         
     }
     

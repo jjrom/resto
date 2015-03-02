@@ -59,7 +59,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         
         parent::__construct($config, $cache);
         
-        $this->dbh = RestoUtil::getPostgresHandler($config);
+        $this->dbh = $this->getHandler($config);
         
         $this->facetUtil = new RestoFacetUtil();
         
@@ -554,4 +554,42 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         $results = $this->fetch($this->query(($query)));
         return !empty($results);
     }
+    
+    /**
+     * Return PostgreSQL database handler
+     * 
+     * @param array $options
+     * @throws Exception
+     */
+    public function getHandler($options = array()) {
+    
+        $dbh = null;
+        
+        if (isset($options) && isset($options['dbname'])) {
+            try {
+                $dbInfo = array(
+                    'dbname=' . $options['dbname'],
+                    'user=' . $options['user'],
+                    'password=' . $options['password']
+                );
+                /*
+                 * If host is specified, then TCP/IP connection is used
+                 * Otherwise socket connection is used
+                 */
+                if (isset($options['host'])) {
+                    $dbInfo[] = 'host=' . $options['host'];
+                    $dbInfo[] = 'port=' . (isset($options['port']) ? $options['port'] : '5432');
+                }
+                $dbh = pg_connect(join(' ', $dbInfo));
+                if (!$dbh) {
+                    throw new Exception();
+                }
+            } catch (Exception $e) {
+                throw new Exception('Database connection error', 500);
+            }
+        }   
+
+        return $dbh;
+    }
+    
 }
