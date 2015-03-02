@@ -72,7 +72,7 @@ class RestoRoutePOST extends RestoRoute {
         /*
          * Input data is mandatory for POST request
          */
-        $data = RestoUtil::readInputData();
+        $data = RestoUtil::readInputData($this->context->uploadDirectory);
         if (!is_array($data) || count($data) === 0) {
             RestoLogUtil::httpError(400);
         }

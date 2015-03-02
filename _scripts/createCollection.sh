@@ -61,10 +61,8 @@ fi
 
 if [ "$HTTPS" = "1" ]
 then
-    #curl -k -X POST -F "file[]=@$JSON" https://$AUTH@$HOST/$TARGET/collections
     curl -X POST -H "Content-Type: application/json" -d @$JSON https://$AUTH@$HOST/$TARGET/collections
 else
-    #curl -X POST -F "file[]=@$JSON" http://$AUTH@$HOST/$TARGET/collections
     curl -X POST -H "Content-Type: application/json" -d @$JSON http://$AUTH@$HOST/$TARGET/collections
 fi
 echo ""

@@ -404,7 +404,6 @@ class RestoUtil {
      */
     public static function splitString($str) {
         
-        $output = array();
         $quotted = explode('"', $str);
         
         /*
@@ -412,6 +411,7 @@ class RestoUtil {
          */
         $count = count($quotted);
         if ($count > 1 && $count % 2 === 1) {
+            $output = array();
             for ($i = 0; $i < $count; $i++) {
                 if ($quotted[$i]) {
                     // Inside the quote
@@ -429,12 +429,11 @@ class RestoUtil {
                     }
                 }
             }
-        }
-        else {
-            $output = explode(' ', $str);
+            
+            return $output;
         }
         
-        return $output;
+        return explode(' ', $str);
     }
     
     /**

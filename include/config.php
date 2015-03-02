@@ -94,7 +94,12 @@ return array(
         /*
          * Url to call for password reset
          */
-        'resetPasswordUrl' => 'http://localhost/resto2-client/#/resetPassword'
+        'resetPasswordUrl' => 'http://localhost/resto2-client/#/resetPassword',
+        
+        /*
+         * Upload directory
+         */
+        'uploadDirectory' => '/tmp/resto_uploads'
     ),
     
     /*

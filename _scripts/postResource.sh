@@ -67,8 +67,8 @@ fi
 
 if [ "$HTTPS" = "1" ]
 then
-    curl -k -X POST -F "file[]=@$FILE" https://$AUTH@$HOST/$TARGET/collections/$COLLECTION
+    curl -k -X POST -d @$FILE https://$AUTH@$HOST/$TARGET/collections/$COLLECTION
 else
-    curl -X POST -F "file[]=@$FILE" http://$AUTH@$HOST/$TARGET/collections/$COLLECTION
+    curl -X POST -d @$FILE http://$AUTH@$HOST/$TARGET/collections/$COLLECTION
 fi
 echo ""
