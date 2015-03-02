@@ -83,8 +83,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              * Get cart items
              */
             case parent::CART_ITEMS:
-                $usersFunctions = new Functions_users($this);
-                return $usersFunctions->getCartItems($params['email']);
+                $cartFunctions = new Functions_cart($this);
+                return $cartFunctions->getCartItems($params['email']);
             
             /*
              * Get collections list
@@ -138,8 +138,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              * Get orders
              */    
             case parent::ORDERS:
-                $usersFunctions = new Functions_users($this);
-                return $usersFunctions->getOrders($params['email'], isset($params['orderId']) ? $params['orderId'] : null);
+                $cartFunctions = new Functions_cart($this);
+                return $cartFunctions->getOrders($params['email'], isset($params['orderId']) ? $params['orderId'] : null);
                 
             /*
              * Get rights
@@ -261,8 +261,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              * True if user is connected
              */
             case parent::CART_ITEM:
-                $usersFunctions = new Functions_users($this);
-                return $usersFunctions->isInCart($params['itemId']);
+                $cartFunctions = new Functions_cart($this);
+                return $cartFunctions->isInCart($params['itemId']);
             
             /*
              * True if user is connected
@@ -353,8 +353,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              * Remove cart item
              */
             case parent::CART_ITEM:
-                $usersFunctions = new Functions_users($this);
-                return $usersFunctions->removeFromCart($params['identifier'], $params['itemId']);
+                $cartFunctions = new Functions_cart($this);
+                return $cartFunctions->removeFromCart($params['identifier'], $params['itemId']);
                 
             /*
              * Remove collection/feature rights for user
@@ -382,8 +382,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              * Store cart item
              */
             case parent::CART_ITEM:
-                $usersFunctions = new Functions_users($this);
-                return $usersFunctions->addToCart($params['email'], $params['item']);
+                $cartFunctions = new Functions_cart($this);
+                return $cartFunctions->addToCart($params['email'], $params['item']);
             
             /*
              * Store collection
@@ -410,8 +410,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              * Store cart item
              */
             case parent::ORDER:
-                $usersFunctions = new Functions_users($this);
-                return $usersFunctions->placeOrder($params['email']);
+                $cartFunctions = new Functions_cart($this);
+                return $cartFunctions->placeOrder($params['email']);
             
             /*
              * Store query
@@ -453,8 +453,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              * Update cart item
              */
             case parent::CART_ITEM:
-                $usersFunctions = new Functions_users($this);
-                return $usersFunctions->updateCart($params['email'], $params['itemId'], $params['item']);
+                $cartFunctions = new Functions_cart($this);
+                return $cartFunctions->updateCart($params['email'], $params['itemId'], $params['item']);
             
             /*
              * Update rights
