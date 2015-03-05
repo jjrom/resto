@@ -204,7 +204,7 @@ class RestoDictionary_en extends RestoDictionary {
         'location' => 'Location',
         '_homeSearchTitle' => 'Search for satellite imagery',
         '_eg' => 'e.g.',
-        '_homeSearchExample' => 'Images of urban area in France acquired in summer',
+        '_homeSearchExample' => 'Images acquired in winter on France',
         '_numberOfCollections' => 'Collections',
         '_numberOfProducts' => 'Products',
         '_statistics' => 'Statistics',

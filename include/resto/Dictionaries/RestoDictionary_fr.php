@@ -201,7 +201,7 @@ class RestoDictionary_fr extends RestoDictionary {
         'location' => 'Localisation',
         '_homeSearchTitle' => 'Recherche d\'images satellites',
         '_eg' => 'ex.',
-        '_homeSearchExample' => 'Images acquises en été sur des zones urbaines en France',
+        '_homeSearchExample' => 'Images acquises en hiver sur la France',
         '_numberOfCollections' => 'Collections',
         '_numberOfProducts' => 'Produits',
         '_statistics' => 'Statistiques',

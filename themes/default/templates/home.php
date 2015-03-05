@@ -22,11 +22,11 @@
         <div class="row fullWidth" style="padding:100px 0px 50px 0px;width:100%;text-align:center;">
             <div class="large-12 columns">
                 <h1 class="text-light"><?php echo $self->context->dictionary->translate('_homeSearchTitle')?></h1>
-                <form id="resto-searchform" changeLocation="true" action="<?php echo $self->context->baseUrl . 'api/collections/search.html' ?>">
+                <form id="resto-searchform" changeLocation="true" action="<?php echo $self->context->baseUrl . 'api/collections/S1/search.html' ?>">
                     <span class="resto-search"><input id="search" class="darker" type="text" name="q" placeholder="<?php echo $self->context->dictionary->translate('_menu_search'); ?>" value="<?php echo isset($self->context->query['q']) ? $self->context->query['q'] : ''; ?>" style="font-size:1.5em;height:50px;max-width:800px;width:80%;"/></span>
                     <input type="hidden" name="lang" value="<?php echo $self->context->dictionary->language?>" /> 
                 </form>
-                <p class="text-light"><?php echo $self->context->dictionary->translate('_eg')?> "<a href="<?php echo $self->context->baseUrl . 'api/collections/search.html?q=' . $self->context->dictionary->translate('_homeSearchExample') . '&lang=' . $self->context->dictionary->language ?>"><?php echo $self->context->dictionary->translate('_homeSearchExample')?></a>"</p>
+                <p class="text-light"><?php echo $self->context->dictionary->translate('_eg')?> "<a href="<?php echo $self->context->baseUrl . 'api/collections/S1/search.html?q=' . $self->context->dictionary->translate('_homeSearchExample') . '&lang=' . $self->context->dictionary->language ?>"><?php echo $self->context->dictionary->translate('_homeSearchExample')?></a>"</p>
             </div>
         </div>
         <!--
@@ -44,7 +44,7 @@
                     </li>
                     <li>
                         <div class="resto-box mainstats"> 
-                            <a href="<?php echo $self->context->baseUrl . 'api/collections/search.html'; ?>">
+                            <a href="<?php echo $self->context->baseUrl . 'api/collections/S1/search.html'; ?>">
                                 <h1 class="text-light"><?php echo $self->context->dictionary->translate('_numberOfProducts'); ?></h1>
                                 <h1 class="text-light"><?php echo $nbOfProducts;?></h1>
                             </a>
@@ -71,18 +71,18 @@
                                         $value = $self->context->dictionary->getKeywordFromValue($item, $key);
                                         if (!empty($value)) {
                                         ?>
-                                <a href="<?php echo $self->context->baseUrl . 'api/collections/search.html?q=' . urlencode(RestoUtil::quoteIfNeeded($value)) . '&lang=' . $self->context->dictionary->language ?>"><span style="white-space:nowrap;"><img width="110px" height="110px" src="<?php echo $self->context->baseUrl . 'themes/default/img/world/' . str_replace(' ', '', $item) . '.png'; ?>"/><?php echo '(' . $count . ')'; ?></a></span>
+                                <a href="<?php echo $self->context->baseUrl . 'api/collections/S1/search.html?q=' . urlencode(RestoUtil::quoteIfNeeded($value)) . '&lang=' . $self->context->dictionary->language ?>"><span style="white-space:nowrap;"><img width="110px" height="110px" src="<?php echo $self->context->baseUrl . 'themes/default/img/world/' . str_replace(' ', '', $item) . '.png'; ?>"/><?php echo '(' . $count . ')'; ?></a></span>
                                 <?php }} ?>
                             </h4>
                             <?php } else { ?>
                                 <?php foreach ($stats as $item => $count) {
                                     if ($key === 'collection') { ?>
-                            <h4 class='text-light'><a href="<?php echo $self->context->baseUrl . 'api/collections/' . $item . '/search.html?lang=' . $self->context->dictionary->language ?>"><?php echo $item . ' (' . $count . ')'; ?></a></h4>
+                            <h4 class='text-light'><a href="<?php echo $self->context->baseUrl . 'api/collections/S1/' . $item . '/search.html?lang=' . $self->context->dictionary->language ?>"><?php echo $item . ' (' . $count . ')'; ?></a></h4>
                                     <?php } else if ($key === 'year' || $key === 'processingLevel' || $key === 'productType' || $key === 'platform') { ?>
-                            <h4 class='text-light'><a href="<?php echo $self->context->baseUrl . 'api/collections/search.html?q=' . urlencode(RestoUtil::quoteIfNeeded($item)) .'&lang=' . $self->context->dictionary->language ?>"><?php echo $item . ' (' . $count . ')'; ?></a></h4>
+                            <h4 class='text-light'><a href="<?php echo $self->context->baseUrl . 'api/collections/S1/search.html?q=' . urlencode(RestoUtil::quoteIfNeeded($item)) .'&lang=' . $self->context->dictionary->language ?>"><?php echo $item . ' (' . $count . ')'; ?></a></h4>
                                     <?php } else {
                                     $value = $self->context->dictionary->getKeywordFromValue($item, $key); ?>
-                            <h4 class='text-light'><a href="<?php echo $self->context->baseUrl . 'api/collections/search.html?q=' . urlencode(RestoUtil::quoteIfNeeded($value)) . '&lang=' . $self->context->dictionary->language ?>"><?php echo $value . ' (' . $count . ')'; ?></a></h4>
+                            <h4 class='text-light'><a href="<?php echo $self->context->baseUrl . 'api/collections/S1/search.html?q=' . urlencode(RestoUtil::quoteIfNeeded($value)) . '&lang=' . $self->context->dictionary->language ?>"><?php echo $value . ' (' . $count . ')'; ?></a></h4>
                                 <?php }}} ?>
                         </div>
                     </li>
