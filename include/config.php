@@ -52,7 +52,7 @@ return array(
         /*
          * Root url for the application - do not specify protocol
          */
-        'restoUrl' => '//132.149.129.1/resto2',
+        'restoUrl' => '//peps.cnes.fr/resto2',
         
         /*
          * Supported languages
