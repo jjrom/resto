@@ -893,6 +893,13 @@
             
             $div.html(content.join(''));
             
+            $('.addToCart', $div).click(function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                self.addToCart(feature);
+                return false;
+            });
+            
             /*
         
         
