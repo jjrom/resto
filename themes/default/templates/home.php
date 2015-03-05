@@ -77,7 +77,7 @@
                             <?php } else { ?>
                                 <?php foreach ($stats as $item => $count) {
                                     if ($key === 'collection') { ?>
-                            <h4 class='text-light'><a href="<?php echo $self->context->baseUrl . 'api/collections/S1/' . $item . '/search.html?lang=' . $self->context->dictionary->language ?>"><?php echo $item . ' (' . $count . ')'; ?></a></h4>
+                            <h4 class='text-light'><a href="<?php echo $self->context->baseUrl . 'api/collections/' . $item . '/search.html?lang=' . $self->context->dictionary->language ?>"><?php echo $item . ' (' . $count . ')'; ?></a></h4>
                                     <?php } else if ($key === 'year' || $key === 'processingLevel' || $key === 'productType' || $key === 'platform') { ?>
                             <h4 class='text-light'><a href="<?php echo $self->context->baseUrl . 'api/collections/S1/search.html?q=' . urlencode(RestoUtil::quoteIfNeeded($item)) .'&lang=' . $self->context->dictionary->language ?>"><?php echo $item . ' (' . $count . ')'; ?></a></h4>
                                     <?php } else {
