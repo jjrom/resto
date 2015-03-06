@@ -160,12 +160,16 @@ class iTag {
 
         /*
          * Do not process if $footprint is more than 2x2 degrees
+         * 
+         * !!! WARNING !!! Desactivated for PEPS
          */
         $bbox = $this->bbox($footprint);
+        /*
         if (abs($bbox['ulx'] - $bbox['lrx']) > 2 || abs($bbox['uly'] - $bbox['lry']) > 2) {
             return null;
         }
-
+        */
+        
         // Crop data
         $geom = "ST_GeomFromText('" . $footprint . "', 4326)";
         $query = "SELECT dn as dn, st_area($geom) as totalarea, st_area(st_intersection(wkb_geometry, $geom)) as area FROM " . $this->schema . ".landcover WHERE st_intersects(wkb_geometry, $geom)";
