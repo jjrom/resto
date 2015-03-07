@@ -58,5 +58,5 @@ fi
 # Change password !!!
 SHA1PASSWORD=`php -r "echo sha1('$PASSWORD');"`
 psql -d resto2 -U $SUPERUSER << EOF
-INSERT INTO usermanagement.users (email,groupname,username,password,activationcode,activated,registrationdate) VALUES ('$USER','admin','$USER','$SHA1PASSWORD','$SHA1PASSWORD', TRUE, now());
+INSERT INTO usermanagement.users (email,groupname,username,password,activationcode,activated,registrationdate) VALUES ('$USER','admin','$USER','$SHA1PASSWORD','$SHA1PASSWORD', 1, now());
 EOF
