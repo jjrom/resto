@@ -240,7 +240,7 @@ class RestoGeometryUtil {
      * Generic code to transform input coordinates array to WKT string
      * 
      * @param array $coordinates
-     * @param function $func
+     * @param function $functionName
      * @return type
      */
     private static function coordinatesToString($coordinates, $functionName = null) {
