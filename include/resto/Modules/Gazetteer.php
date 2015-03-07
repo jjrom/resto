@@ -467,41 +467,6 @@ class Gazetteer extends RestoModule {
     }
     
     /**
-     * Return country code for a given country
-     * 
-     * @param string $countryName
-     */
-    private function getCountryCode($countryName) {
-        
-        if (!isset($countryName)) {
-            return null;
-        }
-        
-        return isset($this->countries[strtolower($countryName)]) ? $this->countries[strtolower($countryName)] : null;
-    }
-    
-    /**
-     * Launch database query
-     * 
-     * @param string $name
-     * @param array $constraints
-     * @param string $lang
-     * @return array
-     */
-    private function queryToponyms($name, $constraints, $lang) {
-        $toponyms = array();
-        $results = pg_query($this->dbh, 'SELECT ' . join(',', $this->resultFields) . ' FROM ' . $this->toponymsSchema . '.geoname WHERE ' . join(' AND ', $this->getToponymsFilters($constraints, $name, $lang)) . ' ORDER BY CASE fcode WHEN \'PPLC\' then 1 WHEN \'PPLA\' then 2 WHEN \'PPLA2\' then 3 WHEN \'PPLA4\' then 4 WHEN \'PPL\' then 5 ELSE 6 END ASC, population DESC' . ($lang === 'en' ? ' LIMIT 30' : ''));
-        while ($toponym = pg_fetch_assoc($results)) {
-            if ($this->context->dictionary->language !== 'en') {
-                $toponym['countryname'] = $this->context->dictionary->getKeywordFromValue(array_search($toponym['ccode'], $this->countries), 'country');
-            }
-            $toponyms[$toponym['geonameid']] = $toponym;
-        }
-        return $toponyms;
-    }
-    
-    
-    /**
      * Search for cities in iTag gazetteer database
      * 
      * @param string $name
@@ -573,6 +538,40 @@ class Gazetteer extends RestoModule {
             );
         }
         return $output;
+    }
+    
+    /**
+     * Return country code for a given country
+     * 
+     * @param string $countryName
+     */
+    private function getCountryCode($countryName) {
+        
+        if (!isset($countryName)) {
+            return null;
+        }
+        
+        return isset($this->countries[strtolower($countryName)]) ? $this->countries[strtolower($countryName)] : null;
+    }
+    
+    /**
+     * Launch database query
+     * 
+     * @param string $name
+     * @param array $constraints
+     * @param string $lang
+     * @return array
+     */
+    private function queryToponyms($name, $constraints, $lang) {
+        $toponyms = array();
+        $results = pg_query($this->dbh, 'SELECT ' . join(',', $this->resultFields) . ' FROM ' . $this->toponymsSchema . '.geoname WHERE ' . join(' AND ', $this->getToponymsFilters($constraints, $name, $lang)) . ' ORDER BY CASE fcode WHEN \'PPLC\' then 1 WHEN \'PPLA\' then 2 WHEN \'PPLA2\' then 3 WHEN \'PPLA4\' then 4 WHEN \'PPL\' then 5 ELSE 6 END ASC, population DESC' . ($lang === 'en' ? ' LIMIT 30' : ''));
+        while ($toponym = pg_fetch_assoc($results)) {
+            if ($this->context->dictionary->language !== 'en') {
+                $toponym['countryname'] = $this->context->dictionary->getKeywordFromValue(array_search($toponym['ccode'], $this->countries), 'country');
+            }
+            $toponyms[$toponym['geonameid']] = $toponym;
+        }
+        return $toponyms;
     }
     
     /**
@@ -653,17 +652,9 @@ class Gazetteer extends RestoModule {
          * Constrain search on country name or state
          */
         if (isset($constraints['modifier'])) {
-            $countryOrState = $this->context->dictionary->getKeyword($constraints['modifier']);
-            if (isset($countryOrState)) {
-                if ($countryOrState['type'] === 'country') {
-                    $code = $this->getCountryCode($countryOrState['keyword']);
-                    if (isset($code)) {
-                        $where[] = 'country =\'' . pg_escape_string($code) . '\'';
-                    }
-                }
-                else if (isset($countryOrState['bbox'])) {
-                    $where[] = $this->getBBOXFilter(explode(',', $countryOrState['bbox']));
-                }
+            $modifierFilter = $this->getModifierFilter($constraints['modifier']);
+            if (isset($modifierFilter)) {
+                $where[] = $modifierFilter;
             }
         }
         
@@ -705,6 +696,27 @@ class Gazetteer extends RestoModule {
             );
         }  
         return $output;
+    }
+    
+    /**
+     * Return filter modifier
+     * @param string $name
+     * @return string
+     */
+    private function getModifierFilter($name) {
+        $countryOrState = $this->context->dictionary->getKeyword($name);
+        if (isset($countryOrState)) {
+            if ($countryOrState['type'] === 'country') {
+                $code = $this->getCountryCode($countryOrState['keyword']);
+                if (isset($code)) {
+                    return 'country =\'' . pg_escape_string($code) . '\'';
+                }
+            }
+            else if (isset($countryOrState['bbox'])) {
+                return $this->getBBOXFilter(explode(',', $countryOrState['bbox']));
+            }
+        }
+        return null;
     }
     
 }
