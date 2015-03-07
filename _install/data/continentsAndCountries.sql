@@ -174,9 +174,9 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Emirats Arabe Unis
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Angleterre', 'united kingdom','fr','country');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Royaume Uni', 'united kingdom','fr','country');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('UK', 'united kingdom','fr','country');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Etats Unis', 'united states','fr','country');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('USA', 'united states','fr','country');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('US', 'united states','fr','country');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Etats Unis', 'united states of america','fr','country');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('USA', 'united states of america','fr','country');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('US', 'united states of america','fr','country');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Uruguay', 'uruguay','fr','country');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ouzbekistan', 'uzbekistan','fr','country');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Vanuatu', 'vanuatu','fr','country');
@@ -363,9 +363,10 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('United Arab Emirat
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('United Kingdom', 'united kingdom','en','country');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('UK', 'united kingdom','en','country');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('England', 'united kingdom','en','country');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('United States', 'united states','en','country');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('USA', 'united states','en','country');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('US', 'united states','en','country');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('United States of America', 'united states of america','en','country');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('United States', 'united states of america','en','country');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('USA', 'united states of america','en','country');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('US', 'united states of america','en','country');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Uruguay', 'uruguay','en','country');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Uzbekistan', 'uzbekistan','en','country');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Vanuatu', 'vanuatu','en','country');
