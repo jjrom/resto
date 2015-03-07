@@ -74,7 +74,7 @@ class Gazetteer extends RestoModule {
     /*
      * List of countries extract from Gazetteer database
      */
-    public $countries = array(
+    private $countries = array(
         'afghanistan' => 'AF',
         'aland islands' => 'AX',
         'albania' => 'AL',
@@ -335,9 +335,16 @@ class Gazetteer extends RestoModule {
     private $dbh;
     
     /*
-     * Gazetteer schema name
+     * iTag Gazetteer schema name
      */
-    private $schema = 'gazetteer';
+    private $toponymsSchema = 'gazetteer';
+    
+    
+    /*
+     * iTag modifiers schema name
+     * (i.e. schema containing other toponyms) 
+     */
+    private $modifiersSchema = 'datasources';
     
     /**
      * Constructor
@@ -373,6 +380,13 @@ class Gazetteer extends RestoModule {
     
     /*
      * Search locations from input query
+     * 
+     * Toponyms return order is :
+     *      - fclass priority chain is P, A, the rest 
+     *      - for 'P', fcode priority chain is PPLC, PPLA, PPLA2, PPLA3, PPLA4, PPL, the rest
+     *
+     * (See http://www.geonames.org/export/codes.html for class and code explanation)
+     * 
      * 
      * Query structure :
      * 
@@ -411,162 +425,45 @@ class Gazetteer extends RestoModule {
      * @return array
      * 
      */
-    final public function search($query = array()) {
+    public function search($params = array()) {
         
-        $result = array();
-        
-        if (!$this->dbh || !isset($query['q'])) {
-            return $result;
+        if (!$this->dbh || !is_array($params) || empty($params['q'])) {
+            return RestoLogUtil::httpError(400);
         }
         
         /*
-         * Order toponyms entry following convention
-         * (see http://www.geonames.org/export/codes.html for class and code explanation)
-         * 
-         *      - fclass priority chain is P, A, the rest 
-         *      - for 'P', fcode priority chain is PPLC, PPLA, PPLA2, PPLA3, PPLA4, PPL, the rest
+         * Remove accents from query and split it into 'toponym' and 'modifier'
          */
-        $orderBy = ' ORDER BY CASE fclass WHEN \'P\' then 1 WHEN \'A\' THEN 2 ELSE 3 END, CASE fcode WHEN \'PPLC\' then 1 WHEN \'PPLA\' then 2 WHEN \'PPLA2\' then 3 WHEN \'PPLA4\' then 4 WHEN \'PPL\' then 5 ELSE 6 END ASC, population DESC';
-        
+        $query = $this->splitQuery($this->context->dbDriver->normalize($params['q']));
+       
         /*
-         * Default is no filter 
+         * Search for cities
          */
-        $where = '';
-        
-        /*
-         * Country name or state could be defined in toponym
-         * (e.g. 'Paris, France' or 'Paris, Texas')
-         */
-        $splitted = explode(',', $query['q']);
-        if (count($splitted) > 1) {
-            $query['q'] = $splitted[0];
-            $modifier = $splitted[1];
-        }
-        
-        /*
-         * If last character is '%' and search string length is greater than
-         * 2 characters then do a LIKE instead of strict search
-         */
-        $operator = '=';
-        $limit = '';
-        if (substr($query['q'], -1) === '%') {
-            if (strlen($query['q']) > 2) {
-                $operator = ' LIKE ';
-                $limit = ' LIMIT 30';
-            }
-            else {
-                $query['q'] = substr($query['q'], 0, -1);
-            }  
-        }
-        
-        /*
-         * Constrain search on country name or state
-         */
-        if (isset($modifier)) {
-            $countryOrState = $this->context->dictionary->getKeyword(trim(strtolower($modifier)));
-            if (isset($countryOrState)) {
-                if ($countryOrState['type'] === 'country') {
-                    $code = $this->getCountryCode($countryOrState['keyword']);
-                    if (isset($code)) {
-                        $where .= ' AND country =\'' . pg_escape_string($code) . '\'';
-                    }
-                }
-                else if (isset($countryOrState['bbox'])) {
-                    $query['bbox'] = $countryOrState['bbox'];
-                }
-            }
-        }
-        if (isset($query['country'])) {
-            $code = $this->getCountryCode($query['country']);
-            if (isset($code)) {
-                $where .= ' AND country =\'' . pg_escape_string($code) . '\'';
-            }
-        }
-        if (isset($query['state'])) {
-            $state = $this->context->dictionary->getKeyword(trim(strtolower($query['state'])));
-            if (isset($state) && $state['type'] === 'state' && isset($state['bbox'])) {
-                $query['bbox'] = $state['bbox'];
-            }
-        }
-        
-        /*
-         * Constrain search on bbox
-         */
-        $bbox = isset($query['bbox']) ? $this->getBBOXFilter($query['bbox']) : '';
-        
-        /*
-         * First search in native language within alternatename table
-         */
-        if ($this->context->dictionary->language !== 'en') {
-            
-            $toponyms = $this->query(array(
-                'lang' => $this->context->dictionary->language,
-                'q' => $query['q'],
-                'where' => $where,
-                'bbox' => $bbox,
-                'orderBy' => $orderBy,
-                'limit' => $limit,
-                'operator' => $operator
-            ));
-            
-            if (!$toponyms) {
-                return $result;
-            }
-            
-            while ($toponym = pg_fetch_assoc($toponyms)) {
-                $toponym['countryname'] = $this->context->dictionary->getKeywordFromValue(array_search($toponym['ccode'], $this->countries), 'country');
-                $result[$toponym['geonameid']] = $toponym;
-            }
-        }
-        
-        /*
-         * Always search in english
-         */
-        $toponyms = $this->query(array(
-            'q' => $query['q'],
-            'where' => $where,
-            'bbox' => $bbox,
-            'orderBy' => $orderBy,
-            'limit' => $limit,
-            'operator' => $operator
+        $countries = array();
+        $states = array();
+        $toponyms = $this->getToponyms($query['toponym'], array(
+            'bbox' => isset($params['bbox']) ? $params['bbox'] : null,
+            'modifier' => isset($query['modifier']) ? $query['modifier'] : null
         ));
-                
-        if (!$toponyms) {
-            return $result;
-        }
         
         /*
-         * No result - check without bbox
+         * "Toponym" search only => search also for states and countries
          */
-        if (pg_num_rows($toponyms) === 0 && !empty($bbox)) {
-            $toponyms = $this->query(array(
-                'q' => $query['q'],
-                'where' => $where,
-                'bbox' => $bbox,
-                'orderBy' => $orderBy,
-                'limit' => $limit,
-                'operator' => $operator
-            ));
-            
-            if (!$toponyms) {
-                return $result;
-            }
-            
+        if (!isset($query['modifier'])) {
+            $countries = $this->getCountries($query['toponym'], 0.1);
+            $states = $this->getStates($query['toponym'], 0.1);
         }
         
-        /*
-         * Retrieve first result
-         */
-        while ($toponym = pg_fetch_assoc($toponyms)) {
-            if (!isset($result[$toponym['geonameid']])) {
-                if ($this->context->dictionary->language !== 'en') {
-                    $toponym['countryname'] = $this->context->dictionary->getKeywordFromValue(array_search($toponym['ccode'], $this->countries), 'country');
-                }
-                $result[$toponym['geonameid']] = $toponym;
-            }
+        if (empty($toponyms) && empty($countries) && empty($states)) {
+            return RestoLogUtil::success('No toponym found for "' . (isset($params['q']) ? $params['q'] : '') . '"');
         }
         
-        return array_values($result);
+        return array(
+            'toponyms' => $toponyms,
+            'states' => $states,
+            'countries' => $countries
+        );
+        
     }
     
     /**
@@ -574,7 +471,7 @@ class Gazetteer extends RestoModule {
      * 
      * @param string $countryName
      */
-    final private function getCountryCode($countryName) {
+    private function getCountryCode($countryName) {
         
         if (!isset($countryName)) {
             return null;
@@ -586,49 +483,250 @@ class Gazetteer extends RestoModule {
     /**
      * Launch database query
      * 
-     * @param array $params
-     * @return DatabaseResults
+     * @param string $name
+     * @param array $constraints
+     * @param string $lang
+     * @return array
      */
-    final private function query($params) {
+    private function queryToponyms($name, $constraints, $lang) {
         
-        $query = 'SELECT ' . join(',', $this->resultFields) . ' FROM ' . $this->schema . '.geoname WHERE ';
+        $toponyms = array();
         
-        if (isset($params['lang'])) {
-            return pg_query($this->dbh, $query . 'geonameid = ANY((SELECT array(SELECT geonameid FROM ' . $this->schema . '.alternatename WHERE lower(unaccent(alternatename))' . $params['operator'] . 'lower(unaccent(\'' . pg_escape_string($params['q']) . '\'))  AND isolanguage=\'' . $params['lang'] . '\' ' . $params['limit'] . '))::integer[])' . $params['where'] . $params['bbox'] . $params['orderBy']);
+        /*
+         * Limit to first 30 results;
+         */
+        $limit = ' LIMIT 30';
+        
+        /*
+         * Main cities first
+         */
+        $orderBy = ' ORDER BY CASE fcode WHEN \'PPLC\' then 1 WHEN \'PPLA\' then 2 WHEN \'PPLA2\' then 3 WHEN \'PPLA4\' then 4 WHEN \'PPL\' then 5 ELSE 6 END ASC, population DESC';
+        
+        /*
+         * Search constraint
+         */
+        $where = $this->getToponymsFilters($constraints);
+        
+        /*
+         * Query
+         */
+        $query = 'SELECT ' . join(',', $this->resultFields) . ' FROM ' . $this->toponymsSchema . '.geoname WHERE ';
+        
+        /*
+         * Search in input language
+         */
+        if ($lang !== 'en') {
+            $where[] = 'geonameid = ANY((SELECT array(SELECT geonameid FROM ' . $this->toponymsSchema . '.alternatename WHERE lower(unaccent(alternatename))' . $this->likeOrEqual($name) . '\'' . pg_escape_string($name) . '\'  AND isolanguage=\'' . $lang . '\' ' . $limit . '))::integer[])';
+            $limit = '';
+        }
+        else {
+            $where[] = 'lower(unaccent(name))' . $this->likeOrEqual($name) . '\'' . pg_escape_string($name) . '\'';
+        }
+        $results = pg_query($this->dbh, $query . join(' AND ', $where) . $orderBy . $limit);
+        
+        while ($toponym = pg_fetch_assoc($results)) {
+            if ($this->context->dictionary->language !== 'en') {
+                $toponym['countryname'] = $this->context->dictionary->getKeywordFromValue(array_search($toponym['ccode'], $this->countries), 'country');
+            }
+            $toponyms[$toponym['geonameid']] = $toponym;
         }
         
-        return pg_query($this->dbh, $query . 'lower(unaccent(name))' . $params['operator'] . 'lower(unaccent(\'' . pg_escape_string($params['q']) . '\'))' . $params['where'] . $params['bbox'] . $params['orderBy'] . $params['limit']);
-       
+        return $toponyms;
+    }
+    
+    
+    /**
+     * Search for cities in iTag gazetteer database
+     * 
+     * @param string $name
+     * @param array $constraints
+     */
+    private function getToponyms($name, $constraints) {
+        
+        $toponyms = array();
+        
+        /*
+         * Search in native language within alternatename table
+         */
+        if ($this->context->dictionary->language !== 'en') {
+            $toponyms = $this->queryToponyms($name, $constraints, $this->context->dictionary->language);
+        }
+        
+        /*
+         * Always search in english
+         */
+        $englishToponyms = $this->queryToponyms($name, $constraints, 'en');
+        foreach ($englishToponyms as $geonameid => $value) {
+            if (!isset($toponyms[$geonameid])) {
+                $toponyms[$geonameid] = $value;
+            }
+        }
+        
+        return array_values($toponyms);
+    }
+    
+    /**
+     * Search for countries
+     * 
+     * @param string $name
+     * @param float $tolerance (tolerance for polygon simplification in degrees)
+     */
+    private function getCountries($name, $tolerance = 0) {
+        $output = array();
+        $query = 'SELECT admin, continent, ST_AsGeoJSON(' . $this->simplify('geom', $tolerance) . ') as geometry FROM ' . $this->modifiersSchema . '.countries WHERE lower(unaccent(admin))=lower(unaccent(\'' . $name . '\')) order by admin';
+        $results = pg_query($this->dbh, $query);
+        while ($row = pg_fetch_assoc($results)) {
+            $output[] = array(
+                'name' => $row['admin'],
+                'type' => 'country',
+                'geometry' => json_decode($row['geometry'], true)
+            );
+        }
+        return $output;
+    }
+    
+    /**
+     * Search for Administrative Level 1 stored in iTag database
+     * 
+     * (i.e. States for US, "Département" for France, etc.)
+     * 
+     * @param string $name
+     * @param float $tolerance (tolerance for polygon simplification in degrees)
+     */
+    private function getStates($name, $tolerance = 0) {
+        $output = array();
+        $query = 'SELECT name, lower(unaccent(name)) as stateid, region, lower(unaccent(region)) as regionid, admin, lower(unaccent(admin)) as adminid, ST_AsGeoJSON(' . $this->simplify('geom', $tolerance) . ') as geometry FROM ' . $this->modifiersSchema . '.worldadm1level WHERE lower(unaccent(name))=lower(unaccent(\'' . $name . '\')) order by name';
+        $results = pg_query($this->dbh, $query);
+        while ($row = pg_fetch_assoc($results)) {
+            $output[] = array(
+                'name' => $row['name'],
+                'type' => 'state',
+                'region' => $row['region'],
+                'country' => $row['admin'],
+                'geometry' => json_decode($row['geometry'], true)
+            );
+        }
+        return $output;
+    }
+    
+    /**
+     * Return filter PostGIS filter on bounding box
+     * 
+     * Input coordinates are in longitude/latitude (WGS84) ordered as follow
+     * 
+     *  array(lonMin, latMin, lonMax, latMax)
+     * 
+     * 
+     * @param array $coords
+     */
+    private function getBBOXFilter($coords) {
+        
+        /*
+         * Invalid coordinates
+         */
+        if (!is_array($coords) || count($coords) !== 4) {
+            RestoLogUtil::httpError(400, 'Invalid bbox');
+        }
+        
+        /*
+         * Non numeric coordinates
+         */
+        for ($i = 4; $i--;) {
+            if (!is_numeric($coords[$i])) {
+                RestoLogUtil::httpError(400, 'Invalid bbox');
+            }
+        }
+        
+        return 'ST_intersects(geom, ST_GeomFromText(\'' . pg_escape_string('POLYGON((' . $coords[0] . ' ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[1] . '))') . '\', 4326))';
+        
     }
 
     /**
+     * Embed geometry column within PostGIS ST_SimplifyPreserveTopology function if needed
      * 
+     * @param string $geometryColumn
+     * @param float $tolerance (tolerance for polygon simplification in degrees)
+     * @return string
      */
-    final private function getBBOXFilter($bbox) {
-        
-        $bboxConstraint = '';
-        if (isset($bbox)) {
-            $lonmin = -180;
-            $lonmax = 180;
-            $latmin = -90;
-            $latmax = 90;
-            $coords = explode(',', $bbox);
-            if (count($coords) === 4) {
-                $lonmin = is_numeric($coords[0]) ? $coords[0] : $lonmin;
-                $latmin = is_numeric($coords[1]) ? $coords[1] : $latmin;
-                $lonmax = is_numeric($coords[2]) ? $coords[2] : $lonmax;
-                $latmax = is_numeric($coords[3]) ? $coords[3] : $latmax;
-            }
-            if ($lonmin <= -180 && $latmin <= -90 && $lonmax >= 180 && $latmax >= 90) {
-                $bboxConstraint = '';
+    private function simplify($geometryColumn, $tolerance) {
+        return $tolerance > 0 ? 'ST_SimplifyPreserveTopology(' . $geometryColumn . ',' . $tolerance . ')' : $geometryColumn;
+    }
+    
+    /**
+     * Return " LIKE " if last character of $name is '%' and length is at least 3 characters 
+     * Return "=" otherwise
+     * 
+     * @param string $name
+     */
+    private function likeOrEqual($name) {
+        if (substr($name, -1) === '%') {
+            if (strlen($name) > 2) {
+                return ' LIKE ';
             }
             else {
-                $bboxConstraint = ' AND ST_intersects(geom, ST_GeomFromText(\'' . pg_escape_string('POLYGON((' . $lonmin . ' ' . $latmin . ',' . $lonmin . ' ' . $latmax . ',' . $lonmax . ' ' . $latmax . ',' . $lonmax . ' ' . $latmin . ',' . $lonmin . ' ' . $latmin . '))') . '\', 4326))';
+                RestoLogUtil::httpError(400);
+            }
+        }
+        return '=';
+    }
+ 
+    /**
+     * Return array of search filters for toponyms
+     * 
+     * @param array $constraints
+     */
+    private function getToponymsFilters($constraints) {
+        
+        $where = array(
+            'fclass=\'P\''
+        );
+        
+        /*
+         * Constrain search on country name or state
+         */
+        if (isset($constraints['modifier'])) {
+            $countryOrState = $this->context->dictionary->getKeyword($constraints['modifier']);
+            if (isset($countryOrState)) {
+                if ($countryOrState['type'] === 'country') {
+                    $code = $this->getCountryCode($countryOrState['keyword']);
+                    if (isset($code)) {
+                        $where[] = 'country =\'' . pg_escape_string($code) . '\'';
+                    }
+                }
+                else if (isset($countryOrState['bbox'])) {
+                    $where[] = $this->getBBOXFilter(explode(',', $countryOrState['bbox']));
+                }
             }
         }
         
-        return $bboxConstraint;
+        /*
+         * Bounding box filters
+         */
+        if (isset($constraints['bbox'])) {
+            $where[] = $this->getBBOXFilter(explode(',', $constraints['bbox']));
+        }
         
+        return $where;
     }
-
+    
+    /**
+     * Split query "Toponym, modifier" into array('toponym' => ..., 'modifier' => ...)
+     * 
+     * @param string $query
+     */
+    private function splitQuery($query) {
+        $output = array(
+            'toponym' => trim($query),
+            'modifier' => null
+        ); 
+        $splitted = explode(',', $query);
+        if (count($splitted) > 1) {
+            $output = array(
+                'toponym' => trim($splitted[0]),
+                'modifier' => trim($splitted[1])
+            );
+        }  
+        return $output;
+    }
+    
 }
