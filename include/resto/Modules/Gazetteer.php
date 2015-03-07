@@ -54,6 +54,7 @@ class Gazetteer extends RestoModule {
     private $resultFields = array(
         'name',
         'countryname',
+        'lower(unaccent(countryname)) as countrynormalized',
         'latitude',
         'longitude',
         'country as ccode',
@@ -72,279 +73,9 @@ class Gazetteer extends RestoModule {
     );
 
     /*
-     * List of countries extract from Gazetteer database
-     */
-    private $countries = array(
-        'afghanistan' => 'AF',
-        'aland islands' => 'AX',
-        'albania' => 'AL',
-        'algeria' => 'DZ',
-        'american samoa' => 'AS',
-        'andorra' => 'AD',
-        'angola' => 'AO',
-        'anguilla' => 'AI',
-        'antarctica' => 'AQ',
-        'antigua and barbuda' => 'AG',
-        'argentina' => 'AR',
-        'armenia' => 'AM',
-        'aruba' => 'AW',
-        'australia' => 'AU',
-        'austria' => 'AT',
-        'azerbaijan' => 'AZ',
-        'bahamas' => 'BS',
-        'bahrain' => 'BH',
-        'bangladesh' => 'BD',
-        'barbados' => 'BB',
-        'belarus' => 'BY',
-        'belgium' => 'BE',
-        'belize' => 'BZ',
-        'benin' => 'BJ',
-        'bermuda' => 'BM',
-        'bhutan' => 'BT',
-        'bolivia' => 'BO',
-        'bonaire, saint eustatius and saba ' => 'BQ',
-        'bosnia and herzegovina' => 'BA',
-        'botswana' => 'BW',
-        'bouvet island' => 'BV',
-        'brazil' => 'BR',
-        'british indian ocean territory' => 'IO',
-        'british virgin islands' => 'VG',
-        'brunei' => 'BN',
-        'bulgaria' => 'BG',
-        'burkina faso' => 'BF',
-        'burundi' => 'BI',
-        'cambodia' => 'KH',
-        'cameroon' => 'CM',
-        'canada' => 'CA',
-        'cape verde' => 'CV',
-        'cayman islands' => 'KY',
-        'central african republic' => 'CF',
-        'chad' => 'TD',
-        'chile' => 'CL',
-        'china' => 'CN',
-        'christmas island' => 'CX',
-        'cocos islands' => 'CC',
-        'colombia' => 'CO',
-        'comoros' => 'KM',
-        'cook islands' => 'CK',
-        'costa rica' => 'CR',
-        'croatia' => 'HR',
-        'cuba' => 'CU',
-        'curacao' => 'CW',
-        'cyprus' => 'CY',
-        'czech republic' => 'CZ',
-        'democratic republic of the congo' => 'CD',
-        'denmark' => 'DK',
-        'djibouti' => 'DJ',
-        'dominica' => 'DM',
-        'dominican republic' => 'DO',
-        'east timor' => 'TL',
-        'ecuador' => 'EC',
-        'egypt' => 'EG',
-        'el salvador' => 'SV',
-        'equatorial guinea' => 'GQ',
-        'eritrea' => 'ER',
-        'estonia' => 'EE',
-        'ethiopia' => 'ET',
-        'falkland islands' => 'FK',
-        'faroe islands' => 'FO',
-        'fiji' => 'FJ',
-        'finland' => 'FI',
-        'france' => 'FR',
-        'french guiana' => 'GF',
-        'french polynesia' => 'PF',
-        'french southern territories' => 'TF',
-        'gabon' => 'GA',
-        'gambia' => 'GM',
-        'georgia' => 'GE',
-        'germany' => 'DE',
-        'ghana' => 'GH',
-        'gibraltar' => 'GI',
-        'greece' => 'GR',
-        'greenland' => 'GL',
-        'grenada' => 'GD',
-        'guadeloupe' => 'GP',
-        'guam' => 'GU',
-        'guatemala' => 'GT',
-        'guernsey' => 'GG',
-        'guinea' => 'GN',
-        'guinea-bissau' => 'GW',
-        'guyana' => 'GY',
-        'haiti' => 'HT',
-        'heard island and mcdonald islands' => 'HM',
-        'honduras' => 'HN',
-        'hong kong' => 'HK',
-        'hungary' => 'HU',
-        'iceland' => 'IS',
-        'india' => 'IN',
-        'indonesia' => 'ID',
-        'iran' => 'IR',
-        'iraq' => 'IQ',
-        'ireland' => 'IE',
-        'isle of man' => 'IM',
-        'israel' => 'IL',
-        'italy' => 'IT',
-        'ivory coast' => 'CI',
-        'jamaica' => 'JM',
-        'japan' => 'JP',
-        'jersey' => 'JE',
-        'jordan' => 'JO',
-        'kazakhstan' => 'KZ',
-        'kenya' => 'KE',
-        'kiribati' => 'KI',
-        'kosovo' => 'XK',
-        'kuwait' => 'KW',
-        'kyrgyzstan' => 'KG',
-        'laos' => 'LA',
-        'latvia' => 'LV',
-        'lebanon' => 'LB',
-        'lesotho' => 'LS',
-        'liberia' => 'LR',
-        'libya' => 'LY',
-        'liechtenstein' => 'LI',
-        'lithuania' => 'LT',
-        'luxembourg' => 'LU',
-        'macao' => 'MO',
-        'macedonia' => 'MK',
-        'madagascar' => 'MG',
-        'malawi' => 'MW',
-        'malaysia' => 'MY',
-        'maldives' => 'MV',
-        'mali' => 'ML',
-        'malta' => 'MT',
-        'marshall islands' => 'MH',
-        'martinique' => 'MQ',
-        'mauritania' => 'MR',
-        'mauritius' => 'MU',
-        'mayotte' => 'YT',
-        'mexico' => 'MX',
-        'micronesia' => 'FM',
-        'moldova' => 'MD',
-        'monaco' => 'MC',
-        'mongolia' => 'MN',
-        'montenegro' => 'ME',
-        'montserrat' => 'MS',
-        'morocco' => 'MA',
-        'mozambique' => 'MZ',
-        'myanmar' => 'MM',
-        'namibia' => 'NA',
-        'nauru' => 'NR',
-        'nepal' => 'NP',
-        'netherlands' => 'NL',
-        'netherlands antilles' => 'AN',
-        'new caledonia' => 'NC',
-        'new zealand' => 'NZ',
-        'nicaragua' => 'NI',
-        'niger' => 'NE',
-        'nigeria' => 'NG',
-        'niue' => 'NU',
-        'norfolk island' => 'NF',
-        'north korea' => 'KP',
-        'northern mariana islands' => 'MP',
-        'norway' => 'NO',
-        'oman' => 'OM',
-        'pakistan' => 'PK',
-        'palau' => 'PW',
-        'palestinian territory' => 'PS',
-        'panama' => 'PA',
-        'papua new guinea' => 'PG',
-        'paraguay' => 'PY',
-        'peru' => 'PE',
-        'philippines' => 'PH',
-        'pitcairn' => 'PN',
-        'poland' => 'PL',
-        'portugal' => 'PT',
-        'puerto rico' => 'PR',
-        'qatar' => 'QA',
-        'republic of the congo' => 'CG',
-        'reunion' => 'RE',
-        'romania' => 'RO',
-        'russia' => 'RU',
-        'rwanda' => 'RW',
-        'saint barthelemy' => 'BL',
-        'saint helena' => 'SH',
-        'saint kitts and nevis' => 'KN',
-        'saint lucia' => 'LC',
-        'saint martin' => 'MF',
-        'saint pierre and miquelon' => 'PM',
-        'saint vincent and the grenadines' => 'VC',
-        'samoa' => 'WS',
-        'san marino' => 'SM',
-        'sao tome and principe' => 'ST',
-        'saudi arabia' => 'SA',
-        'senegal' => 'SN',
-        'serbia' => 'RS',
-        'serbia and montenegro' => 'CS',
-        'seychelles' => 'SC',
-        'sierra leone' => 'SL',
-        'singapore' => 'SG',
-        'sint maarten' => 'SX',
-        'slovakia' => 'SK',
-        'slovenia' => 'SI',
-        'solomon islands' => 'SB',
-        'somalia' => 'SO',
-        'south africa' => 'ZA',
-        'south georgia and the south sandwich islands' => 'GS',
-        'south korea' => 'KR',
-        'south sudan' => 'SS',
-        'spain' => 'ES',
-        'sri lanka' => 'LK',
-        'sudan' => 'SD',
-        'suriname' => 'SR',
-        'svalbard and jan mayen' => 'SJ',
-        'swaziland' => 'SZ',
-        'sweden' => 'SE',
-        'switzerland' => 'CH',
-        'syria' => 'SY',
-        'taiwan' => 'TW',
-        'tajikistan' => 'TJ',
-        'tanzania' => 'TZ',
-        'thailand' => 'TH',
-        'togo' => 'TG',
-        'tokelau' => 'TK',
-        'tonga' => 'TO',
-        'trinidad and tobago' => 'TT',
-        'tunisia' => 'TN',
-        'turkey' => 'TR',
-        'turkmenistan' => 'TM',
-        'turks and caicos islands' => 'TC',
-        'tuvalu' => 'TV',
-        'u.s. virgin islands' => 'VI',
-        'uganda' => 'UG',
-        'ukraine' => 'UA',
-        'united arab emirates' => 'AE',
-        'united kingdom' => 'GB',
-        'united states' => 'US',
-        'united states minor outlying islands' => 'UM',
-        'uruguay' => 'UY',
-        'uzbekistan' => 'UZ',
-        'vanuatu' => 'VU',
-        'vatican' => 'VA',
-        'venezuela' => 'VE',
-        'vietnam' => 'VN',
-        'wallis and futuna' => 'WF',
-        'western sahara' => 'EH',
-        'yemen' => 'YE',
-        'zambia' => 'ZM',
-        'zimbabwe' => 'ZW'
-    );
-
-    /*
      * Database handler
      */
     private $dbh;
-    
-    /*
-     * iTag Gazetteer schema name
-     */
-    private $toponymsSchema = 'gazetteer';
-    
-    
-    /*
-     * iTag modifiers schema name
-     * (i.e. schema containing other toponyms) 
-     */
-    private $modifiersSchema = 'datasources';
     
     /**
      * Constructor
@@ -504,14 +235,17 @@ class Gazetteer extends RestoModule {
      */
     private function getCountries($name, $tolerance = 0) {
         $output = array();
-        $query = 'SELECT admin, continent, ST_AsGeoJSON(' . $this->simplify('geom', $tolerance) . ') as geometry FROM ' . $this->modifiersSchema . '.countries WHERE lower(unaccent(admin))=lower(unaccent(\'' . $name . '\')) order by admin';
-        $results = pg_query($this->dbh, $query);
-        while ($row = pg_fetch_assoc($results)) {
-            $output[] = array(
-                'name' => $row['admin'],
-                'type' => 'country',
-                'geometry' => json_decode($row['geometry'], true)
-            );
+        $country = $this->context->dictionary->getKeyword($name);
+        if (isset($country)) {
+            $query = 'SELECT admin, lower(unaccent(admin)) as countryid, continent, ST_AsGeoJSON(' . $this->simplify('geom', $tolerance) . ') as geometry FROM datasources.countries WHERE lower(unaccent(admin))=\'' . $country['keyword'] . '\' order by admin';
+            $results = pg_query($this->dbh, $query);
+            while ($row = pg_fetch_assoc($results)) {
+                $output[] = array(
+                    'name' => $this->context->dictionary->getKeywordFromValue($row['countryid'], 'country'),
+                    'type' => 'country',
+                    'geometry' => json_decode($row['geometry'], true)
+                );
+            }
         }
         return $output;
     }
@@ -526,32 +260,21 @@ class Gazetteer extends RestoModule {
      */
     private function getStates($name, $tolerance = 0) {
         $output = array();
-        $query = 'SELECT name, lower(unaccent(name)) as stateid, region, lower(unaccent(region)) as regionid, admin, lower(unaccent(admin)) as adminid, ST_AsGeoJSON(' . $this->simplify('geom', $tolerance) . ') as geometry FROM ' . $this->modifiersSchema . '.worldadm1level WHERE lower(unaccent(name))=lower(unaccent(\'' . $name . '\')) order by name';
-        $results = pg_query($this->dbh, $query);
-        while ($row = pg_fetch_assoc($results)) {
-            $output[] = array(
-                'name' => $row['name'],
-                'type' => 'state',
-                'region' => $row['region'],
-                'country' => $row['admin'],
-                'geometry' => json_decode($row['geometry'], true)
-            );
+        $state = $this->context->dictionary->getKeyword($name);
+        if (isset($state)) {
+            $query = 'SELECT name, lower(unaccent(name)) as stateid, region, lower(unaccent(region)) as regionid, admin, lower(unaccent(admin)) as adminid, ST_AsGeoJSON(' . $this->simplify('geom', $tolerance) . ') as geometry FROM datasources.worldadm1level WHERE lower(unaccent(name))=\'' . $state['keyword'] . '\' order by name';
+            $results = pg_query($this->dbh, $query);
+            while ($row = pg_fetch_assoc($results)) {
+                $output[] = array(
+                    'name' => $this->context->dictionary->getKeywordFromValue($row['stateid'], 'state'),
+                    'type' => 'state',
+                    'region' => $row['region'],
+                    'country' => $row['admin'],
+                    'geometry' => json_decode($row['geometry'], true)
+                );
+            }
         }
         return $output;
-    }
-    
-    /**
-     * Return country code for a given country
-     * 
-     * @param string $countryName
-     */
-    private function getCountryCode($countryName) {
-        
-        if (!isset($countryName)) {
-            return null;
-        }
-        
-        return isset($this->countries[strtolower($countryName)]) ? $this->countries[strtolower($countryName)] : null;
     }
     
     /**
@@ -564,12 +287,27 @@ class Gazetteer extends RestoModule {
      */
     private function queryToponyms($name, $constraints, $lang) {
         $toponyms = array();
-        $results = pg_query($this->dbh, 'SELECT ' . join(',', $this->resultFields) . ' FROM ' . $this->toponymsSchema . '.geoname WHERE ' . join(' AND ', $this->getToponymsFilters($constraints, $name, $lang)) . ' ORDER BY CASE fcode WHEN \'PPLC\' then 1 WHEN \'PPLA\' then 2 WHEN \'PPLA2\' then 3 WHEN \'PPLA4\' then 4 WHEN \'PPL\' then 5 ELSE 6 END ASC, population DESC' . ($lang === 'en' ? ' LIMIT 30' : ''));
+        $results = pg_query($this->dbh, 'SELECT ' . join(',', $this->resultFields) . ' FROM gazetteer.geoname WHERE ' . join(' AND ', $this->getToponymsFilters($constraints, $name, $lang)) . ' ORDER BY CASE fcode WHEN \'PPLC\' then 1 WHEN \'PPLA\' then 2 WHEN \'PPLA2\' then 3 WHEN \'PPLA4\' then 4 WHEN \'PPL\' then 5 ELSE 6 END ASC, population DESC' . ($lang === 'en' ? ' LIMIT 30' : ''));
         while ($toponym = pg_fetch_assoc($results)) {
             if ($this->context->dictionary->language !== 'en') {
-                $toponym['countryname'] = $this->context->dictionary->getKeywordFromValue(array_search($toponym['ccode'], $this->countries), 'country');
+                $toponym['countryname'] = $this->context->dictionary->getKeywordFromValue($toponym['countrynormalized'], 'country');
             }
-            $toponyms[$toponym['geonameid']] = $toponym;
+            $toponyms[$toponym['geonameid']] = array(
+                'name' => $toponym['name'],
+                'countryname' => $toponym['countryname'],
+                'geometry' => array(
+                    'type' => 'Point',
+                    'coordinates' => array($toponym['longitude'], $toponym['latitude'])
+                ),
+                'ccode' => $toponym['ccode'],
+                'fcode' => $toponym['fcode'],
+                'admin1' => $toponym['admin1'],
+                'admin2' => $toponym['admin2'],
+                'population' => $toponym['population'],
+                'elevation' => $toponym['elevation'],
+                'gtopo30' => $toponym['gtopo30'],
+                'timezone' => $toponym['timezone']
+            );
         }
         return $toponyms;
     }
@@ -669,7 +407,7 @@ class Gazetteer extends RestoModule {
          * Lang filter
          */
         if ($lang !== 'en') {
-            $where[] = 'geonameid = ANY((SELECT array(SELECT geonameid FROM ' . $this->toponymsSchema . '.alternatename WHERE lower(unaccent(alternatename))' . $this->likeOrEqual($name) . '\'' . pg_escape_string($name) . '\'  AND isolanguage=\'' . $lang . '\' LIMIT 30))::integer[])';
+            $where[] = 'geonameid = ANY((SELECT array(SELECT geonameid FROM gazetteer.alternatename WHERE lower(unaccent(alternatename))' . $this->likeOrEqual($name) . '\'' . pg_escape_string($name) . '\'  AND isolanguage=\'' . $lang . '\' LIMIT 30))::integer[])';
         }
         else {
             $where[] = 'lower(unaccent(name))' . $this->likeOrEqual($name) . '\'' . pg_escape_string($name) . '\'';
@@ -707,10 +445,7 @@ class Gazetteer extends RestoModule {
         $countryOrState = $this->context->dictionary->getKeyword($name);
         if (isset($countryOrState)) {
             if ($countryOrState['type'] === 'country') {
-                $code = $this->getCountryCode($countryOrState['keyword']);
-                if (isset($code)) {
-                    return 'country =\'' . pg_escape_string($code) . '\'';
-                }
+                return 'lower(unaccent(countryname))=\'' . pg_escape_string($countryOrState['keyword']) . '\'';
             }
             else if (isset($countryOrState['bbox'])) {
                 return $this->getBBOXFilter(explode(',', $countryOrState['bbox']));
