@@ -489,48 +489,14 @@ class Gazetteer extends RestoModule {
      * @return array
      */
     private function queryToponyms($name, $constraints, $lang) {
-        
         $toponyms = array();
-        
-        /*
-         * Limit to first 30 results;
-         */
-        $limit = ' LIMIT 30';
-        
-        /*
-         * Main cities first
-         */
-        $orderBy = ' ORDER BY CASE fcode WHEN \'PPLC\' then 1 WHEN \'PPLA\' then 2 WHEN \'PPLA2\' then 3 WHEN \'PPLA4\' then 4 WHEN \'PPL\' then 5 ELSE 6 END ASC, population DESC';
-        
-        /*
-         * Search constraint
-         */
-        $where = $this->getToponymsFilters($constraints);
-        
-        /*
-         * Query
-         */
-        $query = 'SELECT ' . join(',', $this->resultFields) . ' FROM ' . $this->toponymsSchema . '.geoname WHERE ';
-        
-        /*
-         * Search in input language
-         */
-        if ($lang !== 'en') {
-            $where[] = 'geonameid = ANY((SELECT array(SELECT geonameid FROM ' . $this->toponymsSchema . '.alternatename WHERE lower(unaccent(alternatename))' . $this->likeOrEqual($name) . '\'' . pg_escape_string($name) . '\'  AND isolanguage=\'' . $lang . '\' ' . $limit . '))::integer[])';
-            $limit = '';
-        }
-        else {
-            $where[] = 'lower(unaccent(name))' . $this->likeOrEqual($name) . '\'' . pg_escape_string($name) . '\'';
-        }
-        $results = pg_query($this->dbh, $query . join(' AND ', $where) . $orderBy . $limit);
-        
+        $results = pg_query($this->dbh, 'SELECT ' . join(',', $this->resultFields) . ' FROM ' . $this->toponymsSchema . '.geoname WHERE ' . join(' AND ', $this->getToponymsFilters($constraints, $name, $lang)) . ' ORDER BY CASE fcode WHEN \'PPLC\' then 1 WHEN \'PPLA\' then 2 WHEN \'PPLA2\' then 3 WHEN \'PPLA4\' then 4 WHEN \'PPL\' then 5 ELSE 6 END ASC, population DESC' . ($lang === 'en' ? ' LIMIT 30' : ''));
         while ($toponym = pg_fetch_assoc($results)) {
             if ($this->context->dictionary->language !== 'en') {
                 $toponym['countryname'] = $this->context->dictionary->getKeywordFromValue(array_search($toponym['ccode'], $this->countries), 'country');
             }
             $toponyms[$toponym['geonameid']] = $toponym;
         }
-        
         return $toponyms;
     }
     
@@ -674,8 +640,10 @@ class Gazetteer extends RestoModule {
      * Return array of search filters for toponyms
      * 
      * @param array $constraints
+     * @param string $name
+     * @param string $lang
      */
-    private function getToponymsFilters($constraints) {
+    private function getToponymsFilters($constraints, $name, $lang) {
         
         $where = array(
             'fclass=\'P\''
@@ -706,6 +674,16 @@ class Gazetteer extends RestoModule {
             $where[] = $this->getBBOXFilter(explode(',', $constraints['bbox']));
         }
         
+        /*
+         * Lang filter
+         */
+        if ($lang !== 'en') {
+            $where[] = 'geonameid = ANY((SELECT array(SELECT geonameid FROM ' . $this->toponymsSchema . '.alternatename WHERE lower(unaccent(alternatename))' . $this->likeOrEqual($name) . '\'' . pg_escape_string($name) . '\'  AND isolanguage=\'' . $lang . '\' LIMIT 30))::integer[])';
+        }
+        else {
+            $where[] = 'lower(unaccent(name))' . $this->likeOrEqual($name) . '\'' . pg_escape_string($name) . '\'';
+        }
+       
         return $where;
     }
     
