@@ -104,7 +104,7 @@ abstract class RestoDictionary {
      * 
      * @param array $dictionary
      */
-    final public function add($dictionary = array()) {
+    public function add($dictionary = array()) {
         
         $default = 'dictionary_' . $this->language;
         
@@ -146,14 +146,14 @@ abstract class RestoDictionary {
      * 
      * @param array $translations
      */
-    final public function addTranslations($translations = array()) {
+    public function addTranslations($translations = array()) {
         $this->translations = array_merge($this->translations, $translations);
     }
     
     /**
      * Return translation array
      */
-    final public function getTranslation() {
+    public function getTranslation() {
         return $this->translations;
     }
     
@@ -163,7 +163,7 @@ abstract class RestoDictionary {
      * @param string $property
      * @param string $name : lowered and unaccent name
      */
-    final private function get($property, $name) {
+    private function get($property, $name) {
         if (!is_array($this->dictionary[$property]) || !isset($name) || $name === '') {
             return null;
         }
@@ -182,7 +182,7 @@ abstract class RestoDictionary {
      * 
      * @param string $name
      */
-    final public function getModifier($name) {
+    public function getModifier($name) {
         return $this->get('modifiers', $name);
     }
     
@@ -191,7 +191,7 @@ abstract class RestoDictionary {
      * 
      * @param string $name
      */
-    final public function getUnit($name) {
+    public function getUnit($name) {
         return $this->get('units', $name);
     }
     
@@ -200,7 +200,7 @@ abstract class RestoDictionary {
      * 
      * @param string $name
      */
-    final public function getMonth($name) {
+    public function getMonth($name) {
         return $this->get('months', $name);
     }
     
@@ -209,7 +209,7 @@ abstract class RestoDictionary {
      * 
      * @param string $name
      */
-    final public function getSeason($name) {
+    public function getSeason($name) {
         return $this->get('seasons', $name);
     }
     
@@ -218,7 +218,7 @@ abstract class RestoDictionary {
      * 
      * @param string $name
      */
-    final public function getNumber($name) {
+    public function getNumber($name) {
         return $this->get('numbers', $name);
     }
     
@@ -227,7 +227,7 @@ abstract class RestoDictionary {
      * 
      * @param string $name
      */
-    final public function getQuantity($name) {
+    public function getQuantity($name) {
         return $this->get('quantities', $name);
     }
     
@@ -236,7 +236,7 @@ abstract class RestoDictionary {
      * 
      * @param string $name
      */
-    final public function getInstrument($name) {
+    public function getInstrument($name) {
         return $this->getPlatformOrInstrument($name, 'instrument');
     }
  
@@ -245,7 +245,7 @@ abstract class RestoDictionary {
      * 
      * @param string $name
      */
-    final public function getPlatform($name) {
+    public function getPlatform($name) {
         return $this->getPlatformOrInstrument($name, 'platform');
     }
     
@@ -255,7 +255,7 @@ abstract class RestoDictionary {
      * @param string $name
      * @param string $type
      */
-    final public function getPlatformOrInstrument($name, $type) {
+    public function getPlatformOrInstrument($name, $type) {
         if (!is_array($this->dictionary['keywords']) || !is_array($this->dictionary['keywords'][$type])) {
             return null;
         }
@@ -268,7 +268,7 @@ abstract class RestoDictionary {
      * @param string $name : lower(unaccent(...)))
      * @return array ('keywords', 'type')
      */
-    final public function getKeyword($name) {
+    public function getKeyword($name) {
         
         if (!is_array($this->dictionary['keywords'])) {
             return null;
@@ -295,7 +295,7 @@ abstract class RestoDictionary {
      * Return all keywords entry in dictionary
      * 
      */
-    final public function getKeywords() {
+    public function getKeywords() {
         return $this->dictionary['keywords'];
     }
     
@@ -305,7 +305,7 @@ abstract class RestoDictionary {
      * 
      * @param string $value
      */
-    final public function isKeywordsValue($value) {
+    public function isKeywordsValue($value) {
         foreach (array_keys($this->dictionary['keywords']) as $type) {
             if (isset($this->dictionary['keywords'][$type][$value])) {
                 return true;
@@ -319,7 +319,7 @@ abstract class RestoDictionary {
      * 
      * @param string $name : lower(unaccent(...)))
      */
-    final public function isExcluded($name) {
+    public function isExcluded($name) {
         if (!is_array($this->dictionary['excluded'])) {
             return false;
         }
@@ -344,7 +344,7 @@ abstract class RestoDictionary {
      * @param string $name
      * @param string any number of optional arguments
      */
-    final public function translate($sentence) {
+    public function translate($sentence) {
         
         if (!isset($this->translations)) {
             return $sentence;
@@ -373,7 +373,7 @@ abstract class RestoDictionary {
      * 
      * @param string $inputValue
      */
-    final public function getKeywordFromValue($inputValue, $type = null) {
+    public function getKeywordFromValue($inputValue, $type = null) {
         if (!isset($type)) {
             return null;
         }
@@ -396,7 +396,7 @@ abstract class RestoDictionary {
      * 
      * @param {String} $s
      */
-    final public function getSimilar($s, $limit = 90) {
+    public function getSimilar($s, $limit = 90) {
         
         $similar = null;
         foreach(array_keys($this->dictionary['keywords']) as $type) {

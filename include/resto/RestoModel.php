@@ -552,7 +552,7 @@ abstract class RestoModel {
      * 
      * @param type $modelKey
      */
-    final public function getDbType($modelKey) {
+    public function getDbType($modelKey) {
         if (!isset($modelKey) || !isset($this->properties[$modelKey]) || !is_array($this->properties[$modelKey])) {
             return null;
         }
@@ -585,7 +585,7 @@ abstract class RestoModel {
      * @param string $modelKey : RESTo model key
      * @return array
      */
-    final public function getDbKey($modelKey) {
+    public function getDbKey($modelKey) {
         if (!isset($modelKey) || !isset($this->properties[$modelKey]) || !is_array($this->properties[$modelKey])) {
             return null;
         }
@@ -603,7 +603,7 @@ abstract class RestoModel {
      * 
      * @param Array $properties
      */
-    final public function mapInputProperties($properties) {
+    public function mapInputProperties($properties) {
         if (property_exists($this, 'inputMapping')) {
             foreach ($this->inputMapping as $key => $arr) {
                 if (isset($properties[$key])) {

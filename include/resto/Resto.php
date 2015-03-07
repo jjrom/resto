@@ -328,7 +328,7 @@ class Resto {
      */
     private function authenticateBearer($token) {
         try {
-            $payloadObject = $this->context->decodeJWT($token);
+            $payloadObject = json_decode(json_encode((array) $this->context->decodeJWT($token)), true);
             $this->user = new RestoUser($payloadObject['data'], $this->context);
         } catch (Exception $ex) {}
     }

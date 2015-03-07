@@ -205,7 +205,7 @@ class Functions_users {
      * @param string $email
      */
     public function disconnectUser($email) {
-        $query = 'UPDATE usermanagement.users SET connected=FALSE WHERE email=\'' . pg_escape_string($email) . '\'';
+        $query = 'UPDATE usermanagement.users SET connected=0 WHERE email=\'' . pg_escape_string($email) . '\'';
         $this->dbDriver->query($query);
         return true;
     }
