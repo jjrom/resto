@@ -218,7 +218,6 @@ return array(
             'options' => array(
                 'database' => array(
                     'dbname' => 'itag',
-                    'schema' => 'gazetteer',
                     'user' => 'itag',
                     'password' => 'itag'
                 )
@@ -236,7 +235,6 @@ return array(
             'options' => array(
                 'database' => array(
                     'dbname' => 'itag',
-                    'schema' => 'gazetteer',
                     'user' => 'itag',
                     'password' => 'itag'
                 )
