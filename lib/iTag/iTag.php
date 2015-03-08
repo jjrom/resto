@@ -57,37 +57,8 @@ class iTag {
      * 
      * @param array $options : database configuration array 
      */
-    public function __construct($options) {
-        
-        if (isset($options['dbh'])) {
-            $this->dbh = $options['dbh'];
-        }
-        else {
-            try {
-                
-                $dbInfo = array(
-                    'dbname=' . (isset($options['dbname']) ? $options['dbname'] : 'itag'),
-                    'user=' . (isset($options['user']) ? $options['user'] : 'itag'),
-                    'password=' . (isset($options['password']) ? $options['password'] : 'itag')
-                );
-                
-                /*
-                 * If host is specified, then TCP/IP connection is used
-                 * Otherwise socket connection is used
-                 */
-                if (isset($options['host'])) {
-                    $dbInfo[] = 'host=' . $options['host'];
-                    $dbInfo[] = 'port=' . (isset($options['port']) ? $options['port'] : '5432');
-                }
-                
-                $this->dbh = pg_connect(join(' ', $dbInfo));
-                if (!$this->dbh) {
-                    throw new Exception();
-                }
-            } catch (Exception $e) {
-                throw new Exception(__METHOD__ . ' - Database connection error', 500);
-            }
-        }
+    public function __construct($options = array()) {
+        $this->dbh = isset($options['dbh']) ? $options['dbh'] : $this->getHandler($options);
     }
     
     /**
@@ -305,7 +276,7 @@ class iTag {
         // Continents
         if ($options['continents'] && !isset($options['countries'])) {
             if ($options['ordered']) {
-                $query = "SELECT continent as continent, lower(unaccent(continent)) as id, st_area(st_intersection(geom, ST_GeomFromText('" . $footprint . "', 4326))) as area FROM " . $this->schema . ".continents WHERE st_intersects(geom, ST_GeomFromText('" . $footprint . "', 4326)) ORDER BY area DESC";
+                $query = "SELECT continent as continent, normalize(continent) as id, st_area(st_intersection(geom, ST_GeomFromText('" . $footprint . "', 4326))) as area FROM " . $this->schema . ".continents WHERE st_intersects(geom, ST_GeomFromText('" . $footprint . "', 4326)) ORDER BY area DESC";
                 $results = pg_query($this->dbh, $query);
                 $continents = array();
                 if (!isset($results)) {
@@ -327,9 +298,9 @@ class iTag {
 
             // Continents and countries
             if ($options['ordered']) {
-                $query = "SELECT name as name, lower(unaccent(name)) as id, continent as continent, lower(unaccent(continent)) as continentid, st_area(st_intersection(geom, ST_GeomFromText('" . $footprint . "', 4326))) as area, st_area(ST_GeomFromText('" . $footprint . "', 4326)) as totalarea FROM " . $this->schema . ".countries WHERE st_intersects(geom, ST_GeomFromText('" . $footprint . "', 4326)) ORDER BY area DESC";
+                $query = "SELECT name as name, normalize(name) as id, continent as continent, normalize(continent) as continentid, st_area(st_intersection(geom, ST_GeomFromText('" . $footprint . "', 4326))) as area, st_area(ST_GeomFromText('" . $footprint . "', 4326)) as totalarea FROM " . $this->schema . ".countries WHERE st_intersects(geom, ST_GeomFromText('" . $footprint . "', 4326)) ORDER BY area DESC";
             } else {
-                $query = "SELECT name as name, lower(unaccent(name)) as id, continent as continent, lower(unaccent(continent)) as continentid FROM " . $this->schema . ".countries WHERE st_intersects(geom, ST_GeomFromText('" . $footprint . "', 4326))";
+                $query = "SELECT name as name, normalize(name) as id, continent as continent, normalize(continent) as continentid FROM " . $this->schema . ".countries WHERE st_intersects(geom, ST_GeomFromText('" . $footprint . "', 4326))";
             }
             try {
                 $results = pg_query($this->dbh, $query);
@@ -385,9 +356,9 @@ class iTag {
         // Regions
         if ($options['regions']) {
             if ($options['ordered']) {
-                $query = "SELECT region, name as state, lower(unaccent(name)) as stateid, lower(unaccent(region)) as regionid, adm0_a3 as isoa3, st_area(st_intersection(geom, ST_GeomFromText('" . $footprint . "', 4326))) as area, st_area(ST_GeomFromText('" . $footprint . "', 4326)) as totalarea FROM " . $this->schema . ".worldadm1level WHERE st_intersects(geom, ST_GeomFromText('" . $footprint . "', 4326)) ORDER BY area DESC";
+                $query = "SELECT region, name as state, normalize(name) as stateid, normalize(region) as regionid, adm0_a3 as isoa3, st_area(st_intersection(geom, ST_GeomFromText('" . $footprint . "', 4326))) as area, st_area(ST_GeomFromText('" . $footprint . "', 4326)) as totalarea FROM " . $this->schema . ".worldadm1level WHERE st_intersects(geom, ST_GeomFromText('" . $footprint . "', 4326)) ORDER BY area DESC";
             } else {
-                $query = "SELECT region, name as state, lower(unaccent(name)) as stateid, lower(unaccent(region)) as regionid, adm0_a3 as isoa3 FROM " . $this->schema . ".worldadm1level WHERE st_intersects(geom, ST_GeomFromText('" . $footprint . "', 4326)) ORDER BY region";
+                $query = "SELECT region, name as state, normalize(name) as stateid, normalize(region) as regionid, adm0_a3 as isoa3 FROM " . $this->schema . ".worldadm1level WHERE st_intersects(geom, ST_GeomFromText('" . $footprint . "', 4326)) ORDER BY region";
             }
             $results = pg_query($this->dbh, $query);
             $regions = array();
@@ -1397,7 +1368,7 @@ class iTag {
             return isset($classNames[$code]) ? $classNames[$code] : "";
         }
 
-        return "";
+        return '';
     }
 
     /**
@@ -1411,4 +1382,42 @@ class iTag {
         throw new Exception($message, $code);
     }
 
+    /**
+     * Return PostgreSQL database handler
+     * 
+     * @param array $options
+     * @throws Exception
+     */
+    private function getHandler($options = array()) {
+    
+        $dbh = null;
+        
+        if (isset($options) && isset($options['dbname'])) {
+            try {
+                $dbInfo = array(
+                    'dbname=' . $options['dbname'],
+                    'user=' . $options['user'],
+                    'password=' . $options['password']
+                );
+                /*
+                 * If host is specified, then TCP/IP connection is used
+                 * Otherwise socket connection is used
+                 */
+                if (isset($options['host'])) {
+                    $dbInfo[] = 'host=' . $options['host'];
+                    $dbInfo[] = 'port=' . (isset($options['port']) ? $options['port'] : '5432');
+                }
+                $dbh = pg_connect(join(' ', $dbInfo));
+                if (!$dbh) {
+                    throw new Exception();
+                }
+            } catch (Exception $e) {
+                throw new Exception('Database connection error', 500);
+            }
+        }   
+
+        return $dbh;
+        
+    }
+    
 }
