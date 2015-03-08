@@ -116,9 +116,9 @@ ALTER FUNCTION unaccent(text) IMMUTABLE;
 -- in lower case, without accents and with spaces replaced as '-'
 --
 CREATE OR REPLACE FUNCTION normalize(text) 
-RETURNS text AS \$\$ 
-SELECT replace(lower(unaccent(\$1)),' ','-') 
-\$\$ LANGUAGE sql;
+RETURNS text AS $$ 
+SELECT replace(lower(unaccent($1)),' ','-') 
+$$ LANGUAGE sql;
 
 -- 
 -- resto schema contains collections descriptions tables
