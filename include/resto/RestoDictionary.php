@@ -161,7 +161,7 @@ abstract class RestoDictionary {
      * Return $property entry in dictionary identified by $name
      * 
      * @param string $property
-     * @param string $name : lowered and unaccent name
+     * @param string $name : normalized name (see normalize function)
      */
     private function get($property, $name) {
         if (!is_array($this->dictionary[$property]) || !isset($name) || $name === '') {
@@ -265,7 +265,7 @@ abstract class RestoDictionary {
     /**
      * Return keyword entry in dictionary identified by $name
      * 
-     * @param string $name : lower(unaccent(...)))
+     * @param string $name : normalized name
      * @return array ('keywords', 'type')
      */
     public function getKeyword($name) {
@@ -317,7 +317,7 @@ abstract class RestoDictionary {
     /**
      * Return true if $name is an excluded word
      * 
-     * @param string $name : lower(unaccent(...)))
+     * @param string $name : normalized name
      */
     public function isExcluded($name) {
         if (!is_array($this->dictionary['excluded'])) {

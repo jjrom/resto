@@ -110,6 +110,16 @@ CREATE EXTENSION hstore;
 CREATE EXTENSION unaccent;
 ALTER FUNCTION unaccent(text) IMMUTABLE;
 
+--
+-- Create function normalize
+-- This function will return input text
+-- in lower case, without accents and with spaces replaced as '-'
+--
+CREATE OR REPLACE FUNCTION normalize(text) 
+RETURNS text AS $$ 
+SELECT replace(lower(unaccent($1)),' ','-') 
+$$ LANGUAGE sql;
+
 -- 
 -- resto schema contains collections descriptions tables
 --
@@ -161,7 +171,7 @@ CREATE TABLE resto.keywords (
     value               TEXT, -- keyword as stored in features keywords columns
     location            TEXT DEFAULT NULL -- 'country code:bounding box'
 );
-CREATE INDEX idx_name_keywords ON resto.keywords (lower(unaccent(name)));
+CREATE INDEX idx_name_keywords ON resto.keywords (normalize(name));
 CREATE INDEX idx_type_keywords ON resto.keywords (type);
 CREATE INDEX idx_lang_keywords ON resto.keywords (lang);
 

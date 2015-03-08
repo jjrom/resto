@@ -137,7 +137,7 @@ abstract class RestoDatabaseDriver {
     /**
      * Return normalized $sentence i.e. in lowercase and without accents
      * This function is superseed in RestoDabaseDriver_PostgreSQL and use
-     * the inner function lower(unaccent($sentence)) defined in installDB.sh
+     * the inner function normalize($sentence) defined in installDB.sh
      * 
      * @param string $sentence
      */

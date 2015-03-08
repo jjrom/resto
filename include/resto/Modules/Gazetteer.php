@@ -54,7 +54,7 @@ class Gazetteer extends RestoModule {
     private $resultFields = array(
         'name',
         'countryname',
-        'lower(unaccent(countryname)) as countrynormalized',
+        'normalize(countryname) as countrynormalized',
         'latitude',
         'longitude',
         'country as ccode',
@@ -237,7 +237,7 @@ class Gazetteer extends RestoModule {
         $output = array();
         $country = $this->context->dictionary->getKeyword($name);
         if (isset($country)) {
-            $query = 'SELECT admin, lower(unaccent(admin)) as countryid, continent, ST_AsGeoJSON(' . $this->simplify('geom', $tolerance) . ') as geometry FROM datasources.countries WHERE lower(unaccent(admin))=\'' . $country['keyword'] . '\' order by admin';
+            $query = 'SELECT admin, normalize(admin) as countryid, continent, ST_AsGeoJSON(' . $this->simplify('geom', $tolerance) . ') as geometry FROM datasources.countries WHERE normalize(admin)=\'' . $country['keyword'] . '\' order by admin';
             $results = pg_query($this->dbh, $query);
             while ($row = pg_fetch_assoc($results)) {
                 $output[] = array(
@@ -262,7 +262,7 @@ class Gazetteer extends RestoModule {
         $output = array();
         $state = $this->context->dictionary->getKeyword($name);
         if (isset($state)) {
-            $query = 'SELECT name, lower(unaccent(name)) as stateid, region, lower(unaccent(region)) as regionid, admin, lower(unaccent(admin)) as adminid, ST_AsGeoJSON(' . $this->simplify('geom', $tolerance) . ') as geometry FROM datasources.worldadm1level WHERE lower(unaccent(name))=\'' . $state['keyword'] . '\' order by name';
+            $query = 'SELECT name, normalize(name) as stateid, region, normalize(region) as regionid, admin, normalize(admin) as adminid, ST_AsGeoJSON(' . $this->simplify('geom', $tolerance) . ') as geometry FROM datasources.worldadm1level WHERE normalize(name)=\'' . $state['keyword'] . '\' order by name';
             $results = pg_query($this->dbh, $query);
             while ($row = pg_fetch_assoc($results)) {
                 $output[] = array(
@@ -297,14 +297,14 @@ class Gazetteer extends RestoModule {
                 'countryname' => $toponym['countryname'],
                 'geometry' => array(
                     'type' => 'Point',
-                    'coordinates' => array($toponym['longitude'], $toponym['latitude'])
+                    'coordinates' => array((float) $toponym['longitude'], (float) $toponym['latitude'])
                 ),
                 'ccode' => $toponym['ccode'],
                 'fcode' => $toponym['fcode'],
                 'admin1' => $toponym['admin1'],
                 'admin2' => $toponym['admin2'],
-                'population' => $toponym['population'],
-                'elevation' => $toponym['elevation'],
+                'population' => (float) $toponym['population'],
+                'elevation' => (float) $toponym['elevation'],
                 'gtopo30' => $toponym['gtopo30'],
                 'timezone' => $toponym['timezone']
             );
@@ -356,14 +356,14 @@ class Gazetteer extends RestoModule {
     }
     
     /**
-     * Return " LIKE " if last character of $name is '%' and length is at least 3 characters 
+     * Return " LIKE " if last character of $name is '%' and length is at least 4 characters 
      * Return "=" otherwise
      * 
      * @param string $name
      */
     private function likeOrEqual($name) {
         if (substr($name, -1) === '%') {
-            if (strlen($name) > 2) {
+            if (strlen($name) > 3) {
                 return ' LIKE ';
             }
             else {
@@ -407,10 +407,10 @@ class Gazetteer extends RestoModule {
          * Lang filter
          */
         if ($lang !== 'en') {
-            $where[] = 'geonameid = ANY((SELECT array(SELECT geonameid FROM gazetteer.alternatename WHERE lower(unaccent(alternatename))' . $this->likeOrEqual($name) . '\'' . pg_escape_string($name) . '\'  AND isolanguage=\'' . $lang . '\' LIMIT 30))::integer[])';
+            $where[] = 'geonameid = ANY((SELECT array(SELECT geonameid FROM gazetteer.alternatename WHERE normalize(alternatename)' . $this->likeOrEqual($name) . '\'' . pg_escape_string($name) . '\'  AND isolanguage=\'' . $lang . '\' LIMIT 30))::integer[])';
         }
         else {
-            $where[] = 'lower(unaccent(name))' . $this->likeOrEqual($name) . '\'' . pg_escape_string($name) . '\'';
+            $where[] = 'normalize(name)' . $this->likeOrEqual($name) . '\'' . pg_escape_string($name) . '\'';
         }
        
         return $where;
@@ -445,7 +445,7 @@ class Gazetteer extends RestoModule {
         $countryOrState = $this->context->dictionary->getKeyword($name);
         if (isset($countryOrState)) {
             if ($countryOrState['type'] === 'country') {
-                return 'lower(unaccent(countryname))=\'' . pg_escape_string($countryOrState['keyword']) . '\'';
+                return 'normalize(countryname)=\'' . pg_escape_string($countryOrState['keyword']) . '\'';
             }
             else if (isset($countryOrState['bbox'])) {
                 return $this->getBBOXFilter(explode(',', $countryOrState['bbox']));
