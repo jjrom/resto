@@ -166,7 +166,7 @@ class Gazetteer extends RestoModule {
          * Remove accents from query and split it into 'toponym' and 'modifier'
          */
         $query = $this->splitQuery($this->context->dbDriver->normalize($params['q']));
-       
+        
         /*
          * Search for cities
          */
@@ -422,18 +422,16 @@ class Gazetteer extends RestoModule {
      * @param string $query
      */
     private function splitQuery($query) {
-        $output = array(
-            'toponym' => trim($query),
-            'modifier' => null
-        ); 
         $splitted = explode(',', $query);
         if (count($splitted) > 1) {
-            $output = array(
-                'toponym' => trim($splitted[0]),
-                'modifier' => trim($splitted[1])
+            return array(
+                'toponym' => str_replace(' ', '-', trim($splitted[0])),
+                'modifier' => str_replace(' ', '-', trim($splitted[1]))
             );
         }  
-        return $output;
+        return array(
+            'toponym' => str_replace(' ', '-', trim($query))
+        );
     }
     
     /**
@@ -445,7 +443,7 @@ class Gazetteer extends RestoModule {
         $countryOrState = $this->context->dictionary->getKeyword($name);
         if (isset($countryOrState)) {
             if ($countryOrState['type'] === 'country') {
-                return 'normalize(countryname)=\'' . pg_escape_string($countryOrState['keyword']) . '\'';
+                return 'normalize(countryname)=normalize(\'' . pg_escape_string($countryOrState['keyword']) . '\')';
             }
             else if (isset($countryOrState['bbox'])) {
                 return $this->getBBOXFilter(explode(',', $countryOrState['bbox']));

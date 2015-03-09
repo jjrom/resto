@@ -487,8 +487,9 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     
     /**
      * Return $sentence in lowercase and without accent
+     * 
      * This function is superseed in RestoDabaseDriver_PostgreSQL and use
-     * the inner function normalize($sentence) defined in installDB.sh
+     * the inner function lower(unaccent($sentence)) defined in installDB.sh
      * 
      * @param string $sentence
      */
@@ -497,7 +498,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             if (!isset($sentence)) {
                 throw new Exception();
             }
-            $results = pg_query($this->dbh, 'SELECT normalize(\'' . pg_escape_string($sentence) . '\') as normalized');
+            $results = pg_query($this->dbh, 'SELECT lower(unaccent(\'' . pg_escape_string($sentence) . '\')) as normalized');
             if (!$results) {
                 throw new Exception();
             }
