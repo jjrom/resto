@@ -423,7 +423,7 @@ class RestoRouteGET extends RestoRoute {
         /*
          * User do not have right to download product
          */
-        if (!$this->user->canDownload($collection->name, $feature->identifier, $this->context->baseUrl . $this->context->path, !empty($this->context->query['_tk']) ? $this->context->query['_tk'] : null)) {
+        if (!$this->user->canDownload($collection->name, $feature->identifier, $this->context->baseUrl . '/' . $this->context->path, !empty($this->context->query['_tk']) ? $this->context->query['_tk'] : null)) {
             RestoLogUtil::httpError(403);
         }
         /*

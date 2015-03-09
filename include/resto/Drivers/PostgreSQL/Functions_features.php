@@ -640,7 +640,7 @@ class Functions_features {
             case 'geometry':
                 return json_decode($value, true);
             case 'hstore':
-                return $this->hstoreToKeywords($value, $model->context->baseUrl . 'api/collections' . (isset($collectionName) ? '/' . $collectionName : '' ) . '/search.json', $model);
+                return $this->hstoreToKeywords($value, $model->context->baseUrl . '/api/collections' . (isset($collectionName) ? '/' . $collectionName : '' ) . '/search.json', $model);
             case 'array':
                 return explode(',', substr($value, 1, -1));
             default:

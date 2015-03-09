@@ -157,7 +157,7 @@ class RestoContext {
      * @param boolean $withparams : true to return url with parameters (i.e. with ?key=value&...) / false otherwise
      */
     public function getUrl($withparams = true) {
-        return $this->baseUrl . $this->path . '.' . $this->outputFormat . (isset($withparams) ? RestoUtil::kvpsToQueryString($this->query) : '');
+        return $this->baseUrl . '/' . $this->path . '.' . $this->outputFormat . (isset($withparams) ? RestoUtil::kvpsToQueryString($this->query) : '');
     }
     
     /**
@@ -299,13 +299,14 @@ class RestoContext {
     
     /**
      * Get url with no parameters
+     * Note that trailing '/' is systematically removed
      * 
      * @return string $endPoint
      */
     private function setBaseURL($endPoint) {
         $https = filter_input(INPUT_SERVER, 'HTTPS', FILTER_SANITIZE_STRING);
         $host = filter_input(INPUT_SERVER, 'HTTP_HOST', FILTER_SANITIZE_STRING);
-        $this->baseUrl = (isset($https) && $https === 'on' ? 'https' : 'http') . '://' . $host . $endPoint;
+        $this->baseUrl = (isset($https) && $https === 'on' ? 'https' : 'http') . '://' . $host . (substr($endPoint, -1) === '/' ? substr($endPoint, 0, strlen($endPoint) - 1) : $endPoint);
     }
     
     /**

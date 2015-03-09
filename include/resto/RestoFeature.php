@@ -303,8 +303,8 @@ class RestoFeature {
         /*
          * Variables
          */
-        $searchUrl = $this->context->baseUrl . 'api/collections' . (isset($this->displayedName) ? '/' . $this->displayedName : '' ) . '/search.json';
-        $thisUrl = isset($this->collection) ? RestoUtil::restoUrl($this->collection->getUrl(), $this->identifier) : RestoUtil::restoUrl($this->context->baseUrl, 'collections/' . $properties['collection'] . '/' . $this->identifier);
+        $searchUrl = $this->context->baseUrl . '/api/collections' . (isset($this->displayedName) ? '/' . $this->displayedName : '' ) . '/search.json';
+        $thisUrl = isset($this->collection) ? RestoUtil::restoUrl($this->collection->getUrl(), $this->identifier) : RestoUtil::restoUrl($this->context->baseUrl, '/collections/' . $properties['collection'] . '/' . $this->identifier);
         
         /*
          * Set collection

@@ -146,7 +146,7 @@ class RestoCollection {
      * @param string $format : output format for url
      */
     public function getUrl($format = '') {
-        return RestoUtil::restoUrl($this->context->baseUrl, 'collections/' . $this->name, $format);
+        return RestoUtil::restoUrl($this->context->baseUrl, '/collections/' . $this->name, $format);
     }
     
     /**
@@ -454,7 +454,7 @@ class RestoCollection {
         $parameters = array('minimum', 'maximum', 'minExclusive', 'maxExclusive', 'minInclusive', 'maxInclusive', 'pattern', 'title');
         foreach (RestoUtil::$contentTypes as $format => $mimeType) {
 
-            $url = RestoUtil::restoUrl($this->context->baseUrl, 'api/collections/' . $this->name . '/search', $format) . '?' . $clientId;
+            $url = RestoUtil::restoUrl($this->context->baseUrl, '/api/collections/' . $this->name . '/search', $format) . '?' . $clientId;
             
             /*
              * Url templates
