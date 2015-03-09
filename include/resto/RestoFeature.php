@@ -95,7 +95,7 @@ class RestoFeature {
     public function __construct($featureOrIdentifier, $context, $user, $options = array()) {
         
         if (!isset($context) || !is_a($context, 'RestoContext')) {
-            throw new Exception('Context is undefined or not valid', 500);
+            RestoLogUtil::httpError(500, 'Context is undefined or not valid');
         }
         
         $this->context = $context;
@@ -186,70 +186,84 @@ class RestoFeature {
      */
     public function toATOM() {
         
-        $xml = new XMLWriter;
-        $xml->openMemory();
-        $xml->setIndent(true);
-        $xml->startDocument('1.0', 'UTF-8');
-
         /*
-         * feed - Start element
+         * Initialize ATOM feed
          */
-        $xml->startElement('feed');
-        $xml->writeAttribute('xml:lang', 'en');
-        $xml->writeAttribute('xmlns', 'http://www.w3.org/2005/Atom');
-        $xml->writeAttribute('xmlns:time', 'http://a9.com/-/opensearch/extensions/time/1.0/');
-        $xml->writeAttribute('xmlns:dc', 'http://purl.org/dc/elements/1.1/');
-        $xml->writeAttribute('xmlns:georss', 'http://www.georss.org/georss');
-        $xml->writeAttribute('xmlns:gml', 'http://www.opengis.net/gml');
-        $xml->writeAttribute('xmlns:geo', 'http://a9.com/-/opensearch/extensions/geo/1.0/');
-        $xml->writeAttribute('xmlns:eo', 'http://a9.com/-/opensearch/extensions/eo/1.0/');
-        $xml->writeAttribute('xmlns:metalink', 'urn:ietf:params:xml:ns:metalink');
-        $xml->writeAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
-        $xml->writeAttribute('xmlns:media', 'http://search.yahoo.com/mrss/');
-
-        /*
-         * Element 'title' 
-         *  read from $this->feature['properties']['title']
-         */
-        $xml->writeElement('title', isset($this->feature['properties']['title']) ? $this->feature['properties']['title'] : '');
-
-        /*
-         * Element 'subtitle'
-         */
-        $xml->startElement('subtitle');
-        $xml->writeAttribute('type', 'html');
-        $xml->text('TODO : To Be Defined');
-        $xml->endElement(); // subtitle
-
-        /*
-         * Updated time is now
-         */
-        $xml->startElement('generator');
-        $xml->writeAttribute('uri', 'http://github.com/jjrom/resto2');
-        $xml->writeAttribute('version', Resto::VERSION);
-        $xml->text('resto');
-        $xml->endElement(); // generator
-        $xml->writeElement('updated', date('Y-m-dTH:i:sO'));
-
-        /*
-         * Element 'id'
-         */
-        $xml->writeElement('id', $this->feature['id']);
-
+        $atomFeed = new RestoATOMFeed($this->feature['id'], isset($this->description['properties']['title']) ? $this->description['properties']['title'] : '', 'TODO');
+        
         /*
          * Entry for feature
          */
-        $this->addAtomEntry($xml);
+        $this->addAtomEntry($atomFeed);
         
-        /*
-         * feed - End element
-         */
-        $xml->endElement();
-
         /*
          * Return ATOM result
          */
-        return $xml->outputMemory(true);
+        return $atomFeed->toString();
+        
+    }
+    
+    /**
+     * Add an atom entry within $xml document
+     * 
+     * @param RestoATOMFeed $atomFeed
+     */
+    public function addAtomEntry($atomFeed) {
+        
+        /*
+         * Add entry
+         */
+        $atomFeed->startElement('entry');
+        
+        /*
+         * Set base elements
+         */
+        $atomFeed->writeElements(array(
+            'id' => $this->feature['id'], // ! THIS SHOULD BE AN ABSOLUTE UNIQUE  AND PERMANENT IDENTIFIER !!
+            'dc:identifier' => $this->feature['id'], // Local identifier - i.e. last part of uri
+            'title' => isset($this->feature['properties']['title']) ? $this->feature['properties']['title'] : '',
+            'published' => $this->feature['properties']['published'],
+            'updated' => $this->feature['properties']['updated'],
+            /*
+             * Element 'dc:date' - date of the resource is duration of acquisition following
+             * the Dublin Core Collection Description on date
+             * (http://www.ukoln.ac.uk/metadata/dcmi/collection-RKMS-ISO8601/)
+             */
+            'dc:date' => $this->feature['properties']['startDate'] . '/' . $this->feature['properties']['completionDate']
+        ));
+        
+        /*
+         * Time
+         */
+        $atomFeed->addGmlTime($this->feature['properties']['startDate'], $this->feature['properties']['completionDate']);
+        
+        /*
+         * georss:polygon
+         */
+        $atomFeed->addGeorssPolygon($this->feature['geometry']['coordinates']);
+
+        /*
+         * Links
+         */
+        $this->addAtomLinks($atomFeed);
+        
+        /*
+         * Media (i.e. Quicklook / Thumbnail / etc.)
+         */
+        $this->addAtomMedia($atomFeed);
+        
+        /*
+         * Summary
+         */
+        $atomFeed->startElement('summary');
+        $atomFeed->writeAttributes(array('type' => 'text'));
+        $atomFeed->text((isset($this->feature['properties']['platform']) ? $this->feature['properties']['platform'] : '') . (isset($this->feature['properties']['platform']) && isset($this->feature['properties']['instrument']) ? '/' . $this->feature['properties']['instrument'] : '') . ' ' . $this->context->dictionary->translate('_acquiredOn', $this->feature['properties']['startDate']));
+        $atomFeed->endElement(); // content
+        
+        /*
+         * entry - close element
+         */
+        $atomFeed->endElement(); // entry
     }
     
     /**
@@ -358,124 +372,53 @@ class RestoFeature {
     }
     
     /**
-     * Add an atom entry within $xml document
+     * Add ATOM feed links
      * 
-     * @param Document $xml
+     * @param RestoATOMFeed $atomFeed
      */
-    private function addAtomEntry($xml) {
+    private function addAtomLinks($atomFeed) {
         
         /*
-         * entry - add element
-         */
-        $xml->startElement('entry');
-
-        /*
-         * Element 'id'
-         *  read from $this->feature['id']
-         * 
-         * !! THIS SHOULD BE AN ABSOLUTE UNIQUE  AND PERMANENT IDENTIFIER !!
-         * 
-         */
-        $xml->writeElement('id', $this->feature['id']);
-
-        /*
-         * Local identifier - i.e. last part of uri
-         */
-        $xml->writeElement('dc:identifier', $this->feature['id']);
-
-        /*
-         * Element 'title'
-         *  read from $this->feature['properties']['title']
-         */
-        $xml->writeElement('title', isset($this->feature['properties']['title']) ? $this->feature['properties']['title'] : '');
-
-        /*
-         * Element 'published' - date of metadata first publication
-         *  read from $this->feature['properties']['title']
-         */
-        $xml->writeElement('published', $this->feature['properties']['published']);
-
-        /*
-         * Element 'updated' - date of metadata last modification
-         *  read from $this->feature['properties']['title']
-         */
-        $xml->writeElement('updated', $this->feature['properties']['updated']);
-
-        /*
-         * Element 'dc:date' - date of the resource is duration of acquisition following
-         * the Dublin Core Collection Description on date
-         * (http://www.ukoln.ac.uk/metadata/dcmi/collection-RKMS-ISO8601/)
-         */
-        $xml->writeElement('dc:date', $this->feature['properties']['startDate'] . '/' . $this->feature['properties']['completionDate']);
-
-        /*
-         * Element 'gml:validTime' - acquisition duration between startDate and completionDate
-         *  read from $this->feature['properties']['startDate'] and $this->feature['properties']['completionDate']
-         */
-        $xml->startElement('gml:validTime');
-        $xml->startElement('gml:TimePeriod');
-        $xml->writeElement('gml:beginPosition', $this->feature['properties']['startDate']);
-        $xml->writeElement('gml:endPosition', $this->feature['properties']['completionDate']);
-        $xml->endElement(); // gml:TimePeriod
-        $xml->endElement(); // gml:validTime
-
-        /*
-         * georss:polygon from geojson entry
-         * 
-         * WARNING !
-         * 
-         *      GeoJSON coordinates order is longitude,latitude
-         *      GML coordinates order is latitude,longitude 
-         *      
-         * 
-         */
-        $geometry = array();
-        foreach ($this->feature['geometry']['coordinates'] as $key) {
-            foreach ($key as $value) {
-                $geometry[] = $value[1] . ' ' . $value[0];
-            }
-        }
-        $xml->startElement('georss:where');
-        $xml->startElement('gml:Polygon');
-        $xml->startElement('gml:exterior');
-        $xml->startElement('gml:LinearRing');
-        $xml->startElement('gml:posList');
-        $xml->writeAttribute('srsDimensions', '2');
-        $xml->text(join(' ', $geometry));
-        $xml->endElement(); // gml:posList
-        $xml->endElement(); // gml:LinearRing
-        $xml->endElement(); // gml:exterior
-        $xml->endElement(); // gml:Polygon
-        $xml->endElement(); // georss:where
-
-        /*
-         * Links
+         * General links
          */
         if (is_array($this->feature['properties']['links'])) {
             for ($j = 0, $k = count($this->feature['properties']['links']); $j < $k; $j++) {
-                $xml->startElement('link');
-                $xml->writeAttribute('rel', $this->feature['properties']['links'][$j]['rel']);
-                $xml->writeAttribute('type', $this->feature['properties']['links'][$j]['type']);
-                $xml->writeAttribute('title', $this->feature['properties']['links'][$j]['title']);
-                $xml->writeAttribute('href', $this->feature['properties']['links'][$j]['href']);
-                $xml->endElement(); // link
+                $atomFeed->startElement('link');
+                $atomFeed->writeAttributes(array(
+                    'rel' => $this->feature['properties']['links'][$j]['rel'],
+                    'type' => $this->feature['properties']['links'][$j]['type'],
+                    'title' => $this->feature['properties']['links'][$j]['title'],
+                    'href' => $this->feature['properties']['links'][$j]['href']
+                ));
+                $atomFeed->endElement(); // link
             }
         }
-
+        
         /*
          * Element 'enclosure' - download product
          *  read from $this->feature['properties']['archive']
          */
         if (isset($this->feature['properties']['services']['download']['url'])) {
-            $xml->startElement('link');
-            $xml->writeAttribute('rel', 'enclosure');
-            $xml->writeAttribute('type', isset($this->feature['properties']['services']['download']['mimeType']) ? $this->feature['properties']['services']['download']['mimeType'] : 'application/unknown');
-            $xml->writeAttribute('length', isset($this->feature['properties']['services']['download']['size']) ? $this->feature['properties']['services']['download']['size'] : 0);
-            $xml->writeAttribute('title', 'File for ' . $this->feature['id'] . ' product');
-            $xml->writeAttribute('metalink:priority', 50);
-            $xml->writeAttribute('href', $this->feature['properties']['services']['download']['url']);
-            $xml->endElement(); // link
+            $atomFeed->startElement('link');
+            $atomFeed->writeAttributes(array(
+                'rel' => 'enclosure',
+                'type' => isset($this->feature['properties']['services']['download']['mimeType']) ? $this->feature['properties']['services']['download']['mimeType'] : 'application/unknown',
+                'length' => isset($this->feature['properties']['services']['download']['size']) ? $this->feature['properties']['services']['download']['size'] : 0,
+                'title' => 'File for ' . $this->feature['id'] . ' product',
+                'metalink:priority' => 50,
+                'href' => $this->feature['properties']['services']['download']['url']
+            ));
+            $atomFeed->endElement(); // link
         }
+        
+    }
+    
+    /**
+     * Add ATOM feed media
+     * 
+     * @param RestoATOMFeed $atomFeed
+     */
+    private function addAtomMedia($atomFeed) {
         
         /*
          * Quicklook / Thumbnail
@@ -486,74 +429,30 @@ class RestoFeature {
              * rel=icon
              */
             if (isset($this->feature['properties']['quicklook'])) {
-                $xml->startElement('link');
-                $xml->writeAttribute('rel', 'icon');
-                //$xml->writeAttribute('type', 'TODO');
-                $xml->writeAttribute('title', 'Browse image URL for ' . $this->feature['id'] . ' product');
-                $xml->writeAttribute('href', $this->feature['properties']['quicklook']);
-                $xml->endElement(); // link
+                $atomFeed->startElement('link');
+                $atomFeed->writeAttributes(array(
+                    'rel' => 'icon',
+                    //'type' => 'TODO',
+                    'title' => 'Browse image URL for ' . $this->feature['id'] . ' product',
+                    'href' => $this->feature['properties']['quicklook']
+                ));
+                $atomFeed->endElement(); // link
             }
 
             /*
              * media:group
              */
-            $xml->startElement('media:group');
+            $atomFeed->startElement('media:group');
             if (isset($this->feature['properties']['thumbnail'])) {
-                $xml->startElement('media:content');
-                $xml->writeAttribute('url', $this->feature['properties']['thumbnail']);
-                $xml->writeAttribute('medium', 'image');
-                $xml->startElement('media:category');
-                $xml->writeAttribute('scheme', 'http://www.opengis.net/spec/EOMPOM/1.0');
-                $xml->text('THUMBNAIL');
-                $xml->endElement();
-                $xml->endElement();
+                $atomFeed->addMedia('THUMNAIL', $this->feature['properties']['thumbnail']);
             }
             if (isset($this->feature['properties']['quicklook'])) {
-                $xml->startElement('media:content');
-                $xml->writeAttribute('url', $this->feature['properties']['quicklook']);
-                $xml->writeAttribute('medium', 'image');
-                $xml->startElement('media:category');
-                $xml->writeAttribute('scheme', 'http://www.opengis.net/spec/EOMPOM/1.0');
-                $xml->text('QUICKLOOK');
-                $xml->endElement();
-                $xml->endElement();
+                $atomFeed->addMedia('QUICKLOOK', $this->feature['properties']['quicklook']);
             }
-            $xml->endElement();
+            $atomFeed->endElement();
         }
 
-        /*
-         * Element 'content' - HTML description
-         *  construct from $this->feature['properties'][*]
-         */
-        /*
-        $content = '<p>' . (isset($this->feature['properties']['platform']) ? $this->feature['properties']['platform'] : '') . (isset($this->feature['properties']['platform']) && isset($this->feature['properties']['instrument']) ? '/' . $this->feature['properties']['instrument'] : '') . ' ' . $this->context->dictionary->translate('_acquiredOn', $this->feature['properties']['startDate']) . '</p>';
-        if ($this->feature['properties']['keywords']) {
-            $keywords = array();
-            foreach ($this->feature['properties']['keywords'] as $keyword => $value) {
-                $keywords[] = '<a href="' . RestoUtil::updateURLFormat($value['href'], 'atom') . '">' . $keyword . '</a>';
-            }
-            $content .= '<p>' . $this->context->dictionary->translate('Keywords') . ' ' . join(' | ', $keywords) . '</p>';
-        }
-        $xml->startElement('content');
-        $xml->writeAttribute('type', 'html');
-        $xml->text($content);
-        $xml->endElement(); // content
-        */
-        
-        /*
-         * Summary
-         */
-        $xml->startElement('summary');
-        $xml->writeAttribute('type', 'text');
-        $xml->text((isset($this->feature['properties']['platform']) ? $this->feature['properties']['platform'] : '') . (isset($this->feature['properties']['platform']) && isset($this->feature['properties']['instrument']) ? '/' . $this->feature['properties']['instrument'] : '') . ' ' . $this->context->dictionary->translate('_acquiredOn', $this->feature['properties']['startDate']));
-        $xml->endElement(); // content
-        
-        /*
-         * entry - close element
-         */
-        $xml->endElement(); // entry
     }
-    
     
     /**
      * 
