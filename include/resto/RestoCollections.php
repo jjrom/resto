@@ -72,7 +72,7 @@ class RestoCollections {
          * Context is mandatory
          */
         if (!isset($context) || !is_a($context, 'RestoContext')) {
-            throw new Exception('Context must be defined', 500);
+            RestoLogUtil::httpError(500, 'Context must be defined');
         }
         
         $this->context = $context;

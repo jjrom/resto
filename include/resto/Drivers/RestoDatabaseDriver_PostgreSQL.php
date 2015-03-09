@@ -586,7 +586,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     throw new Exception();
                 }
             } catch (Exception $e) {
-                throw new Exception('Database connection error', 500);
+                RestoLogUtil::httpError(500, 'Database connection error');
             }
         }   
 

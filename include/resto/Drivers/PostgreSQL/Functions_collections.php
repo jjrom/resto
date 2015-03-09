@@ -203,15 +203,15 @@ class Functions_collections {
              */
             if (!$this->dbDriver->check(RestoDatabaseDriver::SCHEMA, array('name' => $schemaName))) {
                 $this->dbDriver->query('ROLLBACK');
-                RestoLogUtil::httpError(2000);
+                throw new Exception();
             }
             if (!$this->collectionExists($collection->name)) {
                 $this->dbDriver->query('ROLLBACK');
-                RestoLogUtil::httpError(2000);
+                throw new Exception();
             }
             
         } catch (Exception $e) {
-            throw new Exception($e->getMessage(), $e->getCode());
+            RestoLogUtil::httpError(2000);
         }
     }
     

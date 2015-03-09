@@ -343,7 +343,7 @@ class RestoUtil {
     public static function instantiate($className, $params = array()) {
         
         if (!$className) {
-            throw new Exception(__METHOD__ . ' - Class name is not set', 500);
+            RestoLogUtil::httpError(500, 'Class name is not set');
         }
         
         try {
@@ -352,7 +352,7 @@ class RestoUtil {
                 throw new Exception();
             }
         } catch (Exception $e) {
-            throw new Exception(__METHOD__ . ' - ' . $className . ' is not instantiable', 500);
+            RestoLogUtil::httpError(500, $className . ' is not instantiable');
         }
         
         switch (count($params)) {
@@ -646,7 +646,7 @@ class RestoUtil {
                 $lines = file($fileName);
             }
         } catch (Exception $e) {
-            throw new Exception('Cannot upload file(s)', 500);
+            RestoLogUtil::httpError(500, 'Cannot upload file(s)');
         }
         
         /*

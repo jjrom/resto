@@ -195,7 +195,7 @@ class Functions_rights {
     public function updateRights($rights, $identifier, $collectionName, $featureIdentifier = null) {
         
         if (!$this->collectionExists($collectionName)) {
-            throw new Exception();
+            RestoLogUtil::httpError(500, 'Cannot update rights - collection ' . $collectionName . ' does not exist');
         }
         
         $values = "collection='" . pg_escape_string($collectionName) . "',";

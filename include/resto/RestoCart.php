@@ -114,7 +114,7 @@ class RestoCart{
              */
             $itemId = sha1($this->user->profile['email'] . $data[$i]['id']);
             if (isset($this->items[$itemId])) {
-                throw new Exception('Cannot add item : ' . $itemId . ' already exist', 1000);
+                RestoLogUtil::httpError(1000, 'Cannot add item : ' . $itemId . ' already exist');
             }   
             
             if ($synchronize) {
@@ -141,7 +141,7 @@ class RestoCart{
             return false;
         }
         if (!isset($this->items[$itemId])) {
-            throw new Exception('Cannot update item : ' . $itemId . ' does not exist', 1001);
+            RestoLogUtil::httpError(1001, 'Cannot update item : ' . $itemId . ' does not exist');
         }
         if ($synchronize) {
             $this->items[$itemId] = $item;

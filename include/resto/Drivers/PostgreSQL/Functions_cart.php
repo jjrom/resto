@@ -248,7 +248,7 @@ class Functions_cart{
             
         } catch (Exception $e) {
             $this->dbDriver->query('ROLLBACK');
-            throw new Exception($e->getMessage(), $e->getCode());
+            RestoLogUtil::httpError($e->getCode(), $e->getMessage());
         }
         
         return false;
