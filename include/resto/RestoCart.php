@@ -70,7 +70,7 @@ class RestoCart{
         $this->user = $user;
         $this->context = $context;
         if ($synchronize) {
-            $this->items = $this->context->dbDriver->get(RestoDatabaseDriver::CART_ITEM, array('email' => $this->user->profile['email']));
+            $this->items = $this->context->dbDriver->get(RestoDatabaseDriver::CART_ITEMS, array('email' => $this->user->profile['email']));
         }
     }
     

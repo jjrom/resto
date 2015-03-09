@@ -154,7 +154,7 @@ class Functions_cart{
             '\'' . pg_escape_string(json_encode($item)) . '\'',
             'now()'
         );
-        $this->dbDriver->query($this->dbh, 'INSERT INTO usermanagement.cart (itemid, email, item, querytime) VALUES (' . join(',', $values) . ')');
+        $this->dbDriver->query('INSERT INTO usermanagement.cart (itemid, email, item, querytime) VALUES (' . join(',', $values) . ')');
         return array($itemId => $item);
     }
     
