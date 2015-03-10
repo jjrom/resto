@@ -102,7 +102,7 @@ class RestoFeatureCollection {
         
         $this->context = $context;
         $this->user = $user;
-        return $this->initialize($collections);
+        $this->initialize($collections);
         
     }
   
@@ -263,7 +263,7 @@ class RestoFeatureCollection {
         /*
          * Request start time
          */
-        $requestStartTime = microtime(true);
+        $this->requestStartTime = microtime(true);
         
         /*
          * Clean search filters
@@ -292,6 +292,23 @@ class RestoFeatureCollection {
         $this->loadFeatures($searchFilters, $limit, $offset, isset($this->context->query['_rc']) && filter_var($this->context->query['_rc'], FILTER_VALIDATE_BOOLEAN) ? true : false);
         
         /*
+         * Set description
+         */
+        $this->setDescription($searchFilters, $originalFilters, $offset, $limit);
+        
+    }
+    
+    /**
+     * Set description
+     * 
+     * @param array $searchFilters
+     * @param array $originalFilters
+     * @param integer $offset
+     * @param integer $limit
+     */
+    private function setDescription($searchFilters, $originalFilters, $offset, $limit) {
+        
+        /*
          * Query is made from request parameters
          */
         $query = $this->cleanFilters($searchFilters);
@@ -310,13 +327,11 @@ class RestoFeatureCollection {
                 'query' => array(
                     'original' => $originalFilters,
                     'real' => $query,
-                    'processingTime' => microtime(true) - $requestStartTime
+                    'processingTime' => microtime(true) - $this->requestStartTime
                 ),
                 'links' => $this->getLinks($limit, $offset)
             )
         );
-        
-        return $this;
     }
     
     /**
@@ -459,29 +474,21 @@ class RestoFeatureCollection {
         $links = $this->getBaseLinks();
         
         /*
-         * Get start, next and last page from limit and offset
+         * Get paging infos
          */
-        $startPage = 1;
-        $nextPage = 1;
-        $totalPage = 1;
-        $count = count($this->restoFeatures);
-        if ($count > 0) {
-            $startPage = ceil(($offset + 1) / $limit);
-            $nextPage = $startPage + 1;
-            $totalPage = ceil(($this->totalCount !== -1 ? $this->totalCount : $count) / $limit);
-        }
+        $paging = $this->getPaging($limit, $offset);
         
         /*
          * Start page cannot be lower than 1
          */
-        if ($startPage > 1) {
+        if ($paging['startPage'] > 1) {
             
             /*
              * Previous URL is the previous URL from the self URL
              * 
              */
             $links[] = $this->getLink('previous', '_previousCollectionLink', array(
-                'startPage' => max($startPage - 1, 1),
+                'startPage' => max($paging['startPage'] - 1, 1),
                 'count' => $limit));
             
             /*
@@ -496,13 +503,13 @@ class RestoFeatureCollection {
         /*
          * StartPage cannot be greater than the one from lastURL 
          */
-        if ($nextPage < $totalPage) {
+        if ($paging['nextPage'] < $paging['totalPage']) {
             
             /*
              * Next URL is the next search URL from the self URL
              */
             $links[] = $this->getLink('next', '_nextCollectionLink', array(
-                'startPage' => min($startPage, $totalPage),
+                'startPage' => min($paging['startPage'], $paging['totalPage']),
                 'count' => $limit)
             );
             
@@ -510,7 +517,7 @@ class RestoFeatureCollection {
              * Last URL has the highest startIndex
              */
             $links[] = $this->getLink('last', '_lastCollectionLink', array(
-                'startPage' => max($totalPage, 1),
+                'startPage' => max($paging['totalPage'], 1),
                 'count' => $limit)
             );
         }
@@ -519,9 +526,9 @@ class RestoFeatureCollection {
          * If total = -1 then it means that total number of resources is unknown
          * The last index cannot be displayed
          */
-        if ($this->totalCount === -1 && $count >= $limit) {
+        if ($this->totalCount === -1 && $paging['count'] >= $limit) {
             $links[] = $this->getLink('next', '_nextCollectionLink', array(
-                'startPage' => $startPage + 1,
+                'startPage' => $paging['startPage'] + 1,
                 'count' => $limit)
             );
         }
@@ -568,14 +575,39 @@ class RestoFeatureCollection {
     }
     
     /**
+     * Get start, next and last page from limit and offset
+     * 
+     * @param integer $limit
+     * @param integer $offset
+     */
+    private function getPaging($limit, $offset) {
+        $count = count($this->restoFeatures);
+        $paging = array(
+            'startPage' => 1,
+            'nextPage' => 1,
+            'totalPage' => 1,
+            'count' => $count
+        );
+        if ($count > 0) {
+            $paging = array(
+                'startPage' => ceil(($offset + 1) / $limit),
+                'nextPage' => $paging['startPage'] + 1,
+                'totalPage' => ceil(($this->totalCount !== -1 ? $this->totalCount : $count) / $limit),
+                'count' => $count
+            );
+        }
+        return $paging;
+    }
+    
+    /**
      * Returned analyzed filters
      * 
      * @param array $params
      */
     private function getSearchFilters($params) {
         if (isset($this->context->modules['QueryAnalyzer'])) {
-            $qa = new QueryAnalyzer($this->context, $this->user);
-            $analyzis = $qa->analyze($params, $this->defaultModel);
+            $queryAnalyzer = new QueryAnalyzer($this->context, $this->user);
+            $analyzis = $queryAnalyzer->analyze($params, $this->defaultModel);
             return $analyzis['analyze'];
         }
         return $params;

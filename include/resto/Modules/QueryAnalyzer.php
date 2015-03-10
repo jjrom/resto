@@ -822,11 +822,11 @@ class QueryAnalyzer extends RestoModule {
                         'bbox' => isset($params['geo:box']) ? $params['geo:box'] : null
                         )
                     );
-                    if (count($locations) > 0) {
-                        $countryFoundInGazetteer = $locations[0]['countryname'];
-                        $params['geo:name'] = $locations[0]['name'] . ($countryFoundInGazetteer !== '' ? ', ' . $countryFoundInGazetteer : '');
-                        $params['geo:lon'] = $locations[0]['longitude'];
-                        $params['geo:lat'] = $locations[0]['latitude'];
+                    if (count($locations['toponyms']) > 0) {
+                        $countryFoundInGazetteer = $locations['toponyms'][0]['countryname'];
+                        $params['geo:name'] = $locations['toponyms'][0]['name'] . ($countryFoundInGazetteer !== '' ? ', ' . $countryFoundInGazetteer : '');
+                        $params['geo:lon'] = $locations['toponyms'][0]['longitude'];
+                        $params['geo:lat'] = $locations['toponyms'][0]['latitude'];
                     }
                     else {
                         $this->unProcessed[] = $searchTerms[$i];

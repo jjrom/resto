@@ -150,7 +150,7 @@ class RestoModel_RO extends RestoModel {
          */
         $configFile = realpath(dirname(__FILE__)) . '/../../config.php';
         if (!file_exists($configFile)) {
-            throw new Exception(__METHOD__ . 'Missing mandatory configuration file', 4000);
+            RestoLogUtil::httpError(4000, 'Missing mandatory configuration file');
         }
         $this->config = include($configFile);
     }
