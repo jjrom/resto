@@ -87,12 +87,9 @@ class RestoModel_sentinel1 extends RestoModel {
     
     /**
      * Constructor
-     * 
-     * @param RestoContext $context : Resto context
-     * @param RestoContext $user : Resto user
      */
-    public function __construct($context, $user) {
-        parent::__construct($context, $user);
+    public function __construct() {
+        parent::__construct();
     }
     
     /**
@@ -100,9 +97,12 @@ class RestoModel_sentinel1 extends RestoModel {
      * 
      * @param array $data : array (MUST BE GeoJSON in abstract Model)
      * @param string $collectionName : collection name
+     * @param RestoContext $context 
+     * @param RestoUser $user
+     * 
      */
-    public function addFeature($data, $collectionName) {
-        return parent::addFeature($this->parse(join('',$data)), $collectionName);
+    public function addFeature($data, $collectionName, $context, $user) {
+        return parent::addFeature($this->parse(join('',$data)), $collectionName, $context, $user);
     }
     
     /**

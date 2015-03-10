@@ -94,12 +94,9 @@ class RestoModel_ads extends RestoModel {
 
     /**
      * Constructor
-     * 
-     * @param RestoContext $context : Resto context
-     * @param RestoContext $user : Resto user
      */
-    public function __construct($context, $user) {
-        parent::__construct($context, $user);
+    public function __construct() {
+        parent::__construct();
     }
 
 }

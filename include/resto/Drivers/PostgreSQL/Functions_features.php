@@ -76,8 +76,8 @@ class Functions_features {
      * 
      * Get an array of features descriptions
      * 
-     * @param RestoModel $model
-     * @param string $collectionName
+     * @param RestoContext $context
+     * @param RestoCollection $collection
      * @param RestoModel $params
      * @param array $options
      *      array(
@@ -88,7 +88,12 @@ class Functions_features {
      * @return array
      * @throws Exception
      */
-    public function search($model, $collectionName, $params, $options) {
+    public function search($context, $collection, $params, $options) {
+        
+        /*
+         * Set model
+         */
+        $model = isset($collection) ? $collection->model : new RestoModel_default();
         
         /*
          * Check that mandatory filters are set
@@ -112,7 +117,7 @@ class Functions_features {
          * Note that the total number of results (i.e. with no LIMIT constraint)
          * is retrieved with PostgreSQL "count(*) OVER()" technique
          */
-        $query = 'SELECT ' . implode(',', $this->getSQLFields($model)) . ($options['count'] ? ', count(' . $model->getDbKey('identifier') . ') OVER() AS totalcount' : '') . ' FROM ' . (isset($collectionName) ? $this->dbDriver->getSchemaName($collectionName) : 'resto') . '.features' . ($oFilter ? ' WHERE ' . $oFilter : '') . ' ORDER BY startdate DESC LIMIT ' . $options['limit'] . ' OFFSET ' . $options['offset'];
+        $query = 'SELECT ' . implode(',', $this->getSQLFields($model)) . ($options['count'] ? ', count(' . $model->getDbKey('identifier') . ') OVER() AS totalcount' : '') . ' FROM ' . (isset($collection) ? $this->dbDriver->getSchemaName($collection->name) : 'resto') . '.features' . ($oFilter ? ' WHERE ' . $oFilter : '') . ' ORDER BY startdate DESC LIMIT ' . $options['limit'] . ' OFFSET ' . $options['offset'];
      
         /*
          * Retrieve products from database
@@ -123,8 +128,9 @@ class Functions_features {
          * Loop over results
          */
         $featuresArray = array();
+        $featureUtil = new RestoFeatureUtil($context, $collection);
         while ($result = pg_fetch_assoc($results)) {
-            $featuresArray[] = $this->correctTypes($model, $result);
+            $featuresArray[] = $featureUtil->toFeatureArray($result);
         }
         
         return $featuresArray;
@@ -134,17 +140,19 @@ class Functions_features {
      * 
      * Get feature description
      *
+     * @param RestoContext $context
      * @param integer $identifier
      * @param RestoModel $model
-     * @param string $collectionName
+     * @param RestoCollection $collection
      * @param array $filters
      * 
      * @return array
      * @throws Exception
      */
-    public function getFeatureDescription($identifier, $model, $collectionName = null, $filters = array()) {
-        $result = $this->dbDriver->query('SELECT ' . implode(',', $this->getSQLFields($model, array('continents', 'countries'))) . ' FROM ' . (isset($collectionName) ? $this->dbDriver->getSchemaName($collectionName) : 'resto') . '.features WHERE ' . $model->getDbKey('identifier') . "='" . pg_escape_string($identifier) . "'" . (count($filters) > 0 ? ' AND ' . join(' AND ', $filters) : ''));
-        return $this->correctTypes($model, pg_fetch_assoc($result));
+    public function getFeatureDescription($context, $identifier, $model, $collection = null, $filters = array()) {
+        $result = $this->dbDriver->query('SELECT ' . implode(',', $this->getSQLFields($model, array('continents', 'countries'))) . ' FROM ' . (isset($collection) ? $this->dbDriver->getSchemaName($collection->name) : 'resto') . '.features WHERE ' . $model->getDbKey('identifier') . "='" . pg_escape_string($identifier) . "'" . (count($filters) > 0 ? ' AND ' . join(' AND ', $filters) : ''));
+        $featureUtil = new RestoFeatureUtil($context, $collection);
+        return $featureUtil->toFeatureArray(pg_fetch_assoc($result));
     }
     
     /**
@@ -579,151 +587,6 @@ class Functions_features {
         
     }
     
-    /**
-     * 
-     * Convert an array of strings to the correct type
-     * (Since pg_fetch_assoc returns only strings whatever the PostgreSQL type
-     * we need to cast each feature properties to the right type)
-     * 
-     * @param RestoModel $model
-     * @param Array $pgResult : pg_fetch_assoc result
-     * @return array
-     */
-    private function correctTypes($model, $pgResult) {
-        
-        if (!isset($pgResult) || !is_array($pgResult)) {
-            return null;
-        }
-        
-        /*
-         * PostgreSQL output columns are treated as string
-         * thus they need to be converted to their true type
-         */
-        foreach ($pgResult as $key => $value) {
-            
-            if ($key === 'bbox4326') {
-                $pgResult[$key] = str_replace(' ', ',', substr(substr($pgResult[$key], 0, strlen($pgResult[$key]) - 1), 4));
-                      
-                /*
-                 * Compute EPSG:3857 bbox
-                 */
-                $pgResult['bbox3857'] = RestoGeometryUtil::bboxToMercator($pgResult[$key]);
-            
-            }
-            else if ($key === 'totalcount') {
-                $pgResult[$key] = (integer) $value;
-            }
-            else {
-                $pgResult[$key] = $this->castExplicit($model, $key, $value, isset($pgResult['collection']) ? $pgResult['collection'] : null);
-            }
-        }
-        
-        return $pgResult;
-    }
-    
-    /**
-     * Explicitely cast $value from $model
-     * 
-     * @param RestoModel $model
-     * @param string $key
-     * @param string $value
-     */
-    private function castExplicit($model, $key, $value, $collectionName) {
-        switch($model->getDbType($key)) {
-            case 'integer':
-                return (integer) $value;
-            case 'float':
-                return (float) $value;
-            /*
-             * PostgreSQL returns ST_AsGeoJSON(geometry) 
-             */
-            case 'geometry':
-                return json_decode($value, true);
-            case 'hstore':
-                return $this->hstoreToKeywords($value, $model->context->baseUrl . '/api/collections' . (isset($collectionName) ? '/' . $collectionName : '' ) . '/search.json', $model);
-            case 'array':
-                return explode(',', substr($value, 1, -1));
-            default:
-                return $value;
-        }
-    }
-    
-    /**
-     * 
-     * Return keyword array assuming an input hstore $string 
-     * 
-     * Note : $string format is "type:name" => urlencode(json)
-     *
-     *      e.g. "continent:oceania"=>"%7B%22hash%22%3A%2262f4365c66c1f64%22%7D", "country:australia"=>"%7B%22hash%22%3A%228f36daace0ea948%22%2C%22parentHash%22%3A%2262f4365c66c1f64%22%2C%22value%22%3A100%7D"
-     * 
-     * 
-     * Structure of output is 
-     *      array(
-     *          "id" => // Keyword id (optional)
-     *          "type" => // Keyword type
-     *          "value" => // Keyword value if it make sense
-     *          "href" => // RESTo search url to get keyword
-     *      )
-     * 
-     * @param string $hstore
-     * @param string $url : Base url for setting href links
-     * @param RestoModel $model
-     * @return array
-     */
-    private function hstoreToKeywords($hstore, $url, $model) {
-        
-        if (!isset($hstore)) {
-            return null;
-        }
-        
-        $json = json_decode('{' . str_replace('}"', '}', str_replace('\"', '"', str_replace('"{', '{', str_replace('"=>"', '":"', $hstore)))) . '}', true);
-        
-        if (!isset($json) || !is_array($json)) {
-            return null;
-        }
-        
-        $keywords = array();
-        foreach ($json as $key => $value) {
-
-            /*
-             * $key format is "type:id"
-             */
-            list($type, $id) = explode(':', $key, 2);
-            $hrefKey = $key;
-            
-            /*
-             * Do not display landuse_details
-             */
-            if ($type === 'landuse_details') {
-                continue;
-            }
-
-            /*
-             * Value format is urlencode(json)
-             */
-            $properties = json_decode(urldecode($value), true); 
-            if (!isset($properties['name'])) {
-                $properties['name'] = trim($model->context->dictionary->getKeywordFromValue($id, $type));
-                if (!isset($properties['name'])) {
-                    $properties['name'] = ucwords($id);
-                }
-                $hrefKey = $properties['name'];
-            }
-            $keywords[] = array(
-                'name' => isset($properties['name']) && $properties['name'] !== '' ? $properties['name'] : $key,
-                'id' => $key,
-                'href' => RestoUtil::updateUrl($url, array($model->searchFilters['language']['osKey'] => $model->context->dictionary->language,  $model->searchFilters['searchTerms']['osKey'] => count(explode(' ', $hrefKey)) > 1 ? '"'. $hrefKey . '"' : $hrefKey))
-            );
-            foreach (array_keys($properties) as $property) {
-                if (!in_array($property, array('name', 'id'))) {
-                    $keywords[count($keywords) - 1][$property] = $properties[$property];
-                }
-            }
-        }
-
-        return $keywords;
-    }
- 
     /**
      * Check that mandatory filters are set
      * 

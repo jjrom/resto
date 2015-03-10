@@ -118,7 +118,7 @@ class RestoCollection {
         }
         
         /*
-         * Collection name should be alphanumeric based only
+         * Collection name should be alphanumeric based only except for reserved '*' collection
          */
         if (!isset($name) || !ctype_alnum($name) || is_numeric(substr($name, 0, 1))) {
             RestoLogUtil::httpError(500, 'Collection name must be an alphanumeric string not starting with a digit');
@@ -369,7 +369,7 @@ class RestoCollection {
      * @param array $data : GeoJSON file or file splitted in array
      */
     public function addFeature($data) {
-        return $this->model->addFeature($data, $this->name);
+        return $this->model->addFeature($data, $this->name, $this->context, $this->user);
     }
     
     /**

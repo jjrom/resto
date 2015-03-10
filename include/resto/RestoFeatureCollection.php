@@ -44,11 +44,6 @@
 class RestoFeatureCollection {
     
     /*
-     * Model of the main collection
-     */
-    public $defaultModel;
-    
-    /*
      * Parent collection
      */
     public $defaultCollection;
@@ -77,6 +72,11 @@ class RestoFeatureCollection {
      * All collections
      */
     private $collections;
+    
+    /*
+     * Model of the main collection
+     */
+    private $defaultModel;
     
     /*
      * Total number of resources relative to the query
@@ -395,8 +395,8 @@ class RestoFeatureCollection {
          * Get features array from database
          */
         $featuresArray = $this->context->dbDriver->get(RestoDatabaseDriver::FEATURES_DESCRIPTIONS, array(
-            'model' => $this->defaultModel,
-            'collectionName' => isset($this->defaultCollection) ? $this->defaultCollection->name : null,
+            'context' => $this->context,
+            'collection' => isset($this->defaultCollection) ? $this->defaultCollection : null,
             'filters' => $params,
                 'options' => array(
                     'limit' => $limit,
@@ -413,7 +413,8 @@ class RestoFeatureCollection {
             if (isset($this->collections) && !isset($this->collections[$featuresArray[$i]['collection']])) {
                 $this->collections[$featuresArray[$i]['collection']] = new RestoCollection($featuresArray[$i]['collection'], $this->context, $this->user, array('autoload' => true));
             }
-            $this->restoFeatures[] = new RestoFeature($featuresArray[$i], $this->context, $this->user, array(
+            $this->restoFeatures[] = new RestoFeature($this->context, $this->user, array(
+                'featureArray' => $featuresArray[$i],
                 'collection' => isset($this->collections) && isset($featuresArray[$i]['collection']) && $this->collections[$featuresArray[$i]['collection']] ? $this->collections[$featuresArray[$i]['collection']] : $this->defaultCollection,
                 'forceCollectionName' => isset($this->defaultCollection) ? true : false)
             );
@@ -632,6 +633,7 @@ class RestoFeatureCollection {
             }
             $query[$key] = $key === 'searchTerms' ? stripslashes($value) : $value;
         }
-        return ksort($query);
+        ksort($query);
+        return $query;
     }
 }

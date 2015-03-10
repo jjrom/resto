@@ -532,16 +532,8 @@ abstract class RestoModel {
     
     /**
      * Constructor
-     * 
-     * @param RestoContext $context : Resto context
-     * @param RestoUser $user : Resto user
      */
-    public function __construct($context, $user) {
-        if (!isset($context) || !is_a($context, 'RestoContext')) {
-            RestoUtil::httpError(500, 'Context must be defined');
-        }
-        $this->context = $context;
-        $this->user = $user;
+    public function __construct() {
         $this->name = get_class($this);
         $this->properties = array_merge($this->properties, $this->extendedProperties); 
         
@@ -633,8 +625,11 @@ abstract class RestoModel {
      * 
      * @param array $data : array (MUST BE GeoJSON in abstract Model)
      * @param string $collectionName : collection name
+     * @param RestoContext $context : context
+     * @param RestoUser $user : user
+     * 
      */
-    public function addFeature($data, $collectionName) {
+    public function addFeature($data, $collectionName, $context, $user) {
          
         if (!isset($collectionName)) {
             RestoLogUtil::httpError(500, 'Collection name must be defined');
@@ -664,7 +659,7 @@ abstract class RestoModel {
         /*
          * Check that resource does not already exist in database
          */
-        if ($this->context->dbDriver->check(RestoDatabaseDriver::FEATURE, array('featureIdentifier' => $data['id']))) {
+        if ($context->dbDriver->check(RestoDatabaseDriver::FEATURE, array('featureIdentifier' => $data['id']))) {
             RestoLogUtil::httpError(500, 'Feature ' . $data['id'] . ' already in database');
         }
         
@@ -692,8 +687,8 @@ abstract class RestoModel {
         /* 
          * Add tags with iTag
          */
-        if (isset($this->context->modules['iTag'])) {
-            $iTagKeywords = $this->getKeywords($data['geometry']);
+        if (isset($context->modules['iTag'])) {
+            $iTagKeywords = $this->getKeywords($data['geometry'], $context->modules['iTag'], $context->dbDriver->dbh);
             if (isset($keywords)) {
                 $keywords[1] = array_merge($keywords[1], $iTagKeywords);
             }
@@ -707,7 +702,7 @@ abstract class RestoModel {
         }
         
         try {
-            $this->context->dbDriver->store(RestoDatabaseDriver::FEATURE, array(
+            $context->dbDriver->store(RestoDatabaseDriver::FEATURE, array(
                 'collectionName' => $collectionName,
                 'elements' => $elements,
                 'model' => $this
@@ -716,7 +711,9 @@ abstract class RestoModel {
             RestoUtil::httpError(500, 'Feature ' . $data['id'] . ' cannot be inserted in database');
         }
         
-        return new RestoFeature($data['id'], $this->context, $this->user);
+        return new RestoFeature($context, $user, array(
+            'featureIdentifier' => $data['id']
+        ));
         
     }
     
@@ -724,17 +721,18 @@ abstract class RestoModel {
      * Extract iTag keywords from input geometry
      * 
      * @param string $geometry
+     * @param array $iTagConfig
      * @return array
      */
-    private function getKeywords($geometry) {
+    private function getKeywords($geometry, $iTagConfig, $dbh) {
         
-        if (isset($this->context->modules['iTag']['database']) && isset($this->context->modules['iTag']['database']['dbname'])) {
-            $iTag = new iTag($this->context->modules['iTag']['database']);
+        if (isset($iTagConfig['database']) && isset($iTagConfig['database']['dbname'])) {
+            $iTag = new iTag($iTagConfig['database']);
         }
         else {
-            $iTag = new iTag(array('dbh' => $this->context->dbDriver->dbh));
+            $iTag = new iTag(array('dbh' => $dbh));
         }
-        return $this->iTagToKeywords($iTag->tag(RestoGeometryUtil::geoJSONGeometryToWKT($geometry, isset($this->context->modules['iTag']['keywords']) ? $this->context->modules['iTag']['keywords'] : array())));
+        return $this->iTagToKeywords($iTag->tag(RestoGeometryUtil::geoJSONGeometryToWKT($geometry, isset($iTagConfig['keywords']) ? $iTagConfig['keywords'] : array())));
 
     }
     
