@@ -358,6 +358,11 @@ class RestoFeature {
         $this->setLinks($properties, $thisUrl);
         
         /*
+         * Set geometry
+         */
+        $geometry = isset($properties['geometry']) ? $properties['geometry'] : null;
+        
+        /*
          * Clean properties
          */
         $this->cleanProperties($properties);
@@ -365,7 +370,7 @@ class RestoFeature {
         $this->feature = array(
             'type' => 'Feature',
             'id' => $this->identifier,
-            'geometry' => isset($properties['geometry']) ? $properties['geometry'] : null,
+            'geometry' => $geometry,
             'properties' => $properties
         );
         
@@ -671,37 +676,69 @@ class RestoFeature {
      * @param string $searchUrl
      */
     private function setDateKeywords(&$properties, $searchUrl) {
+        $yearKeyword = $this->getYearKeyword($properties, $searchUrl);
+        $monthKeyword = $this->getMonthKeyword($properties, $searchUrl, $yearKeyword);
+        $dayKeyword = $this->getDayKeyword($properties, $searchUrl, $monthKeyword);
+        $properties['keywords'][] = $yearKeyword;
+        $properties['keywords'][] = $monthKeyword;
+        $properties['keywords'][] = $dayKeyword;
+    }
+    
+    /**
+     * Add a keyword for year
+     * 
+     * @param array $properties
+     * @param string $searchUrl
+     */
+    private function getYearKeyword($properties, $searchUrl) {
         $year = substr($properties[$this->model->searchFilters['time:start']['key']], 0, 4);
         $idYear = 'year:' . $year;
         $hashYear = RestoUtil::getHash($idYear);
-        $month = substr($properties[$this->model->searchFilters['time:start']['key']], 0, 7);
-        $idMonth = 'month:' . $month;
-        $hashMonth = RestoUtil::getHash($idMonth, $hashYear);
-        $day = substr($properties[$this->model->searchFilters['time:start']['key']], 0, 10);
-        $idDay = 'day:' . $day;
-        $properties['keywords'][] = array(
+        return array(
             'name' => $year,
             'id' => $idYear,
             'hash' => $hashYear,
             'href' => RestoUtil::updateUrl($searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $year, $this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
         );
-        $properties['keywords'][] = array(
+    }
+    
+    /**
+     * Add a keyword for month
+     * 
+     * @param array $properties
+     * @param string $searchUrl
+     */
+    private function getMonthKeyword($properties, $searchUrl, $parentKeyword) {
+        $month = substr($properties[$this->model->searchFilters['time:start']['key']], 0, 7);
+        $idMonth = 'month:' . $month;
+        $hashMonth = RestoUtil::getHash($idMonth, $parentKeyword['hash']);
+        return array(
             'name' => $month,
             'id' => $idMonth,
             'hash' => $hashMonth,
-            'parentId' => $idYear,
-            'parentHash' => $hashYear,
+            'parentId' => $parentKeyword['id'],
+            'parentHash' => $parentKeyword['hash'],
             'href' => RestoUtil::updateUrl($searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $month, $this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
         );
-        $properties['keywords'][] = array(
+    }
+    
+    /**
+     * Add a keyword for day
+     * 
+     * @param array $properties
+     * @param string $searchUrl
+     */
+    private function getDayKeyword($properties, $searchUrl, $parentKeyword) {
+        $day = substr($properties[$this->model->searchFilters['time:start']['key']], 0, 10);
+        $idDay = 'day:' . $day;
+        return array(
             'name' => $day,
             'id' => $idDay,
             'hash' => RestoUtil::getHash($idDay),
-            'parentId' => $idMonth,
-            'parentHash' => $hashMonth,
+            'parentId' => $parentKeyword['id'],
+            'parentHash' => $parentKeyword['hash'],
             'href' => RestoUtil::updateUrl($searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $day, $this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
         );
-        
     }
     
     /**
