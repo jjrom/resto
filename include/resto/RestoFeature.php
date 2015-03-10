@@ -216,6 +216,42 @@ class RestoFeature {
         $atomFeed->startElement('entry');
         
         /*
+         * Add entry base elements, time and geometry
+         */
+        $this->addAtomEntryElements($atomFeed);
+        
+        /*
+         * Links
+         */
+        $this->addAtomLinks($atomFeed);
+        
+        /*
+         * Media (i.e. Quicklook / Thumbnail / etc.)
+         */
+        $this->addAtomMedia($atomFeed);
+        
+        /*
+         * Summary
+         */
+        $atomFeed->startElement('summary');
+        $atomFeed->writeAttributes(array('type' => 'text'));
+        $atomFeed->text((isset($this->feature['properties']['platform']) ? $this->feature['properties']['platform'] : '') . (isset($this->feature['properties']['platform']) && isset($this->feature['properties']['instrument']) ? '/' . $this->feature['properties']['instrument'] : '') . ' ' . $this->context->dictionary->translate('_acquiredOn', $this->feature['properties']['startDate']));
+        $atomFeed->endElement(); // content
+        
+        /*
+         * entry - close element
+         */
+        $atomFeed->endElement(); // entry
+    }
+    
+    /**
+     * Add an atom entry base elements
+     * 
+     * @param RestoATOMFeed $atomFeed
+     */
+    private function addAtomEntryElements($atomFeed) {
+        
+        /*
          * Set base elements
          */
         $atomFeed->writeElements(array(
@@ -242,28 +278,6 @@ class RestoFeature {
          */
         $atomFeed->addGeorssPolygon($this->feature['geometry']['coordinates']);
 
-        /*
-         * Links
-         */
-        $this->addAtomLinks($atomFeed);
-        
-        /*
-         * Media (i.e. Quicklook / Thumbnail / etc.)
-         */
-        $this->addAtomMedia($atomFeed);
-        
-        /*
-         * Summary
-         */
-        $atomFeed->startElement('summary');
-        $atomFeed->writeAttributes(array('type' => 'text'));
-        $atomFeed->text((isset($this->feature['properties']['platform']) ? $this->feature['properties']['platform'] : '') . (isset($this->feature['properties']['platform']) && isset($this->feature['properties']['instrument']) ? '/' . $this->feature['properties']['instrument'] : '') . ' ' . $this->context->dictionary->translate('_acquiredOn', $this->feature['properties']['startDate']));
-        $atomFeed->endElement(); // content
-        
-        /*
-         * entry - close element
-         */
-        $atomFeed->endElement(); // entry
     }
     
     /**
@@ -315,15 +329,42 @@ class RestoFeature {
         }
         
         /*
-         * Variables
-         */
-        $searchUrl = $this->context->baseUrl . '/api/collections' . (isset($this->displayedName) ? '/' . $this->displayedName : '' ) . '/search.json';
-        $thisUrl = isset($this->collection) ? RestoUtil::restoUrl($this->collection->getUrl(), $this->identifier) : RestoUtil::restoUrl($this->context->baseUrl, '/collections/' . $properties['collection'] . '/' . $this->identifier);
-        
-        /*
          * Set collection
          */
         $this->setCollection($properties['collection']);
+        
+        /*
+         * Update properties
+         */
+        $this->updateProperties($properties, $this->context->baseUrl . '/api/collections' . (isset($this->displayedName) ? '/' . $this->displayedName : '' ) . '/search.json', isset($this->collection) ? RestoUtil::restoUrl($this->collection->getUrl(), $this->identifier) : RestoUtil::restoUrl($this->context->baseUrl, '/collections/' . $properties['collection'] . '/' . $this->identifier));
+        
+        /*
+         * Set geometry
+         */
+        $geometry = isset($properties['geometry']) ? $properties['geometry'] : null;
+        
+        /*
+         * Clean properties
+         */
+        $this->cleanProperties($properties);
+        
+        $this->feature = array(
+            'type' => 'Feature',
+            'id' => $this->identifier,
+            'geometry' => $geometry,
+            'properties' => $properties
+        );
+        
+    }
+    
+    /**
+     * Update feature properties
+     * 
+     * @param array $properties
+     * @param string $searchUrl
+     * @param string $thisUrl
+     */
+    private function updateProperties(&$properties, $searchUrl, $thisUrl) {
         
         /*
          * Update metadata values from propertiesMapping
@@ -356,23 +397,6 @@ class RestoFeature {
          * Set links
          */
         $this->setLinks($properties, $thisUrl);
-        
-        /*
-         * Set geometry
-         */
-        $geometry = isset($properties['geometry']) ? $properties['geometry'] : null;
-        
-        /*
-         * Clean properties
-         */
-        $this->cleanProperties($properties);
-        
-        $this->feature = array(
-            'type' => 'Feature',
-            'id' => $this->identifier,
-            'geometry' => $geometry,
-            'properties' => $properties
-        );
         
     }
     
@@ -482,12 +506,26 @@ class RestoFeature {
         /*
          * Set range and headers
          */
-        $range = $multipart ? $this->getMultipartRange($path) : $this->getSimpleRange($path);
+        $size = sprintf('%u', filesize($path));
+        $range = $multipart ? $this->getMultipartRange($size, filter_input(INPUT_SERVER, 'HTTP_RANGE', FILTER_SANITIZE_STRING)) : $this->getSimpleRange($size);
+        $this->setDownloadHeaders($mimeType, $path, $range);
         
         /*
-         * Set headers
+         * Read file
          */
-        $this->setDownloadHeaders($mimeType, $path, $range);
+        $this->readFile($file, $range);
+        
+        fclose($file);
+        
+    }
+    
+    /**
+     * Flush result
+     * 
+     * @param File $file
+     * @param array $range
+     */
+    private function readFile($file, $range) {
         
         /*
          * Multipart case
@@ -504,8 +542,6 @@ class RestoFeature {
             set_time_limit(0);
             flush();
         }
-
-        fclose($file);
         
     }
     
@@ -515,11 +551,11 @@ class RestoFeature {
      * In case of multiple ranges requested, only the first range is served
      * (http://tools.ietf.org/id/draft-ietf-http-range-retrieval-00.txt)
      * 
-     * @param string $path
+     * @param integer $size
      * 
      */
-    private function getSimpleRange($path) {
-        return array(0, sprintf('%u', filesize($path)) - 1);
+    private function getSimpleRange($size) {
+        return array(0, $size - 1);
     }
     
     /**
@@ -528,31 +564,26 @@ class RestoFeature {
      * In case of multiple ranges requested, only the first range is served
      * (http://tools.ietf.org/id/draft-ietf-http-range-retrieval-00.txt)
      * 
-     * @param string $path
+     * @param integer $size
+     * @param string $httpRange
      * 
      */
-    private function getMultipartRange($path) {
-        $size = sprintf('%u', filesize($path));
+    private function getMultipartRange($size, $httpRange) {
         $range = array(0, $size - 1);
-        $httpRange = filter_input(INPUT_SERVER, 'HTTP_RANGE', FILTER_SANITIZE_STRING);
         if (isset($httpRange)) {
             $range = array_map('intval', explode('-', preg_replace('~.*=([^,]*).*~', '$1', $httpRange)));
-
             if (empty($range[1]) === true) {
                 $range[1] = $size - 1;
             }
-
             foreach ($range as $key => $value) {
                 $range[$key] = max(0, min($value, $size - 1));
             }
-
             if (($range[0] > 0) || ($range[1] < ($size - 1))) {
                 header(sprintf('%s %03u %s', 'HTTP/1.1', 206, 'Partial Content'), true, 206);
             }
         }
         header('Accept-Ranges: bytes');
         header('Content-Range: bytes ' . sprintf('%u-%u/%u', $range[0], $range[1], $size));
-        
         return $range;
     }
     
