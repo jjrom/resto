@@ -539,7 +539,7 @@ class RestoFeature {
          */
         while ((feof($file) !== true) && (connection_status() === CONNECTION_NORMAL)) {
             echo fread($file, 10 * 1024 * 1024);
-            set_time_limit(0);
+            //set_time_limit(0);
             flush();
         }
         
