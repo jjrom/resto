@@ -56,6 +56,45 @@ class RestoATOMFeed{
     }
     
     /**
+     * Add Atom feed entry
+     * 
+     * @param array $feature
+     * @param RestoContext $context
+     */
+    public function addEntry($feature, $context) {
+        
+        /*
+         * Add entry
+         */
+        $this->startElement('entry');
+        
+        /*
+         * Add entry base elements, time and geometry
+         */
+        $this->addEntryElements($feature);
+        
+        /*
+         * Links
+         */
+        $this->addLinks($feature);
+        
+        /*
+         * Media (i.e. Quicklook / Thumbnail / etc.)
+         */
+        $this->addQuicklooks($feature);
+        
+        /*
+         * Summary
+         */
+        $this->addSummary($feature, $context);
+        
+        /*
+         * entry - close element
+         */
+        $this->endElement(); // entry   
+    }
+    
+    /**
      * Write attributes to current XML element
      * 
      * @param array $list
@@ -110,74 +149,6 @@ class RestoATOMFeed{
      */
     public function text($text) {
         $this->xml->text($text);
-    }
-    
-    /**
-     * Add gml:validTime element
-     * Element 'gml:validTime' - acquisition duration between startDate and completionDate
-     * 
-     * @param string $beginPosition
-     * @param string $endPosition
-     */
-    public function addGmlTime($beginPosition, $endPosition) {
-        $this->startElement('gml:validTime');
-        $this->startElement('gml:TimePeriod');
-        $this->writeElement('gml:beginPosition', $beginPosition);
-        $this->writeElement('gml:endPosition', $endPosition);
-        $this->endElement(); // gml:TimePeriod
-        $this->endElement(); // gml:validTime
-    }
-    
-    /**
-     * Add georss:polygon from geojson entry
-     * 
-     * WARNING !
-     *
-     *  GeoJSON coordinates order is longitude,latitude
-     *  GML coordinates order is latitude,longitude
-     * 
-     *  @param array $coordinates
-     */
-    public function addGeorssPolygon($coordinates) {
-        if (isset($coordinates)) {
-            $geometry = array();
-            foreach ($coordinates as $key) {
-                foreach ($key as $value) {
-                    $geometry[] = $value[1] . ' ' . $value[0];
-                }
-            }
-            $this->startElement('georss:where');
-            $this->startElement('gml:Polygon');
-            $this->startElement('gml:exterior');
-            $this->startElement('gml:LinearRing');
-            $this->startElement('gml:posList');
-            $this->writeAttributes(array('srsDimensions' => '2'));
-            $this->text(join(' ', $geometry));
-            $this->endElement(); // gml:posList
-            $this->endElement(); // gml:LinearRing
-            $this->endElement(); // gml:exterior
-            $this->endElement(); // gml:Polygon
-            $this->endElement(); // georss:where
-        }
-    }
-    
-    /**
-     * Add ATOM feed media element
-     * 
-     * @param string $type (should be THUMBNAIL or QUICKLOOK
-     * @param string $url
-     */
-    public function addMedia($type, $url) {
-        $this->startElement('media:content');
-        $this->writeAttributes(array(
-            'url' => $url,
-            'medium' => 'image'
-        ));
-        $this->startElement('media:category');
-        $this->writeAttributes(array('scheme' => 'http://www.opengis.net/spec/EOMPOM/1.0'));
-        $this->text($type);
-        $this->endElement();
-        $this->endElement();
     }
     
     /**
@@ -286,5 +257,206 @@ class RestoATOMFeed{
          */
         $this->writeElement('updated', date('Y-m-dTH:i:sO'));
     }
+    
+    /**
+     * Add summary entry
+     * 
+     * @param array $feature
+     * @param RestoContext $context
+     */
+    private function addSummary($feature, $context) {
+        $this->startElement('summary');
+        $this->writeAttributes(array('type' => 'text'));
+        $this->text((isset($feature['properties']['platform']) ? $feature['properties']['platform'] : '') . (isset($feature['properties']['platform']) && isset($feature['properties']['instrument']) ? '/' . $feature['properties']['instrument'] : '') . ' ' . $context->dictionary->translate('_acquiredOn', $feature['properties']['startDate']));
+        $this->endElement(); // content
+    }
+    
+    /**
+     * Add atom entry base elements
+     * 
+     * @param array $feature
+     */
+    private function addEntryElements($feature) {
+        
+        /*
+         * Base elements
+         */
+        $this->writeElements(array(
+            'id' => $feature['id'], // ! THIS SHOULD BE AN ABSOLUTE UNIQUE  AND PERMANENT IDENTIFIER !!
+            'dc:identifier' => $feature['id'], // Local identifier - i.e. last part of uri
+            'title' => isset($feature['properties']['title']) ? $feature['properties']['title'] : '',
+            'published' => $feature['properties']['published'],
+            'updated' => $feature['properties']['updated'],
+            /*
+             * Element 'dc:date' - date of the resource is duration of acquisition following
+             * the Dublin Core Collection Description on date
+             * (http://www.ukoln.ac.uk/metadata/dcmi/collection-RKMS-ISO8601/)
+             */
+            'dc:date' => $feature['properties']['startDate'] . '/' . $feature['properties']['completionDate']
+        ));
+        
+        /*
+         * Time
+         */
+        $this->addGmlTime($feature['properties']['startDate'], $feature['properties']['completionDate']);
+        
+        /*
+         * georss:polygon
+         */
+        $this->addGeorssPolygon($feature['geometry']['coordinates']);
+
+    }
+    
+    /**
+     * Add gml:validTime element
+     * Element 'gml:validTime' - acquisition duration between startDate and completionDate
+     * 
+     * @param string $beginPosition
+     * @param string $endPosition
+     */
+    private function addGmlTime($beginPosition, $endPosition) {
+        $this->startElement('gml:validTime');
+        $this->startElement('gml:TimePeriod');
+        $this->writeElement('gml:beginPosition', $beginPosition);
+        $this->writeElement('gml:endPosition', $endPosition);
+        $this->endElement(); // gml:TimePeriod
+        $this->endElement(); // gml:validTime
+    }
+    
+    /**
+     * Add georss:polygon from geojson entry
+     * 
+     * WARNING !
+     *
+     *  GeoJSON coordinates order is longitude,latitude
+     *  GML coordinates order is latitude,longitude
+     * 
+     *  @param array $coordinates
+     */
+    private function addGeorssPolygon($coordinates) {
+        if (isset($coordinates)) {
+            $geometry = array();
+            foreach ($coordinates as $key) {
+                foreach ($key as $value) {
+                    $geometry[] = $value[1] . ' ' . $value[0];
+                }
+            }
+            $this->startElement('georss:where');
+            $this->startElement('gml:Polygon');
+            $this->startElement('gml:exterior');
+            $this->startElement('gml:LinearRing');
+            $this->startElement('gml:posList');
+            $this->writeAttributes(array('srsDimensions' => '2'));
+            $this->text(join(' ', $geometry));
+            $this->endElement(); // gml:posList
+            $this->endElement(); // gml:LinearRing
+            $this->endElement(); // gml:exterior
+            $this->endElement(); // gml:Polygon
+            $this->endElement(); // georss:where
+        }
+    }
+    
+    /**
+     * Add ATOM feed media element
+     * 
+     * @param string $type (should be THUMBNAIL or QUICKLOOK
+     * @param string $url
+     */
+    private function addMedia($type, $url) {
+        $this->startElement('media:content');
+        $this->writeAttributes(array(
+            'url' => $url,
+            'medium' => 'image'
+        ));
+        $this->startElement('media:category');
+        $this->writeAttributes(array('scheme' => 'http://www.opengis.net/spec/EOMPOM/1.0'));
+        $this->text($type);
+        $this->endElement();
+        $this->endElement();
+    }
+    
+    /**
+     * Add entry links
+     * 
+     * @param array $feature
+     */
+    private function addLinks($feature) {
+        
+        /*
+         * General links
+         */
+        if (is_array($feature['properties']['links'])) {
+            for ($j = 0, $k = count($feature['properties']['links']); $j < $k; $j++) {
+                $this->startElement('link');
+                $this->writeAttributes(array(
+                    'rel' => $feature['properties']['links'][$j]['rel'],
+                    'type' => $feature['properties']['links'][$j]['type'],
+                    'title' => $feature['properties']['links'][$j]['title'],
+                    'href' => $feature['properties']['links'][$j]['href']
+                ));
+                $this->endElement(); // link
+            }
+        }
+        
+        /*
+         * Element 'enclosure' - download product
+         *  read from $feature['properties']['archive']
+         */
+        if (isset($feature['properties']['services']['download']['url'])) {
+            $this->startElement('link');
+            $this->writeAttributes(array(
+                'rel' => 'enclosure',
+                'type' => isset($feature['properties']['services']['download']['mimeType']) ? $feature['properties']['services']['download']['mimeType'] : 'application/unknown',
+                'length' => isset($feature['properties']['services']['download']['size']) ? $feature['properties']['services']['download']['size'] : 0,
+                'title' => 'File for ' . $feature['id'] . ' product',
+                'metalink:priority' => 50,
+                'href' => $feature['properties']['services']['download']['url']
+            ));
+            $this->endElement(); // link
+        }
+        
+    }
+    
+    /**
+     * Add entry media
+     * 
+     * @param array $feature
+     */
+    private function addQuicklooks($feature) {
+        
+        /*
+         * Quicklook / Thumbnail
+         */
+        if (isset($feature['properties']['thumbnail']) || isset($feature['properties']['quicklook'])) {
+
+            /*
+             * rel=icon
+             */
+            if (isset($feature['properties']['quicklook'])) {
+                $this->startElement('link');
+                $this->writeAttributes(array(
+                    'rel' => 'icon',
+                    //'type' => 'TODO',
+                    'title' => 'Browse image URL for ' . $feature['id'] . ' product',
+                    'href' => $feature['properties']['quicklook']
+                ));
+                $this->endElement(); // link
+            }
+
+            /*
+             * media:group
+             */
+            $this->startElement('media:group');
+            if (isset($feature['properties']['thumbnail'])) {
+                $this->addMedia('THUMNAIL', $feature['properties']['thumbnail']);
+            }
+            if (isset($feature['properties']['quicklook'])) {
+                $this->addMedia('QUICKLOOK', $feature['properties']['quicklook']);
+            }
+            $this->endElement();
+        }
+
+    }
+    
     
 }

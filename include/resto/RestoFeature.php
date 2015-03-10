@@ -120,7 +120,7 @@ class RestoFeature {
          * Not downloadable
          */
         if (!isset($this->feature['properties']['services']) || !isset($this->feature['properties']['services']['download']))  {
-            RestoLogUtil::httpError(404);;
+            RestoLogUtil::httpError(404);
         }
         
         /*
@@ -209,75 +209,7 @@ class RestoFeature {
      * @param RestoATOMFeed $atomFeed
      */
     public function addAtomEntry($atomFeed) {
-        
-        /*
-         * Add entry
-         */
-        $atomFeed->startElement('entry');
-        
-        /*
-         * Add entry base elements, time and geometry
-         */
-        $this->addAtomEntryElements($atomFeed);
-        
-        /*
-         * Links
-         */
-        $this->addAtomLinks($atomFeed);
-        
-        /*
-         * Media (i.e. Quicklook / Thumbnail / etc.)
-         */
-        $this->addAtomMedia($atomFeed);
-        
-        /*
-         * Summary
-         */
-        $atomFeed->startElement('summary');
-        $atomFeed->writeAttributes(array('type' => 'text'));
-        $atomFeed->text((isset($this->feature['properties']['platform']) ? $this->feature['properties']['platform'] : '') . (isset($this->feature['properties']['platform']) && isset($this->feature['properties']['instrument']) ? '/' . $this->feature['properties']['instrument'] : '') . ' ' . $this->context->dictionary->translate('_acquiredOn', $this->feature['properties']['startDate']));
-        $atomFeed->endElement(); // content
-        
-        /*
-         * entry - close element
-         */
-        $atomFeed->endElement(); // entry
-    }
-    
-    /**
-     * Add an atom entry base elements
-     * 
-     * @param RestoATOMFeed $atomFeed
-     */
-    private function addAtomEntryElements($atomFeed) {
-        
-        /*
-         * Set base elements
-         */
-        $atomFeed->writeElements(array(
-            'id' => $this->feature['id'], // ! THIS SHOULD BE AN ABSOLUTE UNIQUE  AND PERMANENT IDENTIFIER !!
-            'dc:identifier' => $this->feature['id'], // Local identifier - i.e. last part of uri
-            'title' => isset($this->feature['properties']['title']) ? $this->feature['properties']['title'] : '',
-            'published' => $this->feature['properties']['published'],
-            'updated' => $this->feature['properties']['updated'],
-            /*
-             * Element 'dc:date' - date of the resource is duration of acquisition following
-             * the Dublin Core Collection Description on date
-             * (http://www.ukoln.ac.uk/metadata/dcmi/collection-RKMS-ISO8601/)
-             */
-            'dc:date' => $this->feature['properties']['startDate'] . '/' . $this->feature['properties']['completionDate']
-        ));
-        
-        /*
-         * Time
-         */
-        $atomFeed->addGmlTime($this->feature['properties']['startDate'], $this->feature['properties']['completionDate']);
-        
-        /*
-         * georss:polygon
-         */
-        $atomFeed->addGeorssPolygon($this->feature['geometry']['coordinates']);
-
+        $atomFeed->addEntry($this->feature, $this->context);
     }
     
     /**
@@ -401,89 +333,6 @@ class RestoFeature {
     }
     
     /**
-     * Add ATOM feed links
-     * 
-     * @param RestoATOMFeed $atomFeed
-     */
-    private function addAtomLinks($atomFeed) {
-        
-        /*
-         * General links
-         */
-        if (is_array($this->feature['properties']['links'])) {
-            for ($j = 0, $k = count($this->feature['properties']['links']); $j < $k; $j++) {
-                $atomFeed->startElement('link');
-                $atomFeed->writeAttributes(array(
-                    'rel' => $this->feature['properties']['links'][$j]['rel'],
-                    'type' => $this->feature['properties']['links'][$j]['type'],
-                    'title' => $this->feature['properties']['links'][$j]['title'],
-                    'href' => $this->feature['properties']['links'][$j]['href']
-                ));
-                $atomFeed->endElement(); // link
-            }
-        }
-        
-        /*
-         * Element 'enclosure' - download product
-         *  read from $this->feature['properties']['archive']
-         */
-        if (isset($this->feature['properties']['services']['download']['url'])) {
-            $atomFeed->startElement('link');
-            $atomFeed->writeAttributes(array(
-                'rel' => 'enclosure',
-                'type' => isset($this->feature['properties']['services']['download']['mimeType']) ? $this->feature['properties']['services']['download']['mimeType'] : 'application/unknown',
-                'length' => isset($this->feature['properties']['services']['download']['size']) ? $this->feature['properties']['services']['download']['size'] : 0,
-                'title' => 'File for ' . $this->feature['id'] . ' product',
-                'metalink:priority' => 50,
-                'href' => $this->feature['properties']['services']['download']['url']
-            ));
-            $atomFeed->endElement(); // link
-        }
-        
-    }
-    
-    /**
-     * Add ATOM feed media
-     * 
-     * @param RestoATOMFeed $atomFeed
-     */
-    private function addAtomMedia($atomFeed) {
-        
-        /*
-         * Quicklook / Thumbnail
-         */
-        if (isset($this->feature['properties']['thumbnail']) || isset($this->feature['properties']['quicklook'])) {
-
-            /*
-             * rel=icon
-             */
-            if (isset($this->feature['properties']['quicklook'])) {
-                $atomFeed->startElement('link');
-                $atomFeed->writeAttributes(array(
-                    'rel' => 'icon',
-                    //'type' => 'TODO',
-                    'title' => 'Browse image URL for ' . $this->feature['id'] . ' product',
-                    'href' => $this->feature['properties']['quicklook']
-                ));
-                $atomFeed->endElement(); // link
-            }
-
-            /*
-             * media:group
-             */
-            $atomFeed->startElement('media:group');
-            if (isset($this->feature['properties']['thumbnail'])) {
-                $atomFeed->addMedia('THUMNAIL', $this->feature['properties']['thumbnail']);
-            }
-            if (isset($this->feature['properties']['quicklook'])) {
-                $atomFeed->addMedia('QUICKLOOK', $this->feature['properties']['quicklook']);
-            }
-            $atomFeed->endElement();
-        }
-
-    }
-    
-    /**
      * 
      * Download hosted resource with support of Range and Partial Content
      * (See http://stackoverflow.com/questions/3697748/fastest-way-to-serve-a-file-using-php)
@@ -539,7 +388,7 @@ class RestoFeature {
          */
         while ((feof($file) !== true) && (connection_status() === CONNECTION_NORMAL)) {
             echo fread($file, 10 * 1024 * 1024);
-            //set_time_limit(0);
+            set_time_limit(0);
             flush();
         }
         
