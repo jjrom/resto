@@ -482,7 +482,7 @@ class RestoFeature {
         /*
          * Set range and headers
          */
-        $range = $this->getRange($path, $multipart);
+        $range = $multipart ? $this->getMultipartRange($path) : $this->getSimpleRange($path);
         
         /*
          * Set headers
@@ -516,17 +516,23 @@ class RestoFeature {
      * (http://tools.ietf.org/id/draft-ietf-http-range-retrieval-00.txt)
      * 
      * @param string $path
-     * @param boolean $multipart
      * 
      */
-    private function getRange($path, $multipart) {
-        
+    private function getSimpleRange($path) {
+        return array(0, sprintf('%u', filesize($path)) - 1);
+    }
+    
+    /**
+     * Get range from HTTP_RANGE and set headers accordingly
+     * 
+     * In case of multiple ranges requested, only the first range is served
+     * (http://tools.ietf.org/id/draft-ietf-http-range-retrieval-00.txt)
+     * 
+     * @param string $path
+     * 
+     */
+    private function getMultipartRange($path) {
         $size = sprintf('%u', filesize($path));
-        
-        if (!$multipart) {
-            return array(0, $size - 1);
-        }
-        
         $range = array(0, $size - 1);
         $httpRange = filter_input(INPUT_SERVER, 'HTTP_RANGE', FILTER_SANITIZE_STRING);
         if (isset($httpRange)) {
