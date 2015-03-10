@@ -472,7 +472,7 @@ class RestoFeature {
     private function stream($path, $mimeType = 'application/octet-stream', $multipart = true) {
 
         /*
-         * File cannot be read
+         * Open file
          */
         $file = fopen($path, 'rb');
         if (!is_resource($file)) {
@@ -480,19 +480,10 @@ class RestoFeature {
         }
         
         /*
-         * Avoid timeouts
+         * Set range and headers
          */
-        set_time_limit(0);
+        $range = $this->getRange($path, $multipart);
         
-        /*
-         * Range support
-         * 
-         * In case of multiple ranges requested, only the first range is served
-         * (http://tools.ietf.org/id/draft-ietf-http-range-retrieval-00.txt)
-         */
-        $size = sprintf('%u', filesize($path));
-        $range = $multipart === true ? $this->getRange($size) : array(0, $size - 1);
-
         /*
          * Set headers
          */
@@ -510,6 +501,7 @@ class RestoFeature {
          */
         while ((feof($file) !== true) && (connection_status() === CONNECTION_NORMAL)) {
             echo fread($file, 10 * 1024 * 1024);
+            set_time_limit(0);
             flush();
         }
 
@@ -520,9 +512,21 @@ class RestoFeature {
     /**
      * Get range from HTTP_RANGE and set headers accordingly
      * 
-     * @param integer $size
+     * In case of multiple ranges requested, only the first range is served
+     * (http://tools.ietf.org/id/draft-ietf-http-range-retrieval-00.txt)
+     * 
+     * @param string $path
+     * @param boolean $multipart
+     * 
      */
-    private function getRange($size) {
+    private function getRange($path, $multipart) {
+        
+        $size = sprintf('%u', filesize($path));
+        
+        if (!$multipart) {
+            return array(0, $size - 1);
+        }
+        
         $range = array(0, $size - 1);
         $httpRange = filter_input(INPUT_SERVER, 'HTTP_RANGE', FILTER_SANITIZE_STRING);
         if (isset($httpRange)) {
@@ -542,6 +546,8 @@ class RestoFeature {
         }
         header('Accept-Ranges: bytes');
         header('Content-Range: bytes ' . sprintf('%u-%u/%u', $range[0], $range[1], $size));
+        
+        return $range;
     }
     
     /**
