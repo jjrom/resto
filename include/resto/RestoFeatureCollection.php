@@ -44,11 +44,6 @@
 class RestoFeatureCollection {
     
     /*
-     * Parent collection
-     */
-    public $defaultCollection;
-    
-    /*
      * Context
      */
     public $context;
@@ -57,6 +52,11 @@ class RestoFeatureCollection {
      * User
      */
     public $user;
+    
+    /*
+     * Parent collection
+     */
+    private $defaultCollection;
     
     /*
      * FeatureCollectionDescription
@@ -240,7 +240,7 @@ class RestoFeatureCollection {
      */
     private function initialize($collections) {
         if (!isset($collections) || (is_array($collections) && count($collections) === 0)) {
-            $this->defaultModel = new RestoModel_default($this->context, $this->user);
+            $this->defaultModel = new RestoModel_default();
         }
         else if (!is_array($collections)) {
             $this->defaultCollection = $collections;
@@ -415,9 +415,8 @@ class RestoFeatureCollection {
             }
             $this->restoFeatures[] = new RestoFeature($this->context, $this->user, array(
                 'featureArray' => $featuresArray[$i],
-                'collection' => isset($this->collections) && isset($featuresArray[$i]['collection']) && $this->collections[$featuresArray[$i]['collection']] ? $this->collections[$featuresArray[$i]['collection']] : $this->defaultCollection,
-                'forceCollectionName' => isset($this->defaultCollection) ? true : false)
-            );
+                'collection' => isset($this->collections) && isset($featuresArray[$i]['collection']) && $this->collections[$featuresArray[$i]['collection']] ? $this->collections[$featuresArray[$i]['collection']] : $this->defaultCollection
+            ));
             $this->totalCount = isset($featuresArray[$i]['totalcount']) ? $featuresArray[$i]['totalcount'] : -1;
         }
         

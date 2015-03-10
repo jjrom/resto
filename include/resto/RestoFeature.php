@@ -64,11 +64,6 @@ class RestoFeature {
     public $collection;
     
     /*
-     * Model
-     */
-    private $model;
-    
-    /*
      * Feature array
      */
     private $featureArray;
@@ -207,10 +202,6 @@ class RestoFeature {
         
         if (isset($options['collection'])) {
             $this->collection = $options['collection'];
-            $this->model = $this->collection->model;
-        }
-        else {
-            $this->model = new RestoModel_default($this->context, $this->user);
         }
         
         /*
@@ -399,7 +390,6 @@ class RestoFeature {
     private function setCollection($collectionName) {
         if (!isset($this->collection)) {
             $this->collection = new RestoCollection($collectionName, $this->context, $this->user, array('autoload' => true));
-            $this->model = $this->collection->model;
         }
     }
   

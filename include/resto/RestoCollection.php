@@ -301,7 +301,7 @@ class RestoCollection {
          * Retrieve facets
          */
         $facets = array('collection', 'continent');
-        $model = new RestoModel_default($this->context, $this->user);
+        $model = new RestoModel_default();
         foreach (array_values($model->searchFilters) as $filter) {
             if (isset($filter['options']) && $filter['options'] === 'auto') {
                 $facets[] = $filter['key'];
@@ -309,7 +309,7 @@ class RestoCollection {
         }
         
         $collectionDescription = $this->context->dbDriver->get(RestoDatabaseDriver::COLLECTIONS_DESCRIPTIONS, array('collectionName' => $this->name, 'facetFields' => $facets));
-        $this->model = RestoUtil::instantiate($collectionDescription['model'], array($this->context, $this->user));
+        $this->model = RestoUtil::instantiate($collectionDescription['model'], array());
         $this->osDescription = $collectionDescription['osDescription'];
         $this->status = $collectionDescription['status'];
         $this->license = $collectionDescription['license'];

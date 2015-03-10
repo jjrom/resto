@@ -200,7 +200,7 @@ class QueryAnalyzer extends RestoModule {
          * Set Model
          */
         if (!isset($model)) {
-            $model = new RestoModel_default($this->context, $this->user);
+            $model = new RestoModel_default();
         }
         
         /*
