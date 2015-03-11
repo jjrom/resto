@@ -82,6 +82,10 @@ class RestoModel_sentinel1 extends RestoModel {
         'missionTakeId' => array(
             'name' => 'missiontakeid',
             'type' => 'INTEGER'
+        ),
+        'location' => array(
+            'name' => 'location',
+            'type' => 'TEXT'
         )
     );
     
@@ -146,12 +150,19 @@ class RestoModel_sentinel1 extends RestoModel {
         $ll = array();
         $lr = array();
         $lineMax = 0;
+	$lineMin = 0;
+	$lineMinStatus = 0;
         $pixelMax = 0;
         for ($i = 0, $ii = $geolocationGridPoint->length; $i < $ii; $i++) { 
             $line = (integer) $geolocationGridPoint->item($i)->getElementsByTagName('line')->item(0)->nodeValue;
             $pixel = (integer) $geolocationGridPoint->item($i)->getElementsByTagName('pixel')->item(0)->nodeValue;
-            $coordinates = array($geolocationGridPoint->item($i)->getElementsByTagName('longitude')->item(0)->nodeValue, $geolocationGridPoint->item($i)->getElementsByTagName('latitude')->item(0)->nodeValue);      
-            if ($line === 0) {
+            $coordinates = array($geolocationGridPoint->item($i)->getElementsByTagName('longitude')->item(0)->nodeValue, $geolocationGridPoint->item($i)->getElementsByTagName('latitude')->item(0)->nodeValue);     
+	    if ($lineMinStatus == 0)
+		{
+		  $lineMinStatus = 1;
+		  $lineMin=$line;
+		}
+            if ($line === $lineMin) {
                 if ($pixel === 0) {
                     $ul = $coordinates;
                 }
@@ -172,7 +183,6 @@ class RestoModel_sentinel1 extends RestoModel {
             }
         } 
         $polygon = array($ul, $ur, $lr, $ll, $ul);
-        
         /*
          * Initialize feature
          */
@@ -183,7 +193,9 @@ class RestoModel_sentinel1 extends RestoModel {
                 'coordinates' => array($polygon)
             ),
             'properties' => array(
-                'authority' => 'ESA',
+                'productIdentifier' => $dom->getElementsByTagName('identifier')->item(0)->nodeValue,
+                'title' => $dom->getElementsByTagName('title')->item(0)->nodeValue,
+		'authority' => 'ESA',
                 'startDate' => $dom->getElementsByTagName('startTime')->item(0)->nodeValue,
                 'completionDate' => $dom->getElementsByTagName('stopTime')->item(0)->nodeValue,
                 'productType' => $dom->getElementsByTagName('productType')->item(0)->nodeValue,
@@ -191,11 +203,21 @@ class RestoModel_sentinel1 extends RestoModel {
                 'platform' => $dom->getElementsByTagName('missionId')->item(0)->nodeValue,
                 'sensorMode' => $dom->getElementsByTagName('mode')->item(0)->nodeValue,
                 'orbitNumber' => $dom->getElementsByTagName('absoluteOrbitNumber')->item(0)->nodeValue,
-            )
+            	'location'=> $this->getLocation($dom)
+	    )
         );
 
         return $feature;
         
+    }
+
+    function getLocation($dom) {
+        $startTime = $dom->getElementsByTagName('startTime')->item(0)->nodeValue;
+        $startTime = explode("T", $startTime);
+        $result = str_replace("-","/",$startTime[0]);
+        $missionId = $dom->getElementsByTagName('missionId')->item(0)->nodeValue;
+        $title= $dom->getElementsByTagName('title')->item(0)->nodeValue;
+	return $result."/".$missionId."/".$title;
     }
 
 }
