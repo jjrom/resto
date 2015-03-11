@@ -149,7 +149,13 @@ class Functions_features {
      * @return array
      * @throws Exception
      */
-    public function getFeatureDescription($context, $identifier, $model, $collection = null, $filters = array()) {
+    public function getFeatureDescription($context, $identifier, $collection = null, $filters = array()) {
+        
+        /*
+         * Set model
+         */
+        $model = isset($collection) ? $collection->model : new RestoModel_default();
+        
         $result = $this->dbDriver->query('SELECT ' . implode(',', $this->getSQLFields($model, array('continents', 'countries'))) . ' FROM ' . (isset($collection) ? $this->dbDriver->getSchemaName($collection->name) : 'resto') . '.features WHERE ' . $model->getDbKey('identifier') . "='" . pg_escape_string($identifier) . "'" . (count($filters) > 0 ? ' AND ' . join(' AND ', $filters) : ''));
         $featureUtil = new RestoFeatureUtil($context, $collection);
         return $featureUtil->toFeatureArray(pg_fetch_assoc($result));
@@ -171,6 +177,7 @@ class Functions_features {
     /**
      * Insert feature within collection
      * 
+     * @param string $collectionName
      * @param array $elements
      * @param RestoModel $model
      * @throws Exception

@@ -354,22 +354,21 @@ class RestoCollection {
     }
     
     /**
-     * Get a feature identified by unique $identifier
-     * 
-     * @param string $identifier : feature unique $identifier (i.e. UUID)
-     * @param array $rightsFilters : rights filters applied to this feature
-     */
-    public function getFeature($identifier, $rightsFilters = array()) {
-       
-    }
-    
-    /**
      * Add feature to the {collection}.features table
      * 
      * @param array $data : GeoJSON file or file splitted in array
      */
     public function addFeature($data) {
-        return $this->model->addFeature($data, $this->name, $this->context, $this->user);
+        return $this->model->addFeature($data, $this);
+    }
+    
+    /**
+     * Return UUIDv5 from input $identifier
+     * 
+     * @param string $identifier 
+     */
+    public function toFeatureId($identifier) {
+        return RestoUtil::UUIDv5($this->name . ':' . strtoupper($identifier));
     }
     
     /**

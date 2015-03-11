@@ -109,7 +109,7 @@ abstract class RestoModel {
         ),
         'resolution' => array(
             'name' => 'resolution',
-            'type' => 'NUMERIC(8,2)'
+            'type' => 'NUMERIC'
         ),
         'sensorMode' => array(
             'name' => 'sensormode',
@@ -226,7 +226,7 @@ abstract class RestoModel {
         ),
         'visible' => array(
             'name' => 'visible',
-            'type' => 'BOOLEAN'
+            'type' => 'INTEGER'
         )
     );
     
@@ -555,11 +555,9 @@ abstract class RestoModel {
         switch(substr($sqlType, 0, 3)) {
             case 'INT':
                 return 'integer';
-            case 'FLO':
             case 'NUM':
                 return 'float';
             case 'TIM':
-            case 'DAT':
                 return 'date';
             case 'GEO':
                 return 'geometry';
@@ -624,16 +622,10 @@ abstract class RestoModel {
      * Add feature to the {collection}.features table following the class model
      * 
      * @param array $data : array (MUST BE GeoJSON in abstract Model)
-     * @param string $collectionName : collection name
-     * @param RestoContext $context : context
-     * @param RestoUser $user : user
+     * @param RestoCollection $collection
      * 
      */
-    public function addFeature($data, $collectionName, $context, $user) {
-         
-        if (!isset($collectionName)) {
-            RestoLogUtil::httpError(500, 'Collection name must be defined');
-        }
+    public function addFeature($data, $collection) {
         
         /*
          * Assume input file or stream is a JSON Feature
@@ -653,13 +645,13 @@ abstract class RestoModel {
          * Otherwise it is replaced by a generated UUID based on productIdentifier and collection
          */
         if (!isset($data['id']) || !RestoUtil::isValidUUID($data['id'])) {
-            $data['id'] = RestoUtil::UUIDv5($collectionName . ':' . (isset($properties['productIdentifier']) ? strtoupper($properties['productIdentifier']) : md5(microtime().rand())));
+            $data['id'] = $collection->toFeatureId((isset($properties['productIdentifier']) ? $properties['productIdentifier'] : md5(microtime().rand())));
         }
         
         /*
          * Check that resource does not already exist in database
          */
-        if ($context->dbDriver->check(RestoDatabaseDriver::FEATURE, array('featureIdentifier' => $data['id']))) {
+        if ($collection->context->dbDriver->check(RestoDatabaseDriver::FEATURE, array('featureIdentifier' => $data['id']))) {
             RestoLogUtil::httpError(500, 'Feature ' . $data['id'] . ' already in database');
         }
         
@@ -687,8 +679,8 @@ abstract class RestoModel {
         /* 
          * Add tags with iTag
          */
-        if (isset($context->modules['iTag'])) {
-            $iTagKeywords = $this->getKeywords($data['geometry'], $context->modules['iTag'], $context->dbDriver->dbh);
+        if (isset($collection->context->modules['iTag'])) {
+            $iTagKeywords = $this->getKeywords($data['geometry'], $collection->context->modules['iTag'], $collection->context->dbDriver->dbh);
             if (isset($keywords)) {
                 $keywords[1] = array_merge($keywords[1], $iTagKeywords);
             }
@@ -702,8 +694,8 @@ abstract class RestoModel {
         }
         
         try {
-            $context->dbDriver->store(RestoDatabaseDriver::FEATURE, array(
-                'collectionName' => $collectionName,
+            $collection->context->dbDriver->store(RestoDatabaseDriver::FEATURE, array(
+                'collectionName' => $collection->name,
                 'elements' => $elements,
                 'model' => $this
             ));
@@ -711,7 +703,7 @@ abstract class RestoModel {
             RestoUtil::httpError(500, 'Feature ' . $data['id'] . ' cannot be inserted in database');
         }
         
-        return new RestoFeature($context, $user, array(
+        return new RestoFeature($collection->context, $collection->user, array(
             'featureIdentifier' => $data['id']
         ));
         
