@@ -237,7 +237,7 @@ class Gazetteer extends RestoModule {
         $output = array();
         $country = $this->context->dictionary->getKeyword($name);
         if (isset($country)) {
-            $query = 'SELECT admin, normalize(admin) as countryid, continent, ST_AsGeoJSON(' . $this->simplify('geom', $tolerance) . ') as geometry FROM datasources.countries WHERE normalize(admin)=\'' . $country['keyword'] . '\' order by admin';
+            $query = 'SELECT admin, normalize(admin) as countryid, continent, ST_AsGeoJSON(' . $this->simplify('geom', $tolerance) . ') as geometry FROM datasources.countries WHERE normalize(admin)=normalize(\'' . $country['keyword'] . '\') order by admin';
             $results = pg_query($this->dbh, $query);
             while ($row = pg_fetch_assoc($results)) {
                 $output[] = array(
@@ -262,7 +262,7 @@ class Gazetteer extends RestoModule {
         $output = array();
         $state = $this->context->dictionary->getKeyword($name);
         if (isset($state)) {
-            $query = 'SELECT name, normalize(name) as stateid, region, normalize(region) as regionid, admin, normalize(admin) as adminid, ST_AsGeoJSON(' . $this->simplify('geom', $tolerance) . ') as geometry FROM datasources.worldadm1level WHERE normalize(name)=\'' . $state['keyword'] . '\' order by name';
+            $query = 'SELECT name, normalize(name) as stateid, region, normalize(region) as regionid, admin, normalize(admin) as adminid, ST_AsGeoJSON(' . $this->simplify('geom', $tolerance) . ') as geometry FROM datasources.worldadm1level WHERE normalize(name)=normalize(\'' . $state['keyword'] . '\') order by name';
             $results = pg_query($this->dbh, $query);
             while ($row = pg_fetch_assoc($results)) {
                 $output[] = array(
@@ -407,10 +407,10 @@ class Gazetteer extends RestoModule {
          * Lang filter
          */
         if ($lang !== 'en') {
-            $where[] = 'geonameid = ANY((SELECT array(SELECT geonameid FROM gazetteer.alternatename WHERE normalize(alternatename)' . $this->likeOrEqual($name) . '\'' . pg_escape_string($name) . '\'  AND isolanguage=\'' . $lang . '\' LIMIT 30))::integer[])';
+            $where[] = 'geonameid = ANY((SELECT array(SELECT geonameid FROM gazetteer.alternatename WHERE normalize(alternatename)' . $this->likeOrEqual($name) . 'normalize(\'' . pg_escape_string($name) . '\')  AND isolanguage=\'' . $lang . '\' LIMIT 30))::integer[])';
         }
         else {
-            $where[] = 'normalize(name)' . $this->likeOrEqual($name) . '\'' . pg_escape_string($name) . '\'';
+            $where[] = 'normalize(name)' . $this->likeOrEqual($name) . 'normalize(\'' . pg_escape_string($name) . '\')';
         }
        
         return $where;
