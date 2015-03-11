@@ -37,12 +37,7 @@
  * 
  */
 
-class RestoATOMFeed{
-    
-    /*
-     * Reference to XML document
-     */
-    private $xml;
+class RestoATOMFeed extends RestoXML {
     
     /**
      * Constructor
@@ -52,7 +47,24 @@ class RestoATOMFeed{
      * @param string $subtitle
      */
     public function __construct($id, $title, $subtitle) {
-        $this->initialize($id, $title, $subtitle);
+        
+        parent::__construct();
+        
+        /*
+         * Start ATOM feed
+         */
+        $this->startAtomFeed($id, $title, $subtitle);
+        
+        /*
+         * Set title, subtitle and generator
+         */
+        $this->setBaseElements($title, $subtitle);
+        
+        /*
+         * Set id
+         */
+        $this->writeElement('id', $id);
+        
     }
     
     /**
@@ -95,63 +107,6 @@ class RestoATOMFeed{
     }
     
     /**
-     * Write attributes to current XML element
-     * 
-     * @param array $list
-     */
-    public function writeAttributes($list) {
-        foreach ($list as $key => $value) {
-            $this->xml->writeAttribute($key, $value);
-        }
-    }
-    
-    /**
-     * Start element to the current XML document
-     * 
-     * @param string $name
-     */
-    public function startElement($name) {
-        $this->xml->startElement($name);
-    }
-    
-    /**
-     * End current XML element
-     */
-    public function endElement() {
-        $this->xml->endElement();
-    }
-    
-    /**
-     * Write element
-     * 
-     * @param string $name
-     * @param string $value
-     */
-    public function writeElement($name, $value) {
-        $this->xml->writeElement($name, $value);
-    }
-    
-    /**
-     * Write elements
-     * 
-     * @param array $list
-     */
-    public function writeElements($list) {
-        foreach ($list as $key => $value) {
-            $this->xml->writeElement($key, $value);
-        }
-    }
-    
-    /**
-     * Set text to the current XML element
-     * 
-     * @param string $text
-     */
-    public function text($text) {
-        $this->xml->text($text);
-    }
-    
-    /**
      * Return stringified XML document
      */
     public function toString() {
@@ -164,37 +119,7 @@ class RestoATOMFeed{
         /*
          * Write result
          */
-        return $this->xml->outputMemory(true);
-    }
-    
-    /**
-     * Initialize ATOM feed
-     */
-    private function initialize($id, $title, $subtitle) {
-        
-        /*
-         * Create XML document
-         */
-        $this->xml = new XMLWriter();
-        $this->xml->openMemory();
-        $this->xml->setIndent(true);
-        $this->xml->startDocument('1.0', 'UTF-8');
-        
-        /*
-         * Start ATOM feed
-         */
-        $this->startAtomFeed($id, $title, $subtitle);
-        
-        /*
-         * Set title, subtitle and generator
-         */
-        $this->setBaseElements($title, $subtitle);
-        
-        /*
-         * Set id
-         */
-        $this->writeElement('id', $id);
-        
+        return parent::toString();
     }
     
     /**
