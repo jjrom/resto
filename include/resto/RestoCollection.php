@@ -95,11 +95,6 @@ class RestoCollection {
      */
     private $options = array();
     
-    /*
-     * Collection description is synchronized with database
-     */
-    private $synchronized = false;
-    
     /**
      * Constructor
      * 
@@ -136,8 +131,6 @@ class RestoCollection {
             $this->loadFromStore();
         }
         
-        return $this;
-        
     }
     
     /**
@@ -148,201 +141,6 @@ class RestoCollection {
     public function getUrl($format = '') {
         return RestoUtil::restoUrl($this->context->baseUrl, '/collections/' . $this->name, $format);
     }
-    
-    /**
-     * Load collection parameters from input collection description 
-     * Collection description is a JSON file with the following structure
-     * 
-     *      {
-     *          "name": "Charter",
-     *          "controller": "RestoCollection_Default",
-     *          "status": "public",
-     *          "osDescription": {
-     *              "en": {
-     *                  "ShortName": "International Charter Space and Major Disasters",
-     *                  "LongName": "International Charter Space and Major Disasters catalog",
-     *                  "Description": "The International Charter aims at providing a unified system of space data acquisition and delivery to those affected by natural or man-made disasters through Authorized Users. Each member agency has committed resources to support the provisions of the Charter and thus is helping to mitigate the effects of disasters on human life and property",
-     *                  "Tags": "international charter space disasters",
-     *                  "Developper": "J\u00e9r\u00f4me Gasperi",
-     *                  "Contact": "jerome.gasperi@gmail.com",
-     *                  "Query": "Cyclones in Asia in october 2013",
-     *                  "Attribution": "RESTo framework. Copyright 2013, All Rights Reserved"
-     *              },
-     *              "fr": {
-     *                  ...
-     *              }
-     *          },
-     *          "propertiesMapping": {
-     *              "identifier": "{a:1} will be replaced by identifier property value",
-     *              "organisationName": "This is a constant"
-     *              ...
-     *          }
-     *      }
-     * 
-     * @param array $object : collection description as json file
-     * @param boolean $synchronize : true to store collection to database
-     */
-    public function loadFromJSON($object, $synchronize = false) {
-        
-        /*
-         * Input $object should be JSON
-         */
-        if (!isset($object) || !is_array($object)) {
-            RestoLogUtil::httpError(500, 'Invalid input JSON');
-        }
-        
-        /*
-         * Check that input file is for the current collection
-         */
-        if (!isset($object['name']) ||$this->name !== $object['name']) {
-            RestoLogUtil::httpError(500, 'Property "name" and collection name differ');
-        }
-        
-        /*
-         * Model name must be set in JSON file
-         */
-        if (!isset($object['model'])) {
-            RestoLogUtil::httpError(500, 'Property "model" is mandatory');
-        }
-      
-        /*
-         * Check that input file is for the current collection
-         */
-        if (isset($this->model)) {
-            if ($this->model->name !== $object['model']) {
-                RestoLogUtil::httpError(500, 'Property "model" and collection name differ');
-            }
-        }
-        /*
-         * Set model
-         */
-        else {
-            $this->model = RestoUtil::instantiate($object['model'], array($this->context, $this->user));
-        }
-        
-        /*
-         * Default collection status is 'public'
-         */
-        $this->status = isset($object['status']) && $object['status'] === 'private' ? 'private' : 'public';
-        
-        /*
-         * At least an english OpenSearch Description object is mandatory
-         */
-        if (!is_array($object['osDescription']) || !is_array($object['osDescription']['en'])) {
-            RestoLogUtil::httpError(500, 'English OpenSearch description is mandatory');
-        }
-        $this->osDescription = $object['osDescription'];
-        
-        /*
-         * Licence
-         */
-        if (isset($object['license'])) {
-            $this->license = $object['license'];
-        }
-        
-        /*
-         * Template
-         */
-        if (isset($object['propertiesMapping'])) {
-            $this->propertiesMapping = $object['propertiesMapping'];
-        }
-        
-        $this->synchronized = false;
-        
-        /*
-         * Save on database
-         */
-        if ($synchronize) {
-            $this->saveToStore();
-        }
-        
-        return $this;
-        
-    }
-   
-    /**
-     * Return license in the current language
-     */
-    public function getLicense() {
-        if (!isset($this->license)) {
-            return null;
-        }
-        if (!isset($this->license[$this->context->dictionary->language])) {
-            if (isset($this->license['en'])) {
-                return $this->license['en'];
-            }
-            return null;
-        }
-        return $this->license[$this->context->dictionary->language];
-    }
-    
-    /**
-     * Return OpenSearch property in the current language
-     * or in english otherwise
-     * 
-     * @param string $property
-     */
-    public function getOSProperty($property) {
-        if (!isset($property)) {
-            return '';
-        }
-        if (!isset($this->osDescription[$this->context->dictionary->language]) || !isset($this->osDescription[$this->context->dictionary->language][$property])) {
-            return isset($this->osDescription['en'][$property]) ? $this->osDescription['en'][$property] : $property;
-        }
-        return $this->osDescription[$this->context->dictionary->language][$property];
-    }
-    
-    /**
-     * Load collection parameters from RESTo database
-     */
-    public function loadFromStore() {
-        
-        /*
-         * Retrieve facets
-         */
-        $facets = array('collection', 'continent');
-        $model = new RestoModel_default();
-        foreach (array_values($model->searchFilters) as $filter) {
-            if (isset($filter['options']) && $filter['options'] === 'auto') {
-                $facets[] = $filter['key'];
-            }
-        }
-        
-        $collectionDescription = $this->context->dbDriver->get(RestoDatabaseDriver::COLLECTIONS_DESCRIPTIONS, array('collectionName' => $this->name, 'facetFields' => $facets));
-        $this->model = RestoUtil::instantiate($collectionDescription['model'], array());
-        $this->osDescription = $collectionDescription['osDescription'];
-        $this->status = $collectionDescription['status'];
-        $this->license = $collectionDescription['license'];
-        $this->propertiesMapping = $collectionDescription['propertiesMapping'];
-        $this->statistics = $collectionDescription['statistics'];
-        $this->synchronized = true;
-        return $this;
-    }
-    
-    /**
-     * Remove collection  from RESTo database
-     */
-    public function removeFromStore() {
-        $this->context->dbDriver->remove(RestoDatabaseDriver::COLLECTION, array('collection' => $this));
-        $this->synchronized = false;
-    }
-    
-    /**
-     * Save collection to RESTo database
-     */
-    public function saveToStore() {
-        $this->context->dbDriver->store(RestoDatabaseDriver::COLLECTION, array('collection' => $this));
-        $this->synchronized = true;
-        return $this;
-    }
-    
-    /**
-     * Return true if collection description is synchronized with database
-     */
-    public function isSynchronized() {
-        return $this->synchronized;
-    }
-    
     
     /**
      * Search features within collection
@@ -397,22 +195,211 @@ class RestoCollection {
     
     /**
      * Output collection description as an XML OpenSearch document
-     * 
-     * <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/" xmlns:geo="http://a9.com/-/opensearch/extensions/geo/1.0/" xmlns:time="http://a9.com/-/opensearch/extensions/time/1.0/">
-     *      <ShortName>OpenSearch search</ShortName>
-     *      <Description>My OpenSearch search interface</Description>
-     *      <Tags>opensearch</Tags>
-     *      <Contact>admin@myserver.org</Contact>
-     *      <Url type="application/atom+xml" template="http://myserver.org/Controller_name/?q={searchTerms}&bbox={geo:box?}&format=atom&startDate={time:start?}&completionDate={time:end?}&modified={time:start?}&platform={take5:platform?}&instrument={take5:instrument?}&product={take5:product?}&maxRecords={count?}&index={startIndex?}"/>
-     *      <LongName>My OpenSearch search interface</LongName>
-     *      <Query role="example" searchTerms="observatory"/>
-     *      <Attribution>mapshup.info</Attribution>
-     *      <Language>fr</Language>
-     * </OpenSearchDescription>
      */
     public function toXML() {
         $osdd = new RestoOSDD($this);
         return $osdd->toString();
+    }
+ 
+    /**
+     * Return license in the current language
+     */
+    public function getLicense() {
+        if (!isset($this->license)) {
+            return null;
+        }
+        if (!isset($this->license[$this->context->dictionary->language])) {
+            if (isset($this->license['en'])) {
+                return $this->license['en'];
+            }
+            return null;
+        }
+        return $this->license[$this->context->dictionary->language];
+    }
+    
+    /**
+     * Load collection parameters from input collection description 
+     * Collection description is a JSON file with the following structure
+     * 
+     *      {
+     *          "name": "Charter",
+     *          "controller": "RestoCollection_Default",
+     *          "status": "public",
+     *          "osDescription": {
+     *              "en": {
+     *                  "ShortName": "International Charter Space and Major Disasters",
+     *                  "LongName": "International Charter Space and Major Disasters catalog",
+     *                  "Description": "The International Charter aims at providing a unified system of space data acquisition and delivery to those affected by natural or man-made disasters through Authorized Users. Each member agency has committed resources to support the provisions of the Charter and thus is helping to mitigate the effects of disasters on human life and property",
+     *                  "Tags": "international charter space disasters",
+     *                  "Developper": "J\u00e9r\u00f4me Gasperi",
+     *                  "Contact": "jerome.gasperi@gmail.com",
+     *                  "Query": "Cyclones in Asia in october 2013",
+     *                  "Attribution": "RESTo framework. Copyright 2013, All Rights Reserved"
+     *              },
+     *              "fr": {
+     *                  ...
+     *              }
+     *          },
+     *          "propertiesMapping": {
+     *              "identifier": "{a:1} will be replaced by identifier property value",
+     *              "organisationName": "This is a constant"
+     *              ...
+     *          }
+     *      }
+     * 
+     * @param array $object : collection description as json file
+     * @param boolean $synchronize : true to store collection to database
+     */
+    public function loadFromJSON($object, $synchronize = false) {
+        
+        /*
+         * Check JSON validity
+         */
+        $this->checkJSONValidity();
+        
+        /*
+         * Set Model
+         */
+        $this->setModel($object['model']);
+        
+        /*
+         * Default collection status is 'public'
+         */
+        $this->status = isset($object['status']) && $object['status'] === 'private' ? 'private' : 'public';
+        
+        /*
+         * OpenSearch Description
+         */
+        $this->osDescription = $object['osDescription'];
+        
+        /*
+         * Licence
+         */
+        $this->license = isset($object['license']) ? $object['license'] : null;
+        
+        /*
+         * Properties mapping
+         */
+        $this->propertiesMapping = isset($object['propertiesMapping']) ? $object['propertiesMapping'] : array();
+        
+        /*
+         * Save on database
+         */
+        $this->saveToStore($synchronize);
+        
+    }
+   
+    /**
+     * Remove collection  from RESTo database
+     */
+    public function removeFromStore() {
+        $this->context->dbDriver->remove(RestoDatabaseDriver::COLLECTION, array('collection' => $this));
+    }
+    
+    /**
+     * Load collection parameters from RESTo database
+     */
+    private function loadFromStore() {
+        $description = $this->context->dbDriver->get(RestoDatabaseDriver::COLLECTIONS_DESCRIPTIONS, array(
+            'collectionName' => $this->name,
+            'facetFields' => $this->getFacetFields()
+        ));
+        $this->model = RestoUtil::instantiate($description['model'], array());
+        $this->osDescription = $description['osDescription'];
+        $this->status = $description['status'];
+        $this->license = $description['license'];
+        $this->propertiesMapping = $description['propertiesMapping'];
+        $this->statistics = $description['statistics'];
+        
+    }
+    
+    /**
+     * Set model 
+     * 
+     * @param string $name
+     */
+    private function setModel($name) {
+        
+        /*
+         * Check that input file is for the current collection
+         */
+        if (isset($this->model)) {
+            if ($this->model->name !== $name) {
+                RestoLogUtil::httpError(500, 'Property "model" and collection name differ');
+            }
+        }
+        /*
+         * Set model
+         */
+        else {
+            $this->model = RestoUtil::instantiate($name, array($this->context, $this->user));
+        }
+        
+    }
+    
+    /**
+     * Check that input json description is valid
+     * 
+     * @param array $object
+     */
+    private function checkJSONValidity($object) {
+        
+        /*
+         * Input $object should be JSON
+         */
+        if (!isset($object) || !is_array($object)) {
+            RestoLogUtil::httpError(500, 'Invalid input JSON');
+        }
+        
+        /*
+         * Check that input file is for the current collection
+         */
+        if (!isset($object['name']) ||$this->name !== $object['name']) {
+            RestoLogUtil::httpError(500, 'Property "name" and collection name differ');
+        }
+        
+        /*
+         * Model name must be set in JSON file
+         */
+        if (!isset($object['model'])) {
+            RestoLogUtil::httpError(500, 'Property "model" is mandatory');
+        }
+        
+        /*
+         * At least an english OpenSearch Description object is mandatory
+         */
+        if (!is_array($object['osDescription']) || !is_array($object['osDescription']['en'])) {
+            RestoLogUtil::httpError(500, 'English OpenSearch description is mandatory');
+        }
+        
+    }
+    
+    /**
+     * Save collection to database if synchronize is set to true
+     * 
+     * @param boolean $synchronize
+     * @return boolean
+     */
+    private function saveToStore($synchronize) {
+        if ($synchronize) {
+            $this->context->dbDriver->store(RestoDatabaseDriver::COLLECTION, array('collection' => $this));
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Get facet fields from collection model
+     */
+    private function getFacetFields() {
+        $facetFields = array('collection', 'continent');
+        $model = new RestoModel_default();
+        foreach (array_values($model->searchFilters) as $filter) {
+            if (isset($filter['options']) && $filter['options'] === 'auto') {
+                $facetFields[] = $filter['key'];
+            }
+        }
+        return $facetFields;
     }
     
 }

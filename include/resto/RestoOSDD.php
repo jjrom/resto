@@ -39,6 +39,19 @@
 
 /**
  * resto OpenSearch Document Description class
+ *    
+ * <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/" xmlns:geo="http://a9.com/-/opensearch/extensions/geo/1.0/" xmlns:time="http://a9.com/-/opensearch/extensions/time/1.0/">
+ *      <ShortName>OpenSearch search</ShortName>
+ *      <Description>My OpenSearch search interface</Description>
+ *      <Tags>opensearch</Tags>
+ *      <Contact>admin@myserver.org</Contact>
+ *      <Url type="application/atom+xml" template="http://myserver.org/Controller_name/?q={searchTerms}&bbox={geo:box?}&format=atom&startDate={time:start?}&completionDate={time:end?}&modified={time:start?}&platform={take5:platform?}&instrument={take5:instrument?}&product={take5:product?}&maxRecords={count?}&index={startIndex?}"/>
+ *      <LongName>My OpenSearch search interface</LongName>
+ *      <Query role="example" searchTerms="observatory"/>
+ *      <Attribution>mapshup.info</Attribution>
+ *      <Language>fr</Language>
+ * </OpenSearchDescription>
+ *    
  */
 class RestoOSDD extends RestoXML {
     
