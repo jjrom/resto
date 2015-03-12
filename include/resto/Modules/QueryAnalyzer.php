@@ -326,7 +326,7 @@ class QueryAnalyzer extends RestoModule {
         for ($i = 0, $l = count($rawSearchTerms); $i < $l; $i++) {
             $splitted = explode(':', $rawSearchTerms[$i]);
             if (count($splitted) === 2) {
-                $explicits[RestoUtil::quoteIfNeeded($rawSearchTerms[$i])] = true;
+                $explicits[$this->quoteIfNeeded($rawSearchTerms[$i])] = true;
                 $toRemove[] = $rawSearchTerms[$i];
             }
         }
@@ -768,7 +768,7 @@ class QueryAnalyzer extends RestoModule {
             else {
                 $keyword = $this->dictionary->getKeyword($s);
                 if ($keyword) {
-                    $keywords[] = RestoUtil::quoteIfNeeded($sign . $keyword['type'] . ':' . $keyword['keyword']);
+                    $keywords[] = $this->quoteIfNeeded($sign . $keyword['type'] . ':' . $keyword['keyword']);
                     if ($keyword['type'] === 'country') {
                         $countryName = $keyword['keyword'];
                     }
@@ -781,7 +781,7 @@ class QueryAnalyzer extends RestoModule {
                      */
                     $similar = $this->dictionary->getSimilar($s);
                     if ($similar) {
-                        $keywords[] = RestoUtil::quoteIfNeeded($sign . $similar['type'] . ':' . $similar['keyword']['value']);
+                        $keywords[] = $this->quoteIfNeeded($sign . $similar['type'] . ':' . $similar['keyword']['value']);
                         if ($keyword['type'] === 'country') {
                             $countryName = $keyword['keyword'];
                         }
@@ -1399,6 +1399,19 @@ class QueryAnalyzer extends RestoModule {
             'unit' => $unit,
             'factor' => $factor
         );
+    }
+    
+    /**
+     * Quote string with " characters if needed (i.e. if 
+     * the string contains a space)
+     * 
+     * @param string $str
+     */
+    private function quoteIfNeeded($str) {
+        if (strpos($str, ' ') !== FALSE) {
+            return '"' . $str . '"';
+        }
+        return $str;
     }
     
 

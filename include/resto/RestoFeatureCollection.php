@@ -135,7 +135,7 @@ class RestoFeatureCollection {
          * Initialize ATOM feed
          */
         $atomFeed = new RestoATOMFeed($this->description['properties']['id'], isset($this->description['properties']['title']) ? $this->description['properties']['title'] : '', $this->getATOMSubtitle());
-        
+       
         /*
          * Update outputFormat links except for OSDD 'search'
          */
@@ -194,7 +194,7 @@ class RestoFeatureCollection {
                 else {
                     $atomFeed->writeAttributes(array(
                         'type' => RestoUtil::$contentTypes['atom'],
-                        'href' => RestoUtil::updateURLFormat($this->description['properties']['links'][$i]['href'], 'atom')
+                        'href' => RestoUtil::updateUrlFormat($this->description['properties']['links'][$i]['href'], 'atom')
                     ));
                 }
                 $atomFeed->endElement(); // link
@@ -226,8 +226,8 @@ class RestoFeatureCollection {
         if (isset($this->description['properties']['totalResults'])) {
             $subtitle = $this->context->dictionary->translate($this->description['properties']['totalResults'] === 1 ? '_oneResult' : '_multipleResult', $this->description['properties']['totalResults']);
         }
-        $previous = isset($this->description['properties']['links']['previous']) ? '<a href="' . RestoUtil::updateURLFormat($this->description['properties']['links']['previous'], 'atom') . '">' . $this->context->dictionary->translate('_previousPage') . '</a>&nbsp;' : '';
-        $next = isset($this->description['properties']['links']['next']) ? '&nbsp;<a href="' . RestoUtil::updateURLFormat($this->description['properties']['links']['next'], 'atom') . '">' . $this->context->dictionary->translate('_nextPage') . '</a>' : '';
+        $previous = isset($this->description['properties']['links']['previous']) ? '<a href="' . RestoUtil::updateUrlFormat($this->description['properties']['links']['previous'], 'atom') . '">' . $this->context->dictionary->translate('_previousPage') . '</a>&nbsp;' : '';
+        $next = isset($this->description['properties']['links']['next']) ? '&nbsp;<a href="' . RestoUtil::updateUrlFormat($this->description['properties']['links']['next'], 'atom') . '">' . $this->context->dictionary->translate('_nextPage') . '</a>' : '';
         $subtitle .= isset($this->description['properties']['startIndex']) ? '&nbsp;|&nbsp;' . $previous . $this->context->dictionary->translate('_pagination', $this->description['properties']['startIndex'], $this->description['properties']['startIndex'] + 1) . $next : '';
         return $subtitle;
     }

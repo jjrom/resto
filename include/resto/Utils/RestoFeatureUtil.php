@@ -177,7 +177,7 @@ class RestoFeatureUtil {
          */
         if (isset($this->collection->propertiesMapping)) {
             foreach (array_keys($this->collection->propertiesMapping) as $key) {
-                $properties[$key] = RestoUtil::replaceInTemplate($this->collection->propertiesMapping[$key], $properties);
+                $properties[$key] = $this->replaceInTemplate($this->collection->propertiesMapping[$key], $properties);
             }
         }
         
@@ -196,7 +196,7 @@ class RestoFeatureUtil {
                 /*
                  * Set multiple words within quotes 
                  */
-                $name = RestoUtil::replaceInTemplate($this->model->searchFilters[$key]['keyword']['value'], $properties);
+                $name = $this->replaceInTemplate($this->model->searchFilters[$key]['keyword']['value'], $properties);
                 $splitted = explode(' ', $name);
                 
                 if (count($splitted) > 1) {
@@ -451,5 +451,46 @@ class RestoFeatureUtil {
 
         return $corrected;
     }
- 
+    
+   /**
+     * Replace all occurences of a string
+     * 
+     *  Example :
+     *      
+     *      replaceInTemplate('Hello. My name is {:name:}. I live in {:location:}', array('name' => 'Jérôme', 'location' => 'Toulouse'));
+     * 
+     *  Will return
+     * 
+     *      'Hello. My name is Jérôme. I live in Toulouse
+     * 
+     * 
+     * @param string $sentence
+     * @param array $pairs
+     * 
+     */
+    private function replaceInTemplate($sentence, $pairs = array()) {
+
+        if (!isset($sentence)) {
+            return null;
+        }
+
+        /*
+         * Extract pairs
+         */
+        preg_match_all("/{\:[^\\:}]*\:}/", $sentence, $matches);
+
+        $replace = array();
+        for ($i = count($matches[0]); $i--;) {
+            $key = substr($matches[0][$i], 2, -2);
+            if (isset($pairs[$key])) {
+                $replace[$matches[0][$i]] = $pairs[$key];
+            }
+        }
+        if (count($replace) > 0) {
+            return strtr($sentence, $replace);
+        }
+
+        return $sentence;
+    }
+
 }

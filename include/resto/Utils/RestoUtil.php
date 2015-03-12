@@ -164,47 +164,6 @@ class RestoUtil {
     }
     
     /**
-     * Replace all occurences of a string
-     * 
-     *  Example :
-     *      
-     *      replaceInTemplate('Hello. My name is {:name:}. I live in {:location:}', array('name' => 'Jérôme', 'location' => 'Toulouse'));
-     * 
-     *  Will return
-     * 
-     *      'Hello. My name is Jérôme. I live in Toulouse
-     * 
-     * 
-     * @param string $sentence
-     * @param array $pairs
-     * 
-     */
-    public static function replaceInTemplate($sentence, $pairs = array()) {
-        
-        if (!isset($sentence)) {
-            return null;
-        }
-        
-        /*
-         * Extract pairs
-         */
-        preg_match_all("/{\:[^\\:}]*\:}/", $sentence, $matches);
-        
-        $replace = array();
-        for ($i = count($matches[0]); $i--;)  {
-            $key = substr($matches[0][$i], 2, -2);
-            if (isset($pairs[$key])) {
-                $replace[$matches[0][$i]] = $pairs[$key];
-            }
-        }
-        if (count($replace) > 0) {
-            return strtr($sentence, $replace);
-        }
-        
-        return $sentence;
-    }
-
-    /**
      * Upgraded implode($glue, $arr) function that
      * do not aggregate NULL elements in result
      */
@@ -437,19 +396,6 @@ class RestoUtil {
     }
     
     /**
-     * Quote string with " characters if needed (i.e. if 
-     * the string contains a space)
-     * 
-     * @param string $str
-     */
-    public static function quoteIfNeeded($str) {
-        if (strpos($str, ' ') !== FALSE) {
-            return '"' . $str . '"';
-        }
-        return $str;
-    }
-    
-    /**
      * Check if string starts like an url i.e. http:// or https:// or //:
      * 
      * @param {String} $str
@@ -528,31 +474,6 @@ class RestoUtil {
             }
         }
         
-    }
-    
-    /**
-     * Format input Key/Value pairs array to query string
-     * 
-     * @param array $kvps
-     * @return string
-     */
-    public static function kvpsToQueryString($kvps) {
-        $paramsStr = '';
-        if (!is_array($kvps)) {
-            return $paramsStr;
-        }
-        foreach ($kvps as $key => $value) {
-            if (is_array($value)) {
-                for ($i = count($value); $i--;) {
-                    //echo $key . ' : ' . $value[$i] . "\n";
-                    $paramsStr .= (isset($paramsStr) ? '&' : '') . rawurlencode($key) . '[]=' . rawurlencode($value[$i]);
-                }
-            }
-            else {
-                $paramsStr .= (isset($paramsStr) ? '&' : '') . rawurlencode($key) . '=' . rawurlencode($value);
-            }
-        }
-        return '?' . $paramsStr;
     }
     
     /**
