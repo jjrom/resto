@@ -157,7 +157,7 @@ class RestoCollection {
      * @param array $data : GeoJSON file or file splitted in array
      */
     public function addFeature($data) {
-        return $this->model->addFeature($data, $this);
+        return $this->model->storeFeature($data, $this);
     }
     
     /**

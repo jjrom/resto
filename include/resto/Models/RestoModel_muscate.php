@@ -100,16 +100,14 @@ class RestoModel_muscate extends RestoModel {
     }
     
     /**
-     * Add feature to the {collection}.features table following the class model
+     * Store feature within {collection}.features table following the class model
      * 
      * @param array $data : array (MUST BE GeoJSON in abstract Model)
-     * @param string $collectionName : collection name
-     * @param RestoContext $context 
-     * @param RestoUser $user
+     * @param RestoCollection $collection
      * 
      */
-    public function addFeature($data, $collectionName, $context, $user) {
-        return parent::addFeature($this->parse(join('',$data)), $collectionName, $context, $user);
+    public function storeFeature($data, $collection) {
+        return parent::storeFeature($this->parse(join('',$data)), $collection);
     }
 
     private function getProductType($level) {

@@ -100,9 +100,6 @@ fi
 #############CREATE DB ##############
 psql -d $DB -U $SUPERUSER << EOF
 
--- hstore is used for collection datasources
-CREATE EXTENSION hstore;
-
 --
 -- Use unaccent function from postgresql >= 9
 -- Set it as IMMUTABLE to use it in index
@@ -185,8 +182,6 @@ CREATE TABLE resto.facets (
     value               TEXT, -- keyword value (without type)
     type                TEXT, -- type of keyword (i.e. region, state, location, etc.)
     pid                 TEXT, -- parent hash (i.e. 'europe' for keyword 'france')
-    pvalue              TEXT, -- keyword parent (without type)
-    ptype               TEXT, -- keyword parent type (i.e. 'continent' for 'country')
     collection          TEXT, -- collection name
     counter             INTEGER -- number of appearance of this keyword within the collection
 );
@@ -240,7 +235,7 @@ CREATE TABLE resto.features (
     wms                 TEXT,
     updated             TIMESTAMP,
     published           TIMESTAMP,
-    keywords            hstore DEFAULT '',
+    keywords            TEXT,
     lu_cultivated       NUMERIC DEFAULT 0,
     lu_desert           NUMERIC DEFAULT 0,
     lu_flooded          NUMERIC DEFAULT 0,
@@ -368,6 +363,11 @@ psql -U $SUPERUSER -d $DB -f $DATADIR/platformsAndInstruments.sql
 psql -U $SUPERUSER -d $DB -f $DATADIR/landuses.sql
 psql -U $SUPERUSER -d $DB -f $DATADIR/continentsAndCountries.sql
 psql -U $SUPERUSER -d $DB -f $DATADIR/regionsAndStates.sql
+
+# Normalize values
+psql -U $SUPERUSER -d $DB << EOF
+UPDATE resto.keywords SET value=normalize(value) WHERE TYPE IN ('continent', 'country', 'region', 'state', 'landuse');
+EOF
 
 # Rights
 psql -U $SUPERUSER -d $DB << EOF

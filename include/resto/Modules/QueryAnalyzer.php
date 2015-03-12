@@ -220,7 +220,7 @@ class QueryAnalyzer extends RestoModule {
          * If available, unaccent and lower input searchTerms
          */
         $rawSearchTerms = RestoUtil::splitString($this->context->dbDriver->normalize($params['searchTerms']));
-       
+        
         /*
          * Extract explicit mapping i.e. words with ':' delimiter 
          */
@@ -241,7 +241,7 @@ class QueryAnalyzer extends RestoModule {
                 $searchTerms[] = '%';
             }
             else {
-                $searchTerms[] = trim(trim($rawSearchTerms[$i] , ','), ';');
+                $searchTerms[] = str_replace(' ', '-', trim(trim($rawSearchTerms[$i] , ','), ';'));
             }
         }
         

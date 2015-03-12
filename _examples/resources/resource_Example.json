@@ -46,6 +46,7 @@
         "receivingStation": "FR1",
         "resolution": 1.5,
         "satellite": "SPOT6",
+        "instrument": "HRS",
         "sensorFamily": "Multispectral",
         "shift": null,
         "snowCoverPercentage": 0,
@@ -54,17 +55,17 @@
         "wktBounds": "POLYGON((-151.94440577844645 -16.250438048434496,-151.27338568830842 -16.288706470573882,-151.27705117976558 -16.845826458873454,-151.94002056020608 -16.811713604959639))",
         "wktCenter": "POINT (-151.60234844839167 -16.549982658384916)",
         "wktFootprint": "POLYGON((-151.94440577844645 -16.250438048434496,-151.27338568830842 -16.288706470573882,-151.27705117976558 -16.845826458873454,-151.94002056020608 -16.811713604959639,-151.94440577844645 -16.250438048434496))",
-        "keywords": [
-            {
+        "keywords": {
+            "other:test1" : {
                 "name":"Test 1",
-                "id": "other:test1",
+                "type":"other",
                 "value": 94
             },
-            {
+            "other:test1" : {
                 "name":"Test 2",
-                "id": "other:test2",
+                "type": "other",
                 "value": null
             }
-        ]
+        }
     }
 }

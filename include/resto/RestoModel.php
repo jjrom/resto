@@ -166,42 +166,50 @@ abstract class RestoModel {
         'cultivatedCover' => array(
             'name' => 'lu_cultivated',
             'type' => 'NUMERIC',
-            'constraint' => 'DEFAULT 0'
+            'constraint' => 'DEFAULT 0',
+            'notDisplayed' => true
         ),
         'desertCover' => array(
             'name' => 'lu_desert',
             'type' => 'NUMERIC',
-            'contraint' => 'DEFAULT 0'
+            'contraint' => 'DEFAULT 0',
+            'notDisplayed' => true
         ),
         'floodedCover' => array(
             'name' => 'lu_flooded',
             'type' => 'NUMERIC',
-            'contraint' => 'DEFAULT 0'
+            'contraint' => 'DEFAULT 0',
+            'notDisplayed' => true
         ),
         'forestCover' => array(
             'name' => 'lu_forest',
             'type' => 'NUMERIC',
-            'constraint' => 'DEFAULT 0'
+            'constraint' => 'DEFAULT 0',
+            'notDisplayed' => true
         ),
         'herbaceousCover' => array(
             'name' => 'lu_herbaceous',
             'type' => 'NUMERIC',
-            'constraint' => 'DEFAULT 0'
+            'constraint' => 'DEFAULT 0',
+            'notDisplayed' => true
         ),
         'iceCover' => array(
             'name' => 'lu_ice',
             'type' => 'NUMERIC',
-            'constraint' => 'DEFAULT 0'
+            'constraint' => 'DEFAULT 0',
+            'notDisplayed' => true
         ),
         'urbanCover' => array(
             'name' => 'lu_urban',
             'type' => 'NUMERIC',
-            'constraint' => 'DEFAULT 0'
+            'constraint' => 'DEFAULT 0',
+            'notDisplayed' => true
         ),
         'waterCover' => array(
             'name' => 'lu_water',
             'type' => 'NUMERIC',
-            'constraint' => 'DEFAULT 0'
+            'constraint' => 'DEFAULT 0',
+            'notDisplayed' => true
         ),
         'snowCover' => array(
             'name' => 'snowcover',
@@ -213,8 +221,7 @@ abstract class RestoModel {
         ),
         'keywords' => array(
             'name' => 'keywords',
-            'type' => 'hstore',
-            'constraint' => 'DEFAULT \'\''
+            'type' => 'TEXT'
         ),
         'geometry' => array(
             'name' => 'geometry',
@@ -222,11 +229,13 @@ abstract class RestoModel {
         ),
         'hashes' => array(
             'name' => 'hashes',
-            'type' => 'TEXT[]'
+            'type' => 'TEXT[]',
+            'notDisplayed' => true
         ),
         'visible' => array(
             'name' => 'visible',
-            'type' => 'INTEGER'
+            'type' => 'INTEGER',
+            'notDisplayed' => true
         )
     );
     
@@ -535,8 +544,7 @@ abstract class RestoModel {
      */
     public function __construct() {
         $this->name = get_class($this);
-        $this->properties = array_merge($this->properties, $this->extendedProperties); 
-        
+        $this->properties = array_merge($this->properties, $this->extendedProperties);
     }
    
     /**
@@ -548,21 +556,17 @@ abstract class RestoModel {
         if (!isset($modelKey) || !isset($this->properties[$modelKey]) || !is_array($this->properties[$modelKey])) {
             return null;
         }
-        $sqlType = trim(strtoupper($this->properties[$modelKey]['type']));
-        if (substr($sqlType, 0, 6) === 'TEXT[]') {
-            return 'array';
-        }
-        switch(substr($sqlType, 0, 3)) {
-            case 'INT':
+        switch(substr(trim(strtoupper($this->properties[$modelKey]['type'])), 0, 6)) {
+            case 'INTEGE':
                 return 'integer';
-            case 'NUM':
+            case 'NUMERI':
                 return 'float';
-            case 'TIM':
+            case 'TIMEST':
                 return 'date';
-            case 'GEO':
+            case 'GEOMET':
                 return 'geometry';
-            case 'HST':
-                return 'hstore';
+            case 'TEXT[]':
+                return 'array';    
             default:
                 return 'string';
         }
@@ -619,13 +623,13 @@ abstract class RestoModel {
     }
     
     /**
-     * Add feature to the {collection}.features table following the class model
+     * Store feature within {collection}.features table following the class model
      * 
      * @param array $data : array (MUST BE GeoJSON in abstract Model)
      * @param RestoCollection $collection
      * 
      */
-    public function addFeature($data, $collection) {
+    public function storeFeature($data, $collection) {
         
         /*
          * Assume input file or stream is a JSON Feature
@@ -641,210 +645,62 @@ abstract class RestoModel {
         $properties = $this->mapInputProperties($data['properties']);
         
         /*
-         * Feature 'id' must be a valid UUID
-         * Otherwise it is replaced by a generated UUID based on productIdentifier and collection
+         * Compute unique identifier
          */
         if (!isset($data['id']) || !RestoUtil::isValidUUID($data['id'])) {
-            $data['id'] = $collection->toFeatureId((isset($properties['productIdentifier']) ? $properties['productIdentifier'] : md5(microtime().rand())));
+            $id = $collection->toFeatureId((isset($properties['productIdentifier']) ? $properties['productIdentifier'] : md5(microtime().rand())));
+        }
+        else {
+            $id = $data['id'];
         }
         
         /*
-         * Check that resource does not already exist in database
+         * Store feature
          */
-        if ($collection->context->dbDriver->check(RestoDatabaseDriver::FEATURE, array('featureIdentifier' => $data['id']))) {
-            RestoLogUtil::httpError(500, 'Feature ' . $data['id'] . ' already in database');
-        }
-        
-        /*
-         * Initialize feature description with id and geometry
-         */
-        $elements = array(
-            array('identifier', $data['id']),
-            array('geometry', $data['geometry'])
-        );
-        
-        /*
-         * Process all properties
-         */
-        $keywords = null;
-        foreach ($properties as $key => $value) {
-            if ($key === 'keywords') {
-                $keywords = array('keywords', $value);
-            }
-            else {
-                $elements[] = array($key, $value);
-            }
-        }
-        
-        /* 
-         * Add tags with iTag
-         */
-        if (isset($collection->context->modules['iTag'])) {
-            $iTagKeywords = $this->getKeywords($data['geometry'], $collection->context->modules['iTag'], $collection->context->dbDriver->dbh);
-            if (isset($keywords)) {
-                $keywords[1] = array_merge($keywords[1], $iTagKeywords);
-            }
-            else {
-                $keywords = array('keywords', $iTagKeywords);
-            }
-        }
-        
-        if (isset($keywords)) {
-            $elements = array_merge($elements, array($keywords));
-        }
-        
-        try {
-            $collection->context->dbDriver->store(RestoDatabaseDriver::FEATURE, array(
-                'collectionName' => $collection->name,
-                'elements' => $elements,
-                'model' => $this
-            ));
-        } catch (Exception $e) {
-            RestoUtil::httpError(500, 'Feature ' . $data['id'] . ' cannot be inserted in database');
-        }
+        $collection->context->dbDriver->store(RestoDatabaseDriver::FEATURE, array(
+            'collection' => $collection,
+            'featureArray' => array(
+                'type' => 'Feature',
+                'id' => $id,
+                'geometry' => $data['geometry'],
+                'properties' => array_merge($properties, array('keywords' => $this->getKeywords($properties, $data['geometry'], $collection)))
+            )
+        ));
         
         return new RestoFeature($collection->context, $collection->user, array(
-            'featureIdentifier' => $data['id']
+            'featureIdentifier' => $id
         ));
         
     }
     
     /**
-     * Extract iTag keywords from input geometry
+     * Compute keywords from properties array
      * 
-     * @param string $geometry
-     * @param array $iTagConfig
-     * @return array
+     * @param array $properties
+     * @param array $geometry (GeoJSON)
+     * @param RestoCollection $collection
      */
-    private function getKeywords($geometry, $iTagConfig, $dbh) {
+    private function getKeywords($properties, $geometry, $collection) {
         
-        if (isset($iTagConfig['database']) && isset($iTagConfig['database']['dbname'])) {
-            $iTag = new iTag($iTagConfig['database']);
+        /*
+         * Keywords utilities
+         */
+        $keywordsUtil = new RestoKeywordsUtil();
+        
+        /*
+         * Initialize keywords array
+         */
+        $keywords = isset($properties['keywords']) ? $properties['keywords'] : array();
+        
+        /*
+         * Validate keywords
+         */
+        if (!$keywordsUtil->areValids($keywords)) {
+            RestoLogUtil::httpError(500, 'Invalid keywords property elements');
         }
-        else {
-            $iTag = new iTag(array('dbh' => $dbh));
-        }
-        return $this->iTagToKeywords($iTag->tag(RestoGeometryUtil::geoJSONGeometryToWKT($geometry, isset($iTagConfig['keywords']) ? $iTagConfig['keywords'] : array())));
-
+        
+        return array_merge($keywords, $keywordsUtil->computeKeywords($properties, $geometry, $collection));
+       
     }
     
-    /**
-     * Return a RESTo keywords array from an iTag Hierarchical feature
-     * 
-     *      $keywords = array(
-     *          array(
-     *              array(
-     *                  "name" => name
-     *                  "id" => id, // type:value
-     *                  "parentId" => id, // parentType:parentValue
-     *                  "value" => value or array()
-     *              ),
-     *              array(
-     *                  ...
-     *              )
-     *          )
-     *      );
-     * 
-     * @param array $iTagFeature
-     */
-    private function iTagToKeywords($iTagFeature) {
-
-        $keywords = array();
-
-        if (!isset($iTagFeature) || !isset($iTagFeature['properties'])) {
-            return $keywords;
-        }
-
-        $properties = $iTagFeature['properties'];
-
-        if (isset($properties['political'])) {
-            if (isset($properties['political']['continents'])) {
-
-                // Continents
-                for ($i = 0, $li = count($properties['political']['continents']); $i < $li; $i++) {
-                    $continent = $properties['political']['continents'][$i];
-                    $continentHash = RestoUtil::getHash($continent['id']);
-                    $keywords[$continentHash] = array(
-                        'id' => $continent['id'],
-                        'hash' => $continentHash
-                    );
-                    // Countries
-                    for ($j = 0, $lj = count($continent['countries']); $j < $lj; $j++) {
-                        $country = $continent['countries'][$j];
-                        $countryHash = RestoUtil::getHash($country['id'], $continentHash);
-                        $keywords[$countryHash] = array(
-                            'id' => $country['id'],
-                            'parentId' => $continent['id'],
-                            'hash' => $countryHash,
-                            'parentHash' => $continentHash,
-                            'value' => $country['pcover']
-                        );
-
-                        // Regions
-                        if (isset($country['regions'])) {
-                            for ($k = 0, $lk = count($country['regions']); $k < $lk; $k++) {
-                                $region = $country['regions'][$k];
-                                if (!isset($region['id'])) {
-                                    $region['id'] = 'region:_all';
-                                }
-                                $regionHash = RestoUtil::getHash($region['id'], $countryHash);
-                                $keywords[$regionHash] = array(
-                                    'id' => $region['id'],
-                                    'parentId' => $country['id'],
-                                    'hash' => $regionHash,
-                                    'parentHash' => $countryHash,
-                                );
-
-                                // States
-                                for ($l = 0, $ll = count($region['states']); $l < $ll; $l++) {
-                                    $state = $region['states'][$l];
-                                    if (!isset($state['id'])) {
-                                        $state['id'] = 'state:_unknown';
-                                    }
-                                    $stateHash = RestoUtil::getHash($state['id'], $regionHash);
-                                    $keywords[$stateHash] = array(
-                                        'id' => $state['id'],
-                                        'parentId' => $region['id'],
-                                        'hash' => $stateHash,
-                                        'parentHash' => $regionHash,
-                                        'value' => $state['pcover']
-                                    );
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if (isset($properties['landCover'])) {
-            if (isset($properties['landCover']['landUse'])) {
-                foreach (array_values($properties['landCover']['landUse']) as $landuse) {
-                    $id = 'landuse:' . strtolower($landuse['name']);
-                    $hash = RestoUtil::getHash($id);
-                    $keywords[$hash] = array(
-                        'id' => $id,
-                        'hash' => $hash,
-                        'value' => $landuse['pcover']
-                    );
-                }
-            }
-            if (isset($properties['landCover']['landUseDetails'])) {
-                foreach (array_values($properties['landCover']['landUseDetails']) as $landuse) {
-                    $id = 'landuse_details:' . strtolower($landuse['name']);
-                    $parentId = 'landuse:' . strtolower($landuse['parent']);
-                    $parentHash = RestoUtil::getHash($parentId);
-                    $hash = RestoUtil::getHash($id, $parentHash);
-                    $keywords[$hash] = array(
-                        'id' => $id,
-                        'parentId' => $parentId,
-                        'hash' => $hash,
-                        'parentHash' => $parentHash,
-                        'value' => $landuse['pcover']
-                    );
-                }
-            }
-        }
-
-        return array_values($keywords);
-    }
 }

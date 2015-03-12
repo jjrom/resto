@@ -85,7 +85,7 @@ class iTag {
      * @throws Exception
      */
     public function tag($footprint, $options = array()) {
-        
+       
         // Initialize Feature
         $feature = array(
             'type' => 'Feature',
@@ -95,7 +95,8 @@ class iTag {
 
         if ($options['french']) {
             $feature['properties']['political'] = $this->getFrenchPolitical($footprint, $options);
-        } elseif ($options['countries'] || $options['cities'] || $options['regions'] || $options['continents']) {
+        }
+        else if ($options['countries'] || $options['cities'] || $options['regions'] || $options['continents']) {
             $feature['properties']['political'] = $this->getPolitical($footprint, $options);
         }
 
@@ -202,10 +203,15 @@ class iTag {
             $count++;
             $pcover = $this->percentage($val, $totalarea);
             if ($val !== 0 && $pcover > 20) {
+                $name = $this->getGLCClassName($key);
                 if ($options['ordered']) {
-                    array_push($landUse, array('name' => $this->getGLCClassName($key), 'pcover' => $pcover));
+                    array_push($landUse, array(
+                        'name' => $name,
+                        'id' => 'landuse:' . strtolower($name),
+                        'pcover' => $pcover
+                    ));
                 } else {
-                    array_push($landUse, $this->getGLCClassName($key));
+                    array_push($landUse, $name);
                 }
             }
             if ($count > 2) {
@@ -224,10 +230,17 @@ class iTag {
 
         foreach ($out as $key => $val) {
             if ($val !== 0) {
-                array_push($result['landUseDetails'], array('name' => $this->getGLCClassName($key), 'parent' => $this->getGLCClassName($linkage[$key]), 'code' => $key, 'pcover' => $this->percentage($val, $totalarea)));
+                $name = $this->getGLCClassName($key);
+                array_push($result['landUseDetails'], array(
+                    'name' => $name,
+                    'id' => 'landuse_details:' . strtolower(str_replace($name, ' ', '-')),
+                    'parentId' => 'landuse:' . strtolower($this->getGLCClassName($linkage[$key])),
+                    'code' => $key,
+                    'pcover' => $this->percentage($val, $totalarea)
+                ));
             }
         }
-
+        
         return $result;
     }
 

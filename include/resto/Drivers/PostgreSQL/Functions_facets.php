@@ -199,14 +199,10 @@ class Functions_facets {
      * Input facet structure :
      *      array(
      *          array(
-     *              'id' => 'instrument:PHR',
-     *              'hash' => '...'
-     *              'parentId' => 'platform:PHR',
-     *              'parentHash' => '...'
-     *          ),
-     *          array(
-     *              'id' => 'year:2011',
-     *              'hash' => 'xxxxxx'
+     *              'name' => 
+     *              'type' => 
+     *              'hash' => 
+     *              'parentHash' => 
      *          ),
      *          ...
      *      )
@@ -217,25 +213,21 @@ class Functions_facets {
     public function storeFacets($facets, $collectionName) {
         
         foreach (array_values($facets) as $facetElement) {
-                
-            list($ptype, $pvalue) = isset($facetElement['parentId']) ? explode(':', $facetElement['parentId'],2) : array(null, null);
-            list($type, $value) = explode(':', $facetElement['id'], 2);
-
-            /*
-             * Thread safe ingestion
-             */
+            
             $arr = array(
                 '\'' . pg_escape_string($facetElement['hash']) . '\'',
-                '\'' . pg_escape_string($value) . '\'',
-                '\'' . pg_escape_string($type) . '\'',
+                '\'' . pg_escape_string($facetElement['name']) . '\'',
+                '\'' . pg_escape_string($facetElement['type']) . '\'',
                 isset($facetElement['parentHash']) ? '\'' . pg_escape_string($facetElement['parentHash']) . '\'' : 'NULL',
-                isset($pvalue) ? '\'' . pg_escape_string($pvalue) . '\'' : 'NULL',
-                isset($ptype) ? '\'' . pg_escape_string($ptype) . '\'' : 'NULL',
                 isset($collectionName) ? '\'' . pg_escape_string($collectionName) . '\'' : 'NULL',
                 '1'
             );
+            
+            /*
+             * Thread safe ingestion
+             */
             $lock = 'LOCK TABLE resto.facets IN SHARE ROW EXCLUSIVE MODE;';
-            $insert = 'INSERT INTO resto.facets (uid, value, type, pid, pvalue, ptype, collection, counter) SELECT ' . join(',', $arr);
+            $insert = 'INSERT INTO resto.facets (uid, value, type, pid, collection, counter) SELECT ' . join(',', $arr);
             $upsert = 'UPDATE resto.facets SET counter = counter + 1 WHERE uid = \'' . pg_escape_string($facetElement['hash']) . '\' AND collection = \'' . pg_escape_string($collectionName) . '\'';
             $this->dbDriver->query($lock . 'WITH upsert AS (' . $upsert . ' RETURNING *) ' . $insert . ' WHERE NOT EXISTS (SELECT * FROM upsert)', 500, 'Cannot insert facet for ' . $collectionName);
             

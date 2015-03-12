@@ -80,22 +80,20 @@ class RestoFacetUtil {
     /**
      * Constructor
      */
-    public function __construct() {
-    } 
+    public function __construct() {} 
    
     /**
      * Return facet category 
      * 
-     * @param string $facetId
+     * @param string $type
      */
-    public function getFacetCategory($facetId) {
-        if (!isset($facetId)) {
+    public function getFacetCategory($type) {
+        if (!isset($type)) {
             return null;
         }
-        $splitted = explode(':', $facetId);
         for ($i = count($this->facetCategories); $i--;) {
             for ($j = count($this->facetCategories[$i]); $j--;) {
-                if ($this->facetCategories[$i][$j] === $splitted[0]) {
+                if ($this->facetCategories[$i][$j] === $type) {
                     return $this->facetCategories[$i];
                 }
             }

@@ -150,13 +150,8 @@ class Functions_features {
      * @throws Exception
      */
     public function getFeatureDescription($context, $identifier, $collection = null, $filters = array()) {
-        
-        /*
-         * Set model
-         */
         $model = isset($collection) ? $collection->model : new RestoModel_default();
-        
-        $result = $this->dbDriver->query('SELECT ' . implode(',', $this->getSQLFields($model, array('continents', 'countries'))) . ' FROM ' . (isset($collection) ? $this->dbDriver->getSchemaName($collection->name) : 'resto') . '.features WHERE ' . $model->getDbKey('identifier') . "='" . pg_escape_string($identifier) . "'" . (count($filters) > 0 ? ' AND ' . join(' AND ', $filters) : ''));
+        $result = $this->dbDriver->query('SELECT ' . implode(',', $this->getSQLFields($model)) . ' FROM ' . (isset($collection) ? $this->dbDriver->getSchemaName($collection->name) : 'resto') . '.features WHERE ' . $model->getDbKey('identifier') . "='" . pg_escape_string($identifier) . "'" . (count($filters) > 0 ? ' AND ' . join(' AND ', $filters) : ''));
         $featureUtil = new RestoFeatureUtil($context, $collection);
         return $featureUtil->toFeatureArray(pg_fetch_assoc($result));
     }
@@ -177,270 +172,46 @@ class Functions_features {
     /**
      * Insert feature within collection
      * 
-     * @param string $collectionName
-     * @param array $elements
-     * @param RestoModel $model
+     * @param RestoCollection $collection
+     * @param array $featureArray
      * @throws Exception
      */
-    public function storeFeature($collectionName, $elements, $model) {
+    public function storeFeature($collection, $featureArray) {
         
-        $keys = array(pg_escape_string($model->getDbKey('collection')));
-        $values = array('\'' . pg_escape_string($collectionName) . '\'');
-        $facets = array(
-            array(
-                'id' => 'collection:' . $collectionName,
-                'hash' => RestoUtil::getHash('collection:' . $collectionName)
-            )
-        );
+        /*
+         * Check that resource does not already exist in database
+         */
+        if ($collection->context->dbDriver->check(RestoDatabaseDriver::FEATURE, array('featureIdentifier' => $featureArray['id']))) {
+            RestoLogUtil::httpError(500, 'Feature ' . $featureArray['id'] . ' already in database');
+        }
+        
+        /*
+         * Get database columns array
+         */
+        $columnsAndValues = $this->getColumnsAndValues($collection, $featureArray);
+        
         try {
-            
-            /*
-             * Initialize hashes array
-             */
-            $hashes = array();
-                        
-            for ($i = count($elements); $i--;) {
-                
-                /*
-                 * Do not process null values
-                 */
-                if (!isset($elements[$i][1])) {
-                    continue;
-                }
-                
-                if (in_array($elements[$i][0], array('updated', 'published', 'collection'))) {
-                    continue;
-                }
-                
-                $keys[] = pg_escape_string($model->getDbKey($elements[$i][0]));
-                
-                /*
-                 * Convert geometry to PostgreSQL WKT
-                 */
-                if ($elements[$i][0] === 'geometry') {
-                    $values[] = 'ST_GeomFromText(\'' . RestoGeometryUtil::geoJSONGeometryToWKT($elements[$i][1]) . '\', 4326)';
-                }
-                
-                /*
-                 * Special case for keywords
-                 * 
-                 * It is assumed that $value has the same structure as
-                 * the output keywords property i.e. 
-                 *   
-                 *      $keywords = array(
-                 *          array(
-                 *              array(
-                 *                  "name" => name
-                 *                  "id" => id, // type:value
-                 *                  "parentId" => id, // parentType:parentValue
-                 *                  "hash" => // unique hash for this id
-                 *                  "parentHash" => // parent unique hash
-                 *                  "value" => value or array()
-                 *              ),
-                 *              array(
-                 *                  ...
-                 *              )
-                 *          )
-                 *      );
-                 * 
-                 *  keyword are stored in hstore column with the following convention :
-                 * 
-                 *       hash => urlencode({"name":"...", "hash":"...", "parentHash":"...", "value":"..."})
-                 * 
-                 *  hash for each keyword is stored within the hases column for search purpose
-                 */
-                else if ($elements[$i][0] === 'keywords' && is_array($elements[$i][1])) {
-                    foreach (array_values($elements[$i][1]) as $keyword) {
-                        
-                        /*
-                         * Compute hash from id if not specified
-                         * (this should be the case for input non iTag keywords)
-                         */
-                        if (isset($keyword['parentId']) && !isset($keyword['parentHash'])) {
-                            $keyword['parentHash'] = RestoUtil::getHash($keyword['parentId']);
-                        }
-                        if (!isset($keyword['hash'])) {
-                            $keyword['hash'] = RestoUtil::getHash($keyword['id'], isset($keyword['parentHash']) ? $keyword['parentHash'] : null);
-                        }
-                        if ($this->dbDriver->facetUtil->getFacetCategory($keyword['id'])) {
-                            $facets[] = array(
-                                'id' => $keyword['id'],
-                                'hash' => $keyword['hash'],
-                                'parentId' => isset($keyword['parentId']) ? $keyword['parentId'] : null,
-                                'parentHash' => isset($keyword['parentHash']) ? $keyword['parentHash'] : null
-                            );
-                        }
-                       
-                        /*
-                         * Prepare hstore value as a json string
-                         */
-                        $json = array(
-                            'hash' => $keyword['hash']
-                        );
-                        foreach (array_keys($keyword) as $property) {
-                            if (!in_array($property, array('id', 'parentId', 'hash'))) {
-                                $json[$property] = $keyword[$property];
-                            }
-                        }
-                        $quote = count(explode(' ', $keyword['id'])) > 1 ? '"' : '';
-                        $propertyTags[] =  $quote . $keyword['id'] . $quote . '=>"' . urlencode(json_encode($json)) . '"';
-                        
-                        /*
-                         * Store both hashes and id to hashes
-                         */
-                        $hashes[] = '"' . pg_escape_string($keyword['hash']) . '"';
-                        
-                        
-                        $splitted = explode(':', $keyword['id']);
-                        if ($splitted[0] !== 'landuse_details') {
-                            $hashes[] = '"' . pg_escape_string($keyword['id']) . '"';
-                        }
-                        
-                    }
-                    if (isset($propertyTags)) {
-                        $values[] = '\'' . pg_escape_string(join(',', $propertyTags)) . '\'';
-                    }
-                    else {
-                        $values[] = '\'\'';
-                    }
-                    /*
-                     * landuse keywords are also stored in dedicated
-                     * table columns to speed up search requests
-                     */
-                    foreach (array_values($elements[$i][1]) as $keyword) {
-                        list($facetType, $idId) = explode(':', $keyword['id'], 2);
-                        if ($facetType === 'landuse') {
-                            $keys[] = 'lu_' . $idId;
-                            $values[] = $keyword['value'];
-                        }
-                    }
-                }
-                else {
-                    
-                    /*
-                     * Special case for array
-                     */
-                    if ($model->getDbType($elements[$i][0]) === 'array') {
-                        $values[] = '\'{' . pg_escape_string(join(',', $elements[$i][1])) . '}\'';'\'';
-                    }
-                    else {
-                        $values[] = '\'' . pg_escape_string($elements[$i][1]) . '\'';
-                    }
-                    
-                    $id = $elements[$i][0] . ':' . $elements[$i][1];
-                    if ($this->dbDriver->facetUtil->getFacetCategory($id)) {
-                        
-                        /*
-                         * Retrieve parent value from input elements
-                         */
-                        $parentType = $elements[$i][0];
-                        $parentIds = array();
-                        
-                        /*
-                         * Compute parentHash from ancestors !
-                         */
-                        while (isset($parentType)) {
-                            $parentType = $this->dbDriver->facetUtil->getFacetParentType($parentType);
-                            for ($j = count($elements); $j--;) {
-                                if ($elements[$j][0] === $parentType && $elements[$j][1]) {
-                                    $parentIds[] = $parentType . ':' . $elements[$j][1];
-                                    break;
-                                }
-                            }
-                        }
-                        
-                        if (count($parentIds) > 0) {
-                            $parentHash = null;
-                            for ($k = count($parentIds); $k--;) {
-                                $parentHash = RestoUtil::getHash($parentIds[$k], $parentHash);
-                            }
-                            $hash = RestoUtil::getHash($id, $parentHash);
-                            $hashes[] = '"' . pg_escape_string($hash) . '"';
-                            $facets[] = array(
-                                'id' => $id,
-                                'hash' => $hash,
-                                'parentId' => $parentIds[0],
-                                'parentHash' => $parentHash
-                            );
-                        }
-                        else {
-                            $hash = RestoUtil::getHash($id);
-                            $hashes[] = '"' . pg_escape_string($hash) . '"';
-                            $facets[] = array(
-                                'id' => $id,
-                                'hash' => $hash
-                            );
-                        }
-                        
-                        /*
-                         * In any case store unmodified id to hashes
-                         */
-                        if ($elements[$i][0] !== 'landuse_details') {
-                            $hashes[] = '"' . pg_escape_string($id) . '"';
-                        }
-                    }
-                    /*
-                     * Create facet for year/month/date
-                     */
-                    else if ($elements[$i][0] === 'startDate' && RestoUtil::isISO8601($elements[$i][1])) {
-                        $idYear = 'year:' . substr($elements[$i][1], 0, 4);
-                        $hashYear = RestoUtil::getHash($idYear);
-                        $idMonth = 'month:' . substr($elements[$i][1], 5, 2);
-                        $hashMonth = RestoUtil::getHash($idMonth, $hashYear);
-                        $idDay = 'day:' . substr($elements[$i][1], 8, 2);
-                        $hashDay = RestoUtil::getHash($idDay);
-                        $hashes[] = '"' . pg_escape_string($idYear) . '"';
-                        $hashes[] = '"' . pg_escape_string($idMonth) . '"';
-                        $hashes[] = '"' . pg_escape_string($idDay) . '"';
-                        $facets[] = array(
-                            'id' => $idYear,
-                            'hash' => $hashYear
-                        );
-                        $facets[] = array(
-                            'id' => $idMonth,
-                            'hash' => $hashMonth,
-                            'parentId' => $idYear,
-                            'parentHash' => $hashYear
-                        );
-                        $facets[] = array(
-                            'id' => $idDay,
-                            'hash' => $hashDay,
-                            'parentId' => $idMonth,
-                            'parentHash' => $hashMonth
-                        );
-                    }
-                }
-            }
-            
-            /*
-             * Add "updated" and "published" keywords 
-             */
-            $keys[] = 'updated';
-            $values[] = 'now()';
-            $keys[] = 'published';
-            $values[] = 'now()';
-            
-            /*
-             * Hashes column
-             */
-            if (count($hashes) > 0) {
-                $keys[] = $model->getDbKey('hashes');
-                $values[] = '\'{' . join(',', $hashes) . '}\'';
-            }
             
             /*
              * Start transaction
              */
             pg_query($this->dbh, 'BEGIN');
-            pg_query($this->dbh, 'INSERT INTO ' . pg_escape_string($this->dbDriver->getSchemaName($collectionName)) . '.features (' . join(',', $keys) . ') VALUES (' . join(',', $values) . ')');
-            $this->dbDriver->store(RestoDatabaseDriver::FACETS, array(
-                'facets' => $facets,
-                'collectionName' => $collectionName
-            ));
+            
+            /*
+             * Store feature
+             */
+            pg_query($this->dbh, 'INSERT INTO ' . pg_escape_string($this->dbDriver->getSchemaName($collection->name)) . '.features (' . join(',', array_keys($columnsAndValues)) . ') VALUES (' . join(',', array_values($columnsAndValues)) . ')');
+            
+            /*
+             * Store facets
+             */
+            $this->storeKeywordsFacets($collection, json_decode(trim($columnsAndValues['keywords'], '\''), true));
+            
             pg_query($this->dbh, 'COMMIT');
+            
         } catch (Exception $e) {
             pg_query($this->dbh, 'ROLLBACK');
-            RestoLogUtil::httpError(500, 'Feature ' . $keys['identifier'] . ' cannot be inserted in database');
+            RestoLogUtil::httpError(500, 'Feature ' . $featureArray['id'] . ' cannot be inserted in database');
         }
     }
     
@@ -453,36 +224,185 @@ class Functions_features {
         
         try {
             
+            /*
+             * Begin transaction
+             */
             $this->dbDriver->query('BEGIN');
+            
+            /*
+             * Remove feature
+             */
+            $this->dbDriver->query('DELETE FROM ' . (isset($feature->collection) ? $this->dbDriver->getSchemaName($feature->collection->name): 'resto') . '.features WHERE identifier=\'' . pg_escape_string($feature->identifier) . '\'');
             
             /*
              * Remove facets
              */
-            $featureArray = $feature->toArray();
-            foreach($featureArray['properties'] as $key => $value) {
-                
-                /*
-                 * Keywords facets
-                 */
-                if ($key === 'keywords') {
-                    $this->removeKeywordsFacets($featureArray['properties'][$key], $featureArray['properties']['collection']);
-                }
-                /*
-                 * Property facets
-                 */
-                else {
-                    $this->removePropertyFacet($featureArray['properties'], $key . ':' . $value, $featureArray['properties']['collection']);
-                }
-                
-            }
-            $this->dbDriver->query('DELETE FROM ' . (isset($feature->collection) ? $this->dbDriver->getSchemaName($feature->collection->name): 'resto') . '.features WHERE identifier=\'' . pg_escape_string($feature->identifier) . '\'');
-            $this->dbDriver->query('COMMIT');    
+            $this->removeFeatureFacets($feature->toArray());
+            
+            /*
+             * Commit
+             */
+            $this->dbDriver->query('COMMIT');
+            
         } catch (Exception $e) {
             $this->dbDriver->query('ROLLBACK'); 
             RestoLogUtil::httpError(500, 'Cannot delete feature ' . $feature->identifier);
         }
     }
    
+    /**
+     * Store keywords facets
+     * 
+     * @param RestoCollection $collection
+     * @param array $keywords
+     */
+    private function storeKeywordsFacets($collection, $keywords) {
+        
+        /*
+         * One facet per keyword
+         */
+        $facets = array();
+        foreach ($keywords as $hash => $keyword) {
+            if ($this->dbDriver->facetUtil->getFacetCategory($keyword['type'])) {
+                $facets[] = array(
+                    'name' => $keyword['name'],
+                    'type' => $keyword['type'],
+                    'hash' => $hash,
+                    'parentHash' => isset($keyword['parentHash']) ? $keyword['parentHash'] : null
+                );
+            }
+        }
+        
+        /*
+         * Store to database
+         */
+        $this->dbDriver->store(RestoDatabaseDriver::FACETS, array(
+            'facets' => $facets,
+            'collectionName' => $collection->name
+        ));
+            
+    }
+    /**
+     * Convert feature array to database column/value pairs
+     * 
+     * @param RestoCollection $collection
+     * @param array $featureArray
+     * @throws Exception
+     */
+    private function getColumnsAndValues($collection, $featureArray) {
+        
+        /*
+         * Initialize columns array
+         */
+        $columns = array_merge(
+            array(
+                $collection->model->getDbKey('identifier') => '\'' . $featureArray['id'] . '\'',
+                $collection->model->getDbKey('collection') => '\'' . $collection->name . '\'',
+                $collection->model->getDbKey('geometry') => 'ST_GeomFromText(\'' . RestoGeometryUtil::geoJSONGeometryToWKT($featureArray['geometry']) . '\', 4326)',
+                'updated' => 'now()',
+                'published' => 'now()'
+            ),
+            $this->propertiesToColumns($collection, $featureArray['properties'])
+        );
+        
+        return $columns;
+            
+    }
+    
+    /**
+     * Convert feature properties array to database column/value pairs
+     * 
+     * @param RestoCollection $collection
+     * @param array $properties
+     * @throws Exception
+     */
+    private function propertiesToColumns($collection, $properties) {
+        
+        /*
+         * Roll over properties
+         */
+        $columns = array();
+        foreach ($properties as $propertyName => $propertyValue) {
+
+            /*
+             * Do not process null and already processed values
+             */
+            if (!isset($propertyValue) || in_array($propertyName, array('updated', 'published', 'collection'))) {
+                continue;
+            }
+            
+            /*
+             * Keywords
+             */
+            if ($propertyName === 'keywords' && is_array($propertyValue)) {
+                
+                $columnValue = '\'' . pg_escape_string(json_encode($propertyValue)) . '\'';
+                
+                /*
+                 * Compute hashes
+                 */
+                $columns[$collection->model->getDbKey('hashes')] = '\'{' . join(',', $this->getHashes($propertyValue)) . '}\'';
+                
+                /*
+                 * landuse keywords are also stored in dedicated
+                 * table columns to speed up search requests
+                 */
+                $columns = array_merge($columns, $this->landuseColumns($propertyValue));
+                
+            }
+            /*
+             * Special case for array
+             */
+            else if ($collection->model->getDbType($propertyName) === 'array') {
+                $columnValue = '\'{' . pg_escape_string(join(',', $propertyValue)) . '}\'';
+            }
+            else {
+                $columnValue = '\'' . pg_escape_string($propertyValue) . '\'';
+            }
+            
+            /*
+             * Add element
+             */
+            $columns[$collection->model->getDbKey($propertyName)] = $columnValue;
+            
+        }
+        
+        return $columns;
+
+    }
+    
+    
+    /**
+     * Return array of hashes from keywords
+     * 
+     * @param type $keywords
+     */
+    private function getHashes($keywords) {
+        $hashes = array();
+        foreach (array_keys($keywords) as $hash) {
+            $id = $keywords[$hash]['type'] . ':' . (isset($keywords[$hash]['normalized']) ? $keywords[$hash]['normalized'] : strtolower($keywords[$hash]['name']));
+            $hashes[] = '"' . pg_escape_string($hash) . '"';
+            $hashes[] = '"' . pg_escape_string($id) . '"';
+        }
+        return $hashes;
+    }
+    
+    /**
+     * Get landuse database columns from input keywords
+     * 
+     * @param array $keywords
+     * @return type
+     */
+    private function landuseColumns($keywords) {
+        $columns = array();
+        foreach (array_values($keywords) as $keyword) {
+            if ($keyword['type'] === 'landuse') {
+                $columns['lu_' . strtolower($keyword['name'])] = $keyword['value'];
+            }
+        }
+        return $columns;
+    }
+
     /**
      * 
      * Prepare an SQL WHERE clause from input filterName
@@ -511,7 +431,7 @@ class Functions_features {
          * Special case - dates
          */
         if ($type === 'date') {
-            return $this->prepareFilterQuery_date();
+            return $this->prepareFilterQuery_date($model, $filterName, $requestParams);
         }
 
         /*
@@ -551,10 +471,10 @@ class Functions_features {
      * Return an array of database column names
      * 
      * @param RestoModel $model
-     * @param array $excluded : list of fields to exclude from request
+     * 
      * @return array
      */
-    private function getSQLFields($model, $excluded = array()) {
+    private function getSQLFields($model) {
 
         /*
          * Get Controller database fields
@@ -565,7 +485,7 @@ class Functions_features {
             /*
              * Avoid null value and excluded fields
              */
-            if (!isset($model->properties[$key]) || in_array($key, $excluded)) {
+            if (!isset($model->properties[$key]) || isset($model->properties[$key]['notDisplayed'])) {
                 continue;
             }
             
@@ -698,58 +618,17 @@ class Functions_features {
     }
     
     /**
-     * Remove keywords facets
+     * Remove feature facets
      * 
-     * @param array $keywords
-     * @param string $collectionName
+     * @param array $featureArray
      */
-    private function removeKeywordsFacets($keywords, $collectionName) {
-        for ($i = count($keywords); $i--;) {
-            if (isset($keywords[$i]['hash'])) {
-                $this->dbDriver->remove(RestoDatabaseDriver::FACET, array(
-                    'hash' => $keywords[$i]['hash'],
-                    'collectionName' => $collectionName
-                ));
-            }
+    private function removeFeatureFacets($featureArray) {
+        foreach (array_keys($featureArray['properties']['keywords']) as $hash) {
+            $this->dbDriver->remove(RestoDatabaseDriver::FACET, array(
+                'hash' => $hash,
+                'collectionName' => $featureArray['properties']['collection']
+            ));
         }
-    }
-    
-    /**
-     * Remove non-keywords facets
-     * 
-     * @param array $properties
-     * @param array $id
-     * @param string $collectionName
-     */
-    private function removePropertyFacet($properties, $id, $collectionName) {
-        
-        if (!$this->dbDriver->facetUtil->getFacetCategory($id)) {
-            return false;
-        }
-                
-        $parentHash = null;
-        list($parentType) = explode(':', $id, 1);
-        $parentIds = array();
-        while (isset($parentType)) {
-            $parentType = $this->dbDriver->facetUtil->getFacetParentType($parentType);
-            foreach ($properties as $pKey => $pValue) {
-                if ($pKey === $parentType && $pValue) {
-                    $parentIds[] = $parentType . ':' . $pValue;
-                    break;
-                }
-            }
-        }
-        if (count($parentIds) > 0) {
-            for ($k = count($parentIds); $k--;) {
-                $parentHash = RestoUtil::getHash($parentIds[$k], $parentHash);
-            }
-        }
-        
-        return $this->dbDriver->remove(RestoDatabaseDriver::FACET, array(
-           'hash' => RestoUtil::getHash($id, $parentHash),
-           'collectionName' => $collectionName
-        ));
-        
     }
     
     /**
@@ -898,9 +777,8 @@ class Functions_features {
      * Prepare SQL query for keywords- i.e. searchTerms
      * 
      * !! IMPORTANT NOTE !!
-     * 
-     *      keywords are stored in hstore 'keywords' column
-     *      BUT searches are done on the array 'hashes' column
+     *      
+     *      Searches are done on the array 'hashes' column
      * 
      * @param RestoModel $model
      * @param string $filterName
@@ -1074,4 +952,5 @@ class Functions_features {
         }
         
     }
+    
 }

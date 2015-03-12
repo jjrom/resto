@@ -53,6 +53,11 @@ class RestoFeatureUtil {
      */
     private $collection;
     
+    /*
+     * Search url endpoint
+     */
+    private $searchUrl;
+    
     /**
      * Constructor
      * 
@@ -63,6 +68,7 @@ class RestoFeatureUtil {
         $this->context = $context;
         $this->model = isset($collection) ? $collection->model : new RestoModel_default();
         $this->collection = $collection;
+        $this->searchUrl = $this->context->baseUrl . '/api/collections' . (isset($this->collection) ? '/' . $this->collection->name : '' ) . '/search.json';
     } 
    
     /**
@@ -111,7 +117,6 @@ class RestoFeatureUtil {
      */
     private function toProperties($rawCorrectedArray) {
         
-        $searchUrl = $this->context->baseUrl . '/api/collections' . (isset($this->collection) ? '/' . $this->collection->name : '' ) . '/search.json';
         $thisUrl = isset($this->collection) ? RestoUtil::restoUrl($this->collection->getUrl(), $rawCorrectedArray['identifier']) : RestoUtil::restoUrl($this->context->baseUrl, '/collections/' . $rawCorrectedArray['collection'] . '/' . $rawCorrectedArray['identifier']);
         
         $properties = $rawCorrectedArray;
@@ -122,21 +127,9 @@ class RestoFeatureUtil {
         $this->updatePaths($properties);
         
         /*
-         * Set date keywords
+         * Set unstored keywords - TODO
          */
-        if (isset($properties[$this->model->searchFilters['time:start']['key']])) {
-            $this->setDateKeywords($properties, $searchUrl);
-        }
-        
-        /*
-         * Set other keywords
-         */
-        $this->setKeywords($properties, $searchUrl);
-        
-        /*
-         * Set landuse
-         */
-        $this->setLanduse($properties);
+        //$this->setUnstoredKeywords($properties);
         
         /*
          * Set services
@@ -194,9 +187,9 @@ class RestoFeatureUtil {
      * Add keywords for dedicated filters
      * 
      * @param array $properties
-     * @param string $searchUrl
      */
-    private function setKeywords(&$properties, $searchUrl) {
+    private function setUnstoredKeywords(&$properties) {
+        
         foreach (array_keys($this->model->searchFilters) as $key) {
             if (isset($this->model->searchFilters[$key]['keyword']) && isset($properties[$this->model->searchFilters[$key]['key']])) {
                 
@@ -212,112 +205,10 @@ class RestoFeatureUtil {
                 $properties['keywords'][] = array(
                     'name' => $name,
                     'id' => $this->model->searchFilters[$key]['keyword']['type'] . ':' . $name,
-                    'href' => RestoUtil::updateUrl($searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $name))
+                    'href' => RestoUtil::updateUrl($this->searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $name))
                 );
             }
         }
-    }
-    
-    /**
-     * Add a keyword for year, month and day of acquisition
-     * 
-     * @param array $properties
-     * @param string $searchUrl
-     */
-    private function setDateKeywords(&$properties, $searchUrl) {
-        $yearKeyword = $this->getYearKeyword($properties, $searchUrl);
-        $monthKeyword = $this->getMonthKeyword($properties, $searchUrl, $yearKeyword);
-        $dayKeyword = $this->getDayKeyword($properties, $searchUrl, $monthKeyword);
-        $properties['keywords'][] = $yearKeyword;
-        $properties['keywords'][] = $monthKeyword;
-        $properties['keywords'][] = $dayKeyword;
-    }
-    
-    /**
-     * Add a keyword for year
-     * 
-     * @param array $properties
-     * @param string $searchUrl
-     */
-    private function getYearKeyword($properties, $searchUrl) {
-        $year = substr($properties[$this->model->searchFilters['time:start']['key']], 0, 4);
-        $idYear = 'year:' . $year;
-        $hashYear = RestoUtil::getHash($idYear);
-        return array(
-            'name' => $year,
-            'id' => $idYear,
-            'hash' => $hashYear,
-            'href' => RestoUtil::updateUrl($searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $year, $this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
-        );
-    }
-    
-    /**
-     * Add a keyword for month
-     * 
-     * @param array $properties
-     * @param string $searchUrl
-     */
-    private function getMonthKeyword($properties, $searchUrl, $parentKeyword) {
-        $month = substr($properties[$this->model->searchFilters['time:start']['key']], 0, 7);
-        $idMonth = 'month:' . $month;
-        $hashMonth = RestoUtil::getHash($idMonth, $parentKeyword['hash']);
-        return array(
-            'name' => $month,
-            'id' => $idMonth,
-            'hash' => $hashMonth,
-            'parentId' => $parentKeyword['id'],
-            'parentHash' => $parentKeyword['hash'],
-            'href' => RestoUtil::updateUrl($searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $month, $this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
-        );
-    }
-    
-    /**
-     * Add a keyword for day
-     * 
-     * @param array $properties
-     * @param string $searchUrl
-     */
-    private function getDayKeyword($properties, $searchUrl, $parentKeyword) {
-        $day = substr($properties[$this->model->searchFilters['time:start']['key']], 0, 10);
-        $idDay = 'day:' . $day;
-        return array(
-            'name' => $day,
-            'id' => $idDay,
-            'hash' => RestoUtil::getHash($idDay),
-            'parentId' => $parentKeyword['id'],
-            'parentHash' => $parentKeyword['hash'],
-            'href' => RestoUtil::updateUrl($searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $day, $this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
-        );
-    }
-    
-    /**
-     * Add a keyword for year, month and day of acquisition
-     * 
-     * @param array $properties
-     */
-    private function setLanduse(&$properties) {
-        $landUse = array(
-            'cultivatedCover',
-            'desertCover',
-            'floodedCover',
-            'forestCover',
-            'herbaceousCover',
-            'iceCover',
-            'urbanCover',
-            'waterCover'
-        );
-        if (!isset($properties['landUse']) || !is_array($properties['landUse'])) {
-            $properties['landUse'] = array();
-        }
-        for ($i = count($landUse); $i--;) {
-            if (isset($properties[$landUse[$i]])) {
-                if ($properties[$landUse[$i]]) {
-                    $properties['landUse'][$landUse[$i]] = $properties[$landUse[$i]];
-                }
-                unset($properties[$landUse[$i]]);
-            }
-        }
-        
     }
     
     /**
@@ -448,8 +339,7 @@ class RestoFeatureUtil {
               $properties['resourceSize'],
               $properties['resourceChecksum'],
               $properties['bbox3857'],
-              $properties['bbox4326'],
-              $properties['visible']
+              $properties['bbox4326']
         );
         
     }
@@ -468,21 +358,23 @@ class RestoFeatureUtil {
         $corrected = array();
         
         foreach ($rawFeatureArray as $key => $value) {
-            
-            if ($key === 'bbox4326') {
-                $corrected[$key] = str_replace(' ', ',', substr(substr($rawFeatureArray[$key], 0, strlen($rawFeatureArray[$key]) - 1), 4));
-                      
-                /*
-                 * Compute EPSG:3857 bbox
-                 */
-                $corrected['bbox3857'] = RestoGeometryUtil::bboxToMercator($rawFeatureArray[$key]);
-            
-            }
-            else if ($key === 'totalcount') {
-                $corrected[$key] = (integer) $value;
-            }
-            else {
-                $corrected[$key] = $this->castExplicit($key, $value, isset($rawFeatureArray['collection']) ? $rawFeatureArray['collection'] : null);
+            switch($key) {
+                
+                case 'bbox4326':
+                    $corrected[$key] = str_replace(' ', ',', substr(substr($rawFeatureArray[$key], 0, strlen($rawFeatureArray[$key]) - 1), 4));
+                    $corrected['bbox3857'] = RestoGeometryUtil::bboxToMercator($rawFeatureArray[$key]);
+                    break;
+                
+                case 'totalcount':
+                    $corrected[$key] = (integer) $value;
+                    break;
+                
+                case 'keywords':
+                    $corrected[$key] = $this->correctKeywords(json_decode($value, true));
+                    break;
+                
+                default:
+                    $corrected[$key] = $this->castExplicit($key, $value);
             }
         }
         
@@ -495,7 +387,7 @@ class RestoFeatureUtil {
      * @param string $key
      * @param string $value
      */
-    private function castExplicit($key, $value, $collectionName) {
+    private function castExplicit($key, $value) {
         switch($this->model->getDbType($key)) {
             case 'integer':
                 return (integer) $value;
@@ -506,8 +398,6 @@ class RestoFeatureUtil {
              */
             case 'geometry':
                 return json_decode($value, true);
-            case 'hstore':
-                return $this->hstoreToKeywords($value, $this->context->baseUrl . '/api/collections' . (isset($collectionName) ? '/' . $collectionName : '' ) . '/search.json');
             case 'array':
                 return explode(',', substr($value, 1, -1));
             default:
@@ -517,77 +407,49 @@ class RestoFeatureUtil {
     
     /**
      * 
-     * Return keyword array assuming an input hstore $string 
+     * Update keywords - i.e. translate name and add url endpoint
      * 
-     * Note : $string format is "type:name" => urlencode(json)
-     *
-     *      e.g. "continent:oceania"=>"%7B%22hash%22%3A%2262f4365c66c1f64%22%7D", "country:australia"=>"%7B%22hash%22%3A%228f36daace0ea948%22%2C%22parentHash%22%3A%2262f4365c66c1f64%22%2C%22value%22%3A100%7D"
+     * @param array $keywords
      * 
-     * 
-     * Structure of output is 
-     *      array(
-     *          "id" => // Keyword id (optional)
-     *          "type" => // Keyword type
-     *          "value" => // Keyword value if it make sense
-     *          "href" => // RESTo search url to get keyword
-     *      )
-     * 
-     * @param string $hstore
-     * @param string $url : Base url for setting href links
      * @return array
      */
-    private function hstoreToKeywords($hstore, $url) {
+    private function correctKeywords($keywords) {
         
-        if (!isset($hstore)) {
+        if (!isset($keywords)) {
             return null;
         }
         
-        $json = json_decode('{' . str_replace('}"', '}', str_replace('\"', '"', str_replace('"{', '{', str_replace('"=>"', '":"', $hstore)))) . '}', true);
-        
-        if (!isset($json) || !is_array($json)) {
-            return null;
-        }
-        
-        $keywords = array();
-        foreach ($json as $key => $value) {
-
-            /*
-             * $key format is "type:id"
-             */
-            list($type, $id) = explode(':', $key, 2);
-            $hrefKey = $key;
+        $corrected = array();
+        foreach ($keywords as $key => $value) {
             
             /*
              * Do not display landuse_details
              */
-            if ($type === 'landuse_details') {
+            if ($value['type'] === 'landuse_details') {
                 continue;
             }
-
+            
+            /*
+             * Clone keyword array
+             */
+            $corrected[$key] = $keywords[$key];
+            
             /*
              * Value format is urlencode(json)
              */
-            $properties = json_decode(urldecode($value), true); 
-            if (!isset($properties['name'])) {
-                $properties['name'] = trim($this->context->dictionary->getKeywordFromValue($id, $type));
-                if (!isset($properties['name'])) {
-                    $properties['name'] = ucwords($id);
-                }
-                $hrefKey = $properties['name'];
+            $corrected[$key]['name'] = trim($this->context->dictionary->getKeywordFromValue(isset($value['normalized']) ? $value['normalized'] : $value['name'] , $value['type']));
+            if (empty($corrected[$key]['name'])) {
+                $corrected[$key]['name'] = ucwords($value['name']);
             }
-            $keywords[] = array(
-                'name' => isset($properties['name']) && $properties['name'] !== '' ? $properties['name'] : $key,
-                'id' => $key,
-                'href' => RestoUtil::updateUrl($url, array($this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language,  $this->model->searchFilters['searchTerms']['osKey'] => count(explode(' ', $hrefKey)) > 1 ? '"'. $hrefKey . '"' : $hrefKey))
-            );
-            foreach (array_keys($properties) as $property) {
-                if (!in_array($property, array('name', 'id'))) {
-                    $keywords[count($keywords) - 1][$property] = $properties[$property];
-                }
-            }
+            
+            $corrected[$key]['href'] = RestoUtil::updateUrl($this->searchUrl, array(
+                $this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language,
+                $this->model->searchFilters['searchTerms']['osKey'] => count(explode(' ', $corrected[$key]['name'])) > 1 ? '"'. $corrected[$key]['name'] . '"' : $corrected[$key]['name']
+            ));
+            
         }
 
-        return $keywords;
+        return $corrected;
     }
  
 }

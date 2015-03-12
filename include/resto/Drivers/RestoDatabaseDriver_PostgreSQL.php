@@ -404,7 +404,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             case parent::FEATURE:
                 $featuresFunctions = new Functions_features($this);
-                return $featuresFunctions->storeFeature($params['collectionName'], $params['elements'], $params['model']);
+                return $featuresFunctions->storeFeature($params['collection'], $params['featureArray']);
             
             /*
              * Store cart item

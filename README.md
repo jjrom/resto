@@ -17,8 +17,8 @@ If not already done, download resto sources to $RESTO_HOME
 ### Prerequesites
 
 * Apache (v2.0+) with **mod_rewrite** support
-* PHP (v5.3+) with **curl, XMLWriter and PGConnect** extensions
-* PostgreSQL (v9.0+) with **hstore** and **unaccent** extensions
+* PHP (v5.3+) with **XMLWriter and PGConnect** extensions
+* PostgreSQL (v9.3+) with json support and **unaccent** extension
 * PostGIS (v1.5.1+)
 
 Note: resto could work with lower version of the specified requirements.
@@ -28,7 +28,7 @@ However there is no guaranty of success and unwanted result may occured !
 
 resto installs a PostgreSQL database named 'resto2'. 
 
-The 'resto2' database is created with PostGIS and hstore extension enabled within the 'public' schema.
+The 'resto2' database is created with PostGIS extension enabled within the 'public' schema.
 
 During the installation, two additional schemas are created :
 * 'resto' schema - among others, it stores the table containing the collections description
