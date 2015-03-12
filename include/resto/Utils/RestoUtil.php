@@ -545,11 +545,11 @@ class RestoUtil {
             if (is_array($value)) {
                 for ($i = count($value); $i--;) {
                     //echo $key . ' : ' . $value[$i] . "\n";
-                    $paramsStr .= (isset($paramsStr) ? '&' : '') . urlencode($key) . '[]=' . urlencode($value[$i]);
+                    $paramsStr .= (isset($paramsStr) ? '&' : '') . rawurlencode($key) . '[]=' . rawurlencode($value[$i]);
                 }
             }
             else {
-                $paramsStr .= (isset($paramsStr) ? '&' : '') . urlencode($key) . '=' . urlencode($value);
+                $paramsStr .= (isset($paramsStr) ? '&' : '') . rawurlencode($key) . '=' . rawurlencode($value);
             }
         }
         return '?' . $paramsStr;

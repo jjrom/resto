@@ -382,7 +382,7 @@ class RestoRoutePOST extends RestoRoute {
             RestoLogUtil::httpError(3000);
         }
 
-        $redirect = isset($data['activateUrl']) ? '&redirect=' . urlencode($data['activateUrl']) : '';
+        $redirect = isset($data['activateUrl']) ? '&redirect=' . rawurlencode($data['activateUrl']) : '';
         $userInfo = $this->context->dbDriver->store(RestoDatabaseDriver::USER_PROFILE, array(
             'profile' => array(
                 'email' => $data['email'],

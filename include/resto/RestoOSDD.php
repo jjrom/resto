@@ -92,7 +92,7 @@ class RestoOSDD extends RestoXML {
     public function __construct($collection) {
         parent::__construct();
         $this->collection = $collection;
-        $this->clientId = isset($this->collection->context->query['clientId']) ? 'clientId=' . urlencode($this->collection->context->query['clientId']) . '&' : '';
+        $this->clientId = isset($this->collection->context->query['clientId']) ? 'clientId=' . rawurlencode($this->collection->context->query['clientId']) . '&' : '';
         $this->setOSDD();
     }
     
