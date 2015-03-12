@@ -216,44 +216,35 @@ class RestoKeywordsUtil {
     }
     
     private function getContinentsKeywords($properties) {
-        $keywords = array();
-        for ($i = 0, $ii = count($properties); $i < $ii; $i++) {
-            $keyword = $this->getGenericKeyword($properties[$i], 'continent', null, null);
-            $keywords[$keyword['hash']] = $keyword['value'];
-            $keywords = array_merge($keywords, $this->getCountriesKeywords($properties[$i]['countries'], $keyword['hash']));
-        }
-        return $keywords;
+        return $this->getGenericKeywords($properties, array(
+            'type' => 'continent',
+            'defaultName' => null,
+            'parentHash' => null
+        ));
     }
 
     private function getCountriesKeywords($properties, $parentHash) {
-        $keywords = array();
-        for ($i = 0, $ii = count($properties); $i < $ii; $i++) {
-            $keyword = $this->getGenericKeyword($properties[$i], 'country', null, $parentHash);
-            $keywords[$keyword['hash']] = $keyword['value'];
-            if (isset($properties[$i]['regions'])) {
-                $keywords = array_merge($keywords, $this->getRegionsKeywords($properties[$i]['regions'], $keyword['hash']));
-            }
-        }
-        return $keywords;
+        return $this->getGenericKeywords($properties, array(
+            'type' => 'country',
+            'defaultName' => null,
+            'parentHash' => $parentHash
+        ));
     }
 
     private function getRegionsKeywords($properties, $parentHash) {
-        $keywords = array();
-        for ($i = 0, $ii = count($properties); $i < $ii; $i++) {
-            $keyword = $this->getGenericKeyword($properties[$i], 'region', '_all', $parentHash);
-            $keywords[$keyword['hash']] = $keyword['value'];
-            $keywords = array_merge($keywords, $this->getStatesKeywords($properties[$i]['states'], $keyword['hash']));
-        }
-        return $keywords;
+        return $this->getGenericKeywords($properties, array(
+            'type' => 'region',
+            'defaultName' => '_all',
+            'parentHash' => $parentHash
+        ));
     }
 
     private function getStatesKeywords($properties, $parentHash) {
-        $keywords = array();
-        for ($i = 0, $ii = count($properties); $i < $ii; $i++) {
-            $keyword = $this->getGenericKeyword($properties[$i], 'state', '_unknown', $parentHash);
-            $keywords[$keyword['hash']] = $keyword['value'];
-        }
-        return $keywords;
+        return $this->getGenericKeywords($properties, array(
+            'type' => 'state',
+            'defaultName' => '_unknown',
+            'parentHash' => $parentHash
+        ));
     }
     
     
@@ -277,6 +268,31 @@ class RestoKeywordsUtil {
             'value' => $value
         );
     }
+    
+    private function getGenericKeywords($properties, $options) {
+        $keywords = array();
+        for ($i = 0, $ii = count($properties); $i < $ii; $i++) {
+            $keyword = $this->getGenericKeyword($properties[$i], $options['type'], $options['defaultName'],  $options['parentHash']);
+            $keywords[$keyword['hash']] = $keyword['value'];
+            switch ($options['type']) {
+                case 'continent':
+                    $keywords = array_merge($keywords, $this->getCountriesKeywords($properties[$i]['countries'], $keyword['hash']));
+                    break;
+                case 'country':
+                    if (isset($properties[$i]['regions'])) {
+                        $keywords = array_merge($keywords, $this->getRegionsKeywords($properties[$i]['regions'], $keyword['hash']));
+                    }
+                    break;
+                case 'region':
+                    $keywords = array_merge($keywords, $this->getStatesKeywords($properties[$i]['states'], $keyword['hash']));
+                    break;
+                default:
+                    break;
+            }
+        }
+        return $keywords;
+    }
+    
     
     /**
      * Return a RESTo keywords array from feature properties
