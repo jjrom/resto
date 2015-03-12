@@ -258,9 +258,9 @@ class RestoKeywordsUtil {
     
     
     private function getGenericKeyword($property, $type, $defaultName, $parentHash) {
-        $id = isset($property['id']) ? $property['id'] : $type . ':' . $defaultName;
-        $hash = RestoUtil::getHash($id, $parentHash);
-        list($type, $normalized) = explode(':', $id, 2);
+        $propertyId = isset($property['id']) ? $property['id'] : $type . ':' . $defaultName;
+        $hash = RestoUtil::getHash($propertyId, $parentHash);
+        list($type, $normalized) = explode(':', $propertyId, 2);
         $value = array(
             'name' => isset($property['name']) ? $property['name'] : $defaultName,
             'normalized' => $normalized,
@@ -310,26 +310,7 @@ class RestoKeywordsUtil {
                 continue;
             }
             
-            /*
-             * Process keyword for facet
-             */
-            $parentHash = null;
-            for ($i = 0, $ii = count($facetCategory); $i < $ii; $i++) {
-                if (isset($properties[$facetCategory[$i]])) {
-                    $hash = RestoUtil::getHash($facetCategory[$i] . ':' . strtolower($properties[$facetCategory[$i]]), $parentHash);
-                    $keywords[$hash] = array(
-                        'name' => $properties[$facetCategory[$i]],
-                        'type' => $facetCategory[$i],
-                    );
-                    if (isset($parentHash)) {
-                        $keywords[$hash]['parentHash'] = $parentHash;
-                    }
-                    $parentHash = $hash;
-                }
-                else  {
-                    $parentHash = null;
-                }
-            }
+            $keywords = array_merge($keywords, $this->keywordsFromFacets($properties, $facetCategory));
             
         }
         
@@ -340,6 +321,35 @@ class RestoKeywordsUtil {
        
     }
     
+    /**
+     * Process keywords for facets
+     * 
+     * @param array $properties
+     * @param array $facetCategory
+     * @return type
+     */
+    private function keywordsFromFacets($properties, $facetCategory) {
+        
+        $parentHash = null;
+        $keywords = array();
+        for ($i = 0, $ii = count($facetCategory); $i < $ii; $i++) {
+            if (isset($properties[$facetCategory[$i]])) {
+                $hash = RestoUtil::getHash($facetCategory[$i] . ':' . strtolower($properties[$facetCategory[$i]]), $parentHash);
+                $keywords[$hash] = array(
+                    'name' => $properties[$facetCategory[$i]],
+                    'type' => $facetCategory[$i],
+                );
+                if (isset($parentHash)) {
+                    $keywords[$hash]['parentHash'] = $parentHash;
+                }
+                $parentHash = $hash;
+            } else {
+                $parentHash = null;
+            }
+        }
+        return $keywords;
+    }
+
     private function getDateKeywords($properties, $collection) {
         
         $keywords = array();
