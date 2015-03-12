@@ -553,17 +553,19 @@ abstract class RestoModel {
      * @param type $modelKey
      */
     public function getDbType($modelKey) {
-        if (!isset($modelKey) || !isset($this->properties[$modelKey]) || !is_array($this->properties[$modelKey])) {
+        
+        if (!isset($this->properties[$modelKey])) {
             return null;
         }
-        switch(substr(trim(strtoupper($this->properties[$modelKey]['type'])), 0, 6)) {
-            case 'INTEGE':
+        
+        switch(strtoupper($this->properties[$modelKey]['type'])) {
+            case 'INTEGER':
                 return 'integer';
-            case 'NUMERI':
+            case 'NUMERIC':
                 return 'float';
-            case 'TIMEST':
+            case 'TIMESTAMP':
                 return 'date';
-            case 'GEOMET':
+            case 'GEOMETRY':
                 return 'geometry';
             case 'TEXT[]':
                 return 'array';    
@@ -648,10 +650,10 @@ abstract class RestoModel {
          * Compute unique identifier
          */
         if (!isset($data['id']) || !RestoUtil::isValidUUID($data['id'])) {
-            $id = $collection->toFeatureId((isset($properties['productIdentifier']) ? $properties['productIdentifier'] : md5(microtime().rand())));
+            $featureIdentifier = $collection->toFeatureId((isset($properties['productIdentifier']) ? $properties['productIdentifier'] : md5(microtime().rand())));
         }
         else {
-            $id = $data['id'];
+            $featureIdentifier = $data['id'];
         }
         
         /*
@@ -661,14 +663,14 @@ abstract class RestoModel {
             'collection' => $collection,
             'featureArray' => array(
                 'type' => 'Feature',
-                'id' => $id,
+                'id' => $featureIdentifier,
                 'geometry' => $data['geometry'],
                 'properties' => array_merge($properties, array('keywords' => $this->getKeywords($properties, $data['geometry'], $collection)))
             )
         ));
         
         return new RestoFeature($collection->context, $collection->user, array(
-            'featureIdentifier' => $id
+            'featureIdentifier' => $featureIdentifier
         ));
         
     }
