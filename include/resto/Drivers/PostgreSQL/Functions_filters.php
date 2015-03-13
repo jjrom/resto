@@ -241,34 +241,9 @@ class Functions_filters {
         }
         
         /*
-         * Set quote to "'" for non numeric filter types
-         */
-        $quote = $type === 'numeric' ? '' : '\'';
-        
-        /*
-         * Set operation
-         */
-        $operation = $model->searchFilters[$filterName]['operation'];
-        
-        /*
          * Array of values assumes a 'OR' operation
          */
-        $ors = array();
-        for ($i = count($requestParams[$filterName]); $i--;) {
-            
-            /*
-             * LIKE case
-             */
-            if ($operation === '=' && substr($requestParams[$filterName][$i], -1) === '%') {
-                $ors[] = $model->getDbKey($model->searchFilters[$filterName]['key']) . ' LIKE ' . $quote . pg_escape_string($requestParams[$filterName][$i]) . $quote;
-            }
-            /*
-             * Otherwise use operation
-             */
-            else {
-                $ors[] = $model->getDbKey($model->searchFilters[$filterName]['key']) . ' ' . $operation . ' ' . $quote . pg_escape_string($requestParams[$filterName][$i]) . $quote;
-            }
-        }
+        $ors = $this->prepareORFilters($model, $filterName, $requestParams, $type);
         
         return count($ors) > 1 ? '(' . join(' OR ', $ors) . ')' : $ors[0];
     }
@@ -288,7 +263,7 @@ class Functions_filters {
          * Default bounding box is the whole earth
          */
         if ($filterName === 'geo:box') {
-            return $this->intersectFilterBBOX($model, $filterName, $requestParams, $exclusion);
+            return $this->intersectFilterBBOX($model, $filterName, explode(',', $requestParams[$filterName]), $exclusion);
         }
         
         if ($filterName === 'geo:geometry') {
@@ -298,28 +273,51 @@ class Functions_filters {
         return null;
     }
     
+    private function prepareORFilters($model, $filterName, $requestParams, $type) {
+        
+        /*
+         * Set quote to "'" for non numeric filter types
+         */
+        $quote = $type === 'numeric' ? '' : '\'';
+        
+        /*
+         * Set operation
+         */
+        $operation = $model->searchFilters[$filterName]['operation'];
+        
+        $ors = array();
+        for ($i = count($requestParams[$filterName]); $i--;) {
+            
+            /*
+             * LIKE case
+             */
+            if ($operation === '=' && substr($requestParams[$filterName][$i], -1) === '%') {
+                $ors[] = $model->getDbKey($model->searchFilters[$filterName]['key']) . ' LIKE ' . $quote . pg_escape_string($requestParams[$filterName][$i]) . $quote;
+            }
+            /*
+             * Otherwise use operation
+             */
+            else {
+                $ors[] = $model->getDbKey($model->searchFilters[$filterName]['key']) . ' ' . $operation . ' ' . $quote . pg_escape_string($requestParams[$filterName][$i]) . $quote;
+            }
+        }
+        return $ors;
+    }
+    
     /**
      * Prepare SQL query for spatial operation ST_Intersects (Input bbox or polygon)
      * 
      * @param RestoModel $model
      * @param string $filterName
-     * @param array $requestParams
+     * @param array $coords
      * @param boolean $exclusion
      * @return type
      */
-    private function intersectFilterBBOX($model, $filterName, $requestParams, $exclusion) {
-        
-        $coords = explode(',', $requestParams[$filterName]);
+    private function intersectFilterBBOX($model, $filterName, $coords, $exclusion) {
         if (count($coords) !== 4) {
             RestoLogUtil::httpError(400, 'Invalid geo:box');
         }
-        $lonmin = is_numeric($coords[0]) ? $coords[0] : -180;
-        $latmin = is_numeric($coords[1]) ? $coords[1] : -90;
-        $lonmax = is_numeric($coords[2]) ? $coords[2] : 180;
-        $latmax = is_numeric($coords[3]) ? $coords[3] : 90;
-        
-        return ($exclusion ? 'NOT ' : '') . 'ST_intersects(' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ", ST_GeomFromText('" . pg_escape_string('POLYGON((' . $lonmin . ' ' . $latmin . ',' . $lonmin . ' ' . $latmax . ',' . $lonmax . ' ' . $latmax . ',' . $lonmax . ' ' . $latmin . ',' . $lonmin . ' ' . $latmin . '))') . "', 4326))";
-   
+        return ($exclusion ? 'NOT ' : '') . 'ST_intersects(' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ", ST_GeomFromText('" . pg_escape_string('POLYGON((' . $coords[0] . ' ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[1] . '))') . "', 4326))";
     }
     
     /**
