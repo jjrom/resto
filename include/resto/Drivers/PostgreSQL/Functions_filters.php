@@ -385,33 +385,22 @@ class Functions_filters {
              * If term as a '-' prefix then performs a "NOT keyword"
              * If keyword contain a + then transform it into a ' '
              */
-            $searchTerm = ($exclusion ? '-' : '') . $splitted[$i];
-            $not = false;
+            $searchTerm = $splitted[$i];
             if (substr($searchTerm, 0, 1) === '-') {
-                $not = true;
                 $searchTerm = substr($searchTerm, 1);
+                $exclusion = true;
             }
 
             /*
              * Keywords structure is "type:value"
              */
-            $typeAndValue = explode(':', $searchTerm);
-            if (count($typeAndValue) !== 2) {
-                RestoLogUtil::httpError(400, 'Invalid keyword strucuture ' . $searchTerm);
-            }
-
-            /*
-             * TODO - need to be rewritten (see search(...))
-             */
-            if ($typeAndValue[0] === 'city') {
-                continue;
-            }
+            $typeAndValue = $this->getTypeAndValue($searchTerm);
             
             /*
              * Landuse columns are NUMERIC columns
              */
             if ($typeAndValue[0] === 'landuse') {
-                $terms[] = array_merge($terms, $this->getLandUseFilters($typeAndValue[1], $not));
+                $terms[] = array_merge($terms, $this->getLandUseFilters($typeAndValue[1], $exclusion));
                 continue;
             }
             
@@ -432,11 +421,11 @@ class Functions_filters {
                     $ors[] = $key . " @> ARRAY['" . pg_escape_string( $typeAndValue[0] !== 'hash' ? $typeAndValue[0] . ':' . $values[$j] : $values[$j]) . "']";
                 }
                 if (count($ors) > 1) {
-                    $terms[] = ($not ? 'NOT (' : '(') . join(' OR ', $ors) . ')';
+                    $terms[] = ($exclusion ? 'NOT (' : '(') . join(' OR ', $ors) . ')';
                 }
             }
             else {
-                $filters[$not ? 'without' : 'with'][] = "'" . pg_escape_string($typeAndValue[0] !== 'hash' ? $searchTerm : $typeAndValue[1]) . "'";
+                $filters[$exclusion ? 'without' : 'with'][] = "'" . pg_escape_string($typeAndValue[0] !== 'hash' ? $searchTerm : $typeAndValue[1]) . "'";
             }
          
         }
@@ -449,13 +438,13 @@ class Functions_filters {
      * Prepare terms for landuse search
      * 
      * @param string $value
-     * @param boolean $not
+     * @param boolean $exclusion
      * @return array
      */
-    private function getLandUseFilters($value, $not) {
+    private function getLandUseFilters($value, $exclusion) {
         $terms = array();
         if (in_array($value, array('cultivated', 'desert', 'flooded', 'forest','herbaceous','snow','ice','urban','water'))) {
-            $terms[] = 'lu_' . $value . ($not ? ' = ' : ' > ') . '0';
+            $terms[] = 'lu_' . $value . ($exclusion ? ' = ' : ' > ') . '0';
         }
         else {
             RestoLogUtil::httpError(400, 'Invalid landuse - should be numerice value ');
@@ -592,4 +581,17 @@ class Functions_filters {
         }
     }
     
+    /**
+     * Return type and value from searchTerm
+     * 
+     * @param string $searchTerm
+     */
+    private function getTypeAndValue($searchTerm) {
+        $typeAndValue = explode(':', $searchTerm);
+        if (count($typeAndValue) !== 2) {
+            RestoLogUtil::httpError(400, 'Invalid keyword strucuture ' . $searchTerm);
+        }
+        return $typeAndValue;
+    }
+
 }
