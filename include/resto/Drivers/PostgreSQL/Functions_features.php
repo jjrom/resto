@@ -122,18 +122,8 @@ class Functions_features {
         /*
          * Retrieve products from database
          */
-        $results = $this->dbDriver->query($query);
-
-        /*
-         * Loop over results
-         */
-        $featuresArray = array();
-        $featureUtil = new RestoFeatureUtil($context, $collection);
-        while ($result = pg_fetch_assoc($results)) {
-            $featuresArray[] = $featureUtil->toFeatureArray($result);
-        }
+        return $this->toFeatureArray($context, $collection, $results = $this->dbDriver->query($query));
         
-        return $featuresArray;
     }
     
     /**
@@ -302,7 +292,7 @@ class Functions_features {
                 'updated' => 'now()',
                 'published' => 'now()'
             ),
-            $this->propertiesToColumns($collection, $featureArray['properties'])
+            $this->toColumns($collection, $featureArray['properties'])
         );
         
         return $columns;
@@ -316,7 +306,7 @@ class Functions_features {
      * @param array $properties
      * @throws Exception
      */
-    private function propertiesToColumns($collection, $properties) {
+    private function toColumns($collection, $properties) {
         
         /*
          * Roll over properties
@@ -380,9 +370,8 @@ class Functions_features {
     private function getHashes($keywords) {
         $hashes = array();
         foreach (array_keys($keywords) as $hash) {
-            $id = $keywords[$hash]['type'] . ':' . (isset($keywords[$hash]['normalized']) ? $keywords[$hash]['normalized'] : strtolower($keywords[$hash]['name']));
             $hashes[] = '"' . pg_escape_string($hash) . '"';
-            $hashes[] = '"' . pg_escape_string($id) . '"';
+            $hashes[] = '"' . pg_escape_string($keywords[$hash]['type'] . ':' . (isset($keywords[$hash]['normalized']) ? $keywords[$hash]['normalized'] : strtolower($keywords[$hash]['name']))) . '"';
         }
         return $hashes;
     }
@@ -416,21 +405,9 @@ class Functions_features {
     private function prepareFilterQuery($model, $requestParams, $filterName, $exclusion = false) {
 
         /*
-         * First check if filter is valid and as an associated column within database
-         */
-        if (empty($requestParams[$filterName]) || !$model->getDbKey($model->searchFilters[$filterName]['key'])) {
-            return null;
-        }
-        
-        /*
-         * Get filter type
-         */
-        $type = $model->getDbType($model->searchFilters[$filterName]['key']);
-        
-        /*
          * Special case - dates
          */
-        if ($type === 'date') {
+        if ($model->getDbType($model->searchFilters[$filterName]['key']) === 'date') {
             return $this->prepareFilterQuery_date($model, $filterName, $requestParams);
         }
 
@@ -463,7 +440,7 @@ class Functions_features {
              * Simple case - non 'interval' operation on value or arrays
              */
             default:
-                return $this->prepareFilterQuery_general($model, $filterName, $requestParams, $type);
+                return $this->prepareFilterQuery_general($model, $filterName, $requestParams, $model->getDbType($model->searchFilters[$filterName]['key']));
         }
     }
     
@@ -605,7 +582,11 @@ class Functions_features {
          * Process each input search filter excepted excluded filters
          */
         foreach (array_keys($model->searchFilters) as $filterName) {
-            if (!in_array($filterName, $this->excludedFilters)) {
+            
+            /*
+             * First check if filter is valid and as an associated column within database
+             */
+            if (!in_array($filterName, $this->excludedFilters) && !empty($params[$filterName]) && $model->getDbKey($model->searchFilters[$filterName]['key'])) {
                 $filter = $this->prepareFilterQuery($model, $params, $filterName);
                 if (isset($filter) && $filter !== '') {
                     $filters[] = $filter;
@@ -795,6 +776,7 @@ class Functions_features {
             'with' => array(),
             'without' => array()
         );
+        
         for ($i = 0, $l = count($splitted); $i < $l; $i++) {
 
             /*
@@ -817,22 +799,20 @@ class Functions_features {
             }
 
             /*
+             * TODO - need to be rewritten (see search(...))
+             */
+            if ($typeAndValue[0] === 'city') {
+                continue;
+            }
+            
+            /*
              * Landuse columns are NUMERIC columns
              */
             if ($typeAndValue[0] === 'landuse') {
-                if (in_array($typeAndValue[1], array('cultivated', 'desert', 'flooded', 'forest','herbaceous','snow','ice','urban','water'))) {
-                    $terms[] = 'lu_' . $typeAndValue[1] . ($not ? ' = ' : ' > ') . '0';
-                }
-                else {
-                    RestoLogUtil::httpError(400, 'Invalid landuse - should be numerice value ');
-                }
-            }
-            /*
-             * TODO - need to be rewritten (see search(...))
-             */
-            else if ($typeAndValue[0] === 'city') {
+                $terms[] = array_merge($terms, $this->getLandUseFilters($typeAndValue[1], $not));
                 continue;
             }
+            
             /*
              * Everything other types are stored within hashes column
              * If input keyword is a hash leave value unchanged
@@ -843,32 +823,76 @@ class Functions_features {
              * 
              * In second case, '|' is understood as "OR"
              */
-            else {
-                $ors = array();
-                $arr = explode('|', $typeAndValue[1]);
-                if (count($arr) > 1) {
-                    for ($j = count($arr); $j--;) {
-                        $ors[] = $key . " @> ARRAY['" . pg_escape_string($typeAndValue[0] !== 'hash' ? $typeAndValue[0] . ':' . $arr[$j] : $arr[$j]) . "']";
-                    }
-                    if (count($ors) > 1) {
-                        $terms[] = ($not ? 'NOT (' : '(') . join(' OR ', $ors) . ')';
-                    }
-                }
-                else {
-                    $filters[$not ? 'without' : 'with'][] = "'" . pg_escape_string($typeAndValue[0] !== 'hash' ? $searchTerm : $typeAndValue[1]) . "'";
-                }
-            }
+            $this->getHashesFilters($key, $typeAndValue, $searchTerm, $terms, $filters);
+         
         }
 
+        return join(' AND ', array_merge($terms, $this->mergeHashesFilters($filters)));
+
+    }
+    
+    /**
+     * Prepare terms for landuse search
+     * 
+     * @param string $value
+     * @param boolean $not
+     * @return array
+     */
+    private function getLandUseFilters($value, $not) {
+        $terms = array();
+        if (in_array($value, array('cultivated', 'desert', 'flooded', 'forest','herbaceous','snow','ice','urban','water'))) {
+            $terms[] = 'lu_' . $value . ($not ? ' = ' : ' > ') . '0';
+        }
+        else {
+            RestoLogUtil::httpError(400, 'Invalid landuse - should be numerice value ');
+        }
+        return $terms;
+    }
+    
+    /**
+     * Get prepare filters
+     * 
+     * @param string $key
+     * @param array $typeAndValue
+     * @param string $searchTerm
+     * @param array $terms
+     * @param array $filters
+     * @param boolean $not
+     * @return array
+     */
+    private function getHashesFilters($key, $typeAndValue, $searchTerm, &$terms, &$filters, $not) {
+        $ors = array();
+        $values = explode('|', $typeAndValue[1]);
+        if (count($values) > 1) {
+            for ($j = count($values); $j--;) {
+                $ors[] = $key . " @> ARRAY['" . pg_escape_string( $typeAndValue[0] !== 'hash' ? $typeAndValue[0] . ':' . $values[$j] : $values[$j]) . "']";
+            }
+            if (count($ors) > 1) {
+                $terms[] = ($not ? 'NOT (' : '(') . join(' OR ', $ors) . ')';
+            }
+        }
+        else {
+            $filters[$not ? 'without' : 'with'][] = "'" . pg_escape_string($typeAndValue[0] !== 'hash' ? $searchTerm : $typeAndValue[1]) . "'";
+        }
+        
+    }
+    
+    /**
+     * Merge filters on hashes
+     * 
+     * @param string $key
+     * @param array $filters
+     * @return array
+     */
+    private function mergeHashesFilters($key, $filters) {
+        $terms = array();
         if (count($filters['without']) > 0) {
             $terms[] = 'NOT ' . $key . " @> ARRAY[" . join(',', $filters['without']) . "]";
         }
         if (count($filters['with']) > 0) {
             $terms[] = $key . " @> ARRAY[" . join(',', $filters['with']) . "]";
         }
-
-        return join(' AND ', $terms);
-
+        return $terms;
     }
     
     /**
@@ -953,4 +977,20 @@ class Functions_features {
         
     }
     
+    /**
+     * Return featureArray array from database results
+     * 
+     * @param RestoContext $context
+     * @param RestoColeection $collection
+     * @param array $results
+     * @return array
+     */
+    private function toFeatureArray($context, $collection, $results) {
+        $featuresArray = array();
+        $featureUtil = new RestoFeatureUtil($context, $collection);
+        while ($result = pg_fetch_assoc($results)) {
+            $featuresArray[] = $featureUtil->toFeatureArray($result);
+        }
+        return $featuresArray;
+    }
 }
