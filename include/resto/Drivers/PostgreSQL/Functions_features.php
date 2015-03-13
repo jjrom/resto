@@ -924,58 +924,92 @@ class Functions_features {
          * No ',' present i.e. simple equality or non closed interval
          */
         if (count($values) === 1) {
-
-            /* 
-             * Non closed interval
-             */
-            $op1 = substr(trim($values[0]), 0, 1);
-            $val1 = substr(trim($values[0]), 1);
-            if ($op1 === '[' || $op1 === ']') {
-                return $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op1 === '[' ? ' >= ' : ' > ') . pg_escape_string($val1);
-            }
-            $op2 = substr(trim($values[0]), -1);
-            $val2 = substr(trim($values[0]), 0, strlen(trim($values[0])) - 1);
-            if ($op2 === '[' || $op2 === ']') {
-                return $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op2 === ']' ? ' <= ' : ' < ') . pg_escape_string($val2);
-            }
-            /*
-             * Simple equality
-             */
-            return $model->getDbKey($model->searchFilters[$filterName]['key']) . ' = ' . pg_escape_string($requestParams[$filterName]);
+            return $this->processSimpleInterval($model, $filterName, $requestParams, $values[0]);
         }
         /*
          * Two values
          */
         else if (count($values) === 2) {
-
-            /*
-             * First and last characters give operators
-             */
-            $op1 = substr(trim($values[0]), 0, 1);
-            $val1 = substr(trim($values[0]), 1);
-            $op2 = substr(trim($values[1]), -1);
-            $val2 = substr(trim($values[1]), 0, strlen(trim($values[1])) - 1);
-
-            /*
-             * A = {n1,n2} then returns  = n1 or = n2
-             */
-            if ($op1 === '{' && $op2 === '}') {
-                return '(' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ' = ' . pg_escape_string($val1) . ' OR ' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ' = ' . pg_escape_string($val2) . ')';
-            }
-
-            /*
-             * Other cases i.e. 
-             * A = [n1,n2] then returns <= n1 and <= n2
-             * A = [n1,n2[ then returns <= n1 and B < n2
-             * A = ]n1,n2[ then returns < n1 and B < n2
-             * 
-             */
-            if (($op1 === '[' || $op1 === ']') && ($op2 === '[' || $op2 === ']')) {
-                return $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op1 === '[' ? ' >= ' : ' > ') . pg_escape_string($val1) . ' AND ' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op2 === ']' ? ' <= ' : ' < ') . pg_escape_string($val2);
-            }
+            return $this->processComplexInterval($model, $filterName, $values);
         }
         
     }
+    
+    /**
+     * Process simple interval
+     * 
+     * @param RestoModel $model
+     * @param string $filterName
+     * @param array $requestParams
+     * @param string $value
+     * @return string
+     */
+    private function processSimpleInterval($model, $filterName, $requestParams, $value) {
+        
+        /* 
+         * A = ]n1 then returns n1 < value
+         * A = n1[ then returns value < n2
+         */
+        $op1 = substr(trim($value), 0, 1);
+        $val1 = substr(trim($value), 1);
+        if ($op1 === '[' || $op1 === ']') {
+            return $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op1 === '[' ? ' >= ' : ' > ') . pg_escape_string($val1);
+        }
+        
+        /*
+         * A = [n1 then returns  n1 ≤ value
+         * A = n1] then returns value ≤ n2 
+         */
+        $op2 = substr(trim($value), -1);
+        $val2 = substr(trim($value), 0, strlen(trim($value)) - 1);
+        if ($op2 === '[' || $op2 === ']') {
+            return $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op2 === ']' ? ' <= ' : ' < ') . pg_escape_string($val2);
+        }
+        
+        /*
+         * A = n1 then returns value = n1
+         */
+        return $model->getDbKey($model->searchFilters[$filterName]['key']) . ' = ' . pg_escape_string($requestParams[$filterName]);
+    }
+    
+    /**
+     * Process complex interval
+     * 
+     * @param RestoModel $model
+     * @param string $filterName
+     * @param array $requestParams
+     * @param array $values
+     * @return string
+     */
+    private function processComplexInterval($model, $filterName, $values) {
+        
+        /*
+         * First and last characters give operators
+         */
+        $op1 = substr(trim($values[0]), 0, 1);
+        $val1 = substr(trim($values[0]), 1);
+        $op2 = substr(trim($values[1]), -1);
+        $val2 = substr(trim($values[1]), 0, strlen(trim($values[1])) - 1);
+
+        /*
+         * A = {n1,n2} then returns  = n1 or = n2
+         */
+        if ($op1 === '{' && $op2 === '}') {
+            return '(' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ' = ' . pg_escape_string($val1) . ' OR ' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ' = ' . pg_escape_string($val2) . ')';
+        }
+
+        /*
+         * Other cases i.e. 
+         * A = [n1,n2] then returns <= n1 and <= n2
+         * A = [n1,n2[ then returns <= n1 and B < n2
+         * A = ]n1,n2[ then returns < n1 and B < n2
+         * 
+         */
+        if (($op1 === '[' || $op1 === ']') && ($op2 === '[' || $op2 === ']')) {
+            return $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op1 === '[' ? ' >= ' : ' > ') . pg_escape_string($val1) . ' AND ' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op2 === ']' ? ' <= ' : ' < ') . pg_escape_string($val2);
+        }
+    }
+    
     
     /**
      * Return featureArray array from database results
