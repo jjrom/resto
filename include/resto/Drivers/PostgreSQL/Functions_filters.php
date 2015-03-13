@@ -373,65 +373,74 @@ class Functions_filters {
         
         $terms = array();
         $splitted = RestoUtil::splitString($requestParams[$filterName]);
-        $key = $model->getDbKey($model->searchFilters[$filterName]['key']);
         $filters = array(
             'with' => array(),
             'without' => array()
         );
         
+        /*
+         * Process each searcTerms
+         */
         for ($i = 0, $l = count($splitted); $i < $l; $i++) {
-
-            /*
-             * If term as a '-' prefix then performs a "NOT keyword"
-             * If keyword contain a + then transform it into a ' '
-             */
-            $searchTerm = $splitted[$i];
-            if (substr($searchTerm, 0, 1) === '-') {
-                $searchTerm = substr($searchTerm, 1);
-                $exclusion = true;
-            }
-
-            /*
-             * Keywords structure is "type:value"
-             */
-            $typeAndValue = $this->getTypeAndValue($searchTerm);
-            
-            /*
-             * Landuse columns are NUMERIC columns
-             */
-            if ($typeAndValue[0] === 'landuse') {
-                $terms[] = array_merge($terms, $this->getLandUseFilters($typeAndValue[1], $exclusion));
-                continue;
-            }
-            
-            /*
-             * Everything other types are stored within hashes column
-             * If input keyword is a hash leave value unchanged
-             * 
-             * Structure is :
-             * 
-             *      type:id or type:id1|id2|id3|.etc.
-             * 
-             * In second case, '|' is understood as "OR"
-             */
-            $ors = array();
-            $values = explode('|', $typeAndValue[1]);
-            if (count($values) > 1) {
-                for ($j = count($values); $j--;) {
-                    $ors[] = $key . " @> ARRAY['" . pg_escape_string( $typeAndValue[0] !== 'hash' ? $typeAndValue[0] . ':' . $values[$j] : $values[$j]) . "']";
-                }
-                if (count($ors) > 1) {
-                    $terms[] = ($exclusion ? 'NOT (' : '(') . join(' OR ', $ors) . ')';
-                }
-            }
-            else {
-                $filters[$exclusion ? 'without' : 'with'][] = "'" . pg_escape_string($typeAndValue[0] !== 'hash' ? $searchTerm : $typeAndValue[1]) . "'";
-            }
-         
+            $terms = array_merge($this->processSearchTerms($splitted[$i], $filters, $model, $filterName, $exclusion));
         }
 
-        return join(' AND ', array_merge($terms, $this->mergeHashesFilters($key, $filters)));
+        return join(' AND ', array_merge($terms, $this->mergeHashesFilters($model->getDbKey($model->searchFilters[$filterName]['key']), $filters)));
 
+    }
+    
+    /**
+     * 
+     * @param type $model
+     * @param type $filterName
+     * @param type $requestParams
+     * @param boolean $exclusion
+     */
+    private function processSearchTerms($searchTerm, &$filters, $model, $filterName, $exclusion) {
+        
+        /*
+         * If term as a '-' prefix then performs a "NOT keyword"
+         * If keyword contain a + then transform it into a ' '
+         */
+        if (substr($searchTerm, 0, 1) === '-') {
+            $searchTerm = substr($searchTerm, 1);
+            $exclusion = true;
+        }
+
+        /*
+         * Keywords structure is "type:value"
+         */
+        $typeAndValue = $this->getTypeAndValue($searchTerm);
+
+        /*
+         * Landuse columns are NUMERIC columns
+         */
+        if ($typeAndValue[0] === 'landuse') {
+            return $this->getLandUseFilters($typeAndValue[1], $exclusion);
+        }
+
+        /*
+         * Everything other types are stored within hashes column
+         * If input keyword is a hash leave value unchanged
+         * 
+         * Structure is :
+         * 
+         *      type:id or type:id1|id2|id3|.etc.
+         * 
+         * In second case, '|' is understood as "OR"
+         */
+        $ors = array();
+        $values = explode('|', $typeAndValue[1]);
+        if (count($values) > 1) {
+            for ($j = count($values); $j--;) {
+                $ors[] = $model->getDbKey($model->searchFilters[$filterName]['key']) . " @> ARRAY['" . pg_escape_string($typeAndValue[0] !== 'hash' ? $typeAndValue[0] . ':' . $values[$j] : $values[$j]) . "']";
+            }
+            return ($exclusion ? 'NOT (' : '(') . join(' OR ', $ors) . ')';
+        }
+        
+        $filters[$exclusion ? 'without' : 'with'][] = "'" . pg_escape_string($typeAndValue[0] !== 'hash' ? $searchTerm : $typeAndValue[1]) . "'";
+        
+        return array();
     }
     
     /**
