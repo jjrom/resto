@@ -72,7 +72,7 @@ class RestoMetalink extends RestoXML {
          * Compute file name from productIdentifier and mimeType - identifier otherwise
          */
         $this->startElement('file');
-        $this->writeAttribute('name', (isset($item['productIdentifier']) ? $item['productIdentifier'] : $item['id']) . (isset($item['properties']['services']['download']['mimeType']) ? RestoUtil::getExtension($item['properties']['services']['download']['mimeType']) : ''));
+        $this->writeAttribute('name', (isset($item['productIdentifier']) ? $item['productIdentifier'] : $item['id']) . (isset($item['properties']['services']['download']['mimeType']) ? $this->getExtension($item['properties']['services']['download']['mimeType']) : ''));
         
         if (isset($item['properties']['services']['download']['size'])) {
             $this->writeElement('size', $item['properties']['services']['download']['size']);
@@ -157,6 +157,25 @@ class RestoMetalink extends RestoXML {
         ));
         $this->text($this->getSharedLink($item['properties']['services']['download']['url']));
         $this->endElement(); // End url
+    }
+    
+    /**
+     * Return extension from mimeType
+     * 
+     * @param string $mimeType
+     */
+    private function getExtension($mimeType) {
+        if (!isset($mimeType)) {
+            return '';
+        }
+        switch ($mimeType) {
+            case 'application/zip':
+                return '.zip';
+            case 'application/x-gzip':
+                return '.gzip';
+            default:
+                return '';
+        }
     }
     
 }
