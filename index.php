@@ -14,6 +14,7 @@ function autoload($className) {
         'include/resto/Modules/',
         'include/resto/Routes/', 
         'include/resto/Utils/', 
+        'include/resto/XML/',
         'lib/iTag/',
         'lib/JWT/') as $current_dir) {
         $path = $current_dir . sprintf('%s.php', $className);

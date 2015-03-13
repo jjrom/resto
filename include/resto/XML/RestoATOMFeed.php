@@ -126,7 +126,7 @@ class RestoATOMFeed extends RestoXML {
         /*
          * End feed element
          */
-        $this->xml->endElement();
+        $this->endElement();
         
         /*
          * Write result

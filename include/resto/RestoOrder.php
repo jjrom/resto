@@ -92,78 +92,45 @@ class RestoOrder{
      */
     public function toMETA4() {
         
-        $xml = new XMLWriter;
-        $xml->openMemory();
-        $xml->setIndent(true);
-        $xml->startDocument('1.0', 'UTF-8');
-        
-        $xml->startElement('metalink');
-        $xml->writeAttribute('xmlns', 'urn:ietf:params:xml:ns:metalink');
-        $xml->writeElement('published', date('Y-m-d\TH:i:sO'));
+        $meta4 = new RestoMetalink();
         
         /*
          * One metalink file per item - if user has rights to download file
          */
-        $items = $this->order['items'];
-        foreach (array_keys($items) as $key) {
-            if (!isset($items[$key]['properties']) || !isset($items[$key]['properties']['services']) || !isset($items[$key]['properties']['services']['download'])) {
+        foreach ($this->order['items'] as $item) {
+            
+            /*
+             * Invalid item
+             */
+            if (!isset($item['properties']) || !isset($item['properties']['services']) || !isset($item['properties']['services']['download'])) {
                 continue;
             }
-            if (isset($items[$key]['properties']['services']['download']['url']) && RestoUtil::isUrl($items[$key]['properties']['services']['download']['url'])) {
-                $exploded = parse_url($items[$key]['properties']['services']['download']['url']);
-                $segments = explode('/', $exploded['path']);
-                $last = count($segments) - 1;
-                if ($last > 2) {
-                    list($modifier) = explode('.', $segments[$last], 1);
-                    if ($modifier !== 'download' || !$this->user->canDownload($segments[$last - 2], $segments[$last - 1])) {
-                        continue;
-                    }
-                }
-                
-                /*
-                 * Compute file name from productIdentifier and mimeType - identifier otherwise
-                 */
-                $name = (isset($items[$key]['productIdentifier']) ? $items[$key]['productIdentifier'] : $items[$key]['id']) . (isset($items[$key]['properties']['services']['download']['mimeType']) ? RestoUtil::getExtension($items[$key]['properties']['services']['download']['mimeType']) : '');
-                $xml->startElement('file');
-                $xml->writeAttribute('name', $name);
-                if (isset($items[$key]['properties']['services']['download']['size'])) {
-                    $xml->writeElement('size', $items[$key]['properties']['services']['download']['size']);
-                }
-                //$xml->writeElement('identity', 'TODO');
-                $xml->writeElement('version', '1.0');
-                $xml->writeElement('language', 'en');
-                //$xml->writeElement('description', 'TODO');
-                if (isset($items[$key]['properties']['services']['download']['checksum'])) {
-                    list($type, $checksum) = explode('=', $items[$key]['properties']['services']['download']['checksum'], 2);
-                    $xml->startElement('hash');
-                    $xml->writeAttribute('type', $type);
-                    $xml->text($checksum);
-                    $xml->endElement(); // End hash
-                }
-                $xml->startElement('url');
-                //$xml->writeAttribute('location', 'TODO');
-                $xml->writeAttribute('priority', 1);
-                $xml->text($this->getSharedLink($items[$key]['properties']['services']['download']['url']));
-                $xml->endElement(); // End url
-                $xml->endElement(); // End file
+        
+            /*
+             * Item not downloadable
+             */
+            if (!isset($item['properties']['services']['download']['url']) || !RestoUtil::isUrl($item['properties']['services']['download']['url'])) {
+                continue;
             }
+            
+            $exploded = parse_url($item['properties']['services']['download']['url']);
+            $segments = explode('/', $exploded['path']);
+            $last = count($segments) - 1;
+            if ($last > 2) {
+                list($modifier) = explode('.', $segments[$last], 1);
+                if ($modifier !== 'download' || !$this->user->canDownload($segments[$last - 2], $segments[$last - 1])) {
+                    continue;
+                }
+            }
+            
+            /*
+             * Add link
+             */
+            $meta4->addLink($item);
         }
+           
+        return $meta4->toString();
         
-        $xml->endElement(); // End metalink
-        
-        return $xml->outputMemory(true);
-        
-    }
-    
-    /**
-     * Return a sharable public link from input resourceUrl
-     * 
-     * @param string $resourceUrl
-     * @return string
-     */
-    private function getSharedLink($resourceUrl) {
-        $shared = $this->context->dbDriver->get(RestoDatabaseDriver::SHARED_LINK, array('resourceUrl' => $resourceUrl));
-        return $resourceUrl . (strrpos($resourceUrl, '?') === false ? '?_tk=' : '&_tk=') . $shared['token'];       
     }
     
 }
