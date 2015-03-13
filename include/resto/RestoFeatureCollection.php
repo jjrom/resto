@@ -137,99 +137,19 @@ class RestoFeatureCollection {
         $atomFeed = new RestoATOMFeed($this->description['properties']['id'], isset($this->description['properties']['title']) ? $this->description['properties']['title'] : '', $this->getATOMSubtitle());
        
         /*
-         * Update outputFormat links except for OSDD 'search'
+         * Set collection elements
          */
-        $this->setATOMLinks($atomFeed);
-        
-        /*
-         * Total results, startIndex and itemsPerpage
-         */
-        if (isset($this->description['properties']['totalResults'])) {
-            $atomFeed->writeElement('os:totalResults', $this->description['properties']['totalResults']);
-        }
-        if (isset($this->description['properties']['startIndex'])) {
-            $atomFeed->writeElement('os:startIndex', $this->description['properties']['startIndex']);
-        }
-        if (isset($this->description['properties']['itemsPerPage'])) {
-            $atomFeed->writeElement('os:itemsPerPage', $this->description['properties']['itemsPerPage']);
-        }
-
-        /*
-         * Query element
-         */
-        $this->setATOMQuery($atomFeed);
+        $atomFeed->setCollectionElements($this->description['properties']);
         
         /*
          * Add one entry per product
          */
-        for ($i = 0, $l = count($this->restoFeatures); $i < $l; $i++) {
-            $this->restoFeatures[$i]->addAtomEntry($atomFeed);
-        }
+        $atomFeed->addEntries($this->restoFeatures, $this->context);
 
         /*
          * Return ATOM result
          */
         return $atomFeed->toString();
-    }
-    
-    /**
-     * Set ATOM feed links element from request parameters
-     * 
-     * @param RestoATOMFeed $atomFeed
-     */
-    private function setATOMLinks($atomFeed) {
-        if (is_array($this->description['properties']['links'])) {
-            for ($i = 0, $l = count($this->description['properties']['links']); $i < $l; $i++) {
-                $atomFeed->startElement('link');
-                $atomFeed->writeAttributes(array(
-                    'rel' => $this->description['properties']['links'][$i]['rel'],
-                    'title' => $this->description['properties']['links'][$i]['title']
-                ));
-                if ($this->description['properties']['links'][$i]['type'] === 'application/opensearchdescription+xml') {
-                    $atomFeed->writeAttributes(array(
-                        'type' => $this->description['properties']['links'][$i]['type'],
-                        'href' => $this->description['properties']['links'][$i]['href']
-                    ));
-                }
-                else {
-                    $atomFeed->writeAttributes(array(
-                        'type' => RestoUtil::$contentTypes['atom'],
-                        'href' => RestoUtil::updateUrlFormat($this->description['properties']['links'][$i]['href'], 'atom')
-                    ));
-                }
-                $atomFeed->endElement(); // link
-            }
-        }
-    }
-    
-    /**
-     * Set ATOM feed Query element from request parameters
-     * 
-     * @param RestoATOMFeed $atomFeed
-     */
-    private function setATOMQuery($atomFeed) {
-        $atomFeed->startElement('os:Query');
-        $atomFeed->writeAttributes(array('role' => 'request'));
-        if (isset($this->description['properties']['query'])) {
-            $atomFeed->writeAttributes($this->description['properties']['query']['original']);
-        }
-        $atomFeed->endElement();
-    }
-    
-    /**
-     * Get ATOM subtitle - construct from $this->description['properties']['title']
-     * 
-     * @return string
-     */
-    private function getATOMSubtitle() {
-        $subtitle = '';
-        if (isset($this->description['properties']['totalResults'])) {
-            $subtitle = $this->context->dictionary->translate($this->description['properties']['totalResults'] === 1 ? '_oneResult' : '_multipleResult', $this->description['properties']['totalResults']);
-        }
-        $previous = isset($this->description['properties']['links']['previous']) ? '<a href="' . RestoUtil::updateUrlFormat($this->description['properties']['links']['previous'], 'atom') . '">' . $this->context->dictionary->translate('_previousPage') . '</a>&nbsp;' : '';
-        $next = isset($this->description['properties']['links']['next']) ? '&nbsp;<a href="' . RestoUtil::updateUrlFormat($this->description['properties']['links']['next'], 'atom') . '">' . $this->context->dictionary->translate('_nextPage') . '</a>' : '';
-        $subtitle .= isset($this->description['properties']['startIndex']) ? '&nbsp;|&nbsp;' . $previous . $this->context->dictionary->translate('_pagination', $this->description['properties']['startIndex'], $this->description['properties']['startIndex'] + 1) . $next : '';
-        return $subtitle;
     }
     
     /**
@@ -635,4 +555,21 @@ class RestoFeatureCollection {
         ksort($query);
         return $query;
     }
+    
+    /**
+     * Get ATOM subtitle - construct from $this->description['properties']['title']
+     * 
+     * @return string
+     */
+    private function getATOMSubtitle() {
+        $subtitle = '';
+        if (isset($this->description['properties']['totalResults'])) {
+            $subtitle = $this->context->dictionary->translate($this->description['properties']['totalResults'] === 1 ? '_oneResult' : '_multipleResult', $this->description['properties']['totalResults']);
+        }
+        $previous = isset($this->description['properties']['links']['previous']) ? '<a href="' . RestoUtil::updateUrlFormat($this->description['properties']['links']['previous'], 'atom') . '">' . $this->context->dictionary->translate('_previousPage') . '</a>&nbsp;' : '';
+        $next = isset($this->description['properties']['links']['next']) ? '&nbsp;<a href="' . RestoUtil::updateUrlFormat($this->description['properties']['links']['next'], 'atom') . '">' . $this->context->dictionary->translate('_nextPage') . '</a>' : '';
+        $subtitle .= isset($this->description['properties']['startIndex']) ? '&nbsp;|&nbsp;' . $previous . $this->context->dictionary->translate('_pagination', $this->description['properties']['startIndex'], $this->description['properties']['startIndex'] + 1) . $next : '';
+        return $subtitle;
+    }
+    
 }

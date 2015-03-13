@@ -393,7 +393,7 @@ class RestoRouteGET extends RestoRoute {
         /*
          * Feature description
          */
-        else if (!$segments[3]) {
+        else if (!isset($segments[3])) {
             $this->storeQuery('resource', $collection->name, $feature->identifier);
             return $feature;
         }

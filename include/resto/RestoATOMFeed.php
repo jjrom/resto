@@ -107,6 +107,18 @@ class RestoATOMFeed extends RestoXML {
     }
     
     /**
+     * Add Atom feed entries
+     * 
+     * @param array $features
+     * @param RestoContext $context
+     */
+    public function addEntries($features, $context) {
+        for ($i = 0, $l = count($features); $i < $l; $i++) {
+            $this->addEntry($features[$i]->toArray(), $context);
+        }
+    }
+    
+    /**
      * Return stringified XML document
      */
     public function toString() {
@@ -120,6 +132,38 @@ class RestoATOMFeed extends RestoXML {
          * Write result
          */
         return parent::toString();
+    }
+    
+    /**
+     * Set elements for FeatureCollection
+     * 
+     * @param array $properties
+     */
+    public function setCollectionElements($properties) {
+        
+        /*
+         * Update outputFormat links except for OSDD 'search'
+         */
+        $this->setCollectionLinks($properties);
+        
+        /*
+         * Total results, startIndex and itemsPerpage
+         */
+        if (isset($properties['totalResults'])) {
+            $this->writeElement('os:totalResults', $properties['totalResults']);
+        }
+        if (isset($properties['startIndex'])) {
+            $this->writeElement('os:startIndex', $properties['startIndex']);
+        }
+        if (isset($properties['itemsPerPage'])) {
+            $this->writeElement('os:itemsPerPage', $properties['itemsPerPage']);
+        }
+
+        /*
+         * Query element
+         */
+        $this->setQuery($properties);
+        
     }
     
     /**
@@ -151,7 +195,7 @@ class RestoATOMFeed extends RestoXML {
      * @param string $title
      * @param string $subtitle
      */
-    public function setBaseElements($title, $subtitle) {
+    private function setBaseElements($title, $subtitle) {
         
         /*
          *  Title
@@ -383,5 +427,48 @@ class RestoATOMFeed extends RestoXML {
 
     }
     
+    /**
+     * Set ATOM feed links element for FeatureCollection
+     * 
+     * @param array $properties
+     */
+    private function setCollectionLinks($properties) {
+        if (is_array($properties['links'])) {
+            for ($i = 0, $l = count($properties['links']); $i < $l; $i++) {
+                $this->startElement('link');
+                $this->writeAttributes(array(
+                    'rel' => $properties['links'][$i]['rel'],
+                    'title' => $properties['links'][$i]['title']
+                ));
+                if ($properties['links'][$i]['type'] === 'application/opensearchdescription+xml') {
+                    $this->writeAttributes(array(
+                        'type' => $properties['links'][$i]['type'],
+                        'href' => $properties['links'][$i]['href']
+                    ));
+                }
+                else {
+                    $this->writeAttributes(array(
+                        'type' => RestoUtil::$contentTypes['atom'],
+                        'href' => RestoUtil::updateUrlFormat($properties['links'][$i]['href'], 'atom')
+                    ));
+                }
+                $this->endElement(); // link
+            }
+        }
+    }
+    
+    /**
+     * Set ATOM feed Query element from request parameters
+     * 
+     * @param array $properties
+     */
+    private function setQuery($properties) {
+        $this->startElement('os:Query');
+        $this->writeAttributes(array('role' => 'request'));
+        if (isset($properties['query'])) {
+            $this->writeAttributes($properties['query']['original']);
+        }
+        $this->endElement();
+    }
     
 }

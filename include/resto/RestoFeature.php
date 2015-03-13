@@ -175,22 +175,13 @@ class RestoFeature {
         /*
          * Entry for feature
          */
-        $this->addAtomEntry($atomFeed);
+        $atomFeed->addEntry($this->featureArray, $this->context);
         
         /*
          * Return ATOM result
          */
         return $atomFeed->toString();
         
-    }
-    
-    /**
-     * Add an atom entry within $xml document
-     * 
-     * @param RestoATOMFeed $atomFeed
-     */
-    public function addAtomEntry($atomFeed) {
-        $atomFeed->addEntry($this->featureArray, $this->context);
     }
     
     /**

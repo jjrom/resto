@@ -157,7 +157,7 @@ class RestoContext {
      * @param boolean $withparams : true to return url with parameters (i.e. with ?key=value&...) / false otherwise
      */
     public function getUrl($withparams = true) {
-        return $this->baseUrl . '/' . $this->path . '.' . $this->outputFormat . (isset($withparams) ? $this->kvpsToQueryString($this->query) : '');
+        return $this->baseUrl . '/' . $this->path . '.' . $this->outputFormat . (isset($withparams) ? RestoUtil::kvpsToQueryString($this->query) : '');
     }
     
     /**
@@ -491,31 +491,5 @@ class RestoContext {
         $this->modules = $modules;
         
     }
-    
-    /**
-     * Format input Key/Value pairs array to query string
-     * 
-     * @param array $kvps
-     * @return string
-     */
-    private function kvpsToQueryString($kvps) {
-        $paramsStr = '';
-        if (!is_array($kvps)) {
-            return $paramsStr;
-        }
-        foreach ($kvps as $key => $value) {
-            if (is_array($value)) {
-                for ($i = count($value); $i--;) {
-                    //echo $key . ' : ' . $value[$i] . "\n";
-                    $paramsStr .= (isset($paramsStr) ? '&' : '') . rawurlencode($key) . '[]=' . rawurlencode($value[$i]);
-                }
-            }
-            else {
-                $paramsStr .= (isset($paramsStr) ? '&' : '') . rawurlencode($key) . '=' . rawurlencode($value);
-            }
-        }
-        return '?' . $paramsStr;
-    }
-    
     
 }
