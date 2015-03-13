@@ -283,14 +283,15 @@ class Auth extends RestoModule {
      */
     private function insertUserIfNeeded($email) {
         
-        $profile = $this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array(
-            'email' => strtolower($email)
-        ));
-        
-        /*
-         * User does not exist - create it
-         */
-        if ($profile['userid'] === -1) {
+        try {
+            $this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array(
+                'email' => strtolower($email)
+            ));
+        } catch (Exception $e) {
+            
+            /*
+             * User does not exist - create it
+             */
             $this->context->dbDriver->store(RestoDatabaseDriver::USER_PROFILE, array(
                 'profile' => array(
                     'email' => $email,

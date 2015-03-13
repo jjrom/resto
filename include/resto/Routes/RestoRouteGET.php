@@ -42,14 +42,14 @@
  * RESTo REST router for GET requests
  */
 class RestoRouteGET extends RestoRoute {
-    
+
     /**
      * Constructor
      */
     public function __construct($context, $user) {
         parent::__construct($context, $user);
     }
-   
+
     /**
      * 
      * Process HTTP GET request 
@@ -76,6 +76,8 @@ class RestoRouteGET extends RestoRoute {
      *    users/{userid}/rights                         |  Show rights for {userid}
      *    users/{userid}/rights/{collection}            |  Show rights for {userid} on {collection}
      *    users/{userid}/rights/{collection}/{feature}  |  Show rights for {userid} on {feature} from {collection}
+     *    users/{userid}/signatures                     |  Show signatures for {userid}
+     *    users/{userid}/signatures/{collection}        |  Show signatures for {userid} on {collection}
      * 
      * Note: {userid} can be replaced by base64(email) 
      * 
@@ -83,7 +85,7 @@ class RestoRouteGET extends RestoRoute {
      *
      */
     public function route($segments) {
-        switch($segments[0]) {
+        switch ($segments[0]) {
             case 'api':
                 return $this->GET_api($segments);
             case 'collections':
@@ -94,7 +96,7 @@ class RestoRouteGET extends RestoRoute {
                 return $this->processModuleRoute($segments);
         }
     }
-    
+
     /**
      * 
      * Process HTTP GET request on api
@@ -112,8 +114,8 @@ class RestoRouteGET extends RestoRoute {
      * @param array $segments
      */
     private function GET_api($segments) {
-        
-        
+
+
         if (!isset($segments[1]) || isset($segments[4])) {
             RestoLogUtil::httpError(404);
         }
@@ -139,7 +141,7 @@ class RestoRouteGET extends RestoRoute {
         }
         
     }
-    
+
     /**
      * Process api/collections
      * 
@@ -157,7 +159,7 @@ class RestoRouteGET extends RestoRoute {
             RestoLogUtil::httpError(404);
         }
     }
-    
+
     /**
      * Process
      * 
@@ -168,17 +170,16 @@ class RestoRouteGET extends RestoRoute {
      * @throws Exception
      */
     private function GET_apiCollectionsSearch($collectionName = null) {
-        
+
         /*
          * Search in one collection...or in all collections
          */
-        $resource = isset($collectionName) ? new RestoCollection($collectionName, $this->context, $this->user, array('autoload' => true)) : new RestoCollections($this->context, $this->user); 
+        $resource = isset($collectionName) ? new RestoCollection($collectionName, $this->context, $this->user, array('autoload' => true)) : new RestoCollections($this->context, $this->user);
         $this->storeQuery('search', isset($collectionName) ? $collectionName : '*', null);
-        
+
         return $resource->search();
         
     }
-    
     
     /**
      * Process 'describesearch' requests
@@ -190,14 +191,14 @@ class RestoRouteGET extends RestoRoute {
      * @throws Exception
      */
     private function GET_apiCollectionsDescribe($collectionName = null) {
-        
-        $resource = isset($collectionName) ? new RestoCollection($collectionName, $this->context, $this->user, array('autoload' => true)) : new RestoCollections($this->context, $this->user); 
+
+        $resource = isset($collectionName) ? new RestoCollection($collectionName, $this->context, $this->user, array('autoload' => true)) : new RestoCollections($this->context, $this->user);
         $this->storeQuery('describe', $collectionName, null);
-        
+
         return $resource;
         
     }
-    
+
     /**
      * Process api/users
      * 
@@ -205,49 +206,48 @@ class RestoRouteGET extends RestoRoute {
      * @return type
      */
     private function GET_apiUsers($segments) {
-        
-       /*
-        * api/users/connect
-        */
-       if ($segments[2] === 'connect' && !isset($segments[3])) {
-           return $this->GET_apiUsersConnect();
-       }
 
-       /*
-        * api/users/disconnect
-        */
-       if ($segments[2] === 'disconnect' && !isset($segments[3])) {
-          return $this->GET_apiUsersDisconnect();
-       }
+        /*
+         * api/users/connect
+         */
+        if ($segments[2] === 'connect' && !isset($segments[3])) {
+            return $this->GET_apiUsersConnect();
+        }
 
-       /*
-        * api/users/resetPassword
-        */
-       if ($segments[2] === 'resetPassword' && !isset($segments[3])) {
-           return $this->GET_apiUsersResetPassword($segments);
-       }
+        /*
+         * api/users/disconnect
+         */
+        if ($segments[2] === 'disconnect' && !isset($segments[3])) {
+            return $this->GET_apiUsersDisconnect();
+        }
 
-       /*
-        * api/users/{userid}/activate
-        */
-       if (isset($segments[3]) && $segments[3] === 'activate' && !isset($segments[4])) {
-           return $this->GET_apiUsersActivate($segments[2]);
-       }
+        /*
+         * api/users/resetPassword
+         */
+        if ($segments[2] === 'resetPassword' && !isset($segments[3])) {
+            return $this->GET_apiUsersResetPassword($segments);
+        }
 
-       /*
-        * api/users/{userid}/isConnected
-        */
-       if (isset($segments[3]) && $segments[3] === 'isConnected' && !isset($segments[4])) {
-           return $this->GET_apiUsersIsConnected($segments[2]);
-       }
-       
-       /*
-        * 404
-        */
-       RestoLogUtil::httpError(403);
-       
+        /*
+         * api/users/{userid}/activate
+         */
+        if (isset($segments[3]) && $segments[3] === 'activate' && !isset($segments[4])) {
+            return $this->GET_apiUsersActivate($segments[2]);
+        }
+
+        /*
+         * api/users/{userid}/isConnected
+         */
+        if (isset($segments[3]) && $segments[3] === 'isConnected' && !isset($segments[4])) {
+            return $this->GET_apiUsersIsConnected($segments[2]);
+        }
+
+        /*
+         * 404
+         */
+        RestoLogUtil::httpError(403);
     }
-    
+
     /**
      * Process api/users/connect
      */
@@ -261,7 +261,7 @@ class RestoRouteGET extends RestoRoute {
             RestoLogUtil::httpError(403);
         }
     }
-    
+
     /**
      * Process api/users/disconnect
      */
@@ -278,14 +278,14 @@ class RestoRouteGET extends RestoRoute {
         if (!isset($this->context->query['email'])) {
             RestoLogUtil::httpError(400);
         }
-        
+
         /*
          * Only existing local user can change there password
          */
         if (!$this->context->dbDriver->check(RestoDatabaseDriver::USER, array('email' => $this->context->query['email'])) || $this->context->dbDriver->get(RestoDatabaseDriver::USER_PASSWORD, array('email' => $this->context->query['email'])) === str_repeat('*', 40)) {
             RestoLogUtil::httpError(3005);
         }
-        
+
         /*
          * Send email with reset link
          */
@@ -299,10 +299,10 @@ class RestoRouteGET extends RestoRoute {
                 ))) {
             RestoLogUtil::httpError(3003);
         }
-        
+
         return RestoLogUtil::success('Reset link sent to ' . $this->context->query['email']);
     }
-    
+
     /**
      * Process api/users/{userid}/activate
      * 
@@ -334,7 +334,7 @@ class RestoRouteGET extends RestoRoute {
             RestoLogUtil::httpError(400);
         }
     }
-    
+
     /**
      * Process api/users/{userid}/isConnected
      * 
@@ -365,7 +365,7 @@ class RestoRouteGET extends RestoRoute {
      * @param array $segments
      */
     private function GET_collections($segments) {
-        
+
         if (isset($segments[1])) {
             $collection = new RestoCollection($segments[1], $this->context, $this->user, array('autoload' => true));
         }
@@ -375,7 +375,7 @@ class RestoRouteGET extends RestoRoute {
                 'collection' => $collection
             ));
         }
-        
+
         /*
          * collections
          */
@@ -404,16 +404,15 @@ class RestoRouteGET extends RestoRoute {
         else if ($segments[3] === 'download') {
             return $this->GET_featureDownload();
         }
-        
+
         /*
          * 404
          */
         else {
             RestoLogUtil::httpError(404);
         }
-        
     }
-    
+
     /**
      * Download feature
      * 
@@ -422,7 +421,7 @@ class RestoRouteGET extends RestoRoute {
      * @return type
      */
     private function GET_featureDownload($collection, $feature) {
-        
+
         /*
          * User do not have right to download product
          */
@@ -448,9 +447,8 @@ class RestoRouteGET extends RestoRoute {
             $feature->download();
             return null;
         }
-        
     }
-    
+
     /**
      * 
      * Process HTTP GET request on users
@@ -463,50 +461,59 @@ class RestoRouteGET extends RestoRoute {
      *    users/{userid}/rights                         |  Show rights for {userid}
      *    users/{userid}/rights/{collection}            |  Show rights for {userid} on {collection}
      *    users/{userid}/rights/{collection}/{feature}  |  Show rights for {userid} on {feature} from {collection}
+     *    users/{userid}/signatures                     |  Show signatures for {userid}
+     *    users/{userid}/signatures/{collection}        |  Show signatures for {userid} on {collection}
      * 
      * Note: {userid} can be replaced by base64(email) 
      * 
      * @param array $segments
      */
     private function GET_users($segments) {
-   
+
         /*
          * users
          */
         if (!isset($segments[1])) {
             RestoLogUtil::httpError(501);
         }
+    
         /*
          * users/{userid}
          */
-        else if (!isset($segments[2])) {
+        if (!isset($segments[2])) {
             return $this->GET_userProfile($segments[1]);
         }
-        else {
-            
-            /*
-             * users/{userid}/rights
-             */
-            if ($segments[2] === 'rights') {
-                return $this->GET_userRights($segments[1], isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
-            }
-            /*
-             * users/{userid}/cart
-             */
-            else if ($segments[2] === 'cart') {
-                return $this->GET_userCart($segments[1], isset($segments[3]) ? $segments[3] : null);
-            }
-            /*
-             * users/{userid}/orders
-             */
-            else if ($segments[2] === 'orders') {
-                return $this->GET_userOrders($segments[1], isset($segments[3]) ? $segments[3] : null);
-            }
-            
+        
+        /*
+         * users/{userid}/rights
+         */
+        if ($segments[2] === 'rights') {
+            return $this->GET_userRights($segments[1], isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
+        }
+        
+        /*
+         * users/{userid}/cart
+         */
+        if ($segments[2] === 'cart') {
+            return $this->GET_userCart($segments[1], isset($segments[3]) ? $segments[3] : null);
+        }
+        
+        /*
+         * users/{userid}/orders
+         */
+        if ($segments[2] === 'orders') {
+            return $this->GET_userOrders($segments[1], isset($segments[3]) ? $segments[3] : null);
+        }
+
+        /*
+         * users/{userid}/orders
+         */
+        if ($segments[2] === 'signatures') {
+            return $this->GET_userSignatures($segments[1], isset($segments[3]) ? $segments[3] : null);
         }
         
     }
-    
+
     /**
      * Process users/{userid}     
      * 
@@ -514,17 +521,17 @@ class RestoRouteGET extends RestoRoute {
      * @throws Exception
      */
     private function GET_userProfile($emailOrId) {
-    
+
         /*
          * Profile can only be seen by its owner or by admin
          */
         $user = $this->getAuthorizedUser($emailOrId);
-        
+
         return RestoLogUtil::success('Profile for ' . $user->profile['userid'], array(
             'profile' => $user->profile
         ));
     }
-    
+
     /**
      * Process HTTP GET request on user rights
      *   
@@ -538,20 +545,55 @@ class RestoRouteGET extends RestoRoute {
      * @throws Exception
      */
     private function GET_userRights($emailOrId, $collectionName = null, $featureIdentifier = null) {
+
+        /*
+         * Rights can only be seen by its owner or by admin
+         */
+        $user = $this->getAuthorizedUser($emailOrId);
+
+        return RestoLogUtil::success('Rights for ' . $user->profile['userid'], array(
+                    'userid' => $user->profile['userid'],
+                    'groupname' => $user->profile['groupname'],
+                    'rights' => $user->getFullRights($collectionName, $featureIdentifier)
+        ));
+    }
+
+    /**
+     * Process HTTP GET request on user signatures
+     * 
+     * @param string $emailOrId
+     * @param string $collectionName
+     * @throws Exception
+     */
+    private function GET_userSignatures($emailOrId, $collectionName = null) {
         
         /*
          * Rights can only be seen by its owner or by admin
          */
         $user = $this->getAuthorizedUser($emailOrId);
+        $signatures = array();
         
-        return RestoLogUtil::success('Rights for ' . $user->profile['userid'], array(
+        /*
+         *  Get rights for collections
+         */
+        if (!isset($collectionName)) {
+            $collections = $this->context->dbDriver->get(RestoDatabaseDriver::COLLECTIONS);
+            foreach ($collections as $collection) {
+                $collectionName = $collection['collection'];
+                $signatures[$collectionName] = $user->hasToSignLicense($collectionName);
+            }
+        }
+        else {
+            $signatures[$collectionName] = $user->hasToSignLicense($collectionName);
+        }
+
+        return RestoLogUtil::success('Signatures for ' . $user->profile['userid'], array(
             'userid' => $user->profile['userid'],
             'groupname' => $user->profile['groupname'],
-            'rights' => $user->getFullRights($collectionName, $featureIdentifier)
+            'signatures' => $signatures
         ));
     }
-    
-    
+
     /**
      * Process HTTP GET request on user cart
      *   
@@ -562,21 +604,19 @@ class RestoRouteGET extends RestoRoute {
      * @throws Exception
      */
     private function GET_userCart($emailOrId, $itemid = null) {
-        
+
         /*
          * Cart can only be seen by its owner or by admin
          */
         $user = $this->getAuthorizedUser($emailOrId);
-        
+
         if (isset($itemid)) {
             RestoLogUtil::httpError(404);
         }
-        
+
         return $user->getCart();
-        
     }
-    
-    
+
     /**
      * Process HTTP GET request on user orders
      *   
@@ -587,12 +627,12 @@ class RestoRouteGET extends RestoRoute {
      * @throws Exception
      */
     private function GET_userOrders($emailOrId, $orderid = null) {
-        
+
         /*
          * Orders can only be seen by its owner or by admin
          */
         $user = $this->getAuthorizedUser($emailOrId);
-        
+
         /*
          * Special case of metalink for single order
          */
@@ -604,6 +644,6 @@ class RestoRouteGET extends RestoRoute {
                 'orders' => $user->getOrders()
             ));
         }
-        
     }
+
 }
