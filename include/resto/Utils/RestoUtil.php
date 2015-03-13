@@ -486,63 +486,26 @@ class RestoUtil {
     
     /**
      * Pretty print a json string
-     * Code modified from https://github.com/GerHobbelt/nicejson-php
+     * Code from https://github.com/ryanuber/projects/blob/master/PHP/JSON/jsonpp.php
      * 
      * @param string $json
      */
-    private static function prettyPrintJsonString($json) {
-        
+    private static function prettyPrintJsonString($json, $istr = '   ') {
         $result = '';
-        $pos = 0;               // indentation level
-        $strLen = strlen($json);
-        $indentStr = "\t";
-        $newLine = "\n";
-        $prevChar = '';
-        $outOfQuotes = true;
-
-        for ($i = 0; $i < $strLen; $i++) {
-            // Grab the next character in the string
-            $char = substr($json, $i, 1);
-
-            // Are we inside a quoted string?
-            if ($char == '"' && $prevChar != '\\') {
-                $outOfQuotes = !$outOfQuotes;
-            }
-            // If this character is the end of an element,
-            // output a new line and indent the next line
-            else if (($char == '}' || $char == ']') && $outOfQuotes) {
-                $result .= $newLine;
-                $pos--;
-                for ($j = 0; $j < $pos; $j++) {
-                    $result .= $indentStr;
-                }
-            }
-            // eat all non-essential whitespace in the input as we do our own here and it would only mess up our process
-            else if ($outOfQuotes && false !== strpos(" \t\r\n", $char)) {
+        for ($p = $q = $i = 0; isset($json[$p]); $p++) {
+            $json[$p] == '"' && ($p > 0 ? $json[$p - 1] : '') != '\\' && $q = !$q;
+            if (!$q && strchr(" \t\n\r", $json[$p])) {
                 continue;
             }
-
-            // Add the character to the result string
-            $result .= $char;
-            // always add a space after a field colon:
-            if ($char == ':' && $outOfQuotes) {
-                $result .= ' ';
+            if (strchr('}]', $json[$p]) && !$q && $i--) {
+                strchr('{[', $json[$p - 1]) || $result .= "\n" . str_repeat($istr, $i);
             }
-
-            // If the last character was the beginning of an element,
-            // output a new line and indent the next line
-            if (($char == ',' || $char == '{' || $char == '[') && $outOfQuotes) {
-                $result .= $newLine;
-                if ($char == '{' || $char == '[') {
-                    $pos++;
-                }
-                for ($j = 0; $j < $pos; $j++) {
-                    $result .= $indentStr;
-                }
+            $result .= $json[$p];
+            if (strchr(',{[', $json[$p]) && !$q) {
+                $i += strchr('{[', $json[$p]) === FALSE ? 0 : 1;
+                strchr('}]', $json[$p + 1]) || $result .= "\n" . str_repeat($istr, $i);
             }
-            $prevChar = $char;
         }
-
         return $result;
     }
     
