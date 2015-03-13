@@ -523,54 +523,7 @@ class Functions_features {
      * @return boolean
      */
     private function prepareFilters($model, $params) {
-        
-        
-        /*
-         * Remove box filter if location filter is set
-         */
-        /* TODO
-        if (isset($params['geo:name'])) {
-            unset($params['geo:box']);
-        }
-        else {
-            if (isset($params['searchTerms'])) {
-                $splitted = RestoUtil::splitString($params['searchTerms']);
-                for ($i = count($splitted); $i--;) {
-                    $arr = explode(':', $splitted[$i]);
-                    if ($arr[0] === 'continent' || $arr[0] === 'country' || $arr[0] === 'region' || $arr[0] === 'state' || $arr[0] === 'city') {
-                        unset($params['geo:box']);
-                    }
-                    if ($arr[0] === 'country') {
-                        $countryName = $arr[1];
-                    }
-                    if ($arr[0] === 'state') {
-                        $stateName = $arr[1];
-                    }
-                    if ($arr[0] === 'city') {
-                        $cityName = $arr[1];
-                    }
-                }
-                
-                
-                if (isset($cityName)) {
-                    if (isset($model->context->modules['Gazetteer'])) {
-                        $gazetteer = new Gazetteer($model->context, $model->user, $model->context->modules['Gazetteer']);
-                        $locations = $gazetteer->search(array(
-                            'q' => $cityName,
-                            'country' => isset($countryName) ? $countryName : null,
-                            'state' => isset($stateName) ? $stateName : null
-                            )
-                        );
-                        if (count($locations) > 0) {
-                            $params['geo:name'] = $locations[0]['name'] . ($locations[0]['countryname'] !== '' ? ', ' . $locations[0]['countryname'] : '');
-                            $params['geo:lon'] = $locations[0]['longitude'];
-                            $params['geo:lat'] = $locations[0]['latitude'];
-                        }
-                    }
-                }
-            }
-        }
-        */
+       
         /*
          * Only visible features are returned
          */
@@ -703,19 +656,38 @@ class Functions_features {
          * Default bounding box is the whole earth
          */
         if ($filterName === 'geo:box') {
-            $coords = explode(',', $requestParams[$filterName]);
-            if (count($coords) !== 4) {
-                RestoLogUtil::httpError(400, 'Invalid geo:box');
-            }
-            $lonmin = is_numeric($coords[0]) ? $coords[0] : -180;
-            $latmin = is_numeric($coords[1]) ? $coords[1] : -90;
-            $lonmax = is_numeric($coords[2]) ? $coords[2] : 180;
-            $latmax = is_numeric($coords[3]) ? $coords[3] : 90;
-            return ($exclusion ? 'NOT ' : '') . 'ST_intersects(' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ", ST_GeomFromText('" . pg_escape_string('POLYGON((' . $lonmin . ' ' . $latmin . ',' . $lonmin . ' ' . $latmax . ',' . $lonmax . ' ' . $latmax . ',' . $lonmax . ' ' . $latmin . ',' . $lonmin . ' ' . $latmin . '))') . "', 4326))";
+            return $this->intersectFilterBBOX($model, $filterName, $requestParams, $exclusion);
         }
-        else if ($filterName === 'geo:geometry') {
+        
+        if ($filterName === 'geo:geometry') {
             return ($exclusion ? 'NOT ' : '') . 'ST_intersects(' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ", ST_GeomFromText('" . pg_escape_string($requestParams[$filterName]) . "', 4326))";
         }
+        
+        return null;
+    }
+    
+    /**
+     * Prepare SQL query for spatial operation ST_Intersects (Input bbox or polygon)
+     * 
+     * @param RestoModel $model
+     * @param string $filterName
+     * @param array $requestParams
+     * @param boolean $exclusion
+     * @return type
+     */
+    private function intersectFilterBBOX($model, $filterName, $requestParams, $exclusion) {
+        
+        $coords = explode(',', $requestParams[$filterName]);
+        if (count($coords) !== 4) {
+            RestoLogUtil::httpError(400, 'Invalid geo:box');
+        }
+        $lonmin = is_numeric($coords[0]) ? $coords[0] : -180;
+        $latmin = is_numeric($coords[1]) ? $coords[1] : -90;
+        $lonmax = is_numeric($coords[2]) ? $coords[2] : 180;
+        $latmax = is_numeric($coords[3]) ? $coords[3] : 90;
+        
+        return ($exclusion ? 'NOT ' : '') . 'ST_intersects(' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ", ST_GeomFromText('" . pg_escape_string('POLYGON((' . $lonmin . ' ' . $latmin . ',' . $lonmin . ' ' . $latmax . ',' . $lonmax . ' ' . $latmax . ',' . $lonmax . ' ' . $latmin . ',' . $lonmin . ' ' . $latmin . '))') . "', 4326))";
+   
     }
     
     /**
@@ -823,11 +795,23 @@ class Functions_features {
              * 
              * In second case, '|' is understood as "OR"
              */
-            $this->getHashesFilters($key, $typeAndValue, $searchTerm, $terms, $filters);
+            $ors = array();
+            $values = explode('|', $typeAndValue[1]);
+            if (count($values) > 1) {
+                for ($j = count($values); $j--;) {
+                    $ors[] = $key . " @> ARRAY['" . pg_escape_string( $typeAndValue[0] !== 'hash' ? $typeAndValue[0] . ':' . $values[$j] : $values[$j]) . "']";
+                }
+                if (count($ors) > 1) {
+                    $terms[] = ($not ? 'NOT (' : '(') . join(' OR ', $ors) . ')';
+                }
+            }
+            else {
+                $filters[$not ? 'without' : 'with'][] = "'" . pg_escape_string($typeAndValue[0] !== 'hash' ? $searchTerm : $typeAndValue[1]) . "'";
+            }
          
         }
 
-        return join(' AND ', array_merge($terms, $this->mergeHashesFilters($filters)));
+        return join(' AND ', array_merge($terms, $this->mergeHashesFilters($key, $filters)));
 
     }
     
@@ -847,34 +831,6 @@ class Functions_features {
             RestoLogUtil::httpError(400, 'Invalid landuse - should be numerice value ');
         }
         return $terms;
-    }
-    
-    /**
-     * Get prepare filters
-     * 
-     * @param string $key
-     * @param array $typeAndValue
-     * @param string $searchTerm
-     * @param array $terms
-     * @param array $filters
-     * @param boolean $not
-     * @return array
-     */
-    private function getHashesFilters($key, $typeAndValue, $searchTerm, &$terms, &$filters, $not) {
-        $ors = array();
-        $values = explode('|', $typeAndValue[1]);
-        if (count($values) > 1) {
-            for ($j = count($values); $j--;) {
-                $ors[] = $key . " @> ARRAY['" . pg_escape_string( $typeAndValue[0] !== 'hash' ? $typeAndValue[0] . ':' . $values[$j] : $values[$j]) . "']";
-            }
-            if (count($ors) > 1) {
-                $terms[] = ($not ? 'NOT (' : '(') . join(' OR ', $ors) . ')';
-            }
-        }
-        else {
-            $filters[$not ? 'without' : 'with'][] = "'" . pg_escape_string($typeAndValue[0] !== 'hash' ? $searchTerm : $typeAndValue[1]) . "'";
-        }
-        
     }
     
     /**
@@ -924,7 +880,7 @@ class Functions_features {
          * No ',' present i.e. simple equality or non closed interval
          */
         if (count($values) === 1) {
-            return $this->processSimpleInterval($model, $filterName, $requestParams, $values[0]);
+            return $this->processSimpleInterval($model, $filterName, $requestParams, trim($values[0]));
         }
         /*
          * Two values
@@ -950,20 +906,18 @@ class Functions_features {
          * A = ]n1 then returns n1 < value
          * A = n1[ then returns value < n2
          */
-        $op1 = substr(trim($value), 0, 1);
-        $val1 = substr(trim($value), 1);
+        $op1 = substr($value, 0, 1);
         if ($op1 === '[' || $op1 === ']') {
-            return $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op1 === '[' ? ' >= ' : ' > ') . pg_escape_string($val1);
+            return $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op1 === '[' ? ' >= ' : ' > ') . pg_escape_string(substr($value, 1));
         }
         
         /*
          * A = [n1 then returns  n1 ≤ value
          * A = n1] then returns value ≤ n2 
          */
-        $op2 = substr(trim($value), -1);
-        $val2 = substr(trim($value), 0, strlen(trim($value)) - 1);
+        $op2 = substr($value, -1);
         if ($op2 === '[' || $op2 === ']') {
-            return $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op2 === ']' ? ' <= ' : ' < ') . pg_escape_string($val2);
+            return $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op2 === ']' ? ' <= ' : ' < ') . pg_escape_string(substr($value, 0, strlen($value) - 1));
         }
         
         /*
@@ -987,15 +941,13 @@ class Functions_features {
          * First and last characters give operators
          */
         $op1 = substr(trim($values[0]), 0, 1);
-        $val1 = substr(trim($values[0]), 1);
         $op2 = substr(trim($values[1]), -1);
-        $val2 = substr(trim($values[1]), 0, strlen(trim($values[1])) - 1);
 
         /*
          * A = {n1,n2} then returns  = n1 or = n2
          */
         if ($op1 === '{' && $op2 === '}') {
-            return '(' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ' = ' . pg_escape_string($val1) . ' OR ' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ' = ' . pg_escape_string($val2) . ')';
+            return '(' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ' = ' . pg_escape_string(substr($values[0], 1)) . ' OR ' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ' = ' . pg_escape_string(substr($values[1], 0, strlen($values[1]) - 1)) . ')';
         }
 
         /*
@@ -1006,7 +958,7 @@ class Functions_features {
          * 
          */
         if (($op1 === '[' || $op1 === ']') && ($op2 === '[' || $op2 === ']')) {
-            return $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op1 === '[' ? ' >= ' : ' > ') . pg_escape_string($val1) . ' AND ' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op2 === ']' ? ' <= ' : ' < ') . pg_escape_string($val2);
+            return $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op1 === '[' ? ' >= ' : ' > ') . pg_escape_string(substr($values[0], 1)) . ' AND ' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op2 === ']' ? ' <= ' : ' < ') . pg_escape_string(substr($values[1], 0, strlen($values[1]) - 1));
         }
     }
     
