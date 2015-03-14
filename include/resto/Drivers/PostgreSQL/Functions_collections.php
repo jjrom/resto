@@ -115,7 +115,8 @@ class Functions_collections {
      */
     public function collectionExists($name) {
         $query = 'SELECT collection FROM resto.collections WHERE collection=\'' . pg_escape_string($name) . '\'';
-        return $this->dbDriver->exists($query);
+        $results = $this->fetch($this->query(($query)));
+        return !empty($results);
     }
     
     /**
@@ -128,7 +129,7 @@ class Functions_collections {
     public function removeCollection($collection) {
         
         $results = $this->dbDriver->query('SELECT collection FROM resto.collections WHERE collection=\'' . pg_escape_string($collection->name) . '\'');
-        $schemaName = $this->dbDriver->getSchemaName($collection->name);
+        $schemaName = '_' . strtolower($collection->name);
         
         if (pg_fetch_assoc($results)) {
                 
@@ -169,7 +170,7 @@ class Functions_collections {
      */
     public function storeCollection($collection) {
         
-        $schemaName = $this->dbDriver->getSchemaName($collection->name);
+        $schemaName = '_' . strtolower($collection->name);
         
         try {
             

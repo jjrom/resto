@@ -476,16 +476,6 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     }
     
     /**
-     * Collection tables are stored within a dedicated schema
-     * based on the collection name
-     * 
-     * @param string $collectionName
-     */
-    public function getSchemaName($collectionName) {
-        return '_' . strtolower($collectionName);
-    }
-    
-    /**
      * Return $sentence in lowercase and without accent
      * 
      * This function is superseed in RestoDabaseDriver_PostgreSQL and use
@@ -543,17 +533,6 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             $output[] = $row;
         }
         return $output;
-    }
-    
-    /**
-     * Return true if results exists
-     * 
-     * @param string $query
-     * @return boolean
-     */
-    public function exists($query) {
-        $results = $this->fetch($this->query(($query)));
-        return !empty($results);
     }
     
     /**

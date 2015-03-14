@@ -115,7 +115,7 @@ class Functions_features {
          * Note that the total number of results (i.e. with no LIMIT constraint)
          * is retrieved with PostgreSQL "count(*) OVER()" technique
          */
-        $query = 'SELECT ' . implode(',', $filtersUtils->getSQLFields($model)) . ($options['count'] ? ', count(' . $model->getDbKey('identifier') . ') OVER() AS totalcount' : '') . ' FROM ' . (isset($collection) ? $this->dbDriver->getSchemaName($collection->name) : 'resto') . '.features' . ($oFilter ? ' WHERE ' . $oFilter : '') . ' ORDER BY startdate DESC LIMIT ' . $options['limit'] . ' OFFSET ' . $options['offset'];
+        $query = 'SELECT ' . implode(',', $filtersUtils->getSQLFields($model)) . ($options['count'] ? ', count(' . $model->getDbKey('identifier') . ') OVER() AS totalcount' : '') . ' FROM ' . (isset($collection) ? '_' . strtolower($collection->name) : 'resto') . '.features' . ($oFilter ? ' WHERE ' . $oFilter : '') . ' ORDER BY startdate DESC LIMIT ' . $options['limit'] . ' OFFSET ' . $options['offset'];
      
         /*
          * Retrieve products from database
@@ -140,7 +140,7 @@ class Functions_features {
     public function getFeatureDescription($context, $identifier, $collection = null, $filters = array()) {
         $model = isset($collection) ? $collection->model : new RestoModel_default();
         $filtersUtils = new Functions_filters();
-        $result = $this->dbDriver->query('SELECT ' . implode(',', $filtersUtils->getSQLFields($model)) . ' FROM ' . (isset($collection) ? $this->dbDriver->getSchemaName($collection->name) : 'resto') . '.features WHERE ' . $model->getDbKey('identifier') . "='" . pg_escape_string($identifier) . "'" . (count($filters) > 0 ? ' AND ' . join(' AND ', $filters) : ''));
+        $result = $this->dbDriver->query('SELECT ' . implode(',', $filtersUtils->getSQLFields($model)) . ' FROM ' . (isset($collection) ? '_' . strtolower($collection->name) : 'resto') . '.features WHERE ' . $model->getDbKey('identifier') . "='" . pg_escape_string($identifier) . "'" . (count($filters) > 0 ? ' AND ' . join(' AND ', $filters) : ''));
         $arrayOfFeatureArray = $this->toFeatureArray($context, $collection, $result);
         return $arrayOfFeatureArray[0];
     }
@@ -155,7 +155,8 @@ class Functions_features {
      */
     public function featureExists($identifier, $schema = null) {
         $query = 'SELECT 1 FROM ' . (isset($schema) ? pg_escape_string($schema) : 'resto') . '.features WHERE identifier=\'' . pg_escape_string($identifier) . '\'';
-        return $this->dbDriver->exists($query);
+        $results = $this->fetch($this->query(($query)));
+        return !empty($results);
     }
     
     /**
@@ -189,7 +190,7 @@ class Functions_features {
             /*
              * Store feature
              */
-            pg_query($this->dbh, 'INSERT INTO ' . pg_escape_string($this->dbDriver->getSchemaName($collection->name)) . '.features (' . join(',', array_keys($columnsAndValues)) . ') VALUES (' . join(',', array_values($columnsAndValues)) . ')');
+            pg_query($this->dbh, 'INSERT INTO ' . pg_escape_string('_' . strtolower($collection->name)) . '.features (' . join(',', array_keys($columnsAndValues)) . ') VALUES (' . join(',', array_values($columnsAndValues)) . ')');
             
             /*
              * Store facets
@@ -221,7 +222,7 @@ class Functions_features {
             /*
              * Remove feature
              */
-            $this->dbDriver->query('DELETE FROM ' . (isset($feature->collection) ? $this->dbDriver->getSchemaName($feature->collection->name): 'resto') . '.features WHERE identifier=\'' . pg_escape_string($feature->identifier) . '\'');
+            $this->dbDriver->query('DELETE FROM ' . (isset($feature->collection) ? '_' . strtolower($feature->collection->name): 'resto') . '.features WHERE identifier=\'' . pg_escape_string($feature->identifier) . '\'');
             
             /*
              * Remove facets
