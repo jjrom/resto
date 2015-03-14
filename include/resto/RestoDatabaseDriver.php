@@ -46,39 +46,40 @@ abstract class RestoDatabaseDriver {
     /*
      * Constant
      */
-    const CART_ITEMS = 1;
-    const COLLECTION = 2;
-    const COLLECTIONS = 3;
-    const FACETS = 4;
-    const FEATURE = 5;
-    const FEATURES = 6;
-    const GROUPS = 7;
-    const HIERACHICAL_FACETS = 8;
-    const QUERY = 9;
-    const ORDERS = 10;
-    const RIGHTS = 11;
-    const STATISTICS = 12;
-    const USER = 13;
-    const USER_PASSWORD = 14;
-    const USER_PROFILE = 15;
-    const COLLECTIONS_DESCRIPTIONS = 16;
-    const FEATURE_DESCRIPTION = 17;
-    const FEATURES_DESCRIPTIONS = 18;
-    const KEYWORDS = 19;
-    const FACET = 20;
-    const CART_ITEM = 21;
-    const ORDER = 22;
-    const SHARED_LINK = 23;
-    const USER_CONNECTED = 24;
-    const LICENSE_SIGNED = 25;
-    const SCHEMA = 26;
-    const TABLE = 27;
-    const TABLE_EMPTY = 28;
-    const ACTIVATE_USER = 29;
-    const DEACTIVATE_USER = 30;
-    const DISCONNECT_USER = 31;
-    const SIGN_LICENSE = 32;
-    const RIGHTS_FULL = 33;
+    const ACTIVATE_USER = 1;
+    const CART_ITEM = 2;
+    const CART_ITEMS = 3;
+    const COLLECTION = 4;
+    const COLLECTIONS = 5;
+    const COLLECTIONS_DESCRIPTIONS = 6;
+    const DEACTIVATE_USER = 7;
+    const DISCONNECT_USER = 8;
+    const FACET = 9;
+    const FACETS = 10;
+    const FEATURE = 11;
+    const FEATURES = 12;
+    const FEATURES_DESCRIPTIONS = 13;
+    const FEATURE_DESCRIPTION = 14;
+    const GROUPS = 15;
+    const HANDLER = 16;
+    const HIERACHICAL_FACETS = 17;
+    const KEYWORDS = 18;
+    const LICENSE_SIGNED = 19;
+    const ORDER = 20;
+    const ORDERS = 21;
+    const QUERY = 22;
+    const RIGHTS = 23;
+    const RIGHTS_FULL = 24;
+    const SCHEMA = 25;
+    const SHARED_LINK = 26;
+    const SIGN_LICENSE = 27;
+    const STATISTICS = 28;
+    const TABLE = 29;
+    const TABLE_EMPTY = 30;
+    const USER = 31;
+    const USER_CONNECTED = 32;
+    const USER_PASSWORD = 33;
+    const USER_PROFILE = 34;
     
     /*
      * Results per page

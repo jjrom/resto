@@ -80,6 +80,12 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         switch ($typeName) {
             
             /*
+             * Get Database Handler
+             */
+            case parent::HANDLER:
+                return $this->getHandler($params);
+            
+            /*
              * Get cart items
              */
             case parent::CART_ITEMS:
@@ -541,7 +547,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      * @param array $options
      * @throws Exception
      */
-    public function getHandler($options = array()) {
+    private function getHandler($options = array()) {
     
         $dbh = null;
         

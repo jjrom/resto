@@ -98,7 +98,7 @@ abstract class RestoModule{
          * Set database handler from configuration
          */
         if (isset($this->options['database'])) {
-            $dbh = $this->context->dbDriver->getHandler($this->options['database']);
+            $dbh = $this->context->dbDriver->get(RestoDatabaseDriver::HANDLER, $this->options['database']);
         }
 
         /*
