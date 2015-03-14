@@ -59,6 +59,49 @@ class Functions_facets {
     }
 
     /**
+     * Store facet within database (i.e. add 1 to the counter of facet if exist)
+     * 
+     * !! THIS FUNCTION IS THREAD SAFE !!
+     * 
+     * Input facet structure :
+     *      array(
+     *          array(
+     *              'name' => 
+     *              'type' => 
+     *              'hash' => 
+     *              'parentHash' => 
+     *          ),
+     *          ...
+     *      )
+     * 
+     * @param array $facets
+     * @param type $collectionName
+     */
+    public function storeFacets($facets, $collectionName) {
+        
+        foreach (array_values($facets) as $facetElement) {
+            
+            $arr = array(
+                '\'' . pg_escape_string($facetElement['hash']) . '\'',
+                '\'' . pg_escape_string($facetElement['name']) . '\'',
+                '\'' . pg_escape_string($facetElement['type']) . '\'',
+                isset($facetElement['parentHash']) ? '\'' . pg_escape_string($facetElement['parentHash']) . '\'' : 'NULL',
+                isset($collectionName) ? '\'' . pg_escape_string($collectionName) . '\'' : 'NULL',
+                '1'
+            );
+            
+            /*
+             * Thread safe ingestion
+             */
+            $lock = 'LOCK TABLE resto.facets IN SHARE ROW EXCLUSIVE MODE;';
+            $insert = 'INSERT INTO resto.facets (uid, value, type, pid, collection, counter) SELECT ' . join(',', $arr);
+            $upsert = 'UPDATE resto.facets SET counter = counter + 1 WHERE uid = \'' . pg_escape_string($facetElement['hash']) . '\' AND collection = \'' . pg_escape_string($collectionName) . '\'';
+            $this->dbDriver->query($lock . 'WITH upsert AS (' . $upsert . ' RETURNING *) ' . $insert . ' WHERE NOT EXISTS (SELECT * FROM upsert)', 500, 'Cannot insert facet for ' . $collectionName);
+            
+        }
+    }
+    
+    /**
      * Remove facet for collection i.e. decrease by one counter
      * 
      * @param string $hash
@@ -191,49 +234,6 @@ class Functions_facets {
         return $pivots;
     }
 
-    /**
-     * Store facet within database (i.e. add 1 to the counter of facet if exist)
-     * 
-     * !! THIS FUNCTION IS THREAD SAFE !!
-     * 
-     * Input facet structure :
-     *      array(
-     *          array(
-     *              'name' => 
-     *              'type' => 
-     *              'hash' => 
-     *              'parentHash' => 
-     *          ),
-     *          ...
-     *      )
-     * 
-     * @param array $facets
-     * @param type $collectionName
-     */
-    public function storeFacets($facets, $collectionName) {
-        
-        foreach (array_values($facets) as $facetElement) {
-            
-            $arr = array(
-                '\'' . pg_escape_string($facetElement['hash']) . '\'',
-                '\'' . pg_escape_string($facetElement['name']) . '\'',
-                '\'' . pg_escape_string($facetElement['type']) . '\'',
-                isset($facetElement['parentHash']) ? '\'' . pg_escape_string($facetElement['parentHash']) . '\'' : 'NULL',
-                isset($collectionName) ? '\'' . pg_escape_string($collectionName) . '\'' : 'NULL',
-                '1'
-            );
-            
-            /*
-             * Thread safe ingestion
-             */
-            $lock = 'LOCK TABLE resto.facets IN SHARE ROW EXCLUSIVE MODE;';
-            $insert = 'INSERT INTO resto.facets (uid, value, type, pid, collection, counter) SELECT ' . join(',', $arr);
-            $upsert = 'UPDATE resto.facets SET counter = counter + 1 WHERE uid = \'' . pg_escape_string($facetElement['hash']) . '\' AND collection = \'' . pg_escape_string($collectionName) . '\'';
-            $this->dbDriver->query($lock . 'WITH upsert AS (' . $upsert . ' RETURNING *) ' . $insert . ' WHERE NOT EXISTS (SELECT * FROM upsert)', 500, 'Cannot insert facet for ' . $collectionName);
-            
-        }
-    }
-    
     /**
      * Check if facet exists
      * 

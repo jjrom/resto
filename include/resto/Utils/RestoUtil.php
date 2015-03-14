@@ -171,7 +171,7 @@ class RestoUtil {
         $existingParams = array();
         $exploded = parse_url($url);
         if (isset($exploded['query'])) {
-            parse_str($exploded['query'], $existingParams);
+            $existingParams = RestoUtil::queryStringToKvps($exploded['query']);
         }
         return RestoUtil::baseUrl($exploded) . $exploded['path'] . RestoUtil::kvpsToQueryString(array_merge($existingParams, $newParams));
     }
@@ -482,6 +482,25 @@ class RestoUtil {
             }
         }
         return '?' . $paramsStr;
+    }
+    
+    /**
+     * Extract Key/Value pairs array from query string
+     * 
+     * @param string $string
+     * @return array
+     */
+    public static function queryStringToKvps($string) {
+        $kvps = array();
+        $exploded = explode('&', $string);
+        for ($i = 0, $ii = count($exploded); $i < $ii; $i++) {
+            if (empty($exploded[$i])) {
+                continue;
+            }
+            list($key, $value) = explode('=', $exploded[$i], 2);
+            $kvps[urldecode($key)] = urldecode($value);
+        }
+        return $kvps;
     }
     
     /**
