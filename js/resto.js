@@ -154,6 +154,7 @@
                 if ($(this).attr('changeLocation')) {
                     self.ajaxReady = false;
                     window.Resto.Util.showMask();
+                    window.location = $(this).attr('action') + '?q=' + $('#resto-searchform :input').val();
                     this.submit();
                     return true;
                 }

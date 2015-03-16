@@ -16,7 +16,7 @@
     <body class="bg glass">
 
         <!-- Header -->
-        <?php include '_header.php' ?>
+        <?php include '_headerHome.php' ?>
 
         <!-- Search bar -->
         <div class="row fullWidth" style="padding:100px 0px 50px 0px;width:100%;text-align:center;">
