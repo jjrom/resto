@@ -126,7 +126,7 @@ class Functions_cart{
             return false;
         }
         $query = 'SELECT 1 FROM usermanagement.cart WHERE itemid=\'' . pg_escape_string($itemId) . '\'';
-        $results = $this->fetch($this->query(($query)));
+        $results = $this->dbDriver->fetch($this->dbDriver->query(($query)));
         return !empty($results);
     }
     

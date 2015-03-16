@@ -86,7 +86,10 @@ class Functions_rights {
             if (isset($results[0]['filters'])) {
                 $results[0]['filters'] = json_decode($results[0]['filters'], true);
             }
-            return $results[0];
+            foreach (array_values(array('search', 'download', 'visualize', 'post', 'put', 'delete')) as $key) {
+                $results[0][$key] === '1' ? true : false;
+            }
+            return $results;
         }
         return null;
     }
@@ -114,13 +117,14 @@ class Functions_rights {
             if (isset($row['filters'])) {
                 $properties['filters'] = json_decode($row['filters'], true);
             }
+            foreach (array_values(array('search', 'download', 'visualize', 'post', 'put', 'delete')) as $field){
+                $properties[$field] = $row[$field] === '1' ? true : false;
+            }
             if (isset($row['featureid'])) {
                 $rights[$row['collection']]['features'][$row['featureid']] = $properties;
             }
             else {
-                foreach ($properties as $key => $value) {
-                    $rights[$row['collection']][$key] = $value;
-                }
+                $rights[$row['collection']] = array_merge($rights[$row['collection']], $properties);
             }
         }
         return $rights;
@@ -148,7 +152,9 @@ class Functions_rights {
      */
     public function storeRights($rights, $identifier, $collectionName, $featureIdentifier = null) {
         try {
-            if (!$this->collectionExists($collectionName)) {
+            if (!$this->dbDriver->check(RestoDatabaseDriver::COLLECTION, array(
+                'collectionName' => $collectionName
+            ))) {
                 throw new Exception();
             }
             $values = array(
@@ -194,10 +200,11 @@ class Functions_rights {
      */
     public function updateRights($rights, $identifier, $collectionName, $featureIdentifier = null) {
         
-        if (!$this->collectionExists($collectionName)) {
+        if (!$this->dbDriver->check(RestoDatabaseDriver::COLLECTION, array(
+            'collectionName' => $collectionName
+        ))) {
             RestoLogUtil::httpError(500, 'Cannot update rights - collection ' . $collectionName . ' does not exist');
         }
-        
         $values = "collection='" . pg_escape_string($collectionName) . "',";
         if (isset($featureIdentifier)) {
             $values .= "featureid='" . pg_escape_string($featureIdentifier) . "',";

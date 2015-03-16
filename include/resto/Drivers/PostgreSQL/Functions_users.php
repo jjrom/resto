@@ -110,7 +110,7 @@ class Functions_users {
      */
     public function userExists($email) {
         $query = 'SELECT 1 FROM usermanagement.users WHERE email=\'' . pg_escape_string($email) . '\'';
-        $results = $this->fetch($this->query(($query)));
+        $results = $this->dbDriver->fetch($this->dbDriver->query(($query)));
         return !empty($results);
     }
     
@@ -126,7 +126,7 @@ class Functions_users {
             return false;
         }
         $query = 'SELECT 1 FROM usermanagement.users WHERE ' . $this->useridOrEmailFilter($identifier) . ' AND connected=1';
-        $results = $this->fetch($this->query(($query)));
+        $results = $this->dbDriver->fetch($this->dbDriver->query(($query)));
         return !empty($results);
     }
     
@@ -218,7 +218,7 @@ class Functions_users {
      */
     public function isLicenseSigned($identifier, $collectionName) {
         $query = 'SELECT 1 FROM usermanagement.signatures WHERE email= \'' . pg_escape_string($identifier) . '\' AND collection= \'' . pg_escape_string($collectionName) . '\'';
-        $results = $this->fetch($this->query(($query)));
+        $results = $this->dbDriver->fetch($this->dbDriver->query(($query)));
         return !empty($results);
     }
     
@@ -232,7 +232,9 @@ class Functions_users {
      */
     public function signLicense($identifier, $collectionName) {
         
-        if (!$this->collectionExists($collectionName)) {
+        if (!$this->dbDriver->check(RestoDatabaseDriver::COLLECTION, array(
+            'collectionName' => $collectionName
+        ))) {
             RestoLogUtil::httpError(500, 'Cannot sign license');
         }
         $results = $this->dbDriver->query('SELECT email FROM usermanagement.signatures WHERE email=\'' . pg_escape_string($identifier) . '\' AND collection=\'' . pg_escape_string($collectionName) . '\'');

@@ -67,7 +67,7 @@ class Functions_general {
      */
     public function schemaExists($name) {
         $query = 'SELECT 1 FROM pg_namespace WHERE nspname = \'' . pg_escape_string($name) . '\'';
-        $results = $this->fetch($this->query(($query)));
+        $results = $this->dbDriver->fetch($this->dbDriver->query(($query)));
         return !empty($results);
     }
 
@@ -81,7 +81,7 @@ class Functions_general {
      */
     public function tableExists($name, $schema = 'public') {
         $query = 'SELECT 1 FROM pg_tables WHERE schemaname=\'' . pg_escape_string($schema) . '\' AND tablename=\'' . pg_escape_string($name) . '\'';
-        $results = $this->fetch($this->query(($query)));
+        $results = $this->dbDriver->fetch($this->dbDriver->query(($query)));
         return !empty($results);
     }
     
@@ -95,7 +95,7 @@ class Functions_general {
      */
     public function tableIsEmpty($name, $schema = 'public') {
         $query = 'SELECT 1 FROM ' . pg_escape_string($schema) . '.' . pg_escape_string($name) . '';
-        $results = $this->fetch($this->query(($query)));
+        $results = $this->dbDriver->fetch($this->dbDriver->query(($query)));
         return !empty($results);
     }
     
@@ -152,7 +152,7 @@ class Functions_general {
             return false;
         }
         $query = 'SELECT 1 FROM usermanagement.sharedlinks WHERE url=\'' . pg_escape_string($resourceUrl) . '\' AND token=\'' . pg_escape_string($token) . '\' AND validity > now()';
-        $results = $this->fetch($this->query(($query)));
+        $results = $this->dbDriver->fetch($this->dbDriver->query(($query)));
         return !empty($results);
         
     }

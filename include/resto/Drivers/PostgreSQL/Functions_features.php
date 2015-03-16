@@ -155,7 +155,7 @@ class Functions_features {
      */
     public function featureExists($identifier, $schema = null) {
         $query = 'SELECT 1 FROM ' . (isset($schema) ? pg_escape_string($schema) : 'resto') . '.features WHERE identifier=\'' . pg_escape_string($identifier) . '\'';
-        $results = $this->fetch($this->query(($query)));
+        $results = $this->dbDriver->fetch($this->dbDriver->query(($query)));
         return !empty($results);
     }
     
