@@ -59,28 +59,28 @@ class RestoRights{
      */
     public $groupRights = array(
         'unregistered' => array(
-            'search' => true,
-            'visualize' => false,
-            'download' => false,
-            'post' => false,
-            'put' => false,
-            'delete' => false
+            'search' => 1,
+            'visualize' => 0,
+            'download' => 0,
+            'post' => 0,
+            'put' => 0,
+            'delete' => 0
         ),
         'default' => array(
-            'search' => true,
-            'visualize' => false,
-            'download' => false,
-            'post' => false,
-            'put' => false,
-            'delete' => false
+            'search' => 1,
+            'visualize' => 0,
+            'download' => 0,
+            'post' => 0,
+            'put' => 0,
+            'delete' => 0
         ),
         'admin' => array(
-            'search' => true,
-            'visualize' => true,
-            'download' => true,
-            'post' => true,
-            'put' => true,
-            'delete' => true
+            'search' => 1,
+            'visualize' => 1,
+            'download' => 1,
+            'post' => 1,
+            'put' => 1,
+            'delete' => 1
         )
     );
     

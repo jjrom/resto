@@ -97,7 +97,7 @@ class Functions_users {
         }
         
         foreach (array_values(array('activated', 'connected')) as $key) {
-            $results[0][$key] = $results[0][$key] === '1' ? true : false;
+            $results[0][$key] = (integer) $results[0][$key];
         }
         
         return $results[0];
