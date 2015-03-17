@@ -96,6 +96,10 @@ class Functions_users {
             RestoLogUtil::httpError(404);
         }
         
+        foreach (array_values(array('activated', 'connected')) as $key) {
+            $results[0][$key] = $results[0][$key] === '1' ? true : false;
+        }
+        
         return $results[0];
         
     }
