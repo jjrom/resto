@@ -534,11 +534,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      * @return array
      */
     public function fetch($results) {
-        $output = array();
-        while ($row = pg_fetch_assoc($results)){
-            $output[] = $row;
-        }
-        return $output;
+        return pg_fetch_all($results);
     }
     
     /**
