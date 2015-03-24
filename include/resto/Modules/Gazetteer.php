@@ -91,17 +91,17 @@ class Gazetteer extends RestoModule {
     /**
      * Run module - this function should be called by Resto.php
      * 
-     * @param array $params : input parameters
+     * @param array $elements : route elements
      * @param array $data : POST or PUT parameters
      * 
      * @return string : result from run process in the $context->outputFormat
      */
-    public function run($params) {
+    public function run($elements) {
        
         /*
          * Only GET method on 'search' route with json outputformat is accepted
          */
-        if ($this->context->method !== 'GET' || count($params) !== 0) {
+        if ($this->context->method !== 'GET' || count($elements) !== 0) {
             RestoLogUtil::httpError(404);
         }
         

@@ -525,7 +525,7 @@ class RestoFeatureCollection {
      * @param array $params
      */
     private function getSearchFilters($params) {
-        if (isset($this->context->modules['QueryAnalyzer'])) {
+        if (isset($this->context->modules['QueryAnalyzer']) && !empty($params['searchTerms'])) {
             $queryAnalyzer = new QueryAnalyzer($this->context, $this->user);
             $analyzis = $queryAnalyzer->analyze($params, $this->defaultModel);
             return $analyzis['analyze'];
