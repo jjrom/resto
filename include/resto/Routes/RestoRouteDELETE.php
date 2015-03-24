@@ -144,7 +144,7 @@ class RestoRouteDELETE extends RestoRoute {
             RestoLogUtil::httpError(404);
         }
         
-        if ($segments[1] === 'cart') {
+        if ($segments[2] === 'cart') {
             return $this->DELETE_userCart($segments[1], $segments[3]);
         }
         else {
