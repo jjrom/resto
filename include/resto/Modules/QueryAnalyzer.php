@@ -43,7 +43,95 @@
  * 
  * Extract OpenSearch EO search parameters from
  * an input string (i.e. searchTerms)
+ * A typical searchTerms query can be anything :
  * 
+ *      searchTerms = "spot5 images with forest in france between march 2012 and may 2012"
+ * 
+ * The query analyzer converts this string into comprehensive request.
+ * 
+ * For instance the previous string will be transformed as :
+ *  
+ *      eo:platform = SPOT5
+ *      time:start = 2012-01-03T00:00:00Z
+ *      time:end = 2012-31-05T00:00:00Z
+ *      geo:box = POLYGON(( ...coordinates of France country...))
+ *      searchTerms = landuse:forest
+ * 
+ * IMPORTANT : if a word is prefixed by 'xxx=' then QueryAnalyzer considered the string as a key=value pair
+ * 
+ * Some notes :
+ *
+ * # Dates
+ * 
+ * Detected dates format are :
+ *      
+ *      ISO8601 : see isISO8601($str) in lib/functions.php (e.g 2010-10-23)
+ *      <month> <year> (e.g. may 2010)
+ *      <year> <month> (e.g. 2010 may)
+ *      <day> <month> <year> (e.g. 10 may 2010)
+ *      <year> <month> <day> (e.g. 2010 may 10)
+ * 
+ * # Detected patterns
+ * 
+ * ## When ?
+ * 
+ *      <today>
+ *      <tomorrow>
+ *      <yesterday>
+ * 
+ *      <after> "date"
+ *      <before> "date"
+ *      
+ *      <between> "date" <and> "date"
+ *      <between> "month" <and> "month" (year)
+ *      <between> "day" <and> "day" (month) (year)
+ *      
+ *      <in> "date"
+ * 
+ *      <last> "(year|month|day)"
+ *      <last> "numeric" "(year|month|day)"
+ *      "numeric" <last> "(year|month|day)"
+ *      "(year|month|day)" <last>
+ * 
+ *      <next> "(year|month|day)"
+ *      <next> "numeric" "(year|month|day)"
+ *      "numeric" <next> "(year|month|day)"
+ *      "(year|month|day)" <next>
+ * 
+ *      <since> "numeric" "(year|month|day)"
+ *      <since> "month" "year"
+ *      <since> "date"
+ *      <since> "numeric" <last> "(year|month|day)"
+ *      <since> <last> "numeric" "(year|month|day)"
+ *      <since> <last> "(year|month|day)"
+ *      <since> "(year|month|day)" <last>
+ * 
+ *      "numeric" "(year|month|day)" <ago>
+ * 
+ * 
+ * A 'modifier' is a term which modify the way following term(s) are handled.
+ * Known <modifier> and expected "terms" are :
+ * 
+ *      <with> "keyword"
+ *      <with> "quantity"   // equivalent to "quantity" <greater> (than) 0 "unit"
+ * 
+ *      <without> "keyword"
+ *  
+ *      <without> "quantity"   // equivalent to "quantity" <equal> 0 "unit"
+ * 
+ *      "quantity" <lesser> (than) "numeric" "unit"
+ *      "quantity" <greater> (than) "numeric" "unit"
+ *      "quantity" <equal> (to) "numeric" "unit"
+ *      <lesser> (than) "numeric" "unit" (of) "quantity" 
+ *      <greater> (than) "numeric" "unit" (of) "quantity"
+ *      <equal> (to) "numeric" "unit" (of) "quantity"
+ * 
+ *      
+ *     
+ *      <month>
+ *      <season>
+ * 
+ * @param array $params
  */
 class QueryAnalyzer extends RestoModule {
 
@@ -51,6 +139,10 @@ class QueryAnalyzer extends RestoModule {
     private $unProcessed = array();
     private $remaining = array();
     private $explicits = array();
+    
+    private $outputFilters = array();
+    
+    private $keywords = array();
     
     /**
      * Constructor
@@ -66,198 +158,91 @@ class QueryAnalyzer extends RestoModule {
     /**
      * Run module - this function should be called by Resto.php
      * 
-     * @param array $params : input parameters
+     * @param array $elements : route element
      * @param array $data : POST or PUT parameters
      * 
      * @return string : result from run process in the $context->outputFormat
      */
-    public function run($params) {
+    public function run($elements) {
         
         /*
          * Only GET method on 'search' route with json outputformat is accepted
          */
-        if ($this->context->method !== 'GET' || count($params) !== 0) {
+        if ($this->context->method !== 'GET' || count($elements) !== 0) {
             RestoLogUtil::httpError(404);
         }
         
-        return $this->analyze($this->context->query);
+        return $this->analyze(isset($this->context->query['searchTerms']) ? $this->context->query['searchTerms'] : null, new RestoModel_default());
         
     }
     
     /**
      * Query analyzer process searchTerms and modify query parameters accordingly
      * 
-     * A typical searchTerms query can be anything :
-     * 
-     *      searchTerms = "spot5 images with forest in france between march 2012 and may 2012"
-     * 
-     * The query analyzer converts this string into comprehensive request.
-     * 
-     * For instance the previous string will be transformed as :
-     *  
-     *      eo:platform = SPOT5
-     *      time:start = 2012-01-03T00:00:00Z
-     *      time:end = 2012-31-05T00:00:00Z
-     *      geo:box = POLYGON(( ...coordinates of France country...))
-     *      searchTerms = landuse:forest
-     * 
-     * IMPORTANT : if a word is prefixed by 'xxx=' then QueryAnalyzer considered the string as a key=value pair
-     * 
-     * Some notes :
-     * 
-     * Dictionary
-     * ==========
-     * The dictionary structure :
-     * 
-     *      array(
-     *          excluded => array(),
-     *          modifiers => array(),
-     *          units => array(),
-     *          numbers => array(),
-     *          months => array(),
-     *          quantities => array(),
-     *          platforms => array(),
-     *          instruments => array(),
-     *          keywords => array()
-     *      )
-     * 
-     * 
-     * Dates
-     * =====
-     * Detected dates format are :
-     *      
-     *      ISO8601 : see isISO8601($str) in lib/functions.php (e.g 2010-10-23)
-     *      <month> <year> (e.g. may 2010)
-     *      <year> <month> (e.g. 2010 may)
-     *      <day> <month> <year> (e.g. 10 may 2010)
-     *      <year> <month> <day> (e.g. 2010 may 10)
-     * 
-     * Modifiers
-     * =========
-     * 
-     * A 'modifier' is a term which modify the way following term(s) are handled.
-     * Known <modifier> and expected "terms" are :
-     * 
-     *      <with> "keyword"
-     *      <with> "quantity"   // equivalent to "quantity" <greater> (than) 0 "unit"
-     * 
-     *      <without> "keyword"
-     *  
-     *      <without> "quantity"   // equivalent to "quantity" <equal> 0 "unit"
-     * 
-     *      "quantity" <lesser> (than) "numeric" "unit"
-     *      "quantity" <greater> (than) "numeric" "unit"
-     *      "quantity" <equal> (to) "numeric" "unit"
-     *      <lesser> (than) "numeric" "unit" (of) "quantity" 
-     *      <greater> (than) "numeric" "unit" (of) "quantity"
-     *      <equal> (to) "numeric" "unit" (of) "quantity"
-     * 
-     *      <today>
-     *      <yesterday>
-     * 
-     *      <before> "date"
-     *      <after> "date"
-     *      
-     *      <between> "date" <and> "date"
-     *      <between> "month" <and> "month" (year)
-     *      "quantity" <between> "numeric" <and> "numeric" ("unit")
-     *      <between> "numeric" <and> "numeric" "unit" (of) "quantity"
-     * 
-     *      <last> "(year|day|month)"
-     *      <last> "numeric" "(year|day|month)"
-     *      "numeric" <last> "(year|day|month)"
-     *      "(year|day|month)" <last>
-     * 
-     *      <since> "numeric" "(year|day|month)"
-     *      <since> "month" "year"
-     *      <since> "date"
-     *      <since> "numeric" <last> "(year|day|month)"
-     *      <since> <last> "numeric" "(year|day|month)"
-     *      <since> <last> "(year|day|month)"
-     *      <since> "(year|day|month)" <last>
-     * 
-     *      "numeric" "units" <ago>
-     *      
-     *      <month>
-     *      <season>
-     * 
-     * @param array $params
+     * @param string $query
      * @param RestoModel $model
+     * @return type
      */
-    public function analyze($params, $model = null) {
+    public function analyze($query, $model) {
 
+        $this->model = $model;
+        
         $startTime = microtime(true);
         
         /*
-         * queryAnalyzer only apply on searchTerms filter
+         * QueryAnalyzer only apply on searchTerms filter
          */
-        if (!isset($params['searchTerms']) || !$params['searchTerms']) {
-            $params['searchTerms'] = "";
-            return array('query' => '', 'analyze' => $params, 'queryAnalyzeProcessingTime' => microtime(true) - $startTime);
+        if (!isset($query)) {
+            RestoLogUtil::httpError(400, 'Missing mandatory searchTerms');
         }
+       
+        return array(
+            'query' => $query,
+            'language' => $this->dictionary->language,
+            'analyze' => $this->process($query),
+            'unProcessed' => $this->unProcessed,
+            'remaining' => implode(' ', $this->remaining),
+            'queryAnalyzeProcessingTime' => microtime(true) - $startTime
+        );
+        
+    }
+    
+    /**
+     * Return array of search terms from input query
+     * 
+     * @param string $query
+     * @return array
+     */
+    private function process($query) {
         
         /*
-         * Set Model
+         * Get searchTerms array
          */
-        if (!isset($model)) {
-            $model = new RestoModel_default();
-        }
+        $words = $this->toWords($query);
+        print_r($words);
         
         /*
-         * Set analyze language
+         * When ?
          */
-        if (!isset($params['language']) || !$params['language']) {
-            $params['language'] = $this->dictionary->language;
-        }
+        $words = $this->processWhen($words);
+        print_r($words);
         
         /*
-         * Store input
+         * Where ?
          */
-        $input = $params['searchTerms'];
+        $words = $this->processWhere($words);
+        print_r($words);
+        
         
         /*
-         * Transliterate searchTerms string - split each terms with (" " character)
-         * If available, unaccent and lower input searchTerms
+         * Remove excluded words and words with less than 4 characters that are not in dictionary
          */
-        $rawSearchTerms = RestoUtil::splitString($this->context->dbDriver->normalize($params['searchTerms']));
+        //$searchTerms = $this->extractExcluded($searchTerms);
         
         /*
-         * Extract explicit mapping i.e. words with ':' delimiter 
+         * Extract Platform and Instrument
          */
-        $this->explicits = $this->extractExplicits($rawSearchTerms, $params, $model);
-        
-        /*
-         * Add a space between a numeric value and '%' character
-         */
-        $searchTerms = array();
-        for ($i = 0, $l = count($rawSearchTerms); $i < $l; $i++) {
-            $term = trim($rawSearchTerms[$i]);
-            if ($term === ',' || $term === ';' || $term === '') {
-                continue;
-            }
-            $splitted = explode('%', $term);
-            if (count($splitted) === 2 && is_numeric($splitted[0])) {
-                $searchTerms[] = trim(trim($splitted[0] , ','), ';');
-                $searchTerms[] = '%';
-            }
-            else {
-                $searchTerms[] = str_replace(' ', '-', trim(trim($rawSearchTerms[$i] , ','), ';'));
-            }
-        }
-        
-        /*
-         *  - Extract Platform and Instrument
-         *  - Remove words with less than 4 characters that are not in dictionary
-         *  - Remove excluded words
-         */
-        $this->extractExcluded($searchTerms);
-        
-        /*
-         *  - Extract Platform and Instrument
-         *  - Remove words with less than 4 characters that are not in dictionary
-         *  - Remove excluded words
-         */
-        $this->extractPlaformAndInstrument($searchTerms, $params);
+        //$searchTerms = $this->extractPlaformAndInstrument($searchTerms, $params);
         
         /*
          * At this stage remaining terms are 
@@ -265,361 +250,951 @@ class QueryAnalyzer extends RestoModule {
          *  - modifiers
          *  - non excluded terms with 4 or more characters in length that
          */
-        $this->extractModifiers($searchTerms, $params, $model);
+        //$this->extractModifiers($searchTerms);
         
         /*
          * Extract dates alone
          */
-        $this->extractDates($searchTerms, $params);
+        //$this->extractDates($searchTerms, $inputParams);
         
         /*
          * Extract keywords
          */
-        $this->extractKeywordsAndLocation($searchTerms, $params, $model);
+        //$this->extractKeywordsAndLocation($searchTerms, $params);
         
         /*
          * Merge computed searchTerms with explicits keywords
          */
+        /*
         if (count($this->explicits) > 0) {
             $params['searchTerms'] = trim($params['searchTerms'] . ' ' . join(' ', array_keys($this->explicits)));
         }
-        return array('query' => $input, 'analyze' => $params, 'unProcessed' => $this->unProcessed, 'remaining' => implode(' ', $this->remaining), 'queryAnalyzeProcessingTime' => microtime(true) - $startTime);
+        */
         
-    }
-
-    /**
-     * Extract explicit mapping i.e. words with '=' or ':' delimiters 
-     * 
-     * @param array $searchTerms
-     * @param array $params
-     * @param RestoModel $model
-     */
-    private function extractExplicits(&$rawSearchTerms, &$params, $model) {
-       
-        $explicits = array();
-        
-        /*
-         * Explicit OpenSearch key=value
-         */
-        $toRemove = array();
-        for ($i = 0, $l = count($rawSearchTerms); $i < $l; $i++) {
-            $splitted = explode('=', $rawSearchTerms[$i]);
-            if (count($splitted) === 2) {
-                foreach(array_keys($model->searchFilters) as $key) {
-                    if (strtolower($model->searchFilters[$key]['osKey']) === $splitted[0]) {
-                        $params[$key] = $splitted[1];
-                        break;
-                    }
-                }
-                $toRemove[] = $rawSearchTerms[$i];
-            }
-        }
-        
-        /*
-         * Update searchTerms passed by reference in the function
-         */
-        $rawSearchTerms = $this->stripArray($rawSearchTerms, $toRemove);
-        
-        /*
-         * Explicit keyword e.g. "landuse:forest"
-         */
-        for ($i = 0, $l = count($rawSearchTerms); $i < $l; $i++) {
-            $splitted = explode(':', $rawSearchTerms[$i]);
-            if (count($splitted) === 2) {
-                $explicits[$this->quoteIfNeeded($rawSearchTerms[$i])] = true;
-                $toRemove[] = $rawSearchTerms[$i];
-            }
-        }
-        
-        /*
-         * Update searchTerms passed by reference in the function
-         */
-        $rawSearchTerms = $this->stripArray($rawSearchTerms, $toRemove);
-        
-        return $explicits;
-    }
-    
-    /**
-     * Remove excluded words and less than 4 characters in length not in the dictionary
-     * 
-     * @param array $searchTerms
-     */
-    private function extractExcluded(&$searchTerms) {
-         
-        $toRemove = array();
-     
-        for ($i = 0, $l = count($searchTerms); $i < $l; $i++) {
-         
-            /*
-             * Remove non numeric terms
-             *  - with less than 4 characters in length
-             *  - that are not in the dictionary
-             */
-            if ($searchTerms[$i] === '') {
-                $toRemove[] = $searchTerms[$i];
-            }
-            else if (strlen($searchTerms[$i]) < 4
-                     && !$this->isNumeric($searchTerms[$i])
-                     && !$this->dictionary->getModifier($searchTerms[$i])
-                     && !$this->dictionary->getMonth($searchTerms[$i])
-                     && !$this->dictionary->getSeason($searchTerms[$i])
-                     && !$this->dictionary->getUnit($searchTerms[$i])
-                     && !$this->dictionary->getQuantity($searchTerms[$i])
-                     && !$this->dictionary->getKeyword($searchTerms[$i])
-                     && !$this->dictionary->isKeywordsValue($searchTerms[$i])) {
-                $toRemove[] = $searchTerms[$i];
-                $this->unProcessed[] = $searchTerms[$i];
-            }
-            /*
-             * Remove excluded terms
-             */
-            else if ($this->dictionary->isExcluded($searchTerms[$i])) {
-                $toRemove[] = $searchTerms[$i];
-                $this->unProcessed[] = $searchTerms[$i];
-            }
-        }
-        
-        /*
-         * Update searchTerms passed by reference in the function
-         */
-        $searchTerms = $this->stripArray($searchTerms, $toRemove);
+        return $this->outputFilters;
         
     }
     
     /**
-     * Extract Platform and Instrument from searchTerms array
-     * then remove
-     *      - terms less than 4 characters in length
-     *      - excluded characters
+     * Extract time patterns from words
      * 
-     * @param array $searchTerms
-     * @param array $params
+     * @param array $words
      */
-    private function extractPlaformAndInstrument(&$searchTerms, &$params) {
-       
-        $toRemove = array();
-     
-        for ($i = 0, $l = count($searchTerms); $i < $l; $i++) {
+    private function processWhen($words) {
+        
+        /*
+         * Roll over each word to detect time pattern
+         */
+        for ($i = 0, $l = count($words); $i < $l; $i++) {
             
-            /*
-             * Platforms is an associative array
-             */
-            $platform = $this->dictionary->getPlatform($searchTerms[$i]);
-            if (isset($platform)) {
-                if (isset($params['eo:platform'])) {
-                    if (!is_array($params['eo:platform'])) {
-                        $params['eo:platform'] = array($params['eo:platform']);
-                    }
-                    array_push($params['eo:platform'], $platform);
-                }
-                else {
-                    $params['eo:platform'] = $platform;
-                }
-                $toRemove[] = $searchTerms[$i];
-            }
-            else {
-                $instrument = $this->dictionary->getInstrument($searchTerms[$i]);
-                if (isset($instrument)) {
-                    if (isset($params['eo:instrument'])) {
-                        if (!is_array($params['eo:instrument'])) {
-                            $params['eo:instrument'] = array($params['eo:instrument']);
-                        }
-                        array_push($params['eo:instrument'], $instrument);
-                    }
-                    else {
-                        $params['eo:instrument'] = $instrument;
-                    }
-                    $toRemove[] = $searchTerms[$i];
-                }
-            }
-            
-        }
-        
-        /*
-         * Update searchTerms passed by reference in the function
-         */
-        $searchTerms = $this->stripArray($searchTerms, $toRemove);
-
-    }
-    
-    /**
-     * Extract Modifiers from $searchTerms array
-     * 
-     * @param array $searchTerms
-     * @param array $params
-     * @param RestoModel $model
-     */
-    private function extractModifiers(&$searchTerms, &$params, $model) {
-        
-        $toRemove = array();
-        $foundSince = false;
-      
-        for ($i = 0, $l = count($searchTerms); $i < $l; $i++) {
-
-            /*
-             * Modifiers, aka the tricky part :)
-             */
-            if ($this->dictionary->getModifier($searchTerms[$i])) {
-
-                $modifier = $this->dictionary->getModifier($searchTerms[$i]);
-             
-                /*
-                 * <without> "keyword"
-                 * Add a "-" character in front of the term
-                 */
-                if ($modifier === 'without') {
-                    
-                    if ($i + 1 < $l && !$this->isNumeric($searchTerms[$i + 1])) {
-                        
-                        /*
-                         * Special case with quantity - "without quantity" means quantity = 0
-                         */
-                        $quantity = $this->dictionary->getQuantity($searchTerms[$i + 1]);
-                        if (isset($quantity)) {
-                            $searchFilter = $this->getSearchFilter($quantity, $model);
-                            if (isset($searchFilter)) {
-                                $params[$searchFilter['key']] = 0;
-                            }
-                            $toRemove[] = $searchTerms[$i + 1];
-                        }
-                        else {
-                            $searchTerms[$i + 1] = '-' . $searchTerms[$i + 1];
-                        }
-                    }
-                }
-                /*
-                 * <before> "date"
-                 */
-                else if ($modifier === 'before') {
-                    if ($i + 1 < $l && RestoUtil::isISO8601($searchTerms[$i + 1])) {
-                        $params['time:end'] = RestoUtil::toISO8601($searchTerms[$i + 1]);
-                        $toRemove[] = $searchTerms[$i + 1];
-                    }
-                }
-                /*
-                 * <after> "date"
-                 */
-                else if ($modifier === 'after') {
-                    if ($i + 1 < $l && RestoUtil::isISO8601($searchTerms[$i + 1])) {
-                        $params['time:start'] = RestoUtil::toISO8601($searchTerms[$i + 1]);
-                        $toRemove[] = $searchTerms[$i + 1];
-                    }
-                }
-                /*
-                 * <between> "date" <and> "date"
-                 * "quantity" <between> "numeric" <and> "numeric" "unit"
-                 * <between> "numeric" <and> "numeric" "unit" (of) "quantity"
-                 */
-                else if ($modifier === 'between') {
-                    $this->processModifierBetween($searchTerms, $params, $toRemove, $i, $l, $model);
-                }
-                /*
-                 * <since> works with a date.
-                 */
-                else if ($modifier === 'since') {
-                    $this->processModifierSince($searchTerms, $params, $toRemove, $i, $l);
-                    $foundSince = true;
-                }
-                /*
-                 * <last> works with a date
-                 */
-                else if ($modifier === 'last' && !$foundSince) {
-                    $this->processModifierLast($searchTerms, $params, $toRemove, $i, $l);
-                }
-                /*
-                 *  "quantity" <lesser> (than) "numeric" "unit"
-                 *  "quantity" <greater> (than) "numeric" "unit"
-                 *  "quantity" <equal> (to) "numeric" "unit"
-                 *  <lesser> (than) "numeric" "unit" (of) "quantity" 
-                 *  <greater> (than) "numeric" "unit" (of) "quantity"
-                 *  <equal> (to) "numeric" "unit" (of) "quantity"
-                 * 
-                 */
-                else if ($modifier === 'lesser' || $modifier === 'greater' || $modifier === 'equal') {
-                    $this->processModifierEqualLesserOrGreater($modifier, $searchTerms, $params, $toRemove, $i, $l, $model);
-                }
-                /*
-                 * "numeric" "units" "ago"
-                 */
-                else if ($modifier === 'ago') {
-                    $this->processModifierAgo($searchTerms, $params, $toRemove, $i);
-                }
-                /*
-                 * Today - so easy :)
-                 */
-                else if ($modifier === 'today') {
-                    $params['time:start'] = date('Y-m-d') . 'T00:00:00Z';
-                    $params['time:end'] = date('Y-m-d') . 'T23:59:59Z';
-                }
-                /*
-                 * Yesterday - also easy :)
-                 */
-                else if ($modifier === 'yesterday') {
-                    $params['time:start'] = date('Y-m-d', strtotime(date('Y-m-d') . ' - 1 days')) . 'T00:00:00Z';
-                    $params['time:end'] = date('Y-m-d', strtotime(date('Y-m-d') . ' - 1 days')) . 'T23:59:59Z';
-                }
-          
-                $toRemove[] = $searchTerms[$i];
-            }
-            else if ($this->dictionary->isExcluded($searchTerms[$i])) {
-                $toRemove[] = $searchTerms[$i];
-            }
-        }
-        
-        /*
-         * Rewrite searchTerms query without removed element
-         */
-        $searchTerms = $this->stripArray($searchTerms, $toRemove);
-        
-    }
-    
-    /**
-     * Extract date from searchTerms array
-     */
-    private function extractDates(&$searchTerms, &$params) {
-        
-        $toRemove = array();
-     
-        /*
-         * Date alone
-         */
-        for ($i = 0, $l = count($searchTerms); $i < $l; $i++) {
-            
-            if (!isset($searchTerms[$i])) {
+            $modifier = $this->dictionary->get(RestoDictionary::TIME_MODIFIER, $words[$i]);
+           
+            if (!isset($modifier)) {
                 continue;
             }
             
             /*
+             * <before> "date"
+             */
+            if ($modifier === 'before') {
+                return $this->processWhen($this->processWhenBefore($words, $i));
+            }
+            
+            /*
+             * <after> "date"
+             */
+            if ($modifier === 'after') {
+                return $this->processWhen($this->processWhenAfter($words, $i));
+            }
+            
+            /*
+             * <between> "date" <and> "date"
+             */
+            if ($modifier === 'between') {
+                return $this->processWhen($this->processWhenBetweenAnd($words, $i));
+            }
+            
+            /*
+             * <since> "date"
+             */
+            if ($modifier === 'since') {
+                return $this->processWhen($this->processWhenSince($words, $i));
+            }
+            
+            /*
+             * <last> 
+             */
+            if ($modifier === 'last') {
+                return $this->processWhen($this->processWhenLast($words, $i));
+            }
+            
+            /*
+             * <next> 
+             */
+            if ($modifier === 'next') {
+                return $this->processWhen($this->processWhenNext($words, $i));
+            }
+            
+            /*
+             * <in> "date"
+             */
+            if ($modifier === 'in') {
+                return $this->processWhen($this->processWhenIn($words, $i));
+            }
+            
+            /*
+             * "quantity" "unit" <ago>
+             */
+            if ($modifier === 'ago') {
+                return $this->processWhen($this->processWhenAgo($words, $i));
+            }
+            
+            /*
+             * Today
+             */
+            if ($modifier === 'today') {
+                return $this->processWhen($this->processWhenToday($words, $i));
+            }
+            
+            /*
+             * Tomorrow
+             */
+            if ($modifier === 'tomorrow') {
+                return $this->processWhen($this->processWhenTomorrow($words, $i));
+            }
+            
+            /*
+             * Yesterday
+             */
+            if ($modifier === 'yesterday') {
+                return $this->processWhen($this->processWhenYesterday($words, $i));
+            }
+            
+        }
+        
+        return $words;
+    }
+    
+    /**
+     * Extract time patterns from words
+     * 
+     * @param array $words
+     */
+    private function processWhere($words) {
+        
+        /*
+         * Roll over each word to detect location pattern
+         */
+        for ($i = 0, $l = count($words); $i < $l; $i++) {
+            
+            $modifier = $this->dictionary->get(RestoDictionary::LOCATION_MODIFIER, $words[$i]);
+           
+            if (!isset($modifier)) {
+                continue;
+            }
+            
+            /*
+             * <in> "location"
+             */
+            if ($modifier === 'in') {
+                return $this->processWhere($this->processWhereIn($words, $i));
+            }
+            
+            /*
+             * <between> "location" <and> "location"
+             */
+            if ($modifier === 'between') {
+                return $this->processWhere($this->processWhereBetweenAnd($words, $i));
+            }
+            
+        }
+        
+        return $words;
+    }
+    
+    /**
+     * 
+     * Process <in> "location"
+     * 
+     * @param array $words
+     * @param integer $position of word in the list
+     */
+    private function processWhereIn($words, $position) {
+        
+        /*
+         * Extract location
+         */
+        $location = $this->extractLocation($words, $position + 1);
+        
+        /*
+         * No location found
+         */
+        if ($location['endPosition'] === -1) {
+            array_splice($words, $position, 1);
+        }
+        else {
+            $this->outputFilters['location'] = $location['locations'];
+            array_splice($words, $position, $location['endPosition'] - $position + 1);
+        }
+        
+        return $words;
+       
+    }
+    
+    /**
+     * 
+     * Extract location from sentence
+     * 
+     * @param array $words
+     * @param integer $position of word in the list
+     */
+    private function extractLocation($words, $position) {
+        
+        $endPosition = -1;
+        
+        /*
+         * Get the last index position
+         */
+        for ($i = $position, $ii = count($words); $i < $ii; $i++) {
+            if ($this->dictionary->isModifier($words[$i])) {
+                $endPosition = $i - 1;
+                break;
+            }
+            $endPosition = $i;
+        }
+        
+        /*
+         * Roll over each word
+         */
+        $locationModifier = null;
+        for ($i = $endPosition; $i >= $position; $i--) {
+          
+            /*
+             * Do not process if location modifier was already found
+             */
+            if (isset($locationModifier)) {
+                continue;
+            }
+            
+            /*
+             * Parse words in reverse order to find toponym modifier
+             * If input words are array('saint', 'gaudens', 'france')
+             * Then keyword will be tested against : 
+             *  saint, saint-gaudens, saint-gaudens-france, gaudens, gaudens-france, france
+             */
+            $locationName = '';
+            for ($j = $i; $j >= $position; $j--) {
+                
+                /*
+                 * Reconstruct sentence from words without stop words
+                 */
+                if (!$this->dictionary->isStopWord($words[$j])) {
+                    $locationName = $words[$j] . ($locationName === '' ? '' : '-') . $locationName;
+                }
+                
+                $keyword = $this->dictionary->getKeyword(RestoDictionary::LOCATION, $locationName);
+                if (isset($keyword)) {
+                    $locationModifier = array(
+                        'startPosition' => min(array($i, $j)),
+                        'endPosition' => max(array($i, $j)),
+                        'keyword' => $keyword['keyword'],
+                        'type' => $keyword['type']
+                    );
+                    break;
+                }
+                
+            }
+            
+        }
+        
+        /*
+         * Search toponym in gazetteer
+         */
+        if (isset($this->context->modules['Gazetteer'])) {
+            return $this->extractToponym($words, $position, $locationModifier);
+        }
+        /*
+         * Return location modifier
+         */
+        else {
+            return array(
+                'endPosition' => $endPosition,
+                'location' => $locationModifier
+            );
+        }
+        
+    }
+    
+    /**
+     * 
+     * Extract toponym
+     * 
+     * @param array $words
+     * @param integer $position of word in the list
+     * @param array $locationModifier
+     */
+    private function extractToponym($words, $position, $locationModifier = null) {
+        
+        $endPosition = -1;
+        
+        /*
+         * Roll over each word
+         */
+        $toponymName = '';
+        for ($i = $position, $ii = count($words); $i < $ii; $i++) {
+          
+            /*
+             * Exit if stop modifier is found
+             */
+            if ($this->dictionary->isModifier($words[$i])) {
+                $endPosition = $i - 1;
+                break;
+            }
+            
+            /*
+             * Discard locationModifier
+             */
+            if (isset($locationModifier)) {
+                if ($i >= $locationModifier['startPosition'] && $i <= $locationModifier['endPosition']) {
+                    continue;
+                }
+            }
+            
+            /*
+             * Reconstruct sentence from words without stop words
+             */
+            if (!$this->dictionary->isStopWord($words[$i])) {
+                $toponymName .= ($toponymName === '' ? '' : '-') . $words[$i];
+            }
+            
+            $endPosition = $i;
+        }
+        
+        /*
+         * No toponym
+         */
+        if (empty($toponymName)) {
+            return array(
+                'endPosition' => $endPosition,
+                'locations' => $locationModifier
+            );
+        }
+        
+        /*
+         * Search in gazetteer
+         */
+        $gazetteer = new Gazetteer($this->context, $this->user, $this->context->modules['Gazetteer']);
+        $locations = $gazetteer->search(array(
+            'q' => $toponymName . (isset($locationModifier) ? ',' . $locationModifier['keyword'] : '')
+        ));
+        
+        return array(
+            'endPosition' => $endPosition,
+            'locations' => $locations
+        );
+        
+    }
+    
+    /**
+     * Process <without> "quantity" 
+     * 
+     * @param array $searchTerms
+     * @param integer $i
+     * @param integer $l
+     * @return string
+     */
+    private function processWithout($searchTerms, $i, $l) {
+        
+        /*
+         * <without> "quantity" means quantity = 0
+         */ 
+        if ($i + 1 < $l) {
+            $quantity = $this->dictionary->getQuantity($searchTerms[$i + 1]);
+            if (isset($quantity)) {
+                $searchFilter = $this->getSearchFilter($quantity);
+                if (isset($searchFilter)) {
+                    $this->outputFilters[$searchFilter['key']] = 0;
+                }
+            }
+            else {
+                $this->unProcessed[] = $searchTerms[$i] . ' ' .  $searchTerms[$i + 1];
+            }
+            array_splice($searchTerms, $i, 2);
+        }
+        else {
+            $this->unProcessed[] = $searchTerms[$i];
+            array_splice($searchTerms, $i, 1);
+        }
+        return $searchTerms;
+    }
+    
+    /**
+     * Process <after> "date" 
+     * 
+     * @param array $words
+     * @param integer $position
+     * @return string
+     */
+    private function processWhenAfter($words, $position) {
+        return $this->processWhenBeforeOrAfter($words, $position, 'time:start');
+    }
+
+    /**
+     * Process <before> "date" 
+     * 
+     * @param array $words
+     * @param integer $position
+     * @return string
+     */
+    private function processWhenBefore($words, $position) {
+        return $this->processWhenBeforeOrAfter($words, $position, 'time:end');
+    }
+    
+    /**
+     * Process <before> or <after> "date" 
+     * 
+     * @param array $words
+     * @param integer $position
+     * @return string
+     */
+    private function processWhenBeforeOrAfter($words, $position, $osKey) {
+        
+        /*
+         * Extract date
+         */
+        $date = $this->extractDate($words, $position + 1);
+        
+        /*
+         * No date found - remove modifier only from words list
+         */
+        if ($date['endPosition'] === -1) {
+            array_splice($words, $position, 1);
+        }
+        /*
+         * Date found - add to outputFilters and remove modifier and date from words list
+         */
+        else {
+            $this->outputFilters[$osKey] = $osKey === 'time:start' ? $this->toGreatestDay($date['date']) : $this->toLowestDay($date['date']);
+            array_splice($words, $position, $date['endPosition'] - $position + 1);
+        }
+        return $words;
+    }
+
+    /**
+     * 
+     * Process <between> "date" <and> "date"
+     * 
+     * @param array $words
+     * @param integer $position of word in the list
+     */
+    private function processWhenBetweenAnd($words, $position) {
+        
+        /*
+         * Extract first date
+         */
+        $firstDate = $this->extractDate($words, $position + 1, true);
+        
+        /*
+         * No date found - try <between> "location" <and> "location" 
+         */
+        if (empty($firstDate['date'])) {
+            return $this->processWhereBetween($words, $position);
+        }
+        
+        /*
+         * Date found - search for second date
+         */  
+        $secondDate = $this->extractDate($words, $firstDate['endPosition'] + 1);
+
+        /*
+         * No date found - try <between> "location" <and> "location" 
+         */
+        if (empty($secondDate['date'])) {
+            return $this->processWhereBetween($words, $position);
+        }
+
+        /*
+         * Date found - compute time:start and time:end
+         */
+        if (!isset($firstDate['date']['year']) &&isset($secondDate['date']['year'])) {
+            $firstDate['date']['year'] = $secondDate['date']['year'];
+        }
+        if (!isset($firstDate['date']['month']) && isset($secondDate['date']['month'])) {
+            $firstDate['date']['month'] = $secondDate['date']['month'];
+        }
+        $this->outputFilters['time:start'] = $this->toLowestDay($firstDate['date']);
+        $this->outputFilters['time:end'] = $this->toGreatestDay($secondDate['date']);
+        array_splice($words, $position, $secondDate['endPosition'] - $position + 1);
+       
+        return $words;
+        
+    }
+    
+    /**
+     * Process <since> "date"
+     * 
+     * Understood structures are :
+     *  
+     *      <since> "numeric" "(year|month|day)"
+     *      <since> "month" "year"
+     *      <since> "date"
+     *      <since> "numeric" <last> "(year|month|day)"
+     *      <since> <last> "numeric" "(year|month|day)"
+     *      <since> <last> "(year|month|day)"
+     *      <since> "(year|month|day)" <last>
+     *      
+     * 
+     * Example :
+     *           
+     *      If current date is 12 November 2013 (i.e. 2013-11) then
+     *      the "<since> 2 months" are from 12 septembre 2013 and 12 november 2013
+     * 
+     * @param array $words
+     * @param integer $position of word in the list
+     */
+    private function processWhenSince($words, $position) {
+        
+        /*
+         * <since> "date"
+         */
+        $date = $this->extractDate($words, $position + 1);
+        
+        /*
+         * If a month is specified and the month is posterior to
+         * the current month then decrease by one year
+         */
+        if (!isset($date['date']['year']) && isset($date['date']['month']) && ((integer) $date['date']['month'] > (integer) date('m'))) {
+            $date['date']['year'] = (integer) date('Y') - 1;
+        }
+        
+        /*
+         * <since> "numeric" (year|month|day)
+         * <since> <last> "numeric" "(year|month|day)"
+         * <since> <last> "numeric" "(year|month|day)"
+         * <since> <last> "(year|month|day)"
+         * <since> "(year|month|day)" <last>
+         */
+        if (empty($date['date'])) {
+            $duration = $this->extractDuration($words, $position + 1);
+            if (!empty($duration['duration'])) {
+                $date = array(
+                    'endPosition' => $duration['endPosition'],
+                    'date' => $this->iso8601ToDate(date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration['duration']['value'] . $duration['duration']['unit'])))
+                );
+            }
+        }
+        
+        if (!empty($date['date'])) {
+            $this->outputFilters['time:start'] = $this->toLowestDay($date['date']);
+            array_splice($words, $position, $date['endPosition'] - $position + 1);
+        }
+        else {
+            array_splice($words, $position, 1);
+        }
+        
+        return $words;
+        
+    }
+    
+    /**
+     * Process <last> "date"
+     * 
+     * Understood structures are :
+     *  
+     *      <last> "(year|month|day)"
+     *      <last> "numeric" "(year|month|day)"
+     *      "numeric" <last> "(year|month|day)"
+     *      "(year|month|day)" <last>
+     * 
+     * Example :
+     *           
+     *      If current date is November 2013 (i.e. 2013-11) then
+     *      the "<last> 2 months" are September and October 2013
+     * 
+     * @param array $words
+     * @param integer $position of word in the list
+     */
+    private function processWhenLast($words, $position) {
+        
+        /*
+         * Important ! Start position is one before <last>
+         * to process the following
+         * 
+         *      "numeric" <last> "(year|month|day)"
+         *      "(year|month|day)" <last>
+         * 
+         */
+        $duration = $this->extractDuration($words, max(array(0, $position - 1)));
+        if (!empty($duration['duration'])) {
+            $year = date('Y', strtotime(date('Y-m-d') . ' - 1 ' . $duration['duration']['unit']));
+            $pYear = date('Y', strtotime(date('Y-m-d') . ' - ' . $duration['duration']['value'] . $duration['duration']['unit']));
+            $month = date('m', strtotime(date('Y-m-d') . ' - 1 ' . $duration['duration']['unit']));
+            $pMonth = date('m', strtotime(date('Y-m-d') . ' - ' . $duration['duration']['value'] . $duration['duration']['unit']));
+            $day = date('d', strtotime(date('Y-m-d') . ' - 1 ' . $duration['duration']['unit']));
+            $pDay = date('d', strtotime(date('Y-m-d') . ' - ' . $duration['duration']['value'] . $duration['duration']['unit']));
+            
+            switch ($duration['duration']['unit']) {
+                case 'years':
+                    $this->outputFilters['time:start'] = $pYear . '-01-01' . 'T00:00:00Z';
+                    $this->outputFilters['time:end'] = $year . '-12-31' . 'T23:59:59Z';
+                    break;
+                case 'months':
+                    $this->outputFilters['time:start'] = $pYear . '-' . $pMonth . '-01' . 'T00:00:00Z';
+                    $this->outputFilters['time:end'] = $year . '-' . $month . '-' . date('d', mktime(0, 0, 0, intval($month) + 1, 0, intval($year))) . 'T23:59:59Z';
+                    break;
+                case 'days':
+                    $this->outputFilters['time:start'] = $pYear . '-' . $pMonth . '-' . $pDay . 'T00:00:00Z';
+                    $this->outputFilters['time:end'] = $year . '-' . $month . '-' . $day . 'T23:59:59Z';
+                    break;
+                default:
+                    break;
+            }
+            $delta = $duration['firstIsNotLast'] ? 1 : 0;
+            array_splice($words, $position - $delta, $duration['endPosition'] - $position + 1 + $delta);
+        }
+        else {
+            array_splice($words, $position, 1);
+        }
+        
+        return $words;
+        
+    }
+    
+    /**
+     * Process <next> "date"
+     * 
+     * Understood structures are :
+     *  
+     *      <next> "(year|month|day)"
+     *      <next> "numeric" "(year|month|day)"
+     *      "numeric" <next> "(year|month|day)"
+     *      "(year|month|day)" <next>
+     * 
+     * Example :
+     *           
+     *      If current date is November 2013 (i.e. 2013-11) then
+     *      the "<next> 2 months" are December 2013 and January 2014
+     * 
+     * @param array $words
+     * @param integer $position of word in the list
+     */
+    private function processWhenNext($words, $position) {
+        
+        /*
+         * Important ! Start position is one before <next>
+         * to process the following
+         * 
+         *      "numeric" <next> "(year|month|day)"
+         *      "(year|month|day)" <next>
+         * 
+         */
+        $duration = $this->extractDuration($words, max(array(0, $position - 1)));
+        
+        if (!empty($duration['duration'])) {
+            $pYear = date('Y', strtotime(date('Y-m-d') . ' + 1 ' . $duration['duration']['unit']));
+            $year = date('Y', strtotime(date('Y-m-d') . ' + ' . $duration['duration']['value'] . $duration['duration']['unit']));
+            $pMonth = date('m', strtotime(date('Y-m-d') . ' + 1 ' . $duration['duration']['unit']));
+            $month = date('m', strtotime(date('Y-m-d') . ' + ' . $duration['duration']['value'] . $duration['duration']['unit']));
+            $pDay = date('d', strtotime(date('Y-m-d') . ' + 1 ' . $duration['duration']['unit']));
+            $day = date('d', strtotime(date('Y-m-d') . ' + ' . $duration['duration']['value'] . $duration['duration']['unit']));
+            
+            switch ($duration['duration']['unit']) {
+                case 'years':
+                    $this->outputFilters['time:start'] = $pYear . '-01-01' . 'T00:00:00Z';
+                    $this->outputFilters['time:end'] = $year . '-12-31' . 'T23:59:59Z';
+                    break;
+                case 'months':
+                    $this->outputFilters['time:start'] = $pYear . '-' . $pMonth . '-01' . 'T00:00:00Z';
+                    $this->outputFilters['time:end'] = $year . '-' . $month . '-' . date('d', mktime(0, 0, 0, intval($month) + 1, 0, intval($year))) . 'T23:59:59Z';
+                    break;
+                case 'days':
+                    $this->outputFilters['time:start'] = $pYear . '-' . $pMonth . '-' . $pDay . 'T00:00:00Z';
+                    $this->outputFilters['time:end'] = $year . '-' . $month . '-' . $day . 'T23:59:59Z';
+                    break;
+                default:
+                    break;
+            }
+            $delta = $duration['firstIsNotLast'] ? 1 : 0;
+            array_splice($words, $position - $delta, $duration['endPosition'] - $position + 1 + $delta);
+        }
+        else {
+            array_splice($words, $position, 1);
+        }
+        
+        return $words;
+        
+    }
+    
+    /**
+     * Process <in> "date"
+     * 
+     * @param array $words
+     * @param integer $position of word in the list
+     */
+    private function processWhenIn($words, $position) {
+        
+        $date = $this->extractDate($words, $position + 1);
+        
+        /*
+         * No date found - try <in> "location"
+         */
+        if (empty($date['date'])) {
+            return $this->processWhereIn($words, $position);
+        }
+        
+        $this->outputFilters['time:start'] = $this->toLowestDay($date['date']);
+        $this->outputFilters['time:end'] = $this->toGreatestDay($date['date']);
+        array_splice($words, $position, $date['endPosition'] - $position + 1);
+        
+        return $words;
+    }
+    
+    /**
+     * Process "numeric" "units" <ago>
+     * 
+     * @param array $words
+     * @param integer $position of word in the list
+     */
+    private function processWhenAgo($words, $position) {
+        
+        if ($position - 2 >= 0 && $this->isNumeric($words[$position - 2])) {
+            
+            $unit = $this->dictionary->get(RestoDictionary::TIME_UNIT, $words[$position - 1]);
+            $duration = $this->toNumeric($words[$position - 2]);
+            
+            /*
+             * Known duration unit
+             */
+            if ($unit === 'days' || $unit === 'months' || $unit === 'years') {
+                $this->outputFilters['time:start'] = date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration . $unit)) . 'T00:00:00Z';
+                $this->outputFilters['time:end'] = date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration . $unit)) . 'T23:59:59Z';
+                array_splice($words, $position - 2, 3);
+                return $words;
+            }
+        }
+        
+        /*
+         * Invalid processing
+         */
+        array_splice($words, $position, 1);
+        return $words;
+    }
+    
+   /**
+    * Process <today>
+    * 
+    * @param array $words
+    * @param integer $position of word in the list
+    */
+    private function processWhenToday($words, $position) {
+        $this->outputFilters['time:start'] = date('Y-m-d\T00:00:00\Z');
+        $this->outputFilters['time:end'] = date('Y-m-d\T23:59:59\Z');
+        array_splice($words, $position, 1);
+        return $words;
+    }
+    
+   /**
+    * Process <tomorrow>
+    * 
+    * @param array $words
+    * @param integer $position of word in the list
+    */
+    private function processWhenTomorrow($words, $position) {
+        $time = strtotime(date('Y-m-d') . ' + 1 days');
+        $this->outputFilters['time:start'] = date('Y-m-d\T00:00:00\Z', $time);
+        $this->outputFilters['time:end'] = date('Y-m-d\T23:59:59\Z', $time);
+        array_splice($words, $position, 1);
+        return $words;
+    }
+    
+   /**
+    * Process <yesterday>
+    * 
+    * @param array $words
+    * @param integer $position of word in the list
+    */
+    private function processWhenYesterday($words, $position) {
+        $time = strtotime(date('Y-m-d') . ' - 1 days');
+        $this->outputFilters['time:start'] = date('Y-m-d\T00:00:00\Z', $time);
+        $this->outputFilters['time:end'] = date('Y-m-d\T23:59:59\Z', $time);
+        array_splice($words, $position, 1);
+        return $words;
+    }
+    
+   /**
+    * Extract duration
+    * 
+    * @param array $words
+    * @param integer $position of word in the list
+    */
+    private function extractDuration($words, $position) {
+        
+        $duration = array(
+            'value' => 1
+        );
+        $endPosition = -1;
+        $firstIsNotLast = false;
+        
+        for ($i = $position, $l = count($words); $i < $l; $i++) {
+            
+            /*
+             * <last> modifier found
+             */
+            $timeModifier = $this->dictionary->get(RestoDictionary::TIME_MODIFIER, $words[$i]);
+            if ($timeModifier === 'last' || $timeModifier === 'next') {
+                continue;
+            }
+            
+            /*
+             * Exit if stop modifier is found
+             */
+            if ($this->dictionary->isModifier($words[$i])) {
+                $endPosition = $i - 1;
+                break;
+            }
+            
+            /*
+             * Extract duration
+             */
+            if ($this->isNumeric($words[$i])) {
+                $duration['value'] = $this->toNumeric($words[$i]);
+                $endPosition = max(array($i, $endPosition));
+                if ($i === $position) {
+                    $firstIsNotLast = true;
+                }
+                continue;
+            }
+            
+            /*  
+             * Extract unit
+             */           
+            $unit = $this->dictionary->get(RestoDictionary::TIME_UNIT, $words[$i]);
+            if (isset($unit)) {
+                $duration['unit'] = $unit;
+                $endPosition = max(array($i, $endPosition));
+                if ($i === $position) {
+                    $firstIsNotLast = true;
+                }
+                continue;
+            }
+        }
+        
+        return array(
+            'duration' => $duration,
+            'endPosition' => $endPosition,
+            'firstIsNotLast' => $firstIsNotLast
+        );
+        
+    }
+    
+    /**
+     * Extract date from an array words starting analysis at $position
+     * Valid patterns are :
+     * 
+     *      - ISO 8601 date (i.e. "2015-05-01T12:23:34")
+     *      - year (i.e. "2015")
+     *      - month (i.e. "may")
+     *      - month year (i.e. "may 2015")
+     *      - "today", "yesterday" or "tomorrow"
+     * 
+     * @param array $words
+     * @param integer $position
+     * @param boolean $between
+     * 
+     */
+    private function extractDate($words, $position, $between = false) {
+     
+        $date = array();
+        $endPosition = -1;
+        
+        for ($i = $position, $l = count($words); $i < $l; $i++) {
+            
+            /*
+             * Today, Tomorrow and Yesterday
+             */
+            $timeModifier = $this->dictionary->get(RestoDictionary::TIME_MODIFIER, $words[$i]);
+            if (isset($timeModifier)) {
+                $time = null;
+                if ($timeModifier === 'today') {
+                    $time = strtotime(date('Y-m-d'));
+                }
+                else if (isset($timeModifier) && $timeModifier === 'tomorrow') {
+                    $time = strtotime(date('Y-m-d') . ' + 1 days');
+                }
+                else if (isset($timeModifier) && $timeModifier === 'yesterday') {
+                    $time = strtotime(date('Y-m-d') . ' - 1 days');
+                } 
+                if (isset($time)) {
+                    $endPosition = $i;
+                    $date = array(
+                        'year' => date('Y', $time),
+                        'month' => date('m', $time),
+                        'day' => date('d', $time)
+                    );
+                    break;
+                }
+            }
+            
+            /*
+             * Between stop modifier is 'and'
+             */
+            if ($between && $this->dictionary->get(RestoDictionary::VARIOUS_MODIFIER, $words[$i]) === 'and') {
+                $endPosition = $i;
+                break;
+            }
+            
+            /*
+             * Exit if stop modifier is found
+             */
+            if ($this->dictionary->isModifier($words[$i])) {
+                $endPosition = $i - 1;
+                break;
+            }
+
+            /*
              * Year
              */
-            if (preg_match('/^\d{4}$/i', $searchTerms[$i])) {
-                $year = $searchTerms[$i];
-                $toRemove[] = $searchTerms[$i];
+            if (preg_match('/^\d{4}$/i', $words[$i])) {
+                $date['year'] = $words[$i];
+                $endPosition = max(array($i, $endPosition));
+                continue;
             }
+
             /*
              * Textual month
              */
-            else if ($this->dictionary->getMonth($searchTerms[$i]) !== null) {
-                $month = $this->dictionary->getMonth($searchTerms[$i]);
-                $toRemove[] = $searchTerms[$i];
+            $month = $this->dictionary->get(RestoDictionary::MONTH, $words[$i]);
+            if ($month) {
+                $date['month'] = $month;
+                $endPosition = max(array($i, $endPosition));
+                continue;
             }
+            
             /*
              * Day is an int value < 31
-             * Month shoud specified immediately before or after
              */
-            else if (is_numeric($searchTerms[$i])) {
-                if (($i - 1 > 0 && $this->dictionary->getMonth($searchTerms[$i - 1])) || ($i + 1 < $l && $this->dictionary->getMonth($searchTerms[$i + 1]))) {
-                    $d = intval($searchTerms[$i]);
-                    if ($d > 0 && $d < 31) {
-                        $day = $d < 10 ? '0' . $d : $d;
-                        $toRemove[] = $searchTerms[$i];
-                    }
+            if (is_numeric($words[$i])) {
+                $d = intval($words[$i]);
+                if ($d > 0 && $d < 31) {
+                    $date['day'] = $d < 10 ? '0' . $d : $d;
+                    $endPosition = max(array($i, $endPosition));
                 }
+                continue;
             }
+            
             /*
-             * Season
+             * ISO8601 date
              */
-            else if (($season = $this->dictionary->getSeason($searchTerms[$i])) !== null) {
+            if (RestoUtil::isISO8601($words[$i])) {
+                $date = $this->iso8601ToDate($words[$i]);
+                $endPosition = max(array($i, $endPosition));
+                continue;
+            }
+            
+            /*
+             * TODO Season
+             *
+            if (($season = $this->dictionary->getSeason($searchTerms[$i])) !== null) {
                 switch($season) {
                     case 'winter':
                         $this->explicits['month:01|02|03'] = true;
@@ -636,678 +1211,135 @@ class QueryAnalyzer extends RestoModule {
                     default:
                         break;
                 }
-                $toRemove[] = $searchTerms[$i];
             }
-            
-            /*
-             * ISO8601 date
-             */
-            else if (RestoUtil::isISO8601($searchTerms[$i])) {
-
-                $l = strlen($searchTerms[$i]);
-
-                /*
-                 * Year only
-                 */
-                if ($l === 4) {
-                    $year = substr($searchTerms[$i], 0, 4);
-                }
-                /*
-                 * Year and month
-                 */
-                else if ($l === 7) {
-                    $year = substr($searchTerms[$i], 0, 4);
-                    $month = substr($searchTerms[$i], 5, 2);
-                }
-                /*
-                 * Year, month and day
-                 */
-                else if ($l === 10) {
-                    $year = substr($searchTerms[$i], 0, 4);
-                    $month = substr($searchTerms[$i], 5, 2);
-                    $day = substr($searchTerms[$i], 8, 2);
-                }
-
-                $toRemove[] = $searchTerms[$i];
-            }
-            
-        }
-       
-        /*
-         * Set date
-         */
-        if (isset($year)) {
-
-            /*
-             * Year only
-             */
-            if (!isset($month)) {
-                $params['time:start'] = $year . '-01-01' . 'T00:00:00Z';
-                $params['time:end'] = $year . '-12-31' . 'T23:59:59Z';
-            }
-            /*
-             * Year and month
              * 
-             * Note: use mktime instead of cal_days_in_month for PHP server not compiled
-             * with --enable-calendar
              */
-            else if (!isset($day)) {
-                $params['time:start'] = $year . '-' . $month . '-01' . 'T00:00:00Z';
-                //$params['time:end'] = $year . '-' . $month . '-' . cal_days_in_month(CAL_GREGORIAN, intval($month), intval($year)) . 'T23:59:59';
-                $params['time:end'] = $year . '-' . $month . '-' . date('d', mktime(0, 0, 0, intval($month) + 1, 0, intval($year))) . 'T23:59:59Z';
-            }
-            /*
-             * Year, month and day
-             */
-            else {
-                $params['time:start'] = $year . '-' . $month . '-' . $day . 'T00:00:00Z';
-                $params['time:end'] = $year . '-' . $month . '-' . $day . 'T23:59:59Z';
-            }
         }
-        else {
-            if (isset($month)) {
-                $this->explicits['month:' . $month] = true;
-            }
-            if (isset($day)) {
-                $this->explicits['day:' . $day] = true;
-            }
-        }
-
-        /*
-         * Rewrite searchTerms query without removed element
-         */
-        $searchTerms = $this->stripArray($searchTerms, $toRemove);
+        
+        return array(
+            'date' => $date,
+            'endPosition' => $endPosition
+        );
     }
 
     /**
-     * Extract keywords
-     * 
-     * @param array $searchTerms
-     * @param array $params
-     * @param RestoModel $model
+     * Convert ISO8601 string to year/month/date/time array
+     * @param string $iso8601
+     * @return array
      */
-    private function extractKeywordsAndLocation(&$searchTerms, &$params, $model) {
-        
-        $toRemove = array();
-        $countryName = null;
-        
+    private function iso8601ToDate($iso8601) {
+
+        $length = strlen($iso8601);
+
         /*
-         * Keywords
+         * Year and month
          */
-        $keywords = array();
-        for ($i = 0, $l = count($searchTerms); $i < $l; $i++) {
-
-            /*
-             * Detect presence of '-' sign (see without)
-             */
-            $s = $searchTerms[$i];
-            $sign = '';
-            if (substr($s, 0, 1) === '-') {
-                $sign = '-';
-                $s = substr($s, 1);
-            }
-            
-            /*
-             * Search for quantity
-             */
-            $quantity = $this->dictionary->getQuantity($searchTerms[$i]);
-            if (isset($quantity)) {
-                $searchFilter = $this->getSearchFilter($quantity, $model);
-                if (isset($searchFilter)) {
-                    $params[$searchFilter['key']] = ']0';
-                }
-                $toRemove[] = $searchTerms[$i];
-            }
-            /*
-             * Tags start with '#'
-             */
-            else if (substr($s , 0, 1) === '#') {
-                $keywords[] = $sign . $s;
-                $toRemove[] = $searchTerms[$i];
-            }
-            else {
-                $keyword = $this->dictionary->getKeyword($s);
-                if ($keyword) {
-                    $keywords[] = $this->quoteIfNeeded($sign . $keyword['type'] . ':' . $keyword['keyword']);
-                    if ($keyword['type'] === 'country') {
-                        $countryName = $keyword['keyword'];
-                    }
-                    $toRemove[] = $searchTerms[$i];
-                }
-                else {
-
-                    /*
-                     * Check similarity
-                     */
-                    $similar = $this->dictionary->getSimilar($s);
-                    if ($similar) {
-                        $keywords[] = $this->quoteIfNeeded($sign . $similar['type'] . ':' . $similar['keyword']['value']);
-                        if ($keyword['type'] === 'country') {
-                            $countryName = $keyword['keyword'];
-                        }
-                        $toRemove[] = $searchTerms[$i];
-                    }
-                }
-            }
+        if ($length === 7) {
+            return array(
+                'year' => substr($iso8601, 0, 4),
+                'month' => substr($iso8601, 5, 2)
+            );
         }
         
         /*
-         * Rewrite searchTerms query without removed element
+         * Year, month and day
          */
-        $searchTerms = $this->stripArray($searchTerms, $toRemove);
-        $countryFoundInGazetteer = null;
+        if ($length === 10) {
+            return array(
+                'year' => substr($iso8601, 0, 4),
+                'month' => substr($iso8601, 5, 2),
+                'day' => substr($iso8601, 8, 2)
+            );
+        }
+        
+        return array(
+            'year' => substr($iso8601, 0, 4),
+            'month' => substr($iso8601, 5, 2),
+            'day' => substr($iso8601, 8, 2),
+            'time' => str_replace('z', '', substr($iso8601, 11, $length - 11))
+        );
+    }
+    
+    /**
+     * Convert date (year/month/date/time) array to ISO8601 string
+     * 
+     * @param array $date
+     * @param boolean $endOfDay
+     * @return string
+     */
+    private function dateToISO8601($date, $endOfDay = false) {
         
         /*
-         * Ultimate keywords treated as location or discarded
-         * 
-         * Note: remaining keywords for location detection are processed
-         * in reverse order assuming that grammatically, the location
-         * occurence has greater probability to be defined at the end
-         * of the sentence 
+         * Set current year if not set
          */
-        $ii = count($searchTerms);
-        if ($ii > 0) {
-            if (isset($this->context->modules['Gazetteer'])) {
-                $gazetteer = new Gazetteer($this->context, $this->user, $this->context->modules['Gazetteer']);
-            }
-            for ($i = $ii; $i--;) {
-
-                /*
-                 * Check in Gazetteer except if a toponym was already found !
-                 */
-                if (isset($gazetteer) && !$countryFoundInGazetteer) {
-                    $locations = $gazetteer->search(array(
-                        'q' => $searchTerms[$i],
-                        'country' => isset($countryName) ? $countryName : null,
-                        'bbox' => isset($params['geo:box']) ? $params['geo:box'] : null
-                        )
-                    );
-                    if (count($locations['toponyms']) > 0) {
-                        $countryFoundInGazetteer = $locations['toponyms'][0]['countryname'];
-                        $params['geo:name'] = $locations['toponyms'][0]['name'] . ($countryFoundInGazetteer !== '' ? ', ' . $countryFoundInGazetteer : '');
-                        $params['geo:lon'] = $locations['toponyms'][0]['longitude'];
-                        $params['geo:lat'] = $locations['toponyms'][0]['latitude'];
-                    }
-                    else {
-                        $this->unProcessed[] = $searchTerms[$i];
-                        $this->remaining[] = $searchTerms[$i];
-                    }
-                }
-                else {
-                    $this->unProcessed[] = $searchTerms[$i];
-                    $this->remaining[] = $searchTerms[$i];
-                }
-            }
-        }
-        /*
-         * Remove $countryFoundInGazetteer within keywords if any to avoid duplication
-         */
-        if ($countryFoundInGazetteer) {
-            $keywords = array_diff($keywords, array(strtolower($countryFoundInGazetteer)));
+        if (!isset($date['year'])) {
+            $date['year'] = date('Y');
         }
         
         /*
-         * Rewrite searchTerms without extracted terms removing duplicates
+         * Set current month if not set
          */
-        $params['searchTerms'] = implode(' ', array_unique(explode(' ', RestoUtil::superImplode(' ', $keywords))));
+        if (!isset($date['month'])) {
+            $date['month'] = date('m');
+        }
+        
+        /*
+         * Set current day if not set
+         */
+        if (!isset($date['day'])) {
+            $date['day'] = date('d');
+        }
+        
+        /*
+         * Set current time if not set
+         */
+        if (!isset($date['time'])) {
+            $date['time'] = $endOfDay ? '23:59:59' : '00:00:00';
+        }
+        
+        return $date['year'] . '-' . $date['month'] . '-' . $date['day'] . 'T' . $date['time'] . 'Z';
         
     }
     
     /**
-     * 
-     * Process modifier 'between'
-     * 
-     *      <between> "date" <and> "date"
-     *      <between> "month" <and> "month" (year)
-     *      "quantity" <between> "numeric" <and> "numeric" "unit"
-     *      <between> "numeric" <and> "numeric" "unit" (of) "quantity"
-     * 
-     * @param array $searchTerms
-     * @param array $params
-     * @param array $toRemove
-     * @param integer $i position of word in the list
-     * @param integer $l number of words of the list
-     * @param RestoModel $model
-     */
-    private function processModifierBetween(&$searchTerms, &$params, &$toRemove, $i, $l, $model) {
-        
-        /*
-         * <between> "date" <and> "date"
-         */
-        if ($i + 3 < $l && RestoUtil::isISO8601($searchTerms[$i + 1]) && $this->dictionary->getModifier($searchTerms[$i + 2]) === 'and' && RestoUtil::isISO8601($searchTerms[$i + 3])) {
-            $params['time:start'] = RestoUtil::toISO8601($searchTerms[$i + 1]);
-            $params['time:end'] = RestoUtil::toISO8601($searchTerms[$i + 3]);
-            $toRemove[] = $searchTerms[$i + 1];
-            $toRemove[] = $searchTerms[$i + 2];
-            $toRemove[] = $searchTerms[$i + 3];
-        }
-        /*
-         * <between> "month" <and> "month" (year)
-         */
-        else if ($i + 3 < $l && $this->dictionary->getMonth($searchTerms[$i + 1]) && $this->dictionary->getModifier($searchTerms[$i + 2]) === 'and' && $this->dictionary->getMonth($searchTerms[$i + 3])) {
-            
-            /*
-             * Year is specified otherwise take current year
-             */
-            $year = date("Y");
-            if ($i + 4 < $l && strlen($searchTerms[$i + 4]) === 4 && $this->isNumeric($searchTerms[$i + 4])) {
-                $year = $searchTerms[$i + 4];
-                $toRemove[] = $searchTerms[$i + 4];
-            }
-            $params['time:start'] = $year . '-' . $this->dictionary->getMonth($searchTerms[$i + 1]) . '-01' . 'T00:00:00Z';
-            $params['time:end'] = $year . '-' . $this->dictionary->getMonth($searchTerms[$i + 3]) . '-' . date('d', mktime(0, 0, 0, intval($this->dictionary->getMonth($searchTerms[$i + 3])) + 1, 0, intval($year))) . 'T23:59:59Z';
-            $toRemove[] = $searchTerms[$i + 1];
-            $toRemove[] = $searchTerms[$i + 2];
-            $toRemove[] = $searchTerms[$i + 3];
-        }
-        /*
-         * <between> "numeric" <and> "numeric" ("unit")
-         */
-        else if ($i + 3 < $l && $this->isNumeric($searchTerms[$i + 1]) && $this->dictionary->getModifier($searchTerms[$i + 2]) === 'and' && $this->isNumeric($searchTerms[$i + 3])) {
-            
-            /*
-             * Unit is specified in request
-             */
-            $unit = $i + 4 < $l ? $this->normalizedUnit($this->dictionary->getUnit($searchTerms[$i + 4])) : null;
-            
-            $c = $unit ? 1 : 0;
-            
-            /*
-             * "quantity" <between> ...
-             */
-            if ($i - 1 >= 0 && $this->dictionary->getQuantity($searchTerms[$i - 1])) {
-                $searchFilter = $this->getSearchFilter($this->dictionary->getQuantity($searchTerms[$i - 1]), $model);
-                $toRemove[] = $searchTerms[$i - 1];
-            }
-            /*
-             * <between> ... "quantity" 
-             */
-            else if ($i + 4 + $c < $l && $this->dictionary->getQuantity($searchTerms[$i + 4 + $c])) {
-                $searchFilter = $this->getSearchFilter($this->dictionary->getQuantity($searchTerms[$i + 4 + $c]), $model);
-                $toRemove[] = $searchTerms[$i + 4 + $c];
-            }
-            /*
-             * <between> ... of "quantity" 
-             */
-            else if ($i + 5 + $c < $l && $this->dictionary->getModifier($searchTerms[$i + 4 + $c]) && $this->dictionary->getQuantity($searchTerms[$i + 5 + $c])) {
-                $searchFilter = $this->getSearchFilter($this->dictionary->getQuantity($searchTerms[$i + 5 + $c]), $model);
-                $toRemove[] = $searchTerms[$i + 4 + $c];
-                $toRemove[] = $searchTerms[$i + 5 + $c];
-            }
-           
-            /*
-             * Search filter associated to quantity
-             */
-            if ($searchFilter) {
-
-                /*
-                 * Unit is set and coherent with quantity unit
-                 */
-                if ($unit && ($unit['unit'] === $searchFilter['unit'])) {
-                    $params[$searchFilter['key']] = '[' . (floatval($this->toNumeric($searchTerms[$i + 1])) * $unit['factor']) . ',' . (floatval($this->toNumeric($searchTerms[$i + 3])) * $unit['factor']) . ']';
-                }
-                else if (!$unit && !$searchFilter['unit']) {
-                    $params[$searchFilter['key']] = '[' . $this->toNumeric($searchTerms[$i + 1]) . ',' . $this->toNumeric($searchTerms[$i + 3]) . ']';
-                }
-            }
-            
-            if ($unit) {
-                $toRemove[] = $searchTerms[$i + 4];
-            }
-            
-            $toRemove[] = $searchTerms[$i + 1];
-            $toRemove[] = $searchTerms[$i + 2];
-            $toRemove[] = $searchTerms[$i + 3];
-        }
-        
-    }
-    
-    /**
-     * Process modifier 'since'
-     * 
-     * Understood structures are :
+     * Return the lowest day of the given date as ISO 8601
+     * Exemple :
+     *      "2015" would return "2015-01-01T00:00:00"
+     *      "may 2015" would return "2015-05-01T00:00:00"
      *  
-     *      <since> "numeric" "(year|day|month)"
-     *      <since> "month" "year"
-     *      <since> "date"
-     *      <since> "numeric" <last> "(year|day|month)"
-     *      <since> <last> "numeric" "(year|day|month)"
-     *      <since> <last> "(year|day|month)"
-     *      <since> "(year|day|month)" <last>
-     *      
-     * 
-     * Example :
-     *           
-     *      If current date is November 2013 (i.e. 2013-11) then
-     *      the "<last> 2 months" are October and December 2013
-     * 
-     * @param array $searchTerms
-     * @param array $params
-     * @param array $toRemove
-     * @param integer $i position of word in the list
-     * @param integer $l number of words of the list
+     * @param type $date
      */
-    private function processModifierSince(&$searchTerms, &$params, &$toRemove, $i, $l) {
-       
-        $unit = null;
-        $duration = 1;
-
-        /*
-         * <since> "numeric" "(year|day|month)"
-         */
-        if ($i + 2 < $l && $this->isNumeric($searchTerms[$i + 1]) && $this->dictionary->getUnit($searchTerms[$i + 2])) {
-            $unit = $this->dictionary->getUnit($searchTerms[$i + 2]);
-            $duration = $this->toNumeric($searchTerms[$i + 1]);
-            $toRemove[] = $searchTerms[$i + 2];
-            $toRemove[] = $searchTerms[$i + 1];
+    private function toLowestDay($date) {
+        if (!isset($date['month'])) {
+            $date['month'] = '01';
         }
-        /*
-         * <since> "date"
-         */
-        else if ($i + 1 < $l && RestoUtil::isISO8601($searchTerms[$i + 1])) {
-            $params['time:start'] = RestoUtil::toISO8601($searchTerms[$i + 1]);
-            $toRemove[] = $searchTerms[$i + 1];
+        if (!isset($date['day'])) {
+            $date['day'] = '01';
         }
-        /*
-         * <since> "month" "year"
-         */
-        else if ($i + 2 < $l && $this->dictionary->getMonth($searchTerms[$i + 1]) && preg_match('\d{4}$', $searchTerms[$i + 2])) {
-            $params['time:start'] = $searchTerms[$i + 2] . '-' . $this->dictionary->getMonth($searchTerms[$i + 1]) . '-01' . 'T00:00:00Z';
-            $toRemove[] = $searchTerms[$i + 1];
-            $toRemove[] = $searchTerms[$i + 2];
-        }
-        /*
-         * <since> "month"
-         */
-        else if ($i + 1 < $l && $this->dictionary->getMonth($searchTerms[$i + 1])) {
-            $params['time:start'] = date('Y') . '-' . $this->dictionary->getMonth($searchTerms[$i + 1]) . '-01' . 'T00:00:00Z';
-            $toRemove[] = $searchTerms[$i + 1];
-        }
-        /*
-         * <since> "numeric" <last> "(year|day|month)"
-         */
-        else if ($i + 3 < $l && $this->dictionary->getNumber($searchTerms[$i + 1]) && $this->dictionary->getModifier($searchTerms[$i + 2]) === 'last' && $this->dictionary->getUnit($searchTerms[$i + 3])) {
-            $unit = $this->dictionary->getUnit($searchTerms[$i + 3]);
-            $duration = $this->toNumeric($searchTerms[$i + 1]);
-            $toRemove[] = $searchTerms[$i + 3];
-            $toRemove[] = $searchTerms[$i + 1];
-        }
-        /*
-         * <since> <last> "numeric" "(year|day|month)"
-         */
-        else if ($i + 3 < $l && $this->dictionary->getModifier($searchTerms[$i + 1]) === 'last' && $this->isNumeric($searchTerms[$i + 2]) && $this->dictionary->getUnit($searchTerms[$i + 3])) {
-            $unit = $this->dictionary->getUnit($searchTerms[$i + 3]);
-            $duration = $this->toNumeric($searchTerms[$i + 2]);
-            $toRemove[] = $searchTerms[$i + 3];
-            $toRemove[] = $searchTerms[$i + 2];
-        }
-        /*
-         * <since> <last> "(year|day|month)"
-         */
-        else if ($i + 2 < $l && $this->dictionary->getModifier($searchTerms[$i + 1]) === 'last' && $this->dictionary->getUnit($searchTerms[$i + 2])) {
-            $unit = $this->dictionary->getUnit($searchTerms[$i + 2]);
-            $toRemove[] = $searchTerms[$i + 2];
-        }
-        /*
-         * <since> "(year|day|month)" <last>
-         */
-        else if ($i + 2 < $l && $this->dictionary->getModifier($searchTerms[$i + 2]) === 'last' && $this->dictionary->getUnit($searchTerms[$i + 1])) {
-            $unit = $this->dictionary->getUnit($searchTerms[$i + 1]);
-            $toRemove[] = $searchTerms[$i + 1];
-        }
-
-        /*
-         * Known duration unit
-         */
-        if ($unit === 'days' || $unit === 'months' || $unit === 'years') {
-            $params['time:start'] = date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration . $unit));
-        }
-                 
+        return $this->dateToISO8601($date);
     }
     
     /**
-     * Process modifier 'last'
-     * 
-     * Understood structures are :
+     * Return the greatest day of the given date as ISO 8601
+     * Exemple :
+     *      "2015" would return "2015-12-31T23:59:59"
+     *      "may 2015" would return "2015-05-31T23:59:59"
      *  
-     *      <last> "(year|day|month)"
-     *      <last> "numeric" "(year|day|month)"
-     *      "numeric" <last> "(year|day|month)"
-     *      "(year|day|month)" <last>
-     * 
-     * Example :
-     *           
-     *      If current date is November 2013 (i.e. 2013-11) then
-     *      the "<last> 2 months" are October and December 2013
-     * 
-     * @param array $searchTerms
-     * @param array $params
-     * @param array $toRemove
-     * @param integer $i position of word in the list
-     * @param integer $l number of words of the list
+     * @param type $date
      */
-    private function processModifierLast(&$searchTerms, &$params, &$toRemove, $i, $l) {
-       
-        $unit = null;
-        $duration = 1;
-
-        /*
-         * <last> "numeric" "(year|day|month)"
-         */
-        if ($i + 2 < $l && $this->isNumeric($searchTerms[$i + 1]) && $this->dictionary->getUnit($searchTerms[$i + 2])) {
-            $unit = $this->dictionary->getUnit($searchTerms[$i + 2]);
-            $duration = $this->toNumeric($searchTerms[$i + 1]);
-            $toRemove[] = $searchTerms[$i + 2];
-            $toRemove[] = $searchTerms[$i + 1];
+    private function toGreatestDay($date) {
+        if (!isset($date['year'])) {
+            $date['year'] = date('Y');
         }
-        /*
-         * "numeric" <last> "(year|day|month)"
-         */
-        else if ($i - 1 >= 0 && $i + 1 < $l && $this->isNumeric($searchTerms[$i - 1]) && $this->dictionary->getUnit($searchTerms[$i + 1])) {
-            $unit = $this->dictionary->getUnit($searchTerms[$i + 1]);
-            $duration = $this->toNumeric($searchTerms[$i - 1]);
-            $toRemove[] = $searchTerms[$i - 1];
-            $toRemove[] = $searchTerms[$i + 1];
+        if (!isset($date['month'])) {
+            $date['month'] = '12';
         }
-        /*
-         * "(year|day|month)" <last>
-         */
-        else if ($i - 1 >= 0 && $this->dictionary->getUnit($searchTerms[$i - 1])) {
-            $unit = $this->dictionary->getUnit($searchTerms[$i - 1]);
-            $toRemove[] = $searchTerms[$i - 1];
+        if (!isset($date['day'])) {
+            $date['day'] = date('d', mktime(0, 0, 0, intval($date['month']) + 1, 0, intval($date['year'])));
         }
-        /*
-         * <last> "(year|day|month)"
-         */
-        else if ($i + 1 < $l && $this->dictionary->getUnit($searchTerms[$i + 1])) {
-            $unit = $this->dictionary->getUnit($searchTerms[$i + 1]);
-            $toRemove[] = $searchTerms[$i + 1];
-        }
-
-        /*
-         * Known duration unit
-         * <last> excludes the current day/month/year
-         */
-        if ($unit === 'days' || $unit === 'months' || $unit === 'years') {
-            $year = date('Y', strtotime(date('Y-m-d') . ' - 1 ' . $unit));
-            $pYear = date('Y', strtotime(date('Y-m-d') . ' - ' . $duration . $unit));
-            $month = date('m', strtotime(date('Y-m-d') . ' - 1 ' . $unit));
-            $pMonth = date('m', strtotime(date('Y-m-d') . ' - ' . $duration . $unit));
-            $day = date('d', strtotime(date('Y-m-d') . ' - 1 ' . $unit));
-            $pDay = date('d', strtotime(date('Y-m-d') . ' - ' . $duration . $unit));
-
-            if ($unit === 'years') {
-                $params['time:start'] = $pYear . '-01-01' . 'T00:00:00Z';
-                $params['time:end'] = $year . '-12-31' . 'T23:59:59Z';
-            } else if ($unit === 'months') {
-                $params['time:start'] = $pYear . '-' . $pMonth . '-01' . 'T00:00:00Z';
-                $params['time:end'] = $year . '-' . $month . '-' . date('d', mktime(0, 0, 0, intval($month) + 1, 0, intval($year))) . 'T23:59:59Z';
-            } else if ($unit === 'days') {
-                $params['time:start'] = $pYear . '-' . $pMonth . '-' . $pDay . 'T00:00:00Z';
-                $params['time:end'] = $year . '-' . $month . '-' . $day . 'T23:59:59Z';
-            }
-
-        }
+        return $this->dateToISO8601($date, true);
     }
-    
-    /**
-     * Process modifiers 'lesser' or 'greater'
-     * 
-     *      "quantity" <lesser> (than) "numeric" "unit"
-     *      "quantity" <greater> (than) "numeric" "unit"
-     *      "quantity" <equal> (to) "numeric" "unit"
-     *      <lesser> (than) "numeric" "unit" (of) "quantity"
-     *      <greater> (than) "numeric" "unit" (of) "quantity"
-     *      <equal> (to) "numeric" "unit" (of) "quantity"
-     * 
-     * @param array $searchTerms
-     * @param array $params
-     * @param array $toRemove
-     * @param integer $i position of word in the list
-     * @param integer $l number of words of the list
-     * @param RestoModel $model
-     */
-    private function processModifierEqualLesserOrGreater($modifier, &$searchTerms, &$params, &$toRemove, $i, $l, $model) {
-    
-        $c = -1;
 
-        /*
-         * <...> "numeric" "unit"
-         */
-        if ($i + 2 < $l && $this->isNumeric($searchTerms[$i + 1]) && $this->dictionary->getUnit($searchTerms[$i + 2])) {
-            $c = 1;
-        }
-        /*
-         * <...> than "numeric" "unit"
-         */
-        else if ($i + 3 < $l && $this->isNumeric($searchTerms[$i + 2]) && $this->dictionary->getUnit($searchTerms[$i + 3])) {
-            $c = 2;
-        }
-        
-        if ($c !== -1) {
-
-            $unit = $this->normalizedUnit($this->dictionary->getUnit($searchTerms[$i + $c + 1]));
-            $searchFilter = null;
-            
-            /*
-             * Get search filter associated to quantity
-             */
-            /*
-             * "quantity" <...> "numeric" "unit"
-             */
-            if ($i - 1 >= 0 && $this->dictionary->getQuantity($searchTerms[$i - 1])) {
-                $searchFilter = $this->getSearchFilter($this->dictionary->getQuantity($searchTerms[$i - 1]), $model);
-                $toRemove[] = $searchTerms[$i - 1];
-            }
-            /*
-             * <...> "numeric" "unit" "quantity" 
-             */
-            else if ($i + 2 + $c < $l && $this->dictionary->getQuantity($searchTerms[$i + 2 + $c])) {
-                $searchFilter = $this->getSearchFilter($this->dictionary->getQuantity($searchTerms[$i + 2 + $c]), $model);
-                $toRemove[] = $searchTerms[$i + 2 + $c];
-            }
-            /*
-             * <...> "numeric" "unit" of "quantity" 
-             */
-            else if ($i + 3 + $c < $l && $this->dictionary->getModifier($searchTerms[$i + 2 + $c]) && $this->dictionary->getQuantity($searchTerms[$i + 3 + $c])) {
-                $searchFilter = $this->getSearchFilter($this->dictionary->getQuantity($searchTerms[$i + 3 + $c]), $model);
-                $toRemove[] = $searchTerms[$i + 2 + $c];
-                $toRemove[] = $searchTerms[$i + 3 + $c];
-            }
-            if ($searchFilter) {
-
-                /*
-                 * Search filter associated unit should be coherent with user request
-                 */
-                if ($unit && ($unit['unit'] === $searchFilter['unit'])) {
-                    if ($modifier === 'lesser') {
-                        $params[$searchFilter['key']] = (floatval($this->toNumeric($searchTerms[$i + $c])) * $unit['factor']) . '[';
-                    }
-                    else if ($modifier === 'greater') {
-                        $params[$searchFilter['key']] = ']' . (floatval($this->toNumeric($searchTerms[$i + $c])) * $unit['factor']);
-                    }
-                    else {
-                        $params[$searchFilter['key']] = (floatval($this->toNumeric($searchTerms[$i + $c])) * $unit['factor']);
-                    }
-
-                }
-
-            }
-                
-            /*
-             * Date
-             */
-            if ($unit['unit'] === 'days' || $unit['unit'] === 'months' || $unit['unit'] === 'years') {
-                if ($modifier === 'lesser') {
-                    $params['time:start'] = date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $this->toNumeric($searchTerms[$i + $c]) . ' ' . $unit['unit']));
-                }
-                else {
-                    $params['time:end'] = date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $this->toNumeric($searchTerms[$i + $c]) . ' ' . $unit['unit']));
-                }
-            }
-            if ($c === 2) {
-                $toRemove[] = $searchTerms[$i + 1];
-            }
-            $toRemove[] = $searchTerms[$i + $c];
-            $toRemove[] = $searchTerms[$i + $c + 1];
-        }
-    }
-    
-    /**
-     * Process modifier 'ago'
-     *       
-     *      "numeric" "units" <ago>
-     * 
-     * @param array $searchTerms
-     * @param array $params
-     * @param array $toRemove
-     * @param integer $i position of word in the list
-     * @param integer $l number of words of the list
-     */
-    private function processModifierAgo(&$searchTerms, &$params, &$toRemove, $i) {
-    
-        if ($i - 2 >= 0 && $this->isNumeric($searchTerms[$i - 2]) && $this->dictionary->getUnit($searchTerms[$i - 1])) {
-            $unit = $this->dictionary->getUnit($searchTerms[$i - 1]);
-            $duration = $this->toNumeric($searchTerms[$i - 2]);
-            $toRemove[] = $searchTerms[$i - 1];
-            $toRemove[] = $searchTerms[$i - 2];
-
-            /*
-             * Known duration unit
-             */
-            if ($unit === 'days' || $unit === 'months' || $unit === 'years') {
-                $params['time:start'] = date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration . $unit)) . 'T00:00:00Z';
-                $params['time:end'] = date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration . $unit)) . 'T23:59:59Z';
-            }
-        }
-    }
-    
-    /*
-     * Remove $toRemove elements from $input array
-     * 
-     * @param {array} $input
-     * @param {array} $toRemove
-     */
-    private function stripArray($input, $toRemove) {
-
-        $output = array();
-
-        for ($i = 0, $l = count($input); $i < $l; $i++) {
-            $add = true;
-            for ($j = 0, $k = count($toRemove); $j < $k; $j++) {
-                if ($input[$i] === $toRemove[$j]) {
-                    $add = false;
-                    break;
-                }
-            }
-            if ($add) {
-                $output[] = $input[$i];
-            }
-        }
-
-        return $output;
-    }
-    
     /*
      * Return true if the entry is a numeric value wich is
      * the case if value is really numeric or if value is
@@ -1321,7 +1353,7 @@ class QueryAnalyzer extends RestoModule {
             return true;
         }
         
-        if ($this->dictionary->getNumber($str) !== null) {
+        if ($this->dictionary->get(RestoDictionary::NUMBER, $str) !== null) {
             return true;
         }
         
@@ -1339,7 +1371,7 @@ class QueryAnalyzer extends RestoModule {
             return $str;
         }
         
-        return $this->dictionary->getNumber($str);
+        return $this->dictionary->get(RestoDictionary::NUMBER, $str);
     }
     
     /**
@@ -1352,17 +1384,16 @@ class QueryAnalyzer extends RestoModule {
      *      )
      * 
      * @param String $quantity
-     * @param RestoModel $model
      */
-    private function getSearchFilter($quantity, $model) {
+    private function getSearchFilter($quantity) {
         
         if (!$quantity) {
             return null;
         }
         
-        foreach(array_keys($model->searchFilters) as $key) {
-            if (isset($model->searchFilters[$key]['quantity']) && is_array($model->searchFilters[$key]['quantity']) && $model->searchFilters[$key]['quantity']['value'] === $quantity) {
-                return array('key' => $key, 'unit' => $model->searchFilters[$key]['quantity']['unit']);
+        foreach(array_keys($this->model->searchFilters) as $key) {
+            if (isset($this->model->searchFilters[$key]['quantity']) && is_array($this->model->searchFilters[$key]['quantity']) && $this->model->searchFilters[$key]['quantity']['value'] === $quantity) {
+                return array('key' => $key, 'unit' => $this->model->searchFilters[$key]['quantity']['unit']);
             }
         }
         
@@ -1402,17 +1433,45 @@ class QueryAnalyzer extends RestoModule {
     }
     
     /**
-     * Quote string with " characters if needed (i.e. if 
-     * the string contains a space)
+     * Return array of words from input string
+     * In order :
+     *   - replace in query ' , and ; characters by space
+     *   - transliterate query string afterward (i.e. all words in lowercase without accent)
+     *   - split remaining query - split each terms with (" " character)
+     *   - add a space between numeric value and '%' character
      * 
-     * @param string $str
+     * @param string $query
+     * @return array
      */
-    private function quoteIfNeeded($str) {
-        if (strpos($str, ' ') !== FALSE) {
-            return '"' . $str . '"';
-        }
-        return $str;
+    private function toWords($query) {
+        return $this->cleanRawWords(RestoUtil::splitString($this->context->dbDriver->normalize(str_replace(array('\'', ',', ';'), ' ', $query))));
     }
-    
+        
+    /**
+     * Clean raw words array i.e.
+     *  - Add a space between a numeric value and '%' character
+     *  - replace spaces by minus sign
+     * 
+     * @param array $rawWords
+     * @return array
+     */
+    private function cleanRawWords($rawWords) {
+        $words = array();
+        for ($i = 0, $l = count($rawWords); $i < $l; $i++) {
+            $term = trim($rawWords[$i]);
+            if ($term === ',' || $term === ';' || $term === '') {
+                continue;
+            }
+            $splitted = explode('%', $term);
+            if (count($splitted) === 2 && is_numeric($splitted[0])) {
+                $words[] = $splitted[0];
+                $words[] = '%';
+            }
+            else {
+                $words[] = str_replace(' ', '-', $rawWords[$i]);
+            }
+        }
+        return $words;
+    }
 
 }

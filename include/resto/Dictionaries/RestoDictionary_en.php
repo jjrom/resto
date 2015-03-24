@@ -44,8 +44,61 @@
 
 class RestoDictionary_en extends RestoDictionary {
 
+    /*
+     * For each entry 
+     *
+     *   - the key (left side) is the month key
+     *   - the value (right side) is an array of month homonyms
+     *     in the given language. The first value is the prefered one
+     */ 
     protected $dictionary = array(
         
+        /*
+         * Location modifiers
+         */
+        'locationModifiers' => array(
+            'between' => array('between', 'from'),
+            'in' => array('in')
+        ),
+        /*
+         * Quantity modifiers
+         */
+        'quantityModifiers' => array(
+            'equal' => array('equal'),
+            'between' => array('between', 'from'),
+            'greater' => array('greater', 'more', '>'),
+            'lesser' => array('lesser', '<', 'less', 'lower'),
+            'with' => array('with', 'containing'),
+            'without' => array('without', 'no')
+        ),
+        /*
+         * Time modifiers
+         */
+        'timeModifiers' => array(
+            'after' => array('after'),
+            'ago' => array('ago'),
+            'before' => array('before'),
+            'between' => array('between', 'from'),
+            'in' => array('in'),
+            'last' => array('last'),
+            'next' => array('next'),
+            'since' => array('since'),
+            'today' => array('today'),
+            'tomorrow' => array('tomorrow'),
+            'yesterday' => array('yesterday')
+        ),
+        /*
+         * Various modifiers
+         */
+        'variousModifiers' => array(
+            'and' => array('and', 'to')
+        ),
+        /*
+         * Stop words i.e. excluded words
+         */
+        'stopWords' => array(
+            'the'
+        ),
         /*
          * List of words in the query that are
          * considered as 'noise' for the query analysis
@@ -62,79 +115,7 @@ class RestoDictionary_en extends RestoDictionary {
             'zone'
         ),
         /*
-         * Modifiers
-         * 
-         * For each entry 
-         *   - the key (left side) is the modifier key
-         *   - the value (right side) is an array of modifier homonyms
-         *     in the given language. The first value is the prefered one
-         *   
-         */
-        'modifiers' => array(
-            'after' => array('after'),
-            'ago' => array('ago'),
-            'and' => array('and'),
-            'before' => array('before'),
-            'between' => array('between'),
-            'equal' => array('equal'),
-            'greater' => array('greater', 'more', '>'),
-            'in' => array('in'),
-            'last' => array('last'),
-            'lesser' => array('lesser', '<', 'less', 'lower'),
-            'since' => array('since'),
-            'today' => array('today'),
-            'with' => array('with', 'containing'),
-            'without' => array('without', 'no'),
-            'yesterday' => array('yesterday')
-        ),
-        /*
-         * Units
-         * 
-         * For each entry 
-         *   - the key (left side) is the unit key
-         *   - the value (right side) is an array of unit homonyms
-         *     in the given language. The first value is the prefered one
-         * 
-         */
-        'units' => array(
-            'm' => array('m', 'meter', 'meters'),
-            'km' => array('km', 'kilometer', 'kilometers'),
-            '%' => array('%', 'percent', 'percents', 'percentage'),
-            'days' => array('days', 'day'),
-            'months' => array('month', 'months'),
-            'years' => array('year', 'years')
-        ),
-        /*
-         * Numbers
-         * 
-         * For each entry 
-         *   - the key (left side) is the number key
-         *   - the value (right side) is an array of number homonyms
-         *     in the given language. The first value is the prefered one
-         * 
-         */
-        'numbers' => array(
-            '1' => array('one'),
-            '2' => array('two'),
-            '3' => array('three'),
-            '4' => array('four'),
-            '5' => array('five'),
-            '6' => array('six'),
-            '7' => array('seven'),
-            '8' => array('eight'),
-            '9' => array('nine'),
-            '10' => array('ten'),
-            '100' => array('hundred'),
-            '1000' => array('thousand')
-        ),
-        /*
          * Months
-         * 
-         * For each entry 
-         *   - the key (left side) is the month key
-         *   - the value (right side) is an array of month homonyms
-         *     in the given language. The first value is the prefered one
-         * 
          */
         'months' => array(
             '01' => array('january'),
@@ -151,22 +132,24 @@ class RestoDictionary_en extends RestoDictionary {
             '12' => array('december')
         ),
         /*
-         * Seasons
+         * Numbers
          */
-        'seasons' => array(
-            'automn' => array('automn, falls'),
-            'spring' => array('spring'),
-            'summer' => array('summer'),
-            'winter' => array('winter')
+        'numbers' => array(
+            '1' => array('one'),
+            '2' => array('two'),
+            '3' => array('three'),
+            '4' => array('four'),
+            '5' => array('five'),
+            '6' => array('six'),
+            '7' => array('seven'),
+            '8' => array('eight'),
+            '9' => array('nine'),
+            '10' => array('ten'),
+            '100' => array('hundred'),
+            '1000' => array('thousand')
         ),
         /*
          * Quantities
-         * 
-         * For each entry 
-         *   - the key (left side) is the quantity key
-         *   - the value (right side) is an array of quantity homonyms
-         *     in the given language. The first value is the prefered one
-         * 
          */
         'quantities' => array(
             'resolution' => array('resolution'),
@@ -181,6 +164,32 @@ class RestoDictionary_en extends RestoDictionary {
             'desert' => array('desert', 'bare area'),
             'flooded' => array('flooded'),
             'water' => array('water')
+        ),
+        /*
+         * Seasons
+         */
+        'seasons' => array(
+            'automn' => array('automn, falls'),
+            'spring' => array('spring'),
+            'summer' => array('summer'),
+            'winter' => array('winter')
+        ),
+        /*
+         * Time units
+         */
+        'timeUnits' => array(
+            'days' => array('days', 'day'),
+            'months' => array('month', 'months'),
+            'years' => array('year', 'years'),
+            'weeks' => array('week', 'weeks')
+        ),
+        /*
+         * Units
+         */
+        'units' => array(
+            'm' => array('m', 'meter', 'meters'),
+            'km' => array('km', 'kilometer', 'kilometers'),
+            '%' => array('%', 'percent', 'percents', 'percentage')
         )
     );
     

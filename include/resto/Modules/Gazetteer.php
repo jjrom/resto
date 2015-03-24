@@ -235,7 +235,7 @@ class Gazetteer extends RestoModule {
      */
     private function getCountries($name, $tolerance = 0) {
         $output = array();
-        $country = $this->context->dictionary->getKeyword($name);
+        $country = $this->context->dictionary->getKeyword(RestoDictionary::COUNTRY, $name);
         if (isset($country)) {
             $query = 'SELECT admin, normalize(admin) as countryid, continent, ST_AsGeoJSON(' . $this->simplify('geom', $tolerance) . ') as geometry FROM datasources.countries WHERE normalize(admin)=normalize(\'' . $country['keyword'] . '\') order by admin';
             $results = pg_query($this->dbh, $query);
@@ -260,7 +260,7 @@ class Gazetteer extends RestoModule {
      */
     private function getStates($name, $tolerance = 0) {
         $output = array();
-        $state = $this->context->dictionary->getKeyword($name);
+        $state = $this->context->dictionary->getKeyword(RestoDictionary::STATE, $name);
         if (isset($state)) {
             $query = 'SELECT name, normalize(name) as stateid, region, normalize(region) as regionid, admin, normalize(admin) as adminid, ST_AsGeoJSON(' . $this->simplify('geom', $tolerance) . ') as geometry FROM datasources.worldadm1level WHERE normalize(name)=normalize(\'' . $state['keyword'] . '\') order by name';
             $results = pg_query($this->dbh, $query);
@@ -440,7 +440,7 @@ class Gazetteer extends RestoModule {
      * @return string
      */
     private function getModifierFilter($name) {
-        $countryOrState = $this->context->dictionary->getKeyword($name);
+        $countryOrState = $this->context->dictionary->getKeyword(RestoDictionary::LOCATION, $name);
         if (isset($countryOrState)) {
             if ($countryOrState['type'] === 'country') {
                 return 'normalize(countryname)=normalize(\'' . pg_escape_string($countryOrState['keyword']) . '\')';

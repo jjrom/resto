@@ -43,6 +43,23 @@
  */
 abstract class RestoDictionary {
     
+    const LOCATION_MODIFIER = 'locationModifiers';
+    const QUANTITY_MODIFIER = 'quantityModifiers';
+    const TIME_MODIFIER = 'timeModifiers';
+    const VARIOUS_MODIFIER = 'variousModifiers';
+    const MONTH = 'months';
+    const NUMBER = 'numbers';
+    const QUANTITY = 'quantities';
+    const SEASON = 'seasons';
+    const TIME_UNIT = 'timeUnits';
+    const UNIT = 'units';
+    const KEYWORD_LOCATION = 'locationModifiers';
+    const CONTINENT = 'continent';
+    const COUNTRY = 'country';
+    const LOCATION = 'location';
+    const REGION = 'region';
+    const STATE = 'state';
+    
     /*
      * Reference to the dictionary language
      */
@@ -56,13 +73,15 @@ abstract class RestoDictionary {
     /*
      * Dictionary Structure
      * 
+     *      locationModifiers => array(),
+     *      quantityModifiers => array(),
+     *      timeModifiers => array(),
      *      excluded => array(),
-     *      modifiers => array(),
-     *      units => array(),
      *      months => array(),
-     *      seasons => array(),
      *      numbers => array(),
      *      quantities => array()
+     *      seasons => array(),
+     *      units => array(),
      *      keywords => array() // Retrieve from database !
      */
     protected $dictionary = array();
@@ -163,7 +182,7 @@ abstract class RestoDictionary {
      * @param string $property
      * @param string $name : normalized name (see normalize function)
      */
-    private function get($property, $name) {
+    public function get($property, $name) {
         if (!is_array($this->dictionary[$property]) || !isset($name) || $name === '') {
             return null;
         }
@@ -178,57 +197,13 @@ abstract class RestoDictionary {
     }
     
     /**
-     * Return modifier entry in dictionary identified by $name
-     * 
-     * @param string $name
+     * Return true if word is a modifier word
      */
-    public function getModifier($name) {
-        return $this->get('modifiers', $name);
-    }
-    
-    /**
-     * Return unit entry in dictionary identified by $name
-     * 
-     * @param string $name
-     */
-    public function getUnit($name) {
-        return $this->get('units', $name);
-    }
-    
-    /**
-     * Return month entry in dictionary identified by $name
-     * 
-     * @param string $name
-     */
-    public function getMonth($name) {
-        return $this->get('months', $name);
-    }
-    
-    /**
-     * Return season entry in dictionary identified by $name
-     * 
-     * @param string $name
-     */
-    public function getSeason($name) {
-        return $this->get('seasons', $name);
-    }
-    
-    /**
-     * Return number entry in dictionary identified by $name
-     * 
-     * @param string $name
-     */
-    public function getNumber($name) {
-        return $this->get('numbers', $name);
-    }
-    
-    /**
-     * Return quantity entry in dictionary identified by $name
-     * 
-     * @param string $name
-     */
-    public function getQuantity($name) {
-        return $this->get('quantities', $name);
+    public function isModifier($word) {
+        if ($this->get(RestoDictionary::LOCATION_MODIFIER, $word) || $this->get(RestoDictionary::TIME_MODIFIER, $word) || $this->get(RestoDictionary::QUANTITY_MODIFIER, $word)) {
+            return true;
+        }
+        return false;
     }
     
     /**
@@ -265,27 +240,39 @@ abstract class RestoDictionary {
     /**
      * Return keyword entry in dictionary identified by $name
      * 
+     * @param string $type : keyword type
      * @param string $name : normalized name
+     * @param float $similarity : percentage of similarity
      * @return array ('keywords', 'type')
      */
-    public function getKeyword($name) {
+    public function getKeyword($type, $name, $similarity = 100) {
         
-        if (!is_array($this->dictionary['keywords'])) {
-            return null;
+        if ($type === RestoDictionary::LOCATION) {
+            return $this->getLocationKeyword($name, $similarity);
         }
         
         /*
          * keywords entry is an array of array
          */
-        foreach(array_keys($this->dictionary['keywords']) as $type) {
-            if (isset($this->dictionary['keywords'][$type][$name])) {
-                if (!isset($this->dictionary['keywords'][$type][$name]['bbox'])) {
-                    return array('keyword' => $this->dictionary['keywords'][$type][$name]['value'], 'type' => $type);
+        foreach(array_keys($this->dictionary['keywords']) as $currentType) {
+            if (isset($type) && $currentType !== $type) {
+                continue;
+            }
+            if (isset($this->dictionary['keywords'][$currentType][$name])) {
+                if (!isset($this->dictionary['keywords'][$currentType][$name]['bbox'])) {
+                    return array('keyword' => $this->dictionary['keywords'][$currentType][$name]['value'], 'type' => $currentType);
                 }
                 else {
-                    return array('keyword' => $this->dictionary['keywords'][$type][$name]['value'], 'bbox' => $this->dictionary['keywords'][$type][$name]['bbox'], 'isoa2' => $this->dictionary['keywords'][$type][$name]['isoa2'], 'type' => $type);
+                    return array('keyword' => $this->dictionary['keywords'][$currentType][$name]['value'], 'bbox' => $this->dictionary['keywords'][$currentType][$name]['bbox'], 'isoa2' => $this->dictionary['keywords'][$currentType][$name]['isoa2'], 'type' => $currentType);
                 }
             }
+        }
+        
+        /*
+         * Nothing found ? Search for similar pattern
+         */
+        if ($similarity < 100) {
+            return $this->getSimilar($name, $similarity);
         }
         
         return null;
@@ -324,6 +311,15 @@ abstract class RestoDictionary {
             return false;
         }
         return in_array($name, $this->dictionary['excluded']);
+    }
+    
+    /**
+     * Return true if $name is a stop word
+     * 
+     * @param string $name : normalized name
+     */
+    public function isStopWord($name) {
+        return in_array($name, $this->dictionary['stopWords']);
     }
        
     /**
@@ -390,22 +386,24 @@ abstract class RestoDictionary {
         return null;
     }
     
-    /*
+    /**
      * Return the more similar dictionary keyword from input string
      * Return null if similarity is < 90%
      * 
-     * @param {String} $s
+     * @param string $s
+     * @param float $similarity
+     * 
      */
-    public function getSimilar($s, $limit = 90) {
+    private function getSimilar($s, $similarity) {
         
         $similar = null;
         foreach(array_keys($this->dictionary['keywords']) as $type) {
             foreach(array_keys($this->dictionary['keywords'][$type]) as $key) {
                 $percentage = 0.0;
                 similar_text($s, $key, $percentage);
-                if ($percentage >= $limit) {
+                if ($percentage >= $similarity) {
                     $similar = array('keyword' => $this->dictionary['keywords'][$type][$key], 'type' => $type, 'similarity' => $percentage);
-                    $limit = $percentage;
+                    $similarity = $percentage;
                 }
             }
         }
@@ -413,5 +411,26 @@ abstract class RestoDictionary {
         return $similar;
     }
     
-
+    /**
+     * Return location keyword (i.e. one of continent, country, region or state)
+     * 
+     * @param string $name
+     * @param integer $similarity
+     * @return type
+     */
+    private function getLocationKeyword($name, $similarity) {
+        $continent = $this->getKeyword(RestoDictionary::CONTINENT, $name, $similarity);
+        if (isset($continent)) {
+            return $continent;
+        }
+        $country = $this->getKeyword(RestoDictionary::COUNTRY, $name, $similarity);
+        if (isset($country)) {
+            return $country;
+        }
+        $region = $this->getKeyword(RestoDictionary::REGION, $name, $similarity);
+        if (isset($region)) {
+            return $region;
+        }
+        return $this->getKeyword(RestoDictionary::STATE, $name, $similarity);
+    }
 }
