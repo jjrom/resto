@@ -141,26 +141,17 @@ class QueryAnalyzer extends RestoModule {
     private $dictionary;
     
     /*
-     * Array of not understood part of the query
+     * Reference to utilities class
      */
-    private $notUnderstood = array();
-    
-    private $remaining = array();
-    private $explicits = array();
-    
-    private $keywords = array();
+    private $utils;
     
     /*
-     * What, When and Where
+     * What, When, Where and NotUnderstood
      */
     private $when = array();
     private $where = array();
     private $what = array();
-    
-    /*
-     * Reference to utilities class
-     */
-    private $utils;
+    private $notUnderstood = array();
     
     /**
      * Constructor
@@ -306,81 +297,12 @@ class QueryAnalyzer extends RestoModule {
          * Roll over each word to detect time pattern
          */
         for ($i = 0, $l = count($words); $i < $l; $i++) {
-            
-            switch ($this->dictionary->get(RestoDictionary::TIME_MODIFIER, $words[$i])) {
-                
-                /*
-                 * <before> "date"
-                 */
-                case 'before':
-                    return $this->processWhen($this->processWhenBefore($words, $i));
-                
-                /*
-                 * <after> "date"
-                 */
-                case 'after':
-                    return $this->processWhen($this->processWhenAfter($words, $i));
-                
-                /*
-                 * <between> "date" <and> "date"
-                 */
-                case 'between':
-                    return $this->processWhen($this->processWhenBetweenAnd($words, $i));
-
-                /*
-                 * <since> "date"
-                 */
-                case 'since':
-                    return $this->processWhen($this->processWhenSince($words, $i));
-
-                /*
-                 * <last> 
-                 */
-                case 'last':
-                    return $this->processWhen($this->processWhenLast($words, $i));
-
-                /*
-                 * <next> 
-                 */
-                case 'next':
-                    return $this->processWhen($this->processWhenNext($words, $i));
-
-                /*
-                 * <in> "date"
-                 */
-                case 'in':
-                    return $this->processWhen($this->processWhenIn($words, $i));
-
-                /*
-                 * "quantity" "unit" <ago>
-                 */
-                case 'ago':
-                    return $this->processWhen($this->processWhenAgo($words, $i));
-
-                /*
-                 * Today
-                 */
-                case 'today':
-                    return $this->processWhen($this->processWhenToday($words, $i));
-
-                /*
-                 * Tomorrow
-                 */
-                case 'tomorrow':
-                    return $this->processWhen($this->processWhenTomorrow($words, $i));
-
-                /*
-                 * Yesterday
-                 */
-                case 'yesterday':
-                    return $this->processWhen($this->processWhenYesterday($words, $i));
-
-                /*
-                 * Nothing found
-                 */
-                default:
-                    continue;
-                    
+            $modifier = $this->dictionary->get(RestoDictionary::TIME_MODIFIER, $words[$i]);
+            if (isset($modifier)) {
+                $functionName = 'processWhen' . ucfirst($modifier);
+                if (method_exists($this, $functionName)) {
+                    return $this->processWhen(call_user_func_array(array($this, $functionName), array($words, $i)));
+                }
             }
                 
         }
@@ -399,27 +321,12 @@ class QueryAnalyzer extends RestoModule {
          * Roll over each word to detect location pattern
          */
         for ($i = 0, $l = count($words); $i < $l; $i++) {
-            
-            switch ($this->dictionary->get(RestoDictionary::LOCATION_MODIFIER, $words[$i])) {
-                
-                /*
-                 * <in> "location"
-                 */
-                case 'in':
-                    return $this->processWhere($this->processWhereIn($words, $i));
-                
-                /*
-                 * <after> "date"
-                 */
-                case 'between':
-                    return $this->processWhere($this->processWhereBetweenAnd($words, $i));
-                
-                /*
-                 * Nothing found
-                 */
-                default:
-                    continue;
-                    
+            $modifier = $this->dictionary->get(RestoDictionary::LOCATION_MODIFIER, $words[$i]);
+            if (isset($modifier)) {
+                $functionName = 'processWhere' . ucfirst($modifier);
+                if (method_exists($this, $functionName)) {
+                    return $this->processWhen(call_user_func_array(array($this, $functionName), array($words, $i)));
+                }
             }
         }
         
@@ -464,7 +371,7 @@ class QueryAnalyzer extends RestoModule {
      * @param integer $l
      * @return string
      */
-    private function processWithout($searchTerms, $i, $l) {
+    private function process_WITHOUT($searchTerms, $i, $l) {
         
         /*
          * <without> "quantity" means quantity = 0
@@ -548,7 +455,7 @@ class QueryAnalyzer extends RestoModule {
      * @param array $words
      * @param integer $position of word in the list
      */
-    private function processWhenBetweenAnd($words, $position) {
+    private function processWhenBetween($words, $position) {
         
         /*
          * Extract first date
