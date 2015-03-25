@@ -207,6 +207,21 @@ abstract class RestoDictionary {
     }
     
     /**
+     * Return number
+     * 
+     * @param string $property
+     * @param string $name : normalized name (see normalize function)
+     * @return integer
+     */
+    public function getNumber($name) {
+        if (is_numeric($name)) {
+            return $name;
+        }
+        $number = $this->get(RestoDictionary::NUMBER, $name);
+        return isset($number) ? (integer) $number : null;
+    }
+    
+    /**
      * Return instrument entry in dictionary identified by $name
      * 
      * @param string $name

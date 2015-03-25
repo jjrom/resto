@@ -144,6 +144,11 @@ class QueryAnalyzer extends RestoModule {
     
     private $keywords = array();
     
+    /*
+     * Reference to utilities class
+     */
+    private $utils;
+    
     /**
      * Constructor
      * 
@@ -153,6 +158,7 @@ class QueryAnalyzer extends RestoModule {
     public function __construct($context, $user) {
         parent::__construct($context, $user);
         $this->dictionary = $this->context->dictionary;
+        $this->utils = new QueryAnalyzerUtils($context, $user);
     }
 
     /**
@@ -218,7 +224,7 @@ class QueryAnalyzer extends RestoModule {
         /*
          * Get searchTerms array
          */
-        $words = $this->toWords($query);
+        $words = $this->utils->toWords($query);
         print_r($words);
         
         /*
@@ -424,7 +430,7 @@ class QueryAnalyzer extends RestoModule {
         /*
          * Extract location
          */
-        $location = $this->extractLocation($words, $position + 1);
+        $location = $this->utils->extractLocation($words, $position + 1);
         
         /*
          * No location found
@@ -439,160 +445,6 @@ class QueryAnalyzer extends RestoModule {
         
         return $words;
        
-    }
-    
-    /**
-     * 
-     * Extract location from sentence
-     * 
-     * @param array $words
-     * @param integer $position of word in the list
-     */
-    private function extractLocation($words, $position) {
-        
-        $endPosition = -1;
-        
-        /*
-         * Get the last index position
-         */
-        for ($i = $position, $ii = count($words); $i < $ii; $i++) {
-            if ($this->dictionary->isModifier($words[$i])) {
-                $endPosition = $i - 1;
-                break;
-            }
-            $endPosition = $i;
-        }
-        
-        /*
-         * Roll over each word
-         */
-        $locationModifier = null;
-        for ($i = $endPosition; $i >= $position; $i--) {
-          
-            /*
-             * Do not process if location modifier was already found
-             */
-            if (isset($locationModifier)) {
-                continue;
-            }
-            
-            /*
-             * Parse words in reverse order to find toponym modifier
-             * If input words are array('saint', 'gaudens', 'france')
-             * Then keyword will be tested against : 
-             *  saint, saint-gaudens, saint-gaudens-france, gaudens, gaudens-france, france
-             */
-            $locationName = '';
-            for ($j = $i; $j >= $position; $j--) {
-                
-                /*
-                 * Reconstruct sentence from words without stop words
-                 */
-                if (!$this->dictionary->isStopWord($words[$j])) {
-                    $locationName = $words[$j] . ($locationName === '' ? '' : '-') . $locationName;
-                }
-                
-                $keyword = $this->dictionary->getKeyword(RestoDictionary::LOCATION, $locationName);
-                if (isset($keyword)) {
-                    $locationModifier = array(
-                        'startPosition' => min(array($i, $j)),
-                        'endPosition' => max(array($i, $j)),
-                        'keyword' => $keyword['keyword'],
-                        'type' => $keyword['type']
-                    );
-                    break;
-                }
-                
-            }
-            
-        }
-        
-        /*
-         * Search toponym in gazetteer
-         */
-        if (isset($this->context->modules['Gazetteer'])) {
-            return $this->extractToponym($words, $position, $locationModifier);
-        }
-        /*
-         * Return location modifier
-         */
-        else {
-            return array(
-                'endPosition' => $endPosition,
-                'location' => $locationModifier
-            );
-        }
-        
-    }
-    
-    /**
-     * 
-     * Extract toponym
-     * 
-     * @param array $words
-     * @param integer $position of word in the list
-     * @param array $locationModifier
-     */
-    private function extractToponym($words, $position, $locationModifier = null) {
-        
-        $endPosition = -1;
-        
-        /*
-         * Roll over each word
-         */
-        $toponymName = '';
-        for ($i = $position, $ii = count($words); $i < $ii; $i++) {
-          
-            /*
-             * Exit if stop modifier is found
-             */
-            if ($this->dictionary->isModifier($words[$i])) {
-                $endPosition = $i - 1;
-                break;
-            }
-            
-            /*
-             * Discard locationModifier
-             */
-            if (isset($locationModifier)) {
-                if ($i >= $locationModifier['startPosition'] && $i <= $locationModifier['endPosition']) {
-                    continue;
-                }
-            }
-            
-            /*
-             * Reconstruct sentence from words without stop words
-             */
-            if (!$this->dictionary->isStopWord($words[$i])) {
-                $toponymName .= ($toponymName === '' ? '' : '-') . $words[$i];
-            }
-            
-            $endPosition = $i;
-        }
-        
-        /*
-         * No toponym
-         */
-        if (empty($toponymName)) {
-            return array(
-                'endPosition' => $endPosition,
-                'locations' => $locationModifier
-            );
-        }
-        
-        /*
-         * Search in gazetteer
-         */
-        $gazetteer = new Gazetteer($this->context, $this->user, $this->context->modules['Gazetteer']);
-        $locations = $gazetteer->search(array(
-            'q' => $toponymName . (isset($locationModifier) ? ',' . $locationModifier['keyword'] : '')
-        ));
-        
-        return array(
-            'endPosition' => $endPosition,
-            'locations' => $locations
-        );
-        
     }
     
     /**
@@ -662,7 +514,7 @@ class QueryAnalyzer extends RestoModule {
         /*
          * Extract date
          */
-        $date = $this->extractDate($words, $position + 1);
+        $date = $this->utils->extractDate($words, $position + 1);
         
         /*
          * No date found - remove modifier only from words list
@@ -674,7 +526,7 @@ class QueryAnalyzer extends RestoModule {
          * Date found - add to outputFilters and remove modifier and date from words list
          */
         else {
-            $this->outputFilters[$osKey] = $osKey === 'time:start' ? $this->toGreatestDay($date['date']) : $this->toLowestDay($date['date']);
+            $this->outputFilters[$osKey] = $osKey === 'time:start' ? $this->utils->toGreatestDay($date['date']) : $this->utils->toLowestDay($date['date']);
             array_splice($words, $position, $date['endPosition'] - $position + 1);
         }
         return $words;
@@ -692,7 +544,7 @@ class QueryAnalyzer extends RestoModule {
         /*
          * Extract first date
          */
-        $firstDate = $this->extractDate($words, $position + 1, true);
+        $firstDate = $this->utils->extractDate($words, $position + 1, true);
         
         /*
          * No date found - try <between> "location" <and> "location" 
@@ -704,7 +556,7 @@ class QueryAnalyzer extends RestoModule {
         /*
          * Date found - search for second date
          */  
-        $secondDate = $this->extractDate($words, $firstDate['endPosition'] + 1);
+        $secondDate = $this->utils->extractDate($words, $firstDate['endPosition'] + 1);
 
         /*
          * No date found - try <between> "location" <and> "location" 
@@ -722,8 +574,8 @@ class QueryAnalyzer extends RestoModule {
         if (!isset($firstDate['date']['month']) && isset($secondDate['date']['month'])) {
             $firstDate['date']['month'] = $secondDate['date']['month'];
         }
-        $this->outputFilters['time:start'] = $this->toLowestDay($firstDate['date']);
-        $this->outputFilters['time:end'] = $this->toGreatestDay($secondDate['date']);
+        $this->outputFilters['time:start'] = $this->utils->toLowestDay($firstDate['date']);
+        $this->outputFilters['time:end'] = $this->utils->toGreatestDay($secondDate['date']);
         array_splice($words, $position, $secondDate['endPosition'] - $position + 1);
        
         return $words;
@@ -757,7 +609,7 @@ class QueryAnalyzer extends RestoModule {
         /*
          * <since> "date"
          */
-        $date = $this->extractDate($words, $position + 1);
+        $date = $this->utils->extractDate($words, $position + 1);
         
         /*
          * If a month is specified and the month is posterior to
@@ -775,17 +627,17 @@ class QueryAnalyzer extends RestoModule {
          * <since> "(year|month|day)" <last>
          */
         if (empty($date['date'])) {
-            $duration = $this->extractDuration($words, $position + 1);
+            $duration = $this->utils->extractDuration($words, $position + 1);
             if (!empty($duration['duration'])) {
                 $date = array(
                     'endPosition' => $duration['endPosition'],
-                    'date' => $this->iso8601ToDate(date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration['duration']['value'] . $duration['duration']['unit'])))
+                    'date' => $this->utils->iso8601ToDate(date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration['duration']['value'] . $duration['duration']['unit'])))
                 );
             }
         }
         
         if (!empty($date['date'])) {
-            $this->outputFilters['time:start'] = $this->toLowestDay($date['date']);
+            $this->outputFilters['time:start'] = $this->utils->toLowestDay($date['date']);
             array_splice($words, $position, $date['endPosition'] - $position + 1);
         }
         else {
@@ -875,7 +727,7 @@ class QueryAnalyzer extends RestoModule {
          *      "(year|month|day)" <next>
          * 
          */
-        $duration = $this->extractDuration($words, max(array(0, $position - 1)));
+        $duration = $this->utils->extractDuration($words, max(array(0, $position - 1)));
         if (!empty($duration['duration'])) {
         
             /*
@@ -929,7 +781,7 @@ class QueryAnalyzer extends RestoModule {
      */
     private function processWhenIn($words, $position) {
         
-        $date = $this->extractDate($words, $position + 1);
+        $date = $this->utils->extractDate($words, $position + 1);
         
         /*
          * No date found - try <in> "location"
@@ -938,8 +790,8 @@ class QueryAnalyzer extends RestoModule {
             return $this->processWhereIn($words, $position);
         }
         
-        $this->outputFilters['time:start'] = $this->toLowestDay($date['date']);
-        $this->outputFilters['time:end'] = $this->toGreatestDay($date['date']);
+        $this->outputFilters['time:start'] = $this->utils->toLowestDay($date['date']);
+        $this->outputFilters['time:end'] = $this->utils->toGreatestDay($date['date']);
         array_splice($words, $position, $date['endPosition'] - $position + 1);
         
         return $words;
@@ -1017,423 +869,4 @@ class QueryAnalyzer extends RestoModule {
         return $words;
     }
     
-   /**
-    * Extract duration
-    * 
-    * @param array $words
-    * @param integer $position of word in the list
-    */
-    private function extractDuration($words, $position) {
-        
-        $duration = array(
-            'value' => 1
-        );
-        $endPosition = -1;
-        $firstIsNotLast = false;
-        
-        for ($i = $position, $l = count($words); $i < $l; $i++) {
-            
-            /*
-             * <last> modifier found
-             */
-            $timeModifier = $this->dictionary->get(RestoDictionary::TIME_MODIFIER, $words[$i]);
-            if ($timeModifier === 'last' || $timeModifier === 'next') {
-                continue;
-            }
-            
-            /*
-             * Exit if stop modifier is found
-             */
-            if ($this->dictionary->isModifier($words[$i])) {
-                $endPosition = $i - 1;
-                break;
-            }
-            
-            /*
-             * Extract duration
-             */
-            if ($this->dictionary->getNumber($words[$i])) {
-                $endPosition = max(array($i, $endPosition));
-                $duration['value'] = $this->dictionary->getNumber($words[$i]);
-                if ($i === $position) {
-                    $firstIsNotLast = true;
-                }
-                continue;
-            }
-            
-            /*  
-             * Extract unit
-             */           
-            $unit = $this->dictionary->get(RestoDictionary::TIME_UNIT, $words[$i]);
-            if (isset($unit)) {
-                $duration['unit'] = $unit;
-                $endPosition = max(array($i, $endPosition));
-                if ($i === $position) {
-                    $firstIsNotLast = true;
-                }
-                continue;
-            }
-        }
-        
-        return array(
-            'duration' => $duration,
-            'endPosition' => $endPosition,
-            'firstIsNotLast' => $firstIsNotLast
-        );
-        
-    }
-    
-    /**
-     * Extract date from an array words starting analysis at $position
-     * Valid patterns are :
-     * 
-     *      - ISO 8601 date (i.e. "2015-05-01T12:23:34")
-     *      - year (i.e. "2015")
-     *      - month (i.e. "may")
-     *      - month year (i.e. "may 2015")
-     *      - "today", "yesterday" or "tomorrow"
-     * 
-     * @param array $words
-     * @param integer $position
-     * @param boolean $between
-     * 
-     */
-    private function extractDate($words, $position, $between = false) {
-     
-        $date = array();
-        $endPosition = -1;
-        
-        for ($i = $position, $l = count($words); $i < $l; $i++) {
-            
-            /*
-             * Today, Tomorrow and Yesterday
-             */
-            $timeModifier = $this->dictionary->get(RestoDictionary::TIME_MODIFIER, $words[$i]);
-            if (isset($timeModifier)) {
-                $time = null;
-                if ($timeModifier === 'today') {
-                    $time = strtotime(date('Y-m-d'));
-                }
-                else if (isset($timeModifier) && $timeModifier === 'tomorrow') {
-                    $time = strtotime(date('Y-m-d') . ' + 1 days');
-                }
-                else if (isset($timeModifier) && $timeModifier === 'yesterday') {
-                    $time = strtotime(date('Y-m-d') . ' - 1 days');
-                } 
-                if (isset($time)) {
-                    $endPosition = $i;
-                    $date = array(
-                        'year' => date('Y', $time),
-                        'month' => date('m', $time),
-                        'day' => date('d', $time)
-                    );
-                    break;
-                }
-            }
-            
-            /*
-             * Between stop modifier is 'and'
-             */
-            if ($between && $this->dictionary->get(RestoDictionary::VARIOUS_MODIFIER, $words[$i]) === 'and') {
-                $endPosition = $i;
-                break;
-            }
-            
-            /*
-             * Exit if stop modifier is found
-             */
-            if ($this->dictionary->isModifier($words[$i])) {
-                $endPosition = $i - 1;
-                break;
-            }
-
-            /*
-             * Year
-             */
-            if (preg_match('/^\d{4}$/i', $words[$i])) {
-                $date['year'] = $words[$i];
-                $endPosition = max(array($i, $endPosition));
-                continue;
-            }
-
-            /*
-             * Textual month
-             */
-            $month = $this->dictionary->get(RestoDictionary::MONTH, $words[$i]);
-            if ($month) {
-                $date['month'] = $month;
-                $endPosition = max(array($i, $endPosition));
-                continue;
-            }
-            
-            /*
-             * Day is an int value < 31
-             */
-            if (is_numeric($words[$i])) {
-                $d = intval($words[$i]);
-                if ($d > 0 && $d < 31) {
-                    $date['day'] = $d < 10 ? '0' . $d : $d;
-                    $endPosition = max(array($i, $endPosition));
-                }
-                continue;
-            }
-            
-            /*
-             * ISO8601 date
-             */
-            if (RestoUtil::isISO8601($words[$i])) {
-                $date = $this->iso8601ToDate($words[$i]);
-                $endPosition = max(array($i, $endPosition));
-                continue;
-            }
-            
-            /*
-             * TODO Season
-             *
-            if (($season = $this->dictionary->getSeason($searchTerms[$i])) !== null) {
-                switch($season) {
-                    case 'winter':
-                        $this->explicits['month:01|02|03'] = true;
-                        break;
-                    case 'spring':
-                        $this->explicits['month:04|05|06'] = true;
-                        break;
-                    case 'summer':
-                        $this->explicits['month:07|08|09'] = true;
-                        break;
-                    case 'automn':
-                        $this->explicits['month:10|11|12'] = true;
-                        break;
-                    default:
-                        break;
-                }
-            }
-             * 
-             */
-        }
-        
-        return array(
-            'date' => $date,
-            'endPosition' => $endPosition
-        );
-    }
-
-    /**
-     * Convert ISO8601 string to year/month/date/time array
-     * @param string $iso8601
-     * @return array
-     */
-    private function iso8601ToDate($iso8601) {
-
-        $length = strlen($iso8601);
-
-        /*
-         * Year and month
-         */
-        if ($length === 7) {
-            return array(
-                'year' => substr($iso8601, 0, 4),
-                'month' => substr($iso8601, 5, 2)
-            );
-        }
-        
-        /*
-         * Year, month and day
-         */
-        if ($length === 10) {
-            return array(
-                'year' => substr($iso8601, 0, 4),
-                'month' => substr($iso8601, 5, 2),
-                'day' => substr($iso8601, 8, 2)
-            );
-        }
-        
-        return array(
-            'year' => substr($iso8601, 0, 4),
-            'month' => substr($iso8601, 5, 2),
-            'day' => substr($iso8601, 8, 2),
-            'time' => str_replace('z', '', substr($iso8601, 11, $length - 11))
-        );
-    }
-    
-    /**
-     * Convert date (year/month/date/time) array to ISO8601 string
-     * 
-     * @param array $date
-     * @param boolean $endOfDay
-     * @return string
-     */
-    private function dateToISO8601($date, $endOfDay = false) {
-        
-        /*
-         * Set current year if not set
-         */
-        if (!isset($date['year'])) {
-            $date['year'] = date('Y');
-        }
-        
-        /*
-         * Set current month if not set
-         */
-        if (!isset($date['month'])) {
-            $date['month'] = date('m');
-        }
-        
-        /*
-         * Set current day if not set
-         */
-        if (!isset($date['day'])) {
-            $date['day'] = date('d');
-        }
-        
-        /*
-         * Set current time if not set
-         */
-        if (!isset($date['time'])) {
-            $date['time'] = $endOfDay ? '23:59:59' : '00:00:00';
-        }
-        
-        return $date['year'] . '-' . $date['month'] . '-' . $date['day'] . 'T' . $date['time'] . 'Z';
-        
-    }
-    
-    /**
-     * Return the lowest day of the given date as ISO 8601
-     * Exemple :
-     *      "2015" would return "2015-01-01T00:00:00"
-     *      "may 2015" would return "2015-05-01T00:00:00"
-     *  
-     * @param type $date
-     */
-    private function toLowestDay($date) {
-        if (!isset($date['month'])) {
-            $date['month'] = '01';
-        }
-        if (!isset($date['day'])) {
-            $date['day'] = '01';
-        }
-        return $this->dateToISO8601($date);
-    }
-    
-    /**
-     * Return the greatest day of the given date as ISO 8601
-     * Exemple :
-     *      "2015" would return "2015-12-31T23:59:59"
-     *      "may 2015" would return "2015-05-31T23:59:59"
-     *  
-     * @param type $date
-     */
-    private function toGreatestDay($date) {
-        if (!isset($date['year'])) {
-            $date['year'] = date('Y');
-        }
-        if (!isset($date['month'])) {
-            $date['month'] = '12';
-        }
-        if (!isset($date['day'])) {
-            $date['day'] = date('d', mktime(0, 0, 0, intval($date['month']) + 1, 0, intval($date['year'])));
-        }
-        return $this->dateToISO8601($date, true);
-    }
-    
-    /**
-     * Return filter name associated to $quantity
-     * 
-     * A valid quantity should be defined with searchFilters as
-     *      'quantity' => array(
-     *          'value' => // name of the quantity (i.e. an existing entry in "quantities" dictionary array)
-     *          'unit' => // unit of the quantity (i.e. an existing entry in "units" dictionnary array)
-     *      )
-     * 
-     * @param String $quantity
-     */
-    private function getSearchFilter($quantity) {
-        
-        if (!$quantity) {
-            return null;
-        }
-        
-        foreach(array_keys($this->model->searchFilters) as $key) {
-            if (isset($this->model->searchFilters[$key]['quantity']) && is_array($this->model->searchFilters[$key]['quantity']) && $this->model->searchFilters[$key]['quantity']['value'] === $quantity) {
-                return array('key' => $key, 'unit' => $this->model->searchFilters[$key]['quantity']['unit']);
-            }
-        }
-        
-        return null;
-    }
-    
-    /**
-     * Return normalized unit from $unit
-     * e.g. if $unit = 'km', returned value is 
-     *      array(
-     *          'unit' => 'm',
-     *          'factor' => 1000
-     *      )
-     * 
-     * @param string $unit
-     */
-    private function normalizedUnit($unit) {
-        
-        if (!$unit) {
-            return null;
-        }
-        
-        $factor = 1.0;
-        switch ($unit) {
-            case 'km':
-                $unit = 'm';
-                $factor = 1000.0;
-                break;
-            default:
-                break;
-        }
-        
-        return array(
-            'unit' => $unit,
-            'factor' => $factor
-        );
-    }
-    
-    /**
-     * Return array of words from input string
-     * In order :
-     *   - replace in query ' , and ; characters by space
-     *   - transliterate query string afterward (i.e. all words in lowercase without accent)
-     *   - split remaining query - split each terms with (" " character)
-     *   - add a space between numeric value and '%' character
-     * 
-     * @param string $query
-     * @return array
-     */
-    private function toWords($query) {
-        return $this->cleanRawWords(RestoUtil::splitString($this->context->dbDriver->normalize(str_replace(array('\'', ',', ';'), ' ', $query))));
-    }
-        
-    /**
-     * Clean raw words array i.e.
-     *  - Add a space between a numeric value and '%' character
-     *  - replace spaces by minus sign
-     * 
-     * @param array $rawWords
-     * @return array
-     */
-    private function cleanRawWords($rawWords) {
-        $words = array();
-        for ($i = 0, $l = count($rawWords); $i < $l; $i++) {
-            $term = trim($rawWords[$i]);
-            if ($term === ',' || $term === ';' || $term === '') {
-                continue;
-            }
-            $splitted = explode('%', $term);
-            if (count($splitted) === 2 && is_numeric($splitted[0])) {
-                $words[] = $splitted[0];
-                $words[] = '%';
-            }
-            else {
-                $words[] = str_replace(' ', '-', $rawWords[$i]);
-            }
-        }
-        return $words;
-    }
-
 }
