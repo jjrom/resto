@@ -190,8 +190,9 @@ class QueryAnalyzer extends RestoModule {
         if ($this->context->method !== 'GET' || count($elements) !== 0) {
             RestoLogUtil::httpError(404);
         }
+        $query = isset($this->context->query['searchTerms']) ? $this->context->query['searchTerms'] : isset($this->context->query['q']) ? $this->context->query['q'] : null;
         
-        return $this->analyze(isset($this->context->query['searchTerms']) ? $this->context->query['searchTerms'] : null, new RestoModel_default());
+        return $this->analyze($query, new RestoModel_default());
         
     }
     
@@ -289,7 +290,7 @@ class QueryAnalyzer extends RestoModule {
             'What' => $this->what,
             'When' => $this->when,
             'Where' => $this->where,
-            'NotUnderstood' => array_merge($words, $this->notUnderstood)
+            'NotUnderstood' => array_merge(array(join(' ', $words)), $this->notUnderstood)
         );
         
     }
