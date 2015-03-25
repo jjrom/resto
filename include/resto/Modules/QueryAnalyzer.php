@@ -297,7 +297,6 @@ class QueryAnalyzer extends RestoModule {
      */
     private function processWhereIn($words, $position) {
         
-        
         /*
          * Extract locations
          */

@@ -187,7 +187,7 @@ class QueryAnalyzerUtils {
         $firstIsNotLast = false;
         
         for ($i = $position, $l = count($words); $i < $l; $i++) {
-            
+            echo $words[$i] . "\n";
             $endPosition = $i;
             
             /*
@@ -341,6 +341,11 @@ class QueryAnalyzerUtils {
             if (RestoUtil::isISO8601($words[$i])) {
                 $date = $this->iso8601ToDate($words[$i]);
                 continue;
+            }
+            
+            if (!$this->dictionary->isStopWord($words[$i])) {
+                $endPosition = $i - 1;
+                break;
             }
             
             /*
