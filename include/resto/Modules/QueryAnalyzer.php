@@ -815,49 +815,7 @@ class QueryAnalyzer extends RestoModule {
      * @param integer $position of word in the list
      */
     private function processWhenLast($words, $position) {
-        
-        /*
-         * Important ! Start position is one before <last>
-         * to process the following
-         * 
-         *      "numeric" <last> "(year|month|day)"
-         *      "(year|month|day)" <last>
-         * 
-         */
-        $duration = $this->extractDuration($words, max(array(0, $position - 1)));
-        if (!empty($duration['duration'])) {
-            $year = date('Y', strtotime(date('Y-m-d') . ' - 1 ' . $duration['duration']['unit']));
-            $pYear = date('Y', strtotime(date('Y-m-d') . ' - ' . $duration['duration']['value'] . $duration['duration']['unit']));
-            $month = date('m', strtotime(date('Y-m-d') . ' - 1 ' . $duration['duration']['unit']));
-            $pMonth = date('m', strtotime(date('Y-m-d') . ' - ' . $duration['duration']['value'] . $duration['duration']['unit']));
-            $day = date('d', strtotime(date('Y-m-d') . ' - 1 ' . $duration['duration']['unit']));
-            $pDay = date('d', strtotime(date('Y-m-d') . ' - ' . $duration['duration']['value'] . $duration['duration']['unit']));
-            
-            switch ($duration['duration']['unit']) {
-                case 'years':
-                    $this->outputFilters['time:start'] = $pYear . '-01-01' . 'T00:00:00Z';
-                    $this->outputFilters['time:end'] = $year . '-12-31' . 'T23:59:59Z';
-                    break;
-                case 'months':
-                    $this->outputFilters['time:start'] = $pYear . '-' . $pMonth . '-01' . 'T00:00:00Z';
-                    $this->outputFilters['time:end'] = $year . '-' . $month . '-' . date('d', mktime(0, 0, 0, intval($month) + 1, 0, intval($year))) . 'T23:59:59Z';
-                    break;
-                case 'days':
-                    $this->outputFilters['time:start'] = $pYear . '-' . $pMonth . '-' . $pDay . 'T00:00:00Z';
-                    $this->outputFilters['time:end'] = $year . '-' . $month . '-' . $day . 'T23:59:59Z';
-                    break;
-                default:
-                    break;
-            }
-            $delta = $duration['firstIsNotLast'] ? 1 : 0;
-            array_splice($words, $position - $delta, $duration['endPosition'] - $position + 1 + $delta);
-        }
-        else {
-            array_splice($words, $position, 1);
-        }
-        
-        return $words;
-        
+        return $this->processWhenLastOrNext($words, $position, 'last');
     }
     
     /**
@@ -879,6 +837,35 @@ class QueryAnalyzer extends RestoModule {
      * @param integer $position of word in the list
      */
     private function processWhenNext($words, $position) {
+        return $this->processWhenLastOrNext($words, $position, 'next');
+    }
+    
+    /**
+     * Process 
+     *      <next> "date"
+     *      <last> "date"
+     * 
+     * Understood structures are :
+     *  
+     *      <next> "(year|month|day)"
+     *      <next> "numeric" "(year|month|day)"
+     *      "numeric" <next> "(year|month|day)"
+     *      "(year|month|day)" <next>
+     * 
+     *      <last> "(year|month|day)"
+     *      <last> "numeric" "(year|month|day)"
+     *      "numeric" <last> "(year|month|day)"
+     *      "(year|month|day)" <last>
+     * 
+     * Example :
+     *           
+     *      If current date is November 2013 (i.e. 2013-11) then
+     *      the "<next> 2 months" are December 2013 and January 2014
+     * 
+     * @param array $words
+     * @param integer $position of word in the list
+     */
+    private function processWhenLastOrNext($words, $position, $lastOrNext) {
         
         /*
          * Important ! Start position is one before <next>
@@ -889,33 +876,42 @@ class QueryAnalyzer extends RestoModule {
          * 
          */
         $duration = $this->extractDuration($words, max(array(0, $position - 1)));
-        
         if (!empty($duration['duration'])) {
-            $pYear = date('Y', strtotime(date('Y-m-d') . ' + 1 ' . $duration['duration']['unit']));
-            $year = date('Y', strtotime(date('Y-m-d') . ' + ' . $duration['duration']['value'] . $duration['duration']['unit']));
-            $pMonth = date('m', strtotime(date('Y-m-d') . ' + 1 ' . $duration['duration']['unit']));
-            $month = date('m', strtotime(date('Y-m-d') . ' + ' . $duration['duration']['value'] . $duration['duration']['unit']));
-            $pDay = date('d', strtotime(date('Y-m-d') . ' + 1 ' . $duration['duration']['unit']));
-            $day = date('d', strtotime(date('Y-m-d') . ' + ' . $duration['duration']['value'] . $duration['duration']['unit']));
-            
+        
+            /*
+             * <last>
+             */
+            if ($lastOrNext === 'last') {
+                $time = strtotime(date('Y-m-d') . ' - 1 ' . $duration['duration']['unit']);
+                $pTime = strtotime(date('Y-m-d') . ' - ' . $duration['duration']['value'] . $duration['duration']['unit']);
+            }
+            /*
+             * <next>
+             */
+            else {
+                $time = strtotime(date('Y-m-d') . ' + ' . $duration['duration']['value'] . $duration['duration']['unit']);
+                $pTime = strtotime(date('Y-m-d') . ' + 1 ' . $duration['duration']['unit']);
+            }
+
             switch ($duration['duration']['unit']) {
                 case 'years':
-                    $this->outputFilters['time:start'] = $pYear . '-01-01' . 'T00:00:00Z';
-                    $this->outputFilters['time:end'] = $year . '-12-31' . 'T23:59:59Z';
+                    $this->outputFilters['time:start'] = date('Y', $pTime) . '-01-01' . 'T00:00:00Z';
+                    $this->outputFilters['time:end'] = date('Y', $time) . '-12-31' . 'T23:59:59Z';
                     break;
                 case 'months':
-                    $this->outputFilters['time:start'] = $pYear . '-' . $pMonth . '-01' . 'T00:00:00Z';
-                    $this->outputFilters['time:end'] = $year . '-' . $month . '-' . date('d', mktime(0, 0, 0, intval($month) + 1, 0, intval($year))) . 'T23:59:59Z';
+                    $this->outputFilters['time:start'] = date('Y', $pTime) . '-' . date('m', $pTime) . '-01' . 'T00:00:00Z';
+                    $this->outputFilters['time:end'] = date('Y', $time) . '-' . date('m', $time) . '-' . date('d', mktime(0, 0, 0, intval(date('m', $time)) + 1, 0, intval(date('Y', $time)))) . 'T23:59:59Z';
                     break;
                 case 'days':
-                    $this->outputFilters['time:start'] = $pYear . '-' . $pMonth . '-' . $pDay . 'T00:00:00Z';
-                    $this->outputFilters['time:end'] = $year . '-' . $month . '-' . $day . 'T23:59:59Z';
+                    $this->outputFilters['time:start'] = date('Y', $pTime) . '-' . date('m', $pTime) . '-' . date('d', $pTime) . 'T00:00:00Z';
+                    $this->outputFilters['time:end'] = date('Y', $time) . '-' . date('m', $time) . '-' . date('d', $time) . 'T23:59:59Z';
                     break;
                 default:
                     break;
             }
             $delta = $duration['firstIsNotLast'] ? 1 : 0;
             array_splice($words, $position - $delta, $duration['endPosition'] - $position + 1 + $delta);
+
         }
         else {
             array_splice($words, $position, 1);
@@ -957,11 +953,11 @@ class QueryAnalyzer extends RestoModule {
      */
     private function processWhenAgo($words, $position) {
         
-        if ($position - 2 >= 0 && $this->isNumeric($words[$position - 2])) {
+        if ($position - 2 >= 0 && $this->dictionary->getNumber($words[$position - 2])) {
             
             $unit = $this->dictionary->get(RestoDictionary::TIME_UNIT, $words[$position - 1]);
-            $duration = $this->toNumeric($words[$position - 2]);
-            
+            $duration = $this->dictionary->getNumber($words[$position - 2]);
+                    
             /*
              * Known duration unit
              */
@@ -1056,9 +1052,9 @@ class QueryAnalyzer extends RestoModule {
             /*
              * Extract duration
              */
-            if ($this->isNumeric($words[$i])) {
-                $duration['value'] = $this->toNumeric($words[$i]);
+            if ($this->dictionary->getNumber($words[$i])) {
                 $endPosition = max(array($i, $endPosition));
+                $duration['value'] = $this->dictionary->getNumber($words[$i]);
                 if ($i === $position) {
                     $firstIsNotLast = true;
                 }
@@ -1338,40 +1334,6 @@ class QueryAnalyzer extends RestoModule {
             $date['day'] = date('d', mktime(0, 0, 0, intval($date['month']) + 1, 0, intval($date['year'])));
         }
         return $this->dateToISO8601($date, true);
-    }
-
-    /*
-     * Return true if the entry is a numeric value wich is
-     * the case if value is really numeric or if value is
-     * a string within the numbers dictionary
-     * 
-     * @param String $str
-     */
-    private function isNumeric($str) {
-        
-        if (is_numeric($str)) {
-            return true;
-        }
-        
-        if ($this->dictionary->get(RestoDictionary::NUMBER, $str) !== null) {
-            return true;
-        }
-        
-        return false;
-    }
-    
-    /*
-     * Return numeric value of input $str
-     * 
-     * @param String $str
-     */
-    private function toNumeric($str) {
-        
-        if (is_numeric($str)) {
-            return $str;
-        }
-        
-        return $this->dictionary->get(RestoDictionary::NUMBER, $str);
     }
     
     /**
