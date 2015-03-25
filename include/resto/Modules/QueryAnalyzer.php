@@ -297,14 +297,10 @@ class QueryAnalyzer extends RestoModule {
          * Roll over each word to detect time pattern
          */
         for ($i = 0, $l = count($words); $i < $l; $i++) {
-            $modifier = $this->dictionary->get(RestoDictionary::TIME_MODIFIER, $words[$i]);
-            if (isset($modifier)) {
-                $functionName = 'processWhen' . ucfirst($modifier);
-                if (method_exists($this, $functionName)) {
-                    return $this->processWhen(call_user_func_array(array($this, $functionName), array($words, $i)));
-                }
+            $result = $this->processModifier($this->dictionary->get(RestoDictionary::TIME_MODIFIER, $words[$i]), 'processWhen', $words, $i); 
+            if (isset($result)) {
+                return $this->processWhen($result);
             }
-                
         }
         
         return $words;
@@ -321,12 +317,9 @@ class QueryAnalyzer extends RestoModule {
          * Roll over each word to detect location pattern
          */
         for ($i = 0, $l = count($words); $i < $l; $i++) {
-            $modifier = $this->dictionary->get(RestoDictionary::LOCATION_MODIFIER, $words[$i]);
-            if (isset($modifier)) {
-                $functionName = 'processWhere' . ucfirst($modifier);
-                if (method_exists($this, $functionName)) {
-                    return $this->processWhen(call_user_func_array(array($this, $functionName), array($words, $i)));
-                }
+            $result = $this->processModifier($this->dictionary->get(RestoDictionary::LOCATION_MODIFIER, $words[$i]), 'processWhere', $words, $i); 
+            if (isset($result)) {
+                return $this->processWhere($result);
             }
         }
         
@@ -789,6 +782,25 @@ class QueryAnalyzer extends RestoModule {
         $this->when['time:end'] = date('Y-m-d\T23:59:59\Z', $time);
         array_splice($words, $position, 1);
         return $words;
+    }
+    
+    /**
+     * Process Modifier
+     * 
+     * @param string $modifier
+     * @param string $prefix
+     * @param array $words
+     * @param integer $position
+     * @return array
+     */
+    private function processModifier($modifier, $prefix, $words, $position) {
+        if (isset($modifier)) {
+            $functionName = $prefix . ucfirst($modifier);
+            if (method_exists($this, $functionName)) {
+                return call_user_func_array(array($this, $functionName), array($words, $position));
+            }
+        }
+        return null;
     }
     
 }
