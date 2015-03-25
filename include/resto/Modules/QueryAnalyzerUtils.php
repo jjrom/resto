@@ -601,24 +601,10 @@ class QueryAnalyzerUtils {
             
         }
         
-        /*
-         * No toponym
-         */
-        if (empty($toponymName)) {
-            return array(
-                'endPosition' => $endPosition,
-                'location' => $gazetteer->search(array(
-                    'q' => $locationModifier['keyword'],
-                    'type' => $locationModifier['type'],
-                    'wkt' => true
-                ))
-            );
-        }
-        
         return array(
             'endPosition' => $endPosition,
             'location' => $gazetteer->search(array(
-                'q' => $toponymName . (isset($locationModifier) ? ',' . $locationModifier['keyword'] : ''),
+                'q' => (empty($toponymName) ? '' : $toponymName . ',') . (isset($locationModifier) ? $locationModifier['keyword'] : ''),
                 'wkt' => true
             ))
         );
