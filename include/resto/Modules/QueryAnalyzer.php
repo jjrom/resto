@@ -135,14 +135,27 @@
  */
 class QueryAnalyzer extends RestoModule {
 
+    /*
+     * Reference to dictionary
+     */
     private $dictionary;
-    private $unProcessed = array();
+    
+    /*
+     * Array of not understood part of the query
+     */
+    private $notUnderstood = array();
+    
     private $remaining = array();
     private $explicits = array();
     
-    private $outputFilters = array();
-    
     private $keywords = array();
+    
+    /*
+     * What, When and Where
+     */
+    private $when = array();
+    private $where = array();
+    private $what = array();
     
     /*
      * Reference to utilities class
@@ -206,9 +219,7 @@ class QueryAnalyzer extends RestoModule {
             'query' => $query,
             'language' => $this->dictionary->language,
             'analyze' => $this->process($query),
-            'unProcessed' => $this->unProcessed,
-            'remaining' => implode(' ', $this->remaining),
-            'queryAnalyzeProcessingTime' => microtime(true) - $startTime
+            'processingTime' => microtime(true) - $startTime
         );
         
     }
@@ -225,19 +236,16 @@ class QueryAnalyzer extends RestoModule {
          * Get searchTerms array
          */
         $words = $this->utils->toWords($query);
-        print_r($words);
         
         /*
          * When ?
          */
         $words = $this->processWhen($words);
-        print_r($words);
         
         /*
          * Where ?
          */
         $words = $this->processWhere($words);
-        print_r($words);
         
         
         /*
@@ -277,7 +285,12 @@ class QueryAnalyzer extends RestoModule {
         }
         */
         
-        return $this->outputFilters;
+        return array(
+            'What' => $this->what,
+            'When' => $this->when,
+            'Where' => $this->where,
+            'NotUnderstood' => array_merge($words, $this->notUnderstood)
+        );
         
     }
     
@@ -293,89 +306,82 @@ class QueryAnalyzer extends RestoModule {
          */
         for ($i = 0, $l = count($words); $i < $l; $i++) {
             
-            $modifier = $this->dictionary->get(RestoDictionary::TIME_MODIFIER, $words[$i]);
-           
-            if (!isset($modifier)) {
-                continue;
+            switch ($this->dictionary->get(RestoDictionary::TIME_MODIFIER, $words[$i])) {
+                
+                /*
+                 * <before> "date"
+                 */
+                case 'before':
+                    return $this->processWhen($this->processWhenBefore($words, $i));
+                
+                /*
+                 * <after> "date"
+                 */
+                case 'after':
+                    return $this->processWhen($this->processWhenAfter($words, $i));
+                
+                /*
+                 * <between> "date" <and> "date"
+                 */
+                case 'between':
+                    return $this->processWhen($this->processWhenBetweenAnd($words, $i));
+
+                /*
+                 * <since> "date"
+                 */
+                case 'since':
+                    return $this->processWhen($this->processWhenSince($words, $i));
+
+                /*
+                 * <last> 
+                 */
+                case 'last':
+                    return $this->processWhen($this->processWhenLast($words, $i));
+
+                /*
+                 * <next> 
+                 */
+                case 'next':
+                    return $this->processWhen($this->processWhenNext($words, $i));
+
+                /*
+                 * <in> "date"
+                 */
+                case 'in':
+                    return $this->processWhen($this->processWhenIn($words, $i));
+
+                /*
+                 * "quantity" "unit" <ago>
+                 */
+                case 'ago':
+                    return $this->processWhen($this->processWhenAgo($words, $i));
+
+                /*
+                 * Today
+                 */
+                case 'today':
+                    return $this->processWhen($this->processWhenToday($words, $i));
+
+                /*
+                 * Tomorrow
+                 */
+                case 'tomorrow':
+                    return $this->processWhen($this->processWhenTomorrow($words, $i));
+
+                /*
+                 * Yesterday
+                 */
+                case 'yesterday':
+                    return $this->processWhen($this->processWhenYesterday($words, $i));
+
+                /*
+                 * Nothing found
+                 */
+                default:
+                    continue;
+                    
             }
-            
-            /*
-             * <before> "date"
-             */
-            if ($modifier === 'before') {
-                return $this->processWhen($this->processWhenBefore($words, $i));
-            }
-            
-            /*
-             * <after> "date"
-             */
-            if ($modifier === 'after') {
-                return $this->processWhen($this->processWhenAfter($words, $i));
-            }
-            
-            /*
-             * <between> "date" <and> "date"
-             */
-            if ($modifier === 'between') {
-                return $this->processWhen($this->processWhenBetweenAnd($words, $i));
-            }
-            
-            /*
-             * <since> "date"
-             */
-            if ($modifier === 'since') {
-                return $this->processWhen($this->processWhenSince($words, $i));
-            }
-            
-            /*
-             * <last> 
-             */
-            if ($modifier === 'last') {
-                return $this->processWhen($this->processWhenLast($words, $i));
-            }
-            
-            /*
-             * <next> 
-             */
-            if ($modifier === 'next') {
-                return $this->processWhen($this->processWhenNext($words, $i));
-            }
-            
-            /*
-             * <in> "date"
-             */
-            if ($modifier === 'in') {
-                return $this->processWhen($this->processWhenIn($words, $i));
-            }
-            
-            /*
-             * "quantity" "unit" <ago>
-             */
-            if ($modifier === 'ago') {
-                return $this->processWhen($this->processWhenAgo($words, $i));
-            }
-            
-            /*
-             * Today
-             */
-            if ($modifier === 'today') {
-                return $this->processWhen($this->processWhenToday($words, $i));
-            }
-            
-            /*
-             * Tomorrow
-             */
-            if ($modifier === 'tomorrow') {
-                return $this->processWhen($this->processWhenTomorrow($words, $i));
-            }
-            
-            /*
-             * Yesterday
-             */
-            if ($modifier === 'yesterday') {
-                return $this->processWhen($this->processWhenYesterday($words, $i));
-            }
-            
+                
         }
         
         return $words;
@@ -393,26 +399,27 @@ class QueryAnalyzer extends RestoModule {
          */
         for ($i = 0, $l = count($words); $i < $l; $i++) {
             
-            $modifier = $this->dictionary->get(RestoDictionary::LOCATION_MODIFIER, $words[$i]);
-           
-            if (!isset($modifier)) {
-                continue;
+            switch ($this->dictionary->get(RestoDictionary::LOCATION_MODIFIER, $words[$i])) {
+                
+                /*
+                 * <in> "location"
+                 */
+                case 'in':
+                    return $this->processWhere($this->processWhereIn($words, $i));
+                
+                /*
+                 * <after> "date"
+                 */
+                case 'between':
+                    return $this->processWhere($this->processWhereBetweenAnd($words, $i));
+                
+                /*
+                 * Nothing found
+                 */
+                default:
+                    continue;
+                    
             }
-            
-            /*
-             * <in> "location"
-             */
-            if ($modifier === 'in') {
-                return $this->processWhere($this->processWhereIn($words, $i));
-            }
-            
-            /*
-             * <between> "location" <and> "location"
-             */
-            if ($modifier === 'between') {
-                return $this->processWhere($this->processWhereBetweenAnd($words, $i));
-            }
-            
         }
         
         return $words;
@@ -428,20 +435,49 @@ class QueryAnalyzer extends RestoModule {
     private function processWhereIn($words, $position) {
         
         /*
-         * Extract location
+         * Initialize
          */
-        $location = $this->utils->extractLocation($words, $position + 1);
+        $results = array();
         
         /*
-         * No location found
+         * Extract locations
          */
-        if ($location['endPosition'] === -1) {
-            array_splice($words, $position, 1);
+        $location = $this->utils->extractLocation($words, $position + 1);
+        for ($i = 0, $ii = count($location['location']['results']); $i < $ii; $i++) {
+
+            $result = array(
+                'name' => $location['location']['results'][$i]['name'],
+                'country' => $location['location']['results'][$i]['type'] !== 'country' ? $location['location']['results'][$i]['country'] : null,
+                'type' => $location['location']['results'][$i]['type']
+            );
+
+            /*
+             * Toponym case
+             */
+            if ($location['location']['results'][$i]['type'] === 'toponym') {
+                $result['geo:lon'] = $location['location']['results'][$i]['longitude'];
+                $result['geo:lat'] = $location['location']['results'][$i]['latitude'];
+            }
+            /*
+             * Other cases
+             */
+            else {
+                $result['geo:geometry'] = $location['location']['results'][$i]['geometry'];
+            }
+
+            $results[] = $result;
+        }
+        
+        if (count($results) > 0) {
+            $SeeAlso = $results;
+            array_shift($SeeAlso);
+            $this->where = array_merge($results[0], array('SeeAlso' => $SeeAlso));
         }
         else {
-            $this->outputFilters['location'] = $location['locations'];
-            array_splice($words, $position, $location['endPosition'] - $position + 1);
+            $this->where = array('NotFound' => $location['location']['query']);
         }
+        
+        array_splice($words, $position, $location['endPosition'] - $position + 1);
         
         return $words;
        
@@ -526,7 +562,7 @@ class QueryAnalyzer extends RestoModule {
          * Date found - add to outputFilters and remove modifier and date from words list
          */
         else {
-            $this->outputFilters[$osKey] = $osKey === 'time:start' ? $this->utils->toGreatestDay($date['date']) : $this->utils->toLowestDay($date['date']);
+            $this->when[$osKey] = $osKey === 'time:start' ? $this->utils->toGreatestDay($date['date']) : $this->utils->toLowestDay($date['date']);
             array_splice($words, $position, $date['endPosition'] - $position + 1);
         }
         return $words;
@@ -574,8 +610,8 @@ class QueryAnalyzer extends RestoModule {
         if (!isset($firstDate['date']['month']) && isset($secondDate['date']['month'])) {
             $firstDate['date']['month'] = $secondDate['date']['month'];
         }
-        $this->outputFilters['time:start'] = $this->utils->toLowestDay($firstDate['date']);
-        $this->outputFilters['time:end'] = $this->utils->toGreatestDay($secondDate['date']);
+        $this->when['time:start'] = $this->utils->toLowestDay($firstDate['date']);
+        $this->when['time:end'] = $this->utils->toGreatestDay($secondDate['date']);
         array_splice($words, $position, $secondDate['endPosition'] - $position + 1);
        
         return $words;
@@ -628,21 +664,26 @@ class QueryAnalyzer extends RestoModule {
          */
         if (empty($date['date'])) {
             $duration = $this->utils->extractDuration($words, $position + 1);
-            if (!empty($duration['duration'])) {
+            $endPosition = $duration['endPosition'];
+            if (isset($duration['duration']['unit'])) {
                 $date = array(
                     'endPosition' => $duration['endPosition'],
                     'date' => $this->utils->iso8601ToDate(date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration['duration']['value'] . $duration['duration']['unit'])))
                 );
             }
+            else {
+                $this->notUnderstood[] = $this->utils->toSentence($words, $position, $endPosition);
+            }
+        }
+        else {
+            $endPosition = $date['endPosition'];
         }
         
         if (!empty($date['date'])) {
-            $this->outputFilters['time:start'] = $this->utils->toLowestDay($date['date']);
-            array_splice($words, $position, $date['endPosition'] - $position + 1);
+            $this->when['time:start'] = $this->utils->toLowestDay($date['date']);   
         }
-        else {
-            array_splice($words, $position, 1);
-        }
+        
+        array_splice($words, $position, $endPosition - $position + 1);
         
         return $words;
         
@@ -728,7 +769,8 @@ class QueryAnalyzer extends RestoModule {
          * 
          */
         $duration = $this->utils->extractDuration($words, max(array(0, $position - 1)));
-        if (!empty($duration['duration'])) {
+        $delta = 0;
+        if (isset($duration['duration']['unit'])) {
         
             /*
              * <last>
@@ -747,27 +789,27 @@ class QueryAnalyzer extends RestoModule {
 
             switch ($duration['duration']['unit']) {
                 case 'years':
-                    $this->outputFilters['time:start'] = date('Y', $pTime) . '-01-01' . 'T00:00:00Z';
-                    $this->outputFilters['time:end'] = date('Y', $time) . '-12-31' . 'T23:59:59Z';
+                    $this->when['time:start'] = date('Y', $pTime) . '-01-01' . 'T00:00:00Z';
+                    $this->when['time:end'] = date('Y', $time) . '-12-31' . 'T23:59:59Z';
                     break;
                 case 'months':
-                    $this->outputFilters['time:start'] = date('Y', $pTime) . '-' . date('m', $pTime) . '-01' . 'T00:00:00Z';
-                    $this->outputFilters['time:end'] = date('Y', $time) . '-' . date('m', $time) . '-' . date('d', mktime(0, 0, 0, intval(date('m', $time)) + 1, 0, intval(date('Y', $time)))) . 'T23:59:59Z';
+                    $this->when['time:start'] = date('Y', $pTime) . '-' . date('m', $pTime) . '-01' . 'T00:00:00Z';
+                    $this->when['time:end'] = date('Y', $time) . '-' . date('m', $time) . '-' . date('d', mktime(0, 0, 0, intval(date('m', $time)) + 1, 0, intval(date('Y', $time)))) . 'T23:59:59Z';
                     break;
                 case 'days':
-                    $this->outputFilters['time:start'] = date('Y', $pTime) . '-' . date('m', $pTime) . '-' . date('d', $pTime) . 'T00:00:00Z';
-                    $this->outputFilters['time:end'] = date('Y', $time) . '-' . date('m', $time) . '-' . date('d', $time) . 'T23:59:59Z';
+                    $this->when['time:start'] = date('Y', $pTime) . '-' . date('m', $pTime) . '-' . date('d', $pTime) . 'T00:00:00Z';
+                    $this->when['time:end'] = date('Y', $time) . '-' . date('m', $time) . '-' . date('d', $time) . 'T23:59:59Z';
                     break;
                 default:
                     break;
             }
             $delta = $duration['firstIsNotLast'] ? 1 : 0;
-            array_splice($words, $position - $delta, $duration['endPosition'] - $position + 1 + $delta);
-
         }
         else {
-            array_splice($words, $position, 1);
+            $this->notUnderstood[] = $this->utils->toSentence($words, $position, $duration['endPosition']);
         }
+        
+        array_splice($words, $position - $delta, $duration['endPosition'] - $position + 1 + $delta);
         
         return $words;
         
@@ -790,8 +832,8 @@ class QueryAnalyzer extends RestoModule {
             return $this->processWhereIn($words, $position);
         }
         
-        $this->outputFilters['time:start'] = $this->utils->toLowestDay($date['date']);
-        $this->outputFilters['time:end'] = $this->utils->toGreatestDay($date['date']);
+        $this->when['time:start'] = $this->utils->toLowestDay($date['date']);
+        $this->when['time:end'] = $this->utils->toGreatestDay($date['date']);
         array_splice($words, $position, $date['endPosition'] - $position + 1);
         
         return $words;
@@ -814,8 +856,8 @@ class QueryAnalyzer extends RestoModule {
              * Known duration unit
              */
             if ($unit === 'days' || $unit === 'months' || $unit === 'years') {
-                $this->outputFilters['time:start'] = date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration . $unit)) . 'T00:00:00Z';
-                $this->outputFilters['time:end'] = date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration . $unit)) . 'T23:59:59Z';
+                $this->when['time:start'] = date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration . $unit)) . 'T00:00:00Z';
+                $this->when['time:end'] = date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration . $unit)) . 'T23:59:59Z';
                 array_splice($words, $position - 2, 3);
                 return $words;
             }
@@ -835,8 +877,8 @@ class QueryAnalyzer extends RestoModule {
     * @param integer $position of word in the list
     */
     private function processWhenToday($words, $position) {
-        $this->outputFilters['time:start'] = date('Y-m-d\T00:00:00\Z');
-        $this->outputFilters['time:end'] = date('Y-m-d\T23:59:59\Z');
+        $this->when['time:start'] = date('Y-m-d\T00:00:00\Z');
+        $this->when['time:end'] = date('Y-m-d\T23:59:59\Z');
         array_splice($words, $position, 1);
         return $words;
     }
@@ -849,8 +891,8 @@ class QueryAnalyzer extends RestoModule {
     */
     private function processWhenTomorrow($words, $position) {
         $time = strtotime(date('Y-m-d') . ' + 1 days');
-        $this->outputFilters['time:start'] = date('Y-m-d\T00:00:00\Z', $time);
-        $this->outputFilters['time:end'] = date('Y-m-d\T23:59:59\Z', $time);
+        $this->when['time:start'] = date('Y-m-d\T00:00:00\Z', $time);
+        $this->when['time:end'] = date('Y-m-d\T23:59:59\Z', $time);
         array_splice($words, $position, 1);
         return $words;
     }
@@ -863,8 +905,8 @@ class QueryAnalyzer extends RestoModule {
     */
     private function processWhenYesterday($words, $position) {
         $time = strtotime(date('Y-m-d') . ' - 1 days');
-        $this->outputFilters['time:start'] = date('Y-m-d\T00:00:00\Z', $time);
-        $this->outputFilters['time:end'] = date('Y-m-d\T23:59:59\Z', $time);
+        $this->when['time:start'] = date('Y-m-d\T00:00:00\Z', $time);
+        $this->when['time:end'] = date('Y-m-d\T23:59:59\Z', $time);
         array_splice($words, $position, 1);
         return $words;
     }

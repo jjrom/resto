@@ -77,6 +77,17 @@ class Gazetteer extends RestoModule {
      */
     private $dbh;
     
+    /*
+     * If true output geometry as WKT
+     * GeoJSON otherwise
+     */
+    private $outputAsWKT = false;
+    
+    /*
+     * Results
+     */
+    private $results = array();
+    
     /**
      * Constructor
      * 
@@ -123,9 +134,9 @@ class Gazetteer extends RestoModule {
      * 
      *    array(
      *      'q' => // location to search form (e.g. Paris or Paris, France) - MANDATORY
-     *      'country' => // country to restrict the search on (e.g 'France', 'Texas') - OPTIONAL
-     *      'state' => // state to restrict the search on (e.g 'Texas') - OPTIONAL
+     *      'type' => // force search type (i.e. 'toponym, country or state) - OPTIONAL
      *      'bbox' => // bounding box to restrict the search on - OPTIONAL
+     *      'wkt' => // if true return geometry as wkt - OPTIONAL
      *    )
      * Gazetteer tables format :
      * 
@@ -163,38 +174,50 @@ class Gazetteer extends RestoModule {
         }
         
         /*
+         * Set output type - GeoJSON (default) or WKT
+         */
+        $this->outputAsWKT = isset($params['wkt']) ? filter_var($params['wkt'], FILTER_VALIDATE_BOOLEAN) : false;
+        
+        /*
          * Remove accents from query and split it into 'toponym' and 'modifier'
          */
         $query = $this->splitQuery($this->context->dbDriver->normalize($params['q']));
         
+        
         /*
-         * Search for cities
+         * Limit search to input type
          */
-        $countries = array();
-        $states = array();
-        $toponyms = $this->getToponyms($query['toponym'], array(
-            'bbox' => isset($params['bbox']) ? $params['bbox'] : null,
-            'modifier' => isset($query['modifier']) ? $query['modifier'] : null
+        if (isset($params['type'])) {
+            if ($params['type'] === 'state') {
+                $this->results = $this->getStates($query['toponym'], 0.1);
+            }
+            else if ($params['type'] === 'country') {
+                $this->results = $this->getCountries($query['toponym'], 0.1);
+            }
+        }
+        else {
+            
+           /*
+            * Search for cities
+            */
+           $this->results = $this->getToponyms($query['toponym'], array(
+               'bbox' => isset($params['bbox']) ? $params['bbox'] : null,
+               'modifier' => isset($query['modifier']) ? $query['modifier'] : null
+           ));
+
+           /*
+            * "Toponym" search only => search also for states and countries
+            */
+           if (!isset($query['modifier'])) {
+               $this->results = array_merge($this->results, $this->getStates($query['toponym'], 0.1));
+               $this->results = array_merge($this->results, $this->getCountries($query['toponym'], 0.1));
+           }
+        }
+        
+        return RestoLogUtil::success(count($this->results) . ' toponym(s) found', array(
+            'query' => $params['q'],
+            'results' => $this->results
         ));
-        
-        /*
-         * "Toponym" search only => search also for states and countries
-         */
-        if (!isset($query['modifier'])) {
-            $countries = $this->getCountries($query['toponym'], 0.1);
-            $states = $this->getStates($query['toponym'], 0.1);
-        }
-        
-        if (empty($toponyms) && empty($countries) && empty($states)) {
-            return RestoLogUtil::success('No toponym found for "' . (isset($params['q']) ? $params['q'] : '') . '"');
-        }
-        
-        return array(
-            'toponyms' => $toponyms,
-            'states' => $states,
-            'countries' => $countries
-        );
-        
     }
     
     /**
@@ -237,13 +260,13 @@ class Gazetteer extends RestoModule {
         $output = array();
         $country = $this->context->dictionary->getKeyword(RestoDictionary::COUNTRY, $name);
         if (isset($country)) {
-            $query = 'SELECT admin, normalize(admin) as countryid, continent, ST_AsGeoJSON(' . $this->simplify('geom', $tolerance) . ') as geometry FROM datasources.countries WHERE normalize(admin)=normalize(\'' . $country['keyword'] . '\') order by admin';
+            $query = 'SELECT admin, normalize(admin) as countryid, continent, ' . $this->getFormatFunction() . '(' . $this->simplify('geom', $tolerance) . ') as geometry FROM datasources.countries WHERE normalize(admin)=normalize(\'' . $country['keyword'] . '\') order by admin';
             $results = pg_query($this->dbh, $query);
             while ($row = pg_fetch_assoc($results)) {
                 $output[] = array(
                     'name' => $this->context->dictionary->getKeywordFromValue($row['countryid'], 'country'),
                     'type' => 'country',
-                    'geometry' => json_decode($row['geometry'], true)
+                    'geometry' => $this->outputAsWKT ? $row['geometry'] : json_decode($row['geometry'], true)
                 );
             }
         }
@@ -262,7 +285,7 @@ class Gazetteer extends RestoModule {
         $output = array();
         $state = $this->context->dictionary->getKeyword(RestoDictionary::STATE, $name);
         if (isset($state)) {
-            $query = 'SELECT name, normalize(name) as stateid, region, normalize(region) as regionid, admin, normalize(admin) as adminid, ST_AsGeoJSON(' . $this->simplify('geom', $tolerance) . ') as geometry FROM datasources.worldadm1level WHERE normalize(name)=normalize(\'' . $state['keyword'] . '\') order by name';
+            $query = 'SELECT name, normalize(name) as stateid, region, normalize(region) as regionid, admin, normalize(admin) as adminid, ' . $this->getFormatFunction() . '(' . $this->simplify('geom', $tolerance) . ') as geometry FROM datasources.worldadm1level WHERE normalize(name)=normalize(\'' . $state['keyword'] . '\') order by name';
             $results = pg_query($this->dbh, $query);
             while ($row = pg_fetch_assoc($results)) {
                 $output[] = array(
@@ -270,7 +293,7 @@ class Gazetteer extends RestoModule {
                     'type' => 'state',
                     'region' => $row['region'],
                     'country' => $row['admin'],
-                    'geometry' => json_decode($row['geometry'], true)
+                    'geometry' => $this->outputAsWKT ? $row['geometry'] : json_decode($row['geometry'], true)
                 );
             }
         }
@@ -294,8 +317,11 @@ class Gazetteer extends RestoModule {
             }
             $toponyms[$toponym['geonameid']] = array(
                 'name' => $toponym['name'],
-                'countryname' => $toponym['countryname'],
-                'geometry' => array(
+                'type' => 'toponym',
+                'country' => $toponym['countryname'],
+                'longitude' => (float) $toponym['longitude'],
+                'latitude' => (float) $toponym['latitude'],
+                'geometry' => $this->outputAsWKT ? 'POINT(' . $toponym['longitude'] . ' ' . $toponym['latitude'] . ')' : array(
                     'type' => 'Point',
                     'coordinates' => array((float) $toponym['longitude'], (float) $toponym['latitude'])
                 ),
@@ -450,6 +476,13 @@ class Gazetteer extends RestoModule {
             }
         }
         return null;
+    }
+    
+    /**
+     * Return PostGIS format function
+     */
+    private function getFormatFunction() {
+        return $this->outputAsWKT ? 'ST_AsText' : 'ST_AsGeoJSON';
     }
     
 }

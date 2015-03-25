@@ -74,6 +74,20 @@ class QueryAnalyzerUtils {
     }
 
     /**
+     * Concatenate words into sentence
+     * 
+     * @param string $query
+     * @return array
+     */
+    public function toSentence($words, $startPosition, $endPosition) {
+        $sentence = '';
+        for ($i = $startPosition; $i <= $endPosition; $i++) {
+            $sentence .= $words[$i]. ' ';
+        }
+        return trim($sentence);
+    }
+
+    /**
      * 
      * Extract location from sentence
      * 
@@ -174,6 +188,8 @@ class QueryAnalyzerUtils {
         
         for ($i = $position, $l = count($words); $i < $l; $i++) {
             
+            $endPosition = $i;
+            
             /*
              * <last> modifier found
              */
@@ -214,6 +230,7 @@ class QueryAnalyzerUtils {
                 }
                 continue;
             }
+            
         }
         
         return array(
@@ -246,6 +263,8 @@ class QueryAnalyzerUtils {
         
         for ($i = $position, $l = count($words); $i < $l; $i++) {
             
+            $endPosition = $i;
+            
             /*
              * Today, Tomorrow and Yesterday
              */
@@ -262,7 +281,6 @@ class QueryAnalyzerUtils {
                     $time = strtotime(date('Y-m-d') . ' - 1 days');
                 } 
                 if (isset($time)) {
-                    $endPosition = $i;
                     $date = array(
                         'year' => date('Y', $time),
                         'month' => date('m', $time),
@@ -276,7 +294,6 @@ class QueryAnalyzerUtils {
              * Between stop modifier is 'and'
              */
             if ($between && $this->dictionary->get(RestoDictionary::VARIOUS_MODIFIER, $words[$i]) === 'and') {
-                $endPosition = $i;
                 break;
             }
             
@@ -293,7 +310,6 @@ class QueryAnalyzerUtils {
              */
             if (preg_match('/^\d{4}$/i', $words[$i])) {
                 $date['year'] = $words[$i];
-                $endPosition = max(array($i, $endPosition));
                 continue;
             }
 
@@ -303,7 +319,6 @@ class QueryAnalyzerUtils {
             $month = $this->dictionary->get(RestoDictionary::MONTH, $words[$i]);
             if ($month) {
                 $date['month'] = $month;
-                $endPosition = max(array($i, $endPosition));
                 continue;
             }
             
@@ -314,7 +329,6 @@ class QueryAnalyzerUtils {
                 $d = intval($words[$i]);
                 if ($d > 0 && $d < 31) {
                     $date['day'] = $d < 10 ? '0' . $d : $d;
-                    $endPosition = max(array($i, $endPosition));
                 }
                 continue;
             }
@@ -324,7 +338,6 @@ class QueryAnalyzerUtils {
              */
             if (RestoUtil::isISO8601($words[$i])) {
                 $date = $this->iso8601ToDate($words[$i]);
-                $endPosition = max(array($i, $endPosition));
                 continue;
             }
             
@@ -545,6 +558,11 @@ class QueryAnalyzerUtils {
      */
     private function extractToponym($words, $position, $locationModifier = null) {
         
+        /*
+         * Initialize gazetteer
+         */
+        $gazetteer = new Gazetteer($this->context, $this->user, $this->context->modules['Gazetteer']);
+        
         $endPosition = -1;
         
         /*
@@ -553,6 +571,8 @@ class QueryAnalyzerUtils {
         $toponymName = '';
         for ($i = $position, $ii = count($words); $i < $ii; $i++) {
           
+            $endPosition = $i;
+            
             /*
              * Exit if stop modifier is found
              */
@@ -577,7 +597,6 @@ class QueryAnalyzerUtils {
                 $toponymName .= ($toponymName === '' ? '' : '-') . $words[$i];
             }
             
-            $endPosition = $i;
         }
         
         /*
@@ -586,21 +605,20 @@ class QueryAnalyzerUtils {
         if (empty($toponymName)) {
             return array(
                 'endPosition' => $endPosition,
-                'locations' => $locationModifier
+                'location' => $gazetteer->search(array(
+                    'q' => $locationModifier['keyword'],
+                    'type' => $locationModifier['type'],
+                    'wkt' => true
+                ))
             );
         }
         
-        /*
-         * Search in gazetteer
-         */
-        $gazetteer = new Gazetteer($this->context, $this->user, $this->context->modules['Gazetteer']);
-        $locations = $gazetteer->search(array(
-            'q' => $toponymName . (isset($locationModifier) ? ',' . $locationModifier['keyword'] : '')
-        ));
-        
         return array(
             'endPosition' => $endPosition,
-            'locations' => $locations
+            'location' => $gazetteer->search(array(
+                'q' => $toponymName . (isset($locationModifier) ? ',' . $locationModifier['keyword'] : ''),
+                'wkt' => true
+            ))
         );
         
     }
@@ -608,7 +626,6 @@ class QueryAnalyzerUtils {
     /**
      * Clean raw words array i.e.
      *  - Add a space between a numeric value and '%' character
-     *  - replace spaces by minus sign
      * 
      * @param array $rawWords
      * @return array
@@ -626,7 +643,7 @@ class QueryAnalyzerUtils {
                 $words[] = '%';
             }
             else {
-                $words[] = str_replace(' ', '-', $rawWords[$i]);
+                $words[] = $rawWords[$i];
             }
         }
         return $words;
