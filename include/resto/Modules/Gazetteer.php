@@ -266,7 +266,7 @@ class Gazetteer extends RestoModule {
                 $output[] = array(
                     'name' => $this->context->dictionary->getKeywordFromValue($row['countryid'], 'country'),
                     'type' => 'country',
-                    'geometry' => $this->outputAsWKT ? $row['geometry'] : json_decode($row['geometry'], true)
+                    'geo:geometry' => $this->outputAsWKT ? $row['geometry'] : json_decode($row['geometry'], true)
                 );
             }
         }
@@ -293,7 +293,7 @@ class Gazetteer extends RestoModule {
                     'type' => 'state',
                     'region' => $row['region'],
                     'country' => $row['admin'],
-                    'geometry' => $this->outputAsWKT ? $row['geometry'] : json_decode($row['geometry'], true)
+                    'geo:geometry' => $this->outputAsWKT ? $row['geometry'] : json_decode($row['geometry'], true)
                 );
             }
         }
@@ -319,12 +319,8 @@ class Gazetteer extends RestoModule {
                 'name' => $toponym['name'],
                 'type' => 'toponym',
                 'country' => $toponym['countryname'],
-                'longitude' => (float) $toponym['longitude'],
-                'latitude' => (float) $toponym['latitude'],
-                'geometry' => $this->outputAsWKT ? 'POINT(' . $toponym['longitude'] . ' ' . $toponym['latitude'] . ')' : array(
-                    'type' => 'Point',
-                    'coordinates' => array((float) $toponym['longitude'], (float) $toponym['latitude'])
-                ),
+                'geo:lon' => (float) $toponym['longitude'],
+                'geo:lat' => (float) $toponym['latitude'],
                 'ccode' => $toponym['ccode'],
                 'fcode' => $toponym['fcode'],
                 'admin1' => $toponym['admin1'],

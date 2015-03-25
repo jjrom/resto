@@ -604,7 +604,7 @@ class QueryAnalyzerUtils {
         return array(
             'endPosition' => $endPosition,
             'location' => $gazetteer->search(array(
-                'q' => (empty($toponymName) ? '' : $toponymName . ',') . (isset($locationModifier) ? $locationModifier['keyword'] : ''),
+                'q' => trim((empty($toponymName) ? '' : $toponymName . ',') . (isset($locationModifier) ? $locationModifier['keyword'] : ''), ','),
                 'wkt' => true
             ))
         );

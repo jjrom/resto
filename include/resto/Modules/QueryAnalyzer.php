@@ -435,44 +435,16 @@ class QueryAnalyzer extends RestoModule {
      */
     private function processWhereIn($words, $position) {
         
-        /*
-         * Initialize
-         */
-        $results = array();
         
         /*
          * Extract locations
          */
         $location = $this->utils->extractLocation($words, $position + 1);
-        for ($i = 0, $ii = count($location['location']['results']); $i < $ii; $i++) {
-
-            $result = array(
-                'name' => $location['location']['results'][$i]['name'],
-                'country' => $location['location']['results'][$i]['type'] !== 'country' ? $location['location']['results'][$i]['country'] : null,
-                'type' => $location['location']['results'][$i]['type']
-            );
-
-            /*
-             * Toponym case
-             */
-            if ($location['location']['results'][$i]['type'] === 'toponym') {
-                $result['geo:lon'] = $location['location']['results'][$i]['longitude'];
-                $result['geo:lat'] = $location['location']['results'][$i]['latitude'];
-            }
-            /*
-             * Other cases
-             */
-            else {
-                $result['geo:geometry'] = $location['location']['results'][$i]['geometry'];
-            }
-
-            $results[] = $result;
-        }
         
-        if (count($results) > 0) {
-            $SeeAlso = $results;
+        if (count($location['location']['results']) > 0) {
+            $SeeAlso = $location['location']['results'];
             array_shift($SeeAlso);
-            $this->where = array_merge($results[0], array('SeeAlso' => $SeeAlso));
+            $this->where = array_merge($location['location']['results'][0], array('SeeAlso' => $SeeAlso));
         }
         else {
             $this->where = array('NotFound' => $location['location']['query']);
