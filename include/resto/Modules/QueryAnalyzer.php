@@ -239,44 +239,6 @@ class QueryAnalyzer extends RestoModule {
          */
         $words = $this->processWhere($words);
         
-        
-        /*
-         * Remove excluded words and words with less than 4 characters that are not in dictionary
-         */
-        //$searchTerms = $this->extractExcluded($searchTerms);
-        
-        /*
-         * Extract Platform and Instrument
-         */
-        //$searchTerms = $this->extractPlaformAndInstrument($searchTerms, $params);
-        
-        /*
-         * At this stage remaining terms are 
-         *  - numeric values
-         *  - modifiers
-         *  - non excluded terms with 4 or more characters in length that
-         */
-        //$this->extractModifiers($searchTerms);
-        
-        /*
-         * Extract dates alone
-         */
-        //$this->extractDates($searchTerms, $inputParams);
-        
-        /*
-         * Extract keywords
-         */
-        //$this->extractKeywordsAndLocation($searchTerms, $params);
-        
-        /*
-         * Merge computed searchTerms with explicits keywords
-         */
-        /*
-        if (count($this->explicits) > 0) {
-            $params['searchTerms'] = trim($params['searchTerms'] . ' ' . join(' ', array_keys($this->explicits)));
-        }
-        */
-        
         return array(
             'What' => $this->what,
             'When' => $this->when,
@@ -644,38 +606,16 @@ class QueryAnalyzer extends RestoModule {
         $duration = $this->utils->extractDuration($words, max(array(0, $position - 1)));
         $delta = 0;
         if (isset($duration['duration']['unit'])) {
-        
-            /*
-             * <last>
-             */
-            if ($lastOrNext === 'last') {
-                $time = strtotime(date('Y-m-d') . ' - 1 ' . $duration['duration']['unit']);
-                $pTime = strtotime(date('Y-m-d') . ' - ' . $duration['duration']['value'] . $duration['duration']['unit']);
-            }
-            /*
-             * <next>
-             */
-            else {
-                $time = strtotime(date('Y-m-d') . ' + ' . $duration['duration']['value'] . $duration['duration']['unit']);
-                $pTime = strtotime(date('Y-m-d') . ' + 1 ' . $duration['duration']['unit']);
-            }
+            $times = $lastOrNext === 'last' ? array(
+                'time' => strtotime(date('Y-m-d') . ' - 1 ' . $duration['duration']['unit']),
+                'pTime' => strtotime(date('Y-m-d') . ' - ' . $duration['duration']['value'] . $duration['duration']['unit'])
+                    ) :
+                    array(
+                'time' => strtotime(date('Y-m-d') . ' + ' . $duration['duration']['value'] . $duration['duration']['unit']),
+                'pTime' => strtotime(date('Y-m-d') . ' + 1 ' . $duration['duration']['unit'])
+            );
 
-            switch ($duration['duration']['unit']) {
-                case 'years':
-                    $this->when['time:start'] = date('Y', $pTime) . '-01-01' . 'T00:00:00Z';
-                    $this->when['time:end'] = date('Y', $time) . '-12-31' . 'T23:59:59Z';
-                    break;
-                case 'months':
-                    $this->when['time:start'] = date('Y', $pTime) . '-' . date('m', $pTime) . '-01' . 'T00:00:00Z';
-                    $this->when['time:end'] = date('Y', $time) . '-' . date('m', $time) . '-' . date('d', mktime(0, 0, 0, intval(date('m', $time)) + 1, 0, intval(date('Y', $time)))) . 'T23:59:59Z';
-                    break;
-                case 'days':
-                    $this->when['time:start'] = date('Y', $pTime) . '-' . date('m', $pTime) . '-' . date('d', $pTime) . 'T00:00:00Z';
-                    $this->when['time:end'] = date('Y', $time) . '-' . date('m', $time) . '-' . date('d', $time) . 'T23:59:59Z';
-                    break;
-                default:
-                    break;
-            }
+            $this->setWhenForLastAndNext($times, $duration['duration']['unit']);
             $delta = $duration['firstIsNotLast'] ? 1 : 0;
         }
         else {
@@ -803,4 +743,27 @@ class QueryAnalyzer extends RestoModule {
         return null;
     }
     
+    /**
+     * Set time:start and time:end from duration
+     * @param array $times
+     * @param string $unit
+     */
+    private function setWhenForLastAndNext($times, $unit) {
+        switch ($unit) {
+            case 'years':
+                $this->when['time:start'] = date('Y', $times['pTime']) . '-01-01' . 'T00:00:00Z';
+                $this->when['time:end'] = date('Y', $times['time']) . '-12-31' . 'T23:59:59Z';
+                break;
+            case 'months':
+                $this->when['time:start'] = date('Y', $times['pTime']) . '-' . date('m', $times['pTime']) . '-01' . 'T00:00:00Z';
+                $this->when['time:end'] = date('Y', $times['time']) . '-' . date('m', $times['time']) . '-' . date('d', mktime(0, 0, 0, intval(date('m', $times['time'])) + 1, 0, intval(date('Y', $times['time'])))) . 'T23:59:59Z';
+                break;
+            case 'days':
+                $this->when['time:start'] = date('Y', $times['pTime']) . '-' . date('m', $times['pTime']) . '-' . date('d', $times['pTime']) . 'T00:00:00Z';
+                $this->when['time:end'] = date('Y', $times['time']) . '-' . date('m', $times['time']) . '-' . date('d', $times['time']) . 'T23:59:59Z';
+                break;
+            default:
+                break;
+        }
+    }
 }
