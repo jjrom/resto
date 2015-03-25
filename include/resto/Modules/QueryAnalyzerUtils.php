@@ -268,25 +268,27 @@ class QueryAnalyzerUtils {
             /*
              * Today, Tomorrow and Yesterday
              */
-            $timeModifier = $this->dictionary->get(RestoDictionary::TIME_MODIFIER, $words[$i]);
-            if (isset($timeModifier)) {
-                $time = null;
-                if ($timeModifier === 'today') {
-                    $time = strtotime(date('Y-m-d'));
-                }
-                else if (isset($timeModifier) && $timeModifier === 'tomorrow') {
-                    $time = strtotime(date('Y-m-d') . ' + 1 days');
-                }
-                else if (isset($timeModifier) && $timeModifier === 'yesterday') {
-                    $time = strtotime(date('Y-m-d') . ' - 1 days');
-                } 
-                if (isset($time)) {
-                    $date = array(
-                        'year' => date('Y', $time),
-                        'month' => date('m', $time),
-                        'day' => date('d', $time)
-                    );
-                    break;
+            if ($i === 0) {
+                $timeModifier = $this->dictionary->get(RestoDictionary::TIME_MODIFIER, $words[$i]);
+                if (isset($timeModifier)) {
+                    $time = null;
+                    if ($timeModifier === 'today') {
+                        $time = strtotime(date('Y-m-d'));
+                    }
+                    else if (isset($timeModifier) && $timeModifier === 'tomorrow') {
+                        $time = strtotime(date('Y-m-d') . ' + 1 days');
+                    }
+                    else if (isset($timeModifier) && $timeModifier === 'yesterday') {
+                        $time = strtotime(date('Y-m-d') . ' - 1 days');
+                    } 
+                    if (isset($time)) {
+                        $date = array(
+                            'year' => date('Y', $time),
+                            'month' => date('m', $time),
+                            'day' => date('d', $time)
+                        );
+                        break;
+                    }
                 }
             }
             
