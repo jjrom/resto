@@ -303,9 +303,7 @@ class QueryAnalyzer extends RestoModule {
         $location = $this->utils->extractLocation($words, $position + 1);
         
         if (count($location['location']['results']) > 0) {
-            $SeeAlso = $location['location']['results'];
-            array_shift($SeeAlso);
-            $this->where = array_merge($location['location']['results'][0], array('SeeAlso' => $SeeAlso));
+            $this->where = $this->utils->getMostRelevantLocation($location['location']['results']);
         }
         else {
             $this->where = array('NotFound' => $location['location']['query']);
@@ -325,7 +323,7 @@ class QueryAnalyzer extends RestoModule {
      * @param integer $l
      * @return string
      */
-    private function process_WITHOUT($searchTerms, $i, $l) {
+    private function processWithout($searchTerms, $i, $l) {
         
         /*
          * <without> "quantity" means quantity = 0
