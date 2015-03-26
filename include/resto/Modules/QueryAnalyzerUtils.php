@@ -657,33 +657,17 @@ class QueryAnalyzerUtils {
      */
     public function getMostRelevantLocation($locations) {
         
-        $foundCountry = -1;
-        $foundState = -1;
         $bestPosition = 0;
         for ($i = 0, $ii = count($locations); $i < $ii; $i++) {
             if ($locations[$i]['type'] === 'country') {
-                $foundCountry = $i;
+                $bestPosition = $i;
                 break;
             }
             if ($locations[$i]['type'] === 'state') {
-                $foundState = $i;
+                if (isset($locations[0]['fcode']) && $locations[0]['fcode'] !== 'PPLC' && $locations[0]['fcode'] !== 'PPLA') {
+                    $bestPosition = $i;
+                }
                 break;
-            }
-        }
-        
-        /*
-         * Country first
-         */
-        if ($foundCountry !== -1) {
-            $bestPosition = $foundCountry;
-        }
-       
-        /*
-         * State first if no capital
-         */
-        else if ($foundState !== -1) {
-            if (isset($locations[0]['fcode']) && $locations[0]['fcode'] !== 'PPLC' && $locations[0]['fcode'] !== 'PPLA') {
-                $bestPosition = $foundState;
             }
         }
         
