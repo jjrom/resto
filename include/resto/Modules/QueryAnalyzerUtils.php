@@ -96,63 +96,35 @@ class QueryAnalyzerUtils {
      */
     public function extractLocation($words, $position) {
         
-        $endPosition = -1;
-        
         /*
          * Get the last index position
          */
-        for ($i = $position, $ii = count($words); $i < $ii; $i++) {
-            if ($this->dictionary->isModifier($words[$i])) {
-                $endPosition = $i - 1;
-                break;
-            }
-            $endPosition = $i;
-        }
+        $endPosition = $this->getEndPosition($words, $position);
+        
+        /*
+         * Location modifier is a country or a state
+         */
+        $locationModifier = null;
         
         /*
          * Roll over each word
          */
-        $locationModifier = null;
         for ($i = $endPosition; $i >= $position; $i--) {
           
             /*
-             * Do not process if location modifier was already found
+             * Search for a location modifier
              */
-            if (isset($locationModifier)) {
-                continue;
-            }
+            $locationModifier = $this->getLocationModifier($words, $position, $i);
             
             /*
-             * Parse words in reverse order to find toponym modifier
-             * If input words are array('saint', 'gaudens', 'france')
-             * Then keyword will be tested against : 
-             *  saint, saint-gaudens, saint-gaudens-france, gaudens, gaudens-france, france
+             * Break if location modifier was found
              */
-            $locationName = '';
-            for ($j = $i; $j >= $position; $j--) {
-                
-                /*
-                 * Reconstruct sentence from words without stop words
-                 */
-                if (!$this->dictionary->isStopWord($words[$j])) {
-                    $locationName = $words[$j] . ($locationName === '' ? '' : '-') . $locationName;
-                }
-                
-                $keyword = $this->dictionary->getKeyword(RestoDictionary::LOCATION, $locationName);
-                if (isset($keyword)) {
-                    $locationModifier = array(
-                        'startPosition' => min(array($i, $j)),
-                        'endPosition' => max(array($i, $j)),
-                        'keyword' => $keyword['keyword'],
-                        'type' => $keyword['type']
-                    );
-                    break;
-                }
-                
+            if (isset($locationModifier)) {
+                break;
             }
             
         }
-        
+
         /*
          * Search toponym in gazetteer
          */
@@ -187,7 +159,7 @@ class QueryAnalyzerUtils {
         $firstIsNotLast = false;
         
         for ($i = $position, $l = count($words); $i < $l; $i++) {
-            echo $words[$i] . "\n";
+            
             $endPosition = $i;
             
             /*
@@ -674,5 +646,61 @@ class QueryAnalyzerUtils {
         $best = $locations[$bestPosition];
         array_splice($locations, $bestPosition, 1);
         return array_merge($best, array('SeeAlso' => $locations));
+    }
+    
+    /**
+     * Get the last sentence position i.e. the last word position before
+     * a modifier or the last word position if no modifier is found
+     * @param array $words
+     * @param integer $position
+     */
+    private function getEndPosition($words, $position) {
+        $endPosition = -1;
+        for ($i = $position, $ii = count($words); $i < $ii; $i++) {
+            if ($this->dictionary->isModifier($words[$i])) {
+                $endPosition = $i - 1;
+                break;
+            }
+            $endPosition = $i;
+        }
+        return $endPosition;
+    }
+    
+    /**
+     * Return location modifier (i.e. country or state- from words array
+     * 
+     * Words are parsed in reverse order to find toponym modifier
+     * If input words are array('saint', 'gaudens', 'france')
+     * Then keyword will be tested against : 
+     *  saint, saint-gaudens, saint-gaudens-france, gaudens, gaudens-france, france
+     * 
+     * @param array $words
+     * @param integer $startPosition
+     * @param integer $endPosition
+     * @return array
+     */
+    private function getLocationModifier($words, $startPosition, $endPosition) {
+        $locationName = '';
+        for ($j = $endPosition; $j >= $startPosition; $j--) {
+
+            /*
+             * Reconstruct sentence from words without stop words
+             */
+            if (!$this->dictionary->isStopWord($words[$j])) {
+                $locationName = $words[$j] . ($locationName === '' ? '' : '-') . $locationName;
+            }
+
+            $keyword = $this->dictionary->getKeyword(RestoDictionary::LOCATION, $locationName);
+            if (isset($keyword)) {
+                return array(
+                    'startPosition' => min(array($endPosition, $j)),
+                    'endPosition' => max(array($endPosition, $j)),
+                    'keyword' => $keyword['keyword'],
+                    'type' => $keyword['type']
+                );
+            }
+
+        }
+        return null;
     }
 }
