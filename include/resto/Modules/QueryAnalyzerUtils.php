@@ -59,34 +59,39 @@ class QueryAnalyzerUtils {
     }
     
     /**
-     * Return array of words from input string
-     * In order :
-     *   - replace in query ' , and ; characters by space
-     *   - transliterate query string afterward (i.e. all words in lowercase without accent)
-     *   - split remaining query - split each terms with (" " character)
-     *   - add a space between numeric value and '%' character
+     * Return most relevant location from a set of locations
      * 
-     * @param string $query
-     * @return array
-     */
-    public function toWords($query) {
-        return $this->cleanRawWords(RestoUtil::splitString($this->context->dbDriver->normalize(str_replace(array('\'', ',', ';'), ' ', $query))));
-    }
-
-    /**
-     * Concatenate words into sentence
+     * Order of relevance is :
      * 
-     * @param string $query
-     * @return array
+     *   - Country
+     *   - Capitals (i.e. PPLC toponyms)
+     *   - First Administrative division (i.e. PPLA toponyms)
+     *   - State
+     *   - Other toponyms
+     * 
+     * @param array $locations
      */
-    public function toSentence($words, $startPosition, $endPosition) {
-        $sentence = '';
-        for ($i = $startPosition; $i <= $endPosition; $i++) {
-            $sentence .= isset($words[$i]) ? $words[$i] . ' ' : '';
+    public function getMostRelevantLocation($locations) {
+        
+        $bestPosition = 0;
+        for ($i = 0, $ii = count($locations); $i < $ii; $i++) {
+            if ($locations[$i]['type'] === 'country') {
+                $bestPosition = $i;
+                break;
+            }
+            if ($locations[$i]['type'] === 'state') {
+                if (isset($locations[0]['fcode']) && $locations[0]['fcode'] !== 'PPLC' && $locations[0]['fcode'] !== 'PPLA') {
+                    $bestPosition = $i;
+                }
+                break;
+            }
         }
-        return trim($sentence);
+        
+        $best = $locations[$bestPosition];
+        array_splice($locations, $bestPosition, 1);
+        return array_merge($best, array('SeeAlso' => $locations));
     }
-
+    
     /**
      * 
      * Extract location from sentence
@@ -511,66 +516,6 @@ class QueryAnalyzerUtils {
         
     }
         
-    /**
-     * Clean raw words array i.e.
-     *  - Add a space between a numeric value and '%' character
-     * 
-     * @param array $rawWords
-     * @return array
-     */
-    private function cleanRawWords($rawWords) {
-        $words = array();
-        for ($i = 0, $l = count($rawWords); $i < $l; $i++) {
-            $term = trim($rawWords[$i]);
-            if ($term === '') {
-                continue;
-            }
-            $splitted = explode('%', $term);
-            if (count($splitted) === 2 && is_numeric($splitted[0])) {
-                $words[] = $splitted[0];
-                $words[] = '%';
-            }
-            else {
-                $words[] = $rawWords[$i];
-            }
-        }
-        return $words;
-    }
-
-    /**
-     * Return most relevant location from a set of locations
-     * 
-     * Order of relevance is :
-     * 
-     *   - Country
-     *   - Capitals (i.e. PPLC toponyms)
-     *   - First Administrative division (i.e. PPLA toponyms)
-     *   - State
-     *   - Other toponyms
-     * 
-     * @param array $locations
-     */
-    public function getMostRelevantLocation($locations) {
-        
-        $bestPosition = 0;
-        for ($i = 0, $ii = count($locations); $i < $ii; $i++) {
-            if ($locations[$i]['type'] === 'country') {
-                $bestPosition = $i;
-                break;
-            }
-            if ($locations[$i]['type'] === 'state') {
-                if (isset($locations[0]['fcode']) && $locations[0]['fcode'] !== 'PPLC' && $locations[0]['fcode'] !== 'PPLA') {
-                    $bestPosition = $i;
-                }
-                break;
-            }
-        }
-        
-        $best = $locations[$bestPosition];
-        array_splice($locations, $bestPosition, 1);
-        return array_merge($best, array('SeeAlso' => $locations));
-    }
-    
     /**
      * Get the last sentence position i.e. the last word position before
      * a modifier or the last word position if no modifier is found

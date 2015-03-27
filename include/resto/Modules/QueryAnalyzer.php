@@ -227,7 +227,7 @@ class QueryAnalyzer extends RestoModule {
         /*
          * Get searchTerms array
          */
-        $words = $this->utils->toWords($query);
+        $words = $this->toWords($query);
         
         /*
          * When ?
@@ -387,7 +387,7 @@ class QueryAnalyzer extends RestoModule {
          * No date found - remove modifier only from words list
          */
         if (empty($date['date'])) {
-            $this->notUnderstood[] = $this->utils->toSentence($words, $position, $date['endPosition']);
+            $this->notUnderstood[] = $this->toSentence($words, $position, $date['endPosition']);
         }
         /*
          * Date found - add to outputFilters and remove modifier and date from words list
@@ -509,7 +509,7 @@ class QueryAnalyzer extends RestoModule {
         }
         
         if (empty($date['date'])) {
-            $this->notUnderstood[] = $this->utils->toSentence($words, $position, $endPosition);
+            $this->notUnderstood[] = $this->toSentence($words, $position, $endPosition);
         }
         else {
             $this->when['time:start'] = $this->utils->toLowestDay($date['date']);
@@ -615,7 +615,7 @@ class QueryAnalyzer extends RestoModule {
             $delta = $duration['firstIsNotLast'] ? 1 : 0;
         }
         else {
-            $this->notUnderstood[] = $this->utils->toSentence($words, $position, $duration['endPosition']);
+            $this->notUnderstood[] = $this->toSentence($words, $position, $duration['endPosition']);
         }
         array_splice($words, $position - $delta, $duration['endPosition'] - $position + 1 + $delta);
         return $words;
@@ -760,4 +760,60 @@ class QueryAnalyzer extends RestoModule {
                 break;
         }
     }
+    
+    /**
+     * Return array of words from input string
+     * In order :
+     *   - replace in query ' , and ; characters by space
+     *   - transliterate query string afterward (i.e. all words in lowercase without accent)
+     *   - split remaining query - split each terms with (" " character)
+     *   - add a space between numeric value and '%' character
+     * 
+     * @param string $query
+     * @return array
+     */
+    private function toWords($query) {
+        return $this->cleanRawWords(RestoUtil::splitString($this->context->dbDriver->normalize(str_replace(array('\'', ',', ';'), ' ', $query))));
+    }
+
+    /**
+     * Clean raw words array i.e.
+     *  - Add a space between a numeric value and '%' character
+     * 
+     * @param array $rawWords
+     * @return array
+     */
+    private function cleanRawWords($rawWords) {
+        $words = array();
+        for ($i = 0, $l = count($rawWords); $i < $l; $i++) {
+            $term = trim($rawWords[$i]);
+            if ($term === '') {
+                continue;
+            }
+            $splitted = explode('%', $term);
+            if (count($splitted) === 2 && is_numeric($splitted[0])) {
+                $words[] = $splitted[0];
+                $words[] = '%';
+            }
+            else {
+                $words[] = $rawWords[$i];
+            }
+        }
+        return $words;
+    }
+
+    /**
+     * Concatenate words into sentence
+     * 
+     * @param string $query
+     * @return array
+     */
+    private function toSentence($words, $startPosition, $endPosition) {
+        $sentence = '';
+        for ($i = $startPosition; $i <= $endPosition; $i++) {
+            $sentence .= isset($words[$i]) ? $words[$i] . ' ' : '';
+        }
+        return trim($sentence);
+    }
+
 }
