@@ -50,7 +50,6 @@ class RestoDictionary_fr extends RestoDictionary {
          * Location modifiers
          */
         'locationModifiers' => array(
-            'between' => array('entre', 'de'),
             'in' => array('en', 'au', 'a'),
         ),
         /*
