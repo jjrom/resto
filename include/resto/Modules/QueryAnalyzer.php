@@ -148,6 +148,11 @@ class QueryAnalyzer extends RestoModule {
     public $dictionary;
     
     /*
+     * Reference to model
+     */
+    public $model;
+    
+    /*
      * Not understood words
      */
     private $notUnderstood = array();
@@ -157,13 +162,15 @@ class QueryAnalyzer extends RestoModule {
      * 
      * @param RestoContext $context
      * @param RestoUser $user
+     * @param RestoModel $model
      */
-    public function __construct($context, $user) {
+    public function __construct($context, $user, $model = null) {
         parent::__construct($context, $user);
         $this->dictionary = $this->context->dictionary;
+        $this->model = isset($model) ? $model : new RestoModel_default();
         $this->whenProcessor = new WhenProcessor($this, $this->context, $this->user);
         $this->whereProcessor = new WhereProcessor($this, $this->context, $this->user);
-        $this->whatProcessor = new WhereProcessor($this, $this->context, $this->user);
+        $this->whatProcessor = new WhatProcessor($this, $this->context, $this->user);
     }
 
     /**
@@ -184,7 +191,7 @@ class QueryAnalyzer extends RestoModule {
         }
         $query = isset($this->context->query['searchTerms']) ? $this->context->query['searchTerms'] : isset($this->context->query['q']) ? $this->context->query['q'] : null;
         
-        return $this->analyze($query, new RestoModel_default());
+        return $this->analyze($query);
         
     }
     
@@ -192,13 +199,10 @@ class QueryAnalyzer extends RestoModule {
      * Query analyzer process searchTerms and modify query parameters accordingly
      * 
      * @param string $query
-     * @param RestoModel $model
      * @return type
      */
-    public function analyze($query, $model) {
+    public function analyze($query) {
 
-        $this->model = $model;
-        
         $startTime = microtime(true);
         
         /*
@@ -247,6 +251,20 @@ class QueryAnalyzer extends RestoModule {
     }
     
     /**
+     * Concatenate words into sentence
+     * 
+     * @param string $query
+     * @return array
+     */
+    public function toSentence($words, $startPosition, $endPosition) {
+        $sentence = '';
+        for ($i = $startPosition; $i <= $endPosition; $i++) {
+            $sentence .= isset($words[$i]) ? $words[$i] . ' ' : '';
+        }
+        return trim($sentence);
+    }
+    
+    /**
      * Return array of search terms from input query
      * 
      * @param string $query
@@ -260,19 +278,19 @@ class QueryAnalyzer extends RestoModule {
         $words = $this->toWords($query);
         
         /*
+         * What ?
+         */
+        $words = $this->processWhat($words);
+        
+        /*
          * When ?
          */
         $words = $this->processWhen($words);
         
         /*
-         * When ? Where ?
+         * Where ?
          */
         $words = $this->processWhere($words);
-        
-        /*
-         * What ?
-         */
-        // TODO
         
         /*
          * Remaining stuff
@@ -338,12 +356,12 @@ class QueryAnalyzer extends RestoModule {
     private function processWhat($words) {
         
         /*
-         * Roll over each word to detect time pattern
+         * Roll over each word to detect what pattern
          */
         for ($i = 0, $l = count($words); $i < $l; $i++) {
-            $result = $this->processModifier($this->dictionary->get(RestoDictionary::QUANTITY_MODIFIER, $words[$i]), 'processWhat', $words, $i); 
+            $result = $this->processModifier($this->dictionary->get(RestoDictionary::QUANTITY_MODIFIER, $words[$i]), $this->whatProcessor, $words, $i); 
             if (isset($result)) {
-                return $this->processWhen($result);
+                return $this->processWhat($result);
             }
         }
         
@@ -410,20 +428,6 @@ class QueryAnalyzer extends RestoModule {
         return $words;
     }
 
-    /**
-     * Concatenate words into sentence
-     * 
-     * @param string $query
-     * @return array
-     */
-    private function toSentence($words, $startPosition, $endPosition) {
-        $sentence = '';
-        for ($i = $startPosition; $i <= $endPosition; $i++) {
-            $sentence .= isset($words[$i]) ? $words[$i] . ' ' : '';
-        }
-        return trim($sentence);
-    }
-    
     /**
      * Process Modifier
      * 

@@ -53,12 +53,13 @@ abstract class RestoDictionary {
     const SEASON = 'seasons';
     const TIME_UNIT = 'timeUnits';
     const UNIT = 'units';
-    const KEYWORD_LOCATION = 'locationModifiers';
     const CONTINENT = 'continent';
     const COUNTRY = 'country';
-    const LOCATION = 'location';
     const REGION = 'region';
     const STATE = 'state';
+    const ALL = 'all';
+    const LOCATION = 'location';
+    const NOLOCATION = 'nolocation';
     
     /*
      * Reference to the dictionary language
@@ -222,37 +223,6 @@ abstract class RestoDictionary {
     }
     
     /**
-     * Return instrument entry in dictionary identified by $name
-     * 
-     * @param string $name
-     */
-    public function getInstrument($name) {
-        return $this->getPlatformOrInstrument($name, 'instrument');
-    }
- 
-    /**
-     * Return platform entry in dictionary identified by $name
-     * 
-     * @param string $name
-     */
-    public function getPlatform($name) {
-        return $this->getPlatformOrInstrument($name, 'platform');
-    }
-    
-    /**
-     * Return platform or instrument entry in dictionary identified by $name
-     * 
-     * @param string $name
-     * @param string $type
-     */
-    public function getPlatformOrInstrument($name, $type) {
-        if (!is_array($this->dictionary['keywords']) || !is_array($this->dictionary['keywords'][$type])) {
-            return null;
-        }
-        return isset($this->dictionary['keywords'][$type][$name]) ? $this->dictionary['keywords'][$type][$name]['value'] : null;
-    }
-    
-    /**
      * Return keyword entry in dictionary identified by $name
      * 
      * @param string $type : keyword type
@@ -266,20 +236,19 @@ abstract class RestoDictionary {
             return $this->getLocationKeyword($name, $similarity);
         }
         
+        if ($type !== RestoDictionary::ALL && $type !== RestoDictionary::NOLOCATION) {
+            return $this->getKeywordFromKey($type, $name);
+        }
+        
         /*
          * keywords entry is an array of array
          */
         foreach(array_keys($this->dictionary['keywords']) as $currentType) {
-            if (isset($type) && $currentType !== $type) {
+            if ($type === RestoDictionary::NOLOCATION && in_array($currentType, array(RestoDictionary::CONTINENT, RestoDictionary::COUNTRY, RestoDictionary::REGION, RestoDictionary::STATE))) {
                 continue;
             }
             if (isset($this->dictionary['keywords'][$currentType][$name])) {
-                if (!isset($this->dictionary['keywords'][$currentType][$name]['bbox'])) {
-                    return array('keyword' => $this->dictionary['keywords'][$currentType][$name]['value'], 'type' => $currentType);
-                }
-                else {
-                    return array('keyword' => $this->dictionary['keywords'][$currentType][$name]['value'], 'bbox' => $this->dictionary['keywords'][$currentType][$name]['bbox'], 'isoa2' => $this->dictionary['keywords'][$currentType][$name]['isoa2'], 'type' => $currentType);
-                }
+                return $this->getKeywordFromKey($currentType, $name);
             }
         }
         
@@ -448,4 +417,22 @@ abstract class RestoDictionary {
         }
         return $this->getKeyword(RestoDictionary::STATE, $name, $similarity);
     }
+    
+    /**
+     * Return keyword 
+     * 
+     * @param array $type
+     * @param string $name
+     */
+    private function getKeywordFromKey($type, $name) {
+        if (isset($this->dictionary['keywords'][$type][$name])) {
+            if (!isset($this->dictionary['keywords'][$type][$name]['bbox'])) {
+                return array('keyword' => $this->dictionary['keywords'][$type][$name]['value'], 'type' => $type);
+            } else {
+                return array('keyword' => $this->dictionary['keywords'][$type][$name]['value'], 'bbox' => $this->dictionary['keywords'][$type][$name]['bbox'], 'isoa2' => $this->dictionary['keywords'][$type][$name]['isoa2'], 'type' => $type);
+            }
+        }
+        return null;
+    }
+    
 }

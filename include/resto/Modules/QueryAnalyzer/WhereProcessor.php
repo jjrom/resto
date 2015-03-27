@@ -83,10 +83,10 @@ class WhereProcessor {
         $location = $this->extractLocation($words, $position + 1);
         
         if (count($location['location']['results']) > 0) {
-            $this->result = $this->getMostRelevantLocation($location['location']['results']);
+            $this->result[] = $this->getMostRelevantLocation($location['location']['results']);
         }
         else {
-            $this->result = array('NotFound' => $location['location']['query']);
+            $this->result[] = array('NotFound' => $location['location']['query']);
         }
         
         array_splice($words, $position, $location['endPosition'] - $position + 1);
