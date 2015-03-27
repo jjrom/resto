@@ -165,8 +165,7 @@ class QueryAnalyzerUtils {
             /*
              * <last> modifier found
              */
-            $timeModifier = $this->dictionary->get(RestoDictionary::TIME_MODIFIER, $words[$i]);
-            if ($timeModifier === 'last' || $timeModifier === 'next') {
+            if ($this->isLastOrNext($words[$i])) {
                 continue;
             }
 
@@ -181,26 +180,12 @@ class QueryAnalyzerUtils {
             /*
              * Extract duration
              */
-            if ($this->dictionary->getNumber($words[$i])) {
-                $endPosition = max(array($i, $endPosition));
-                $duration['value'] = $this->dictionary->getNumber($words[$i]);
+            $unitOrValue = $this->getDurationUnitOrValue($words[$i]);
+            if (isset($unitOrValue)) {
+                $duration = array_merge($duration, $unitOrValue);
                 if ($i === $position) {
                     $firstIsNotLast = true;
                 }
-                continue;
-            }
-    
-            /*  
-             * Extract unit
-             */           
-            $unit = $this->dictionary->get(RestoDictionary::TIME_UNIT, $words[$i]);
-            if (isset($unit)) {
-                $duration['unit'] = $unit;
-                $endPosition = max(array($i, $endPosition));
-                if ($i === $position) {
-                    $firstIsNotLast = true;
-                }
-                continue;
             }
     
         }
@@ -274,14 +259,6 @@ class QueryAnalyzerUtils {
             }
             
             /*
-             * ISO8601 date
-             */
-            if (RestoUtil::isISO8601($words[$i])) {
-                $date = $this->iso8601ToDate($words[$i]);
-                continue;
-            }
-            
-            /*
              * A non stop word breaks everything
              */
             if (!$this->dictionary->isStopWord($words[$i])) {
@@ -290,27 +267,8 @@ class QueryAnalyzerUtils {
             
             /*
              * TODO Season
-             *
-            if (($season = $this->dictionary->getSeason($searchTerms[$i])) !== null) {
-                switch($season) {
-                    case 'winter':
-                        $this->explicits['month:01|02|03'] = true;
-                        break;
-                    case 'spring':
-                        $this->explicits['month:04|05|06'] = true;
-                        break;
-                    case 'summer':
-                        $this->explicits['month:07|08|09'] = true;
-                        break;
-                    case 'automn':
-                        $this->explicits['month:10|11|12'] = true;
-                        break;
-                    default:
-                        break;
-                }
-            }
-             * 
              */
+            
         }
         
         return array(
@@ -564,7 +522,7 @@ class QueryAnalyzerUtils {
         $words = array();
         for ($i = 0, $l = count($rawWords); $i < $l; $i++) {
             $term = trim($rawWords[$i]);
-            if ($term === ',' || $term === ';' || $term === '') {
+            if ($term === '') {
                 continue;
             }
             $splitted = explode('%', $term);
@@ -733,15 +691,49 @@ class QueryAnalyzerUtils {
         }
         
         if (is_numeric($word)) {
-            $d = intval($word);
-            if ($d > 0 && $d < 31) {
+            $day = intval($word);
+            if ($day > 0 && $day < 31) {
                 return array(
-                    'day' => $d < 10 ? '0' . $d : $d
+                    'day' => $day < 10 ? '0' . $day : $day
                 );
             }
         }
         
+        /*
+         * ISO8601 date
+         */
+        if (RestoUtil::isISO8601($word)) {
+            return $this->iso8601ToDate($word);
+        }
+
         return null;
     }
-            
+    
+    /**
+     * Return duration unit or value from word
+     * 
+     * @param string $word
+     */
+    private function getDurationUnitOrValue($word) {
+        
+        $value = $this->dictionary->getNumber($word);
+        if ($value) {
+            return array(
+                'value' => $value
+            );
+        }
+
+        /*
+         * Extract unit
+         */
+        $unit = $this->dictionary->get(RestoDictionary::TIME_UNIT, $word);
+        if (isset($unit)) {
+            return array(
+                'unit' => $unit
+            );
+        }
+        
+        return null;
+    }
+
 }
