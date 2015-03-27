@@ -82,7 +82,7 @@ class QueryAnalyzerUtils {
     public function toSentence($words, $startPosition, $endPosition) {
         $sentence = '';
         for ($i = $startPosition; $i <= $endPosition; $i++) {
-            $sentence .= $words[$i]. ' ';
+            $sentence .= isset($words[$i]) ? $words[$i] . ' ' : '';
         }
         return trim($sentence);
     }
@@ -157,11 +157,11 @@ class QueryAnalyzerUtils {
         );
         $endPosition = -1;
         $firstIsNotLast = false;
-        
+
         for ($i = $position, $l = count($words); $i < $l; $i++) {
-            
+
             $endPosition = $i;
-            
+
             /*
              * <last> modifier found
              */
@@ -169,7 +169,7 @@ class QueryAnalyzerUtils {
             if ($timeModifier === 'last' || $timeModifier === 'next') {
                 continue;
             }
-            
+
             /*
              * Exit if stop modifier is found
              */
@@ -177,7 +177,7 @@ class QueryAnalyzerUtils {
                 $endPosition = $i - 1;
                 break;
             }
-            
+    
             /*
              * Extract duration
              */
@@ -189,7 +189,7 @@ class QueryAnalyzerUtils {
                 }
                 continue;
             }
-            
+    
             /*  
              * Extract unit
              */           
@@ -202,7 +202,7 @@ class QueryAnalyzerUtils {
                 }
                 continue;
             }
-            
+    
         }
         
         return array(
@@ -230,80 +230,46 @@ class QueryAnalyzerUtils {
      */
     public function extractDate($words, $position, $between = false) {
      
-        $date = array();
-        $endPosition = -1;
+        /*
+         * No words on the first position is an issue
+         */
+        if (!isset($words[$position])) {
+            return array(
+                'endPosition' => $position
+            );
+        }
         
-        for ($i = $position, $l = count($words); $i < $l; $i++) {
-            
-            $endPosition = $i;
-            
-            /*
-             * Today, Tomorrow and Yesterday
-             */
-            if ($i === 0) {
-                $timeModifier = $this->dictionary->get(RestoDictionary::TIME_MODIFIER, $words[$i]);
-                if (isset($timeModifier)) {
-                    $time = null;
-                    if ($timeModifier === 'today') {
-                        $time = strtotime(date('Y-m-d'));
-                    }
-                    else if (isset($timeModifier) && $timeModifier === 'tomorrow') {
-                        $time = strtotime(date('Y-m-d') . ' + 1 days');
-                    }
-                    else if (isset($timeModifier) && $timeModifier === 'yesterday') {
-                        $time = strtotime(date('Y-m-d') . ' - 1 days');
-                    } 
-                    if (isset($time)) {
-                        $date = array(
-                            'year' => date('Y', $time),
-                            'month' => date('m', $time),
-                            'day' => date('d', $time)
-                        );
-                        break;
-                    }
-                }
-            }
+        /*
+         * Today, Tomorrow and Yesterday
+         */
+        $date = $this->getDateFromWord($words[$position]);
+        if (!empty($date)) {
+            return array(
+                'date' => $date,
+                'endPosition' => $position
+            );
+        }
+        
+        /*
+         * Other dates
+         */
+        $endPosition = $this->getEndPosition($words, $position);
+        for ($i = $position; $i <= $endPosition; $i++) {
             
             /*
              * Between stop modifier is 'and'
              */
             if ($between && $this->dictionary->get(RestoDictionary::VARIOUS_MODIFIER, $words[$i]) === 'and') {
-                break;
-            }
-            
-            /*
-             * Exit if stop modifier is found
-             */
-            if ($this->dictionary->isModifier($words[$i])) {
                 $endPosition = $i - 1;
                 break;
             }
-
-            /*
-             * Year
-             */
-            if (preg_match('/^\d{4}$/i', $words[$i])) {
-                $date['year'] = $words[$i];
-                continue;
-            }
-
-            /*
-             * Textual month
-             */
-            $month = $this->dictionary->get(RestoDictionary::MONTH, $words[$i]);
-            if ($month) {
-                $date['month'] = $month;
-                continue;
-            }
             
             /*
-             * Day is an int value < 31
+             * Check for year/month/day
              */
-            if (is_numeric($words[$i])) {
-                $d = intval($words[$i]);
-                if ($d > 0 && $d < 31) {
-                    $date['day'] = $d < 10 ? '0' . $d : $d;
-                }
+            $yearMonthDay = $this->getYearMonthDayFromWord($words[$i]);
+            if (isset($yearMonthDay)) {
+                $date = array_merge($date, $yearMonthDay);
                 continue;
             }
             
@@ -315,8 +281,10 @@ class QueryAnalyzerUtils {
                 continue;
             }
             
+            /*
+             * A non stop word breaks everything
+             */
             if (!$this->dictionary->isStopWord($words[$i])) {
-                $endPosition = $i - 1;
                 break;
             }
             
@@ -358,35 +326,32 @@ class QueryAnalyzerUtils {
      */
     public function iso8601ToDate($iso8601) {
 
+        $date = array();
         $length = strlen($iso8601);
 
         /*
          * Year and month
          */
-        if ($length === 7) {
-            return array(
-                'year' => substr($iso8601, 0, 4),
-                'month' => substr($iso8601, 5, 2)
-            );
+        if ($length > 6) {
+            $date['year'] = substr($iso8601, 0, 4);
+            $date['month'] = substr($iso8601, 5, 2);
         }
         
         /*
          * Year, month and day
          */
-        if ($length === 10) {
-            return array(
-                'year' => substr($iso8601, 0, 4),
-                'month' => substr($iso8601, 5, 2),
-                'day' => substr($iso8601, 8, 2)
-            );
+        if ($length > 9) {
+            $date['day'] = substr($iso8601, 8, 2);
         }
         
-        return array(
-            'year' => substr($iso8601, 0, 4),
-            'month' => substr($iso8601, 5, 2),
-            'day' => substr($iso8601, 8, 2),
-            'time' => str_replace('z', '', substr($iso8601, 11, $length - 11))
-        );
+        /*
+         * Time
+         */
+        if ($length > 10) {
+            $date['time'] = str_replace('z', '', substr($iso8601, 11, $length - 11));
+        }
+        
+        return $date;
     }
     
     /**
@@ -655,7 +620,7 @@ class QueryAnalyzerUtils {
      * @param integer $position
      */
     private function getEndPosition($words, $position) {
-        $endPosition = -1;
+        $endPosition = $position;
         for ($i = $position, $ii = count($words); $i < $ii; $i++) {
             if ($this->dictionary->isModifier($words[$i])) {
                 $endPosition = $i - 1;
@@ -703,4 +668,80 @@ class QueryAnalyzerUtils {
         }
         return null;
     }
+    
+    /**
+     * Return date from a single world like 'today', 'tomorrow' or 'yesterday'
+     * 
+     * @param string $word
+     * @return array
+     */
+    private function getDateFromWord($word) {
+        $timeModifier = $this->dictionary->get(RestoDictionary::TIME_MODIFIER, $word);
+        if (isset($timeModifier)) {
+            $time = null;
+            if ($timeModifier === 'today') {
+                $time = strtotime(date('Y-m-d'));
+            }
+            else if (isset($timeModifier) && $timeModifier === 'tomorrow') {
+                $time = strtotime(date('Y-m-d') . ' + 1 days');
+            }
+            else if (isset($timeModifier) && $timeModifier === 'yesterday') {
+                $time = strtotime(date('Y-m-d') . ' - 1 days');
+            } 
+            if (isset($time)) {
+                return array(
+                    'year' => date('Y', $time),
+                    'month' => date('m', $time),
+                    'day' => date('d', $time)
+                );
+            }
+        }
+        return array();
+    }
+    
+    /**
+     * Return true if word is <last> or <next>
+     * 
+     * @param string $word
+     */
+    private function isLastOrNext($word) {
+        $timeModifier = $this->dictionary->get(RestoDictionary::TIME_MODIFIER, $word);
+        if ($timeModifier === 'last' || $timeModifier === 'next') {
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Return year, month or day from date
+     * 
+     * @param string $word
+     */
+    private function getYearMonthDayFromWord($word) {
+        
+        if (preg_match('/^\d{4}$/i', $word)) {
+            return array(
+                'year' => $word
+            );
+        }
+        
+        $month = $this->dictionary->get(RestoDictionary::MONTH, $word);
+        if (isset($month)) {
+            return array(
+                'month' => $month
+            );
+        }
+        
+        if (is_numeric($word)) {
+            $d = intval($word);
+            if ($d > 0 && $d < 31) {
+                return array(
+                    'day' => $d < 10 ? '0' . $d : $d
+                );
+            }
+        }
+        
+        return null;
+    }
+            
 }

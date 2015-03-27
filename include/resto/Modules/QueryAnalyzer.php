@@ -238,12 +238,11 @@ class QueryAnalyzer extends RestoModule {
          * Where ?
          */
         $words = $this->processWhere($words);
-        
         return array(
             'What' => $this->what,
             'When' => $this->when,
             'Where' => $this->where,
-            'NotUnderstood' => array_merge(array(join(' ', $words)), $this->notUnderstood)
+            'NotUnderstood' => $this->notUnderstood
         );
         
     }
@@ -387,16 +386,16 @@ class QueryAnalyzer extends RestoModule {
         /*
          * No date found - remove modifier only from words list
          */
-        if ($date['endPosition'] === -1) {
-            array_splice($words, $position, 1);
+        if (empty($date['date'])) {
+            $this->notUnderstood[] = $this->utils->toSentence($words, $position, $date['endPosition']);
         }
         /*
          * Date found - add to outputFilters and remove modifier and date from words list
          */
         else {
             $this->when[$osKey] = $osKey === 'time:start' ? $this->utils->toGreatestDay($date['date']) : $this->utils->toLowestDay($date['date']);
-            array_splice($words, $position, $date['endPosition'] - $position + 1);
         }
+        array_splice($words, $position, $date['endPosition'] - $position + 1);
         return $words;
     }
 
@@ -422,9 +421,9 @@ class QueryAnalyzer extends RestoModule {
         }
         
         /*
-         * Date found - search for second date
+         * Date found - search for second date skipping <and> separator
          */  
-        $secondDate = $this->utils->extractDate($words, $firstDate['endPosition'] + 1);
+        $secondDate = $this->utils->extractDate($words, $firstDate['endPosition'] + 2);
 
         /*
          * No date found - try <between> "location" <and> "location" 
@@ -475,46 +474,46 @@ class QueryAnalyzer extends RestoModule {
     private function processWhenSince($words, $position) {
         
         /*
+         * <since> duration
+         */
+        $duration = $this->utils->extractDuration($words, $position + 1);
+        $endPosition = $duration['endPosition'];
+        if (isset($duration['duration']['unit'])) {
+            $date = array(
+                'endPosition' => $endPosition,
+                'date' => $this->utils->iso8601ToDate(date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration['duration']['value'] . $duration['duration']['unit'])))
+            );
+        }
+        /*
          * <since> "date"
          */
-        $date = $this->utils->extractDate($words, $position + 1);
-        
-        /*
-         * If a month is specified and the month is posterior to
-         * the current month then decrease by one year
-         */
-        if (!isset($date['date']['year']) && isset($date['date']['month']) && ((integer) $date['date']['month'] > (integer) date('m'))) {
-            $date['date']['year'] = (integer) date('Y') - 1;
+        else {
+           
+            $date = $this->utils->extractDate($words, $position + 1);
+            $endPosition = $date['endPosition'];
+           
+            /*
+             * If only a day was detected then it's an issue
+             */
+            if (isset($date['date']['day']) && !isset($date['date']['year']) && !isset($date['date']['month'])) {
+                $date['date'] = array();
+            }
+            
+            /*
+             * If a month is specified and the month is posterior to
+             * the current month then decrease by one year
+             */
+            if (!isset($date['date']['year']) && isset($date['date']['month']) && ((integer) $date['date']['month'] > (integer) date('m'))) {
+                $date['date']['year'] = (integer) date('Y') - 1;
+            }
         }
         
-        /*
-         * <since> "numeric" (year|month|day)
-         * <since> <last> "numeric" "(year|month|day)"
-         * <since> <last> "numeric" "(year|month|day)"
-         * <since> <last> "(year|month|day)"
-         * <since> "(year|month|day)" <last>
-         */
         if (empty($date['date'])) {
-            $duration = $this->utils->extractDuration($words, $position + 1);
-            $endPosition = $duration['endPosition'];
-            if (isset($duration['duration']['unit'])) {
-                $date = array(
-                    'endPosition' => $duration['endPosition'],
-                    'date' => $this->utils->iso8601ToDate(date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration['duration']['value'] . $duration['duration']['unit'])))
-                );
-            }
-            else {
-                $this->notUnderstood[] = $this->utils->toSentence($words, $position, $endPosition);
-            }
+            $this->notUnderstood[] = $this->utils->toSentence($words, $position, $endPosition);
         }
         else {
-            $endPosition = $date['endPosition'];
+            $this->when['time:start'] = $this->utils->toLowestDay($date['date']);
         }
-        
-        if (!empty($date['date'])) {
-            $this->when['time:start'] = $this->utils->toLowestDay($date['date']);   
-        }
-        
         array_splice($words, $position, $endPosition - $position + 1);
         
         return $words;
@@ -618,9 +617,7 @@ class QueryAnalyzer extends RestoModule {
         else {
             $this->notUnderstood[] = $this->utils->toSentence($words, $position, $duration['endPosition']);
         }
-        
         array_splice($words, $position - $delta, $duration['endPosition'] - $position + 1 + $delta);
-        
         return $words;
         
     }

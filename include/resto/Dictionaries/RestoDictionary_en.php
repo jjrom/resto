@@ -97,7 +97,8 @@ class RestoDictionary_en extends RestoDictionary {
          * Stop words i.e. excluded words
          */
         'stopWords' => array(
-            'the'
+            'the',
+            'of'
         ),
         /*
          * List of words in the query that are
