@@ -235,9 +235,22 @@ class QueryAnalyzer extends RestoModule {
         $words = $this->processWhen($words);
         
         /*
-         * Where ?
+         * When ? Where ?
          */
         $words = $this->processWhere($words);
+        
+        /*
+         * What ?
+         */
+        // TODO
+        
+        /*
+         * Remaining stuff
+         */
+        if (count($words) > 0) {
+            $this->processRemainingWords($words);
+        }
+        
         return array(
             'What' => $this->what,
             'When' => $this->when,
@@ -737,6 +750,22 @@ class QueryAnalyzer extends RestoModule {
         return null;
     }
     
+    
+    /**
+     * Process non already processed words
+     * 
+     * @param array $words
+     */
+    private function processRemainingWords($words) {
+        
+        if (empty($this->what) && empty($this->when) && empty($this->where)) {
+            
+        }
+        
+        $this->notUnderstood[] = $this->toSentence($words, 0, count($words));
+        
+    }
+    
     /**
      * Set time:start and time:end from duration
      * @param array $times
@@ -745,21 +774,53 @@ class QueryAnalyzer extends RestoModule {
     private function setWhenForLastAndNext($times, $unit) {
         switch ($unit) {
             case 'years':
-                $this->when['time:start'] = date('Y', $times['pTime']) . '-01-01' . 'T00:00:00Z';
-                $this->when['time:end'] = date('Y', $times['time']) . '-12-31' . 'T23:59:59Z';
+                $this->setWhenForLastAndNextYear($times);
                 break;
             case 'months':
-                $this->when['time:start'] = date('Y', $times['pTime']) . '-' . date('m', $times['pTime']) . '-01' . 'T00:00:00Z';
-                $this->when['time:end'] = date('Y', $times['time']) . '-' . date('m', $times['time']) . '-' . date('d', mktime(0, 0, 0, intval(date('m', $times['time'])) + 1, 0, intval(date('Y', $times['time'])))) . 'T23:59:59Z';
+                $this->setWhenForLastAndNextMonth($times);
                 break;
             case 'days':
-                $this->when['time:start'] = date('Y', $times['pTime']) . '-' . date('m', $times['pTime']) . '-' . date('d', $times['pTime']) . 'T00:00:00Z';
-                $this->when['time:end'] = date('Y', $times['time']) . '-' . date('m', $times['time']) . '-' . date('d', $times['time']) . 'T23:59:59Z';
+                $this->setWhenForLastAndNextDay($times);
                 break;
             default:
                 break;
         }
     }
+    
+    /**
+     * Set time:start and time:end from year duration
+     * 
+     * @param array $times
+     * @param string $unit
+     */
+    private function setWhenForLastAndNextYear($times) {
+        $this->when['time:start'] = date('Y', $times['pTime']) . '-01-01' . 'T00:00:00Z';
+        $this->when['time:end'] = date('Y', $times['time']) . '-12-31' . 'T23:59:59Z';
+    }
+    
+    /**
+     * Set time:start and time:end from month duration
+     * 
+     * @param array $times
+     * @param string $unit
+     */
+    private function setWhenForLastAndNextMonth($times) {
+        $this->when['time:start'] = date('Y', $times['pTime']) . '-' . date('m', $times['pTime']) . '-01' . 'T00:00:00Z';
+        $this->when['time:end'] = date('Y', $times['time']) . '-' . date('m', $times['time']) . '-' . date('d', mktime(0, 0, 0, intval(date('m', $times['time'])) + 1, 0, intval(date('Y', $times['time'])))) . 'T23:59:59Z';
+    }
+    
+    /**
+     * Set time:start and time:end from day duration
+     * 
+     * @param array $times
+     * @param string $unit
+     */
+    private function setWhenForLastAndNextDay($times) {
+        $this->when['time:start'] = date('Y', $times['pTime']) . '-' . date('m', $times['pTime']) . '-' . date('d', $times['pTime']) . 'T00:00:00Z';
+        $this->when['time:end'] = date('Y', $times['time']) . '-' . date('m', $times['time']) . '-' . date('d', $times['time']) . 'T23:59:59Z';
+    }
+    
+    
     
     /**
      * Return array of words from input string
