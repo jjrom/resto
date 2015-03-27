@@ -64,7 +64,7 @@ class QueryAnalyzerUtils {
      * Order of relevance is :
      * 
      *   - Country
-     *   - Capitals (i.e. PPLC toponyms)
+     *   - Capitals (i.e. PPLC toponyms or PPLG)
      *   - First Administrative division (i.e. PPLA toponyms)
      *   - State
      *   - Other toponyms
@@ -80,7 +80,7 @@ class QueryAnalyzerUtils {
                 break;
             }
             if ($locations[$i]['type'] === 'state') {
-                if (isset($locations[0]['fcode']) && $locations[0]['fcode'] !== 'PPLC' && $locations[0]['fcode'] !== 'PPLA') {
+                if (isset($locations[0]['fcode']) && $locations[0]['fcode'] !== 'PPLC' && $locations[0]['fcode'] !== 'PPLG' && $locations[0]['fcode'] !== 'PPLA') {
                     $bestPosition = $i;
                 }
                 break;

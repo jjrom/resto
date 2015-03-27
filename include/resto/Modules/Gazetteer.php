@@ -125,7 +125,7 @@ class Gazetteer extends RestoModule {
      * 
      * Toponyms return order is :
      *      - fclass priority chain is P, A, the rest 
-     *      - for 'P', fcode priority chain is PPLC, PPLA, PPLA2, PPLA3, PPLA4, PPL, the rest
+     *      - for 'P', fcode priority chain is PPLC, PPLG, PPLA, PPLA2, PPLA3, PPLA4, PPL, the rest
      *
      * (See http://www.geonames.org/export/codes.html for class and code explanation)
      * 
@@ -310,7 +310,7 @@ class Gazetteer extends RestoModule {
      */
     private function queryToponyms($name, $constraints, $lang) {
         $toponyms = array();
-        $results = pg_query($this->dbh, 'SELECT ' . join(',', $this->resultFields) . ' FROM gazetteer.geoname WHERE ' . join(' AND ', $this->getToponymsFilters($constraints, $name, $lang)) . ' ORDER BY CASE fcode WHEN \'PPLC\' then 1 WHEN \'PPLA\' then 2 WHEN \'PPLA2\' then 3 WHEN \'PPLA4\' then 4 WHEN \'PPL\' then 5 ELSE 6 END ASC, population DESC' . ($lang === 'en' ? ' LIMIT 30' : ''));
+        $results = pg_query($this->dbh, 'SELECT ' . join(',', $this->resultFields) . ' FROM gazetteer.geoname WHERE ' . join(' AND ', $this->getToponymsFilters($constraints, $name, $lang)) . ' ORDER BY CASE fcode WHEN \'PPLC\' then 1 WHEN \'PPLG\' then 2 WHEN \'PPLA\' then 3 WHEN \'PPLA2\' then 4 WHEN \'PPLA4\' then 5 WHEN \'PPL\' then 6 ELSE 7 END ASC, population DESC' . ($lang === 'en' ? ' LIMIT 30' : ''));
         while ($toponym = pg_fetch_assoc($results)) {
             if ($this->context->dictionary->language !== 'en') {
                 $toponym['countryname'] = $this->context->dictionary->getKeywordFromValue($toponym['countrynormalized'], 'country');

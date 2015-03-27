@@ -58,7 +58,7 @@ class RestoDictionary_en extends RestoDictionary {
          */
         'locationModifiers' => array(
             'between' => array('between', 'from'),
-            'in' => array('in')
+            'in' => array('in', 'near', 'around')
         ),
         /*
          * Quantity modifiers

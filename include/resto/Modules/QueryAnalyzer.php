@@ -421,42 +421,49 @@ class QueryAnalyzer extends RestoModule {
      */
     private function processWhenBetween($words, $position) {
         
+        $endPosition = -1;
         /*
          * Extract first date
          */
         $firstDate = $this->utils->extractDate($words, $position + 1, true);
         
         /*
-         * No date found - try <between> "location" <and> "location" 
+         * No first date
          */
         if (empty($firstDate['date'])) {
-            return $this->processWhereBetween($words, $position);
+            $endPosition = $firstDate['endPosition'];
         }
         
         /*
-         * Date found - search for second date skipping <and> separator
-         */  
+         * Extract second date
+         */
         $secondDate = $this->utils->extractDate($words, $firstDate['endPosition'] + 2);
-
-        /*
-         * No date found - try <between> "location" <and> "location" 
+        
+        /* 
+         * No second date
          */
         if (empty($secondDate['date'])) {
-            return $this->processWhereBetween($words, $position);
+            $endPosition = $secondDate['endPosition'];
         }
-
+        
         /*
-         * Date found - compute time:start and time:end
+         * Date interval found
          */
-        if (!isset($firstDate['date']['year']) &&isset($secondDate['date']['year'])) {
-            $firstDate['date']['year'] = $secondDate['date']['year'];
+        if ($endPosition === -1) {
+            if (!isset($firstDate['date']['year']) && isset($secondDate['date']['year'])) {
+                $firstDate['date']['year'] = $secondDate['date']['year'];
+            }
+            if (!isset($firstDate['date']['month']) && isset($secondDate['date']['month'])) {
+                $firstDate['date']['month'] = $secondDate['date']['month'];
+            }
+            $this->when['time:start'] = $this->utils->toLowestDay($firstDate['date']);
+            $this->when['time:end'] = $this->utils->toGreatestDay($secondDate['date']);
+            $endPosition = $secondDate['endPosition'];
         }
-        if (!isset($firstDate['date']['month']) && isset($secondDate['date']['month'])) {
-            $firstDate['date']['month'] = $secondDate['date']['month'];
+        else {
+            $this->notUnderstood[] = $this->toSentence($words, $position, $endPosition);
         }
-        $this->when['time:start'] = $this->utils->toLowestDay($firstDate['date']);
-        $this->when['time:end'] = $this->utils->toGreatestDay($secondDate['date']);
-        array_splice($words, $position, $secondDate['endPosition'] - $position + 1);
+        array_splice($words, $position, $endPosition - $position + 1);
        
         return $words;
         
