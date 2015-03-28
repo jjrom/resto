@@ -96,6 +96,7 @@ class RestoDictionary_en extends RestoDictionary {
          * Stop words i.e. excluded words
          */
         'stopWords' => array(
+            'a',
             'the',
             'of'
         ),
@@ -157,12 +158,12 @@ class RestoDictionary_en extends RestoDictionary {
             'cloud' => array('cloud', 'clouds'),
             'snow' => array('snow'),
             'ice' => array('ice'),
-            'urban' => array('urban', 'city', 'cities', 'urban area'),
-            'cultivated' => array('cultivated', 'cultivated area', 'cropland', 'croplands', 'crop', 'crops'),
+            'urban' => array('city', 'cities', 'urban area'),
+            'cultivated' => array('cultivated area', 'cropland', 'croplands', 'crop', 'crops'),
             'forest' => array('forest', 'forests'),
-            'herbaceous' => array('herbaceous', 'herbaceous area', 'grass', 'lowland', 'prairie'),
+            'herbaceous' => array('herbaceous area', 'grass', 'lowland', 'prairie'),
             'desert' => array('desert', 'bare area'),
-            'flooded' => array('flooded'),
+            'flooded' => array('flooded area'),
             'water' => array('water')
         ),
         /*

@@ -79,12 +79,60 @@ class WhatProcessor {
         return $this->processWithOrWithout($words, $position, true);
     }
     
+    /**
+     * Process <without> "quantity" 
+     * 
+     * @param array $words
+     * @param integer $position
+     * @param boolean $with
+     * 
+     */
     public function processWithout($words, $position) {
         return $this->processWithOrWithout($words, $position, false);
     }
     
     /**
-     * Process <without> "quantity" 
+     * Process <between>
+     * 
+     *  "quantity" <between> "numeric" <and> "numeric" "unit"
+     *  <between> "numeric" <and> "numeric" "unit" (of) "quantity"
+     * 
+     * @param array $words
+     * @param integer $position of word in the list
+     */
+    public function processBetween($words, $position) {
+        
+        /*
+         * To be valid at least 4 words are mandatory after <between> and second word must be <and>
+         */
+        if (!isset($words[$position + 4]) || $this->queryAnalyzer->dictionary->get(RestoDictionary::VARIOUS_MODIFIER, $words[$position + 2]) !== 'and') {
+            return $this->queryAnalyzer->whenProcessor->processBetween($words, $position);
+        }
+        
+        /*
+         * Words in 1st and 3rd position after <between> must be numeric values
+         * Word in 2nd position after <between> must be a valid unit
+         * Otherwise try to process <between> with WhenProcessor
+         */
+        $firstValue = $this->queryAnalyzer->dictionary->getNumber($words[$position + 1]);
+        $secondValue = $this->queryAnalyzer->dictionary->getNumber($words[$position + 3]);
+        $unit = $this->queryAnalyzer->dictionary->get(RestoDictionary::UNIT, $words[$position + 4]);
+        if (!isset($firstValue) || !isset($secondValue) || !isset($unit)) {
+            return $this->queryAnalyzer->whenProcessor->processBetween($words, $position);
+        }
+        
+        /*
+         * Quantity is mandatory - either before <between> or after "unit"
+         */
+        
+        array_splice($words, $position, $endPosition - $position + 1);
+       
+        return $words;
+        
+    }
+    
+    /**
+     * Process <with> or <without> "quantity" 
      * 
      * @param array $words
      * @param integer $position
@@ -106,9 +154,13 @@ class WhatProcessor {
          * <without> "quantity" means quantity = 0
          */
         else {
-            $sentence = $this->queryAnalyzer->toSentence($words, $position + 1, $endPosition);
-            if (!$this->extractQuantity($sentence, $with)) {
-                $keyword = $this->queryAnalyzer->dictionary->getKeyword(RestoDictionary::NOLOCATION, $sentence);
+            $quantity = $this->extractQuantity($words, $position + 1, $endPosition);
+            if (isset($quantity)) {
+                $this->result[$quantity['key']] = $with ? ']0' : 0;
+                $endPosition = $quantity['endPosition'];
+            }
+            else {
+                $keyword = $this->extractKeyword($words, $position + 1, $endPosition);
                 if (isset($keyword)) {
                     $this->result[] = ($with ? '' : '-') . $keyword['type'] . ':' . $keyword['keyword']; 
                 }
@@ -126,17 +178,78 @@ class WhatProcessor {
     /**
      * Extract quantity
      * 
-     * @param string $word
-     * @param boolean $with
+     * @param array $words
+     * @param integer $startPosition
+     * @param array $endPosition
+     * @param boolean $reverse
      */
-    private function extractQuantity($word, $with) {
-        $quantity = $this->queryAnalyzer->dictionary->get(RestoDictionary::QUANTITY, $word);
-        if (isset($quantity)) {
-            $searchFilter = $this->getSearchFilter($quantity);
-            if (isset($searchFilter)) {
-                $this->result[$searchFilter['key']] = $with ? ']0' : 0;
-                return $quantity;
+    private function extractQuantity($words, $startPosition, $endPosition, $reverse = false) {
+     
+        /*
+         * Process (reversed) words within $startPosition and $endPosition
+         */
+        $slicedWords = $this->queryAnalyzer->slice($words, $startPosition, $endPosition - $startPosition + 1);
+        
+        $word = '';
+        for ($i = 0, $ii = count($slicedWords); $i < $ii; $i++) {
+
+            /*
+             * Reconstruct word from words without stop words
+             */
+            if (!$this->queryAnalyzer->dictionary->isStopWord($slicedWords[$i])) {
+                $word = trim($reverse ? $slicedWords[$i] . ' ' . $word : $word . ' ' . $slicedWords[$i]);
             }
+
+            $quantity = $this->queryAnalyzer->dictionary->get(RestoDictionary::QUANTITY, $word);
+            if (isset($quantity)) {
+                $searchFilter = $this->getSearchFilter($quantity);
+                if (isset($searchFilter)) {
+                    return array(
+                        'startPosition' => $reverse ? $endPosition - $i : $startPosition,
+                        'endPosition' => $reverse ? $endPosition : $startPosition + $i,
+                        'key' => $searchFilter['key']
+                    );
+                }
+            }
+
+        }
+        return null;
+    }
+    
+    /**
+     * Extract quantity
+     * 
+     * @param array $words
+     * @param integer $startPosition
+     * @param array $endPosition
+     * @param boolean $reverse
+     */
+    private function extractKeyword($words, $startPosition, $endPosition, $reverse = false) {
+     
+        /*
+         * Process (reversed) words within $startPosition and $endPosition
+         */
+        $slicedWords = $this->queryAnalyzer->slice($words, $startPosition, $endPosition - $startPosition + 1);
+        $word = '';
+        for ($i = 0, $ii = count($slicedWords); $i < $ii; $i++) {
+
+            /*
+             * Reconstruct word from words without stop words
+             */
+            if (!$this->queryAnalyzer->dictionary->isStopWord($slicedWords[$i])) {
+                $word = trim($reverse ? $slicedWords[$i] . '-' . $word : $word . ' ' . $slicedWords[$i]);
+            }
+
+            $keyword = $this->queryAnalyzer->dictionary->getKeyword(RestoDictionary::NOLOCATION, $word);
+            if (isset($keyword)) {
+                return array(
+                    'startPosition' => $reverse ? $endPosition - $i : $startPosition,
+                    'endPosition' => $reverse ? $endPosition : $startPosition + $i,
+                    'keyword' => $keyword['keyword'],
+                    'type' => $keyword['type']
+                );
+            }
+
         }
         return null;
     }

@@ -254,6 +254,20 @@ class QueryAnalyzer extends RestoModule {
     }
     
     /**
+     * Return slice of $words array. Output array is reversed if $reverse is set to true
+     * 
+     * @param array $words
+     * @param integer $startPosition
+     * @param integer $endPosition
+     * @param boolean $reverse
+     * @return type
+     */
+    public function slice($words, $startPosition, $endPosition, $reverse = false) {
+        $slicedWords = array_slice($words, $startPosition, $endPosition);
+        return $reverse ? array_reverse($slicedWords) : $slicedWords;
+    }
+    
+    /**
      * Concatenate words into sentence
      * 
      * @param string $query

@@ -283,7 +283,5 @@ class WhereProcessor {
         }
         return null;
     }
-
-    
     
 }
