@@ -168,11 +168,10 @@ class RestoRoutePOST extends RestoRoute {
          * Get profile
          */
         try {
-            $profile = $this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('email' => strtolower($data['email']), 'password' => $data['password']));
-            if (isset($profile)) {
-                RestoLogUtil::httpError(403);
+            $this->user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('email' => strtolower($data['email']), 'password' => $data['password'])), $this->context);
+            if (!isset($this->user->profile['email'])) {
+                throw new Exception();
             }
-            $this->user = new RestoUser($profile, $this->context);
             return array(
                 'token' => $this->context->createToken($this->user->profile['userid'], $this->user->profile)
             );
