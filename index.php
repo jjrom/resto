@@ -7,7 +7,6 @@ function autoload($className) {
     foreach (array(
         'include/resto/',
         'include/resto/Drivers/',
-        'include/resto/Drivers/PostgreSQL/',
         'include/resto/Collections/',
         'include/resto/Models/',
         'include/resto/Dictionaries/',
