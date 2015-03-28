@@ -87,7 +87,7 @@ class Functions_rights {
                 $results[0]['filters'] = json_decode($results[0]['filters'], true);
             }
             foreach (array_values(array('search', 'download', 'visualize', 'post', 'put', 'delete')) as $key) {
-                $results[0][$key] = isset($results[0][$key]) ? (integer) $results[0][$key] : 0;
+                $results[0][$key] = isset($results[0][$key]) ? (integer) $results[0][$key] : null;
             }
             return $results[0];
         }
