@@ -112,7 +112,7 @@ class RestoUtil {
         $nstr = '';
 
         // Convert Namespace UUID to bits
-        for ($i = 0; $i < strlen($nhex); $i+=2) {
+        for ($i = 0, $ii = strlen($nhex); $i < $ii; $i+=2) {
             $nstr .= chr(hexdec($nhex[$i] . $nhex[$i + 1]));
         }
 

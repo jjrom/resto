@@ -385,7 +385,7 @@ class Gazetteer extends RestoModule {
      */
     private function likeOrEqual($name) {
         if (substr($name, -1) === '%') {
-            if (strlen($name) > 3) {
+            if (isset($name{4})) {
                 return ' LIKE ';
             }
             else {
