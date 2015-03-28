@@ -39,7 +39,7 @@ USER=admin
 SUPERUSER=postgres
 DB=resto2
 usage="## resto - Create administrator user account\n\n  Usage $0 -u <admin user name (default 'admin')> -p <admin user password> [-d <databasename (default resto2)> -s <superuser (default postgres)>]\n"
-while getopts "u:p:s:h" options; do
+while getopts "d:u:p:s:h" options; do
     case $options in
         d ) DB=`echo $OPTARG`;;
         u ) USER=`echo $OPTARG`;;
