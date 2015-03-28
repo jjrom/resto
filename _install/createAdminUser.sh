@@ -37,9 +37,11 @@
 #  
 USER=admin
 SUPERUSER=postgres
-usage="## resto - Create administrator user account\n\n  Usage $0 -u <admin user name (default 'admin')> -p <admin user password> [-s <superuser (default postgres)>]\n"
+DB=resto2
+usage="## resto - Create administrator user account\n\n  Usage $0 -u <admin user name (default 'admin')> -p <admin user password> [-d <databasename (default resto2)> -s <superuser (default postgres)>]\n"
 while getopts "u:p:s:h" options; do
     case $options in
+        d ) DB=`echo $OPTARG`;;
         u ) USER=`echo $OPTARG`;;
         p ) PASSWORD=`echo $OPTARG`;;
         s ) SUPERUSER=`echo $OPTARG`;;
@@ -57,6 +59,6 @@ then
 fi
 # Change password !!!
 SHA1PASSWORD=`php -r "echo sha1('$PASSWORD');"`
-psql -d resto2 -U $SUPERUSER << EOF
+psql -d $DB -U $SUPERUSER << EOF
 INSERT INTO usermanagement.users (email,groupname,username,password,activationcode,activated,registrationdate) VALUES ('$USER','admin','$USER','$SHA1PASSWORD','$SHA1PASSWORD', 1, now());
 EOF
