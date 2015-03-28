@@ -255,7 +255,7 @@ class RestoCollection {
         /*
          * Check JSON validity
          */
-        $this->checkJSONValidity();
+        $this->checkJSONValidity($object);
         
         /*
          * Set Model
