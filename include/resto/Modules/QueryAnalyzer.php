@@ -141,6 +141,7 @@ class QueryAnalyzer extends RestoModule {
     /*
      * Error messages
      */
+    const LOCATION_NOT_FOUND = 'LOCATION_NOT_FOUND';
     const NOT_UNDERSTOOD = 'NOT_UNDERSTOOD';
     const INVALID_UNIT = 'INVALID_UNIT';
     const MISSING_UNIT = 'MISSING_UNIT';
@@ -253,13 +254,12 @@ class QueryAnalyzer extends RestoModule {
      * Add words to not understood array
      * 
      * @param array $words
-     * @param integer $startPosition
-     * @param integer $endPosition
+     * @param string $text
      */
-    public function error($error, $words, $startPosition,  $endPosition) {
+    public function error($error, $text) {
         $this->errors[] = array(
             'error' => $error,
-            'text' => $this->toSentence($words, $startPosition, $endPosition)
+            'text' => $text
         );
     }
     
@@ -410,7 +410,7 @@ class QueryAnalyzer extends RestoModule {
             
         }
         
-        $this->error(QueryAnalyzer::NOT_UNDERSTOOD, $words, 0, count($words));
+        $this->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->toSentence($words, 0, count($words)));
         
     }
     

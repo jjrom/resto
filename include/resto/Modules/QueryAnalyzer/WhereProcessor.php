@@ -86,7 +86,7 @@ class WhereProcessor {
             $this->result[] = $this->getMostRelevantLocation($location['location']['results']);
         }
         else {
-            $this->result[] = array('NotFound' => $location['location']['query']);
+            $this->queryAnalyzer->error(QueryAnalyzer::LOCATION_NOT_FOUND, $location['location']['query']);
         }
         
         array_splice($words, $position, $location['endPosition'] - $position + 1);

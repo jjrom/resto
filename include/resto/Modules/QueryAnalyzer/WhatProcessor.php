@@ -45,6 +45,10 @@
  */
 class WhatProcessor {
 
+    const EQUAL = 0;
+    const GREATER = 1;
+    const LESSER = 2;
+    
     /*
      * Process result
      */
@@ -134,6 +138,84 @@ class WhatProcessor {
     }
     
     /**
+     * Process <equal>
+     * 
+     *      "quantity" <equal> (to) "numeric" "unit"
+     *      <equal> (to) "numeric" "unit" (of) "quantity"
+     * 
+     * @param array $words
+     * @param integer $position of word in the list
+     */
+    public function processEqual($words, $position) {
+        return $this->processEqualOrGreaterOrLesser($words, $position, WhatProcessor::EQUAL);
+    }
+    
+    /**
+     * Process <greater>
+     * 
+     *      "quantity" <greater> (to) "numeric" "unit"
+     *      <greater> (to) "numeric" "unit" (of) "quantity"
+     * 
+     * @param array $words
+     * @param integer $position of word in the list
+     */
+    public function processGreater($words, $position) {
+        return $this->processEqualOrGreaterOrLesser($words, $position, WhatProcessor::GREATER);
+    }
+    
+    /**
+     * Process <lesser>
+     * 
+     *      "quantity" <lesser> (to) "numeric" "unit"
+     *      <lesser> (to) "numeric" "unit" (of) "quantity"
+     * 
+     * @param array $words
+     * @param integer $position of word in the list
+     */
+    public function processLesser($words, $position) {
+        return $this->processEqualOrGreaterOrLesser($words, $position, WhatProcessor::LESSER);
+    }
+    
+    /**
+     * Process <equal> or <greater> or <lesser>
+     * 
+     *      "quantity" <xxx> (to) "numeric" "unit"
+     *      <xxx> (to) "numeric" "unit" (of) "quantity"
+     * 
+     * @param array $words
+     * @param integer $position of word in the list
+     */
+    private function processEqualOrGreaterOrLesser($words, $position, $modifier) {
+        
+        /*
+         * <equal>, <greater> or <lesser>
+         */
+        $extracted = $this->extractValueUnitQuantity($words, $position);
+        if (isset($extracted['valuedUnit'])) {
+            $value = (floatval($extracted['valuedUnit']['value']) * $extracted['valuedUnit']['unit']['factor']);
+            switch ($modifier) {
+                case WhatProcessor::EQUAL:
+                    $this->result[$extracted['quantity']['key']] = $value;
+                    break;
+                case WhatProcessor::GREATER:
+                    $this->result[$extracted['quantity']['key']] = ']' .$value;
+                    break;
+                case WhatProcessor::LESSER:
+                    $this->result[$extracted['quantity']['key']] = $value . '[';
+                    break;
+            }
+        }
+        else {
+            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $extracted['startPosition'], $extracted['endPosition']));
+        }
+        
+        array_splice($words, $extracted['startPosition'], $extracted['endPosition'] - $extracted['startPosition'] + 1);
+        
+        return $words;
+        
+    }
+    
+    /**
      * Process <with> or <without> "quantity" 
      * 
      * @param array $words
@@ -149,7 +231,7 @@ class WhatProcessor {
          * <with/without> nothing
          */
         if (!isset($words[$position + 1])) {
-            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $words, $position, $endPosition);
+            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
         }
         /*
          * <with> "quantity" means quantity
@@ -167,7 +249,7 @@ class WhatProcessor {
                     $this->result[] = ($with ? '' : '-') . $keyword['type'] . ':' . $keyword['keyword']; 
                 }
                 else {
-                    $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $words, $position, $endPosition);
+                    $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
                 }
             }
         }
@@ -202,7 +284,7 @@ class WhatProcessor {
          * <between> ... "unit" "quantity"
          */
         if (!isset($quantity)) {
-            $quantity = $this->extractQuantity($words, $startPosition, count($words));
+            $quantity = $this->extractQuantity($words, $startPosition, count($words) - 1);
         }
         
         /*
@@ -214,17 +296,17 @@ class WhatProcessor {
              * Recompute start and end position
              */
             $position = min(array($position, $quantity['startPosition']));
-            $endPosition = max($startPosition, $quantity['endPosition']);
+            $endPosition = max(array($startPosition, $quantity['endPosition']));
             
             if ($normalizedUnit['unit'] === $quantity['unit']) {
                 $this->result[$quantity['key']] = '[' . (floatval($values[0]) * $normalizedUnit['factor']) . ',' . (floatval($values[1]) * $normalizedUnit['factor']) . ']';
             }
             else {
-                $this->queryAnalyzer->error(QueryAnalyzer::INVALID_UNIT, $words, $position, $endPosition);
+                $this->queryAnalyzer->error(QueryAnalyzer::INVALID_UNIT, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
             }
         }
         else {
-            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $words, $position, $endPosition);
+            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
         }
         
         array_splice($words, $position, $endPosition - $position + 1);
@@ -256,7 +338,7 @@ class WhatProcessor {
          * <between> ... "unit" "quantity"
          */
         if (!isset($quantity)) {
-            $quantity = $this->extractQuantity($words, $startPosition, count($words));
+            $quantity = $this->extractQuantity($words, $startPosition, count($words) - 1);
         }
         
         /*
@@ -268,17 +350,17 @@ class WhatProcessor {
              * Recompute start and end position
              */
             $position = min(array($position, $quantity['startPosition']));
-            $endPosition = max($startPosition, $quantity['endPosition']);
+            $endPosition = max(array($startPosition, $quantity['endPosition']));
             
             if (!isset($quantity['unit'])) {
                 $this->result[$quantity['key']] = '[' . $values[0] . ',' . $values[1] . ']';
             }
             else {
-                $this->queryAnalyzer->error(QueryAnalyzer::MISSING_UNIT, $words, $position, $endPosition);
+                $this->queryAnalyzer->error(QueryAnalyzer::MISSING_UNIT, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
             }
         }
         else {
-            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $words, $position, $endPosition);
+            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
         }
         
         array_splice($words, $position, $endPosition - $position + 1);
@@ -304,7 +386,6 @@ class WhatProcessor {
          * Process (reversed) words within $startPosition and $endPosition
          */
         $slicedWords = $this->queryAnalyzer->slice($words, $startPosition, $endPosition - $startPosition + 1, $reverse);
-        
         $word = '';
         for ($i = 0, $ii = count($slicedWords); $i < $ii; $i++) {
 
@@ -369,6 +450,107 @@ class WhatProcessor {
         }
         return null;
     }
+    
+    /**
+     * Extract (of) "numeric" "unit" (of) "quantity"
+     * 
+     * @param array $words
+     * @param integer $position
+     */
+    private function extractValueUnitQuantity($words, $position) {
+        
+        $endPosition = $this->queryAnalyzer->getEndPosition($words, $position + 1);
+        
+        /*
+         * (to) "numeric" "unit"
+         */
+        $valuedUnit = $this->extractValueUnit($words, $position + 1, $endPosition);
+        if (!isset($valuedUnit)) {
+            return array(
+                'startPosition' => $position,
+                'endPosition' => $endPosition
+            );
+        }
+            
+        /*
+         * 
+         * "quantity" <xxx> (to) "numeric" "unit"
+         */
+        $quantity = $this->extractQuantity($words, 0, $position - 1, true);
+       
+        /*
+         * <xxx> (to) "numeric" "unit" (of) "quantity"
+         */
+        if (!isset($quantity)) {
+            $quantity = $this->extractQuantity($words, $valuedUnit['endPosition'] + 1, count($words) - 1);
+        }
+
+        /*
+         * Quantity was found 
+         */
+        if (isset($quantity)) {
+            $startPosition = min(array($position, $quantity['startPosition']));
+            $endPosition = max(array($valuedUnit['endPosition'], $quantity['endPosition']));
+            if ($valuedUnit['unit']['unit'] === $quantity['unit']) {
+                return array(
+                    'valuedUnit' => $valuedUnit,
+                    'quantity' => $quantity,
+                    'startPosition' => $startPosition,
+                    'endPosition' => $endPosition
+                );
+            }
+            else {
+                $this->queryAnalyzer->error(QueryAnalyzer::INVALID_UNIT, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
+                return array(
+                    'endPosition' => $endPosition
+                );
+            }
+        }
+        
+        return array(
+            'startPosition' => $valuedUnit['startPosition'],
+            'endPosition' => $valuedUnit['endPosition']
+        );
+        
+    }
+    
+    /**
+     * Extract (of) "numeric" "unit"
+     * 
+     * @param array $words
+     * @param integer $startPosition
+     * @param integer $endPosition
+     */
+    private function extractValueUnit($words, $startPosition, $endPosition) {
+        
+        for ($i = $startPosition; $i < $endPosition; $i++) {
+            
+            /*
+             * Skip stop words
+             */
+            if ($this->queryAnalyzer->dictionary->isStopWord($words[$i])) {
+                continue;
+            }
+           
+            /*
+             * "numeric" "unit"
+             */
+            $value = $this->queryAnalyzer->dictionary->getNumber($words[$i]);
+            if (isset($value) && isset($words[$i + 1])) {
+                $unit = $this->queryAnalyzer->dictionary->get(RestoDictionary::UNIT, $words[$i + 1]);
+                return array(
+                    'value' => $value,
+                    'endPosition' => $i + 1,
+                    'unit' => $this->normalizedUnit($unit)
+                );
+            }
+            
+        }
+     
+        return null;
+        
+    }
+    
     
     /**
      * Return filter name associated to $quantity

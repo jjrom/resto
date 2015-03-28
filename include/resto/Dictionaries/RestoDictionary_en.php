@@ -67,7 +67,7 @@ class RestoDictionary_en extends RestoDictionary {
             'between' => array('between', 'from'),
             'greater' => array('greater', 'more', '>'),
             'lesser' => array('lesser', '<', 'less', 'lower'),
-            'with' => array('with', 'containing'),
+            /*'with' => array('with', 'containing'),*/
             'without' => array('without', 'no')
         ),
         /*
@@ -98,7 +98,9 @@ class RestoDictionary_en extends RestoDictionary {
         'stopWords' => array(
             'a',
             'the',
-            'of'
+            'of',
+            'with',
+            'than'
         ),
         /*
          * List of words in the query that are

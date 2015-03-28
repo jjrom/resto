@@ -436,7 +436,7 @@ abstract class RestoModel {
             'title' => 'Cloud cover expressed in percent',
             'quantity' => array(
                 'value' => 'cloud',
-                'unit' => '%'
+                'unit' => 'm'
             )
         ),
         'eo:snowCover' => array(
