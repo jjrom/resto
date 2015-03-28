@@ -139,6 +139,13 @@ require 'QueryAnalyzer/WhereProcessor.php';
 class QueryAnalyzer extends RestoModule {
 
     /*
+     * Error messages
+     */
+    const NOT_UNDERSTOOD = 'NOT_UNDERSTOOD';
+    const INVALID_UNIT = 'INVALID_UNIT';
+    const MISSING_UNIT = 'MISSING_UNIT';
+    
+    /*
      * Processors
      */
     public $whenProcessor = null;
@@ -156,9 +163,9 @@ class QueryAnalyzer extends RestoModule {
     public $model;
     
     /*
-     * Not understood words
+     * Analysis error
      */
-    private $notUnderstood = array();
+    private $errors = array();
     
     /**
      * Constructor
@@ -249,8 +256,11 @@ class QueryAnalyzer extends RestoModule {
      * @param integer $startPosition
      * @param integer $endPosition
      */
-    public function addToNotUnderstood($words, $startPosition,  $endPosition) {
-        $this->notUnderstood[] = $this->toSentence($words, $startPosition, $endPosition);
+    public function error($error, $words, $startPosition,  $endPosition) {
+        $this->errors[] = array(
+            'error' => $error,
+            'text' => $this->toSentence($words, $startPosition, $endPosition)
+        );
     }
     
     /**
@@ -320,7 +330,7 @@ class QueryAnalyzer extends RestoModule {
             'What' => $this->whatProcessor->result,
             'When' => $this->whenProcessor->result,
             'Where' => $this->whereProcessor->result,
-            'NotUnderstood' => $this->notUnderstood
+            'Errors' => $this->errors
         );
         
     }
@@ -400,7 +410,7 @@ class QueryAnalyzer extends RestoModule {
             
         }
         
-        $this->notUnderstood[] = $this->toSentence($words, 0, count($words));
+        $this->error(QueryAnalyzer::NOT_UNDERSTOOD, $words, 0, count($words));
         
     }
     

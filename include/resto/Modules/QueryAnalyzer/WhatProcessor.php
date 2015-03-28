@@ -103,9 +103,9 @@ class WhatProcessor {
     public function processBetween($words, $position) {
         
         /*
-         * To be valid at least 4 words are mandatory after <between> and second word must be <and>
+         * To be valid at least 3 words are mandatory after <between> and second word must be <and>
          */
-        if (!isset($words[$position + 4]) || $this->queryAnalyzer->dictionary->get(RestoDictionary::VARIOUS_MODIFIER, $words[$position + 2]) !== 'and') {
+        if (!isset($words[$position + 3]) || $this->queryAnalyzer->dictionary->get(RestoDictionary::VARIOUS_MODIFIER, $words[$position + 2]) !== 'and') {
             return $this->queryAnalyzer->whenProcessor->processBetween($words, $position);
         }
         
@@ -114,20 +114,22 @@ class WhatProcessor {
          * Word in 2nd position after <between> must be a valid unit
          * Otherwise try to process <between> with WhenProcessor
          */
-        $firstValue = $this->queryAnalyzer->dictionary->getNumber($words[$position + 1]);
-        $secondValue = $this->queryAnalyzer->dictionary->getNumber($words[$position + 3]);
-        $unit = $this->queryAnalyzer->dictionary->get(RestoDictionary::UNIT, $words[$position + 4]);
-        if (!isset($firstValue) || !isset($secondValue) || !isset($unit)) {
+        $values = array(
+            $this->queryAnalyzer->dictionary->getNumber($words[$position + 1]),
+            $this->queryAnalyzer->dictionary->getNumber($words[$position + 3])
+        );
+        if (!isset($values[0]) || !isset($values[1])) {
             return $this->queryAnalyzer->whenProcessor->processBetween($words, $position);
         }
         
         /*
-         * Quantity is mandatory - either before <between> or after "unit"
+         * Process differs if unit is specified or not
          */
+        if (isset($words[$position + 4])) {
+            $unit = $this->queryAnalyzer->dictionary->get(RestoDictionary::UNIT, $words[$position + 4]);
+        }
         
-        array_splice($words, $position, $endPosition - $position + 1);
-       
-        return $words;
+        return isset($unit) ? $this->processValidBetweenWithUnit($words, $position, $values, $this->normalizedUnit($unit)) : $this->processValidBetweenWithoutUnit($words, $position, $values);
         
     }
     
@@ -147,7 +149,7 @@ class WhatProcessor {
          * <with/without> nothing
          */
         if (!isset($words[$position + 1])) {
-            $this->queryAnalyzer->addToNotUnderstood($words, $position, $endPosition);
+            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $words, $position, $endPosition);
         }
         /*
          * <with> "quantity" means quantity
@@ -165,13 +167,122 @@ class WhatProcessor {
                     $this->result[] = ($with ? '' : '-') . $keyword['type'] . ':' . $keyword['keyword']; 
                 }
                 else {
-                    $this->queryAnalyzer->addToNotUnderstood($words, $position, $endPosition);
+                    $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $words, $position, $endPosition);
                 }
             }
         }
         
         array_splice($words, $position, $endPosition - $position + 1);
        
+        return $words;
+    }
+    
+    /**
+     * Process <between> ... <and> ... on quantity with unit
+     * 
+     * @param array $words
+     * @param integer $position
+     * @param array $values
+     * @param array $normalizedUnit 
+     * @return type
+     */
+    private function processValidBetweenWithUnit($words, $position, $values, $normalizedUnit) {
+        
+        $quantityPosition = $position + 5;
+        $endPosition = $this->queryAnalyzer->getEndPosition($words, $quantityPosition);
+        $startPosition = min($quantityPosition, $endPosition);
+        
+        /*
+         * 
+         * "quantity" <between> (...)
+         */
+        $quantity = $this->extractQuantity($words, 0, $position - 1, true);
+        
+        /*
+         * <between> ... "unit" "quantity"
+         */
+        if (!isset($quantity)) {
+            $quantity = $this->extractQuantity($words, $startPosition, count($words));
+        }
+        
+        /*
+         * Quantity was found 
+         */
+        if (isset($quantity)) {
+            
+            /*
+             * Recompute start and end position
+             */
+            $position = min(array($position, $quantity['startPosition']));
+            $endPosition = max($startPosition, $quantity['endPosition']);
+            
+            if ($normalizedUnit['unit'] === $quantity['unit']) {
+                $this->result[$quantity['key']] = '[' . (floatval($values[0]) * $normalizedUnit['factor']) . ',' . (floatval($values[1]) * $normalizedUnit['factor']) . ']';
+            }
+            else {
+                $this->queryAnalyzer->error(QueryAnalyzer::INVALID_UNIT, $words, $position, $endPosition);
+            }
+        }
+        else {
+            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $words, $position, $endPosition);
+        }
+        
+        array_splice($words, $position, $endPosition - $position + 1);
+        
+        return $words;
+    }
+    
+    /**
+     * Process a valid <between> ... <and> ... with unit
+     * 
+     * @param array $words
+     * @param integer $position
+     * @param array $values
+     * @return type
+     */
+    private function processValidBetweenWithoutUnit($words, $position, $values) {
+        
+        $quantityPosition = isset($words[$position + 4]) ? $position + 4 : $position + 3;
+        $endPosition = $this->queryAnalyzer->getEndPosition($words, $quantityPosition);
+        $startPosition = min($quantityPosition, $endPosition);
+        
+        /*
+         * 
+         * "quantity" <between> (...)
+         */
+        $quantity = $this->extractQuantity($words, 0, $position - 1, true);
+        
+        /*
+         * <between> ... "unit" "quantity"
+         */
+        if (!isset($quantity)) {
+            $quantity = $this->extractQuantity($words, $startPosition, count($words));
+        }
+        
+        /*
+         * Quantity was found 
+         */
+        if (isset($quantity)) {
+            
+            /*
+             * Recompute start and end position
+             */
+            $position = min(array($position, $quantity['startPosition']));
+            $endPosition = max($startPosition, $quantity['endPosition']);
+            
+            if (!isset($quantity['unit'])) {
+                $this->result[$quantity['key']] = '[' . $values[0] . ',' . $values[1] . ']';
+            }
+            else {
+                $this->queryAnalyzer->error(QueryAnalyzer::MISSING_UNIT, $words, $position, $endPosition);
+            }
+        }
+        else {
+            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $words, $position, $endPosition);
+        }
+        
+        array_splice($words, $position, $endPosition - $position + 1);
+        
         return $words;
     }
     
@@ -184,11 +295,15 @@ class WhatProcessor {
      * @param boolean $reverse
      */
     private function extractQuantity($words, $startPosition, $endPosition, $reverse = false) {
-     
+        
+        if ($startPosition > $endPosition) {
+            return null;
+        }
+        
         /*
          * Process (reversed) words within $startPosition and $endPosition
          */
-        $slicedWords = $this->queryAnalyzer->slice($words, $startPosition, $endPosition - $startPosition + 1);
+        $slicedWords = $this->queryAnalyzer->slice($words, $startPosition, $endPosition - $startPosition + 1, $reverse);
         
         $word = '';
         for ($i = 0, $ii = count($slicedWords); $i < $ii; $i++) {
@@ -199,7 +314,7 @@ class WhatProcessor {
             if (!$this->queryAnalyzer->dictionary->isStopWord($slicedWords[$i])) {
                 $word = trim($reverse ? $slicedWords[$i] . ' ' . $word : $word . ' ' . $slicedWords[$i]);
             }
-
+           
             $quantity = $this->queryAnalyzer->dictionary->get(RestoDictionary::QUANTITY, $word);
             if (isset($quantity)) {
                 $searchFilter = $this->getSearchFilter($quantity);
@@ -207,7 +322,8 @@ class WhatProcessor {
                     return array(
                         'startPosition' => $reverse ? $endPosition - $i : $startPosition,
                         'endPosition' => $reverse ? $endPosition : $startPosition + $i,
-                        'key' => $searchFilter['key']
+                        'key' => $searchFilter['key'],
+                        'unit' => isset($searchFilter['unit']) ? $searchFilter['unit'] : null
                     );
                 }
             }
@@ -229,7 +345,7 @@ class WhatProcessor {
         /*
          * Process (reversed) words within $startPosition and $endPosition
          */
-        $slicedWords = $this->queryAnalyzer->slice($words, $startPosition, $endPosition - $startPosition + 1);
+        $slicedWords = $this->queryAnalyzer->slice($words, $startPosition, $endPosition - $startPosition + 1, $reverse);
         $word = '';
         for ($i = 0, $ii = count($slicedWords); $i < $ii; $i++) {
 
@@ -273,7 +389,10 @@ class WhatProcessor {
         
         foreach(array_keys($this->queryAnalyzer->model->searchFilters) as $key) {
             if (isset($this->queryAnalyzer->model->searchFilters[$key]['quantity']) && is_array($this->queryAnalyzer->model->searchFilters[$key]['quantity']) && $this->queryAnalyzer->model->searchFilters[$key]['quantity']['value'] === $quantity) {
-                return array('key' => $key, 'unit' => $this->queryAnalyzer->model->searchFilters[$key]['quantity']['unit']);
+                return array(
+                    'key' => $key,
+                    'unit' => isset($this->queryAnalyzer->model->searchFilters[$key]['quantity']['unit']) ? $this->queryAnalyzer->model->searchFilters[$key]['quantity']['unit'] : null
+                );
             }
         }
         

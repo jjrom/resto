@@ -155,7 +155,7 @@ class RestoDictionary_en extends RestoDictionary {
         'quantities' => array(
             'resolution' => array('resolution'),
             'orbit' => array('orbit'),
-            'cloud' => array('cloud', 'clouds'),
+            'cloud' => array('cloud', 'clouds', 'cloud cover'),
             'snow' => array('snow'),
             'ice' => array('ice'),
             'urban' => array('city', 'cities', 'urban area'),
