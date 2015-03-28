@@ -395,20 +395,12 @@ class WhatProcessor {
             if (!$this->queryAnalyzer->dictionary->isStopWord($slicedWords[$i])) {
                 $word = trim($reverse ? $slicedWords[$i] . ' ' . $word : $word . ' ' . $slicedWords[$i]);
             }
-           
-            $quantity = $this->queryAnalyzer->dictionary->get(RestoDictionary::QUANTITY, $word);
-            if (isset($quantity)) {
-                $searchFilter = $this->getSearchFilter($quantity);
-                if (isset($searchFilter)) {
-                    return array(
-                        'startPosition' => $reverse ? $endPosition - $i : $startPosition,
-                        'endPosition' => $reverse ? $endPosition : $startPosition + $i,
-                        'key' => $searchFilter['key'],
-                        'unit' => isset($searchFilter['unit']) ? $searchFilter['unit'] : null
-                    );
-                }
+            
+            $trueQuantity = $this->getTrueQuantity($word, $reverse ? $endPosition - $i : $startPosition, $reverse ? $endPosition : $startPosition + $i);
+            if (isset($trueQuantity)) {
+                return $trueQuantity;
             }
-
+            
         }
         return null;
     }
@@ -581,6 +573,29 @@ class WhatProcessor {
         return null;
     }
     
+    /**
+     * Return quantity if valid
+     * 
+     * @param string $word
+     * @param integer $startPosition
+     * @param integer $endPosition
+     * @return array
+     */
+    private function getTrueQuantity($word, $startPosition, $endPosition) {
+        $quantity = $this->queryAnalyzer->dictionary->get(RestoDictionary::QUANTITY, $word);
+        if (isset($quantity)) {
+            $searchFilter = $this->getSearchFilter($quantity);
+            if (isset($searchFilter)) {
+                return array(
+                    'startPosition' => $startPosition,
+                    'endPosition' => $endPosition,
+                    'key' => $searchFilter['key'],
+                    'unit' => isset($searchFilter['unit']) ? $searchFilter['unit'] : null
+                );
+            }
+        }
+        return null;
+    }
     /**
      * Return normalized unit from $unit
      * e.g. if $unit = 'km', returned value is 
