@@ -87,7 +87,7 @@ class Functions_rights {
                 $results[0]['filters'] = json_decode($results[0]['filters'], true);
             }
             foreach (array_values(array('search', 'download', 'visualize', 'post', 'put', 'delete')) as $key) {
-                $results[0][$key] = $results[0][$key] === '1' ? 1 : $results[0][$key] === '0' ? 0 : null;
+                $results[0][$key] = isset($results[0][$key]) ? (integer) $results[0][$key] : 0;
             }
             return $results[0];
         }
@@ -118,7 +118,7 @@ class Functions_rights {
                 $properties['filters'] = json_decode($row['filters'], true);
             }
             foreach (array_values(array('search', 'download', 'visualize', 'post', 'put', 'delete')) as $field){
-                $properties[$field] =  $row[$field] === '1' ? 1 : $row[$field] === '0' ? 0 : null;
+                $properties[$field] =  isset($row[$field]) ? (integer) $row[$field] : null;
             }
             if (isset($row['featureid'])) {
                 $rights[$row['collection']]['features'][$row['featureid']] = $properties;
