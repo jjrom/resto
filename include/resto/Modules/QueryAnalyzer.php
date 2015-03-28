@@ -133,6 +133,9 @@
  * 
  * @param array $params
  */
+require 'QueryAnalyzer/WhatProcessor.php';
+require 'QueryAnalyzer/WhenProcessor.php';
+require 'QueryAnalyzer/WhereProcessor.php';
 class QueryAnalyzer extends RestoModule {
 
     /*

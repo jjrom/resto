@@ -38,6 +38,18 @@
  * 
  */
 
+/*
+ * Required includes
+ */
+require 'PostgreSQL/Functions_general.php';
+require 'PostgreSQL/Functions_cart.php';
+require 'PostgreSQL/Functions_collections.php';
+require 'PostgreSQL/Functions_facets.php';
+require 'PostgreSQL/Functions_features.php';
+require 'PostgreSQL/Functions_filters.php';
+require 'PostgreSQL/Functions_rights.php';
+require 'PostgreSQL/Functions_users.php';
+
 /**
  * RESTo PostgreSQL Database
  */
