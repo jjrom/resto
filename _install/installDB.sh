@@ -42,10 +42,11 @@ DROPFIRST=NO
 DB=resto2
 USER=resto
 DATADIR=`dirname $0`/data
-usage="## RESTo database installation\n\n  Usage $0 -p <resto (Read+Write database) user password> [-d <PostGIS directory> -s <database SUPERUSER> -F]\n\n  -d : absolute path to the directory containing postgis.sql - If not set EXTENSION mechanism will be used\n  -s : dabase SUPERUSER (default "postgres")\n  -F : WARNING - suppress existing resto schema within resto database\n"
-while getopts "d:s:p:hF" options; do
+usage="## RESTo database installation\n\n  Usage $0 -p <resto (Read+Write database) user password> [-d <databasename> -f <PostGIS directory> -s <database SUPERUSER> -F]\n\n  -d: database name (default resto2)\n  -f : absolute path to the directory containing postgis.sql - If not set EXTENSION mechanism will be used\n  -s : dabase SUPERUSER (default "postgres")\n  -F : WARNING - suppress existing resto schema within resto database\n"
+while getopts "f:d:s:p:hF" options; do
     case $options in
-        d ) ROOTDIR=`echo $OPTARG`;;
+        f ) ROOTDIR=`echo $OPTARG`;;
+        d ) DB=`echo $OPTARG`;;
         s ) SUPERUSER=`echo $OPTARG`;;
         p ) USERPASSWORD=`echo $OPTARG`;;
         F ) DROPFIRST=YES;;
