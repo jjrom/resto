@@ -172,7 +172,7 @@ class RestoDictionary_en extends RestoDictionary {
          * Seasons
          */
         'seasons' => array(
-            'automn' => array('automn, falls'),
+            'autumn' => array('autumn', 'falls'),
             'spring' => array('spring'),
             'summer' => array('summer'),
             'winter' => array('winter')

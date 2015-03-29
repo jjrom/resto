@@ -273,14 +273,28 @@ class WhenProcessor {
         $date = $this->extractDate($words, $position + 1);
         
         /*
-         * No date found - try <in> "location"
+         * No date found - try a season
          */
         if (empty($date['date'])) {
-            return $this->queryAnalyzer->whereProcessor->processIn($words, $position);
+            if (!$this->setSeason($words[$position + 1])) {
+                return $this->queryAnalyzer->whereProcessor->processIn($words, $position);
+            }
         }
-        
-        $this->result[] = array('time:start' => $this->toLowestDay($date['date']));
-        $this->result[] = array('time:end' => $this->toGreatestDay($date['date']));
+        /*
+         * Year is specified
+         */
+        else if (isset($date['date']['year'])) {
+            $this->result[] = array('time:start' => $this->toLowestDay($date['date']));
+            $this->result[] = array('time:end' => $this->toGreatestDay($date['date']));
+        }
+        else {
+            if (isset($date['date']['month'])) {
+                $this->result[] = array('month' => $date['date']['month']);
+            }
+            if (isset($date['date']['day'])) {
+                $this->result[] = array('day' => $date['date']['day']);
+            }
+        }
         array_splice($words, $position, $date['endPosition'] - $position + 1);
         
         return $words;
@@ -857,4 +871,17 @@ class WhenProcessor {
         return null;
     }
     
+    /**
+     * Set season
+     * 
+     * @param type $word
+     */
+    private function setSeason($word) {
+        $season = $this->queryAnalyzer->dictionary->get(RestoDictionary::SEASON, $word);
+        if (isset($season)) {
+            $this->result[] = array('season' => $season);
+            return true;
+        }
+        return false;
+    }
 }
