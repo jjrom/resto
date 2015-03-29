@@ -416,7 +416,7 @@ class RestoKeywordsUtil {
      * @param string $parentHash
      */
     private function getMonthKeyword($properties, $collection, $parentHash) {
-        $month = substr($properties[$collection->model->searchFilters['time:start']['key']], 0, 7);
+        $month = substr($properties[$collection->model->searchFilters['time:start']['key']], 5, 7);
         return array(
             'hash' => RestoUtil::getHash('month:' . $month, $parentHash),
             'value' => array(
@@ -435,7 +435,7 @@ class RestoKeywordsUtil {
      * @param string $parentHash
      */
     private function getDayKeyword($properties, $collection, $parentHash) {
-        $day = substr($properties[$collection->model->searchFilters['time:start']['key']], 0, 10);
+        $day = substr($properties[$collection->model->searchFilters['time:start']['key']], 8, 10);
         return array(
             'hash' => RestoUtil::getHash('day:' . $day),
             'value' => array(
