@@ -89,8 +89,15 @@ class WhereProcessor {
             $this->queryAnalyzer->error(QueryAnalyzer::LOCATION_NOT_FOUND, $location['location']['query']);
         }
         
-        array_splice($words, $position, $location['endPosition'] - $position + 1);
+        /*
+         * Unstructured sentence
+         */
+        if ($position === -1) {
+            $position = 0;
+        }
         
+        array_splice($words, $position, $location['endPosition'] - $position + 1);
+       
         return $words;
        
     }
@@ -196,14 +203,7 @@ class WhereProcessor {
     private function extractToponym($words, $position, $locationModifier = null) {
         
         /*
-         * Initialize gazetteer
-         */
-        $gazetteer = new Gazetteer($this->context, $this->user, $this->context->modules['Gazetteer']);
-        
-        $endPosition = -1;
-        
-        /*
-         * Roll over each word
+         * Reconstruct sentence from words
          */
         $toponymName = '';
         for ($i = $position, $ii = count($words); $i < $ii; $i++) {
@@ -227,22 +227,11 @@ class WhereProcessor {
                 }
             }
             
-            /*
-             * Reconstruct sentence from words without stop words
-             */
-            if (!$this->queryAnalyzer->dictionary->isStopWord($words[$i])) {
-                $toponymName .= ($toponymName === '' ? '' : '-') . $words[$i];
-            }
+            $toponymName .= ($toponymName === '' ? '' : '-') . $words[$i];
             
         }
         
-        return array(
-            'endPosition' => $endPosition,
-            'location' => $gazetteer->search(array(
-                'q' => trim((empty($toponymName) ? '' : $toponymName . ',') . (isset($locationModifier) ? $locationModifier['keyword'] : ''), ','),
-                'wkt' => true
-            ))
-        );
+        return $this->getToponymFromTuples($toponymName, $locationModifier, $endPosition);
         
     }
         
@@ -282,6 +271,64 @@ class WhereProcessor {
 
         }
         return null;
+    }
+    
+    /**
+     * 
+     * @param string $toponymName
+     * @param array $locationModifier
+     * @param integer $endPosition
+     * @return type
+     */
+    private function getToponymFromTuples($toponymName, $locationModifier, $endPosition) {
+        
+        /*
+         * Initialize gazetteer
+         */
+        $gazetteer = new Gazetteer($this->context, $this->user, $this->context->modules['Gazetteer']);
+        
+        /*
+         * Search modifier only
+         */
+        $modifier = isset($locationModifier) ? $locationModifier['keyword'] : '';
+        if (empty($toponymName)) {
+            return array(
+                'endPosition' => $endPosition,
+                'location' => $gazetteer->search(array(
+                    'q' => $modifier,
+                    'wkt' => true
+                ))
+            );
+        }
+        
+        /*
+         * Search for toponym
+         */
+        while(true) {
+            $location = $gazetteer->search(array(
+                'q' => $toponymName . ($modifier !== '' ? ',' . $modifier : ''),
+                'wkt' => true
+            ));
+            
+            /*
+             * Location was found or toponym name has only one word left
+             */
+            if (strrpos($toponymName, '-') === false || count($location['results']) > 0) {
+                break;
+            }
+            
+            /*
+             * Remove last word
+             */
+            $toponymName = substr($toponymName, 0, strrpos($toponymName, '-'));
+            
+        }
+        
+        return array(
+            'endPosition' => $endPosition,
+            'location' => $location
+        );
+        
     }
     
 }

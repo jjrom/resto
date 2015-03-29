@@ -300,24 +300,9 @@ class QueryAnalyzer extends RestoModule {
     private function process($query) {
         
         /*
-         * Get searchTerms array
+         * Extract (in this order !) "what", "when" and "where" elements from query
          */
-        $words = $this->toWords($query);
-        
-        /*
-         * What ?
-         */
-        $words = $this->processWhat($words);
-        
-        /*
-         * When ?
-         */
-        $words = $this->processWhen($words);
-        
-        /*
-         * Where ?
-         */
-        $words = $this->processWhere($words);
+        $words = $this->processWhere($this->processWhen($this->processWhat($this->toWords($query))));
         
         /*
          * Remaining stuff
@@ -401,16 +386,15 @@ class QueryAnalyzer extends RestoModule {
      * @param array $words
      */
     private function processRemainingWords($words) {
-
-        /*
-         * 
-         */
-        if (empty($this->what) && empty($this->when) && empty($this->where)) {
-            
-            
-        }
         
-        $this->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->toSentence($words, 0, count($words)));
+        /*
+         * Search for "where", "when" and "what" elements from unstructured query
+         */
+        $words = $this->whereProcessor->processIn($words, -1);
+        
+        if (count($words) > 0) {
+            $this->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->toSentence($words, 0, count($words)));
+        }
         
     }
     
