@@ -264,7 +264,7 @@ class WhereProcessor {
                 return array(
                     'startPosition' => min(array($endPosition, $j)),
                     'endPosition' => max(array($endPosition, $j)),
-                    'keyword' => $keyword['keyword'],
+                    'keyword' => $locationName,
                     'type' => $keyword['type']
                 );
             }
