@@ -134,8 +134,8 @@ class WhenProcessor {
             if (!isset($firstDate['date']['month']) && isset($secondDate['date']['month'])) {
                 $firstDate['date']['month'] = $secondDate['date']['month'];
             }
-            $this->result['time:start'] = $this->toLowestDay($firstDate['date']);
-            $this->result['time:end'] = $this->toGreatestDay($secondDate['date']);
+            $this->result[] = array('time:start' => $this->toLowestDay($firstDate['date']));
+            $this->result[] = array('time:end' => $this->toGreatestDay($secondDate['date']));
             $endPosition = $secondDate['endPosition'];
         }
         else {
@@ -210,7 +210,7 @@ class WhenProcessor {
             $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
         }
         else {
-            $this->result['time:start'] = $this->toLowestDay($date['date']);
+            $this->result[] = array('time:start' => $this->toLowestDay($date['date']));
         }
         array_splice($words, $position, $endPosition - $position + 1);
         
@@ -279,8 +279,8 @@ class WhenProcessor {
             return $this->queryAnalyzer->whereProcessor->processIn($words, $position);
         }
         
-        $this->result['time:start'] = $this->toLowestDay($date['date']);
-        $this->result['time:end'] = $this->toGreatestDay($date['date']);
+        $this->result[] = array('time:start' => $this->toLowestDay($date['date']));
+        $this->result[] = array('time:end' => $this->toGreatestDay($date['date']));
         array_splice($words, $position, $date['endPosition'] - $position + 1);
         
         return $words;
@@ -303,8 +303,8 @@ class WhenProcessor {
              * Known duration unit
              */
             if ($unit === 'days' || $unit === 'months' || $unit === 'years') {
-                $this->result['time:start'] = date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration . $unit)) . 'T00:00:00Z';
-                $this->result['time:end'] = date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration . $unit)) . 'T23:59:59Z';
+                $this->result[] = array('time:start' => date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration . $unit)) . 'T00:00:00Z');
+                $this->result[] = array('time:end' => date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration . $unit)) . 'T23:59:59Z');
                 array_splice($words, $position - 2, 3);
                 return $words;
             }
@@ -324,8 +324,8 @@ class WhenProcessor {
     * @param integer $position of word in the list
     */
     public function processToday($words, $position) {
-        $this->result['time:start'] = date('Y-m-d\T00:00:00\Z');
-        $this->result['time:end'] = date('Y-m-d\T23:59:59\Z');
+        $this->result[] = array('time:start' => date('Y-m-d\T00:00:00\Z'));
+        $this->result[] = array('time:end' => date('Y-m-d\T23:59:59\Z'));
         array_splice($words, $position, 1);
         return $words;
     }
@@ -338,8 +338,8 @@ class WhenProcessor {
     */
     public function processTomorrow($words, $position) {
         $time = strtotime(date('Y-m-d') . ' + 1 days');
-        $this->result['time:start'] = date('Y-m-d\T00:00:00\Z', $time);
-        $this->result['time:end'] = date('Y-m-d\T23:59:59\Z', $time);
+        $this->result[] = array('time:start' => date('Y-m-d\T00:00:00\Z', $time));
+        $this->result[] = array('time:end' => date('Y-m-d\T23:59:59\Z', $time));
         array_splice($words, $position, 1);
         return $words;
     }
@@ -352,8 +352,8 @@ class WhenProcessor {
     */
     public function processYesterday($words, $position) {
         $time = strtotime(date('Y-m-d') . ' - 1 days');
-        $this->result['time:start'] = date('Y-m-d\T00:00:00\Z', $time);
-        $this->result['time:end'] = date('Y-m-d\T23:59:59\Z', $time);
+        $this->result[] = array('time:start' => date('Y-m-d\T00:00:00\Z', $time));
+        $this->result[] = array('time:end' => date('Y-m-d\T23:59:59\Z', $time));
         array_splice($words, $position, 1);
         return $words;
     }
@@ -382,7 +382,7 @@ class WhenProcessor {
          * Date found - add to outputFilters and remove modifier and date from words list
          */
         else {
-            $this->result[$osKey] = $osKey === 'time:start' ? $this->toGreatestDay($date['date']) : $this->toLowestDay($date['date']);
+            $this->result[] = array($osKey => $osKey === 'time:start' ? $this->toGreatestDay($date['date']) : $this->toLowestDay($date['date']));
         }
         array_splice($words, $position, $date['endPosition'] - $position + 1);
         return $words;
@@ -474,8 +474,8 @@ class WhenProcessor {
      * @param string $unit
      */
     private function setWhenForLastAndNextYear($times) {
-        $this->result['time:start'] = date('Y', $times['pTime']) . '-01-01' . 'T00:00:00Z';
-        $this->result['time:end'] = date('Y', $times['time']) . '-12-31' . 'T23:59:59Z';
+        $this->result[] = array('time:start' => date('Y', $times['pTime']) . '-01-01' . 'T00:00:00Z');
+        $this->result[] = array('time:end' => date('Y', $times['time']) . '-12-31' . 'T23:59:59Z');
     }
     
     /**
@@ -485,8 +485,8 @@ class WhenProcessor {
      * @param string $unit
      */
     private function setWhenForLastAndNextMonth($times) {
-        $this->result['time:start'] = date('Y', $times['pTime']) . '-' . date('m', $times['pTime']) . '-01' . 'T00:00:00Z';
-        $this->result['time:end'] = date('Y', $times['time']) . '-' . date('m', $times['time']) . '-' . date('d', mktime(0, 0, 0, intval(date('m', $times['time'])) + 1, 0, intval(date('Y', $times['time'])))) . 'T23:59:59Z';
+        $this->result[] = array('time:start' => date('Y', $times['pTime']) . '-' . date('m', $times['pTime']) . '-01' . 'T00:00:00Z');
+        $this->result[] = array('time:end' => date('Y', $times['time']) . '-' . date('m', $times['time']) . '-' . date('d', mktime(0, 0, 0, intval(date('m', $times['time'])) + 1, 0, intval(date('Y', $times['time'])))) . 'T23:59:59Z');
     }
     
     /**
@@ -496,8 +496,8 @@ class WhenProcessor {
      * @param string $unit
      */
     private function setWhenForLastAndNextDay($times) {
-        $this->result['time:start'] = date('Y', $times['pTime']) . '-' . date('m', $times['pTime']) . '-' . date('d', $times['pTime']) . 'T00:00:00Z';
-        $this->result['time:end'] = date('Y', $times['time']) . '-' . date('m', $times['time']) . '-' . date('d', $times['time']) . 'T23:59:59Z';
+        $this->result[] = array('time:start' => date('Y', $times['pTime']) . '-' . date('m', $times['pTime']) . '-' . date('d', $times['pTime']) . 'T00:00:00Z');
+        $this->result[] = array('time:end' => date('Y', $times['time']) . '-' . date('m', $times['time']) . '-' . date('d', $times['time']) . 'T23:59:59Z');
     }
     
    /**

@@ -196,13 +196,13 @@ class WhatProcessor {
             $value = (floatval($extracted['valuedUnit']['value']) * $extracted['valuedUnit']['unit']['factor']);
             switch ($modifier) {
                 case WhatProcessor::EQUAL:
-                    $this->result[$extracted['quantity']['key']] = $value;
+                    $this->result[] = array($extracted['quantity']['key'] => $value);
                     break;
                 case WhatProcessor::GREATER:
-                    $this->result[$extracted['quantity']['key']] = ']' .$value;
+                    $this->result[] = array($extracted['quantity']['key'] => ']' .$value);
                     break;
                 case WhatProcessor::LESSER:
-                    $this->result[$extracted['quantity']['key']] = $value . '[';
+                    $this->result[] = array($extracted['quantity']['key'] => $value . '[');
                     break;
             }
         }
@@ -241,13 +241,13 @@ class WhatProcessor {
         else {
             $quantity = $this->extractQuantity($words, $position + 1, $endPosition);
             if (isset($quantity)) {
-                $this->result[$quantity['key']] = $with ? ']0' : 0;
+                $this->result[] = array($quantity['key'] => $with ? ']0' : 0);
                 $endPosition = $quantity['endPosition'];
             }
             else {
                 $keyword = $this->extractKeyword($words, $position + 1, $endPosition);
                 if (isset($keyword)) {
-                    $this->result[] = ($with ? '' : '-') . $keyword['type'] . ':' . $keyword['keyword']; 
+                    $this->result[] = array('searchTerms' => ($with ? '' : '-') . $keyword['type'] . ':' . $keyword['keyword']); 
                 }
                 else {
                     $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
@@ -271,9 +271,8 @@ class WhatProcessor {
      */
     private function processValidBetweenWithUnit($words, $position, $values, $normalizedUnit) {
         
-        $quantityPosition = $normalizedUnit['endPosition'] + 1;
-        $endPosition = $this->queryAnalyzer->getEndPosition($words, $quantityPosition);
-        $startPosition = min($quantityPosition, $endPosition);
+        $endPosition = count($words) - 1;
+        $startPosition = $normalizedUnit['endPosition'] + 1;
         
         /*
          * 
@@ -300,7 +299,7 @@ class WhatProcessor {
             $endPosition = max(array($startPosition, $quantity['endPosition']));
             
             if ($normalizedUnit['unit']['unit'] === $quantity['unit']) {
-                $this->result[$quantity['key']] = '[' . (floatval($values[0]) * $normalizedUnit['unit']['factor']) . ',' . (floatval($values[1]) * $normalizedUnit['unit']['factor']) . ']';
+                $this->result[] = array($quantity['key'] => '[' . (floatval($values[0]) * $normalizedUnit['unit']['factor']) . ',' . (floatval($values[1]) * $normalizedUnit['unit']['factor']) . ']');
             }
             else {
                 $this->queryAnalyzer->error(QueryAnalyzer::INVALID_UNIT, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
@@ -354,7 +353,7 @@ class WhatProcessor {
             $endPosition = max(array($startPosition, $quantity['endPosition']));
             
             if (!isset($quantity['unit'])) {
-                $this->result[$quantity['key']] = '[' . $values[0] . ',' . $values[1] . ']';
+                $this->result[] = array($quantity['key'] => '[' . $values[0] . ',' . $values[1] . ']');
             }
             else {
                 $this->queryAnalyzer->error(QueryAnalyzer::MISSING_UNIT, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
@@ -495,6 +494,7 @@ class WhatProcessor {
             else {
                 $this->queryAnalyzer->error(QueryAnalyzer::INVALID_UNIT, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
                 return array(
+                    'startPosition' => $startPosition,
                     'endPosition' => $endPosition
                 );
             }
@@ -568,7 +568,7 @@ class WhatProcessor {
             $unit = $this->queryAnalyzer->dictionary->get(RestoDictionary::UNIT, $words[$i]);
             if (isset($unit)) {
                 return array(
-                    'endPosition' => $i + 1,
+                    'endPosition' => $i,
                     'unit' => $this->normalizedUnit($unit)
                 );
             }
