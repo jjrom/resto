@@ -388,12 +388,25 @@ class QueryAnalyzer extends RestoModule {
     private function processRemainingWords($words) {
         
         /*
-         * Search for "where", "when" and "what" elements from unstructured query
+         * Extract temporal element first
          */
-        $words = $this->whereProcessor->processIn($words, -1);
+        for ($i = 0, $ii = count($words); $i < $ii; $i++) {
+            $remainings = $this->whenProcessor->processIn($words, $i - 1, false);
+            if (isset($remainings)) {
+                break;
+            }
+            $remainings = $words;
+        }
         
-        if (count($words) > 0) {
-            $this->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->toSentence($words, 0, count($words)));
+        /*
+         * Extract location elements
+         */
+        if (count($remainings) > 0) {
+            $remainings = $this->whereProcessor->processIn($remainings, -1);
+        }
+        
+        if (count($remainings) > 0) {
+            $this->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->toSentence($remainings, 0, count($remainings)));
         }
         
     }

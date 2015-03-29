@@ -267,8 +267,9 @@ class WhenProcessor {
      * 
      * @param array $words
      * @param integer $position of word in the list
+     * @param boolean $checkLocation
      */
-    public function processIn($words, $position) {
+    public function processIn($words, $position, $checkLocation = true) {
         
         $date = $this->extractDate($words, $position + 1);
         
@@ -277,7 +278,7 @@ class WhenProcessor {
          */
         if (empty($date['date'])) {
             if (!$this->setSeason($words[$position + 1])) {
-                return $this->queryAnalyzer->whereProcessor->processIn($words, $position);
+                return $checkLocation ? $this->queryAnalyzer->whereProcessor->processIn($words, $position) : null;
             }
         }
         /*
@@ -295,6 +296,11 @@ class WhenProcessor {
                 $this->result[] = array('day' => $date['date']['day']);
             }
         }
+        
+        if ($position === -1) {
+            $position = 0;
+        }
+        
         array_splice($words, $position, $date['endPosition'] - $position + 1);
         
         return $words;
@@ -625,6 +631,7 @@ class WhenProcessor {
             $yearMonthDay = $this->getYearMonthDayFromWord($words[$i]);
             if (isset($yearMonthDay)) {
                 $date = array_merge($date, $yearMonthDay);
+                $realEndPosition = $i;
                 continue;
             }
             
@@ -635,15 +642,11 @@ class WhenProcessor {
                 break;
             }
             
-            /*
-             * TODO Season
-             */
-            
         }
-        
+       
         return array(
             'date' => $date,
-            'endPosition' => $endPosition
+            'endPosition' => isset($realEndPosition) ? $realEndPosition : $endPosition
         );
     }
 
