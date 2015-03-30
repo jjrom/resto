@@ -46,7 +46,7 @@ abstract class RestoDictionary {
     const LOCATION_MODIFIER = 'locationModifiers';
     const QUANTITY_MODIFIER = 'quantityModifiers';
     const TIME_MODIFIER = 'timeModifiers';
-    const VARIOUS_MODIFIER = 'variousModifiers';
+    const AND_MODIFIER = 'andModifiers';
     const MONTH = 'months';
     const NUMBER = 'numbers';
     const QUANTITY = 'quantities';

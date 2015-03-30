@@ -54,6 +54,12 @@ class RestoDictionary_en extends RestoDictionary {
     protected $dictionary = array(
         
         /*
+         * And modifiers
+         */
+        'andModifiers' => array(
+            'and' => array('and', 'to')
+        ),
+        /*
          * Location modifiers
          */
         'locationModifiers' => array(
@@ -87,23 +93,9 @@ class RestoDictionary_en extends RestoDictionary {
             'yesterday' => array('yesterday')
         ),
         /*
-         * Various modifiers
-         */
-        'variousModifiers' => array(
-            'and' => array('and', 'to')
-        ),
-        /*
          * Stop words i.e. excluded words
          */
-        'stopWords' => array(
-            'a',
-            'the',
-            'of',
-            'with',
-            'than',
-            'or',
-            'and'
-        ),
+        'stopWords' => array('a', 'the', 'of', 'with', 'than', 'or', 'and'),
         /*
          * List of words in the query that are
          * considered as 'noise' for the query analysis

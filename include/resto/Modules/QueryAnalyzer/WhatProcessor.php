@@ -110,7 +110,7 @@ class WhatProcessor {
         /*
          * To be valid at least 3 words are mandatory after <between> and second word must be <and>
          */
-        if (!isset($words[$position + 3]) || $this->queryAnalyzer->dictionary->get(RestoDictionary::VARIOUS_MODIFIER, $words[$position + 2]) !== 'and') {
+        if (!isset($words[$position + 3]) || $this->queryAnalyzer->dictionary->get(RestoDictionary::AND_MODIFIER, $words[$position + 2]) !== 'and') {
             return $this->queryAnalyzer->whenProcessor->processBetween($words, $position);
         }
         

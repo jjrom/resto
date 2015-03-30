@@ -616,7 +616,7 @@ class WhenProcessor {
             /*
              * Between stop modifier is 'and'
              */
-            if ($between && $this->queryAnalyzer->dictionary->get(RestoDictionary::VARIOUS_MODIFIER, $words[$i]) === 'and') {
+            if ($between && $this->queryAnalyzer->dictionary->get(RestoDictionary::AND_MODIFIER, $words[$i]) === 'and') {
                 $endPosition = $i - 1;
                 break;
             }
