@@ -199,11 +199,11 @@ return array(
         ),
         
         /*
-         * Query Analyzer module - convert natural language query to EO query
+         * Query Analyser module - convert natural language query to EO query
          */
-        'QueryAnalyzer' => array(
+        'QueryAnalyser' => array(
             'activate' => true,
-            'route' => 'api/query/analyze',
+            'route' => 'api/query/analyse',
         ),
         
         /*

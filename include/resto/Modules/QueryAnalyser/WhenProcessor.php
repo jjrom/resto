@@ -39,7 +39,7 @@
  */
 
 /**
- * QueryAnalyzer When
+ * QueryAnalyser When
  * 
  * @param array $params
  */
@@ -51,19 +51,19 @@ class WhenProcessor {
     public $result = array();
     
     /*
-     * Reference to QueryAnalyzer
+     * Reference to QueryAnalyser
      */
-    private $queryAnalyzer;
+    private $queryAnalyser;
     
     /**
      * Constructor
      * 
-     * @param QueryAnalyzer $queryAnalyzer
+     * @param QueryAnalyser $queryAnalyser
      * @param RestoContext $context
      * @param RestoUser $user
      */
-    public function __construct($queryAnalyzer, $context, $user) {
-        $this->queryAnalyzer = $queryAnalyzer;
+    public function __construct($queryAnalyser, $context, $user) {
+        $this->queryAnalyser = $queryAnalyser;
         $this->context = $context;
         $this->user = $user;
     }
@@ -139,7 +139,7 @@ class WhenProcessor {
             $endPosition = $secondDate['endPosition'];
         }
         else {
-            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
+            $this->queryAnalyser->error(QueryAnalyser::NOT_UNDERSTOOD, $this->queryAnalyser->toSentence($words, $position, $endPosition));
         }
         array_splice($words, $position, $endPosition - $position + 1);
        
@@ -207,7 +207,7 @@ class WhenProcessor {
         }
         
         if (empty($date['date'])) {
-            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
+            $this->queryAnalyser->error(QueryAnalyser::NOT_UNDERSTOOD, $this->queryAnalyser->toSentence($words, $position, $endPosition));
         }
         else {
             $this->addToResult('time:start', $this->toLowestDay($date['date']));
@@ -278,7 +278,7 @@ class WhenProcessor {
          */
         if (empty($date['date'])) {
             if (!$this->setSeason($words[$position + $options['delta']])) {
-                return !$options['nullIfNotFound'] ? $this->queryAnalyzer->whereProcessor->processIn($words, $position) : null;
+                return !$options['nullIfNotFound'] ? $this->queryAnalyser->whereProcessor->processIn($words, $position) : null;
             }
         }
         /*
@@ -310,10 +310,10 @@ class WhenProcessor {
      */
     public function processAgo($words, $position) {
         
-        if ($position - 2 >= 0 && $this->queryAnalyzer->dictionary->getNumber($words[$position - 2])) {
+        if ($position - 2 >= 0 && $this->queryAnalyser->dictionary->getNumber($words[$position - 2])) {
             
-            $unit = $this->queryAnalyzer->dictionary->get(RestoDictionary::TIME_UNIT, $words[$position - 1]);
-            $duration = $this->queryAnalyzer->dictionary->getNumber($words[$position - 2]);
+            $unit = $this->queryAnalyser->dictionary->get(RestoDictionary::TIME_UNIT, $words[$position - 1]);
+            $duration = $this->queryAnalyser->dictionary->getNumber($words[$position - 2]);
                     
             /*
              * Known duration unit
@@ -392,7 +392,7 @@ class WhenProcessor {
          * No date found - remove modifier only from words list
          */
         if (empty($date['date'])) {
-            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $position,  $date['endPosition']));
+            $this->queryAnalyser->error(QueryAnalyser::NOT_UNDERSTOOD, $this->queryAnalyser->toSentence($words, $position,  $date['endPosition']));
         }
         /*
          * Date found - add to outputFilters and remove modifier and date from words list
@@ -455,7 +455,7 @@ class WhenProcessor {
             $delta = $duration['firstIsNotLast'] ? 1 : 0;
         }
         else {
-            $this->queryAnalyzer->error(QueryAnalyzer::MISSING_UNIT, $this->queryAnalyzer->toSentence($words, $position,  $duration['endPosition']));
+            $this->queryAnalyser->error(QueryAnalyser::MISSING_UNIT, $this->queryAnalyser->toSentence($words, $position,  $duration['endPosition']));
         }
         array_splice($words, $position - $delta, $duration['endPosition'] - $position + 1 + $delta);
         return $words;
@@ -544,7 +544,7 @@ class WhenProcessor {
             /*
              * Exit if stop modifier is found
              */
-            if ($this->queryAnalyzer->dictionary->isModifier($words[$i])) {
+            if ($this->queryAnalyser->dictionary->isModifier($words[$i])) {
                 $endPosition = $i - 1;
                 break;
             }
@@ -610,13 +610,13 @@ class WhenProcessor {
         /*
          * Other dates
          */
-        $endPosition = $this->queryAnalyzer->getEndPosition($words, $position);
+        $endPosition = $this->queryAnalyser->getEndPosition($words, $position);
         for ($i = $position; $i <= $endPosition; $i++) {
             
             /*
              * Between stop modifier is 'and'
              */
-            if ($between && $this->queryAnalyzer->dictionary->get(RestoDictionary::AND_MODIFIER, $words[$i]) === 'and') {
+            if ($between && $this->queryAnalyser->dictionary->get(RestoDictionary::AND_MODIFIER, $words[$i]) === 'and') {
                 $endPosition = $i - 1;
                 break;
             }
@@ -634,7 +634,7 @@ class WhenProcessor {
             /*
              * A non stop word breaks everything
              */
-            if (!$this->queryAnalyzer->dictionary->isStopWord($words[$i])) {
+            if (!$this->queryAnalyser->dictionary->isStopWord($words[$i])) {
                 break;
             }
             
@@ -768,7 +768,7 @@ class WhenProcessor {
      * @return array
      */
     private function getDateFromWord($word) {
-        $timeModifier = $this->queryAnalyzer->dictionary->get(RestoDictionary::TIME_MODIFIER, $word);
+        $timeModifier = $this->queryAnalyser->dictionary->get(RestoDictionary::TIME_MODIFIER, $word);
         if (isset($timeModifier)) {
             $time = null;
             if ($timeModifier === 'today') {
@@ -797,7 +797,7 @@ class WhenProcessor {
      * @param string $word
      */
     private function isLastOrNext($word) {
-        $timeModifier = $this->queryAnalyzer->dictionary->get(RestoDictionary::TIME_MODIFIER, $word);
+        $timeModifier = $this->queryAnalyser->dictionary->get(RestoDictionary::TIME_MODIFIER, $word);
         if ($timeModifier === 'last' || $timeModifier === 'next') {
             return true;
         }
@@ -817,7 +817,7 @@ class WhenProcessor {
             );
         }
         
-        $month = $this->queryAnalyzer->dictionary->get(RestoDictionary::MONTH, $word);
+        $month = $this->queryAnalyser->dictionary->get(RestoDictionary::MONTH, $word);
         if (isset($month)) {
             return array(
                 'month' => $month
@@ -850,7 +850,7 @@ class WhenProcessor {
      */
     private function getDurationUnitOrValue($word) {
         
-        $value = $this->queryAnalyzer->dictionary->getNumber($word);
+        $value = $this->queryAnalyser->dictionary->getNumber($word);
         if ($value) {
             return array(
                 'value' => $value
@@ -860,7 +860,7 @@ class WhenProcessor {
         /*
          * Extract unit
          */
-        $unit = $this->queryAnalyzer->dictionary->get(RestoDictionary::TIME_UNIT, $word);
+        $unit = $this->queryAnalyser->dictionary->get(RestoDictionary::TIME_UNIT, $word);
         if (isset($unit)) {
             return array(
                 'unit' => $unit
@@ -876,7 +876,7 @@ class WhenProcessor {
      * @param type $word
      */
     private function setSeason($word) {
-        $season = $this->queryAnalyzer->dictionary->get(RestoDictionary::SEASON, $word);
+        $season = $this->queryAnalyser->dictionary->get(RestoDictionary::SEASON, $word);
         if (isset($season)) {
             $this->addToResult('season', $season);
             return true;

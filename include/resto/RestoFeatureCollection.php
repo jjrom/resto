@@ -88,9 +88,9 @@ class RestoFeatureCollection {
     private $totalCount = -1;
     
     /*
-     * Query analyzer
+     * Query analyser
      */
-    private $queryAnalyzer;
+    private $queryAnalyser;
     
     /**
      * Constructor 
@@ -107,8 +107,8 @@ class RestoFeatureCollection {
         
         $this->context = $context;
         $this->user = $user;
-        if (isset($this->context->modules['QueryAnalyzer'])) {
-            $this->queryAnalyzer = new QueryAnalyzer($this->context, $this->user);
+        if (isset($this->context->modules['QueryAnalyser'])) {
+            $this->queryAnalyser = new QueryAnalyser($this->context, $this->user);
         }
  
         $this->initialize($collections);
@@ -210,37 +210,36 @@ class RestoFeatureCollection {
         $offset = $this->getOffset($originalFilters, $limit);
         
         /*
-         * Query Analyzer 
+         * Query Analyser 
          */
-        $searchFilters = $this->analyze($originalFilters);
+        $analysis = $this->analyse($originalFilters);
         
         /*
          * Read features from database
          * If '_rc' parameter is set to true, then totalCount is also computed
          */
-        $this->loadFeatures($searchFilters, $limit, $offset, isset($this->context->query['_rc']) && filter_var($this->context->query['_rc'], FILTER_VALIDATE_BOOLEAN) ? true : false);
+        $this->loadFeatures($analysis['searchFilters'], $limit, $offset, isset($this->context->query['_rc']) && filter_var($this->context->query['_rc'], FILTER_VALIDATE_BOOLEAN) ? true : false);
         
         /*
          * Set description
          */
-        $this->setDescription($searchFilters, $originalFilters, $offset, $limit);
+        $this->setDescription($analysis, $offset, $limit);
         
     }
     
     /**
      * Set description
      * 
-     * @param array $searchFilters
-     * @param array $originalFilters
+     * @param array $analysis
      * @param integer $offset
      * @param integer $limit
      */
-    private function setDescription($searchFilters, $originalFilters, $offset, $limit) {
+    private function setDescription($analysis, $offset, $limit) {
         
         /*
          * Query is made from request parameters
          */
-        $query = $this->cleanFilters($searchFilters);
+        $query = $this->cleanFilters($analysis['searchFilters']);
         
         /*
          * Sort results
@@ -248,14 +247,14 @@ class RestoFeatureCollection {
         $this->description = array(
             'type' => 'FeatureCollection',
             'properties' => array(
-                'title' => isset($query['searchTerms']) ? $query['searchTerms'] : '',
+                'title' => $analysis['analysis']['query'],
                 'id' => RestoUtil::UUIDv5((isset($this->defaultCollection) ? $this->defaultCollection->name : '*') . ':' . json_encode($query)),
                 'totalResults' => $this->totalCount !== -1 ? $this->totalCount : null,
                 'startIndex' => $offset + 1,
                 'itemsPerPage' => count($this->restoFeatures),
                 'query' => array(
-                    'original' => $originalFilters,
-                    'real' => $query,
+                    'searchFilters' => $analysis['searchFilters'],
+                    'analysis' => $analysis['analysis'],
                     'processingTime' => microtime(true) - $this->requestStartTime
                 ),
                 'links' => $this->getLinks($limit, $offset)
@@ -568,40 +567,48 @@ class RestoFeatureCollection {
     }
     
     /**
-     * Analyze searchTerms
+     * Analyse searchTerms
      * 
      * @param array $params
      */
-    private function analyze($params) {
+    private function analyse($params) {
         
         /*
          * No searchTerms specify - leave input search filters untouched
          */
         if (empty($params['searchTerms'])) {
-            return $params;
+            return array(
+                'searchFilters' => $params,
+                'analysis' => array(
+                    'query' => ''
+                )
+            );
         }
         
         /*
-         * Analyze query
+         * Analyse query
          */
-        $analyzis = $this->queryAnalyzer->analyze($params['searchTerms']);
+        $analysis = $this->queryAnalyser->analyse($params['searchTerms']);
         
         /*
          * What
          */
-        $what = $this->setWhatFilters($analyzis['analyze']['What'], $params);
+        $params = $this->setWhatFilters($analysis['analyse']['What'], $params);
         
         /*
          * When
          */
-        $when = $this->setWhenFilters($analyzis['analyze']['When'], $what);
+        $params = $this->setWhenFilters($analysis['analyse']['When'], $params);
         
         /*
          * Where
          */
-        $where = $this->setWhereFilters($analyzis['analyze']['Where'], $when);
+        $params = $this->setWhereFilters($analysis['analyse']['Where'], $params);
         
-        return $where;
+        return array(
+            'searchFilters' => $params,
+            'analysis' => $analysis
+        );
     }
     
     /**
