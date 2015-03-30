@@ -77,11 +77,11 @@ class WhatProcessor {
      * 
      * @param array $words
      * @param integer $position
-     * @param integer $delta
+     * @param array $options
      * 
      */
-    public function processWith($words, $position, $delta = 1) {
-        return $this->processWithOrWithout($words, $position, true, $delta);
+    public function processWith($words, $position, $options = array('delta' => 1, 'nullIfNotFound' => false)) {
+        return $this->processWithOrWithout($words, $position, true, $options);
     }
     
     /**
@@ -224,16 +224,17 @@ class WhatProcessor {
      * @param integer $position
      * @param boolean $with
      * @param integer $delta
+     * @param boolean $nullIfNotFound
      * 
      */
-    private function processWithOrWithout($words, $position, $with = true, $delta = 1) {
+    private function processWithOrWithout($words, $position, $with, $options = array('delta' => 1, 'nullIfNotFound' => false)) {
        
-        $endPosition = $this->queryAnalyzer->getEndPosition($words, $position + $delta);
+        $endPosition = $this->queryAnalyzer->getEndPosition($words, $position + $options['delta']);
                 
         /*
          * <with/without> nothing
          */
-        if (!isset($words[$position + $delta])) {
+        if (!isset($words[$position + $options['delta']])) {
             $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
         }
         /*
@@ -241,17 +242,21 @@ class WhatProcessor {
          * <without> "quantity" means quantity = 0
          */
         else {
-            $quantity = $this->extractQuantity($words, $position + $delta, $endPosition);
+            $quantity = $this->extractQuantity($words, $position + $options['delta'], $endPosition);
             if (isset($quantity)) {
                 $this->result[] = array($quantity['key'] => $with ? ']0' : 0);
                 $endPosition = $quantity['endPosition'];
             }
             else {
-                $keyword = $this->extractKeyword($words, $position + $delta, $endPosition);
+                $keyword = $this->extractKeyword($words, $position + $options['delta'], $endPosition);
                 if (isset($keyword)) {
-                    $this->result[] = array('searchTerms' => ($with ? '' : '-') . $keyword['type'] . ':' . $keyword['keyword']); 
+                    $this->result[] = array('searchTerms' => ($with ? '' : '-') . $keyword['type'] . ':' . $keyword['keyword']);
+                    $endPosition = $keyword['endPosition'];
                 }
                 else {
+                    if ($options['nullIfNotFound']) {
+                        return null;
+                    }
                     $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
                 }
             }

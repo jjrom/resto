@@ -267,19 +267,18 @@ class WhenProcessor {
      * 
      * @param array $words
      * @param integer $position of word in the list
-     * @param integer $delta
-     * @param boolean $locationCheck
+     * @param array $options
      */
-    public function processIn($words, $position, $delta = 1, $locationCheck = true) {
+    public function processIn($words, $position, $options = array('delta' => 1, 'nullIfNotFound' => false)) {
         
-        $date = $this->extractDate($words, $position + $delta);
+        $date = $this->extractDate($words, $position + $options['delta']);
         
         /*
          * No date found - try a season
          */
         if (empty($date['date'])) {
-            if (!$this->setSeason($words[$position + $delta])) {
-                return $locationCheck ? $this->queryAnalyzer->whereProcessor->processIn($words, $position) : null;
+            if (!$this->setSeason($words[$position + $options['delta']])) {
+                return !$options['nullIfNotFound'] ? $this->queryAnalyzer->whereProcessor->processIn($words, $position) : null;
             }
         }
         /*

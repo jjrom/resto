@@ -74,19 +74,22 @@ class WhereProcessor {
      * 
      * @param array $words
      * @param integer $position of word in the list
-     * @param integer $delta
+     * @param array $options
      */
-    public function processIn($words, $position, $delta = 1) {
+    public function processIn($words, $position, $options = array('delta' => 1, 'nullIfNotFound' => false)) {
         
         /*
          * Extract locations
          */
-        $location = $this->extractLocation($words, $position + $delta);
+        $location = $this->extractLocation($words, $position + $options['delta']);
         
         if (count($location['location']['results']) > 0) {
             $this->result[] = $this->getMostRelevantLocation($location['location']['results']);
         }
         else {
+            if ($options['nullIfNotFound']) {
+                return null;
+            }
             $this->queryAnalyzer->error(QueryAnalyzer::LOCATION_NOT_FOUND, $location['location']['query']);
         }
         
@@ -163,6 +166,7 @@ class WhereProcessor {
              * Break if location modifier was found
              */
             if (isset($locationModifier)) {
+                $endPosition = $locationModifier['endPosition'];
                 break;
             }
             

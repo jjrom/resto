@@ -67,7 +67,7 @@ class RestoDictionary_en extends RestoDictionary {
             'between' => array('between', 'from'),
             'greater' => array('greater', 'more', '>'),
             'lesser' => array('lesser', '<', 'less', 'lower'),
-            /*'with' => array('with', 'containing'),*/
+            'with' => array('with', 'containing'),
             'without' => array('without', 'no')
         ),
         /*

@@ -253,14 +253,16 @@ class QueryAnalyzer extends RestoModule {
     /**
      * Add words to not understood array
      * 
-     * @param array $words
+     * @param array $error
      * @param string $text
      */
     public function error($error, $text) {
-        $this->errors[] = array(
-            'error' => $error,
-            'text' => $text
-        );
+        if (!empty($text)) {
+            $this->errors[] = array(
+                'error' => $error,
+                'text' => $text
+            );
+        }
     }
     
     /**
@@ -388,10 +390,26 @@ class QueryAnalyzer extends RestoModule {
     private function processRemainingWords($words) {
         
         /*
-         * Extract temporal element first
+         * Extract keywords
          */
         for ($i = 0, $ii = count($words); $i < $ii; $i++) {
-            $remainings = $this->whenProcessor->processIn($words, $i, 0, false);
+            $remainings = $this->whatProcessor->processWith($words, $i, array(
+                'delta' => 0,
+                'nullIfNotFound' => true
+            ));
+            if (isset($remainings)) {
+                $words = $remainings;
+            }
+        }
+        
+        /*
+         * Extract temporal element
+         */
+        for ($i = 0, $ii = count($words); $i < $ii; $i++) {
+            $remainings = $this->whenProcessor->processIn($words, $i, array(
+                'delta' => 0,
+                'nullIfNotFound' => true
+            ));
             if (isset($remainings)) {
                 $words = $remainings;
                 break;
@@ -399,18 +417,21 @@ class QueryAnalyzer extends RestoModule {
         }
         
         /*
-         * Extract keywords
-         */
-        
-        /*
          * Extract location elements
          */
-        if (count($words) > 0) {
-            $remainings = $this->whereProcessor->processIn($words, 0, 0);
+        for ($i = 0, $ii = count($words); $i < $ii; $i++) {
+            $remainings = $this->whereProcessor->processIn($words, $i, array(
+                'delta' => 0,
+                'nullIfNotFound' => true
+            ));
+            if (isset($remainings)) {
+                $words = $remainings;
+                break;
+            }
         }
         
-        if (count($remainings) > 0) {
-            $this->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->toSentence($remainings, 0, count($remainings)));
+        if (count($words) > 0) {
+            $this->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->toSentence($words, 0, count($words)));
         }
         
     }
