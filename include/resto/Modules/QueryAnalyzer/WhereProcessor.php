@@ -148,19 +148,16 @@ class WhereProcessor {
         $endPosition = $this->queryAnalyzer->getEndPosition($words, $position);
         
         /*
+         * Search location modifier
          * Location modifier is a country or a state
          */
         $locationModifier = null;
-        
-        /*
-         * Roll over each word
-         */
-        for ($i = $endPosition; $i >= $position; $i--) {
-          
+        for ($i = $position; $i <= $endPosition; $i++) {
+            
             /*
              * Search for a location modifier
              */
-            $locationModifier = $this->getLocationModifier($words, $position, $i);
+            $locationModifier = $this->getLocationModifier($words, $i, $endPosition);
             
             /*
              * Break if location modifier was found
@@ -171,7 +168,7 @@ class WhereProcessor {
             }
             
         }
-
+        
         /*
          * Search toponym in gazetteer
          */
@@ -236,6 +233,41 @@ class WhereProcessor {
     /**
      * Return location modifier (i.e. country or state- from words array
      * 
+     * If input words are array('the', 'united', 'states')
+     * 
+     * Then keyword will be tested against : 
+     *  the, the-united, the-united-states
+     * 
+     * @param array $words
+     * @param integer $startPosition
+     * @param integer $endPosition
+     * @return array
+     */
+    private function getLocationModifier($words, $startPosition, $endPosition) {
+        $locationName = '';
+        for ($i = $startPosition; $i <= $endPosition; $i++) {
+            
+            /*
+             * Reconstruct sentence from words without stop words
+             */
+            $locationName .= ($locationName === '' ? '' : '-') . $words[$i];
+            $keyword = $this->queryAnalyzer->dictionary->getKeyword(RestoDictionary::LOCATION, $locationName);
+            if (isset($keyword)) {
+                return array(
+                    'startPosition' => $startPosition,
+                    'endPosition' => $i,
+                    'keyword' => $locationName,
+                    'type' => $keyword['type']
+                );
+            }
+
+        }
+        return null;
+    }
+    
+    /**
+     * Return location modifier (i.e. country or state- from words array
+     * 
      * Words are parsed in reverse order to find toponym modifier
      * If input words are array('saint', 'gaudens', 'france')
      * Then keyword will be tested against : 
@@ -246,7 +278,7 @@ class WhereProcessor {
      * @param integer $endPosition
      * @return array
      */
-    private function getLocationModifier($words, $startPosition, $endPosition) {
+    private function getLocationModifier_old($words, $startPosition, $endPosition) {
         $locationName = '';
         for ($j = $endPosition; $j >= $startPosition; $j--) {
 
@@ -261,7 +293,7 @@ class WhereProcessor {
             if (isset($keyword)) {
                 return array(
                     'startPosition' => min(array($endPosition, $j)),
-                    'endPosition' => max(array($endPosition, $j)),
+                    'endPosition' => $j,
                     'keyword' => $locationName,
                     'type' => $keyword['type']
                 );

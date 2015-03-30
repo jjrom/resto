@@ -74,7 +74,8 @@ class RestoDictionary_en extends RestoDictionary {
             'greater' => array('greater', 'more', '>'),
             'lesser' => array('lesser', '<', 'less', 'lower'),
             'with' => array('with', 'containing'),
-            'without' => array('without', 'no')
+            'without' => array('without', 'no'),
+            'by' => array('by')
         ),
         /*
          * Time modifiers
@@ -95,7 +96,7 @@ class RestoDictionary_en extends RestoDictionary {
         /*
          * Stop words i.e. excluded words
          */
-        'stopWords' => array('a', 'the', 'of', 'with', 'than', 'or', 'and'),
+        'stopWords' => array('a', 'the', 'of', 'with', 'than', 'or', 'and', 'by', 'acquired'),
         /*
          * List of words in the query that are
          * considered as 'noise' for the query analysis

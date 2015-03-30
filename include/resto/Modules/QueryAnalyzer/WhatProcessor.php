@@ -73,6 +73,27 @@ class WhatProcessor {
     }
     
     /**
+     * Process <by> "quantity" 
+     * 
+     * @param array $words
+     * @param integer $position
+     * @param array $options
+     * 
+     */
+    public function processBy($words, $position, $options = array('delta' => 1, 'nullIfNotFound' => false)) {
+        $endPosition = $this->queryAnalyzer->getEndPosition($words, $position + $options['delta']);
+        $keyword = $this->extractKeyword($words, $position + $options['delta'], $endPosition);
+        if (isset($keyword)) {
+            $keyValue = $this->toKeyValue($keyword, true);
+            $this->addToResult($keyValue[0], $keyValue[1]);
+            $endPosition = $keyword['endPosition'];
+        }
+        array_splice($words, $position, $endPosition - $position + 1);
+       
+        return $words;
+    }
+    
+    /**
      * Process <with> "quantity" 
      * 
      * @param array $words
