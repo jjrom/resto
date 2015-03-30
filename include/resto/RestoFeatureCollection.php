@@ -87,6 +87,11 @@ class RestoFeatureCollection {
      */
     private $totalCount = -1;
     
+    /*
+     * Query analyzer
+     */
+    private $queryAnalyzer;
+    
     /**
      * Constructor 
      * 
@@ -102,6 +107,10 @@ class RestoFeatureCollection {
         
         $this->context = $context;
         $this->user = $user;
+        if (isset($this->context->modules['QueryAnalyzer'])) {
+            $this->queryAnalyzer = new QueryAnalyzer($this->context, $this->user);
+        }
+ 
         $this->initialize($collections);
         
     }
@@ -203,7 +212,7 @@ class RestoFeatureCollection {
         /*
          * Query Analyzer 
          */
-        $searchFilters = $this->getSearchFilters($originalFilters);
+        $searchFilters = $this->analyze($originalFilters);
         
         /*
          * Read features from database
@@ -520,20 +529,6 @@ class RestoFeatureCollection {
     }
     
     /**
-     * Returned analyzed filters
-     * 
-     * @param array $params
-     */
-    private function getSearchFilters($params) {
-        if (isset($this->context->modules['QueryAnalyzer']) && !empty($params['searchTerms'])) {
-            $queryAnalyzer = new QueryAnalyzer($this->context, $this->user);
-            $analyzis = $queryAnalyzer->analyze($params, $this->defaultModel);
-            return $analyzis['analyze'];
-        }
-        return $params;
-    }
-    
-    /**
      * Return query array from search filters
      * 
      * @param array $searchFilters
@@ -571,5 +566,123 @@ class RestoFeatureCollection {
         $subtitle .= isset($this->description['properties']['startIndex']) ? '&nbsp;|&nbsp;' . $previous . $this->context->dictionary->translate('_pagination', $this->description['properties']['startIndex'], $this->description['properties']['startIndex'] + 1) . $next : '';
         return $subtitle;
     }
+    
+    /**
+     * Analyze searchTerms
+     * 
+     * @param array $params
+     */
+    private function analyze($params) {
+        
+        /*
+         * No searchTerms specify - leave input search filters untouched
+         */
+        if (empty($params['searchTerms'])) {
+            return $params;
+        }
+        
+        /*
+         * Analyze query
+         */
+        $analyzis = $this->queryAnalyzer->analyze($params['searchTerms']);
+        
+        /*
+         * What
+         */
+        $what = $this->setWhatFilters($analyzis['analyze']['What'], $params);
+        
+        /*
+         * When
+         */
+        $when = $this->setWhenFilters($analyzis['analyze']['When'], $what);
+        
+        /*
+         * Where
+         */
+        $where = $this->setWhereFilters($analyzis['analyze']['Where'], $when);
+        
+        return $where;
+    }
+    
+    /**
+     * Set what filters from query analysis
+     * 
+     * @param array $what
+     * @param array $params
+     */
+    private function setWhatFilters($what, $params) {
+        $params['searchTerms'] = array();
+        foreach($what as $key => $value) {
+            
+            /*
+             * Only one toponym is supported (the last one) 
+             */
+            if ($key === 'searchTerms') {
+                for ($i = count($value); $i--;) {
+                    $params['searchTerms'][] = $value[$i];
+                }
+            }
+            else {
+                $params[$key] = $value;
+            }
+        }
+        return $params;
+    }
+    
+    /**
+     * Set when filters from query analysis
+     * 
+     * @param array $when
+     * @param array $params
+     */
+    private function setWhenFilters($when, $params) {
+        foreach($when as $key => $value) {
+            
+            /*
+             * Only one toponym is supported (the last one) 
+             */
+            if ($key === 'time:start' || $key === 'time:end') {
+                $params[$key] = $value;
+            }
+            else {
+                $params['searchTerms'][] = $key . ':' . $value;
+            }
+        }
+        return $params;
+    }
+    
+    /**
+     * Set location filters from query analysis
+     * 
+     * @param array $where
+     * @param array $params
+     */
+    private function setWhereFilters($where, $params) {
+        for ($i = count($where); $i--;) {
+            
+            /*
+             * Only one toponym is supported (the last one) 
+             */
+            if (isset($where[$i]['geo:lon'])) {
+                $params['geo:lon'] = $where[$i]['geo:lon'];
+                $params['geo:lat'] = $where[$i]['geo:lat'];
+            }
+            /*
+             * Searching for keywords is faster than geometry
+             */
+            else if (isset($where[$i]['searchTerms'])) {
+                $params['searchTerms'][] = $where[$i]['searchTerms'];
+            }
+            /*
+             * Geometry
+             */
+            else {
+                $params['geo:geometry'] = $where[$i]['geometry'];
+            }
+        }
+        $params['searchTerms'] = join(' ', $params['searchTerms']);
+        return $params;
+    }
+    
     
 }
