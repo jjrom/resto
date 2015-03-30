@@ -363,6 +363,7 @@ psql -U $SUPERUSER -d $DB -f $DATADIR/platformsAndInstruments.sql
 psql -U $SUPERUSER -d $DB -f $DATADIR/landuses.sql
 psql -U $SUPERUSER -d $DB -f $DATADIR/continentsAndCountries.sql
 psql -U $SUPERUSER -d $DB -f $DATADIR/regionsAndStates.sql
+psql -U $SUPERUSER -d $DB -f $DATADIR/generalKeywords.sql
 
 # Normalize values
 psql -U $SUPERUSER -d $DB << EOF

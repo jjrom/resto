@@ -1,0 +1,30 @@
+-- Feature types
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('image', 'image', 'en', 'type');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('images', 'image', 'en', 'type');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('imagery', 'image', 'en', 'type');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('satellite', 'image', 'en', 'type');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('document', 'document', 'en', 'type');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('documents', 'document', 'en', 'type');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('report', 'document', 'en', 'type');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('reports', 'document', 'en', 'type');
+
+-- Feature subtypes
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('optical', 'optical', 'en', 'subtype');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('radar', 'radar', 'en', 'subtype');
+
+-- Events
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Cyclone', 'storm', 'en', 'event');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Typhoon', 'storm', 'en', 'event');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Huricane', 'storm', 'en', 'event');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Storm', 'storm', 'en', 'event');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Earthquake', 'earthquake', 'en', 'event');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Seism', 'earthquake', 'en', 'event');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Fire', 'fire', 'en', 'event');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Flood', 'flood', 'en', 'event');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Tsunami', 'flood', 'en', 'event');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Drift', 'flood', 'en', 'event');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Inundation', 'flood', 'en', 'event');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Landslide', 'landslide', 'en', 'event');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Oil spill', 'oilspill', 'en', 'event');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Volcanic eruption', 'eruption', 'en', 'event');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Eruption', 'eruption', 'en', 'event');
