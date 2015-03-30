@@ -194,6 +194,9 @@ class Gazetteer extends RestoModule {
             else if ($params['type'] === 'country') {
                 $this->results = $this->getCountries($query['toponym'], 0.1);
             }
+            else if ($params['type'] === 'continent') {
+                $this->results = $this->getContinents($query['toponym'], 0.5);
+            }
         }
         else {
             
@@ -211,6 +214,7 @@ class Gazetteer extends RestoModule {
            if (!isset($query['modifier'])) {
                $this->results = array_merge($this->results, $this->getStates($query['toponym'], 0.1));
                $this->results = array_merge($this->results, $this->getCountries($query['toponym'], 0.1));
+               $this->results = array_merge($this->results, $this->getContinents($query['toponym'], 0.5));
            }
         }
         
@@ -251,6 +255,29 @@ class Gazetteer extends RestoModule {
     }
     
     /**
+     * Search for continents
+     * 
+     * @param string $name
+     * @param float $tolerance (tolerance for polygon simplification in degrees)
+     */
+    private function getContinents($name, $tolerance = 0) {
+        $output = array();
+        $country = $this->context->dictionary->getKeyword(RestoDictionary::CONTINENT, $name);
+        if (isset($country)) {
+            $query = 'SELECT continent, normalize(continent) as continentid, ' . $this->getFormatFunction() . '(' . $this->simplify('geom', $tolerance, false) . ') as geometry FROM datasources.continents WHERE normalize(continent)=normalize(\'' . $country['keyword'] . '\')';
+            $results = pg_query($this->dbh, $query);
+            while ($row = pg_fetch_assoc($results)) {
+                $output[] = array(
+                    'name' => $this->context->dictionary->getKeywordFromValue($row['continentid'], 'continent'),
+                    'type' => 'continent',
+                    'geo:geometry' => $this->outputAsWKT ? $row['geometry'] : json_decode($row['geometry'], true)
+                );
+            }
+        }
+        return $output;
+    }
+    
+    /**
      * Search for countries
      * 
      * @param string $name
@@ -260,7 +287,7 @@ class Gazetteer extends RestoModule {
         $output = array();
         $country = $this->context->dictionary->getKeyword(RestoDictionary::COUNTRY, $name);
         if (isset($country)) {
-            $query = 'SELECT admin, normalize(admin) as countryid, continent, ' . $this->getFormatFunction() . '(' . $this->simplify('geom', $tolerance) . ') as geometry FROM datasources.countries WHERE normalize(admin)=normalize(\'' . $country['keyword'] . '\') order by admin';
+            $query = 'SELECT admin, normalize(admin) as countryid, continent, ' . $this->getFormatFunction() . '(' . $this->simplify('geom', $tolerance, true) . ') as geometry FROM datasources.countries WHERE normalize(admin)=normalize(\'' . $country['keyword'] . '\') order by admin';
             $results = pg_query($this->dbh, $query);
             while ($row = pg_fetch_assoc($results)) {
                 $output[] = array(
@@ -285,7 +312,7 @@ class Gazetteer extends RestoModule {
         $output = array();
         $state = $this->context->dictionary->getKeyword(RestoDictionary::STATE, $name);
         if (isset($state)) {
-            $query = 'SELECT name, normalize(name) as stateid, region, normalize(region) as regionid, admin, normalize(admin) as adminid, ' . $this->getFormatFunction() . '(' . $this->simplify('geom', $tolerance) . ') as geometry FROM datasources.worldadm1level WHERE normalize(name)=normalize(\'' . $state['keyword'] . '\') order by name';
+            $query = 'SELECT name, normalize(name) as stateid, region, normalize(region) as regionid, admin, normalize(admin) as adminid, ' . $this->getFormatFunction() . '(' . $this->simplify('geom', $tolerance, true) . ') as geometry FROM datasources.worldadm1level WHERE normalize(name)=normalize(\'' . $state['keyword'] . '\') order by name';
             $results = pg_query($this->dbh, $query);
             while ($row = pg_fetch_assoc($results)) {
                 $output[] = array(
@@ -371,10 +398,11 @@ class Gazetteer extends RestoModule {
      * 
      * @param string $geometryColumn
      * @param float $tolerance (tolerance for polygon simplification in degrees)
+     * @param booelan $preserveTopology
      * @return string
      */
-    private function simplify($geometryColumn, $tolerance) {
-        return $tolerance > 0 ? 'ST_SimplifyPreserveTopology(' . $geometryColumn . ',' . $tolerance . ')' : $geometryColumn;
+    private function simplify($geometryColumn, $tolerance, $preserveTopology) {
+        return $tolerance > 0 ? 'ST_Simplify' . ($preserveTopology ? 'PreserveTopology' : '') . '(' . $geometryColumn . ',' . $tolerance . ')' : $geometryColumn;
     }
     
     /**

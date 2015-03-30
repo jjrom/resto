@@ -161,12 +161,14 @@ class WhereProcessor {
          */
         $locationModifiers = array();
         $stopWordPosition = -1;
+        $length = 0;
+        
         for ($i = $position; $i <= $endPosition; $i++) {
             
             /*
              * Search for a location modifier
              */
-            $locationModifier = $this->getLocationModifier($words, $i, $endPosition, $stopWordPosition);
+            $locationModifier = $this->getLocationModifier($words, $i + $length, $endPosition, $stopWordPosition);
             
             /*
              * Eventually get the position of the last stopWord
@@ -180,7 +182,10 @@ class WhereProcessor {
              */
             if (isset($locationModifier)) {
                 $locationModifiers[] = $locationModifier;
-                continue;
+                $length = $locationModifier['endPosition'] - $locationModifier['startPosition'];
+            }
+            else {
+                $length = 0;
             }
             
         }

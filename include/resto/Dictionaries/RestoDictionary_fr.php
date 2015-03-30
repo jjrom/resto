@@ -88,7 +88,7 @@ class RestoDictionary_fr extends RestoDictionary {
         /*
          * Stop words i.e. excluded words
          */
-        'stopWords' => array('le','la', 'de','et','ou','l'),
+        'stopWords' => array('le', 'la', 'de', 'et', 'ou', 'l'),
         /*
          * List of words in the query that are
          * considered as 'noise' for the query analysis
