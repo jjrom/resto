@@ -105,79 +105,6 @@ abstract class RestoDictionary {
     }
     
     /**
-     * Add local dictionary to Dictionary
-     * 
-     * Local dictionary example :
-     * 
-     *  'dictionary_en' => array(
-     *      'keywords' => array(
-     *          'other' => array(
-     *              'cyclone' => 'cyclone',
-     *              'huricane' => 'cyclone'
-     *          )
-     *      ),
-     *      'translation' => array(
-     *         'oil_spill' => 'Oil Spill',
-     *         'volcanic_eruption' => 'Volcanic Eruption'
-     *      )
-     *  )
-     * 
-     * @param array $dictionary
-     */
-    public function add($dictionary = array()) {
-        
-        $default = 'dictionary_' . $this->language;
-        
-        if (is_array($dictionary) && isset($dictionary[$default])) {
-            
-            /*
-             * Update "quantities"
-             */
-            if (is_array($dictionary[$default]['quantities'])) {
-                foreach ($dictionary[$default]['quantities'] as $keyword => $value) {
-                    $this->dictionary['quantities'][$keyword] = $value;
-                }
-            }
-            /*
-             * Update "keywords"
-             */
-            if (is_array($dictionary[$default]['keywords'])) {
-                foreach (array_keys($dictionary[$default]['keywords']) as $type) {
-                    foreach ($dictionary[$default]['keywords'][$type] as $keyword => $value) {
-                        $this->dictionary['keywords'][$type][$keyword] = $value;
-                    }
-                }
-            }
-            /*
-             * Update "translation"
-             */
-            if (is_array($dictionary[$default]['translations'])) {
-                foreach ($dictionary[$default]['translations'] as $keyword => $value) {
-                    $this->translations[$keyword] = $value;
-                }
-            }
-            
-        }
-        
-    }
-    
-    /**
-     * Add translations to dictionary
-     * 
-     * @param array $translations
-     */
-    public function addTranslations($translations = array()) {
-        $this->translations = array_merge($this->translations, $translations);
-    }
-    
-    /**
-     * Return translation array
-     */
-    public function getTranslation() {
-        return $this->translations;
-    }
-    
-    /**
      * Return $property entry in dictionary identified by $name
      * 
      * @param string $property
@@ -195,16 +122,6 @@ abstract class RestoDictionary {
             }
         }
         return null;
-    }
-    
-    /**
-     * Return true if word is a modifier word
-     */
-    public function isModifier($word) {
-        if ($this->get(RestoDictionary::LOCATION_MODIFIER, $word) || $this->get(RestoDictionary::TIME_MODIFIER, $word) || $this->get(RestoDictionary::QUANTITY_MODIFIER, $word)) {
-            return true;
-        }
-        return false;
     }
     
     /**
@@ -263,24 +180,11 @@ abstract class RestoDictionary {
     }
     
     /**
-     * Return all keywords entry in dictionary
-     * 
+     * Return true if word is a modifier word
      */
-    public function getKeywords() {
-        return $this->dictionary['keywords'];
-    }
-    
-    /**
-     * Return true if $name value is present in
-     * keywords array
-     * 
-     * @param string $value
-     */
-    public function isKeywordsValue($value) {
-        foreach (array_keys($this->dictionary['keywords']) as $type) {
-            if (isset($this->dictionary['keywords'][$type][$value])) {
-                return true;
-            }
+    public function isModifier($word) {
+        if ($this->get(RestoDictionary::LOCATION_MODIFIER, $word) || $this->get(RestoDictionary::TIME_MODIFIER, $word) || $this->get(RestoDictionary::QUANTITY_MODIFIER, $word)) {
+            return true;
         }
         return false;
     }

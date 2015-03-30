@@ -54,21 +54,6 @@ abstract class RestoModule{
      */
     protected $options;
     
-    /*
-     * Translations array
-     *  array(
-     *      'en' => array(
-     *          'key' => 'translation',
-     *          ...
-     *      ),
-     *      'fr' => array(
-     *          ...
-     *      )
-     *      ...
-     *  )
-     */
-    protected $translations = array();
-    
     /**
      * Constructor
      * 
@@ -79,11 +64,6 @@ abstract class RestoModule{
         $this->context = $context;
         $this->user = $user;
         $this->options = $this->context->modules[get_class($this)];
-        if (isset($this->context)) {
-            if (isset($this->translations) && isset($this->translations[$this->context->dictionary->language])) {
-                $this->context->dictionary->addTranslations($this->translations[$this->context->dictionary->language]);
-            }
-        }
     }
     
     /**
