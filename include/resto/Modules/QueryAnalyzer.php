@@ -391,18 +391,22 @@ class QueryAnalyzer extends RestoModule {
          * Extract temporal element first
          */
         for ($i = 0, $ii = count($words); $i < $ii; $i++) {
-            $remainings = $this->whenProcessor->processIn($words, $i - 1, false);
+            $remainings = $this->whenProcessor->processIn($words, $i, 0, false);
             if (isset($remainings)) {
+                $words = $remainings;
                 break;
             }
-            $remainings = $words;
         }
+        
+        /*
+         * Extract keywords
+         */
         
         /*
          * Extract location elements
          */
-        if (count($remainings) > 0) {
-            $remainings = $this->whereProcessor->processIn($remainings, -1);
+        if (count($words) > 0) {
+            $remainings = $this->whereProcessor->processIn($words, 0, 0);
         }
         
         if (count($remainings) > 0) {

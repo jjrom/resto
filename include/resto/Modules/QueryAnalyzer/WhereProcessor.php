@@ -74,26 +74,20 @@ class WhereProcessor {
      * 
      * @param array $words
      * @param integer $position of word in the list
+     * @param integer $delta
      */
-    public function processIn($words, $position) {
+    public function processIn($words, $position, $delta = 1) {
         
         /*
          * Extract locations
          */
-        $location = $this->extractLocation($words, $position + 1);
+        $location = $this->extractLocation($words, $position + $delta);
         
         if (count($location['location']['results']) > 0) {
             $this->result[] = $this->getMostRelevantLocation($location['location']['results']);
         }
         else {
             $this->queryAnalyzer->error(QueryAnalyzer::LOCATION_NOT_FOUND, $location['location']['query']);
-        }
-        
-        /*
-         * Unstructured sentence
-         */
-        if ($position === -1) {
-            $position = 0;
         }
         
         array_splice($words, $position, $location['endPosition'] - $position + 1);
@@ -304,7 +298,9 @@ class WhereProcessor {
         /*
          * Search for toponym
          */
+        $discarded = array();
         while(true) {
+            
             $location = $gazetteer->search(array(
                 'q' => $toponymName . ($modifier !== '' ? ',' . $modifier : ''),
                 'wkt' => true
@@ -313,15 +309,21 @@ class WhereProcessor {
             /*
              * Location was found or toponym name has only one word left
              */
-            if (strrpos($toponymName, '-') === false || count($location['results']) > 0) {
+            $pos = strrpos($toponymName, '-');
+            if ($pos === false || count($location['results']) > 0) {
                 break;
             }
             
             /*
              * Remove last word
              */
-            $toponymName = substr($toponymName, 0, strrpos($toponymName, '-'));
+            $discarded[] = substr($toponymName, $pos + 1, strlen($toponymName));
+            $toponymName = substr($toponymName, 0, $pos);
             
+        }
+        
+        if (count($discarded) > 0) {
+            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, join(' ', $discarded));
         }
         
         return array(

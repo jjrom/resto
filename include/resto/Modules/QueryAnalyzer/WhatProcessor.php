@@ -77,10 +77,11 @@ class WhatProcessor {
      * 
      * @param array $words
      * @param integer $position
+     * @param integer $delta
      * 
      */
-    public function processWith($words, $position) {
-        return $this->processWithOrWithout($words, $position, true);
+    public function processWith($words, $position, $delta = 1) {
+        return $this->processWithOrWithout($words, $position, true, $delta);
     }
     
     /**
@@ -222,16 +223,17 @@ class WhatProcessor {
      * @param array $words
      * @param integer $position
      * @param boolean $with
+     * @param integer $delta
      * 
      */
-    private function processWithOrWithout($words, $position, $with = true) {
+    private function processWithOrWithout($words, $position, $with = true, $delta = 1) {
        
-        $endPosition = $this->queryAnalyzer->getEndPosition($words, $position + 1);
+        $endPosition = $this->queryAnalyzer->getEndPosition($words, $position + $delta);
                 
         /*
          * <with/without> nothing
          */
-        if (!isset($words[$position + 1])) {
+        if (!isset($words[$position + $delta])) {
             $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
         }
         /*
@@ -239,13 +241,13 @@ class WhatProcessor {
          * <without> "quantity" means quantity = 0
          */
         else {
-            $quantity = $this->extractQuantity($words, $position + 1, $endPosition);
+            $quantity = $this->extractQuantity($words, $position + $delta, $endPosition);
             if (isset($quantity)) {
                 $this->result[] = array($quantity['key'] => $with ? ']0' : 0);
                 $endPosition = $quantity['endPosition'];
             }
             else {
-                $keyword = $this->extractKeyword($words, $position + 1, $endPosition);
+                $keyword = $this->extractKeyword($words, $position + $delta, $endPosition);
                 if (isset($keyword)) {
                     $this->result[] = array('searchTerms' => ($with ? '' : '-') . $keyword['type'] . ':' . $keyword['keyword']); 
                 }
