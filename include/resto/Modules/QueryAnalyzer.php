@@ -392,7 +392,7 @@ class QueryAnalyzer extends RestoModule {
         /*
          * Extract keywords
          */
-        for ($i = 0, $ii = count($words); $i < $ii; $i++) {
+        for ($i = count($words); $i--;) {
             $remainings = $this->whatProcessor->processWith($words, $i, array(
                 'delta' => 0,
                 'nullIfNotFound' => true
@@ -401,7 +401,7 @@ class QueryAnalyzer extends RestoModule {
                 $words = $remainings;
             }
         }
-        
+       
         /*
          * Extract temporal element
          */
