@@ -723,7 +723,12 @@ class WhatProcessor {
                 $this->result[$key] = isset($this->result[$key]) ? $this->result[$key] . '|' . $value : $value;
                 break;
             case 'searchTerms':
-                $this->result[$key] = isset($this->result[$key]) ? $this->result[$key] . ' ' . $value : $value;
+                if (!isset($this->result[$key])) {
+                    $this->result[$key] = array();
+                }
+                $this->result[$key][] = $value;
+                $this->result[$key] = array_unique($this->result[$key]);
+                break;
             default:
                 $this->result[$key] = $this->mergeIntervals($key, $value);
         }
