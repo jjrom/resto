@@ -591,7 +591,7 @@ abstract class RestoModel {
     /**
      * Remap properties array accordingly to $inputMapping array
      * 
-     *  $inputMapping array strucuture:
+     *  $inputMapping array structure:
      *      
      *          array(
      *              'propertyNameInInputFile' => 'restoPropertyName' or array('restoPropertyName1', 'restoPropertyName2)

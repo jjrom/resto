@@ -598,7 +598,7 @@ class Functions_filters {
     private function getTypeAndValue($searchTerm) {
         $typeAndValue = explode(':', $searchTerm);
         if (count($typeAndValue) !== 2) {
-            RestoLogUtil::httpError(400, 'Invalid keyword strucuture ' . $searchTerm);
+            RestoLogUtil::httpError(400, 'Invalid keyword structure ' . $searchTerm);
         }
         return $typeAndValue;
     }
