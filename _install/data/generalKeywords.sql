@@ -2,7 +2,6 @@
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('image', 'image', 'en', 'type');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('images', 'image', 'en', 'type');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('imagery', 'image', 'en', 'type');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('satellite', 'image', 'en', 'type');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('document', 'document', 'en', 'type');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('documents', 'document', 'en', 'type');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('report', 'document', 'en', 'type');
