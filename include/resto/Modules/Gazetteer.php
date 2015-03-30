@@ -270,6 +270,7 @@ class Gazetteer extends RestoModule {
                 $output[] = array(
                     'name' => $this->context->dictionary->getKeywordFromValue($row['continentid'], 'continent'),
                     'type' => 'continent',
+                    'searchTerms' => 'continent:' . $row['continentid'],
                     'geo:geometry' => $this->outputAsWKT ? $row['geometry'] : json_decode($row['geometry'], true)
                 );
             }
@@ -293,6 +294,7 @@ class Gazetteer extends RestoModule {
                 $output[] = array(
                     'name' => $this->context->dictionary->getKeywordFromValue($row['countryid'], 'country'),
                     'type' => 'country',
+                    'searchTerms' => 'country:' . $row['countryid'],
                     'geo:geometry' => $this->outputAsWKT ? $row['geometry'] : json_decode($row['geometry'], true)
                 );
             }
@@ -320,6 +322,7 @@ class Gazetteer extends RestoModule {
                     'type' => 'state',
                     'region' => $row['region'],
                     'country' => $row['admin'],
+                    'searchTerms' => 'state:' . $row['stateid'],
                     'geo:geometry' => $this->outputAsWKT ? $row['geometry'] : json_decode($row['geometry'], true)
                 );
             }
