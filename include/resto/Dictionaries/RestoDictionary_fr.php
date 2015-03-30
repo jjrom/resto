@@ -94,18 +94,7 @@ class RestoDictionary_fr extends RestoDictionary {
          * considered as 'noise' for the query analysis
          * and thus excluded from the analysis
          */
-        'excluded' => array(
-            'image',
-            'images',
-            'acquise',
-            'acquises',
-            'comprise',
-            'comprises',
-            'couverture',
-            'aire',
-            'zone',
-            'ayant'
-        ),
+        'noise' => array('acquis', 'comprise'),
         /*
          * Months
          */

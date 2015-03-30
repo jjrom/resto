@@ -286,15 +286,17 @@ abstract class RestoDictionary {
     }
     
     /**
-     * Return true if $name is an excluded word
+     * Return true if $name looks like noise
      * 
      * @param string $name : normalized name
      */
-    public function isExcluded($name) {
-        if (!is_array($this->dictionary['excluded'])) {
-            return false;
+    public function isNoise($name) {
+        for ($i = count($this->dictionary['noise']); $i--;) {
+            if (strpos($name, $this->dictionary['noise'][$i]) !== false) {
+                return true;
+            }
         }
-        return in_array($name, $this->dictionary['excluded']);
+        return false;
     }
     
     /**

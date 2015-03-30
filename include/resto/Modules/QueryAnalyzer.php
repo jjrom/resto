@@ -280,7 +280,7 @@ class QueryAnalyzer extends RestoModule {
     }
     
     /**
-     * Concatenate words into sentence
+     * Concatenate words into sentence removing noise and stop words
      * 
      * @param string $query
      * @return array
@@ -291,7 +291,7 @@ class QueryAnalyzer extends RestoModule {
             if (!isset($words[$i])) {
                 continue;
             }
-            if ($discardStopWords && $this->dictionary->isStopWord($words[$i])) {
+            if ($discardStopWords && ($this->dictionary->isStopWord($words[$i]) || $this->dictionary->isNoise($words[$i]))) {
                 continue;
             }
             $sentence .= $words[$i] . ' ';
