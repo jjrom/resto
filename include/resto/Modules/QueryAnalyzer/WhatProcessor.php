@@ -197,13 +197,13 @@ class WhatProcessor {
             $value = (floatval($extracted['valuedUnit']['value']) * $extracted['valuedUnit']['unit']['factor']);
             switch ($modifier) {
                 case WhatProcessor::EQUAL:
-                    $this->result[] = array($extracted['quantity']['key'] => $value);
+                    $this->addToResult($extracted['quantity']['key'], $value);
                     break;
                 case WhatProcessor::GREATER:
-                    $this->result[] = array($extracted['quantity']['key'] => ']' .$value);
+                    $this->addToResult($extracted['quantity']['key'], ']' .$value);
                     break;
                 case WhatProcessor::LESSER:
-                    $this->result[] = array($extracted['quantity']['key'] => $value . '[');
+                    $this->addToResult($extracted['quantity']['key'], $value . '[');
                     break;
             }
         }
@@ -244,13 +244,14 @@ class WhatProcessor {
         else {
             $quantity = $this->extractQuantity($words, $position + $options['delta'], $endPosition);
             if (isset($quantity)) {
-                $this->result[] = array($quantity['key'] => $with ? ']0' : 0);
+                $this->addToResult($quantity['key'], $with ? ']0' : 0);
                 $endPosition = $quantity['endPosition'];
             }
             else {
                 $keyword = $this->extractKeyword($words, $position + $options['delta'], $endPosition);
                 if (isset($keyword)) {
-                    $this->result[] = array('searchTerms' => ($with ? '' : '-') . $keyword['type'] . ':' . $keyword['keyword']);
+                    $keyValue = $this->toKeyValue($keyword, $with);
+                    $this->addToResult($keyValue[0], $keyValue[1]);
                     $endPosition = $keyword['endPosition'];
                 }
                 else {
@@ -306,7 +307,7 @@ class WhatProcessor {
             $endPosition = max(array($startPosition, $quantity['endPosition']));
             
             if ($normalizedUnit['unit']['unit'] === $quantity['unit']) {
-                $this->result[] = array($quantity['key'] => '[' . (floatval($values[0]) * $normalizedUnit['unit']['factor']) . ',' . (floatval($values[1]) * $normalizedUnit['unit']['factor']) . ']');
+                $this->addToResult($quantity['key'], '[' . (floatval($values[0]) * $normalizedUnit['unit']['factor']) . ',' . (floatval($values[1]) * $normalizedUnit['unit']['factor']) . ']');
             }
             else {
                 $this->queryAnalyzer->error(QueryAnalyzer::INVALID_UNIT, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
@@ -360,7 +361,7 @@ class WhatProcessor {
             $endPosition = max(array($startPosition, $quantity['endPosition']));
             
             if (!isset($quantity['unit'])) {
-                $this->result[] = array($quantity['key'] => '[' . $values[0] . ',' . $values[1] . ']');
+                $this->addToResult($quantity['key'], '[' . $values[0] . ',' . $values[1] . ']');
             }
             else {
                 $this->queryAnalyzer->error(QueryAnalyzer::MISSING_UNIT, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
@@ -671,5 +672,49 @@ class WhatProcessor {
         );
     }
     
+    /**
+     * Return result as a filter from keyword
+     * 
+     * @param array $keyword
+     * @param boolean $with
+     */
+    private function toKeyValue($keyword, $with) {
+        $sign = ($with ? '' : '-');
+        switch ($keyword['type']) {
+            case 'instrument':
+            case 'platform':
+                return array('eo:'.$keyword['type'], $sign . $keyword['keyword']);
+            default:
+                return array('searchTerms', $sign . $keyword['type'] . ':' . $keyword['keyword']);
+        }
+    }
     
+    /**
+     * Add a key to result
+     * 
+     * @param string $key
+     * @param string $value
+     */
+    private function addToResult($key, $value) {
+        switch ($key) {
+            case 'eo:instrument':
+            case 'eo:platform':
+                $this->result[$key] = isset($this->result[$key]) ? $this->result[$key] . '|' . $value : $value;
+                break;
+            case 'searchTerms':
+                $this->result[$key] = isset($this->result[$key]) ? $this->result[$key] . ' ' . $value : $value;
+            default:
+                $this->result[$key] = $this->mergeIntervals($key, $value);
+        }
+    }
+    
+    /**
+     * Merge intervals TODO
+     * 
+     * @param string $key
+     * @param string $value
+     */
+    private function mergeIntervals($key, $value) {
+        return isset($this->result[$key]) ? $this->result[$key] . ' ' . $value : $value;
+    }
 }

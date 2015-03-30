@@ -285,10 +285,16 @@ class QueryAnalyzer extends RestoModule {
      * @param string $query
      * @return array
      */
-    public function toSentence($words, $startPosition, $endPosition) {
+    public function toSentence($words, $startPosition, $endPosition, $discardStopWords = false) {
         $sentence = '';
         for ($i = $startPosition; $i <= $endPosition; $i++) {
-            $sentence .= isset($words[$i]) ? $words[$i] . ' ' : '';
+            if (!isset($words[$i])) {
+                continue;
+            }
+            if ($discardStopWords && $this->dictionary->isStopWord($words[$i])) {
+                continue;
+            }
+            $sentence .= $words[$i] . ' ';
         }
         return trim($sentence);
     }
@@ -392,6 +398,22 @@ class QueryAnalyzer extends RestoModule {
         /*
          * Extract keywords
          */
+        $remainings = $this->processRemainingWhenWhere($this->processRemainingWhat($words));
+        
+        /*
+         * Remaining words
+         */
+        $this->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->toSentence($remainings, 0, count($remainings), true));
+        
+    }
+    
+    /**
+     * Process remaining What words
+     * 
+     * @param array $words
+     * @return array
+     */
+    private function processRemainingWhat($words) {
         for ($i = count($words); $i--;) {
             $remainings = $this->whatProcessor->processWith($words, $i, array(
                 'delta' => 0,
@@ -401,10 +423,16 @@ class QueryAnalyzer extends RestoModule {
                 $words = $remainings;
             }
         }
-       
-        /*
-         * Extract temporal element
-         */
+        return $words;
+    }
+    
+    /**
+     * Process remaining When and Where words
+     * 
+     * @param array $words
+     * @return array
+     */
+    private function processRemainingWhenWhere($words) {
         foreach (array_values(array('when', 'what')) as $processorType) { 
             for ($i = 0, $ii = count($words); $i < $ii; $i++) {
                 $remainings = $processorType === 'when' ?
@@ -422,11 +450,7 @@ class QueryAnalyzer extends RestoModule {
                 }
             }
         }
-        
-        if (count($words) > 0) {
-            $this->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->toSentence($words, 0, count($words)));
-        }
-        
+        return $words;
     }
     
     /**

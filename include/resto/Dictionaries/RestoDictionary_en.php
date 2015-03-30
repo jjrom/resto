@@ -100,7 +100,9 @@ class RestoDictionary_en extends RestoDictionary {
             'the',
             'of',
             'with',
-            'than'
+            'than',
+            'or',
+            'and'
         ),
         /*
          * List of words in the query that are
