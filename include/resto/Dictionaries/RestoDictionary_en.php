@@ -96,7 +96,7 @@ class RestoDictionary_en extends RestoDictionary {
         /*
          * Stop words i.e. excluded words
          */
-        'stopWords' => array('a', 'the', 'of', 'with', 'than', 'or', 'and', 'by', 'acquired'),
+        'stopWords' => array('a', 'the', 'of', 'with', 'than', 'that', 'or', 'and', 'by', 'acquired'),
         /*
          * List of words in the query that are
          * considered as 'noise' for the query analysis

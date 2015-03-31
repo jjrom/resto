@@ -229,7 +229,7 @@ class WhatProcessor {
             }
         }
         else {
-            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $extracted['startPosition'], $extracted['endPosition']));
+            $this->queryAnalyzer->notUnderstood($this->queryAnalyzer->slice($words, $extracted['startPosition'], $extracted['endPosition']));
         }
         
         array_splice($words, $extracted['startPosition'], $extracted['endPosition'] - $extracted['startPosition'] + 1);
@@ -256,7 +256,7 @@ class WhatProcessor {
          * <with/without> nothing
          */
         if (!isset($words[$position + $options['delta']])) {
-            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
+            $this->queryAnalyzer->notUnderstood($this->queryAnalyzer->slice($words, $position, $endPosition));
         }
         /*
          * <with> "quantity" means quantity
@@ -279,7 +279,7 @@ class WhatProcessor {
                     if ($options['nullIfNotFound']) {
                         return null;
                     }
-                    $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
+                    $this->queryAnalyzer->notUnderstood($this->queryAnalyzer->slice($words, $position, $endPosition));
                 }
             }
         }
@@ -331,11 +331,11 @@ class WhatProcessor {
                 $this->addToResult($quantity['key'], '[' . (floatval($values[0]) * $normalizedUnit['unit']['factor']) . ',' . (floatval($values[1]) * $normalizedUnit['unit']['factor']) . ']');
             }
             else {
-                $this->queryAnalyzer->error(QueryAnalyzer::INVALID_UNIT, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
+                $this->queryAnalyzer->error(QueryAnalyzer::INVALID_UNIT, $this->queryAnalyzer->slice($words, $position, $endPosition));
             }
         }
         else {
-            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
+            $this->queryAnalyzer->notUnderstood($this->queryAnalyzer->slice($words, $position, $endPosition));
         }
         
         array_splice($words, $position, $endPosition - $position + 1);
@@ -385,7 +385,7 @@ class WhatProcessor {
                 $this->addToResult($quantity['key'], '[' . $values[0] . ',' . $values[1] . ']');
             }
             else {
-                $this->queryAnalyzer->error(QueryAnalyzer::MISSING_UNIT, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
+                $this->queryAnalyzer->error(QueryAnalyzer::MISSING_UNIT, $this->queryAnalyzer->slice($words, $position, $endPosition));
             }
         }
         /*
@@ -470,6 +470,9 @@ class WhatProcessor {
                     'type' => $keyword['type']
                 );
             }
+            else {
+                $this->queryAnalyzer->notUnderstood(array($word));
+            }
 
         }
         return null;
@@ -524,7 +527,7 @@ class WhatProcessor {
                 );
             }
             else {
-                $this->queryAnalyzer->error(QueryAnalyzer::INVALID_UNIT, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
+                $this->queryAnalyzer->error(QueryAnalyzer::INVALID_UNIT, $this->queryAnalyzer->slice($words, $position, $endPosition));
                 return array(
                     'startPosition' => $startPosition,
                     'endPosition' => $endPosition

@@ -11,6 +11,9 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('reports', 'documen
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('optical', 'optical', 'en', 'subtype');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('radar', 'radar', 'en', 'subtype');
 
+-- Location modifiers
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('coastal', 'coastal', 'en', 'location');
+
 -- Events
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Cyclone', 'storm', 'en', 'event');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Typhoon', 'storm', 'en', 'event');

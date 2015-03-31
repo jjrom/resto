@@ -251,18 +251,25 @@ class QueryAnalyzer extends RestoModule {
     }
     
     /**
-     * Add words to not understood array
+     * Add text to error array
      * 
      * @param array $error
-     * @param string $text
+     * @param array $words
      */
-    public function error($error, $text) {
-        if (!empty($text)) {
-            $this->errors[] = array(
-                'error' => $error,
-                'text' => $text
-            );
-        }
+    public function error($error, $words) {
+        $this->errors[] = array(
+            'error' => $error,
+            'text' => $this->mergeWords($this->slice($words, 0, count($words)))
+        );
+    }
+    
+    /**
+     * Add words to not understood array
+     * 
+     * @param array $words
+     */
+    public function notUnderstood($words) {
+        $this->error(QueryAnalyzer::NOT_UNDERSTOOD, $words);
     }
     
     /**
@@ -282,15 +289,12 @@ class QueryAnalyzer extends RestoModule {
     /**
      * Concatenate words into sentence removing noise and stop words
      * 
-     * @param string $query
+     * @param array $words
      * @return array
      */
-    public function toSentence($words, $startPosition, $endPosition, $discardStopWords = false) {
+    private function mergeWords($words, $discardStopWords = false) {
         $sentence = '';
-        for ($i = $startPosition; $i <= $endPosition; $i++) {
-            if (!isset($words[$i])) {
-                continue;
-            }
+        for ($i = 0, $ii = count($words); $i < $ii; $i++) {
             if ($discardStopWords && ($this->dictionary->isStopWord($words[$i]) || $this->dictionary->isNoise($words[$i]))) {
                 continue;
             }
@@ -319,6 +323,9 @@ class QueryAnalyzer extends RestoModule {
             $this->processRemainingWords($words);
         }
         
+        /*
+         * Return processing results
+         */
         return array(
             'What' => $this->whatProcessor->result,
             'When' => $this->whenProcessor->result,
@@ -403,7 +410,7 @@ class QueryAnalyzer extends RestoModule {
         /*
          * Remaining words
          */
-        $this->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->toSentence($remainings, 0, count($remainings), true));
+        $this->notUnderstood($remainings, true);
         
     }
     
@@ -439,7 +446,7 @@ class QueryAnalyzer extends RestoModule {
                         $this->whenProcessor->processIn($words, $i, array(
                             'delta' => 0,
                             'nullIfNotFound' => true
-                        )) :
+                        )) : 
                         $this->whereProcessor->processIn($words, $i, array(
                             'delta' => 0,
                             'nullIfNotFound' => true
@@ -512,5 +519,5 @@ class QueryAnalyzer extends RestoModule {
         }
         return null;
     }
-
+    
 }

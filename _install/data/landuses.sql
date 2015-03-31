@@ -19,6 +19,8 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Urban', 'urban','e
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('City', 'urban','en', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Cities', 'urban','en', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Urban Area', 'urban','en', 'landuse');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Town', 'urban','en', 'landuse');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Towns', 'urban','en', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Cultivated Area', 'cultivated','en', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Cultivated', 'cultivated','en', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Cropland', 'cultivated','en', 'landuse');

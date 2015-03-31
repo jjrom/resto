@@ -140,7 +140,7 @@ class WhenProcessor {
             $endPosition = $secondDate['endPosition'];
         }
         else {
-            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
+            $this->queryAnalyzer->notUnderstood($this->queryAnalyzer->slice($words, $position, $endPosition));
         }
         array_splice($words, $position, $endPosition - $position + 1);
        
@@ -208,7 +208,7 @@ class WhenProcessor {
         }
         
         if (empty($date['date'])) {
-            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
+            $this->queryAnalyzer->notUnderstood($this->queryAnalyzer->slice($words, $position, $endPosition));
         }
         else {
             $this->addToResult('time:start', $this->toLowestDay($date['date']));
@@ -401,7 +401,7 @@ class WhenProcessor {
          * No date found - remove modifier only from words list
          */
         if (empty($date['date'])) {
-            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $position,  $date['endPosition']));
+            $this->queryAnalyzer->notUnderstood($this->queryAnalyzer->slice($words, $position,  $date['endPosition']));
         }
         /*
          * Date found - add to outputFilters and remove modifier and date from words list
@@ -464,7 +464,7 @@ class WhenProcessor {
             $delta = $duration['firstIsNotLast'] ? 1 : 0;
         }
         else {
-            $this->queryAnalyzer->error(QueryAnalyzer::MISSING_UNIT, $this->queryAnalyzer->toSentence($words, $position,  $duration['endPosition']));
+            $this->queryAnalyzer->error(QueryAnalyzer::MISSING_UNIT, $this->queryAnalyzer->slice($words, $position,  $duration['endPosition']));
         }
         array_splice($words, $position - $delta, $duration['endPosition'] - $position + 1 + $delta);
         return $words;

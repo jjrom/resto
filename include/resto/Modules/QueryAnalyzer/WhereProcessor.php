@@ -354,7 +354,7 @@ class WhereProcessor {
         }
         
         if (count($discarded) > 0) {
-            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, join(' ', $discarded));
+            $this->queryAnalyzer->notUnderstood(array_reverse($discarded));
         }
         
         return array(
