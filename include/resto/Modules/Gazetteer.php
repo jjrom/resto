@@ -183,39 +183,42 @@ class Gazetteer extends RestoModule {
          */
         $query = $this->splitQuery($this->context->dbDriver->normalize($params['q']));
         
-        
         /*
          * Limit search to input type
          */
-        if (isset($params['type'])) {
-            if ($params['type'] === 'state') {
+        $type = isset($params['type']) ? $params['type'] : null;
+        switch ($type) {
+            /*
+             * State only
+             */
+            case 'state':
                 $this->results = $this->getStates($query['toponym'], 0.1);
-            }
-            else if ($params['type'] === 'country') {
+                break;
+            /*
+             * Country only
+             */
+            case 'country':
                 $this->results = $this->getCountries($query['toponym'], 0.1);
-            }
-            else if ($params['type'] === 'continent') {
+                break;
+            /*
+             * Continent only
+             */
+            case 'continent':
                 $this->results = $this->getContinents($query['toponym'], 0.5);
-            }
-        }
-        else {
-            
-           /*
-            * Search for cities
-            */
-           $this->results = $this->getToponyms($query['toponym'], array(
-               'bbox' => isset($params['bbox']) ? $params['bbox'] : null,
-               'modifier' => isset($query['modifier']) ? $query['modifier'] : null
-           ));
-
-           /*
-            * "Toponym" search only => search also for states and countries
-            */
-           if (!isset($query['modifier'])) {
-               $this->results = array_merge($this->results, $this->getStates($query['toponym'], 0.1));
-               $this->results = array_merge($this->results, $this->getCountries($query['toponym'], 0.1));
-               $this->results = array_merge($this->results, $this->getContinents($query['toponym'], 0.5));
-           }
+                break;
+            /*
+             * Search for all
+             */
+            default:
+                $this->results = $this->getToponyms($query['toponym'], array(
+                    'bbox' => isset($params['bbox']) ? $params['bbox'] : null,
+                    'modifier' => isset($query['modifier']) ? $query['modifier'] : null
+                ));
+                if (!isset($query['modifier'])) {
+                    $this->results = array_merge($this->results, $this->getStates($query['toponym'], 0.1));
+                    $this->results = array_merge($this->results, $this->getCountries($query['toponym'], 0.1));
+                    $this->results = array_merge($this->results, $this->getContinents($query['toponym'], 0.5));
+                }
         }
         
         return RestoLogUtil::success(count($this->results) . ' toponym(s) found', array(
