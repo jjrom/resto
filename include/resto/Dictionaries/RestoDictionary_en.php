@@ -75,7 +75,7 @@ class RestoDictionary_en extends RestoDictionary {
             'lesser' => array('lesser', '<', 'less', 'lower'),
             'with' => array('with', 'containing'),
             'without' => array('without', 'no'),
-            'by' => array('by')
+            'for' => array('by', 'for')
         ),
         /*
          * Time modifiers

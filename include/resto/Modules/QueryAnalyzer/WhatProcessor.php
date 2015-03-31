@@ -73,14 +73,14 @@ class WhatProcessor {
     }
     
     /**
-     * Process <by> "quantity" 
+     * Process <for> "keyword" 
      * 
      * @param array $words
      * @param integer $position
      * @param array $options
      * 
      */
-    public function processBy($words, $position, $options = array('delta' => 1, 'nullIfNotFound' => false)) {
+    public function processFor($words, $position, $options = array('delta' => 1, 'nullIfNotFound' => false)) {
         $endPosition = $this->queryAnalyzer->getEndPosition($words, $position + $options['delta']);
         $keyword = $this->extractKeyword($words, $position + $options['delta'], $endPosition);
         if (isset($keyword)) {
