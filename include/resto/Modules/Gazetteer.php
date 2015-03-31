@@ -262,21 +262,7 @@ class Gazetteer extends RestoModule {
      * @param float $tolerance (tolerance for polygon simplification in degrees)
      */
     private function getContinents($name, $tolerance = 0) {
-        $output = array();
-        $country = $this->context->dictionary->getKeyword(RestoDictionary::CONTINENT, $name);
-        if (isset($country)) {
-            $query = 'SELECT continent, normalize(continent) as continentid, ' . $this->getFormatFunction() . '(' . $this->simplify('geom', $tolerance, false) . ') as geometry FROM datasources.continents WHERE normalize(continent)=normalize(\'' . $country['keyword'] . '\')';
-            $results = pg_query($this->dbh, $query);
-            while ($row = pg_fetch_assoc($results)) {
-                $output[] = array(
-                    'name' => $this->context->dictionary->getKeywordFromValue($row['continentid'], 'continent'),
-                    'type' => 'continent',
-                    'searchTerms' => 'continent:' . $row['continentid'],
-                    'geo:geometry' => $this->outputAsWKT ? $row['geometry'] : json_decode($row['geometry'], true)
-                );
-            }
-        }
-        return $output;
+        return $this->getContinentsOrCountries($name, 'continent', $tolerance);
     }
     
     /**
@@ -286,21 +272,7 @@ class Gazetteer extends RestoModule {
      * @param float $tolerance (tolerance for polygon simplification in degrees)
      */
     private function getCountries($name, $tolerance = 0) {
-        $output = array();
-        $country = $this->context->dictionary->getKeyword(RestoDictionary::COUNTRY, $name);
-        if (isset($country)) {
-            $query = 'SELECT admin, normalize(admin) as countryid, continent, ' . $this->getFormatFunction() . '(' . $this->simplify('geom', $tolerance, true) . ') as geometry FROM datasources.countries WHERE normalize(admin)=normalize(\'' . $country['keyword'] . '\') order by admin';
-            $results = pg_query($this->dbh, $query);
-            while ($row = pg_fetch_assoc($results)) {
-                $output[] = array(
-                    'name' => $this->context->dictionary->getKeywordFromValue($row['countryid'], 'country'),
-                    'type' => 'country',
-                    'searchTerms' => 'country:' . $row['countryid'],
-                    'geo:geometry' => $this->outputAsWKT ? $row['geometry'] : json_decode($row['geometry'], true)
-                );
-            }
-        }
-        return $output;
+        return $this->getContinentsOrCountries($name, 'country', $tolerance);
     }
     
     /**
@@ -513,4 +485,37 @@ class Gazetteer extends RestoModule {
         return $this->outputAsWKT ? 'ST_AsText' : 'ST_AsGeoJSON';
     }
     
+    /**
+     * Search for countries
+     * 
+     * @param string $name
+     * @param string $type
+     * @param float $tolerance (tolerance for polygon simplification in degrees)
+     */
+    private function getContinentsOrCountries($name, $type, $tolerance = 0) {
+        
+        switch ($type) {
+            case 'country':
+                $keyword = $this->context->dictionary->getKeyword(RestoDictionary::COUNTRY, $name);
+                $query = 'SELECT admin, normalize(admin) as normalized, continent, ' . $this->getFormatFunction() . '(' . $this->simplify('geom', $tolerance, true) . ') as geometry FROM datasources.countries WHERE normalize(admin)=normalize(\'' . $keyword['keyword'] . '\') order by admin';
+                break;
+            default:
+                $keyword = $this->context->dictionary->getKeyword(RestoDictionary::CONTINENT, $name);
+                $query = 'SELECT continent, normalize(continent) as normalized, ' . $this->getFormatFunction() . '(' . $this->simplify('geom', $tolerance, false) . ') as geometry FROM datasources.continents WHERE normalize(continent)=normalize(\'' . $keyword['keyword'] . '\')';
+            }
+        
+        $output = array();
+        if (isset($keyword)) {
+            $results = pg_query($this->dbh, $query);
+            while ($row = pg_fetch_assoc($results)) {
+                $output[] = array(
+                    'name' => $this->context->dictionary->getKeywordFromValue($row['normalized'], $type),
+                    'type' => $type,
+                    'searchTerms' => $type . ':' . $row['normalized'],
+                    'geo:geometry' => $this->outputAsWKT ? $row['geometry'] : json_decode($row['geometry'], true)
+                );
+            }
+        }
+        return $output;
+    }
 }
