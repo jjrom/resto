@@ -257,10 +257,13 @@ class QueryAnalyzer extends RestoModule {
      * @param array $words
      */
     public function error($error, $words) {
-        $this->errors[] = array(
-            'error' => $error,
-            'text' => $this->mergeWords($this->slice($words, 0, count($words)))
-        );
+        $merged = $this->mergeWords($this->slice($words, 0, count($words)));
+        if (!empty($merged)) {
+            $this->errors[] = array(
+                'error' => $error,
+                'text' => $this->mergeWords($this->slice($words, 0, count($words)))
+            );
+        }
     }
     
     /**
@@ -269,6 +272,9 @@ class QueryAnalyzer extends RestoModule {
      * @param array $words
      */
     public function notUnderstood($words) {
+        if (!is_array($words)) {
+            $words = array($words);
+        }
         $this->error(QueryAnalyzer::NOT_UNDERSTOOD, $words);
     }
     

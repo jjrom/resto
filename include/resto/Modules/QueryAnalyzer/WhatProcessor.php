@@ -470,11 +470,10 @@ class WhatProcessor {
                     'type' => $keyword['type']
                 );
             }
-            else {
-                $this->queryAnalyzer->notUnderstood(array($word));
-            }
-
         }
+        
+        $this->queryAnalyzer->notUnderstood($word);
+        
         return null;
     }
     

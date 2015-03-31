@@ -98,7 +98,7 @@ class WhereProcessor {
             if ($options['nullIfNotFound']) {
                 return null;
             }
-            $this->queryAnalyzer->error(QueryAnalyzer::LOCATION_NOT_FOUND, $location['location']['query']);
+            $this->queryAnalyzer->error(QueryAnalyzer::LOCATION_NOT_FOUND, array($location['location']['query']));
         }
         
         array_splice($words, $position, $location['endPosition'] - $position + 1);
@@ -324,7 +324,6 @@ class WhereProcessor {
      * @return type
      */
     private function getToponymFromTuples($toponymName, $modifier, $endPosition) {
-        
         
         /*
          * Search for toponym

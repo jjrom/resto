@@ -63,7 +63,7 @@ class RestoDictionary_en extends RestoDictionary {
          * Location modifiers
          */
         'locationModifiers' => array(
-            'in' => array('in', 'on', 'of', 'near', 'around', 'for')
+            'in' => array('in', 'on', 'of', 'near', 'around', 'for', 'covers')
         ),
         /*
          * Quantity modifiers
@@ -75,7 +75,7 @@ class RestoDictionary_en extends RestoDictionary {
             'lesser' => array('lesser', '<', 'less', 'lower'),
             'with' => array('with', 'containing'),
             'without' => array('without', 'no'),
-            'for' => array('by', 'for')
+            'for' => array('by', 'for', 'about')
         ),
         /*
          * Time modifiers
