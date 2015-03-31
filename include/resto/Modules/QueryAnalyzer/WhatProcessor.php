@@ -39,7 +39,7 @@
  */
 
 /**
- * QueryAnalyser What
+ * QueryAnalyzer What
  * 
  * @param array $params
  */
@@ -55,19 +55,19 @@ class WhatProcessor {
     public $result = array();
     
     /*
-     * Reference to QueryAnalyser
+     * Reference to QueryAnalyzer
      */
-    private $queryAnalyser;
+    private $queryAnalyzer;
     
     /**
      * Constructor
      * 
-     * @param QueryAnalyser $queryAnalyser
+     * @param QueryAnalyzer $queryAnalyzer
      * @param RestoContext $context
      * @param RestoUser $user
      */
-    public function __construct($queryAnalyser, $context, $user) {
-        $this->queryAnalyser = $queryAnalyser;
+    public function __construct($queryAnalyzer, $context, $user) {
+        $this->queryAnalyzer = $queryAnalyzer;
         $this->context = $context;
         $this->user = $user;
     }
@@ -81,7 +81,7 @@ class WhatProcessor {
      * 
      */
     public function processBy($words, $position, $options = array('delta' => 1, 'nullIfNotFound' => false)) {
-        $endPosition = $this->queryAnalyser->getEndPosition($words, $position + $options['delta']);
+        $endPosition = $this->queryAnalyzer->getEndPosition($words, $position + $options['delta']);
         $keyword = $this->extractKeyword($words, $position + $options['delta'], $endPosition);
         if (isset($keyword)) {
             $keyValue = $this->toKeyValue($keyword, true);
@@ -131,8 +131,8 @@ class WhatProcessor {
         /*
          * To be valid at least 3 words are mandatory after <between> and second word must be <and>
          */
-        if (!isset($words[$position + 3]) || $this->queryAnalyser->dictionary->get(RestoDictionary::AND_MODIFIER, $words[$position + 2]) !== 'and') {
-            return $this->queryAnalyser->whenProcessor->processBetween($words, $position);
+        if (!isset($words[$position + 3]) || $this->queryAnalyzer->dictionary->get(RestoDictionary::AND_MODIFIER, $words[$position + 2]) !== 'and') {
+            return $this->queryAnalyzer->whenProcessor->processBetween($words, $position);
         }
         
         /*
@@ -141,12 +141,12 @@ class WhatProcessor {
          * Otherwise try to process <between> with WhenProcessor
          */
         $values = array(
-            $this->queryAnalyser->dictionary->getNumber($words[$position + 1]),
-            $this->queryAnalyser->dictionary->getNumber($words[$position + 3])
+            $this->queryAnalyzer->dictionary->getNumber($words[$position + 1]),
+            $this->queryAnalyzer->dictionary->getNumber($words[$position + 3])
         );
         
-        if (!isset($values[0]) || !isset($values[1]) || (isset($words[$position + 4]) && $this->queryAnalyser->dictionary->get(RestoDictionary::MONTH, $words[$position + 4]))) {
-            return $this->queryAnalyser->whenProcessor->processBetween($words, $position);
+        if (!isset($values[0]) || !isset($values[1]) || (isset($words[$position + 4]) && $this->queryAnalyzer->dictionary->get(RestoDictionary::MONTH, $words[$position + 4]))) {
+            return $this->queryAnalyzer->whenProcessor->processBetween($words, $position);
         }
         
         /*
@@ -229,7 +229,7 @@ class WhatProcessor {
             }
         }
         else {
-            $this->queryAnalyser->error(QueryAnalyser::NOT_UNDERSTOOD, $this->queryAnalyser->toSentence($words, $extracted['startPosition'], $extracted['endPosition']));
+            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $extracted['startPosition'], $extracted['endPosition']));
         }
         
         array_splice($words, $extracted['startPosition'], $extracted['endPosition'] - $extracted['startPosition'] + 1);
@@ -250,13 +250,13 @@ class WhatProcessor {
      */
     private function processWithOrWithout($words, $position, $with, $options = array('delta' => 1, 'nullIfNotFound' => false)) {
        
-        $endPosition = $this->queryAnalyser->getEndPosition($words, $position + $options['delta']);
+        $endPosition = $this->queryAnalyzer->getEndPosition($words, $position + $options['delta']);
                 
         /*
          * <with/without> nothing
          */
         if (!isset($words[$position + $options['delta']])) {
-            $this->queryAnalyser->error(QueryAnalyser::NOT_UNDERSTOOD, $this->queryAnalyser->toSentence($words, $position, $endPosition));
+            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
         }
         /*
          * <with> "quantity" means quantity
@@ -279,7 +279,7 @@ class WhatProcessor {
                     if ($options['nullIfNotFound']) {
                         return null;
                     }
-                    $this->queryAnalyser->error(QueryAnalyser::NOT_UNDERSTOOD, $this->queryAnalyser->toSentence($words, $position, $endPosition));
+                    $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
                 }
             }
         }
@@ -331,11 +331,11 @@ class WhatProcessor {
                 $this->addToResult($quantity['key'], '[' . (floatval($values[0]) * $normalizedUnit['unit']['factor']) . ',' . (floatval($values[1]) * $normalizedUnit['unit']['factor']) . ']');
             }
             else {
-                $this->queryAnalyser->error(QueryAnalyser::INVALID_UNIT, $this->queryAnalyser->toSentence($words, $position, $endPosition));
+                $this->queryAnalyzer->error(QueryAnalyzer::INVALID_UNIT, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
             }
         }
         else {
-            $this->queryAnalyser->error(QueryAnalyser::NOT_UNDERSTOOD, $this->queryAnalyser->toSentence($words, $position, $endPosition));
+            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
         }
         
         array_splice($words, $position, $endPosition - $position + 1);
@@ -354,7 +354,7 @@ class WhatProcessor {
     private function processValidBetweenWithoutUnit($words, $position, $values) {
         
         $quantityPosition = isset($words[$position + 4]) ? $position + 4 : $position + 3;
-        $endPosition = $this->queryAnalyser->getEndPosition($words, $quantityPosition);
+        $endPosition = $this->queryAnalyzer->getEndPosition($words, $quantityPosition);
         $startPosition = min($quantityPosition, $endPosition);
         
         /*
@@ -385,11 +385,11 @@ class WhatProcessor {
                 $this->addToResult($quantity['key'], '[' . $values[0] . ',' . $values[1] . ']');
             }
             else {
-                $this->queryAnalyser->error(QueryAnalyser::MISSING_UNIT, $this->queryAnalyser->toSentence($words, $position, $endPosition));
+                $this->queryAnalyzer->error(QueryAnalyzer::MISSING_UNIT, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
             }
         }
         else {
-            $this->queryAnalyser->error(QueryAnalyser::NOT_UNDERSTOOD, $this->queryAnalyser->toSentence($words, $position, $endPosition));
+            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
         }
         
         array_splice($words, $position, $endPosition - $position + 1);
@@ -414,14 +414,14 @@ class WhatProcessor {
         /*
          * Process (reversed) words within $startPosition and $endPosition
          */
-        $slicedWords = $this->queryAnalyser->slice($words, $startPosition, $endPosition - $startPosition + 1, $reverse);
+        $slicedWords = $this->queryAnalyzer->slice($words, $startPosition, $endPosition - $startPosition + 1, $reverse);
         $word = '';
         for ($i = 0, $ii = count($slicedWords); $i < $ii; $i++) {
 
             /*
              * Reconstruct word from words without stop words
              */
-            if (!$this->queryAnalyser->dictionary->isStopWord($slicedWords[$i])) {
+            if (!$this->queryAnalyzer->dictionary->isStopWord($slicedWords[$i])) {
                 $word = trim($reverse ? $slicedWords[$i] . ' ' . $word : $word . ' ' . $slicedWords[$i]);
             }
             
@@ -447,18 +447,18 @@ class WhatProcessor {
         /*
          * Process (reversed) words within $startPosition and $endPosition
          */
-        $slicedWords = $this->queryAnalyser->slice($words, $startPosition, $endPosition - $startPosition + 1, $reverse);
+        $slicedWords = $this->queryAnalyzer->slice($words, $startPosition, $endPosition - $startPosition + 1, $reverse);
         $word = '';
         for ($i = 0, $ii = count($slicedWords); $i < $ii; $i++) {
 
             /*
              * Reconstruct word from words without stop words
              */
-            if (!$this->queryAnalyser->dictionary->isStopWord($slicedWords[$i])) {
+            if (!$this->queryAnalyzer->dictionary->isStopWord($slicedWords[$i])) {
                 $word = trim($reverse ? $slicedWords[$i] . '-' . $word : $word . ' ' . $slicedWords[$i]);
             }
 
-            $keyword = $this->queryAnalyser->dictionary->getKeyword(RestoDictionary::NOLOCATION, $word);
+            $keyword = $this->queryAnalyzer->dictionary->getKeyword(RestoDictionary::NOLOCATION, $word);
             if (isset($keyword)) {
                 return array(
                     'startPosition' => $reverse ? $endPosition - $i : $startPosition,
@@ -480,7 +480,7 @@ class WhatProcessor {
      */
     private function extractValueUnitQuantity($words, $position) {
         
-        $endPosition = $this->queryAnalyser->getEndPosition($words, $position + 1);
+        $endPosition = $this->queryAnalyzer->getEndPosition($words, $position + 1);
         
         /*
          * (to) "numeric" "unit"
@@ -521,7 +521,7 @@ class WhatProcessor {
                 );
             }
             else {
-                $this->queryAnalyser->error(QueryAnalyser::INVALID_UNIT, $this->queryAnalyser->toSentence($words, $position, $endPosition));
+                $this->queryAnalyzer->error(QueryAnalyzer::INVALID_UNIT, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
                 return array(
                     'startPosition' => $startPosition,
                     'endPosition' => $endPosition
@@ -550,16 +550,16 @@ class WhatProcessor {
             /*
              * Skip stop words
              */
-            if ($this->queryAnalyser->dictionary->isStopWord($words[$i])) {
+            if ($this->queryAnalyzer->dictionary->isStopWord($words[$i])) {
                 continue;
             }
            
             /*
              * "numeric" "unit"
              */
-            $value = $this->queryAnalyser->dictionary->getNumber($words[$i]);
+            $value = $this->queryAnalyzer->dictionary->getNumber($words[$i]);
             if (isset($value) && isset($words[$i + 1])) {
-                $unit = $this->queryAnalyser->dictionary->get(RestoDictionary::UNIT, $words[$i + 1]);
+                $unit = $this->queryAnalyzer->dictionary->get(RestoDictionary::UNIT, $words[$i + 1]);
                 return array(
                     'value' => $value,
                     'endPosition' => $i + 1,
@@ -587,14 +587,14 @@ class WhatProcessor {
             /*
              * Skip stop words
              */
-            if ($this->queryAnalyser->dictionary->isStopWord($words[$i])) {
+            if ($this->queryAnalyzer->dictionary->isStopWord($words[$i])) {
                 continue;
             }
            
             /*
              * "numeric" "unit"
              */
-            $unit = $this->queryAnalyser->dictionary->get(RestoDictionary::UNIT, $words[$i]);
+            $unit = $this->queryAnalyzer->dictionary->get(RestoDictionary::UNIT, $words[$i]);
             if (isset($unit)) {
                 return array(
                     'endPosition' => $i,
@@ -626,11 +626,11 @@ class WhatProcessor {
             return null;
         }
         
-        foreach(array_keys($this->queryAnalyser->model->searchFilters) as $key) {
-            if (isset($this->queryAnalyser->model->searchFilters[$key]['quantity']) && is_array($this->queryAnalyser->model->searchFilters[$key]['quantity']) && $this->queryAnalyser->model->searchFilters[$key]['quantity']['value'] === $quantity) {
+        foreach(array_keys($this->queryAnalyzer->model->searchFilters) as $key) {
+            if (isset($this->queryAnalyzer->model->searchFilters[$key]['quantity']) && is_array($this->queryAnalyzer->model->searchFilters[$key]['quantity']) && $this->queryAnalyzer->model->searchFilters[$key]['quantity']['value'] === $quantity) {
                 return array(
                     'key' => $key,
-                    'unit' => isset($this->queryAnalyser->model->searchFilters[$key]['quantity']['unit']) ? $this->queryAnalyser->model->searchFilters[$key]['quantity']['unit'] : null
+                    'unit' => isset($this->queryAnalyzer->model->searchFilters[$key]['quantity']['unit']) ? $this->queryAnalyzer->model->searchFilters[$key]['quantity']['unit'] : null
                 );
             }
         }
@@ -647,7 +647,7 @@ class WhatProcessor {
      * @return array
      */
     private function getTrueQuantity($word, $startPosition, $endPosition) {
-        $quantity = $this->queryAnalyser->dictionary->get(RestoDictionary::QUANTITY, $word);
+        $quantity = $this->queryAnalyzer->dictionary->get(RestoDictionary::QUANTITY, $word);
         if (isset($quantity)) {
             $searchFilter = $this->getSearchFilter($quantity);
             if (isset($searchFilter)) {

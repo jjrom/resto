@@ -133,6 +133,11 @@ class Resto {
      */
     public $user;
     
+    /*
+     * If true then output is set to JSON 
+     */
+    private $inError = false;
+    
     /**
      * Constructor
      * 
@@ -162,9 +167,9 @@ class Resto {
         } catch (Exception $e) {
             
             /*
-             * Error are always in JSON
+             * Output in error - format output as JSON in the following
              */
-            $this->context->outputFormat = 'json';
+            $this->inError = true;
             
             /*
              * Code under 500 is an HTTP code - otherwise it is a resto error code
@@ -246,7 +251,7 @@ class Resto {
          */
         header('HTTP/1.1 ' . $responseStatus . ' ' . (isset(RestoLogUtil::$codes[$responseStatus]) ? RestoLogUtil::$codes[$responseStatus] : RestoLogUtil::$codes[200]));
         header('Cache-Control:  no-cache');
-        header('Content-Type: ' . RestoUtil::$contentTypes[$this->context->outputFormat]);
+        header('Content-Type: ' . RestoUtil::$contentTypes[$this->inError ? 'json' : $this->context->outputFormat]);
         
         /*
          * Set headers including cross-origin resource sharing (CORS)

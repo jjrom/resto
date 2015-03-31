@@ -39,7 +39,7 @@
  */
 
 /**
- * QueryAnalyser module
+ * QueryAnalyzer module
  * 
  * Extract OpenSearch EO search parameters from
  * an input string (i.e. searchTerms)
@@ -47,7 +47,7 @@
  * 
  *      searchTerms = "spot5 images with forest in france between march 2012 and may 2012"
  * 
- * The query analyser converts this string into comprehensive request.
+ * The query analyzer converts this string into comprehensive request.
  * 
  * For instance the previous string will be transformed as :
  *  
@@ -57,7 +57,7 @@
  *      geo:box = POLYGON(( ...coordinates of France country...))
  *      searchTerms = landuse:forest
  * 
- * IMPORTANT : if a word is prefixed by 'xxx=' then QueryAnalyser considered the string as a key=value pair
+ * IMPORTANT : if a word is prefixed by 'xxx=' then QueryAnalyzer considered the string as a key=value pair
  * 
  * Some notes :
  *
@@ -133,10 +133,10 @@
  * 
  * @param array $params
  */
-require 'QueryAnalyser/WhatProcessor.php';
-require 'QueryAnalyser/WhenProcessor.php';
-require 'QueryAnalyser/WhereProcessor.php';
-class QueryAnalyser extends RestoModule {
+require 'QueryAnalyzer/WhatProcessor.php';
+require 'QueryAnalyzer/WhenProcessor.php';
+require 'QueryAnalyzer/WhereProcessor.php';
+class QueryAnalyzer extends RestoModule {
 
     /*
      * Error messages
@@ -202,22 +202,22 @@ class QueryAnalyser extends RestoModule {
         }
         $query = isset($this->context->query['searchTerms']) ? $this->context->query['searchTerms'] : isset($this->context->query['q']) ? $this->context->query['q'] : null;
         
-        return $this->analyse($query);
+        return $this->analyze($query);
         
     }
     
     /**
-     * Query analyser process searchTerms and modify query parameters accordingly
+     * Query analyzer process searchTerms and modify query parameters accordingly
      * 
      * @param string $query
      * @return type
      */
-    public function analyse($query) {
+    public function analyze($query) {
 
         $startTime = microtime(true);
         
         /*
-         * QueryAnalyser only apply on searchTerms filter
+         * QueryAnalyzer only apply on searchTerms filter
          */
         if (!isset($query)) {
             RestoLogUtil::httpError(400, 'Missing mandatory searchTerms');
@@ -226,7 +226,7 @@ class QueryAnalyser extends RestoModule {
         return array(
             'query' => $query,
             'language' => $this->dictionary->language,
-            'analyse' => $this->process($query),
+            'analyze' => $this->process($query),
             'processingTime' => microtime(true) - $startTime
         );
         
@@ -403,7 +403,7 @@ class QueryAnalyser extends RestoModule {
         /*
          * Remaining words
          */
-        $this->error(QueryAnalyser::NOT_UNDERSTOOD, $this->toSentence($remainings, 0, count($remainings), true));
+        $this->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->toSentence($remainings, 0, count($remainings), true));
         
     }
     

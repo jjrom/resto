@@ -39,7 +39,7 @@
  */
 
 /**
- * QueryAnalyser Where
+ * QueryAnalyzer Where
  * 
  * @param array $params
  */
@@ -51,9 +51,9 @@ class WhereProcessor {
     public $result = array();
     
     /*
-     * Reference to QueryAnalyser
+     * Reference to QueryAnalyzer
      */
-    private $queryAnalyser;
+    private $queryAnalyzer;
     
     /*
      * Reference to gazetteer object
@@ -63,12 +63,12 @@ class WhereProcessor {
     /**
      * Constructor
      * 
-     * @param QueryAnalyser $queryAnalyser
+     * @param QueryAnalyzer $queryAnalyzer
      * @param RestoContext $context
      * @param RestoUser $user
      */
-    public function __construct($queryAnalyser, $context, $user) {
-        $this->queryAnalyser = $queryAnalyser;
+    public function __construct($queryAnalyzer, $context, $user) {
+        $this->queryAnalyzer = $queryAnalyzer;
         $this->context = $context;
         $this->user = $user;
         if (isset($this->context->modules['Gazetteer'])) {
@@ -98,7 +98,7 @@ class WhereProcessor {
             if ($options['nullIfNotFound']) {
                 return null;
             }
-            $this->queryAnalyser->error(QueryAnalyser::LOCATION_NOT_FOUND, $location['location']['query']);
+            $this->queryAnalyzer->error(QueryAnalyzer::LOCATION_NOT_FOUND, $location['location']['query']);
         }
         
         array_splice($words, $position, $location['endPosition'] - $position + 1);
@@ -153,7 +153,7 @@ class WhereProcessor {
         /*
          * Get the last index position
          */
-        $endPosition = $this->queryAnalyser->getEndPosition($words, $position);
+        $endPosition = $this->queryAnalyzer->getEndPosition($words, $position);
         
         /*
          * Search location modifier
@@ -173,7 +173,7 @@ class WhereProcessor {
             /*
              * Eventually get the position of the last stopWord
              */
-            if ($this->queryAnalyser->dictionary->isStopWord($words[$i])) {
+            if ($this->queryAnalyzer->dictionary->isStopWord($words[$i])) {
                $stopWordPosition = $i;
             } 
             
@@ -239,7 +239,7 @@ class WhereProcessor {
             /*
              * Exit if stop modifier is found
              */
-            if ($this->queryAnalyser->dictionary->isModifier($words[$i])) {
+            if ($this->queryAnalyzer->dictionary->isModifier($words[$i])) {
                 $endPosition = $i - 1;
                 break;
             }
@@ -261,7 +261,7 @@ class WhereProcessor {
          * Search modifier only
          */
         if (isset($locationModifier)) {
-            if (empty($toponymName) || $this->queryAnalyser->dictionary->isStopWord($toponymName)) {
+            if (empty($toponymName) || $this->queryAnalyzer->dictionary->isStopWord($toponymName)) {
                 return array(
                     'endPosition' => $locationModifier['endPosition'],
                     'location' => $this->gazetteer->search(array(
@@ -302,7 +302,7 @@ class WhereProcessor {
              * Reconstruct sentence from words without stop words
              */
             $locationName .= ($locationName === '' ? '' : '-') . $words[$i];
-            $keyword = $this->queryAnalyser->dictionary->getKeyword(RestoDictionary::LOCATION, $locationName);
+            $keyword = $this->queryAnalyzer->dictionary->getKeyword(RestoDictionary::LOCATION, $locationName);
             if (isset($keyword)) {
                 return array(
                     'startPosition' => $stopWordPosition === -1 ? $startPosition : $stopWordPosition,
@@ -354,7 +354,7 @@ class WhereProcessor {
         }
         
         if (count($discarded) > 0) {
-            $this->queryAnalyser->error(QueryAnalyser::NOT_UNDERSTOOD, join(' ', $discarded));
+            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, join(' ', $discarded));
         }
         
         return array(

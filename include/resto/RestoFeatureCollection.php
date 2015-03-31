@@ -88,9 +88,9 @@ class RestoFeatureCollection {
     private $totalCount = -1;
     
     /*
-     * Query analyser
+     * Query analyzer
      */
-    private $queryAnalyser;
+    private $queryAnalyzer;
     
     /**
      * Constructor 
@@ -107,8 +107,8 @@ class RestoFeatureCollection {
         
         $this->context = $context;
         $this->user = $user;
-        if (isset($this->context->modules['QueryAnalyser'])) {
-            $this->queryAnalyser = new QueryAnalyser($this->context, $this->user);
+        if (isset($this->context->modules['QueryAnalyzer'])) {
+            $this->queryAnalyzer = new QueryAnalyzer($this->context, $this->user);
         }
  
         $this->initialize($collections);
@@ -210,9 +210,9 @@ class RestoFeatureCollection {
         $offset = $this->getOffset($originalFilters, $limit);
         
         /*
-         * Query Analyser 
+         * Query Analyzer 
          */
-        $analysis = $this->analyse($originalFilters);
+        $analysis = $this->analyze($originalFilters);
         
         /*
          * Read features from database
@@ -571,7 +571,7 @@ class RestoFeatureCollection {
      * 
      * @param array $params
      */
-    private function analyse($params) {
+    private function analyze($params) {
         
         /*
          * No searchTerms specify - leave input search filters untouched
@@ -588,22 +588,22 @@ class RestoFeatureCollection {
         /*
          * Analyse query
          */
-        $analysis = $this->queryAnalyser->analyse($params['searchTerms']);
+        $analysis = $this->queryAnalyzer->analyze($params['searchTerms']);
         
         /*
          * What
          */
-        $params = $this->setWhatFilters($analysis['analyse']['What'], $params);
+        $params = $this->setWhatFilters($analysis['analyze']['What'], $params);
         
         /*
          * When
          */
-        $params = $this->setWhenFilters($analysis['analyse']['When'], $params);
+        $params = $this->setWhenFilters($analysis['analyze']['When'], $params);
         
         /*
          * Where
          */
-        $params = $this->setWhereFilters($analysis['analyse']['Where'], $params);
+        $params = $this->setWhereFilters($analysis['analyze']['Where'], $params);
         
         return array(
             'searchFilters' => $params,
