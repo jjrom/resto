@@ -460,7 +460,7 @@ class WhenProcessor {
                 'pTime' => strtotime(date('Y-m-d') . ' + 1 ' . $duration['duration']['unit'])
             );
 
-            $this->setWhenForLastAndNext($times, $duration['duration']['unit']);
+            $this->setResultForLastAndNext($times, $duration['duration']['unit']);
             $delta = $duration['firstIsNotLast'] ? 1 : 0;
         }
         else {
@@ -476,16 +476,16 @@ class WhenProcessor {
      * @param array $times
      * @param string $unit
      */
-    private function setWhenForLastAndNext($times, $unit) {
+    private function setResultForLastAndNext($times, $unit) {
         switch ($unit) {
             case 'years':
-                $this->setWhenForLastAndNextYear($times);
+                $this->setResultForLastAndNextYear($times);
                 break;
             case 'months':
-                $this->setWhenForLastAndNextMonth($times);
+                $this->setResultForLastAndNextMonth($times);
                 break;
             case 'days':
-                $this->setWhenForLastAndNextDay($times);
+                $this->setResultForLastAndNextDay($times);
                 break;
             default:
                 break;
@@ -498,7 +498,7 @@ class WhenProcessor {
      * @param array $times
      * @param string $unit
      */
-    private function setWhenForLastAndNextYear($times) {
+    private function setResultForLastAndNextYear($times) {
         $this->addToResult('time:start', date('Y', $times['pTime']) . '-01-01' . 'T00:00:00Z');
         $this->addToResult('time:end', date('Y', $times['time']) . '-12-31' . 'T23:59:59Z');
     }
@@ -509,7 +509,7 @@ class WhenProcessor {
      * @param array $times
      * @param string $unit
      */
-    private function setWhenForLastAndNextMonth($times) {
+    private function setResultForLastAndNextMonth($times) {
         $this->addToResult('time:start', date('Y', $times['pTime']) . '-' . date('m', $times['pTime']) . '-01' . 'T00:00:00Z');
         $this->addToResult('time:end', date('Y', $times['time']) . '-' . date('m', $times['time']) . '-' . date('d', mktime(0, 0, 0, intval(date('m', $times['time'])) + 1, 0, intval(date('Y', $times['time'])))) . 'T23:59:59Z');
     }
@@ -520,7 +520,7 @@ class WhenProcessor {
      * @param array $times
      * @param string $unit
      */
-    private function setWhenForLastAndNextDay($times) {
+    private function setResultForLastAndNextDay($times) {
         $this->addToResult('time:start', date('Y', $times['pTime']) . '-' . date('m', $times['pTime']) . '-' . date('d', $times['pTime']) . 'T00:00:00Z');
         $this->addToResult('time:end', date('Y', $times['time']) . '-' . date('m', $times['time']) . '-' . date('d', $times['time']) . 'T23:59:59Z');
     }
@@ -534,14 +534,15 @@ class WhenProcessor {
     private function extractDuration($words, $position) {
         
         $duration = array(
-            'value' => 1
+            'duration' => array(
+                'value' => 1
+            ),
+            'endPosition' => -1,
+            'firstIsNotLast' => false
         );
-        $endPosition = -1;
-        $firstIsNotLast = false;
-
         for ($i = $position, $l = count($words); $i < $l; $i++) {
 
-            $endPosition = $i;
+            $duration['endPosition'] = $i;
 
             /*
              * <last> modifier found
@@ -554,28 +555,18 @@ class WhenProcessor {
              * Exit if stop modifier is found
              */
             if ($this->queryAnalyzer->dictionary->isModifier($words[$i])) {
-                $endPosition = $i - 1;
+                $duration['endPosition'] = $i - 1;
                 break;
             }
     
             /*
              * Extract duration
              */
-            $unitOrValue = $this->getDurationUnitOrValue($words[$i]);
-            if (isset($unitOrValue)) {
-                $duration = array_merge($duration, $unitOrValue);
-                if ($i === $position) {
-                    $firstIsNotLast = true;
-                }
-            }
+            $duration = $this->extractDurationUnitOrValue($duration, $words[$i], $i === $position);
     
         }
         
-        return array(
-            'duration' => $duration,
-            'endPosition' => $endPosition,
-            'firstIsNotLast' => $firstIsNotLast
-        );
+        return $duration;
         
     }
     
@@ -855,28 +846,32 @@ class WhenProcessor {
     /**
      * Return duration unit or value from word
      * 
+     * @param array $duration
      * @param string $word
+     * @param boolean $firstIsNotLast
+     * 
      */
-    private function getDurationUnitOrValue($word) {
+    private function extractDurationUnitOrValue($duration, $word, $firstIsNotLast = false) {
         
-        $value = $this->queryAnalyzer->dictionary->getNumber($word);
-        if ($value) {
-            return array(
-                'value' => $value
-            );
-        }
-
         /*
-         * Extract unit
+         * Extract value or unit
          */
-        $unit = $this->queryAnalyzer->dictionary->get(RestoDictionary::TIME_UNIT, $word);
-        if (isset($unit)) {
-            return array(
-                'unit' => $unit
-            );
+        $value = $this->queryAnalyzer->dictionary->getNumber($word);
+        if (isset($value)) {
+            $duration['duration'] = array_merge($duration['duration'], array('value' => $value));
+        }
+        else {
+            $value = $this->queryAnalyzer->dictionary->get(RestoDictionary::TIME_UNIT, $word);
+            if (isset($value)) {
+                $duration['duration'] = array_merge($duration['duration'], array('unit' => $value));
+            }
+        }
+        if (isset($value) && isset($firstIsNotLast)) {
+            $duration['firstIsNotLast'] = true;
         }
         
-        return null;
+        return $duration;
+        
     }
     
     /**
