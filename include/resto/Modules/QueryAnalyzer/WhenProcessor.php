@@ -272,21 +272,29 @@ class WhenProcessor {
     public function processIn($words, $position, $options = array('delta' => 1, 'nullIfNotFound' => false)) {
         
         $date = $this->extractDate($words, $position + $options['delta']);
-        
+       
         /*
          * No date found - try a season
          */
         if (empty($date['date'])) {
-            if (!$this->setSeason($words[$position + $options['delta']])) {
-                return !$options['nullIfNotFound'] ? $this->queryAnalyzer->whereProcessor->processIn($words, $position) : null;
+            $season = $this->extractSeason($words, $position + $options['delta']);
+            if (isset($season)) {
+                array_splice($words, $position, $season['endPosition'] - $position + 1);
+                return $words;
             }
+            return !$options['nullIfNotFound'] ? $this->queryAnalyzer->whereProcessor->processIn($words, $position) : null;
         }
         /*
-         * Year is specified
+         * Year only is specified
          */
-        else if (isset($date['date']['year'])) {
-            $this->addToResult('time:start', $this->toLowestDay($date['date']));
-            $this->addToResult('time:end', $this->toGreatestDay($date['date']));
+        if (isset($date['date']['year'])) {
+            if (!isset($date['date']['month'])) {
+                $this->addToResult('year', $date['date']['year']);
+            }
+            else {
+                $this->addToResult('time:start', $this->toLowestDay($date['date']));
+                $this->addToResult('time:end', $this->toGreatestDay($date['date']));
+            }
         }
         else {
             if (isset($date['date']['month'])) {
@@ -873,15 +881,28 @@ class WhenProcessor {
     /**
      * Set season
      * 
-     * @param type $word
+     * @param array $words
+     * @param integer $position
      */
-    private function setSeason($word) {
-        $season = $this->queryAnalyzer->dictionary->get(RestoDictionary::SEASON, $word);
+    private function extractSeason($words, $position) {
+        $season = $this->queryAnalyzer->dictionary->get(RestoDictionary::SEASON, $words[$position]);
         if (isset($season)) {
+            
             $this->addToResult('season', $season);
-            return true;
+            
+            /*
+             * Search for a year after season
+             */
+            if (isset($words[$position + 1]) && preg_match('/^\d{4}$/i', $words[$position + 1])) {
+                $this->addToResult('year', $words[$position + 1]);
+                $position = $position + 1;
+            }
+            return array(
+                'endPosition' => $position
+            );
+            
         }
-        return false;
+        return null;
     }
     
     /**
