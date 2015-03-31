@@ -100,6 +100,7 @@ class WhenProcessor {
     public function processBetween($words, $position) {
         
         $endPosition = -1;
+        
         /*
          * Extract first date
          */

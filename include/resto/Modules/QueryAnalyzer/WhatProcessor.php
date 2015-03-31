@@ -388,8 +388,11 @@ class WhatProcessor {
                 $this->queryAnalyzer->error(QueryAnalyzer::MISSING_UNIT, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
             }
         }
+        /*
+         * Perhaps it's <between> year <and> year ?
+         */
         else {
-            $this->queryAnalyzer->error(QueryAnalyzer::NOT_UNDERSTOOD, $this->queryAnalyzer->toSentence($words, $position, $endPosition));
+            return $this->queryAnalyzer->whenProcessor->processBetween($words, $position);
         }
         
         array_splice($words, $position, $endPosition - $position + 1);
