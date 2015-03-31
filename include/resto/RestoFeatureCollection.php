@@ -218,7 +218,8 @@ class RestoFeatureCollection {
          * Read features from database
          * If '_rc' parameter is set to true, then totalCount is also computed
          */
-        $this->loadFeatures($analysis['searchFilters'], $limit, $offset, isset($this->context->query['_rc']) && filter_var($this->context->query['_rc'], FILTER_VALIDATE_BOOLEAN) ? true : false);
+        $forceCount = isset($this->context->query['_rc']) ? filter_var($this->context->query['_rc'], FILTER_VALIDATE_BOOLEAN) : false;
+        $this->loadFeatures($analysis['searchFilters'], $limit, $offset, $forceCount);
         
         /*
          * Set description
