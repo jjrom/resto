@@ -307,7 +307,7 @@ class RestoFeatureCollection {
      * @param array $params
      * @param integer $limit
      * @param integer $offset
-     * @param boolean $realCount
+     * @param integer $realCount
      */
     private function loadFeatures($params, $limit, $offset, $realCount) {
         
