@@ -112,6 +112,7 @@ class WhereProcessor {
      * 
      * Order of relevance is :
      * 
+     *   - Continent
      *   - Country
      *   - Capitals (i.e. PPLC toponyms or PPLG)
      *   - First Administrative division (i.e. PPLA toponyms)
@@ -124,6 +125,10 @@ class WhereProcessor {
         
         $bestPosition = 0;
         for ($i = 0, $ii = count($locations); $i < $ii; $i++) {
+            if ($locations[$i]['type'] === 'continent') {
+                $bestPosition = $i;
+                break;
+            }
             if ($locations[$i]['type'] === 'country') {
                 $bestPosition = $i;
                 break;
