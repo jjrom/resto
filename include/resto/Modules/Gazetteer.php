@@ -220,6 +220,7 @@ class Gazetteer extends RestoModule {
         
         return RestoLogUtil::success(count($this->results) . ' toponym(s) found', array(
             'query' => $params['q'],
+            'lang' => $this->context->dictionary->language,
             'results' => $this->results
         ));
     }
