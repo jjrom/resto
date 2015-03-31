@@ -885,6 +885,24 @@ class WhenProcessor {
      * @param integer $position
      */
     private function extractSeason($words, $position) {
+        
+        /*
+         * Remove eventual stop word
+         */
+        if ($this->queryAnalyzer->dictionary->isStopWord($words[$position])) {
+            $position = $position + 1;
+        }
+        
+        /*
+         * Check that new position exists
+         */
+        if (!isset($words[$position])) {
+            return null;
+        }
+        
+        /*
+         * Extract season
+         */
         $season = $this->queryAnalyzer->dictionary->get(RestoDictionary::SEASON, $words[$position]);
         if (isset($season)) {
             

@@ -74,10 +74,9 @@ class RestoDictionary_fr extends RestoDictionary {
          */
         'timeModifiers' => array(
             'after' => array('apres'),
-            'and' => array('et', 'a'),
             'before' => array('avant'),
             'between' => array('entre', 'de'),
-            'in' => array('en'),
+            'in' => array('en' , 'a'),
             'last' => array('dernier', 'derniers', 'derniere', 'dernieres'),
             'next' => array('prochain', 'prochaine', 'prochains', 'prochaines'),
             'since' => array('depuis'),
