@@ -473,7 +473,6 @@ class RestoUtil {
         foreach ($kvps as $key => $value) {
             if (is_array($value)) {
                 for ($i = count($value); $i--;) {
-                    //echo $key . ' : ' . $value[$i] . "\n";
                     $paramsStr .= (isset($paramsStr) ? '&' : '') . rawurlencode($key) . '[]=' . rawurlencode($value[$i]);
                 }
             }

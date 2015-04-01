@@ -341,14 +341,23 @@ class RestoRouteGET extends RestoRoute {
      * @param string $userid
      */
     private function GET_apiUsersIsConnected($userid) {
-        if (isset($this->context->query['_sid'])) {
-            if ($this->context->dbDriver->execute(RestoDatabaseDriver::USER_CONNECTED, array('userid' => $userid))) {
-                return RestoLogUtil::success('User is connected');
-            }
-            else {
+        /*
+         * Check if JWT is valid
+         */   
+        if (isset($this->context->query['_tk'])) {
+            try {
+                $profile = json_decode(json_encode((array) $this->context->decodeJWT($this->context->query['_tk'])), true);
+                if ($profile['data']['userid'] === $userid) {
+                    return RestoLogUtil::success('User is connected');
+                }
+                else {
+                    return RestoLogUtil::error('User not connected');
+                }
+            } catch (Exception $ex) {
                 return RestoLogUtil::error('User not connected');
             }
-        } else {
+        }
+        else {
             RestoLogUtil::httpError(400);
         }
     }
