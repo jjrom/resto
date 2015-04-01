@@ -83,7 +83,13 @@ return array(
          * Shared links validity duration (in seconds)
          * Default is 1 day (i.e. 86400 seconds)
          */
-        'sharedLinksDuration' => 86400,
+        'sharedLinkDuration' => 86400,
+        
+        /*
+         * Authentication tokens validity duration (in seconds)
+         * Default is 1 hour (i.e. 3600 seconds)
+         */
+        'tokenDuration' => 3600,
         
         /*
          * JSON Web Token passphrase

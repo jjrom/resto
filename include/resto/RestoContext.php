@@ -83,12 +83,6 @@ class RestoContext {
      */
     public $outputFormat = 'json';
     
-    /*
-     *  JSON Web Token passphrase*
-     * (see https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32)
-     */
-    private $passphrase = 'Super secret passphrase';
-    
     /**
      * Path
      */
@@ -123,6 +117,17 @@ class RestoContext {
      * Upload directory
      */
     public $uploadDirectory = '/tmp/resto_uploads';
+    
+    /*
+     *  JSON Web Token passphrase
+     * (see https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32)
+     */
+    private $passphrase;
+    
+    /*
+     * JSON Web Token duration (in seconds)
+     */
+    private $tokenDuration = 3600;
     
     /**
      * Constructor
@@ -172,7 +177,7 @@ class RestoContext {
             'iss' => 'resto:server',
             'sub' => $identifier,
             'iat' => time(),
-            'exp' => time() + (2 * 7 * 24 * 60 * 60), // 14 days
+            'exp' => time() + $this->tokenDuration,
             'data' => $jsonData
         ), $this->passphrase);
     }
@@ -254,6 +259,13 @@ class RestoContext {
          * Passphrase for JSON Web Token signing/veryfying
          */
         $this->passphrase = $config['general']['passphrase'];
+        
+        /*
+         * JSON Web Token duration
+         */
+        if (isset($config['general']['tokenDuration'])) {
+            $this->tokenDuration = $config['general']['tokenDuration'];
+        }
         
         /*
          * Available languages
