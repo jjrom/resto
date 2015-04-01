@@ -150,65 +150,78 @@ class Auth extends RestoModule {
         /*
          * Get provider
          */
-        if (isset($this->providers[$issuerId])) {
-
-            /*
-             * Search for known providers first
-             */
-            if (isset($this->providersConfig[$issuerId])) {
-                $provider = $this->providersConfig[$issuerId];
-            }
-            else {
-                $provider = $this->providers[$issuerId];
-            }
-            
-        }
-        
-        /*
-         * No provider => exit
-         */
-        if (!isset($provider)) {
-            RestoLogUtil::httpError(400, 'No configuration found for issuer "' . $issuerId . '"');
-        }
-        
+        $provider = $this->getProvider($issuerId);
+                
         /*
          * Authenticate from input protocol
          */
         switch ($provider['protocol']) {
-            
             case 'oauth2':
-                return $this->oauth2(array(
-                    'issuerId' => $issuerId,
-                    'accessTokenUrl' => $provider['accessTokenUrl'],
-                    'peopleApiUrl' => $provider['peopleApiUrl'],
-                    'forceJSON' => isset($provider['forceJSON']) ? $provider['forceJSON'] : false,
-                    'uidKey' => $provider['uidKey']
-                ));
+                return $this->oauth2($issuerId, $provider);
             default:
                 RestoLogUtil::httpError(400, 'Unknown sso protocol for issuer "' . $issuerId . '"');
           
         }
     }
     
+    /**
+     * Return user profile from access_token key
+     * 
+     * @param string $access_token
+     */
+    public function getProfileToken($issuerId, $access_token) {
+        
+        /*
+         * Get provider
+         */
+        $provider = $this->getProvider($issuerId);
+        
+        /*
+         * Get profile from SSO issuer
+         */
+        switch ($provider['protocol']) {
+            case 'oauth2':
+                $profile = $this->oauth2GetProfile($access_token, $provider);
+                break;
+            default:
+                RestoLogUtil::httpError(400, 'Unknown sso protocol for issuer "' . $issuerId . '"');
+        }
+        
+        /*
+         * Return resto profile token
+         */
+        return $this->token($profile[$this->getUidKey($provider)]);
+        
+    }
     
     /**
      * Authenticate with generic Oauth2 API
      * 
-     * @param array $config
+     * @param string $issuerId
+     * @param array $provider
      * 
      * @return json
      */
-    private function oauth2($config) {
+    private function oauth2($issuerId, $provider) {
         
         /*
          * Step 1. Get access token
          */
-        $access_token = $this->oauth2GetAccessToken($config['issuerId'], $config['accessTokenUrl']);
+        $access_token = $this->oauth2GetAccessToken($issuerId, $provider['accessTokenUrl']);
         
         /*
-         * Step 2. Return profile
+         * Step 2. Get oauth profile
          */
-        return $this->oauth2GetProfile($config['peopleApiUrl'], $access_token, isset($config['uidKey']) ? $config['uidKey'] : 'email', isset($config['forceJSON']) ? $config['forceJSON'] : false);
+        $profile = $this->oauth2GetProfile($access_token, $provider);
+        
+        /*
+         * Insert user in resto database if needed
+         */
+        $this->createUserInDatabase($profile[$this->getUidKey($provider)]);
+        
+        return array(
+            'token' => $this->token($profile[$this->getUidKey($provider)]
+        ));
         
     }
     
@@ -247,32 +260,24 @@ class Auth extends RestoModule {
     /**
      * Return resto profile using from OAuth2 server
      * 
-     * @param string $peopleApiUrl
      * @param string $access_token
-     * @param string $uidKey
-     * @param boolean $forceJSON
      * 
      * @throws Exception
      */
-    private function oauth2GetProfile($peopleApiUrl, $access_token, $uidKey, $forceJSON = false) {
+    private function oauth2GetProfile($access_token, $provider) {
         
-        $profileResponse = json_decode(file_get_contents($peopleApiUrl, false, stream_context_create(array(
+        $profileResponse = json_decode(file_get_contents($provider['peopleApiUrl'], false, stream_context_create(array(
             'http' => array(
                 'method' => 'GET',
-                'header' => 'Authorization: Bearer ' . $access_token . ($forceJSON ? "\r\nx-li-format: json\r\n" : '')
+                'header' => 'Authorization: Bearer ' . $access_token . (isset($provider['forceJSON']) && $provider['forceJSON'] ? "\r\nx-li-format: json\r\n" : '')
             )
         ))), true);
         
-        if (!isset($profileResponse) || empty($profileResponse[$uidKey])) {
-            RestoLogUtil::httpError(500, 'Authorization failed');
+        if (!isset($profileResponse) || empty($profileResponse[$this->getUidKey($provider)])) {
+            RestoLogUtil::httpError(401, 'Unauthorized');
         }
         
-        /*
-         * Insert user in resto database if needed
-         */
-        $this->insertUserIfNeeded($profileResponse[$uidKey]);
-        
-        return $this->token($profileResponse[$uidKey]);
+        return $profileResponse;
         
     }
     
@@ -281,7 +286,7 @@ class Auth extends RestoModule {
      * @param string $email
      * @throws Exception
      */
-    private function insertUserIfNeeded($email) {
+    private function createUserInDatabase($email) {
         
         try {
             $this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array(
@@ -305,20 +310,65 @@ class Auth extends RestoModule {
     }
     
     /**
-     * Return profile token
+     * Return SSO provider
+     * 
+     * @param string $issuerId
+     */
+    private function getProvider($issuerId) {
+        
+        if (isset($this->providers[$issuerId])) {
+
+            /*
+             * Search for known providers first
+             */
+            if (isset($this->providersConfig[$issuerId])) {
+                $provider = $this->providersConfig[$issuerId];
+            }
+            else {
+                $provider = $this->providers[$issuerId];
+            }
+            
+        }
+        
+        /*
+         * No provider => exit
+         */
+        if (!isset($provider)) {
+            RestoLogUtil::httpError(400, 'No configuration found for issuer "' . $issuerId . '"');
+        }
+        
+        return $provider;
+        
+    }
+    
+    /**
+     * Return profile token if profile exist - throw exception otherwise
      * 
      * @param string $key
      * @return json
      */
     private function token($key) {
         
-        $profile = $this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array(
+        $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array(
             'email' => strtolower($key)
-        ));
+        )), $this->context);
         
-        return array(
-            'token' => $this->context->createToken($profile['userid'], $profile
-        ));
+        if (!isset($user->profile['email'])) {
+            RestoLogUtil::httpError(401, 'Unauthorized');
+        }
+        
+        return $this->context->createToken($user->profile['userid'], $user->profile);
+        
+    }
+    
+    /**
+     * Get provider uidKey
+     * 
+     * @param array $provider
+     * @return string
+     */
+    private function getUidKey($provider) {
+        return isset($provider['uidKey']) ? $provider['uidKey'] : 'email';
     }
     
 }
