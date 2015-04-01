@@ -206,48 +206,81 @@ class RestoRouteGET extends RestoRoute {
      * @return type
      */
     private function GET_apiUsers($segments) {
-
-        /*
-         * api/users/connect
-         */
-        if ($segments[2] === 'connect' && !isset($segments[3])) {
-            return $this->GET_apiUsersConnect();
+       
+        if (!isset($segments[3])) {
+            return $this->GET_apiUsersAll($segments);
         }
-
-        /*
-         * api/users/disconnect
-         */
-        if ($segments[2] === 'disconnect' && !isset($segments[3])) {
-            return $this->GET_apiUsersDisconnect();
+        
+        if (!isset($segments[4])) {
+            return $this->GET_apiUsersUserid($segments);
         }
-
-        /*
-         * api/users/resetPassword
-         */
-        if ($segments[2] === 'resetPassword' && !isset($segments[3])) {
-            return $this->GET_apiUsersResetPassword($segments);
-        }
-
-        /*
-         * api/users/{userid}/activate
-         */
-        if (isset($segments[3]) && $segments[3] === 'activate' && !isset($segments[4])) {
-            return $this->GET_apiUsersActivate($segments[2]);
-        }
-
-        /*
-         * api/users/{userid}/isConnected
-         */
-        if (isset($segments[3]) && $segments[3] === 'isConnected' && !isset($segments[4])) {
-            return $this->GET_apiUsersIsConnected($segments[2]);
-        }
-
-        /*
-         * 404
-         */
-        RestoLogUtil::httpError(403);
+        
     }
+    
+    /**
+     * Process api/users
+     * 
+     * @param array $segments
+     * @return type
+     */
+    private function GET_apiUsersAll($segments) {
+        
+        switch ($segments[2]) {
 
+            /*
+             * api/users/connect
+             */
+            case 'connect':
+                return $this->GET_apiUsersConnect();
+
+            /*
+             * api/users/disconnect
+             */
+            case 'disconnect':
+                return $this->GET_apiUsersDisconnect();
+
+            /*
+             * api/users/resetPassword
+             */
+            case 'resetPassword':
+                return $this->GET_apiUsersResetPassword($segments);
+
+            default:
+                RestoLogUtil::httpError(403);
+
+        }
+
+    }
+    
+    /**
+     * Process api/users/{userid}
+     * 
+     * @param array $segments
+     * @return type
+     */
+    private function GET_apiUsersUserid($segments) {
+        
+        switch ($segments[3]) {
+                
+            /*
+             * api/users/{userid}/activate
+             */
+            case 'activate':
+                return $this->GET_apiUsersActivate($segments[2]);
+
+            /*
+             * api/users/{userid}/isConnected
+             */
+            case 'isConnected':
+                return $this->GET_apiUsersIsConnected($segments[2]);
+
+            default:
+                RestoLogUtil::httpError(403);
+
+        }
+        
+    }
+    
     /**
      * Process api/users/connect
      */
