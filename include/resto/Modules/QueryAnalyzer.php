@@ -200,7 +200,7 @@ class QueryAnalyzer extends RestoModule {
         if ($this->context->method !== 'GET' || count($elements) !== 0) {
             RestoLogUtil::httpError(404);
         }
-        $query = isset($this->context->query['searchTerms']) ? $this->context->query['searchTerms'] : isset($this->context->query['q']) ? $this->context->query['q'] : null;
+        $query = isset($this->context->query['searchTerms']) ? $this->context->query['searchTerms'] : (isset($this->context->query['q']) ? $this->context->query['q'] : null);
         
         return $this->analyze($query);
         
