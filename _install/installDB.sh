@@ -268,8 +268,7 @@ CREATE TABLE usermanagement.users (
     password            TEXT NOT NULL, -- stored as sha1
     registrationdate    TIMESTAMP NOT NULL,
     activationcode      TEXT NOT NULL UNIQUE, -- activation code store as sha1
-    activated           INTEGER DEFAULT 0,              
-    connected           INTEGER DEFAULT 0
+    activated           INTEGER DEFAULT 0
 );
 CREATE INDEX idx_email_users ON usermanagement.users (email);
 CREATE INDEX idx_groupname_users ON usermanagement.users (groupname);
@@ -356,6 +355,26 @@ CREATE TABLE usermanagement.sharedlinks (
     validity            TIMESTAMP
 );
 CREATE INDEX idx_token_sharedlinks ON usermanagement.sharedlinks (token);
+
+--
+-- Revoked tokens table
+-- On insert trigger delete entries older than 48 hours
+--
+CREATE TABLE usermanagement.revokedtokens (
+    gid                 SERIAL PRIMARY KEY,
+    token               TEXT UNIQUE NOT NULL,
+    creationdate        TIMESTAMP NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_token_revokedtokens ON usermanagement.revokedtokens (token);
+CREATE FUNCTION delete_old_tokens() RETURNS trigger
+    LANGUAGE plpgsql
+    AS \$\$
+BEGIN
+  DELETE FROM usermanagement.revokedtokens WHERE creationdate < now() - INTERVAL '2 days';
+  RETURN NEW;
+END;
+\$\$;
+CREATE TRIGGER old_tokens_gc AFTER INSERT ON usermanagement.revokedtokens EXECUTE PROCEDURE delete_old_tokens();
 EOF
 
 # Data
@@ -403,6 +422,7 @@ GRANT ALL ON resto.facets_gid_seq TO $USER;
 
 GRANT ALL ON SCHEMA usermanagement TO $USER;
 GRANT SELECT,INSERT,UPDATE,DELETE ON usermanagement.users TO $USER;
+GRANT SELECT,INSERT,UPDATE,DELETE ON usermanagement.revokedtokens TO $USER;
 GRANT SELECT,INSERT,UPDATE,DELETE ON usermanagement.rights TO $USER;
 GRANT SELECT,INSERT,UPDATE,DELETE ON usermanagement.signatures TO $USER;
 GRANT SELECT,INSERT,UPDATE,DELETE ON usermanagement.cart TO $USER;
@@ -412,6 +432,7 @@ GRANT SELECT,INSERT,UPDATE ON usermanagement.history TO $USER;
 GRANT ALL ON usermanagement.rights_gid_seq TO $USER;
 
 GRANT SELECT,UPDATE ON usermanagement.users_userid_seq TO $USER;
+GRANT SELECT,UPDATE ON usermanagement.revokedtokens_gid_seq TO $USER;
 GRANT SELECT,UPDATE ON usermanagement.history_gid_seq TO $USER;
 GRANT SELECT,UPDATE ON usermanagement.sharedlinks_gid_seq TO $USER;
 GRANT SELECT,UPDATE ON usermanagement.cart_gid_seq TO $USER;

@@ -78,7 +78,7 @@
  *    |______________________________________________________________________________________________
  *    | _pretty            |     boolean    | (For JSON output only) true to return pretty print JSON
  *    | _tk                |     string     | (For download/visualize/resetPassword) sha1 token for resource access
- *    |                                     | (For {userid}/isConnected) JWT profile token 
+ *    |                                     | (For /api/users/checkToken) JWT profile token 
  *    | _rc                |     boolean    | (For search) true to perform the total count of search results
  *    | callback           |     string     | (For JSON output only) name of callback funtion for JSON-P
  * 
@@ -355,6 +355,11 @@ class Resto {
             
             $payloadObject = json_decode(json_encode((array) $this->context->decodeJWT($token)), true);
             $this->user = new RestoUser($payloadObject['data'], $this->context);
+            
+            /*
+             * Assign token to user
+             */
+            $this->user->token = $token;
             
         } catch (Exception $ex) {}
     }

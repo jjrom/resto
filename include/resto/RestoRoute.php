@@ -96,9 +96,9 @@
  *    |  GET     api/collections/{collection}/describe         |  Opensearch service description for products on {collection}
  *    |  POST    api/users/connect                             |  Connect user
  *    |  GET     api/users/disconnect                          |  Disconnect user
+ *    |  GET     api/users/checkToken                          |  Check if token is valid (i.e. not revoked)
  *    |  GET     api/users/resetPassword                       |  Ask for password reset (i.e. reset link sent to user email adress)
  *    |  GET     api/users/{userid}/activate                   |  Activate users with activation code
- *    |  GET     api/users/{userid}/isConnected                |  Check is user is connected
  *    |  POST    api/users/{userid}/signLicense                |  Sign license for input collection
  *
  */

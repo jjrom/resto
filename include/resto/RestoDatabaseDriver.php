@@ -76,8 +76,8 @@ abstract class RestoDatabaseDriver {
     const STATISTICS = 28;
     const TABLE = 29;
     const TABLE_EMPTY = 30;
-    const USER = 31;
-    const USER_CONNECTED = 32;
+    const TOKEN_REVOKED = 31;
+    const USER = 32;
     const USER_PASSWORD = 33;
     const USER_PROFILE = 34;
     

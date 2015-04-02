@@ -50,6 +50,11 @@ class RestoUser{
     public $context;
     
     /*
+     * Current JWT token
+     */
+    public $token = null;
+    
+    /*
      * User cart
      */
     private $cart;
@@ -235,7 +240,7 @@ class RestoUser{
      * Disconnect user
      */
     public function disconnect() {
-        if (!$this->context->dbDriver->execute(RestoDatabaseDriver::DISCONNECT_USER, array('email' => $this->profile['email']))) {
+        if (!$this->context->dbDriver->execute(RestoDatabaseDriver::DISCONNECT_USER, array('token' => $this->token))) {
             return false;
         }
         return true;

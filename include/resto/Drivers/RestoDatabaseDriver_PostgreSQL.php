@@ -236,7 +236,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             case parent::DISCONNECT_USER:
                 $usersFunctions = new Functions_users($this);
-                return $usersFunctions->disconnectUser($params['email']);
+                return $usersFunctions->revokeToken($params['token']);
                
             /*
              * Sign license
@@ -276,14 +276,14 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 return $featuresFunctions->featureExists($params['featureIdentifier'], isset($params['schema']) ? $params['schema'] : null);
             
             /*
-             * True if user is connected
+             * True if user is item is in cart
              */
             case parent::CART_ITEM:
                 $cartFunctions = new Functions_cart($this);
                 return $cartFunctions->isInCart($params['itemId']);
             
             /*
-             * True if user is connected
+             * True if user is license is signed
              */
             case parent::LICENSE_SIGNED:
                 $usersFunctions = new Functions_users($this);
@@ -316,7 +316,14 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             case parent::TABLE_EMPTY:
                 $generalFunctions = new Functions_general($this);
                 return $generalFunctions->tableIsEmpty($params['name'], isset($params['schema']) ? $params['schema'] : 'public');
-                     
+            
+            /*
+             * True if user is license is signed
+             */
+            case parent::TOKEN_REVOKED:
+                $usersFunctions = new Functions_users($this);
+                return $usersFunctions->isTokenRevoked($params['token']);
+                
             /*
              * True if user exists
              */
@@ -324,13 +331,6 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 $usersFunctions = new Functions_users($this);
                 return $usersFunctions->userExists($params['email']);
             
-            /*
-             * True if user is connected
-             */
-            case parent::USER_CONNECTED:
-                $usersFunctions = new Functions_users($this);
-                return $usersFunctions->userIsConnected($params['identifier']);
-                
             default:
                 return null;
         }

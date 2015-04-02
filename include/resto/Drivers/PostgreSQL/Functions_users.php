@@ -89,16 +89,14 @@ class Functions_users {
             RestoLogUtil::httpError(404);
         }
         
-        $query = 'SELECT userid, email, md5(email) as userhash, groupname, username, givenname, lastname, to_char(registrationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\'), activated, connected FROM usermanagement.users WHERE ' . $this->useridOrEmailFilter($identifier) . (isset($password) ? ' AND password=\'' . pg_escape_string(sha1($password)). '\'' : '');
+        $query = 'SELECT userid, email, md5(email) as userhash, groupname, username, givenname, lastname, to_char(registrationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\'), activated FROM usermanagement.users WHERE ' . $this->useridOrEmailFilter($identifier) . (isset($password) ? ' AND password=\'' . pg_escape_string(sha1($password)). '\'' : '');
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         
         if (count($results) === 0) {
             RestoLogUtil::httpError(404);
         }
         
-        foreach (array_values(array('activated', 'connected')) as $key) {
-            $results[0][$key] = (integer) $results[0][$key];
-        }
+        $results[0]['activated'] = (integer) $results[0]['activated'];
         
         return $results[0];
         
@@ -114,22 +112,6 @@ class Functions_users {
      */
     public function userExists($email) {
         $query = 'SELECT 1 FROM usermanagement.users WHERE email=\'' . pg_escape_string($email) . '\'';
-        $results = $this->dbDriver->fetch($this->dbDriver->query(($query)));
-        return !empty($results);
-    }
-    
-    /**
-     * Return true if $userid is connected
-     * 
-     * @param string $identifier : userid or email
-     * 
-     * @throws Exception
-     */
-    public function userIsConnected($identifier) {
-        if (!isset($identifier)) {
-            return false;
-        }
-        $query = 'SELECT 1 FROM usermanagement.users WHERE ' . $this->useridOrEmailFilter($identifier) . ' AND connected=1';
         $results = $this->dbDriver->fetch($this->dbDriver->query(($query)));
         return !empty($results);
     }
@@ -179,7 +161,7 @@ class Functions_users {
         }
 
         /*
-         * Only password, groupname, activated and connected fields can be updated
+         * Only password, groupname and activated fields can be updated
          */
         $values = array();
         if (isset($profile['password'])) {
@@ -191,24 +173,34 @@ class Functions_users {
         if (isset($profile['activated'])) {
             $values[] = 'activated=' . $profile['activated'];
         }
-        if (isset($profile['connected'])) {
-            $values[] = 'connected=' . $profile['connected'];
-        }
         
         $results = $this->dbDriver->fetch($this->dbDriver->query('UPDATE usermanagement.users SET ' . join(',', $values) . ' WHERE email=\'' . pg_escape_string(trim(strtolower($profile['email']))) .'\' RETURNING userid'));
         
         return count($results) === 1 ? $results[0]['userid'] : null;
         
     }
-    
+
     /**
-     * Disconnect user
+     * Return true if token is revoked
      * 
-     * @param string $email
+     * @param string $token
      */
-    public function disconnectUser($email) {
-        $query = 'UPDATE usermanagement.users SET connected=0 WHERE email=\'' . pg_escape_string($email) . '\'';
-        $this->dbDriver->query($query);
+    public function isTokenRevoked($token) {
+        $query = 'SELECT 1 FROM usermanagement.revokedtokens WHERE token= \'' . pg_escape_string($token) . '\'';
+        $results = $this->dbDriver->fetch($this->dbDriver->query(($query)));
+        return !empty($results);
+    }
+
+    /**
+     * Revoke token
+     * 
+     * @param string $token
+     */
+    public function revokeToken($token) {
+        if (!isset($token)) {
+            return true;
+        }
+        $this->dbDriver->query('INSERT INTO usermanagement.revokedtokens (token) VALUES(\'' . pg_escape_string($token) . '\')');
         return true;
     }
 

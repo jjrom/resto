@@ -52,16 +52,15 @@ class RestoRouteGET extends RestoRoute {
 
     /**
      * 
-     * Process HTTP GET request 
+     * Process HTTP GET request
      * 
      *    api/collections/search                        |  Search on all collections
      *    api/collections/{collection}/search           |  Search on {collection}
      *    api/collections/describe                      |  Opensearch service description at collections level
      *    api/collections/{collection}/describe         |  Opensearch service description for products on {collection}
-     *    api/users/disconnect                          |  Disconnect user
      *    api/users/resetPassword                       |  Ask for password reset (i.e. reset link sent to user email adress)
+     *    api/users/checkToken                          |  Check if token is valid
      *    api/users/{userid}/activate                   |  Activate users with activation code
-     *    api/users/{userid}/isConnected                |  Check is user is connected
      *    
      *    collections                                   |  List all collections            
      *    collections/{collection}                      |  Get {collection} description
@@ -100,16 +99,6 @@ class RestoRouteGET extends RestoRoute {
     /**
      * 
      * Process HTTP GET request on api
-     * 
-     *    api/collections/search                        |  Search on all collections
-     *    api/collections/{collection}/search           |  Search on {collection}
-     *    api/collections/describe                      |  Opensearch service description at collections level
-     *    api/collections/{collection}/describe         |  Opensearch service description for products on {collection}
-     * 
-     *    api/users/disconnect                          |  Disconnect user
-     *    api/users/resetPassword                       |  Ask for password reset (i.e. reset link sent to user email adress)
-     *    api/users/{userid}/activate                   |  Activate users with activation code
-     *    api/users/{userid}/isConnected                |  Check is user is connected
      * 
      * @param array $segments
      */
@@ -234,11 +223,11 @@ class RestoRouteGET extends RestoRoute {
                 return $this->GET_apiUsersConnect();
 
             /*
-             * api/users/disconnect
+             * api/users/checkToken
              */
-            case 'disconnect':
-                return $this->GET_apiUsersDisconnect();
-
+            case 'checkToken':
+                return $this->GET_apiUsersCheckToken();
+                
             /*
              * api/users/resetPassword
              */
@@ -268,12 +257,6 @@ class RestoRouteGET extends RestoRoute {
             case 'activate':
                 return $this->GET_apiUsersActivate($segments[2]);
 
-            /*
-             * api/users/{userid}/isConnected
-             */
-            case 'isConnected':
-                return $this->GET_apiUsersIsConnected($segments[2]);
-
             default:
                 RestoLogUtil::httpError(403);
 
@@ -286,21 +269,14 @@ class RestoRouteGET extends RestoRoute {
      */
     private function GET_apiUsersConnect() {
         if (isset($this->user->profile['email'])) {
+            $this->user->token = $this->context->createToken($this->user->profile['userid'], $this->user->profile);
             return array(
-                'token' => $this->context->createToken($this->user->profile['userid'], $this->user->profile)
+                'token' => $this->user->token
             );
         }
         else {
             RestoLogUtil::httpError(403);
         }
-    }
-
-    /**
-     * Process api/users/disconnect
-     */
-    private function GET_apiUsersDisconnect() {
-        $this->user->disconnect();
-        return RestoLogUtil::success('User disconnected');
     }
 
     /**
@@ -369,23 +345,31 @@ class RestoRouteGET extends RestoRoute {
     }
 
     /**
-     * Process api/users/{userid}/isConnected
+     * Process api/users/checkToken
      * 
-     * @param string $userid
+     * Success if JWT is valid i.e.
+     *  - signed by server
+     *  - still in the validity period
+     *  - has not been revoked 
      */
-    private function GET_apiUsersIsConnected($userid) {
-        /*
-         * Check if JWT is valid
-         */   
+    private function GET_apiUsersCheckToken() {
+        
         if (isset($this->context->query['_tk'])) {
             try {
+                
                 $profile = json_decode(json_encode((array) $this->context->decodeJWT($this->context->query['_tk'])), true);
-                if ($profile['data']['userid'] === $userid) {
-                    return RestoLogUtil::success('User is connected');
+                
+                /*
+                 * Token is valid - i.e. signed by server and still in the validity period
+                 * Check if it is not revoked
+                 */
+                if (isset($profile['data']['email']) && !$this->context->dbDriver->check(RestoDatabaseDriver::TOKEN_REVOKED, array('token' => $this->context->query['_tk']))) {
+                    return RestoLogUtil::success('Valid token');
                 }
                 else {
-                    return RestoLogUtil::error('User not connected');
+                    return RestoLogUtil::error('Invalid token');
                 }
+                
             } catch (Exception $ex) {
                 return RestoLogUtil::error('User not connected');
             }
@@ -398,11 +382,6 @@ class RestoRouteGET extends RestoRoute {
     /**
      * 
      * Process HTTP GET request on collections
-     * 
-     *    collections                                   |  List all collections            
-     *    collections/{collection}                      |  Get {collection} description
-     *    collections/{collection}/{feature}            |  Get {feature} description within {collection}
-     *    collections/{collection}/{feature}/download   |  Download {feature}
      * 
      * @param array $segments
      */
@@ -495,19 +474,6 @@ class RestoRouteGET extends RestoRoute {
      * 
      * Process HTTP GET request on users
      * 
-     *    users                                         |  List all users
-     *    users/{userid}                                |  Show {userid} information
-     *    users/{userid}/cart                           |  Show {userid} cart
-     *    users/{userid}/orders                         |  Show orders for {userid}
-     *    users/{userid}/orders/{orderid}               |  Show {orderid} order for {userid}
-     *    users/{userid}/rights                         |  Show rights for {userid}
-     *    users/{userid}/rights/{collection}            |  Show rights for {userid} on {collection}
-     *    users/{userid}/rights/{collection}/{feature}  |  Show rights for {userid} on {feature} from {collection}
-     *    users/{userid}/signatures                     |  Show signatures for {userid}
-     *    users/{userid}/signatures/{collection}        |  Show signatures for {userid} on {collection}
-     * 
-     * Note: {userid} can be replaced by base64(email) 
-     * 
      * @param array $segments
      */
     private function GET_users($segments) {
@@ -576,11 +542,7 @@ class RestoRouteGET extends RestoRoute {
 
     /**
      * Process HTTP GET request on user rights
-     *   
-     *    users/{userid}/rights                         |  Show rights for {userid}
-     *    users/{userid}/rights/{collection}            |  Show rights for {userid} on {collection}
-     *    users/{userid}/rights/{collection}/{feature}  |  Show rights for {userid} on {feature} from {collection}
-     *
+     * 
      * @param string $emailOrId
      * @param string $collectionName
      * @param string $featureIdentifier
@@ -638,8 +600,6 @@ class RestoRouteGET extends RestoRoute {
 
     /**
      * Process HTTP GET request on user cart
-     *   
-     *    users/{userid}/cart                           |  Show {userid} cart
      *
      * @param string $emailOrId
      * @param string $itemid
@@ -661,8 +621,6 @@ class RestoRouteGET extends RestoRoute {
 
     /**
      * Process HTTP GET request on user orders
-     *   
-     *    users/{userid}/orders                         |  Show orders for {userid}
      *
      * @param string $emailOrId
      * @param string $orderid

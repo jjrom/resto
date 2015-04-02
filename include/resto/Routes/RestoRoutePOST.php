@@ -55,6 +55,7 @@ class RestoRoutePOST extends RestoRoute {
      * Process HTTP POST request
      * 
      *    api/users/connect                             |  Connect user
+     *    api/users/disconnect                          |  Disconnect user
      *    api/users/{userid}/signLicense                |  Sign license for input collection
      *    api/users/resetPassword                       |  Reset password
      * 
@@ -94,6 +95,7 @@ class RestoRoutePOST extends RestoRoute {
      * Process HTTP POST request on api
      * 
      *    api/users/connect                             |  Connect user
+     *    api/users/disconnect                          |  Disconnect user
      *    api/users/{userid}/signLicense                |  Sign license for input collection
      * 
      * @param array $segments
@@ -120,6 +122,13 @@ class RestoRoutePOST extends RestoRoute {
              */
             if ($segments[2] === 'connect' && !isset($segments[3])) {
                 return $this->POST_apiUsersConnect($data);
+            }
+            
+            /*
+             * api/users/disconnect
+             */
+            if ($segments[2] === 'disconnect' && !isset($segments[3])) {
+                return $this->POST_apiUsersDisconnect($data);
             }
             
             /*
@@ -181,6 +190,14 @@ class RestoRoutePOST extends RestoRoute {
 
     }
     
+    /**
+     * Process api/users/disconnect
+     */
+    private function POST_apiUsersDisconnect($data) {
+        $this->user->disconnect();
+        return RestoLogUtil::success('User disconnected');
+    }
+
     /**
      * Process api/users/resetPassword
      * 
