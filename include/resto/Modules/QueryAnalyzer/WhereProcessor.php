@@ -51,9 +51,9 @@ class WhereProcessor {
     public $result = array();
     
     /*
-     * Reference to QueryAnalyzer
+     * Reference to QueryManager
      */
-    private $queryAnalyzer;
+    private $queryManager;
     
     /*
      * Reference to gazetteer object
@@ -63,48 +63,47 @@ class WhereProcessor {
     /**
      * Constructor
      * 
-     * @param QueryAnalyzer $queryAnalyzer
-     * @param RestoContext $context
-     * @param RestoUser $user
+     * @param QueryManagerqueryManager
+     * @param Gazetteer $gazetteer
      */
-    public function __construct($queryAnalyzer, $context, $user) {
-        $this->queryAnalyzer = $queryAnalyzer;
-        $this->context = $context;
-        $this->user = $user;
-        if (isset($this->context->modules['Gazetteer'])) {
-            $this->gazetteer = new Gazetteer($this->context, $this->user, $this->context->modules['Gazetteer']);
-        }
+    public function __construct($queryManager, $gazetteer) {
+        $this->queryManager = $queryManager;
+        $this->gazetteer = $gazetteer;
     }
     
     /**
      * 
      * Process <in> "location"
      * 
-     * @param array $words
-     * @param integer $position of word in the list
-     * @param array $options
+     * @param integer $startPosition of word in the list
+     * @param integer $delta
      */
-    public function processIn($words, $position, $options = array('delta' => 1, 'nullIfNotFound' => false)) {
+    public function processIn($startPosition, $delta = 1) {
         
         /*
          * Extract locations
          */
-        $location = $this->extractLocation($words, $position + $options['delta']);
+        $locations = $this->extractLocations($startPosition + $delta);
         
-        if (count($location['location']['results']) > 0) {
-            $this->result[] = $this->getMostRelevantLocation($location['location']['results']);
+        /*
+         * At least one location found - get the most relevant one and set the others within a 'SeeAlso' property
+         */
+        if (count($locations['location']['results']) > 0) {
+            $this->result[] = $this->getMostRelevantLocation($locations['location']['results']);
         }
+        
+        /*
+         * Nothing found - set specific error
+         */
         else {
-            if ($options['nullIfNotFound']) {
-                return null;
-            }
-            $this->queryAnalyzer->error(QueryAnalyzer::LOCATION_NOT_FOUND, array($location['location']['query']));
+            $error = QueryAnalyzer::LOCATION_NOT_FOUND;
         }
         
-        array_splice($words, $position, $location['endPosition'] - $position + 1);
-       
-        return $words;
-       
+        /*
+         * In any case, set words as processed
+         */
+        $this->queryManager->discardPositionInterval(__METHOD__, $startPosition, $locations['endPosition'], isset($error) ? $error : null);
+        
     }
     
     /**
@@ -148,39 +147,49 @@ class WhereProcessor {
     
     /**
      * 
-     * Extract location from sentence
+     * Extract locations from sentence
      * 
-     * @param array $words
-     * @param integer $position of word in the list
+     * @param integer $startPosition of word in the list
      */
-    private function extractLocation($words, $position) {
+    private function extractLocations($startPosition) {
         
         /*
-         * Get the last index position
+         * Get location modifier i.e. continent, country or state
          */
-        $endPosition = $this->queryAnalyzer->getEndPosition($words, $position);
+        $locationModifiers = $this->extractLocationModifiers($startPosition, $this->queryManager->getEndPosition($startPosition));
         
         /*
-         * Search location modifier
-         * Location modifier is a country or a state
+         * If multiple location modifiers found, get the last one
          */
+        $locationModifier = null;
+        if (count($locationModifiers) > 0) {
+            $locationModifier = end($locationModifiers);
+        }
+        
+        /*
+         * Search toponym in gazetteer
+         */
+        return $this->extractToponym($startPosition, $locationModifier);
+        
+    }
+    
+    /**
+     * 
+     * Extract modifiers i.e. continent, country or state
+     * 
+     * @param integer $startPosition of word in the list
+     * @param integer $endPosition last word to test
+     */
+    private function extractLocationModifiers($startPosition, $endPosition) {
+        
         $locationModifiers = array();
-        $stopWordPosition = -1;
         $length = 0;
-        
-        for ($i = $position; $i <= $endPosition; $i++) {
+        for ($i = $startPosition; $i <= $endPosition; $i++) {
             
             /*
              * Search for a location modifier
              */
-            $locationModifier = $this->getLocationModifier($words, $i + $length, $endPosition, $stopWordPosition);
-            
-            /*
-             * Eventually get the position of the last stopWord
-             */
-            if ($this->queryAnalyzer->dictionary->isStopWord($words[$i])) {
-               $stopWordPosition = $i;
-            } 
+            $locationModifier = $this->getLocationModifier($i + $length, $endPosition);
             
             /*
              * Break if location modifier was found
@@ -195,30 +204,7 @@ class WhereProcessor {
             
         }
         
-        /*
-         * If multiple location modifiers found, get the last one
-         */
-        $locationModifier = null;
-        if (count($locationModifiers) > 0) {
-            $locationModifier = end($locationModifiers);
-            $endPosition = $locationModifier['endPosition'];
-        }
-        
-        /*
-         * Search toponym in gazetteer
-         */
-        if (isset($this->gazetteer)) {
-            return $this->extractToponym($words, $position, $locationModifier);
-        }
-        /*
-         * Return location modifier
-         */
-        else {
-            return array(
-                'endPosition' => $endPosition,
-                'location' => $locationModifier
-            );
-        }
+        return $locationModifiers;
         
     }
     
@@ -226,118 +212,60 @@ class WhereProcessor {
      * 
      * Extract toponym
      * 
-     * @param array $words
-     * @param integer $position of word in the list
+     * @param integer $startPosition of word in the list
      * @param array $locationModifier
      */
-    private function extractToponym($words, $position, $locationModifier = null) {
-        
-        /*
-         * Reconstruct sentence from words
-         */
-        $toponymName = '';
-        $endPosition = isset($locationModifier) ? $locationModifier['endPosition'] : count($words);
-        for ($i = $position, $ii = $endPosition; $i < $ii; $i++) {
-            
-            $endPosition = $i;
-            
-            /*
-             * Exit if stop modifier is found
-             */
-            if ($this->queryAnalyzer->dictionary->isModifier($words[$i])) {
-                $endPosition = $i - 1;
-                break;
-            }
-            
-            /*
-             * Discard locationModifier
-             */
-            if (isset($locationModifier)) {
-                if ($i >= $locationModifier['startPosition'] && $i <= $locationModifier['endPosition']) {
-                    continue;
-                }
-            }
-            
-            $toponymName .= ($toponymName === '' ? '' : '-') . $words[$i];
-            
-        }
-        
-        /*
-         * Search modifier only
-         */
+    private function extractToponym($startPosition, $locationModifier) {
         if (isset($locationModifier)) {
-            if (empty($toponymName) || $this->queryAnalyzer->dictionary->isStopWord($toponymName)) {
-                return array(
-                    'endPosition' => $locationModifier['endPosition'],
-                    'location' => $this->gazetteer->search(array(
-                        'q' => $locationModifier['keyword'],
-                        'wkt' => true
-                    ))
-                );
-            }
-            $modifier = $locationModifier['keyword'];
-            $endPosition = max(array($endPosition, $locationModifier['endPosition']));
+            return $this->extractToponymWithModifier($startPosition, $locationModifier);
         }
         else {
-            $modifier = '';
+            return $this->extractToponymWithoutModifier($startPosition);
         }
-        return $this->getToponymFromTuples($toponymName, $modifier, $endPosition);
-        
-    }
-        
-    /**
-     * Return location modifier (i.e. country or state- from words array
-     * 
-     * If input words are array('the', 'united', 'states')
-     * 
-     * Then keyword will be tested against : 
-     *  the, the-united, the-united-states
-     * 
-     * @param array $words
-     * @param integer $startPosition
-     * @param integer $endPosition
-     * @param integer $stopWordPosition
-     * @return array
-     */
-    private function getLocationModifier($words, $startPosition, $endPosition, $stopWordPosition = -1) {
-        $locationName = '';
-        for ($i = $startPosition; $i <= $endPosition; $i++) {
-            
-            /*
-             * Reconstruct sentence from words without stop words
-             */
-            $locationName .= ($locationName === '' ? '' : '-') . $words[$i];
-            $keyword = $this->queryAnalyzer->dictionary->getKeyword(RestoDictionary::LOCATION, $locationName);
-            if (isset($keyword)) {
-                return array(
-                    'startPosition' => $stopWordPosition === -1 ? $startPosition : $stopWordPosition,
-                    'endPosition' => $i,
-                    'keyword' => $locationName,
-                    'type' => $keyword['type']
-                );
-            }
-
-        }
-        return null;
     }
     
     /**
      * 
-     * @param string $toponymName
-     * @param string $modifier
-     * @param integer $endPosition
-     * @return type
+     * Extract toponym with modifier
+     * 
+     * @param integer $startPosition of word in the list
+     * @param array $locationModifier
      */
-    private function getToponymFromTuples($toponymName, $modifier, $endPosition) {
+    private function extractToponymWithModifier($startPosition, $locationModifier) {
+        $toponymName = $this->toToponymName($startPosition, $locationModifier['startPosition'] - 1);
+        if (empty($toponymName) || $this->queryManager->dictionary->isStopWord($toponymName)) {
+            return array(
+                'endPosition' => $locationModifier['endPosition'],
+                'location' => $this->gazetteer->search(array(
+                    'q' => $locationModifier['keyword'],
+                    'wkt' => true
+                ))
+            );
+        }
+        return array(
+            'endPosition' => $locationModifier['endPosition'],
+            'location' => $this->gazetteer->search(array(
+                'q' => $toponymName . ',' . $locationModifier['keyword'],
+                'wkt' => true
+            ))
+        );
+    }
+     
+    /**
+     * 
+     * Extract toponym without modifier
+     * 
+     * @param integer $startPosition of word in the list
+     * 
+     */
+    private function extractToponymWithoutModifier($startPosition) {
         
-        /*
-         * Search for toponym
-         */
-        $discarded = array();
+        $endPosition = $this->queryManager->getEndPosition($startPosition);
+        $toponymName = $this->toToponymName($startPosition, $endPosition);
         while(true) {
             
             $location = $this->gazetteer->search(array(
-                'q' => $toponymName . ($modifier !== '' ? ',' . $modifier : ''),
+                'q' => $toponymName,
                 'wkt' => true
             ));
             
@@ -352,13 +280,8 @@ class WhereProcessor {
             /*
              * Remove last word
              */
-            $discarded[] = substr($toponymName, $pos + 1, strlen($toponymName));
             $toponymName = substr($toponymName, 0, $pos);
-            
-        }
-        
-        if (count($discarded) > 0) {
-            $this->queryAnalyzer->notUnderstood(array_reverse($discarded));
+            $endPosition--;
         }
         
         return array(
@@ -366,6 +289,53 @@ class WhereProcessor {
             'location' => $location
         );
         
+    }
+    
+    /**
+     * Return location modifier (i.e. country or state- from words array
+     * 
+     * If input words are array('the', 'united', 'states')
+     * 
+     * Then keyword will be tested against : 
+     *  the, the-united, the-united-states
+     * 
+     * @param integer $startPosition
+     * @param integer $endPosition
+     * @return array
+     */
+    private function getLocationModifier($startPosition, $endPosition) {
+        
+        /*
+         * Reconstruct sentence from words without stop words
+         */
+        $locationName = '';
+        for ($i = $startPosition; $i <= $endPosition; $i++) {    
+            $locationName .= ($locationName === '' ? '' : '-') . $this->queryManager->words[$i]['word'];
+            $keyword = $this->queryManager->getLocationKeyword($locationName);
+            if (isset($keyword)) {
+                return array(
+                    'startPosition' => $this->queryManager->isStopWordPosition($startPosition - 1) ? $startPosition - 1 : $startPosition,
+                    'endPosition' => $i,
+                    'keyword' => $locationName,
+                    'type' => $keyword['type']
+                );
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Merge words with '-' separator from $startPosition to $endPosition included
+     * 
+     * @param integer $startPosition
+     * @param integer $endPosition
+     */
+    private function toToponymName($startPosition, $endPosition) {
+        $toponymName = '';
+        for ($i = $startPosition; $i <= $endPosition; $i++) {
+            $toponymName .= ($toponymName === '' ? '' : '-') . $this->queryManager->words[$i]['word'];
+        }
+        return $toponymName;
     }
     
 }

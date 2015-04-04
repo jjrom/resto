@@ -133,6 +133,7 @@
  * 
  * @param array $params
  */
+require 'QueryAnalyzer/QueryManager.php';
 require 'QueryAnalyzer/WhatProcessor.php';
 require 'QueryAnalyzer/WhenProcessor.php';
 require 'QueryAnalyzer/WhereProcessor.php';
@@ -141,10 +142,16 @@ class QueryAnalyzer extends RestoModule {
     /*
      * Error messages
      */
-    const LOCATION_NOT_FOUND = 'LOCATION_NOT_FOUND';
-    const NOT_UNDERSTOOD = 'NOT_UNDERSTOOD';
     const INVALID_UNIT = 'INVALID_UNIT';
+    const LOCATION_NOT_FOUND = 'LOCATION_NOT_FOUND';
+    const MISSING_ARGUMENT = 'MISSING_ARGUMENT';
     const MISSING_UNIT = 'MISSING_UNIT';
+    const NOT_UNDERSTOOD = 'NOT_UNDERSTOOD';
+    
+    /*
+     * Query manager
+     */
+    public $queryManager = null;
     
     /*
      * Processors
@@ -152,21 +159,6 @@ class QueryAnalyzer extends RestoModule {
     public $whenProcessor = null;
     public $whereProcessor = null;
     public $whatProcessor = null;
-    
-    /*
-     * Reference to dictionary
-     */
-    public $dictionary;
-    
-    /*
-     * Reference to model
-     */
-    public $model;
-    
-    /*
-     * Analysis error
-     */
-    private $errors = array();
     
     /**
      * Constructor
@@ -177,11 +169,18 @@ class QueryAnalyzer extends RestoModule {
      */
     public function __construct($context, $user, $model = null) {
         parent::__construct($context, $user);
-        $this->dictionary = $this->context->dictionary;
-        $this->model = isset($model) ? $model : new RestoModel_default();
-        $this->whenProcessor = new WhenProcessor($this, $this->context, $this->user);
-        $this->whereProcessor = new WhereProcessor($this, $this->context, $this->user);
-        $this->whatProcessor = new WhatProcessor($this, $this->context, $this->user);
+        
+        /*
+         * Patterns processor (i.e. When, What and Where)
+         * Note : Where processor needs gazetteer
+         */
+        $this->queryManager = new QueryManager($this->context->dictionary, $model);
+        $this->whenProcessor = new WhenProcessor($this->queryManager, $this->context, $this->user);
+        $this->whatProcessor = new WhatProcessor($this->queryManager);
+        if (isset($context->modules['Gazetteer'])) {
+            $this->whereProcessor = new WhereProcessor($this->queryManager, new Gazetteer($context, $user, $context->modules['Gazetteer']));
+        }
+        
     }
 
     /**
@@ -225,88 +224,11 @@ class QueryAnalyzer extends RestoModule {
        
         return array(
             'query' => $query,
-            'language' => $this->dictionary->language,
+            'language' => $this->context->dictionary->language,
             'analyze' => $this->process($query),
             'processingTime' => microtime(true) - $startTime
         );
         
-    }
-    
-    /**
-     * Get the last sentence position i.e. the last word position before
-     * a modifier or the last word position if no modifier is found
-     * @param array $words
-     * @param integer $position
-     */
-    public function getEndPosition($words, $position) {
-        $endPosition = $position;
-        for ($i = $position, $ii = count($words); $i < $ii; $i++) {
-            if ($this->dictionary->isModifier($words[$i])) {
-                $endPosition = $i - 1;
-                break;
-            }
-            $endPosition = $i;
-        }
-        return $endPosition;
-    }
-    
-    /**
-     * Add text to error array
-     * 
-     * @param array $error
-     * @param array $words
-     */
-    public function error($error, $words) {
-        $merged = $this->mergeWords($this->slice($words, 0, count($words)));
-        if (!empty($merged)) {
-            $this->errors[] = array(
-                'error' => $error,
-                'text' => $this->mergeWords($this->slice($words, 0, count($words)))
-            );
-        }
-    }
-    
-    /**
-     * Add words to not understood array
-     * 
-     * @param array $words
-     */
-    public function notUnderstood($words) {
-        if (!is_array($words)) {
-            $words = array($words);
-        }
-        $this->error(QueryAnalyzer::NOT_UNDERSTOOD, $words);
-    }
-    
-    /**
-     * Return slice of $words array. Output array is reversed if $reverse is set to true
-     * 
-     * @param array $words
-     * @param integer $startPosition
-     * @param integer $endPosition
-     * @param boolean $reverse
-     * @return type
-     */
-    public function slice($words, $startPosition, $endPosition, $reverse = false) {
-        $slicedWords = array_slice($words, $startPosition, $endPosition);
-        return $reverse ? array_reverse($slicedWords) : $slicedWords;
-    }
-    
-    /**
-     * Concatenate words into sentence removing noise and stop words
-     * 
-     * @param array $words
-     * @return array
-     */
-    private function mergeWords($words, $discardStopWords = false) {
-        $sentence = '';
-        for ($i = 0, $ii = count($words); $i < $ii; $i++) {
-            if ($discardStopWords && ($this->dictionary->isStopWord($words[$i]) || $this->dictionary->isNoise($words[$i]))) {
-                continue;
-            }
-            $sentence .= $words[$i] . ' ';
-        }
-        return trim($sentence);
     }
     
     /**
@@ -318,156 +240,135 @@ class QueryAnalyzer extends RestoModule {
     private function process($query) {
         
         /*
-         * Extract (in this order !) "what", "when" and "where" elements from query
+         * Initialize QueryManager
          */
-        $words = $this->processWhere($this->processWhen($this->processWhat($this->toWords($query))));
+        $this->queryManager->setWords($this->queryToWords($query));
         
         /*
-         * Remaining stuff
+         * Extract (in this order !) "what", "when" and "where" elements from query
+         * Suppose that query is structured (i.e. is a sentence) 
          */
-        if (count($words) > 0) {
-            $this->processRemainingWords($words);
-        }
+        $this->processWhat(true);
+        $this->processWhen(true);
+        $this->processWhere(true);
+        
+        /*
+         * Remaining words are unstructured (i.e. not a sentence)
+         */
+        $this->processWhat(false);
+        $this->processWhen(false);
+        $this->processWhere(false);
         
         /*
          * Return processing results
          */
         return array(
+            'Processed' => $this->queryManager->words,
             'What' => $this->whatProcessor->result,
             'When' => $this->whenProcessor->result,
-            'Where' => $this->whereProcessor->result,
-            'Errors' => $this->errors
+            'Where' => isset($this->whereProcessor) ? $this->whereProcessor->result : array(),
+            'Errors' => $this->queryManager->errors
         );
         
     }
     
     /**
-     * Extract time patterns from words
+     * Extract time patterns from query
      * 
-     * @param array $words
+     * @param boolean $fromSentence
      */
-    private function processWhen($words) {
-        
-        /*
-         * Roll over each word to detect time pattern
-         */
-        for ($i = 0, $l = count($words); $i < $l; $i++) {
-            $result = $this->processModifier($this->dictionary->get(RestoDictionary::TIME_MODIFIER, $words[$i]), $this->whenProcessor, $words, $i); 
-            if (isset($result)) {
-                return $this->processWhen($result);
-            }
+    private function processWhen($fromSentence) {
+        $fromSentence ? $this->processSentence('when') : $this->processWords('when');
+    }
+    
+    /**
+     * Extract location patterns from query
+     * Note: needs Gazetteer module up and running
+     * 
+     * @param boolean $fromSentence
+     */
+    private function processWhere($fromSentence) {
+        if (isset($this->whereProcessor)) {
+            $fromSentence ? $this->processSentence('where') : $this->processWords('where');
         }
-        
-        return $words;
     }
     
     /**
-     * Extract time patterns from words
+     * Extract what patterns from query
      * 
-     * @param array $words
+     * @param boolean $fromSentence
      */
-    private function processWhere($words) {
-        
-        /*
-         * Roll over each word to detect location pattern
-         */
-        for ($i = 0, $l = count($words); $i < $l; $i++) {
-            $result = $this->processModifier($this->dictionary->get(RestoDictionary::LOCATION_MODIFIER, $words[$i]), $this->whereProcessor, $words, $i); 
-            if (isset($result)) {
-                return $this->processWhere($result);
-            }
-        }
-        
-        return $words;
+    private function processWhat($fromSentence) {
+        $fromSentence ? $this->processSentence('what') : $this->processWords('what');
     }
     
-    /**
-     * Extract what patterns from words
+    /*
+     * Extract What, When and Where patterns from unstructured words
      * 
-     * @param array $words
+     * @param string $type
      */
-    private function processWhat($words) {
-        
-        /*
-         * Roll over each word to detect what pattern
-         */
-        for ($i = 0, $l = count($words); $i < $l; $i++) {
-            $result = $this->processModifier($this->dictionary->get(RestoDictionary::QUANTITY_MODIFIER, $words[$i]), $this->whatProcessor, $words, $i); 
-            if (isset($result)) {
-                return $this->processWhat($result);
-            }
-        }
-        
-        return $words;
-    }
-    
-    /**
-     * Process non already processed words
-     * 
-     * @param array $words
-     */
-    private function processRemainingWords($words) {
-        
-        /*
-         * Extract keywords
-         */
-        $remainings = $this->processRemainingWhenWhere($this->processRemainingWhat($words));
-        
-        /*
-         * Remaining words
-         */
-        $this->notUnderstood($remainings, true);
-        
-    }
-    
-    /**
-     * Process remaining What words
-     * 
-     * @param array $words
-     * @return array
-     */
-    private function processRemainingWhat($words) {
-        for ($i = count($words); $i--;) {
-            $remainings = $this->whatProcessor->processWith($words, $i, array(
-                'delta' => 0,
-                'nullIfNotFound' => true
-            ));
-            if (isset($remainings)) {
-                $words = $remainings;
-            }
-        }
-        return $words;
-    }
-    
-    /**
-     * Process remaining When and Where words
-     * 
-     * @param array $words
-     * @return array
-     */
-    private function processRemainingWhenWhere($words) {
-        foreach (array_values(array('when', 'what')) as $processorType) { 
-            for ($i = 0, $ii = count($words); $i < $ii; $i++) {
-                $remainings = $processorType === 'when' ?
-                        $this->whenProcessor->processIn($words, $i, array(
-                            'delta' => 0,
-                            'nullIfNotFound' => true
-                        )) : 
-                        $this->whereProcessor->processIn($words, $i, array(
-                            'delta' => 0,
-                            'nullIfNotFound' => true
-                ));
-                if (isset($remainings)) {
-                    $words = $remainings;
-                    break;
+    private function processWords($type) {
+        for ($i = 0; $i < $this->queryManager->length; $i++) {
+            if ($this->queryManager->isValidPosition($i)) {
+                switch ($type) {
+                    case 'what':
+                        $this->whatProcessor->processWith($i, 0);
+                        break;
+                    case 'when':
+                        $this->whenProcessor->processIn($i, 0);
+                        break;
+                    case 'where':
+                        $this->whereProcessor->processIn($i, 0);
+                        break;
                 }
             }
         }
-        return $words;
+    }
+    
+    /*
+     * Extract What, When and Where patterns from sentence
+     * 
+     * @param string $type
+     */
+    private function processSentence($type) {
+        for ($i = 0; $i < $this->queryManager->length; $i++) {
+            if ($this->queryManager->isValidPosition($i)) {
+                switch ($type) {
+                    case 'what':
+                        $this->processModifier($this->context->dictionary->get(RestoDictionary::QUANTITY_MODIFIER, $this->queryManager->words[$i]['word']), $this->whatProcessor, $i);
+                        break;
+                    case 'when':
+                        $this->processModifier($this->context->dictionary->get(RestoDictionary::TIME_MODIFIER, $this->queryManager->words[$i]['word']), $this->whenProcessor, $i);
+                        break;
+                    case 'where':
+                        $this->processModifier($this->context->dictionary->get(RestoDictionary::LOCATION_MODIFIER, $this->queryManager->words[$i]['word']), $this->whereProcessor, $i);
+                        break;
+                }
+            }
+        }
     }
     
     /**
-     * Return array of words from input string
+     * Process Modifier
+     * 
+     * @param string $modifier
+     * @param string $processorClass
+     * @param integer $position
+     * @return array
+     */
+    private function processModifier($modifier, $processorClass, $position) {
+        if (isset($modifier)) {
+            $functionName = 'process' . ucfirst($modifier);
+            if (method_exists($processorClass, $functionName)) {
+                call_user_func_array(array($processorClass, $functionName), array($position));
+            }
+        }
+    }
+    
+    /**
+     * 
+     * Explode query into normalized array of words
+     * 
      * In order :
      *   - replace in query ' , and ; characters by space
      *   - transliterate query string afterward (i.e. all words in lowercase without accent)
@@ -477,20 +378,10 @@ class QueryAnalyzer extends RestoModule {
      * @param string $query
      * @return array
      */
-    private function toWords($query) {
-        return $this->cleanRawWords(RestoUtil::splitString($this->context->dbDriver->normalize(str_replace(array('\'', ',', ';'), ' ', $query))));
-    }
-
-    /**
-     * Clean raw words array i.e.
-     *  - Add a space between a numeric value and '%' character
-     * 
-     * @param array $rawWords
-     * @return array
-     */
-    private function cleanRawWords($rawWords) {
+    private function queryToWords($query) {
         $words = array();
-        for ($i = 0, $l = count($rawWords); $i < $l; $i++) {
+        $rawWords = RestoUtil::splitString($this->context->dbDriver->normalize(str_replace(array('\'', ',', ';'), ' ', $query)));
+        for ($i = 0, $ii = count($rawWords); $i < $ii; $i++) {
             $term = trim($rawWords[$i]);
             if ($term === '') {
                 continue;
@@ -505,25 +396,6 @@ class QueryAnalyzer extends RestoModule {
             }
         }
         return $words;
-    }
-
-    /**
-     * Process Modifier
-     * 
-     * @param string $modifier
-     * @param string $processorClass
-     * @param array $words
-     * @param integer $position
-     * @return array
-     */
-    private function processModifier($modifier, $processorClass, $words, $position) {
-        if (isset($modifier)) {
-            $functionName = 'process' . ucfirst($modifier);
-            if (method_exists($processorClass, $functionName)) {
-                return call_user_func_array(array($processorClass, $functionName), array($words, $position));
-            }
-        }
-        return null;
     }
     
 }

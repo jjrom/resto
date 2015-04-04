@@ -51,100 +51,83 @@ class WhenProcessor {
     public $result = array();
     
     /*
-     * Reference to QueryAnalyzer
+     * Reference to QueryManager
      */
-    private $queryAnalyzer;
+    private $queryManager;
     
     /**
      * Constructor
      * 
-     * @param QueryAnalyzer $queryAnalyzer
+     * @param QueryManager $queryManager
      * @param RestoContext $context
      * @param RestoUser $user
      */
-    public function __construct($queryAnalyzer, $context, $user) {
-        $this->queryAnalyzer = $queryAnalyzer;
-        $this->context = $context;
-        $this->user = $user;
+    public function __construct($queryManager) {
+        $this->queryManager = $queryManager;
     }
 
     /**
      * Process <after> "date" 
      * 
-     * @param array $words
-     * @param integer $position
+     * @param integer $startPosition
      * @return string
      */
-    public function processAfter($words, $position) {
-        return $this->processBeforeOrAfter($words, $position, 'time:start');
+    public function processAfter($startPosition) {
+        return $this->processBeforeOrAfter($startPosition, 'time:start');
     }
 
     /**
      * Process <before> "date" 
      * 
-     * @param array $words
-     * @param integer $position
+     * @param integer $startPosition
      * @return string
      */
-    public function processBefore($words, $position) {
-        return $this->processBeforeOrAfter($words, $position, 'time:end');
+    public function processBefore($startPosition) {
+        return $this->processBeforeOrAfter($startPosition, 'time:end');
     }
     
     /**
      * 
      * Process <between> "date" <and> "date"
      * 
-     * @param array $words
-     * @param integer $position of word in the list
+     * @param integer $startPosition of word in the list
      */
-    public function processBetween($words, $position) {
-        
-        $endPosition = -1;
+    public function processBetween($startPosition) {
         
         /*
          * Extract first date
          */
-        $firstDate = $this->extractDate($words, $position + 1, true);
-        
-        /*
-         * No first date
-         */
-        if (empty($firstDate['date'])) {
-            $endPosition = $firstDate['endPosition'];
-        }
+        $firstDate = $this->extractDate($startPosition + 1, true);
         
         /*
          * Extract second date
          */
-        $secondDate = $this->extractDate($words, $firstDate['endPosition'] + 2);
+        $secondDate = $this->extractDate($firstDate['endPosition'] + 2);
         
-        /* 
-         * No second date
+        /*
+         * Date interval is not valid
          */
-        if (empty($secondDate['date'])) {
-            $endPosition = $secondDate['endPosition'];
+        if (empty($firstDate['date']) && empty($secondDate['date'])) {
+            $error = QueryAnalyzer::NOT_UNDERSTOOD;
         }
         
         /*
-         * Date interval found
+         * Valid date interval found
          */
-        if ($endPosition === -1) {
+        else {
             if (!isset($firstDate['date']['year']) && isset($secondDate['date']['year'])) {
                 $firstDate['date']['year'] = $secondDate['date']['year'];
             }
             if (!isset($firstDate['date']['month']) && isset($secondDate['date']['month'])) {
                 $firstDate['date']['month'] = $secondDate['date']['month'];
             }
-            $this->addToResult('time:start', $this->toLowestDay($firstDate['date']));
-            $this->addToResult('time:end', $this->toGreatestDay($secondDate['date']));
-            $endPosition = $secondDate['endPosition'];
+            $this->addToResult(array(
+                'time:start' => $this->toLowestDay($firstDate['date']),
+                'time:end' => $this->toGreatestDay($secondDate['date'])
+            ));
         }
-        else {
-            $this->queryAnalyzer->notUnderstood($this->queryAnalyzer->slice($words, $position, $endPosition));
-        }
-        array_splice($words, $position, $endPosition - $position + 1);
-       
-        return $words;
+        
+        $this->queryManager->discardPositionInterval(__METHOD__, $startPosition, max(array($firstDate['endPosition'], $secondDate['endPosition'])), isset($error) ? $error : null);
         
     }
     
@@ -167,19 +150,17 @@ class WhenProcessor {
      *      If current date is 12 November 2013 (i.e. 2013-11) then
      *      the "<since> 2 months" are from 12 septembre 2013 and 12 november 2013
      * 
-     * @param array $words
-     * @param integer $position of word in the list
+     * @param integer $startPosition of word in the list
      */
-    public function processSince($words, $position) {
+    public function processSince($startPosition) {
         
         /*
          * <since> duration
          */
-        $duration = $this->extractDuration($words, $position + 1);
-        $endPosition = $duration['endPosition'];
+        $duration = $this->extractDuration($startPosition + 1);
         if (isset($duration['duration']['unit'])) {
             $date = array(
-                'endPosition' => $endPosition,
+                'endPosition' => $duration['endPosition'],
                 'date' => $this->iso8601ToDate(date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration['duration']['value'] . $duration['duration']['unit'])))
             );
         }
@@ -188,9 +169,8 @@ class WhenProcessor {
          */
         else {
            
-            $date = $this->extractDate($words, $position + 1);
-            $endPosition = $date['endPosition'];
-           
+            $date = $this->extractDate($startPosition + 1);
+            
             /*
              * If only a day was detected then it's an issue
              */
@@ -208,14 +188,15 @@ class WhenProcessor {
         }
         
         if (empty($date['date'])) {
-            $this->queryAnalyzer->notUnderstood($this->queryAnalyzer->slice($words, $position, $endPosition));
+            $error = QueryAnalyzer::NOT_UNDERSTOOD;
         }
         else {
-            $this->addToResult('time:start', $this->toLowestDay($date['date']));
+            $this->addToResult(array(
+                'time:start' => $this->toLowestDay($date['date'])
+            ));
         }
-        array_splice($words, $position, $endPosition - $position + 1);
         
-        return $words;
+        $this->queryManager->discardPositionInterval(__METHOD__, $startPosition, $date['endPosition'], isset($error) ? $error : null);
         
     }
     
@@ -234,11 +215,10 @@ class WhenProcessor {
      *      If current date is November 2013 (i.e. 2013-11) then
      *      the "<last> 2 months" are September and October 2013
      * 
-     * @param array $words
-     * @param integer $position of word in the list
+     * @param integer $startPosition of word in the list
      */
-    public function processLast($words, $position) {
-        return $this->processLastOrNext($words, $position, 'last');
+    public function processLast($startPosition) {
+        return $this->processLastOrNext($startPosition, 'last');
     }
     
     /**
@@ -256,161 +236,135 @@ class WhenProcessor {
      *      If current date is November 2013 (i.e. 2013-11) then
      *      the "<next> 2 months" are December 2013 and January 2014
      * 
-     * @param array $words
-     * @param integer $position of word in the list
+     * @param integer $startPosition of word in the list
      */
-    public function processNext($words, $position) {
-        return $this->processLastOrNext($words, $position, 'next');
+    public function processNext($startPosition) {
+        return $this->processLastOrNext($startPosition, 'next');
     }
     
     /**
      * Process <in> "date"
      * 
-     * @param array $words
-     * @param integer $position of word in the list
-     * @param array $options
+     * @param integer $startPosition of word in the list
+     * @param integer $delta
      */
-    public function processIn($words, $position, $options = array('delta' => 1, 'nullIfNotFound' => false)) {
+    public function processIn($startPosition, $delta = 1) {
         
-        $date = $this->extractDate($words, $position + $options['delta']);
+        $date = $this->extractDate($startPosition + $delta);
        
         /*
-         * No date found - try a season
+         * No date found - try a season or a duration
          */
         if (empty($date['date'])) {
-            $season = $this->extractSeason($words, $position + $options['delta']);
-            if (isset($season)) {
-                array_splice($words, $position, $season['endPosition'] - $position + 1);
-                return $words;
-            }
-            return !$options['nullIfNotFound'] ? $this->queryAnalyzer->whereProcessor->processIn($words, $position) : null;
+            $this->processInDuration($startPosition, $delta);
         }
+        
         /*
-         * Year only is specified
+         * Date found
          */
-        if (isset($date['date']['year'])) {
-            if (!isset($date['date']['month'])) {
-                $this->addToResult('year', $date['date']['year']);
-            }
-            else {
-                $this->addToResult('time:start', $this->toLowestDay($date['date']));
-                $this->addToResult('time:end', $this->toGreatestDay($date['date']));
-            }
-        }
         else {
-            if (isset($date['date']['month'])) {
-                $this->addToResult('month', $date['date']['month']);
-            }
-            if (isset($date['date']['day'])) {
-                $this->addToResult('day', $date['date']['day']);
-            }
+            $this->processInDate($date, $startPosition);
         }
         
-        array_splice($words, $position, $date['endPosition'] - $position + 1);
-        
-        return $words;
     }
     
     /**
      * Process "numeric" "units" <ago>
      * 
-     * @param array $words
-     * @param integer $position of word in the list
+     * @param integer $startPosition of word in the list
      */
-    public function processAgo($words, $position) {
+    public function processAgo($startPosition) {
         
-        if ($position - 2 >= 0 && $this->queryAnalyzer->dictionary->getNumber($words[$position - 2])) {
+        if ($this->queryManager->isValidPosition($startPosition - 2)) {
             
-            $unit = $this->queryAnalyzer->dictionary->get(RestoDictionary::TIME_UNIT, $words[$position - 1]);
-            $duration = $this->queryAnalyzer->dictionary->getNumber($words[$position - 2]);
-                    
-            /*
-             * Known duration unit
-             */
-            if ($unit === 'days' || $unit === 'months' || $unit === 'years') {
-                $this->addToResult('time:start', date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration . $unit)) . 'T00:00:00Z');
-                $this->addToResult('time:end', date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration . $unit)) . 'T23:59:59Z');
-                array_splice($words, $position - 2, 3);
-                return $words;
+            $duration = $this->queryManager->dictionary->getNumber($this->queryManager->words[$startPosition - 2]['word']);
+            $unit = $this->queryManager->dictionary->get(RestoDictionary::TIME_UNIT, $this->queryManager->words[$startPosition - 1]['word']);
+            
+            if ($duration && in_array($unit, array('days', 'months', 'years'))) {
+                $this->addToResult(array(
+                    'time:start' => date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration . $unit)) . 'T00:00:00Z',
+                    'time:end' => date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration . $unit)) . 'T23:59:59Z'
+                ));
+                
+                $this->queryManager->discardPositionInterval(__METHOD__, $startPosition -2, $startPosition);
+                
             }
+            
         }
-        
-        /*
-         * Invalid processing
-         */
-        array_splice($words, $position, 1);
-        return $words;
+         
     }
     
    /**
     * Process <today>
     * 
-    * @param array $words
     * @param integer $position of word in the list
     */
-    public function processToday($words, $position) {
-        $this->addToResult('time:start', date('Y-m-d\T00:00:00\Z'));
-        $this->addToResult('time:end', date('Y-m-d\T23:59:59\Z'));
-        array_splice($words, $position, 1);
-        return $words;
+    public function processToday($position) {
+        $this->addToResult(array(
+            'time:start' => date('Y-m-d\T00:00:00\Z'),
+            'time:end' => date('Y-m-d\T23:59:59\Z')
+        ));
+        $this->queryManager->discardPosition(__METHOD__, $position);
     }
     
    /**
     * Process <tomorrow>
     * 
-    * @param array $words
     * @param integer $position of word in the list
     */
-    public function processTomorrow($words, $position) {
+    public function processTomorrow($position) {
         $time = strtotime(date('Y-m-d') . ' + 1 days');
-        $this->addToResult('time:start', date('Y-m-d\T00:00:00\Z', $time));
-        $this->addToResult('time:end', date('Y-m-d\T23:59:59\Z', $time));
-        array_splice($words, $position, 1);
-        return $words;
+        $this->addToResult(array(
+            'time:start' => date('Y-m-d\T00:00:00\Z', $time),
+            'time:end' => date('Y-m-d\T23:59:59\Z', $time)
+        ));
+        $this->queryManager->discardPosition(__METHOD__, $position);
     }
     
    /**
     * Process <yesterday>
     * 
-    * @param array $words
     * @param integer $position of word in the list
     */
-    public function processYesterday($words, $position) {
+    public function processYesterday($position) {
         $time = strtotime(date('Y-m-d') . ' - 1 days');
-        $this->addToResult('time:start', date('Y-m-d\T00:00:00\Z', $time));
-        $this->addToResult('time:end', date('Y-m-d\T23:59:59\Z', $time));
-        array_splice($words, $position, 1);
-        return $words;
+        $this->addToResult(array(
+            'time:start' => date('Y-m-d\T00:00:00\Z', $time),
+            'time:end' => date('Y-m-d\T23:59:59\Z', $time)
+        ));
+        $this->queryManager->discardPosition(__METHOD__, $position);
     }
     
     /**
      * Process <before> or <after> "date" 
      * 
-     * @param array $words
-     * @param integer $position
+     * @param integer $startPosition
      * @return string
      */
-    private function processBeforeOrAfter($words, $position, $osKey) {
+    private function processBeforeOrAfter($startPosition, $osKey) {
         
         /*
          * Extract date
          */
-        $date = $this->extractDate($words, $position + 1);
+        $date = $this->extractDate($startPosition + 1);
         
         /*
-         * No date found - remove modifier only from words list
+         * No date found - Add "Not understood" message
          */
         if (empty($date['date'])) {
-            $this->queryAnalyzer->notUnderstood($this->queryAnalyzer->slice($words, $position,  $date['endPosition']));
+            $error = QueryAnalyzer::NOT_UNDERSTOOD;
         }
+        
         /*
          * Date found - add to outputFilters and remove modifier and date from words list
          */
         else {
-            $this->addToResult($osKey, $osKey === 'time:start' ? $this->toGreatestDay($date['date']) : $this->toLowestDay($date['date']));
+            $this->addToResult(array(
+                $osKey => $osKey === 'time:start' ? $this->toGreatestDay($date['date']) : $this->toLowestDay($date['date'])
+            ));
         }
-        array_splice($words, $position, $date['endPosition'] - $position + 1);
-        return $words;
+        
+        $this->queryManager->discardPositionInterval(__METHOD__, $startPosition, $date['endPosition'], isset($error) ? $error : null);
     }
 
     /**
@@ -435,10 +389,9 @@ class WhenProcessor {
      *      If current date is November 2013 (i.e. 2013-11) then
      *      the "<next> 2 months" are December 2013 and January 2014
      * 
-     * @param array $words
-     * @param integer $position of word in the list
+     * @param integer $startPosition of word in the list
      */
-    private function processLastOrNext($words, $position, $lastOrNext) {
+    private function processLastOrNext($startPosition, $lastOrNext) {
         
         /*
          * Important ! Start position is one before <next>
@@ -448,27 +401,18 @@ class WhenProcessor {
          *      "(year|month|day)" <next>
          * 
          */
-        $duration = $this->extractDuration($words, max(array(0, $position - 1)));
+        $duration = $this->extractDuration(max(array(0, $startPosition - 1)));
         $delta = 0;
         if (isset($duration['duration']['unit'])) {
-            $times = $lastOrNext === 'last' ? array(
-                'time' => strtotime(date('Y-m-d') . ' - 1 ' . $duration['duration']['unit']),
-                'pTime' => strtotime(date('Y-m-d') . ' - ' . $duration['duration']['value'] . $duration['duration']['unit'])
-                    ) :
-                    array(
-                'time' => strtotime(date('Y-m-d') . ' + ' . $duration['duration']['value'] . $duration['duration']['unit']),
-                'pTime' => strtotime(date('Y-m-d') . ' + 1 ' . $duration['duration']['unit'])
-            );
-
-            $this->setResultForLastAndNext($times, $duration['duration']['unit']);
+            $this->setResultForLastAndNext($this->getTimesFromDuration($duration, $lastOrNext), $duration['duration']['unit']);
             $delta = $duration['firstIsNotLast'] ? 1 : 0;
         }
         else {
-            $this->queryAnalyzer->error(QueryAnalyzer::MISSING_UNIT, $this->queryAnalyzer->slice($words, $position,  $duration['endPosition']));
+            $error = QueryAnalyzer::MISSING_UNIT;
         }
-        array_splice($words, $position - $delta, $duration['endPosition'] - $position + 1 + $delta);
-        return $words;
         
+        $this->queryManager->discardPositionInterval(__METHOD__, $startPosition - $delta, $duration['endPosition'], isset($error) ? $error : null);
+ 
     }
     
     /**
@@ -499,8 +443,10 @@ class WhenProcessor {
      * @param string $unit
      */
     private function setResultForLastAndNextYear($times) {
-        $this->addToResult('time:start', date('Y', $times['pTime']) . '-01-01' . 'T00:00:00Z');
-        $this->addToResult('time:end', date('Y', $times['time']) . '-12-31' . 'T23:59:59Z');
+        $this->addToResult(array(
+            'time:start' => date('Y', $times['pTime']) . '-01-01' . 'T00:00:00Z',
+            'time:end' => date('Y', $times['time']) . '-12-31' . 'T23:59:59Z'
+        ));
     }
     
     /**
@@ -510,8 +456,10 @@ class WhenProcessor {
      * @param string $unit
      */
     private function setResultForLastAndNextMonth($times) {
-        $this->addToResult('time:start', date('Y', $times['pTime']) . '-' . date('m', $times['pTime']) . '-01' . 'T00:00:00Z');
-        $this->addToResult('time:end', date('Y', $times['time']) . '-' . date('m', $times['time']) . '-' . date('d', mktime(0, 0, 0, intval(date('m', $times['time'])) + 1, 0, intval(date('Y', $times['time'])))) . 'T23:59:59Z');
+        $this->addToResult(array(
+            'time:start' => date('Y', $times['pTime']) . '-' . date('m', $times['pTime']) . '-01' . 'T00:00:00Z',
+            'time:end' => date('Y', $times['time']) . '-' . date('m', $times['time']) . '-' . date('d', mktime(0, 0, 0, intval(date('m', $times['time'])) + 1, 0, intval(date('Y', $times['time'])))) . 'T23:59:59Z'
+        ));
     }
     
     /**
@@ -521,17 +469,18 @@ class WhenProcessor {
      * @param string $unit
      */
     private function setResultForLastAndNextDay($times) {
-        $this->addToResult('time:start', date('Y', $times['pTime']) . '-' . date('m', $times['pTime']) . '-' . date('d', $times['pTime']) . 'T00:00:00Z');
-        $this->addToResult('time:end', date('Y', $times['time']) . '-' . date('m', $times['time']) . '-' . date('d', $times['time']) . 'T23:59:59Z');
+        $this->addToResult(array(
+            'time:start' => date('Y', $times['pTime']) . '-' . date('m', $times['pTime']) . '-' . date('d', $times['pTime']) . 'T00:00:00Z',
+            'time:end' => date('Y', $times['time']) . '-' . date('m', $times['time']) . '-' . date('d', $times['time']) . 'T23:59:59Z'
+        ));
     }
     
    /**
     * Extract duration
     * 
-    * @param array $words
-    * @param integer $position of word in the list
+    * @param integer $startPosition of word in the list
     */
-    private function extractDuration($words, $position) {
+    private function extractDuration($startPosition) {
         
         $duration = array(
             'duration' => array(
@@ -540,21 +489,21 @@ class WhenProcessor {
             'endPosition' => -1,
             'firstIsNotLast' => false
         );
-        for ($i = $position, $l = count($words); $i < $l; $i++) {
+        for ($i = $startPosition; $i < $this->queryManager->length; $i++) {
 
             $duration['endPosition'] = $i;
 
             /*
              * <last> modifier found
              */
-            if ($this->isLastOrNext($words[$i])) {
+            if ($this->isLastOrNextPosition($i)) {
                 continue;
             }
 
             /*
              * Exit if stop modifier is found
              */
-            if ($this->queryAnalyzer->dictionary->isModifier($words[$i])) {
+            if ($this->queryManager->isModifierPosition($i)) {
                 $duration['endPosition'] = $i - 1;
                 break;
             }
@@ -562,7 +511,7 @@ class WhenProcessor {
             /*
              * Extract duration
              */
-            $duration = $this->extractDurationUnitOrValue($duration, $words[$i], $i === $position);
+            $duration = $this->extractDurationUnitOrValue($duration, $i, $i === $startPosition);
     
         }
         
@@ -580,70 +529,34 @@ class WhenProcessor {
      *      - month year (i.e. "may 2015")
      *      - "today", "yesterday" or "tomorrow"
      * 
-     * @param array $words
-     * @param integer $position
+     * @param integer $startPosition
      * @param boolean $between
      * 
      */
-    private function extractDate($words, $position, $between = false) {
+    private function extractDate($startPosition, $between = false) {
      
         /*
          * No words on the first position is an issue
          */
-        if (!isset($words[$position])) {
+        if (!$this->queryManager->isValidPosition($startPosition)) {
             return array(
-                'endPosition' => $position
+                'endPosition' => $startPosition
             );
         }
         
         /*
          * Today, Tomorrow and Yesterday
          */
-        $date = $this->getDateFromWord($words[$position]);
+        $date = $this->getSpecialDate($startPosition);
         if (!empty($date)) {
             return array(
                 'date' => $date,
-                'endPosition' => $position
+                'endPosition' => $startPosition
             );
         }
         
-        /*
-         * Other dates
-         */
-        $endPosition = $this->queryAnalyzer->getEndPosition($words, $position);
-        for ($i = $position; $i <= $endPosition; $i++) {
-            
-            /*
-             * Between stop modifier is 'and'
-             */
-            if ($between && $this->queryAnalyzer->dictionary->get(RestoDictionary::AND_MODIFIER, $words[$i]) === 'and') {
-                $endPosition = $i - 1;
-                break;
-            }
-            
-            /*
-             * Check for year/month/day
-             */
-            $yearMonthDay = $this->getYearMonthDayFromWord($words[$i]);
-            if (isset($yearMonthDay)) {
-                $date = array_merge($date, $yearMonthDay);
-                $realEndPosition = $i;
-                continue;
-            }
-            
-            /*
-             * A non stop word breaks everything
-             */
-            if (!$this->queryAnalyzer->dictionary->isStopWord($words[$i])) {
-                break;
-            }
-            
-        }
-       
-        return array(
-            'date' => $date,
-            'endPosition' => isset($realEndPosition) ? $realEndPosition : $endPosition
-        );
+        return $this->getDate($startPosition, $between);
+        
     }
 
     /**
@@ -762,13 +675,59 @@ class WhenProcessor {
     }
     
     /**
-     * Return date from a single world like 'today', 'tomorrow' or 'yesterday'
+     * Get date from words starting at startPosition
      * 
-     * @param string $word
+     * @param type $startPosition
+     * @param boolean $between - set to true when call from processBetween...
      * @return array
      */
-    private function getDateFromWord($word) {
-        $timeModifier = $this->queryAnalyzer->dictionary->get(RestoDictionary::TIME_MODIFIER, $word);
+    private function getDate($startPosition, $between) {
+        
+        $date = array();
+        $endPosition = $this->queryManager->getEndPosition($startPosition);
+        for ($i = $startPosition; $i <= $endPosition; $i++) {
+            
+            /*
+             * Between stop modifier is 'and'
+             */
+            if ($between && $this->queryManager->isAndPosition($i)) {
+                $endPosition = $i - 1;
+                break;
+            }
+            
+            /*
+             * Check for year/month/day
+             */
+            $yearMonthDay = $this->getYearMonthDay($i);
+            if (isset($yearMonthDay)) {
+                $date = array_merge($date, $yearMonthDay);
+                $realEndPosition = $i;
+                continue;
+            }
+            
+            /*
+             * A non stop word breaks everything
+             */
+            if (!$this->queryManager->isStopWordPosition($i)) {
+                break;
+            }
+            
+        }
+       
+        return array(
+            'date' => $date,
+            'endPosition' => isset($realEndPosition) ? $realEndPosition : $endPosition
+        );
+    }
+    
+    /**
+     * Return date from a single world like 'today', 'tomorrow' or 'yesterday'
+     * 
+     * @param string $position
+     * @return array
+     */
+    private function getSpecialDate($position) {
+        $timeModifier = $this->queryManager->dictionary->get(RestoDictionary::TIME_MODIFIER, $this->queryManager->words[$position]['word']);
         if (isset($timeModifier)) {
             $time = null;
             if ($timeModifier === 'today') {
@@ -792,12 +751,12 @@ class WhenProcessor {
     }
     
     /**
-     * Return true if word is <last> or <next>
+     * Return true if word position is <last> or <next>
      * 
-     * @param string $word
+     * @param integer $position
      */
-    private function isLastOrNext($word) {
-        $timeModifier = $this->queryAnalyzer->dictionary->get(RestoDictionary::TIME_MODIFIER, $word);
+    private function isLastOrNextPosition($position) {
+        $timeModifier = $this->queryManager->dictionary->get(RestoDictionary::TIME_MODIFIER, $this->queryManager->words[$position]['word']);
         if ($timeModifier === 'last' || $timeModifier === 'next') {
             return true;
         }
@@ -807,9 +766,11 @@ class WhenProcessor {
     /**
      * Return year, month or day from date
      * 
-     * @param string $word
+     * @param integer $position
      */
-    private function getYearMonthDayFromWord($word) {
+    private function getYearMonthDay($position) {
+        
+        $word = $this->queryManager->words[$position]['word'];
         
         if (preg_match('/^\d{4}$/i', $word)) {
             return array(
@@ -817,7 +778,7 @@ class WhenProcessor {
             );
         }
         
-        $month = $this->queryAnalyzer->dictionary->get(RestoDictionary::MONTH, $word);
+        $month = $this->queryManager->dictionary->get(RestoDictionary::MONTH, $word);
         if (isset($month)) {
             return array(
                 'month' => $month
@@ -844,24 +805,25 @@ class WhenProcessor {
     }
     
     /**
-     * Return duration unit or value from word
+     * Return duration unit or value from position
      * 
      * @param array $duration
-     * @param string $word
+     * @param integer $position
      * @param boolean $firstIsNotLast
      * 
      */
-    private function extractDurationUnitOrValue($duration, $word, $firstIsNotLast = false) {
+    private function extractDurationUnitOrValue($duration, $position, $firstIsNotLast = false) {
         
         /*
          * Extract value or unit
          */
-        $value = $this->queryAnalyzer->dictionary->getNumber($word);
+        $word = $this->queryManager->words[$position]['word'];
+        $value = $this->queryManager->dictionary->getNumber($word);
         if (isset($value)) {
             $duration['duration'] = array_merge($duration['duration'], array('value' => $value));
         }
         else {
-            $value = $this->queryAnalyzer->dictionary->get(RestoDictionary::TIME_UNIT, $word);
+            $value = $this->queryManager->dictionary->get(RestoDictionary::TIME_UNIT, $word);
             if (isset($value)) {
                 $duration['duration'] = array_merge($duration['duration'], array('unit' => $value));
             }
@@ -877,46 +839,47 @@ class WhenProcessor {
     /**
      * Set season
      * 
-     * @param array $words
-     * @param integer $position
+     * @param integer $startPosition
      */
-    private function extractSeason($words, $position) {
+    private function getSeasonPosition($startPosition) {
         
         /*
          * Remove eventual stop word
          */
-        if ($this->queryAnalyzer->dictionary->isStopWord($words[$position])) {
-            $position = $position + 1;
+        if ($this->queryManager->isStopWordPosition($startPosition)) {
+            $startPosition = $startPosition + 1;
         }
         
         /*
          * Check that new position exists
          */
-        if (!isset($words[$position])) {
-            return null;
+        if (!$this->queryManager->isValidPosition($startPosition)) {
+            return -1;
         }
         
         /*
          * Extract season
          */
-        $season = $this->queryAnalyzer->dictionary->get(RestoDictionary::SEASON, $words[$position]);
+        $season = $this->queryManager->dictionary->get(RestoDictionary::SEASON, $this->queryManager->words[$startPosition]['word']);
         if (isset($season)) {
-            
-            $this->addToResult('season', $season);
+      
+            $this->addToResult(array(
+                'season' => $season
+            ));
             
             /*
              * Search for a year after season
              */
-            if (isset($words[$position + 1]) && preg_match('/^\d{4}$/i', $words[$position + 1])) {
-                $this->addToResult('year', $words[$position + 1]);
-                $position = $position + 1;
+            if ($this->queryManager->isValidPosition($startPosition + 1) && preg_match('/^\d{4}$/i', $this->queryManager->words[$startPosition + 1]['word'])) {
+                $this->addToResult(array(
+                    'year' => $this->queryManager->words[$startPosition + 1]['word']
+                ));
+                $startPosition = $startPosition + 1;
             }
-            return array(
-                'endPosition' => $position
-            );
+            return $startPosition;
             
         }
-        return null;
+        return -1;
     }
     
     /**
@@ -925,14 +888,104 @@ class WhenProcessor {
      * @param string $key
      * @param string $value
      */
-    private function addToResult($key, $value) {
-        switch ($key) {
-            case 'time:start':
-            case 'time:end':
-                $this->result[$key] = $value;
-                break;
-            default:
-                $this->result[$key] = isset($this->result[$key]) ? $this->result[$key] . '|' . $value : $value;
+    private function addToResult($filters) {
+        foreach ($filters as $key => $value) {
+            switch ($key) {
+                case 'time:start':
+                case 'time:end':
+                    $this->result[$key] = $value;
+                    break;
+                default:
+                    $this->result[$key] = isset($this->result[$key]) ? $this->result[$key] . '|' . $value : $value;
+            }
         }
     }
+    
+    /**
+     * Return timestamp intervals from duration
+     * 
+     * @param array $duration
+     * @param string $lastOrNext
+     * @return array
+     */
+    private function getTimesFromDuration($duration, $lastOrNext) {
+        return $lastOrNext === 'last' ? array(
+            'time' => strtotime(date('Y-m-d') . ' - 1 ' . $duration['duration']['unit']),
+            'pTime' => strtotime(date('Y-m-d') . ' - ' . $duration['duration']['value'] . $duration['duration']['unit'])
+                ) :
+                array(
+            'time' => strtotime(date('Y-m-d') . ' + ' . $duration['duration']['value'] . $duration['duration']['unit']),
+            'pTime' => strtotime(date('Y-m-d') . ' + 1 ' . $duration['duration']['unit'])
+        );
+    }
+
+    /**
+     * Process <in> "date"
+     * 
+     * @param array $date
+     * @param integer $startPosition
+     */
+    private function processInDate($date, $startPosition) {
+
+        /*
+         * Only year is specified
+         */
+        if (isset($date['date']['year'])) {
+            $this->addToResult(
+                    !isset($date['date']['month']) ?
+                    array(
+                        'year' => $date['date']['year']
+                    ) :
+                    array(
+                        'time:start' => $this->toLowestDay($date['date']),
+                        'time:end' => $this->toGreatestDay($date['date'])
+                    )
+            );
+        }
+        else {
+            if (isset($date['date']['month'])) {
+                $this->addToResult(array(
+                    'month' => $date['date']['month']
+                ));
+            }
+            if (isset($date['date']['day'])) {
+                $this->addToResult(array(
+                    'day' => $date['date']['day']
+                ));
+            }
+        }
+
+        $this->queryManager->discardPositionInterval(__METHOD__, $startPosition, $date['endPosition']);
+
+    }
+    
+    /**
+     * Process <in> "season" or <in> "duration"
+     * 
+     * @param integer $startPosition
+     * @param integer $delta
+     */
+    private function processInDuration($startPosition, $delta) {
+            
+        /*
+         * Season ?
+         */
+        $endPosition = $this->getSeasonPosition($startPosition + $delta);
+        if ($endPosition !== -1) {
+            $this->queryManager->discardPositionInterval(__METHOD__, $startPosition, $endPosition);
+        }
+
+        /*
+         * Duration
+         */
+        else {
+            $duration = $this->extractDuration($startPosition + $delta);
+            if (isset($duration['duration']['unit'])) {
+                $this->setResultForLastAndNext($this->getTimesFromDuration($duration, 'next'), $duration['duration']['unit']);
+                $this->queryManager->discardPositionInterval(__METHOD__, $startPosition, $duration['endPosition']);
+            }
+        }
+       
+    }
+    
 }
