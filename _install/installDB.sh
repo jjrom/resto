@@ -357,10 +357,13 @@ EOF
 
 # Data
 psql -U $SUPERUSER -d $DB -f $DATADIR/platformsAndInstruments.sql
-psql -U $SUPERUSER -d $DB -f $DATADIR/landuses.sql
-psql -U $SUPERUSER -d $DB -f $DATADIR/continentsAndCountries.sql
 psql -U $SUPERUSER -d $DB -f $DATADIR/regionsAndStates.sql
-psql -U $SUPERUSER -d $DB -f $DATADIR/generalKeywords.sql
+psql -U $SUPERUSER -d $DB -f $DATADIR/en/landuses.sql
+psql -U $SUPERUSER -d $DB -f $DATADIR/en/continentsAndCountries.sql
+psql -U $SUPERUSER -d $DB -f $DATADIR/en/generalKeywords.sql
+psql -U $SUPERUSER -d $DB -f $DATADIR/fr/landuses.sql
+psql -U $SUPERUSER -d $DB -f $DATADIR/fr/continentsAndCountries.sql
+psql -U $SUPERUSER -d $DB -f $DATADIR/fr/generalKeywords.sql
 
 # Normalize values
 psql -U $SUPERUSER -d $DB << EOF

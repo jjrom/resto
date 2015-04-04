@@ -42,7 +42,7 @@ class RestoDictionary_fr extends RestoDictionary {
             'between' => array('entre', 'de'),
             'greater' => array('plus', 'superieur', 'superieure', '>'),
             'lesser' => array('moins', '<', 'inferieur', 'inferieure'),
-            'with' => array('avec', 'contenant'),
+            'with' => array('avec', 'contenant', 'sur'),
             'without' => array('sans', 'pas')
         ),
         /*
@@ -63,7 +63,7 @@ class RestoDictionary_fr extends RestoDictionary {
         /*
          * Stop words i.e. excluded words
          */
-        'stopWords' => array('le', 'la', 'de', 'des', 'et', 'ou', 'l'),
+        'stopWords' => array('le', 'la', 'de', 'des', 'et', 'ou', 'l' ,'un', 'une'),
         /*
          * List of words in the query that are
          * considered as 'noise' for the query analysis
@@ -113,7 +113,7 @@ class RestoDictionary_fr extends RestoDictionary {
             'cloud' => array('nuage', 'nuages', 'nuageuse'),
             'snow' => array('neige', 'neigeuse'),
             'ice' => array('glace', 'glacier'),
-            'urban' => array('urbain', 'urbaine', 'artificiel', 'ville'),
+            'urban' => array('urbain', 'urbaine', 'artificiel', 'ville', 'villes'),
             'cultivated' => array('cultivee', 'zone cultivee', 'cultivees', 'cultive', 'champ', 'champs'),
             'forest' => array('foret', 'forets', 'forestier', 'forestiere'),
             'herbaceous' => array('herbace', 'zone herbacee', 'plaine', 'steppe'),

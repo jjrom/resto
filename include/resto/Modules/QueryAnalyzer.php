@@ -285,7 +285,7 @@ class QueryAnalyzer extends RestoModule {
      */
     private function processWords($type) {
         for ($i = 0; $i < $this->queryManager->length; $i++) {
-            if ($this->queryManager->isValidPosition($i)) {
+            if ($this->queryManager->isValidPosition($i) && !$this->queryManager->isStopWordPosition($i) && !$this->queryManager->dictionary->isNoise($this->queryManager->words[$i]['word'])) {
                 switch ($type) {
                     case 'what':
                         $this->whatProcessor->processWith($i, 0);

@@ -94,7 +94,7 @@ class WhatExtractor {
             if (!$this->queryManager->isStopWordPosition($i)) {
                 $word = trim($word . ' ' . $this->queryManager->words[$i]['word']);
             }
-
+            
             $keyword = $this->queryManager->getNonLocationKeyword($word);
             if (isset($keyword)) {
                 return array(
