@@ -242,7 +242,7 @@ class QueryAnalyzer extends RestoModule {
         /*
          * Initialize QueryManager
          */
-        $this->queryManager->setWords($this->queryToWords($query));
+        $this->queryManager->initialize($this->queryToWords($query));
         
         /*
          * Extract (in this order !) "what", "when" and "where" elements from query
@@ -263,11 +263,10 @@ class QueryAnalyzer extends RestoModule {
          * Return processing results
          */
         return array(
-            'Processed' => $this->queryManager->words,
             'What' => $this->whatProcessor->result,
             'When' => $this->whenProcessor->result,
             'Where' => isset($this->whereProcessor) ? $this->whereProcessor->result : array(),
-            'Errors' => $this->queryManager->errors
+            'Errors' => $this->getErrors()
         );
         
     }
@@ -397,5 +396,68 @@ class QueryAnalyzer extends RestoModule {
         }
         return $words;
     }
+    
+    /**
+     * Return errors array from remaining words list
+     */
+    private function getErrors() {
+        
+        $inError = $this->getInErrorWords();
+        $errors = array();
+        $length = count($inError);
+        if ($length === 0) {
+            return $errors;
+        }
+        
+        for ($i = 0; $i <= $length; $i++) {
+            
+            if ($i === $length) {
+                $errors[] = $error;
+                break;
+            }
+            
+            if (!isset($currentErrorType) || $currentErrorType === $inError[$i]['error']) {
+                $message = (isset($error) ? $error['message'] . ' ' : '') . $inError[$i]['word'];
+            }
+            else {
+                $errors[] = $error;
+                $message = $inError[$i]['word'];
+            }
+            
+            $currentErrorType = $inError[$i]['error'];
+            $error = array(
+                'error' => $currentErrorType,
+                'message' => (isset($error) ? $error['message'] . ' ' : '') . $inError[$i]['word']
+            );
+        }
+        return $errors;
+    }
+    
+    /**
+     * Get in error words removing noise and stopWords
+     */
+    private function getInErrorWords() {
+        
+        $inError = array();
+        for ($i = 0; $i < $this->queryManager->length; $i++) {
+            
+            $word = $this->queryManager->words[$i];
+            
+            if (!$word['processed'] && !$this->queryManager->dictionary->isStopWord($word['word']) && !$this->queryManager->dictionary->isNoise($word['word'])) {
+                $inError[] = array(
+                    'word' => $word['word'],
+                    'error' => QueryAnalyzer::NOT_UNDERSTOOD
+                );
+            }
+            else if (isset($word['error'])) {
+                $inError[] = array(
+                    'word' => $word['word'],
+                    'error' => $word['error']
+                );
+            }
+        }
+        return $inError;
+    }
+    
     
 }

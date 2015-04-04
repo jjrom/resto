@@ -107,10 +107,11 @@ class WhenProcessor {
         /*
          * Date interval is not valid
          */
-        if (empty($firstDate['date']) && empty($secondDate['date'])) {
+        if (!$this->dateIntervalIsValid($firstDate, $secondDate)) {
             $error = QueryAnalyzer::NOT_UNDERSTOOD;
+            $endPosition = $firstDate['endPosition'];
         }
-        
+  
         /*
          * Valid date interval found
          */
@@ -125,9 +126,10 @@ class WhenProcessor {
                 'time:start' => $this->toLowestDay($firstDate['date']),
                 'time:end' => $this->toGreatestDay($secondDate['date'])
             ));
+            $endPosition = $secondDate['endPosition'];
         }
         
-        $this->queryManager->discardPositionInterval(__METHOD__, $startPosition, max(array($firstDate['endPosition'], $secondDate['endPosition'])), isset($error) ? $error : null);
+        $this->queryManager->discardPositionInterval(__METHOD__, $startPosition, $endPosition, isset($error) ? $error : null);
         
     }
     
@@ -986,6 +988,21 @@ class WhenProcessor {
             }
         }
        
+    }
+    
+    /**
+     * Return true if both dates are not empty and not identical
+     * 
+     * @param array $firstDate
+     * @param array $secondDate
+     */
+    private function dateIntervalIsValid($firstDate, $secondDate) {
+        if (empty($firstDate['date']) && empty($secondDate['date'])) {
+            return false;
+        }
+        $diff = array_diff($firstDate['date'], $secondDate['date']);
+        
+        return !empty($diff);
     }
     
 }
