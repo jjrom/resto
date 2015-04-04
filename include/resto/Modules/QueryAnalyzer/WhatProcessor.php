@@ -43,6 +43,7 @@
  * 
  * @param array $params
  */
+require 'WhatExtractor.php';
 class WhatProcessor {
 
     const EQUAL = 0;
@@ -59,6 +60,11 @@ class WhatProcessor {
      */
     private $queryManager;
     
+    /*
+     * Reference to WhatExtractor
+     */
+    private $extractor;
+    
     /**
      * Constructor
      * 
@@ -66,6 +72,7 @@ class WhatProcessor {
      */
     public function __construct($queryManager) {
         $this->queryManager = $queryManager;
+        $this->extractor = new WhatExtractor($this->queryManager);
     }
     
     /**
@@ -77,7 +84,7 @@ class WhatProcessor {
      * 
      */
     public function processFor($startPosition, $delta = 1, $with = true, $by = __METHOD__) {
-        $keyword = $this->extractKeyword($startPosition + $delta);
+        $keyword = $this->extractor->extractKeyword($startPosition + $delta);
         if (isset($keyword)) {
             $this->addToResult($this->toFilter($keyword, $with));
             $this->queryManager->discardPositionInterval($by, $startPosition, $keyword['endPosition']);
@@ -142,7 +149,7 @@ class WhatProcessor {
          * Process differs if unit is specified or not
          */
         if ($this->queryManager->isValidPosition($startPosition + 4)) {
-            $unit = $this->extractUnit($startPosition + 4);
+            $unit = $this->extractor->extractUnit($startPosition + 4);
         }
         
         isset($unit) ? $this->processValidBetweenWithUnit($startPosition, $values, $unit) : $this->processValidBetweenWithoutUnit($startPosition, $values);
@@ -259,7 +266,7 @@ class WhatProcessor {
         /*
          * Quantity ?
          */
-        $quantity = $this->extractQuantity($startPosition + $delta, $this->queryManager->getEndPosition($startPosition + $delta));
+        $quantity = $this->extractor->extractQuantity($startPosition + $delta, $this->queryManager->getEndPosition($startPosition + $delta));
         if (isset($quantity)) {
             $this->addToResult(array(
                 $quantity['key'] => $with ? ']0' : 0
@@ -290,13 +297,13 @@ class WhatProcessor {
          * 
          * "quantity" <between> (...)
          */
-        $quantity = $this->extractQuantity(0, $betweenPosition - 1, true);
+        $quantity = $this->extractor->extractQuantity(0, $betweenPosition - 1, true);
         
         /*
          * <between> ... "unit" "quantity"
          */
         if (!isset($quantity)) {
-            $quantity = $this->extractQuantity($normalizedUnit['endPosition'] + 1, $this->queryManager->length);
+            $quantity = $this->extractor->extractQuantity($normalizedUnit['endPosition'] + 1, $this->queryManager->length);
         }
         
         /*
@@ -336,13 +343,13 @@ class WhatProcessor {
          * 
          * "quantity" <between> (...)
          */
-        $quantity = $this->extractQuantity(0, $betweenPosition - 1, true);
+        $quantity = $this->extractor->extractQuantity(0, $betweenPosition - 1, true);
         
         /*
          * <between> ... "unit" "quantity"
          */
         if (!isset($quantity)) {
-            $quantity = $this->extractQuantity($startPosition, $this->queryManager->length);
+            $quantity = $this->extractor->extractQuantity($startPosition, $this->queryManager->length);
         }
         
         /*
@@ -366,79 +373,6 @@ class WhatProcessor {
     }
     
     /**
-     * Extract quantity
-     * 
-     * @param integer $startPosition
-     * @param array $endPosition
-     */
-    private function extractQuantity($startPosition, $endPosition) {
-        
-        if ($startPosition > $endPosition) {
-            return null;
-        }
-        
-        /*
-         * Process words within $startPosition and $endPosition
-         */
-        $word = '';
-        for ($i = $startPosition; $i <= $endPosition; $i++) {
-
-            /*
-             * Reconstruct word from words without stop words
-             */
-            if ($this->queryManager->isValidPosition($i) && !$this->queryManager->isStopWordPosition($i)) {
-                $word = trim($word . ' ' . $this->queryManager->words[$i]['word']);
-            }
-            
-            $quantity = $this->getQuantity($word);
-            if (isset($quantity)) {
-                return array_merge($quantity, array(
-                    'startPosition' => $startPosition,
-                    'endPosition' => $i
-                ));
-            }
-            
-        }
-        return null;
-    }
-    
-    /**
-     * Extract keyword
-     * 
-     * @param integer $startPosition
-     */
-    private function extractKeyword($startPosition) {
-     
-        $endPosition = $this->queryManager->getEndPosition($startPosition);
-        
-        /*
-         * Process words within $startPosition and $endPosition
-         */
-        $word = '';
-        for ($i = $startPosition; $i <= $endPosition; $i++) {
-
-            /*
-             * Reconstruct word from words without stop words
-             */
-            if (!$this->queryManager->isStopWordPosition($i)) {
-                $word = trim($word . ' ' . $this->queryManager->words[$i]['word']);
-            }
-
-            $keyword = $this->queryManager->getNonLocationKeyword($word);
-            if (isset($keyword)) {
-                return array(
-                    'startPosition' => $startPosition,
-                    'endPosition' => $i,
-                    'keyword' => $keyword['keyword'],
-                    'type' => $keyword['type']
-                );
-            }
-        }
-        
-        return null;
-    }
-    
-    /**
      * Extract (of) "numeric" "unit" (of) "quantity"
      * 
      * @param integer $startPosition
@@ -448,7 +382,7 @@ class WhatProcessor {
         /*
          * (to) "numeric" "unit"
          */
-        $valuedUnit = $this->extractValueAndUnit($startPosition + 1, $this->queryManager->length);
+        $valuedUnit = $this->extractor->extractValueAndUnit($startPosition + 1, $this->queryManager->length);
         if (!isset($valuedUnit)) {
             return null;
         }
@@ -457,13 +391,13 @@ class WhatProcessor {
          * 
          * "quantity" <xxx> (to) "numeric" "unit"
          */
-        $quantity = $this->extractQuantity(0, $startPosition - 1, true);
+        $quantity = $this->extractor->extractQuantity(0, $startPosition - 1, true);
        
         /*
          * <xxx> (to) "numeric" "unit" (of) "quantity"
          */
         if (!isset($quantity)) {
-            $quantity = $this->extractQuantity($valuedUnit['endPosition'] + 1, $this->queryManager->length);
+            $quantity = $this->extractor->extractQuantity($valuedUnit['endPosition'] + 1, $this->queryManager->length);
         }
 
         /*
@@ -492,110 +426,7 @@ class WhatProcessor {
         return null;
         
     }
-    
-    /**
-     * Extract (of) "numeric" "unit"
-     * 
-     * @param integer $startPosition
-     * @param integer $endPosition
-     */
-    private function extractValueAndUnit($startPosition, $endPosition) {
-        
-        for ($i = $startPosition; $i < $endPosition; $i++) {
-            
-            /*
-             * Skip stop words and processed words
-             */
-            if ($this->queryManager->isStopWordPosition($i) || !$this->queryManager->isValidPosition($i)) {
-                continue;
-            }
-           
-            /*
-             * "numeric" "unit"
-             */
-            $value = $this->queryManager->dictionary->getNumber($this->queryManager->words[$i]['word']);
-            if (isset($value) && $this->queryManager->isValidPosition($i + 1)) {
-                $unit = $this->queryManager->dictionary->get(RestoDictionary::UNIT, $this->queryManager->words[$i + 1]['word']);
-                return array(
-                    'value' => $value,
-                    'endPosition' => $i + 1,
-                    'unit' => $this->normalizedUnit($unit)
-                );
-            }
-            
-        }
-     
-        return null;
-        
-    }
-    
-    /**
-     * Extract "unit"
-     * 
-     * @param integer $startPosition
-     */
-    private function extractUnit($startPosition) {
-        
-        $endPosition = $this->queryManager->getEndPosition($startPosition);
-       
-        for ($i = $startPosition; $i <= $endPosition; $i++) {
-            
-            /*
-             * Skip stop words
-             */
-            if ($this->queryManager->isStopWordPosition($i)) {
-                continue;
-            }
-           
-            /*
-             * "numeric" "unit"
-             */
-            $unit = $this->queryManager->dictionary->get(RestoDictionary::UNIT, $this->queryManager->words[$i]['word']);
-            if (isset($unit)) {
-                return array(
-                    'endPosition' => $i,
-                    'unit' => $this->normalizedUnit($unit)
-                );
-            }
-            
-        }
-     
-        return null;
-        
-    }
-    
-    /**
-     * Return normalized unit from $unit
-     * e.g. if $unit = 'km', returned value is 
-     *      array(
-     *          'unit' => 'm',
-     *          'factor' => 1000
-     *      )
-     * 
-     * @param string $unit
-     */
-    private function normalizedUnit($unit) {
-        
-        if (!$unit) {
-            return null;
-        }
-        
-        $factor = 1.0;
-        switch ($unit) {
-            case 'km':
-                $unit = 'm';
-                $factor = 1000.0;
-                break;
-            default:
-                break;
-        }
-        
-        return array(
-            'unit' => $unit,
-            'factor' => $factor
-        );
-    }
-    
+
     /**
      * Return result as a filter from keyword
      * 
@@ -646,37 +477,6 @@ class WhatProcessor {
      */
     private function mergeIntervals($key, $value) {
         return isset($this->result[$key]) ? $this->result[$key] . ' ' . $value : $value;
-    }
-    
-    /**
-     * Return quantity
-     * 
-     * A valid quantity should be defined with searchFilters as
-     *      'quantity' => array(
-     *          'value' => // name of the quantity (i.e. an existing entry in "quantities" dictionary array)
-     *          'unit' => // unit of the quantity (i.e. an existing entry in "units" dictionnary array)
-     *      )
-     * 
-     * @param String $word
-     */
-    private function getQuantity($word) {
-        
-        $quantity = $this->queryManager->dictionary->get(RestoDictionary::QUANTITY, $word);
-        
-        if (!isset($quantity)) {
-            return null;
-        }
-        
-        foreach(array_keys($this->queryManager->model->searchFilters) as $key) {
-            if (isset($this->queryManager->model->searchFilters[$key]['quantity']) && is_array($this->queryManager->model->searchFilters[$key]['quantity']) && $this->queryManager->model->searchFilters[$key]['quantity']['value'] === $quantity) {
-                return array(
-                    'key' => $key,
-                    'unit' => isset($this->queryManager->model->searchFilters[$key]['quantity']['unit']) ? $this->queryManager->model->searchFilters[$key]['quantity']['unit'] : null
-                );
-            }
-        }
-        
-        return null;
     }
     
 }

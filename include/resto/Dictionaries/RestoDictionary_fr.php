@@ -56,7 +56,7 @@ class RestoDictionary_fr extends RestoDictionary {
          * Location modifiers
          */
         'locationModifiers' => array(
-            'in' => array('en', 'au', 'a', 'sur'),
+            'in' => array('en', 'au', 'aux', 'a', 'sur', 'pres'),
         ),
         /*
          * Quantity modifiers
@@ -87,7 +87,7 @@ class RestoDictionary_fr extends RestoDictionary {
         /*
          * Stop words i.e. excluded words
          */
-        'stopWords' => array('le', 'la', 'de', 'et', 'ou', 'l'),
+        'stopWords' => array('le', 'la', 'de', 'des', 'et', 'ou', 'l'),
         /*
          * List of words in the query that are
          * considered as 'noise' for the query analysis

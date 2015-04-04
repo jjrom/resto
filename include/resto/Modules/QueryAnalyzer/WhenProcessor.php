@@ -43,6 +43,7 @@
  * 
  * @param array $params
  */
+require 'WhenExtractor.php';
 class WhenProcessor {
 
     /*
@@ -55,6 +56,11 @@ class WhenProcessor {
      */
     private $queryManager;
     
+    /*
+     * Reference to WhenExtractor
+     */
+    private $extractor;
+    
     /**
      * Constructor
      * 
@@ -64,6 +70,7 @@ class WhenProcessor {
      */
     public function __construct($queryManager) {
         $this->queryManager = $queryManager;
+        $this->extractor = new WhenExtractor($this->queryManager);
     }
 
     /**
@@ -97,12 +104,12 @@ class WhenProcessor {
         /*
          * Extract first date
          */
-        $firstDate = $this->extractDate($startPosition + 1, true);
+        $firstDate = $this->extractor->extractDate($startPosition + 1, true);
         
         /*
          * Extract second date
          */
-        $secondDate = $this->extractDate($firstDate['endPosition'] + 2);
+        $secondDate = $this->extractor->extractDate($firstDate['endPosition'] + 2);
         
         /*
          * Date interval is not valid
@@ -159,11 +166,11 @@ class WhenProcessor {
         /*
          * <since> duration
          */
-        $duration = $this->extractDuration($startPosition + 1);
+        $duration = $this->extractor->extractDuration($startPosition + 1);
         if (isset($duration['duration']['unit'])) {
             $date = array(
                 'endPosition' => $duration['endPosition'],
-                'date' => $this->iso8601ToDate(date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration['duration']['value'] . $duration['duration']['unit'])))
+                'date' => $this->extractor->iso8601ToDate(date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration['duration']['value'] . $duration['duration']['unit'])))
             );
         }
         /*
@@ -171,7 +178,7 @@ class WhenProcessor {
          */
         else {
            
-            $date = $this->extractDate($startPosition + 1);
+            $date = $this->extractor->extractDate($startPosition + 1);
             
             /*
              * If only a day was detected then it's an issue
@@ -252,7 +259,7 @@ class WhenProcessor {
      */
     public function processIn($startPosition, $delta = 1) {
         
-        $date = $this->extractDate($startPosition + $delta);
+        $date = $this->extractor->extractDate($startPosition + $delta);
        
         /*
          * No date found - try a season or a duration
@@ -348,7 +355,7 @@ class WhenProcessor {
         /*
          * Extract date
          */
-        $date = $this->extractDate($startPosition + 1);
+        $date = $this->extractor->extractDate($startPosition + 1);
         
         /*
          * No date found - Add "Not understood" message
@@ -403,7 +410,7 @@ class WhenProcessor {
          *      "(year|month|day)" <next>
          * 
          */
-        $duration = $this->extractDuration(max(array(0, $startPosition - 1)));
+        $duration = $this->extractor->extractDuration(max(array(0, $startPosition - 1)));
         $delta = 0;
         if (isset($duration['duration']['unit'])) {
             $this->setResultForLastAndNext($this->getTimesFromDuration($duration, $lastOrNext), $duration['duration']['unit']);
@@ -475,125 +482,6 @@ class WhenProcessor {
             'time:start' => date('Y', $times['pTime']) . '-' . date('m', $times['pTime']) . '-' . date('d', $times['pTime']) . 'T00:00:00Z',
             'time:end' => date('Y', $times['time']) . '-' . date('m', $times['time']) . '-' . date('d', $times['time']) . 'T23:59:59Z'
         ));
-    }
-    
-   /**
-    * Extract duration
-    * 
-    * @param integer $startPosition of word in the list
-    */
-    private function extractDuration($startPosition) {
-        
-        $duration = array(
-            'duration' => array(
-                'value' => 1
-            ),
-            'endPosition' => -1,
-            'firstIsNotLast' => false
-        );
-        for ($i = $startPosition; $i < $this->queryManager->length; $i++) {
-
-            $duration['endPosition'] = $i;
-
-            /*
-             * <last> modifier found
-             */
-            if ($this->isLastOrNextPosition($i)) {
-                continue;
-            }
-
-            /*
-             * Exit if stop modifier is found
-             */
-            if ($this->queryManager->isModifierPosition($i)) {
-                $duration['endPosition'] = $i - 1;
-                break;
-            }
-    
-            /*
-             * Extract duration
-             */
-            $duration = $this->extractDurationUnitOrValue($duration, $i, $i === $startPosition);
-    
-        }
-        
-        return $duration;
-        
-    }
-    
-    /**
-     * Extract date from an array words starting analysis at $position
-     * Valid patterns are :
-     * 
-     *      - ISO 8601 date (i.e. "2015-05-01T12:23:34")
-     *      - year (i.e. "2015")
-     *      - month (i.e. "may")
-     *      - month year (i.e. "may 2015")
-     *      - "today", "yesterday" or "tomorrow"
-     * 
-     * @param integer $startPosition
-     * @param boolean $between
-     * 
-     */
-    private function extractDate($startPosition, $between = false) {
-     
-        /*
-         * No words on the first position is an issue
-         */
-        if (!$this->queryManager->isValidPosition($startPosition)) {
-            return array(
-                'endPosition' => $startPosition
-            );
-        }
-        
-        /*
-         * Today, Tomorrow and Yesterday
-         */
-        $date = $this->getSpecialDate($startPosition);
-        if (!empty($date)) {
-            return array(
-                'date' => $date,
-                'endPosition' => $startPosition
-            );
-        }
-        
-        return $this->getDate($startPosition, $between);
-        
-    }
-
-    /**
-     * Convert ISO8601 string to year/month/date/time array
-     * @param string $iso8601
-     * @return array
-     */
-    private function iso8601ToDate($iso8601) {
-
-        $date = array();
-        $length = strlen($iso8601);
-
-        /*
-         * Year and month
-         */
-        if ($length > 6) {
-            $date['year'] = substr($iso8601, 0, 4);
-            $date['month'] = substr($iso8601, 5, 2);
-        }
-        
-        /*
-         * Year, month and day
-         */
-        if ($length > 9) {
-            $date['day'] = substr($iso8601, 8, 2);
-        }
-        
-        /*
-         * Time
-         */
-        if ($length > 10) {
-            $date['time'] = str_replace('z', '', substr($iso8601, 11, $length - 11));
-        }
-        
-        return $date;
     }
     
     /**
@@ -674,168 +562,6 @@ class WhenProcessor {
             $date['day'] = date('d', mktime(0, 0, 0, intval($date['month']) + 1, 0, intval($date['year'])));
         }
         return $this->dateToISO8601($date, true);
-    }
-    
-    /**
-     * Get date from words starting at startPosition
-     * 
-     * @param type $startPosition
-     * @param boolean $between - set to true when call from processBetween...
-     * @return array
-     */
-    private function getDate($startPosition, $between) {
-        
-        $date = array();
-        $endPosition = $this->queryManager->getEndPosition($startPosition);
-        for ($i = $startPosition; $i <= $endPosition; $i++) {
-            
-            /*
-             * Between stop modifier is 'and'
-             */
-            if ($between && $this->queryManager->isAndPosition($i)) {
-                $endPosition = $i - 1;
-                break;
-            }
-            
-            /*
-             * Check for year/month/day
-             */
-            $yearMonthDay = $this->getYearMonthDay($i);
-            if (isset($yearMonthDay)) {
-                $date = array_merge($date, $yearMonthDay);
-                $realEndPosition = $i;
-                continue;
-            }
-            
-            /*
-             * A non stop word breaks everything
-             */
-            if (!$this->queryManager->isStopWordPosition($i)) {
-                break;
-            }
-            
-        }
-       
-        return array(
-            'date' => $date,
-            'endPosition' => isset($realEndPosition) ? $realEndPosition : $endPosition
-        );
-    }
-    
-    /**
-     * Return date from a single world like 'today', 'tomorrow' or 'yesterday'
-     * 
-     * @param string $position
-     * @return array
-     */
-    private function getSpecialDate($position) {
-        $timeModifier = $this->queryManager->dictionary->get(RestoDictionary::TIME_MODIFIER, $this->queryManager->words[$position]['word']);
-        if (isset($timeModifier)) {
-            $time = null;
-            if ($timeModifier === 'today') {
-                $time = strtotime(date('Y-m-d'));
-            }
-            else if (isset($timeModifier) && $timeModifier === 'tomorrow') {
-                $time = strtotime(date('Y-m-d') . ' + 1 days');
-            }
-            else if (isset($timeModifier) && $timeModifier === 'yesterday') {
-                $time = strtotime(date('Y-m-d') . ' - 1 days');
-            } 
-            if (isset($time)) {
-                return array(
-                    'year' => date('Y', $time),
-                    'month' => date('m', $time),
-                    'day' => date('d', $time)
-                );
-            }
-        }
-        return array();
-    }
-    
-    /**
-     * Return true if word position is <last> or <next>
-     * 
-     * @param integer $position
-     */
-    private function isLastOrNextPosition($position) {
-        $timeModifier = $this->queryManager->dictionary->get(RestoDictionary::TIME_MODIFIER, $this->queryManager->words[$position]['word']);
-        if ($timeModifier === 'last' || $timeModifier === 'next') {
-            return true;
-        }
-        return false;
-    }
-    
-    /**
-     * Return year, month or day from date
-     * 
-     * @param integer $position
-     */
-    private function getYearMonthDay($position) {
-        
-        $word = $this->queryManager->words[$position]['word'];
-        
-        if (preg_match('/^\d{4}$/i', $word)) {
-            return array(
-                'year' => $word
-            );
-        }
-        
-        $month = $this->queryManager->dictionary->get(RestoDictionary::MONTH, $word);
-        if (isset($month)) {
-            return array(
-                'month' => $month
-            );
-        }
-        
-        if (is_numeric($word)) {
-            $day = intval($word);
-            if ($day > 0 && $day < 31) {
-                return array(
-                    'day' => $day < 10 ? '0' . $day : $day
-                );
-            }
-        }
-        
-        /*
-         * ISO8601 date
-         */
-        if (RestoUtil::isISO8601($word)) {
-            return $this->iso8601ToDate($word);
-        }
-
-        return null;
-    }
-    
-    /**
-     * Return duration unit or value from position
-     * 
-     * @param array $duration
-     * @param integer $position
-     * @param boolean $firstIsNotLast
-     * 
-     */
-    private function extractDurationUnitOrValue($duration, $position, $firstIsNotLast = false) {
-        
-        /*
-         * Extract value or unit
-         */
-        $word = $this->queryManager->words[$position]['word'];
-        $value = $this->queryManager->dictionary->getNumber($word);
-        if (isset($value)) {
-            $duration['duration'] = array_merge($duration['duration'], array('value' => $value));
-        }
-        else {
-            $value = $this->queryManager->dictionary->get(RestoDictionary::TIME_UNIT, $word);
-            if (isset($value)) {
-                $duration['duration'] = array_merge($duration['duration'], array('unit' => $value));
-            }
-        }
-        if (isset($value) && isset($firstIsNotLast)) {
-            $duration['firstIsNotLast'] = true;
-        }
-        
-        return $duration;
-        
     }
     
     /**
@@ -981,7 +707,7 @@ class WhenProcessor {
          * Duration
          */
         else {
-            $duration = $this->extractDuration($startPosition + $delta);
+            $duration = $this->extractor->extractDuration($startPosition + $delta);
             if (isset($duration['duration']['unit'])) {
                 $this->setResultForLastAndNext($this->getTimesFromDuration($duration, 'next'), $duration['duration']['unit']);
                 $this->queryManager->discardPositionInterval(__METHOD__, $startPosition, $duration['endPosition']);
