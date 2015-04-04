@@ -1,0 +1,42 @@
+
+                            resto
+                            =====
+
+Please visit the resto web site for more information:
+
+  * http://mapshup.com/resto
+
+Copyright 2014 Jérôme Gasperi
+
+Licensed under the Apache License, version 2.0 (the "License");
+You may not use this file except in compliance with the License.
+You may obtain a copy of the License at:
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+License for the specific language governing permissions and limitations
+under the License.
+
+Also, please refer to each LICENSE.<component> files for the license terms of the
+components that this product depends on.
+
+-------------------------------------------------------------------------------
+This product depends on 'JWT' a JSON Web Token implementation description in PHP,
+written by Neuman Vong and Anant Narayanan. It can be obtained at:
+    
+  * LICENSE:
+    * lib/JWT/LICENSE.JWT (BSD-3-Clause 3-clause BSD)
+  * HOMEPAGE:
+    * https://github.com/firebase/php-jwt
+
+
+This product optionally depends on 'iTag' a php library to enhance description of Earth
+Observation data, written by Jérôme Gasperi. It can be obtained at:
+    
+  * LICENSE:
+    * lib/iTag/LICENSE.iTag (Apache License 2.0)
+  * HOMEPAGE:
+    * https://github.com/jjrom/itag
