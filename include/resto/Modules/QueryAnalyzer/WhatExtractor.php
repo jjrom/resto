@@ -93,8 +93,12 @@ class WhatExtractor {
             }
             
             /*
-             * Search for valid keyword
+             * Discard noise
              */
+            if ($this->queryManager->dictionary->isNoise($this->queryManager->words[$i]['word'])) {
+                continue;
+            }
+            
             $word = (isset($word) ? $word . '-' : '') . $this->queryManager->words[$i]['word'];
             $keyword = $this->queryManager->getNonLocationKeyword($word);
             if (isset($keyword)) {
