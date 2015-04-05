@@ -29,4 +29,5 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Inundation', 'floo
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Landslide', 'landslide', 'en', 'event');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Oil spill', 'oilspill', 'en', 'event');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Volcanic eruption', 'eruption', 'en', 'event');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Volcano eruption', 'eruption', 'en', 'event');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Eruption', 'eruption', 'en', 'event');

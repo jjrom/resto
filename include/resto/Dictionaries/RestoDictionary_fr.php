@@ -43,7 +43,8 @@ class RestoDictionary_fr extends RestoDictionary {
             'greater' => array('plus', 'superieur', 'superieure', '>'),
             'lesser' => array('moins', '<', 'inferieur', 'inferieure'),
             'with' => array('avec', 'contenant', 'sur'),
-            'without' => array('sans', 'pas')
+            'without' => array('sans', 'pas'),
+            'for' => array('pour')
         ),
         /*
          * Time modifiers
