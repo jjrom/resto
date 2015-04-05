@@ -42,7 +42,6 @@ class WhenExtractor {
     * @param integer $startPosition of word in the list
     */
     public function extractDuration($startPosition) {
-        
         $duration = array(
             'duration' => array(
                 'value' => 1
@@ -73,7 +72,10 @@ class WhenExtractor {
              * Extract duration
              */
             $duration = $this->extractDurationUnitOrValue($duration, $i, $i === $startPosition);
-    
+            
+            if (!isset($duration)) {
+                break;
+            }
         }
         
         return $duration;
@@ -272,7 +274,7 @@ class WhenExtractor {
             $duration['firstIsNotLast'] = true;
         }
         
-        return $duration;
+        return isset($value) ? $duration : null;
         
     }
     

@@ -144,7 +144,7 @@ class WhenProcessor {
          * <since> duration
          */
         $duration = $this->extractor->extractDuration($startPosition + 1);
-        if (isset($duration['duration']['unit'])) {
+        if (isset($duration)) {
             $date = array(
                 'endPosition' => $duration['endPosition'],
                 'date' => $this->extractor->iso8601ToDate(date('Y-m-d', strtotime(date('Y-m-d') . ' - ' . $duration['duration']['value'] . $duration['duration']['unit'])))
@@ -389,7 +389,7 @@ class WhenProcessor {
          */
         $duration = $this->extractor->extractDuration(max(array(0, $startPosition - 1)));
         $delta = 0;
-        if (isset($duration['duration']['unit'])) {
+        if (isset($duration)) {
             $this->setResultForLastAndNext($this->getTimesFromDuration($duration, $lastOrNext), $duration['duration']['unit']);
             $delta = $duration['firstIsNotLast'] ? 1 : 0;
         }
@@ -397,7 +397,7 @@ class WhenProcessor {
             $error = QueryAnalyzer::MISSING_UNIT;
         }
         
-        $this->queryManager->discardPositionInterval(__METHOD__, $startPosition - $delta, $duration['endPosition'], isset($error) ? $error : null);
+        $this->queryManager->discardPositionInterval(__METHOD__, $startPosition - $delta, isset($duration) ? $duration['endPosition'] : $startPosition, isset($error) ? $error : null);
  
     }
     
@@ -685,7 +685,7 @@ class WhenProcessor {
          */
         else {
             $duration = $this->extractor->extractDuration($startPosition + $delta);
-            if (isset($duration['duration']['unit'])) {
+            if (isset($duration)) {
                 $this->setResultForLastAndNext($this->getTimesFromDuration($duration, 'next'), $duration['duration']['unit']);
                 $this->queryManager->discardPositionInterval(__METHOD__, $startPosition, $duration['endPosition']);
             }
