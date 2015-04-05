@@ -66,7 +66,6 @@ class WhatProcessor {
             $this->addToResult($this->toFilter($keyword, $with));
             $this->queryManager->discardPositionInterval($by, $startPosition, $keyword['endPosition']);
         }
-
     }
     
     /**
@@ -240,6 +239,8 @@ class WhatProcessor {
      */
     private function processQuantityOrKeyword($startPosition, $with, $delta) {
         
+        $endPosition = $this->queryManager->getEndPosition($startPosition + $delta);
+        
         /*
          * Quantity ?
          */
@@ -248,16 +249,26 @@ class WhatProcessor {
             $this->addToResult(array(
                 $quantity['key'] => $with ? ']0' : 0
             ));
-            $this->queryManager->discardPositionInterval(__METHOD__, $startPosition, $quantity['endPosition']);
+            $endPosition = $quantity['endPosition'];
         }
 
         /*
          * Keyword ?
          */
         else {
-            $this->processFor($startPosition, $delta, $with, __METHOD__);
+            $keyword = $this->extractor->extractKeyword($startPosition + $delta);
+            if (isset($keyword)) {
+                $this->addToResult($this->toFilter($keyword, $with));
+                $endPosition = $keyword['endPosition'];
+            }
+            else {
+                $error = QueryAnalyzer::NOT_UNDERSTOOD;
+            }
         }
         
+        if ($delta === 1) {
+            $this->queryManager->discardPositionInterval(__METHOD__, $startPosition, $endPosition, isset($error) ? $error : null);
+        }
     }   
     
     /**
