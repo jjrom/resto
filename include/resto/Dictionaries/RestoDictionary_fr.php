@@ -32,7 +32,7 @@ class RestoDictionary_fr extends RestoDictionary {
          * Location modifiers
          */
         'locationModifiers' => array(
-            'in' => array('en', 'au', 'aux', 'a', 'sur', 'pres'),
+            'in' => array('en', 'au', 'aux', 'a', 'sur', 'pres', 'vers'),
         ),
         /*
          * Quantity modifiers
