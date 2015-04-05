@@ -44,9 +44,12 @@ abstract class RestoDictionary {
     public $language;
 
     /*
-     * Database driver
+     * Explicit liste of dictionary modifiers 
+     * that need to be processed as a single word
+     * in the query analysis.
+     * E.g. "greater than" 
      */
-    private $dbDriver;
+    public $multiwords = array();
     
     /*
      * Dictionary Structure
@@ -68,6 +71,11 @@ abstract class RestoDictionary {
      * Translations
      */
     protected $translations = array();
+    
+    /*
+     * Database driver
+     */
+    private $dbDriver;
     
     /**
      * Constructor

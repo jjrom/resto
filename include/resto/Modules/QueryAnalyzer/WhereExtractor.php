@@ -162,10 +162,15 @@ class WhereExtractor {
         $toponymName = $this->toToponymName($startPosition, $endPosition);
         while(true) {
             
-            $location = $this->gazetteer->search(array(
-                'q' => $toponymName,
-                'wkt' => true
-            ));
+            /*
+             * Do not process topononymName if it is a stop word
+             */
+            if (!$this->queryManager->dictionary->isStopWord($toponymName)) {
+                $location = $this->gazetteer->search(array(
+                    'q' => $toponymName,
+                    'wkt' => true
+                ));
+            }
             
             /*
              * Location was found or toponym name has only one word left
