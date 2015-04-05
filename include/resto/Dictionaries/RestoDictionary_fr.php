@@ -20,6 +20,19 @@
  */
 class RestoDictionary_fr extends RestoDictionary {
 
+    /*
+     * Multiwords
+     */
+    public $multiwords = array(
+        'pres de',
+        'plus grand que',
+        'superieur a',
+        'superieure a',
+        'plus petit que',
+        'inferieur a',
+        'inferieure a'
+    );
+    
     protected $dictionary = array(
         
         /*
@@ -32,7 +45,7 @@ class RestoDictionary_fr extends RestoDictionary {
          * Location modifiers
          */
         'locationModifiers' => array(
-            'in' => array('en', 'au', 'aux', 'a', 'sur', 'pres', 'vers'),
+            'in' => array('en', 'au', 'aux', 'a', 'sur', 'pres de', 'vers'),
         ),
         /*
          * Quantity modifiers
@@ -40,8 +53,8 @@ class RestoDictionary_fr extends RestoDictionary {
         'quantityModifiers' => array(
             'equal' => array('egal', 'egale', 'egaux'),
             'between' => array('entre', 'de'),
-            'greater' => array('plus', 'superieur', 'superieure', '>'),
-            'lesser' => array('moins', '<', 'inferieur', 'inferieure'),
+            'greater' => array('plus', 'plus grand que', 'superieur a', 'superieure a', '>'),
+            'lesser' => array('moins', 'plus petit que', '<', 'inferieur a', 'inferieure a'),
             'with' => array('avec', 'contenant', 'sur'),
             'without' => array('sans', 'pas'),
             'for' => array('pour')

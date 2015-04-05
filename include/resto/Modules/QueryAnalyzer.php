@@ -355,8 +355,8 @@ class QueryAnalyzer extends RestoModule {
      * @return array
      */
     private function queryToWords($query) {
+        $rawWords = RestoUtil::splitString($this->escapeMultiwords($this->context->dbDriver->normalize(str_replace(array('\'', ',', ';'), ' ', $query))));
         $words = array();
-        $rawWords = RestoUtil::splitString($this->context->dbDriver->normalize(str_replace(array('\'', ',', ';'), ' ', $query)));
         for ($i = 0, $ii = count($rawWords); $i < $ii; $i++) {
             $term = trim($rawWords[$i]);
             if ($term === '') {
@@ -372,6 +372,22 @@ class QueryAnalyzer extends RestoModule {
             }
         }
         return $words;
+    }
+    
+    /**
+     * 
+     * Surround multiwords by " character
+     * 
+     * @param string $query
+     * @return array
+     */
+    private function escapeMultiwords($query) {
+        $query = ' ' . $query . ' ';
+        for ($i = count($this->queryManager->dictionary->multiwords); $i--;) {
+            $multiword = $this->queryManager->dictionary->multiwords[$i];
+            $query = str_replace(' ' . $multiword . ' ', ' "' . $multiword . '" ', $query);
+        }
+        return trim($query);
     }
     
     /**

@@ -21,11 +21,26 @@
 class RestoDictionary_en extends RestoDictionary {
 
     /*
+     * Multiwords
+     */
+    public $multiwords = array(
+        'greater than',
+        'lower than',
+        'equal to',
+        'greater than',
+        'more than',
+        'lesser than',
+        'less than',
+        'lower than'
+    );
+    
+    /*
      * For each entry 
      *
-     *   - the key (left side) is the month key
-     *   - the value (right side) is an array of month homonyms
-     *     in the given language. The first value is the prefered one
+     *   - the key (left side) is the key
+     *   - the value (right side) is an array of homonyms
+     *     in the given language.
+     * The first value is the prefered one
      */ 
     protected $dictionary = array(
         
@@ -45,10 +60,10 @@ class RestoDictionary_en extends RestoDictionary {
          * Quantity modifiers
          */
         'quantityModifiers' => array(
-            'equal' => array('equal'),
+            'equal' => array('equal to'),
             'between' => array('between', 'from'),
-            'greater' => array('greater', 'more', '>'),
-            'lesser' => array('lesser', '<', 'less', 'lower'),
+            'greater' => array('greater than', 'more than', '>'),
+            'lesser' => array('lesser than', '<', 'less than', 'lower than'),
             'with' => array('with', 'containing'),
             'without' => array('without', 'no'),
             'for' => array('by', 'for', 'about')
