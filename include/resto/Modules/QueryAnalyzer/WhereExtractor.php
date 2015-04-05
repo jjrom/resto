@@ -189,7 +189,7 @@ class WhereExtractor {
         
         return array(
             'endPosition' => $endPosition,
-            'location' => $location
+            'location' => isset($location) ? $location : null
         );
         
     }
