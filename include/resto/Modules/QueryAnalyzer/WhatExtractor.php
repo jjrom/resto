@@ -80,21 +80,22 @@ class WhatExtractor {
      */
     public function extractKeyword($startPosition) {
      
-        $endPosition = $this->queryManager->getEndPosition($startPosition);
-        
         /*
          * Process words within $startPosition and $endPosition
          */
-        $word = '';
-        for ($i = $startPosition; $i <= $endPosition; $i++) {
-
+        for ($i = $startPosition; $i < $this->queryManager->length; $i++) {
+            
             /*
-             * Reconstruct word from words without stop words
+             * Skip first word if stop words
              */
-            if (!$this->queryManager->isStopWordPosition($i)) {
-                $word = trim($word . ' ' . $this->queryManager->words[$i]['word']);
+            if ($i === $startPosition && $this->queryManager->isStopWordPosition($i)) {
+                continue;
             }
             
+            /*
+             * Search for valid keyword
+             */
+            $word = (isset($word) ? $word . '-' : '') . $this->queryManager->words[$i]['word'];
             $keyword = $this->queryManager->getNonLocationKeyword($word);
             if (isset($keyword)) {
                 return array(
