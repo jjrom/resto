@@ -81,9 +81,7 @@ class QueryManager {
     public function discardPosition($by, $position, $error = null) {
         $this->words[$position]['processed'] = true;
         $this->words[$position]['by'] = $by;
-        if (isset($error)) {
-            $this->words[$position]['error'] = $error;
-        }
+        $this->words[$position]['error'] = $error;
     }
     
     /**

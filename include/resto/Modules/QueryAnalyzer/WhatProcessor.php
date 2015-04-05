@@ -266,9 +266,10 @@ class WhatProcessor {
             }
         }
         
-        if ($delta === 1) {
+        if ($delta === 1 || !isset($error)) {
             $this->queryManager->discardPositionInterval(__METHOD__, $startPosition, $endPosition, isset($error) ? $error : null);
         }
+        
     }   
     
     /**
