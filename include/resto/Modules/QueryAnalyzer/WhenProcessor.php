@@ -237,7 +237,7 @@ class WhenProcessor {
     public function processIn($startPosition, $delta = 1) {
         
         $date = $this->extractor->extractDate($startPosition + $delta);
-       
+        
         /*
          * No date found - try a season or a duration
          */
@@ -388,6 +388,15 @@ class WhenProcessor {
          * 
          */
         $duration = $this->extractor->extractDuration(max(array(0, $startPosition - 1)));
+        
+        /*
+         * <next> "(year|month|day)"
+         */
+        if (!isset($duration)) {
+            $startPosition = $startPosition + 1;
+            $duration = $this->extractor->extractDuration($startPosition);
+        }
+        
         $delta = 0;
         if (isset($duration)) {
             $this->setResultForLastAndNext($this->getTimesFromDuration($duration, $lastOrNext), $duration['duration']['unit']);
@@ -671,7 +680,7 @@ class WhenProcessor {
      * @param integer $delta
      */
     private function processInDuration($startPosition, $delta) {
-            
+        
         /*
          * Season ?
          */
@@ -679,7 +688,7 @@ class WhenProcessor {
         if ($endPosition !== -1) {
             $this->queryManager->discardPositionInterval(__METHOD__, $startPosition, $endPosition);
         }
-
+        
         /*
          * Duration
          */
@@ -690,7 +699,7 @@ class WhenProcessor {
                 $this->queryManager->discardPositionInterval(__METHOD__, $startPosition, $duration['endPosition']);
             }
         }
-       
+        
     }
     
     /**
