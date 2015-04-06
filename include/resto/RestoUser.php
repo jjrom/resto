@@ -55,7 +55,7 @@ class RestoUser{
         /*
          * Assign default profile for unauthentified user
          */
-        if (!isset($profile) || !isset($profile->userid)) {
+        if (!isset($profile) || !isset($profile['userid'])) {
             $this->profile = array(
                 'userid' => -1,
                 'groupname' => 'unregistered',
