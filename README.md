@@ -1,4 +1,4 @@
-#resto2
+#resto
 
 [![Code Climate](https://codeclimate.com/github/jjrom/resto2/badges/gpa.svg)](https://codeclimate.com/github/jjrom/resto2)
 
@@ -26,11 +26,11 @@ If not already done, download resto sources to $RESTO_HOME
 Note: resto could work with lower version of the specified requirements.
 However there is no guaranty of success and unwanted result may occured !
 
-### Install resto2 database
+### Install resto database
 
-resto installs a PostgreSQL database named 'resto2'. 
+resto installs a PostgreSQL database named 'resto'. 
 
-The 'resto2' database is created with PostGIS extension enabled within the 'public' schema.
+The 'resto' database is created with PostGIS extension enabled within the 'public' schema.
 
 During the installation, two additional schemas are created :
 * 'resto' schema - among others, it stores the table containing the collections description
@@ -41,7 +41,7 @@ The user 'resto' is automatically created within this database :
 
 It is very important to specify strong passwords for this user.
 
-To install resto2 database, launch the following script
+To install resto database, launch the following script
 
         $RESTO_HOME/_install/installDB.sh -F -p <resto user password>
 
@@ -79,7 +79,7 @@ If you want to use iTag with resto, you should install it (follow the [instructi
 The first thing to do is to configure Apache (or wathever is your web server) to support URL rewriting.
 
 Basically, with URLs rewriting every request sent to resto application will end up to index.php. For example,
-http://localhost/resto2/whatever/youwant/to/access will be rewrite as http://localhost/resto2/index.php?restoURL=/whatever/youwant/to/access
+http://localhost/resto/whatever/youwant/to/access will be rewrite as http://localhost/resto/index.php?restoURL=/whatever/youwant/to/access
 
 
 **Check that mod_rewrite is installed**
@@ -93,12 +93,12 @@ For instance on MacOS X, looks for something like this in /etc/apache2/httpd.con
 Set an alias to the resto directory. To make mod_rewrite works, you need to verify that both 'FollowSymLinks'
 and 'AllowOverride All' are set in the apache directory configuration
 
-For instance to access resto at http://localhost/resto2 (change "/directory/to/resto2" by $RESTO_TARGET below):
+For instance to access resto at http://localhost/resto (change "/directory/to/resto" by $RESTO_TARGET below):
 
 For Apache < 2.4 :
 
-        Alias /resto2/ "/directory/to/resto2/"
-        <Directory "/directory/to/resto2/">
+        Alias /resto/ "/directory/to/resto/"
+        <Directory "/directory/to/resto/">
             Options FollowSymLinks
             AllowOverride All
             Order allow,deny
@@ -107,8 +107,8 @@ For Apache < 2.4 :
 
 For Apache >= 2.4 :
 
-        Alias /resto2/ "/directory/to/resto2/"
-        <Directory "/directory/to/resto2/">
+        Alias /resto/ "/directory/to/resto/"
+        <Directory "/directory/to/resto/">
             Options FollowSymLinks
             AllowOverride All
             Require all granted
@@ -116,7 +116,7 @@ For Apache >= 2.4 :
 
 **Check "RewriteBase" value within $RESTO_TARGET/.htaccess**
 
-Edit this value so it matches your alias name. If you use the same alias as in 2. (i.e. '/resto2/')
+Edit this value so it matches your alias name. If you use the same alias as in 2. (i.e. '/resto/')
 there is no need to edit $RESTO_TARGET/.htaccess file
 
 **Configure apache to support https (optional)**
@@ -149,7 +149,7 @@ Edit $RESTO_TARGET/include/config.php and comment the general/host parameter
 Edit the PostgreSQL pg_hba.conf file and add the following rules :
 
         # Configuration for resto framework
-        local  resto2     resto                                        md5
+        local  resto     resto                                        md5
 
 Then restart postgresql (e.g. "pg_ctl restart")
 
@@ -160,8 +160,8 @@ Edit $RESTO_TARGET/include/config.php and uncomment the general/host parameter t
 Edit the PostgreSQL pg_hba.conf file and add the following rules :
 
         # Configuration for resto framework
-        host   resto2   resto                   127.0.0.1/32            md5
-        host   resto2   resto                   ::1/128                 md5
+        host   resto   resto                   127.0.0.1/32            md5
+        host   resto   resto                   ::1/128                 md5
 
 Edit the PostreSQL postgresql.conf and be sure that postgres accept tcp_ip connection.
 
@@ -216,7 +216,7 @@ Create an admin user within the database
 
 Only works for an existing collection (so create a collection first !)
 
-        Open you browser to http://localhost/resto2/api/collections/Example/describe.xml
+        Open you browser to http://localhost/resto/api/collections/Example/describe.xml
 
 ###Delete a collection
 
@@ -226,7 +226,7 @@ WARNING ! This will also destroy all the resources within the collection
 
 ### List all collections
 
-        Open your browser to http://localhost/resto2/collections/
+        Open your browser to http://localhost/resto/collections/
 
 ### Insert a resource
 
@@ -239,21 +239,21 @@ Only works for an existing collection (so create a collection first !)
 
 Only works for an existing collection (so create a collection first !)
 
-        Open your browser to http://localhost/resto2/api/collections/Example/search.json
+        Open your browser to http://localhost/resto/api/collections/Example/search.json
 
 
 ### See resource metadata in Atom
 
 Only works on an existing resource (so insert resource first !)
 
-        curl "http://localhost/resto2/collections/Example/dda9cd5f-b3b9-5665-b1de-c78df8d3f1fb.atom"
+        curl "http://localhost/resto/collections/Example/dda9cd5f-b3b9-5665-b1de-c78df8d3f1fb.atom"
 
 
 ### See resource metadata in GeoJSON
 
 Only works on an existing resource (so insert resource first !)
 
-        curl "http://localhost/resto2/collections/Example/dda9cd5f-b3b9-5665-b1de-c78df8d3f1fb.json"
+        curl "http://localhost/resto/collections/Example/dda9cd5f-b3b9-5665-b1de-c78df8d3f1fb.json"
 
 
 ## Frequently Asked Questions
@@ -271,10 +271,10 @@ You can POST collections descriptions using a "key=value" mechanism instead of f
 
 To do so, you need to encode the json file (using javascript encodeURIComponent for instance) - see $RESTO_HOME/_examples/collections/Example.txt - and run the following command
 
-        curl -X POST -d @$RESTO_HOME/_examples/collections/Example.txt http://admin:admin@localhost/resto2/
+        curl -X POST -d @$RESTO_HOME/_examples/collections/Example.txt http://admin:admin@localhost/resto/
 
 
 ### My collection contains products but my collection is empty 
 
 Check if all the mandatory search terms are defined. Mandatory search terms are the OpenSearch terms
-without a question mark '?' defined within the Url template of the OpenSearch Document Description (i.e. http://localhost/resto2/api/collections/{collection}/describe)
+without a question mark '?' defined within the Url template of the OpenSearch Document Description (i.e. http://localhost/resto/api/collections/{collection}/describe)

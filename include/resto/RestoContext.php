@@ -73,7 +73,7 @@ class RestoContext {
     /**
      * Reset password page url
      */
-    public $resetPasswordUrl = 'http://localhost/resto2-client/#/resetPassword';
+    public $resetPasswordUrl = 'http://localhost/resto-client/#/resetPassword';
     
     /**
      * Store query

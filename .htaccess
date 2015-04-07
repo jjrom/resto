@@ -3,7 +3,7 @@
     RewriteEngine On
 
     # IMPORTANT : change this to match your installation 
-    RewriteBase /resto2/
+    RewriteBase /resto/
     
     # Transmit authorization to PHP
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

@@ -28,10 +28,10 @@ return array(
         
         /*
          * Relative endpoint to directory containing index.php
-         * i.e. if index.php is at http://localhost/resto2 then
-         * rootEndPoint would be '/resto2'
+         * i.e. if index.php is at http://localhost/resto then
+         * rootEndPoint would be '/resto'
          */
-        'rootEndpoint' => '/resto2',
+        'rootEndpoint' => '/resto',
         
         /*
          * Supported languages
@@ -77,7 +77,7 @@ return array(
         /*
          * Url to call for password reset
          */
-        'resetPasswordUrl' => 'http://localhost/resto2-client/#/resetPassword',
+        'resetPasswordUrl' => 'http://localhost/resto-client/#/resetPassword',
         
         /*
          * Upload directory
@@ -106,7 +106,7 @@ return array(
         /*
          * Database name
          */
-        'dbname' => 'resto2',
+        'dbname' => 'resto',
         
         /*
          * Database host - if not specified connect through socket instead of TCP/IP

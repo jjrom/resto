@@ -16,7 +16,7 @@
 
 HTTPS=0
 HOST=localhost
-TARGET=resto2
+TARGET=resto
 usage="## Create a new collection within RESTo database\n\n  Usage $0 -f <Collection description file (i.e. JSON file)>  -u <username:password> [-s (use https if set) -H server (default localhost) -p resto path (default resto)]\n"
 while getopts "sf:u:H:p:h" options; do
     case $options in
