@@ -54,7 +54,7 @@
  *    | Query parameter    |      Type      | Description
  *    |______________________________________________________________________________________________
  *    | _pretty            |     boolean    | (For JSON output only) true to return pretty print JSON
- *    | _tk                |     string     | (For download/visualize/resetPassword) sha1 token for resource access
+ *    | _tk                |     string     | (For download/visualize/resetPassword) token for resource access
  *    |                                     | (For /api/users/checkToken) JWT profile token 
  *    | _rc                |     boolean    | (For search) true to perform the total count of search results
  *    | callback           |     string     | (For JSON output only) name of callback funtion for JSON-P

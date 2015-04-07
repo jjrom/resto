@@ -122,7 +122,7 @@ class Functions_cart{
         if (!isset($identifier) || !isset($item) || !is_array($item) || !isset($item['id'])) {
             return false;
         }
-        $itemId = sha1($identifier . $item['id']);
+        $itemId = RestoUtil::encrypt($identifier . $item['id']);
         if ($this->isInCart($itemId)) {
             RestoLogUtil::httpError(1000, 'Cannot add item : ' . $itemId . ' already exists');
         }
@@ -204,7 +204,7 @@ class Functions_cart{
                 return false;
             }
             
-            $orderId = sha1($identifier . microtime());
+            $orderId = RestoUtil::encrypt($identifier . microtime());
             $values = array(
                 '\'' . pg_escape_string($orderId) . '\'',
                 '\'' . pg_escape_string($identifier) . '\'',

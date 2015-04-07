@@ -32,6 +32,15 @@ class RestoUtil {
     );
     
     /**
+     * Encrypt a string using $algorithm
+     * 
+     * @param string $str
+     */
+    public static function encrypt($str, $algo = 'sha1') {
+        return sha1($str);
+    }
+    
+    /**
      * Format a flat JSON string to make it more human-readable
      *
      * @param array $json JSON as an array

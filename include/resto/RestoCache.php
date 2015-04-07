@@ -75,7 +75,7 @@ class RestoCache {
         if (!isset($arr) || !is_array($arr) || count($arr) === 0) {
             return null;
         }
-        return sha1(serialize($arr)) . '.cache';
+        return RestoUtil::encrypt(serialize($arr)) . '.cache';
     }
     
     /**

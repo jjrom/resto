@@ -89,7 +89,7 @@ class RestoCart{
             /*
              * Same resource cannot be added twice
              */
-            $itemId = sha1($this->user->profile['email'] . $data[$i]['id']);
+            $itemId = RestoUtil::encrypt($this->user->profile['email'] . $data[$i]['id']);
             if (isset($this->items[$itemId])) {
                 RestoLogUtil::httpError(1000, 'Cannot add item : ' . $itemId . ' already exist');
             }   
