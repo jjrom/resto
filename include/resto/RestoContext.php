@@ -166,7 +166,7 @@ class RestoContext {
      * @return array
      */
     public function decodeJWT($token) {
-        return JWT::decode($token, $this->passphrase);
+        return JWT::decode($token, $this->passphrase, array('HS256'));
     }
     
     /**
