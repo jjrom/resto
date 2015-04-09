@@ -185,7 +185,8 @@ class RestoRights{
      * @param string $featureIdentifier
      */
     public function getFullRights($collectionName = null, $featureIdentifier = null) {
-        return array_merge(array('*' => $this->groupRights[$this->groupname]), $this->context->dbDriver->get(RestoDatabaseDriver::RIGHTS_FULL, array('emailOrGroup' => $this->identifier, 'collectionName' => $collectionName, 'featureIdentifier' => $featureIdentifier)));
+        $rights = $this->context->dbDriver->get(RestoDatabaseDriver::RIGHTS_FULL, array('emailOrGroup' => $this->identifier, 'collectionName' => $collectionName, 'featureIdentifier' => $featureIdentifier));
+        return isset($rights) ? array_merge(array('*' => $this->groupRights[$this->groupname]), $rights) : array('*' => $this->groupRights[$this->groupname]);
     }
     
     /**

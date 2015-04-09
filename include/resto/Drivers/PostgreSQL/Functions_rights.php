@@ -83,6 +83,9 @@ class Functions_rights {
     public function getFullRights($identifier, $collectionName = null, $featureIdentifier = null) {
         $query = 'SELECT collection, featureid, search, download, visualize, canpost as post, canput as put, candelete as delete, filters FROM usermanagement.rights WHERE emailorgroup=\'' . pg_escape_string($identifier) . '\'' . (isset($collectionName) ?  ' AND collection=\'' . pg_escape_string($collectionName) . '\'' : '')  . (isset($featureIdentifier) ?  ' AND featureid=\'' . pg_escape_string($featureIdentifier) . '\'' : '');
         $results = $this->dbDriver->query($query);
+        if (pg_num_rows($results) === 0) {
+            return null;
+        }
         $rights = array();
         while ($row = pg_fetch_assoc($results)){
             $properties = array();
