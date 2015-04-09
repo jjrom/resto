@@ -119,7 +119,7 @@ class Functions_features {
         $filtersUtils = new Functions_filters();
         $result = $this->dbDriver->query('SELECT ' . implode(',', $filtersUtils->getSQLFields($model)) . ' FROM ' . (isset($collection) ? '_' . strtolower($collection->name) : 'resto') . '.features WHERE ' . $model->getDbKey('identifier') . "='" . pg_escape_string($identifier) . "'" . (count($filters) > 0 ? ' AND ' . join(' AND ', $filters) : ''));
         $arrayOfFeatureArray = $this->toFeatureArray($context, $collection, $result);
-        return $arrayOfFeatureArray[0];
+        return isset($arrayOfFeatureArray[0]) ? $arrayOfFeatureArray[0] : null;
     }
     
     /**

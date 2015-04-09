@@ -372,8 +372,11 @@ class RestoRouteGET extends RestoRoute {
                 'featureIdentifier' => $segments[2], 
                 'collection' => $collection
             ));
+            if (!$feature->isValid()) {
+                RestoLogUtil::httpError(404);
+            }
         }
-
+        
         /*
          * collections
          */

@@ -319,10 +319,13 @@ class RestoFeatureCollection {
             if (isset($this->collections) && !isset($this->collections[$featuresArray[$i]['collection']])) {
                 $this->collections[$featuresArray[$i]['collection']] = new RestoCollection($featuresArray[$i]['collection'], $this->context, $this->user, array('autoload' => true));
             }
-            $this->restoFeatures[] = new RestoFeature($this->context, $this->user, array(
+            $feature = new RestoFeature($this->context, $this->user, array(
                 'featureArray' => $featuresArray[$i],
                 'collection' => isset($this->collections) && isset($featuresArray[$i]['collection']) && $this->collections[$featuresArray[$i]['collection']] ? $this->collections[$featuresArray[$i]['collection']] : $this->defaultCollection
             ));
+            if (isset($feature)) {
+                $this->restoFeatures[] = $feature;
+            }
             $this->totalCount = isset($featuresArray[$i]['totalcount']) ? $featuresArray[$i]['totalcount'] : -1;
         }
         

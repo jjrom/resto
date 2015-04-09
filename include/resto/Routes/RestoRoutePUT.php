@@ -85,6 +85,9 @@ class RestoRoutePUT extends RestoRoute {
                 'featureIdentifier' => $featureIdentifier,
                 'collection' => $collection
             ));
+            if (!$feature->isValid()) {
+                RestoLogUtil::httpError(404);
+            }
         }
         
         /*

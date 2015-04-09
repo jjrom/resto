@@ -70,6 +70,13 @@ class RestoFeature {
     }
     
     /*
+     * Return true if Feature is valid, false otherwise
+     */
+    public function isValid() {
+        return isset($this->identifier) ? true : false;
+    }
+    
+    /*
      * Download feature product
      */
     public function download() {
@@ -189,8 +196,16 @@ class RestoFeature {
             $this->featureArray = $options['featureArray'];
         }
         
-        $this->identifier = $this->featureArray['id'];
-        $this->setCollection($this->featureArray['properties']['collection']);
+        /*
+         * Empty feature => throw exception
+         */
+        if (empty($this->featureArray)) {
+            $this->identifier = null;
+        }
+        else {
+            $this->identifier = $this->featureArray['id'];
+            $this->setCollection($this->featureArray['properties']['collection']);
+        }
         
     }
     
