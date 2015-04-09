@@ -187,7 +187,7 @@ class RestoUtil {
      * @param string $format
      */
     public static function restoUrl($baseUrl = '//', $route = '', $format = '') {
-        return trim($baseUrl . (substr($baseUrl, -1) !== '/' ? '/' : '') . $route, '/') . (isset($format) && $format !== '' ? '.' . $format : '');
+        return trim($baseUrl . $route, '/') . (isset($format) && $format !== '' ? '.' . $format : '');
     }
     
     /**
