@@ -38,6 +38,7 @@ then
 fi
 # Change password !!!
 SHA1PASSWORD=`php -r "echo sha1('$PASSWORD');"`
+ACTIVATIONCODE=`php -r "echo sha1(mt_rand() . microtime());"`
 psql -d $DB -U $SUPERUSER << EOF
 INSERT INTO usermanagement.users (email,groupname,username,password,activationcode,activated,registrationdate) VALUES ('$USER','admin','$USER','$SHA1PASSWORD','$SHA1PASSWORD', 1, now());
 EOF
