@@ -17,7 +17,7 @@
 HTTPS=0
 HOST=localhost
 TARGET=resto
-usage="\n## Delete a collection from RESTo database\n\n  Usage $0 -c <Collection name> -u <username:password> [-s (use https if set) -H server (default localhost) -p resto path (default resto)]\n\n  !!!! WARNING - IF -p OPTION IS SET, THE COLLECTION DATABASE AND ALL ITS CONTENT WILL BE DELETED !!!!\n"
+usage="\n## Delete a collection from resto database\n\n  Usage $0 -c <Collection name> -u <username:password> [-s (use https if set) -H server (default localhost) -p resto path (default resto)]\n\n"
 while getopts "spc:u:hH:" options; do
     case $options in
         u ) AUTH=`echo $OPTARG`;;
