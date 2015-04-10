@@ -73,7 +73,7 @@ class WhenExtractor {
              */
             $duration = $this->extractDurationUnitOrValue($duration, $i, $i === $startPosition);
             
-            if (!isset($duration)) {
+            if (!isset($duration) || isset($duration['duration']['unit'])) {
                 break;
             }
         }
