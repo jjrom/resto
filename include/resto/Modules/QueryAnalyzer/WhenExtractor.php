@@ -78,6 +78,10 @@ class WhenExtractor {
             }
         }
         
+        if (!isset($duration['duration']['unit'])) {
+            return null;
+        }
+        
         return $duration;
         
     }
