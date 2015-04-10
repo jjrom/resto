@@ -38,6 +38,16 @@ class WhenProcessor {
      */
     private $extractor;
     
+    /*
+     * Seasons start and stop
+     */
+    private $seasons = array(
+        'spring' => array(0, '03', '21', 0, '06', '20'),
+        'summer' => array(0, '06', '21', 0, '09', '20'),
+        'autumn' => array(0, '09', '21', 0, '12', '20'),
+        'winter' => array(-1, '12', '21', 0, '03', '20')
+    );
+    
     /**
      * Constructor
      * 
@@ -777,73 +787,19 @@ class WhenProcessor {
      * @param integer $year
      */
     private function seasonToInterval($season, $year) {
-        switch ($season) {
-            case 'spring':
-            case 'austral autumn':
-                $dates = array(
-                    array(
-                        'year' => $year,
-                        'month' => '03',
-                        'day' => '21'
-                    ),
-                    array(
-                        'year' => $year,
-                        'month' => '06',
-                        'day' => '20'
-                    )
-                );
-                break;
-            case 'summer':
-            case 'austral winter':
-                $dates = array(
-                    array(
-                        'year' => $year,
-                        'month' => '06',
-                        'day' => '21'
-                    ),
-                    array(
-                        'year' => $year,
-                        'month' => '09',
-                        'day' => '20'
-                    )
-                );
-                break;
-            case 'autumn':
-            case 'austral spring':
-                $dates = array(
-                    array(
-                        'year' => $year,
-                        'month' => '09',
-                        'day' => '21'
-                    ),
-                    array(
-                        'year' => $year,
-                        'month' => '12',
-                        'day' => '20'
-                    )
-                );
-                break;
-            case 'winter':
-            case 'austral summer':
-                $dates = array(
-                    array(
-                        'year' => (integer) $year - 1,
-                        'month' => '12',
-                        'day' => '21'
-                    ),
-                    array(
-                        'year' => $year,
-                        'month' => '03',
-                        'day' => '20'
-                    )
-                );
-                break;
-        }
-        
-        if (isset($dates)) {
+        $magics = $this->seasons[$season];
+        if (isset($magics)) {
             $this->addToResult(array(
-                'time:start' => $this->toLowestDay($dates[0]),
-                'time:end' => $this->toGreatestDay($dates[1]),
+                'time:start' => $this->toLowestDay(array(
+                    'year' => $year + $magics[0],
+                    'month' => $magics[1],
+                    'day' => $magics[2]
+                )),
+                'time:end' => $this->toGreatestDay(array(
+                    'year' => $year + $magics[3],
+                    'month' => $magics[4],
+                    'day' => $magics[5]
+                )),
             ));
         }
     }
