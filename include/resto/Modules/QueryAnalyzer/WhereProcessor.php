@@ -26,7 +26,7 @@ class WhereProcessor {
     /*
      * Process result
      */
-    public $result = array();
+    private $result = array();
     
     /*
      * Reference to QueryManager
@@ -48,6 +48,15 @@ class WhereProcessor {
         $this->queryManager = $queryManager;
         $this->gazetteer = $gazetteer;
         $this->extractor = new WhereExtractor($this->queryManager, $gazetteer);
+    }
+    
+    /**
+     * Return processing result
+     * 
+     * @return array
+     */
+    public function getResult() {
+        return $this->result;
     }
     
     /**

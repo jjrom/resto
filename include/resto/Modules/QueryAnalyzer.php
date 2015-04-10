@@ -240,9 +240,9 @@ class QueryAnalyzer extends RestoModule {
          * Return processing results
          */
         return array(
-            'What' => $this->whatProcessor->result,
-            'When' => $this->whenProcessor->result,
-            'Where' => isset($this->whereProcessor) ? $this->whereProcessor->result : array(),
+            'What' => $this->whatProcessor->getResult(),
+            'When' => $this->whenProcessor->getResult(),
+            'Where' => isset($this->whereProcessor) ? $this->whereProcessor->getResult() : array(),
             'Errors' => $this->getErrors()
         );
         
@@ -452,5 +452,8 @@ class QueryAnalyzer extends RestoModule {
         return $inError;
     }
     
+    private function cleanWhen() {
+        
+    }
     
 }

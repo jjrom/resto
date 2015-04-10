@@ -26,7 +26,7 @@ class WhenProcessor {
     /*
      * Process result
      */
-    public $result = array();
+    private $result = array();
     
     /*
      * Reference to QueryManager
@@ -50,6 +50,43 @@ class WhenProcessor {
         $this->extractor = new WhenExtractor($this->queryManager);
     }
 
+    /**
+     * Return processing result
+     * 
+     * @return array
+     */
+    public function getResult() {
+       
+        if (isset($this->result['year']) && strrpos($this->result['year'], "|") === false) {
+            
+            /*
+             * Translate year:xxx and season:xxx to time:start/time:stop
+             * if it makes sense (i.e. "summer 2012")
+             */
+            if (isset($this->result['season'])) {
+                $seasons = explode('|', $this->result['season']);
+                for ($i = 0, $ii = count($seasons); $i < $ii; $i++) {
+                    $this->seasonToInterval($seasons[$i], $this->result['year']);
+                }
+                unset($this->result['season'], $this->result['year']);
+            }
+            
+            /*
+             * Translate year:xxx to time:start/time:stop
+             */
+            else {
+                $this->addToResult(array(
+                    'time:start' => $this->toLowestDay(array('year' => $this->result['year'])),
+                    'time:end' => $this->toGreatestDay(array('year' => $this->result['year']))
+                ));
+                unset($this->result['year']);
+            }
+            
+        }
+        
+        return $this->result;
+    }
+    
     /**
      * Process <after> "date" 
      * 
@@ -731,6 +768,84 @@ class WhenProcessor {
         $diff = array_diff($firstDate['date'], $secondDate['date']);
         
         return !empty($diff);
+    }
+    
+    /**
+     * Convert season to time:start/time:stop array
+     * 
+     * @param string $season
+     * @param integer $year
+     */
+    private function seasonToInterval($season, $year) {
+        switch ($season) {
+            case 'spring':
+            case 'austral autumn':
+                $dates = array(
+                    array(
+                        'year' => $year,
+                        'month' => '03',
+                        'day' => '21'
+                    ),
+                    array(
+                        'year' => $year,
+                        'month' => '06',
+                        'day' => '20'
+                    )
+                );
+                break;
+            case 'summer':
+            case 'austral winter':
+                $dates = array(
+                    array(
+                        'year' => $year,
+                        'month' => '06',
+                        'day' => '21'
+                    ),
+                    array(
+                        'year' => $year,
+                        'month' => '09',
+                        'day' => '20'
+                    )
+                );
+                break;
+            case 'autumn':
+            case 'austral spring':
+                $dates = array(
+                    array(
+                        'year' => $year,
+                        'month' => '09',
+                        'day' => '21'
+                    ),
+                    array(
+                        'year' => $year,
+                        'month' => '12',
+                        'day' => '20'
+                    )
+                );
+                break;
+            case 'winter':
+            case 'austral summer':
+                $dates = array(
+                    array(
+                        'year' => (integer) $year - 1,
+                        'month' => '12',
+                        'day' => '21'
+                    ),
+                    array(
+                        'year' => $year,
+                        'month' => '03',
+                        'day' => '20'
+                    )
+                );
+                break;
+        }
+        
+        if (isset($dates)) {
+            $this->addToResult(array(
+                'time:start' => $this->toLowestDay($dates[0]),
+                'time:end' => $this->toGreatestDay($dates[1]),
+            ));
+        }
     }
     
 }

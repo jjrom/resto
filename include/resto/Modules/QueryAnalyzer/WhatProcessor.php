@@ -30,7 +30,7 @@ class WhatProcessor {
     /*
      * Process result
      */
-    public $result = array();
+    private $result = array();
     
     /*
      * Reference to QueryManager
@@ -50,6 +50,15 @@ class WhatProcessor {
     public function __construct($queryManager) {
         $this->queryManager = $queryManager;
         $this->extractor = new WhatExtractor($this->queryManager);
+    }
+    
+    /**
+     * Return processing result
+     * 
+     * @return array
+     */
+    public function getResult() {
+        return $this->result;
     }
     
     /**
