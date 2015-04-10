@@ -601,10 +601,6 @@ class RestoFeatureCollection {
     private function setWhatFilters($what, $params) {
         $params['searchTerms'] = array();
         foreach($what as $key => $value) {
-            
-            /*
-             * Only one toponym is supported (the last one) 
-             */
             if ($key === 'searchTerms') {
                 for ($i = count($value); $i--;) {
                     $params['searchTerms'][] = $value[$i];
@@ -627,13 +623,28 @@ class RestoFeatureCollection {
         foreach($when as $key => $value) {
             
             /*
-             * Only one toponym is supported (the last one) 
+             * times is an array of time:start/time:end pairs
+             * TODO : Currently only one pair is supported
              */
-            if ($key === 'time:start' || $key === 'time:end') {
-                $params[$key] = $value;
+            if ($key === 'times') {
+                $params = array_merge($params, $this->timesToOpenSearch($value));
             }
             else {
                 $params['searchTerms'][] = $key . ':' . $value;
+            }
+        }
+        return $params;
+    }
+    
+    /**
+     * 
+     * @param array $times
+     */
+    private function timesToOpenSearch($times) {
+        $params = array();
+        for ($i = 0, $ii = count($times); $i < $ii; $i++) {
+            foreach($times[$i] as $key => $value) {
+                $params[$key] = $value;
             }
         }
         return $params;

@@ -597,21 +597,37 @@ class WhenProcessor {
     }
     
     /**
-     * Add a key to result
+     * Add keys/values to result
      * 
      * @param string $key
      * @param string $value
      */
     private function addToResult($filters) {
+        $time = array();
         foreach ($filters as $key => $value) {
             switch ($key) {
                 case 'time:start':
                 case 'time:end':
-                    $this->result[$key] = $value;
+                    $time[$key] = $value;
                     break;
                 default:
                     $this->result[$key] = isset($this->result[$key]) ? $this->result[$key] . '|' . $value : $value;
             }
+        }
+        $this->addTime($time);
+    }
+    
+    /**
+     * Add time:start/time:end interval
+     * 
+     * @param array $time
+     */
+    private function addTime($time) {
+        if (!empty($time)) {
+            if (!isset($this->result['times'])) {
+                $this->result['times'] = array();
+            }
+            $this->result['times'][] = $time;
         }
     }
     
