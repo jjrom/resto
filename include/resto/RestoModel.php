@@ -509,7 +509,7 @@ abstract class RestoModel {
         'dc:date' => array(
             'key' => 'updated',
             'osKey' => 'updated',
-            'operation' => '=',
+            'operation' => '>=',
             'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(Z|[\+\-][0-9]{2}:[0-9]{2})$'
         )
     );
