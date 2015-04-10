@@ -12,6 +12,10 @@
  * @author   Anant Narayanan <anant@php.net>
  * @license  http://opensource.org/licenses/BSD-3-Clause 3-clause BSD
  * @link     https://github.com/firebase/php-jwt
+ * 
+ * 2015.04.10 - Modify by Jérôme Gasperi for resto
+ *   - replace UnexpectedValueException, UnexpectedValueException and UnexpectedValueException
+ *   by UnexpectedValueException
  */
 class JWT
 {
@@ -33,10 +37,6 @@ class JWT
      *
      * @throws DomainException              Algorithm was not provided
      * @throws UnexpectedValueException     Provided JWT was invalid
-     * @throws SignatureInvalidException    Provided JWT was invalid because the signature verification failed
-     * @throws BeforeValidException         Provided JWT is trying to be used before it's eligible as defined by 'nbf'
-     * @throws BeforeValidException         Provided JWT is trying to be used before it's been created as defined by 'iat'
-     * @throws ExpiredException             Provided JWT has since expired, as defined by the 'exp' claim
      *
      * @uses jsonDecode
      * @uses urlsafeB64Decode
@@ -75,13 +75,13 @@ class JWT
 
             // Check the signature
             if (!JWT::verify("$headb64.$bodyb64", $sig, $key, $header->alg)) {
-                throw new SignatureInvalidException('Signature verification failed');
+                throw new UnexpectedValueException('Signature verification failed');
             }
 
             // Check if the nbf if it is defined. This is the time that the
             // token can actually be used. If it's not yet that time, abort.
             if (isset($payload->nbf) && $payload->nbf > time()) {
-                throw new BeforeValidException(
+                throw new UnexpectedValueException(
                     'Cannot handle token prior to ' . date(DateTime::ISO8601, $payload->nbf)
                 );
             }
@@ -90,14 +90,14 @@ class JWT
             // using tokens that have been created for later use (and haven't
             // correctly used the nbf claim).
             if (isset($payload->iat) && $payload->iat > time()) {
-                throw new BeforeValidException(
+                throw new UnexpectedValueException(
                     'Cannot handle token prior to ' . date(DateTime::ISO8601, $payload->iat)
                 );
             }
 
             // Check if this token has expired.
             if (isset($payload->exp) && time() >= $payload->exp) {
-                throw new ExpiredException('Expired token');
+                throw new UnexpectedValueException('Expired token');
             }
         }
 
