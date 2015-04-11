@@ -2,9 +2,9 @@
 /*
  * Copyright 2013 Jérôme Gasperi
  *
- * iTag licenses this file to you under the Apache License,
- * version 2.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, version 2.0 (the "License");
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
  *
  *   http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -14,7 +14,13 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-
+require 'Taggers/Tagger_Always.php';
+require 'Taggers/Tagger_Generic.php';
+require 'Taggers/Tagger_Geology.php';
+require 'Taggers/Tagger_Hydrology.php';
+require 'Taggers/Tagger_LandCover.php';
+require 'Taggers/Tagger_Political.php';
+require 'Taggers/Tagger_Population.php';
 class iTag {
 
     /*
@@ -27,1318 +33,90 @@ class iTag {
      */
     private $dbh;
     
-    private $schema = 'datasources';
-    private $gazetteerSchema = 'gazetteer';
+    /*
+     * Configuration
+     */
+    private $config = array(
+        'areaLimit' => 9
+    );
     
     /**
      * Constructor
      * 
-     * @param array $options : database configuration array 
+     * @param array $database : database configuration array
+     * @param array $config : configuration 
      */
-    public function __construct($options = array()) {
-        $this->dbh = isset($options['dbh']) ? $options['dbh'] : $this->getHandler($options);
+    public function __construct($database, $config = array()) {
+        if (isset($database['dbh'])) {
+            $this->dbh = $database['dbh'];
+        }
+        else if (isset($database['dbname'])) {
+            $this->setDatabaseHandler($database);
+        }
+        else {
+            throw new Exception('Database connection error', 500);
+        }  
+        $this->setConfig($config);
     }
     
     /**
-     * Tag a polygon
+     * Tag a polygon using taggers
      * 
-     * Structure of options :
-     *  
-     *      array(
-     *          'countries' => true|false,
-     *          'continents' => true|false,
-     *          'cities' => main|all|null,
-     *          'geophysical' => true|false,
-     *          'population' => true|false,
-     *          'landcover' => true|false,
-     *          'regions' => true|false,
-     *          'french' => true|false,
-     *          'hierarchical' => true|false
-     *      );
-     * 
-     * @param string $footprint
-     * @param array $options
+     * @param array $metadata // must include a 'footprint' in WKT format
+     *                        // and optionnaly a 'timestamp' ISO8601 date
+     * @param array $taggers
      * @return array
      * @throws Exception
      */
-    public function tag($footprint, $options = array()) {
+    public function tag($metadata, $taggers = array()) {
        
-        // Initialize Feature
-        $feature = array(
-            'type' => 'Feature',
-            'geometry' => $this->wktPolygon2GeoJSONGeometry($footprint),
-            'properties' => array()
-        );
-
-        if ($options['french']) {
-            $feature['properties']['political'] = $this->getFrenchPolitical($footprint, $options);
-        }
-        else if ($options['countries'] || $options['cities'] || $options['regions'] || $options['continents']) {
-            $feature['properties']['political'] = $this->getPolitical($footprint, $options);
-        }
-
-        if ($options['geophysical']) {
-            $feature['properties']['geophysical'] = $this->getGeophysical($footprint);
-        }
-
-        if ($options['landcover']) {
-            $feature['properties']['landCover'] = $this->getLandCover($footprint, $options);
-        }
-
         /*
-          if ($options['population'] && GPW2PGSQL_URL) {
-          $gpwResult = getRemoteData(GPW2PGSQL_URL . urlencode($footprint), null);
-          if ($gpwResult !== "") {
-          $feature['properties']['population'] = trim($gpwResult);
-          }
-          }
+         * Datasources reference information
          */
-
-        return $feature;
-    }
-
-    /**
-     * 
-     * Compute land cover from input WKT footprint
-     * 
-     * @param string $footprint
-     * @param array $options
-     * 
-     */
-    private function getLandCover($footprint, $options) {
-
-        /*
-         * Do not process if $footprint is more than 2x2 degrees
-         */
-        $bbox = $this->bbox($footprint);
-        if (abs($bbox['ulx'] - $bbox['lrx']) > 2 || abs($bbox['uly'] - $bbox['lry']) > 2) {
-            return null;
-        }
-
-        // Crop data
-        $geom = "ST_GeomFromText('" . $footprint . "', 4326)";
-        $query = "SELECT dn as dn, st_area($geom) as totalarea, st_area(st_intersection(wkb_geometry, $geom)) as area FROM " . $this->schema . ".landcover WHERE st_intersects(wkb_geometry, $geom)";
-        $results = pg_query($this->dbh, $query);
-        if (!isset($results)) {
-            $this->error();
-        }
-
-        // Store results in $out array
-        $out = array();
-        for ($i = 1; $i <= 22; $i++) {
-            $out[$i] = 0;
-        }
-        $totalarea = 0;
-        while ($product = pg_fetch_assoc($results)) {
-            if (isset($out[$product['dn']])) {
-                $out[$product['dn']] += $product['area'];
-            }
-            $totalarea = $product['totalarea'];
-        }
-
-        // Compute parent classes
-        $parent = array();
-        $parent[100] = $out[22];
-        $parent[200] = $out[15] + $out[16] + $out[17] + $out[18];
-        $parent[310] = $out[1] + $out[2] + $out[3] + $out[4] + $out[5] + $out[6];
-        $parent[320] = $out[9] + $out[11] + $out[12] + $out[13];
-        $parent[330] = $out[10] + $out[14] + $out[19];
-        $parent[335] = $out[21];
-        $parent[400] = $out[7] + $out[8];
-        $parent[500] = $out[20];
+        $references = array();
         
-        $linkage = array(
-            '1' => 310,
-            '2' => 310,
-            '3' => 310,
-            '4' => 310,
-            '5' => 310,
-            '6' => 310,
-            '7' => 400,
-            '8' => 400,
-            '9' => 320,
-            '10' => 330,
-            '11' => 320,
-            '12' => 320,
-            '13' => 320,
-            '14' => 330,
-            '15' => 200,
-            '16' => 200,
-            '17' => 200,
-            '18' => 200,
-            '19' => 330,
-            '20' => 500,
-            '21' => 335,
-            '22' => 100
-        );
-        
-        // Get the 3 main landuse
-        arsort($parent);
-        $landUse = array();
-        $count = 0;
-        foreach ($parent as $key => $val) {
-            $count++;
-            $pcover = $this->percentage($val, $totalarea);
-            if ($val !== 0 && $pcover > 20) {
-                $name = $this->getGLCClassName($key);
-                array_push($landUse, array(
-                    'name' => $name,
-                    'id' => 'landuse:' . strtolower($name),
-                    'pcover' => $pcover
-                ));
-            }
-            if ($count > 2) {
-                break;
-            }
-        }
-
         /*
-         * Add feature
+         * These tag are always performed
          */
-        $result = array(
-            'area' => $totalarea,
-            'landUse' => $landUse,
-            'landUseDetails' => array()
-        );
-
-        foreach ($out as $key => $val) {
-            if ($val !== 0) {
-                $name = $this->getGLCClassName($key);
-                array_push($result['landUseDetails'], array(
-                    'name' => $name,
-                    'id' => 'landuse_details:' . strtolower(str_replace($name, ' ', '-')),
-                    'parentId' => 'landuse:' . strtolower($this->getGLCClassName($linkage[$key])),
-                    'code' => $key,
-                    'pcover' => $this->percentage($val, $totalarea)
-                ));
+        $content = $this->always($metadata);
+        
+        /*
+         * Call the 'tag' function of all input taggers
+         */
+        foreach ($taggers as $name => $options) {
+            $tagger = $this->instantiateTagger($name);
+            if (isset($tagger)) {
+                $content = array_merge($content, $tagger->tag($metadata, $options));
+                $references = array_merge($references, $tagger->references);
             }
         }
         
-        return $result;
-    }
-
-    /**
-     *
-     * Returns GeoJSON geometry from a WKT POLYGON
-     *
-     * Example of WKT POLYGON :
-     *     POLYGON((-180.0044642857 89.9955356663,-180.0044642857 87.9955356727,-178.0044642921 87.9955356727,-178.0044642921 89.9955356663,-180.0044642857 89.9955356663))
-     *
-     * @param <string> $wkt : WKT
-     *
-     */
-    private function wktPolygon2GeoJSONGeometry($wkt) {
-        $rep = array("(", ")", "multi", "polygon");
-        $pairs = preg_split('/,/', str_replace($rep, "", strtolower($wkt)));
-        $linestring = array();
-        for ($i = 0; $i < count($pairs); $i++) {
-            $coords = preg_split('/ /', trim($pairs[$i]));
-            $x = floatval($coords[0]);
-            $y = floatval($coords[1]);
-            array_push($linestring, array($x, $y));
-        }
-
         return array(
-            'type' => "Polygon",
-            'coordinates' => array($linestring)
+            'footprint' => $metadata['footprint'],
+            'timestamp' => isset($metadata['timestamp']) ? $metadata['timestamp'] : null,
+            'content' => $content,
+            'references' => $references
         );
-    }
 
-    /**
-     * 
-     * Compute intersected politicals information (i.e. continent, countries, cities)
-     * from input WKT footprint
-     * 
-     * @param {string} $footprint - WKT POLYGON
-     * @param {array} $options - processing options
-     *                  {
-     *                      'hierarchical' => // if true return keywords by descending area of intersection
-     *                  }
-     */
-    private function getPolitical($footprint, $options) {
-
-        $result = array();
-
-        // Continents
-        if ($options['continents'] && !isset($options['countries'])) {
-            $query = "SELECT continent as continent, normalize(continent) as id, st_area(st_intersection(geom, ST_GeomFromText('" . $footprint . "', 4326))) as area FROM " . $this->schema . ".continents WHERE st_intersects(geom, ST_GeomFromText('" . $footprint . "', 4326)) ORDER BY area DESC";
-            $results = pg_query($this->dbh, $query);
-            $continents = array();
-            if (!isset($results)) {
-                $this->error();
-            }
-            while ($element = pg_fetch_assoc($results)) {
-                array_push($continents, array('name' => $element['continent'], 'id' => 'continent:'.$element['id']));
-            }
-            if (count($continents) > 0) {
-                $result['continents'] = $continents;
-            }
-        }
-
-        // Countries
-        if ($options['countries']) {
-
-            // Continents and countries
-            $query = "SELECT name as name, normalize(name) as id, continent as continent, normalize(continent) as continentid, st_area(st_intersection(geom, ST_GeomFromText('" . $footprint . "', 4326))) as area, st_area(ST_GeomFromText('" . $footprint . "', 4326)) as totalarea FROM " . $this->schema . ".countries WHERE st_intersects(geom, ST_GeomFromText('" . $footprint . "', 4326)) ORDER BY area DESC";
-            try {
-                $results = pg_query($this->dbh, $query);
-            } catch (Exception $e) {
-                $this->error();
-            }
-            $countries = array();
-            $continents = array();
-            if (!isset($results)) {
-                $this->error();
-            }
-            while ($element = pg_fetch_assoc($results)) {
-                if ($options['hierarchical']) {
-                    $index = -1;
-                    for ($i = count($continents); $i--;) {
-                        if ($continents[$i]['name'] === $element['continent']) {
-                            $index = $i;
-                            break;
-                        }
-                    }
-                    if ($index === -1) {
-                        array_push($continents, array(
-                            'name' => $element['continent'],
-                            'id' => 'continent:'.$element['continentid'],
-                            'countries' => array()
-                        ));
-                        $index = count($continents) - 1;
-                    }
-                    
-                    array_push($continents[$index]['countries'], array('name' => $element['name'], 'id' => 'country:'.$element['id'], 'pcover' => $this->percentage($element['area'], $element['totalarea'])));
-                    
-                } else {
-                    $continents[] = array('name' => $element['continent'], 'id' => 'continent:'.$element['continentid']);
-                    
-                    array_push($countries, array('name' => $element['name'], 'id' => 'country:'.$element['id'], 'pcover' => $this->percentage($element['area'], $element['totalarea'])));
-                    
-                }
-            }
-            if (count($continents) > 0) {
-                if ($options['hierarchical']) {
-                    $result['continents'] = $continents;
-                } else {
-                    $result['countries'] = $countries;
-                    $result['continents'] = $continents;
-                }
-            }
-        }
-
-        // Regions
-        if ($options['regions']) {
-            
-            $query = "SELECT region, name as state, normalize(name) as stateid, normalize(region) as regionid, adm0_a3 as isoa3, st_area(st_intersection(geom, ST_GeomFromText('" . $footprint . "', 4326))) as area, st_area(ST_GeomFromText('" . $footprint . "', 4326)) as totalarea FROM " . $this->schema . ".worldadm1level WHERE st_intersects(geom, ST_GeomFromText('" . $footprint . "', 4326)) ORDER BY area DESC";
-            
-            $results = pg_query($this->dbh, $query);
-            $regions = array();
-            $states = array();
-            if (!isset($results)) {
-                $this->error();
-            }
-            while ($element = pg_fetch_assoc($results)) {
-
-                if ($options['hierarchical']) {
-
-                    /*
-                     * Set regions under countries
-                     */
-                    if ($options['countries']) {
-                        if (isset($result['continents'])) {
-                            for ($i = count($result['continents']); $i--;) {
-                                for ($j = count($result['continents'][$i]['countries']); $j--;) {
-                                    if ($result['continents'][$i]['countries'][$j]['name'] === $this->getCountryName($element['isoa3'])) {
-                                        if (!isset($result['continents'][$i]['countries'][$j]['regions'])) {
-                                            $result['continents'][$i]['countries'][$j]['regions'] = array();
-                                        }
-                                        $index = -1;
-                                        for ($k = count($result['continents'][$i]['countries'][$j]['regions']); $k--;) {
-                                            if (!$element['regionid'] && !isset($result['continents'][$i]['countries'][$j]['regions'][$k]['id'])) {
-                                                $index = $k;
-                                                break;
-                                            }
-                                            else if (isset($result['continents'][$i]['countries'][$j]['regions'][$k]['id']) && $result['continents'][$i]['countries'][$j]['regions'][$k]['id'] === $element['regionid']) {
-                                                $index = $k;
-                                                break;
-                                            }
-                                        }
-                                        if ($index === -1) {
-                                            if (!isset($element['regionid']) || !$element['regionid']) {
-                                                array_push($result['continents'][$i]['countries'][$j]['regions'], array(
-                                                    'states' => array()
-                                                ));
-                                            }
-                                            else {
-                                                array_push($result['continents'][$i]['countries'][$j]['regions'], array(
-                                                    'name' => $element['region'],
-                                                    'id' => 'region:'.$element['regionid'],
-                                                    'states' => array()
-                                                ));
-                                            }
-                                            $index = count($result['continents'][$i]['countries'][$j]['regions']) - 1;
-                                        }
-                                        if (isset($result['continents'][$i]['countries'][$j]['regions'][$index]['states'])) {
-                                            
-                                            array_push($result['continents'][$i]['countries'][$j]['regions'][$index]['states'], array('name' => $element['state'], 'id' => 'state:'.$element['stateid'], 'pcover' => $this->percentage($element['area'], $element['totalarea'])));
-                                            
-                                        }
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    if ($element['region']) {
-                        $regions[] = array('name' => $element['region'], 'id' => 'region:'.$element['regionid']);
-                    }
-                    if ($element['state']) {
-                        
-                        array_push($states, array('name' => $element['state'], 'id' => 'state:'.$element['stateid'], 'pcover' => $this->percentage($element['area'], $element['totalarea'])));
-                        
-                    }
-                }
-            }
-            if (count($regions) > 0) {
-                $result['regions'] = $regions;
-            }
-            if (count($states) > 0) {
-                $result['states'] = $states;
-            }
-        }
-
-        // Cities
-        if ($options['cities']) {
-            if ($options['cities'] === "all") {
-
-                /*
-                 * Do not process if $footprint is more than 2x2 degrees
-                 */
-                $bbox = $this->bbox($footprint);
-                if (abs($bbox['ulx'] - $bbox['lrx']) >  2 || abs($bbox['uly'] - $bbox['lry']) > 2) {
-                    return $result;
-                }
-                $query = "SELECT g.name, g.countryname as country, d.region as region, d.name as state, d.adm0_a3 as isoa3 FROM " . $this->gazetteerSchema . ".geoname g LEFT OUTER JOIN " . $this->schema . ".worldadm1level d ON g.country || '.' || g.admin2 = d.gn_a1_code WHERE st_intersects(g.geom, ST_GeomFromText('" . $footprint . "', 4326)) and g.fcode in ('PPL', 'PPLC', 'PPLA', 'PPLA2', 'PPLA3', 'PPLA4', 'STLMT') ORDER BY g.name";
-            }
-            else {
-                $query = "SELECT g.name, g.countryname as country, d.region as region, d.name as state, d.adm0_a3 as isoa3 FROM " . $this->gazetteerSchema . ".geoname g LEFT OUTER JOIN " . $this->schema . ".worldadm1level d ON g.country || '.' || g.admin2 = d.gn_a1_code WHERE st_intersects(g.geom, ST_GeomFromText('" . $footprint . "', 4326)) and g.fcode in ('PPLA','PPLC') ORDER BY g.name";
-            }
-            $results = pg_query($this->dbh, $query);
-            $cities = array();
-            if (!isset($results)) {
-                $this->error();
-            }
-            while ($element = pg_fetch_assoc($results)) {
-                if ($options['countries'] && $options['hierarchical']) {
-                    if (!isset($options['regions'])) {
-                        foreach (array_keys($result['continents']) as $continent) {
-                            foreach (array_keys($result['continents'][$continent]['countries']) as $country) {
-                                if ($result['continents'][$continent]['countries'][$country]['name'] === $element['country']) {
-                                    if (!isset($result['continents'][$continent]['countries'][$country]['cities'])) {
-                                        $result['continents'][$continent]['countries'][$country]['cities'] = array();
-                                    }
-                                    array_push($result['continents'][$continent]['countries'][$country]['cities'], $element['name']);
-                                }
-                            }
-                        }
-                    } else {
-                        foreach (array_keys($result['continents']) as $continent) {
-                            foreach (array_keys($result['continents'][$continent]['countries']) as $country) {
-                                if ($result['continents'][$continent]['countries'][$country]['name'] === $element['country']) {
-                                    foreach (array_keys($result['continents'][$continent]['countries'][$country]['regions'][$element['region']]['states']) as $state) {
-                                        if ($result['continents'][$continent]['countries'][$country]['regions'][$element['region']]['states'][$state]['name'] === $element['state']) {
-                                            if (!isset($result['continents'][$continent]['countries'][$country]['regions'][$element['region']]['states'][$state]['cities'])) {
-                                                $result['continents'][$continent]['countries'][$country]['regions'][$element['region']]['states'][$state]['cities'] = array();
-                                            }
-                                            array_push($result['continents'][$continent]['countries'][$country]['regions'][$element['region']]['states'][$state]['cities'], $element['name']);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    array_push($cities, $element['name']);
-                }
-            }
-
-            if (count($cities) > 0) {
-                $result['cities'] = $cities;
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     *
-     * Compute intersected politicals information (i.e. continent, countries, cities)
-     * from input WKT footprint using French IGN datas. (Will only return information regarding France)
-     *
-     * @param {string} $footprint - WKT POLYGON
-     * @param {array} $options - processing options
-     *                  {
-     *                      'hierarchical' => // if true return keywords by descending area of intersection
-     *                  }
-     *
-     */
-    private function getFrenchPolitical($footprint, $options) {
-
-        // Continents
-        if ($options['continents'] && !isset($options['countries'])) {
-            
-            $query = "SELECT continent as continent, st_area(st_intersection(geom, ST_GeomFromText('" . $footprint . "', 4326))) as area FROM " . $this->schema . ".continents WHERE st_intersects(geom, ST_GeomFromText('" . $footprint . "', 4326)) ORDER BY area DESC";
-            $results = pg_query($this->dbh, $query);
-            $continents = array();
-            if (!isset($results)) {
-                $this->error();
-            }
-            while ($element = pg_fetch_assoc($results)) {
-                array_push($continents, $element['continent']);
-            }
-
-            if (count($continents) > 0) {
-                $result['continents'] = $continents;
-            }
-        }
-
-        // Countries
-        if ($options['countries']) {
-
-            // Continents and countries
-            $query = "SELECT name as name, continent as continent, st_area(st_intersection(geom, ST_GeomFromText('" . $footprint . "', 4326))) as area, st_area(ST_GeomFromText('" . $footprint . "', 4326)) as totalarea FROM " . $this->schema . ".countries WHERE st_intersects(geom, ST_GeomFromText('" . $footprint . "', 4326)) ORDER BY area DESC";
-            
-            try {
-                $results = pg_query($this->dbh, $query);
-            } catch (Exception $e) {
-                $this->error();
-            }
-            $countries = array();
-            $continents = array();
-            if (!isset($results)) {
-                $this->error();
-            }
-            while ($element = pg_fetch_assoc($results)) {
-                if ($options['hierarchical']) {
-                    if (!isset($continents[$element['continent']])) {
-                        $continents[$element['continent']] = array(
-                            'countries' => array()
-                        );
-                    }
-                    
-                    array_push($continents[$element['continent']]['countries'], array('name' => $element['name'], 'pcover' => $this->percentage($element['area'], $element['totalarea'])));
-                    
-                } else {
-                    $continents[$element['continent']] = $element['continent'];
-                    
-                    array_push($countries, array('name' => $element['name'], 'pcover' => $this->percentage($element['area'], $element['totalarea'])));
-                    
-                }
-            }
-            if (count($continents) > 0) {
-                if ($options['hierarchical']) {
-                    $result['continents'] = $continents;
-                } else {
-                    $result['countries'] = $countries;
-                    $result['continents'] = array_keys($continents);
-                }
-            }
-        }
-
-        // Regions
-        $result['regions'] = $this->getRegions($footprint);
-        $result['states'] = $this->getDepartements($footprint);
-
-        // Cities
-        $result['cities'] = $this->getCommunes($footprint);
-
-        return $result;
     }
     
     /**
-     * Get french regions with codes
-     *
-     * @param string $footprint
-     *
+     * Always performed tags
+     * 
+     * @param array $metadata
      */
-    private function getRegions($footprint) {
-
-        $query = "SELECT r.nom_region, r.code_reg from " . $this->schema . ".deptsfrance as r where st_intersects(r.geom, ST_GeomFromText('" . $footprint . "', 4326)) order by st_area(st_intersection(r.geom, ST_GeomFromText('" . $footprint . "', 4326))) desc";
-        $results = pg_query($this->dbh, $query);
-        if (!isset($results)) {
-            $this->error();
-        }
-        $result = array_unique(pg_fetch_all($results), SORT_REGULAR);
-
-        if ($result == false) {
-            $query = "SELECT distinct(admin1) as nom_region, admin1 as code_region FROM " . $this->gazetteerSchema . ".geoname WHERE st_intersects(geom, ST_GeomFromText('" . $footprint . "', 4326))";
-            $results = pg_query($this->dbh, $query);
-            if (!isset($results)) {
-                $this->error();
-            }
-            $result = pg_fetch_all($results);
-        }
-
-        return $result;
+    private function always($metadata) {
+        $tagger = new Tagger_Always($this->dbh, $this->config);
+        return $tagger->tag($metadata);
     }
-
+    
     /**
-     *
-     * Get french departements with codes
-     *
-     * @param string $footprint
-     *
+     * Set configuration
+     * 
+     * @param array $config
      */
-    private function getDepartements($footprint) {
-        $query = "SELECT r.nom_dept, r.code_dept from " . $this->schema . ".deptsfrance as r where st_intersects(r.geom, ST_GeomFromText('" . $footprint . "', 4326)) order by st_area(st_intersection(r.geom, ST_GeomFromText('" . $footprint . "', 4326))) desc";
-        $results = pg_query($this->dbh, $query);
-        if (!isset($results)) {
-            $this->error();
-        }
-        $result = array_unique(pg_fetch_all($results), SORT_REGULAR);
-
-        if ($result == false) {
-            $query = "SELECT distinct(admin2) as nom_dept, admin2 as code_dept FROM " . $this->gazetteerSchema . ".geoname WHERE st_intersects(geom, ST_GeomFromText('" . $footprint . "', 4326))";
-            $results = pg_query($this->dbh, $query);
-            if (!isset($results)) {
-                $this->error();
-            }
-            $result = pg_fetch_all($results);
-        }
-
-        return $result;
-    }
-
-    /**
-     *
-     * Get french communes namees and intersected ratio
-     *
-     * @param string $footprint
-     *
-     */
-    private function getCommunes($footprint) {
-        $query = "SELECT record.nom_comm from (SELECT nom_comm, ST_Area(ST_Intersection(geom, ST_GeomFromText('" . $footprint . "', 4326))) as area_intersect, population, superficie from " . $this->schema . ".commfrance) as record where area_intersect > 0 order by record.area_intersect*(record.population/record.superficie) desc limit 20";
-        $results = pg_query($this->dbh, $query);
-        if (!isset($results)) {
-            $this->error();
-        }
-        $result = pg_fetch_all($results);
-
-        if ($result == false) {
-            $query = "SELECT distinct(asciiname) as nom_comm FROM " . $this->gazetteerSchema . ".geoname WHERE st_intersects(geom, ST_GeomFromText('" . $footprint . "', 4326))";
-            $results = pg_query($this->dbh, $query);
-            if (!isset($results)) {
-                $this->error();
-            }
-            $result = pg_fetch_all($results);
-        }
-
-        return $result;
-    }
-
-    /**
-     * 
-     * Compute intersected geophysical information (i.e. plates, faults, volcanoes, rivers)
-     * from input WKT footprint
-     * 
-     * @param string footprint
-     * 
-     */
-    private function getGeophysical($footprint) {
-
-        $result = array();
-
-        // Rivers
-        $rivers = $this->getKeywords($this->schema . ".rivers", "name", $footprint);
-        if (count($rivers) > 0) {
-            $result['rivers'] = $rivers;
-        }
-        
-        // Plates
-        $plates = $this->getKeywords($this->schema . ".plates", "name", $footprint);
-        if (count($plates) > 0) {
-            $result['plates'] = $plates;
-        }
-
-        // Faults
-        $faults = $this->getKeywords($this->schema . ".faults", "type", $footprint);
-        if (count($faults) > 0) {
-            $result['faults'] = $faults;
-        }
-
-        // Volcanoes
-        $volcanoes = $this->getKeywords($this->schema . ".volcanoes", "name", $footprint);
-        if (count($volcanoes) > 0) {
-            $result['volcanoes'] = $volcanoes;
-        }
-
-        // Glaciers
-        $glaciers = $this->getKeywords($this->schema . ".glaciers", "objectid", $footprint);
-        if (count($glaciers) > 0) {
-            $result['hasGlaciers'] = true;
-        }
-
-        return $result;
-    }
-
-    /**
-     *
-     * Get french arrondissements with codes
-     *
-     * @param string footprint
-     *
-     */
-    private function getArrondissements($footprint) {
-        $query = "SELECT record.nom_chf, record.code_arr, record.area, record.coverageratio from (SELECT distinct nom_chf, code_arr, ST_Area(geom) as area, round((ST_Area(ST_Intersection(geom, ST_GeomFromText('" . $footprint . "', 4326)))/ST_Area(geom))::numeric, 2) as coverageratio from " . $this->schema . ".arrsfrance order by coverageratio desc, area desc) as record where coverageratio > 0";
-        $results = pg_query($this->dbh, $query);
-        $keywords = array();
-        if (!$results) {
-            $this->error();
-        }
-        while ($result = pg_fetch_assoc($results)) {
-            // temporary variable to display only nom_comm and coverageration fields
-            $resulttmp['nom_chf'] = $result['nom_chf'];
-            $resulttmp['code_arr'] = $result['code_arr'];
-            array_push($keywords, $resulttmp);
-        }
-
-        return $keywords;
-    }
-
-    /**
-     * 
-     * Generic keywords returning function
-     * 
-     * @param {DatabaseConnection} $this->dbh
-     * 
-     */
-    private function getKeywords($tableName, $columnName, $footprint, $order = null) {
-        $orderBy = "";
-        if (isset($order)) {
-            $orderBy = " ORDER BY " . $order;
-        }
-
-        $query = "SELECT distinct(" . $columnName . ") FROM " . $tableName . " WHERE st_intersects(geom, ST_GeomFromText('" . $footprint . "', 4326))" . $orderBy;
-
-        $results = pg_query($this->dbh, $query);
-        $keywords = array();
-        if (!isset($results)) {
-            $this->error();
-        }
-        while ($result = pg_fetch_assoc($results)) {
-            array_push($keywords, $result[$columnName]);
-        }
-
-        return $keywords;
-    }
-
-    /**
-     *
-     * Returns bounding box [ulx, uly, lrx, lry] from a WKT
-     *
-     * ULx,ULy
-     *    +------------------+
-     *    |                  |
-     *    |                  |
-     *    |                  |
-     *    |                  |
-     *    +------------------+
-     *                     LRx,LRy
-     *
-     * Example of WKT POLYGON :
-     *     POLYGON((-180.0044642857 89.9955356663,-180.0044642857 87.9955356727,-178.0044642921 87.9955356727,-178.0044642921 89.9955356663,-180.0044642857 89.9955356663))
-     *
-     * @param <string> $wkt : WKT
-     * @return string : random table name
-     *
-     */
-    private function bbox($wkt) {
-        $ulx = 180.0;
-        $uly = -90.0;
-        $lrx = -180.0;
-        $lry = 90.0;
-        $rep = array("(", ")", "multi", "polygon", "point", "linestring");
-        $pairs = preg_split('/,/', str_replace($rep, "", strtolower($wkt)));
-        for ($i = 0; $i < count($pairs); $i++) {
-            $coords = preg_split('/ /', trim($pairs[$i]));
-            $x = floatval($coords[0]);
-            $y = floatval($coords[1]);
-            if ($x < $ulx) {
-                $ulx = $x;
-            } else if ($x > $lrx) {
-                $lrx = $x;
-            }
-            if ($y > $uly) {
-                $uly = $y;
-            } else if ($y < $lry) {
-                $lry = $y;
-            }
-        }
-
-        return array('ulx' => $ulx, 'uly' => $uly, 'lrx' => $lrx, 'lry' => $lry);
-    }
-
-    /**
-     * Return percentage of $part regarding $total
-     * @param <float> $part
-     * @param <float> $total
-     * @return <float>
-     */
-    private function percentage($part, $total) {
-        if (!isset($total) || $total === 0) {
-            return 100;
-        }
-        return min(array(100, floor(10000 * ($part / $total)) / 100));
-    }
-
-    /**
-     * Return country name from ISO A3 or ISO A2 code
-     * 
-     * @param string $code
-     * @return string
-     */
-    private function getCountryName($code) {
-
-        $countryNames = array(
-            'AD' => 'Andorra',
-            'AND' => 'Andorra',
-            'AF' => 'Afghanistan',
-            'AFG' => 'Afghanistan',
-            'AG' => 'Antigua and Barbuda',
-            'AI' => 'Anguilla',
-            'AL' => 'Albania',
-            'ALB' => 'Albania',
-            'AN' => 'Netherlands Antilles',
-            'AO' => 'Angola',
-            'AGO' => 'Angola',
-            'AQ' => 'Antarctica',
-            'AR' => 'Argentina',
-            'AE' => 'United Arab Emirates',
-            'ARE' => 'United Arab Emirates',
-            'ARG' => 'Argentina',
-            'AM' => 'Armenia',
-            'ARM' => 'Armenia',
-            'AS' => 'American Samoa',
-            'AT' => 'Austria',
-            'ATA' => 'Antarctica',
-            'ATF' => 'French Southern and Antarctic Lands',
-            'AU' => 'Australia',
-            'AUS' => 'Australia',
-            'AUT' => 'Austria',
-            'AW' => 'Aruba',
-            'AX' => 'Aland Islands',
-            'AZ' => 'Azerbaijan',
-            'AZE' => 'Azerbaijan',
-            'BA' => 'Bosnia and Herzegovina',
-            'BB' => 'Barbados',
-            'BD' => 'Bangladesh',
-            'BDI' => 'Burundi',
-            'BE' => 'Belgium',
-            'BEL' => 'Belgium',
-            'BEN' => 'Benin',
-            'BF' => 'Burkina Faso',
-            'BFA' => 'Burkina Faso',
-            'BG' => 'Bulgaria',
-            'BGD' => 'Bangladesh',
-            'BGR' => 'Bulgaria',
-            'BH' => 'Bahrain',
-            'BHR' => 'Bahrain',
-            'BHS' => 'Bahamas',
-            'BI' => 'Burundi',
-            'BIH' => 'Bosnia and Herzegovina',
-            'BJ' => 'Benin',
-            'BL' => 'Saint Barthelemy',
-            'BLR' => 'Belarus',
-            'BLZ' => 'Belize',
-            'BM' => 'Bermuda',
-            'BN' => 'Brunei',
-            'BO' => 'Bolivia',
-            'BOL' => 'Bolivia',
-            'BQ' => 'Bonaire, Saint Eustatius and Saba ',
-            'BR' => 'Brazil',
-            'BRA' => 'Brazil',
-            'BRN' => 'Brunei',
-            'BS' => 'Bahamas',
-            'BT' => 'Bhutan',
-            'BTN' => 'Bhutan',
-            'BV' => 'Bouvet Island',
-            'BW' => 'Botswana',
-            'BWA' => 'Botswana',
-            'BY' => 'Belarus',
-            'BZ' => 'Belize',
-            'CA' => 'Canada',
-            'CAF' => 'Central African Republic',
-            'CAN' => 'Canada',
-            'CC' => 'Cocos Islands',
-            'CD' => 'Democratic Republic of the Congo',
-            'CF' => 'Central African Republic',
-            'CG' => 'Republic of the Congo',
-            'CH' => 'Switzerland',
-            'CHE' => 'Switzerland',
-            'CHL' => 'Chile',
-            'CHN' => 'China',
-            'CI' => 'Ivory Coast',
-            'CIV' => 'Ivory Coast',
-            'CK' => 'Cook Islands',
-            'COK' => 'Cook Islands',
-            'CL' => 'Chile',
-            'CM' => 'Cameroon',
-            'CMR' => 'Cameroon',
-            'CN' => 'China',
-            'CO' => 'Colombia',
-            'COD' => 'Democratic Republic of the Congo',
-            'COG' => 'Republic of the Congo',
-            'COL' => 'Colombia',
-            'CR' => 'Costa Rica',
-            'CRI' => 'Costa Rica',
-            'CS' => 'Serbia and Montenegro',
-            'CU' => 'Cuba',
-            'CUB' => 'Cuba',
-            'CV' => 'Cape Verde',
-            'CW' => 'Curacao',
-            'CX' => 'Christmas Island',
-            'CY' => 'Cyprus',
-            'CYN' => 'Northern Cyprus',
-            'CYP' => 'Cyprus',
-            'CZ' => 'Czech Republic',
-            'CZE' => 'Czech Republic',
-            'DE' => 'Germany',
-            'DEU' => 'Germany',
-            'DJ' => 'Djibouti',
-            'DJI' => 'Djibouti',
-            'DK' => 'Denmark',
-            'DM' => 'Dominica',
-            'DNK' => 'Denmark',
-            'DO' => 'Dominican Republic',
-            'DOM' => 'Dominican Republic',
-            'DZ' => 'Algeria',
-            'DZA' => 'Algeria',
-            'EC' => 'Ecuador',
-            'ECU' => 'Ecuador',
-            'EE' => 'Estonia',
-            'EG' => 'Egypt',
-            'EGY' => 'Egypt',
-            'EH' => 'Western Sahara',
-            'ER' => 'Eritrea',
-            'ERI' => 'Eritrea',
-            'ES' => 'Spain',
-            'ESP' => 'Spain',
-            'EST' => 'Estonia',
-            'ET' => 'Ethiopia',
-            'ETH' => 'Ethiopia',
-            'FI' => 'Finland',
-            'FIN' => 'Finland',
-            'FJ' => 'Fiji',
-            'FJI' => 'Fiji',
-            'FK' => 'Falkland Islands',
-            'FLK' => 'Falkland Islands',
-            'FM' => 'Micronesia',
-            'FO' => 'Faroe Islands',
-            'FR' => 'France',
-            'FRA' => 'France',
-            'GA' => 'Gabon',
-            'GAB' => 'Gabon',
-            'GB' => 'United Kingdom',
-            'GBR' => 'United Kingdom',
-            'GD' => 'Grenada',
-            'GE' => 'Georgia',
-            'GEO' => 'Georgia',
-            'GF' => 'French Guiana',
-            'GG' => 'Guernsey',
-            'GGY' => 'Guernsey',
-            'GH' => 'Ghana',
-            'GHA' => 'Ghana',
-            'GI' => 'Gibraltar',
-            'GIB' => 'Gibraltar',
-            'GI' => 'Guinea',
-            'GIN' => 'Guinea',
-            'GL' => 'Greenland',
-            'GM' => 'Gambia',
-            'GMB' => 'Gambia',
-            'GN' => 'Guinea',
-            'GNB' => 'Guinea-Bissau',
-            'GNQ' => 'Equatorial Guinea',
-            'GP' => 'Guadeloupe',
-            'GQ' => 'Equatorial Guinea',
-            'GR' => 'Greece',
-            'GRC' => 'Greece',
-            'GRL' => 'Greenland',
-            'GS' => 'South Georgia and the South Sandwich Islands',
-            'GT' => 'Guatemala',
-            'GTM' => 'Guatemala',
-            'GU' => 'Guam',
-            'GUY' => 'Guyana',
-            'GW' => 'Guinea-Bissau',
-            'GY' => 'Guyana',
-            'HK' => 'Hong Kong',
-            'HKG' => 'Hong Kong',
-            'HM' => 'Heard Island and McDonald Islands',
-            'HN' => 'Honduras',
-            'HND' => 'Honduras',
-            'HR' => 'Croatia',
-            'HRV' => 'Croatia',
-            'HT' => 'Haiti',
-            'HTI' => 'Haiti',
-            'HU' => 'Hungary',
-            'HUN' => 'Hungary',
-            'ID' => 'Indonesia',
-            'IDN' => 'Indonesia',
-            'IE' => 'Ireland',
-            'IL' => 'Israel',
-            'IM' => 'Isle of Man',
-            'IMN' => 'Isle of Man',
-            'IN' => 'India',
-            'IND' => 'India',
-            'IO' => 'British Indian Ocean Territory',
-            'IQ' => 'Iraq',
-            'IR' => 'Iran',
-            'IRL' => 'Ireland',
-            'IRN' => 'Iran',
-            'IRQ' => 'Iraq',
-            'IS' => 'Iceland',
-            'ISL' => 'Iceland',
-            'ISR' => 'Israel',
-            'IT' => 'Italy',
-            'ITA' => 'Italy',
-            'JAM' => 'Jamaica',
-            'JE' => 'Jersey',
-            'JEY' => 'Jersey',
-            'JM' => 'Jamaica',
-            'JO' => 'Jordan',
-            'JOR' => 'Jordan',
-            'JP' => 'Japan',
-            'JPN' => 'Japan',
-            'KAS' => 'Kashmir',
-            'KAZ' => 'Kazakhstan',
-            'KE' => 'Kenya',
-            'KEN' => 'Kenya',
-            'KG' => 'Kyrgyzstan',
-            'KGZ' => 'Kyrgyzstan',
-            'KH' => 'Cambodia',
-            'KHM' => 'Cambodia',
-            'KI' => 'Kiribati',
-            'KM' => 'Comoros',
-            'KN' => 'Saint Kitts and Nevis',
-            'KOR' => 'Korea',
-            'KOS' => 'Kosovo',
-            'KP' => 'North Korea',
-            'KR' => 'South Korea',
-            'KW' => 'Kuwait',
-            'KWT' => 'Kuwait',
-            'KY' => 'Cayman Islands',
-            'KZ' => 'Kazakhstan',
-            'LA' => 'Laos',
-            'LAO' => 'Laos',
-            'LB' => 'Lebanon',
-            'LBN' => 'Lebanon',
-            'LBR' => 'Liberia',
-            'LBY' => 'Libya',
-            'LC' => 'Saint Lucia',
-            'LI' => 'Liechtenstein',
-            'LIE' => 'Liechtenstein',
-            'LK' => 'Sri Lanka',
-            'LKA' => 'Sri Lanka',
-            'LR' => 'Liberia',
-            'LS' => 'Lesotho',
-            'LSO' => 'Lesotho',
-            'LT' => 'Lithuania',
-            'LTU' => 'Lithuania',
-            'LU' => 'Luxembourg',
-            'LUX' => 'Luxembourg',
-            'LV' => 'Latvia',
-            'LVA' => 'Latvia',
-            'LY' => 'Libya',
-            'MA' => 'Morocco',
-            'MAR' => 'Morocco',
-            'MC' => 'Monaco',
-            'MCO' => 'Monaco',
-            'MD' => 'Moldova',
-            'MDA' => 'Moldova',
-            'MDG' => 'Madagascar',
-            'ME' => 'Montenegro',
-            'MEX' => 'Mexico',
-            'MF' => 'Saint Martin',
-            'MG' => 'Madagascar',
-            'MH' => 'Marshall Islands',
-            'MK' => 'Macedonia',
-            'MKD' => 'Macedonia',
-            'ML' => 'Mali',
-            'MLI' => 'Mali',
-            'MM' => 'Myanmar',
-            'MMR' => 'Myanmar',
-            'MN' => 'Mongolia',
-            'MNE' => 'Montenegro',
-            'MNG' => 'Mongolia',
-            'MO' => 'Macao',
-            'MAC' => 'Macao',
-            'MOZ' => 'Mozambique',
-            'MP' => 'Northern Mariana Islands',
-            'MQ' => 'Martinique',
-            'MR' => 'Mauritania',
-            'MRT' => 'Mauritania',
-            'MS' => 'Montserrat',
-            'MT' => 'Malta',
-            'MU' => 'Mauritius',
-            'MUS' => 'Mauritius',
-            'MV' => 'Maldives',
-            'MW' => 'Malawi',
-            'MWI' => 'Malawi',
-            'MX' => 'Mexico',
-            'MY' => 'Malaysia',
-            'MYS' => 'Malaysia',
-            'MZ' => 'Mozambique',
-            'NA' => 'Namibia',
-            'NAM' => 'Namibia',
-            'NC' => 'New Caledonia',
-            'NCL' => 'New Caledonia',
-            'NE' => 'Niger',
-            'NER' => 'Niger',
-            'NF' => 'Norfolk Island',
-            'NG' => 'Nigeria',
-            'NGA' => 'Nigeria',
-            'NI' => 'Nicaragua',
-            'NIC' => 'Nicaragua',
-            'NL' => 'Netherlands',
-            'NLD' => 'Netherlands',
-            'NO' => 'Norway',
-            'NOR' => 'Norway',
-            'NP' => 'Nepal',
-            'NPL' => 'Nepal',
-            'NR' => 'Nauru',
-            'NU' => 'Niue',
-            'NZ' => 'New Zealand',
-            'NZL' => 'New Zealand',
-            'OM' => 'Oman',
-            'OMN' => 'Oman',
-            'PA' => 'Panama',
-            'PAK' => 'Pakistan',
-            'PAN' => 'Panama',
-            'PE' => 'Peru',
-            'PER' => 'Peru',
-            'PF' => 'French Polynesia',
-            'PYF' => 'French Polynesia',
-            'PG' => 'Papua New Guinea',
-            'PH' => 'Philippines',
-            'PHL' => 'Philippines',
-            'PK' => 'Pakistan',
-            'PL' => 'Poland',
-            'PM' => 'Saint Pierre and Miquelon',
-            'PN' => 'Pitcairn',
-            'PNG' => 'Papua New Guinea',
-            'POL' => 'Poland',
-            'PR' => 'Puerto Rico',
-            'PRI' => 'Puerto Rico',
-            'PRK' => 'North Korea',
-            'PRT' => 'Portugal',
-            'PRY' => 'Paraguay',
-            'PS' => 'Palestinian Territory',
-            'PSX' => 'Palestine',
-            'PT' => 'Portugal',
-            'PW' => 'Palau',
-            'PY' => 'Paraguay',
-            'QA' => 'Qatar',
-            'QAT' => 'Qatar',
-            'RE' => 'Reunion',
-            'RO' => 'Romania',
-            'ROU' => 'Romania',
-            'RS' => 'Serbia',
-            'RU' => 'Russia',
-            'RUS' => 'Russia',
-            'RW' => 'Rwanda',
-            'RWA' => 'Rwanda',
-            'SA' => 'Saudi Arabia',
-            'SAH' => 'Western Sahara',
-            'SAU' => 'Saudi Arabia',
-            'SB' => 'Solomon Islands',
-            'SC' => 'Seychelles',
-            'SD' => 'Sudan',
-            'SDN' => 'Sudan',
-            'SDS' => 'South Sudan',
-            'SE' => 'Sweden',
-            'SEN' => 'Senegal',
-            'SG' => 'Singapore',
-            'SGP' => 'Singapore',
-            'SH' => 'Saint Helena',
-            'SI' => 'Slovenia',
-            'SJ' => 'Svalbard and Jan Mayen',
-            'SK' => 'Slovakia',
-            'SL' => 'Sierra Leone',
-            'SLB' => 'Solomon Islands',
-            'SLE' => 'Sierra Leone',
-            'SLV' => 'El Salvador',
-            'SM' => 'San Marino',
-            'SMR' => 'San Marino',
-            'SN' => 'Senegal',
-            'SO' => 'Somalia',
-            'SOL' => 'Somaliland',
-            'SOM' => 'Somalia',
-            'SR' => 'Suriname',
-            'SRB' => 'Serbia',
-            'SS' => 'South Sudan',
-            'ST' => 'Sao Tome and Principe',
-            'SUR' => 'Suriname',
-            'SV' => 'El Salvador',
-            'SVK' => 'Slovakia',
-            'SVN' => 'Slovenia',
-            'SWE' => 'Sweden',
-            'SWZ' => 'Swaziland',
-            'SX' => 'Sint Maarten',
-            'SY' => 'Syria',
-            'SYR' => 'Syria',
-            'SZ' => 'Swaziland',
-            'TC' => 'Turks and Caicos Islands',
-            'TCD' => 'Chad',
-            'TD' => 'Chad',
-            'TF' => 'French Southern Territories',
-            'TG' => 'Togo',
-            'TGO' => 'Togo',
-            'TH' => 'Thailand',
-            'THA' => 'Thailand',
-            'TJ' => 'Tajikistan',
-            'TJK' => 'Tajikistan',
-            'TK' => 'Tokelau',
-            'TKM' => 'Turkmenistan',
-            'TL' => 'East Timor',
-            'TLS' => 'Timor-Leste',
-            'TM' => 'Turkmenistan',
-            'TN' => 'Tunisia',
-            'TO' => 'Tonga',
-            'TON' => 'Tonga',
-            'TR' => 'Turkey',
-            'TT' => 'Trinidad and Tobago',
-            'TTO' => 'Trinidad and Tobago',
-            'TUN' => 'Tunisia',
-            'TUR' => 'Turkey',
-            'TV' => 'Tuvalu',
-            'TW' => 'Taiwan',
-            'TWN' => 'Taiwan',
-            'TZ' => 'Tanzania',
-            'TZA' => 'Tanzania',
-            'UA' => 'Ukraine',
-            'UG' => 'Uganda',
-            'UGA' => 'Uganda',
-            'UKR' => 'Ukraine',
-            'UM' => 'United States Minor Outlying Islands',
-            'URY' => 'Uruguay',
-            'US' => 'United States',
-            'USA' => 'United States',
-            'UY' => 'Uruguay',
-            'UZ' => 'Uzbekistan',
-            'UZB' => 'Uzbekistan',
-            'VA' => 'Vatican',
-            'VAT' => 'Vatican',
-            'VC' => 'Saint Vincent and the Grenadines',
-            'VE' => 'Venezuela',
-            'VEN' => 'Venezuela',
-            'VG' => 'British Virgin Islands',
-            'VI' => 'U.S. Virgin Islands',
-            'VN' => 'Vietnam',
-            'VNM' => 'Vietnam',
-            'VU' => 'Vanuatu',
-            'VUT' => 'Vanuatu',
-            'WF' => 'Wallis and Futuna',
-            'WS' => 'Samoa',
-            'XK' => 'Kosovo',
-            'YE' => 'Yemen',
-            'YEM' => 'Yemen',
-            'YT' => 'Mayotte',
-            'ZA' => 'South Africa',
-            'ZAF' => 'South Africa',
-            'ZM' => 'Zambia',
-            'ZMB' => 'Zambia',
-            'ZW' => 'Zimbabwe',
-            'ZWE' => 'Zimbabwe'
-        );
-
-        return $countryNames[$code] ? $countryNames[$code] : $code;
-    }
-
-    /**
-     * Return GLC class name from input code
-     * 
-     * Note: GLC 2000 defines 22 landuse classes
-     *
-      1=>"Tree Cover, broadleaved, evergreen",
-      2=>"Tree Cover, broadleaved, deciduous, closed",
-      3=>"Tree Cover, broadleaved, deciduous, open",
-      4=>"Tree Cover, needle-leaved, evergreen",
-      5=>"Tree Cover, needle-leaved, deciduous",
-      6=>"Tree Cover, mixed leaf type",
-      7=>"Tree Cover, regularly flooded, fresh  water",
-      8=>"Tree Cover, regularly flooded, saline water",
-      9=>"Mosaic: Tree cover / Other natural vegetation",
-      10=>"Tree Cover, burnt",
-      11=>"Shrub Cover, closed-open, evergreen",
-      12=>"Shrub Cover, closed-open, deciduous",
-      13=>"Herbaceous Cover, closed-open",
-      14=>"Sparse Herbaceous or sparse Shrub Cover",
-      15=>"Regularly flooded Shrub and/or Herbaceous Cover",
-      16=>"Cultivated and managed areas",
-      17=>"Mosaic: Cropland / Tree Cover / Other natural vegetation",
-      18=>"Mosaic: Cropland / Shrub or Grass Cover",
-      19=>"Bare Areas",
-      20=>"Water Bodies",
-      21=>"Snow and Ice",
-      22=>"Artificial surfaces and associated areas"
-     * 
-     * @param <Integer> $code
-     * @return <String>
-     * 
-     */
-    private function getGLCClassName($code) {
-
-        // GLC has 22 landuse classes
-        $classNames = array(
-            1 => "Tree Cover, broadleaved, evergreen",
-            2 => "Tree Cover, broadleaved, deciduous, closed",
-            3 => "Tree Cover, broadleaved, deciduous, open",
-            4 => "Tree Cover, needle-leaved, evergreen",
-            5 => "Tree Cover, needle-leaved, deciduous",
-            6 => "Tree Cover, mixed leaf type",
-            7 => "Tree Cover, regularly flooded, fresh  water",
-            8 => "Tree Cover, regularly flooded, saline water",
-            9 => "Mosaic - Tree cover / Other natural vegetation",
-            10 => "Tree Cover, burnt",
-            11 => "Shrub Cover, closed-open, evergreen",
-            12 => "Shrub Cover, closed-open, deciduous",
-            13 => "Herbaceous Cover, closed-open",
-            14 => "Sparse Herbaceous or sparse Shrub Cover",
-            15 => "Regularly flooded Shrub and/or Herbaceous Cover",
-            16 => "Cultivated and managed areas",
-            17 => "Mosaic - Cropland / Tree Cover / Other natural vegetation",
-            18 => "Mosaic - Cropland / Shrub or Grass Cover",
-            19 => "Bare Areas",
-            20 => "Water Bodies",
-            21 => "Snow and Ice",
-            22 => "Artificial surfaces and associated areas",
-            100 => "Urban",
-            200 => "Cultivated",
-            310 => "Forest",
-            320 => "Herbaceous",
-            330 => "Desert",
-            335 => "Ice",
-            400 => "Flooded",
-            500 => "Water"
-        );
-
-        if (is_int($code) && $code > 0) {
-            return isset($classNames[$code]) ? $classNames[$code] : "";
-        }
-
-        return '';
-    }
-
-    /**
-     * Throws exception
-     * 
-     * @param string $message
-     * @param integer $code
-     * @throws Exception
-     */
-    private function error($message = 'Database Connection Error', $code = 500) {
-        throw new Exception($message, $code);
+    private function setConfig($config) {
+        $this->config = array_merge($this->config, $config);
     }
 
     /**
@@ -1347,36 +125,53 @@ class iTag {
      * @param array $options
      * @throws Exception
      */
-    private function getHandler($options = array()) {
-    
-        $dbh = null;
-        
-        if (isset($options) && isset($options['dbname'])) {
-            try {
-                $dbInfo = array(
-                    'dbname=' . $options['dbname'],
-                    'user=' . $options['user'],
-                    'password=' . $options['password']
-                );
-                /*
-                 * If host is specified, then TCP/IP connection is used
-                 * Otherwise socket connection is used
-                 */
-                if (isset($options['host'])) {
-                    $dbInfo[] = 'host=' . $options['host'];
-                    $dbInfo[] = 'port=' . (isset($options['port']) ? $options['port'] : '5432');
-                }
-                $dbh = pg_connect(join(' ', $dbInfo));
-                if (!$dbh) {
-                    throw new Exception();
-                }
-            } catch (Exception $e) {
-                throw new Exception('Database connection error', 500);
+    private function setDatabaseHandler($options) {
+        try {
+            $dbInfo = array(
+                'dbname=' . $options['dbname'],
+                'user=' . $options['user'],
+                'password=' . $options['password']
+            );
+            /*
+             * If host is specified, then TCP/IP connection is used
+             * Otherwise socket connection is used
+             */
+            if (isset($options['host'])) {
+                $dbInfo[] = 'host=' . $options['host'];
+                $dbInfo[] = 'port=' . (isset($options['port']) ? $options['port'] : '5432');
             }
-        }   
-
-        return $dbh;
-        
+            $dbh = pg_connect(join(' ', $dbInfo));
+            if (!$dbh) {
+                throw new Exception();
+            }
+        } catch (Exception $e) {
+            throw new Exception('Database connection error', 500);
+        }  
+        $this->dbh = $dbh;
     }
   
+    /**
+     * Instantiate a class with params
+     * 
+     * @param string $className : class name to instantiate
+     */
+    private function instantiateTagger($className) {
+        
+        if (!$className) {
+            return null;
+        }
+        
+        try {
+            $class = new ReflectionClass('Tagger_' . $className);
+            if (!$class->isInstantiable()) {
+                throw new Exception();
+            }
+        } catch (Exception $e) {
+            return null;
+        }
+        
+        return $class->newInstance($this->dbh, $this->config);
+        
+    }
+
 }

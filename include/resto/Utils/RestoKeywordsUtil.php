@@ -88,7 +88,10 @@ class RestoKeywordsUtil {
          */
         if (isset($collection->context->modules['iTag'])) {
             $iTag = new iTag(isset($collection->context->modules['iTag']['database']) && isset($collection->context->modules['iTag']['database']['dbname']) ? $collection->context->modules['iTag']['database'] : array('dbh' => $collection->context->dbDriver->dbh));
-            $keywords = $this->keywordsFromITag($iTag->tag(RestoGeometryUtil::geoJSONGeometryToWKT($geometry), isset($collection->context->modules['iTag']['keywords']) ? $collection->context->modules['iTag']['keywords'] : array()));
+            $metadata = array(
+                'footprint' => RestoGeometryUtil::geoJSONGeometryToWKT($geometry)
+            );
+            $keywords = $this->keywordsFromITag($iTag->tag($metadata, isset($collection->context->modules['iTag']['taggers']) ? $collection->context->modules['iTag']['taggers'] : array()));
         }
         
         /*
@@ -114,22 +117,22 @@ class RestoKeywordsUtil {
          */
         $keywords = array();
         
-        if (!isset($iTagFeature) || !isset($iTagFeature['properties'])) {
+        if (!isset($iTagFeature) || !isset($iTagFeature['content'])) {
             return $keywords;
         }
 
         /*
          * Continents, countries, regions and states
          */
-        if (isset($iTagFeature['properties']['political'])) {
-            $keywords = $this->getPoliticalKeywords($iTagFeature['properties']['political']);
+        if (isset($iTagFeature['content']['political'])) {
+            $keywords = $this->getPoliticalKeywords($iTagFeature['content']['political']);
         }
         
         /*
          * Landuse and landuse details
          */
-        if (isset($iTagFeature['properties']['landCover'])) {
-            $keywords = array_merge($keywords, $this->getLandCoverKeywords($iTagFeature['properties']['landCover']));
+        if (isset($iTagFeature['content']['landCover'])) {
+            $keywords = array_merge($keywords, $this->getLandCoverKeywords($iTagFeature['content']['landCover']));
         }
         
         return $keywords;
@@ -155,6 +158,7 @@ class RestoKeywordsUtil {
                     'name' => $landuse['name'],
                     'normalized' => $normalized,
                     'type' => $type,
+                    'area' => $landuse['area'],
                     'value' => $landuse['pcover']
                 );
             }
@@ -173,6 +177,7 @@ class RestoKeywordsUtil {
                     'normalized' => $normalized,
                     'type' => $type,
                     'parentHash' => $parentHash,
+                    'area' => $landuse['area'],
                     'value' => $landuse['pcover']
                 );
             }
