@@ -79,7 +79,7 @@ class Functions_collections {
          */
         $this->dbDriver->cache->store(array('getCollectionsDescriptions', $facetFields), $collectionsDescriptions);
         
-        return isset($collectionName) ? $collectionsDescriptions[$collectionName] : $collectionsDescriptions;
+        return isset($collectionName) ? (isset($collectionsDescriptions[$collectionName]) ? $collectionsDescriptions[$collectionName] : null) : $collectionsDescriptions;
         
     }
     

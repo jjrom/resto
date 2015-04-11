@@ -281,6 +281,9 @@ class RestoCollection {
             'collectionName' => $this->name,
             'facetFields' => $this->getFacetFields()
         ));
+        if (!isset($description)) {
+            RestoLogUtil::httpError(404);
+        }
         $this->model = RestoUtil::instantiate($description['model'], array());
         $this->osDescription = $description['osDescription'];
         $this->status = $description['status'];
