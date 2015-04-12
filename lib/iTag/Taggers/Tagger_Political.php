@@ -17,6 +17,27 @@
 
 class Tagger_Political extends Tagger {
     
+    const COUNTRIES = 1;
+    const REGIONS = 2;
+    
+    /*
+     * Data references
+     */
+    public $references = array(
+        array(
+            'dataset' => 'Admin level 0 - Countries',
+            'author' => 'Natural Earth',
+            'license' => 'Free of Charge',
+            'url' => 'http://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-countries/'
+        ),
+        array(
+            'dataset' => 'Admin level 1 - States, Provinces',
+            'author' => 'Natural Earth',
+            'license' => 'Free of Charge',
+            'url' => 'http://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/'
+        )
+    );
+    
     private $countryNames = array(
         'AD' => 'Andorra',
         'AND' => 'Andorra',
@@ -468,24 +489,6 @@ class Tagger_Political extends Tagger {
         'ZWE' => 'Zimbabwe'
     );
 
-    /*
-     * Data references
-     */
-    public $references = array(
-        array(
-            'dataset' => 'Admin level 0 - Countries',
-            'author' => 'Natural Earth',
-            'license' => 'Free of Charge',
-            'url' => 'http://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-countries/'
-        ),
-        array(
-            'dataset' => 'Admin level 1 - States, Provinces',
-            'author' => 'Natural Earth',
-            'license' => 'Free of Charge',
-            'url' => 'http://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/'
-        )
-    );
-    
     /**
      * Constructor
      * 
@@ -525,12 +528,12 @@ class Tagger_Political extends Tagger {
         /*
          * Add continents and countries
          */
-        $this->addCountries($continents, $footprint);
+        $this->add($continents, $footprint, Tagger_Political::COUNTRIES);
         
         /*
          * Add regions/states
          */
-        $this->addRegions($continents, $footprint);
+        $this->add($continents, $footprint, Tagger_Political::REGIONS);
         
         /*
          * Add cities
@@ -549,30 +552,28 @@ class Tagger_Political extends Tagger {
     }
     
     /**
-     * Add continents/countries to political array
+     * Add continents/countries or regions/states to political array
      * 
      * @param array $continents
      * @param string $footprint
+     * @param integer $what
+     * 
      */
-    private function addCountries(&$continents, $footprint) {
-        $query = 'SELECT name as name, normalize(name) as id, continent as continent, normalize(continent) as continentid, ' . $this->postgisArea('st_intersection(geom, ST_GeomFromText(\'' . $footprint . '\', 4326))') . ' as area, ' . $this->postgisArea('ST_GeomFromText(\'' . $footprint . '\', 4326)') . ' as totalarea FROM datasources.countries WHERE st_intersects(geom, ST_GeomFromText(\'' . $footprint . '\', 4326)) ORDER BY area DESC';
-        $results = $this->query($query);
-        while ($element = pg_fetch_assoc($results)) {
-            $this->addCountriesToContinents($continents, $element);
+    private function add(&$continents, $footprint, $what) {
+        if ($what === Tagger_Political::COUNTRIES) {
+            $query = 'SELECT name as name, normalize(name) as id, continent as continent, normalize(continent) as continentid, ' . $this->postgisArea('st_intersection(geom, ST_GeomFromText(\'' . $footprint . '\', 4326))') . ' as area, ' . $this->postgisArea('ST_GeomFromText(\'' . $footprint . '\', 4326)') . ' as totalarea FROM datasources.countries WHERE st_intersects(geom, ST_GeomFromText(\'' . $footprint . '\', 4326)) ORDER BY area DESC';
         }
-    }
-
-    /**
-     * Add regions/states to political array
-     * 
-     * @param array $continents
-     * @param string $footprint
-     */
-    private function addRegions(&$continents, $footprint) {
-        $query = 'SELECT region, name as state, normalize(name) as stateid, normalize(region) as regionid, adm0_a3 as isoa3, ' .  $this->postgisArea('st_intersection(geom, ST_GeomFromText(\'' . $footprint . '\', 4326))') . ' as area, ' . $this->postgisArea('ST_GeomFromText(\'' . $footprint . '\', 4326)') . ' as totalarea FROM datasources.worldadm1level WHERE st_intersects(geom, ST_GeomFromText(\'' . $footprint . '\', 4326)) ORDER BY area DESC';
+        else {
+            $query = 'SELECT region, name as state, normalize(name) as stateid, normalize(region) as regionid, adm0_a3 as isoa3, ' .  $this->postgisArea('st_intersection(geom, ST_GeomFromText(\'' . $footprint . '\', 4326))') . ' as area, ' . $this->postgisArea('ST_GeomFromText(\'' . $footprint . '\', 4326)') . ' as totalarea FROM datasources.worldadm1level WHERE st_intersects(geom, ST_GeomFromText(\'' . $footprint . '\', 4326)) ORDER BY area DESC';
+        }
         $results = $this->query($query);
         while ($element = pg_fetch_assoc($results)) {
-            $this->addRegionsToCountries($continents, $element);       
+            if ($what === Tagger_Political::COUNTRIES) {
+                $this->addCountriesToContinents($continents, $element);
+            }
+            else {
+                $this->addRegionsToCountries($continents, $element);
+            }
         }
     }
     
@@ -588,7 +589,6 @@ class Tagger_Political extends Tagger {
         $query = "SELECT g.name, g.countryname as country, d.region as region, d.name as state, d.adm0_a3 as isoa3 FROM gazetteer.geoname g LEFT OUTER JOIN datasources.worldadm1level d ON g.country || '.' || g.admin2 = d.gn_a1_code WHERE st_intersects(g.geom, ST_GeomFromText('" . $footprint . "', 4326)) and g.fcode in " . $codes . " ORDER BY g.name";
         $results = $this->query($query);
         while ($element = pg_fetch_assoc($results)) {
-            print_r($element);
             $this->addCitiesToStates($continents, $element);       
         }
     }
@@ -603,7 +603,6 @@ class Tagger_Political extends Tagger {
         foreach (array_keys($continents) as $continent) {
             foreach (array_keys($continents[$continent]['countries']) as $country) {
                 if ($continents[$continent]['countries'][$country]['name'] === $element['country']) {
-                    print_r($continents[$continent]['countries'][$country]['regions'][$element['region']]);
                     foreach (array_keys($continents[$continent]['countries'][$country]['regions'][$element['region']]['states']) as $state) {
                         if ($continents[$continent]['countries'][$country]['regions'][$element['region']]['states'][$state]['name'] === $element['state']) {
                             if (!isset($continents[$continent]['countries'][$country]['regions'][$element['region']]['states'][$state]['cities'])) {
@@ -628,41 +627,49 @@ class Tagger_Political extends Tagger {
             for ($j = count($continents[$i]['countries']); $j--;) {
                 $countryName = isset($this->countryNames[$element['isoa3']]) ? $this->countryNames[$element['isoa3']] : null;
                 if (isset($countryName) && ($continents[$i]['countries'][$j]['name'] === $countryName)) {
-                    if (!isset($continents[$i]['countries'][$j]['regions'])) {
-                        $continents[$i]['countries'][$j]['regions'] = array();
-                    }
-                    $index = -1;
-                    for ($k = count($continents[$i]['countries'][$j]['regions']); $k--;) {
-                        if (!$element['regionid'] && !isset($continents[$i]['countries'][$j]['regions'][$k]['id'])) {
-                            $index = $k;
-                            break;
-                        }
-                        else if (isset($continents[$i]['countries'][$j]['regions'][$k]['id']) && $continents[$i]['countries'][$j]['regions'][$k]['id'] === $element['regionid']) {
-                            $index = $k;
-                            break;
-                        }
-                    }
-                    if ($index === -1) {
-                        if (!isset($element['regionid']) || !$element['regionid']) {
-                            array_push($continents[$i]['countries'][$j]['regions'], array(
-                                'states' => array()
-                            ));
-                        }
-                        else {
-                            array_push($continents[$i]['countries'][$j]['regions'], array(
-                                'name' => $element['region'],
-                                'id' => 'region:' . $element['regionid'],
-                                'states' => array()
-                            ));
-                        }
-                        $index = count($continents[$i]['countries'][$j]['regions']) - 1;
-                    }
-                    if (isset($continents[$i]['countries'][$j]['regions'][$index]['states'])) {
-                        array_push($continents[$i]['countries'][$j]['regions'][$index]['states'], array('name' => $element['state'], 'id' => 'state:' . $element['stateid'], 'pcover' => $this->percentage($element['area'], $element['totalarea'])));
-                    }
+                    $this->addRegionsToCountry($continents[$i]['countries'][$j], $element);
                     break;
                 }
             }
+        }
+    }
+    
+    /**
+     * Add regions/states under countries
+     * 
+     * @param array $country
+     * @param array $element
+     */
+    private function addRegionsToCountry(&$country, $element) {
+        if (!isset($country['regions'])) {
+            $country['regions'] = array();
+        }
+        $index = -1;
+        for ($k = count($country['regions']); $k--;) {
+            if (!$element['regionid'] && !isset($country['regions'][$k]['id'])) {
+                $index = $k;
+                break;
+            } else if (isset($country['regions'][$k]['id']) && $country['regions'][$k]['id'] === $element['regionid']) {
+                $index = $k;
+                break;
+            }
+        }
+        if ($index === -1) {
+            if (!isset($element['regionid']) || !$element['regionid']) {
+                array_push($country['regions'], array(
+                    'states' => array()
+                ));
+            } else {
+                array_push($country['regions'], array(
+                    'name' => $element['region'],
+                    'id' => 'region:' . $element['regionid'],
+                    'states' => array()
+                ));
+            }
+            $index = count($country['regions']) - 1;
+        }
+        if (isset($country['regions'][$index]['states'])) {
+            array_push($country['regions'][$index]['states'], array('name' => $element['state'], 'id' => 'state:' . $element['stateid'], 'pcover' => $this->percentage($element['area'], $element['totalarea'])));
         }
     }
     

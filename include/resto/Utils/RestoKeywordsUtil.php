@@ -89,7 +89,8 @@ class RestoKeywordsUtil {
         if (isset($collection->context->modules['iTag'])) {
             $iTag = new iTag(isset($collection->context->modules['iTag']['database']) && isset($collection->context->modules['iTag']['database']['dbname']) ? $collection->context->modules['iTag']['database'] : array('dbh' => $collection->context->dbDriver->dbh));
             $metadata = array(
-                'footprint' => RestoGeometryUtil::geoJSONGeometryToWKT($geometry)
+                'footprint' => RestoGeometryUtil::geoJSONGeometryToWKT($geometry),
+                'timestamp' => isset($properties['startDate']) ? $properties['startDate'] : null
             );
             $keywords = $this->keywordsFromITag($iTag->tag($metadata, isset($collection->context->modules['iTag']['taggers']) ? $collection->context->modules['iTag']['taggers'] : array()));
         }
@@ -135,6 +136,31 @@ class RestoKeywordsUtil {
             $keywords = array_merge($keywords, $this->getLandCoverKeywords($iTagFeature['content']['landCover']));
         }
         
+        /*
+         * Keywords
+         */
+        if (isset($iTagFeature['content']['keywords'])) {
+            $keywords = array_merge($keywords, $this->getAlwaysKeywords($iTagFeature['content']['keywords']));
+        }
+        
+        return $keywords;
+    }
+    
+    /**
+     * Get keywords from iTag 'keywords' property
+     * 
+     * @param array $properties
+     */
+    private function getAlwaysKeywords($properties) {
+        $keywords = array();
+        foreach (array_values($properties) as $keyword) {
+            $hash = RestoUtil::getHash($keyword);
+            list($type, $normalized) = explode(':', $keyword, 2);
+            $keywords[$hash] = array(
+                'name' => ucfirst($normalized),
+                'type' => $type
+            );
+        }
         return $keywords;
     }
     

@@ -51,6 +51,12 @@ class RestoFacetUtil {
         ),
         array(
             'landuse'
+        ),
+        array(
+            'location'
+        ),
+        array(
+            'season'
         )
     );
     

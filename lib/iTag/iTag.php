@@ -70,6 +70,10 @@ class iTag {
      */
     public function tag($metadata, $taggers = array()) {
        
+        if (!isset($metadata['footprint'])) {
+            throw new Exception('Missing mandatory footprint', 500);
+        }
+        
         /*
          * Datasources reference information
          */
