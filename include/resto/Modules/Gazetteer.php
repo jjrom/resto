@@ -25,6 +25,10 @@
  */
 class Gazetteer extends RestoModule {
     
+    const STATE_PRECISION = 0.1;
+    const COUNTRY_PRECISION = 0.3;
+    const CONTINENT_PRECISION = 0.5;
+    
     /*
      * List of toponym fields returned
      */
@@ -169,19 +173,19 @@ class Gazetteer extends RestoModule {
              * State only
              */
             case 'state':
-                $this->results = $this->getStates($query['toponym'], 0.1);
+                $this->results = $this->getStates($query['toponym'], Gazetteer::STATE_PRECISION);
                 break;
             /*
              * Country only
              */
             case 'country':
-                $this->results = $this->getCountries($query['toponym'], 0.1);
+                $this->results = $this->getCountries($query['toponym'], Gazetteer::COUNTRY_PRECISION);
                 break;
             /*
              * Continent only
              */
             case 'continent':
-                $this->results = $this->getContinents($query['toponym'], 0.5);
+                $this->results = $this->getContinents($query['toponym'], Gazetteer::CONTINENT_PRECISION);
                 break;
             /*
              * Search for all
@@ -192,9 +196,9 @@ class Gazetteer extends RestoModule {
                     'modifier' => isset($query['modifier']) ? $query['modifier'] : null
                 ));
                 if (!isset($query['modifier'])) {
-                    $this->results = array_merge($this->results, $this->getStates($query['toponym'], 0.1));
-                    $this->results = array_merge($this->results, $this->getCountries($query['toponym'], 0.1));
-                    $this->results = array_merge($this->results, $this->getContinents($query['toponym'], 0.5));
+                    $this->results = array_merge($this->results, $this->getStates($query['toponym'], Gazetteer::STATE_PRECISION));
+                    $this->results = array_merge($this->results, $this->getCountries($query['toponym'], Gazetteer::COUNTRY_PRECISION));
+                    $this->results = array_merge($this->results, $this->getContinents($query['toponym'], Gazetteer::CONTINENT_PRECISION));
                 }
         }
         
