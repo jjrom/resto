@@ -75,6 +75,11 @@ return array(
         'passphrase' => 'Super secret passphrase',
         
         /*
+         * JSON Web Token accepted encryption algorithms
+         */
+        'tokenEncryptions' => array('HS256','HS512','HS384','RS256'),
+        
+        /*
          * Url to call for password reset
          */
         'resetPasswordUrl' => 'http://localhost/resto-client/#/resetPassword',
@@ -237,17 +242,9 @@ return array(
                     'user' => 'itag',
                     'password' => 'itag'
                 ),
-                'keywords' => array(
-                    'continents' => true,
-                    'countries' => true,
-                    'cities' => null,
-                    'regions' => true,
-                    'geophysical' => false,
-                    'population' => false,
-                    'landcover' => true,
-                    'french' => false,
-                    'ordered' => true,
-                    'hierarchical' => true
+                'taggers' => array(
+                    'Political' => array(),
+                    'LandCover' => array()
                 )
             )
         )

@@ -106,6 +106,11 @@ class RestoContext {
      */
     private $tokenDuration = 3600;
     
+    /*
+     * JSON Web Token accepted encryption algorithms
+     */
+    private $tokenEncryptions = array('HS256');
+    
     /**
      * Constructor
      * 
@@ -166,7 +171,7 @@ class RestoContext {
      * @return array
      */
     public function decodeJWT($token) {
-        return JWT::decode($token, $this->passphrase, array('HS256'));
+        return JWT::decode($token, $this->passphrase, $this->tokenEncryptions);
     }
     
     /**
@@ -236,6 +241,11 @@ class RestoContext {
          * Passphrase for JSON Web Token signing/veryfying
          */
         $this->passphrase = $config['general']['passphrase'];
+        
+        /*
+         * JSON Web Token accepted encryption algorithms
+         */
+        $this->tokenEncryptions = $config['general']['tokenEncryptions'];
         
         /*
          * JSON Web Token duration
