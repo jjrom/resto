@@ -31,7 +31,11 @@ class RestoDictionary_en extends RestoDictionary {
         'more than',
         'lesser than',
         'less than',
-        'lower than'
+        'lower than',
+        'austral summer',
+        'austral winter',
+        'austral autumn',
+        'austral spring'
     );
     
     /*
@@ -149,10 +153,10 @@ class RestoDictionary_en extends RestoDictionary {
          * Seasons
          */
         'seasons' => array(
-            'autumn' => array('autumn', 'falls'),
-            'spring' => array('spring'),
-            'summer' => array('summer'),
-            'winter' => array('winter')
+            'autumn' => array('austral spring','autumn', 'falls'),
+            'spring' => array('austral autumn','spring'),
+            'summer' => array('austral winter','summer'),
+            'winter' => array('austral summer', 'winter')
         ),
         /*
          * Time units

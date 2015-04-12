@@ -30,7 +30,11 @@ class RestoDictionary_fr extends RestoDictionary {
         'superieure a',
         'plus petit que',
         'inferieur a',
-        'inferieure a'
+        'inferieure a',
+        'été austral',
+        'hiver austral',
+        'printemps austral',
+        'automne austral'
     );
     
     protected $dictionary = array(
@@ -139,10 +143,10 @@ class RestoDictionary_fr extends RestoDictionary {
          * Seasons
          */
         'seasons' => array(
-            'autumn' => array('automne'),
-            'spring' => array('printemps'),
-            'summer' => array('ete'),
-            'winter' => array('hiver')
+            'autumn' => array('printemps austral', 'automne'),
+            'spring' => array('automne austral', 'printemps'),
+            'summer' => array('hiver austral', 'ete'),
+            'winter' => array('été austral', 'hiver')
         ),
         /*
          * Time units
