@@ -70,7 +70,7 @@ class RestoDictionary_en extends RestoDictionary {
             'lesser' => array('lesser than', '<', 'less than', 'lower than'),
             'with' => array('with', 'containing'),
             'without' => array('without', 'no'),
-            'for' => array('by', 'for', 'about', 'of')
+            'for' => array('by', 'for', 'about', 'of', 'on')
         ),
         /*
          * Time modifiers
@@ -97,7 +97,7 @@ class RestoDictionary_en extends RestoDictionary {
          * considered as 'noise' for the query analysis
          * and thus excluded from the analysis
          */
-        'noise' => array('acquired', 'satellite', 'search'),
+        'noise' => array('acquired', 'satellite', 'search', 'area'),
         /*
          * Months
          */
