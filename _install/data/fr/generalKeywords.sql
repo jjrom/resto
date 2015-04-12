@@ -15,6 +15,10 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('radar', 'radar', '
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('côtier', 'coastal', 'fr', 'location');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('côtière', 'coastal', 'fr', 'location');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('litoral', 'coastal', 'fr', 'location');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('hémisphere nord', 'northern', 'en', 'location');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('hémisphere sud', 'southern', 'en', 'location');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('zone equatoriale', 'equatorial', 'en', 'location');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('zone tropicale', 'tropical', 'en', 'location');
 
 -- Events
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Cyclone', 'storm', 'fr', 'event');

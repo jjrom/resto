@@ -13,6 +13,10 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('radar', 'radar', '
 
 -- Location modifiers
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('coastal', 'coastal', 'en', 'location');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('northern hemisphere', 'northern', 'en', 'location');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('southern hemisphere', 'southern', 'en', 'location');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('equatorial zone', 'equatorial', 'en', 'location');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('tropical zone', 'tropical', 'en', 'location');
 
 -- Events
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Cyclone', 'storm', 'en', 'event');
