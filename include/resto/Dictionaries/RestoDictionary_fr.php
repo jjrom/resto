@@ -31,7 +31,7 @@ class RestoDictionary_fr extends RestoDictionary {
         'plus petit que',
         'inferieur a',
         'inferieure a',
-        'été austral',
+        'ete austral',
         'hiver austral',
         'printemps austral',
         'automne austral'
@@ -53,13 +53,14 @@ class RestoDictionary_fr extends RestoDictionary {
         ),
         /*
          * Quantity modifiers
+         * !! Order is important !!
          */
         'quantityModifiers' => array(
             'equal' => array('egal', 'egale', 'egaux'),
+            'with' => array('avec', 'contenant', 'sur', 'de'),
             'between' => array('entre', 'de'),
             'greater' => array('plus', 'plus grand que', 'superieur a', 'superieure a', '>'),
             'lesser' => array('moins', 'plus petit que', '<', 'inferieur a', 'inferieure a'),
-            'with' => array('avec', 'contenant', 'sur'),
             'without' => array('sans', 'pas'),
             'for' => array('pour')
         ),
@@ -70,7 +71,7 @@ class RestoDictionary_fr extends RestoDictionary {
             'after' => array('apres'),
             'before' => array('avant'),
             'between' => array('entre', 'de'),
-            'in' => array('en' , 'a'),
+            'in' => array('en' , 'a' , 'durant'),
             'last' => array('dernier', 'derniers', 'derniere', 'dernieres'),
             'next' => array('prochain', 'prochaine', 'prochains', 'prochaines'),
             'since' => array('depuis'),
@@ -87,7 +88,7 @@ class RestoDictionary_fr extends RestoDictionary {
          * considered as 'noise' for the query analysis
          * and thus excluded from the analysis
          */
-        'noise' => array('acquis', 'comprise'),
+        'noise' => array('acquis', 'comprise', 'zone'),
         /*
          * Months
          */
@@ -146,7 +147,7 @@ class RestoDictionary_fr extends RestoDictionary {
             'autumn' => array('printemps austral', 'automne'),
             'spring' => array('automne austral', 'printemps'),
             'summer' => array('hiver austral', 'ete'),
-            'winter' => array('été austral', 'hiver')
+            'winter' => array('ete austral', 'hiver')
         ),
         /*
          * Time units
