@@ -158,9 +158,8 @@ class WhenProcessor {
                 'time:end' => $this->toGreatestDay($secondDate['date'])
             ));
             $endPosition = $secondDate['endPosition'];
+            $this->queryManager->discardPositionInterval(__METHOD__, $startPosition, $endPosition, isset($error) ? $error : null);
         }
-        
-        $this->queryManager->discardPositionInterval(__METHOD__, $startPosition, $endPosition, isset($error) ? $error : null);
         
     }
     

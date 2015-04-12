@@ -49,7 +49,7 @@ class RestoDictionary_fr extends RestoDictionary {
          * Location modifiers
          */
         'locationModifiers' => array(
-            'in' => array('en', 'au', 'aux', 'a', 'sur', 'pres de', 'vers'),
+            'in' => array('en', 'au', 'aux', 'a', 'sur', 'pres de', 'vers' , 'de'),
         ),
         /*
          * Quantity modifiers
@@ -57,12 +57,12 @@ class RestoDictionary_fr extends RestoDictionary {
          */
         'quantityModifiers' => array(
             'equal' => array('egal', 'egale', 'egaux'),
-            'with' => array('avec', 'contenant', 'sur', 'de'),
+            'with' => array('avec', 'contenant', 'sur'),
+            'for' => array('pour', 'de'),
             'between' => array('entre', 'de'),
             'greater' => array('plus', 'plus grand que', 'superieur a', 'superieure a', '>'),
             'lesser' => array('moins', 'plus petit que', '<', 'inferieur a', 'inferieure a'),
-            'without' => array('sans', 'pas'),
-            'for' => array('pour')
+            'without' => array('sans', 'pas')
         ),
         /*
          * Time modifiers
