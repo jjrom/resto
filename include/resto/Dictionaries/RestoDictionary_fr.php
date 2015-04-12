@@ -57,8 +57,8 @@ class RestoDictionary_fr extends RestoDictionary {
          */
         'quantityModifiers' => array(
             'equal' => array('egal', 'egale', 'egaux'),
-            'with' => array('avec', 'contenant', 'sur'),
-            'for' => array('pour', 'de'),
+            'with' => array('avec', 'contenant'),
+            'for' => array('pour', 'de', 'sur', 'dans'),
             'between' => array('entre', 'de'),
             'greater' => array('plus', 'plus grand que', 'superieur a', 'superieure a', '>'),
             'lesser' => array('moins', 'plus petit que', '<', 'inferieur a', 'inferieure a'),
@@ -82,7 +82,7 @@ class RestoDictionary_fr extends RestoDictionary {
         /*
          * Stop words i.e. excluded words
          */
-        'stopWords' => array('le', 'la', 'de', 'des', 'et', 'ou', 'l' ,'un', 'une'),
+        'stopWords' => array('le', 'la', 'de', 'des', 'd', 'et', 'ou', 'l' ,'un', 'une'),
         /*
          * List of words in the query that are
          * considered as 'noise' for the query analysis
