@@ -94,7 +94,7 @@ class RestoFeatureUtil {
      */
     private function toProperties($rawCorrectedArray) {
         
-        $thisUrl = isset($this->collection) ? RestoUtil::restoUrl($this->collection->getUrl(), $rawCorrectedArray['identifier']) : RestoUtil::restoUrl($this->context->baseUrl, '/collections/' . $rawCorrectedArray['collection'] . '/' . $rawCorrectedArray['identifier']);
+        $thisUrl = isset($this->collection) ? RestoUtil::restoUrl($this->collection->getUrl(), '/' . $rawCorrectedArray['identifier']) : RestoUtil::restoUrl($this->context->baseUrl, '/collections/' . $rawCorrectedArray['collection'] . '/' . $rawCorrectedArray['identifier']);
         
         $properties = $rawCorrectedArray;
         
