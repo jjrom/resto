@@ -48,6 +48,7 @@ class Tagger_Population extends Tagger {
      * @throws Exception
      */
     public function tag($metadata, $options = array()) {
+        parent::tag($metadata, $options);
         return $this->process($metadata['footprint']);
     }
     
@@ -58,7 +59,7 @@ class Tagger_Population extends Tagger {
      * @return integer
      */
     public function process($footprint) {
-        $query = 'SELECT pcount FROM gpw.' . $this->getTableName($footprint) . ' WHERE ST_intersects(footprint, ST_GeomFromText(\'' . $footprint . '\', 4326))';
+        $query = 'SELECT pcount FROM gpw.' . $this->getTableName() . ' WHERE ST_intersects(footprint, ' . $this->postgisGeomFromText($footprint) . ')';
         $results = $this->query($query);
         $total = 0;
         while ($counts = pg_fetch_assoc($results)) {
@@ -67,7 +68,7 @@ class Tagger_Population extends Tagger {
         return array(
             'population' => array(
                 'count' => $total,
-                'densityPerSquareKm' => $this->densityPerSquareKm($footprint, $total)
+                'densityPerSquareKm' => $this->densityPerSquareKm($total)
         ));
     }
     
@@ -82,34 +83,28 @@ class Tagger_Population extends Tagger {
      * @return string
      * 
      */
-    private function getTableName($footprint) {
-
-        $area = $this->getArea($footprint);
-        if ($area > 0 && $area < 0.5) {
+    private function getTableName() {
+        if ($this->area > 0 && $this->area < 6000) {
             $tablename = 'glp15ag';
         }
-        else if ($area >= 0.5 && $area < 5) {
+        else if ($this->area >= 6000 && $this->area < 60000) {
             $tablename = 'glp15ag15';
         }
-        else if ($area >= 5 && $area < 10) {
+        else if ($this->area >= 60000 && $this->area < 120000) {
             $tablename = 'glp15ag30';
         }
         else {
             $tablename = 'glp15ag60';
         }
-
         return $tablename;
     }
 
     /**
      * Return the density of people per square kilometer
      * 
-     * @param string $footprint
      * @param integer $total
      */
-    private function densityPerSquareKm($footprint, $total) {
-        $query = 'SELECT ' . $this->postgisArea('ST_GeomFromText(\'' . $footprint . '\', 4326)') . ' as area';
-        $result = pg_fetch_assoc($this->query($query));
-        return $total / $this->toSquareKm($result['area']);
+    private function densityPerSquareKm($total) {
+        return $total / $this->area;
     }
 }

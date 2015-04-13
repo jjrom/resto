@@ -85,13 +85,21 @@ class Tagger_Generic extends Tagger {
      * 
      */
     private function retrieveContent($tableName, $columnName, $footprint) {
-        $query = 'SELECT distinct(' . $columnName . ') as name FROM ' . $tableName . ' WHERE st_intersects(geom, ST_GeomFromText(\'' . $footprint . '\', 4326))';
+        if ($this->config['returnGeometries']) {
+            $query = 'SELECT distinct(' . $columnName . ') as name, ' . $this->postgisAsWKT($this->postgisSimplify($this->postgisIntersection('geom', $this->postgisGeomFromText($footprint)))) . ' as wkt FROM ' . $tableName . ' WHERE st_intersects(geom, ' . $this->postgisGeomFromText($footprint) . ')';
+        }
+        else {
+            $query = 'SELECT distinct(' . $columnName . ') as name FROM ' . $tableName . ' WHERE st_intersects(geom, ' . $this->postgisGeomFromText($footprint) . ')';
+        }
         $results = $this->query($query);
         $content = array();
         while ($result = pg_fetch_assoc($results)) {
-            $content[] = array(
-                'name' => $result['name']
-            );
+            $content[] = $this->config['returnGeometries'] ? array(
+                'name' => $result['name'],
+                'geometry' => $result['wkt']
+                    ) :
+                    array(
+                'name' => $result['name']);
         }
         return $content;
     }

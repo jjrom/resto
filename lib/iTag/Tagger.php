@@ -32,6 +32,11 @@ abstract class Tagger {
      */
     protected $config;
     
+    /*
+     * Footprint area
+     */
+    protected $area;
+    
     /**
      * Constructor
      * 
@@ -55,20 +60,22 @@ abstract class Tagger {
      * @return array
      * @throws Exception
      */
-    abstract public function tag($metadata, $options = array());
+    public function tag($metadata, $options = array()) {
+        $this->area = isset($metadata['area']) ? $metadata['area'] : -1;
+    }
 
     /**
-     * Return true if either W-E or N-S length of the footprint
-     * is greater than $degrees 
-     *  
-     * @param string $footprint
+     * Return true if area is lower than maximum limit
+     * 
+     * @param float $area (in square kilometers)
      */
-    protected function isValidArea($footprint) {
-        return $this->getArea($footprint) > $this->config['areaLimit'] ? false : true;
+    protected function isValidArea($area) {
+        return $area > $this->config['areaLimit'] ? false : true;
     }
     
     /**
      * Return percentage of $part regarding $total
+     * 
      * @param <float> $part
      * @param <float> $total
      * @return <float>
@@ -94,40 +101,54 @@ abstract class Tagger {
     }
     
     /**
-     * Return the area of a WKT footprint
-     * 
-     * @param string $footprint
-     */
-    protected function getArea($footprint) {
-        
-        $coordinates = $this->wktToCoordinates($footprint);
-        $count = count($coordinates[0]);
-        $xs = array();
-        $ys = array();
-
-        //export to $xs and $ys
-        for ($i = 0; $i < $count; $i++) {
-            array_push($xs, $coordinates[0][$i][0]);
-            array_push($ys, $coordinates[0][$i][1]);
-        }
-
-        if (count($xs) != count($ys)) {
-            return -1;
-        }
-
-        if (count($xs) < 3) {
-            return -1;
-        }
-
-        return abs((($this->subCalculation($xs, $ys)) - ($this->subCalculation($ys, $xs))) / 2);
-    }
-    
-    /**
      * Return postgis area function
      * @param string $geometry
      */
     protected function postgisArea($geometry) {
         return 'st_area(geography(' . $geometry . '))';
+    }
+    
+    /**
+     * Return postgis WKT function
+     * 
+     * @param string $geom
+     * 
+     */
+    protected function postgisAsWKT($geom) {
+        return 'st_astext(' . $geom . ')';
+    }
+    
+    /**
+     * Return postgis intersection function
+     * 
+     * @param string $geomA
+     * @param string $geomB
+     * 
+     */
+    protected function postgisIntersection($geomA, $geomB) {
+        return 'st_intersection(' . $geomA . ',' . $geomB . ')';
+    }
+    
+    /**
+     * Return postgis intersection function
+     * 
+     * @param string $geom
+     * @param boolean $preserveTopology
+     * 
+     */
+    protected function postgisSimplify($geom, $preserveTopology = false) {
+        return $this->config['geometryTolerance'] > 0 ? 'ST_Simplify' . ($preserveTopology ? 'PreserveTopology' : '') . '(' . $geom . ',' . $this->config['geometryTolerance'] . ')' : $geom;
+    }
+    
+    /**
+     * Return postgis intersection function
+     * 
+     * @param string $footprint
+     * @param string $srid
+     * 
+     */
+    protected function postgisGeomFromText($footprint, $srid = '4326') {
+        return 'ST_GeomFromText(\'' . $footprint . '\', ' . $srid . ')';
     }
     
     /**
@@ -181,37 +202,4 @@ abstract class Tagger {
                 )) . '$/i', $dateStr);
     }
 
-    /**
-     * Subcomputation of area 
-     * 
-     * @param array $a
-     * @param array $b
-     * @return float
-     */
-    private function subCalculation($a, $b) {
-        $answer = 0;
-
-        for ($i = 0; $i < (count($a) - 1); $i++) {
-            $answer += ($a[$i] * $b[$i + 1]);
-        }
-
-        $answer += $a[count($a) - 1] * $b[0];
-        return $answer;
-    }
-    
-    /**
-     * Return GeoJSON coordinates from wkt
-     * 
-     * @param string $footprint
-     * @return array
-     */
-    private function wktToCoordinates($footprint) {
-        $strcoordinates = str_replace(array('polygon((', '))'), '', trim(strtolower($footprint)));
-        $pairs = explode(',', $strcoordinates);
-        $lonlats = array();
-        for ($i = 0, $ii = count($pairs); $i < $ii; $i++) {
-            $lonlats[] = explode(' ', trim($pairs[$i]));
-        }
-        return array($lonlats);
-    }
 }

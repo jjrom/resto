@@ -85,6 +85,11 @@ class iTag {
         $content = $this->always($metadata);
         
         /*
+         * Add footprint area to metadata
+         */
+        $metadata['area'] = $content['area'];
+        
+        /*
          * Call the 'tag' function of all input taggers
          */
         foreach ($taggers as $name => $options) {

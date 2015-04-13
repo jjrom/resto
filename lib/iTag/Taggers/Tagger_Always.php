@@ -92,9 +92,21 @@ class Tagger_Always extends Tagger {
         }
         
         return array(
+            'area' => $this->getArea($metadata['footprint']),
             'keywords' => $keywords
         );
         
+    }
+    
+    /**
+     * Return footprint area in square meters
+     * 
+     * @param string $footprint
+     */
+    private function getArea($footprint) {
+        $query = 'SELECT ' . $this->postgisArea($this->postgisGeomFromText($footprint)) . ' as area';
+        $result = pg_fetch_assoc($this->query($query));
+        return $this->toSquareKm($result['area']);
     }
     
     /**
@@ -122,7 +134,8 @@ class Tagger_Always extends Tagger {
      * @param string $footprint
      */
     private function isCoastal($footprint) {
-        $query = 'SELECT gid FROM datasources.coastlines WHERE ST_Crosses(ST_GeomFromText(\'' . $footprint . '\', 4326), geom) OR ST_Contains(ST_GeomFromText(\'' . $footprint . '\', 4326), geom)';
+        $geom = $this->postgisGeomFromText($footprint);
+        $query = 'SELECT gid FROM datasources.coastlines WHERE ST_Crosses(' . $geom . ', geom) OR ST_Contains(' . $geom . ', geom)';
         return $this->hasResults($query);
     }
     
@@ -133,7 +146,7 @@ class Tagger_Always extends Tagger {
      * @param array $what
      */
     private function isETNS($footprint, $what) {
-        $query = 'SELECT 1 WHERE ' . $what['operator'] . '(' . $what['geometry'] . ', ST_GeomFromText(\'' . $footprint . '\', 4326)) LIMIT 1';
+        $query = 'SELECT 1 WHERE ' . $what['operator'] . '(' . $what['geometry'] . ',' . $this->postgisGeomFromText($footprint) . ') LIMIT 1';
         return $this->hasResults($query);
     }
     
