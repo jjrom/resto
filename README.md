@@ -21,7 +21,7 @@ If not already done, download resto sources to $RESTO_HOME
 * Apache (v2.0+) with **mod_rewrite** support
 * PHP (v5.3+) with **XMLWriter and PGConnect** extensions
 * PostgreSQL (v9.3+) with json support and **unaccent** extension
-* PostGIS (v1.5.1+)
+* PostGIS (v2.0+)
 
 Note: resto could work with lower version of the specified requirements.
 However there is no guaranty of success and unwanted result may occured !
