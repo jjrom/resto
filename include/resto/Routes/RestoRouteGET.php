@@ -403,7 +403,7 @@ class RestoRouteGET extends RestoRoute {
          * Download feature then exit
          */
         else if ($segments[3] === 'download') {
-            return $this->GET_featureDownload();
+            return $this->GET_featureDownload($collection, $feature);
         }
 
         /*
