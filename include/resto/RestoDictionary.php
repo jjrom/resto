@@ -181,8 +181,15 @@ abstract class RestoDictionary {
      */
     public function isNoise($name) {
         for ($i = count($this->dictionary['noise']); $i--;) {
-            if (strpos($name, $this->dictionary['noise'][$i]) !== false) {
-                return true;
+            if (substr($this->dictionary['noise'][$i], -1) === '%') {
+                if (strpos($name, trim($this->dictionary['noise'][$i], '%')) !== false) {
+                    return true;
+                }
+            }
+            else {
+                if ($name === $this->dictionary['noise'][$i]) {
+                    return true;
+                }
             }
         }
         return false;
