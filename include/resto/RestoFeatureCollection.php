@@ -48,7 +48,7 @@ class RestoFeatureCollection {
     /*
      * All collections
      */
-    private $collections;
+    private $collections = array();
     
     /*
      * Model of the main collection
@@ -302,6 +302,7 @@ class RestoFeatureCollection {
          */
         $featuresArray = $this->context->dbDriver->get(RestoDatabaseDriver::FEATURES_DESCRIPTIONS, array(
             'context' => $this->context,
+            'user' => $this->user,
             'collection' => isset($this->defaultCollection) ? $this->defaultCollection : null,
             'filters' => $params,
                 'options' => array(
@@ -316,12 +317,12 @@ class RestoFeatureCollection {
          * Load collections array
          */
         for ($i = 0, $l = count($featuresArray); $i < $l; $i++) {
-            if (isset($this->collections) && !isset($this->collections[$featuresArray[$i]['collection']])) {
-                $this->collections[$featuresArray[$i]['collection']] = new RestoCollection($featuresArray[$i]['collection'], $this->context, $this->user, array('autoload' => true));
+            if (isset($this->collections) && !isset($this->collections[$featuresArray[$i]['properties']['collection']])) {
+                $this->collections[$featuresArray[$i]['properties']['collection']] = new RestoCollection($featuresArray[$i]['properties']['collection'], $this->context, $this->user, array('autoload' => true));
             }
             $feature = new RestoFeature($this->context, $this->user, array(
                 'featureArray' => $featuresArray[$i],
-                'collection' => isset($this->collections) && isset($featuresArray[$i]['collection']) && $this->collections[$featuresArray[$i]['collection']] ? $this->collections[$featuresArray[$i]['collection']] : $this->defaultCollection
+                'collection' => isset($this->collections) && isset($featuresArray[$i]['properties']['collection']) && $this->collections[$featuresArray[$i]['properties']['collection']] ? $this->collections[$featuresArray[$i]['properties']['collection']] : $this->defaultCollection
             ));
             if (isset($feature)) {
                 $this->restoFeatures[] = $feature;

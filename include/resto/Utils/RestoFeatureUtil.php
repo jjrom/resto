@@ -21,14 +21,19 @@
 class RestoFeatureUtil {
    
     /*
-     * Reference to resto model
+     * Reference to resto context
      */
     private $context;
    
     /*
-     * Reference to resto model
+     * Reference to resto user
      */
-    private $collection;
+    private $user;
+   
+    /*
+     * Array of collections
+     */
+    private $collections;
     
     /*
      * Search url endpoint
@@ -39,13 +44,16 @@ class RestoFeatureUtil {
      * Constructor
      * 
      * @param RestoContext $context
+     * @param RestoUser $user
      * @param RestoCollection $collection
      */
-    public function __construct($context, $collection) {
+    public function __construct($context, $user, $collection) {
         $this->context = $context;
-        $this->model = isset($collection) ? $collection->model : new RestoModel_default();
-        $this->collection = $collection;
-        $this->searchUrl = $this->context->baseUrl . '/api/collections' . (isset($this->collection) ? '/' . $this->collection->name : '' ) . '/search.json';
+        $this->user =$user;
+        if (isset($collection)) {
+            $this->collections[$collection->name] = $collection;
+        }
+        $this->searchUrl = $this->context->baseUrl . '/api/collections' . (isset($collection) ? '/' . $collection->name : '' ) . '/search.json';
     } 
    
     /**
@@ -64,6 +72,13 @@ class RestoFeatureUtil {
          */
         if (!isset($rawFeatureArray) || !is_array($rawFeatureArray)) {
             RestoLogUtil::httpError(404);
+        }
+        
+        /*
+         * Add collection
+         */
+        if (!isset($this->collections[$rawFeatureArray['collection']])) {
+            $this->collections[$rawFeatureArray['collection']] = new RestoCollection($rawFeatureArray['collection'], $this->context, $this->user, array('autoload' => true));
         }
         
         /*
@@ -94,29 +109,30 @@ class RestoFeatureUtil {
      */
     private function toProperties($rawCorrectedArray) {
         
-        $thisUrl = isset($this->collection) ? RestoUtil::restoUrl($this->collection->getUrl(), '/' . $rawCorrectedArray['identifier']) : RestoUtil::restoUrl($this->context->baseUrl, '/collections/' . $rawCorrectedArray['collection'] . '/' . $rawCorrectedArray['identifier']);
+        $collection = $this->collections[$rawCorrectedArray['collection']];
+        $thisUrl = RestoUtil::restoUrl($collection->getUrl(), '/' . $rawCorrectedArray['identifier']);
         
         $properties = $rawCorrectedArray;
         
         /*
          * Update metadata values from propertiesMapping
          */
-        $this->updatePaths($properties);
+        $this->updatePaths($properties, $collection);
         
         /*
          * Set unstored keywords - TODO
          */
-        //$this->setUnstoredKeywords($properties);
+        //$this->setUnstoredKeywords($properties, $collection);
         
         /*
          * Set services
          */
-        $this->setServices($properties, $thisUrl);
+        $this->setServices($properties, $thisUrl, $collection);
         
         /*
          * Set links
          */
-        $this->setLinks($properties, $thisUrl);
+        $this->setLinks($properties, $thisUrl, $collection);
         
         /*
          * Clean properties
@@ -131,30 +147,31 @@ class RestoFeatureUtil {
      * Update metadata values from propertiesMapping
      * 
      * @param array $properties
+     * @param RestoCollection $collection
      */
-    private function updatePaths(&$properties) {
+    private function updatePaths(&$properties, $collection) {
         
         /*
          * Update dynamically metadata, quicklook and thumbnail path if required before the replaceInTemplate
          */
-        if (method_exists($this->model,'generateMetadataPath')) {
-            $properties['metadata'] = $this->model->generateMetadataPath($properties);
+        if (method_exists($collection->model,'generateMetadataPath')) {
+            $properties['metadata'] = $collection->model->generateMetadataPath($properties);
         }
 
-        if (method_exists($this->model,'generateQuicklookPath')) {
-            $properties['quicklook'] = $this->model->generateQuicklookPath($properties);
+        if (method_exists($collection->model,'generateQuicklookPath')) {
+            $properties['quicklook'] = $collection->model->generateQuicklookPath($properties);
         }
 
-        if (method_exists($this->model,'generateThumbnailPath')) {
-            $properties['thumbnail'] = $this->model->generateThumbnailPath($properties);
+        if (method_exists($collection->model,'generateThumbnailPath')) {
+            $properties['thumbnail'] = $collection->model->generateThumbnailPath($properties);
         }
         
         /*
          * Modify properties as defined in collection propertiesMapping associative array
          */
-        if (isset($this->collection->propertiesMapping)) {
-            foreach (array_keys($this->collection->propertiesMapping) as $key) {
-                $properties[$key] = $this->replaceInTemplate($this->collection->propertiesMapping[$key], $properties);
+        if (isset($collection->propertiesMapping)) {
+            foreach (array_keys($collection->propertiesMapping) as $key) {
+                $properties[$key] = $this->replaceInTemplate($collection->propertiesMapping[$key], $properties);
             }
         }
         
@@ -164,16 +181,17 @@ class RestoFeatureUtil {
      * Add keywords for dedicated filters
      * 
      * @param array $properties
+     * @param RestoCollection $collection
      */
-    private function setUnstoredKeywords(&$properties) {
+    private function setUnstoredKeywords(&$properties, $collection) {
         
-        foreach (array_keys($this->model->searchFilters) as $key) {
-            if (isset($this->model->searchFilters[$key]['keyword']) && isset($properties[$this->model->searchFilters[$key]['key']])) {
+        foreach (array_keys($collection->model->searchFilters) as $key) {
+            if (isset($collection->model->searchFilters[$key]['keyword']) && isset($properties[$collection->model->searchFilters[$key]['key']])) {
                 
                 /*
                  * Set multiple words within quotes 
                  */
-                $name = $this->replaceInTemplate($this->model->searchFilters[$key]['keyword']['value'], $properties);
+                $name = $this->replaceInTemplate($collection->model->searchFilters[$key]['keyword']['value'], $properties);
                 $splitted = explode(' ', $name);
                 
                 if (count($splitted) > 1) {
@@ -181,8 +199,8 @@ class RestoFeatureUtil {
                 }
                 $properties['keywords'][] = array(
                     'name' => $name,
-                    'id' => $this->model->searchFilters[$key]['keyword']['type'] . ':' . $name,
-                    'href' => RestoUtil::updateUrl($this->searchUrl, array($this->model->searchFilters['searchTerms']['osKey'] => $name))
+                    'id' => $collection->model->searchFilters[$key]['keyword']['type'] . ':' . $name,
+                    'href' => RestoUtil::updateUrl($this->searchUrl, array($collection->model->searchFilters['searchTerms']['osKey'] => $name))
                 );
             }
         }
@@ -193,8 +211,9 @@ class RestoFeatureUtil {
      * 
      * @param array $properties
      * @param string $thisUrl
+     * @param RestoCollection $collection
      */
-    private function setServices(&$properties, $thisUrl) {
+    private function setServices(&$properties, $thisUrl, $collection) {
         
         if (!isset($properties['services'])) {
             $properties['services'] = array();
@@ -211,7 +230,7 @@ class RestoFeatureUtil {
          * Download
          */
         if (isset($properties['resource'])) {
-            $this->setDownloadService($properties, $thisUrl);
+            $this->setDownloadService($properties, $thisUrl, $collection);
         }
         
     }
@@ -238,8 +257,9 @@ class RestoFeatureUtil {
      * 
      * @param array $properties
      * @param string $thisUrl
+     * @param RestoCollection $collection
      */
-    private function setDownloadService(&$properties, $thisUrl) {
+    private function setDownloadService(&$properties, $thisUrl, $collection) {
         $properties['services']['download'] = array(
             'url' => RestoUtil::isUrl($properties['resource']) ? $properties['resource'] : $thisUrl. '/download'
         );
@@ -251,7 +271,7 @@ class RestoFeatureUtil {
             $properties['services']['download']['checksum'] = $properties['resourceChecksum'];
         }
         $this->resourceInfos = array(
-            'path' => method_exists($this->model,'generateResourcePath') ? $this->model->generateResourcePath($properties) : $properties['resource'],
+            'path' => method_exists($collection->model,'generateResourcePath') ? $collection->model->generateResourcePath($properties) : $properties['resource'],
             'mimeType' => $properties['services']['download']['mimeType'],
             'size' => isset($properties['services']['download']['size']) ? $properties['services']['download']['size'] : null,
             'checksum' => isset($properties['services']['download']['checksum']) ? $properties['services']['download']['checksum'] : null
@@ -263,8 +283,9 @@ class RestoFeatureUtil {
      * 
      * @param array $properties
      * @param string $thisUrl
+     * @param RestoCollection $collection
      */
-    private function setLinks(&$properties, $thisUrl) {
+    private function setLinks(&$properties, $thisUrl, $collection) {
         
         if (!isset($properties['links']) || !is_array($properties['links'])) {
             $properties['links'] = array();
@@ -273,19 +294,19 @@ class RestoFeatureUtil {
             'rel' => 'alternate',
             'type' => RestoUtil::$contentTypes['html'],
             'title' => $this->context->dictionary->translate('_htmlLink', $properties['identifier']),
-            'href' => RestoUtil::updateUrl($thisUrl . '.html', array($this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
+            'href' => RestoUtil::updateUrl($thisUrl . '.html', array($collection->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
         );
         $properties['links'][] = array(
             'rel' => 'alternate',
             'type' => RestoUtil::$contentTypes['json'],
             'title' => $this->context->dictionary->translate('_jsonLink', $properties['identifier']),
-            'href' => RestoUtil::updateUrl($thisUrl . '.json', array($this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
+            'href' => RestoUtil::updateUrl($thisUrl . '.json', array($collection->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
         );
         $properties['links'][] = array(
             'rel' => 'alternate',
             'type' => RestoUtil::$contentTypes['atom'],
             'title' => $this->context->dictionary->translate('_atomLink', $properties['identifier']),
-            'href' => RestoUtil::updateUrl($thisUrl . '.atom', array($this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
+            'href' => RestoUtil::updateUrl($thisUrl . '.atom', array($collection->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
         );
         
         if (isset($properties['metadata'])) {
@@ -334,9 +355,8 @@ class RestoFeatureUtil {
         
         $corrected = array();
         
-        foreach ($rawFeatureArray as $key => $value) {
+        foreach ($rawFeatureArray as $key => $value) { 
             switch($key) {
-                
                 case 'bbox4326':
                     $corrected[$key] = str_replace(' ', ',', substr(substr($rawFeatureArray[$key], 0, strlen($rawFeatureArray[$key]) - 1), 4));
                     $corrected['bbox3857'] = RestoGeometryUtil::bboxToMercator($rawFeatureArray[$key]);
@@ -347,11 +367,11 @@ class RestoFeatureUtil {
                     break;
                 
                 case 'keywords':
-                    $corrected[$key] = $this->correctKeywords(json_decode($value, true));
+                    $corrected[$key] = $this->correctKeywords(json_decode($value, true), $this->collections[$rawFeatureArray['collection']]);
                     break;
                 
                 default:
-                    $corrected[$key] = $this->castExplicit($key, $value);
+                    $corrected[$key] = $this->castExplicit($key, $value, $this->collections[$rawFeatureArray['collection']]);
             }
         }
         
@@ -363,9 +383,10 @@ class RestoFeatureUtil {
      * 
      * @param string $key
      * @param string $value
+     * @param RestoCollection $collection
      */
-    private function castExplicit($key, $value) {
-        switch($this->model->getDbType($key)) {
+    private function castExplicit($key, $value, $collection) {
+        switch($collection->model->getDbType($key)) {
             case 'integer':
                 return (integer) $value;
             case 'float':
@@ -387,10 +408,11 @@ class RestoFeatureUtil {
      * Update keywords - i.e. translate name and add url endpoint
      * 
      * @param array $keywords
+     * @param RestoCollection $collection
      * 
      * @return array
      */
-    private function correctKeywords($keywords) {
+    private function correctKeywords($keywords, $collection) {
         
         if (!isset($keywords)) {
             return null;
@@ -420,8 +442,8 @@ class RestoFeatureUtil {
             }
             
             $corrected[$key]['href'] = RestoUtil::updateUrl($this->searchUrl, array(
-                $this->model->searchFilters['language']['osKey'] => $this->context->dictionary->language,
-                $this->model->searchFilters['searchTerms']['osKey'] => count(explode(' ', $corrected[$key]['name'])) > 1 ? '"'. $corrected[$key]['name'] . '"' : $corrected[$key]['name']
+                $collection->model->searchFilters['language']['osKey'] => $this->context->dictionary->language,
+                $collection->model->searchFilters['searchTerms']['osKey'] => count(explode(' ', $corrected[$key]['name'])) > 1 ? '"'. $corrected[$key]['name'] . '"' : $corrected[$key]['name']
             ));
             
         }
@@ -469,5 +491,5 @@ class RestoFeatureUtil {
 
         return $sentence;
     }
-
+    
 }

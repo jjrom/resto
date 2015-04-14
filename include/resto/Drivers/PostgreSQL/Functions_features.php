@@ -47,6 +47,7 @@ class Functions_features {
      * Get an array of features descriptions
      * 
      * @param RestoContext $context
+     * @param RestoUser $user
      * @param RestoCollection $collection
      * @param RestoModel $params
      * @param array $options
@@ -58,7 +59,7 @@ class Functions_features {
      * @return array
      * @throws Exception
      */
-    public function search($context, $collection, $params, $options) {
+    public function search($context, $user, $collection, $params, $options) {
         
         /*
          * Search filters functions
@@ -97,7 +98,7 @@ class Functions_features {
         /*
          * Retrieve products from database
          */
-        return $this->toFeatureArray($context, $collection, $results = $this->dbDriver->query($query));
+        return $this->toFeatureArray($context, $user, $collection, $results = $this->dbDriver->query($query));
         
     }
     
@@ -106,6 +107,7 @@ class Functions_features {
      * Get feature description
      *
      * @param RestoContext $context
+     * @param RestoUser $user
      * @param integer $identifier
      * @param RestoModel $model
      * @param RestoCollection $collection
@@ -118,7 +120,7 @@ class Functions_features {
         $model = isset($collection) ? $collection->model : new RestoModel_default();
         $filtersUtils = new Functions_filters();
         $result = $this->dbDriver->query('SELECT ' . implode(',', $filtersUtils->getSQLFields($model)) . ' FROM ' . (isset($collection) ? '_' . strtolower($collection->name) : 'resto') . '.features WHERE ' . $model->getDbKey('identifier') . "='" . pg_escape_string($identifier) . "'" . (count($filters) > 0 ? ' AND ' . join(' AND ', $filters) : ''));
-        $arrayOfFeatureArray = $this->toFeatureArray($context, $collection, $result);
+        $arrayOfFeatureArray = $this->toFeatureArray($context, $user, $collection, $result);
         return isset($arrayOfFeatureArray[0]) ? $arrayOfFeatureArray[0] : null;
     }
     
@@ -405,18 +407,19 @@ class Functions_features {
             ));
         }
     }
- 
+
     /**
      * Return featureArray array from database results
      * 
      * @param RestoContext $context
-     * @param RestoColeection $collection
+     * @param RestoUser $user
+     * @param RestoCollection $collection
      * @param array $results
      * @return array
      */
-    private function toFeatureArray($context, $collection, $results) {
+    private function toFeatureArray($context, $user, $collection, $results) {
         $featuresArray = array();
-        $featureUtil = new RestoFeatureUtil($context, $collection);
+        $featureUtil = new RestoFeatureUtil($context, $user, $collection);
         while ($result = pg_fetch_assoc($results)) {
             $featuresArray[] = $featureUtil->toFeatureArray($result);
         }

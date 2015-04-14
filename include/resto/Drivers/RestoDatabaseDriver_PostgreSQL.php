@@ -100,14 +100,14 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             case parent::FEATURE_DESCRIPTION:
                 $featuresFunctions = new Functions_features($this);
-                return $featuresFunctions->getFeatureDescription($params['context'], $params['featureIdentifier'], isset($params['collection']) ? $params['collection'] : null, isset($params['filters']) ? $params['filters'] : array());
+                return $featuresFunctions->getFeatureDescription($params['context'], $params['user'], $params['featureIdentifier'], isset($params['collection']) ? $params['collection'] : null, isset($params['filters']) ? $params['filters'] : array());
             
             /*
              * Get feature collections description
              */
             case parent::FEATURES_DESCRIPTIONS:
                 $featuresFunctions = new Functions_features($this);
-                return $featuresFunctions->search($params['context'],$params['collection'], $params['filters'], $params['options']);
+                return $featuresFunctions->search($params['context'], $params['user'], $params['collection'], $params['filters'], $params['options']);
             
             /*
              * Get groups list

@@ -180,17 +180,18 @@ class RestoFeature {
         }
         
         /*
-         * Load from input array
+         * Load from database
          */
         if (isset($options['featureIdentifier'])) {
             $this->featureArray = $this->context->dbDriver->get(RestoDatabaseDriver::FEATURE_DESCRIPTION, array(
                 'context' => $this->context,
+                'user' => $this->user,
                 'featureIdentifier' => $options['featureIdentifier'],
                 'collection' => isset($this->collection) ? $this->collection : null
             ));
         }
         /*
-         * ...or load from database
+         * ...or from input array
          */
         else {
             $this->featureArray = $options['featureArray'];
