@@ -49,17 +49,21 @@ class Functions_collections {
     /**
      * Get description of all collections including facets
      * 
+     * @param RestoContext $context
+     * @param RestoUser $user
      * @param string $collectionName
-     * @param array $facetFields
      * @return array
      * @throws Exception
      */
-    public function getCollectionsDescriptions($collectionName = null, $facetFields = null) {
+    public function getCollectionsDescriptions($context, $user, $collectionName = null) {
          
-        $cached = $this->dbDriver->cache->retrieve(array('getCollectionsDescriptions', $facetFields));
+        $cached = $this->dbDriver->cache->retrieve(array('getCollectionsDescriptions', $collectionName));
         if (isset($cached)) {
             return $cached;
         }
+        
+        $model = new RestoModel_default($context, $user);
+        $facetFields = $model->getFacetFields();
         
         $collectionsDescriptions = array();
         $descriptions = $this->dbDriver->query('SELECT collection, status, model, mapping, license FROM resto.collections' . (isset($collectionName) ? ' WHERE collection=\'' . pg_escape_string($collectionName) . '\'' : ''));
@@ -70,14 +74,14 @@ class Functions_collections {
                 'propertiesMapping' => json_decode($collection['mapping'], true),
                 'license' => isset($collection['license']) ? json_decode($collection['license'], true) : null,
                 'osDescription' => $this->getOSDescriptions($collection['collection']),
-                'statistics' => isset($facetFields) ? $this->dbDriver->get(RestoDatabaseDriver::STATISTICS, array('collectionName' => $collection['collection'], 'facetFields' => $facetFields)) : null
+                'statistics' => $this->dbDriver->get(RestoDatabaseDriver::STATISTICS, array('collectionName' => $collection['collection'], 'facetFields' => $facetFields))
             );
         }
         
         /*
          * Store in cache
          */
-        $this->dbDriver->cache->store(array('getCollectionsDescriptions', $facetFields), $collectionsDescriptions);
+        $this->dbDriver->cache->store(array('getCollectionsDescriptions', $collectionName), $collectionsDescriptions);
         
         return isset($collectionName) ? (isset($collectionsDescriptions[$collectionName]) ? $collectionsDescriptions[$collectionName] : null) : $collectionsDescriptions;
         

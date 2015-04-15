@@ -278,8 +278,9 @@ class RestoCollection {
      */
     private function loadFromStore() {
         $description = $this->context->dbDriver->get(RestoDatabaseDriver::COLLECTIONS_DESCRIPTIONS, array(
-            'collectionName' => $this->name,
-            'facetFields' => $this->getFacetFields()
+            'context' => $this->context,
+            'user' => $this->user,
+            'collectionName' => $this->name
         ));
         if (!isset($description)) {
             RestoLogUtil::httpError(404);
@@ -366,20 +367,6 @@ class RestoCollection {
             return true;
         }
         return false;
-    }
-    
-    /**
-     * Get facet fields from collection model
-     */
-    private function getFacetFields() {
-        $facetFields = array('collection', 'continent');
-        $model = new RestoModel_default();
-        foreach (array_values($model->searchFilters) as $filter) {
-            if (isset($filter['options']) && $filter['options'] === 'auto') {
-                $facetFields[] = $filter['key'];
-            }
-        }
-        return $facetFields;
     }
     
 }

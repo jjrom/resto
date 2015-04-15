@@ -653,6 +653,19 @@ abstract class RestoModel {
     }
     
     /**
+     * Get facet fields from model
+     */
+    public function getFacetFields() {
+        $facetFields = array('collection', 'continent');
+        foreach (array_values($this->searchFilters) as $filter) {
+            if (isset($filter['options']) && $filter['options'] === 'auto') {
+                $facetFields[] = $filter['key'];
+            }
+        }
+        return $facetFields;
+    }
+    
+    /**
      * Compute keywords from properties array
      * 
      * @param array $properties
