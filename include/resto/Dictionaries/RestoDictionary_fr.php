@@ -88,7 +88,7 @@ class RestoDictionary_fr extends RestoDictionary {
          * considered as 'noise' for the query analysis
          * and thus excluded from the analysis
          */
-        'noise' => array('acquis', 'comprise', 'zone'),
+        'noise' => array('acquis%', 'compris%', 'zone%'),
         /*
          * Months
          */
