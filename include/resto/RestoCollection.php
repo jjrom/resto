@@ -65,7 +65,7 @@ class RestoCollection {
     /*
      * Statistics
      */
-    public $statistics = array();
+    private $statistics = null;
     
     /*
      * Array of options
@@ -148,8 +148,10 @@ class RestoCollection {
     
     /**
      * Output collection description as an array
+     * 
+     * @param boolean $setStatistics (true to return statistics)
      */
-    public function toArray() {
+    public function toArray($setStatistics = true) {
         return array(
             'name' => $this->name,
             'status' => $this->status,
@@ -157,7 +159,7 @@ class RestoCollection {
             'license' => isset($this->license) ? $this->license : null,
             'osDescription' => $this->osDescription,
             //'propertiesMapping' => $this->propertiesMapping,
-            'statistics' => $this->statistics
+            'statistics' => $setStatistics ? $this->getStatistics() : array()
         );
     }
     
@@ -274,12 +276,20 @@ class RestoCollection {
     }
     
     /**
+     * Return collection statistics
+     */
+    public function getStatistics() {
+        if (!isset($this->statistics)) {
+            $this->statistics = $this->context->dbDriver->get(RestoDatabaseDriver::STATISTICS, array('collectionName' => $this->name, 'facetFields' => $this->model->getFacetFields())); 
+        }
+        return $this->statistics;
+    }
+    
+    /**
      * Load collection parameters from RESTo database
      */
     private function loadFromStore() {
         $description = $this->context->dbDriver->get(RestoDatabaseDriver::COLLECTIONS_DESCRIPTIONS, array(
-            'context' => $this->context,
-            'user' => $this->user,
             'collectionName' => $this->name
         ));
         if (!isset($description)) {
@@ -290,7 +300,6 @@ class RestoCollection {
         $this->status = $description['status'];
         $this->license = $description['license'];
         $this->propertiesMapping = $description['propertiesMapping'];
-        $this->statistics = $description['statistics'];
         
     }
     

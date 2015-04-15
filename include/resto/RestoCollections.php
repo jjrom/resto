@@ -36,6 +36,11 @@ class RestoCollections {
      */
     private $collections = array();
     
+    /*
+     * Model
+     */
+    private $model;
+    
     /**
      * Constructor 
      * 
@@ -54,6 +59,7 @@ class RestoCollections {
         
         $this->context = $context;
         $this->user = $user;
+        $this->model = new RestoModel_default($context, $user);
         
         /*
          * Load collection description from database 
@@ -110,10 +116,7 @@ class RestoCollections {
      * Load all collections from RESTo database and add them to this object
      */
     public function loadCollectionsFromStore() {
-        $collectionsDescriptions = $this->context->dbDriver->get(RestoDatabaseDriver::COLLECTIONS_DESCRIPTIONS, array(
-            'context' => $this->context,
-            'user' => $this->user
-        ));
+        $collectionsDescriptions = $this->context->dbDriver->get(RestoDatabaseDriver::COLLECTIONS_DESCRIPTIONS);
         foreach (array_keys($collectionsDescriptions) as $key) {
             $collection = new RestoCollection($key, $this->context, $this->user);
             $collection->model = RestoUtil::instantiate($collectionsDescriptions[$key]['model'], array($collection->context, $collection->user));
@@ -121,7 +124,6 @@ class RestoCollections {
             $collection->status = $collectionsDescriptions[$key]['status'];
             $collection->license = $collectionsDescriptions[$key]['license'];
             $collection->propertiesMapping = $collectionsDescriptions[$key]['propertiesMapping'];
-            $collection->statistics = $collectionsDescriptions[$key]['statistics'];
             $this->add($collection);
         }
         return $this;
@@ -133,9 +135,12 @@ class RestoCollections {
      * @param boolean $pretty : true to return pretty print
      */
     public function toJSON($pretty) {
-        $collections = array('collections' => array());
+        $collections = array(
+            'collections' => array(),
+            'statistics' => $this->context->dbDriver->get(RestoDatabaseDriver::STATISTICS, array('collectionName' => null, 'facetFields' => $this->model->getFacetFields()))
+        );
         foreach(array_keys($this->collections) as $key) {
-            $collections['collections'][] = $this->collections[$key]->toArray();
+            $collections['collections'][] = $this->collections[$key]->toArray(false);
         }
         return RestoUtil::json_format($collections, $pretty);
     }

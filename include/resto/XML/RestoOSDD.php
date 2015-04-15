@@ -247,8 +247,9 @@ class RestoOSDD extends RestoXML {
                         }
                     }
                     else if ($filter['options'] === 'auto') {
-                        if (isset($filter['key']) && isset($this->collection->statistics[$filter['key']])) {
-                            foreach (array_keys($this->collection->statistics[$filter['key']]) as $key) {
+                        $statistics = $this->collection->getStatistics();
+                        if (isset($filter['key']) && isset($statistics[$filter['key']])) {
+                            foreach (array_keys($statistics[$filter['key']]) as $key) {
                                 $this->startElement('parameters:Options');
                                 $this->writeAttribute('value', $key);
                                 $this->endElement();

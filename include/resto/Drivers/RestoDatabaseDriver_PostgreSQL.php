@@ -93,7 +93,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             case parent::COLLECTIONS_DESCRIPTIONS:
                 $collectionsFunctions = new Functions_collections($this);
-                return $collectionsFunctions->getCollectionsDescriptions($params['context'], $params['user'], isset($params['collectionName']) ? $params['collectionName'] : null);
+                return $collectionsFunctions->getCollectionsDescriptions(isset($params['collectionName']) ? $params['collectionName'] : null);
             
             /*
              * Get collections descriptions

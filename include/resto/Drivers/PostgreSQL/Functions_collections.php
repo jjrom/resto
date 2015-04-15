@@ -49,22 +49,16 @@ class Functions_collections {
     /**
      * Get description of all collections including facets
      * 
-     * @param RestoContext $context
-     * @param RestoUser $user
      * @param string $collectionName
      * @return array
      * @throws Exception
      */
-    public function getCollectionsDescriptions($context, $user, $collectionName = null) {
+    public function getCollectionsDescriptions($collectionName = null) {
          
         $cached = $this->dbDriver->cache->retrieve(array('getCollectionsDescriptions', $collectionName));
         if (isset($cached)) {
             return $cached;
         }
-        
-        $model = new RestoModel_default($context, $user);
-        $facetFields = $model->getFacetFields();
-        
         $collectionsDescriptions = array();
         $descriptions = $this->dbDriver->query('SELECT collection, status, model, mapping, license FROM resto.collections' . (isset($collectionName) ? ' WHERE collection=\'' . pg_escape_string($collectionName) . '\'' : ''));
         while ($collection = pg_fetch_assoc($descriptions)) {
@@ -73,8 +67,7 @@ class Functions_collections {
                 'status' => $collection['status'],
                 'propertiesMapping' => json_decode($collection['mapping'], true),
                 'license' => isset($collection['license']) ? json_decode($collection['license'], true) : null,
-                'osDescription' => $this->getOSDescriptions($collection['collection']),
-                'statistics' => $this->dbDriver->get(RestoDatabaseDriver::STATISTICS, array('collectionName' => $collection['collection'], 'facetFields' => $facetFields))
+                'osDescription' => $this->getOSDescriptions($collection['collection'])
             );
         }
         
