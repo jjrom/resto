@@ -362,10 +362,6 @@ class RestoFeatureUtil {
                     $corrected['bbox3857'] = RestoGeometryUtil::bboxToMercator($rawFeatureArray[$key]);
                     break;
                 
-                case 'totalcount':
-                    $corrected[$key] = (integer) $value;
-                    break;
-                
                 case 'keywords':
                     $corrected[$key] = $this->correctKeywords(json_decode($value, true), $this->collections[$rawFeatureArray['collection']]);
                     break;

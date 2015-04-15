@@ -316,19 +316,23 @@ class RestoFeatureCollection {
         /*
          * Load collections array
          */
-        for ($i = 0, $l = count($featuresArray); $i < $l; $i++) {
-            if (isset($this->collections) && !isset($this->collections[$featuresArray[$i]['properties']['collection']])) {
-                $this->collections[$featuresArray[$i]['properties']['collection']] = new RestoCollection($featuresArray[$i]['properties']['collection'], $this->context, $this->user, array('autoload' => true));
+        for ($i = 0, $l = count($featuresArray['features']); $i < $l; $i++) {
+            if (isset($this->collections) && !isset($this->collections[$featuresArray['features'][$i]['properties']['collection']])) {
+                $this->collections[$featuresArray['features'][$i]['properties']['collection']] = new RestoCollection($featuresArray['features'][$i]['properties']['collection'], $this->context, $this->user, array('autoload' => true));
             }
             $feature = new RestoFeature($this->context, $this->user, array(
-                'featureArray' => $featuresArray[$i],
-                'collection' => isset($this->collections) && isset($featuresArray[$i]['properties']['collection']) && $this->collections[$featuresArray[$i]['properties']['collection']] ? $this->collections[$featuresArray[$i]['properties']['collection']] : $this->defaultCollection
+                'featureArray' => $featuresArray['features'][$i],
+                'collection' => isset($this->collections) && isset($featuresArray['features'][$i]['properties']['collection']) && $this->collections[$featuresArray['features'][$i]['properties']['collection']] ? $this->collections[$featuresArray['features'][$i]['properties']['collection']] : $this->defaultCollection
             ));
             if (isset($feature)) {
                 $this->restoFeatures[] = $feature;
             }
-            $this->totalCount = isset($featuresArray[$i]['totalcount']) ? $featuresArray[$i]['totalcount'] : -1;
         }
+        
+        /*
+         * Total count
+         */
+        $this->totalCount = $featuresArray['totalcount'];
         
     }
 

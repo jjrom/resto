@@ -116,7 +116,7 @@ class Functions_features {
      * @return array
      * @throws Exception
      */
-    public function getFeatureDescription($context, $identifier, $collection = null, $filters = array()) {
+    public function getFeatureDescription($context, $user, $identifier, $collection = null, $filters = array()) {
         $model = isset($collection) ? $collection->model : new RestoModel_default();
         $filtersUtils = new Functions_filters();
         $result = $this->dbDriver->query('SELECT ' . implode(',', $filtersUtils->getSQLFields($model)) . ' FROM ' . (isset($collection) ? '_' . strtolower($collection->name) : 'resto') . '.features WHERE ' . $model->getDbKey('identifier') . "='" . pg_escape_string($identifier) . "'" . (count($filters) > 0 ? ' AND ' . join(' AND ', $filters) : ''));
@@ -422,7 +422,13 @@ class Functions_features {
         $featureUtil = new RestoFeatureUtil($context, $user, $collection);
         while ($result = pg_fetch_assoc($results)) {
             $featuresArray[] = $featureUtil->toFeatureArray($result);
+            if (isset($result['totalcount'])) {
+                $totalcount = $result['totalcount'];
+            }
         }
-        return $featuresArray;
+        return array(
+            'totalcount' => isset($totalcount) ? (integer) $totalcount : -1,
+            'features' => $featuresArray
+        );
     }
 }
