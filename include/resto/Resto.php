@@ -158,9 +158,7 @@ class Resto {
             
         }
         
-        if (isset($response)) {
-            $this->answer($response, isset($responseStatus) ? $responseStatus : 200);
-        }
+        $this->answer(isset($response) ? $response : null, isset($responseStatus) ? $responseStatus : 200);
         
     }
     
@@ -240,7 +238,9 @@ class Resto {
         /*
          * Stream data
          */
-        echo $response;
+        if (isset($response)) {
+            echo $response;
+        }
         
     }
     
