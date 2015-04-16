@@ -153,7 +153,7 @@ class Resto {
              * Code under 500 is an HTTP code - otherwise it is a resto error code
              * All resto error codes lead to HTTP 200 error code
              */
-            $responseStatus = $e->getCode() < 502 ? $e->getCode() : 200;
+            $responseStatus = $e->getCode() < 502 ? $e->getCode() : 400;
             $response = RestoUtil::json_format(array('ErrorMessage' => $e->getMessage(), 'ErrorCode' => $e->getCode()));
             
         }
