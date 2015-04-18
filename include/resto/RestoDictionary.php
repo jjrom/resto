@@ -34,8 +34,6 @@ abstract class RestoDictionary {
     const COUNTRY = 'country';
     const REGION = 'region';
     const STATE = 'state';
-    const ALL = 'all';
-    const LOCATION = 'location';
     const NOLOCATION = 'nolocation';
     
     /*
@@ -127,30 +125,37 @@ abstract class RestoDictionary {
     /**
      * Return keyword entry in dictionary identified by $name
      * 
-     * @param string $type : keyword type
      * @param string $name : normalized name
+     * @param array $types : keyword types to search in (null means all)
      * @param float $similarity : percentage of similarity
      * @return array ('keywords', 'type')
      */
-    public function getKeyword($type, $name, $similarity = 100) {
-        
-        if ($type === RestoDictionary::LOCATION) {
-            return $this->getLocationKeyword($name, $similarity);
-        }
-        
-        if ($type !== RestoDictionary::ALL && $type !== RestoDictionary::NOLOCATION) {
-            return $this->getKeywordFromKey($type, $name);
-        }
+    public function getKeyword($name, $types, $similarity = 100) {
         
         /*
          * keywords entry is an array of array
          */
         foreach(array_keys($this->dictionary['keywords']) as $currentType) {
-            if ($type === RestoDictionary::NOLOCATION && in_array($currentType, array(RestoDictionary::CONTINENT, RestoDictionary::COUNTRY, RestoDictionary::REGION, RestoDictionary::STATE))) {
-                continue;
+            if (isset($types)) {
+                if ($types[0] === RestoDictionary::NOLOCATION) {
+                    if (in_array($currentType, array(
+                        RestoDictionary::CONTINENT,
+                        RestoDictionary::COUNTRY,
+                        RestoDictionary::REGION,
+                        RestoDictionary::STATE
+                        
+                    ))) {
+                        continue;
+                    }
+                }
+                else {
+                    if (!in_array($currentType, $types)) {
+                        continue;
+                    }
+                }
             }
             if (isset($this->dictionary['keywords'][$currentType][$name])) {
-                return $this->getKeywordFromKey($currentType, $name);
+                return $this->getKeywordFromKey($name, $currentType);
             }
         }
         
@@ -294,43 +299,18 @@ abstract class RestoDictionary {
     }
     
     /**
-     * Return location keyword (i.e. one of continent, country, region or state)
-     * 
-     * @param string $name
-     * @param integer $similarity
-     * @return type
-     */
-    private function getLocationKeyword($name, $similarity) {
-        $continent = $this->getKeyword(RestoDictionary::CONTINENT, $name, $similarity);
-        if (isset($continent)) {
-            return $continent;
-        }
-        $country = $this->getKeyword(RestoDictionary::COUNTRY, $name, $similarity);
-        if (isset($country)) {
-            return $country;
-        }
-        $region = $this->getKeyword(RestoDictionary::REGION, $name, $similarity);
-        if (isset($region)) {
-            return $region;
-        }
-        return $this->getKeyword(RestoDictionary::STATE, $name, $similarity);
-    }
-    
-    /**
      * Return keyword 
      * 
-     * @param array $type
      * @param string $name
+     * @param array $type
      */
-    private function getKeywordFromKey($type, $name) {
-        if (isset($this->dictionary['keywords'][$type][$name])) {
-            if (!isset($this->dictionary['keywords'][$type][$name]['bbox'])) {
-                return array('keyword' => $this->dictionary['keywords'][$type][$name]['value'], 'type' => $type);
-            } else {
-                return array('keyword' => $this->dictionary['keywords'][$type][$name]['value'], 'bbox' => $this->dictionary['keywords'][$type][$name]['bbox'], 'isoa2' => $this->dictionary['keywords'][$type][$name]['isoa2'], 'type' => $type);
-            }
+    private function getKeywordFromKey($name, $type) {
+        if (!isset($this->dictionary['keywords'][$type][$name]['bbox'])) {
+            return array('keyword' => $this->dictionary['keywords'][$type][$name]['value'], 'type' => $type);
         }
-        return null;
+        else {
+            return array('keyword' => $this->dictionary['keywords'][$type][$name]['value'], 'bbox' => $this->dictionary['keywords'][$type][$name]['bbox'], 'isoa2' => $this->dictionary['keywords'][$type][$name]['isoa2'], 'type' => $type);
+        }
     }
     
 }

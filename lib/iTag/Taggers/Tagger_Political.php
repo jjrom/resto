@@ -119,7 +119,7 @@ class Tagger_Political extends Tagger {
             $query = 'SELECT name as name, normalize(name) as id, continent as continent, normalize(continent) as continentid, ' . $this->postgisArea($this->postgisIntersection('geom', $geom)) . ' as area FROM datasources.countries WHERE st_intersects(geom, ' . $geom . ') ORDER BY area DESC';
         }
         else {
-            $query = 'SELECT region, name as state, normalize(name) as stateid, normalize(region) as regionid, adm0_a3 as isoa3, ' .  $this->postgisArea($this->postgisIntersection('geom', $geom)) . ' as area, ' . $this->postgisIntersection('geom', $geom) . ' as wkb_geom FROM datasources.worldadm1level WHERE st_intersects(geom, ' . $geom . ') ORDER BY area DESC';
+            $query = 'SELECT region, name as state, normalize(name) as stateid, normalize(region) as regionid, adm0_a3 as isoa3, ' .  $this->postgisArea($this->postgisIntersection('geom', $geom)) . ' as area, ' . $this->postgisIntersection('geom', $geom) . ' as wkb_geom FROM datasources.states WHERE st_intersects(geom, ' . $geom . ') ORDER BY area DESC';
         }
         $results = $this->query($query);
         while ($element = pg_fetch_assoc($results)) {

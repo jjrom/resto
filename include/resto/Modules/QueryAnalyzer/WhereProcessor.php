@@ -103,6 +103,7 @@ class WhereProcessor {
      *   - Country
      *   - Capitals (i.e. PPLC toponyms or PPLG)
      *   - First Administrative division (i.e. PPLA toponyms)
+     *   - Region
      *   - State
      *   - Other toponyms
      * 
@@ -120,7 +121,7 @@ class WhereProcessor {
                 $bestPosition = $i;
                 break;
             }
-            if ($locations[$i]['type'] === 'state') {
+            if ($locations[$i]['type'] === 'state' || $locations[$i]['type'] === 'region') {
                 if (isset($locations[0]['fcode']) && $locations[0]['fcode'] !== 'PPLC' && $locations[0]['fcode'] !== 'PPLG' && $locations[0]['fcode'] !== 'PPLA') {
                     $bestPosition = $i;
                 }

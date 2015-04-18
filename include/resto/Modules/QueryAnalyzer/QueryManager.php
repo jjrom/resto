@@ -164,7 +164,12 @@ class QueryManager {
      * @return array
      */
     public function getLocationKeyword($name) {
-        return $this->dictionary->getKeyword(RestoDictionary::LOCATION, $name);
+        return $this->dictionary->getKeyword($name, array(
+            RestoDictionary::CONTINENT,
+            RestoDictionary::COUNTRY,
+            RestoDictionary::REGION,
+            RestoDictionary::STATE
+        ));
     }
     
     /**
@@ -174,7 +179,9 @@ class QueryManager {
      * @return array
      */
     public function getNonLocationKeyword($name) {
-        return $this->dictionary->getKeyword(RestoDictionary::NOLOCATION, $name);
+        return $this->dictionary->getKeyword($name, array(
+            RestoDictionary::NOLOCATION
+        ));
     }
     
     /**
