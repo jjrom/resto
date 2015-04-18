@@ -37,7 +37,7 @@ class iTag {
      * Configuration
      */
     private $config = array(
-        'areaLimit' => 9
+        'areaLimit' => 200000
     );
     
     /**
@@ -99,6 +99,11 @@ class iTag {
                 $references = array_merge($references, $tagger->references);
             }
         }
+        
+        /*
+         * Close database handler
+         */
+        pg_close($this->dbh);
         
         return array(
             'footprint' => $metadata['footprint'],

@@ -232,7 +232,7 @@ class Tagger_Always extends Tagger {
         if ($month === $magics[1] && $day < 21) {
             return true;
         }
-        return true;
+        return false;
     }
     
     /**
