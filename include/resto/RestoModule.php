@@ -32,6 +32,12 @@ abstract class RestoModule{
      */
     protected $options;
     
+    /*
+     * Indicates if database connection should 
+     * be closed
+     */
+    protected $closeDbh = false;
+    
     /**
      * Constructor
      * 

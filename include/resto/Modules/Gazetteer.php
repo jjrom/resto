@@ -202,6 +202,13 @@ class Gazetteer extends RestoModule {
                 }
         }
         
+        /*
+         * Close database handler
+         */
+        if ($this->closeDbh) {
+            pg_close($this->dbh);
+        }
+        
         return RestoLogUtil::success(count($this->results) . ' toponym(s) found', array(
             'query' => $params['q'],
             'lang' => $this->context->dictionary->language,

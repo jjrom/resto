@@ -158,6 +158,13 @@ class Resto {
             
         }
         
+        /*
+         * Close database handler
+         */
+        if (isset($this->context) && isset($this->context->dbDriver)) {
+            $this->context->dbDriver->closeDbh();
+        }
+        
         $this->answer(isset($response) ? $response : null, isset($responseStatus) ? $responseStatus : 200);
         
     }

@@ -471,6 +471,15 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     }
     
     /**
+     * Close database handler
+     */
+    public function closeDbh() {
+        if (isset($this->dbh)) {
+            pg_close($this->dbh);
+        }
+    }
+    
+    /**
      * Return $sentence in lowercase and without accent
      * 
      * This function is superseed in RestoDabaseDriver_PostgreSQL and use

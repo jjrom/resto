@@ -146,4 +146,8 @@ abstract class RestoDatabaseDriver {
      */
     abstract public function update($typeName, $params);
     
+    /**
+     * Close database handler
+     */
+    abstract public function closeDbh();
 }

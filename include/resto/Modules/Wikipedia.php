@@ -117,7 +117,14 @@ class Wikipedia extends RestoModule {
             $entry['url'] = '//' . $this->context->dictionary->language . '.wikipedia.com/wiki/' . rawurlencode($entry['title']);
             $result[] = $entry;
         }
-
+        
+        /*
+         * Close database handler
+         */
+        if ($this->closeDbh) {
+            pg_close($this->dbh);
+        }
+        
         return $result;
     }
 
