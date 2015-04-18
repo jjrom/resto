@@ -23,8 +23,10 @@ If not already done, download resto sources to $RESTO_HOME
 * PostgreSQL (v9.3+) with json support and **unaccent** extension
 * PostGIS (v2.0+)
 
-Note: resto could work with lower version of the specified requirements.
+**Note 1:** resto could work with lower version of the specified requirements.
 However there is no guaranty of success and unwanted result may occured !
+
+**Note 2:** Apache server can be replaced by nginx server (see configuration)
 
 ### Install resto database
 
@@ -74,13 +76,15 @@ If you want to use iTag with resto, you should install it (follow the [instructi
 
 ## Configuration
 
-### Apache Configuration
+**Note** : resto has been tested on both Apache and nginx web server.
+Choose between configuration 1 and 2 depending on your configuration
+
+### Web server option 1 : Apache
 
 The first thing to do is to configure Apache (or wathever is your web server) to support URL rewriting.
 
 Basically, with URLs rewriting every request sent to resto application will end up to index.php. For example,
 http://localhost/resto/whatever/youwant/to/access will be rewrite as http://localhost/resto/index.php?restoURL=/whatever/youwant/to/access
-
 
 **Check that mod_rewrite is installed**
 
@@ -114,11 +118,6 @@ For Apache >= 2.4 :
             Require all granted
         </Directory>
 
-**Check "RewriteBase" value within $RESTO_TARGET/.htaccess**
-
-Edit this value so it matches your alias name. If you use the same alias as in 2. (i.e. '/resto/')
-there is no need to edit $RESTO_TARGET/.htaccess file
-
 **Configure apache to support https (optional)**
 
 resto can be accessed either in http or https. For security reason, https is prefered when
@@ -130,10 +129,44 @@ This document does not explain how to turn https on - but your system administra
 
 Note: a step by step guide for installing https on Mac OS X is provided in the FAQ section below
 
+**IMPORTANT - Configure "RewriteBase" value within $RESTO_TARGET/.htaccess**
+
+Edit this value so it matches your alias name. If you use the same alias as in 2. (i.e. '/resto/')
+there is no need to edit $RESTO_TARGET/.htaccess file
+
 **Restart apache**
 
         apachectl restart
 
+### Web server option 2 : nginx
+
+For a comprehensive migration from apache to nginx, [you should read this article](https://www.digitalocean.com/community/tutorials/how-to-migrate-from-an-apache-web-server-to-nginx-on-an-ubuntu-vps)
+
+The resto nginx configuration block should look like this :
+    
+        # Tell nginx to use php-fhm
+        location ~ \.php$ {
+                fastcgi_split_path_info ^(.+\.php)(/.+)$;
+                fastcgi_pass unix:/var/run/php5-fpm.sock;
+                fastcgi_index index.php;
+                include fastcgi_params;
+        }
+
+        # deny access to Apache .htaccess files
+        location ~ /\.ht {
+                deny all;
+        }
+        
+        # resto url rewrite configuration
+        location /resto/ {
+                if (!-e $request_filename){
+                        rewrite ^/resto/(.*)$ /resto/index.php?RESToURL=$1 last; break;
+                }
+        }
+
+**IMPORTANT** the previous configuration assumes that your resto installation is in the 
+"resto" directory within the web server document root. If it is not the case, you should
+change all "/resto/" occurences in the configuration example to match your installation
 
 ### PostgreSQL configuration
 
