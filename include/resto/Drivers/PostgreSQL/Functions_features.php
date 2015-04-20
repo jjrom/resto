@@ -119,9 +119,9 @@ class Functions_features {
     public function getFeatureDescription($context, $user, $identifier, $collection = null, $filters = array()) {
         $model = isset($collection) ? $collection->model : new RestoModel_default();
         $filtersUtils = new Functions_filters();
-        $result = $this->dbDriver->query('SELECT ' . implode(',', $filtersUtils->getSQLFields($model)) . ' FROM ' . (isset($collection) ? '_' . strtolower($collection->name) : 'resto') . '.features WHERE ' . $model->getDbKey('identifier') . "='" . pg_escape_string($identifier) . "'" . (count($filters) > 0 ? ' AND ' . join(' AND ', $filters) : ''));
-        $arrayOfFeatureArray = $this->toFeatureArray($context, $user, $collection, $result);
-        return isset($arrayOfFeatureArray[0]) ? $arrayOfFeatureArray[0] : null;
+        $results = $this->dbDriver->query('SELECT ' . implode(',', $filtersUtils->getSQLFields($model)) . ' FROM ' . (isset($collection) ? '_' . strtolower($collection->name) : 'resto') . '.features WHERE ' . $model->getDbKey('identifier') . "='" . pg_escape_string($identifier) . "'" . (count($filters) > 0 ? ' AND ' . join(' AND ', $filters) : ''));
+        $arrayOfFeatureArray = $this->toFeatureArray($context, $user, $collection, $results);
+        return isset($arrayOfFeatureArray['features']) && isset($arrayOfFeatureArray['features'][0]) ? $arrayOfFeatureArray['features'][0] : null;
     }
     
     /**

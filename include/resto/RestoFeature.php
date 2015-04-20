@@ -189,7 +189,7 @@ class RestoFeature {
                 'featureIdentifier' => $options['featureIdentifier'],
                 'collection' => isset($this->collection) ? $this->collection : null
             ));
-            $this->featureArray = $featureDescription['features'];
+            $this->featureArray = $featureDescription;
         }
         /*
          * ...or from input array
