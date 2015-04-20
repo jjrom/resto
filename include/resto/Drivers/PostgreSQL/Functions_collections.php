@@ -102,6 +102,13 @@ class Functions_collections {
      */
     public function removeCollection($collection) {
         
+        /*
+         * Never remove a non empty collection
+         */
+        if (!$this->collectionIsEmpty($collection)) {
+            RestoLogUtil::httpError(403, 'Cannot delete a non empty collection ' . $collection->name);
+        }
+            
         $results = $this->dbDriver->query('SELECT collection FROM resto.collections WHERE collection=\'' . pg_escape_string($collection->name) . '\'');
         $schemaName = '_' . strtolower($collection->name);
         
@@ -350,4 +357,18 @@ class Functions_collections {
         return true;
     }
 
+    /**
+     * Return true if collection is empty, false otherwise
+     * 
+     * @param RestoCollection $collection
+     * @return boolean
+     */
+    private function collectionIsEmpty($collection) {
+        $query = 'SELECT count(identifier) as count FROM _' . strtolower($collection->name) . '.features';
+        $results = $this->dbDriver->fetch($this->dbDriver->query($query));
+        if ($results[0]['count'] === '0') {
+            return true;
+        }
+        return false;
+    }
 }
