@@ -271,11 +271,19 @@ class RestoUser{
     
     /**
      * Place order
+     * 
+     * @param array $data
      */
-    public function placeOrder() {
-        $order = $this->context->dbDriver->store(RestoDatabaseDriver::ORDER, array('email' => $this->profile['email']));
-        if (isset($order) && isset($this->cart)) {
-            $this->cart->clear();
+    public function placeOrder($data) {
+        $fromCart = isset($this->context->query['_fromCart']) ? filter_var($this->context->query['_fromCart'], FILTER_VALIDATE_BOOLEAN) : false;
+        if ($fromCart) {
+            $order = $this->context->dbDriver->store(RestoDatabaseDriver::ORDER, array('email' => $this->profile['email']));
+            if (isset($order) && isset($this->cart)) {
+                $this->cart->clear();
+            }
+        }
+        else {
+            $order = $this->context->dbDriver->store(RestoDatabaseDriver::ORDER, array('email' => $this->profile['email'], 'items' => $data));
         }
         return $order;
     }

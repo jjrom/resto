@@ -355,7 +355,7 @@ class RestoRoutePOST extends RestoRoute {
          * users/{userid}/orders
          */
         else if (isset($segments[2]) && $segments[2] === 'orders') {
-            return $this->POST_userOrders($segments[1]);
+            return $this->POST_userOrders($segments[1], $data);
         }
         
         /*
@@ -445,14 +445,15 @@ class RestoRoutePOST extends RestoRoute {
      *    users/{userid}/orders                         |  Send an order for {userid}
      * 
      * @param string $emailOrId
+     * @param array $data
      * @throws Exception
      */
-    private function POST_userOrders($emailOrId) {
+    private function POST_userOrders($emailOrId, $data) {
         
         /*
          * Order can only be modified by its owner or by admin
          */
-        $order = $this->getAuthorizedUser($emailOrId)->placeOrder();
+        $order = $this->getAuthorizedUser($emailOrId)->placeOrder($data);
         if ($order) {
             return RestoLogUtil::success('Place order', array(
                 'order' => $order

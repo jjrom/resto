@@ -57,6 +57,7 @@
  *    | _tk                |     string     | (For download/visualize/resetPassword) token for resource access
  *    |                                     | (For /api/users/checkToken) JWT profile token 
  *    | _rc                |     boolean    | (For search) true to perform the total count of search results
+ *    | _fromCart          |     boolean    | (For orders) true to order the content of the cart
  *    | callback           |     string     | (For JSON output only) name of callback funtion for JSON-P
  * 
  * Returned error

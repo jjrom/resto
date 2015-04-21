@@ -406,7 +406,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             case parent::ORDER:
                 $cartFunctions = new Functions_cart($this);
-                return $cartFunctions->placeOrder($params['email']);
+                return $cartFunctions->placeOrder($params['email'], isset($params['items']) ? $params['items'] : null);
             
             /*
              * Store query

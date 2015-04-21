@@ -179,15 +179,62 @@ class Functions_cart{
      * Place order for user
      * 
      * @param string $identifier
+     * @param array $items
      * 
      * @return array
      * @throws exception
      */
-    public function placeOrder($identifier) {
+    public function placeOrder($identifier, $items = null) {
         
         if (!isset($identifier)) {
             return false;
         }
+        
+        /*
+         * No input items => place order from cart
+         */
+        if (!isset($items)) {
+            return $this->placeOrderFromCart($identifier);
+        }
+        
+        /*
+         * Not a valid items => no order
+         */
+        if (!$this->isValidOrder($items)) {
+            return false;
+        }
+        
+        try {
+            
+            /*
+             * Get order items from cart
+             */
+            $orderId = $this->storeOrder($identifier, $items);
+            if ($orderId === -1) {
+                return false;
+            }
+            
+            return array(
+                'orderId' => $orderId,
+                'items' => $items
+            );
+            
+        } catch (Exception $e) {
+            RestoLogUtil::httpError($e->getCode(), $e->getMessage());
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Place order for user from cart - empty cart afterward
+     * 
+     * @param string $identifier
+     * 
+     * @return array
+     * @throws exception
+     */
+    private function placeOrderFromCart($identifier) {
         
         try {
             
@@ -197,21 +244,13 @@ class Functions_cart{
             $this->dbDriver->query('BEGIN');
                 
             /*
-             * Do not create empty orders
+             * Get order items from cart
              */
             $items = $this->getCartItems($identifier);
-            if (!isset($items) || count($items) === 0) {
+            $orderId = $this->storeOrder($identifier, $items);
+            if ($orderId === -1) {
                 return false;
             }
-            
-            $orderId = RestoUtil::encrypt($identifier . microtime());
-            $values = array(
-                '\'' . pg_escape_string($orderId) . '\'',
-                '\'' . pg_escape_string($identifier) . '\'',
-                '\'' . pg_escape_string(json_encode($items)) . '\'',
-                'now()'
-            );
-            $this->dbDriver->query('INSERT INTO usermanagement.orders (orderid, email, items, querytime) VALUES (' . join(',', $values) . ')');
             
             /*
              * Empty cart
@@ -229,6 +268,57 @@ class Functions_cart{
             RestoLogUtil::httpError($e->getCode(), $e->getMessage());
         }
         
+        return false;
+        
+    }
+    
+    /**
+     * Place order for user from cart - empty cart afterward
+     * 
+     * @param string $identifier
+     * @param array $items
+     * 
+     * @return array
+     * @throws exception
+     */
+    private function storeOrder($identifier, $items) {
+        
+        /*
+         * Do not create empty orders
+         */
+        if (!isset($items) || count($items) === 0) {
+            return -1;
+        }
+        
+        try {
+            
+            $orderId = RestoUtil::encrypt($identifier . microtime());
+            $values = array(
+                '\'' . pg_escape_string($orderId) . '\'',
+                '\'' . pg_escape_string($identifier) . '\'',
+                '\'' . pg_escape_string(json_encode($items)) . '\'',
+                'now()'
+            );
+            $this->dbDriver->query('INSERT INTO usermanagement.orders (orderid, email, items, querytime) VALUES (' . join(',', $values) . ')');
+            
+        } catch (Exception $e) {
+            RestoLogUtil::httpError($e->getCode(), $e->getMessage());
+        }
+        
+        return $orderId;
+        
+    }
+    
+    /**
+     * Check if an array items is a valid order.
+     * A valid order should be an array of array
+     * 
+     * @param type $items
+     */
+    private function isValidOrder($items) {
+        if (is_array($items) && count($items) > 0 && is_array($items[0])) {
+            return true;
+        }
         return false;
     }
     
