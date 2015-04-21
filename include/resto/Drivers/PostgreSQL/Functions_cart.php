@@ -39,10 +39,11 @@ class Functions_cart{
      * Return cart for user
      * 
      * @param string $identifier
+     * @param boolean associative
      * @return array
      * @throws exception
      */
-    public function getCartItems($identifier) {
+    public function getCartItems($identifier, $associative = true) {
         
         $items = array();
         
@@ -53,7 +54,12 @@ class Functions_cart{
         $query = 'SELECT itemid, item FROM usermanagement.cart WHERE email=\'' . pg_escape_string($identifier) . '\'';
         $results = $this->dbDriver->query($query, 500, 'Cannot get cart items');
         while ($result = pg_fetch_assoc($results)) {
-            $items[$result['itemid']] = json_decode($result['item'], true);
+            if ($associative) {
+                $items[$result['itemid']] = json_decode($result['item'], true);
+            }
+            else {
+                $items[] = json_decode($result['item'], true);
+            }
         }
         
         return $items;
@@ -246,7 +252,7 @@ class Functions_cart{
             /*
              * Get order items from cart
              */
-            $items = $this->getCartItems($identifier);
+            $items = $this->getCartItems($identifier, false);
             $orderId = $this->storeOrder($identifier, $items);
             if ($orderId === -1) {
                 return false;
