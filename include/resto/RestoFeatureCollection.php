@@ -192,11 +192,21 @@ class RestoFeatureCollection {
         $analysis = $this->analyze($originalFilters);
         
         /*
+         * Completely not understood query - return an empty result without
+         * launching a search on the database
+         */
+        if (isset($analysis['notUnderstood'])) {
+             $this->restoFeatures = array();
+             $this->totalCount = 0;
+        }
+        /*
          * Read features from database
          * If '_rc' parameter is set to true, then totalCount is also computed
-         */
-        $forceCount = isset($this->context->query['_rc']) ? filter_var($this->context->query['_rc'], FILTER_VALIDATE_BOOLEAN) : false;
-        $this->loadFeatures($analysis['searchFilters'], $limit, $offset, $forceCount);
+         */   
+        else {
+            $forceCount = isset($this->context->query['_rc']) ? filter_var($this->context->query['_rc'], FILTER_VALIDATE_BOOLEAN) : false;
+            $this->loadFeatures($analysis['searchFilters'], $limit, $offset, $forceCount);
+        }
         
         /*
          * Set description
@@ -341,7 +351,6 @@ class RestoFeatureCollection {
      *  - change parameter keys to model parameter key
      *  - remove unset parameters
      *  - remove all HTML tags from input to avoid XSS injection
-     *  - convert productIdentifier to identifier
      */
     private function getOriginalFilters() {
         $params = array();
@@ -575,6 +584,17 @@ class RestoFeatureCollection {
          * Analyse query
          */
         $analysis = $this->queryAnalyzer->analyze($params['searchTerms']);
+        
+        /*
+         * Not understood - return error
+         */
+        if (empty($analysis['analyze']['What']) && empty($analysis['analyze']['When']) && empty($analysis['analyze']['Where'])) {
+            return array(
+                'notUnderstood' => true,
+                'searchFilters' => $params,
+                'analysis' => $analysis
+            );
+        }
         
         /*
          * What
