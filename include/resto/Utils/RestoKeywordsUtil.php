@@ -137,6 +137,13 @@ class RestoKeywordsUtil {
         }
         
         /*
+         * Population
+         */
+        if (isset($iTagFeature['content']['population'])) {
+            $keywords = array_merge($keywords, $this->getPopulationKeywords($iTagFeature['content']['population']));
+        }
+        
+        /*
          * Keywords
          */
         if (isset($iTagFeature['content']['keywords'])) {
@@ -223,6 +230,11 @@ class RestoKeywordsUtil {
         return array();
     }
     
+    /**
+     * Get continents keywords
+     * 
+     * @param array $properties
+     */
     private function getContinentsKeywords($properties) {
         return $this->getGenericKeywords($properties, array(
             'type' => 'continent',
@@ -231,6 +243,11 @@ class RestoKeywordsUtil {
         ));
     }
 
+    /**
+     * Get countries keywords
+     * 
+     * @param array $properties
+     */
     private function getCountriesKeywords($properties, $parentHash) {
         return $this->getGenericKeywords($properties, array(
             'type' => 'country',
@@ -239,6 +256,11 @@ class RestoKeywordsUtil {
         ));
     }
 
+    /**
+     * Get regions keywords
+     * 
+     * @param array $properties
+     */
     private function getRegionsKeywords($properties, $parentHash) {
         return $this->getGenericKeywords($properties, array(
             'type' => 'region',
@@ -247,6 +269,11 @@ class RestoKeywordsUtil {
         ));
     }
 
+    /**
+     * Get states keywords
+     * 
+     * @param array $properties
+     */
     private function getStatesKeywords($properties, $parentHash) {
         return $this->getGenericKeywords($properties, array(
             'type' => 'state',
@@ -255,14 +282,22 @@ class RestoKeywordsUtil {
         ));
     }
     
-    
+    /**
+     * Get generic keyword
+     * 
+     * @param array $property
+     * @param string $type
+     * @param string $defaultName
+     * @param string $parentHash
+     * 
+     */
     private function getGenericKeyword($property, $type, $defaultName, $parentHash) {
         $propertyId = isset($property['id']) ? $property['id'] : $type . ':' . $defaultName;
         $hash = RestoUtil::getHash($propertyId, $parentHash);
-        list($type, $normalized) = explode(':', $propertyId, 2);
+        $exploded = explode(':', $propertyId);
         $value = array(
             'name' => isset($property['name']) ? $property['name'] : $defaultName,
-            'normalized' => $normalized,
+            'normalized' => $exploded[1],
             'type' => $type
         );
         if (isset($parentHash)) {
@@ -277,6 +312,13 @@ class RestoKeywordsUtil {
         );
     }
     
+    /**
+     * Get generic keywords
+     * 
+     * @param type $properties
+     * @param type $options
+     * @return type
+     */
     private function getGenericKeywords($properties, $options) {
         $keywords = array();
         for ($i = 0, $ii = count($properties); $i < $ii; $i++) {
@@ -450,6 +492,23 @@ class RestoKeywordsUtil {
                 'name' => $day,
                 'type' => 'day',
                 'parentHash' => $parentHash   
+            )
+        );
+    }
+    
+    /**
+     * Get keywords from iTag 'population' property
+     * 
+     * @param array $populationProperty
+     */
+    private function getPopulationKeywords($populationProperty) {
+        $hash = RestoUtil::getHash('other:population');
+        return array(
+            $hash => array(
+                'name' => 'Population',
+                'type' => 'other',
+                'count' => $populationProperty['count'],
+                'densityPerSquareKm' => $populationProperty['densityPerSquareKm']
             )
         );
     }
