@@ -35,6 +35,7 @@ class RestoRouteGET extends RestoRoute {
      *    api/collections/{collection}/search           |  Search on {collection}
      *    api/collections/describe                      |  Opensearch service description at collections level
      *    api/collections/{collection}/describe         |  Opensearch service description for products on {collection}
+     *    api/users/connect                             |  Connect and return a new valid connection token
      *    api/users/resetPassword                       |  Ask for password reset (i.e. reset link sent to user email adress)
      *    api/users/checkToken                          |  Check if token is valid
      *    api/users/{userid}/activate                   |  Activate users with activation code
