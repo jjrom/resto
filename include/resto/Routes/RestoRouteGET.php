@@ -501,6 +501,7 @@ class RestoRouteGET extends RestoRoute {
             return $this->GET_userSignatures($segments[1], isset($segments[3]) ? $segments[3] : null);
         }
         
+        return RestoLogUtil::httpError(404);
     }
 
     /**
