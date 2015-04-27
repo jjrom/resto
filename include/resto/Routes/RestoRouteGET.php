@@ -300,11 +300,14 @@ class RestoRouteGET extends RestoRoute {
             if ($this->context->dbDriver->execute(RestoDatabaseDriver::ACTIVATE_USER, array('userid' => $userid, 'activationCode' => $this->context->query['act']))) {
 
                 /*
-                 * Redirect to a human readable page...
+                 * Close database handler and redirect to a human readable page...
                  */
                 if (isset($this->context->query['redirect'])) {
+                    if (isset($this->context->dbDriver)) {
+                        $this->context->dbDriver->closeDbh();
+                    }
                     header('Location: ' . $this->context->query['redirect']);
-                    return null;
+                    exit();
                 }
                 /*
                  * ...or return json stream otherwise
