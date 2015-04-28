@@ -304,8 +304,9 @@ class WhenExtractor {
             );
         }
         
-        if (is_numeric($word)) {
-            $day = intval($word);
+        $number = $this->queryManager->dictionary->getNumber($word);
+        if (is_numeric($number)) {
+            $day = intval($number);
             if ($day > 0 && $day < 31) {
                 return array(
                     'day' => $day < 10 ? '0' . $day : $day
