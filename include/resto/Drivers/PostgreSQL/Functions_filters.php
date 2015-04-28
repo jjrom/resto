@@ -107,10 +107,14 @@ class Functions_filters {
          */
         foreach (array_keys($model->searchFilters) as $filterName) {
             
+            if (!isset($params[$filterName]) || $params[$filterName] === '') {
+                continue;
+            }
+            
             /*
              * First check if filter is valid and as an associated column within database
              */
-            if (!in_array($filterName, $this->excludedFilters) && !empty($params[$filterName]) && $model->getDbKey($model->searchFilters[$filterName]['key'])) {
+            if (!in_array($filterName, $this->excludedFilters) && $model->getDbKey($model->searchFilters[$filterName]['key'])) {
                 $filter = $this->prepareFilterQuery($model, $params, $filterName);
                 if (isset($filter) && $filter !== '') {
                     $filters[] = $filter;
