@@ -119,16 +119,16 @@ class RestoDictionary_en extends RestoDictionary {
          * Numbers
          */
         'numbers' => array(
-            '1' => array('one'),
-            '2' => array('two'),
-            '3' => array('three'),
-            '4' => array('four'),
-            '5' => array('five'),
-            '6' => array('six'),
-            '7' => array('seven'),
-            '8' => array('eight'),
-            '9' => array('nine'),
-            '10' => array('ten'),
+            '1' => array('one', '1st'),
+            '2' => array('two', '2nd'),
+            '3' => array('three', '3rd'),
+            '4' => array('four', '4th'),
+            '5' => array('five', '5th'),
+            '6' => array('six', '6th'),
+            '7' => array('seven', '7th'),
+            '8' => array('eight', '8th'),
+            '9' => array('nine', '9th'),
+            '10' => array('ten', '10th'),
             '100' => array('hundred'),
             '1000' => array('thousand')
         ),
