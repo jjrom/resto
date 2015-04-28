@@ -489,6 +489,14 @@ class RestoFeatureCollection {
      * @return array
      */
     private function getLink($rel, $title, $params) {
+        
+        /*
+         * Do not set count if equal to default limit
+         */
+        if (isset($params['count']) && $params['count'] === $this->context->dbDriver->resultsPerPage) {
+            unset($params['count']);
+        }
+            
         return array(
             'rel' => $rel,
             'type' => RestoUtil::$contentTypes['json'],
