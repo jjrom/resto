@@ -509,10 +509,11 @@ class RestoUtil {
      * Read file content attached in POST request
      * 
      * @param string $uploadDirectory
+     * @param boolean deleteAfterRead
      * @return type
      * @throws Exception
      */
-    private static function readFile($uploadDirectory) {
+    private static function readFile($uploadDirectory, $deleteAfterRead = true) {
         try {
             $fileToUpload = is_array($_FILES['file']['tmp_name']) ? $_FILES['file']['tmp_name'][0] : $_FILES['file']['tmp_name'];
             if (is_uploaded_file($fileToUpload)) {
@@ -522,6 +523,9 @@ class RestoUtil {
                 $fileName = $uploadDirectory . DIRECTORY_SEPARATOR . (substr(sha1(mt_rand() . microtime()), 0, 15));
                 move_uploaded_file($fileToUpload, $fileName);
                 $lines = file($fileName);
+                if ($deleteAfterRead) {
+                    unlink($fileName);
+                }
             }
         } catch (Exception $e) {
             RestoLogUtil::httpError(500, 'Cannot upload file(s)');
