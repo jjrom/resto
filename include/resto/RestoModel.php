@@ -345,7 +345,7 @@ abstract class RestoModel {
         ),
         'eo:productType' => array(
             'key' => 'productType',
-            'osKey' => 'product',
+            'osKey' => 'productType',
             'operation' => '=',
             'options' => 'auto'
         ),
