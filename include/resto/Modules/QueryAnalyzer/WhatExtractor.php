@@ -40,37 +40,17 @@ class WhatExtractor {
      * Extract quantity
      * 
      * @param integer $startPosition
-     * @param array $endPosition
+     * @param integer $endPosition
+     * @param boolean $reverse
      */
-    public function extractQuantity($startPosition, $endPosition) {
+    public function extractQuantity($startPosition, $endPosition, $reverse = false) {
         
         if ($startPosition > $endPosition) {
             return null;
         }
         
-        /*
-         * Process words within $startPosition and $endPosition
-         */
-        $word = '';
-        for ($i = $startPosition; $i <= $endPosition; $i++) {
-
-            /*
-             * Reconstruct word from words without stop words
-             */
-            if ($this->queryManager->isValidPosition($i) && !$this->queryManager->isStopWordPosition($i)) {
-                $word = trim($word . ' ' . $this->queryManager->words[$i]['word']);
-            }
-            
-            $quantity = $this->getQuantity($word);
-            if (isset($quantity)) {
-                return array_merge($quantity, array(
-                    'startPosition' => $startPosition,
-                    'endPosition' => $i
-                ));
-            }
-            
-        }
-        return null;
+        return $reverse ? $this->extractQuantityRightToLeft($startPosition, $endPosition) : $this->extractQuantityLeftToRight($startPosition, $endPosition);
+        
     }
     
     /**
@@ -246,6 +226,74 @@ class WhatExtractor {
         }
         
         return null;
+    }
+    
+    /**
+     * Extract quantity - parsing words left to right
+     * 
+     * @param integer $startPosition
+     * @param integer $endPosition
+     */
+    private function extractQuantityLeftToRight($startPosition, $endPosition) {
+        
+        /*
+         * Process words within $startPosition and $endPosition
+         */
+        $word = '';
+        for ($i = $startPosition; $i <= $endPosition; $i++) {
+
+            /*
+             * Reconstruct word from words without stop words
+             */
+            if ($this->queryManager->isValidPosition($i) && !$this->queryManager->isStopWordPosition($i)) {
+                $word = trim($word . ' ' . $this->queryManager->words[$i]['word']);
+            }
+            
+            $quantity = $this->getQuantity($word);
+            if (isset($quantity)) {
+                return array_merge($quantity, array(
+                    'startPosition' => $startPosition,
+                    'endPosition' => $i
+                ));
+            }
+            
+        }
+        return null;
+        
+    }
+    
+    /**
+     * Extract quantity - parsing words right to left
+     * 
+     * @param integer $startPosition
+     * @param integer $endPosition
+     */
+    private function extractQuantityRightToLeft($startPosition, $endPosition) {
+        
+        /*
+         * Process words within $startPosition and $endPosition
+         */
+        $word = '';
+        for ($i = $endPosition; $i >= $startPosition; $i--) {
+            
+            /*
+             * Reconstruct word from words without stop words
+             */
+            if ($this->queryManager->isValidPosition($i) && !$this->queryManager->isStopWordPosition($i)) {
+                $word = trim($this->queryManager->words[$i]['word'] . ' ' . $word);
+            }
+
+            $quantity = $this->getQuantity($word);
+            if (isset($quantity)) {
+                return array_merge($quantity, array(
+                    'startPosition' => $i,
+                    'endPosition' => $endPosition
+                ));
+            }
+        }
+        
+        return null;
+        
     }
     
 }

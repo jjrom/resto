@@ -253,7 +253,7 @@ class WhatProcessor {
         /*
          * Quantity ?
          */
-        $quantity = $this->extractor->extractQuantity($startPosition + $delta, $this->queryManager->getEndPosition($startPosition + $delta));
+        $quantity = $this->extractor->extractQuantity($startPosition + $delta, $this->queryManager->getEndPosition($startPosition + $delta), false);
         if (isset($quantity)) {
             $this->addToResult(array(
                 $quantity['key'] => $with ? ']0' : 0
@@ -301,7 +301,7 @@ class WhatProcessor {
          * <between> ... "unit" "quantity"
          */
         if (!isset($quantity)) {
-            $quantity = $this->extractor->extractQuantity($normalizedUnit['endPosition'] + 1, $this->queryManager->length);
+            $quantity = $this->extractor->extractQuantity($normalizedUnit['endPosition'] + 1, $this->queryManager->length, false);
         }
         
         /*
@@ -347,7 +347,7 @@ class WhatProcessor {
          * <between> ... "unit" "quantity"
          */
         if (!isset($quantity)) {
-            $quantity = $this->extractor->extractQuantity($startPosition, $this->queryManager->length);
+            $quantity = $this->extractor->extractQuantity($startPosition, $this->queryManager->length, false);
         }
         
         /*
@@ -395,7 +395,7 @@ class WhatProcessor {
          * <xxx> (to) "numeric" "unit" (of) "quantity"
          */
         if (!isset($quantity)) {
-            $quantity = $this->extractor->extractQuantity($valuedUnit['endPosition'] + 1, $this->queryManager->length);
+            $quantity = $this->extractor->extractQuantity($valuedUnit['endPosition'] + 1, $this->queryManager->length, false);
         }
 
         /*
