@@ -771,7 +771,7 @@ class WhenProcessor {
      * @param array $secondDate
      */
     private function dateIntervalIsValid($firstDate, $secondDate) {
-        if (empty($firstDate['date']) && empty($secondDate['date'])) {
+        if (empty($firstDate['date']) || empty($secondDate['date'])) {
             return false;
         }
         $diff = array_diff($firstDate['date'], $secondDate['date']);
