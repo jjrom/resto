@@ -174,10 +174,9 @@ class Functions_users {
      * @param string $token
      */
     public function revokeToken($token) {
-        if (!isset($token)) {
-            return true;
+        if (isset($token) && !$this->isTokenRevoked($token)) {
+            $this->dbDriver->query('INSERT INTO usermanagement.revokedtokens (token) VALUES(\'' . pg_escape_string($token) . '\')');
         }
-        $this->dbDriver->query('INSERT INTO usermanagement.revokedtokens (token) VALUES(\'' . pg_escape_string($token) . '\')');
         return true;
     }
 
