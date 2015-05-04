@@ -231,7 +231,7 @@ class RestoRoutePOST extends RestoRoute {
             RestoLogUtil::httpError(403);
         }
 
-        if ($this->user->signLicense($data[0], true)) {
+        if (isset($data['collection']) && $this->user->signLicense($data['collection'], true)) {
             return RestoLogUtil::success('License signed');
         }
         else {
