@@ -14,8 +14,8 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('radar', 'radar', '
 -- Location modifiers
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('côtier', 'coastal', 'fr', 'location');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('côtière', 'coastal', 'fr', 'location');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('litoral', 'coastal', 'fr', 'location');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('litorale', 'coastal', 'fr', 'location');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('littoral', 'coastal', 'fr', 'location');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('littorale', 'coastal', 'fr', 'location');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('hémisphere nord', 'northern', 'fr', 'location');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('hémisphere sud', 'southern', 'fr', 'location');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('zone equatoriale', 'equatorial', 'fr', 'location');
