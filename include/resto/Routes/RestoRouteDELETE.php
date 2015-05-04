@@ -111,21 +111,15 @@ class RestoRouteDELETE extends RestoRoute {
      * 
      * Process HTTP DELETE request on users
      * 
+     *    users/{userid}/cart                           |  Remove all cart items
      *    users/{userid}/cart/{itemid}                  |  Remove {itemid} from {userid} cart
      * 
      * @param array $segments
      */
     private function DELETE_users($segments) {
         
-        /*
-         * Mandatory {itemid}
-         */
-        if (!isset($segments[3])) {
-            RestoLogUtil::httpError(404);
-        }
-        
         if ($segments[2] === 'cart') {
-            return $this->DELETE_userCart($segments[1], $segments[3]);
+            return $this->DELETE_userCart($segments[1], isset($segments[3]) ? $segments[3] : null);
         }
         else {
             RestoLogUtil::httpError(404);
@@ -133,11 +127,11 @@ class RestoRouteDELETE extends RestoRoute {
         
     }
     
-    
     /**
      * 
      * Process HTTP DELETE request on users cart
      * 
+     *    users/{userid}/cart                           |  Remove all cart items
      *    users/{userid}/cart/{itemid}                  |  Remove {itemid} from {userid} cart
      * 
      * @param string $emailOrId
@@ -160,8 +154,28 @@ class RestoRouteDELETE extends RestoRoute {
         }
         
         /*
-         * users/{userid}/cart/{itemid} 
+         * users/{userid}/cart
          */
+        if (!isset($itemId)) {
+            return $this->DELETE_userCartAllItems($user);
+        }
+        /*
+         * users/{userid}/cart/{itemId}
+         */
+        else {
+            return $this->DELETE_userCartItem($user, $itemId);
+        }
+     
+    }
+    
+    /**
+     * 
+     * Delete one item
+     * 
+     * @param RestoUser $user
+     * @param string $itemId
+     */
+    private function DELETE_userCartItem($user, $itemId) {
         if ($user->removeFromCart($itemId, true)) {
             return RestoLogUtil::success('Item removed from cart', array(
                 'itemid' => $itemId
@@ -173,4 +187,21 @@ class RestoRouteDELETE extends RestoRoute {
             ));
         }
     }
+    
+    /**
+     * 
+     * Delete all items within cart
+     * 
+     * @param RestoUser $user
+     * @param string $itemId
+     */
+    private function DELETE_userCartAllItems($user) {
+        if ($user->clearCart(true)) {
+            return RestoLogUtil::success('Cart cleared');
+        }
+        else {
+            return RestoLogUtil::error('Cannot clear cart');
+        }
+    }
+    
 }

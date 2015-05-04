@@ -158,9 +158,14 @@ class RestoCart{
     
     /**
      * Remove all items from cart
+     * 
+     * @param boolean $synchronize : true to synchronize with database
      */
-    public function clear() {
+    public function clear($synchronize = false) {
         $this->items = array();
+        if ($synchronize) {
+            return $this->context->dbDriver->remove(RestoDatabaseDriver::CART_ITEMS, array('email' => $this->user->profile['email']));
+        }
     }
     
     /**

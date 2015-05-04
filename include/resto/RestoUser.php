@@ -263,6 +263,15 @@ class RestoUser{
     }
     
     /**
+     * Clear cart
+     * 
+     * @param boolean $synchronize
+     */
+    public function clearCart($synchronize = false) {
+        return isset($this->cart) ? $this->cart->clear($synchronize) : false;
+    }
+    
+    /**
      * Return user orders
      */
     public function getOrders() {

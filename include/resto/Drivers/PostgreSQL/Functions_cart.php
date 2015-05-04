@@ -166,6 +166,21 @@ class Functions_cart{
     }
     
     /**
+     * Remove all items from cart for user $identifier
+     * 
+     * @param string $identifier
+     * @return boolean
+     * @throws exception
+     */
+    public function clearCart($identifier) {
+        if (!isset($identifier)) {
+            return false;
+        }
+        $this->dbDriver->query('DELETE FROM usermanagement.cart WHERE email=\'' . pg_escape_string($identifier) . '\'', 500, 'Cannot clear cart');
+        return true;
+    }
+    
+    /**
      * Remove resource from cart
      * 
      * @param string $identifier

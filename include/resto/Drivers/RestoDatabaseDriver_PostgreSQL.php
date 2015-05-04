@@ -350,7 +350,14 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             case parent::CART_ITEM:
                 $cartFunctions = new Functions_cart($this);
                 return $cartFunctions->removeFromCart($params['email'], $params['itemId']);
-                
+            
+            /*
+             * Remove all cart items
+             */
+            case parent::CART_ITEMS:
+                $cartFunctions = new Functions_cart($this);
+                return $cartFunctions->clearCart($params['email']);
+            
             /*
              * Remove collection/feature rights for user
              */

@@ -58,6 +58,7 @@
  *    |                                     | (For /api/users/checkToken) JWT profile token 
  *    | _rc                |     boolean    | (For search) true to perform the total count of search results
  *    | _fromCart          |     boolean    | (For orders) true to order the content of the cart
+ *    | _clear             |     boolean    | (For POST /users/{userid}/cart) true to remove cart items before inserting new items
  *    | callback           |     string     | (For JSON output only) name of callback funtion for JSON-P
  * 
  * Returned error

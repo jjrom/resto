@@ -425,7 +425,16 @@ class RestoRoutePOST extends RestoRoute {
         /*
          * Cart can only be modified by its owner or by admin
          */
-        $items = $this->getAuthorizedUser($emailOrId)->addToCart($data, true);
+        $user = $this->getAuthorizedUser($emailOrId);
+        
+        /*
+         * Remove items first
+         */
+        $clear = isset($this->context->query['_clear']) ? filter_var($this->context->query['_clear'], FILTER_VALIDATE_BOOLEAN) : false;
+        if ($clear) {
+            
+        }
+        $items = $user->addToCart($data, true);
         
         if ($items) {
             return RestoLogUtil::success('Add items to cart', array(
