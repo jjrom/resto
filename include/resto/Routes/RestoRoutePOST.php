@@ -432,7 +432,7 @@ class RestoRoutePOST extends RestoRoute {
          */
         $clear = isset($this->context->query['_clear']) ? filter_var($this->context->query['_clear'], FILTER_VALIDATE_BOOLEAN) : false;
         if ($clear) {
-            
+            $user->clearCart(true);
         }
         $items = $user->addToCart($data, true);
         
