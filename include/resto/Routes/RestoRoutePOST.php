@@ -48,12 +48,12 @@ class RestoRoutePOST extends RestoRoute {
     public function route($segments) {
         
         /*
-         * Input data is mandatory for POST request
+         * Input data for POST request
          */
         $data = RestoUtil::readInputData($this->context->uploadDirectory);
-        if (!is_array($data) || count($data) === 0) {
+        /*if (!is_array($data) || count($data) === 0) {
             RestoLogUtil::httpError(400);
-        }
+        }*/
 
         switch($segments[0]) {
             case 'api':
@@ -436,7 +436,7 @@ class RestoRoutePOST extends RestoRoute {
         }
         $items = $user->addToCart($data, true);
         
-        if ($items) {
+        if ($items !== false) {
             return RestoLogUtil::success('Add items to cart', array(
                 'items' => $items
             ));
