@@ -59,6 +59,7 @@
  *    | _rc                |     boolean    | (For search) true to perform the total count of search results
  *    | _fromCart          |     boolean    | (For orders) true to order the content of the cart
  *    | _clear             |     boolean    | (For POST /users/{userid}/cart) true to remove cart items before inserting new items
+ *    | _bearer            |     string     | (For authentication) JWT token - has preseance over header authentication (see rocket)
  *    | callback           |     string     | (For JSON output only) name of callback funtion for JSON-P
  * 
  * Returned error
@@ -263,7 +264,16 @@ class Resto {
      * 
      */
     private function authenticate() {
-          
+        
+        /*
+         * Auhtentication through token in url
+         */
+        if (isset($this->context->query['_bearer'])) {
+            $this->authenticateBearer($this->context->query['_bearer']);
+            unset($this->context->query['_bearer']);
+            return true;
+        }
+        
         /*
          * Get authorization headers
          */
@@ -294,6 +304,8 @@ class Resto {
         if (!isset($this->user)) {
             $this->user = new RestoUser(null, $this->context);
         }
+        
+        return true;
         
     }
     
