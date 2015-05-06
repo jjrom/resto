@@ -1,18 +1,41 @@
 <?php
+
 /*
- * Copyright 2014 Jérôme Gasperi
+ * RESTo
+ * 
+ * RESTo - REstful Semantic search Tool for geOspatial 
+ * 
+ * Copyright 2013 Jérôme Gasperi <https://github.com/jjrom>
+ * 
+ * jerome[dot]gasperi[at]gmail[dot]com
+ * 
+ * 
+ * This software is governed by the CeCILL-B license under French law and
+ * abiding by the rules of distribution of free software.  You can  use,
+ * modify and/ or redistribute the software under the terms of the CeCILL-B
+ * license as circulated by CEA, CNRS and INRIA at the following URL
+ * "http://www.cecill.info".
  *
- * Licensed under the Apache License, version 2.0 (the "License");
- * You may not use this file except in compliance with the License.
- * You may obtain a copy of the License at:
+ * As a counterpart to the access to the source code and  rights to copy,
+ * modify and redistribute granted by the license, users are provided only
+ * with a limited warranty  and the software's author,  the holder of the
+ * economic rights,  and the successive licensors  have only  limited
+ * liability.
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * In this respect, the user's attention is drawn to the risks associated
+ * with loading,  using,  modifying and/or developing or reproducing the
+ * software by the user in light of its specific status of free software,
+ * that may mean  that it is complicated to manipulate,  and  that  also
+ * therefore means  that it is reserved for developers  and  experienced
+ * professionals having in-depth computer knowledge. Users are therefore
+ * encouraged to load and test the software's suitability as regards their
+ * requirements in conditions enabling the security of their systems and/or
+ * data to be ensured and,  more generally, to use and operate it in the
+ * same conditions as regards security.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations
- * under the License.
+ * The fact that you are presently reading this means that you have had
+ * knowledge of the CeCILL-B license and that you accept its terms.
+ * 
  */
 
 /**
@@ -59,25 +82,31 @@ class RestoModel_sentinel1 extends RestoModel {
         'missionTakeId' => array(
             'name' => 'missiontakeid',
             'type' => 'INTEGER'
+        ),
+        'location' => array(
+            'name' => 'location',
+            'type' => 'TEXT'
         )
     );
     
     /**
      * Constructor
+     * 
+     * @param RestoContext $context : Resto context
+     * @param RestoContext $user : Resto user
      */
-    public function __construct() {
-        parent::__construct();
+    public function __construct($context, $user) {
+        parent::__construct($context, $user);
     }
     
     /**
-     * Store feature within {collection}.features table following the class model
+     * Add feature to the {collection}.features table following the class model
      * 
      * @param array $data : array (MUST BE GeoJSON in abstract Model)
-     * @param RestoCollection $collection
-     * 
+     * @param string $collectionName : collection name
      */
-    public function storeFeature($data, $collection) {
-        return parent::storeFeature($this->parse(join('',$data)), $collection);
+    public function addFeature($data, $collectionName) {
+        return parent::addFeature($this->parse(join('',$data)), $collectionName);
     }
     
     /**
@@ -116,38 +145,44 @@ class RestoModel_sentinel1 extends RestoModel {
         $dom->loadXML(rawurldecode($xml));
         
         $geolocationGridPoint = $dom->getElementsByTagName('geolocationGridPoint');
-        $upperLeft = array();
-        $upperRight = array();
-        $lowerLeft = array();
-        $lowerRight = array();
+        $ul = array();
+        $ur = array();
+        $ll = array();
+        $lr = array();
         $lineMax = 0;
+	$lineMin = 0;
+	$lineMinStatus = 0;
         $pixelMax = 0;
         for ($i = 0, $ii = $geolocationGridPoint->length; $i < $ii; $i++) { 
             $line = (integer) $geolocationGridPoint->item($i)->getElementsByTagName('line')->item(0)->nodeValue;
             $pixel = (integer) $geolocationGridPoint->item($i)->getElementsByTagName('pixel')->item(0)->nodeValue;
-            $coordinates = array($geolocationGridPoint->item($i)->getElementsByTagName('longitude')->item(0)->nodeValue, $geolocationGridPoint->item($i)->getElementsByTagName('latitude')->item(0)->nodeValue);      
-            if ($line === 0) {
+            $coordinates = array($geolocationGridPoint->item($i)->getElementsByTagName('longitude')->item(0)->nodeValue, $geolocationGridPoint->item($i)->getElementsByTagName('latitude')->item(0)->nodeValue);     
+	    if ($lineMinStatus == 0)
+		{
+		  $lineMinStatus = 1;
+		  $lineMin=$line;
+		}
+            if ($line === $lineMin) {
                 if ($pixel === 0) {
-                    $upperLeft = $coordinates;
+                    $ul = $coordinates;
                 }
                 else if ($pixel >= $pixelMax) {
                     $pixelMax = $pixel;
-                    $upperRight = $coordinates;
+                    $ur = $coordinates;
                 }
             }
             else if ($line >= $lineMax) {
                 $lineMax = $line;
                 if ($pixel === 0) {
-                    $lowerLeft = $coordinates;
+                    $ll = $coordinates;
                 }
                 else if ($pixel >= $pixelMax) {
                     $pixelMax = $pixel;
-                    $lowerRight = $coordinates;
+                    $lr = $coordinates;
                 }
             }
         } 
-        $polygon = array($upperLeft, $upperRight, $lowerRight, $lowerLeft, $upperLeft);
-        
+        $polygon = array($ul, $ur, $lr, $ll, $ul);
         /*
          * Initialize feature
          */
@@ -158,19 +193,31 @@ class RestoModel_sentinel1 extends RestoModel {
                 'coordinates' => array($polygon)
             ),
             'properties' => array(
-                'organisationName' => 'ESA',
+                'productIdentifier' => $dom->getElementsByTagName('identifier')->item(0)->nodeValue,
+                'title' => $dom->getElementsByTagName('title')->item(0)->nodeValue,
+		'authority' => 'ESA',
                 'startDate' => $dom->getElementsByTagName('startTime')->item(0)->nodeValue,
                 'completionDate' => $dom->getElementsByTagName('stopTime')->item(0)->nodeValue,
                 'productType' => $dom->getElementsByTagName('productType')->item(0)->nodeValue,
-                'processingLevel' => 'L1',
+                'processingLevel' => 'LEVEL1',
                 'platform' => $dom->getElementsByTagName('missionId')->item(0)->nodeValue,
                 'sensorMode' => $dom->getElementsByTagName('mode')->item(0)->nodeValue,
                 'orbitNumber' => $dom->getElementsByTagName('absoluteOrbitNumber')->item(0)->nodeValue,
-            )
+            	'location'=> $this->getLocation($dom)
+	    )
         );
 
         return $feature;
         
+    }
+
+    function getLocation($dom) {
+        $startTime = $dom->getElementsByTagName('startTime')->item(0)->nodeValue;
+        $startTime = explode("T", $startTime);
+        $result = str_replace("-","/",$startTime[0]);
+        $missionId = $dom->getElementsByTagName('missionId')->item(0)->nodeValue;
+        $title= $dom->getElementsByTagName('title')->item(0)->nodeValue;
+	return $result."/".$missionId."/".$title;
     }
 
 }
