@@ -82,7 +82,7 @@ return array(
         /*
          * Url to call for password reset
          */
-        'resetPasswordUrl' => 'http://localhost/resto-client/#/resetPassword',
+        'resetPasswordUrl' => 'http://localhost/rocket/#/resetPassword',
         
         /*
          * Upload directory
@@ -192,6 +192,9 @@ return array(
         'QueryAnalyzer' => array(
             'activate' => true,
             'route' => 'api/query/analyze',
+            'options' => array(
+                'minimalQuantity' => 25
+            )
         ),
         
         /*

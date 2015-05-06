@@ -263,7 +263,7 @@ class WhatProcessor {
         $quantity = $this->extractor->extractQuantity($startPosition + $delta, $this->queryManager->getEndPosition($startPosition + $delta), false);
         if (isset($quantity)) {
             $this->addToResult(array(
-                $quantity['key'] => $with ? ']50' : 0
+                $quantity['key'] => $with ? ']' . $this->minimalQuantity : 0
             ));
             $endPosition = $quantity['endPosition'];
         }
