@@ -71,9 +71,10 @@ class Functions_general {
      * @throws Exception
      */
     public function tableIsEmpty($name, $schema = 'public') {
-        $query = 'SELECT 1 FROM ' . pg_escape_string($schema) . '.' . pg_escape_string($name) . '';
-        $results = $this->dbDriver->fetch($this->dbDriver->query(($query)));
-        return !empty($results);
+        $query = 'SELECT count(*) as count FROM ' . pg_escape_string($schema) . '.' . pg_escape_string($name) . '';
+        $results = $this->dbDriver->query(($query));
+        $result = pg_fetch_assoc($results);
+        return (integer) $result['count'] === 0 ? true : false;
     }
     
     /**
