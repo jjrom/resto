@@ -85,9 +85,20 @@ return array(
         'resetPasswordUrl' => 'http://localhost/rocket/#/resetPassword',
         
         /*
-         * Upload directory
+         * Upload directory (for POST with attachement request)
          */
-        'uploadDirectory' => '/tmp/resto_uploads'
+        'uploadDirectory' => '/tmp/resto_uploads',
+        
+        /*
+         * List of http origin that have CORS access to server
+         * (see http://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
+         * 
+         * If the array is empty, then every http origin have CORS access
+         */
+        'corsWhiteList' => array(
+            'localhost'
+        )
+        
     ),
     
     /*

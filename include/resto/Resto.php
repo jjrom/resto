@@ -119,6 +119,11 @@ class Resto {
      */
     private $inError = false;
     
+    /*
+     * CORS white list
+     */
+    private $corsWhiteList = array();
+    
     /**
      * Constructor
      * 
@@ -378,6 +383,13 @@ class Resto {
             RestoLogUtil::$debug = $config['general']['debug'];
         }
         
+        /*
+         * Set white list for CORS
+         */
+        if (isset($config['general']['corsWhiteList'])) {
+            $this->corsWhiteList = $config['general']['corsWhiteList'];
+        }
+        
         return $config;
     }
     
@@ -484,7 +496,7 @@ class Resto {
         /*
          * Only set access to known servers
          */
-        if (isset($httpOrigin)) {
+        if (isset($httpOrigin) && $this->corsIsAllowed($httpOrigin)) {
             header('Access-Control-Allow-Origin: ' . $httpOrigin);
             header('Access-Control-Allow-Credentials: true');
             header('Access-Control-Max-Age: 3600');
@@ -499,6 +511,35 @@ class Resto {
         if (isset($httpRequestHeaders)) {
             header('Access-Control-Allow-Headers: ' . $httpRequestHeaders);
         }
+    }
+    
+    /**
+     * Return true if $httpOrigin is allowed to do CORS
+     * If corsWhiteList is empty, then every $httpOrigin is allowed.
+     * Otherwise only origin in white list are allowed
+     * 
+     * @param {String} $httpOrigin
+     */
+    private function corsIsAllowed($httpOrigin) {
+        
+        /*
+         * No white list => all allowed
+         */
+        if (empty($this->corsWhiteList)) {
+            return true;
+        }
+        
+        $url = explode('//', $httpOrigin);
+        if (isset($url[1])) {
+            for ($i = count($this->corsWhiteList); $i--;) {
+                if ($this->corsWhiteList[$i] === $url[1]) {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+        
     }
     
 }
