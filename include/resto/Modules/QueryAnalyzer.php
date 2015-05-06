@@ -153,7 +153,7 @@ class QueryAnalyzer extends RestoModule {
          */
         $this->queryManager = new QueryManager($this->context->dictionary, $model);
         $this->whenProcessor = new WhenProcessor($this->queryManager);
-        $this->whatProcessor = new WhatProcessor($this->queryManager);
+        $this->whatProcessor = new WhatProcessor($this->queryManager, $this->options);
         if (isset($context->modules['Gazetteer'])) {
             $this->whereProcessor = new WhereProcessor($this->queryManager, new Gazetteer($context, $user, $context->modules['Gazetteer']));
         }

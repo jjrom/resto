@@ -42,14 +42,21 @@ class WhatProcessor {
      */
     private $extractor;
     
+    /*
+     * Minimal percentage for quantity
+     */
+    private $minimalQuantity;
+    
     /**
      * Constructor
      * 
      * @param QueryManager $queryManager
+     * @param Array $options
      */
-    public function __construct($queryManager) {
+    public function __construct($queryManager, $options) {
         $this->queryManager = $queryManager;
         $this->extractor = new WhatExtractor($this->queryManager);
+        $this->minimalQuantity = isset($options['minimalQuantity']) ? $options['minimalQuantity'] : 25;
     }
     
     /**
