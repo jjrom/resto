@@ -36,17 +36,6 @@ class Functions_collections {
     }
 
     /**
-     * List all collections
-     * 
-     * @return array
-     * @throws Exception
-     */
-    public function getCollections() {
-        $query = 'SELECT collection FROM resto.collections';
-        return $this->dbDriver->fetch($this->dbDriver->query($query));
-    }
-    
-    /**
      * Get description of all collections including facets
      * 
      * @param string $collectionName

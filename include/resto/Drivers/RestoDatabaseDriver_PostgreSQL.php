@@ -82,13 +82,6 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 return $cartFunctions->getCartItems($params['email']);
             
             /*
-             * Get collections list
-             */
-            case parent::COLLECTIONS:
-                $collectionsFunctions = new Functions_collections($this);
-                return $collectionsFunctions->getCollections();
-            
-            /*
              * Get collections descriptions
              */
             case parent::COLLECTIONS_DESCRIPTIONS:
