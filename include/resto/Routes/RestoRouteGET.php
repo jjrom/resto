@@ -563,17 +563,20 @@ class RestoRouteGET extends RestoRoute {
         $signatures = array();
         
         /*
+         * Get collections
+         */
+        $collections = $this->context->dbDriver->get(RestoDatabaseDriver::COLLECTIONS_DESCRIPTIONS);
+            
+        /*
          *  Get rights for collections
          */
         if (!isset($collectionName)) {
-            $collections = $this->context->dbDriver->get(RestoDatabaseDriver::COLLECTIONS);
             foreach ($collections as $collection) {
-                $collectionName = $collection['collection'];
-                $signatures[$collectionName] = $user->hasToSignLicense($collectionName);
+                $signatures[$collectionName] = $user->hasToSignLicense($collection);
             }
         }
         else {
-            $signatures[$collectionName] = $user->hasToSignLicense($collectionName);
+            $signatures[$collectionName] = $user->hasToSignLicense($collections[$collectionName]);
         }
 
         return RestoLogUtil::success('Signatures for ' . $user->profile['userid'], array(
