@@ -152,7 +152,7 @@ class Gazetteer extends RestoModule {
      */
     public function search($params, $normalize = true) {
         
-        if (!$this->dbh || isset($params) || !isset($params['q'])) {
+        if (!$this->dbh || !isset($params) || !isset($params['q'])) {
             return RestoLogUtil::httpError(400);
         }
         
