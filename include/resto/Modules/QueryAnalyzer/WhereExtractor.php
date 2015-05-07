@@ -169,7 +169,8 @@ class WhereExtractor {
                 $location = $this->gazetteer->search(array(
                     'q' => $toponymName,
                     'wkt' => true
-                ));
+                ),
+                false);
             }
             
             /*

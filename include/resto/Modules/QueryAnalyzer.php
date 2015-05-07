@@ -189,7 +189,7 @@ class QueryAnalyzer extends RestoModule {
      * @return type
      */
     public function analyze($query) {
-
+        
         $startTime = microtime(true);
         
         /*
@@ -401,7 +401,8 @@ class QueryAnalyzer extends RestoModule {
         if ($length === 0) {
             return $errors;
         }
-        
+        $error = null;
+        $currentErrorType = null;
         for ($i = 0; $i <= $length; $i++) {
             
             if ($i === $length) {

@@ -146,12 +146,13 @@ class Gazetteer extends RestoModule {
      *  );
      * 
      * @param array $query
+     * @param boolean $normalize
      * @return array
      * 
      */
-    public function search($params = array()) {
+    public function search($params, $normalize = true) {
         
-        if (!$this->dbh || !is_array($params) || !isset($params['q'])) {
+        if (!$this->dbh || isset($params) || !isset($params['q'])) {
             return RestoLogUtil::httpError(400);
         }
         
@@ -163,7 +164,7 @@ class Gazetteer extends RestoModule {
         /*
          * Remove accents from query and split it into 'toponym' and 'modifier'
          */
-        $query = $this->splitQuery($this->context->dbDriver->normalize($params['q']));
+        $query = $this->splitQuery($normalize ? $this->context->dbDriver->normalize($params['q']) : $params['q']);
         
         /*
          * Limit search to input type
