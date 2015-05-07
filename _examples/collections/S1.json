@@ -29,9 +29,9 @@
     },
     "propertiesMapping":{
         "parentIdentifier": "urn:ogc:def:EOP:ESA::SENTINEL-1:",
-        "quicklook" : "http://mapshup.com/data/ql/S1/{:identifier:}.png",
-        "metadata" : "http://mapshup.com/data/md/S1/{:identifier:}.xml",
-        "resource" : "/home/data/archives/S1/{:identifier:}.zip",
+        "quicklook" : "https://peps.cnes.fr/hpss/peps/data/{:location:}_quicklook.gif",
+        "metadata" : "https://peps.cnes.fr/hpss/peps/data/{:location:}_Metadata.xml",
+        "resource" : "/hpss/peps/data/{:location:}.zip",
         "resourceMimeType": "application/zip"
     }
 }
