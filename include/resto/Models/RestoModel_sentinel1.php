@@ -82,10 +82,6 @@ class RestoModel_sentinel1 extends RestoModel {
         'missionTakeId' => array(
             'name' => 'missiontakeid',
             'type' => 'INTEGER'
-        ),
-        'location' => array(
-            'name' => 'location',
-            'type' => 'TEXT'
         )
     );
     
@@ -203,7 +199,7 @@ class RestoModel_sentinel1 extends RestoModel {
                 'platform' => $dom->getElementsByTagName('missionId')->item(0)->nodeValue,
                 'sensorMode' => $dom->getElementsByTagName('mode')->item(0)->nodeValue,
                 'orbitNumber' => $dom->getElementsByTagName('absoluteOrbitNumber')->item(0)->nodeValue,
-            	'location'=> $this->getLocation($dom)
+            	'quicklook'=> $this->getLocation($dom)
 	    )
         );
 
