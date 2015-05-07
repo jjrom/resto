@@ -289,17 +289,17 @@ class RestoCollection {
      * Load collection parameters from RESTo database
      */
     private function loadFromStore() {
-        $description = $this->context->dbDriver->get(RestoDatabaseDriver::COLLECTIONS_DESCRIPTIONS, array(
+        $descriptions = $this->context->dbDriver->get(RestoDatabaseDriver::COLLECTIONS_DESCRIPTIONS, array(
             'collectionName' => $this->name
         ));
-        if (!isset($description)) {
+        if (!isset($descriptions) || !isset($descriptions[$this->name])) {
             RestoLogUtil::httpError(404);
         }
-        $this->model = RestoUtil::instantiate($description['model'], array());
-        $this->osDescription = $description['osDescription'];
-        $this->status = $description['status'];
-        $this->license = $description['license'];
-        $this->propertiesMapping = $description['propertiesMapping'];
+        $this->model = RestoUtil::instantiate($descriptions[$this->name]['model'], array());
+        $this->osDescription = $descriptions[$this->name]['osDescription'];
+        $this->status = $descriptions[$this->name]['status'];
+        $this->license = $descriptions[$this->name]['license'];
+        $this->propertiesMapping = $descriptions[$this->name]['propertiesMapping'];
         
     }
     

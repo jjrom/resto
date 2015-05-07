@@ -76,7 +76,7 @@ class Functions_collections {
          */
         $this->dbDriver->cache->store(array('getCollectionsDescriptions', $collectionName), $collectionsDescriptions);
         
-        return isset($collectionName) ? (isset($collectionsDescriptions[$collectionName]) ? $collectionsDescriptions[$collectionName] : null) : $collectionsDescriptions;
+        return $collectionsDescriptions;
         
     }
     
