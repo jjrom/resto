@@ -480,7 +480,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     }
     
     /**
-     * Return $sentence in lowercase and without accent
+     * Return $sentence in lowercase, without accent and with "'" character 
+     * replaced by a space
      * 
      * This function is superseed in RestoDabaseDriver_PostgreSQL and use
      * the inner function lower(unaccent($sentence)) defined in installDB.sh
@@ -497,7 +498,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 throw new Exception();
             }
             $result = pg_fetch_assoc($results);
-            return $result['normalized'];
+            return str_replace('\'', ' ', $result['normalized']);
         } catch (Exception $e) {
             return $sentence;
         }
