@@ -49,6 +49,12 @@ class RestoDictionary_en extends RestoDictionary {
     protected $dictionary = array(
         
         /*
+         * List of word prefixes that are removed 
+         * before analyze
+         */
+        'prefixes' => array(),
+        
+        /*
          * And modifiers
          */
         'andModifiers' => array(

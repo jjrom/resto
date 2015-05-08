@@ -274,6 +274,23 @@ abstract class RestoDictionary {
     }
     
     /**
+     * Strip unwnted prefix from word
+     *  
+     * @param string $word
+     */
+    public function stripPrefix($word) {
+        for ($i = count($this->dictionary['prefixes']); $i--;) {
+            $prefixLength = strlen($this->dictionary['prefixes'][$i]);
+            $wordLength = strlen($word);
+            if ($wordLength >= $prefixLength && substr($word, 0, $prefixLength) === $this->dictionary['prefixes'][$i]) {
+                $word = substr($word, $prefixLength, $wordLength);
+                break;
+            }
+        }
+        return $word;
+    }
+    
+    /**
      * Return the more similar dictionary keyword from input string
      * Return null if similarity is < 90%
      * 

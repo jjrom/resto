@@ -346,7 +346,7 @@ class QueryAnalyzer extends RestoModule {
      * Explode query into normalized array of words
      * 
      * In order :
-     *   - replace in query ' , and ; characters by space
+     *   - replace "," and ";" characters by space
      *   - transliterate query string afterward (i.e. all words in lowercase without accent)
      *   - split remaining query - split each terms with (" " character)
      *   - add a space between numeric value and '%' character
@@ -355,7 +355,7 @@ class QueryAnalyzer extends RestoModule {
      * @return array
      */
     private function queryToWords($query) {
-        $rawWords = RestoUtil::splitString($this->escapeMultiwords($this->context->dbDriver->normalize(str_replace(array('\'', ',', ';'), ' ', $query))));
+        $rawWords = RestoUtil::splitString($this->escapeMultiwords($this->removePrefixes($this->context->dbDriver->normalize(str_replace(array(',', ';'), ' ', $query)))));
         $words = array();
         for ($i = 0, $ii = count($rawWords); $i < $ii; $i++) {
             $term = trim($rawWords[$i]);
@@ -388,6 +388,21 @@ class QueryAnalyzer extends RestoModule {
             $query = str_replace(' ' . $multiword . ' ', ' "' . $multiword . '" ', $query);
         }
         return trim($query);
+    }
+    
+    /**
+     * Remove prefix from query words
+     * 
+     * @param string $query
+     * @return string
+     */
+    private function removePrefixes($query) {
+        $splittedQuery = explode(' ', $query);
+        $words = array();
+        for ($i = 0, $ii = count($splittedQuery); $i < $ii; $i++) {
+            $words[] = $this->queryManager->dictionary->stripPrefix($splittedQuery[$i]);
+        }
+        return join(' ', $words);
     }
     
     /**
@@ -451,10 +466,6 @@ class QueryAnalyzer extends RestoModule {
             }
         }
         return $inError;
-    }
-    
-    private function cleanWhen() {
-        
     }
     
 }

@@ -40,6 +40,12 @@ class RestoDictionary_fr extends RestoDictionary {
     protected $dictionary = array(
         
         /*
+         * List of word prefixes that are removed 
+         * before analyze
+         */
+        'prefixes' => array('l\'', 'd\''),
+        
+        /*
          * And modifiers
          */
         'andModifiers' => array(
@@ -82,7 +88,7 @@ class RestoDictionary_fr extends RestoDictionary {
         /*
          * Stop words i.e. excluded words
          */
-        'stopWords' => array('le', 'la', 'de', 'des', 'd', 'et', 'ou', 'l' ,'un', 'une'),
+        'stopWords' => array('le', 'la', 'de', 'des', 'et', 'ou', 'un', 'une'),
         /*
          * List of words in the query that are
          * considered as 'noise' for the query analysis
