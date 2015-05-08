@@ -37,7 +37,22 @@ class iTag {
      * Configuration
      */
     private $config = array(
-        'areaLimit' => 200000
+        
+        /*
+         * Maximum area allowed (in square kilometers)
+         * for LandCover computation 
+         */
+        'areaLimit' => 200000,
+        
+        /*
+         * Return WKT geometries
+         */
+        'returnGeometries' => false,
+        
+        /*
+         * Tolerance value for simplication (in degrees)
+         */
+        'geometryTolerance' => 0.1
     );
     
     /**
@@ -73,6 +88,11 @@ class iTag {
         if (!isset($metadata['footprint'])) {
             throw new Exception('Missing mandatory footprint', 500);
         }
+        
+        /*
+         * Convert footprint in case of -180/+180 meridian crossing
+         */
+        $metadata['footprint'] = $this->correctWrapDateLine($metadata['footprint']);
         
         /*
          * Datasources reference information
@@ -186,6 +206,72 @@ class iTag {
         
         return $class->newInstance($this->dbh, $this->config);
         
+    }
+    
+    /**
+     * Correct input polygon WKT from -180/180 crossing problem
+     * 
+     * @param String $footprint
+     */
+    private function correctWrapDateLine($footprint) {
+
+        /*
+         * Convert WKT POLYGON to array of coordinates
+         */
+        $coordinates = $this->wktToCoordinates($footprint);
+
+        /*
+         * If Delta(lon(i) - lon(i - 1)) is greater than 180 degrees then add 360 to lon
+         */
+        $add360 = false;
+        $lonPrev = $coordinates[0][0];
+        $latPrev = $coordinates[0][1];
+        $newCoordinates = array(array($lonPrev  % 360, $latPrev));
+        for ($i = 1, $ii = count($coordinates); $i < $ii; $i++) {
+            $lon = $coordinates[$i][0];
+            if ($lon - $lonPrev >= 180) {
+                $lon = $lon - 360;
+            } 
+            else if ($lon - $lonPrev <= -180) {
+                $lon = $lon + 360;
+            }
+            $lonPrev = $lon;
+            $latPrev = $coordinates[$i][1];
+            $newCoordinates[] = array($lon % 360, $coordinates[$i][1]);
+        }
+
+        return $this->coordinatesToWkt($newCoordinates);
+    }
+
+    /**
+     * Convert WKT into an array of coordinates
+     * Note - systematically add 360 degrees to longitude
+     * 
+     * @param string $footprint
+     * @return array
+     */
+    private function wktToCoordinates($footprint) {
+        $pairs = explode(',', str_replace('POLYGON((', ' ', str_replace('))', ' ', strtoupper($footprint))));
+        $coordinates = array();
+        for ($i = 0, $ii = count($pairs); $i < $ii; $i++) {
+            $lonlat = explode(' ', trim($pairs[$i]));
+            $coordinates[] = array(floatval($lonlat[0]) + 360, floatval($lonlat[1]));
+        }
+        return $coordinates;
+    }
+
+    /**
+     * Convert an array of coordinates into a WKT string
+     * 
+     * @param array $coordinates
+     * @return string
+     */
+    private function coordinatesToWkt($coordinates) {
+        $pairs = array();
+        for ($i = 0, $ii = count($coordinates); $i < $ii; $i++) {
+            $pairs[] = join(' ', $coordinates[$i]);
+        }
+        return 'POLYGON((' . join(',', $pairs) . '))';
     }
 
 }

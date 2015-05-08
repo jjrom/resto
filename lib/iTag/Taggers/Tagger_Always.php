@@ -31,23 +31,25 @@ class Tagger_Always extends Tagger {
     
     /*
      * Well known areas
+     * Note: longitude are from -360/360 to support corrected
+     * geometries (cf. iTag::correctWrapDateLine($footprint) function
      */
     private $areas = array(
         'equatorial' => array(
             'operator' => 'ST_Crosses',
-            'geometry' => 'ST_GeomFromText(\'LINESTRING(-180 0,180 0)\', 4326)'
+            'geometry' => 'ST_GeomFromText(\'LINESTRING(-360 0,360 0)\', 4326)'
         ),
         'tropical' => array(
             'operator' => 'ST_Contains',
-            'geometry' => 'ST_GeomFromText(\'POLYGON((-180 -23.43731,-180 23.43731,180 23.43731,180 -23.43731,-180 -23.43731))\', 4326)'
+            'geometry' => 'ST_GeomFromText(\'POLYGON((-360 -23.43731,-360 23.43731,360 23.43731,360 -23.43731,-360 -23.43731))\', 4326)'
         ),
         'southern' => array(
             'operator' => 'ST_Contains',
-            'geometry' => 'ST_GeomFromText(\'POLYGON((-180 0,-180 -90,180 -90,180 0,-180 0))\', 4326)'
+            'geometry' => 'ST_GeomFromText(\'POLYGON((-360 0,-360 -90,360 -90,360 0,-360 0))\', 4326)'
         ),
         'northern' => array(
             'operator' => 'ST_Contains',
-            'geometry' => 'ST_GeomFromText(\'POLYGON((-180 0,-180 90,180 90,180 0,-180 0))\', 4326)'
+            'geometry' => 'ST_GeomFromText(\'POLYGON((-360 0,-360 90,360 90,360 0,-360 0))\', 4326)'
         )
     );
     

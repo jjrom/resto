@@ -81,7 +81,7 @@ abstract class Tagger {
      * @return <float>
      */
     protected function percentage($part, $total) {
-        if (!isset($total) || $total === 0) {
+        if (!isset($total) || $total == 0) {
             return 100;
         }
         return min(array(100, floor(10000 * ($part / $total)) / 100));
