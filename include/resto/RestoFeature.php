@@ -145,7 +145,7 @@ class RestoFeature {
      * @param boolean $pretty : true to return pretty print
      */
     public function toJSON($pretty = false) {
-        return RestoUtil::json_format($feature, $pretty);
+        return RestoUtil::json_format($this->toArray(true), $pretty);
     }
     
     /**
