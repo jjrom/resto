@@ -436,7 +436,7 @@ class RestoRouteGET extends RestoRoute {
         /*
          * Or user has rigth but hasn't sign the license yet
          */
-        else if ($this->user->hasToSignLicense($collection) && empty($this->context->query['_tk'])) {
+        else if ($this->user->hasToSignLicense($collection->toArray(false)) && empty($this->context->query['_tk'])) {
             return array(
                 'ErrorMessage' => 'Forbidden',
                 'collection' => $collection->name,
@@ -565,18 +565,22 @@ class RestoRouteGET extends RestoRoute {
         /*
          * Get collections
          */
-        $collections = $this->context->dbDriver->get(RestoDatabaseDriver::COLLECTIONS_DESCRIPTIONS);
-            
+        $collectionsDescriptions = $this->context->dbDriver->get(RestoDatabaseDriver::COLLECTIONS_DESCRIPTIONS);
+          
         /*
          *  Get rights for collections
          */
         if (!isset($collectionName)) {
-            foreach ($collections as $collection) {
-                $signatures[$collectionName] = $user->hasToSignLicense($collection);
+            foreach ($collectionsDescriptions as $collectionDescription) {
+                $signatures[$collectionName] = array(
+                    'hasToSignLicense' => $user->hasToSignLicense($collectionDescription)
+                );
             }
         }
         else {
-            $signatures[$collectionName] = $user->hasToSignLicense($collections[$collectionName]);
+            $signatures[$collectionName] = array(
+                'hasToSignLicense' => $user->hasToSignLicense($collectionsDescriptions[$collectionName])
+            );
         }
 
         return RestoLogUtil::success('Signatures for ' . $user->profile['userid'], array(
