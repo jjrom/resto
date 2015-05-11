@@ -39,7 +39,6 @@ abstract class RestoDatabaseDriver {
     const FEATURE_DESCRIPTION = 14;
     const GROUPS = 15;
     const HANDLER = 16;
-    const HIERACHICAL_FACETS = 17;
     const KEYWORDS = 18;
     const LICENSE_SIGNED = 19;
     const ORDER = 20;

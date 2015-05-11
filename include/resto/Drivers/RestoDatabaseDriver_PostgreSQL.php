@@ -110,12 +110,6 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 return $rightsFunctions->getGroups();
             
             /*
-             * Get hierarchical facets
-             */
-            case parent::HIERACHICAL_FACETS:
-                //TODO return $this->getHierarchicalFacets($params['hash'], $params['collectionName']);
-                
-            /*
              * Get Keywords
              */
             case parent::KEYWORDS:

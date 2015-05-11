@@ -156,7 +156,7 @@ class RestoFeature {
         /*
          * Initialize ATOM feed
          */
-        $atomFeed = new RestoATOMFeed($this->featureArray['id'], isset($this->description['properties']['title']) ? $this->description['properties']['title'] : '', 'TODO');
+        $atomFeed = new RestoATOMFeed($this->featureArray['id'], isset($this->description['properties']['title']) ? $this->description['properties']['title'] : '', 'resto feature');
         
         /*
          * Entry for feature
