@@ -259,7 +259,7 @@ class RestoFeatureUtil {
      * @param string $thisUrl
      * @param RestoCollection $collection
      */
-    private function setDownloadService(&$properties, $thisUrl, $collection) {
+    private function setDownloadService(&$properties, $thisUrl, $collection) {        
         $properties['services']['download'] = array(
             'url' => RestoUtil::isUrl($properties['resource']) ? $properties['resource'] : $thisUrl. '/download'
         );
@@ -270,12 +270,19 @@ class RestoFeatureUtil {
         if (isset($properties['resourceChecksum'])) {
             $properties['services']['download']['checksum'] = $properties['resourceChecksum'];
         }
-        $properties['resourceInfos'] = array(
-            'path' => method_exists($collection->model,'generateResourcePath') ? $collection->model->generateResourcePath($properties) : $properties['resource'],
-            'mimeType' => $properties['services']['download']['mimeType'],
-            'size' => isset($properties['services']['download']['size']) ? $properties['services']['download']['size'] : null,
-            'checksum' => isset($properties['services']['download']['checksum']) ? $properties['services']['download']['checksum'] : null
-        );
+        
+        /*
+         * If resource is local (i.e. not external url), set resourceInfos array
+         */
+        if (RestoUtil::isUrl($properties['resource'])) {
+            $properties['resourceInfos'] = array(
+                'path' => method_exists($collection->model,'generateResourcePath') ? $collection->model->generateResourcePath($properties) : $properties['resource'],
+                'mimeType' => $properties['services']['download']['mimeType'],
+                'size' => isset($properties['services']['download']['size']) ? $properties['services']['download']['size'] : null,
+                'checksum' => isset($properties['services']['download']['checksum']) ? $properties['services']['download']['checksum'] : null
+            );
+        }
+        
     }
     
     /**

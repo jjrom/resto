@@ -133,7 +133,7 @@ class RestoFeature {
     public function toArray($publicOutput = false) {
         if ($publicOutput) {
             $feature = $this->featureArray;
-            unset ($feature['properties']['resourceInfos']);
+            unset($feature['properties']['resourceInfos']);
             return $feature;
         }
         return $this->featureArray;
