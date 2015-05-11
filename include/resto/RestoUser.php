@@ -132,12 +132,11 @@ class RestoUser{
      * 
      * @param string $collectionName
      * @param string $featureIdentifier
-     * @param string $resourceUrl
      * @param string $token
      * @return boolean
      */
-    public function canVisualize($collectionName = null, $featureIdentifier = null, $resourceUrl = null, $token = null){
-        return $this->canDownloadOrVisualize('visualize', $collectionName, $featureIdentifier, $resourceUrl, $token);
+    public function canVisualize($collectionName = null, $featureIdentifier = null, $token = null){
+        return $this->canDownloadOrVisualize('visualize', $collectionName, $featureIdentifier, $token);
     }
     
     /**
@@ -145,12 +144,11 @@ class RestoUser{
      * 
      * @param string $collectionName
      * @param string $featureIdentifier
-     * @param string $resourceUrl
      * @param string $token
      * @return boolean
      */
-    public function canDownload($collectionName = null, $featureIdentifier = null, $resourceUrl = null, $token = null){
-        return $this->canDownloadOrVisualize('download', $collectionName, $featureIdentifier, $resourceUrl, $token);
+    public function canDownload($collectionName = null, $featureIdentifier = null, $token = null){
+        return $this->canDownloadOrVisualize('download', $collectionName, $featureIdentifier, $token);
     }
     
     /**
@@ -303,20 +301,26 @@ class RestoUser{
      * @param string $action
      * @param string $collectionName
      * @param string $featureIdentifier
-     * @param string $resourceUrl
      * @param string $token
      * @return boolean
      */
-    private function canDownloadOrVisualize($action, $collectionName = null, $featureIdentifier = null, $resourceUrl = null, $token = null){
+    private function canDownloadOrVisualize($action, $collectionName = null, $featureIdentifier = null, $token = null){
         
-        if (!isset($resourceUrl) && !isset($token)) {
-            return false;
+        /*
+         * Token case - bypass user rights
+         */
+        if (isset($token)) {
+            if (!isset($collectionName) || !isset($featureIdentifier)) {
+                return false;
+            }
+            if ($this->context->dbDriver->check(RestoDatabaseDriver::SHARED_LINK, array('resourceUrl' => $this->context->baseUrl . '/' . $this->context->path, 'token' => $token))) {
+                return true;
+            }
         }
         
-        if (isset($token) && $this->context->dbDriver->check(RestoDatabaseDriver::SHARED_LINK, array('resourceUrl' => $resourceUrl, 'token' => $token))) {
-            return true;
-        }
-        
+        /*
+         * Normal case - checke user rights
+         */
         $rights = $this->rights->getRights($collectionName, $featureIdentifier);
         return $rights[$action];
     }

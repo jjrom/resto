@@ -47,7 +47,7 @@ class RestoOrder{
     public function __construct($user, $context, $orderId){
         $this->user = $user;
         $this->context = $context;
-        $this->order = $this->context->dbDriver->get(RestoDatabaseDriver::ORDER, array('email' => $this->user->profile['email'], 'orderId' => $orderId));
+        $this->order = $this->context->dbDriver->get(RestoDatabaseDriver::ORDERS, array('email' => $this->user->profile['email'], 'orderId' => $orderId));
     }
     
     /**
@@ -70,13 +70,13 @@ class RestoOrder{
      */
     public function toMETA4() {
         
-        $meta4 = new RestoMetalink();
+        $meta4 = new RestoMetalink($this->context);
         
         /*
          * One metalink file per item - if user has rights to download file
          */
         foreach ($this->order['items'] as $item) {
-            
+           
             /*
              * Invalid item
              */

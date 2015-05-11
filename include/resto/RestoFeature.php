@@ -113,7 +113,7 @@ class RestoFeature {
          * Not Found
          */
         else {
-            RestoLogUtil::httpError(404);;
+            RestoLogUtil::httpError(404);
         }
         
     }
