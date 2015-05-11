@@ -566,20 +566,22 @@ class RestoRouteGET extends RestoRoute {
          * Get collections
          */
         $collectionsDescriptions = $this->context->dbDriver->get(RestoDatabaseDriver::COLLECTIONS_DESCRIPTIONS);
-          
+        
         /*
          *  Get rights for collections
          */
         if (!isset($collectionName)) {
             foreach ($collectionsDescriptions as $collectionDescription) {
                 $signatures[$collectionName] = array(
-                    'hasToSignLicense' => $user->hasToSignLicense($collectionDescription)
+                    'hasToSignLicense' => $user->hasToSignLicense($collectionDescription),
+                    'licenseUrl' =>  $this->getLicenseUrl($collectionDescription)
                 );
             }
         }
         else {
             $signatures[$collectionName] = array(
-                'hasToSignLicense' => $user->hasToSignLicense($collectionsDescriptions[$collectionName])
+                'hasToSignLicense' => $user->hasToSignLicense($collectionsDescriptions[$collectionName]),
+                'licenseUrl' => $this->getLicenseUrl($collectionsDescriptions[$collectionName])
             );
         }
 
@@ -636,6 +638,21 @@ class RestoRouteGET extends RestoRoute {
                 'orders' => $user->getOrders()
             ));
         }
+    }
+    
+    /**
+     * Return license url in the curent language
+     * 
+     * @param array $collectionDescription
+     * @return string
+     */
+    private function getLicenseUrl($collectionDescription) {
+        if (!empty($collectionDescription['license'])) {
+            return isset($collectionDescription['license'][$this->context->dictionary->language]) ? $collectionDescription['license'][$this->context->dictionary->language] : $collectionDescription['license']['en'];
+        }
+        
+        return null;
+            
     }
 
 }
