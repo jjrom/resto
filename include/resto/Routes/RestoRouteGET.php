@@ -426,7 +426,7 @@ class RestoRouteGET extends RestoRoute {
      * @return type
      */
     private function GET_featureDownload($collection, $feature) {
-
+        
         /*
          * User do not have right to download product
          */

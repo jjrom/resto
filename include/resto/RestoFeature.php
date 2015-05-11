@@ -45,11 +45,6 @@ class RestoFeature {
      */
     private $featureArray;
     
-    /*
-     * Download path on disk
-     */
-    private $resourceInfos;
-    
     /**
      * Constructor 
      * 
@@ -92,10 +87,10 @@ class RestoFeature {
          * Download hosted resource with support of Range and Partial Content
          * (See http://stackoverflow.com/questions/157318/resumable-downloads-when-using-php-to-send-the-file)
          */
-        if (isset($this->resourceInfos)) {
+        if (isset($this->featureArray['properties']['resourceInfos'])) {
             
-            if (!isset($this->resourceInfos['path']) || !is_file($this->resourceInfos['path'])) {
-                RestoLogUtil::httpError(404);;
+            if (!isset($this->featureArray['properties']['resourceInfos']['path']) || !is_file($this->featureArray['properties']['resourceInfos']['path'])) {
+                RestoLogUtil::httpError(404);
             }
            
             /*
@@ -105,7 +100,7 @@ class RestoFeature {
                 return $this->streamApache();
             }
             
-            return $this->stream(realpath($this->resourceInfos['path']), isset($this->resourceInfos['mimeType']) ? $this->resourceInfos['mimeType'] : 'application/octet-stream');
+            return $this->stream(realpath($this->featureArray['properties']['resourceInfos']['path']), isset($this->featureArray['properties']['resourceInfos']['mimeType']) ? $this->featureArray['properties']['resourceInfos']['mimeType'] : 'application/octet-stream');
             
         }
         /*
@@ -132,8 +127,15 @@ class RestoFeature {
     
     /**
      * Output product description as a PHP array
+     * 
+     * @param boolean publicOutput
      */
-    public function toArray() {
+    public function toArray($publicOutput = false) {
+        if ($publicOutput) {
+            $feature = $this->featureArray;
+            unset ($feature['properties']['resourceInfos']);
+            return $feature;
+        }
         return $this->featureArray;
     }
     
@@ -143,7 +145,7 @@ class RestoFeature {
      * @param boolean $pretty : true to return pretty print
      */
     public function toJSON($pretty = false) {
-        return RestoUtil::json_format($this->featureArray, $pretty);
+        return RestoUtil::json_format($feature, $pretty);
     }
     
     /**
@@ -341,9 +343,9 @@ class RestoFeature {
         header('Pragma: public');
         header('Expires: -1');
         header('Cache-Control: public, must-revalidate, post-check=0, pre-check=0');
-        header('X-Sendfile: ' . $this->resourceInfos['path']);
-        header('Content-Type: ' . isset($this->resourceInfos['mimeType']) ? $this->resourceInfos['mimeType'] : 'application/unknown');
-        header('Content-Disposition: attachment; filename="' . basename($this->resourceInfos['path']) . '"');
+        header('X-Sendfile: ' . $this->featureArray['properties']['resourceInfos']['path']);
+        header('Content-Type: ' . isset($this->featureArray['properties']['resourceInfos']['mimeType']) ? $this->featureArray['properties']['resourceInfos']['mimeType'] : 'application/unknown');
+        header('Content-Disposition: attachment; filename="' . basename($this->featureArray['properties']['resourceInfos']['path']) . '"');
         header('Accept-Ranges: bytes');
     }
   

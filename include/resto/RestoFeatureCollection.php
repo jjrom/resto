@@ -94,11 +94,13 @@ class RestoFeatureCollection {
   
     /**
      * Output product description as a PHP array
+     * 
+     * @param boolean publicOutput
      */
-    public function toArray() {
+    public function toArray($publicOutput = false) {
         $features = array();
         for ($i = 0, $l = count($this->restoFeatures); $i < $l; $i++) {
-            $features[] = $this->restoFeatures[$i]->toArray();
+            $features[] = $this->restoFeatures[$i]->toArray($publicOutput);
         }
         return array_merge($this->description, array('features' => $features));
     }
@@ -109,7 +111,7 @@ class RestoFeatureCollection {
      * @param boolean $pretty : true to return pretty print
      */
     public function toJSON($pretty = false) {
-        return RestoUtil::json_format($this->toArray(), $pretty);
+        return RestoUtil::json_format($this->toArray(true), $pretty);
     }
     
     /**

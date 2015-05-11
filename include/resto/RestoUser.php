@@ -309,13 +309,14 @@ class RestoUser{
      */
     private function canDownloadOrVisualize($action, $collectionName = null, $featureIdentifier = null, $resourceUrl = null, $token = null){
         
-        if (!isset($resourceUrl) || !isset($token)) {
+        if (!isset($resourceUrl) && !isset($token)) {
             return false;
         }
-        if ($this->context->dbDriver->check(RestoDatabaseDriver::SHARED_LINK, array('resourceUrl' => $resourceUrl, 'token' => $token))) {
+        
+        if (isset($token) && $this->context->dbDriver->check(RestoDatabaseDriver::SHARED_LINK, array('resourceUrl' => $resourceUrl, 'token' => $token))) {
             return true;
         }
-    
+        
         $rights = $this->rights->getRights($collectionName, $featureIdentifier);
         return $rights[$action];
     }

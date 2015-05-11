@@ -66,7 +66,7 @@ class RestoFeatureUtil {
      * 
      */
     public function toFeatureArray($rawFeatureArray) {
-       
+        
         /*
          * No result - throw Not Found exception
          */
@@ -270,7 +270,7 @@ class RestoFeatureUtil {
         if (isset($properties['resourceChecksum'])) {
             $properties['services']['download']['checksum'] = $properties['resourceChecksum'];
         }
-        $this->resourceInfos = array(
+        $properties['resourceInfos'] = array(
             'path' => method_exists($collection->model,'generateResourcePath') ? $collection->model->generateResourcePath($properties) : $properties['resource'],
             'mimeType' => $properties['services']['download']['mimeType'],
             'size' => isset($properties['services']['download']['size']) ? $properties['services']['download']['size'] : null,
