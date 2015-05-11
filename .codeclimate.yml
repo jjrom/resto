@@ -1,0 +1,11 @@
+languages:
+  JavaScript: true
+  PHP: true
+exclude_paths:
+- lib/*
+- _example/*
+- _install/*
+- _scripts/*
+- include/resto/Dictionaries/*
+- include/config.php
+- include/resto/Models/*
