@@ -299,6 +299,7 @@ CREATE TABLE usermanagement.history (
 );
 CREATE INDEX idx_service_history ON usermanagement.history (service);
 CREATE INDEX idx_userid_history ON usermanagement.history (userid);
+CREATE INDEX idx_querytime_history ON usermanagement.history (querytime);
 
 --
 -- cart table stores user download request
@@ -325,6 +326,7 @@ CREATE TABLE usermanagement.orders (
 );
 CREATE INDEX idx_email_orders ON usermanagement.orders (email);
 CREATE INDEX idx_orderid_orders ON usermanagement.orders (orderid);
+CREATE INDEX idx_querytime_orders ON usermanagement.orders (querytime);
 
 --
 -- temporary download table
