@@ -572,7 +572,7 @@ class RestoRouteGET extends RestoRoute {
          */
         if (!isset($collectionName)) {
             foreach ($collectionsDescriptions as $collectionDescription) {
-                $signatures[$collectionName] = array(
+                $signatures[$collectionDescription['name']] = array(
                     'hasToSignLicense' => $user->hasToSignLicense($collectionDescription),
                     'licenseUrl' =>  $this->getLicenseUrl($collectionDescription)
                 );
