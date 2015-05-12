@@ -355,7 +355,7 @@ class QueryAnalyzer extends RestoModule {
      * @return array
      */
     private function queryToWords($query) {
-        $rawWords = RestoUtil::splitString($this->escapeMultiwords($this->removePrefixes($this->context->dbDriver->normalize(str_replace(array(',', ';'), ' ', $query)))));
+        $rawWords = RestoUtil::splitString($this->escapeMultiwords($this->context->dbDriver->normalize($this->removePrefixes(str_replace(array(',', ';'), ' ', $query)))));
         $words = array();
         for ($i = 0, $ii = count($rawWords); $i < $ii; $i++) {
             $term = trim($rawWords[$i]);
