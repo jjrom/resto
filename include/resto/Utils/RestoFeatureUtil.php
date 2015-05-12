@@ -274,7 +274,7 @@ class RestoFeatureUtil {
         /*
          * If resource is local (i.e. not external url), set resourceInfos array
          */
-        if (RestoUtil::isUrl($properties['resource'])) {
+        if (!RestoUtil::isUrl($properties['resource'])) {
             $properties['resourceInfos'] = array(
                 'path' => method_exists($collection->model,'generateResourcePath') ? $collection->model->generateResourcePath($properties) : $properties['resource'],
                 'mimeType' => $properties['services']['download']['mimeType'],
