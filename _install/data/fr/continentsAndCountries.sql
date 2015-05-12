@@ -89,6 +89,7 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Jordanie', 'jordan
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Kazakhstan', 'kazakhstan','fr','country');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Kenya', 'kenya','fr','country');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Corée', 'korea','fr','country');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Corée du Sud', 'korea','fr','country');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Kosovo', 'kosovo','fr','country');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Koweït', 'kuwait','fr','country');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Kirghizistan', 'kyrgyzstan','fr','country');
