@@ -521,7 +521,7 @@ class Gazetteer extends RestoModule {
                 $keyword = $this->context->dictionary->getKeyword($name, array(
                     RestoDictionary::COUNTRY
                 ));
-                $query = 'SELECT admin, normalize(admin) as normalized, continent, ' . $this->getFormatFunction() . '(' . $this->simplify('geom', $tolerance, true) . ') as geometry FROM datasources.countries WHERE normalize(admin)=normalize(\'' . $keyword['keyword'] . '\') order by admin';
+                $query = 'SELECT name, normalize(name) as normalized, continent, ' . $this->getFormatFunction() . '(' . $this->simplify('geom', $tolerance, true) . ') as geometry FROM datasources.countries WHERE normalize(name)=normalize(\'' . $keyword['keyword'] . '\') order by admin';
                 break;
             default:
                 $keyword = $this->context->dictionary->getKeyword($name, array(

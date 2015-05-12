@@ -239,7 +239,7 @@ class CountryInfos {
         'KOR' => 'Korea',
         'KOS' => 'Kosovo',
         'KP' => 'North Korea',
-        'KR' => 'South Korea',
+        'KR' => 'Korea',
         'KW' => 'Kuwait',
         'KWT' => 'Kuwait',
         'KY' => 'Cayman Islands',
