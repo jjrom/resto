@@ -246,7 +246,7 @@ class RestoRouteGET extends RestoRoute {
      * Process api/users/connect
      */
     private function GET_apiUsersConnect() {
-        if (isset($this->user->profile['email'])) {
+        if (isset($this->user->profile['email']) && $this->user->profile['activated'] === 1) {
             $this->user->token = $this->context->createToken($this->user->profile['userid'], $this->user->profile);
             return array(
                 'token' => $this->user->token
