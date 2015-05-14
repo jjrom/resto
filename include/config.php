@@ -90,6 +90,14 @@ return array(
         'uploadDirectory' => '/tmp/resto_uploads',
         
         /*
+         * Set how the products are streamed to user :
+         *   - 'php' : stream through PHP process (slowest but works on all platforms)
+         *   - 'apache' : stream through Apache (needs the XSendfile module to be installed and configured)
+         *   - 'nginx' : stream through Nginx using the X-accel method
+         */
+        'streamMethod' => 'php',
+        
+        /*
          * List of http origin that have CORS access to server
          * (see http://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
          * 
