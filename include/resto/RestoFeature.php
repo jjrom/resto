@@ -384,7 +384,7 @@ class RestoFeature {
      * @param string $path
      * @param string $mimeType
      */
-    private function streamNginx($path) {
+    private function streamNginx($path, $mimeType) {
         $this->setDownloadHeaders($path, $mimeType);
         header('X-Accel-Redirect: ' . $path);
     }
