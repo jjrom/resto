@@ -214,18 +214,7 @@ class RestoFeature {
      * @param boolean $multipart
      */
     private function streamLocalUrl($path, $mimeType, $multipart = true) {
-        
-        /*
-         * Compute file size
-         */
-        $size = sprintf('%u', filesize($path));
-        $range = $multipart ? $this->getMultipartRange($size, filter_input(INPUT_SERVER, 'HTTP_RANGE', FILTER_SANITIZE_STRING)) : $this->getSimpleRange($size);
-        
-        /*
-         * Set range and headers
-         */
-        $this->setDownloadHeaders($path, $mimeType, $size, $range);
-        
+       
         switch ($this->context->streamMethod) {
             
            /*
@@ -244,7 +233,7 @@ class RestoFeature {
             * Slower but generic PHP stream
             */
             default:
-                return $this->streamPHP($path, $range);
+                return $this->streamPHP($path, $mimeType, $multipart);
                 
         }
         
@@ -256,10 +245,11 @@ class RestoFeature {
      * (See http://stackoverflow.com/questions/3697748/fastest-way-to-serve-a-file-using-php)
      *
      * @param string $path
-     * @param array $range
+     * @param string $mimeType
+     * @param boolean $multipart
      * @return boolean
      */
-    private function streamPHP($path, $range) {
+    private function streamPHP($path, $mimeType, $multipart) {
 
         /*
          * Open file
@@ -268,6 +258,26 @@ class RestoFeature {
         if (!is_resource($file)) {
             RestoLogUtil::httpError(404);
         }
+        
+        /*
+         * Compute file size
+         */
+        $size = sprintf('%u', filesize($path));
+        $range = $multipart ? $this->getMultipartRange($size, filter_input(INPUT_SERVER, 'HTTP_RANGE', FILTER_SANITIZE_STRING)) : $this->getSimpleRange($size);
+        
+        if (($range[0] > 0) || ($range[1] < ($size - 1))) {
+            header('HTTP/1.1 206 Partial Content');
+        }
+        else {
+            header('HTTP/1.1 200 OK');
+        }
+       
+        /*
+         * Set range and headers
+         */
+        $this->setDownloadHeaders($path, $mimeType);
+        header('Content-Length: ' . sprintf('%u', $range[1] - $range[0] + 1));
+        header('Content-Range: bytes ' . sprintf('%u-%u/%u', $range[0], $range[1], $size));
         
         /*
          * Read file
@@ -346,34 +356,25 @@ class RestoFeature {
      * 
      * @param string $path
      * @param string $mimeType
-     * @param integer $size
-     * @param array $range
      */
-    private function setDownloadHeaders($path, $mimeType, $size, $range) {
-        if (($range[0] > 0) || ($range[1] < ($size - 1))) {
-            header('HTTP/1.1 206 Partial Content');
-        }
-        else {
-            header('HTTP/1.1 200 OK');
-        }
+    private function setDownloadHeaders($path, $mimeType) {
         header('Pragma: public');
-        header('Cache-Control: public, no-cache');
-        //header('Cache-Control: public, must-revalidate, post-check=0, pre-check=0');
-        header('Expires: -1');
+        header('Cache-Control: public, must-revalidate, post-check=0, pre-check=0');
+        header('Expires: 0');
         header('Content-Type: ' . $mimeType);
-        header('Content-Length: ' . sprintf('%u', $range[1] - $range[0] + 1));
         header('Content-Disposition: attachment; filename="' . basename($path) . '"');
         header('Content-Transfer-Encoding: binary');
-        header('Accept-Ranges: bytes');
-        header('Content-Range: bytes ' . sprintf('%u-%u/%u', $range[0], $range[1], $size));
+        header('Accept-Ranges: bytes');     
     }
     
     /**
      * Stream file using Apache XSendFile
      * 
      * @param string $path
+     * @param string $mimeType
      */
-    private function streamApache($path) {
+    private function streamApache($path, $mimeType) {
+        $this->setDownloadHeaders($path, $mimeType);
         header('X-Sendfile: ' . $path);
     }
   
@@ -381,8 +382,10 @@ class RestoFeature {
      * Stream file using Nginx X-Accel-Redirect
      * 
      * @param string $path
+     * @param string $mimeType
      */
     private function streamNginx($path) {
+        $this->setDownloadHeaders($path, $mimeType);
         header('X-Accel-Redirect: ' . $path);
     }
     
