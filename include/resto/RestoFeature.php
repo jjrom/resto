@@ -221,13 +221,13 @@ class RestoFeature {
             * Optimized download with Apache module XsendFile
             */
             case 'apache':
-                return $this->streamApache($path, $mimetType);
+                return $this->streamApache($path, $mimeType);
                 
            /*
             * Optimized download with Apache module XsendFile
             */  
             case 'nginx':
-                return $this->streamNginx($path, $mimetType);
+                return $this->streamNginx($path, $mimeType);
             
            /*
             * Slower but generic PHP stream
