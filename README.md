@@ -291,20 +291,27 @@ Only works on an existing resource (so insert resource first !)
 
 ## Frequently Asked Questions
 
+### What configuration parameters are important for production use ?
+
+For production use, you should take a look at the $RESTO_TARGET/include/config.php file and do the following :
+
+* set "debug" to false
+* set a "tokenDuration" no greater than 3600 seconds (i.e. 1 hour)
+* set a non obvious "passphrase" for JWT (or at least change the default one !)
+* if you want to limit API access, remove 'localhost' from the corsWhiteList and explicitely add allowed domain names
+* set a strong password for the database 'resto' user
+
+
+### How to force all database connection to be socket only (i.e. no http)
+
+Edit $RESTO_TARGET/include/config.php file and comment all 'host' entries (i.e. within 'database' and in all modules options)
+
+
 ### How to configure Apache for https ?
 
 For [Mac OS X] (http://blog.andyhunt.info/2011/11/26/apache-ssl-on-max-osx-lion-10-7/)
 
 (Warning http://stackoverflow.com/questions/18251128/why-am-i-suddenly-getting-a-blocked-loading-mixed-active-content-issue-in-fire)
-
-
-### For security reasons i cannot POST file through PHP
-
-You can POST collections descriptions using a "key=value" mechanism instead of file upload.
-
-To do so, you need to encode the json file (using javascript encodeURIComponent for instance) - see $RESTO_HOME/_examples/collections/Example.txt - and run the following command
-
-        curl -X POST -d @$RESTO_HOME/_examples/collections/Example.txt http://admin:admin@localhost/resto/
 
 
 ### My collection contains products but my collection is empty 
