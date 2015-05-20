@@ -271,40 +271,37 @@ class Resto {
     private function authenticate() {
         
         /*
-         * Auhtentication through token in url
+         * Authentication through token in url
          */
         if (isset($this->context->query['_bearer'])) {
             $this->authenticateBearer($this->context->query['_bearer']);
             unset($this->context->query['_bearer']);
-            return true;
         }
         
         /*
-         * Get authorization headers
+         * ...or from headers
          */
-        $httpAuth = filter_input(INPUT_SERVER, 'HTTP_AUTHORIZATION', FILTER_SANITIZE_STRING);
-        $rhttpAuth = filter_input(INPUT_SERVER, 'REDIRECT_HTTP_AUTHORIZATION', FILTER_SANITIZE_STRING);
-        $authorization = !empty($httpAuth) ? $httpAuth : (!empty($rhttpAuth) ? $rhttpAuth : null);
-        
-        /*
-         * Authenticate
-         */
-        if (isset($authorization)) {
-            list($method, $token) = explode(' ', $authorization, 2);
-            switch ($method) {
-                case 'Basic':
-                    $this->authenticateBasic($token);
-                    break;
-                case 'Bearer':
-                    $this->authenticateBearer($token);
-                    break;
-                default:
-                    break;
+        else {
+            $httpAuth = filter_input(INPUT_SERVER, 'HTTP_AUTHORIZATION', FILTER_SANITIZE_STRING);
+            $rhttpAuth = filter_input(INPUT_SERVER, 'REDIRECT_HTTP_AUTHORIZATION', FILTER_SANITIZE_STRING);
+            $authorization = !empty($httpAuth) ? $httpAuth : (!empty($rhttpAuth) ? $rhttpAuth : null);
+            if (isset($authorization)) {
+                list($method, $token) = explode(' ', $authorization, 2);
+                switch ($method) {
+                    case 'Basic':
+                        $this->authenticateBasic($token);
+                        break;
+                    case 'Bearer':
+                        $this->authenticateBearer($token);
+                        break;
+                    default:
+                        break;
+                }
             }
         }
         
         /*
-         * Otherwise user is unregistered
+         * If we land here - set an user unregistered user
          */
         if (!isset($this->user)) {
             $this->user = new RestoUser(null, $this->context);
