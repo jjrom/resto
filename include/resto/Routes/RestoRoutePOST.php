@@ -196,8 +196,7 @@ class RestoRoutePOST extends RestoRoute {
         if (!isset($pair[1])) {
             RestoLogUtil::httpError(403);
         }
-        $query = array();
-        parse_str($pair[1], $query);
+        $query = RestoUtil::queryStringToKvps($pair[1]);
         if (!isset($query['_tk']) || !$this->context->dbDriver->check(RestoDatabaseDriver::SHARED_LINK, array('resourceUrl' => $pair[0], 'token' => $query['_tk']))) {
             RestoLogUtil::httpError(403);
         }
