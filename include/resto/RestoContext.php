@@ -209,7 +209,7 @@ class RestoContext {
         /*
          * Initialize server endpoint url
          */
-        $this->setBaseURL($config['general']['rootEndpoint']);
+        $this->setBaseURL($config['general']['rootEndpoint'], $config['general']['protocol']);
         
         /*
          * Initialize query array
@@ -312,12 +312,18 @@ class RestoContext {
      * Get url with no parameters
      * Note that trailing '/' is systematically removed
      * 
+     * @param string $endPoint
+     * @param string $protocol
+     * 
      * @return string $endPoint
      */
-    private function setBaseURL($endPoint) {
-        $https = filter_input(INPUT_SERVER, 'HTTPS', FILTER_SANITIZE_STRING);
+    private function setBaseURL($endPoint, $protocol) {
+        if ($protocol === 'auto') {
+            $https = filter_input(INPUT_SERVER, 'HTTPS', FILTER_SANITIZE_STRING);
+            $protocol = isset($https) && $https === 'on' ? 'https' : 'http';
+        }
         $host = filter_input(INPUT_SERVER, 'HTTP_HOST', FILTER_SANITIZE_STRING);
-        $this->baseUrl = (isset($https) && $https === 'on' ? 'https' : 'http') . '://' . $host . (substr($endPoint, -1) === '/' ? substr($endPoint, 0, strlen($endPoint) - 1) : $endPoint);
+        $this->baseUrl = $protocol . '://' . $host . (substr($endPoint, -1) === '/' ? substr($endPoint, 0, strlen($endPoint) - 1) : $endPoint);
     }
     
     /**

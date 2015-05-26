@@ -52,6 +52,14 @@ return array(
         'timezone' => 'Europe/Paris',
         
         /*
+         * Protocol :
+         *  - http : use http
+         *  - https : use https
+         *  - auto : server will choose depending on input request
+         */
+        'protocol' => 'auto',
+        
+        /*
          * Store queries ? (i.e. logs)
          */
         'storeQuery' => true,
