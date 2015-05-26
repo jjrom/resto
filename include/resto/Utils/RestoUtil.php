@@ -476,48 +476,9 @@ class RestoUtil {
      * @return array
      */
     public static function queryStringToKvps($queryString) {
-        
         $output = array();
-        
-        if (!$queryString) {
-            return $output;
-        }
-        
-        /*
-         * Remove leading '?' or '&'
-         */
-        if (substr($queryString, 0, 1) === '?') {
-            $queryString = substr($queryString, 1, strlen($queryString) - 1);
-        }
-        $exploded = explode('&', $queryString);
-        for ($i = 0, $ii = count($exploded); $i < $ii; $i++) {
-            
-            if (!$exploded[$i]) {
-                continue;
-            }
-            
-            list($key, $value) = explode('=', $exploded[$i], 2);
-            
-            /*
-             * Array case i.e. key ending with []
-             * e.g. &platform[]=SPOT&platform[]=PHR
-             */
-            if (substr($key, -2) === '[]') {
-                $key = rawurldecode(substr($key, 0, -2));
-                if (isset($output[$key])) {
-                    array_push($output[$key], rawurldecode($value));
-                }
-                else {
-                    $output[$key] = array(rawurldecode($value));
-                }
-            }
-            else {
-                $output[rawurldecode($key)] = rawurldecode($value);
-            }
-        }
-        
+        parse_str($queryString, $output);
         return $output;
-        
     }
     
     /**
