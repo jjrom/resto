@@ -201,7 +201,12 @@ class WhatProcessor {
         $valuedUnitQuantity = $this->getValuedUnitQuantity($startPosition);
         if (isset($valuedUnitQuantity)) {
             if (isset($valuedUnitQuantity['valuedUnit'])) {
-                $value = (floatval($valuedUnitQuantity['valuedUnit']['value']) * $valuedUnitQuantity['valuedUnit']['unit']['factor']);
+                if (isset($valuedUnitQuantity['valuedUnit']['unit'])) {
+                    $value = (floatval($valuedUnitQuantity['valuedUnit']['value']) * $valuedUnitQuantity['valuedUnit']['unit']['factor']);
+                }
+                else {
+                    $value = (floatval($valuedUnitQuantity['valuedUnit']['value']));
+                }
                 switch ($operator) {
                     case WhatProcessor::EQUAL:
                         $this->addToResult(array($valuedUnitQuantity['quantity']['key'] => $value));
@@ -332,7 +337,7 @@ class WhatProcessor {
     }
     
     /**
-     * Process a valid <between> ... <and> ... with unit
+     * Process a valid <between> ... <and> ... without unit
      * 
      * @param integer $betweenPosition
      * @param array $values
@@ -411,21 +416,29 @@ class WhatProcessor {
         if (isset($quantity)) {
             $startPosition = min(array($startPosition, $quantity['startPosition']));
             $endPosition = max(array($valuedUnit['endPosition'], $quantity['endPosition']));
-            if ($valuedUnit['unit']['unit'] === $quantity['unit']) {
-                return array(
-                    'valuedUnit' => $valuedUnit,
-                    'quantity' => $quantity,
-                    'startPosition' => $startPosition,
-                    'endPosition' => $endPosition
-                );
+            
+            /*
+             * Quantity with unit (e.g. "cloudCover")
+             */
+            if (isset($quantity['unit'])) {
+                if (!isset($valuedUnit['unit']) || $valuedUnit['unit']['unit'] !== $quantity['unit']) {
+                    return array(
+                        'startPosition' => $startPosition,
+                        'endPosition' => $endPosition,
+                        'error' => QueryAnalyzer::INVALID_UNIT
+                    );
+                }
             }
-            else {
-                return array(
-                    'startPosition' => $startPosition,
-                    'endPosition' => $endPosition,
-                    'error' => QueryAnalyzer::INVALID_UNIT
-                );
-            }
+            /*
+             * Quantity without unit (e.g. "orbit")
+             */
+            return array(
+                'valuedUnit' => $valuedUnit,
+                'quantity' => $quantity,
+                'startPosition' => $startPosition,
+                'endPosition' => $endPosition
+            );
+            
         }
         
         return null;

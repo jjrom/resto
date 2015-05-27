@@ -112,15 +112,25 @@ class WhatExtractor {
             }
            
             /*
-             * "numeric" "unit"
+             * "numeric"
              */
             $value = $this->queryManager->dictionary->getNumber($this->queryManager->words[$i]['word']);
-            if (isset($value) && $this->queryManager->isValidPosition($i + 1)) {
-                $unit = $this->queryManager->dictionary->get(RestoDictionary::UNIT, $this->queryManager->words[$i + 1]['word']);
+            if (isset($value)) {
+                
+                $endPosition = $i;
+                
+                /*
+                 * "unit"
+                 */
+                if ($this->queryManager->isValidPosition($i + 1)) {
+                    $unit = $this->queryManager->dictionary->get(RestoDictionary::UNIT, $this->queryManager->words[$i + 1]['word']);
+                    $endPosition = $i + 1;
+                }
+                
                 return array(
                     'value' => $value,
-                    'endPosition' => $i + 1,
-                    'unit' => $this->normalizedUnit($unit)
+                    'endPosition' => $endPosition,
+                    'unit' => isset($unit) ? $this->normalizedUnit($unit) : null
                 );
             }
             
