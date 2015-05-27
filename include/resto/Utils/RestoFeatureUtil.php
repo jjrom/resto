@@ -170,8 +170,9 @@ class RestoFeatureUtil {
          * Modify properties as defined in collection propertiesMapping associative array
          */
         if (isset($collection->propertiesMapping)) {
+            $_properties = $properties;
             foreach (array_keys($collection->propertiesMapping) as $key) {
-                $properties[$key] = $this->replaceInTemplate($collection->propertiesMapping[$key], $properties);
+                $properties[$key] = $this->replaceInTemplate($collection->propertiesMapping[$key], $_properties);
             }
         }
         
