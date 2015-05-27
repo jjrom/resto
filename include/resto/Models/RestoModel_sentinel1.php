@@ -189,7 +189,7 @@ class RestoModel_sentinel1 extends RestoModel {
                 'coordinates' => array($polygon)
             ),
             'properties' => array(
-                'productIdentifier' => $dom->getElementsByTagName('identifier')->item(0)->nodeValue,
+                'productIdentifier' => $dom->getElementsByTagName('title')->item(0)->nodeValue,
                 'title' => $dom->getElementsByTagName('title')->item(0)->nodeValue,
 		'authority' => 'ESA',
                 'startDate' => $dom->getElementsByTagName('startTime')->item(0)->nodeValue,
