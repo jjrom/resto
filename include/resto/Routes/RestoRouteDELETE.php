@@ -142,17 +142,8 @@ class RestoRouteDELETE extends RestoRoute {
         /*
          * Cart can only be modified by its owner or by admin
          */
-        $user = $this->user;
-        $userid = $this->userid($emailOrId);
-        if ($user->profile['userid'] !== $userid) {
-            if ($user->profile['groupname'] !== 'admin') {
-                RestoLogUtil::httpError(403);
-            }
-            else {
-                $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('userid' => $userid)), $this->context);
-            }
-        }
-        
+        $user = $this->getAuthorizedUser($emailOrId);
+                
         /*
          * users/{userid}/cart
          */

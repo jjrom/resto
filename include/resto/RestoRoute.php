@@ -204,7 +204,12 @@ abstract class RestoRoute {
                 RestoLogUtil::httpError(403);
             }
             else {
-                $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('userid' => $userid)), $this->context);
+                if (!ctype_digit($emailOrId)) {
+                    $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('userid' => $userid)), $this->context);
+                }
+                else {
+                    $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('email' => strtolower(base64_decode($emailOrId)))), $this->context);
+                }
             }
         }
         
