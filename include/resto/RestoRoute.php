@@ -205,10 +205,10 @@ abstract class RestoRoute {
             }
             else {
                 if (!ctype_digit($emailOrId)) {
-                    $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('userid' => $userid)), $this->context);
+                    $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('email' => strtolower(base64_decode($emailOrId)))), $this->context);
                 }
                 else {
-                    $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('email' => strtolower(base64_decode($emailOrId)))), $this->context);
+                    $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('userid' => $userid)), $this->context);
                 }
             }
         }
