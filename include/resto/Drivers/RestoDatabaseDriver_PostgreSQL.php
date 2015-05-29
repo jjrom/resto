@@ -414,7 +414,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             case parent::RIGHTS:
                 $rightsFunctions = new Functions_rights($this);
-                return $rightsFunctions->storeRights($params['rights'], $params['emailOrGroup'], $params['collectionName'], isset($params['featureIdentifier']) ? $params['featureIdentifier'] : null);
+                return $rightsFunctions->storeRights($params['rights'], $params['emailOrGroup'], $params['collectionName'], isset($params['featureIdentifier']) ? $params['featureIdentifier'] : null, isset($params['productIdentifier']) ? $params['productIdentifier'] : null);
             
             /*
              * Store user profile

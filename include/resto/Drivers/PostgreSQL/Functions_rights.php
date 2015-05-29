@@ -81,7 +81,7 @@ class Functions_rights {
      * @throws Exception
      */
     public function getFullRights($identifier, $collectionName = null, $featureIdentifier = null) {
-        $query = 'SELECT collection, featureid, search, download, visualize, canpost as post, canput as put, candelete as delete, filters FROM usermanagement.rights WHERE emailorgroup=\'' . pg_escape_string($identifier) . '\'' . (isset($collectionName) ?  ' AND collection=\'' . pg_escape_string($collectionName) . '\'' : '')  . (isset($featureIdentifier) ?  ' AND featureid=\'' . pg_escape_string($featureIdentifier) . '\'' : '');
+        $query = 'SELECT collection, featureid, productidentifier, search, download, visualize, canpost as post, canput as put, candelete as delete, filters FROM usermanagement.rights WHERE emailorgroup=\'' . pg_escape_string($identifier) . '\'' . (isset($collectionName) ?  ' AND collection=\'' . pg_escape_string($collectionName) . '\'' : '')  . (isset($featureIdentifier) ?  ' AND featureid=\'' . pg_escape_string($featureIdentifier) . '\'' : '');
         $results = $this->dbDriver->query($query);
         if (pg_num_rows($results) === 0) {
             return null;
@@ -127,10 +127,11 @@ class Functions_rights {
      * @param string $identifier
      * @param string $collectionName
      * @param string $featureIdentifier
+     * @param string $productIdentifier
      * 
      * @throws Exception
      */
-    public function storeRights($rights, $identifier, $collectionName, $featureIdentifier = null) {
+    public function storeRights($rights, $identifier, $collectionName, $featureIdentifier = null, $productIdentifier = null) {
         try {
             if (!$this->dbDriver->check(RestoDatabaseDriver::COLLECTION, array(
                 'collectionName' => $collectionName
@@ -140,6 +141,7 @@ class Functions_rights {
             $values = array(
                 '\'' . pg_escape_string($collectionName) . '\'',
                 isset($featureIdentifier) ? '\'' . pg_escape_string($featureIdentifier) . '\'' : 'NULL',
+                isset($productIdentifier) ? '\'' . pg_escape_string($productIdentifier) . '\'' : 'NULL',
                 '\'' . pg_escape_string($identifier) . '\'',
                 $this->valueOrNull($rights['search']),
                 $this->valueOrNull($rights['visualize']),
@@ -149,7 +151,7 @@ class Functions_rights {
                 $this->valueOrNull($rights['candelete']),
                 isset($rights['filters']) ? '\'' . pg_escape_string(json_encode($rights['filters'])) . '\'' : 'NULL'
             );
-            $result = pg_query($this->dbh, 'INSERT INTO usermanagement.rights (collection,featureid,emailorgroup,search,visualize,download,canpost,canput,candelete,filters) VALUES (' . join(',', $values) . ')');    
+            $result = pg_query($this->dbh, 'INSERT INTO usermanagement.rights (collection,featureid,productidentifier,emailorgroup,search,visualize,download,canpost,canput,candelete,filters) VALUES (' . join(',', $values) . ')');    
             if (!$result){
                 throw new Exception();
             }

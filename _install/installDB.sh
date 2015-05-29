@@ -260,7 +260,8 @@ CREATE INDEX idx_groupname_users ON usermanagement.users (groupname);
 CREATE TABLE usermanagement.rights (
     gid                 SERIAL PRIMARY KEY, -- unique id
     collection          TEXT, -- same as collection in resto.collections
-    featureid           TEXT, -- same as collection in resto.collections
+    featureid           TEXT, -- same as identifier in resto.features
+    productidentifier   TEXT, 
     emailorgroup        TEXT NOT NULL,  -- email or group name (from usermanagement.users)
     search              INTEGER DEFAULT 0,
     visualize           INTEGER DEFAULT 0,
