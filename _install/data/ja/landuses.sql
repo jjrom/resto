@@ -1,0 +1,11 @@
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('都市', 'urban','ja', 'landuse');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('都市域', 'urban','ja', 'landuse');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('耕作地', 'cultivated','ja', 'landuse');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('森林', 'forest','ja', 'landuse');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('草地', 'herbaceous','ja', 'landuse');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('砂漠', 'desert','ja', 'landuse');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('砂地', 'desert','ja', 'landuse');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('雪', 'snow','ja', 'landuse');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('浸水域', 'flooded','ja', 'landuse');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('水域', 'water','ja', 'landuse');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('氷', 'ice','ja', 'landuse');
