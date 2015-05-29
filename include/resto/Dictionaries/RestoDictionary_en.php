@@ -166,12 +166,12 @@ class RestoDictionary_en extends RestoDictionary {
             'cloud' => array('cloud', 'clouds', 'cloud cover'),
             'snow' => array('snow'),
             'ice' => array('ice'),
-            'urban' => array('city', 'cities', 'urban area'),
-            'cultivated' => array('cultivated area', 'cropland', 'croplands', 'crop', 'crops'),
+            'urban' => array('city', 'cities', 'town', 'towns', 'urban'),
+            'cultivated' => array('cultivated', 'cropland', 'croplands', 'crop', 'crops'),
             'forest' => array('forest', 'forests'),
-            'herbaceous' => array('herbaceous area', 'grass', 'lowland', 'prairie'),
-            'desert' => array('desert', 'bare area'),
-            'flooded' => array('flooded area'),
+            'herbaceous' => array('herbaceous', 'grass', 'lowland', 'prairie'),
+            'desert' => array('desert', 'bare'),
+            'flooded' => array('flooded'),
             'water' => array('water')
         ),
         /*
