@@ -50,7 +50,7 @@ class RestoMetalink extends RestoXML {
          * Compute file name from productIdentifier and mimeType - identifier otherwise
          */
         $this->startElement('file');
-        $this->writeAttribute('name', (isset($item['productIdentifier']) ? $item['productIdentifier'] : $item['id']) . (isset($item['properties']['services']['download']['mimeType']) ? $this->getExtension($item['properties']['services']['download']['mimeType']) : ''));
+        $this->writeAttribute('name', (isset($item['properties']['productIdentifier']) ? $item['properties']['productIdentifier'] : $item['id']) . (isset($item['properties']['services']['download']['mimeType']) ? $this->getExtension($item['properties']['services']['download']['mimeType']) : ''));
         
         if (isset($item['properties']['services']['download']['size'])) {
             $this->writeElement('size', $item['properties']['services']['download']['size']);
