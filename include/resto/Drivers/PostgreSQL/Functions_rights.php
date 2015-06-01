@@ -97,6 +97,9 @@ class Functions_rights {
             if (isset($row['filters'])) {
                 $properties['filters'] = json_decode($row['filters'], true);
             }
+            if (isset($row['productidentifier'])) {
+                $properties['productidentifier'] = $row['productidentifier'];
+            }
             foreach (array_values(array('search', 'download', 'visualize', 'post', 'put', 'delete')) as $field){
                 $properties[$field] =  isset($row[$field]) ? (integer) $row[$field] : null;
             }
