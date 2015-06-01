@@ -428,7 +428,7 @@ class RestoFeatureCollection {
         /*
          * StartPage cannot be greater than the one from lastURL 
          */
-        if ($paging['nextPage'] < $paging['totalPage']) {
+        if ($paging['nextPage'] <= $paging['totalPage']) {
             
             /*
              * Next URL is the next search URL from the self URL
