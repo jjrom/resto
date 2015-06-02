@@ -209,6 +209,14 @@ return array(
                         'peopleApiUrl' => 'https://sso.kalimsat.eu/oauth2/userinfo?schema=openid',
                         'uidKey' => 'http://theia.org/claims/emailaddress'
                     )
+                ),
+                /*
+                 * PHP >= 5.6 check SSL certificate
+                 * Set verify_peer and verify_peer_name to false if you have issue
+                 */
+                'ssl' => array(
+                    'verify_peer' => false,
+                    'verify_peer_name' => false
                 )
             )
         ),

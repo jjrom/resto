@@ -227,7 +227,8 @@ class Auth extends RestoModule {
                     'grant_type' => 'authorization_code',
                     'client_secret' => $this->providers[$issuerId]['clientSecret']
                 ))
-            )
+            ),
+            'ssl' => isset($this->options['ssl']) ? $this->options['ssl'] : array()
         ))), true);
         
         return $postResponse['access_token'];
@@ -247,7 +248,8 @@ class Auth extends RestoModule {
             'http' => array(
                 'method' => 'GET',
                 'header' => 'Authorization: Bearer ' . $access_token . (isset($provider['forceJSON']) && $provider['forceJSON'] ? "\r\nx-li-format: json\r\n" : '')
-            )
+            ),
+            'ssl' => isset($this->options['ssl']) ? $this->options['ssl'] : array()
         ))), true);
         
         if (!isset($profileResponse) || empty($profileResponse[$this->getUidKey($provider)])) {
