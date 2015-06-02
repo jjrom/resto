@@ -434,7 +434,7 @@ class RestoFeatureCollection {
              * Next URL is the next search URL from the self URL
              */
             $links[] = $this->getLink('next', '_nextCollectionLink', array(
-                'startPage' => min($paging['startPage'], $paging['totalPage']),
+                'startPage' => $paging['nextPage'],
                 'count' => $limit)
             );
             
@@ -522,10 +522,12 @@ class RestoFeatureCollection {
             'count' => $count
         );
         if ($count > 0) {
+            $startPage = ceil(($offset + 1) / $limit);
+            $totalPage = ceil(($this->totalCount !== -1 ? $this->totalCount : $count) / $limit);
             $paging = array(
-                'startPage' => ceil(($offset + 1) / $limit),
-                'nextPage' => $paging['startPage'] + 1,
-                'totalPage' => ceil(($this->totalCount !== -1 ? $this->totalCount : $count) / $limit),
+                'startPage' => $startPage,
+                'nextPage' => $startPage + 1,
+                'totalPage' => $totalPage,
                 'count' => $count
             );
         }
