@@ -88,13 +88,13 @@ class RestoDictionary_fr extends RestoDictionary {
         /*
          * Stop words i.e. excluded words
          */
-        'stopWords' => array('le', 'la', 'de', 'des', 'et', 'ou', 'un', 'une'),
+        'stopWords' => array('le', 'la', 'les', 'de', 'des', 'et', 'ou', 'un', 'une'),
         /*
          * List of words in the query that are
          * considered as 'noise' for the query analysis
          * and thus excluded from the analysis
          */
-        'noise' => array('acquis%', 'compris%'),
+        'noise' => array('acquis%', 'compris%', 'zone%'),
         /*
          * Months
          */
