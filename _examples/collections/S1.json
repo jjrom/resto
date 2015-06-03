@@ -2,9 +2,6 @@
     "name": "S1",
     "model": "RestoModel_sentinel1",
     "status": "public",
-    "license":{
-        "en":"https://sentinel.esa.int/documents/247904/690755/TC_Sentinel_Data_31072014.pdf"
-    },
     "osDescription": {
         "fr": {
             "ShortName": "Sentinel-1",
