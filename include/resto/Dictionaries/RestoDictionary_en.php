@@ -206,10 +206,6 @@ class RestoDictionary_en extends RestoDictionary {
      * Translations
      */
     protected $translations = array(
-        'activationSubject' => '[{a:1}] Activation code',
-        'activationMessage' => "Hi,\r\n\r\nYou have registered an account to {a:1} application\r\n\r\nTo validate this account, go to {a:2}\r\n\r\nRegards\r\n\r\n{a:1} team",
-        'resetPasswordSubject' => '[{a:1}] Reset password',
-        'resetPasswordMessage' => "Hi,\r\n\r\nYou ask to reset your password for the {a:1} application\r\n\r\nTo reset your password, go to {a:2}\r\n\r\nRegards\r\n\r\n{a:1} team",
         '_acquiredOn' => 'acquired on {a:1}',
         '_alternateCollectionLink' => 'alternate',
         '_atomLink' => 'ATOM link for {a:1}',

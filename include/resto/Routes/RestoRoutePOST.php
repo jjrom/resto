@@ -397,12 +397,13 @@ class RestoRoutePOST extends RestoRoute {
         );
         if (isset($userInfo)) {
             $activationLink = $this->context->baseUrl . '/api/users/' . $userInfo['userid'] . '/activate?act=' . $userInfo['activationcode'] . $redirect;
+            $fallbackLanguage = isset($this->context->mail['accountActivation'][$this->context->dictionary->language]) ? $this->context->dictionary->language : 'en';
             if (!$this->sendMail(array(
                         'to' => $data['email'],
                         'senderName' => $this->context->mail['senderName'],
                         'senderEmail' => $this->context->mail['senderEmail'],
-                        'subject' => $this->context->dictionary->translate('activationSubject', $this->context->title),
-                        'message' => $this->context->dictionary->translate('activationMessage', $this->context->title, $activationLink)
+                        'subject' => $this->context->dictionary->translate($this->context->mail['accountActivation'][$fallbackLanguage]['subject'], $this->context->title),
+                        'message' => $this->context->dictionary->translate($this->context->mail['accountActivation'][$fallbackLanguage]['message'], $this->context->title, $activationLink)
                     ))) {
                 RestoLogUtil::httpError(3001);
             }

@@ -208,10 +208,6 @@ class RestoDictionary_ja extends RestoDictionary {
      * Translations
      */
     protected $translations = array(
-        'activationSubject' => '[{a:1}] ユーザ登録完了のための設定',
-        'activationMessage' => "この度はepicをご利用いただき有難うございます。\r\n\r\n{a:1}へのユーザ登録申請を受け付けました。\r\n\r\nアカウントを有効化するためこちらのリンク（{a:2}）を選択してください。\r\n\r\nご利用いただき誠に有り難うございます。\r\n\r\n{a:1}運用担当",
-        'resetPasswordSubject' => '[{a:1}] パスワードの再発行',
-        'resetPasswordMessage' => "この度はepicをご利用いただき有難うございます。\r\n\r\nパスワードの再発行申請を受け付けました。\r\n\r\n手続き完了のためこちらのリンク（{a:2}）を選択してください。\r\n\r\nご利用いただき誠に有り難うございます。\r\n\r\n{a:1}運用担当",
         '_acquiredOn' => 'acquired on {a:1}',
         '_alternateCollectionLink' => 'alternate',
         '_atomLink' => 'ATOM link for {a:1}',

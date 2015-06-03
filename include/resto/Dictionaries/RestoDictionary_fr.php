@@ -175,10 +175,6 @@ class RestoDictionary_fr extends RestoDictionary {
     );
     
     protected $translations = array(
-        'activationSubject' => '[{a:1}] Code d\'activation',
-        'activationMessage' => "Bonjour,\r\n\r\nVous vous êtes enregistré sur l'application {a:1}\r\n\r\nPour valider votre compte, cliquer sur le lien {a:2}\r\n\r\nCordialement\r\n\r\nL'équipe {a:1}",
-        'resetPasswordSubject' => '[{a:1}] Demande de réinitialisation de mot de passe',
-        'resetPasswordMessage' => "Bonjour,\r\n\r\nVous avez demandé une réinitialisation de votre mot de passe pour l'application {a:1}\r\n\r\nPour réinitialiser ce mot de passe, veuillez vous rendre sur le lien suivante {a:2}\r\n\r\nCordialement\r\n\r\nL'équipe {a:1}",
         '_acquiredOn' => 'acquis le {a:1}',
         '_alternateCollectionLink' => 'alternate',
         '_atomLink' => 'Lien ATOM pour {a:1}',

@@ -277,12 +277,13 @@ class RestoRouteGET extends RestoRoute {
          * Send email with reset link
          */
         $shared = $this->context->dbDriver->get(RestoDatabaseDriver::SHARED_LINK, array('resourceUrl' => $this->context->resetPasswordUrl . '/' . base64_encode($this->context->query['email'])));
+        $fallbackLanguage = isset($this->context->mail['resetPassword'][$this->context->dictionary->language]) ? $this->context->dictionary->language : 'en';
         if (!$this->sendMail(array(
                     'to' => $this->context->query['email'],
                     'senderName' => $this->context->mail['senderName'],
                     'senderEmail' => $this->context->mail['senderEmail'],
-                    'subject' => $this->context->dictionary->translate('resetPasswordSubject', $this->context->title),
-                    'message' => $this->context->dictionary->translate('resetPasswordMessage', $this->context->title, $shared['resourceUrl'] . '?_tk=' . $shared['token'])
+                    'subject' => $this->context->dictionary->translate($this->context->mail['resetPassword'][$fallbackLanguage]['subject'], $this->context->title),
+                    'message' => $this->context->dictionary->translate($this->context->mail['resetPassword'][$fallbackLanguage]['message'], $this->context->title, $shared['resourceUrl'] . '?_tk=' . $shared['token'])
                 ))) {
             RestoLogUtil::httpError(3003);
         }
