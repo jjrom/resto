@@ -271,6 +271,10 @@ return array(
             'options' => array(
                 'database' => array(
                     'dbname' => 'itag',
+                    /*
+                     * Database host - if not specified connect through socket instead of TCP/IP
+                     */
+                    //'host' => 'localhost',
                     'user' => 'itag',
                     'password' => 'itag'
                 )
@@ -288,6 +292,10 @@ return array(
             'options' => array(
                 'database' => array(
                     'dbname' => 'itag',
+                    /*
+                     * Database host - if not specified connect through socket instead of TCP/IP
+                     */
+                    //'host' => 'localhost',
                     'user' => 'itag',
                     'password' => 'itag'
                 )
@@ -304,6 +312,10 @@ return array(
             'options' => array(
                 'database' => array(
                     'dbname' => 'itag',
+                    /*
+                     * Database host - if not specified connect through socket instead of TCP/IP
+                     */
+                    //'host' => 'localhost',
                     'user' => 'itag',
                     'password' => 'itag'
                 ),
