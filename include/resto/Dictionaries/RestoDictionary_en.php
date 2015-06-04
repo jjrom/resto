@@ -84,7 +84,7 @@ class RestoDictionary_en extends RestoDictionary {
             'ago' => array('ago'),
             'before' => array('before'),
             'between' => array('between', 'from'),
-            'in' => array('in'),
+            'in' => array('in', 'during'),
             'last' => array('last'),
             'next' => array('next'),
             'since' => array('since'),
