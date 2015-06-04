@@ -228,20 +228,7 @@ abstract class RestoDictionary {
      * @param string any number of optional arguments
      */
     public function translate($sentence) {
-        
-        if (!isset($this->translations)) {
-            return $sentence;
-        }
-        
-        /*
-         * Replace additional arguments
-         */
-        if (isset($this->translations[$sentence])) {
-            return RestoUtil::replaceInTemplate($this->translations[$sentence]);
-        }
-        
-        return $sentence;
-        
+        return RestoUtil::replaceInTemplate(isset($this->translations) && isset($this->translations[$sentence]) ? $this->translations[$sentence] : $sentence);
     }
     
     
