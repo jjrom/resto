@@ -237,17 +237,11 @@ abstract class RestoDictionary {
          * Replace additional arguments
          */
         if (isset($this->translations[$sentence])) {
-            if (false !== strpos($this->translations[$sentence], '{a:')) {
-                $replace = array();
-                $args = func_get_args();
-                for ($i = 1, $max = count($args); $i < $max; $i++) {
-                    $replace['{a:' . $i . '}'] = $args[$i];
-                }
-
-                return strtr($this->translations[$sentence], $replace);
-            }
+            return RestoUtil::replaceInTemplate($this->translations[$sentence]);
         }
-        return isset($this->translations[$sentence]) ? $this->translations[$sentence] : $sentence;
+        
+        return $sentence;
+        
     }
     
     
