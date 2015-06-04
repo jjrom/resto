@@ -482,35 +482,6 @@ class RestoUtil {
     }
     
     /**
-     * Replace {a:x} in sentence
-     * 
-     * Example :
-     *      
-     *      'Hello. My name is {a:1}. I live in {a:2}'
-     *  
-     *      Call to RestoUtil::replaceInTemplate('presentation', 'Jérôme', 'Toulouse');
-     *      Will return
-     * 
-     *           'Hello. My name is Jérôme. I live in Toulouse
-     * 
-     * 
-     * @param string $name
-     * @param string any number of optional arguments
-     */
-    public function replaceInTemplate($sentence) {
-        if (false !== strpos($sentence, '{a:')) {
-            $replace = array();
-            $args = func_get_args();
-            for ($i = 1, $max = count($args); $i < $max; $i++) {
-                $replace['{a:' . $i . '}'] = $args[$i];
-            }
-
-            return strtr($sentence, $replace);
-        }
-        return $sentence;
-    }
-    
-    /**
      * Pretty print a json string
      * Code from https://github.com/ryanuber/projects/blob/master/PHP/JSON/jsonpp.php
      * 
