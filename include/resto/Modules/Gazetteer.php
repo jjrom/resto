@@ -204,10 +204,10 @@ class Gazetteer extends RestoModule {
                     'modifier' => isset($query['modifier']) ? $query['modifier'] : null
                 ));
                 if (!isset($query['modifier'])) {
-                    $this->results = array_merge($this->results, $this->getStates($query['toponym'], Gazetteer::STATE_PRECISION));
-                    $this->results = array_merge($this->results, $this->getRegions($query['toponym'], Gazetteer::REGION_PRECISION));
-                    $this->results = array_merge($this->results, $this->getCountries($query['toponym'], Gazetteer::COUNTRY_PRECISION));
                     $this->results = array_merge($this->results, $this->getContinents($query['toponym'], Gazetteer::CONTINENT_PRECISION));
+                    $this->results = array_merge($this->results, $this->getCountries($query['toponym'], Gazetteer::COUNTRY_PRECISION));
+                    $this->results = array_merge($this->results, $this->getRegions($query['toponym'], Gazetteer::REGION_PRECISION));
+                    $this->results = array_merge($this->results, $this->getStates($query['toponym'], Gazetteer::STATE_PRECISION));   
                 }
         }
         
