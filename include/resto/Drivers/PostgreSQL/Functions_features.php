@@ -348,6 +348,15 @@ class Functions_features {
     private function getHashes($keywords) {
         $hashes = array();
         foreach (array_keys($keywords) as $hash) {
+            
+            /*
+             * Do not index location if cover is lower than 10 %
+             */
+            if (in_array($keywords[$hash]['type'], array('country', 'region', 'state'))) {
+                if (!isset($keywords[$hash]['value']) || $keywords[$hash]['value'] < 10) {
+                    continue;
+                }
+            }
             $hashes[] = '"' . pg_escape_string($hash) . '"';
             $hashes[] = '"' . pg_escape_string($keywords[$hash]['type'] . ':' . (isset($keywords[$hash]['normalized']) ? $keywords[$hash]['normalized'] : strtolower($keywords[$hash]['name']))) . '"';
         }
