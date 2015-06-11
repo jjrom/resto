@@ -167,7 +167,7 @@ abstract class RestoRoute {
         $headers .= 'X-Mailer: PHP/' . phpversion() . "\r\n";
         $headers .= 'X-Priority: 3' . "\r\n";
         $headers .= 'MIME-Version: 1.0' . "\r\n";
-        $headers .= 'Content-type: text/plain; charset=iso-8859-1' . "\r\n";
+        $headers .= 'Content-type: text/html; charset=UTF-8' . "\r\n";
         if (mail($params['to'], $params['subject'], $params['message'] , $headers, '-f' . $params['senderEmail'])) {
             return true;
         }

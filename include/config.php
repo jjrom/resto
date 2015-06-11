@@ -184,11 +184,11 @@ return array(
         'accountActivation' => array(
             'en' => array(
                 'subject' => '[{a:1}] Activation code',
-                'message' => 'Hi,\r\n\r\nYou have registered an account to {a:1} application\r\n\r\nTo validate this account, go to {a:2}\r\n\r\nRegards\r\n\r\n{a:1} team"'
+                'message' => 'Hi,<br>You have registered an account to {a:1} application<br><br>To validate this account, go to {a:2} <br><br>Regards<br><br>{a:1} team"'
             ),
             'fr' => array(
                 'subject' => '[{a:1}] Code d\'activation',
-                'message' => "Bonjour,\r\n\r\nVous vous êtes enregistré sur l'application {a:1}\r\n\r\nPour valider votre compte, cliquer sur le lien {a:2}\r\n\r\nCordialement\r\n\r\nL'équipe {a:1}"
+                'message' => "Bonjour,<br><br>Vous vous êtes enregistré sur l'application {a:1}<br><br>Pour valider votre compte, cliquer sur le lien {a:2} <br><br>Cordialement<br><br>L'équipe {a:1}"
             )
         ),
         
@@ -198,11 +198,11 @@ return array(
         'resetPassword' => array(
             'en' => array(
                 'subject' => '[{a:1}] Reset password',
-                'message' => 'Hi,\r\n\r\nYou ask to reset your password for the {a:1} application\r\n\r\nTo reset your password, go to {a:2}\r\n\r\nRegards\r\n\r\n{a:1} team'
+                'message' => 'Hi,<br><br>You ask to reset your password for the {a:1} application<br><br>To reset your password, go to {a:2} <br><br>Regards<br><br>{a:1} team'
             ),
             'fr' => array(
                 'subject' => '[{a:1}] Demande de réinitialisation de mot de passe',
-                'message' => "Bonjour,\r\n\r\nVous avez demandé une réinitialisation de votre mot de passe pour l'application {a:1}\r\n\r\nPour réinitialiser ce mot de passe, veuillez vous rendre sur le lien suivante {a:2}\r\n\r\nCordialement\r\n\r\nL'équipe {a:1}"
+                'message' => "Bonjour,<br><br>Vous avez demandé une réinitialisation de votre mot de passe pour l'application {a:1}<br><br>Pour réinitialiser ce mot de passe, veuillez vous rendre sur le lien suivante {a:2} <br><br>Cordialement<br><br>L'équipe {a:1}"
             )
         )
     ),
