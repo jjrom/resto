@@ -187,7 +187,7 @@ class RestoRoutePOST extends RestoRoute {
             RestoLogUtil::httpError(400);
         }
         
-        $email = base64_decode($data['email']);
+        $email = strtolower(base64_decode($data['email']));
         
         /*
          * Explod data['url'] into resourceUrl and queryString
@@ -196,6 +196,15 @@ class RestoRoutePOST extends RestoRoute {
         if (!isset($pair[1])) {
             RestoLogUtil::httpError(403);
         }
+        
+        /*
+         * Only initiator of reset password can change its email
+         */
+        $splittedUrl = explode('/', $pair[0]);
+        if (strtolower(base64_decode($splittedUrl[count($splittedUrl) - 1])) !== $email) {
+            RestoLogUtil::httpError(403);
+        }
+        
         $query = RestoUtil::queryStringToKvps($pair[1]);
         if (!isset($query['_tk']) || !$this->context->dbDriver->check(RestoDatabaseDriver::SHARED_LINK, array('resourceUrl' => $pair[0], 'token' => $query['_tk']))) {
             RestoLogUtil::httpError(403);
