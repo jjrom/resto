@@ -120,6 +120,13 @@ class Functions_filters {
                     $filters[] = $filter;
                 }
             }
+            /*
+             * Check for included function
+             */
+            else if (isset($model->searchFilters[$filterName]['function'])) {
+                $function = $model->searchFilters[$filterName]['function'];
+                $filters[] = $model->$function($params[$filterName]);
+            }
         }
         
         return $filters;

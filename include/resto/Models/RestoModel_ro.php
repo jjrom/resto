@@ -59,6 +59,11 @@ class RestoModel_RO extends RestoModel {
                 'value' => 'cloud',
                 'unit' => '%'
             )
+        ),
+        'ro:identifiers' => array(
+            'key' => 'identifiers',
+            'osKey' => 'identifiers',
+            'function' => 'prepareFilterQuery_contextualSearch'
         )
     );
 
@@ -110,6 +115,20 @@ class RestoModel_RO extends RestoModel {
         } else {
             return $properties['thumbnail'];
         }
+    }
+    
+    /**
+     * 
+     * @param String $param
+     * @return string
+     */
+    public function prepareFilterQuery_contextualSearch($param) {
+        $array_id = explode(",", $param);
+        foreach ($array_id as &$id) {
+            $id = '\'' . $id . '\'';
+        }
+        $filter = 'identifier IN (' . implode(",", $array_id) . ')';
+        return $filter;
     }
 
     /**
