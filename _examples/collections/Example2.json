@@ -16,7 +16,7 @@
         "fr": {
             "ShortName": "Test2",
             "LongName": "Test",
-            "Description": "Images de r&eacute;flectance Landsat (Level 2A) trait&eacute;es par le <a href=\"http://www.theia-land.fr\">p&ocirc;le Theia</a> pour l'Agence Spatiale Fran&ccedil;aise (<a href=\"http://www.cnes.fr\">CNES</a>). L'atelier de production d&eacute;velopp&eacute; par le CNES utilise le prototype de cha&icirc;ne de Niveau 2A, MACCS, d&eacute;velopp&eacute; et con&ccedil;u au CESBIO. Les donn&eacute;es LANDSAT 8 L1T sont librement accessibles et fournies par <a href=\"http://earthexplorer.usgs.gov\">l'USGS</a>",
+            "Description": "Images de réflectance Landsat (Level 2A) traitées par le <a href=\"http://www.theia-land.fr\">pôle Theia</a> pour l'Agence Spatiale Française (<a href=\"http://www.cnes.fr\">CNES</a>). L'atelier de production développé par le CNES utilise le prototype de chaîne de Niveau 2A, MACCS, développé et conçu au CESBIO. Les données LANDSAT 8 L1T sont librement accessibles et fournies par <a href=\"http://earthexplorer.usgs.gov\">l'USGS</a>",
             "Tags": "landsat niveau2A reflectance muscate CNES",
             "Developper": "J\u00e9r\u00f4me Gasperi",
             "Contact": "jerome.gasperi@cnes.fr",

@@ -1,8 +1,10 @@
 {
     "name": "Spirit",
-    "controller": "DefaultController",
+    "model": "RestoModel_spirit",
     "status": "public",
-    "createdb": false,
+    "license":{
+        "en":"https://theia.cnes.fr/documents/License_Spirit_en.pdf"
+    },
     "osDescription": {
         "en": {
             "ShortName": "Spirit",
@@ -15,46 +17,12 @@
             "Attribution": "CNES. Copyright 2013, All Rights Reserved"
         }
     },
-    "dbDescription": {
-        "dbname": "spirit",
-        "schema": "public"
-    },
-    "model": {
-        "identifier": "db:identifier",
-        "parentIdentifier": null,
-        "title": "db:title",
-        "description": "db:description",
-        "authority": null,
-        "startDate": "db:acquisition",
-        "completionDate": "db:acquisition",
-        "productType": "db:producttype",
-        "processingLevel": null,
-        "platform": "db:platform",
-        "instrument": "db:instrument",
-        "resolution": "db:resolution",
-        "orbitNumber": null,
-        "sensorMode": null,
-        "quicklook": {
-            "dbKey": "db:quicklook",
-            "template": "http:\/\/spirit.cnes.fr\/spirit\/ql\/{a:1}"
-        },
-        "thumbnail": {
-            "dbKey": "db:thumbnail",
-            "template": "http:\/\/spirit.cnes.fr\/spirit\/ql\/{a:1}"
-        },
-        "metadata": "db:metadata",
-        "archive": {
-            "dbKey": "db:archive",
-            "template": "http:\/\/spirit.cnes.fr\/spirit\/archives\/{a:1}"
-        },
-        "wms": {
-            "dbKey": "db:identifier",
-            "template": "http:\/\/spirit.cnes.fr\/cgi-bin\/mapserv?map=\/mount\/spirit\/wms\/{a:1}\/SPOT_VIEW\/map.map&LAYERS={a:1}_SPOT_VIEW&FORMAT=image%2Fpng&TRANSITIONEFFECT=resize&TRANSPARENT=true&VERSION=1.1.1&SERVICE=WMS&REQUEST=GetMap&STYLES=&SRS=EPSG%3A3857&BBOX={a:2}&WIDTH=256&HEIGHT=256"
-        },
-        "mimetype": "application\/zip",
-        "modified": "db:modifieddate",
-        "published": "db:creation",
-        "keywords": "db:keywords",
-        "geometry": "db:footprint"
+    "propertiesMapping":{
+        "quicklook" : "https://theia.cnes.fr/spirit/ql/{:productIdentifier:}.png",
+        "thumbnail" : "https://theia.cnes.fr/spirit/ql/{:productIdentifier:}_thumb.png",
+        "metadata" : "https://theia.cnes.fr/spirit/md/{:productIdentifier:}.xml",
+        "resource" : "/data/spirit/archives/{:productIdentifier:}.zip",
+        "resourceMimeType": "application/x-gzip",
+        "wms" : "https:\/\/theia.cnes.fr\/cgi-bin\/mapserv?map=\/data\/spirit\/wms\/{:productIdentifier:}\/SPOTVIEW\/map.map&LAYERS={:productIdentifier:}SPOTVIEW&FORMAT=image%2Fpng&TRANSITIONEFFECT=resize&TRANSPARENT=true&VERSION=1.1.1&SERVICE=WMS&REQUEST=GetMap&STYLES=&SRS=EPSG%3A3857&BBOX={:bbox3857:}&WIDTH=256&HEIGHT=256"
     }
 }
