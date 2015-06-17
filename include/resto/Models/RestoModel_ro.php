@@ -6,7 +6,7 @@
  * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at:
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0 
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
@@ -18,7 +18,7 @@
 /**
  * RESTo model for Recovery Observatory
  */
-class RestoModel_RO extends RestoModel {
+class RestoModel_ro extends RestoModel {
 
     /*
      * Configuration
@@ -26,21 +26,25 @@ class RestoModel_RO extends RestoModel {
     private $config = array();
 
     public $extendedProperties = array(
-        'parentIdentifier' => null,
-        'sensorMode' => null,
-        'metadata' => null,
-        'metadataMimeType' => null,
         'incidenceAngle' => array(
             'name' => 'incidenceangle',
             'type' => 'NUMERIC'
         ),
-        'productMode' => array(
-            'name' => 'productmode',
-            'type' => 'VARCHAR(20)'
+    	'productMode' => array(
+    		'name' => 'productmode',
+    		'type' => 'TEXT'
+    	),
+        'license' => array(
+            'name' => 'license',
+            'type' => 'TEXT'
+        ),
+        'metadataVisibility' => array(
+            'name' => 'metadatavisibility',
+            'type' => 'TEXT'
         ),
         'productCrs' => array(
             'name' => 'productcrs',
-            'type' => 'VARCHAR(250)'
+            'type' => 'TEXT'
         ),
         'productGeometry' => array(
             'name' => 'productgeometry',
@@ -48,24 +52,56 @@ class RestoModel_RO extends RestoModel {
         )
     );
 
-
     public $extendedSearchFilters = array(
-        'ro:incidenceAngle' => array(
+    	'ro:incidenceAngle' => array(
             'key' => 'incidenceAngle',
             'osKey' => 'incidenceAngle',
             'operation' => 'interval',
-            'title' => 'Satellite incident angle',
+            'title' => 'Satellite incidence angle',
             'quantity' => array(
-                'value' => 'cloud',
-                'unit' => '%'
+                'value' => 'incidenceAngle',
+                'unit' => '°'
             )
+    	),
+        'ro:productMode' => array(
+            'key' => 'productMode',
+            'osKey' => 'productMode',
+            'operation' => '=',
+            'options' => 'auto'
         ),
         'ro:identifiers' => array(
             'key' => 'identifiers',
             'osKey' => 'identifiers',
-            'function' => 'prepareFilterQuery_contextualSearch'
+            'function' => 'prepareFilterQuery_identifiers'
+        ),
+        'ro:onlyDownloadableProduct' => array(
+            'key' => 'onlyDownloadableProduct',
+            'osKey' => 'onlyDownloadableProduct',
+            'function' => 'prepareFilterQuery_onlyDownloadableProduct'
         )
     );
+
+
+    public function prepareFilterQuery_identifiers($param, $user = null) {
+        $array_id = explode(",", $param);
+        foreach ($array_id as &$id) {
+            $id = '\'' . pg_escape_string($id) . '\'';
+        }
+        $filter = 'identifier IN (' . implode(",", $array_id) . ')';
+        return $filter;
+    }
+
+
+    public function prepareFilterQuery_onlyDownloadableProduct($param, $user) {
+        if (strtolower($param) === 'true') {
+            $filter = 'license is null';
+            if (isset($user->profile['email'])) {
+                $filter .= ' OR license in (SELECT DISTINCT license_id FROM usermanagement.signatureslicense WHERE email=\'' . $user->profile['email'] . '\')';
+            }
+            return $filter;
+        }
+        return null;
+    }
 
     /**
      * Generate the absolute path for RO products used for download feature
@@ -75,12 +111,13 @@ class RestoModel_RO extends RestoModel {
      */
     public function generateResourcePath($properties) {
 
-        if (isset($this->config['rootPaths']['resource_path'])) {
+        $resource_path = $this->config['general']['rootPaths']['resource_path'];
+        if (isset($resource_path)) {
             if (isset($properties['startDate'])) {
                 $dateStr = date_format(date_create($properties['startDate']),'Ymd');
-                return $this->config['rootPaths']['resource_path'] . '/' . $dateStr . '/' . $properties['resource'];
+                return $resource_path . '/' . $dateStr . '/' . $properties['resource'];
             } else {
-                return $this->config['rootPaths']['resource_path'] . '/' . $properties['resource'];
+                return $resource_path . '/' . $properties['resource'];
             }
         } else {
             return $properties['resource'];
@@ -93,7 +130,7 @@ class RestoModel_RO extends RestoModel {
      * @param $properties
      * @return string relative path in the form of YYYYMMdd/quicklook_filename with YYYYMMdd is the formated startDate parameter
      */
-    public function generateQuicklookPath($properties) {
+   public function generateQuicklookPath($properties) {
         if (isset($properties['startDate'])) {
             $dateStr = date_format(date_create($properties['startDate']),'Ymd');
             return $dateStr . '/' . $properties['quicklook'];
@@ -116,26 +153,12 @@ class RestoModel_RO extends RestoModel {
             return $properties['thumbnail'];
         }
     }
-    
-    /**
-     * 
-     * @param String $param
-     * @return string
-     */
-    public function prepareFilterQuery_contextualSearch($param) {
-        $array_id = explode(",", $param);
-        foreach ($array_id as &$id) {
-            $id = '\'' . $id . '\'';
-        }
-        $filter = 'identifier IN (' . implode(",", $array_id) . ')';
-        return $filter;
-    }
 
     /**
      * Constructor
      */
     public function __construct() {
-        
+
         parent::__construct();
         $this->searchFilters = array_merge($this->searchFilters, $this->extendedSearchFilters);
 
