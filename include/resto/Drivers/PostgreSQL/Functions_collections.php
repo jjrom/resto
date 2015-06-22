@@ -260,7 +260,7 @@ class Functions_collections {
                 'platform' => 'btree',
                 'resolution' => 'btree',
                 'startDate' => 'btree',
-                'completionDate' => 'btree',
+                //'completionDate' => 'btree',
                 'cultivatedCover' => 'btree',
                 'desertCover' => 'btree',
                 'floodedCover' => 'btree',

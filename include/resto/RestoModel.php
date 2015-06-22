@@ -332,7 +332,7 @@ abstract class RestoModel {
             'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(Z|[\+\-][0-9]{2}:[0-9]{2})$' 
         ),
         'time:end' => array(
-            'key' => 'completionDate',
+            'key' => 'startDate',
             'osKey' => 'completionDate',
             'operation' => '<=',
             'title' => 'End of the time slice of the search query. Format should follow RFC-3339',

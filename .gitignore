@@ -5,3 +5,7 @@
 /js/lib/ol3-cesium/
 /js/lib/slick/
 /js/lib/responsiveslides/
+/include/resto/Models/RestoModel_alos.php
+/include/resto/Models/RestoModel_restec.php
+/include/config.local.php
+/include/config.dev.php
