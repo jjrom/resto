@@ -300,12 +300,6 @@ class RestoFeatureUtil {
         }
         $properties['links'][] = array(
             'rel' => 'alternate',
-            'type' => RestoUtil::$contentTypes['html'],
-            'title' => $this->context->dictionary->translate('_htmlLink', $properties['identifier']),
-            'href' => RestoUtil::updateUrl($thisUrl . '.html', array($collection->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
-        );
-        $properties['links'][] = array(
-            'rel' => 'alternate',
             'type' => RestoUtil::$contentTypes['json'],
             'title' => $this->context->dictionary->translate('_jsonLink', $properties['identifier']),
             'href' => RestoUtil::updateUrl($thisUrl . '.json', array($collection->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
