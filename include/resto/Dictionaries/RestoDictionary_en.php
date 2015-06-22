@@ -33,7 +33,11 @@ class RestoDictionary_en extends RestoDictionary {
         'austral summer',
         'austral winter',
         'austral autumn',
-        'austral spring'
+        'austral spring',
+        'boreal summer',
+        'boreal winter',
+        'boreal autumn',
+        'boreal spring'
     );
     
     /*
@@ -178,10 +182,10 @@ class RestoDictionary_en extends RestoDictionary {
          * Seasons
          */
         'seasons' => array(
-            'autumn' => array('austral spring','autumn', 'falls'),
-            'spring' => array('austral autumn','spring'),
-            'summer' => array('austral winter','summer'),
-            'winter' => array('austral summer', 'winter')
+            'autumn' => array('austral spring','boreal autumn', 'autumn', 'falls'),
+            'spring' => array('austral autumn','boreal spring','spring'),
+            'summer' => array('austral winter','boreal summer','summer'),
+            'winter' => array('austral summer','boreal winter', 'winter')
         ),
         /*
          * Time units

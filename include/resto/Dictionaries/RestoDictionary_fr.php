@@ -34,7 +34,11 @@ class RestoDictionary_fr extends RestoDictionary {
         'ete austral',
         'hiver austral',
         'printemps austral',
-        'automne austral'
+        'automne austral',
+        'ete boreal',
+        'hiver boreal',
+        'printemps boreal',
+        'automne boreal'
     );
     
     protected $dictionary = array(
@@ -150,10 +154,10 @@ class RestoDictionary_fr extends RestoDictionary {
          * Seasons
          */
         'seasons' => array(
-            'autumn' => array('printemps austral', 'automne'),
-            'spring' => array('automne austral', 'printemps'),
-            'summer' => array('hiver austral', 'ete'),
-            'winter' => array('ete austral', 'hiver')
+            'autumn' => array('printemps austral','automne boreal', 'automne'),
+            'spring' => array('automne austral','printemps boreal', 'printemps'),
+            'summer' => array('hiver austral','ete boreal', 'ete'),
+            'winter' => array('ete austral','hiver boreal', 'hiver')
         ),
         /*
          * Time units
