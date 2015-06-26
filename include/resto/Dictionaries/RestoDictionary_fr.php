@@ -38,7 +38,8 @@ class RestoDictionary_fr extends RestoDictionary {
         'ete boreal',
         'hiver boreal',
         'printemps boreal',
-        'automne boreal'
+        'automne boreal',
+        'aujourd hui'
     );
     
     protected $dictionary = array(
@@ -85,7 +86,7 @@ class RestoDictionary_fr extends RestoDictionary {
             'last' => array('dernier', 'derniers', 'derniere', 'dernieres'),
             'next' => array('prochain', 'prochaine', 'prochains', 'prochaines'),
             'since' => array('depuis'),
-            'today' => array('aujourd-hui'),
+            'today' => array('aujourd hui'),
             'tomorrow' => array('demain'),
             'yesterday' => array('hier')
         ),
