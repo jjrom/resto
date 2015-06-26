@@ -518,7 +518,7 @@ class RestoFeatureCollection {
         $paging = array(
             'startPage' => 1,
             'nextPage' => 1,
-            'totalPage' => 1,
+            'totalPage' => 0,
             'count' => $count
         );
         if ($count > 0) {
