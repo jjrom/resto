@@ -233,6 +233,7 @@ class Tagger_Political extends Tagger {
             array_push($regions, array(
                 'name' => $element['region'],
                 'id' => 'region:' . $element['regionid'],
+                'pcover' => $this->percentage($this->toSquareKm($element['area']), $this->area),
                 'states' => array()
             ));
         }
