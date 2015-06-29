@@ -155,7 +155,7 @@ class RestoRoutePOST extends RestoRoute {
          */
         try {
             $this->user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('email' => strtolower($data['email']), 'password' => $data['password'])), $this->context);
-            if (!isset($this->user->profile['email'])) {
+            if (!isset($this->user->profile['email']) || $this->user->profile['activated'] !== 1) {
                 throw new Exception();
             }
             return array(
