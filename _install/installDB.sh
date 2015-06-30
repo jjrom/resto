@@ -188,6 +188,7 @@ CREATE TABLE resto.features (
     identifier          TEXT UNIQUE,
     parentidentifier    TEXT,
     collection          TEXT,
+    metadatavisibility  TEXT DEFAULT 'PUBLIC'::text,
     visible             INTEGER DEFAULT 1,
     productidentifier   TEXT,
     title               TEXT,
@@ -246,6 +247,7 @@ CREATE TABLE usermanagement.users (
     country             TEXT,
     organization        TEXT,
     topics              TEXT,
+    grantedvisibility   TEXT,
     password            TEXT NOT NULL, -- stored as sha1
     registrationdate    TIMESTAMP NOT NULL,
     activationcode      TEXT NOT NULL UNIQUE, -- activation code store as sha1

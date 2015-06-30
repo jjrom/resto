@@ -42,7 +42,8 @@ class RestoRoutePOST extends RestoRoute {
      *    users                                         |  Add a user
      *    users/{userid}/cart                           |  Add new item in {userid} cart
      *    users/{userid}/orders                         |  Send an order for {userid}
-     * 
+     *    users/{userid}/grantedvisibility              |  Add visibility to {userid} granted visibilities (only admin)
+     *
      * @param array $segments
      */
     public function route($segments) {
@@ -332,7 +333,8 @@ class RestoRoutePOST extends RestoRoute {
      *    users                                         |  Add a user
      *    users/{userid}/cart                           |  Add new item in {userid} cart
      *    users/{userid}/orders                         |  Send an order for {userid}
-     * 
+     *    users/{userid}/grantedvisibility              |  Add visibility to {userid} granted visibilities (only admin)
+     *
      * @param array $segments
      * @param array $data
      */
@@ -365,7 +367,14 @@ class RestoRoutePOST extends RestoRoute {
         else if (isset($segments[2]) && $segments[2] === 'orders') {
             return $this->POST_userOrders($segments[1], $data);
         }
-        
+
+        /*
+         *    users/{userid}/grantedvisibility
+         */
+        else if (isset($segments[2]) && $segments[2] === 'grantedvisibility') {
+            return $this->POST_userGrantedVisibility($segments[1], $data);
+        }
+
         /*
          * Unknown route
          */
@@ -422,7 +431,41 @@ class RestoRoutePOST extends RestoRoute {
 
         return RestoLogUtil::success('User ' . $data['email'] . ' created');
     }
-    
+
+    /**
+     *
+     * Process HTTP POST request on grantedvisibility
+     *
+     *    users/{userid}/grantedvisibility              |  Add visibility to {userid} granted visibilities (only admin)
+     *
+     * @param $userId
+     * @param $data
+     * @return array
+     * @throws Exception
+     */
+    private function POST_userGrantedVisibility($userId, $data)
+    {
+        /*
+         * only available for admin
+         */
+        if (!$this->isAdminUser()) {
+            RestoLogUtil::httpError(403);
+        }
+
+        if (!isset($data['visibility'])) {
+            RestoLogUtil::httpError(400, 'Visibility is not set');
+        }
+        else {
+            $visibility = $data['visibility'];
+
+            $this->context->dbDriver->store(RestoDatabaseDriver::USER_GRANTED_VISIBILITY,
+                array('userid' => $userId, 'visibility' => $visibility));
+            return RestoLogUtil::success('Granted visibility added', array(
+                'visibility' => $visibility
+            ));
+        }
+    }
+
     /**
      * Process HTTP POST request on user cart
      * 

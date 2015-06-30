@@ -88,12 +88,13 @@ class Functions_filters {
     
     /**
      * Return search filters based on model and input search parameters
-     * 
+     *
+     * @param RestoUser $user
      * @param RestoModel $model
      * @param Array $params
      * @return boolean
      */
-    public function prepareFilters($model, $params) {
+    public function prepareFilters($user, $model, $params) {
        
         /*
          * Only visible features are returned
@@ -101,7 +102,15 @@ class Functions_filters {
         $filters = array(
             'visible=1'
         );
-        
+
+        /**
+         * Append filter for contextual search
+         */
+        $filterCS = $this->prepareFilterQuery_contextualSearch($user);
+        if (isset($filterCS) && $filterCS !== '') {
+            $filters[] = $filterCS;
+        }
+
         /*
          * Process each input search filter excepted excluded filters
          */
@@ -132,7 +141,26 @@ class Functions_filters {
         return $filters;
         
     }
-    
+
+    /**
+     * @param $user
+     * @return string
+     */
+    private function prepareFilterQuery_contextualSearch($user) {
+        if ($user->profile['groupname'] !== 'admin') {
+            $grantedVisibility = '\'PUBLIC\'';
+            if (isset($user->profile['grantedvisibility'])) {
+                $visibilities = str_getcsv($user->profile['grantedvisibility']);
+                foreach ($visibilities as &$v) {
+                    $grantedVisibility = $grantedVisibility . ', \'' . $v . '\'';
+                }
+            }
+            $filter = 'metadatavisibility in (' . $grantedVisibility . ')';
+            return $filter;
+        }
+        return null;
+    }
+
     /**
      * 
      * Prepare an SQL WHERE clause from input filterName

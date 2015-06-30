@@ -50,6 +50,10 @@
  *    |  GET     users                                         |  List all users
  *    |  POST    users                                         |  Add a user
  *    |  GET     users/{userid}                                |  Show {userid} information
+ *    |  GET     users/{userid}/grantedvisibility              |  Show {userid} granted visibility (only admin)
+ *    |  PUT     users/{userid}/grantedvisibility              |  Modify all {userid} granted visibilities (only admin)
+ *    |  POST    users/{userid}/grantedvisibility              |  Add visibility to {userid} granted visibilities (only admin)
+ *    |  DELETE  users/{userid}/grantedvisibility/{visibility} |  Remove {visibility} to {userid} granted visibilities (only admin)
  *    |  GET     users/{userid}/cart                           |  Show {userid} cart
  *    |  POST    users/{userid}/cart                           |  Add new item in {userid} cart
  *    |  PUT     users/{userid}/cart/{itemid}                  |  Modify item in {userid} cart
@@ -216,5 +220,13 @@ abstract class RestoRoute {
         return $user;
         
     }
-   
+
+    /**
+     * Return true if current user is admin
+     */
+    protected function isAdminUser() {
+        $user = $this->user;
+        return $user->profile['groupname'] === 'admin';
+    }
+
 }

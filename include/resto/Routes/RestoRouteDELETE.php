@@ -35,7 +35,8 @@ class RestoRouteDELETE extends RestoRoute {
      *    collections/{collection}/{feature}            |  Delete {feature}
      *    
      *    users/{userid}/cart/{itemid}                  |  Remove {itemid} from {userid} cart
-     *    
+     *    users/{userid}/grantedvisibility/{visibility} |  Remove {visibility} to {userid} granted visibilities (only admin)
+     *
      * @param array $segments
      */
     public function route($segments) {
@@ -113,13 +114,17 @@ class RestoRouteDELETE extends RestoRoute {
      * 
      *    users/{userid}/cart                           |  Remove all cart items
      *    users/{userid}/cart/{itemid}                  |  Remove {itemid} from {userid} cart
-     * 
+     *    users/{userid}/grantedvisibility/{visibility} |  Remove {visibility} to {userid} granted visibilities (only admin)
+     *
      * @param array $segments
      */
     private function DELETE_users($segments) {
         
         if ($segments[2] === 'cart') {
             return $this->DELETE_userCart($segments[1], isset($segments[3]) ? $segments[3] : null);
+        }
+        else if ($segments[2] === 'grantedvisibility') {
+            return $this->DELETE_userGrantedVisibility($segments[1], isset($segments[3]) ? $segments[3] : null);
         }
         else {
             RestoLogUtil::httpError(404);
@@ -194,5 +199,37 @@ class RestoRouteDELETE extends RestoRoute {
             return RestoLogUtil::error('Cannot clear cart');
         }
     }
-    
+
+    /**
+     *
+     * Process HTTP DELETE request on grantedvisibility
+     *
+     *    users/{userid}/grantedvisibility/{visibility} |  Remove {visibility} to {userid} granted visibilities (only admin)
+     *
+     * @param $userId
+     * @param $visibility
+     * @return array
+     * @throws Exception
+     */
+    private function DELETE_userGrantedVisibility($userId, $visibility)
+    {
+        /*
+         * only available for admin
+         */
+        if (!$this->isAdminUser()) {
+            RestoLogUtil::httpError(403);
+        }
+
+        if (!isset($visibility)) {
+            RestoLogUtil::httpError(404);
+        }
+        else {
+            $this->context->dbDriver->remove(RestoDatabaseDriver::USER_GRANTED_VISIBILITY,
+                array('userid' => $userId, 'visibility' => $visibility));
+            return RestoLogUtil::success('Granted visibility removed', array(
+                'visibility' => $visibility
+            ));
+        }
+    }
+
 }
