@@ -62,7 +62,12 @@ return array(
          * Debug mode
          */
         'debug' => false,
-        
+
+        /*
+         * Low resolution WMS layer in the Map File for WMS Proxy
+         */
+        'low_resolution_wms_layer' => 'lowres',
+
         /*
          * Timezone
          */

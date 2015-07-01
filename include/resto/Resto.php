@@ -236,7 +236,9 @@ class Resto {
      * Stream HTTP result and exit
      */
     private function answer($response, $responseStatus) {
-        
+
+        if (isset($response)) {
+
         /*
          * HTTP 1.1 headers
          */
@@ -253,7 +255,6 @@ class Resto {
         /*
          * Stream data
          */
-        if (isset($response)) {
             echo $response;
         }
         

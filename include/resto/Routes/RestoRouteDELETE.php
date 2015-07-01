@@ -35,7 +35,11 @@ class RestoRouteDELETE extends RestoRoute {
      *    collections/{collection}/{feature}            |  Delete {feature}
      *    
      *    users/{userid}/cart/{itemid}                  |  Remove {itemid} from {userid} cart
+     *    users/{userid}/legal                          |  Remove {userid} legal informations (only admin)
      *    users/{userid}/grantedvisibility/{visibility} |  Remove {visibility} to {userid} granted visibilities (only admin)
+     *
+     *    licenses/{licenseid}                          |  Delete {licenseid}
+     *
      *
      * @param array $segments
      */
@@ -45,6 +49,8 @@ class RestoRouteDELETE extends RestoRoute {
                 return $this->DELETE_collections($segments);
             case 'users':
                 return $this->DELETE_users($segments);
+            case 'licenses':
+                return $this->DELETE_license($segments);
             default:
                 return $this->processModuleRoute($segments);
         }
@@ -114,6 +120,7 @@ class RestoRouteDELETE extends RestoRoute {
      * 
      *    users/{userid}/cart                           |  Remove all cart items
      *    users/{userid}/cart/{itemid}                  |  Remove {itemid} from {userid} cart
+     *    users/{userid}/legal                          |  Remove {userid} legal informations (only admin)
      *    users/{userid}/grantedvisibility/{visibility} |  Remove {visibility} to {userid} granted visibilities (only admin)
      *
      * @param array $segments
@@ -122,6 +129,9 @@ class RestoRouteDELETE extends RestoRoute {
         
         if ($segments[2] === 'cart') {
             return $this->DELETE_userCart($segments[1], isset($segments[3]) ? $segments[3] : null);
+        }
+        else if ($segments[2] === 'legal') {
+            return $this->DELETE_userLegalInfo($segments[1]);
         }
         else if ($segments[2] === 'grantedvisibility') {
             return $this->DELETE_userGrantedVisibility($segments[1], isset($segments[3]) ? $segments[3] : null);
@@ -232,4 +242,56 @@ class RestoRouteDELETE extends RestoRoute {
         }
     }
 
+    /**
+     *
+     * Process HTTP DELETE request on legalinfo
+     *
+     *    users/{userid}/legal                 |  Remove {userid} legal informations (only admin)
+     *
+     * @param $userId
+     * @return array
+     * @throws Exception
+     */
+    private function DELETE_userLegalInfo($userId)
+    {
+        /*
+         * only available for admin
+         */
+        if (!$this->isAdminUser()) {
+            RestoLogUtil::httpError(403);
+        }
+        else {
+            $this->context->dbDriver->remove(RestoDatabaseDriver::USER_LEGAL_INFO, array('userid' => $userId));
+            return RestoLogUtil::success('Legal information removed', array('userid' => $userId));
+        }
+    }
+
+    /**
+     *
+     * Process HTTP DELETE request on licenses
+     *
+     *    licenses/{licenseid}                          |  Delete {licenseid}
+     *
+     * @param array $segments
+     */
+    private function DELETE_license($segments)
+    {
+        /*
+         * only available for admin
+         */
+        if (!$this->isAdminUser()) {
+            RestoLogUtil::httpError(403);
+        }
+
+        if (!isset($segments[1])) {
+            RestoLogUtil::httpError(404);
+        }
+        else {
+            $licenseId = $segments[1];
+            $this->context->dbDriver->remove(RestoDatabaseDriver::PRODUCT_LICENSE, array('license_id' => $licenseId));
+            return RestoLogUtil::success('license removed', array(
+                'license_id' => $licenseId
+            ));
+        }
+    }
 }

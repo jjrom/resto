@@ -101,7 +101,20 @@ class Functions_features {
         return $this->toFeatureArray($context, $user, $collection, $results = $this->dbDriver->query($query));
         
     }
-    
+
+    /**
+     * Get information about WMS service URL and license for a given feature
+     *
+     * @param $identifier
+     * @param null $collection
+     * @return array
+     */
+    public function getWmsInformation($identifier, $collection = null) {
+        $query = 'SELECT wms, license FROM ' . (isset($collection) ? '_' . strtolower($collection->name) : 'resto') . '.features WHERE identifier=\'' . pg_escape_string($identifier) .'\'';
+        $results = $this->dbDriver->query($query);
+        return pg_fetch_array($results);
+    }
+
     /**
      * 
      * Get feature description

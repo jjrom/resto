@@ -36,6 +36,7 @@ class RestoRoutePUT extends RestoRoute {
      *    
      *    users/{userid}/cart/{itemid}                  |  Modify item in {userid} cart
      *    users/{userid}/grantedvisibility              |  Modify {userid} granted visibility (only admin)
+     *    users/{userid}/legal/validation               |  Validate {userid} legal informations (only admin)
      *
      * @param array $segments
      */
@@ -122,6 +123,7 @@ class RestoRoutePUT extends RestoRoute {
      * Process HTTP PUT request on users
      *
      *    users/{userid}/grantedvisibility              |  Modify {userid} granted visibility (only admin)
+     *    users/{userid}/legal/validation               |  Validate {userid} legal informations (only admin)
      *    users/{userid}/cart/{itemid}                  |  Modify item in {userid} cart
      * 
      * @param array $segments
@@ -131,6 +133,10 @@ class RestoRoutePUT extends RestoRoute {
 
         if ($segments[2] === 'grantedvisibility') {
             return $this->PUT_userGrantedVisibility($segments[1], $data);
+        }
+
+        if ($segments[2] === 'legal' && $segments[3] === 'validation') {
+            return $this->PUT_validateUserLegalInfo($segments[1]);
         }
 
         /*
@@ -181,6 +187,37 @@ class RestoRoutePUT extends RestoRoute {
 
     /**
      * 
+     * Process HTTP PUT request on users granted visibility
+     *
+     *    users/{userid}/legal/validation               |  Validate {userid} legal informations (only admin)
+     *
+     * @param string $emailOrId
+     * @param array $data
+     */
+    private function PUT_validateUserLegalInfo($emailOrId) {
+
+        /*
+         * Granted visibility for a user can only be modified by admin
+         */
+        if (!$this->isAdminUser()) {
+            RestoLogUtil::httpError(403);
+        }
+
+        $admin = $this->user;
+
+        $user = $this->getAuthorizedUser($emailOrId);
+
+        $this->context->dbDriver->execute(RestoDatabaseDriver::VALIDATE_USER_LEGAL_INFO, array(
+                    'adminEmail' => $admin->profile['email'],
+                    'userEmail' => $user->profile['email']
+                )
+        );
+
+        return RestoLogUtil::success('Legal information of user ' . $emailOrId . ' has been validated by '. $admin->profile['email']);
+    }
+
+    /**
+     *
      * Process HTTP PUT request on users cart
      * 
      *    users/{userid}/cart/{itemid}                  |  Modify item in {userid} cart
