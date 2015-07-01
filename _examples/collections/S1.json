@@ -6,9 +6,9 @@
         "fr": {
             "ShortName": "Sentinel-1",
             "LongName": "Images radar Sentinel-1 Niveau 1",
-            "Description": "La mission SENTINEL-1 comprend une constellation deux satellites SAR en bande C en orbite polaire opérant jour et nuit quelque soit les conditions météorologiques",
+            "Description": "La mission SENTINEL-1 comprend une constellation de deux satellites SAR en bande C en orbite polaire opérant jour et nuit quelque soit les conditions météorologiques",
             "Tags": "CNES ESA sentinel1 radar",
-            "Developper": "J\u00e9r\u00f4me Gasperi",
+            "Developper": "Jérôme Gasperi",
             "Contact": "jerome.gasperi@gmail.com",
             "Query": "Japon",
             "Attribution": "ESA. Copyright 2014, All Rights Reserved"
@@ -16,9 +16,9 @@
         "en": {
             "ShortName": "Sentinel-1",
             "LongName": "Images radar Sentinel-1 Niveau 1",
-            "Description": "The SENTINEL-1 mission comprises a constellation of two polar-orbiting satellites, operating day and night performing C-band synthetic aperture radar imaging, enabling them to acquire imagery regardless of the weather",
+            "Description": "The SENTINEL-1 mission is a two polar-orbiting satellites constellation, operating day and night performing C-band synthetic aperture radar imaging, enabling them to acquire imagery regardless of the weather",
             "Tags": "CNES ESA sentinel1 radar",
-            "Developper": "J\u00e9r\u00f4me Gasperi",
+            "Developper": "Jérôme Gasperi",
             "Contact": "jerome.gasperi@gmail.com",
             "Query": "Japan",
             "Attribution": "ESA. Copyright 2014, All Rights Reserved"
