@@ -42,6 +42,23 @@ return array(
         'languages' => array('en', 'fr'),
         
         /*
+         * OpenSearch description for "all collections" search service
+         * (i.e. API call to /api/collections/search)
+         */
+        'osDescription' => array(
+            'en' => array(
+                'ShortName' => 'resto',
+                'LongName' => 'resto search service',
+                'Description' => 'Search on all collections',
+                'Tags' => 'resto',
+                'Developper' => 'resto team',
+                'Contact' => 'restoadmin@localhost',
+                'Query' => 'europe 2015',
+                'Attribution' => 'resto framework. Copyright 2015, All Rights Reserved'
+            )
+        ),
+        
+        /*
          * Debug mode
          */
         'debug' => false,
@@ -91,6 +108,11 @@ return array(
          * Url to call for password reset
          */
         'resetPasswordUrl' => 'http://localhost/rocket/#/resetPassword',
+        
+        /*
+         * Url to call for search HTML client
+         */
+        'htmlSearchUrl' => 'http://localhost/rocket/#/search',
         
         /*
          * Upload directory (for POST with attachement request)

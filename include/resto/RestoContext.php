@@ -35,11 +35,6 @@ class RestoContext {
      */
     public $dictionary;
 
-    /*
-     * Available languages
-     */
-    public $languages = array('en');
-    
     /**
      * HTTP method
      */
@@ -69,42 +64,6 @@ class RestoContext {
      * Query
      */
     public $query = array();
-    
-    /**
-     * Reset password page url
-     */
-    public $resetPasswordUrl = 'http://localhost/resto-client/#/resetPassword';
-    
-    /**
-     * Store query
-     */
-    public $storeQuery = false;
-   
-    /*
-     * Server timezone
-     */
-    public $timezone = 'Europe/Paris';
-    
-    /*
-     * Application name
-     */
-    public $title = 'resto';
-    
-    /*
-     * Upload directory
-     */
-    public $uploadDirectory = '/tmp/resto_uploads';
-    
-    /*
-     * Stream method 
-     */
-    public $streamMethod = 'php';
-    
-    /*
-     *  JSON Web Token passphrase
-     * (see https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32)
-     */
-    private $passphrase;
     
     /*
      * JSON Web Token duration (in seconds)
@@ -234,36 +193,26 @@ class RestoContext {
          * HTTP Method is one of GET, POST, PUT or DELETE
          */
         $this->method = strtoupper(filter_input(INPUT_SERVER, 'REQUEST_METHOD', FILTER_SANITIZE_STRING));
-        
+       
         /*
-         * True to store queries within database
+         * Get general configuration
          */
-        if (isset($config['general']['storeQuery'])) {
-            $this->storeQuery = $config['general']['storeQuery'];
-        }
-                
-        /*
-         * Passphrase for JSON Web Token signing/veryfying
-         */
-        $this->passphrase = $config['general']['passphrase'];
-        
-        /*
-         * JSON Web Token accepted encryption algorithms
-         */
-        $this->tokenEncryptions = $config['general']['tokenEncryptions'];
-        
-        /*
-         * JSON Web Token duration
-         */
-        if (isset($config['general']['tokenDuration'])) {
-            $this->tokenDuration = $config['general']['tokenDuration'];
-        }
-        
-        /*
-         * Available languages
-         */
-        if (isset($config['general']['languages'])) {
-            $this->languages = $config['general']['languages'];
+        foreach (array_values(array(
+            'htmlSearchUrl',
+            'languages',
+            'osDescription',
+            'passphrase',
+            'resetPasswordUrl',
+            'storeQuery',
+            'streamMethod',
+            'title',
+            'tokenDuration',
+            'tokenEncryptions',
+            'uploadDirectory'
+            )) as $key) {
+            if (isset($config['general'][$key])) {
+                $this->$key = $config['general'][$key];
+            }
         }
         
         /*
@@ -273,34 +222,6 @@ class RestoContext {
             $this->mail = $config['mail'];
         }
       
-        /*
-         * Reset password url
-         */
-        if (isset($config['general']['resetPasswordUrl'])) {
-            $this->resetPasswordUrl = $config['general']['resetPasswordUrl'];
-        }
-        
-        /*
-         * Title
-         */
-        if (isset($config['general']['title'])) {
-            $this->title = $config['general']['title'];
-        }
-        
-        /*
-         * Upload directory
-         */
-        if (isset($config['general']['uploadDirectory'])) {
-            $this->uploadDirectory = $config['general']['uploadDirectory'];
-        }
-        
-        /*
-         * Stream method
-         */
-        if (isset($config['general']['streamMethod'])) {
-            $this->streamMethod = $config['general']['streamMethod'];
-        }
-        
         /*
          * Initialize modules
          */

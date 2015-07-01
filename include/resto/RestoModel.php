@@ -260,7 +260,8 @@ abstract class RestoModel {
             'key' => 'hashes',
             'osKey' => 'q',
             'operation' => 'keywords',
-            'title' => 'Free text search'
+            'title' => 'Free text search',
+            'htmlFilter' => true
         ),
         'count' => array(
             'osKey' => 'maxRecords',

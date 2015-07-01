@@ -176,7 +176,7 @@ class RestoCollection {
      * Output collection description as an XML OpenSearch document
      */
     public function toXML() {
-        $osdd = new RestoOSDD($this);
+        $osdd = new RestoOSDD($this->context, $this->model, $this->getStatistics(), $this);
         return $osdd->toString();
     }
  

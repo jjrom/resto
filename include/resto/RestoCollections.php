@@ -41,6 +41,11 @@ class RestoCollections {
      */
     private $model;
     
+    /*
+     * Statistics
+     */
+    private $statistics;
+    
     /**
      * Constructor 
      * 
@@ -130,6 +135,16 @@ class RestoCollections {
     }
     
     /**
+     * Return collections statistics
+     */
+    public function getStatistics() {
+        if (!isset($this->statistics)) {
+            $this->statistics = $this->context->dbDriver->get(RestoDatabaseDriver::STATISTICS, array('collectionName' => null, 'facetFields' => $this->model->getFacetFields())); 
+        }
+        return $this->statistics;
+    }
+    
+    /**
      * Output collections descriptions as a JSON stream
      * 
      * @param boolean $pretty : true to return pretty print
@@ -143,6 +158,14 @@ class RestoCollections {
             $collections['collections'][] = $this->collections[$key]->toArray(false);
         }
         return RestoUtil::json_format($collections, $pretty);
+    }
+    
+    /**
+     * Output collections description as an XML OpenSearch document
+     */
+    public function toXML() {
+        $osdd = new RestoOSDD($this->context, $this->model, $this->getStatistics(), null);
+        return $osdd->toString();
     }
     
 }

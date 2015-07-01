@@ -34,7 +34,12 @@
 class RestoOSDD extends RestoXML {
     
     /*
-     * Reference to collection object
+     * Reference to context
+     */
+    private $context;
+    
+    /*
+     * Reference to collection object (null if no collection)
      */
     private $collection;
     
@@ -44,9 +49,19 @@ class RestoOSDD extends RestoXML {
     private $clientId;
     
     /*
+     * OpenSearch description
+     */
+    private $osDescription;
+    
+    /*
+     * Collection statistics
+     */
+    private $statistics = array();
+    
+    /*
      * Output contentTypes
      */
-    private $contentTypes = array('atom', 'json');
+    private $contentTypes = array('html', 'atom', 'json');
     
     /*
      * Template extension parameters
@@ -65,12 +80,19 @@ class RestoOSDD extends RestoXML {
     /**
      * Constructor
      * 
+     * @param RestoContext $context
+     * @param RestoModel $model
+     * @param Array $statistics
      * @param RestoCollection $collection
      */
-    public function __construct($collection) {
+    public function __construct($context, $model, $statistics, $collection) {
         parent::__construct();
+        $this->context = $context;
+        $this->model = $model;
+        $this->statistics = $statistics;
         $this->collection = $collection;
-        $this->clientId = isset($this->collection->context->query['clientId']) ? 'clientId=' . rawurlencode($this->collection->context->query['clientId']) . '&' : '';
+        $this->clientId = isset($this->context->query['clientId']) ? 'clientId=' . rawurlencode($this->context->query['clientId']) . '&' : '';
+        $this->osDescription = isset($this->collection) ? $this->collection->osDescription[$this->context->dictionary->language] : $this->context->osDescription[$this->context->dictionary->language];
         $this->setOSDD();
     }
     
@@ -112,7 +134,7 @@ class RestoOSDD extends RestoXML {
     private function startOSDD() {
         $this->startElement('OpenSearchDescription');
         $this->writeAttributes(array(
-            'xml:lang' => $this->collection->context->dictionary->language,
+            'xml:lang' => $this->context->dictionary->language,
             'xmlns' => 'http://a9.com/-/spec/opensearch/1.1/',
             'xmlns:atom' => 'http://www.w3.org/2005/Atom',
             'xmlns:time' => 'http://a9.com/-/opensearch/extensions/time/1.0/',
@@ -130,10 +152,10 @@ class RestoOSDD extends RestoXML {
      */
     private function setStartingElements() {
         $this->writeElements(array(
-            'ShortName' => $this->collection->osDescription[$this->collection->context->dictionary->language]['ShortName'],
-            'Description' => $this->collection->osDescription[$this->collection->context->dictionary->language]['Description'],
-            'Tags' => $this->collection->osDescription[$this->collection->context->dictionary->language]['Tags'],
-            'Contact' => $this->collection->osDescription[$this->collection->context->dictionary->language]['Contact']
+            'ShortName' => $this->osDescription['ShortName'],
+            'Description' => $this->osDescription['Description'],
+            'Tags' => $this->osDescription['Tags'],
+            'Contact' => $this->osDescription['Contact']
         ));
     }
     
@@ -141,21 +163,21 @@ class RestoOSDD extends RestoXML {
      * Set OSDD ending elements
      */
     private function setEndingElements() {
-        $this->writeElement('LongName', $this->collection->osDescription[$this->collection->context->dictionary->language]['LongName']);
+        $this->writeElement('LongName', $this->osDescription['LongName']);
         $this->startElement('Query');
         $this->writeAttributes(array(
             'role' => 'example',
-            'searchTerms' => $this->collection->osDescription[$this->collection->context->dictionary->language]['Query']
+            'searchTerms' => $this->osDescription['Query']
         ));
         $this->endElement('Query');
         $this->writeElements(array(
-            'Developper' => $this->collection->osDescription[$this->collection->context->dictionary->language]['Developper'],
-            'Attribution' => $this->collection->osDescription[$this->collection->context->dictionary->language]['Attribution'],
+            'Developper' => $this->osDescription['Developper'],
+            'Attribution' => $this->osDescription['Attribution'],
             'SyndicationRight' => 'open',
             'AdultContent' => 'false'
         ));
-        for ($i = 0, $l = count($this->collection->context->languages); $i < $l; $i++) {
-            $this->writeElement('Language', $this->collection->context->languages[$i]);
+        for ($i = 0, $l = count($this->context->languages); $i < $l; $i++) {
+            $this->writeElement('Language', $this->context->languages[$i]);
         }
         $this->writeElements(array(
             'OutputEncoding' => 'UTF-8',
@@ -171,6 +193,13 @@ class RestoOSDD extends RestoXML {
         foreach (array_values($this->contentTypes) as $format) {
             
             /*
+             * Special case for HTML output
+             */
+            if ($format === 'html' && !isset($this->context->htmlSearchUrl)) {
+                continue;
+            }
+            
+            /*
              * <Url> element
              */
             $this->startElement('Url');
@@ -183,7 +212,7 @@ class RestoOSDD extends RestoXML {
             /*
              * Extension parameters
              */
-            $this->setParameters();
+            $this->setParameters($format);
             
             /*
              * End <Url> element
@@ -200,10 +229,17 @@ class RestoOSDD extends RestoXML {
      * @return string
      */
     private function getUrlTemplate($format) {
-        $url = RestoUtil::restoUrl($this->collection->context->baseUrl, '/api/collections/' . $this->collection->name . '/search', $format) . '?' . $this->clientId;
+        
+        /*
+         * HTML output is based on htmlEndpoint
+         */
+        $url = ($format === 'html' ? $this->context->htmlSearchUrl : RestoUtil::restoUrl($this->context->baseUrl, '/api/collections' . (isset($this->collection) ? '/' . $this->collection->name : '') . '/search', $format)) . '?' . $this->clientId;
         $count = 0;
-        foreach ($this->collection->model->searchFilters as $filterName => $filter) {
+        foreach ($this->model->searchFilters as $filterName => $filter) {
             if (isset($filter)) {
+                if ($format === 'html' && (!isset($filter['htmlFilter']) || $filter['htmlFilter'] === false)) {
+                    continue;
+                }
                 $optional = isset($filter['minimum']) && $filter['minimum'] === 1 ? '' : '?';
                 $url .= ($count > 0 ? '&' : '') . $filter['osKey'] . '={' . $filterName . $optional . '}';
                 $count++;
@@ -214,11 +250,16 @@ class RestoOSDD extends RestoXML {
     
     /**
      * Set <parameters:Parameter> elements
+     * 
+     * @param string $format
      */
-    private function setParameters() {
+    private function setParameters($format) {
        
-        foreach ($this->collection->model->searchFilters as $filterName => $filter) {
+        foreach ($this->model->searchFilters as $filterName => $filter) {
             if (isset($filter)) {
+                if ($format === 'html' && (!isset($filter['htmlFilter']) || $filter['htmlFilter'] === false)) {
+                    continue;
+                }
                 $this->startElement('parameters:Parameter');
                 $this->writeAttributes(array(
                     'name' => $filter['osKey'],
@@ -247,7 +288,7 @@ class RestoOSDD extends RestoXML {
                         }
                     }
                     else if ($filter['options'] === 'auto') {
-                        $statistics = $this->collection->getStatistics();
+                        $statistics = $this->statistics;
                         if (isset($filter['key']) && isset($statistics[$filter['key']])) {
                             foreach (array_keys($statistics[$filter['key']]) as $key) {
                                 $this->startElement('parameters:Options');
@@ -274,4 +315,5 @@ class RestoOSDD extends RestoXML {
         }
 
     }
+   
 }
