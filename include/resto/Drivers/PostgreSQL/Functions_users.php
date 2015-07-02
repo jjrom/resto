@@ -152,12 +152,8 @@ class Functions_users {
             $values[] = 'activated=' . $profile['activated'];
         }
 
-        if (isset($profile['grantedvisibility'])) {
-            $values[] = 'grantedvisibility=\'' . pg_escape_string($profile['grantedvisibility']) . '\'';
-        } else {
-            $values[] = 'grantedvisibility=null';
-        }
-
+        $values[] = 'grantedvisibility=' . (isset($profile['grantedvisibility']) ?  '\'' . pg_escape_string($profile['grantedvisibility']) . '\'' : 'NULL');
+        
         $results = $this->dbDriver->fetch($this->dbDriver->query('UPDATE usermanagement.users SET ' . join(',', $values) . ' WHERE email=\'' . pg_escape_string(trim(strtolower($profile['email']))) .'\' RETURNING userid'));
         
         return count($results) === 1 ? $results[0]['userid'] : null;
@@ -172,46 +168,9 @@ class Functions_users {
      * @throws Exception
      */
     public function storeVisibility($userid, $visibility) {
-
-        if (!isset($userid)) {
-            RestoLogUtil::httpError(500, 'Cannot remove granted visibility - invalid user identifier:'. $userid);
-        }
-        if (!isset($visibility)) {
-            RestoLogUtil::httpError(500, 'Cannot remove granted visibility - invalid visibility :'. $visibility);
-        }
-
-        $profile = $this->getUserProfile($userid);
-        if (!isset($profile)) {
-            RestoLogUtil::httpError(500, 'Cannot remove granted visibility - user profile not found for :'. $userid);
-        }
-
-        $grantedvisibility = $profile['grantedvisibility'];
-
-        $visibities = array();
-        if($grantedvisibility) {
-            // Transform into an array
-            $visibities = explode(",", $grantedvisibility);
-        }
-
-        // Search for visibility to remove
-        $found = array_search($visibility, $visibities);
-
-        if (!$found) {
-
-            // Add visibility to the array
-            $visibities[] = pg_escape_string($visibility);
-
-            // Rebuild the string
-            $grantedvisibility = implode(",", $visibities);
-
-            // Update user profile
-            $results = $this->dbDriver->fetch($this->dbDriver->query('UPDATE usermanagement.users SET grantedvisibility=\'' . $grantedvisibility . '\' WHERE userid=\''. $userid .'\' RETURNING userid'));
-            return count($results) === 1 ? $results[0]['userid'] : null;
-        } else {
-            return $userid;
-        }
+        return $this->storeOrDeleteVisibility('store', $userid, $visibility);
     }
-
+    
     /**
      * Remove granted visibility to user $userid
      * @param $userid
@@ -220,40 +179,7 @@ class Functions_users {
      * @throws Exception
      */
     public function deleteVisibility($userid, $visibility) {
-
-        if (!isset($userid)) {
-            RestoLogUtil::httpError(500, 'Cannot remove granted visibility - invalid user identifier:'. $userid);
-        }
-        if (!isset($visibility)) {
-            RestoLogUtil::httpError(500, 'Cannot remove granted visibility - invalid visibility :'. $visibility);
-        }
-
-        $profile = $this->getUserProfile($userid);
-        if (!isset($profile)) {
-            RestoLogUtil::httpError(500, 'Cannot remove granted visibility - user profile not found for :'. $userid);
-        }
-
-        $grantedvisibility = $profile['grantedvisibility'];
-        // Transform into an array
-        $visibities = explode(",", $grantedvisibility);
-
-        // Search for visibility to remove
-        $found = array_search($visibility, $visibities);
-        //$found is equal to the index in the array, it can be 0 so we need to check the equality with false which is the value returned if it doesn't match
-        if ($found !== false) {
-
-            // Remove visibility from the array
-            unset($visibities[$found]);
-
-            // Rebuild the string
-            $grantedvisibility = implode(",", $visibities);
-
-            // Update user profile
-            $results = $this->dbDriver->fetch($this->dbDriver->query('UPDATE usermanagement.users SET grantedvisibility=\'' . $grantedvisibility . '\' WHERE userid=\''. $userid .'\' RETURNING userid'));
-            return count($results) === 1 ? $results[0]['userid'] : null;
-        } else {
-            return $userid;
-        }
+        return $this->storeOrDeleteVisibility('delete', $userid, $visibility);
     }
 
     /**
@@ -357,6 +283,78 @@ class Functions_users {
      */
     private function useridOrEmailFilter($identifier) {
         return ctype_digit($identifier) ? 'userid=' . $identifier : 'email=\'' . pg_escape_string($identifier) . '\'';
+    }
+    
+    /**
+     * Add granted visibility to user $userid
+     * 
+     * @param string $storeOrDelete
+     * @param integer $userid
+     * @param string $visibility
+     * @return null
+     * @throws Exception
+     */
+    private function storeOrDeleteVisibility($storeOrDelete, $userid, $visibility) {
+        
+        if (!isset($userid)) {
+            RestoLogUtil::httpError(500, 'Cannot ' . $storeOrDelete . ' granted visibility - invalid user identifier:'. $userid);
+        }
+        if (!isset($visibility)) {
+            RestoLogUtil::httpError(500, 'Cannot ' . $storeOrDelete . ' granted visibility - invalid visibility :'. $visibility);
+        }
+
+        $profile = $this->getUserProfile($userid);
+        if (!isset($profile)) {
+            RestoLogUtil::httpError(500, 'Cannot ' . $storeOrDelete . ' granted visibility - user profile not found for :'. $userid);
+        }
+
+        $grantedvisibility = $profile['grantedvisibility'];
+        
+        /*
+         * Explode existing grantedvisibility into an array
+         */
+        $visibilities = array();
+        if ($grantedvisibility) {
+            $visibilities = explode(',', $grantedvisibility);
+        }
+        
+        /*
+         * Explode new visibilities (i.e. input $visibility)
+         */
+        $newVisibilities = explode(',', $visibility);
+        
+        /*
+         * From input, only add non existing visibilities
+         */
+        $count = count($visibilities);
+        for ($i = 0, $ii = count($newVisibilities); $i < $ii; $i++) {
+            $new = trim($newVisibilities[$i]);
+            if ($new === '') {
+                continue;
+            }
+            $index = -1;
+            for ($j = 0, $jj = $count; $j < $jj; $j++) {
+                if (!isset($visibilities[$j])) {
+                    continue;
+                }
+                $existing = trim($visibilities[$j]);
+                if ($existing === $new) {
+                    $index = $j;
+                    break;
+                }
+            }
+            if ($storeOrDelete === 'store' && $index === -1) {
+                $visibilities[] = $new;
+            }
+            else if ($storeOrDelete === 'delete' && $index !== -1) {
+                unset($visibilities[$index]);
+            }
+        }
+        
+        // Update user profile
+        $results = $this->dbDriver->fetch($this->dbDriver->query('UPDATE usermanagement.users SET grantedvisibility=\'' . pg_escape_string(implode(',', $visibilities)) . '\' WHERE userid=\''. $userid .'\' RETURNING userid'));
+        return count($results) === 1 ? $results[0]['userid'] : null;
+        
     }
     
 }

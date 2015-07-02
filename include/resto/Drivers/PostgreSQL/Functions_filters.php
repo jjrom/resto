@@ -96,17 +96,12 @@ class Functions_filters {
      */
     public function prepareFilters($user, $model, $params) {
        
-        /*
-         * Only visible features are returned
-         */
-        $filters = array(
-            'visible=1'
-        );
-
+        $filters = array();
+        
         /**
          * Append filter for contextual search
          */
-        $filterCS = $this->prepareFilterQuery_contextualSearch($user);
+        $filterCS = $this->prepareFilterQuery_contextualSearch($user, $model);
         if (isset($filterCS) && $filterCS !== '') {
             $filters[] = $filterCS;
         }
@@ -143,10 +138,14 @@ class Functions_filters {
     }
 
     /**
-     * @param $user
+     * Filter search result on metadataVisibility attribute using
+     * the grantedvisibility list from user profile
+     * 
+     * @param RestoUser $user
+     * @param RestoModel $model
      * @return string
      */
-    private function prepareFilterQuery_contextualSearch($user) {
+    private function prepareFilterQuery_contextualSearch($user, $model) {
         if ($user->profile['groupname'] !== 'admin') {
             $grantedVisibility = '\'PUBLIC\'';
             if (isset($user->profile['grantedvisibility'])) {
@@ -155,7 +154,7 @@ class Functions_filters {
                     $grantedVisibility = $grantedVisibility . ', \'' . $v . '\'';
                 }
             }
-            $filter = 'metadatavisibility in (' . $grantedVisibility . ')';
+            $filter = $model->properties['metadataVisibility']['name'] . ' in (' . $grantedVisibility . ')';
             return $filter;
         }
         return null;

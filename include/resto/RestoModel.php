@@ -209,10 +209,9 @@ abstract class RestoModel {
             'type' => 'TEXT[]',
             'notDisplayed' => true
         ),
-        'visible' => array(
-            'name' => 'visible',
-            'type' => 'INTEGER',
-            'notDisplayed' => true
+        'metadataVisibility' => array(
+            'name' => 'metadatavisibility',
+            'type' => 'TEXT'
         )
     );
     

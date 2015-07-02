@@ -211,8 +211,8 @@ class RestoRouteDELETE extends RestoRoute {
      * @return array
      * @throws Exception
      */
-    private function DELETE_userGrantedVisibility($userId, $visibility)
-    {
+    private function DELETE_userGrantedVisibility($userId, $visibility) {
+        
         /*
          * only available for admin
          */

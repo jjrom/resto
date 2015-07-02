@@ -189,7 +189,6 @@ CREATE TABLE resto.features (
     parentidentifier    TEXT,
     collection          TEXT,
     metadatavisibility  TEXT DEFAULT 'PUBLIC'::text,
-    visible             INTEGER DEFAULT 1,
     productidentifier   TEXT,
     title               TEXT,
     description         TEXT,
