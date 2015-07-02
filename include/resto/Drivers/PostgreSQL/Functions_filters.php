@@ -129,7 +129,7 @@ class Functions_filters {
              */
             else if (isset($model->searchFilters[$filterName]['function'])) {
                 $function = $model->searchFilters[$filterName]['function'];
-                $filters[] = $model->$function($params[$filterName]);
+                $filters[] = $model->$function($params[$filterName], $user);
             }
         }
         
