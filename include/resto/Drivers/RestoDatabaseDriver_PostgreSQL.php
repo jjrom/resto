@@ -351,7 +351,14 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             case parent::RIGHTS:
                 $rightsFunctions = new Functions_rights($this);
                 return $rightsFunctions->deleteRights($params['emailOrGroup'], $params['collectionName'],  $params['featureIdentifier']);
-                
+
+            /*
+             * Remove granted visibility
+             */
+            case parent::USER_GRANTED_VISIBILITY:
+                $usersFunctions = new Functions_users($this);
+                return $usersFunctions->deleteVisibility($params['userid'], $params['visibility']);
+
             default:
                 return null;
         }
@@ -422,7 +429,15 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             case parent::USER_PROFILE:
                 $usersFunctions = new Functions_users($this);
                 return $usersFunctions->storeUserProfile($params['profile']);
-            
+
+            /*
+             * Store granted visibility
+             */
+            case parent::USER_GRANTED_VISIBILITY:
+                $usersFunctions = new Functions_users($this);
+                return $usersFunctions->storeVisibility($params['userid'], $params['visibility']);
+
+
             default:
                 return null;
         }

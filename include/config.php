@@ -163,7 +163,7 @@ return array(
         'dbname' => 'resto',
         
         /*
-         * Database host - if not specified connect through socket instead of TCP/IP
+         * Database host - if not specified connect through unix domain socket (IPC socket) instead of TCP/IP socket
          */
         //'host' => 'localhost',
         
@@ -294,7 +294,7 @@ return array(
                 'database' => array(
                     'dbname' => 'itag',
                     /*
-                     * Database host - if not specified connect through socket instead of TCP/IP
+                     * Database host - if not specified connect through unix domain socket (IPC socket) instead of TCP/IP socket
                      */
                     //'host' => 'localhost',
                     'user' => 'itag',
@@ -315,7 +315,7 @@ return array(
                 'database' => array(
                     'dbname' => 'itag',
                     /*
-                     * Database host - if not specified connect through socket instead of TCP/IP
+                     * Database host - if not specified connect through unix domain socket (IPC socket) instead of TCP/IP socket
                      */
                     //'host' => 'localhost',
                     'user' => 'itag',
@@ -335,7 +335,7 @@ return array(
                 'database' => array(
                     'dbname' => 'itag',
                     /*
-                     * Database host - if not specified connect through socket instead of TCP/IP
+                     * Database host - if not specified connect through unix domain socket (IPC socket) instead of TCP/IP socket
                      */
                     //'host' => 'localhost',
                     'user' => 'itag',

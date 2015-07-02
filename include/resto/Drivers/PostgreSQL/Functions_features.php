@@ -79,7 +79,7 @@ class Functions_features {
         /*
          * Set search filters
          */
-        $filters = $filtersUtils->prepareFilters($model, $params);
+        $filters = $filtersUtils->prepareFilters($user, $model, $params);
         
         /*
          * TODO - get count from facet statistic and not from count() OVER()

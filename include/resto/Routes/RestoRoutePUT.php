@@ -35,7 +35,8 @@ class RestoRoutePUT extends RestoRoute {
      *    collections/{collection}/{feature}            |  Update {feature}
      *    
      *    users/{userid}/cart/{itemid}                  |  Modify item in {userid} cart
-     *    
+     *    users/{userid}/grantedvisibility              |  Modify {userid} granted visibility (only admin)
+     *
      * @param array $segments
      */
     public function route($segments) {
@@ -119,14 +120,19 @@ class RestoRoutePUT extends RestoRoute {
     /**
      * 
      * Process HTTP PUT request on users
-     * 
+     *
+     *    users/{userid}/grantedvisibility              |  Modify {userid} granted visibility (only admin)
      *    users/{userid}/cart/{itemid}                  |  Modify item in {userid} cart
      * 
      * @param array $segments
      * @param array $data
      */
     private function PUT_users($segments, $data) {
-        
+
+        if ($segments[2] === 'grantedvisibility') {
+            return $this->PUT_userGrantedVisibility($segments[1], $data);
+        }
+
         /*
          * Mandatory {itemid}
          */
@@ -142,8 +148,37 @@ class RestoRoutePUT extends RestoRoute {
         }
         
     }
-    
-    
+
+    /**
+     *
+     * Process HTTP PUT request on users granted visibility
+     *
+     *    users/{userid}/grantedvisibility              |  Modify {userid} granted visibility (only admin)
+     *
+     * @param string $emailOrId
+     * @param array $data
+     */
+    private function PUT_userGrantedVisibility($emailOrId, $data) {
+
+        /*
+         * Granted visibility for a user can only be modified by admin
+         */
+        if (!$this->isAdminUser()) {
+            RestoLogUtil::httpError(403);
+        }
+
+        $user = $this->getAuthorizedUser($emailOrId);
+
+        $this->context->dbDriver->update(RestoDatabaseDriver::USER_PROFILE, array(
+                'profile' => array(
+                    'email' => $user->profile['email'],
+                    'grantedvisibility' => isset($data['grantedvisibility']) && $data['grantedvisibility'] !== '' ? $data['grantedvisibility'] : null
+                ))
+        );
+
+        return RestoLogUtil::success('Granted visibity of user ' . $emailOrId . ' has been updated with '. $data['grantedvisibility']);
+    }
+
     /**
      * 
      * Process HTTP PUT request on users cart
