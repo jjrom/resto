@@ -63,7 +63,8 @@ class RestoUser{
             );
         }
         else {
-            $this->profile = $profile;
+            // Refresh user profile
+            $this->profile = $this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('userid' => $profile['userid']));
         }
         
         /*
@@ -226,6 +227,105 @@ class RestoUser{
         return false;
     }
     
+    /**
+     * Check if the user is habilitated to sign the product license {licenseId}
+     * @param $licenseId
+     * @return mixed
+     */
+    public function isHabilitedToSignProductLicense($licenseId) {
+        return $this->context->dbDriver->check(RestoDatabaseDriver::PRODUCT_LICENSE_HABILITATION, array('email' => $this->profile['email'], 'license_id' =>  $licenseId));
+    }
+
+    /**
+     * Check if the user is habilitated to sign the product license {licenseId}
+     * @param $licenseId
+     * @return mixed
+     */
+    public function isPublicVisibleWMS($licenseId) {
+        $license = $this->context->dbDriver->get(RestoDatabaseDriver::PRODUCT_LICENSE, array('license_id' => $licenseId));
+        return $license[0]['public_visibility_wms'];
+    }
+
+    /**
+     * Check if user has to sign license for the product
+     *
+     * @param array $feature
+     */
+    public function hasToSignProductLicense($feature) {
+        $arr = $feature->toArray();
+        $licenseId = $arr['properties']['license'];
+
+        /*
+         * feature has not license => never need to sign one
+         */
+        if (!isset($licenseId)) {
+            return false;
+        }
+
+        /*
+         * Unregistered user always Forbidden : Need to be registered to sign a license
+         */
+        if (!isset($this->profile['email'])) {
+            RestoLogUtil::httpError(403, 'Need to be registered to sign a license');
+        }
+
+        /**
+         * Check if user is habilitated for this license
+         */
+        if (!$this->context->dbDriver->check(RestoDatabaseDriver::PRODUCT_LICENSE_HABILITATION, array('email' => $this->profile['email'], 'license_id' =>  $licenseId))) {
+            RestoLogUtil::httpError(403, 'User not habilitated for this license. Please contact administrator.');
+        }
+
+        /**
+         * Check if user is maximum signatures number for this license is not exceeded
+         */
+        if (!$this->context->dbDriver->check(RestoDatabaseDriver::PRODUCT_LICENSE_MAX_SIGNATURES, array('license_id' =>  $licenseId))) {
+            RestoLogUtil::httpError(403, 'Maximum number of signatures for this license is reached. Please contact administrator.');
+        }
+
+        /*
+         * Check in database
+         */
+        return !$this->context->dbDriver->check(RestoDatabaseDriver::PRODUCT_LICENSE_SIGNED, array('email' => $this->profile['email'], 'license_id' => $licenseId));
+
+    }
+
+    /**
+     * Sign license for a product
+     *
+     * @param string $licenseId
+     */
+    public function signProductLicense($licenseId) {
+        /**
+         * Check if user is habilitated for this license
+         */
+        if (!$this->context->dbDriver->check(RestoDatabaseDriver::PRODUCT_LICENSE_HABILITATION, array('email' => $this->profile['email'], 'license_id' =>  $licenseId))) {
+            RestoLogUtil::httpError(403, 'User not habilitated for this license. Please contact administrator.');
+        }
+
+        /**
+         * Check if user is maximum signatures number for this license is not exceeded
+         */
+        if (!$this->context->dbDriver->check(RestoDatabaseDriver::PRODUCT_LICENSE_MAX_SIGNATURES, array('license_id' =>  $licenseId))) {
+            RestoLogUtil::httpError(403, 'Maximum number of signatures for this license is reached. Please contact administrator.');
+        }
+
+        /**
+         * Sign product license
+         */
+        if ($this->context->dbDriver->execute(RestoDatabaseDriver::SIGN_PRODUCT_LICENSE, array('email' => $this->profile['email'], 'license_id' =>  $licenseId))) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Get user legal infos
+     */
+    public function getLegalInfo() {
+        return $this->context->dbDriver->get(RestoDatabaseDriver::USER_LEGAL_INFO, array('email' => $this->profile['email']));
+    }
+
     /**
      * Disconnect user
      */

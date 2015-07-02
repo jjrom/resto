@@ -43,7 +43,7 @@ class RestoFeature {
     /*
      * Feature array
      */
-    private $featureArray;
+    public $featureArray;
     
     /**
      * Constructor 

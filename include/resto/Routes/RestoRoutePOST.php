@@ -34,6 +34,7 @@ class RestoRoutePOST extends RestoRoute {
      *    api/users/connect                             |  Connect user
      *    api/users/disconnect                          |  Disconnect user
      *    api/users/{userid}/signLicense                |  Sign license for input collection
+     *    api/users/{userid}/signatures/{licenseid}     |  Sign license identified by {licenseid}
      *    api/users/resetPassword                       |  Reset password
      * 
      *    collections                                   |  Create a new {collection}            
@@ -43,6 +44,10 @@ class RestoRoutePOST extends RestoRoute {
      *    users/{userid}/cart                           |  Add new item in {userid} cart
      *    users/{userid}/orders                         |  Send an order for {userid}
      *    users/{userid}/grantedvisibility              |  Add visibility to {userid} granted visibilities (only admin)
+     *    users/{userid}/legal                          |  Add {userid} legal informations
+     *
+     *    licenses                                      |  Create a license
+     *
      *
      * @param array $segments
      */
@@ -63,6 +68,8 @@ class RestoRoutePOST extends RestoRoute {
                 return $this->POST_collections($segments, $data);
             case 'users':
                 return $this->POST_users($segments, $data);
+            case 'licenses':
+                return $this->POST_licenses($segments, $data);
             default:
                 return $this->processModuleRoute($segments, $data);
         }
@@ -75,7 +82,8 @@ class RestoRoutePOST extends RestoRoute {
      *    api/users/connect                             |  Connect user
      *    api/users/disconnect                          |  Disconnect user
      *    api/users/{userid}/signLicense                |  Sign license for input collection
-     * 
+     *    api/users/{userid}/signatures/{licenseid}     |  Sign product license identified by {licenseid}
+     *
      * @param array $segments
      * @param array $data
      */
@@ -122,6 +130,14 @@ class RestoRoutePOST extends RestoRoute {
             if (isset($segments[3]) && $segments[3] === 'signLicense' && !isset($segments[4])) {
                 return $this->POST_apiUsersSignLicense($segments[2], $data);
             }
+
+           /*
+            *    api/users/{userid}/signatures/{licenseid}     |  Sign license identified by {licenseid}
+            */
+            if (isset($segments[3]) && $segments[3] === 'signatures' && isset($segments[4]) && !isset($segments[5])) {
+                return $this->POST_apiUsersSignLicenseProduct($segments[2], $segments[4], $data);
+            }
+
         }
         /*
          * Process module
@@ -249,6 +265,76 @@ class RestoRoutePOST extends RestoRoute {
     }
     
     /**
+     *  Process api/users/{userid}/signatures/{licenseid}
+     *
+     * @param string $userid
+     * @param $licenseid
+     * @return type
+     * @throws Exception
+     * @internal param array $data
+     */
+    private function POST_apiUsersSignLicenseProduct($userid, $licenseid, $data) {
+
+        /*
+         * Only user can sign its license
+         */
+        if ($this->user->profile['userid'] !== $this->userid($userid)) {
+            RestoLogUtil::httpError(403);
+        }
+
+        /*
+         * Test if the license exist
+         */
+        if (!$this->context->dbDriver->check(RestoDatabaseDriver::PRODUCT_LICENSE, array('license_id' => $licenseid))) {
+            RestoLogUtil::httpError(400, 'License ' . $licenseid . ' does not exist' );
+        }
+
+        /*
+         * Try to sign the licence
+         */
+        $sig_result = $this->user->signProductLicense($licenseid);
+        if (!$sig_result) {
+            return RestoLogUtil::error('Cannot sign license');
+        }
+        else if (!isset($data['feature']) || !isset($data['collection'])) {
+            /*
+             *  No feature requested in the POST message : only sign a licence without product download
+             */
+            return RestoLogUtil::success('License signed');
+        } else {
+            /*
+             * Try to load the feature
+             */
+            $featureIdentifier = $data['feature'];
+            $collectionName = $data['collection'];
+
+            $collection = new RestoCollection($collectionName, $this->context, $this->user, array('autoload' => true));
+            $feature = new RestoFeature($this->context, $this->user, array(
+                'featureIdentifier' => $featureIdentifier,
+                'collection' => $collection
+            ));
+
+            if (!$feature->isValid()) {
+                RestoLogUtil::httpError(404);
+            }
+
+            /*
+             * User do not have right to download product
+             */
+            if (!$this->user->canDownload($collection->name, $feature->identifier, null)) {
+                RestoLogUtil::httpError(403);
+            }
+
+            /**
+             * Download product
+             */
+            $this->storeQuery('download', $collection->name, $feature->identifier);
+            $feature->download();
+            return null;
+        }
+    }
+
+    /**
      * 
      * Process HTTP POST request on collections
      * 
@@ -334,6 +420,7 @@ class RestoRoutePOST extends RestoRoute {
      *    users/{userid}/cart                           |  Add new item in {userid} cart
      *    users/{userid}/orders                         |  Send an order for {userid}
      *    users/{userid}/grantedvisibility              |  Add visibility to {userid} granted visibilities (only admin)
+     *    users/{userid}/legal                          |  Add {userid} legal informations
      *
      * @param array $segments
      * @param array $data
@@ -373,6 +460,12 @@ class RestoRoutePOST extends RestoRoute {
          */
         else if (isset($segments[2]) && $segments[2] === 'grantedvisibility') {
             return $this->POST_userGrantedVisibility($segments[1], $data);
+        }
+       /*
+        *    users/{userid}/legal
+        */
+        else if (isset($segments[2]) && $segments[2] === 'legal') {
+            return $this->POST_userLegalInfo($segments[1], $data);
         }
 
         /*
@@ -467,6 +560,44 @@ class RestoRoutePOST extends RestoRoute {
     }
 
     /**
+     * Add user legal info
+     *
+     * @param array $data
+     */
+    private function POST_userLegalInfo($userid, $data) {
+
+
+        /*
+         * Cart can only be modified by its owner or by admin
+         */
+        $user = $this->getAuthorizedUser($userid);
+
+        if ($user->profile['email'] !== $data['email']) {
+            RestoLogUtil::httpError(403);
+        }
+
+        if (!isset($data['email'])) {
+            RestoLogUtil::httpError(400, 'Email is not set');
+        }
+
+        if (!$this->context->dbDriver->check(RestoDatabaseDriver::USER, array('email' => $data['email']))) {
+            RestoLogUtil::httpError(400, 'User '. $data['email'] . 'doesn\'t not exist');
+        }
+
+        $this->context->dbDriver->store(RestoDatabaseDriver::USER_LEGAL_INFO, array(
+                'legalInfo' => array(
+                    'email' => $data['email'],
+                    'nationality' => isset($data['nationality']) ? $data['nationality'] : null,
+                    'organization' => isset($data['organization']) ? $data['organization'] : null,
+                    'org_nationality' => isset($data['org_nationality']) ? $data['org_nationality'] : null,
+                    'flags' => isset($data['flags']) ? $data['flags'] : null
+                ))
+        );
+
+        return RestoLogUtil::success('User Legal information for ' . $data['email'] . ' added');
+    }
+
+    /**
      * Process HTTP POST request on user cart
      * 
      *    users/{userid}/cart                           |  Add new item in {userid} cart
@@ -527,6 +658,77 @@ class RestoRoutePOST extends RestoRoute {
             return RestoLogUtil::error('Cannot place order');
         }
         
+    }
+
+    /**
+     *
+     * Process HTTP POST request on licenses
+     *
+     *    licenses                                      |  Create a license
+     *
+     * @param array $segments
+     * @param array $data
+     */
+    private function POST_licenses($segments, $data) {
+
+        /*
+         * No modifier allowed
+         */
+        if (isset($segments[2])) {
+            RestoLogUtil::httpError(404);
+        }
+
+        /*
+         * licenses
+         */
+        if (!isset($segments[1])) {
+            return $this->POST_createlicense($data);
+        }
+
+        /*
+         * Unknown route
+         */
+        else {
+            RestoLogUtil::httpError(404);
+        }
+
+    }
+
+    /**
+     * Create license
+     *
+     * @param array $data
+     */
+    private function POST_createlicense($data) {
+
+        /*
+         * only available for admin
+         */
+        if (!$this->isAdminUser()) {
+            RestoLogUtil::httpError(403);
+        }
+
+        if (!isset($data['license_id'])) {
+            RestoLogUtil::httpError(400, 'license Identifier is not set');
+        }
+
+        $license = $this->context->dbDriver->store(RestoDatabaseDriver::PRODUCT_LICENSE, array(
+                'license' => array(
+                    'license_id' => $data['license_id'],
+                    'max_signatures' => isset($data['max_signatures']) ? $data['max_signatures'] : null,
+                    'granted_nationalities' => isset($data['granted_nationalities']) ? $data['granted_nationalities'] : null,
+                    'granted_org_nationalities' => isset($data['granted_org_nationalities']) ? $data['granted_org_nationalities'] : null,
+                    'restriction_flags' => isset($data['restriction_flags']) ? $data['restriction_flags'] : null,
+                    'once_for_all' => isset($data['once_for_all']) ? $data['once_for_all'] : null,
+                    'public_visibility_wms' => isset($data['public_visibility_wms']) ? $data['public_visibility_wms'] : null,
+                    'license_info' => isset($data['license_info']) ? $data['license_info'] : null
+                ))
+        );
+        if (!isset($license)) {
+            RestoLogUtil::httpError(500, 'Database connection error');
+        }
+
+        return RestoLogUtil::success('license ' . $data['license_id'] . ' created');
     }
 
 }

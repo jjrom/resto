@@ -58,6 +58,17 @@ abstract class RestoDatabaseDriver {
     const USER_PROFILE = 34;
 
     const USER_GRANTED_VISIBILITY = 100;
+    const USER_LEGAL_INFO = 110;
+    const ALL_LEGAL_INFO = 111;
+    const VALIDATE_USER_LEGAL_INFO = 112;
+
+    const PRODUCT_LICENSE = 200;
+    const SIGN_PRODUCT_LICENSE = 201;
+    const PRODUCT_LICENSE_SIGNED = 202;
+    const PRODUCT_LICENSE_HABILITATION = 203;
+    const PRODUCT_LICENSE_MAX_SIGNATURES = 204;
+
+    const WMS_INFORMATION = 300;
 
     /*
      * Results per page

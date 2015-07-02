@@ -189,6 +189,7 @@ CREATE TABLE resto.features (
     parentidentifier    TEXT,
     collection          TEXT,
     metadatavisibility  TEXT DEFAULT 'PUBLIC'::text,
+    license             TEXT,
     productidentifier   TEXT,
     title               TEXT,
     description         TEXT,
@@ -360,6 +361,44 @@ BEGIN
 END;
 \$\$;
 CREATE TRIGGER old_tokens_gc AFTER INSERT ON usermanagement.revokedtokens EXECUTE PROCEDURE delete_old_tokens();
+
+-- Table: userslegalinfo
+CREATE TABLE usermanagement.userslegalinfo (
+   email text  NOT NULL,
+   nationality text NOT NULL,
+   organization text,
+   org_nationality text,
+   flags text,
+   validated_by text,
+   validation_date timestamp,
+   CONSTRAINT userslegalinfo_pk PRIMARY KEY (email)
+);
+ALTER TABLE ONLY usermanagement.userslegalinfo ADD CONSTRAINT fk_userslegalinfo_users FOREIGN KEY (email) REFERENCES usermanagement.users (email);
+
+-- Table: licenses
+CREATE TABLE usermanagement.licenses (
+   license_id text  NOT NULL,
+   max_signatures int  NOT NULL DEFAULT -1,
+   granted_nationalities text,
+   granted_org_nationalities text,
+   restriction_flags text,
+   once_for_all boolean NOT NULL,
+   public_visibility_wms boolean NOT NULL,
+   license_info text  NOT NULL,
+   CONSTRAINT licenses_pk PRIMARY KEY (license_id)
+);
+
+-- Table: signatureslicense
+CREATE TABLE usermanagement.signatureslicense (
+   signature_id serial  NOT NULL,
+   email text  NOT NULL,
+   license_id text  NOT NULL,
+   signature_date timestamp  NOT NULL,
+   CONSTRAINT signatureslicense_pk PRIMARY KEY (signature_id)
+);
+ALTER TABLE ONLY usermanagement.signatureslicense ADD CONSTRAINT fk_signatureslicense_users FOREIGN KEY (email) REFERENCES usermanagement.users (email);
+ALTER TABLE ONLY usermanagement.signatureslicense ADD CONSTRAINT fk_signatureslicense_licenses FOREIGN KEY (license_id) REFERENCES usermanagement.licenses (license_id);
+
 EOF
 
 # Data
@@ -426,6 +465,10 @@ GRANT SELECT,UPDATE ON usermanagement.sharedlinks_gid_seq TO $USER;
 GRANT SELECT,UPDATE ON usermanagement.cart_gid_seq TO $USER;
 GRANT SELECT,UPDATE ON usermanagement.orders_gid_seq TO $USER;
 
+GRANT SELECT, UPDATE, INSERT, DELETE ON TABLE usermanagement.userslegalinfo TO $USER;
+GRANT SELECT, UPDATE, INSERT, DELETE ON TABLE usermanagement.licenses TO $USER;
+GRANT SELECT, UPDATE, INSERT, DELETE ON TABLE usermanagement.signatureslicense TO $USER;
+GRANT SELECT, UPDATE ON TABLE usermanagement.signatureslicense_signature_id_seq TO $USER;
 
 EOF
 

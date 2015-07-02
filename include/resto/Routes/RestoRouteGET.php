@@ -38,15 +38,19 @@ class RestoRouteGET extends RestoRoute {
      *    api/users/connect                             |  Connect and return a new valid connection token
      *    api/users/resetPassword                       |  Ask for password reset (i.e. reset link sent to user email adress)
      *    api/users/checkToken                          |  Check if token is valid
+     *    api/users/lp_signatures                       |  Show signatures on licenses products for current user
+     *    api/users/legal                               |  Show legal informations for all users (only admin)
      *    api/users/{userid}/activate                   |  Activate users with activation code
      *    
      *    collections                                   |  List all collections            
      *    collections/{collection}                      |  Get {collection} description
      *    collections/{collection}/{feature}            |  Get {feature} description within {collection}
      *    collections/{collection}/{feature}/download   |  Download {feature}
-     * 
+     *    collections/{collection}/{feature}/wms        |  Access WMS {feature}
+     *
      *    users                                         |  List all users
      *    users/{userid}                                |  Show {userid} information
+     *    users/{userid}/legal                          |  Show {userid} legal informations
      *    users/{userid}/grantedvisibility              |  Show {userid} granted visibility (only admin)
      *    users/{userid}/cart                           |  Show {userid} cart
      *    users/{userid}/orders                         |  Show orders for {userid}
@@ -56,7 +60,10 @@ class RestoRouteGET extends RestoRoute {
      *    users/{userid}/rights/{collection}/{feature}  |  Show rights for {userid} on {feature} from {collection}
      *    users/{userid}/signatures                     |  Show signatures for {userid}
      *    users/{userid}/signatures/{collection}        |  Show signatures for {userid} on {collection}
-     * 
+     *
+     *    licenses                                      |  List all licenses
+     *    licenses/{licenseid}                          |  Get {licenseid} license description
+     *
      * Note: {userid} can be replaced by base64(email) 
      * 
      * @param array $segments
@@ -70,6 +77,8 @@ class RestoRouteGET extends RestoRoute {
                 return $this->GET_collections($segments);
             case 'users':
                 return $this->GET_users($segments);
+            case 'licenses':
+                return $this->GET_licenses($segments);
             default:
                 return $this->processModuleRoute($segments);
         }
@@ -145,10 +154,77 @@ class RestoRouteGET extends RestoRoute {
         $resource = isset($collectionName) ? new RestoCollection($collectionName, $this->context, $this->user, array('autoload' => true)) : new RestoCollections($this->context, $this->user);
         $this->storeQuery('search', isset($collectionName) ? $collectionName : '*', null);
 
-        return $resource->search();
-        
+        $results =  $resource->search();
+
+        // Perform post processing on found features
+        $this->apiCollectionsSearchPostProcessing($results->restoFeatures);
+
+        return $results;
     }
-    
+    /**
+     * @param $restoFeatures
+     */
+    private function apiCollectionsSearchPostProcessing($restoFeatures) {
+
+        // Retrieve all the licenses signed by the user
+        if (isset($this->user->profile['email'])) {
+            $signatures = $this->context->dbDriver->get(RestoDatabaseDriver::PRODUCT_LICENSE_SIGNED, array('email' => $this->user->profile['email']));
+        }
+
+        // Retreive all the licenses defined in the database
+        $licenses = $this->context->dbDriver->get(RestoDatabaseDriver::PRODUCT_LICENSE, array());
+
+        // Iterate on each returned feature
+        $count = count($restoFeatures);
+        for ($i=0; $i<$count; $i++) {
+
+            // Get a reference on the current feature
+            $feature = &$restoFeatures[$i]->featureArray;
+
+            // If the current feature has a license, just add the licenseInfo
+            if (isset($feature['properties']['license'])) {
+                $licenseId = $feature['properties']['license'];
+                $license = $this->findLicenseById($licenses,$licenseId);
+
+                // Add licenseInfo
+                $properties = &$feature['properties'];
+                if (isset($license['license_info'])) {
+                    $properties['license_info'] = $license['license_info'];
+                }
+
+                // If the user has signed some licenses, try to add signature date if applicable.
+                if (isset($signatures)) {
+                    $sigDate = $this->findSignatureDateByLicenseId($signatures, $licenseId);
+                    if ($sigDate !== null) {
+                        $properties['license_signature_date'] = $sigDate;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @param $licenses
+     * @param $licenseId
+     */
+    private function findLicenseById($licenses, $licenseId) {
+        foreach (array_values($licenses) as $license) {
+            if ($license['license_id'] == $licenseId) {
+                return $license;
+            }
+        }
+        return null;
+    }
+
+    private function findSignatureDateByLicenseId($signatures, $licenseId) {
+        foreach (array_values($signatures) as $signature) {
+            if ($signature['license_id'] == $licenseId) {
+                return $signature['signature_date'];
+            }
+        }
+        return null;
+    }
+
     /**
      * Process 'describesearch' requests
      * 
@@ -174,7 +250,14 @@ class RestoRouteGET extends RestoRoute {
      * @return type
      */
     private function GET_apiUsers($segments) {
-       
+
+        /*
+         * api/users/lp_signatures
+         */
+        if ($segments[2] === 'lp_signatures' && !isset($segments[3])) {
+            return $this->GET_userLicensesProductSignatures();
+        }
+
         if (!isset($segments[3])) {
             return $this->GET_apiUsersAll($segments);
         }
@@ -207,6 +290,12 @@ class RestoRouteGET extends RestoRoute {
             case 'checkToken':
                 return $this->GET_apiUsersCheckToken();
                 
+            /*
+             * api/users/legal
+             */
+            case 'legal':
+                return $this->GET_AllLegalInfo();
+
             /*
              * api/users/resetPassword
              */
@@ -413,11 +502,41 @@ class RestoRouteGET extends RestoRoute {
         }
 
         /*
+         * Access WMS then exit
+         */
+        else if ($segments[3] === 'wms') {
+            return $this->GET_featureWMS($collection, $feature);
+        }
+
+        /*
          * 404
          */
         else {
             RestoLogUtil::httpError(404);
         }
+    }
+
+    /**
+     * Access WMS for a given feature
+     *
+     * @param RestoCollection $collection
+     * @param RestoFeature $feature
+     * @return type
+     */
+    private function GET_featureWMS($collection, $feature) {
+
+        $wmsInfo = $this->context->dbDriver->get(RestoDatabaseDriver::WMS_INFORMATION, array(
+            'featureIdentifier' => $feature->identifier,
+            'collection' => isset($collection) ? $collection : null
+        ));
+
+        if (!isset($wmsInfo['wms'])) {
+            RestoLogUtil::httpError(400);
+        }
+
+        $util = new RestoWMSUtil();
+        $util->proxifyWMS($wmsInfo['wms'], $wmsInfo['license'], $this->user, $this->context);
+        return null;
     }
 
     /**
@@ -446,6 +565,29 @@ class RestoRouteGET extends RestoRoute {
                 'ErrorCode' => 3002
             );
         }
+
+        /*
+         * Or user has rigth but hasn't sign the license yet
+         */
+        else if ($this->user->hasToSignProductLicense($feature) && empty($this->context->query['_tk'])) {
+            $arr = $feature->toArray();
+            $featureLicense = $arr['properties']['license'];
+            if (!$this->context->dbDriver->check(RestoDatabaseDriver::PRODUCT_LICENSE, array('license_id' => $featureLicense))) {
+                RestoLogUtil::httpError(500, 'Contact administrator, license '. $featureLicense . ' is unknown.');
+            }
+
+            $license = $this->context->dbDriver->get(RestoDatabaseDriver::PRODUCT_LICENSE, array('license_id' => $featureLicense));
+            return array(
+                'ErrorMessage' => 'Forbidden',
+                'feature' => $feature->identifier,
+                'collection' => $collection->name,
+                'license_id' => $featureLicense,
+                'license' => $license[0]['license_info'],
+                'user_id' => $this->user->profile['userid'],
+                'ErrorCode' => 3002
+            );
+        }
+
         /*
          * Rights + license signed = download and exit
          */
@@ -476,6 +618,13 @@ class RestoRouteGET extends RestoRoute {
          */
         if (!isset($segments[2])) {
             return $this->GET_userProfile($segments[1]);
+        }
+
+        /*
+         * users/{userid}/legal
+         */
+        if ($segments[2] === 'legal') {
+            return $this->GET_userLegalInfo($segments[1]);
         }
 
         /*
@@ -534,6 +683,40 @@ class RestoRouteGET extends RestoRoute {
         ));
     }
 
+    /**
+     * Process users/legal (only admin)
+     *
+     * @param string $emailOrId
+     * @throws Exception
+     */
+    private function GET_AllLegalInfo() {
+
+        /*
+         * Granted Visibility can only be seen by admin users
+         */
+        if (!$this->isAdminUser()) {
+            RestoLogUtil::httpError(403);
+        }
+
+        return RestoLogUtil::success('Legal info for all the users', array(
+            'legal_infos' => $this->context->dbDriver->get(RestoDatabaseDriver::ALL_LEGAL_INFO)
+        ));
+    }
+
+    /**
+     * Process users/{userid}/legal
+     *
+     * @param string $emailOrId
+     * @throws Exception
+     */
+    private function GET_userLegalInfo($emailOrId) {
+
+        $user = $this->getAuthorizedUser($emailOrId);
+
+        return RestoLogUtil::success('Legal info for ' . $user->profile['userid'], array(
+            'legal' => $user->getLegalInfo()
+        ));
+    }
 
     /**
      * Process users/{userid}/grantedvisibility
@@ -554,6 +737,27 @@ class RestoRouteGET extends RestoRoute {
 
         return RestoLogUtil::success('Granted visibility for ' . $user->profile['userid'], array(
             'grantedvisibility' => $user->profile['grantedvisibility']
+        ));
+    }
+
+    /**
+     * Process HTTP GET request on user signatures for product licenses
+     *
+     * @return array
+     * @throws Exception
+     */
+    private function GET_userLicensesProductSignatures() {
+
+        if (!isset($this->user->profile['email'])) {
+            RestoLogUtil::httpError(403);
+        }
+
+        $signatures = $this->context->dbDriver->get(RestoDatabaseDriver::PRODUCT_LICENSE_SIGNED, array('email' => $this->user->profile['email']));
+
+        return RestoLogUtil::success('Product license signatures for ' . $this->user->profile['userid'], array(
+            'userid' => $this->user->profile['userid'],
+            'email' => $this->user->profile['email'],
+            'signatures' => $signatures
         ));
     }
 
@@ -685,6 +889,17 @@ class RestoRouteGET extends RestoRoute {
         
         return null;
             
+    }
+
+    /**
+     *
+     * Process HTTP GET request on licenses
+     *
+     * @param array $segments
+     */
+    private function GET_licenses($segments) {
+        $licenseId = isset($segments[1]) ? $segments[1] : null;
+        return $this->context->dbDriver->get(RestoDatabaseDriver::PRODUCT_LICENSE, array('license_id' => $licenseId));
     }
 
 }

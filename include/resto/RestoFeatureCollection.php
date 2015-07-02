@@ -43,7 +43,7 @@ class RestoFeatureCollection {
     /*
      * Features
      */
-    private $restoFeatures;
+    public $restoFeatures;
     
     /*
      * All collections

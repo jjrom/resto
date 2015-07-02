@@ -50,6 +50,10 @@
  *    |  GET     users                                         |  List all users
  *    |  POST    users                                         |  Add a user
  *    |  GET     users/{userid}                                |  Show {userid} information
+ *    |  GET     users/{userid}/legal                          |  Show {userid} legal informations
+ *    |  POST    users/{userid}/legal                          |  Add {userid} legal informations
+ *    |  DELETE  users/{userid}/legal                          |  Remove {userid} legal informations (only admin)
+ *    |  PUT     users/{userid}/legal/validation               |  Validate {userid} legal informations (only admin)
  *    |  GET     users/{userid}/grantedvisibility              |  Show {userid} granted visibility (only admin)
  *    |  PUT     users/{userid}/grantedvisibility              |  Modify all {userid} granted visibilities (only admin)
  *    |  POST    users/{userid}/grantedvisibility              |  Add visibility to {userid} granted visibilities (only admin)
@@ -67,6 +71,16 @@
  * 
  *    Note: {userid} can be replaced by base64(email) 
  * 
+ * ** licenses **
+ *
+ *    |          Resource                                      |      Description
+ *    |________________________________________________________|________________________________________________
+ *    |  GET     licenses                                      |  List all licenses
+ *    |  POST    licenses                                      |  Create a license
+ *    |  GET     licenses/{licenseid}                          |  Get {licenseid} license description
+ *    |  DELETE  licenses/{licenseid}                          |  Delete {licenseid}
+ *    |  PUT     licenses/{licenseid}                          |  Update {licenseid}
+ *
  * ** API **
  * 
  *    |          Resource                                      |     Description
@@ -81,6 +95,9 @@
  *    |  GET     api/users/resetPassword                       |  Ask for password reset (i.e. reset link sent to user email adress)
  *    |  GET     api/users/{userid}/activate                   |  Activate users with activation code
  *    |  POST    api/users/{userid}/signLicense                |  Sign license for input collection
+ *    |  POST    api/users/{userid}/signatures/{licenseid}     |  Sign license identified by {licenseid}
+ *    |  GET     api/users/legal                               |  Show legal informations for all users (only admin)
+ *    |  GET     api/users/lp_signatures                       |  Show signatures on licenses products for current user
  *
  */
 abstract class RestoRoute {

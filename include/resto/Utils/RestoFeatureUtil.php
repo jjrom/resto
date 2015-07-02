@@ -144,6 +144,56 @@ class RestoFeatureUtil {
     }
     
     /**
+     * Proxify WMS URL depending on the requesting user
+     *
+     * If the product has a license then
+     *     If the user is authenticated then
+     *        If the user is habilitated to sign the license then display WMS Full resolution
+     *        else display WMS Low resolution
+     *     else
+     *        If the license has the public_visibility_wms = true then WMS Low resolution
+     *        else don't display the WMS
+     *
+     * @param $properties
+     * @param $user
+     * @param $baseUrl
+     * @return string relative path in the form of YYYYMMdd/thumbnail_filename with YYYYMMdd is the formated startDate parameter
+     */
+    private function getWmsUrl($properties, $user, $baseUrl) {
+
+
+        if (isset($properties['wms'])) {
+
+            $wmsUrl = RestoUtil::restoUrl($baseUrl, '/collections/' . $properties['collection'] . '/' . $properties['identifier'] . '/wms' );
+            $wmsUrl .= "?";
+
+            if (isset($user->token)) {
+                $wmsUrl .= "_bearer=" . $user->token . "&";
+            }
+            $wmsUrl .= substr($properties['wms'], strpos($properties['wms'], "?") + 1);
+
+            // First check if the product has a license...
+            if (isset($properties['license']) && $properties['license'] != null) {
+                if (!isset($user->profile['email'])) {
+                    // User is not authenticated
+                    if ($user->isPublicVisibleWMS($properties['license'])) {
+                        return $wmsUrl;
+                    } else {
+                        return null;
+                    }
+                } else {
+                    // User is authenticated
+                    return $wmsUrl;
+                }
+            }
+            else {
+                // No license
+                return $wmsUrl;
+            }
+        }
+    }
+
+    /**
      * Update metadata values from propertiesMapping
      * 
      * @param array $properties
@@ -166,6 +216,17 @@ class RestoFeatureUtil {
             $properties['thumbnail'] = $collection->model->generateThumbnailPath($properties);
         }
         
+        // Update WMS URL depending on the current user
+        if (method_exists($collection->model,'getWmsUrl')) {
+            $properties['wms'] = $collection->model->getWmsUrl($properties, $this->user, $this->context->baseUrl);
+        } else {
+            $properties['wms'] = $this->getWmsUrl($properties, $this->user, $this->context->baseUrl);
+        }
+
+        if ($properties['wms'] === null) {
+            unset($properties['wms']);
+        }
+
         /*
          * Modify properties as defined in collection propertiesMapping associative array
          */

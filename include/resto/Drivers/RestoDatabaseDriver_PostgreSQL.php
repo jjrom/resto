@@ -23,6 +23,7 @@ require 'PostgreSQL/Functions_cart.php';
 require 'PostgreSQL/Functions_collections.php';
 require 'PostgreSQL/Functions_facets.php';
 require 'PostgreSQL/Functions_features.php';
+require 'PostgreSQL/Functions_licenses.php';
 require 'PostgreSQL/Functions_filters.php';
 require 'PostgreSQL/Functions_rights.php';
 require 'PostgreSQL/Functions_users.php';
@@ -164,7 +165,42 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             case parent::USER_PROFILE:
                 $usersFunctions = new Functions_users($this);
                 return $usersFunctions->getUserProfile(isset($params['email']) ? $params['email'] : $params['userid'], isset($params['password']) ? $params['password'] : null);
-                
+
+            /*
+             * Get all users legal information
+             */
+            case parent::ALL_LEGAL_INFO:
+                $usersFunctions = new Functions_users($this);
+                return $usersFunctions->getAllLegalInfo();
+
+            /*
+             * Get user legal information
+             */
+            case parent::USER_LEGAL_INFO:
+                $usersFunctions = new Functions_users($this);
+                return $usersFunctions->getUserLegalInfo(isset($params['email']) ? $params['email'] : $params['userid'], isset($params['password']) ? $params['password'] : null);
+
+            /*
+             * Get signed product licenses for a user order by signature dates. The lastest first.
+             */
+            case parent::PRODUCT_LICENSE_SIGNED:
+                $usersFunctions = new Functions_users($this);
+                return $usersFunctions->getLicensesProductSignatures($params['email']);
+
+            /*
+             * Get license
+             */
+            case parent::PRODUCT_LICENSE:
+                $licensesFunctions = new Functions_licenses($this);
+                return $licensesFunctions->getLicenses(isset($params['license_id']) ? $params['license_id'] : null);
+
+            /*
+            * Get collections descriptions
+            */
+            case parent::WMS_INFORMATION:
+                $featuresFunctions = new Functions_features($this);
+                return $featuresFunctions->getWmsInformation($params['featureIdentifier'], isset($params['collection']) ? $params['collection'] : null);
+
             default:
                 return null;
         }
@@ -208,7 +244,21 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             case parent::SIGN_LICENSE:
                 $usersFunctions = new Functions_users($this);
                 return $usersFunctions->signLicense($params['email'], $params['collectionName']);
-                
+
+            /*
+             * Validate user legal information
+             */
+            case parent::VALIDATE_USER_LEGAL_INFO:
+                $usersFunctions = new Functions_users($this);
+                return $usersFunctions->validateUserLegalInfo($params['adminEmail'], $params['userEmail']);
+
+            /*
+             * Sign product license
+             */
+            case parent::SIGN_PRODUCT_LICENSE:
+                $usersFunctions = new Functions_users($this);
+                return $usersFunctions->signProductLicense($params['email'], $params['license_id']);
+
             default:
                 return null;
         }
@@ -294,7 +344,35 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             case parent::USER:
                 $usersFunctions = new Functions_users($this);
                 return $usersFunctions->userExists($params['email']);
-            
+
+            /*
+             * True if license exists
+             */
+            case parent::PRODUCT_LICENSE:
+                $licensesFunctions = new Functions_licenses($this);
+                return $licensesFunctions->licenseExists($params['license_id']);
+
+            /*
+             * True if user is don't have to sign the license
+             */
+            case parent::PRODUCT_LICENSE_SIGNED:
+                $usersFunctions = new Functions_users($this);
+                return !$usersFunctions->hasToSignProductLicense($params['email'], $params['license_id']);
+
+            /*
+             * True if user is is habilitated to sign the license
+             */
+            case parent::PRODUCT_LICENSE_HABILITATION:
+                $usersFunctions = new Functions_users($this);
+                return $usersFunctions->isHabilitedToSignProductLicense($params['email'], $params['license_id']);
+
+            /*
+             * True if the maximum number of signature for the license isnot reached
+             */
+            case parent::PRODUCT_LICENSE_MAX_SIGNATURES:
+                $licensesFunctions = new Functions_licenses($this);
+                return $licensesFunctions->checkMaximumSignatures($params['license_id']);
+
             default:
                 return null;
         }
@@ -353,11 +431,25 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 return $rightsFunctions->deleteRights($params['emailOrGroup'], $params['collectionName'],  $params['featureIdentifier']);
 
             /*
+             * Remove user legal information
+             */
+            case parent::USER_LEGAL_INFO:
+                $usersFunctions = new Functions_users($this);
+                return $usersFunctions->deleteUserLegalInfo($params['userid']);
+
+            /*
              * Remove granted visibility
              */
             case parent::USER_GRANTED_VISIBILITY:
                 $usersFunctions = new Functions_users($this);
                 return $usersFunctions->deleteVisibility($params['userid'], $params['visibility']);
+
+            /*
+             * Remove license
+             */
+            case parent::PRODUCT_LICENSE:
+                $licensesFunctions = new Functions_licenses($this);
+                return $licensesFunctions->deleteLicense($params['license_id']);
 
             default:
                 return null;
@@ -431,12 +523,25 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 return $usersFunctions->storeUserProfile($params['profile']);
 
             /*
+             * Store user legal information
+             */
+            case parent::USER_LEGAL_INFO:
+                $usersFunctions = new Functions_users($this);
+                return $usersFunctions->storeUserLegalInfo($params['legalInfo']);
+
+            /*
              * Store granted visibility
              */
             case parent::USER_GRANTED_VISIBILITY:
                 $usersFunctions = new Functions_users($this);
                 return $usersFunctions->storeVisibility($params['userid'], $params['visibility']);
 
+            /*
+             * Store license
+             */
+            case parent::PRODUCT_LICENSE:
+                $licensesFunctions = new Functions_licenses($this);
+                return $licensesFunctions->storelicense($params['license']);
 
             default:
                 return null;
@@ -564,6 +669,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                     'password=' . $options['password']
                 );
                 /*
+                 * If host is specified, then TCP/IP connection is used
                  * If host is specified, then TCP/IP connection is used
                  * Otherwise socket connection is used
                  */
