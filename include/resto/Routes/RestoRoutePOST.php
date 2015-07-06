@@ -461,7 +461,7 @@ class RestoRoutePOST extends RestoRoute {
             $this->context->dbDriver->store(RestoDatabaseDriver::USER_GRANTED_VISIBILITY,
                 array('userid' => $userId, 'visibility' => $visibility));
             return RestoLogUtil::success('Granted visibility added', array(
-                'visibility' => $visibility
+                'grantedvisibility' => $visibility
             ));
         }
     }

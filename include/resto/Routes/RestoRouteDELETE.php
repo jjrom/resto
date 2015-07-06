@@ -227,7 +227,7 @@ class RestoRouteDELETE extends RestoRoute {
             $this->context->dbDriver->remove(RestoDatabaseDriver::USER_GRANTED_VISIBILITY,
                 array('userid' => $userId, 'visibility' => $visibility));
             return RestoLogUtil::success('Granted visibility removed', array(
-                'visibility' => $visibility
+                'grantedvisibility' => $visibility
             ));
         }
     }
