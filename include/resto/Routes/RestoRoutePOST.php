@@ -443,8 +443,7 @@ class RestoRoutePOST extends RestoRoute {
      * @return array
      * @throws Exception
      */
-    private function POST_userGrantedVisibility($userId, $data)
-    {
+    private function POST_userGrantedVisibility($userId, $data) {
         /*
          * only available for admin
          */
@@ -455,15 +454,14 @@ class RestoRoutePOST extends RestoRoute {
         if (!isset($data['visibility'])) {
             RestoLogUtil::httpError(400, 'Visibility is not set');
         }
-        else {
-            $visibility = $data['visibility'];
-
-            $this->context->dbDriver->store(RestoDatabaseDriver::USER_GRANTED_VISIBILITY,
-                array('userid' => $userId, 'visibility' => $visibility));
-            return RestoLogUtil::success('Granted visibility added', array(
-                'grantedvisibility' => $visibility
-            ));
-        }
+        
+        return RestoLogUtil::success('Granted visibility added', array(
+                'grantedvisibility' => $this->context->dbDriver->store(RestoDatabaseDriver::USER_GRANTED_VISIBILITY, array(
+                    'userid' => $userId,
+                    'visibility' => $data['visibility']
+                ))
+        ));
+        
     }
 
     /**

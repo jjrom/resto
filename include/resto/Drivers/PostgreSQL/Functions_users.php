@@ -351,9 +351,13 @@ class Functions_users {
             }
         }
         
-        // Update user profile
-        $results = $this->dbDriver->fetch($this->dbDriver->query('UPDATE usermanagement.users SET grantedvisibility=\'' . pg_escape_string(implode(',', $visibilities)) . '\' WHERE userid=\''. $userid .'\' RETURNING userid'));
-        return count($results) === 1 ? $results[0]['userid'] : null;
+        /*
+         * Update user profile
+         */
+        $results = count($visibilities) > 0 ? implode(',', $visibilities) : null;
+        $this->dbDriver->fetch($this->dbDriver->query('UPDATE usermanagement.users SET grantedvisibility=' . (isset($results) ? '\'' . pg_escape_string($results)  . '\'' : 'NULL') . ' WHERE userid=\''. $userid .'\''));
+        
+        return $results;
         
     }
     

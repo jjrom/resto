@@ -223,13 +223,13 @@ class RestoRouteDELETE extends RestoRoute {
         if (!isset($visibility)) {
             RestoLogUtil::httpError(404);
         }
-        else {
-            $this->context->dbDriver->remove(RestoDatabaseDriver::USER_GRANTED_VISIBILITY,
-                array('userid' => $userId, 'visibility' => $visibility));
-            return RestoLogUtil::success('Granted visibility removed', array(
-                'grantedvisibility' => $visibility
-            ));
-        }
+        
+        return RestoLogUtil::success('Granted visibility removed', array(
+                    'grantedvisibility' => $this->context->dbDriver->remove(RestoDatabaseDriver::USER_GRANTED_VISIBILITY, array(
+                        'userid' => $userId,
+                        'visibility' => $visibility
+                    ))
+        ));
     }
 
 }
