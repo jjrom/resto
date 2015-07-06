@@ -38,10 +38,6 @@ class RestoModel_ro extends RestoModel {
             'name' => 'license',
             'type' => 'TEXT'
         ),
-        'metadataVisibility' => array(
-            'name' => 'metadatavisibility',
-            'type' => 'TEXT'
-        ),
         'productCrs' => array(
             'name' => 'productcrs',
             'type' => 'TEXT'

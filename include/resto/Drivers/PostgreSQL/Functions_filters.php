@@ -138,7 +138,7 @@ class Functions_filters {
     }
 
     /**
-     * Filter search result on metadataVisibility attribute using
+     * Filter search result on visibility attribute using
      * the grantedvisibility list from user profile
      * 
      * @param RestoUser $user
@@ -154,7 +154,7 @@ class Functions_filters {
                     $grantedVisibility = $grantedVisibility . ', \'' . $v . '\'';
                 }
             }
-            $filter = $model->properties['metadataVisibility']['name'] . ' in (' . $grantedVisibility . ')';
+            $filter = $model->properties['visibility']['name'] . ' in (' . $grantedVisibility . ')';
             return $filter;
         }
         return null;
