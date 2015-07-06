@@ -14,19 +14,12 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-require 'Taggers/Tagger_Always.php';
-require 'Taggers/Tagger_Generic.php';
-require 'Taggers/Tagger_Geology.php';
-require 'Taggers/Tagger_Hydrology.php';
-require 'Taggers/Tagger_LandCover.php';
-require 'Taggers/Tagger_Political.php';
-require 'Taggers/Tagger_Population.php';
 class iTag {
 
     /*
      * iTag version
      */
-    const version = '3.0.4';
+    const version = '3.0.6';
     
     /*
      * Database handler

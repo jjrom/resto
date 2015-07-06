@@ -18,14 +18,9 @@
 class Tagger_Generic extends Tagger {
 
     /*
-     * Default features to tag
+     * Columns mapping per table
      */
-    protected $defaultFeatures = array();
-    
-    /*
-     * Return feature corresponding column name
-     */
-    protected $columnNames = array();
+    protected $columnsMapping = array();
     
     /**
      * Constructor
@@ -46,6 +41,7 @@ class Tagger_Generic extends Tagger {
      * @throws Exception
      */
     public function tag($metadata, $options = array()) {
+        parent::tag($metadata, $options);
         return $this->process($metadata['footprint'], $options);
     }
     
@@ -58,20 +54,15 @@ class Tagger_Generic extends Tagger {
      */
     protected function process($footprint, $options) {
 
-        if (!isset($options['features'])) {
-            $options['features'] = $this->defaultFeatures;
-        }
+        $result = array();
         
         /*
          * Process required classes
          */
-        $result = array();
-        foreach (array_values($options['features']) as $feature) {
-            if (isset($this->columnNames[$feature])) {
-                $content = $this->retrieveContent('datasources.' . $feature, $this->columnNames[$feature], $footprint);
-                if (count($content) > 0) {
-                    $result[$feature] = $content;
-                }
+        foreach ($this->columnsMapping as $tableName => $mapping) {
+            $content = $this->retrieveContent('datasources.' . $tableName, $mapping, $footprint, $options);
+            if (count($content) > 0) {
+                $result[$tableName] = $content;
             }
         }
         
@@ -81,27 +72,76 @@ class Tagger_Generic extends Tagger {
     /**
      * Retrieve content from table that intersects $footprint
      * 
-     * @param {DatabaseConnection} $this->dbh
+     * @param String $tableName
+     * @param Array $mapping
+     * @param String $footprint
+     * @param Array $options
      * 
      */
-    private function retrieveContent($tableName, $columnName, $footprint) {
+    private function retrieveContent($tableName, $mapping, $footprint, $options = array()) {
+        
+        /*
+         * Return WKT if specified in config file
+         */
         if ($this->config['returnGeometries']) {
-            $query = 'SELECT distinct(' . $columnName . ') as name, ' . $this->postgisAsWKT($this->postgisSimplify($this->postgisIntersection('geom', $this->postgisGeomFromText($footprint)))) . ' as wkt FROM ' . $tableName . ' WHERE st_intersects(geom, ' . $this->postgisGeomFromText($footprint) . ')';
+            $mapping['geom'] = 'geometry';
         }
-        else {
-            $query = 'SELECT distinct(' . $columnName . ') as name FROM ' . $tableName . ' WHERE st_intersects(geom, ' . $this->postgisGeomFromText($footprint) . ')';
-        }
-        $results = $this->query($query);
+        
         $content = array();
+        $results = $this->getResults($tableName, $mapping, $footprint, $options);
         while ($result = pg_fetch_assoc($results)) {
-            $content[] = $this->config['returnGeometries'] ? array(
-                'name' => $result['name'],
-                'geometry' => $result['wkt']
-                    ) :
-                    array(
-                'name' => $result['name']);
+            
+            /*
+             * Compute id from normalized
+             */
+            if (isset($result['type'])) {
+                $result['id'] = strtolower($result['type']) . ':' . $result['normalized'];
+            }
+            if (isset($result['area'])) {
+                $result['pcover'] = $this->percentage($this->toSquareKm($result['area']), $this->area);
+            }
+            unset($result['area'], $result['normalized'], $result['type']);
+            $content[] = $result;
         }
         return $content;
+    }
+    
+    /**
+     * Return structured results from database
+     * 
+     * @param String $tableName
+     * @param Array $mapping
+     * @param String $footprint
+     * @param Array $options
+     */
+    private function getResults($tableName, $mapping, $footprint, $options) {
+  
+        $propertyList = array();
+        $geom = $this->postgisGeomFromText($footprint);
+        $orderBy = '';
+        foreach ($mapping as $asName => $columnName) {
+            if ($asName === 'name') {
+                $propertyList[] = 'distinct(' . $columnName . ') as name';
+                $propertyList[] = 'normalize(' . $columnName . ') as normalized';
+            }
+            else if ($asName === 'geometry') {
+                $propertyList[] = $this->postgisAsWKT($this->postgisSimplify($this->postgisIntersection('geom', $geom))) . ' as geometry';
+            }
+            else {
+                $propertyList[] = $columnName . ' as ' . $asName;
+            }
+        }
+        
+        /*
+         * Return area
+         */
+        if (isset($options['computeArea']) && $options['computeArea'] === true) {
+            $propertyList[] = $this->postgisArea($this->postgisIntersection('geom', $geom)) . ' as area';
+            $orderBy = ' ORDER BY area DESC';
+        }
+        
+        return $this->query('SELECT ' . join(',', $propertyList) .  ' FROM ' . $tableName . ' WHERE st_intersects(geom, ' . $this->postgisGeomFromText($footprint) . ')' . $orderBy);
+        
     }
     
 }

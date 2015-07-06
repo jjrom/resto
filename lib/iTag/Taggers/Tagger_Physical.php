@@ -15,17 +15,17 @@
  * under the License.
  */
 
-class Tagger_Hydrology extends Tagger_Generic {
+class Tagger_Physical extends Tagger_Generic {
 
     /*
      * Data references
      */
     public $references = array(
         array(
-            'dataset' => 'Rivers and lake centerlines',
+            'dataset' => 'Marine Regions',
             'author' => 'Natural Earth',
             'license' => 'Free of charge',
-            'url' => 'http://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/'
+            'url' => 'http://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-physical-labels/'
         )
     );
     
@@ -33,8 +33,9 @@ class Tagger_Hydrology extends Tagger_Generic {
      * Columns mapping per table
      */
     protected $columnsMapping = array(
-        'rivers' => array(
-            'name' => 'name'
+        'physical' => array(
+            'name' => 'name',
+            'type' => 'featurecla'
         )
     );
     
@@ -57,9 +58,7 @@ class Tagger_Hydrology extends Tagger_Generic {
      * @throws Exception
      */
     public function tag($metadata, $options = array()) {
-        return array(
-            'hydrology' => parent::tag($metadata, $options)
-        );
+        return parent::tag($metadata, array_merge($options, array('computeArea' => true)));
     }
     
 }

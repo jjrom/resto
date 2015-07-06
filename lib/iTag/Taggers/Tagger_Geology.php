@@ -54,18 +54,21 @@ class Tagger_Geology extends Tagger_Generic {
     );
     
     /*
-     * Default features to tag
+     * Columns mapping per table
      */
-    protected $defaultFeatures = array('glaciers', 'faults', 'plates', 'volcanoes');
-    
-    /*
-     * Feature corresponding column name
-     */
-    protected $columnNames = array(
-        'glaciers' => 'name',
-        'faults' => 'type',
-        'plates' => 'name',
-        'volcanoes' => 'name'
+    protected $columnsMapping = array(
+        'glaciers' => array(
+            'name' => 'name'
+        ),
+        'faults' => array(
+            'name' => 'type'
+        ),
+        'plates' => array(
+            'name' => 'name'
+        ),
+        'volcanoes' => array(
+            'name' => 'name'
+        ),
     );
     
     /**
@@ -88,7 +91,7 @@ class Tagger_Geology extends Tagger_Generic {
      */
     public function tag($metadata, $options = array()) {
         return array(
-            'geology' => $this->process($metadata['footprint'], $options)
+            'geology' => parent::tag($metadata, $options)
         );
     }
     
