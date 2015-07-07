@@ -130,6 +130,13 @@ class RestoKeywordsUtil {
         }
         
         /*
+         * Physical data
+         */
+        if (isset($iTagFeature['content']['physical'])) {
+            $keywords = array_merge($keywords, $this->getPhysicalKeywords($iTagFeature['content']['physical']));
+        }
+        
+        /*
          * Landuse and landuse details
          */
         if (isset($iTagFeature['content']['landCover'])) {
@@ -219,6 +226,19 @@ class RestoKeywordsUtil {
     }
     
     /**
+     * Get Physical keywords
+     * 
+     * @param array $properties
+     */
+    private function getPhysicalKeywords($properties) {
+        return $this->getGenericKeywords($properties, array(
+            'type' => null,
+            'defaultName' => null,
+            'parentHash' => null
+        ));
+    }
+    
+    /**
      * Get political keywords
      * 
      * @param array $properties
@@ -298,10 +318,13 @@ class RestoKeywordsUtil {
         $value = array(
             'name' => isset($property['name']) ? $property['name'] : $defaultName,
             'normalized' => $exploded[1],
-            'type' => $type
+            'type' => isset($type) ? $type : $exploded[0]
         );
         if (isset($parentHash)) {
             $value['parentHash'] = $parentHash;
+        }
+        if (isset($property['area'])) {
+            $value['value'] = $property['area'];
         }
         if (isset($property['pcover'])) {
             $value['value'] = $property['pcover'];

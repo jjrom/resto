@@ -343,7 +343,8 @@ return array(
                 ),
                 'taggers' => array(
                     'Political' => array(),
-                    'LandCover' => array()
+                    'LandCover' => array(),
+                    'Physical' => array()
                 )
             )
         )

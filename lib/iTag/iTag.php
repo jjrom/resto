@@ -55,6 +55,18 @@ class iTag {
      * @param array $config : configuration 
      */
     public function __construct($database, $config = array()) {
+        
+        /*
+         * Load all Taggers
+         */
+        $handle = opendir(dirname(realpath(__FILE__)) . '/Taggers/');
+        while($file = readdir($handle)){
+            if (preg_match('/^Tagger_(.+)\.php$/i', $file)){
+                require_once('Taggers/' . $file);
+            }
+        }
+        closedir($handle);
+        
         if (isset($database['dbh'])) {
             $this->dbh = $database['dbh'];
         }

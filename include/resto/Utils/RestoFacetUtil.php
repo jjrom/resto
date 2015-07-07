@@ -48,15 +48,6 @@ class RestoFacetUtil {
             'year',
             'month',
             'day'
-        ),
-        array(
-            'landuse'
-        ),
-        array(
-            'location'
-        ),
-        array(
-            'season'
         )
     );
     
@@ -81,7 +72,12 @@ class RestoFacetUtil {
                 }
             }
         }
-        return null;
+        
+        /*
+         * Otherwise return $type as a new facet category
+         */
+        return $type;
+        
     }
     
     /**
