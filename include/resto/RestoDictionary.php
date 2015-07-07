@@ -34,6 +34,18 @@ abstract class RestoDictionary {
     const COUNTRY = 'country';
     const REGION = 'region';
     const STATE = 'state';
+    const BAY = 'bay';
+    const CHANNEL = 'channel';
+    const FJORD = 'fjord';
+    const GULF = 'gulf';
+    const INLET = 'inlet';
+    const LAGOON = 'lagoon';
+    const OCEAN = 'ocean';
+    const REEF = 'reef';
+    const RIVER = 'river';
+    const SEA = 'sea';
+    const SOUND = 'sound';
+    const STRAIT = 'strait';
     const NOLOCATION = 'nolocation';
     
     /*
@@ -88,6 +100,28 @@ abstract class RestoDictionary {
     }
     
     /**
+     * Return physical array
+     * 
+     * @return array
+     */
+    public static function getPhysicals() {
+        return array(
+            RestoDictionary::BAY,
+            RestoDictionary::CHANNEL,
+            RestoDictionary::FJORD,
+            RestoDictionary::GULF,
+            RestoDictionary::INLET,
+            RestoDictionary::LAGOON,
+            RestoDictionary::OCEAN,
+            RestoDictionary::REEF,
+            RestoDictionary::RIVER,
+            RestoDictionary::SEA,
+            RestoDictionary::SOUND,
+            RestoDictionary::STRAIT
+        );
+    }
+
+    /**
      * Return $property entry in dictionary identified by $name
      * 
      * @param string $property
@@ -137,16 +171,8 @@ abstract class RestoDictionary {
          */
         foreach(array_keys($this->dictionary['keywords']) as $currentType) {
             if (isset($types)) {
-                if ($types[0] === RestoDictionary::NOLOCATION) {
-                    if (in_array($currentType, array(
-                        RestoDictionary::CONTINENT,
-                        RestoDictionary::COUNTRY,
-                        RestoDictionary::REGION,
-                        RestoDictionary::STATE
-                        
-                    ))) {
-                        continue;
-                    }
+                if ($types[0] === RestoDictionary::NOLOCATION && $this->isLocationType($currentType)) {
+                    continue;
                 }
                 else {
                     if (!in_array($currentType, $types)) {
@@ -322,6 +348,34 @@ abstract class RestoDictionary {
         else {
             return array('keyword' => $this->dictionary['keywords'][$type][$name]['value'], 'bbox' => $this->dictionary['keywords'][$type][$name]['bbox'], 'isoa2' => $this->dictionary['keywords'][$type][$name]['isoa2'], 'type' => $type);
         }
+    }
+    
+    /**
+     * Return true if input $type is a location type
+     * @param string $type
+     */
+    private function isLocationType($type) {
+        if (in_array($type, array(
+                    RestoDictionary::CONTINENT,
+                    RestoDictionary::COUNTRY,
+                    RestoDictionary::REGION,
+                    RestoDictionary::STATE,
+                    RestoDictionary::BAY,
+                    RestoDictionary::CHANNEL,
+                    RestoDictionary::FJORD,
+                    RestoDictionary::GULF,
+                    RestoDictionary::INLET,
+                    RestoDictionary::LAGOON,
+                    RestoDictionary::OCEAN,
+                    RestoDictionary::REEF,
+                    RestoDictionary::RIVER,
+                    RestoDictionary::SEA,
+                    RestoDictionary::SOUND,
+                    RestoDictionary::STRAIT
+                ))) {
+            return true;
+        }
+        return false;
     }
     
 }
