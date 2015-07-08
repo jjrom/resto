@@ -311,44 +311,32 @@ class Functions_users {
         $grantedvisibility = $profile['grantedvisibility'];
         
         /*
-         * Explode existing grantedvisibility into an array
+         * Explode existing grantedvisibility into an associative array
          */
-        $visibilities = array();
-        if ($grantedvisibility) {
-            $visibilities = explode(',', $grantedvisibility);
-        }
-        
+        $visibilities = isset($grantedvisibility) ? array_flip(explode(',', $grantedvisibility)) : array();
+       
         /*
          * Explode new visibilities (i.e. input $visibility)
          */
-        $newVisibilities = explode(',', $visibility);
+        $newVisibilities = array();
+        $rawNewVisibilities = explode(',', $visibility);
+        for ($i = 0, $ii = count($rawNewVisibilities); $i < $ii; $i++) {
+            if ($rawNewVisibilities[$i] !== '') {
+                $newVisibilities[$rawNewVisibilities[$i]] = 1;
+            }
+        }
         
         /*
-         * From input, only add non existing visibilities
+         * Store new visibilities = merge with previous
          */
-        $count = count($visibilities);
-        for ($i = 0, $ii = count($newVisibilities); $i < $ii; $i++) {
-            $new = trim($newVisibilities[$i]);
-            if ($new === '') {
-                continue;
+        if ($storeOrDelete === 'store') {
+            $visibilities = array_keys(array_merge($visibilities, $newVisibilities));
+        }
+        else {
+            foreach (array_keys($newVisibilities) as $key) {
+                unset($visibilities[$key]);
             }
-            $index = -1;
-            for ($j = 0, $jj = $count; $j < $jj; $j++) {
-                if (!isset($visibilities[$j])) {
-                    continue;
-                }
-                $existing = trim($visibilities[$j]);
-                if ($existing === $new) {
-                    $index = $j;
-                    break;
-                }
-            }
-            if ($storeOrDelete === 'store' && $index === -1) {
-                $visibilities[] = $new;
-            }
-            else if ($storeOrDelete === 'delete' && $index !== -1) {
-                unset($visibilities[$index]);
-            }
+            $visibilities = array_keys($visibilities);
         }
         
         /*
