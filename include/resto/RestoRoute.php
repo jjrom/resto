@@ -50,6 +50,7 @@
  *    |  GET     users                                         |  List all users
  *    |  POST    users                                         |  Add a user
  *    |  GET     users/{userid}                                |  Show {userid} information
+ *    |  PUT     users/{userid}                                |  Update {userid} information
  *    |  GET     users/{userid}/grantedvisibility              |  Show {userid} granted visibility (only admin)
  *    |  PUT     users/{userid}/grantedvisibility              |  Modify all {userid} granted visibilities (only admin)
  *    |  POST    users/{userid}/grantedvisibility              |  Add visibility to {userid} granted visibilities (only admin)

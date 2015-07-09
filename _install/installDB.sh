@@ -245,12 +245,16 @@ CREATE TABLE usermanagement.users (
     lastname            TEXT,
     country             TEXT,
     organization        TEXT,
+    organizationcountry TEXT,
+    flags               TEXT, -- Additionnal properties (comma separated)
     topics              TEXT,
     grantedvisibility   TEXT,
     password            TEXT NOT NULL, -- stored as sha1
     registrationdate    TIMESTAMP NOT NULL,
     activationcode      TEXT NOT NULL UNIQUE, -- activation code store as sha1
-    activated           INTEGER DEFAULT 0
+    activated           INTEGER DEFAULT 0,
+    validatedby         TEXT, -- Who validated the user (usually admin)
+    validationdate      TIMESTAMP -- Validation date
 );
 CREATE INDEX idx_email_users ON usermanagement.users (email);
 CREATE INDEX idx_groupname_users ON usermanagement.users (groupname);

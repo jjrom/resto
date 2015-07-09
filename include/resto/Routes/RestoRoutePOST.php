@@ -398,7 +398,7 @@ class RestoRoutePOST extends RestoRoute {
         if ($this->context->dbDriver->check(RestoDatabaseDriver::USER, array('email' => $data['email']))) {
             RestoLogUtil::httpError(3000);
         }
-
+        
         $redirect = isset($data['activateUrl']) ? '&redirect=' . rawurlencode($data['activateUrl']) : '';
         $userInfo = $this->context->dbDriver->store(RestoDatabaseDriver::USER_PROFILE, array(
             'profile' => array(
@@ -409,6 +409,7 @@ class RestoRoutePOST extends RestoRoute {
                 'lastname' => isset($data['lastname']) ? $data['lastname'] : null,
                 'country' => isset($data['country']) ? $data['country'] : null,
                 'organization' => isset($data['organization']) ? $data['organization'] : null,
+                'flags' => isset($data['flags']) ? $data['flags'] : null,
                 'topics' => isset($data['topics']) ? $data['topics'] : null,
                 'activated' => 0
             ))
@@ -425,7 +426,8 @@ class RestoRoutePOST extends RestoRoute {
                     ))) {
                 RestoLogUtil::httpError(3001);
             }
-        } else {
+        }
+        else {
             RestoLogUtil::httpError(500, 'Database connection error');
         }
 

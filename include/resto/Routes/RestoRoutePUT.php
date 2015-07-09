@@ -34,6 +34,7 @@ class RestoRoutePUT extends RestoRoute {
      *    collections/{collection}                      |  Update {collection}
      *    collections/{collection}/{feature}            |  Update {feature}
      *    
+     *    users/{userid}                                |  Modify {userid} profile
      *    users/{userid}/cart/{itemid}                  |  Modify item in {userid} cart
      *    users/{userid}/grantedvisibility              |  Modify {userid} granted visibility (only admin)
      *
@@ -129,6 +130,20 @@ class RestoRoutePUT extends RestoRoute {
      */
     private function PUT_users($segments, $data) {
 
+        /*
+         * {userid} is mandatory
+         */
+        if (!isset($segments[1])) {
+            RestoLogUtil::httpError(404);
+        }
+        
+        /*
+         * users/{userid}
+         */
+        if (!isset($segments[2])) {
+            return $this->PUT_userProfile($segments[1], $data);
+        }
+        
         if ($segments[2] === 'grantedvisibility') {
             return $this->PUT_userGrantedVisibility($segments[1], $data);
         }
@@ -147,6 +162,56 @@ class RestoRoutePUT extends RestoRoute {
             RestoLogUtil::httpError(404);
         }
         
+    }
+    
+    /**
+     *
+     * Process HTTP PUT request on user profile
+     *
+     *    users/{userid}                       |  Update {userid} profile
+     *
+     * @param string $emailOrId
+     * @param array $data
+     */
+    private function PUT_userProfile($emailOrId, $data) {
+        
+        /*
+         * Get user to be modified
+         */
+        $user = $this->getAuthorizedUser($emailOrId);
+        
+        /*
+         * For normal user (i.e. non admin), some properties cannot be modified after validation
+         */
+        if (!$this->isAdminUser()) {
+            
+            /*
+             * Already validated => avoid updating administrative properties
+             */
+            if (isset($user->profile['validatedby'])) {
+                unset($data['activated'],
+                        $data['validatedby'],
+                        $data['validationdate'],
+                        $data['country'],
+                        $data['organization'],
+                        $data['organizationcountry'],
+                        $data['flags']
+                );
+            }
+            
+            /*
+             * These properties can only be changed by admin
+             */
+            unset($data['groupname']);
+        }
+
+        /*
+         * Update profile
+         */
+        $data['email'] = $user->profile['email'];
+        $this->context->dbDriver->update(RestoDatabaseDriver::USER_PROFILE, array('profile' => $data));
+
+        return RestoLogUtil::success('Update profile for user ' . $emailOrId);
     }
 
     /**
