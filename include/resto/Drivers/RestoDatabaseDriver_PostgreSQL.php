@@ -164,7 +164,14 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             case parent::USER_PROFILE:
                 $usersFunctions = new Functions_users($this);
                 return $usersFunctions->getUserProfile(isset($params['email']) ? $params['email'] : $params['userid'], isset($params['password']) ? $params['password'] : null);
-                
+            
+            /*
+             * Get all users administrative information
+             */
+            case parent::USERS_PROFILES:
+                $usersFunctions = new Functions_users($this);
+                return $usersFunctions->getUsersProfiles();
+
             default:
                 return null;
         }

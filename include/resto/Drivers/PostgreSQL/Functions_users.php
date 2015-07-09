@@ -78,7 +78,43 @@ class Functions_users {
         return $results[0];
         
     }
-
+    
+    /**
+     * Get full profiles for all users
+     * 
+     * @return array : this function should return array('userid' => -1, 'groupname' => 'unregistered')
+     *                 if user is not found in database
+     * @throws exception
+     */
+    public function getUsersProfiles() {
+        $results = $this->dbDriver->query('SELECT userid, email, md5(email) as userhash, groupname, username, givenname, lastname, to_char(registrationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as registrationdate, country, organization, organizationcountry, flags, topics, activated, grantedvisibility, validatedby, to_char(validationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as validationdate FROM usermanagement.users');
+        $profiles = array();
+        while ($profile = pg_fetch_assoc($results)) {
+            $profiles[] = array(
+                'userid' => $profile['userid'],
+                'email' => $profile['email'],
+                'userhash' => $profile['userhash'],
+                'groupname' => $profile['groupname'],
+                'username' => $profile['username'],
+                'givenname' => $profile['givenname'],
+                'lastname' => $profile['lastname'],
+                'registrationdate' => $profile['registrationdate'],
+                'country' => $profile['country'],
+                'organization' => $profile['organization'],
+                'organizationcountry' => $profile['organizationcountry'],
+                'flags' => $profile['flags'],
+                'topics' => $profile['topics'],
+                'activated' => (integer) $profile['activated'],
+                'grantedvisibility' => $profile['grantedvisibility'],
+                'validatedby' => $profile['validatedby'],
+                'validationdate' => $profile['validationdate']
+            );
+        }
+        
+        return $profiles;
+        
+    }
+    
     /**
      * Check if user identified by $identifier exists within database
      * 

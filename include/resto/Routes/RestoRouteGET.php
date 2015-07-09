@@ -45,7 +45,7 @@ class RestoRouteGET extends RestoRoute {
      *    collections/{collection}/{feature}            |  Get {feature} description within {collection}
      *    collections/{collection}/{feature}/download   |  Download {feature}
      * 
-     *    users                                         |  List all users
+     *    users                                         |  List all users (only admin)
      *    users/{userid}                                |  Show {userid} information
      *    users/{userid}/grantedvisibility              |  Show {userid} granted visibility (only admin)
      *    users/{userid}/cart                           |  Show {userid} cart
@@ -468,7 +468,7 @@ class RestoRouteGET extends RestoRoute {
          * users
          */
         if (!isset($segments[1])) {
-            RestoLogUtil::httpError(501);
+            return $this->GET_usersProfiles();
         }
     
         /*
@@ -534,6 +534,24 @@ class RestoRouteGET extends RestoRoute {
         ));
     }
 
+    /**
+     * Process users (only admin)
+     * 
+     * @throws Exception
+     */
+    private function GET_usersProfiles() {
+
+        /*
+         * Granted Visibility can only be seen by admin users
+         */
+        if (!$this->isAdminUser()) {
+            RestoLogUtil::httpError(403);
+        }
+
+        return RestoLogUtil::success('Profiles for all users', array(
+            'profiles' => $this->context->dbDriver->get(RestoDatabaseDriver::USERS_PROFILES)
+        ));
+    }
 
     /**
      * Process users/{userid}/grantedvisibility

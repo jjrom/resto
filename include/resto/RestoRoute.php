@@ -47,7 +47,7 @@
  * 
  *    |          Resource                                      |     Description
  *    |________________________________________________________|______________________________________
- *    |  GET     users                                         |  List all users
+ *    |  GET     users                                         |  List all users (only admin)
  *    |  POST    users                                         |  Add a user
  *    |  GET     users/{userid}                                |  Show {userid} information
  *    |  PUT     users/{userid}                                |  Update {userid} information
