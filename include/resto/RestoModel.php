@@ -209,8 +209,8 @@ abstract class RestoModel {
             'type' => 'TEXT[]',
             'notDisplayed' => true
         ),
-        'visibility' => array(
-            'name' => 'visibility',
+        'groupid' => array(
+            'name' => 'groupid',
             'type' => 'TEXT'
         )
     );

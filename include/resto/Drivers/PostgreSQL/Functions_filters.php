@@ -138,7 +138,7 @@ class Functions_filters {
     }
 
     /**
-     * Filter search result on visibility attribute using
+     * Filter search result on group attribute using
      * the grantedvisibility list from user profile
      * 
      * @param RestoUser $user
@@ -147,14 +147,14 @@ class Functions_filters {
      */
     private function prepareFilterQuery_contextualSearch($user, $model) {
         if ($user->profile['groupname'] !== 'admin') {
-            $grantedVisibility = '\'PUBLIC\'';
+            $grantedVisibility = '\'public\'';
             if (isset($user->profile['grantedvisibility'])) {
                 $visibilities = str_getcsv($user->profile['grantedvisibility']);
                 foreach ($visibilities as &$v) {
                     $grantedVisibility = $grantedVisibility . ', \'' . $v . '\'';
                 }
             }
-            $filter = $model->properties['visibility']['name'] . ' in (' . $grantedVisibility . ')';
+            $filter = $model->properties['groupid']['name'] . ' in (' . $grantedVisibility . ')';
             return $filter;
         }
         return null;
