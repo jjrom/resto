@@ -152,7 +152,14 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 return $facetsFunctions->getStatistics($params['collectionName'], $params['facetFields']);
             
             /*
-             * Get statistics
+             * Get signatures
+             */
+            case parent::SIGNATURES:
+                $licensesFunctions = new Functions_licenses($this);
+                return $licensesFunctions->getSignatures($params['email']);
+            
+            /*
+             * Get share links
              */
             case parent::SHARED_LINK:
                 $generalFunctions = new Functions_general($this);

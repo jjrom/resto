@@ -55,7 +55,6 @@ class RestoRouteGET extends RestoRoute {
      *    users/{userid}/rights/{collection}            |  Show rights for {userid} on {collection}
      *    users/{userid}/rights/{collection}/{feature}  |  Show rights for {userid} on {feature} from {collection}
      *    users/{userid}/signatures                     |  Show signatures for {userid}
-     *    users/{userid}/signatures/{collection}        |  Show signatures for {userid} on {collection}
      * 
      *    licenses                                      |  List all licenses
      *    licenses/{licenseid}                          |  Get {licenseid} license description 
@@ -498,6 +497,9 @@ class RestoRouteGET extends RestoRoute {
          * users/{userid}/groups
          */
         if ($segments[2] === 'groups') {
+            if (isset($segments[3])) {
+                return RestoLogUtil::httpError(404);
+            }
             return $this->GET_userGroups($segments[1]);
         }
 
@@ -523,7 +525,7 @@ class RestoRouteGET extends RestoRoute {
         }
 
         /*
-         * users/{userid}/orders
+         * users/{userid}/signatures
          */
         if ($segments[2] === 'signatures') {
             return $this->GET_userSignatures($segments[1], isset($segments[3]) ? $segments[3] : null);
@@ -610,38 +612,47 @@ class RestoRouteGET extends RestoRoute {
      * Process HTTP GET request on user signatures
      * 
      * @param string $emailOrId
-     * @param string $collectionName
+     * @param string $licenseId
      * @throws Exception
      */
-    private function GET_userSignatures($emailOrId, $collectionName = null) {
+    private function GET_userSignatures($emailOrId, $licenseId = null) {
         
         /*
-         * Rights can only be seen by its owner or by admin
+         * Not yet supported
+         */
+        if (isset($licenseId)) {
+            return RestoLogUtil::httpError(404);
+        }
+        
+        /*
+         * Signatures can only be seen by its owner or by admin
          */
         $user = $this->getAuthorizedUser($emailOrId);
+        
+        /*
+         * Get all licenses
+         */
+        $licenses = $this->context->dbDriver->get(RestoDatabaseDriver::LICENSES);
+        
+        /*
+         * Get user signatures
+         */
+        $signed = $this->context->dbDriver->get(RestoDatabaseDriver::SIGNATURES, array(
+            'email' => $user->profile['email']
+        ));
+        
+        /*
+         * Merge signatures with licences
+         */
         $signatures = array();
-        
-        /*
-         * Get collections
-         */
-        $collectionsDescriptions = $this->context->dbDriver->get(RestoDatabaseDriver::COLLECTIONS_DESCRIPTIONS);
-        
-        /*
-         *  Get rights for collections
-         */
-        if (!isset($collectionName)) {
-            foreach ($collectionsDescriptions as $collectionDescription) {
-                $signatures[$collectionDescription['name']] = array(
-                    'hasToSignLicense' => $user->hasToSignLicense($collectionDescription),
-                    'licenseUrl' =>  $this->getLicenseUrl($collectionDescription)
+        for ($i = count($signed); $i--;) {
+            if (isset($licenses[$signed[$i]['licenseId']])) {
+                $signatures[$signed[$i]['licenseId']] = array(
+                    'lastSignatureDate' => $signed[$i]['lastSignatureDate'],
+                    'counter' => $signed[$i]['counter'],
+                    'license' => $licenses[$signed[$i]['licenseId']]
                 );
             }
-        }
-        else {
-            $signatures[$collectionName] = array(
-                'hasToSignLicense' => $user->hasToSignLicense($collectionsDescriptions[$collectionName]),
-                'licenseUrl' => $this->getLicenseUrl($collectionsDescriptions[$collectionName])
-            );
         }
 
         return RestoLogUtil::success('Signatures for ' . $user->profile['userid'], array(
@@ -714,19 +725,4 @@ class RestoRouteGET extends RestoRoute {
         );
     }
     
-    /**
-     * Return license url in the curent language
-     * 
-     * @param array $collectionDescription
-     * @return string
-     */
-    private function getLicenseUrl($collectionDescription) {
-        if (!empty($collectionDescription['license'])) {
-            return isset($collectionDescription['license'][$this->context->dictionary->language]) ? $collectionDescription['license'][$this->context->dictionary->language] : $collectionDescription['license']['en'];
-        }
-        
-        return null;
-            
-    }
-
 }

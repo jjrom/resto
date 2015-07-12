@@ -209,4 +209,28 @@ class Functions_licenses {
         return true;
     }
     
+    /**
+     * Return licenses signatures for user $identifier
+     * 
+     * @param string $identifier 
+     * @param string $licenseId
+     * 
+     * @return array
+     * @throws Exception
+     */
+    public function getSignatures($identifier, $licenseId = null) {
+        $signatures = array();
+        $results = $this->dbDriver->query('SELECT email, licenseid, to_char(signdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as signdate, counter FROM usermanagement.signatures WHERE email=\'' . pg_escape_string($identifier) . '\'' . (isset($licenseId) ? ' AND licenseid=\'' . pg_escape_string($licenseId) . '\'' : ''));
+        while ($row = pg_fetch_assoc($results)) {
+            $signatures[] = array(
+                'email' => $row['email'],
+                'licenseId' => $row['licenseid'],
+                'lastSignatureDate' => $row['signdate'],
+                'counter' => (integer) $row['counter'],
+                
+            );
+        }
+        return $signatures;
+    }
+    
 }
