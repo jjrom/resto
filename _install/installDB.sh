@@ -184,18 +184,6 @@ CREATE INDEX idx_uid_facets ON resto.facets (uid);
 CREATE INDEX idx_pid_facets ON resto.facets (pid);
 CREATE INDEX idx_collection_facets ON resto.facets (collection);
 
-
---
--- tags table list all tags attached to data within collection
---
-CREATE TABLE resto.tags (
-    tag                 TEXT PRIMARY KEY,
-    creationdate        TIMESTAMP,
-    updateddate         TIMESTAMP,
-    occurence           INTEGER
-);
-CREATE INDEX idx_updated_tags ON resto.tags (updateddate);
-
 --
 -- features TABLE MUST BE EMPTY (inheritance)
 --
@@ -265,7 +253,6 @@ CREATE TABLE usermanagement.users (
     organizationcountry TEXT,
     flags               TEXT, -- Additionnal properties (comma separated)
     topics              TEXT,
-    grantedvisibility   TEXT,
     password            TEXT NOT NULL, -- stored as sha1
     registrationdate    TIMESTAMP NOT NULL,
     activationcode      TEXT NOT NULL UNIQUE, -- activation code store as sha1

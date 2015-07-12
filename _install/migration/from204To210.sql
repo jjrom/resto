@@ -9,8 +9,7 @@
 --  
 
 -- features
-ALTER table resto.features RENAME COLUMN visibility TO groupid;
-ALTER table resto.features ALTER COLUMN groupid SET DEFAULT 'public';
+ALTER table resto.features ALTER COLUMN visibility SET DEFAULT 'public';
 ALTER table resto.features ADD COLUMN licensid TEXT;
 UPDATE resto.features SET groupid='public' where groupid='PUBLIC';
 
@@ -20,6 +19,7 @@ ALTER table usermanagement.users ADD COLUMN validationdate TIMESTAMP;
 ALTER table usermanagement.users ADD COLUMN flags TEXT;
 ALTER table usermanagement.users ADD COLUMN organizationcountry TEXT;
 ALTER table usermanagement.users RENAME COLUMN groupname TO groups;
+ALTER table usermanagement.users DROP COLUMN grantedvisibility;
 DROP INDEX usermanagement.idx_groupname_users;
 
 -- rights
@@ -80,3 +80,6 @@ CREATE INDEX idx_licenses_licenseid ON resto.licenses (licenseid);
 INSERT INTO resto.licenses (licenseid, viewservice, hastobesigned, description) VALUES ('unlicensed', 'public', 'never', '{"en":{"shortName":"No license"}}');
 INSERT INTO resto.licenses (licenseid, viewservice, hastobesigned, grantedflags, description) VALUES ('unlicensedwithregistration', 'public', 'never', 'REGISTERED', '{"en":{"shortName":"No license with mandatory registration"}}');
 GRANT SELECT,INSERT,UPDATE,DELETE ON resto.licenses TO resto;
+
+-- Unusued
+DROP TABLE resto.tags;
