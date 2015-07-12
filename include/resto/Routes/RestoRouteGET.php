@@ -727,7 +727,7 @@ class RestoRouteGET extends RestoRoute {
         /*
          * Cart can only be seen by its owner or by admin
          */
-        return $this->getAuthorizedUser($emailOrId)->$user->getCart();
+        return $this->getAuthorizedUser($emailOrId)->getCart();
     }
 
     /**
