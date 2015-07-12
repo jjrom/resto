@@ -162,9 +162,9 @@ class Functions_filters {
         $visibilities = array();
         $groups = explode(',', (isset($user->profile['groups']) ? $user->profile['groups'] . ',' : '') . 'public');
         for ($i = count($groups); $i--;) {
-            $visibilities = '\'' . pg_escape_string($groups[$i]) . '\'';
+            $visibilities[] = '\'' . pg_escape_string($groups[$i]) . '\'';
         }
-        
+ 
         return $model->properties['visibility']['name'] . ' IN (' . join(',', $visibilities) . ')';
         
     }
