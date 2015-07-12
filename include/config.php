@@ -128,6 +128,19 @@ return array(
         'streamMethod' => 'php',
         
         /*
+         * Automatic user validation on activation
+         * 
+         * If set to 'true' the user is automatically validated on activation
+         * 
+         * If set to 'false' the user is not validated on activation.
+         * Validation should then be done throught Administration module
+         * 
+         * Note: a non validated user can connect but cannot download products
+         * under license
+         */
+        'userAutoValidation' => true,
+        
+        /*
          * List of http origin that have CORS access to server
          * (see http://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
          * 

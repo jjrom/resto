@@ -36,6 +36,11 @@ class RestoFeatureUtil {
     private $collections;
     
     /*
+     * Array of licenses
+     */
+    private $licenses;
+    
+    /*
      * Search url endpoint
      */
     private $searchUrl;
@@ -48,11 +53,25 @@ class RestoFeatureUtil {
      * @param RestoCollection $collection
      */
     public function __construct($context, $user, $collection) {
+        
         $this->context = $context;
         $this->user =$user;
+        
+        /*
+         * Initialize collections array with input collection
+         */
         if (isset($collection)) {
             $this->collections[$collection->name] = $collection;
         }
+        
+        /*
+         * Retrieve licences
+         */
+        $this->licences = $this->context->dbDriver->get(RestoDatabaseDriver::LICENSES);
+        
+        /*
+         * REST searchUrl based on collection name
+         */
         $this->searchUrl = $this->context->baseUrl . '/api/collections' . (isset($collection) ? '/' . $collection->name : '' ) . '/search.json';
     } 
    
@@ -120,11 +139,6 @@ class RestoFeatureUtil {
         $this->updatePaths($properties, $collection);
         
         /*
-         * Set unstored keywords - TODO
-         */
-        //$this->setUnstoredKeywords($properties, $collection);
-        
-        /*
          * Set services
          */
         $this->setServices($properties, $thisUrl, $collection);
@@ -176,35 +190,6 @@ class RestoFeatureUtil {
             }
         }
         
-    }
-    
-    /**
-     * Add keywords for dedicated filters
-     * 
-     * @param array $properties
-     * @param RestoCollection $collection
-     */
-    private function setUnstoredKeywords(&$properties, $collection) {
-        
-        foreach (array_keys($collection->model->searchFilters) as $key) {
-            if (isset($collection->model->searchFilters[$key]['keyword']) && isset($properties[$collection->model->searchFilters[$key]['key']])) {
-                
-                /*
-                 * Set multiple words within quotes 
-                 */
-                $name = $this->replaceInTemplate($collection->model->searchFilters[$key]['keyword']['value'], $properties);
-                $splitted = explode(' ', $name);
-                
-                if (count($splitted) > 1) {
-                    $name = '"' . $name . '"';
-                }
-                $properties['keywords'][] = array(
-                    'name' => $name,
-                    'id' => $collection->model->searchFilters[$key]['keyword']['type'] . ':' . $name,
-                    'href' => RestoUtil::updateUrl($this->searchUrl, array($collection->model->searchFilters['searchTerms']['osKey'] => $name))
-                );
-            }
-        }
     }
     
     /**
@@ -339,11 +324,11 @@ class RestoFeatureUtil {
               $properties['resourceSize'],
               $properties['resourceChecksum'],
               $properties['bbox3857'],
-              $properties['bbox4326']
+              $properties['bbox4326']/* TODO remove ?,
+              $properties['groupid']*/
         );
         
     }
-    
     
     /**
      *
@@ -368,9 +353,16 @@ class RestoFeatureUtil {
                     $corrected[$key] = $this->correctKeywords(json_decode($value, true), $this->collections[$rawFeatureArray['collection']]);
                     break;
                 
+                case 'licenseId':
+                    $corrected['license'] = isset($this->licenses[$rawFeatureArray['licenseId']]) ? $this->licenses[$rawFeatureArray['licenseId']] : null;
+                    break;
+        
                 default:
                     $corrected[$key] = $this->castExplicit($key, $value, $this->collections[$rawFeatureArray['collection']]);
             }
+        }
+        if (!isset($corrected['license'])) {
+            $corrected['license'] = $this->collections[$rawFeatureArray['collection']]->license;
         }
         
         return $corrected;

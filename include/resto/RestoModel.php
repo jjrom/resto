@@ -40,6 +40,14 @@ abstract class RestoModel {
             'name' => 'collection',
             'type' => 'TEXT'
         ),
+        'groupid' => array(
+            'name' => 'groupid',
+            'type' => 'TEXT'
+        ),
+        'licenseId' => array(
+            'name' => 'licenseid',
+            'type' => 'TEXT'
+        ),
         'productIdentifier' => array(
             'name' => 'productidentifier',
             'type' => 'TEXT'
@@ -208,10 +216,6 @@ abstract class RestoModel {
             'name' => 'hashes',
             'type' => 'TEXT[]',
             'notDisplayed' => true
-        ),
-        'groupid' => array(
-            'name' => 'groupid',
-            'type' => 'TEXT'
         )
     );
     

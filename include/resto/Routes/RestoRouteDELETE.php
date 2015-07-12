@@ -37,6 +37,8 @@ class RestoRouteDELETE extends RestoRoute {
      *    users/{userid}/cart/{itemid}                  |  Remove {itemid} from {userid} cart
      *    users/{userid}/grantedvisibility/{visibility} |  Remove {visibility} to {userid} granted visibilities (only admin)
      *
+     *    licenses/{licenseid}                          |  Delete {licenseid}
+     *
      * @param array $segments
      */
     public function route($segments) {
@@ -45,6 +47,8 @@ class RestoRouteDELETE extends RestoRoute {
                 return $this->DELETE_collections($segments);
             case 'users':
                 return $this->DELETE_users($segments);
+            case 'licenses':
+                return $this->DELETE_license($segments);
             default:
                 return $this->processModuleRoute($segments);
         }
@@ -82,7 +86,7 @@ class RestoRouteDELETE extends RestoRoute {
         /*
          * Check credentials
          */
-        if (!$this->user->canDelete($collection->name, isset($feature) ? $feature->identifier : null)) {
+        if (!$this->user->hasDELETERights($collection->name, isset($feature) ? $feature->identifier : null)) {
             RestoLogUtil::httpError(403);
         }
 
@@ -172,7 +176,7 @@ class RestoRouteDELETE extends RestoRoute {
      * @param string $itemId
      */
     private function DELETE_userCartItem($user, $itemId) {
-        if ($user->removeFromCart($itemId, true)) {
+        if ($user->getCart()->remove($itemId, true)) {
             return RestoLogUtil::success('Item removed from cart', array(
                 'itemid' => $itemId
             ));
@@ -192,7 +196,7 @@ class RestoRouteDELETE extends RestoRoute {
      * @param string $itemId
      */
     private function DELETE_userCartAllItems($user) {
-        if ($user->clearCart(true)) {
+        if ($user->getCart()->clear(true)) {
             return RestoLogUtil::success('Cart cleared');
         }
         else {
@@ -216,7 +220,7 @@ class RestoRouteDELETE extends RestoRoute {
         /*
          * only available for admin
          */
-        if (!$this->isAdminUser()) {
+        if (!$this->user->isAdmin()) {
             RestoLogUtil::httpError(403);
         }
 
@@ -230,6 +234,35 @@ class RestoRouteDELETE extends RestoRoute {
                         'visibility' => $visibility
                     ))
         ));
+    }
+    
+    /**
+     *
+     * Process HTTP DELETE request on licenses
+     *
+     *    licenses/{licenseid}                          |  Delete {licenseid}
+     *
+     * @param array $segments
+     */
+    private function DELETE_license($segments) {
+        
+        /*
+         * only available for admin
+         */
+        if (!$this->user->isAdmin()) {
+            RestoLogUtil::httpError(403);
+        }
+
+        if (!isset($segments[1])) {
+            RestoLogUtil::httpError(404);
+        }
+        else {
+            $licenseId = $segments[1];
+            $this->context->dbDriver->remove(RestoDatabaseDriver::LICENSE, array('licenseId' => $licenseId));
+            return RestoLogUtil::success('License removed', array(
+                'licenseId' => $licenseId
+            ));
+        }
     }
 
 }

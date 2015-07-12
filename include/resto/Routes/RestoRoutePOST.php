@@ -43,6 +43,8 @@ class RestoRoutePOST extends RestoRoute {
      *    users/{userid}/cart                           |  Add new item in {userid} cart
      *    users/{userid}/orders                         |  Send an order for {userid}
      *    users/{userid}/grantedvisibility              |  Add visibility to {userid} granted visibilities (only admin)
+     * 
+     *    licenses                                      |  Create a license
      *
      * @param array $segments
      */
@@ -63,6 +65,8 @@ class RestoRoutePOST extends RestoRoute {
                 return $this->POST_collections($segments, $data);
             case 'users':
                 return $this->POST_users($segments, $data);
+            case 'licenses':
+                return $this->POST_licenses($segments, $data);
             default:
                 return $this->processModuleRoute($segments, $data);
         }
@@ -239,8 +243,24 @@ class RestoRoutePOST extends RestoRoute {
         if ($this->user->profile['userid'] !== $this->userid($userid)) {
             RestoLogUtil::httpError(403);
         }
-
-        if (isset($data['collection']) && $this->user->signLicense($data['collection'], true)) {
+        
+        /*
+         * Check that license exists
+         */
+        if (!isset($data['licenseId'])) {
+            RestoLogUtil::httpError(400, 'Invalid licenseId');
+        }
+        
+        $licenses = $this->context->dbDriver->get(RestoDatabaseDriver::LICENSES, array('licenseId' => $data['licenseId']));
+        $license = isset($licenses[$data['licenseId']]) ? $licenses[$data['licenseId']] : null;
+        if (!isset($license)) {
+            RestoLogUtil::httpError(400, 'Invalid licenseId');
+        }
+        
+        /*
+         * User can sign license if it does not reach the signature quota
+         */
+        if ($this->user->signLicense($license)) {
             return RestoLogUtil::success('License signed');
         }
         else {
@@ -274,7 +294,7 @@ class RestoRoutePOST extends RestoRoute {
         /*
          * Check credentials
          */
-        if (!$this->user->canPost(isset($collection) ? $collection->name : null)) {
+        if (!$this->user->hasPOSTRights(isset($collection) ? $collection->name : null)) {
             RestoLogUtil::httpError(403);
         }
 
@@ -449,7 +469,7 @@ class RestoRoutePOST extends RestoRoute {
         /*
          * only available for admin
          */
-        if (!$this->isAdminUser()) {
+        if (!$this->user->isAdmin()) {
             RestoLogUtil::httpError(403);
         }
 
@@ -487,9 +507,9 @@ class RestoRoutePOST extends RestoRoute {
          */
         $clear = isset($this->context->query['_clear']) ? filter_var($this->context->query['_clear'], FILTER_VALIDATE_BOOLEAN) : false;
         if ($clear) {
-            $user->clearCart(true);
+            $user->getCart()->clear(true);
         }
-        $items = $user->addToCart($data, true);
+        $items = $user->getCart()->add($data, true);
         
         if ($items !== false) {
             return RestoLogUtil::success('Add items to cart', array(
@@ -528,5 +548,77 @@ class RestoRoutePOST extends RestoRoute {
         }
         
     }
+    
+    /**
+     *
+     * Process HTTP POST request on licenses
+     *
+     *    licenses                                      |  Create a license
+     *
+     * @param array $segments
+     * @param array $data
+     */
+    private function POST_licenses($segments, $data) {
+
+        /*
+         * No modifier allowed
+         */
+        if (isset($segments[2])) {
+            RestoLogUtil::httpError(404);
+        }
+
+        /*
+         * licenses
+         */
+        if (!isset($segments[1])) {
+            return $this->POST_createlicense($data);
+        }
+
+        /*
+         * Unknown route
+         */
+        else {
+            RestoLogUtil::httpError(404);
+        }
+
+    }
+
+    /**
+     * Create license
+     *
+     * @param array $data
+     */
+    private function POST_createlicense($data) {
+
+        /*
+         * only available for admin
+         */
+        if (!$this->user->isAdmin()) {
+            RestoLogUtil::httpError(403);
+        }
+
+        if (!isset($data['licenseId'])) {
+            RestoLogUtil::httpError(400, 'license Identifier is not set');
+        }
+
+        $license = $this->context->dbDriver->store(RestoDatabaseDriver::LICENSE, array(
+            'license' => array(
+                'licenseId' => isset($data['licenseId']) ? $data['licenseId'] : null,
+                'grantedCountries' => isset($data['grantedCountries']) ? $data['grantedCountries'] : null,
+                'grantedOrganizationCountries' => isset($data['grantedOrganizationCountries']) ? $data['grantedOrganizationCountries'] : null,
+                'grantedFlags' => isset($data['grantedFlags']) ? $data['grantedFlags'] : null,
+                'viewService' => isset($data['viewService']) ? $data['viewService'] : null,
+                'hasToBeSigned' => isset($data['hasToBeSigned']) ? $data['hasToBeSigned'] : null,
+                'signatureQuota' => isset($data['signatureQuota']) ? $data['signatureQuota'] : -1,
+                'description' => isset($data['description']) ? $data['description'] : null
+            ))
+        );
+        if (!isset($license)) {
+            RestoLogUtil::httpError(500, 'Database connection error');
+        }
+
+        return RestoLogUtil::success('license ' . $data['licenseId'] . ' created');
+    }
+
 
 }

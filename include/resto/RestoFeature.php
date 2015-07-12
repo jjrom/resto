@@ -64,7 +64,14 @@ class RestoFeature {
         $this->initialize($options);
     }
     
-    /*
+    /**
+     * Return feature license
+     */
+    public function getLicense() {
+        return $this->featureArray['properties']['license'];
+    }
+    
+    /**
      * Return true if Feature is valid, false otherwise
      */
     public function isValid() {

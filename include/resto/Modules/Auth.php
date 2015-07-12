@@ -279,7 +279,8 @@ class Auth extends RestoModule {
             $this->context->dbDriver->store(RestoDatabaseDriver::USER_PROFILE, array(
                 'profile' => array(
                     'email' => $email,
-                    'activated' => 1
+                    'activated' => 1,
+                    'validatedby' => $this->context->userAutoValidation ? 'auto' : null
                 ))
             );
             return true;

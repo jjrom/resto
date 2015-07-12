@@ -15,16 +15,11 @@
  * under the License.
  */
 class RestoCart{
-    
-    /*
-     * Context
-     */
-    public $context;
-    
+  
     /*
      * Owner of the cart
      */
-    public $user;
+    private $user;
     
     /*
      * Cart items 
@@ -41,13 +36,12 @@ class RestoCart{
      * Constructor
      * 
      * @param RestoUser $user
-     * @param RestoContext $context
+     * @param boolean $synchronize
      */
-    public function __construct($user, $context, $synchronize = false){
+    public function __construct($user, $synchronize = false){
         $this->user = $user;
-        $this->context = $context;
-        if ($synchronize) {
-            $this->items = $this->context->dbDriver->get(RestoDatabaseDriver::CART_ITEMS, array('email' => $this->user->profile['email']));
+        if ($synchronize && $this->user->profile['userid'] !== -1) {
+            $this->items = $this->user->context->dbDriver->get(RestoDatabaseDriver::CART_ITEMS, array('email' => $this->user->profile['email']));
         }
     }
     
@@ -89,13 +83,13 @@ class RestoCart{
             /*
              * Same resource cannot be added twice
              */
-            $itemId = RestoUtil::encrypt($this->user->profile['email'] . $data[$i]['id']);
+            $itemId = RestoUtil::encrypt((isset($this->user->profile['email']) ? $this->user->profile['email'] : '') . $data[$i]['id']);
             if (isset($this->items[$itemId])) {
                 continue;
             }   
             
-            if ($synchronize) {
-                if (!$this->context->dbDriver->store(RestoDatabaseDriver::CART_ITEM, array('email' => $this->user->profile['email'], 'item' => $data[$i]))) {
+            if ($synchronize && $this->user->profile['userid'] !== -1) {
+                if (!$this->user->context->dbDriver->store(RestoDatabaseDriver::CART_ITEM, array('email' => $this->user->profile['email'], 'item' => $data[$i]))) {
                     return false;
                 }
             }
@@ -120,9 +114,9 @@ class RestoCart{
         if (!isset($this->items[$itemId])) {
             RestoLogUtil::httpError(1001, 'Cannot update item : ' . $itemId . ' does not exist');
         }
-        if ($synchronize) {
+        if ($synchronize && $this->user->profile['userid'] !== -1) {
             $this->items[$itemId] = $item;
-            return $this->context->dbDriver->update(RestoDatabaseDriver::CART_ITEM, array('email' => $this->user->profile['email'], 'itemId' => $itemId, 'item' => $item));
+            return $this->user->context->dbDriver->update(RestoDatabaseDriver::CART_ITEM, array('email' => $this->user->profile['email'], 'itemId' => $itemId, 'item' => $item));
         }
         else {
             $this->items[$itemId] = $item;
@@ -142,11 +136,11 @@ class RestoCart{
         if (!isset($itemId)) {
             return false;
         }
-        if ($synchronize) {
+        if ($synchronize && $this->user->profile['userid'] !== -1) {
             if (isset($this->items[$itemId])) {
                 unset($this->items[$itemId]);
             }
-            return $this->context->dbDriver->remove(RestoDatabaseDriver::CART_ITEM, array('email' => $this->user->profile['email'], 'itemId' => $itemId));
+            return $this->user->context->dbDriver->remove(RestoDatabaseDriver::CART_ITEM, array('email' => $this->user->profile['email'], 'itemId' => $itemId));
         }
         else if (isset($this->items[$itemId])) {
             unset($this->items[$itemId]);
@@ -163,8 +157,8 @@ class RestoCart{
      */
     public function clear($synchronize = false) {
         $this->items = array();
-        if ($synchronize) {
-            return $this->context->dbDriver->remove(RestoDatabaseDriver::CART_ITEMS, array('email' => $this->user->profile['email']));
+        if ($synchronize && $this->user->profile['userid'] !== -1) {
+            return $this->user->context->dbDriver->remove(RestoDatabaseDriver::CART_ITEMS, array('email' => $this->user->profile['email']));
         }
     }
     

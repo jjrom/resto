@@ -40,6 +40,15 @@
  *    |  PUT     collections/{collection}/{feature}            |  Update {feature}
  *    |  DELETE  collections/{collection}/{feature}            |  Delete {feature}
  * 
+ * ** licenses **
+ *
+ *    |          Resource                                      |      Description
+ *    |________________________________________________________|________________________________________________
+ *    |  GET     licenses                                      |  List all licenses
+ *    |  POST    licenses                                      |  Create a license (only admin)
+ *    |  GET     licenses/{licenseid}                          |  Get {licenseid} license description (only admin)
+ *    |  DELETE  licenses/{licenseid}                          |  Delete {licenseid} (only admin)
+ *    
  *
  * ** Users **
  * 
@@ -205,7 +214,7 @@ abstract class RestoRoute {
         $user = $this->user;
         $userid = $this->userid($emailOrId);
         if ($user->profile['userid'] !== $userid) {
-            if ($user->profile['groupname'] !== 'admin') {
+            if (!$user->isAdmin()) {
                 RestoLogUtil::httpError(403);
             }
             else {
@@ -220,14 +229,6 @@ abstract class RestoRoute {
         
         return $user;
         
-    }
-
-    /**
-     * Return true if current user is admin
-     */
-    protected function isAdminUser() {
-        $user = $this->user;
-        return $user->profile['groupname'] === 'admin';
     }
 
 }

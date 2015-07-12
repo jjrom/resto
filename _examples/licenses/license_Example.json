@@ -1,0 +1,19 @@
+{
+   "licenseId":"Example",
+   "hasToBeSigned":"once",
+   "grantedCountries":"FR,UK,SP",
+   "grantedOrganizationCountries":"FR,UK,SP,DE",
+   "grantedFlags":"REGISTERED",
+   "viewService":"public",
+   "signatureQuota":-1,
+   "description":{
+      "en":{
+         "shortName":"Sentinel 1 Data",
+         "url":"https:\/\/sentinel.esa.int\/documents\/247904\/690755\/TC_Sentinel_Data_31072014.pdf"
+      },
+      "fr":{
+         "shortName":"Données Sentinel 1",
+         "url":"https:\/\/sentinel.esa.int\/documents\/247904\/690755\/TC_Sentinel_Data_31072014.pdf"
+      }
+   }
+}

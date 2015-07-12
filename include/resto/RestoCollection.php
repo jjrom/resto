@@ -51,14 +51,7 @@ class RestoCollection {
     public $osDescription = null;
     
     /*
-     * Collection licenses (i.e. conditions of use)
-     * 
-     * Structure
-     *      array(
-     *          'en' => //license url
-     *          'fr' => //license url
-     *          ...
-     *      )
+     * Collection license 
      */
     public $license;
     
@@ -187,13 +180,13 @@ class RestoCollection {
         if (!isset($this->license)) {
             return null;
         }
-        if (!isset($this->license[$this->context->dictionary->language])) {
-            if (isset($this->license['en'])) {
-                return $this->license['en'];
+        if (!isset($this->license['description'][$this->context->dictionary->language])) {
+            if (isset($this->license['description']['en'])) {
+                return $this->license['description']['en'];
             }
             return null;
         }
-        return $this->license[$this->context->dictionary->language];
+        return $this->license['description'][$this->context->dictionary->language];
     }
     
     /**
@@ -204,6 +197,11 @@ class RestoCollection {
      *          "name": "Charter",
      *          "controller": "RestoCollection_Default",
      *          "status": "public",
+     *          "licenseId": "license",
+     *          "accessRights":{
+     *              "download":false,
+     *              "visualize":true
+     *          },
      *          "osDescription": {
      *              "en": {
      *                  "ShortName": "International Charter Space and Major Disasters",
@@ -254,7 +252,11 @@ class RestoCollection {
         /*
          * Licence
          */
-        $this->license = isset($object['license']) ? $object['license'] : null;
+        $this->license = null;
+        if (isset($object['licenseId'])) {
+            $licenses = $this->context->dbDriver->get(RestoDatabaseDriver::LICENSES, array('licenseId' => $object['licenseId'])); 
+            $this->license = $licenses[$object['licenseId']];
+        }
         
         /*
          * Properties mapping
@@ -264,7 +266,7 @@ class RestoCollection {
         /*
          * Save on database
          */
-        $this->saveToStore($synchronize);
+        $this->saveToStore(isset($object['accessRights']) ? $object['accessRights'] : array(), $synchronize);
         
     }
    
@@ -300,7 +302,6 @@ class RestoCollection {
         $this->status = $descriptions[$this->name]['status'];
         $this->license = $descriptions[$this->name]['license'];
         $this->propertiesMapping = $descriptions[$this->name]['propertiesMapping'];
-        
     }
     
     /**
@@ -367,12 +368,13 @@ class RestoCollection {
     /**
      * Save collection to database if synchronize is set to true
      * 
+     * @param array $accessRights
      * @param boolean $synchronize
      * @return boolean
      */
-    private function saveToStore($synchronize) {
+    private function saveToStore($accessRights, $synchronize) {
         if ($synchronize) {
-            $this->context->dbDriver->store(RestoDatabaseDriver::COLLECTION, array('collection' => $this));
+            $this->context->dbDriver->store(RestoDatabaseDriver::COLLECTION, array('collection' => $this, 'accessRights' => $accessRights));
             return true;
         }
         return false;

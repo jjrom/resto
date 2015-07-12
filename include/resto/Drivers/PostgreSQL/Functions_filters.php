@@ -146,7 +146,7 @@ class Functions_filters {
      * @return string
      */
     private function prepareFilterQuery_contextualSearch($user, $model) {
-        if ($user->profile['groupname'] !== 'admin') {
+        if (!$user->isAdmin()) {
             $grantedVisibility = '\'public\'';
             if (isset($user->profile['grantedvisibility'])) {
                 $visibilities = str_getcsv($user->profile['grantedvisibility']);
@@ -225,17 +225,17 @@ class Functions_filters {
         if (!RestoUtil::isISO8601($filters[$filterName])) {
             RestoLogUtil::httpError(400, 'Invalid date parameter - ' . $filterName);
         }
-        
-        /*
-         * Process time:start and time:end filters
-         */
-        switch ($filterName) {
-            case 'time:start':
-                return $model->getDbKey($model->searchFilters['time:start']['key']) . ' >= \'' . pg_escape_string($filters['time:start']) . '\'';
-            case 'time:end':
-                return $model->getDbKey($model->searchFilters['time:end']['key']) . ' <= \'' . pg_escape_string($filters['time:end']) . '\'';
-            default:
-                return null;
+
+            /*
+             * Process time:start and time:end filters
+             */
+            switch ($filterName) {
+                case 'time:start':
+                    return $model->getDbKey($model->searchFilters['time:start']['key']) . ' >= \'' . pg_escape_string($filters['time:start']) . '\'';
+                case 'time:end':
+                    return $model->getDbKey($model->searchFilters['time:end']['key']) . ' <= \'' . pg_escape_string($filters['time:end']) . '\'';
+                default:
+                    return null;
         }
     }
     

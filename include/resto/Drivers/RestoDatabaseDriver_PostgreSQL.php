@@ -24,6 +24,7 @@ require 'PostgreSQL/Functions_collections.php';
 require 'PostgreSQL/Functions_facets.php';
 require 'PostgreSQL/Functions_features.php';
 require 'PostgreSQL/Functions_filters.php';
+require 'PostgreSQL/Functions_licenses.php';
 require 'PostgreSQL/Functions_rights.php';
 require 'PostgreSQL/Functions_users.php';
 
@@ -117,6 +118,13 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 return $generalFunctions->getKeywords($params['language'], isset($params['types']) ? $params['types'] : array());
             
             /*
+             * Get license
+             */
+            case parent::LICENSES:
+                $licensesFunctions = new Functions_licenses($this);
+                return $licensesFunctions->getLicenses(isset($params['licenseId']) ? $params['licenseId'] : null);
+
+            /*
              * Get orders
              */    
             case parent::ORDERS:
@@ -128,15 +136,14 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             case parent::RIGHTS:
                 $rightsFunctions = new Functions_rights($this);
-                return $rightsFunctions->getRights($params['emailOrGroup'], isset($params['collectionName']) ? $params['collectionName'] : null, isset($params['featureIdentifier']) ? $params['featureIdentifier'] : null);
-            
-            /*
-             * Get rights
-             */
-            case parent::RIGHTS_FULL:
-                $rightsFunctions = new Functions_rights($this);
-                return $rightsFunctions->getFullRights($params['emailOrGroup'], isset($params['collectionName']) ? $params['collectionName'] : null, isset($params['featureIdentifier']) ? $params['featureIdentifier'] : null);
-            
+                if ($params['user']) {
+                    return $rightsFunctions->getRightsForUser($params['user'], isset($params['targetType']) ? $params['targetType'] : null, isset($params['target']) ? $params['target'] : null);
+                }
+                else if ($params['groups']) {
+                    return $rightsFunctions->getRightsForGroups($params['groups'], isset($params['targetType']) ? $params['targetType'] : null, isset($params['target']) ? $params['target'] : null);
+                }
+                return null;
+                
             /*
              * Get statistics
              */
@@ -193,7 +200,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             case parent::ACTIVATE_USER:
                 $usersFunctions = new Functions_users($this);
-                return $usersFunctions->activateUser($params['userid'], $params['activationCode']);
+                return $usersFunctions->activateUser($params['userid'], $params['activationCode'], $params['userAutoValidation']);
             
             /*
              * Deactivate user
@@ -206,15 +213,15 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              * Deactivate user
              */
             case parent::DISCONNECT_USER:
-                $usersFunctions = new Functions_users($this);
-                return $usersFunctions->revokeToken($params['token']);
+                $generalFunctions = new Functions_general($this);
+                return $generalFunctions->revokeToken($params['token']);
                
             /*
              * Sign license
              */
-            case parent::SIGN_LICENSE:
-                $usersFunctions = new Functions_users($this);
-                return $usersFunctions->signLicense($params['email'], $params['collectionName']);
+            case parent::SIGNATURE:
+                $licensesFunctions = new Functions_licenses($this);
+                return $licensesFunctions->signLicense($params['email'], $params['licenseId'], $params['signatureQuota']);
                 
             default:
                 return null;
@@ -256,9 +263,9 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             /*
              * True if user is license is signed
              */
-            case parent::LICENSE_SIGNED:
-                $usersFunctions = new Functions_users($this);
-                return $usersFunctions->isLicenseSigned($params['email'], $params['collectionName']);
+            case parent::SIGNATURE:
+                $licensesFunctions = new Functions_licenses($this);
+                return $licensesFunctions->isLicenseSigned($params['email'], $params['licenseId']);
                 
             /*
              * True if schema exists
@@ -292,8 +299,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              * True if user is license is signed
              */
             case parent::TOKEN_REVOKED:
-                $usersFunctions = new Functions_users($this);
-                return $usersFunctions->isTokenRevoked($params['token']);
+                $generalFunctions = new Functions_general($this);
+                return $generalFunctions->isTokenRevoked($params['token']);
                 
             /*
              * True if user exists
@@ -353,11 +360,18 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 return $cartFunctions->clearCart($params['email']);
             
             /*
+             * Remove license
+             */
+            case parent::LICENSE:
+                $licensesFunctions = new Functions_licenses($this);
+                return $licensesFunctions->removeLicense($params['licenseId']);
+
+            /*
              * Remove collection/feature rights for user
              */
             case parent::RIGHTS:
                 $rightsFunctions = new Functions_rights($this);
-                return $rightsFunctions->deleteRights($params['emailOrGroup'], $params['collectionName'],  $params['featureIdentifier']);
+                return $rightsFunctions->removeRights(isset($params['email']) ? $params['email'] : null, isset($params['groupid']) ? $params['groupid'] : null, isset($params['collectionName']) ? $params['collectionName'] : null,  isset($params['featureIdentifier']) ? $params['featureIdentifier'] : null);
 
             /*
              * Remove granted visibility
@@ -393,7 +407,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             case parent::COLLECTION:
                 $collectionsFunctions = new Functions_collections($this);
-                return $collectionsFunctions->storeCollection($params['collection']);
+                return $collectionsFunctions->storeCollection($params['collection'], $params['accessRights']);
             
             /*
              * Store facets
@@ -409,6 +423,13 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 $featuresFunctions = new Functions_features($this);
                 return $featuresFunctions->storeFeature($params['collection'], $params['featureArray']);
             
+            /*
+             * Store license
+             */
+            case parent::LICENSE:
+                $licensesFunctions = new Functions_licenses($this);
+                return $licensesFunctions->storelicense($params['license']);
+
             /*
              * Store cart item
              */
@@ -428,7 +449,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             case parent::RIGHTS:
                 $rightsFunctions = new Functions_rights($this);
-                return $rightsFunctions->storeRights($params['rights'], $params['emailOrGroup'], $params['collectionName'], isset($params['featureIdentifier']) ? $params['featureIdentifier'] : null, isset($params['productIdentifier']) ? $params['productIdentifier'] : null);
+                return $rightsFunctions->storeOrUpdateRights($params['rights'], $params['ownerType'], $params['owner'], $params['targetType'], $params['target'], isset($params['productIdentifier']) ? $params['productIdentifier'] : null);
             
             /*
              * Store user profile
@@ -472,7 +493,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             case parent::RIGHTS:
                 $rightsFunctions = new Functions_rights($this);
-                return $rightsFunctions->updateRights($params['rights'], $params['emailOrGroup'], $params['collectionName'], $params['featureIdentifier']);
+                return $rightsFunctions->storeOrUpdateRights($params['rights'], $params['ownerType'], $params['owner'], $params['targetType'], $params['target']);
             
             /*
              * Update user profile

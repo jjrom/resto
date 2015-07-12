@@ -95,7 +95,7 @@ class RestoRoutePUT extends RestoRoute {
         /*
          * Check credentials
          */
-        if (!$this->user->canPut($collection->name, $featureIdentifier)) {
+        if (!$this->user->hasPUTRights($collection->name, $featureIdentifier)) {
             RestoLogUtil::httpError(403);
         }
 
@@ -183,7 +183,7 @@ class RestoRoutePUT extends RestoRoute {
         /*
          * For normal user (i.e. non admin), some properties cannot be modified after validation
          */
-        if (!$this->isAdminUser()) {
+        if (!$this->user->isAdmin()) {
             
             /*
              * Already validated => avoid updating administrative properties
@@ -202,7 +202,7 @@ class RestoRoutePUT extends RestoRoute {
             /*
              * These properties can only be changed by admin
              */
-            unset($data['groupname']);
+            unset($data['groups']);
         }
 
         /*
@@ -228,7 +228,7 @@ class RestoRoutePUT extends RestoRoute {
         /*
          * Granted visibility for a user can only be modified by admin
          */
-        if (!$this->isAdminUser()) {
+        if (!$this->user->isAdmin()) {
             RestoLogUtil::httpError(403);
         }
 
@@ -261,7 +261,7 @@ class RestoRoutePUT extends RestoRoute {
          */
         $user = $this->getAuthorizedUser($emailOrId);
          
-        if ($user->updateCart($itemId, $data, true)) {
+        if ($user->getCart()->update($itemId, $data, true)) {
             return RestoLogUtil::success('Item ' . $itemId . ' updated', array(
                 'itemId' => $itemId,
                 'item' => $data

@@ -34,10 +34,6 @@ class RestoModel_ro extends RestoModel {
     		'name' => 'productmode',
     		'type' => 'TEXT'
     	),
-        'license' => array(
-            'name' => 'license',
-            'type' => 'TEXT'
-        ),
         'productCrs' => array(
             'name' => 'productcrs',
             'type' => 'TEXT'

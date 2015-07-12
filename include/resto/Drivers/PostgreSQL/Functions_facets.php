@@ -21,18 +21,15 @@
 class Functions_facets {
     
     private $dbDriver = null;
-    private $dbh = null;
     
     /**
      * Constructor
      * 
-     * @param array $config
-     * @param RestoCache $cache
+     * @param RestoDatabaseDriver $dbDriver
      * @throws Exception
      */
     public function __construct($dbDriver) {
         $this->dbDriver = $dbDriver;
-        $this->dbh = $dbDriver->dbh;
     }
 
     /**

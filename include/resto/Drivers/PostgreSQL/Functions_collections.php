@@ -21,18 +21,15 @@
 class Functions_collections {
     
     private $dbDriver = null;
-    private $dbh = null;
     
     /**
      * Constructor
      * 
-     * @param array $config
-     * @param RestoCache $cache
+     * @param RestoDatabaseDriver $dbDriver
      * @throws Exception
      */
     public function __construct($dbDriver) {
         $this->dbDriver = $dbDriver;
-        $this->dbh = $dbDriver->dbh;
     }
 
     /**
@@ -43,20 +40,29 @@ class Functions_collections {
      * @throws Exception
      */
     public function getCollectionsDescriptions($collectionName = null) {
-         
+        
         $cached = $this->dbDriver->cache->retrieve(array('getCollectionsDescriptions', $collectionName));
         if (isset($cached)) {
             return $cached;
         }
+        
+        /*
+         * First get licenses
+         */
+        $licenses = $this->dbDriver->get(RestoDatabaseDriver::LICENSES);
+        
+        /*
+         * Then collections
+         */
         $collectionsDescriptions = array();
-        $descriptions = $this->dbDriver->query('SELECT collection, status, model, mapping, license FROM resto.collections' . (isset($collectionName) ? ' WHERE collection=\'' . pg_escape_string($collectionName) . '\'' : '') . ' ORDER BY collection');
+        $descriptions = $this->dbDriver->query('SELECT collection, status, model, mapping, licenseid FROM resto.collections' . (isset($collectionName) ? ' WHERE collection=\'' . pg_escape_string($collectionName) . '\'' : '') . ' ORDER BY collection');
         while ($collection = pg_fetch_assoc($descriptions)) {
             $collectionsDescriptions[$collection['collection']] = array(
                 'name' => $collection['collection'],
                 'model' => $collection['model'],
                 'status' => $collection['status'],
                 'propertiesMapping' => json_decode($collection['mapping'], true),
-                'license' => isset($collection['license']) ? json_decode($collection['license'], true) : null,
+                'license' => isset($licenses[$collection['licenseid']]) ? $licenses[$collection['licenseid']] : null,
                 'osDescription' => $this->getOSDescriptions($collection['collection'])
             );
         }
@@ -137,9 +143,10 @@ class Functions_collections {
      * Save collection to database
      * 
      * @param RestoCollection $collection
+     * @param Array $accessRights
      * @throws Exception
      */
-    public function storeCollection($collection) {
+    public function storeCollection($collection, $accessRights) {
         
         $schemaName = '_' . strtolower($collection->name);
         
@@ -164,6 +171,17 @@ class Functions_collections {
              * Create new entry in collections osdescriptions tables
              */
             $this->storeCollectionDescription($collection);
+            
+            /*
+             * Store default rights for collection
+             */
+            $this->dbDriver->store(RestoDatabaseDriver::RIGHTS, array(
+                'rights' => $accessRights,
+                'ownerType' => 'group',
+                'owner' => 'default',
+                'targetType' => 'collection',
+                'target' => $collection->name
+            ));
             
             /*
              * Close transaction
@@ -284,6 +302,7 @@ class Functions_collections {
     }
     
     /**
+     * Store Collection description 
      * 
      * @param RestoCollection $collection
      */
@@ -297,17 +316,17 @@ class Functions_collections {
          *  creationdate        TIMESTAMP,
          *  model               TEXT DEFAULT 'Default',
          *  status              TEXT DEFAULT 'public',
-         *  license             TEXT,
+         *  licenseid           TEXT,
          *  mapping             TEXT
          * );
          * 
          */
-        $license = isset($collection->license) && count($collection->license) > 0 ? '\'' . pg_escape_string(json_encode($collection->license)) . '\'' : 'NULL';
+        $licenseId = isset($collection->license) ? '\'' . pg_escape_string($collection->license['licenseId']) . '\'' : 'NULL';
         if (!$this->collectionExists($collection->name)) {
-            $this->dbDriver->query('INSERT INTO resto.collections (collection, creationdate, model, status, license, mapping) VALUES(' . join(',', array('\'' . pg_escape_string($collection->name) . '\'', 'now()', '\'' . pg_escape_string($collection->model->name) . '\'', '\'' . pg_escape_string($collection->status) . '\'', $license, '\'' . pg_escape_string(json_encode($collection->propertiesMapping)) . '\'')) . ')');
+            $this->dbDriver->query('INSERT INTO resto.collections (collection, creationdate, model, status, licenseid, mapping) VALUES(' . join(',', array('\'' . pg_escape_string($collection->name) . '\'', 'now()', '\'' . pg_escape_string($collection->model->name) . '\'', '\'' . pg_escape_string($collection->status) . '\'', $licenseId, '\'' . pg_escape_string(json_encode($collection->propertiesMapping)) . '\'')) . ')');
         }
         else {
-            $this->dbDriver->query('UPDATE resto.collections SET status = \'' . pg_escape_string($collection->status) . '\', mapping = \'' . pg_escape_string(json_encode($collection->propertiesMapping)) . '\', license=' . $license . ' WHERE collection = \'' . pg_escape_string($collection->name) . '\'');
+            $this->dbDriver->query('UPDATE resto.collections SET status = \'' . pg_escape_string($collection->status) . '\', mapping = \'' . pg_escape_string(json_encode($collection->propertiesMapping)) . '\', licenseid=' . $licenseId . ' WHERE collection = \'' . pg_escape_string($collection->name) . '\'');
         }
 
         /*
@@ -361,4 +380,5 @@ class Functions_collections {
         }
         return false;
     }
+    
 }

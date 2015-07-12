@@ -109,7 +109,7 @@ CREATE TABLE resto.collections (
     creationdate        TIMESTAMP,
     model               TEXT DEFAULT 'RestoModel_default',
     status              TEXT DEFAULT 'public',
-    license             TEXT,
+    licenseid           TEXT DEFAULT 'unlicensed', -- This should be linked to an existing license
     mapping             TEXT
 );
 CREATE INDEX idx_status_collections ON resto.collections (status);
@@ -135,6 +135,22 @@ ALTER TABLE ONLY resto.osdescriptions ADD CONSTRAINT cl_collection UNIQUE(collec
 CREATE INDEX idx_collection_osdescriptions ON resto.osdescriptions (collection);
 CREATE INDEX idx_lang_osdescriptions ON resto.osdescriptions (lang);
 
+--
+-- licenses table describe all resto licences
+--
+CREATE TABLE resto.licenses (
+    licenseid                       TEXT NOT NULL,
+    grantedcountries                TEXT, -- Comma separated list of isoa2 list of allowed user countries
+    grantedorganizationcountries    TEXT, -- Comma separated list of isoa2 list of allowed user's organization countries
+    grantedflags                    TEXT, -- Comma separated list of flags allowed
+    viewservice                     TEXT DEFAULT 'public', -- Enumeration : 'public', 'private'
+    hastobesigned                   TEXT NOT NULL, -- Enumeration : 'never', 'once', 'always'
+    signaturequota                  INTEGER DEFAULT -1, -- Maximum of signatures allowed if hastobesigned = 'always' (-1 means unlimited)
+    description                     TEXT NOT NULL -- JSON object with one entry per language
+);
+-- INSERT licenses
+INSERT INTO resto.licenses (licenseid, viewservice, hastobesigned, description) VALUES ('unlicensed', 'public', 'never', '{"en":{"shortName":"No license"}}');
+INSERT INTO resto.licenses (licenseid, viewservice, hastobesigned, grantedflags, description) VALUES ('unlicensedwithregistration', 'public', 'never', 'REGISTERED', '{"en":{"shortName":"No license with mandatory registration"}}');
 
 --
 -- Keywords table
@@ -189,6 +205,7 @@ CREATE TABLE resto.features (
     parentidentifier    TEXT,
     collection          TEXT,
     groupid             TEXT DEFAULT 'public'::text,
+    licenseid           TEXT,
     productidentifier   TEXT,
     title               TEXT,
     description         TEXT,
@@ -239,7 +256,7 @@ CREATE SCHEMA usermanagement;
 CREATE TABLE usermanagement.users (
     userid              SERIAL PRIMARY KEY,
     email               TEXT UNIQUE,  -- should be an email adress
-    groupname           TEXT, -- group name
+    groups              TEXT, -- list of groupid (comma separated)
     username            TEXT,
     givenname           TEXT,
     lastname            TEXT,
@@ -257,34 +274,50 @@ CREATE TABLE usermanagement.users (
     validationdate      TIMESTAMP -- Validation date
 );
 CREATE INDEX idx_email_users ON usermanagement.users (email);
-CREATE INDEX idx_groupname_users ON usermanagement.users (groupname);
+
+--
+-- groups table list
+--
+CREATE TABLE usermanagement.groups (
+    groupid             TEXT NOT NULL UNIQUE,
+    childrens           TEXT -- groupids that are childrens of this groupid (comma separated)
+);
+CREATE INDEX idx_groups_groupid ON usermanagement.groups (groupid);
+
+-- INSERT base groups
+INSERT INTO usermanagement.groups (groupid) VALUES ('admin');
+INSERT INTO usermanagement.groups (groupid) VALUES ('default');
 
 --
 -- rights table list user rights on collection
 --
 CREATE TABLE usermanagement.rights (
     gid                 SERIAL PRIMARY KEY, -- unique id
-    collection          TEXT, -- same as collection in resto.collections
-    featureid           TEXT, -- same as identifier in resto.features
-    productidentifier   TEXT, 
-    emailorgroup        TEXT NOT NULL,  -- email or group name (from usermanagement.users)
-    search              INTEGER DEFAULT 0,
-    visualize           INTEGER DEFAULT 0,
+    ownertype           TEXT NOT NULL, -- 'user' or 'group'
+    owner               TEXT NOT NULL, -- email from usermanagement.users or groupid from usermanagement.groups
+    targettype          TEXT NOT NULL, -- 'collection' or 'feature'
+    target              TEXT NOT NULL, -- collection from resto.collection or featureid from resto.features
     download            INTEGER DEFAULT 0,
+    visualize           INTEGER DEFAULT 0,
     canpost             INTEGER DEFAULT 0,
     canput              INTEGER DEFAULT 0,
     candelete           INTEGER DEFAULT 0,
-    filters             TEXT -- serialized json representation of services rights
+    productidentifier   TEXT -- same as productidentifier in resto.features
 );
-CREATE INDEX idx_emailorgroup_rights ON usermanagement.rights (emailorgroup);
+CREATE INDEX idx_owner_rights ON usermanagement.rights (owner);
+CREATE INDEX idx_ownertype_rights ON usermanagement.rights (ownertype);
+
+-- INSERT admin rights
+INSERT INTO usermanagement.rights (ownertype, owner, targettype, target, download, visualize, canpost, canput, candelete) VALUES ('group','admin','collection','*',1,1,1,1,1);
 
 --
 -- list licenses signed by users
 --
 CREATE TABLE usermanagement.signatures (
     email               TEXT, -- email from usermanagement.users
-    collection          TEXT, -- collection from resto.collections
-    signdate            TIMESTAMP NOT NULL
+    licenseid           TEXT, -- licenseid from resto.licenses
+    signdate            TIMESTAMP NOT NULL,
+    counter             INTEGER -- number of time the user sign the license
 );
 CREATE INDEX idx_email_signatures ON usermanagement.signatures (email);
 
@@ -406,11 +439,10 @@ GRANT CREATE ON DATABASE $DB TO $USER;
 GRANT ALL ON SCHEMA resto TO $USER;
 GRANT SELECT,INSERT,UPDATE,DELETE ON resto.collections TO $USER;
 GRANT SELECT,INSERT,UPDATE,DELETE ON resto.osdescriptions TO $USER;
+GRANT SELECT,INSERT,UPDATE,DELETE ON resto.licenses TO $USER;
 GRANT SELECT,INSERT,UPDATE,DELETE ON resto.keywords TO $USER;
-GRANT SELECT,INSERT,UPDATE ON resto.features TO $USER;
-GRANT SELECT,INSERT,UPDATE ON resto.facets TO $USER;
-GRANT ALL ON resto.keywords_gid_seq TO $USER;
-GRANT ALL ON resto.facets_gid_seq TO $USER;
+GRANT SELECT,INSERT,UPDATE,DELETE ON resto.features TO $USER;
+GRANT SELECT,INSERT,UPDATE,DELETE ON resto.facets TO $USER;
 
 GRANT ALL ON SCHEMA usermanagement TO $USER;
 GRANT SELECT,INSERT,UPDATE,DELETE ON usermanagement.users TO $USER;
@@ -421,7 +453,6 @@ GRANT SELECT,INSERT,UPDATE,DELETE ON usermanagement.cart TO $USER;
 GRANT SELECT,INSERT,UPDATE,DELETE ON usermanagement.orders TO $USER;
 GRANT SELECT,INSERT,UPDATE,DELETE ON usermanagement.sharedlinks TO $USER;
 GRANT SELECT,INSERT,UPDATE ON usermanagement.history TO $USER;
-GRANT ALL ON usermanagement.rights_gid_seq TO $USER;
 
 GRANT SELECT,UPDATE ON usermanagement.users_userid_seq TO $USER;
 GRANT SELECT,UPDATE ON usermanagement.revokedtokens_gid_seq TO $USER;
@@ -429,7 +460,9 @@ GRANT SELECT,UPDATE ON usermanagement.history_gid_seq TO $USER;
 GRANT SELECT,UPDATE ON usermanagement.sharedlinks_gid_seq TO $USER;
 GRANT SELECT,UPDATE ON usermanagement.cart_gid_seq TO $USER;
 GRANT SELECT,UPDATE ON usermanagement.orders_gid_seq TO $USER;
-
+GRANT SELECT,UPDATE ON usermanagement.rights_gid_seq TO $USER;
+GRANT SELECT,UPDATE ON resto.keywords_gid_seq TO $USER;
+GRANT SELECT,UPDATE ON resto.facets_gid_seq TO $USER;
 
 EOF
 

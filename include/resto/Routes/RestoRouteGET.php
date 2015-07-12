@@ -57,6 +57,10 @@ class RestoRouteGET extends RestoRoute {
      *    users/{userid}/signatures                     |  Show signatures for {userid}
      *    users/{userid}/signatures/{collection}        |  Show signatures for {userid} on {collection}
      * 
+     *    licenses                                      |  List all licenses
+     *    licenses/{licenseid}                          |  Get {licenseid} license description 
+     * 
+     * 
      * Note: {userid} can be replaced by base64(email) 
      * 
      * @param array $segments
@@ -70,6 +74,8 @@ class RestoRouteGET extends RestoRoute {
                 return $this->GET_collections($segments);
             case 'users':
                 return $this->GET_users($segments);
+            case 'licenses':
+                return $this->GET_licenses($segments);
             default:
                 return $this->processModuleRoute($segments);
         }
@@ -430,30 +436,40 @@ class RestoRouteGET extends RestoRoute {
     private function GET_featureDownload($collection, $feature) {
         
         /*
-         * User do not have right to download product
+         * User do not have rights to download product 
          */
-        if (!$this->user->canDownload($collection->name, $feature->identifier, !empty($this->context->query['_tk']) ? $this->context->query['_tk'] : null)) {
+        if (!$this->user->hasDownloadRights($collection->name, $feature->identifier, !empty($this->context->query['_tk']) ? $this->context->query['_tk'] : null)) {
             RestoLogUtil::httpError(403);
         }
+        
         /*
-         * Or user has rigth but hasn't sign the license yet
+         * User do not fullfill license requirements
          */
-        else if ($this->user->hasToSignLicense($collection->toArray(false)) && empty($this->context->query['_tk'])) {
+        if (!$this->user->fulfillLicenseRequirements($feature->getLicense())) {
+            RestoLogUtil::httpError(403, 'You do not fulfill license requirements');
+        }
+        
+        /*
+         * User has to sign the license before downloading
+         */
+        if ($this->user->hasToSignLicense($feature->getLicense())) {
             return array(
                 'ErrorMessage' => 'Forbidden',
+                'feature' => $feature->identifier,
                 'collection' => $collection->name,
-                'license' => $collection->getLicense(),
+                'license' => $feature->getLicense(),
+                'userid' => $this->user->profile['userid'],
                 'ErrorCode' => 3002
             );
         }
+
         /*
-         * Rights + license signed = download and exit
+         * Rights + fullfill license requirements + license signed = download and exit
          */
-        else {
-            $this->storeQuery('download', $collection->name, $feature->identifier);
-            $feature->download();
-            return null;
-        }
+        $this->storeQuery('download', $collection->name, $feature->identifier);
+        $feature->download();
+        return null;
+        
     }
 
     /**
@@ -544,7 +560,7 @@ class RestoRouteGET extends RestoRoute {
         /*
          * Granted Visibility can only be seen by admin users
          */
-        if (!$this->isAdminUser()) {
+        if (!$this->user->isAdmin()) {
             RestoLogUtil::httpError(403);
         }
 
@@ -564,7 +580,7 @@ class RestoRouteGET extends RestoRoute {
         /*
          * Granted Visibility can only be seen by admin users
          */
-        if (!$this->isAdminUser()) {
+        if (!$this->user->isAdmin()) {
             RestoLogUtil::httpError(403);
         }
 
@@ -592,8 +608,8 @@ class RestoRouteGET extends RestoRoute {
 
         return RestoLogUtil::success('Rights for ' . $user->profile['userid'], array(
                     'userid' => $user->profile['userid'],
-                    'groupname' => $user->profile['groupname'],
-                    'rights' => $user->getFullRights($collectionName, $featureIdentifier)
+                    'groups' => $user->profile['groups'],
+                    'rights' => $user->getRights($collectionName, $featureIdentifier)
         ));
     }
 
@@ -637,7 +653,7 @@ class RestoRouteGET extends RestoRoute {
 
         return RestoLogUtil::success('Signatures for ' . $user->profile['userid'], array(
             'userid' => $user->profile['userid'],
-            'groupname' => $user->profile['groupname'],
+            'groups' => $user->profile['groups'],
             'signatures' => $signatures
         ));
     }
@@ -688,6 +704,23 @@ class RestoRouteGET extends RestoRoute {
                 'orders' => $user->getOrders()
             ));
         }
+    }
+    
+    /**
+     *
+     * Process HTTP GET request on licenses
+     *
+     * @param array $segments
+     */
+    private function GET_licenses($segments) {
+        
+        if (isset($segments[2])) {
+            RestoLogUtil::httpError(404);
+        }
+        
+        return array(
+            'licences' => $this->context->dbDriver->get(RestoDatabaseDriver::LICENSES, array('licenseId' => isset($segments[1]) ? $segments[1] : null))
+        );
     }
     
     /**

@@ -21,18 +21,15 @@
 class Functions_general {
     
     private $dbDriver = null;
-    private $dbh = null;
     
     /**
      * Constructor
      * 
-     * @param array $config
-     * @param RestoCache $cache
+     * @param RestoDatabaseDriver $dbDriver
      * @throws Exception
      */
     public function __construct($dbDriver) {
         $this->dbDriver = $dbDriver;
-        $this->dbh = $dbDriver->dbh;
     }
 
     /**
@@ -184,6 +181,27 @@ class Functions_general {
         return true;
     }
     
-     
+    /**
+     * Return true if token is revoked
+     * 
+     * @param string $token
+     */
+    public function isTokenRevoked($token) {
+        $query = 'SELECT 1 FROM usermanagement.revokedtokens WHERE token= \'' . pg_escape_string($token) . '\'';
+        $results = $this->dbDriver->fetch($this->dbDriver->query(($query)));
+        return !empty($results);
+    }
+
+    /**
+     * Revoke token
+     * 
+     * @param string $token
+     */
+    public function revokeToken($token) {
+        if (isset($token) && !$this->isTokenRevoked($token)) {
+            $this->dbDriver->query('INSERT INTO usermanagement.revokedtokens (token) VALUES(\'' . pg_escape_string($token) . '\')');
+        }
+        return true;
+    }
     
 }

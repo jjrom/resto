@@ -96,7 +96,7 @@ class RestoOrder{
             $last = count($segments) - 1;
             if ($last > 2) {
                 list($modifier) = explode('.', $segments[$last], 1);
-                if ($modifier !== 'download' || !$this->user->canDownload($segments[$last - 2], $segments[$last - 1])) {
+                if ($modifier !== 'download' || !$this->user->hasDownloadRights($segments[$last - 2], $segments[$last - 1])) {
                     continue;
                 }
             }

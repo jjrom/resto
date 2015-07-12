@@ -25,21 +25,14 @@ class Functions_features {
      */
     private $dbDriver = null;
     
-    /*
-     * Reference to database handler
-     */
-    private $dbh = null;
-    
     /**
      * Constructor
      * 
-     * @param array $config
-     * @param RestoCache $cache
+     * @param RestoDatabaseDriver $dbDriver
      * @throws Exception
      */
     public function __construct($dbDriver) {
         $this->dbDriver = $dbDriver;
-        $this->dbh = $dbDriver->dbh;
     }
 
     /**
@@ -78,23 +71,16 @@ class Functions_features {
         
         /*
          * Set search filters
-         */
-        $filters = $filtersUtils->prepareFilters($user, $model, $params);
-        
-        /*
          * TODO - get count from facet statistic and not from count() OVER()
-         * 
-         * TODO - Add filters depending on user rights
-         * $oFilter = superImplode(' AND ', array_merge($filters, $this->getRightsFilters($this->R->getUser()->getRights($this->description['name'], 'get', 'search'))));
          */
-        $oFilter = implode(' AND ', $filters);
+        $oFilter = implode(' AND ', $filtersUtils->prepareFilters($user, $model, $params));
         
         /*
          * Note that the total number of results (i.e. with no LIMIT constraint)
          * is retrieved with PostgreSQL "count(*) OVER()" technique
          */
         $query = 'SELECT ' . implode(',', $filtersUtils->getSQLFields($model)) . ($options['count'] ? ', count(' . $model->getDbKey('identifier') . ') OVER() AS totalcount' : '') . ' FROM ' . (isset($collection) ? '_' . strtolower($collection->name) : 'resto') . '.features' . ($oFilter ? ' WHERE ' . $oFilter : '') . ' ORDER BY startdate DESC LIMIT ' . $options['limit'] . ' OFFSET ' . $options['offset'];
-        
+       
         /*
          * Retrieve products from database
          */
@@ -164,22 +150,22 @@ class Functions_features {
             /*
              * Start transaction
              */
-            pg_query($this->dbh, 'BEGIN');
+            pg_query($this->dbDriver->dbh, 'BEGIN');
             
             /*
              * Store feature
              */
-            pg_query($this->dbh, 'INSERT INTO ' . pg_escape_string('_' . strtolower($collection->name)) . '.features (' . join(',', array_keys($columnsAndValues)) . ') VALUES (' . join(',', array_values($columnsAndValues)) . ')');
+            pg_query($this->dbDriver->dbh, 'INSERT INTO ' . pg_escape_string('_' . strtolower($collection->name)) . '.features (' . join(',', array_keys($columnsAndValues)) . ') VALUES (' . join(',', array_values($columnsAndValues)) . ')');
             
             /*
              * Store facets
              */
             $this->storeKeywordsFacets($collection, json_decode(trim($columnsAndValues['keywords'], '\''), true));
             
-            pg_query($this->dbh, 'COMMIT');
+            pg_query($this->dbDriver->dbh, 'COMMIT');
             
         } catch (Exception $e) {
-            pg_query($this->dbh, 'ROLLBACK');
+            pg_query($this->dbDriver->dbh, 'ROLLBACK');
             RestoLogUtil::httpError(500, 'Feature ' . $featureArray['id'] . ' cannot be inserted in database');
         }
     }
