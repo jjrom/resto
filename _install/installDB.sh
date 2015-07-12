@@ -361,7 +361,8 @@ CREATE TABLE usermanagement.sharedlinks (
     gid                 SERIAL PRIMARY KEY,
     token               TEXT UNIQUE NOT NULL,
     url                 TEXT NOT NULL,
-    validity            TIMESTAMP
+    validity            TIMESTAMP,
+    email               TEXT
 );
 CREATE INDEX idx_token_sharedlinks ON usermanagement.sharedlinks (token);
 

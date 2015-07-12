@@ -70,6 +70,9 @@ CREATE INDEX idx_groups_groupid ON usermanagement.groups (groupid);
 INSERT INTO usermanagement.groups (groupid) VALUES ('admin');
 INSERT INTO usermanagement.groups (groupid) VALUES ('default');
 
+-- sharedlinks
+ALTER table usermanagement.sharedlinks ADD COLUMN email TEXT;
+
 -- licenses
 CREATE TABLE resto.licenses (
     licenseid                       TEXT NOT NULL,
