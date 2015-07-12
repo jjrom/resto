@@ -35,7 +35,7 @@ class RestoRouteDELETE extends RestoRoute {
      *    collections/{collection}/{feature}            |  Delete {feature}
      *    
      *    users/{userid}/cart/{itemid}                  |  Remove {itemid} from {userid} cart
-     *    users/{userid}/grantedvisibility/{visibility} |  Remove {visibility} to {userid} granted visibilities (only admin)
+     *    users/{userid}/groups/{groups}                |  Remove {groups} from groups for {userid} (only admin)
      *
      *    licenses/{licenseid}                          |  Delete {licenseid}
      *
@@ -118,8 +118,8 @@ class RestoRouteDELETE extends RestoRoute {
      * 
      *    users/{userid}/cart                           |  Remove all cart items
      *    users/{userid}/cart/{itemid}                  |  Remove {itemid} from {userid} cart
-     *    users/{userid}/grantedvisibility/{visibility} |  Remove {visibility} to {userid} granted visibilities (only admin)
-     *
+     *    users/{userid}/groups/{groups}                |  Remove {groups} from groups for {userid} (only admin)
+     * 
      * @param array $segments
      */
     private function DELETE_users($segments) {
@@ -127,8 +127,8 @@ class RestoRouteDELETE extends RestoRoute {
         if ($segments[2] === 'cart') {
             return $this->DELETE_userCart($segments[1], isset($segments[3]) ? $segments[3] : null);
         }
-        else if ($segments[2] === 'grantedvisibility') {
-            return $this->DELETE_userGrantedVisibility($segments[1], isset($segments[3]) ? $segments[3] : null);
+        else if ($segments[2] === 'groups') {
+            return $this->DELETE_userGroups($segments[1], isset($segments[3]) ? $segments[3] : null);
         }
         else {
             RestoLogUtil::httpError(404);
@@ -206,16 +206,16 @@ class RestoRouteDELETE extends RestoRoute {
 
     /**
      *
-     * Process HTTP DELETE request on grantedvisibility
+     * Process HTTP DELETE request on groups
      *
-     *    users/{userid}/grantedvisibility/{visibility} |  Remove {visibility} to {userid} granted visibilities (only admin)
+     *    users/{userid}/groups/{groups}                |  Remove {groups} from groups for {userid} (only admin)
      *
-     * @param $userId
-     * @param $visibility
+     * @param string $userid
+     * @param string $groups
      * @return array
      * @throws Exception
      */
-    private function DELETE_userGrantedVisibility($userId, $visibility) {
+    private function DELETE_userGroups($userid, $groups) {
         
         /*
          * only available for admin
@@ -224,14 +224,14 @@ class RestoRouteDELETE extends RestoRoute {
             RestoLogUtil::httpError(403);
         }
 
-        if (!isset($visibility)) {
+        if (!isset($groups)) {
             RestoLogUtil::httpError(404);
         }
         
-        return RestoLogUtil::success('Granted visibility removed', array(
-                    'grantedvisibility' => $this->context->dbDriver->remove(RestoDatabaseDriver::USER_GRANTED_VISIBILITY, array(
-                        'userid' => $userId,
-                        'visibility' => $visibility
+        return RestoLogUtil::success('Groups removed', array(
+                    'groups' => $this->context->dbDriver->remove(RestoDatabaseDriver::GROUPS, array(
+                        'userid' => $userid,
+                        'groups' => $groups
                     ))
         ));
     }

@@ -36,7 +36,7 @@ class RestoRoutePUT extends RestoRoute {
      *    
      *    users/{userid}                                |  Modify {userid} profile
      *    users/{userid}/cart/{itemid}                  |  Modify item in {userid} cart
-     *    users/{userid}/grantedvisibility              |  Modify {userid} granted visibility (only admin)
+     *    users/{userid}/groups                         |  Modify {userid} groups (only admin)
      *
      * @param array $segments
      */
@@ -122,7 +122,7 @@ class RestoRoutePUT extends RestoRoute {
      * 
      * Process HTTP PUT request on users
      *
-     *    users/{userid}/grantedvisibility              |  Modify {userid} granted visibility (only admin)
+     *    users/{userid}/groups                         |  Modify {userid} groups (only admin)
      *    users/{userid}/cart/{itemid}                  |  Modify item in {userid} cart
      * 
      * @param array $segments
@@ -144,8 +144,8 @@ class RestoRoutePUT extends RestoRoute {
             return $this->PUT_userProfile($segments[1], $data);
         }
         
-        if ($segments[2] === 'grantedvisibility') {
-            return $this->PUT_userGrantedVisibility($segments[1], $data);
+        if ($segments[2] === 'groups') {
+            return $this->PUT_userGroups($segments[1], $data);
         }
 
         /*
@@ -216,32 +216,52 @@ class RestoRoutePUT extends RestoRoute {
 
     /**
      *
-     * Process HTTP PUT request on users granted visibility
+     * Process HTTP PUT request on users groups
      *
-     *    users/{userid}/grantedvisibility              |  Modify {userid} granted visibility (only admin)
+     *    users/{userid}/groups                         |  Modify {userid} groups (only admin)
      *
      * @param string $emailOrId
      * @param array $data
      */
-    private function PUT_userGrantedVisibility($emailOrId, $data) {
+    private function PUT_userGroups($emailOrId, $data) {
 
         /*
-         * Granted visibility for a user can only be modified by admin
+         * Groups for a user can only be modified by admin
          */
         if (!$this->user->isAdmin()) {
             RestoLogUtil::httpError(403);
         }
-
-        $user = $this->getAuthorizedUser($emailOrId);
-
+        
+        if (empty($data['groups'])) {
+            RestoLogUtil::httpError(400, 'Input groups cannot be empty');
+        }
+        
+        /*
+         * Clean groups - in any case, either 'default' or 'admin' is mandatory
+         */
+        $groups = array();
+        $rawGroups = explode(',', $data['groups']);
+        for ($i = 0, $ii = count($rawGroups); $i < $ii; $i++) {
+            if ($rawGroups[$i] !== '') {
+                $groups[$rawGroups[$i]] = 1;
+            }
+        }
+        if (!isset($groups['default']) && !isset($groups['admin'])) {
+            $groups['default'] = 1;
+        }
+        $groups = join(',', array_keys($groups));
+        
         $this->context->dbDriver->update(RestoDatabaseDriver::USER_PROFILE, array(
                 'profile' => array(
-                    'email' => $user->profile['email'],
-                    'grantedvisibility' => isset($data['grantedvisibility']) && $data['grantedvisibility'] !== '' ? $data['grantedvisibility'] : null
+                    'email' => $this->getAuthorizedUser($emailOrId)->profile['email'],
+                    'groups' => $groups
                 ))
         );
 
-        return RestoLogUtil::success('Granted visibity of user ' . $emailOrId . ' has been updated with '. $data['grantedvisibility']);
+        return RestoLogUtil::success('Groups updated', array(
+                'groups' => $groups
+        ));
+        
     }
 
     /**
@@ -259,9 +279,7 @@ class RestoRoutePUT extends RestoRoute {
         /*
          * Cart can only be modified by its owner or by admin
          */
-        $user = $this->getAuthorizedUser($emailOrId);
-         
-        if ($user->getCart()->update($itemId, $data, true)) {
+        if ($this->getAuthorizedUser($emailOrId)->getCart()->update($itemId, $data, true)) {
             return RestoLogUtil::success('Item ' . $itemId . ' updated', array(
                 'itemId' => $itemId,
                 'item' => $data

@@ -40,8 +40,8 @@ abstract class RestoModel {
             'name' => 'collection',
             'type' => 'TEXT'
         ),
-        'groupid' => array(
-            'name' => 'groupid',
+        'visibility' => array(
+            'name' => 'visibility',
             'type' => 'TEXT'
         ),
         'licenseId' => array(

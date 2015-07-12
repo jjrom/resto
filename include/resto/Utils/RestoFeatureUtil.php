@@ -325,7 +325,7 @@ class RestoFeatureUtil {
               $properties['resourceChecksum'],
               $properties['bbox3857'],
               $properties['bbox4326']/* TODO remove ?,
-              $properties['groupid']*/
+              $properties['visibility']*/
         );
         
     }

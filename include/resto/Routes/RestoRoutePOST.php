@@ -42,7 +42,7 @@ class RestoRoutePOST extends RestoRoute {
      *    users                                         |  Add a user
      *    users/{userid}/cart                           |  Add new item in {userid} cart
      *    users/{userid}/orders                         |  Send an order for {userid}
-     *    users/{userid}/grantedvisibility              |  Add visibility to {userid} granted visibilities (only admin)
+     *    users/{userid}/groups                         |  Set groups for {userid} (only admin)
      * 
      *    licenses                                      |  Create a license
      *
@@ -353,7 +353,7 @@ class RestoRoutePOST extends RestoRoute {
      *    users                                         |  Add a user
      *    users/{userid}/cart                           |  Add new item in {userid} cart
      *    users/{userid}/orders                         |  Send an order for {userid}
-     *    users/{userid}/grantedvisibility              |  Add visibility to {userid} granted visibilities (only admin)
+     *    users/{userid}/groups                         |  Set groups for {userid} (only admin)
      *
      * @param array $segments
      * @param array $data
@@ -389,10 +389,10 @@ class RestoRoutePOST extends RestoRoute {
         }
 
         /*
-         *    users/{userid}/grantedvisibility
+         *    users/{userid}/groups
          */
-        else if (isset($segments[2]) && $segments[2] === 'grantedvisibility') {
-            return $this->POST_userGrantedVisibility($segments[1], $data);
+        else if (isset($segments[2]) && $segments[2] === 'groups') {
+            return $this->POST_userGroups($segments[1], $data);
         }
 
         /*
@@ -456,16 +456,16 @@ class RestoRoutePOST extends RestoRoute {
 
     /**
      *
-     * Process HTTP POST request on grantedvisibility
+     * Process HTTP POST request on groups
      *
-     *    users/{userid}/grantedvisibility              |  Add visibility to {userid} granted visibilities (only admin)
+     *    users/{userid}/groups                         |  Set groups for {userid} (only admin)
      *
-     * @param $userId
-     * @param $data
+     * @param integer $userid
+     * @param array $data
      * @return array
      * @throws Exception
      */
-    private function POST_userGrantedVisibility($userId, $data) {
+    private function POST_userGroups($userid, $data) {
         /*
          * only available for admin
          */
@@ -473,14 +473,14 @@ class RestoRoutePOST extends RestoRoute {
             RestoLogUtil::httpError(403);
         }
 
-        if (!isset($data['visibility'])) {
-            RestoLogUtil::httpError(400, 'Visibility is not set');
+        if (!isset($data['groups'])) {
+            RestoLogUtil::httpError(400, 'Groups is not set');
         }
         
-        return RestoLogUtil::success('Granted visibility added', array(
-                'grantedvisibility' => $this->context->dbDriver->store(RestoDatabaseDriver::USER_GRANTED_VISIBILITY, array(
-                    'userid' => $userId,
-                    'visibility' => $data['visibility']
+        return RestoLogUtil::success('Groups added', array(
+                'groups' => $this->context->dbDriver->store(RestoDatabaseDriver::GROUPS, array(
+                    'userid' => $userid,
+                    'groups' => $data['groups']
                 ))
         ));
         

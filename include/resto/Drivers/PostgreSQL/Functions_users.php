@@ -62,7 +62,7 @@ class Functions_users {
             RestoLogUtil::httpError(404);
         }
         
-        $query = 'SELECT userid, email, groups, username, givenname, lastname, to_char(registrationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as registrationdate, country, organization, organizationcountry, flags, topics, activated, grantedvisibility, validatedby, to_char(validationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as validationdate FROM usermanagement.users WHERE ' . $this->useridOrEmailFilter($identifier) . (isset($password) ? ' AND password=\'' . pg_escape_string(RestoUtil::encrypt($password)). '\'' : '');
+        $query = 'SELECT userid, email, groups, username, givenname, lastname, to_char(registrationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as registrationdate, country, organization, organizationcountry, flags, topics, activated, validatedby, to_char(validationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as validationdate FROM usermanagement.users WHERE ' . $this->useridOrEmailFilter($identifier) . (isset($password) ? ' AND password=\'' . pg_escape_string(RestoUtil::encrypt($password)). '\'' : '');
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         
         if (count($results) === 0) {
@@ -82,7 +82,7 @@ class Functions_users {
      * @throws exception
      */
     public function getUsersProfiles() {
-        $results = $this->dbDriver->query('SELECT userid, email, groups, username, givenname, lastname, to_char(registrationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as registrationdate, country, organization, organizationcountry, flags, topics, activated, grantedvisibility, validatedby, to_char(validationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as validationdate FROM usermanagement.users');
+        $results = $this->dbDriver->query('SELECT userid, email, groups, username, givenname, lastname, to_char(registrationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as registrationdate, country, organization, organizationcountry, flags, topics, activated, validatedby, to_char(validationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as validationdate FROM usermanagement.users');
         $profiles = array();
         while ($profile = pg_fetch_assoc($results)) {
             $profiles[] = array(
@@ -99,7 +99,6 @@ class Functions_users {
                 'flags' => $profile['flags'],
                 'topics' => $profile['topics'],
                 'activated' => (integer) $profile['activated'],
-                'grantedvisibility' => $profile['grantedvisibility'],
                 'validatedby' => $profile['validatedby'],
                 'validationdate' => $profile['validationdate']
             );
@@ -152,7 +151,7 @@ class Functions_users {
             'validationdate' => isset($profile['validateby']) ? 'now()' : 'NULL',
             'registrationdate' => 'now()'
         );
-        foreach (array_values(array('username', 'givenname', 'lastname', 'country', 'organization', 'topics', 'grantedvisibility', 'organizationcountry', 'flags')) as $field) {
+        foreach (array_values(array('username', 'givenname', 'lastname', 'country', 'organization', 'topics', 'organizationcountry', 'flags')) as $field) {
             $toBeSet[$field] = '\'' . (isset($profile[$field]) ? "'". $profile[$field] . "'" : 'NULL') . '\'';
         }
         $results = $this->dbDriver->query('INSERT INTO usermanagement.users (' . join(',', array_keys($toBeSet)) . ') VALUES (' . join(',', array_values($toBeSet)) . ') RETURNING userid, activationcode');
@@ -202,25 +201,27 @@ class Functions_users {
     }
 
     /**
-     * Add granted visibility to user $userid
-     * @param $userid
-     * @param $visibility
+     * Add groups to user $userid
+     * 
+     * @param integer $userid
+     * @param string $groups
      * @return null
      * @throws Exception
      */
-    public function storeVisibility($userid, $visibility) {
-        return $this->storeOrDeleteVisibility('store', $userid, $visibility);
+    public function storeUserGroups($userid, $groups) {
+        return $this->storeOrRemoveUserGroups('store', $userid, $groups);
     }
     
     /**
-     * Remove granted visibility to user $userid
-     * @param $userid
-     * @param $visibility
+     * Remove groups for user $userid
+     * 
+     * @param integer $userid
+     * @param string $groups
      * @return null
      * @throws Exception
      */
-    public function deleteVisibility($userid, $visibility) {
-        return $this->storeOrDeleteVisibility('delete', $userid, $visibility);
+    public function removeUserGroups($userid, $groups) {
+        return $this->storeOrRemoveUserGroups('remove', $userid, $groups);
     }
 
     /**
@@ -281,64 +282,68 @@ class Functions_users {
     }
     
     /**
-     * Add granted visibility to user $userid
+     * Store or remove groups for user $userid
      * 
-     * @param string $storeOrDelete
+     * @param string $storeOrRemove
      * @param integer $userid
-     * @param string $visibility
+     * @param string $groups
      * @return null
      * @throws Exception
      */
-    private function storeOrDeleteVisibility($storeOrDelete, $userid, $visibility) {
+    private function storeOrRemoveUserGroups($storeOrRemove, $userid, $groups) {
         
         if (!isset($userid)) {
-            RestoLogUtil::httpError(500, 'Cannot ' . $storeOrDelete . ' granted visibility - invalid user identifier:'. $userid);
+            RestoLogUtil::httpError(500, 'Cannot ' . $storeOrRemove . ' groups - invalid user identifier : '. $userid);
         }
-        if (!isset($visibility)) {
-            RestoLogUtil::httpError(500, 'Cannot ' . $storeOrDelete . ' granted visibility - invalid visibility :'. $visibility);
+        if (empty($groups)) {
+            RestoLogUtil::httpError(500, 'Cannot ' . $storeOrRemove . ' groups - empty input groups');
         }
-
+        
         $profile = $this->getUserProfile($userid);
         if (!isset($profile)) {
-            RestoLogUtil::httpError(500, 'Cannot ' . $storeOrDelete . ' granted visibility - user profile not found for :'. $userid);
+            RestoLogUtil::httpError(500, 'Cannot ' . $storeOrRemove . ' groups - user profile not found for : '. $userid);
         }
 
-        $grantedvisibility = $profile['grantedvisibility'];
+        /*
+         * Explode existing groups into an associative array
+         */
+        $userGroups = !empty($profile['groups']) ? array_flip(explode(',', $profile['groups'])) : array();
         
         /*
-         * Explode existing grantedvisibility into an associative array
+         * Explode input groups
          */
-        $visibilities = isset($grantedvisibility) ? array_flip(explode(',', $grantedvisibility)) : array();
-       
-        /*
-         * Explode new visibilities (i.e. input $visibility)
-         */
-        $newVisibilities = array();
-        $rawNewVisibilities = explode(',', $visibility);
-        for ($i = 0, $ii = count($rawNewVisibilities); $i < $ii; $i++) {
-            if ($rawNewVisibilities[$i] !== '') {
-                $newVisibilities[$rawNewVisibilities[$i]] = 1;
+        $newGroups = array();
+        $rawNewGroups = explode(',', $groups);
+        for ($i = 0, $ii = count($rawNewGroups); $i < $ii; $i++) {
+            if ($rawNewGroups[$i] !== '') {
+                $newGroups[$rawNewGroups[$i]] = 1;
             }
         }
         
         /*
-         * Store new visibilities = merge with previous
+         * Store - merge new groups with user groups
          */
-        if ($storeOrDelete === 'store') {
-            $visibilities = array_keys(array_merge($visibilities, $newVisibilities));
+        if ($storeOrRemove === 'store') {
+            $newGroups = array_keys(array_merge($newGroups, $userGroups));
         }
+        
+        /*
+         * Remove - note that 'default' group cannot be removed
+         */
         else {
-            foreach (array_keys($newVisibilities) as $key) {
-                unset($visibilities[$key]);
+            foreach (array_keys($newGroups) as $key) {
+                if ($key !== 'default') {
+                    unset($userGroups[$key]);
+                }
             }
-            $visibilities = array_keys($visibilities);
+            $newGroups = array_keys($userGroups);
         }
         
         /*
          * Update user profile
          */
-        $results = count($visibilities) > 0 ? implode(',', $visibilities) : null;
-        $this->dbDriver->fetch($this->dbDriver->query('UPDATE usermanagement.users SET grantedvisibility=' . (isset($results) ? '\'' . pg_escape_string($results)  . '\'' : 'NULL') . ' WHERE userid=\''. $userid .'\''));
+        $results = count($newGroups) > 0 ? implode(',', $newGroups) : null;
+        $this->dbDriver->fetch($this->dbDriver->query('UPDATE usermanagement.users SET groups=' . (isset($results) ? '\'' . pg_escape_string($results)  . '\'' : 'NULL') . ' WHERE userid=\''. $userid .'\''));
         
         return $results;
         

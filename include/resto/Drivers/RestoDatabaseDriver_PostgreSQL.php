@@ -371,14 +371,14 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             case parent::RIGHTS:
                 $rightsFunctions = new Functions_rights($this);
-                return $rightsFunctions->removeRights(isset($params['email']) ? $params['email'] : null, isset($params['groupid']) ? $params['groupid'] : null, isset($params['collectionName']) ? $params['collectionName'] : null,  isset($params['featureIdentifier']) ? $params['featureIdentifier'] : null);
-
+                return $rightsFunctions->removeRights($params['ownerType'], $params['owner'], isset($params['targetType']) ? $params['targetType'] : null, isset($params['targetType']) ? $params['target'] : null);
+                
             /*
-             * Remove granted visibility
+             * Remove groups for user
              */
-            case parent::USER_GRANTED_VISIBILITY:
+            case parent::GROUPS:
                 $usersFunctions = new Functions_users($this);
-                return $usersFunctions->deleteVisibility($params['userid'], $params['visibility']);
+                return $usersFunctions->removeUserGroups($params['userid'], $params['groups']);
 
             default:
                 return null;
@@ -461,9 +461,9 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             /*
              * Store granted visibility
              */
-            case parent::USER_GRANTED_VISIBILITY:
+            case parent::GROUPS:
                 $usersFunctions = new Functions_users($this);
-                return $usersFunctions->storeVisibility($params['userid'], $params['visibility']);
+                return $usersFunctions->storeUserGroups($params['userid'], $params['groups']);
 
 
             default:

@@ -262,6 +262,7 @@ class Auth extends RestoModule {
     
     /**
      * Insert user into resto database if needed
+     * 
      * @param string $email
      * @throws Exception
      */

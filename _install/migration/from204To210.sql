@@ -6,7 +6,12 @@
 -- This script will erase all entries within the following tables
 --   * usermanagements.rights
 --   * usermanagements.signatures
---  
+--
+-- After script execution, you should launch visibility index creation
+-- for *each* _collection.features table i.e. :
+--
+--     CREATE INDEX _myCollection_features_visibility_idx ON _myCollection.features USING btree (visibility);
+-- 
 
 -- features
 ALTER table resto.features ALTER COLUMN visibility SET DEFAULT 'public';

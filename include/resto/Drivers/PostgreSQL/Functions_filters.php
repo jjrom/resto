@@ -139,25 +139,34 @@ class Functions_filters {
 
     /**
      * Filter search result on group attribute using
-     * the grantedvisibility list from user profile
+     * the groups list from user profile
      * 
      * @param RestoUser $user
      * @param RestoModel $model
      * @return string
      */
     private function prepareFilterQuery_contextualSearch($user, $model) {
-        if (!$user->isAdmin()) {
-            $grantedVisibility = '\'public\'';
-            if (isset($user->profile['grantedvisibility'])) {
-                $visibilities = str_getcsv($user->profile['grantedvisibility']);
-                foreach ($visibilities as &$v) {
-                    $grantedVisibility = $grantedVisibility . ', \'' . $v . '\'';
-                }
-            }
-            $filter = $model->properties['groupid']['name'] . ' in (' . $grantedVisibility . ')';
-            return $filter;
+        
+        /*
+         * Admin user has no restriction on search
+         */
+        if ($user->isAdmin()) {
+            return null;
         }
-        return null;
+         
+        /*
+         * Merge user groups with 'public' visibility
+         * Note: feature with 'public' visibility can be seen by every user
+         * (even unregistered)
+         */
+        $visibilities = array();
+        $groups = explode(',', (isset($user->profile['groups']) ? $user->profile['groups'] . ',' : '') . 'public');
+        for ($i = count($groups); $i--;) {
+            $visibilities = '\'' . pg_escape_string($groups[$i]) . '\'';
+        }
+        
+        return $model->properties['visibility']['name'] . ' IN (' . join(',', $visibilities) . ')';
+        
     }
 
     /**

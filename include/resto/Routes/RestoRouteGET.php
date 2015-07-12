@@ -47,7 +47,7 @@ class RestoRouteGET extends RestoRoute {
      * 
      *    users                                         |  List all users (only admin)
      *    users/{userid}                                |  Show {userid} information
-     *    users/{userid}/grantedvisibility              |  Show {userid} granted visibility (only admin)
+     *    users/{userid}/groups                         |  Show {userid} groups
      *    users/{userid}/cart                           |  Show {userid} cart
      *    users/{userid}/orders                         |  Show orders for {userid}
      *    users/{userid}/orders/{orderid}               |  Show {orderid} order for {userid}
@@ -495,10 +495,10 @@ class RestoRouteGET extends RestoRoute {
         }
 
         /*
-         * users/{userid}/grantedvisibility
+         * users/{userid}/groups
          */
-        if ($segments[2] === 'grantedvisibility') {
-            return $this->GET_userGrantedVisibility($segments[1]);
+        if ($segments[2] === 'groups') {
+            return $this->GET_userGroups($segments[1]);
         }
 
         /*
@@ -558,7 +558,7 @@ class RestoRouteGET extends RestoRoute {
     private function GET_usersProfiles() {
 
         /*
-         * Granted Visibility can only be seen by admin users
+         * Profiles can only be seen by admin users
          */
         if (!$this->user->isAdmin()) {
             RestoLogUtil::httpError(403);
@@ -570,24 +570,17 @@ class RestoRouteGET extends RestoRoute {
     }
 
     /**
-     * Process users/{userid}/grantedvisibility
+     * Process users/{userid}/groups
      *
      * @param string $emailOrId
      * @throws Exception
      */
-    private function GET_userGrantedVisibility($emailOrId) {
+    private function GET_userGroups($emailOrId) {
 
-        /*
-         * Granted Visibility can only be seen by admin users
-         */
-        if (!$this->user->isAdmin()) {
-            RestoLogUtil::httpError(403);
-        }
+        $user = $this->getAuthorizedUser($emailOrId, true);
 
-        $user = $this->getAuthorizedUser($emailOrId);
-
-        return RestoLogUtil::success('Granted visibility for ' . $user->profile['userid'], array(
-            'grantedvisibility' => $user->profile['grantedvisibility']
+        return RestoLogUtil::success('Groups for ' . $user->profile['userid'], array(
+            'groups' => $user->profile['groups']
         ));
     }
 
@@ -667,16 +660,14 @@ class RestoRouteGET extends RestoRoute {
      */
     private function GET_userCart($emailOrId, $itemid = null) {
 
-        /*
-         * Cart can only be seen by its owner or by admin
-         */
-        $user = $this->getAuthorizedUser($emailOrId);
-
         if (isset($itemid)) {
             RestoLogUtil::httpError(404);
         }
-
-        return $user->getCart();
+        
+        /*
+         * Cart can only be seen by its owner or by admin
+         */
+        return $this->getAuthorizedUser($emailOrId)->$user->getCart();
     }
 
     /**

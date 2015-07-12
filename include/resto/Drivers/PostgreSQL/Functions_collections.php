@@ -274,11 +274,10 @@ class Functions_collections {
             $this->dbDriver->query('CREATE TABLE ' . $schemaName . '.features (' . (count($table) > 0 ? join(',', $table) . ',' : '') . 'CHECK( collection = \'' . $collection->name . '\')) INHERITS (resto.features);');
             $indices = array(
                 'identifier' => 'btree',
-                'groupid' => 'btree',
+                'visibility' => 'btree',
                 'platform' => 'btree',
                 'resolution' => 'btree',
                 'startDate' => 'btree',
-                //'completionDate' => 'btree',
                 'cultivatedCover' => 'btree',
                 'desertCover' => 'btree',
                 'floodedCover' => 'btree',
@@ -294,7 +293,7 @@ class Functions_collections {
             );
             foreach ($indices as $key => $indexType) {
                 if (!empty($key)) {
-                    $this->dbDriver->query('CREATE INDEX ' . $schemaName . '_features_' . $collection->model->getDbKey($key) . '_idx ON ' . $schemaName . '.features USING ' . $indexType . ' (' . $collection->model->getDbKey($key) . ($key === 'startDate' || $key === 'completionDate' ? ' DESC)' : ')'));
+                    $this->dbDriver->query('CREATE INDEX ' . $schemaName . '_features_' . $collection->model->getDbKey($key) . '_idx ON ' . $schemaName . '.features USING ' . $indexType . ' (' . $collection->model->getDbKey($key) . ($key === 'startDate' ? ' DESC)' : ')'));
                 }
             }
             $this->dbDriver->query('GRANT SELECT ON TABLE ' . $schemaName . '.features TO resto');

@@ -60,10 +60,10 @@
  *    |  POST    users                                         |  Add a user
  *    |  GET     users/{userid}                                |  Show {userid} information
  *    |  PUT     users/{userid}                                |  Update {userid} information
- *    |  GET     users/{userid}/grantedvisibility              |  Show {userid} granted visibility (only admin)
- *    |  PUT     users/{userid}/grantedvisibility              |  Modify all {userid} granted visibilities (only admin)
- *    |  POST    users/{userid}/grantedvisibility              |  Add visibility to {userid} granted visibilities (only admin)
- *    |  DELETE  users/{userid}/grantedvisibility/{visibility} |  Remove {visibility} to {userid} granted visibilities (only admin)
+ *    |  GET     users/{userid}/groups                         |  Show {userid} groups
+ *    |  PUT     users/{userid}/groups                         |  Modify {userid} groups (only admin)
+ *    |  POST    users/{userid}/groups                         |  Set groups for {userid} (only admin)
+ *    |  DELETE  users/{userid}/groups/{groupid}               |  Remove {groupid} from groups for {userid} (only admin)
  *    |  GET     users/{userid}/cart                           |  Show {userid} cart
  *    |  POST    users/{userid}/cart                           |  Add new item in {userid} cart
  *    |  PUT     users/{userid}/cart/{itemid}                  |  Modify item in {userid} cart
@@ -208,22 +208,25 @@ abstract class RestoRoute {
      * Return user object if authorized
      * 
      * @param string $emailOrId
+     * @param boolean $byPassAuthorization
      */
-    protected function getAuthorizedUser($emailOrId) {
+    protected function getAuthorizedUser($emailOrId, $byPassAuthorization = false) {
         
         $user = $this->user;
         $userid = $this->userid($emailOrId);
         if ($user->profile['userid'] !== $userid) {
+            
             if (!$user->isAdmin()) {
-                RestoLogUtil::httpError(403);
+                if (!$byPassAuthorization) {
+                    RestoLogUtil::httpError(403);
+                }
+            }
+            
+            if (!ctype_digit($emailOrId)) {
+                $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('email' => strtolower(base64_decode($emailOrId)))), $this->context);
             }
             else {
-                if (!ctype_digit($emailOrId)) {
-                    $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('email' => strtolower(base64_decode($emailOrId)))), $this->context);
-                }
-                else {
-                    $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('userid' => $userid)), $this->context);
-                }
+                $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('userid' => $userid)), $this->context);
             }
         }
         
