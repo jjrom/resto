@@ -70,7 +70,7 @@ class RestoOrder{
      */
     public function toMETA4() {
         
-        $meta4 = new RestoMetalink($this->context);
+        $meta4 = new RestoMetalink($this->context, $this->user);
         
         /*
          * One metalink file per item - if user has rights to download file

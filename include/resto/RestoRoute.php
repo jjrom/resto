@@ -36,6 +36,7 @@
  *    |  PUT     collections/{collection}                      |  Update {collection}
  *    |  GET     collections/{collection}/{feature}            |  Get {feature} description within {collection}
  *    |  GET     collections/{collection}/{feature}/download   |  Download {feature}
+ *    |  GET     collections/{collection}/{feature}/wms        |  Access WMS for {feature}
  *    |  POST    collections/{collection}                      |  Insert new product within {collection}
  *    |  PUT     collections/{collection}/{feature}            |  Update {feature}
  *    |  DELETE  collections/{collection}/{feature}            |  Delete {feature}
@@ -163,11 +164,14 @@ abstract class RestoRoute {
      * Store query to database
      * 
      * @param string $serviceName
+     * @param RestoUser $user
      * @param string $collectionName
+     * @param string $featureIdentifier
+     * 
      */
-    protected function storeQuery($serviceName, $collectionName, $featureIdentifier) {
-        if ($this->context->storeQuery === true && isset($this->user)) {
-            $this->user->storeQuery($this->context->method, $serviceName, isset($collectionName) ? $collectionName : null, isset($featureIdentifier) ? $featureIdentifier : null, $this->context->query, $this->context->getUrl());
+    protected function storeQuery($serviceName, $user, $collectionName, $featureIdentifier) {
+        if ($this->context->storeQuery === true) {
+            $user->storeQuery($this->context->method, $serviceName, isset($collectionName) ? $collectionName : null, isset($featureIdentifier) ? $featureIdentifier : null, $this->context->query, $this->context->getUrl());
         }
     }
    
@@ -197,7 +201,7 @@ abstract class RestoRoute {
     protected function userid($emailOrId) {
         
         if (!ctype_digit($emailOrId)) {
-            if (isset($this->user->profile['email']) && $this->user->profile['email'] === strtolower(base64_decode($emailOrId))) {
+            if ($this->user->profile['userid'] !== -1 && $this->user->profile['email'] === strtolower(base64_decode($emailOrId))) {
                 return $this->user->profile['userid'];
             }
         }

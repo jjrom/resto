@@ -6,6 +6,7 @@
 -- This script will erase all entries within the following tables
 --   * usermanagements.rights
 --   * usermanagements.signatures
+--   * usermanagements.history
 --
 -- After script execution, you should launch visibility index creation
 -- for *each* _collection.features table i.e. :
@@ -72,6 +73,12 @@ INSERT INTO usermanagement.groups (groupid) VALUES ('default');
 
 -- sharedlinks
 ALTER table usermanagement.sharedlinks ADD COLUMN email TEXT;
+
+-- history
+DELETE FROM usermanagement.history;
+ALTER table usermanagement.history DROP COLUMN userid;
+ALTER table usermanagement.history ADD COLUMN email TEXT;
+CREATE INDEX idx_email_history ON usermanagement.history (email);
 
 -- licenses
 CREATE TABLE resto.licenses (

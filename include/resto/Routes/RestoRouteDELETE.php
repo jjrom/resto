@@ -95,7 +95,7 @@ class RestoRouteDELETE extends RestoRoute {
          */
         if (!isset($feature)) {
             $collection->removeFromStore();
-            $this->storeQuery('remove', $collection->name, null);
+            $this->storeQuery('remove', $this->user, $collection->name, null);
             return RestoLogUtil::success('Collection ' . $collection->name . ' deleted');
         }
         /*
@@ -103,7 +103,7 @@ class RestoRouteDELETE extends RestoRoute {
          */
         else {
             $feature->removeFromStore();
-            $this->storeQuery('remove', $collection->name, $feature->identifier);
+            $this->storeQuery('remove', $this->user, $collection->name, $feature->identifier);
             return RestoLogUtil::success('Feature ' . $feature->identifier . ' deleted', array(
                 'featureIdentifier' => $feature->identifier
             ));

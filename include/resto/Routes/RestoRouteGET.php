@@ -44,6 +44,7 @@ class RestoRouteGET extends RestoRoute {
      *    collections/{collection}                      |  Get {collection} description
      *    collections/{collection}/{feature}            |  Get {feature} description within {collection}
      *    collections/{collection}/{feature}/download   |  Download {feature}
+     *    collections/{collection}/{feature}/wms        |  Access WMS for {feature}
      * 
      *    users                                         |  List all users (only admin)
      *    users/{userid}                                |  Show {userid} information
@@ -148,7 +149,7 @@ class RestoRouteGET extends RestoRoute {
          * Search in one collection...or in all collections
          */
         $resource = isset($collectionName) ? new RestoCollection($collectionName, $this->context, $this->user, array('autoload' => true)) : new RestoCollections($this->context, $this->user);
-        $this->storeQuery('search', isset($collectionName) ? $collectionName : '*', null);
+        $this->storeQuery('search', $this->user, isset($collectionName) ? $collectionName : '*', null);
 
         return $resource->search();
         
@@ -166,7 +167,7 @@ class RestoRouteGET extends RestoRoute {
     private function GET_apiCollectionsDescribe($collectionName = null) {
 
         $resource = isset($collectionName) ? new RestoCollection($collectionName, $this->context, $this->user, array('autoload' => true)) : new RestoCollections($this->context, $this->user);
-        $this->storeQuery('describe', $collectionName, null);
+        $this->storeQuery('describe', $this->user, $collectionName, null);
 
         return $resource;
         
@@ -252,7 +253,7 @@ class RestoRouteGET extends RestoRoute {
      * Process api/users/connect
      */
     private function GET_apiUsersConnect() {
-        if (isset($this->user->profile['email']) && $this->user->profile['activated'] === 1) {
+        if ($this->user->profile['userid'] !== -1 && $this->user->profile['activated'] === 1) {
             $this->user->token = $this->context->createToken($this->user->profile['userid'], $this->user->profile);
             return array(
                 'token' => $this->user->token
@@ -282,7 +283,11 @@ class RestoRouteGET extends RestoRoute {
         /*
          * Send email with reset link
          */
-        $shared = $this->context->dbDriver->get(RestoDatabaseDriver::SHARED_LINK, array('resourceUrl' => $this->context->resetPasswordUrl . '/' . base64_encode($this->context->query['email'])));
+        $shared = $this->context->dbDriver->get(RestoDatabaseDriver::SHARED_LINK, array(
+            'email' => $this->context->query['email'],
+            'resourceUrl' => $this->context->resetPasswordUrl . '/' . base64_encode($this->context->query['email']),
+            'duration' => isset($this->context->sharedLinkDuration) ? $this->context->sharedLinkDuration : null
+        ));
         $fallbackLanguage = isset($this->context->mail['resetPassword'][$this->context->dictionary->language]) ? $this->context->dictionary->language : 'en';
         if (!$this->sendMail(array(
                     'to' => $this->context->query['email'],
@@ -406,7 +411,7 @@ class RestoRouteGET extends RestoRoute {
          * Feature description
          */
         else if (!isset($segments[3])) {
-            $this->storeQuery('resource', $collection->name, $feature->identifier);
+            $this->storeQuery('resource', $this->user, $collection->name, $feature->identifier);
             return $feature;
         }
 
@@ -416,7 +421,14 @@ class RestoRouteGET extends RestoRoute {
         else if ($segments[3] === 'download') {
             return $this->GET_featureDownload($collection, $feature);
         }
-
+        
+        /*
+         * Access WMS for feature
+         */
+        else if ($segments[3] === 'wms') {
+            return $this->GET_featureWMS($collection, $feature);
+        }
+        
         /*
          * 404
          */
@@ -430,34 +442,32 @@ class RestoRouteGET extends RestoRoute {
      * 
      * @param RestoCollection $collection
      * @param RestoFeature $feature
-     * @return type
+     * 
      */
     private function GET_featureDownload($collection, $feature) {
         
         /*
-         * User do not have rights to download product 
+         * Check user download rights
          */
-        if (!$this->user->hasDownloadRights($collection->name, $feature->identifier, !empty($this->context->query['_tk']) ? $this->context->query['_tk'] : null)) {
-            RestoLogUtil::httpError(403);
-        }
+        $user = $this->checkRights('download', $collection, $feature);
         
         /*
          * User do not fullfill license requirements
          */
-        if (!$this->user->fulfillLicenseRequirements($feature->getLicense())) {
+        if (!$user->fulfillLicenseRequirements($feature->getLicense())) {
             RestoLogUtil::httpError(403, 'You do not fulfill license requirements');
         }
         
         /*
          * User has to sign the license before downloading
          */
-        if ($this->user->hasToSignLicense($feature->getLicense())) {
+        if ($user->hasToSignLicense($feature->getLicense())) {
             return array(
                 'ErrorMessage' => 'Forbidden',
                 'feature' => $feature->identifier,
                 'collection' => $collection->name,
                 'license' => $feature->getLicense(),
-                'userid' => $this->user->profile['userid'],
+                'userid' => $user->profile['userid'],
                 'ErrorCode' => 3002
             );
         }
@@ -465,10 +475,49 @@ class RestoRouteGET extends RestoRoute {
         /*
          * Rights + fullfill license requirements + license signed = download and exit
          */
-        $this->storeQuery('download', $collection->name, $feature->identifier);
+        $this->storeQuery('download', $user, $collection->name, $feature->identifier);
         $feature->download();
         return null;
         
+    }
+    
+    /**
+     * Access WMS for a given feature
+     *
+     * @param RestoCollection $collection
+     * @param RestoFeature $feature
+     * 
+     */
+    private function GET_featureWMS($collection, $feature) {
+        
+        /*
+         * Check user visualize rights
+         */
+        $user = $this->checkRights('visualize', $collection, $feature);
+        
+        /*
+         * User do not fullfill license requirements
+         * Stream low resolution WMS if viewService is public
+         * Forbidden otherwise
+         */
+        
+        $wmsUtil = new RestoWMSUtil($this->context, $user);
+        $license = $feature->getLicense();
+        if (!$this->user->fulfillLicenseRequirements($license)) {
+            if ($license['viewService'] !== 'public') {
+                RestoLogUtil::httpError(403, 'You do not fulfill license requirements');
+            }
+            else {
+                $wmsUtil->streamWMS($feature, true);
+            }
+        }
+        /*
+         * Stream full resolution WMS
+         */
+        else {
+            $wmsUtil->streamWMS($feature);
+        }
+        return null;
     }
 
     /**
@@ -725,4 +774,39 @@ class RestoRouteGET extends RestoRoute {
         );
     }
     
+    /**
+     * Check $action rights returning user
+     * 
+     * @param string $action
+     * @param RestoCollection $collection
+     * @param RestoFeature $feature
+     * 
+     */
+    private function checkRights($action, $collection, $feature) {
+        
+        $user = $this->user;
+        
+        /*
+         * Get token inititiator - bypass user rights
+         */
+        if (!empty($this->context->query['_tk'])) {
+            $initiator = $this->context->dbDriver->check(RestoDatabaseDriver::SHARED_LINK, array(
+                'resourceUrl' => $this->context->baseUrl . '/' . $this->context->path,
+                'token' => $this->context->query['_tk']
+            ));
+            if ($initiator) {
+                $user = $this->getAuthorizedUser($initiator, true);
+            }
+        }
+        else {
+            if ($action === 'download' && !$this->user->hasDownloadRights($collection->name, $feature->identifier)) {
+                RestoLogUtil::httpError(403);
+            }
+            if ($action === 'visualize' && !$this->user->hasVisualizeRights($collection->name, $feature->identifier)) {
+                RestoLogUtil::httpError(403);
+            }
+        }
+        
+        return $user;
+    }
 }

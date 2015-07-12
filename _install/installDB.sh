@@ -313,7 +313,7 @@ CREATE INDEX idx_email_signatures ON usermanagement.signatures (email);
 --
 CREATE TABLE usermanagement.history (
     gid                 SERIAL PRIMARY KEY,
-    userid              INTEGER DEFAULT -1,
+    email               TEXT DEFAULT 'unregistered',
     method              TEXT,
     service             TEXT,
     collection          TEXT,
@@ -324,7 +324,7 @@ CREATE TABLE usermanagement.history (
     ip                  TEXT
 );
 CREATE INDEX idx_service_history ON usermanagement.history (service);
-CREATE INDEX idx_userid_history ON usermanagement.history (userid);
+CREATE INDEX idx_email_history ON usermanagement.history (email);
 CREATE INDEX idx_querytime_history ON usermanagement.history (querytime);
 
 --

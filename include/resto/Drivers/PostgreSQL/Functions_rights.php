@@ -72,7 +72,7 @@ class Functions_rights {
         /*
          * Retrieve rights for user
          */
-        if (isset($user->profile['email'])) {
+        if ($user->profile['userid'] !== -1) {
             $query = 'SELECT owner, targettype, target, download, visualize, canpost as post, canput as put, candelete as delete FROM usermanagement.rights WHERE ownertype=\'user\' AND owner=\'' . pg_escape_string($user->profile['email']) . '\'' . (isset($targetType) ? ' AND targettype=\'' . pg_escape_string($targetType) . '\'' : '') . (isset($target) ? ' AND target IN (\'' . pg_escape_string($target) . '\', \'*\')' : '');
         } 
         $userRights = $this->getRightsFromQuery(isset($query) ? $query : null, false);

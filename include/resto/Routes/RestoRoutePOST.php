@@ -151,7 +151,7 @@ class RestoRoutePOST extends RestoRoute {
         /*
          * Disconnect user
          */
-        if (isset($this->user->profile['email'])) {
+        if ($this->user->profile['userid'] !== -1) {
             $this->user->disconnect();
         }
         
@@ -160,7 +160,7 @@ class RestoRoutePOST extends RestoRoute {
          */
         try {
             $this->user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('email' => strtolower($data['email']), 'password' => $data['password'])), $this->context);
-            if (!isset($this->user->profile['email']) || $this->user->profile['activated'] !== 1) {
+            if ($this->user->profile['email'] === -1 || $this->user->profile['activated'] !== 1) {
                 throw new Exception();
             }
             return array(
@@ -327,7 +327,7 @@ class RestoRoutePOST extends RestoRoute {
         }
         $collection = new RestoCollection($data['name'], $this->context, $this->user);
         $collection->loadFromJSON($data, true);
-        $this->storeQuery('create', $data['name'], null);
+        $this->storeQuery('create', $this->user, $data['name'], null);
         
         return RestoLogUtil::success('Collection ' . $data['name'] . ' created');
     }
@@ -340,7 +340,7 @@ class RestoRoutePOST extends RestoRoute {
      */
     private function POST_insertFeature($collection, $data) {
         $feature = $collection->addFeature($data);
-        $this->storeQuery('insert', $collection->name, $feature->identifier);
+        $this->storeQuery('insert', $this->user, $collection->name, $feature->identifier);
         return RestoLogUtil::success('Feature ' . $feature->identifier . ' inserted within ' . $collection->name, array(
             'featureIdentifier' => $feature->identifier
         ));

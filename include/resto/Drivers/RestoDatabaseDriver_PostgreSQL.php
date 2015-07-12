@@ -282,11 +282,11 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 return $generalFunctions->schemaExists($params['name']);
                 
             /*
-             * True if shared link is valid
+             * Return SHARED_LINK initiator email or false if not found
              */
             case parent::SHARED_LINK:
                 $generalFunctions = new Functions_general($this);
-                return $generalFunctions->isValidSharedLink($params['resourceUrl'], $params['token']);
+                return $generalFunctions->getSharedLinkInitiator($params['resourceUrl'], $params['token']);
                 
             /*
              * True if table exists
@@ -449,7 +449,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             case parent::QUERY:
                 $generalFunctions = new Functions_general($this);
-                return $generalFunctions->storeQuery($params['userid'], $params['query']);
+                return $generalFunctions->storeQuery($params['email'], $params['query']);
             
             /*
              * Store rights

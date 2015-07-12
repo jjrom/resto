@@ -209,7 +209,7 @@ class RestoFeatureUtil {
          * Visualize
          */
         if (isset($properties['wms'])) {
-            $this->setVisualizeService($properties);
+            $this->setVisualizeService($properties, $collection);
         }
         
         /*
@@ -225,8 +225,29 @@ class RestoFeatureUtil {
      * Set visualize service
      * 
      * @param array $properties
+     * @param RestoCollection $collection
      */
-    private function setVisualizeService(&$properties) {
+    private function setVisualizeService(&$properties, $collection) {
+        
+        /*
+         * Save original (i.e. unproxified) infos for WMS
+         */
+        $properties['wmsInfos'] = $properties['wms'];
+            
+        /*
+         * Proxify WMS url depending on user rights
+         */
+        if (method_exists($collection->model,'getWmsUrl')) {
+            $properties['wms'] = $collection->model->proxifyWMSUrl($properties, $this->user, $this->context->baseUrl);
+        }
+        else {
+            $properties['wms'] = $this->proxifyWMSUrl($properties, $this->user, $this->context->baseUrl);
+        }
+
+        if (!isset($properties['wms'])) {
+            unset($properties['wms'], $properties['wmsInfos']);
+        }
+        
         $properties['services']['browse'] = array(
             'title' => 'Display full resolution product on map',
             'layer' => array(
@@ -324,8 +345,8 @@ class RestoFeatureUtil {
               $properties['resourceSize'],
               $properties['resourceChecksum'],
               $properties['bbox3857'],
-              $properties['bbox4326']/* TODO remove ?,
-              $properties['visibility']*/
+              $properties['bbox4326'],
+              $properties['visibility']
         );
         
     }
@@ -480,6 +501,45 @@ class RestoFeatureUtil {
         }
 
         return $sentence;
+    }
+    
+    /**
+     * Proxify WMS URL depending on user rights
+     *
+     * @param $properties
+     * @param $user
+     * @param $baseUrl
+     * @return string relative path in the form of YYYYMMdd/thumbnail_filename with YYYYMMdd is the formated startDate parameter
+     */
+    private function proxifyWMSUrl($properties, $user, $baseUrl) {
+
+        if (!isset($properties['wms'])) {
+            return null;
+        }
+
+        $wmsUrl = RestoUtil::restoUrl($baseUrl, '/collections/' . $properties['collection'] . '/' . $properties['identifier'] . '/wms' ) . '?';
+
+        if (isset($user->token)) {
+            $wmsUrl .= '_bearer=' . $user->token . '&';
+        }
+        $wmsUrl .= substr($properties['wms'], strpos($properties['wms'], '?') + 1);
+
+        /*
+         * If the feature has a license check authentication
+         */
+        if (isset($properties['license']) && $properties['license'] != null) {
+            
+            /*
+             * User is not authenticated
+             * Returns wms url only if license has a 'public' view service
+             */
+            if ($user->profile['userid'] === -1) {
+                return $properties['license']['viewService'] === 'public' ? $wmsUrl : null;
+            }
+        }
+
+        return $wmsUrl;
+        
     }
     
 }

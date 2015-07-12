@@ -25,14 +25,22 @@ class RestoMetalink extends RestoXML {
      */
     private $context;
     
+    /*
+     * User reference
+     */
+    private $user;
+    
     /**
      * Constructor
      * 
      * @param RestoContext $context
+     * @param RestoUser $user
+     * 
      */
-    public function __construct($context) {
+    public function __construct($context, $user) {
         parent::__construct();
         $this->context = $context;
+        $this->user = $user;
         $this->initialize();
     }
     
@@ -103,7 +111,11 @@ class RestoMetalink extends RestoXML {
      * @return string
      */
     private function getSharedLink($resourceUrl) {
-        $shared = $this->context->dbDriver->get(RestoDatabaseDriver::SHARED_LINK, array('resourceUrl' => $resourceUrl));
+        $shared = $this->context->dbDriver->get(RestoDatabaseDriver::SHARED_LINK, array(
+            'email' => $this->user->profile['email'],
+            'resourceUrl' => $resourceUrl,
+            'duration' => isset($this->context->sharedLinkDuration) ? $this->context->sharedLinkDuration : null
+        ));
         return $resourceUrl . (strrpos($resourceUrl, '?') === false ? '?_tk=' : '&_tk=') . $shared['token'];       
     }
     

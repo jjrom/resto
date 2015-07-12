@@ -115,21 +115,20 @@ class Functions_general {
    
    
     /**
-     * Return true if resource is shared (checked with proof)
+     * Returns shared link initiator email if resource is shared (checked with proof)
+     * Returns false otherwise
      * 
      * @param string $resourceUrl
      * @param string $token
      * @return boolean
      */
-    public function isValidSharedLink($resourceUrl, $token) {
-        
+    public function getSharedLinkInitiator($resourceUrl, $token) {
         if (!isset($resourceUrl) || !isset($token)) {
             return false;
         }
-        $query = 'SELECT 1 FROM usermanagement.sharedlinks WHERE url=\'' . pg_escape_string($resourceUrl) . '\' AND token=\'' . pg_escape_string($token) . '\' AND validity > now()';
+        $query = 'SELECT email FROM usermanagement.sharedlinks WHERE url=\'' . pg_escape_string($resourceUrl) . '\' AND token=\'' . pg_escape_string($token) . '\' AND validity > now()';
         $results = $this->dbDriver->fetch($this->dbDriver->query(($query)));
-        return !empty($results);
-        
+        return !empty($results) ? $results[0]['email'] : false;
     }
     
     /**
@@ -163,23 +162,24 @@ class Functions_general {
     /**
      * Save query to database
      * 
-     * @param string $userid : User id
+     * @param string $identifier
      * @param array $query
      * @throws Exception
      */
-    public function storeQuery($userid, $query) {
-        $values = array(
-            $userid,
-            (isset($query['method']) ? "'" . pg_escape_string($query['method']) . "'" : 'NULL'),
-            (isset($query['service']) ? "'" . pg_escape_string($query['service']) . "'" : 'NULL'),
-            (isset($query['collection']) ? "'" . pg_escape_string($query['collection']) . "'" : 'NULL'),
-            (isset($query['resourceid']) ? "'" . pg_escape_string($query['resourceid']) . "'" : 'NULL'),
-            (isset($query['query']) ? "'" . pg_escape_string(json_encode($query['query'])) . "'" : 'NULL'),
-            "now()",
-            (isset($query['url']) ? "'" . pg_escape_string($query['url']) . "'" : 'NULL'),
-            (isset($query['ip']) ? "'" . pg_escape_string($query['ip']) . "'" : '127.0.0.1')  
+    public function storeQuery($identifier, $query) {
+        
+        $toBeSet = array(
+            'email' => '\'' . pg_escape_string($identifier) . '\'',
+            'method' => isset($query['method']) ? '\'' . pg_escape_string($query['method']) . '\'' : 'NULL',
+            'service' => isset($query['service']) ? '\'' . pg_escape_string($query['service']) . '\'' : 'NULL',
+            'collection' => isset($query['collection']) ? '\'' . pg_escape_string($query['collection']) . '\'' : 'NULL',
+            'resourceid' => isset($query['resourceid']) ? '\'' . pg_escape_string($query['resourceid']) . '\'' : 'NULL',
+            'query' => isset($query['query']) ? '\'' . pg_escape_string(json_encode($query['query'])) . '\'' : 'NULL',
+            'querytime' => 'now()',
+            'url' => isset($query['url']) ? '\'' . pg_escape_string($query['url']) . '\'' : 'NULL',
+            'ip' => isset($query['ip']) ? '\'' . pg_escape_string($query['ip']) . '\'' : '127.0.0.1'  
         );
-        $this->dbDriver->query('INSERT INTO usermanagement.history (userid,method,service,collection,resourceid,query,querytime,url,ip) VALUES (' . join(',', $values) . ')');
+        $this->dbDriver->query('INSERT INTO usermanagement.history (' . join(',', array_keys($toBeSet)) . ') VALUES (' . join(',', array_values($toBeSet)) . ')');
         return true;
     }
     

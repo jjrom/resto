@@ -87,7 +87,7 @@ class RestoModel_ro extends RestoModel {
     public function prepareFilterQuery_onlyDownloadableProduct($param, $user) {
         if (strtolower($param) === 'true') {
             $filter = 'license is null';
-            if (isset($user->profile['email'])) {
+            if ($user->profile['userid'] !== -1) {
                 $filter .= ' OR license in (SELECT DISTINCT license_id FROM usermanagement.signatureslicense WHERE email=\'' . $user->profile['email'] . '\')';
             }
             return $filter;

@@ -68,6 +68,7 @@ class RestoUser{
          */
         $this->profile = (!isset($profile) || !isset($profile['userid'])) ? array(
             'userid' => -1,
+            'email' => 'unregistered',
             'groups' => 'default',
             'activated' => 0
                 ) : $profile;
@@ -151,11 +152,10 @@ class RestoUser{
      * 
      * @param string $collectionName
      * @param string $featureIdentifier
-     * @param string $token
      * @return boolean
      */
-    public function hasDownloadRights($collectionName = null, $featureIdentifier = null, $token = null){
-        return $this->hasDownloadOrVisualizeRights('download', $collectionName, $featureIdentifier, $token);
+    public function hasDownloadRights($collectionName = null, $featureIdentifier = null){
+        return $this->hasDownloadOrVisualizeRights('download', $collectionName, $featureIdentifier);
     }
     
     /**
@@ -163,11 +163,10 @@ class RestoUser{
      * 
      * @param string $collectionName
      * @param string $featureIdentifier
-     * @param string $token
      * @return boolean
      */
-    public function hasViewRights($collectionName = null, $featureIdentifier = null, $token = null){
-        return $this->hasDownloadOrVisualizeRights('visualize', $collectionName, $featureIdentifier, $token);
+    public function hasVisualizeRights($collectionName = null, $featureIdentifier = null){
+        return $this->hasDownloadOrVisualizeRights('visualize', $collectionName, $featureIdentifier);
     }
     
     /**
@@ -232,9 +231,9 @@ class RestoUser{
         }
 
         /**
-         * User profile should be validated
+         * Registered user profile should be validated
          */
-        if (!isset($this->profile['validatedby'])) {
+        if ($this->profile['userid'] !== -1 && !isset($this->profile['validatedby'])) {
             RestoLogUtil::httpError(403, 'User profile has not been validated. Please contact an administrator');
         }
 
@@ -247,7 +246,7 @@ class RestoUser{
              * Registered user has automatically the REGISTERED flag
              * (see 'unlicensedwithregistration' license)
              */
-            $userFlags = array_map('trim', explode(',', $this->profile['flags']));
+            $userFlags = !empty($this->profile['flags']) ? array_map('trim', explode(',', $this->profile['flags'])) : array();
             if ($this->profile['userid'] !== -1) {
                 $userFlags[] = 'REGISTERED';
             }
@@ -361,7 +360,7 @@ class RestoUser{
         try {
             $remoteAdress = filter_input(INPUT_SERVER, 'REMOTE_ADDR', FILTER_SANITIZE_STRING); 
             $this->context->dbDriver->store(RestoDatabaseDriver::QUERY, array(
-                'userid' => $this->profile['userid'],
+                'email' => $this->profile['email'],
                 'query' => array(
                     'method' => $method,
                     'service' => $service,
@@ -381,26 +380,9 @@ class RestoUser{
      * @param string $action
      * @param string $collectionName
      * @param string $featureIdentifier
-     * @param string $token
      * @return boolean
      */
-    private function hasDownloadOrVisualizeRights($action, $collectionName = null, $featureIdentifier = null, $token = null){
-        
-        /*
-         * Token case - bypass user rights
-         */
-        if (isset($token)) {
-            if (!isset($collectionName) || !isset($featureIdentifier)) {
-                return false;
-            }
-            if ($this->context->dbDriver->check(RestoDatabaseDriver::SHARED_LINK, array('resourceUrl' => $this->context->baseUrl . '/' . $this->context->path, 'token' => $token))) {
-                return true;
-            }
-        }
-        
-        /*
-         * Normal case - checke user rights
-         */
+    private function hasDownloadOrVisualizeRights($action, $collectionName = null, $featureIdentifier = null){
         $rights = $this->getRights($collectionName, $featureIdentifier);
         return $rights[$action];
     }

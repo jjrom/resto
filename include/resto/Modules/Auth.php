@@ -334,7 +334,7 @@ class Auth extends RestoModule {
             'email' => strtolower($key)
         )), $this->context);
         
-        if (!isset($user->profile['email'])) {
+        if ($user->profile['userid'] == -1) {
             RestoLogUtil::httpError(401, 'Unauthorized');
         }
         
