@@ -17,6 +17,16 @@
 
 /**
  * RESTo REST router for DELETE requests
+ * 
+ * 
+ *    collections/{collection}                      |  Delete {collection}
+ *    collections/{collection}/{feature}            |  Delete {feature}
+ *    
+ *    user/cart/{itemid}                            |  Remove {itemid} from user cart
+ *    user/groups/{groups}                          |  Remove {groups} for user (only admin)
+ *
+ *    licenses/{licenseid}                          |  Delete {licenseid}
+ *    
  */
 class RestoRouteDELETE extends RestoRoute {
     
@@ -28,16 +38,7 @@ class RestoRouteDELETE extends RestoRoute {
     }
    
     /**
-     * 
      * Process HTTP DELETE request
-     * 
-     *    collections/{collection}                      |  Delete {collection}
-     *    collections/{collection}/{feature}            |  Delete {feature}
-     *    
-     *    users/{userid}/cart/{itemid}                  |  Remove {itemid} from {userid} cart
-     *    users/{userid}/groups/{groups}                |  Remove {groups} from groups for {userid} (only admin)
-     *
-     *    licenses/{licenseid}                          |  Delete {licenseid}
      *
      * @param array $segments
      */
@@ -45,8 +46,8 @@ class RestoRouteDELETE extends RestoRoute {
         switch($segments[0]) {
             case 'collections':
                 return $this->DELETE_collections($segments);
-            case 'users':
-                return $this->DELETE_users($segments);
+            case 'user':
+                return $this->DELETE_user($segments);
             case 'licenses':
                 return $this->DELETE_license($segments);
             default:
@@ -56,7 +57,7 @@ class RestoRouteDELETE extends RestoRoute {
     
     /**
      * 
-     * Process HTTP DELETE request on collections
+     * Process collections
      * 
      *    collections/{collection}                      |  Delete {collection}
      *    collections/{collection}/{feature}            |  Delete {feature}
@@ -111,24 +112,25 @@ class RestoRouteDELETE extends RestoRoute {
         
     }
     
-    
     /**
      * 
-     * Process HTTP DELETE request on users
+     * Process user
      * 
-     *    users/{userid}/cart                           |  Remove all cart items
-     *    users/{userid}/cart/{itemid}                  |  Remove {itemid} from {userid} cart
-     *    users/{userid}/groups/{groups}                |  Remove {groups} from groups for {userid} (only admin)
+     *    user/cart                                     |  Remove all cart items
+     *    user/cart/{itemid}                            |  Remove {itemid} from user cart
+     *    user/groups/{groups}                          |  Remove {groups} from groups for user (only admin)
      * 
      * @param array $segments
      */
-    private function DELETE_users($segments) {
+    private function DELETE_user($segments) {
         
-        if ($segments[2] === 'cart') {
-            return $this->DELETE_userCart($segments[1], isset($segments[3]) ? $segments[3] : null);
+        $emailOrId = $this->getRequestedEmailOrId();
+        
+        if ($segments[1] === 'cart') {
+            return $this->DELETE_userCart($emailOrId, isset($segments[2]) ? $segments[2] : null);
         }
-        else if ($segments[2] === 'groups') {
-            return $this->DELETE_userGroups($segments[1], isset($segments[3]) ? $segments[3] : null);
+        else if ($segments[1] === 'groups') {
+            return $this->DELETE_userGroups($emailOrId, isset($segments[2]) ? $segments[2] : null);
         }
         else {
             RestoLogUtil::httpError(404);
@@ -138,10 +140,10 @@ class RestoRouteDELETE extends RestoRoute {
     
     /**
      * 
-     * Process HTTP DELETE request on users cart
+     * Process user/cart
      * 
-     *    users/{userid}/cart                           |  Remove all cart items
-     *    users/{userid}/cart/{itemid}                  |  Remove {itemid} from {userid} cart
+     *    user/cart                                     |  Remove all cart items
+     *    user/cart/{itemid}                            |  Remove {itemid} from user cart
      * 
      * @param string $emailOrId
      * @param string $itemId
@@ -154,13 +156,13 @@ class RestoRouteDELETE extends RestoRoute {
         $user = $this->getAuthorizedUser($emailOrId);
                 
         /*
-         * users/{userid}/cart
+         * user/cart
          */
         if (!isset($itemId)) {
             return $this->DELETE_userCartAllItems($user);
         }
         /*
-         * users/{userid}/cart/{itemId}
+         * user/cart/{itemId}
          */
         else {
             return $this->DELETE_userCartItem($user, $itemId);
@@ -208,14 +210,14 @@ class RestoRouteDELETE extends RestoRoute {
      *
      * Process HTTP DELETE request on groups
      *
-     *    users/{userid}/groups/{groups}                |  Remove {groups} from groups for {userid} (only admin)
+     *    user/groups/{groups}                      |  Remove {groups} from groups for user (only admin)
      *
-     * @param string $userid
+     * @param string $emailOrId
      * @param string $groups
      * @return array
      * @throws Exception
      */
-    private function DELETE_userGroups($userid, $groups) {
+    private function DELETE_userGroups($emailOrId, $groups) {
         
         /*
          * only available for admin
@@ -228,9 +230,11 @@ class RestoRouteDELETE extends RestoRoute {
             RestoLogUtil::httpError(404);
         }
         
+        $user = $this->getAuthorizedUser($emailOrId);
+        
         return RestoLogUtil::success('Groups removed', array(
                     'groups' => $this->context->dbDriver->remove(RestoDatabaseDriver::GROUPS, array(
-                        'userid' => $userid,
+                        'userid' => $user->profile['userid'],
                         'groups' => $groups
                     ))
         ));

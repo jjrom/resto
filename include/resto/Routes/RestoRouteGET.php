@@ -16,7 +16,39 @@
  */
 
 /**
+ * 
  * RESTo REST router for GET requests
+ * 
+ *    api/collections/search                        |  Search on all collections
+ *    api/collections/{collection}/search           |  Search on {collection}
+ *    api/collections/describe                      |  Opensearch service description at collections level
+ *    api/collections/{collection}/describe         |  Opensearch service description for products on {collection}
+ *    api/user/connect                              |  Connect and return a new valid connection token
+ *    api/user/resetPassword                        |  Ask for password reset (i.e. reset link sent to user email adress)
+ *    api/user/checkToken                           |  Check if token is valid
+ *    api/user/activate                             |  Activate users with activation code
+ *    
+ *    collections                                   |  List all collections            
+ *    collections/{collection}                      |  Get {collection} description
+ *    collections/{collection}/{feature}            |  Get {feature} description within {collection}
+ *    collections/{collection}/{feature}/download   |  Download {feature}
+ *    collections/{collection}/{feature}/wms        |  Access WMS for {feature}
+ *
+ *    licenses                                      |  List all licenses
+ *    licenses/{licenseid}                          |  Get {licenseid} license description 
+ * 
+ *    user                                          |  Show user information
+ *    user/groups                                   |  Show user groups
+ *    user/cart                                     |  Show user cart
+ *    user/orders                                   |  Show orders for user
+ *    user/orders/{orderid}                         |  Show {orderid} order for user
+ *    user/rights                                   |  Show rights for user
+ *    user/rights/{collection}                      |  Show rights for user on {collection}
+ *    user/rights/{collection}/{feature}            |  Show rights for user on {feature} from {collection}
+ *    user/signatures                               |  Show signatures for user
+ *                          
+ *    users                                         |  List all users profiles (only admin)
+ * 
  */
 class RestoRouteGET extends RestoRoute {
 
@@ -28,41 +60,8 @@ class RestoRouteGET extends RestoRoute {
     }
 
     /**
-     * 
      * Process HTTP GET request
-     * 
-     *    api/collections/search                        |  Search on all collections
-     *    api/collections/{collection}/search           |  Search on {collection}
-     *    api/collections/describe                      |  Opensearch service description at collections level
-     *    api/collections/{collection}/describe         |  Opensearch service description for products on {collection}
-     *    api/users/connect                             |  Connect and return a new valid connection token
-     *    api/users/resetPassword                       |  Ask for password reset (i.e. reset link sent to user email adress)
-     *    api/users/checkToken                          |  Check if token is valid
-     *    api/users/{userid}/activate                   |  Activate users with activation code
-     *    
-     *    collections                                   |  List all collections            
-     *    collections/{collection}                      |  Get {collection} description
-     *    collections/{collection}/{feature}            |  Get {feature} description within {collection}
-     *    collections/{collection}/{feature}/download   |  Download {feature}
-     *    collections/{collection}/{feature}/wms        |  Access WMS for {feature}
-     * 
-     *    users                                         |  List all users (only admin)
-     *    users/{userid}                                |  Show {userid} information
-     *    users/{userid}/groups                         |  Show {userid} groups
-     *    users/{userid}/cart                           |  Show {userid} cart
-     *    users/{userid}/orders                         |  Show orders for {userid}
-     *    users/{userid}/orders/{orderid}               |  Show {orderid} order for {userid}
-     *    users/{userid}/rights                         |  Show rights for {userid}
-     *    users/{userid}/rights/{collection}            |  Show rights for {userid} on {collection}
-     *    users/{userid}/rights/{collection}/{feature}  |  Show rights for {userid} on {feature} from {collection}
-     *    users/{userid}/signatures                     |  Show signatures for {userid}
-     * 
-     *    licenses                                      |  List all licenses
-     *    licenses/{licenseid}                          |  Get {licenseid} license description 
-     * 
-     * 
-     * Note: {userid} can be replaced by base64(email) 
-     * 
+     *
      * @param array $segments
      *
      */
@@ -74,6 +73,8 @@ class RestoRouteGET extends RestoRoute {
                 return $this->GET_collections($segments);
             case 'users':
                 return $this->GET_users($segments);
+            case 'user':
+                return $this->GET_user($segments);
             case 'licenses':
                 return $this->GET_licenses($segments);
             default:
@@ -102,10 +103,10 @@ class RestoRouteGET extends RestoRoute {
         }
 
         /*
-         * api/users
+         * api/user
          */
-        else if ($segments[1] === 'users' && isset($segments[2])) {
-            return $this->GET_apiUsers($segments);
+        else if ($segments[1] === 'user' && isset($segments[2])) {
+            return $this->GET_apiUser($segments);
         }
         /*
          * Process module
@@ -174,85 +175,54 @@ class RestoRouteGET extends RestoRoute {
     }
 
     /**
-     * Process api/users
+     * Process api/user
      * 
      * @param array $segments
      * @return type
      */
-    private function GET_apiUsers($segments) {
+    private function GET_apiUser($segments) {
        
-        if (!isset($segments[3])) {
-            return $this->GET_apiUsersAll($segments);
+        if (isset($segments[3])) {
+            RestoLogUtil::httpError(404);
         }
-        
-        if (!isset($segments[4])) {
-            return $this->GET_apiUsersUserid($segments);
-        }
-        
-    }
-    
-    /**
-     * Process api/users
-     * 
-     * @param array $segments
-     * @return type
-     */
-    private function GET_apiUsersAll($segments) {
         
         switch ($segments[2]) {
 
             /*
-             * api/users/connect
-             */
-            case 'connect':
-                return $this->GET_apiUsersConnect();
-
-            /*
-             * api/users/checkToken
-             */
-            case 'checkToken':
-                return $this->GET_apiUsersCheckToken();
-                
-            /*
-             * api/users/resetPassword
-             */
-            case 'resetPassword':
-                return $this->GET_apiUsersResetPassword($segments);
-
-            default:
-                RestoLogUtil::httpError(403);
-
-        }
-
-    }
-    
-    /**
-     * Process api/users/{userid}
-     * 
-     * @param array $segments
-     * @return type
-     */
-    private function GET_apiUsersUserid($segments) {
-        
-        switch ($segments[3]) {
-                
-            /*
-             * api/users/{userid}/activate
+             * api/user/activate
              */
             case 'activate':
-                return $this->GET_apiUsersActivate($segments[2]);
+                return $this->GET_apiUserActivate();
+
+            /*
+             * api/user/connect
+             */
+            case 'connect':
+                return $this->GET_apiUserConnect();
+
+            /*
+             * api/user/checkToken
+             */
+            case 'checkToken':
+                return $this->GET_apiUserCheckToken();
+                
+            /*
+             * api/user/resetPassword
+             */
+            case 'resetPassword':
+                return $this->GET_apiUserResetPassword($segments);
 
             default:
-                RestoLogUtil::httpError(403);
+                RestoLogUtil::httpError(404);
 
         }
         
     }
     
     /**
-     * Process api/users/connect
+     * Process api/user/connect
      */
-    private function GET_apiUsersConnect() {
+    private function GET_apiUserConnect() {
         if ($this->user->profile['userid'] !== -1 && $this->user->profile['activated'] === 1) {
             $this->user->token = $this->context->createToken($this->user->profile['userid'], $this->user->profile);
             return array(
@@ -265,9 +235,9 @@ class RestoRouteGET extends RestoRoute {
     }
 
     /**
-     * Process api/users/resetPassword
+     * Process api/user/resetPassword
      */
-    private function GET_apiUsersResetPassword() {
+    private function GET_apiUserResetPassword() {
 
         if (!isset($this->context->query['email'])) {
             RestoLogUtil::httpError(400);
@@ -303,13 +273,23 @@ class RestoRouteGET extends RestoRoute {
     }
 
     /**
-     * Process api/users/{userid}/activate
+     * Process api/user/activate
      * 
      * @param string $userid
      */
-    private function GET_apiUsersActivate($userid) {
+    private function GET_apiUserActivate() {
+        
+        if (!isset($this->context->query['_emailorid'])) {
+            RestoLogUtil::httpError(400);
+        }
+        
+        /*
+         * Get userid for user to be activated
+         */
+        $user = $this->getAuthorizedUser($this->context->query['_emailorid'], true);
+        
         if (isset($this->context->query['act'])) {
-            if ($this->context->dbDriver->execute(RestoDatabaseDriver::ACTIVATE_USER, array('userid' => $userid, 'activationCode' => $this->context->query['act']))) {
+            if ($this->context->dbDriver->execute(RestoDatabaseDriver::ACTIVATE_USER, array('userid' => $user->profile['userid'], 'activationCode' => $this->context->query['act']))) {
 
                 /*
                  * Close database handler and redirect to a human readable page...
@@ -338,14 +318,14 @@ class RestoRouteGET extends RestoRoute {
     }
 
     /**
-     * Process api/users/checkToken
+     * Process api/user/checkToken
      * 
      * Success if JWT is valid i.e.
      *  - signed by server
      *  - still in the validity period
      *  - has not been revoked 
      */
-    private function GET_apiUsersCheckToken() {
+    private function GET_apiUserCheckToken() {
         
         if (isset($this->context->query['_tk'])) {
             try {
@@ -519,7 +499,7 @@ class RestoRouteGET extends RestoRoute {
         }
         return null;
     }
-
+    
     /**
      * 
      * Process HTTP GET request on users
@@ -535,56 +515,69 @@ class RestoRouteGET extends RestoRoute {
             return $this->GET_usersProfiles();
         }
     
-        /*
-         * users/{userid}
-         */
-        if (!isset($segments[2])) {
-            return $this->GET_userProfile($segments[1]);
-        }
+        return RestoLogUtil::httpError(404);
+    }
 
+    /**
+     * 
+     * Process HTTP GET request on users
+     * 
+     * @param array $segments
+     */
+    private function GET_user($segments) {
+        
+        $emailOrId = $this->getRequestedEmailOrId();
+        
         /*
-         * users/{userid}/groups
+         * user
          */
-        if ($segments[2] === 'groups') {
-            if (isset($segments[3])) {
+        if (!isset($segments[1])) {
+            return $this->GET_userProfile($emailOrId);
+        }
+    
+        /*
+         * user/groups
+         */
+        if ($segments[1] === 'groups') {
+            if (isset($segments[2])) {
                 return RestoLogUtil::httpError(404);
             }
-            return $this->GET_userGroups($segments[1]);
+            return $this->GET_userGroups($emailOrId);
         }
 
         /*
-         * users/{userid}/rights
+         * user/rights
          */
-        if ($segments[2] === 'rights') {
-            return $this->GET_userRights($segments[1], isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
+        if ($segments[1] === 'rights') {
+            return $this->GET_userRights($emailOrId, isset($segments[2]) ? $segments[2] : null, isset($segments[3]) ? $segments[3] : null);
         }
         
         /*
-         * users/{userid}/cart
+         * user/cart
          */
-        if ($segments[2] === 'cart') {
-            return $this->GET_userCart($segments[1], isset($segments[3]) ? $segments[3] : null);
+        if ($segments[1] === 'cart') {
+            return $this->GET_userCart($emailOrId, isset($segments[2]) ? $segments[2] : null);
         }
         
         /*
-         * users/{userid}/orders
+         * user/orders
          */
-        if ($segments[2] === 'orders') {
-            return $this->GET_userOrders($segments[1], isset($segments[3]) ? $segments[3] : null);
+        if ($segments[1] === 'orders') {
+            return $this->GET_userOrders($emailOrId, isset($segments[2]) ? $segments[2] : null);
         }
 
         /*
-         * users/{userid}/signatures
+         * user/signatures
          */
-        if ($segments[2] === 'signatures') {
-            return $this->GET_userSignatures($segments[1], isset($segments[3]) ? $segments[3] : null);
+        if ($segments[1] === 'signatures') {
+            return $this->GET_userSignatures($emailOrId, isset($segments[2]) ? $segments[2] : null);
         }
         
         return RestoLogUtil::httpError(404);
     }
 
     /**
-     * Process users/{userid}     
+     * Process user     
      * 
      * @param string $emailOrId
      * @throws Exception
@@ -602,26 +595,7 @@ class RestoRouteGET extends RestoRoute {
     }
 
     /**
-     * Process users (only admin)
-     * 
-     * @throws Exception
-     */
-    private function GET_usersProfiles() {
-
-        /*
-         * Profiles can only be seen by admin users
-         */
-        if (!$this->user->isAdmin()) {
-            RestoLogUtil::httpError(403);
-        }
-
-        return RestoLogUtil::success('Profiles for all users', array(
-            'profiles' => $this->context->dbDriver->get(RestoDatabaseDriver::USERS_PROFILES)
-        ));
-    }
-
-    /**
-     * Process users/{userid}/groups
+     * Process user/groups
      *
      * @param string $emailOrId
      * @throws Exception
@@ -636,7 +610,7 @@ class RestoRouteGET extends RestoRoute {
     }
 
     /**
-     * Process HTTP GET request on user rights
+     * Process user/rights
      * 
      * @param string $emailOrId
      * @param string $collectionName
@@ -658,7 +632,7 @@ class RestoRouteGET extends RestoRoute {
     }
 
     /**
-     * Process HTTP GET request on user signatures
+     * Process user/signatures
      * 
      * @param string $emailOrId
      * @param string $licenseId
@@ -712,7 +686,7 @@ class RestoRouteGET extends RestoRoute {
     }
 
     /**
-     * Process HTTP GET request on user cart
+     * Process user/cart
      *
      * @param string $emailOrId
      * @param string $itemid
@@ -731,7 +705,7 @@ class RestoRouteGET extends RestoRoute {
     }
 
     /**
-     * Process HTTP GET request on user orders
+     * Process user/orders
      *
      * @param string $emailOrId
      * @param string $orderid
@@ -758,8 +732,27 @@ class RestoRouteGET extends RestoRoute {
     }
     
     /**
+     * Process users (only admin)
+     * 
+     * @throws Exception
+     */
+    private function GET_usersProfiles() {
+
+        /*
+         * Profiles can only be seen by admin users
+         */
+        if (!$this->user->isAdmin()) {
+            RestoLogUtil::httpError(403);
+        }
+
+        return RestoLogUtil::success('Profiles for all users', array(
+            'profiles' => $this->context->dbDriver->get(RestoDatabaseDriver::USERS_PROFILES)
+        ));
+    }
+
+    /**
      *
-     * Process HTTP GET request on licenses
+     * Process licenses
      *
      * @param array $segments
      */

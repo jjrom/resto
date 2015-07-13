@@ -28,19 +28,23 @@
  * General url template
  * --------------------
  *     
- *      http(s)://host/resto/search/collections/{collection}/?key1=value1&key2=value2&...
- *      \__________________/\______________________________/\___________________________/
- *            baseUrl                   path                             query
+ *      http(s)://host/resto/api/collections/{collection}/search.json?key1=value1&key2=value2&...
+ *      \__________________/\__________________________________/\____/\___________________________/
+ *            baseUrl                   path                    format          query
  *
  *      Where :
  * 
- *          {collection} is the name of the collection (e.g. 'Charter', 'SPIRIT', etc.).
- *          {feature} is the identifier of a product within a {collection}
+ *          {collection} is the name of the collection (e.g. 'Charter', 'SPIRIT', etc.)
  * 
- * List of "path"
- * --------------
+ * List of "paths"
+ * ---------------
  * 
- *  Available routes are described in RestoRoute.php
+ *  Available routes are described per  HTTP verbs in
+ *      Routes/RestoRouteGET.php
+ *      Routes/RestoRoutePOST.php
+ *      Routes/RestoRoutePUT.php
+ *      Routes/RestoRouteDELETE.php
+ * 
  *    
  * Query
  * -----
@@ -55,10 +59,11 @@
  *    |______________________________________________________________________________________________
  *    | _pretty            |     boolean    | (For JSON output only) true to return pretty print JSON
  *    | _tk                |     string     | (For download/visualize/resetPassword) token for resource access
- *    |                                     | (For /api/users/checkToken) JWT profile token 
+ *    |                                     | (For /api/user/checkToken) JWT profile token 
+ *    | _emailorid         |     string     | (For /api/user and /user endpoints) user "userid" or user "email"
  *    | _rc                |     boolean    | (For search) true to perform the total count of search results
  *    | _fromCart          |     boolean    | (For orders) true to order the content of the cart
- *    | _clear             |     boolean    | (For POST /users/{userid}/cart) true to remove cart items before inserting new items
+ *    | _clear             |     boolean    | (For POST /user/cart) true to remove cart items before inserting new items
  *    | _bearer            |     string     | (For authentication) JWT token - has preseance over header authentication (see rocket)
  *    | callback           |     string     | (For JSON output only) name of callback funtion for JSON-P
  * 

@@ -227,7 +227,7 @@ class Functions_users {
     /**
      * Activate user
      * 
-     * @param string $userid : can be userid or base64(email)
+     * @param string $userid
      * @param string $activationcode
      * @param boolean $autoValidateUser
      * 

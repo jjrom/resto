@@ -17,6 +17,14 @@
 
 /**
  * RESTo REST router for PUT requests
+ * 
+ *    collections/{collection}                      |  Update {collection}
+ *    collections/{collection}/{feature}            |  Update {feature}
+ *    
+ *    user                                          |  Modify user profile
+ *    user/cart/{itemid}                            |  Modify item in user cart
+ *    user/groups                                   |  Modify user groups (only admin)
+ *   
  */
 class RestoRoutePUT extends RestoRoute {
     
@@ -28,15 +36,7 @@ class RestoRoutePUT extends RestoRoute {
     }
    
     /**
-     * 
      * Process HTTP PUT request
-     *  
-     *    collections/{collection}                      |  Update {collection}
-     *    collections/{collection}/{feature}            |  Update {feature}
-     *    
-     *    users/{userid}                                |  Modify {userid} profile
-     *    users/{userid}/cart/{itemid}                  |  Modify item in {userid} cart
-     *    users/{userid}/groups                         |  Modify {userid} groups (only admin)
      *
      * @param array $segments
      */
@@ -53,8 +53,8 @@ class RestoRoutePUT extends RestoRoute {
         switch($segments[0]) {
             case 'collections':
                 return $this->PUT_collections($segments, $data);
-            case 'users':
-                return $this->PUT_users($segments, $data);
+            case 'user':
+                return $this->PUT_user($segments, $data);
             default:
                 return $this->processModuleRoute($segments, $data);
         }
@@ -122,41 +122,36 @@ class RestoRoutePUT extends RestoRoute {
      * 
      * Process HTTP PUT request on users
      *
-     *    users/{userid}/groups                         |  Modify {userid} groups (only admin)
-     *    users/{userid}/cart/{itemid}                  |  Modify item in {userid} cart
+     *    user
+     *    user/groups                                   |  Modify user groups (only admin)
+     *    user/cart/{itemid}                            |  Modify item in user cart
      * 
      * @param array $segments
      * @param array $data
      */
-    private function PUT_users($segments, $data) {
-
+    private function PUT_user($segments, $data) {
+        
+        $emailOrId = $this->getRequestedEmailOrId();
+        
         /*
-         * {userid} is mandatory
+         * user
          */
         if (!isset($segments[1])) {
-            RestoLogUtil::httpError(404);
+            return $this->PUT_userProfile($emailOrId, $data);
         }
         
         /*
-         * users/{userid}
+         * user/groups
          */
-        if (!isset($segments[2])) {
-            return $this->PUT_userProfile($segments[1], $data);
-        }
-        
-        if ($segments[2] === 'groups') {
-            return $this->PUT_userGroups($segments[1], $data);
+        if ($segments[1] === 'groups') {
+            return $this->PUT_userGroups($emailOrId, $data);
         }
 
         /*
-         * Mandatory {itemid}
+         * user/cart/{itemid}
          */
-        if (!isset($segments[3])) {
-            RestoLogUtil::httpError(404);
-        }
-        
-        if ($segments[2] === 'cart') {
-            return $this->PUT_userCart($segments[1], $segments[3], $data);
+        else if ($segments[1] === 'cart' && isset($segments[2])) {
+            return $this->PUT_userCart($emailOrId, $segments[2], $data);
         }
         else {
             RestoLogUtil::httpError(404);
@@ -168,7 +163,7 @@ class RestoRoutePUT extends RestoRoute {
      *
      * Process HTTP PUT request on user profile
      *
-     *    users/{userid}                       |  Update {userid} profile
+     *    user                                 |  Update user profile
      *
      * @param string $emailOrId
      * @param array $data
@@ -218,7 +213,7 @@ class RestoRoutePUT extends RestoRoute {
      *
      * Process HTTP PUT request on users groups
      *
-     *    users/{userid}/groups                         |  Modify {userid} groups (only admin)
+     *    user/groups                                 |  Modify user groups (only admin)
      *
      * @param string $emailOrId
      * @param array $data
@@ -268,7 +263,7 @@ class RestoRoutePUT extends RestoRoute {
      * 
      * Process HTTP PUT request on users cart
      * 
-     *    users/{userid}/cart/{itemid}                  |  Modify item in {userid} cart
+     *    user/cart/{itemid}                        |  Modify item in user cart
      * 
      * @param string $emailOrId
      * @param string $itemId

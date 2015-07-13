@@ -17,6 +17,23 @@
 
 /**
  * RESTo REST router for POST requests
+ * 
+ *    api/licenses/{licenseid}/sign                 |  Sign license
+ *    api/user/connect                              |  Connect user
+ *    api/user/disconnect                           |  Disconnect user
+ *    api/user/resetPassword                        |  Reset password
+ * 
+ *    collections                                   |  Create a new {collection}            
+ *    collections/{collection}                      |  Insert new product within {collection}
+ *    
+ *    licenses                                      |  Create a license
+ *
+ *    user/cart                                     |  Add new item in user cart
+ *    user/orders                                   |  Send an order for user
+ *    user/groups                                   |  Set groups for user (only admin)
+ * 
+ *    users                                         |  Add a user
+ *    
  */
 class RestoRoutePOST extends RestoRoute {
     
@@ -28,24 +45,8 @@ class RestoRoutePOST extends RestoRoute {
     }
    
     /**
-     *
      * Process HTTP POST request
      * 
-     *    api/users/connect                             |  Connect user
-     *    api/users/disconnect                          |  Disconnect user
-     *    api/users/{userid}/signLicense                |  Sign license for input collection
-     *    api/users/resetPassword                       |  Reset password
-     * 
-     *    collections                                   |  Create a new {collection}            
-     *    collections/{collection}                      |  Insert new product within {collection}
-     *    
-     *    users                                         |  Add a user
-     *    users/{userid}/cart                           |  Add new item in {userid} cart
-     *    users/{userid}/orders                         |  Send an order for {userid}
-     *    users/{userid}/groups                         |  Set groups for {userid} (only admin)
-     * 
-     *    licenses                                      |  Create a license
-     *
      * @param array $segments
      */
     public function route($segments) {
@@ -54,15 +55,14 @@ class RestoRoutePOST extends RestoRoute {
          * Input data for POST request
          */
         $data = RestoUtil::readInputData($this->context->uploadDirectory);
-        /*if (!is_array($data) || count($data) === 0) {
-            RestoLogUtil::httpError(400);
-        }*/
-
+        
         switch($segments[0]) {
             case 'api':
                 return $this->POST_api($segments, $data);
             case 'collections':
                 return $this->POST_collections($segments, $data);
+            case 'user':
+                return $this->POST_user($segments, $data);
             case 'users':
                 return $this->POST_users($segments, $data);
             case 'licenses':
@@ -76,56 +76,64 @@ class RestoRoutePOST extends RestoRoute {
      * 
      * Process HTTP POST request on api
      * 
-     *    api/users/connect                             |  Connect user
-     *    api/users/disconnect                          |  Disconnect user
-     *    api/users/{userid}/signLicense                |  Sign license for input collection
+     *    api/licenses/{licenseid}/sign                |  Sign license
+     *    api/user/connect                             |  Connect user
+     *    api/user/disconnect                          |  Disconnect user
      * 
      * @param array $segments
      * @param array $data
      */
     private function POST_api($segments, $data) {
         
-        
         if (!isset($segments[1])) {
             RestoLogUtil::httpError(404);
         }
-
+        
         /*
-         * api/users
+         * api/licenses/{licenseid}/sign
          */
-        if ($segments[1] === 'users') {
+        if ($segments[1] === 'licenses') {
+            
+            if (isset($segments[3]) && $segments[3] === 'sign' && !isset($segments[4])) {
+                return $this->POST_apiSignLicense($segments[2]);
+            }
+            
+            RestoLogUtil::httpError(404);
+            
+        }
+        
+        /*
+         * api/user
+         */
+        else if ($segments[1] === 'user') {
             
             if (!isset($segments[2])) {
                 RestoLogUtil::httpError(404);
             }
             
             /*
-             * api/users/connect
+             * api/user/connect
              */
             if ($segments[2] === 'connect' && !isset($segments[3])) {
-                return $this->POST_apiUsersConnect($data);
+                return $this->POST_apiUserConnect($data);
             }
             
             /*
-             * api/users/disconnect
+             * api/user/disconnect
              */
             if ($segments[2] === 'disconnect' && !isset($segments[3])) {
-                return $this->POST_apiUsersDisconnect($data);
+                return $this->POST_apiUserDisconnect();
             }
             
             /*
-             * api/users/resetPassword
+             * api/user/resetPassword
              */
             if ($segments[2] === 'resetPassword' && !isset($segments[3])) {
-                return $this->POST_apiUsersResetPassword($data);
+                return $this->POST_apiUserResetPassword($data);
             }
             
-            /*
-             * api/users/{userid}/signLicense
-             */
-            if (isset($segments[3]) && $segments[3] === 'signLicense' && !isset($segments[4])) {
-                return $this->POST_apiUsersSignLicense($segments[2], $data);
-            }
+            RestoLogUtil::httpError(404);
+            
         }
         /*
          * Process module
@@ -137,12 +145,12 @@ class RestoRoutePOST extends RestoRoute {
     }
     
     /**
-     * Process api/users/connect
+     * Process api/user/connect
      * 
      * @param array $data
      * @return type
      */
-    private function POST_apiUsersConnect($data) {
+    private function POST_apiUserConnect($data) {
         
         if (!isset($data['email']) || !isset($data['password'])) {
             RestoLogUtil::httpError(400);
@@ -173,20 +181,20 @@ class RestoRoutePOST extends RestoRoute {
     }
     
     /**
-     * Process api/users/disconnect
+     * Process api/user/disconnect
      */
-    private function POST_apiUsersDisconnect($data) {
+    private function POST_apiUserDisconnect() {
         $this->user->disconnect();
         return RestoLogUtil::success('User disconnected');
     }
 
     /**
-     * Process api/users/resetPassword
+     * Process api/user/resetPassword
      * 
      * @param array $data
      * @return type
      */
-    private function POST_apiUsersResetPassword($data) {
+    private function POST_apiUserResetPassword($data) {
         
         if (!isset($data['url']) || !isset($data['email']) || !isset($data['password'])) {
             RestoLogUtil::httpError(400);
@@ -229,39 +237,30 @@ class RestoRoutePOST extends RestoRoute {
     }
     
     /**
-     * Process api/users/{userid}/signLicense
+     * Process api/licenses/{licenseid}/sign
      * 
-     * @param string $userid
-     * @param array $data
+     * @param string $licenseId
+     * 
      * @return type
      */
-    private function POST_apiUsersSignLicense($userid, $data) {
+    private function POST_apiSignLicense($licenseId) {
         
-        /*
-         * Only user can sign its license
-         */
-        if ($this->user->profile['userid'] !== $this->userid($userid)) {
-            RestoLogUtil::httpError(403);
-        }
-        
-        /*
-         * Check that license exists
-         */
-        if (!isset($data['licenseId'])) {
-            RestoLogUtil::httpError(400, 'Invalid licenseId');
-        }
-        
-        $licenses = $this->context->dbDriver->get(RestoDatabaseDriver::LICENSES, array('licenseId' => $data['licenseId']));
-        $license = isset($licenses[$data['licenseId']]) ? $licenses[$data['licenseId']] : null;
+        $licenses = $this->context->dbDriver->get(RestoDatabaseDriver::LICENSES, array(
+            'licenseId' => $licenseId
+        ));
+        $license = isset($licenses[$licenseId]) ? $licenses[$licenseId] : null;
         if (!isset($license)) {
-            RestoLogUtil::httpError(400, 'Invalid licenseId');
+            RestoLogUtil::httpError(400, 'Non existing license : ' . $licenseId);
         }
         
         /*
          * User can sign license if it does not reach the signature quota
          */
         if ($this->user->signLicense($license)) {
-            return RestoLogUtil::success('License signed');
+            return RestoLogUtil::success('License signed', array(
+                'email' => $this->user->profile['email'],
+                'license' => $license
+            ));
         }
         else {
             return RestoLogUtil::error('Cannot sign license');
@@ -350,49 +349,40 @@ class RestoRoutePOST extends RestoRoute {
      * 
      * Process HTTP POST request on users
      * 
-     *    users                                         |  Add a user
-     *    users/{userid}/cart                           |  Add new item in {userid} cart
-     *    users/{userid}/orders                         |  Send an order for {userid}
-     *    users/{userid}/groups                         |  Set groups for {userid} (only admin)
+     *    user/cart                                     |  Add new item in user cart
+     *    user/orders                                   |  Send an order for user
+     *    user/groups                                   |  Set groups for user (only admin)
      *
      * @param array $segments
      * @param array $data
      */
-    private function POST_users($segments, $data) {
+    private function POST_user($segments, $data) {
         
-        /*
-         * No modifier allwed
-         */
-        if (isset($segments[3])) {
+        if (!isset($segments[1]) || isset($segments[2])) {
             RestoLogUtil::httpError(404);
         }
         
+        $emailOrId = $this->getRequestedEmailOrId();
+        
         /*
-         * users
+         * user/cart
          */
-        if (!isset($segments[1])) {
-            return $this->POST_createUser($data);
-        }
-     
-        /*
-         * users/{userid}/cart
-         */
-        else if (isset($segments[2]) && $segments[2] === 'cart') {
-            return $this->POST_userCart($segments[1], $data);
+        if ($segments[1] === 'cart') {
+            return $this->POST_userCart($emailOrId, $data);
         }
       
         /*
-         * users/{userid}/orders
+         * user/orders
          */
-        else if (isset($segments[2]) && $segments[2] === 'orders') {
-            return $this->POST_userOrders($segments[1], $data);
+        else if ($segments[1] === 'orders') {
+            return $this->POST_userOrders($emailOrId, $data);
         }
 
         /*
-         *    users/{userid}/groups
+         * user/groups
          */
-        else if (isset($segments[2]) && $segments[2] === 'groups') {
-            return $this->POST_userGroups($segments[1], $data);
+        else if ($segments[1] === 'groups') {
+            return $this->POST_userGroups($emailOrId, $data);
         }
 
         /*
@@ -403,69 +393,20 @@ class RestoRoutePOST extends RestoRoute {
         }
         
     }
-    
-    /**
-     * Create user
-     * 
-     * @param array $data
-     */
-    private function POST_createUser($data) {
-        
-        if (!isset($data['email'])) {
-            RestoLogUtil::httpError(400, 'Email is not set');
-        }
-
-        if ($this->context->dbDriver->check(RestoDatabaseDriver::USER, array('email' => $data['email']))) {
-            RestoLogUtil::httpError(3000);
-        }
-        
-        $redirect = isset($data['activateUrl']) ? '&redirect=' . rawurlencode($data['activateUrl']) : '';
-        $userInfo = $this->context->dbDriver->store(RestoDatabaseDriver::USER_PROFILE, array(
-            'profile' => array(
-                'email' => $data['email'],
-                'password' => isset($data['password']) ? $data['password'] : null,
-                'username' => isset($data['username']) ? $data['username'] : null,
-                'givenname' => isset($data['givenname']) ? $data['givenname'] : null,
-                'lastname' => isset($data['lastname']) ? $data['lastname'] : null,
-                'country' => isset($data['country']) ? $data['country'] : null,
-                'organization' => isset($data['organization']) ? $data['organization'] : null,
-                'flags' => isset($data['flags']) ? $data['flags'] : null,
-                'topics' => isset($data['topics']) ? $data['topics'] : null,
-                'activated' => 0
-            ))
-        );
-        if (isset($userInfo)) {
-            $activationLink = $this->context->baseUrl . '/api/users/' . $userInfo['userid'] . '/activate?act=' . $userInfo['activationcode'] . $redirect;
-            $fallbackLanguage = isset($this->context->mail['accountActivation'][$this->context->dictionary->language]) ? $this->context->dictionary->language : 'en';
-            if (!$this->sendMail(array(
-                        'to' => $data['email'],
-                        'senderName' => $this->context->mail['senderName'],
-                        'senderEmail' => $this->context->mail['senderEmail'],
-                        'subject' => $this->context->dictionary->translate($this->context->mail['accountActivation'][$fallbackLanguage]['subject'], $this->context->title),
-                        'message' => $this->context->dictionary->translate($this->context->mail['accountActivation'][$fallbackLanguage]['message'], $this->context->title, $activationLink)
-                    ))) {
-                RestoLogUtil::httpError(3001);
-            }
-        }
-        else {
-            RestoLogUtil::httpError(500, 'Database connection error');
-        }
-
-        return RestoLogUtil::success('User ' . $data['email'] . ' created');
-    }
 
     /**
      *
      * Process HTTP POST request on groups
      *
-     *    users/{userid}/groups                         |  Set groups for {userid} (only admin)
+     *    user/groups                                |  Set groups for user (only admin)
      *
-     * @param integer $userid
+     * @param string $emailOrId
      * @param array $data
      * @return array
      * @throws Exception
      */
-    private function POST_userGroups($userid, $data) {
+    private function POST_userGroups($emailOrId, $data) {
+        
         /*
          * only available for admin
          */
@@ -477,9 +418,12 @@ class RestoRoutePOST extends RestoRoute {
             RestoLogUtil::httpError(400, 'Groups is not set');
         }
         
+        $user = $this->getAuthorizedUser($emailOrId);
+        
         return RestoLogUtil::success('Groups added', array(
+                'email' => $user->profile['email'],
                 'groups' => $this->context->dbDriver->store(RestoDatabaseDriver::GROUPS, array(
-                    'userid' => $userid,
+                    'userid' => $user->profile['userid'],
                     'groups' => $data['groups']
                 ))
         ));
@@ -489,7 +433,7 @@ class RestoRoutePOST extends RestoRoute {
     /**
      * Process HTTP POST request on user cart
      * 
-     *    users/{userid}/cart                           |  Add new item in {userid} cart
+     *    user/cart                                   |  Add new item in user cart
      * 
      * @param string $emailOrId
      * @param array $data
@@ -526,7 +470,7 @@ class RestoRoutePOST extends RestoRoute {
     /**
      * Process HTTP POST request on user orders
      * 
-     *    users/{userid}/orders                         |  Send an order for {userid}
+     *    user/orders                                     |  Send an order for user
      * 
      * @param string $emailOrId
      * @param array $data
@@ -620,5 +564,77 @@ class RestoRoutePOST extends RestoRoute {
         return RestoLogUtil::success('license ' . $data['licenseId'] . ' created');
     }
 
+    /**
+     * 
+     * Process HTTP POST request on users
+     * 
+     *    users                                         |  Add a user
+     *
+     * @param array $segments
+     * @param array $data
+     */
+    private function POST_users($segments, $data) {
+        
+        /*
+         * No modifier allowed
+         */
+        if (isset($segments[1])) {
+            RestoLogUtil::httpError(404);
+        }
+        
+        return $this->POST_createUser($data);
+        
+    }
+    
+    /**
+     * Create user
+     * 
+     * @param array $data
+     */
+    private function POST_createUser($data) {
+        
+        if (!isset($data['email'])) {
+            RestoLogUtil::httpError(400, 'Email is not set');
+        }
+
+        if ($this->context->dbDriver->check(RestoDatabaseDriver::USER, array('email' => $data['email']))) {
+            RestoLogUtil::httpError(3000);
+        }
+        
+        $redirect = isset($data['activateUrl']) ? '&redirect=' . rawurlencode($data['activateUrl']) : '';
+        $userInfo = $this->context->dbDriver->store(RestoDatabaseDriver::USER_PROFILE, array(
+            'profile' => array(
+                'email' => $data['email'],
+                'password' => isset($data['password']) ? $data['password'] : null,
+                'username' => isset($data['username']) ? $data['username'] : null,
+                'givenname' => isset($data['givenname']) ? $data['givenname'] : null,
+                'lastname' => isset($data['lastname']) ? $data['lastname'] : null,
+                'country' => isset($data['country']) ? $data['country'] : null,
+                'organization' => isset($data['organization']) ? $data['organization'] : null,
+                'flags' => isset($data['flags']) ? $data['flags'] : null,
+                'topics' => isset($data['topics']) ? $data['topics'] : null,
+                'activated' => 0
+            ))
+        );
+        if (isset($userInfo)) {
+            $activationLink = $this->context->baseUrl . '/api/users/' . $userInfo['userid'] . '/activate?act=' . $userInfo['activationcode'] . $redirect;
+            $fallbackLanguage = isset($this->context->mail['accountActivation'][$this->context->dictionary->language]) ? $this->context->dictionary->language : 'en';
+            if (!$this->sendMail(array(
+                        'to' => $data['email'],
+                        'senderName' => $this->context->mail['senderName'],
+                        'senderEmail' => $this->context->mail['senderEmail'],
+                        'subject' => $this->context->dictionary->translate($this->context->mail['accountActivation'][$fallbackLanguage]['subject'], $this->context->title),
+                        'message' => $this->context->dictionary->translate($this->context->mail['accountActivation'][$fallbackLanguage]['message'], $this->context->title, $activationLink)
+                    ))) {
+                RestoLogUtil::httpError(3001);
+            }
+        }
+        else {
+            RestoLogUtil::httpError(500, 'Database connection error');
+        }
+
+        return RestoLogUtil::success('User ' . $data['email'] . ' created');
+    }
+    
 
 }
