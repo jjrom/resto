@@ -466,7 +466,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 return $usersFunctions->storeUserProfile($params['profile']);
 
             /*
-             * Store granted visibility
+             * Store groups
              */
             case parent::GROUPS:
                 $usersFunctions = new Functions_users($this);

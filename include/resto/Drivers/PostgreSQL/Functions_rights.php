@@ -178,17 +178,13 @@ class Functions_rights {
             return array(
                 'download' => max((integer) $newRight['download'], $existingRight['download']), 
                 'visualize' => max((integer) $newRight['visualize'], $existingRight['visualize']), 
-                'post' => max((integer) $newRight['post'], $existingRight['post']), 
-                'put' => max((integer) $newRight['put'], $existingRight['put']), 
-                'delete' => max((integer) $newRight['delete'], $existingRight['delete'])
+                'create' => max((integer) $newRight['create'], $existingRight['create'])
             );
         }
         return array(
             'download' => (integer) $newRight['download'], 
             'visualize' => (integer) $newRight['visualize'], 
-            'post' => (integer) $newRight['post'], 
-            'put' => (integer) $newRight['put'], 
-            'delete' => (integer) $newRight['delete']
+            'create' => (integer) $newRight['create']
         );
     }
     

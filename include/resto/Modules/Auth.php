@@ -103,12 +103,12 @@ class Auth extends RestoModule {
     /**
      * Run module - this function should be called by Resto.php
      * 
-     * @param array $elements : route elements
+     * @param array $segments : route segments
      * @param array $data : POST or PUT parameters
      * 
      * @return string : result from run process in the $context->outputFormat
      */
-    public function run($elements, $data = array()) {
+    public function run($segments, $data = array()) {
         
         if (!$this->context) {
             RestoLogUtil::httpError(500, 'Invalid Context');
@@ -122,7 +122,7 @@ class Auth extends RestoModule {
         /*
          * Authentication issuer is identified as the first $elements
          */
-        $issuerId = isset($elements[0]) ? RestoUtil::sanitize($elements[0]) : null;
+        $issuerId = isset($segments[0]) ? RestoUtil::sanitize($segments[0]) : null;
         
         /*
          * Get provider

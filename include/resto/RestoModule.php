@@ -78,10 +78,11 @@ abstract class RestoModule{
     /**
      * Run module - this function should be called by Resto.php
      * 
-     * @param array $elements : route elements
+     * @param array $segments : route elements
+     * @param array $data : POST or PUT data
      * @return string : result from run process in the $context->outputFormat
      */
-    abstract public function run($elements);
+    abstract public function run($segments, $data);
 
 }
 

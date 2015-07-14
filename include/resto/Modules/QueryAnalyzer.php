@@ -163,17 +163,17 @@ class QueryAnalyzer extends RestoModule {
     /**
      * Run module - this function should be called by Resto.php
      * 
-     * @param array $elements : route element
+     * @param array $segments : route segments
      * @param array $data : POST or PUT parameters
      * 
      * @return string : result from run process in the $context->outputFormat
      */
-    public function run($elements) {
+    public function run($segments, $data = array()) {
         
         /*
          * Only GET method on 'search' route with json outputformat is accepted
          */
-        if ($this->context->method !== 'GET' || count($elements) !== 0) {
+        if ($this->context->method !== 'GET' || count($segments) !== 0) {
             RestoLogUtil::httpError(404);
         }
         $query = isset($this->context->query['searchTerms']) ? $this->context->query['searchTerms'] : (isset($this->context->query['q']) ? $this->context->query['q'] : null);

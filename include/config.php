@@ -248,6 +248,15 @@ return array(
     'modules' => array(
         
         /*
+         * Query Analyzer module - convert natural language query to EO query
+         */
+        'Admin' => array(
+            'activate' => true,
+            'route' => 'admin',
+            'options' => array()
+        ),
+        
+        /*
          * OAuth authentication module
          */
         'Auth' => array(

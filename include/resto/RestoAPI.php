@@ -320,7 +320,7 @@ class RestoAPI {
      * @throws Exception
      */
     public function getUserProfile($user) {
-        return RestoLogUtil::success('Profile for ' . $user->profile['userid'], array(
+        return RestoLogUtil::success('Profile for ' . $user->profile['email'], array(
             'profile' => $user->profile
         ));
     }
@@ -332,7 +332,8 @@ class RestoAPI {
      * @throws Exception
      */
     public function getUserGroups($user) {
-        return RestoLogUtil::success('Groups for ' . $user->profile['userid'], array(
+        return RestoLogUtil::success('Groups for ' . $user->profile['email'], array(
+            'email' => $user->profile['email'],
             'groups' => $user->profile['groups']
         ));
     }
@@ -346,7 +347,8 @@ class RestoAPI {
      * @throws Exception
      */
     public function getUserRights($user, $collectionName = null, $featureIdentifier = null) {
-        return RestoLogUtil::success('Rights for ' . $user->profile['userid'], array(
+        return RestoLogUtil::success('Rights for ' . $user->profile['email'], array(
+                    'email' => $user->profile['email'],
                     'userid' => $user->profile['userid'],
                     'groups' => $user->profile['groups'],
                     'rights' => $user->getRights($collectionName, $featureIdentifier)
@@ -395,7 +397,8 @@ class RestoAPI {
             }
         }
 
-        return RestoLogUtil::success('Signatures for ' . $user->profile['userid'], array(
+        return RestoLogUtil::success('Signatures for ' . $user->profile['email'], array(
+            'email' => $user->profile['email'],
             'userid' => $user->profile['userid'],
             'groups' => $user->profile['groups'],
             'signatures' => $signatures
@@ -434,7 +437,9 @@ class RestoAPI {
             return new RestoOrder($user, $this->context, $orderid);
         }
         else {
-            return RestoLogUtil::success('Orders for user ' . $user->profile['userid'], array(
+            return RestoLogUtil::success('Orders for user ' . $user->profile['email'], array(
+                'email' => $user->profile['email'],
+                'userid' => $user->profile['userid'],
                 'orders' => $user->getOrders()
             ));
         }
@@ -740,6 +745,18 @@ class RestoAPI {
     }
     
     /**
+     * Remove license
+     *
+     * @param array $licenseId
+     */
+    public function removeLicense($licenseId) {
+        $this->context->dbDriver->remove(RestoDatabaseDriver::LICENSE, array('licenseId' => $licenseId));
+        return RestoLogUtil::success('License removed', array(
+            'licenseId' => $licenseId
+        ));
+    }
+    
+    /**
      * Create user
      * 
      * @param array $data
@@ -854,6 +871,42 @@ class RestoAPI {
             return RestoLogUtil::error('Cannot update item ' . $itemId);
         }
         
+    }
+    
+    /**
+     * Add groups to user
+     * 
+     * @param RestoUser $user
+     * @param string $groups
+     * @return array
+     * @throws Exception
+     */
+    public function addUserGroups($user, $groups) {
+        return RestoLogUtil::success('Groups updated', array(
+                'email' => $user->profile['email'],
+                'groups' => $this->context->dbDriver->store(RestoDatabaseDriver::GROUPS, array(
+                    'userid' => $user->profile['userid'],
+                    'groups' => $groups
+                ))
+        ));
+    }
+    
+    /**
+     * Remove groups from user
+     * 
+     * @param RestoUser $user
+     * @param string $groups
+     * @return array
+     * @throws Exception
+     */
+    public function removeUserGroups($user, $groups) {
+        return RestoLogUtil::success('Groups updated', array(
+                'email' => $user->profile['email'],
+                'groups' => $this->context->dbDriver->remove(RestoDatabaseDriver::GROUPS, array(
+                    'userid' => $user->profile['userid'],
+                    'groups' => $groups
+                ))
+        ));
     }
     
     /**
