@@ -102,7 +102,7 @@ class Resto {
     /*
      * RESTo major version number
      */
-    const VERSION = '3.1RC1';
+    const VERSION = '2.1RC1';
     
     /*
      * Default output format if not specified in request
