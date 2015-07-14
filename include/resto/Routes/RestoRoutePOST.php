@@ -184,23 +184,34 @@ class RestoRoutePOST extends RestoRoute {
         }
         
         /*
-         * Only a user with 'create' rights can POST a collection
-         */
-        if (!$this->user->hasCreateRights(isset($collection) ? $collection->name : null)) {
-            RestoLogUtil::httpError(403);
-        }
-
-        /*
          * Create new collection
          */
         if (!isset($collection)) {
+            
+            /*
+             * Only a user with 'create' rights can POST a collection
+             */
+            if (!$this->user->hasCreateRights()) {
+                RestoLogUtil::httpError(403);
+            }
+
             return $this->API->createCollection($data);
+            
         }
         /*
          * Insert new feature in collection
          */
         else {
+            
+            /*
+             * Only a user with 'update' rights on collection can POST feature
+             */
+            if (!$this->user->hasUpdateRights($collection)) {
+                RestoLogUtil::httpError(403);
+            }
+            
             return $this->API->addFeatureToCollection($collection, $data);
+            
         }
     }
    

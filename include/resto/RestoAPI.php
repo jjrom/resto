@@ -307,7 +307,7 @@ class RestoAPI {
      * 
      * @throws Exception
      */
-    public function usersProfiles() {
+    public function getUsersProfiles() {
         return RestoLogUtil::success('Profiles for all users', array(
             'profiles' => $this->context->dbDriver->get(RestoDatabaseDriver::USERS_PROFILES)
         ));
