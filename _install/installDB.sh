@@ -108,9 +108,10 @@ CREATE TABLE resto.collections (
     collection          TEXT PRIMARY KEY,
     creationdate        TIMESTAMP,
     model               TEXT DEFAULT 'RestoModel_default',
-    status              TEXT DEFAULT 'public',
     licenseid           TEXT DEFAULT 'unlicensed', -- This should be linked to an existing license
-    mapping             TEXT
+    mapping             TEXT,
+    status              TEXT DEFAULT 'public',
+    owner               TEXT
 );
 CREATE INDEX idx_status_collections ON resto.collections (status);
 CREATE INDEX idx_creationdate_collections ON resto.collections (creationdate);
@@ -286,16 +287,14 @@ CREATE TABLE usermanagement.rights (
     target              TEXT NOT NULL, -- collection from resto.collection or featureid from resto.features
     download            INTEGER DEFAULT 0,
     visualize           INTEGER DEFAULT 0,
-    canpost             INTEGER DEFAULT 0,
-    canput              INTEGER DEFAULT 0,
-    candelete           INTEGER DEFAULT 0,
+    createcollection    INTEGER DEFAULT 0,
     productidentifier   TEXT -- same as productidentifier in resto.features
 );
 CREATE INDEX idx_owner_rights ON usermanagement.rights (owner);
 CREATE INDEX idx_ownertype_rights ON usermanagement.rights (ownertype);
 
 -- INSERT admin rights
-INSERT INTO usermanagement.rights (ownertype, owner, targettype, target, download, visualize, canpost, canput, candelete) VALUES ('group','admin','collection','*',1,1,1,1,1);
+INSERT INTO usermanagement.rights (ownertype, owner, targettype, target, download, visualize, createcollection) VALUES ('group','admin','collection','*',1,1,1);
 
 --
 -- list licenses signed by users

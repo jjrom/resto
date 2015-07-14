@@ -23,9 +23,6 @@
  *    collections/{collection}/{feature}            |  Delete {feature}
  *    
  *    user/cart/{itemid}                            |  Remove {itemid} from user cart
- *    user/groups/{groups}                          |  Remove {groups} for user (only admin)
- *
- *    licenses/{licenseid}                          |  Delete {licenseid}
  *    
  */
 class RestoRouteDELETE extends RestoRoute {
@@ -48,8 +45,6 @@ class RestoRouteDELETE extends RestoRoute {
                 return $this->DELETE_collections($segments);
             case 'user':
                 return $this->DELETE_user($segments);
-            case 'licenses':
-                return $this->DELETE_license($segments);
             default:
                 return $this->processModuleRoute($segments);
         }
@@ -85,9 +80,9 @@ class RestoRouteDELETE extends RestoRoute {
         }
         
         /*
-         * Check credentials
+         * Only owner of a collection can delete it
          */
-        if (!$this->user->hasDELETERights($collection->name, isset($feature) ? $feature->identifier : null)) {
+        if (!$this->user->hasUpdateRights($collection)) {
             RestoLogUtil::httpError(403);
         }
 
@@ -95,16 +90,32 @@ class RestoRouteDELETE extends RestoRoute {
          * collections/{collection}
          */
         if (!isset($feature)) {
+            
             $collection->removeFromStore();
-            $this->storeQuery('remove', $this->user, $collection->name, null);
+            
+            /*
+             * Store query
+             */
+            if ($this->context->storeQuery === true) {
+                $this->user->storeQuery($this->context->method, 'remove', $collection->name, null, $this->context->query, $this->context->getUrl());
+            }
+            
             return RestoLogUtil::success('Collection ' . $collection->name . ' deleted');
         }
         /*
          * collections/{collection}/{feature}
          */
         else {
+            
             $feature->removeFromStore();
-            $this->storeQuery('remove', $this->user, $collection->name, $feature->identifier);
+            
+            /*
+             * Store query
+             */
+            if ($this->context->storeQuery === true) {
+                $this->user->storeQuery($this->context->method, 'remove', $collection->name, $feature->identifier, $this->context->query, $this->context->getUrl());
+            }
+            
             return RestoLogUtil::success('Feature ' . $feature->identifier . ' deleted', array(
                 'featureIdentifier' => $feature->identifier
             ));
@@ -118,19 +129,13 @@ class RestoRouteDELETE extends RestoRoute {
      * 
      *    user/cart                                     |  Remove all cart items
      *    user/cart/{itemid}                            |  Remove {itemid} from user cart
-     *    user/groups/{groups}                          |  Remove {groups} from groups for user (only admin)
      * 
      * @param array $segments
      */
     private function DELETE_user($segments) {
         
-        $emailOrId = $this->getRequestedEmailOrId();
-        
         if ($segments[1] === 'cart') {
-            return $this->DELETE_userCart($emailOrId, isset($segments[2]) ? $segments[2] : null);
-        }
-        else if ($segments[1] === 'groups') {
-            return $this->DELETE_userGroups($emailOrId, isset($segments[2]) ? $segments[2] : null);
+            return $this->API->removeFromUserCart($this->user, isset($segments[2]) ? $segments[2] : null);
         }
         else {
             RestoLogUtil::httpError(404);
@@ -138,135 +143,4 @@ class RestoRouteDELETE extends RestoRoute {
         
     }
     
-    /**
-     * 
-     * Process user/cart
-     * 
-     *    user/cart                                     |  Remove all cart items
-     *    user/cart/{itemid}                            |  Remove {itemid} from user cart
-     * 
-     * @param string $emailOrId
-     * @param string $itemId
-     */
-    private function DELETE_userCart($emailOrId, $itemId) {
-        
-        /*
-         * Cart can only be modified by its owner or by admin
-         */
-        $user = $this->getAuthorizedUser($emailOrId);
-                
-        /*
-         * user/cart
-         */
-        if (!isset($itemId)) {
-            return $this->DELETE_userCartAllItems($user);
-        }
-        /*
-         * user/cart/{itemId}
-         */
-        else {
-            return $this->DELETE_userCartItem($user, $itemId);
-        }
-     
-    }
-    
-    /**
-     * 
-     * Delete one item
-     * 
-     * @param RestoUser $user
-     * @param string $itemId
-     */
-    private function DELETE_userCartItem($user, $itemId) {
-        if ($user->getCart()->remove($itemId, true)) {
-            return RestoLogUtil::success('Item removed from cart', array(
-                'itemid' => $itemId
-            ));
-        }
-        else {
-            return RestoLogUtil::error('Item cannot be removed', array(
-                'itemid' => $itemId
-            ));
-        }
-    }
-    
-    /**
-     * 
-     * Delete all items within cart
-     * 
-     * @param RestoUser $user
-     * @param string $itemId
-     */
-    private function DELETE_userCartAllItems($user) {
-        if ($user->getCart()->clear(true)) {
-            return RestoLogUtil::success('Cart cleared');
-        }
-        else {
-            return RestoLogUtil::error('Cannot clear cart');
-        }
-    }
-
-    /**
-     *
-     * Process HTTP DELETE request on groups
-     *
-     *    user/groups/{groups}                      |  Remove {groups} from groups for user (only admin)
-     *
-     * @param string $emailOrId
-     * @param string $groups
-     * @return array
-     * @throws Exception
-     */
-    private function DELETE_userGroups($emailOrId, $groups) {
-        
-        /*
-         * only available for admin
-         */
-        if (!$this->user->isAdmin()) {
-            RestoLogUtil::httpError(403);
-        }
-
-        if (!isset($groups)) {
-            RestoLogUtil::httpError(404);
-        }
-        
-        $user = $this->getAuthorizedUser($emailOrId);
-        
-        return RestoLogUtil::success('Groups removed', array(
-                    'groups' => $this->context->dbDriver->remove(RestoDatabaseDriver::GROUPS, array(
-                        'userid' => $user->profile['userid'],
-                        'groups' => $groups
-                    ))
-        ));
-    }
-    
-    /**
-     *
-     * Process HTTP DELETE request on licenses
-     *
-     *    licenses/{licenseid}                          |  Delete {licenseid}
-     *
-     * @param array $segments
-     */
-    private function DELETE_license($segments) {
-        
-        /*
-         * only available for admin
-         */
-        if (!$this->user->isAdmin()) {
-            RestoLogUtil::httpError(403);
-        }
-
-        if (!isset($segments[1])) {
-            RestoLogUtil::httpError(404);
-        }
-        else {
-            $licenseId = $segments[1];
-            $this->context->dbDriver->remove(RestoDatabaseDriver::LICENSE, array('licenseId' => $licenseId));
-            return RestoLogUtil::success('License removed', array(
-                'licenseId' => $licenseId
-            ));
-        }
-    }
-
 }

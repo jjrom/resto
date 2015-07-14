@@ -148,6 +148,7 @@ class RestoCollection {
         return array(
             'name' => $this->name,
             'status' => $this->status,
+            'owner' => $this->owner,
             'model' => $this->model->name,
             'license' => isset($this->license) ? $this->license : null,
             'osDescription' => $this->osDescription,
@@ -199,8 +200,8 @@ class RestoCollection {
      *          "status": "public",
      *          "licenseId": "license",
      *          "accessRights":{
-     *              "download":false,
-     *              "visualize":true
+     *              "download":0,
+     *              "visualize":1
      *          },
      *          "osDescription": {
      *              "en": {
@@ -243,6 +244,11 @@ class RestoCollection {
          * Default collection status is 'public'
          */
         $this->status = isset($object['status']) && $object['status'] === 'private' ? 'private' : 'public';
+        
+        /*
+         * Collection owner is the current user
+         */
+        $this->owner = $this->user->profile['email'];
         
         /*
          * OpenSearch Description
@@ -300,6 +306,7 @@ class RestoCollection {
         $this->model = RestoUtil::instantiate($descriptions[$this->name]['model'], array());
         $this->osDescription = $descriptions[$this->name]['osDescription'];
         $this->status = $descriptions[$this->name]['status'];
+        $this->owner = $descriptions[$this->name]['owner'];
         $this->license = $descriptions[$this->name]['license'];
         $this->propertiesMapping = $descriptions[$this->name]['propertiesMapping'];
     }

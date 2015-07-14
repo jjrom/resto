@@ -55,12 +55,13 @@ class Functions_collections {
          * Then collections
          */
         $collectionsDescriptions = array();
-        $descriptions = $this->dbDriver->query('SELECT collection, status, model, mapping, licenseid FROM resto.collections' . (isset($collectionName) ? ' WHERE collection=\'' . pg_escape_string($collectionName) . '\'' : '') . ' ORDER BY collection');
+        $descriptions = $this->dbDriver->query('SELECT collection, status, owner, model, mapping, licenseid FROM resto.collections' . (isset($collectionName) ? ' WHERE collection=\'' . pg_escape_string($collectionName) . '\'' : '') . ' ORDER BY collection');
         while ($collection = pg_fetch_assoc($descriptions)) {
             $collectionsDescriptions[$collection['collection']] = array(
                 'name' => $collection['collection'],
                 'model' => $collection['model'],
                 'status' => $collection['status'],
+                'owner' => $collection['owner'],
                 'propertiesMapping' => json_decode($collection['mapping'], true),
                 'license' => isset($licenses[$collection['licenseid']]) ? $licenses[$collection['licenseid']] : null,
                 'osDescription' => $this->getOSDescriptions($collection['collection'])
@@ -144,6 +145,7 @@ class Functions_collections {
      * 
      * @param RestoCollection $collection
      * @param Array $accessRights
+     * 
      * @throws Exception
      */
     public function storeCollection($collection, $accessRights) {
@@ -304,26 +306,31 @@ class Functions_collections {
      * Store Collection description 
      * 
      * @param RestoCollection $collection
+     * 
      */
     private function storeCollectionDescription($collection) {
         
-        /*
-         * Insert collection within collections table
-         * 
-         * CREATE TABLE resto.collections (
-         *  collection          TEXT PRIMARY KEY,
-         *  creationdate        TIMESTAMP,
-         *  model               TEXT DEFAULT 'Default',
-         *  status              TEXT DEFAULT 'public',
-         *  licenseid           TEXT,
-         *  mapping             TEXT
-         * );
-         * 
-         */
         $licenseId = isset($collection->license) ? '\'' . pg_escape_string($collection->license['licenseId']) . '\'' : 'NULL';
+        
+        /*
+         * Create collection
+         */
         if (!$this->collectionExists($collection->name)) {
-            $this->dbDriver->query('INSERT INTO resto.collections (collection, creationdate, model, status, licenseid, mapping) VALUES(' . join(',', array('\'' . pg_escape_string($collection->name) . '\'', 'now()', '\'' . pg_escape_string($collection->model->name) . '\'', '\'' . pg_escape_string($collection->status) . '\'', $licenseId, '\'' . pg_escape_string(json_encode($collection->propertiesMapping)) . '\'')) . ')');
+            $toBeSet = array(
+                'collection' => '\'' . pg_escape_string($collection->name) . '\'',
+                'creationdate' => 'now()',
+                'model' => '\'' . pg_escape_string($collection->model->name) . '\'',
+                'licenseid' => $licenseId, 
+                'mapping' => '\'' . pg_escape_string(json_encode($collection->propertiesMapping)) . '\'',
+                'status' => '\'' . pg_escape_string($collection->status) . '\'',
+                'owner' => '\'' . pg_escape_string($collection->owner) . '\''
+            );
+            $this->dbDriver->query('INSERT INTO resto.collections (' . join(',', array_keys($toBeSet)) . ') VALUES(' . join(',', array_values($toBeSet)) . ')');
         }
+        /*
+         * TODO - review this code
+         * Update collection fields (status, mapping and licenseid)
+         */
         else {
             $this->dbDriver->query('UPDATE resto.collections SET status = \'' . pg_escape_string($collection->status) . '\', mapping = \'' . pg_escape_string(json_encode($collection->propertiesMapping)) . '\', licenseid=' . $licenseId . ' WHERE collection = \'' . pg_escape_string($collection->name) . '\'');
         }

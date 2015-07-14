@@ -53,7 +53,7 @@ class Functions_rights {
      * @throws exception
      */
     public function getRightsForGroups($groups, $targetType = null, $target = null, $merge = true) {
-        $query = 'SELECT owner, targettype, target, download, visualize, canpost as post, canput as put, candelete as delete FROM usermanagement.rights WHERE ownertype=\'group\' AND owner IN (' . $this->quoteForIn($groups) . ')' . (isset($targetType) ? ' AND targettype=\'' . pg_escape_string($targetType) . '\'' : '') . (isset($target) ? ' AND target IN (\'' . pg_escape_string($target) . '\', \'*\')' : '');
+        $query = 'SELECT owner, targettype, target, download, visualize, createcollection as create FROM usermanagement.rights WHERE ownertype=\'group\' AND owner IN (' . $this->quoteForIn($groups) . ')' . (isset($targetType) ? ' AND targettype=\'' . pg_escape_string($targetType) . '\'' : '') . (isset($target) ? ' AND target IN (\'' . pg_escape_string($target) . '\', \'*\')' : '');
         return $this->getRightsFromQuery($query, $merge);
     }
     
@@ -73,7 +73,7 @@ class Functions_rights {
          * Retrieve rights for user
          */
         if ($user->profile['userid'] !== -1) {
-            $query = 'SELECT owner, targettype, target, download, visualize, canpost as post, canput as put, candelete as delete FROM usermanagement.rights WHERE ownertype=\'user\' AND owner=\'' . pg_escape_string($user->profile['email']) . '\'' . (isset($targetType) ? ' AND targettype=\'' . pg_escape_string($targetType) . '\'' : '') . (isset($target) ? ' AND target IN (\'' . pg_escape_string($target) . '\', \'*\')' : '');
+            $query = 'SELECT owner, targettype, target, download, visualize, createcollection as create FROM usermanagement.rights WHERE ownertype=\'user\' AND owner=\'' . pg_escape_string($user->profile['email']) . '\'' . (isset($targetType) ? ' AND targettype=\'' . pg_escape_string($targetType) . '\'' : '') . (isset($target) ? ' AND target IN (\'' . pg_escape_string($target) . '\', \'*\')' : '');
         } 
         $userRights = $this->getRightsFromQuery(isset($query) ? $query : null, false);
         
@@ -92,12 +92,9 @@ class Functions_rights {
      * Store or update rights to database
      *     
      *     array(
-     *          'visualize' => // true or false
-     *          'download' => // true or false
-     *          'canpost' => // true or false
-     *          'canput' => // true or false
-     *          'candelete' => //true or false
-     *          'filters' => array(...)
+     *          'visualize' => // 0 or 1
+     *          'download' => // 0 or 1
+     *          'create' => // 0 or 1
      *     )
      * 
      * @param array  $rights
@@ -251,9 +248,7 @@ class Functions_rights {
             'target' => '\'' . pg_escape_string($target) . '\'',
             'visualize' => $this->integerOrZero($rights['visualize']),
             'download' => $this->integerOrZero($rights['download']),
-            'canpost' => $this->integerOrZero($rights['canpost']),
-            'canput' => $this->integerOrZero($rights['canput']),
-            'candelete' => $this->integerOrZero($rights['candelete']),
+            'createcollection' => $this->integerOrZero($rights['create']),
             'productIdentifier' => isset($productIdentifier) ? '\'' . pg_escape_string($productIdentifier) . '\'' : 'NULL',
         );
         
@@ -289,9 +284,9 @@ class Functions_rights {
         );
         
         $toBeSet = array();
-        foreach (array_values(array('visualize', 'download', 'canpost', 'canput', 'candelete')) as $right) {
+        foreach (array_values(array('visualize', 'download', 'create')) as $right) {
             if (isset($rights[$right])) {
-                $toBeSet[] = $right ."=" . $this->integerOrZero($rights[$right]);
+                $toBeSet[] = ($right === 'create' ? 'createcollection' : $right) ."=" . $this->integerOrZero($rights[$right]);
             }
         }
         

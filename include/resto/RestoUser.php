@@ -148,61 +148,59 @@ class RestoUser{
     }
     
     /**
-     * Can User download ? 
+     * Can ser download product ? 
      * 
      * @param string $collectionName
      * @param string $featureIdentifier
      * @return boolean
      */
-    public function hasDownloadRights($collectionName = null, $featureIdentifier = null){
+    public function hasDownloadRights($collectionName = null, $featureIdentifier = null) {
         return $this->hasDownloadOrVisualizeRights('download', $collectionName, $featureIdentifier);
     }
     
     /**
-     * Can User visualize ?
+     * Can user visualize product ?
      * 
      * @param string $collectionName
      * @param string $featureIdentifier
      * @return boolean
      */
-    public function hasVisualizeRights($collectionName = null, $featureIdentifier = null){
+    public function hasVisualizeRights($collectionName = null, $featureIdentifier = null) {
         return $this->hasDownloadOrVisualizeRights('visualize', $collectionName, $featureIdentifier);
     }
     
     /**
-     * Can User POST ?
+     * Can user create collection ?
      * 
-     * @param string $collectionName
+     * @param RestoCollection $collectionName
      * @return boolean
      */
-    public function hasPOSTRights($collectionName = null){
+    public function hasCreateRights($collectionName = null) {
         $rights = $this->getRights($collectionName);
-        return $rights['post'];
+        return $rights['create'];
         
     }
     
     /**
-     * Can User PUT ?
+     * A user can update a collection if he is the owner of the collection
+     * or if he is an admin
      * 
-     * @param string $collectionName
-     * @param string $featureIdentifier
+     * @param RestoCollection $collection
      * @return boolean
      */
-    public function hasPUTRights($collectionName, $featureIdentifier = null){
-        $rights = $this->getRights($collectionName, $featureIdentifier);
-        return $rights['put'];
-    }
-    
-    /**
-     * Can User DELETE ?
-     * 
-     * @param string $collectionName
-     * @param string $featureIdentifier
-     * @return boolean
-     */
-    public function hasDELETERights($collectionName, $featureIdentifier = null){
-        $rights = $this->getRights($collectionName, $featureIdentifier);
-        return $rights['delete'];
+    public function hasUpdateRights($collection) {
+        
+        if (!$this->hasCreateRights($collection->name)) {
+            return false;
+        }
+        /*
+         * Only collection owner and admin can update the collection
+         */
+        else if (!$this->isAdmin() && $collection->owner !== $this->profile['email']) {
+            return false;
+        }
+        
+        return true;
     }
     
     /**

@@ -38,9 +38,7 @@ CREATE TABLE usermanagement.rights (
     target              TEXT NOT NULL, -- collection from resto.collection or featureid from resto.features
     download            INTEGER DEFAULT 0,
     visualize           INTEGER DEFAULT 0,
-    canpost             INTEGER DEFAULT 0,
-    canput              INTEGER DEFAULT 0,
-    candelete           INTEGER DEFAULT 0,
+    createcollection    INTEGER DEFAULT 0,
     productidentifier   TEXT -- same as productidentifier in resto.features
 );
 CREATE INDEX idx_owner_rights ON usermanagement.rights (owner);
@@ -49,11 +47,12 @@ GRANT SELECT,INSERT,UPDATE ON usermanagement.rights TO resto;
 GRANT SELECT,UPDATE ON usermanagement.rights_gid_seq TO resto;
 
 -- INSERT admin rights
-INSERT INTO usermanagement.rights (ownertype, owner, targettype, target, download, visualize, canpost, canput, candelete) VALUES ('group','admin','collection','*',1,1,1,1,1);
+INSERT INTO usermanagement.rights (ownertype, owner, targettype, target, download, visualize, createcollection) VALUES ('group','admin','collection','*',1,1,1);
 
 -- collections
 ALTER TABLE resto.collections RENAME COLUMN license TO licenseid;
 ALTER TABLE resto.collections ALTER COLUMN licenseid SET DEFAULT 'unlicensed'::text;
+ALTER TABLE resto.collections ADD COLUMN owner TEXT;
 UPDATE TABLE resto.collections SET license='unlicensed';
 
 -- signatures

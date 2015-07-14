@@ -127,6 +127,7 @@ class RestoCollections {
             $collection->model = RestoUtil::instantiate($collectionsDescriptions[$key]['model'], array($collection->context, $collection->user));
             $collection->osDescription = $collectionsDescriptions[$key]['osDescription'];
             $collection->status = $collectionsDescriptions[$key]['status'];
+            $collection->owner = $collectionsDescriptions[$key]['owner'];
             $collection->license = $collectionsDescriptions[$key]['license'];
             $collection->propertiesMapping = $collectionsDescriptions[$key]['propertiesMapping'];
             $this->add($collection);

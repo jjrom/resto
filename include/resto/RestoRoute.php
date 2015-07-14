@@ -33,12 +33,18 @@ abstract class RestoRoute {
      */
     protected $user;
     
+    /*
+     * API functions
+     */
+    protected $API;
+    
     /**
      * Constructor
      */
     public function __construct($context, $user) {
         $this->context = $context;
         $this->user = $user;
+        $this->API = new RestoAPI($context);
     }
    
     /**
@@ -101,24 +107,6 @@ abstract class RestoRoute {
         }
     }
    
-    /**
-     * Send user activation code by email
-     * 
-     * @param array $params
-     */
-    protected function sendMail($params) {
-        $headers = 'From: ' . $params['senderName'] . ' <' . $params['senderEmail'] . '>' . "\r\n";
-        $headers .= 'Reply-To: doNotReply <' . $params['senderEmail'] . '>' . "\r\n";
-        $headers .= 'X-Mailer: PHP/' . phpversion() . "\r\n";
-        $headers .= 'X-Priority: 3' . "\r\n";
-        $headers .= 'MIME-Version: 1.0' . "\r\n";
-        $headers .= 'Content-type: text/html; charset=UTF-8' . "\r\n";
-        if (mail($params['to'], $params['subject'], $params['message'] , $headers, '-f' . $params['senderEmail'])) {
-            return true;
-        }
-        return false;
-    }
-
     /**
      * Return userid from email or id string
      * 
