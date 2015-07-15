@@ -3,7 +3,7 @@
     "model": "RestoModel_example",
     "status": "public",
     "licenseId": "Example",
-    "accessRights":{
+    "rights":{
         "download":0,
         "visualize":1
     },

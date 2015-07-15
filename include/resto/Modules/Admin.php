@@ -25,7 +25,7 @@
  * 
  * -- GET
  * 
- *      {module_route}/users                                         |  Show all users profiles (only admin)
+ *      {module_route}/users                                          |  Show all users profiles (only admin)
  *      {module_route}/users/{userid}                                 |  Show user profile
  *      {module_route}/users/{userid}/groups                          |  Show user groups
  *      {module_route}/users/{userid}/cart                            |  Show user cart
@@ -38,16 +38,22 @@
  *
  * -- POST
  *    
- *      {module_route}/licenses                                      |  Create a license
+ *      {module_route}/licenses                                       |  Create a license
+ *      {module_route}/users/{userid}/rights                          |  Add/update rights for {userid} on all collections
+ *      {module_route}/users/{userid}/rights/{collection}             |  Add/update rights for {userid} on {collection}
+ *      {module_route}/users/{userid}/rights/{collection}/{featureid} |  Add/update rights for {userid} on {featureid}
  * 
  * -- PUT
  * 
  *      {module_route}/users/{userid}/groups                          |  Update {userid} groups
- *     
+ * 
  * -- DELETE
  * 
- *      {module_route}/licenses/{licenseid}                          |  Delete {licenseid}
- *      {module_route}/users/{userid}/groups/{groups}                |  Remove {groups} for user
+ *      {module_route}/licenses/{licenseid}                           |  Delete {licenseid}
+ *      {module_route}/users/{userid}/groups/{groups}                 |  Remove {groups} for user
+ *      {module_route}/users/{userid}/rights                          |  Delete rights for {userid} on '*'
+ *      {module_route}/users/{userid}/rights/{collection}             |  Delete rights for {userid} on {collection}
+ *      {module_route}/users/{userid}/rights/{collection}/{featureid} |  Delete rights for {userid} on {featureid}
  *    
  */
 class Admin extends RestoModule {
@@ -128,6 +134,8 @@ class Admin extends RestoModule {
         switch ($segments[0]) {
             case 'licenses':
                 return $this->POST_licenses($segments, $data);
+            case 'users':
+                return $this->POST_users($segments, $data);
             default:
                 RestoLogUtil::httpError(404);
         }
@@ -267,6 +275,36 @@ class Admin extends RestoModule {
     
     /**
      *
+     * Process HTTP POST request on users
+     *
+     *      users/{userid}/rights         
+     *      users/{userid}/rights/{collection}      
+     *      users/{userid}/rights/{collection}/{featureid}   
+     *
+     * @param array $segments
+     * @param array $data
+     */
+    private function POST_users($segments, $data) {
+        
+        /*
+         * Check route pattern
+         */
+        if (!isset($segments[2]) || $segments[2] !== 'rights' || !isset($data['rights'])) {
+            RestoLogUtil::httpError(404);
+        }
+        
+        /*
+         * Get user
+         */
+        $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('userid' => $segments[1])), $this->context);
+        
+        return $this->API->setUserRights($user, $data['rights'], isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
+        
+    }
+    
+    
+    /**
+     *
      * Process HTTP PUT request on users
      *
      *    users/{userid}/groups 
@@ -299,8 +337,8 @@ class Admin extends RestoModule {
      * 
      * Process HTTP DELETE request on licenses
      *
-     *    licenses/{licenseid}                          |  Delete {licenseid}
-     *
+     *    licenses/{licenseid}
+     * 
      * @param array $segments
      */
     private function DELETE_licenses($segments) {
@@ -320,17 +358,20 @@ class Admin extends RestoModule {
      * 
      * Process HTTP DELETE request on users
      *
-     *     users/{userid}/groups/{groups}              
+     *     users/{userid}/groups/{groups}                     
+     *     users/{userid}/rights         
+     *     users/{userid}/rights/{collection}      
+     *     users/{userid}/rights/{collection}/{featureid}            
      *
      * @param array $segments
      */
     private function DELETE_users($segments) {
         
         /*
-         * Mandatory {userid} and {groups}
+         * Check route pattern
          */
-        if (empty($segments[3]) || !ctype_digit($segments[1]) || $segments[2] !== 'groups') {
-            return RestoLogUtil::httpError(404);
+        if (empty($segments[2]) || !ctype_digit($segments[1])) {
+            RestoLogUtil::httpError(404);
         }
         
         /*
@@ -338,7 +379,18 @@ class Admin extends RestoModule {
          */
         $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('userid' => $segments[1])), $this->context);
         
-        return $this->API->removeUserGroups($user, $segments[3]);
+        /*
+         * users/{userid}/groups/{groups}
+         */
+        if ($segments[2] === 'groups' && !empty($segments[3])) {
+            $this->API->removeUserGroups($user, $segments[3]);
+        }
+        else if ($segments[2] !== 'rights') {
+            $this->API->removeUserRights($user, isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
+        }
+        
+        RestoLogUtil::httpError(404);
+        
         
     }
     

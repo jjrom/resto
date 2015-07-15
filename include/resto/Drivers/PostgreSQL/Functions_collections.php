@@ -144,11 +144,11 @@ class Functions_collections {
      * Save collection to database
      * 
      * @param RestoCollection $collection
-     * @param Array $accessRights
+     * @param Array $rights
      * 
      * @throws Exception
      */
-    public function storeCollection($collection, $accessRights) {
+    public function storeCollection($collection, $rights) {
         
         $schemaName = '_' . strtolower($collection->name);
         
@@ -178,7 +178,7 @@ class Functions_collections {
              * Store default rights for collection
              */
             $this->dbDriver->store(RestoDatabaseDriver::RIGHTS, array(
-                'rights' => $accessRights,
+                'rights' => $rights,
                 'ownerType' => 'group',
                 'owner' => 'default',
                 'targetType' => 'collection',

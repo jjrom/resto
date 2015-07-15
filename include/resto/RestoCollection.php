@@ -199,7 +199,7 @@ class RestoCollection {
      *          "controller": "RestoCollection_Default",
      *          "status": "public",
      *          "licenseId": "license",
-     *          "accessRights":{
+     *          "rights":{
      *              "download":0,
      *              "visualize":1
      *          },
@@ -272,7 +272,7 @@ class RestoCollection {
         /*
          * Save on database
          */
-        $this->saveToStore(isset($object['accessRights']) ? $object['accessRights'] : array(), $synchronize);
+        $this->saveToStore(isset($object['rights']) ? $object['rights'] : array(), $synchronize);
         
     }
    
@@ -375,13 +375,13 @@ class RestoCollection {
     /**
      * Save collection to database if synchronize is set to true
      * 
-     * @param array $accessRights
+     * @param array $rights
      * @param boolean $synchronize
      * @return boolean
      */
-    private function saveToStore($accessRights, $synchronize) {
+    private function saveToStore($rights, $synchronize) {
         if ($synchronize) {
-            $this->context->dbDriver->store(RestoDatabaseDriver::COLLECTION, array('collection' => $this, 'accessRights' => $accessRights));
+            $this->context->dbDriver->store(RestoDatabaseDriver::COLLECTION, array('collection' => $this, '$rights' => $rights));
             return true;
         }
         return false;

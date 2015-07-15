@@ -414,7 +414,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             case parent::COLLECTION:
                 $collectionsFunctions = new Functions_collections($this);
-                return $collectionsFunctions->storeCollection($params['collection'], $params['accessRights']);
+                return $collectionsFunctions->storeCollection($params['collection'], $params['rights']);
             
             /*
              * Store facets

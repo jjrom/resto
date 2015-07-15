@@ -79,6 +79,95 @@ class RestoAPI {
         return isset($collectionName) ? new RestoCollection($collectionName, $this->context, $user, array('autoload' => true)) : new RestoCollections($this->context, $user);
         
     }
+    
+    /**
+     * Download feature
+     * 
+     * @param RestoUser $user
+     * @param RestoCollection $collection
+     * @param RestoFeature $feature
+     * @param String $token
+     * 
+     */
+    public function downloadFeature($user, $collection, $feature, $token) {
+        
+        /*
+         * Check user download rights
+         */
+        $user = $this->checkRights('download', $user, $token, $collection, $feature);
+        
+        /*
+         * User do not fullfill license requirements
+         */
+        if (!$user->fulfillLicenseRequirements($feature->getLicense())) {
+            RestoLogUtil::httpError(403, 'You do not fulfill license requirements');
+        }
+        
+        /*
+         * User has to sign the license before downloading
+         */
+        if ($user->hasToSignLicense($feature->getLicense())) {
+            return array(
+                'ErrorMessage' => 'Forbidden',
+                'feature' => $feature->identifier,
+                'collection' => $collection->name,
+                'license' => $feature->getLicense(),
+                'userid' => $user->profile['userid'],
+                'ErrorCode' => 3002
+            );
+        }
+
+        /*
+         * Rights + fullfill license requirements + license signed = download and exit
+         */
+        if ($this->context->storeQuery === true) {
+            $user->storeQuery($this->context->method, 'download',  $collection->name, $feature->identifier, $this->context->query, $this->context->getUrl());
+        }
+        $feature->download();
+        return null;
+        
+    }
+    
+    /**
+     * Access WMS for a given feature
+     *
+     * @param RestoUser $user
+     * @param RestoCollection $collection
+     * @param RestoFeature $feature
+     * @param string $token
+     * 
+     */
+    public function viewFeature($user, $collection, $feature, $token) {
+        
+        /*
+         * Check user visualize rights
+         */
+        $user = $this->checkRights('visualize', $user, $token, $collection, $feature);
+        
+        /*
+         * User do not fullfill license requirements
+         * Stream low resolution WMS if viewService is public
+         * Forbidden otherwise
+         */
+        
+        $wmsUtil = new RestoWMSUtil($this->context, $user);
+        $license = $feature->getLicense();
+        if (!$user->fulfillLicenseRequirements($license)) {
+            if ($license['viewService'] !== 'public') {
+                RestoLogUtil::httpError(403, 'You do not fulfill license requirements');
+            }
+            else {
+                $wmsUtil->streamWMS($feature, true);
+            }
+        }
+        /*
+         * Stream full resolution WMS
+         */
+        else {
+            $wmsUtil->streamWMS($feature);
+        }
+        return null;
+    }
 
     /**
      * Connect user
@@ -177,132 +266,6 @@ class RestoAPI {
     }
 
     /**
-     * Check JWT token validity
-     * 
-     * Success if JWT is valid i.e.
-     *  - signed by server
-     *  - still in the validity period
-     *  - has not been revoked 
-     * 
-     * @param string $token
-     */
-    public function checkJWT($token) {
-        
-        if (!isset($token)) {
-            RestoLogUtil::httpError(400);
-        }
-        
-        try {
-
-            $profile = json_decode(json_encode((array) $this->context->decodeJWT($token)), true);
-
-            /*
-             * Token is valid - i.e. signed by server and still in the validity period
-             * Check if it is not revoked
-             */
-            if (isset($profile['data']['email']) && !$this->context->dbDriver->check(RestoDatabaseDriver::TOKEN_REVOKED, array('token' => $token))) {
-                return RestoLogUtil::success('Valid token');
-            }
-            else {
-                return RestoLogUtil::error('Invalid token');
-            }
-
-        } catch (Exception $ex) {
-            return RestoLogUtil::error('User not connected');
-        }
-        
-    }
-
-    /**
-     * Download feature
-     * 
-     * @param RestoUser $user
-     * @param RestoCollection $collection
-     * @param RestoFeature $feature
-     * @param String $token
-     * 
-     */
-    public function downloadFeature($user, $collection, $feature, $token) {
-        
-        /*
-         * Check user download rights
-         */
-        $user = $this->checkRights('download', $user, $token, $collection, $feature);
-        
-        /*
-         * User do not fullfill license requirements
-         */
-        if (!$user->fulfillLicenseRequirements($feature->getLicense())) {
-            RestoLogUtil::httpError(403, 'You do not fulfill license requirements');
-        }
-        
-        /*
-         * User has to sign the license before downloading
-         */
-        if ($user->hasToSignLicense($feature->getLicense())) {
-            return array(
-                'ErrorMessage' => 'Forbidden',
-                'feature' => $feature->identifier,
-                'collection' => $collection->name,
-                'license' => $feature->getLicense(),
-                'userid' => $user->profile['userid'],
-                'ErrorCode' => 3002
-            );
-        }
-
-        /*
-         * Rights + fullfill license requirements + license signed = download and exit
-         */
-        if ($this->context->storeQuery === true) {
-            $user->storeQuery($this->context->method, 'download',  $collection->name, $feature->identifier, $this->context->query, $this->context->getUrl());
-        }
-        $feature->download();
-        return null;
-        
-    }
-    
-    /**
-     * Access WMS for a given feature
-     *
-     * @param RestoUser $user
-     * @param RestoCollection $collection
-     * @param RestoFeature $feature
-     * @param string $token
-     * 
-     */
-    public function viewFeature($user, $collection, $feature, $token) {
-        
-        /*
-         * Check user visualize rights
-         */
-        $user = $this->checkRights('visualize', $user, $token, $collection, $feature);
-        
-        /*
-         * User do not fullfill license requirements
-         * Stream low resolution WMS if viewService is public
-         * Forbidden otherwise
-         */
-        
-        $wmsUtil = new RestoWMSUtil($this->context, $user);
-        $license = $feature->getLicense();
-        if (!$user->fulfillLicenseRequirements($license)) {
-            if ($license['viewService'] !== 'public') {
-                RestoLogUtil::httpError(403, 'You do not fulfill license requirements');
-            }
-            else {
-                $wmsUtil->streamWMS($feature, true);
-            }
-        }
-        /*
-         * Stream full resolution WMS
-         */
-        else {
-            $wmsUtil->streamWMS($feature);
-        }
-        return null;
-    }
-    
-    /**
      * Get users profiles
      * 
      * @throws Exception
@@ -355,6 +318,55 @@ class RestoAPI {
         ));
     }
 
+    /**
+     * Set user rights
+     * 
+     * @param RestoUser $user
+     * @param array $rights
+     * @param string $collectionName
+     * @param string $featureIdentifier
+     * @throws Exception
+     */
+    public function setUserRights($user, $rights, $collectionName = null, $featureIdentifier = null) {
+        
+        /*
+         * Store/update rights
+         */
+        $this->context->dbDriver->store(RestoDatabaseDriver::RIGHTS, $this->getRightsArray($user, $rights, $collectionName, $featureIdentifier));
+        
+        return RestoLogUtil::success('Rights for ' . $user->profile['email'], array(
+                    'email' => $user->profile['email'],
+                    'userid' => $user->profile['userid'],
+                    'groups' => $user->profile['groups'],
+                    'rights' => $user->getRights($collectionName, $featureIdentifier)
+        ));
+    }
+    
+    /**
+     * Remove user rights
+     * 
+     * @param RestoUser $user
+     * @param array $rights
+     * @param string $collectionName
+     * @param string $featureIdentifier
+     * @throws Exception
+     */
+    public function removeUserRights($user, $rights, $collectionName = null, $featureIdentifier = null) {
+                
+        /*
+         * Delete rights
+         */
+        $this->context->dbDriver->remove(RestoDatabaseDriver::RIGHTS, $this->getRightsArray($user, $rights, $collectionName, $featureIdentifier));
+        
+        return RestoLogUtil::success('Rights for ' . $user->profile['email'], array(
+                    'email' => $user->profile['email'],
+                    'userid' => $user->profile['userid'],
+                    'groups' => $user->profile['groups'],
+                    'rights' => $user->getRights($collectionName, $featureIdentifier)
+        ));
+    }
+    
+    
     /**
      * Return user signatures
      * 
@@ -910,6 +922,43 @@ class RestoAPI {
     }
     
     /**
+     * Check JWT token validity
+     * 
+     * Success if JWT is valid i.e.
+     *  - signed by server
+     *  - still in the validity period
+     *  - has not been revoked 
+     * 
+     * @param string $token
+     */
+    public function checkJWT($token) {
+        
+        if (!isset($token)) {
+            RestoLogUtil::httpError(400);
+        }
+        
+        try {
+
+            $profile = json_decode(json_encode((array) $this->context->decodeJWT($token)), true);
+
+            /*
+             * Token is valid - i.e. signed by server and still in the validity period
+             * Check if it is not revoked
+             */
+            if (isset($profile['data']['email']) && !$this->context->dbDriver->check(RestoDatabaseDriver::TOKEN_REVOKED, array('token' => $token))) {
+                return RestoLogUtil::success('Valid token');
+            }
+            else {
+                return RestoLogUtil::error('Invalid token');
+            }
+
+        } catch (Exception $ex) {
+            return RestoLogUtil::error('User not connected');
+        }
+        
+    }
+
+    /**
      * Send user activation code by email
      * 
      * @param array $params
@@ -927,5 +976,47 @@ class RestoAPI {
         return false;
     }
 
+    /**
+     * Return rights array for add/update/delete
+     * 
+     * @param RestoUser $user
+     * @param array $rights
+     * @param string $collectionName
+     * @param string $featureIdentifier
+     * 
+     * @return string
+     */
+    private function getRightsArray($user, $rights, $collectionName = null, $featureIdentifier = null) {
+        
+        /*
+         * Default target is all collections
+         */
+        $target = '*';
+        
+        /*
+         * Check that collection/feature exists
+         */
+        if (isset($collectionName)) {
+            if (!$this->context->dbDriver->store(RestoDatabaseDriver::COLLECTION, array('collectionName' => $collectionName))) {
+                RestoLogUtil::httpError(404, 'Collection does not exist');
+            }
+            $target = $collectionName;
+        }
+        if (isset($featureIdentifier)) {
+            if (!$this->context->dbDriver->store(RestoDatabaseDriver::FEATURE, array('featureIdentifier' => $featureIdentifier))) {
+                RestoLogUtil::httpError(404, 'Feature does not exist');
+            }
+            $target = $featureIdentifier;
+        }
+        
+        return array(
+            'rights' => $rights,
+            'ownerType' => 'user',
+            'owner' => $user->profile['email'],
+            'targetType' => isset($featureIdentifier) ? 'feature' : 'collection',
+            'target' => $target
+        );
+        
+    }
 
 }
