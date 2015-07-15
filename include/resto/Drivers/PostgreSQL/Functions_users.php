@@ -154,8 +154,8 @@ class Functions_users {
         foreach (array_values(array('username', 'givenname', 'lastname', 'country', 'organization', 'topics', 'organizationcountry', 'flags')) as $field) {
             $toBeSet[$field] = '\'' . (isset($profile[$field]) ? "'". $profile[$field] . "'" : 'NULL') . '\'';
         }
-        $results = $this->dbDriver->query('INSERT INTO usermanagement.users (' . join(',', array_keys($toBeSet)) . ') VALUES (' . join(',', array_values($toBeSet)) . ') RETURNING userid, activationcode');
-        return pg_fetch_array($results);
+        
+        return pg_fetch_array($this->dbDriver->query('INSERT INTO usermanagement.users (' . join(',', array_keys($toBeSet)) . ') VALUES (' . join(',', array_values($toBeSet)) . ') RETURNING userid, activationcode'));
     }
     
     /**
@@ -179,15 +179,18 @@ class Functions_users {
          *   - registrationdate
          */
         $values = array();
-        if (isset($profile['password'])) {
-            $values[] = 'password=\'' . RestoUtil::encrypt($profile['password']) . '\'';
-        }
-        if (isset($profile['activated'])) {
-            $values[] = 'activated=' . $profile['activated'];
-        }
         foreach (array_values(array('username', 'givenname', 'lastname', 'groups', 'country', 'organization', 'topics', 'organizationcountry', 'flags')) as $field) {
             if (isset($profile[$field])) {
-                $values[] = $field . '=\'' . pg_escape_string($profile[$field]) . '\'';
+                switch ($field) {
+                    case 'password':
+                        $values[] = 'password=\'' . RestoUtil::encrypt($profile['password']) . '\'';
+                        break;
+                    case 'activated':
+                        $values[] = 'activated=' . $profile['activated'];
+                        break;
+                    default:
+                        $values[] = $field . '=\'' . pg_escape_string($profile[$field]) . '\'';
+                }
             }
         }
         
@@ -251,10 +254,9 @@ class Functions_users {
         
         $query = 'UPDATE usermanagement.users SET ' . join(',', $toBeSet) . ' WHERE userid=\'' . pg_escape_string($userid) . '\'' . (isset($activationcode) ? ' AND activationcode=\'' . pg_escape_string($activationcode) . '\'' :'') . ' RETURNING userid';
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
-        if (count($results) === 1) {
-            return true;
-        }
-        return false;
+        
+        return count($results) === 1 ? true : false;
+        
     }
     
     /**
@@ -264,12 +266,7 @@ class Functions_users {
      * @throws Exception
      */
     public function deactivateUser($userid) {
-        $query = 'UPDATE usermanagement.users SET activated=0 WHERE userid=\'' . pg_escape_string($userid) . '\'';
-        $results = $this->dbDriver->fetch($this->dbDriver->query($query));
-        if (count($results) === 1) {
-            return true;
-        }
-        return false;
+        return count($this->dbDriver->fetch($this->dbDriver->query('UPDATE usermanagement.users SET activated=0 WHERE userid=\'' . pg_escape_string($userid) . '\''))) === 1 ? true : false;
     }
     
     /**
