@@ -45,8 +45,10 @@ class RestoXML {
      * @param array $list
      */
     public function writeAttributes($list) {
-        foreach ($list as $key => $value) {
-            $this->xml->writeAttribute($key, $value);
+        if (is_array($list)) {
+            foreach ($list as $key => $value) {
+                $this->xml->writeAttribute($key, $value);
+            }
         }
     }
     
