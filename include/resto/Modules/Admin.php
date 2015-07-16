@@ -58,11 +58,6 @@
  */
 class Admin extends RestoModule {
     
-    /*
-     * Reference to RestoAPI functions
-     */
-    private $API;
-    
     /**
      * Constructor
      * 
@@ -71,7 +66,6 @@ class Admin extends RestoModule {
      */
     public function __construct($context, $user) {
         parent::__construct($context, $user);
-        $this->API = new RestoAPI($context);
     }
 
     /**
@@ -195,9 +189,11 @@ class Admin extends RestoModule {
          * No {userid} => return all profiles
          */
         if (!isset($segments[1])) {
-            return $this->API->getUsersProfiles();
+            return RestoLogUtil::success('Profiles for all users', array(
+                        'profiles' => $this->context->dbDriver->get(RestoDatabaseDriver::USERS_PROFILES)
+            ));
         }
-        
+
         /*
          * Get user
          */
@@ -207,7 +203,9 @@ class Admin extends RestoModule {
          * users/{userid}
          */
         if (!isset($segments[2])) {
-            return $this->API->getUserProfile($user);
+            return RestoLogUtil::success('Profile for ' . $user->profile['email'], array(
+                        'profile' => $user->profile
+            ));
         }
     
         /*
@@ -217,35 +215,52 @@ class Admin extends RestoModule {
             if (isset($segments[3])) {
                 return RestoLogUtil::httpError(404);
             }
-            return $this->API->getUserGroups($user);
+            return RestoLogUtil::success('Groups for ' . $user->profile['email'], array(
+                        'email' => $user->profile['email'],
+                        'groups' => $user->profile['groups']
+            ));
         }
 
         /*
          * users/{userid}/rights
          */
         if ($segments[2] === 'rights') {
-            return $this->API->getUserRights($user, isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
+            return $this->getRights($user, isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
         }
         
         /*
          * users/{userid}/cart
          */
-        if ($segments[2] === 'cart') {
-            return $this->API->getUserCart($user, isset($segments[3]) ? $segments[3] : null);
+        if ($segments[2] === 'cart' && !isset($segments[3])) {
+            return $this->user->getCart();
         }
         
         /*
          * users/{userid}/orders
          */
         if ($segments[2] === 'orders') {
-            return $this->API->getUserOrders($user, isset($segments[3]) ? $segments[3] : null);
+            if (isset($segments[3])) {
+                return new RestoOrder($user, $this->context, $segments[3]);
+            }
+            else {
+                return RestoLogUtil::success('Orders for user ' . $user->profile['email'], array(
+                            'email' => $user->profile['email'],
+                            'userid' => $user->profile['userid'],
+                            'orders' => $user->getOrders()
+                ));
+            }
         }
 
         /*
          * users/{userid}/signatures
          */
-        if ($segments[2] === 'signatures') {
-            return $this->API->getUserSignatures($user, isset($segments[3]) ? $segments[3] : null);
+        if ($segments[2] === 'signatures' && !isset($segments[3])) {
+            return RestoLogUtil::success('Signatures for ' . $user->profile['email'], array(
+                        'email' => $user->profile['email'],
+                        'userid' => $user->profile['userid'],
+                        'groups' => $user->profile['groups'],
+                        'signatures' => $user->getUserSignatures()
+            ));
         }
         
         return RestoLogUtil::httpError(404);
@@ -269,7 +284,7 @@ class Admin extends RestoModule {
             RestoLogUtil::httpError(404);
         }
 
-        return $this->API->createLicense($data);
+        return $this->createLicense($data);
         
     }
     
@@ -298,7 +313,12 @@ class Admin extends RestoModule {
          */
         $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('userid' => $segments[1])), $this->context);
         
-        return $this->API->setUserRights($user, $data['rights'], isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
+        /*
+         * Store/update rights
+         */
+        $user->setRights($data['rights'], isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
+ 
+        return $this->getRights($user, isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
         
     }
     
@@ -329,7 +349,7 @@ class Admin extends RestoModule {
             RestoLogUtil::httpError(400, 'Groups is not set');
         }
         
-        return $this->API->addUserGroups($user, $data['groups']);
+        return $user->addGroups($data['groups']);
         
     }
     
@@ -350,7 +370,10 @@ class Admin extends RestoModule {
             RestoLogUtil::httpError(404);
         }
         
-        return $this->API->removeLicense($segments[1]);
+        $this->context->dbDriver->remove(RestoDatabaseDriver::LICENSE, array('licenseId' => $segments[1]));
+        return RestoLogUtil::success('License removed', array(
+            'licenseId' => $segments[1]
+        ));
         
     }
     
@@ -383,15 +406,67 @@ class Admin extends RestoModule {
          * users/{userid}/groups/{groups}
          */
         if ($segments[2] === 'groups' && !empty($segments[3])) {
-            $this->API->removeUserGroups($user, $segments[3]);
+            return $user->removeGroups($user, $segments[3]);
         }
+        /*
+         * users/{userid}/rights
+         */
         else if ($segments[2] !== 'rights') {
-            $this->API->removeUserRights($user, isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
+            $user->removeRights($user, isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
+            return $user->getRights(isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
         }
         
         RestoLogUtil::httpError(404);
         
         
     }
+    
+    /**
+     * Return formated rights
+     * 
+     * @param RestoUser $user
+     * @param string $collectionName
+     * @param string $featureIdentifier
+     */
+    private function getRights($user, $collectionName, $featureIdentifier) {
+        return RestoLogUtil::success('Rights for ' . $user->profile['email'], array(
+                    'email' => $user->profile['email'],
+                    'userid' => $user->profile['userid'],
+                    'groups' => $user->profile['groups'],
+                    'rights' => $user->getRights($collectionName, $featureIdentifier)
+        ));
+        
+    }
+    
+    /**
+     * Create license
+     *
+     * @param array $data
+     */
+    private function createLicense($data) {
+
+        if (!isset($data['licenseId'])) {
+            RestoLogUtil::httpError(400, 'license Identifier is not set');
+        }
+
+        $license = $this->context->dbDriver->store(RestoDatabaseDriver::LICENSE, array(
+            'license' => array(
+                'licenseId' => isset($data['licenseId']) ? $data['licenseId'] : null,
+                'grantedCountries' => isset($data['grantedCountries']) ? $data['grantedCountries'] : null,
+                'grantedOrganizationCountries' => isset($data['grantedOrganizationCountries']) ? $data['grantedOrganizationCountries'] : null,
+                'grantedFlags' => isset($data['grantedFlags']) ? $data['grantedFlags'] : null,
+                'viewService' => isset($data['viewService']) ? $data['viewService'] : null,
+                'hasToBeSigned' => isset($data['hasToBeSigned']) ? $data['hasToBeSigned'] : null,
+                'signatureQuota' => isset($data['signatureQuota']) ? $data['signatureQuota'] : -1,
+                'description' => isset($data['description']) ? $data['description'] : null
+            ))
+        );
+        if (!isset($license)) {
+            RestoLogUtil::httpError(500, 'Database connection error');
+        }
+
+        return RestoLogUtil::success('license ' . $data['licenseId'] . ' created');
+    }
+    
     
 }

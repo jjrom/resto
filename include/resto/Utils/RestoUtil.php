@@ -482,6 +482,24 @@ class RestoUtil {
     }
     
     /**
+     * Send mail
+     * 
+     * @param array $params
+     */
+    public static function sendMail($params) {
+        $headers = 'From: ' . $params['senderName'] . ' <' . $params['senderEmail'] . '>' . "\r\n";
+        $headers .= 'Reply-To: doNotReply <' . $params['senderEmail'] . '>' . "\r\n";
+        $headers .= 'X-Mailer: PHP/' . phpversion() . "\r\n";
+        $headers .= 'X-Priority: 3' . "\r\n";
+        $headers .= 'MIME-Version: 1.0' . "\r\n";
+        $headers .= 'Content-type: text/html; charset=UTF-8' . "\r\n";
+        if (mail($params['to'], $params['subject'], $params['message'] , $headers, '-f' . $params['senderEmail'])) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Pretty print a json string
      * Code from https://github.com/ryanuber/projects/blob/master/PHP/JSON/jsonpp.php
      * 

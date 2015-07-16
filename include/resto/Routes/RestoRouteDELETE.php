@@ -82,7 +82,7 @@ class RestoRouteDELETE extends RestoRoute {
         /*
          * Only owner of a collection can delete it
          */
-        if (!$this->user->hasUpdateRights($collection)) {
+        if (!$this->user->hasRightsTo(RestoUser::UPDATE, array('collection' => $collection))) {
             RestoLogUtil::httpError(403);
         }
 
@@ -135,7 +135,21 @@ class RestoRouteDELETE extends RestoRoute {
     private function DELETE_user($segments) {
         
         if ($segments[1] === 'cart') {
-            return $this->API->removeFromUserCart($this->user, isset($segments[2]) ? $segments[2] : null);
+            
+            /*
+             * Clear all cart items
+             */
+            if (!isset($segments[2])) {
+                return $this->user->getCart()->clear(true) ? RestoLogUtil::success('Cart cleared') : RestoLogUtil::error('Cannot clear cart');
+            }
+            
+            /*
+             * Delete itemId only
+             */
+            else {
+                return $this->user->getCart()->remove($segments[2], true) ? RestoLogUtil::success('Item removed from cart', array('itemid' => $itemId)) : RestoLogUtil::error('Item cannot be removed', array('itemid' => $itemId));
+                
+            }
         }
         else {
             RestoLogUtil::httpError(404);

@@ -118,7 +118,7 @@ class RestoContext {
      * @param json $jsonData
      * @return string
      */
-    public function createToken($identifier, $jsonData) {
+    public function createJWT($identifier, $jsonData) {
         return JWT::encode(array(
             'iss' => 'resto:server',
             'sub' => $identifier,
@@ -136,6 +136,38 @@ class RestoContext {
      */
     public function decodeJWT($token) {
         return JWT::decode($token, $this->passphrase, $this->tokenEncryptions);
+    }
+    
+    /**
+     * Decode and verify signed JSON Web Token
+     * 
+     * @param string $token
+     * @return array
+     */
+    public function checkJWT($token) {
+        
+        if (!isset($token)) {
+            return false;
+        }
+        
+        try {
+
+            $profile = json_decode(json_encode((array) $this->context->decodeJWT($token)), true);
+
+            /*
+             * Token is valid - i.e. signed by server and still in the validity period
+             * Check if it is not revoked
+             */
+            if (isset($profile['data']['email']) && !$this->context->dbDriver->check(RestoDatabaseDriver::TOKEN_REVOKED, array('token' => $token))) {
+                return true;
+            }
+            else {
+                return false;
+            }
+
+        } catch (Exception $ex) {
+            return false;
+        }
     }
     
     /**

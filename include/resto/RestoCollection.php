@@ -150,7 +150,7 @@ class RestoCollection {
             'status' => $this->status,
             'owner' => $this->owner,
             'model' => $this->model->name,
-            'license' => isset($this->license) ? $this->license : null,
+            'license' => isset($this->license) ? $this->license->toArray() : null,
             'osDescription' => $this->osDescription,
             //'propertiesMapping' => $this->propertiesMapping,
             'statistics' => $setStatistics ? $this->getStatistics() : array()
@@ -174,22 +174,6 @@ class RestoCollection {
         return $osdd->toString();
     }
  
-    /**
-     * Return license in the current language
-     */
-    public function getLicense() {
-        if (!isset($this->license)) {
-            return null;
-        }
-        if (!isset($this->license['description'][$this->context->dictionary->language])) {
-            if (isset($this->license['description']['en'])) {
-                return $this->license['description']['en'];
-            }
-            return null;
-        }
-        return $this->license['description'][$this->context->dictionary->language];
-    }
-    
     /**
      * Load collection parameters from input collection description 
      * Collection description is a JSON file with the following structure
@@ -261,7 +245,7 @@ class RestoCollection {
         $this->license = null;
         if (isset($object['licenseId'])) {
             $licenses = $this->context->dbDriver->get(RestoDatabaseDriver::LICENSES, array('licenseId' => $object['licenseId'])); 
-            $this->license = $licenses[$object['licenseId']];
+            $this->license = new RestoLicense($this->context, $licenses[$object['licenseId']]);
         }
         
         /*
@@ -307,7 +291,7 @@ class RestoCollection {
         $this->osDescription = $descriptions[$this->name]['osDescription'];
         $this->status = $descriptions[$this->name]['status'];
         $this->owner = $descriptions[$this->name]['owner'];
-        $this->license = $descriptions[$this->name]['license'];
+        $this->license = new RestoLicense($this->context, $descriptions[$this->name]['license']);
         $this->propertiesMapping = $descriptions[$this->name]['propertiesMapping'];
     }
     

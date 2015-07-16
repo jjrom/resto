@@ -95,7 +95,7 @@ class RestoRoutePUT extends RestoRoute {
         /*
          * Only owner of the collection can update it
          */
-        if (!$this->user->hasUpdateRights($collection)) {
+        if (!$this->user->hasRightsTo(RestoUser::UPDATE, array('collection' => $collection))) {
             RestoLogUtil::httpError(403);
         }
         
@@ -137,16 +137,49 @@ class RestoRoutePUT extends RestoRoute {
          * user
          */
         if (!isset($segments[1])) {
-            return $this->API->updateUserProfile($this->user, $data);
+            
+            /*
+             * For normal user (i.e. non admin), some properties cannot be modified after validation
+             */
+            if (!$this->user->isAdmin()) {
+
+                /*
+                 * Already validated => avoid updating administrative properties
+                 */
+                if (isset($this->user->profile['validatedby'])) {
+                    unset($data['activated'], $data['validatedby'], $data['validationdate'], $data['country'], $data['organization'], $data['organizationcountry'], $data['flags']);
+                }
+
+                /*
+                 * These properties can only be changed by admin
+                 */
+                unset($data['groups']);
+                
+            }
+
+            /*
+             * Ensure that user can only update its profile
+             */
+            $data['email'] = $this->user->profile['email'];
+
+            $this->context->dbDriver->update(RestoDatabaseDriver::USER_PROFILE, array('profile' => $data));
+
+            return RestoLogUtil::success('Update profile for user ' . $this->user->profile['email']);
         }
-        
+
         /*
          * user/cart/{itemid}
          */
         else if ($segments[1] === 'cart' && isset($segments[2])) {
-            return $this->API->updateCartItem($this->user, $segments[2], $data);
-        }
-        else {
+            if ($this->user->getCart()->update($segments[2], $data, true)) {
+                return RestoLogUtil::success('Item ' . $segments[2] . ' updated', array(
+                            'itemId' => $segments[2],
+                            'item' => $data
+                ));
+            } else {
+                return RestoLogUtil::error('Cannot update item ' . $segments[2]);
+            }
+        } else {
             RestoLogUtil::httpError(404);
         }
         

@@ -338,7 +338,7 @@ class Auth extends RestoModule {
             RestoLogUtil::httpError(401, 'Unauthorized');
         }
         
-        return $this->context->createToken($user->profile['userid'], $user->profile);
+        return $this->context->createJWT($user->profile['userid'], $user->profile);
         
     }
     

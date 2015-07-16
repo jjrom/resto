@@ -64,7 +64,7 @@ class RestoOrder{
     }
     
     /**
-     * Return the cart as a metalink XML file
+     * Return order as a metalink XML file
      * 
      * Warning ! a link is created only for resource that can be downloaded by users
      */
@@ -96,7 +96,7 @@ class RestoOrder{
             $last = count($segments) - 1;
             if ($last > 2) {
                 list($modifier) = explode('.', $segments[$last], 1);
-                if ($modifier !== 'download' || !$this->user->hasDownloadRights($segments[$last - 2], $segments[$last - 1])) {
+                if ($modifier !== 'download' || !$this->user->hasRightsTo(RestoUser::DOWNLOAD, array('collectionName' => $segments[$last - 2], 'featureIdentifier' => $segments[$last - 1]))) {
                     continue;
                 }
             }

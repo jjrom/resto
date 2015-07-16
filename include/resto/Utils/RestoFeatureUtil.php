@@ -383,7 +383,7 @@ class RestoFeatureUtil {
             }
         }
         if (!isset($corrected['license'])) {
-            $corrected['license'] = $this->collections[$rawFeatureArray['collection']]->license;
+            $corrected['license'] = $this->collections[$rawFeatureArray['collection']]->license->toArray();
         }
         
         return $corrected;

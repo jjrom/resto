@@ -68,7 +68,7 @@ class RestoFeature {
      * Return feature license
      */
     public function getLicense() {
-        return $this->featureArray['properties']['license'];
+        return new RestoLicense($this->context, $this->featureArray['properties']['license']);
     }
     
     /**

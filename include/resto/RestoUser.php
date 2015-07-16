@@ -17,6 +17,11 @@
 
 class RestoUser{
     
+    const CREATE = 'create'; 
+    const DOWNLOAD = 'download';
+    const UPDATE = 'update';
+    const VISUALIZE = 'visualize';
+    
     /*
      * User profile
      */
@@ -48,9 +53,7 @@ class RestoUser{
     private $fallbackRights = array(
         'download' => 0,
         'visualize' => 0,
-        'post' => 0,
-        'put' => 0,
-        'delete' => 0
+        'create' => 0
     );
     
     /**
@@ -93,6 +96,75 @@ class RestoUser{
             }
         }
         return false;
+    }
+    
+    /**
+     * Do user has rights to :
+     *   - 'download' feature,
+     *   - 'view' feature,
+     *   - 'create' collection,
+     *   - 'update' collection (i.e. add/delete feature and/or delete collection)
+     * 
+     * @param string $action
+     * @param array $params
+     * @return boolean 
+     */
+    public function hasRightsTo($action, $params = array()) {
+        switch ($action) {
+            case RestoUser::DOWNLOAD:
+            case RestoUser::VISUALIZE:
+                return $this->hasDownloadOrVisualizeRights($action, isset($params['collectionName']) ? $params['collectionName'] : null, isset($params['featureIdentifier']) ? $params['featureIdentifier'] : null);
+            case RestoUser::CREATE:
+                return $this->hasCreateRights();
+            case RestoUser::UPDATE:
+                if (isset($params['collection'])) {
+                    return $this->hasUpdateRights($params['collection']);
+                }
+            default:
+                break;
+        }
+        return false;
+    }
+    
+    /**
+     * Activate user
+     * 
+     * @param string $activationCode
+     * @param string $redirectUrl
+     * 
+     */
+    public function activate($activationCode = null) {
+        if ($this->context->dbDriver->execute(RestoDatabaseDriver::ACTIVATE_USER, array('userid' => $this->profile['userid'], 'activationCode' => isset($activationCode) ? $activationCode : null, 'userAutoValidation' => $this->context->userAutoValidation))) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
+     * Connect user
+     */
+    public function connect() {
+        if ($this->profile['userid'] !== -1 && $this->profile['activated'] === 1) {
+            $this->token = $this->context->createJWT($this->profile['userid'], $this->profile);
+            return array(
+                'token' => $this->token
+            );
+        }
+        else {
+            RestoLogUtil::httpError(403);
+        }
+    }
+    
+    /**
+     * Disconnect user
+     */
+    public function disconnect() {
+        if (!$this->context->dbDriver->execute(RestoDatabaseDriver::DISCONNECT_USER, array('token' => $this->token))) {
+            return false;
+        }
+        return true;
     }
     
     /**
@@ -148,181 +220,128 @@ class RestoUser{
     }
     
     /**
-     * Can ser download product ? 
+     * Set/update user rights
      * 
+     * @param array $rights
      * @param string $collectionName
      * @param string $featureIdentifier
-     * @return boolean
+     * @throws Exception
      */
-    public function hasDownloadRights($collectionName = null, $featureIdentifier = null) {
-        return $this->hasDownloadOrVisualizeRights('download', $collectionName, $featureIdentifier);
-    }
-    
-    /**
-     * Can user visualize product ?
-     * 
-     * @param string $collectionName
-     * @param string $featureIdentifier
-     * @return boolean
-     */
-    public function hasVisualizeRights($collectionName = null, $featureIdentifier = null) {
-        return $this->hasDownloadOrVisualizeRights('visualize', $collectionName, $featureIdentifier);
-    }
-    
-    /**
-     * Can user create collection ?
-     * 
-     * @param RestoCollection $collectionName
-     * @return boolean
-     */
-    public function hasCreateRights($collectionName = null) {
-        $rights = $this->getRights($collectionName);
-        return $rights['create'];
-        
-    }
-    
-    /**
-     * A user can update a collection if he is the owner of the collection
-     * or if he is an admin
-     * 
-     * @param RestoCollection $collection
-     * @return boolean
-     */
-    public function hasUpdateRights($collection) {
-        
-        if (!$this->hasCreateRights($collection->name)) {
-            return false;
-        }
-        /*
-         * Only collection owner and admin can update the collection
-         */
-        else if (!$this->isAdmin() && $collection->owner !== $this->profile['email']) {
-            return false;
-        }
-        
+    public function setRights($rights, $collectionName = null, $featureIdentifier = null) {
+        $this->context->dbDriver->store(RestoDatabaseDriver::RIGHTS, $this->getRightsArray($this->user, $rights, $collectionName, $featureIdentifier));
+        $this->rights = $this->context->dbDriver->get(RestoDatabaseDriver::RIGHTS, array('user' => $this));
         return true;
     }
     
     /**
-     * Check if user fulfill license requirements 
+     * Remove user rights
      * 
-     * To be fulfilled, the user profile :
-     *  - should be validated
-     *  - should match at least one of the granteFlags of the license
-     *  - should match at least one of the grantedCountries or the grantedOrganizationCountries of the license
-     * 
-     * @param array $license
+     * @param array $rights
+     * @param string $collectionName
+     * @param string $featureIdentifier
+     * @throws Exception
      */
-    public function fulfillLicenseRequirements($license) {
-        
-        /*
-         * Always be pessimistic :)
-         */
-        $fulfill = false;
-        
-        /**
-         * No license restriction (e.g. 'unlicensed' license)
-         * => Every user fulfill license requirements
-         */
-        if (!isset($license['grantedCountries']) && !isset($license['grantedOrganizationCountries']) && !isset($license['grantedFlags'])) {
-            return true;
-        }
-
-        /**
-         * Registered user profile should be validated
-         */
-        if ($this->profile['userid'] !== -1 && !isset($this->profile['validatedby'])) {
-            RestoLogUtil::httpError(403, 'User profile has not been validated. Please contact an administrator');
-        }
-
-        /**
-         * User profile should match at least one of the license granted flags 
-         */
-        if (isset($license['grantedFlags']))  {
-           
-            /*
-             * Registered user has automatically the REGISTERED flag
-             * (see 'unlicensedwithregistration' license)
-             */
-            $userFlags = !empty($this->profile['flags']) ? array_map('trim', explode(',', $this->profile['flags'])) : array();
-            if ($this->profile['userid'] !== -1) {
-                $userFlags[] = 'REGISTERED';
-            }
-            
-            /*
-             * No match => no fulfill
-             */
-            if (!$this->matches($userFlags, array_map('trim', explode(',', $license['grantedFlags'])))) {
-                return false;
-            }
-            
-        }
-        
-        /**
-         * User profile should match either one of the license granted countries or organization countries
-         */
-        if (isset($license['grantedCountries']) && isset($this->profile['country']))  {
-            $fulfill = $fulfill || $this->matches(array_map('trim', explode(',', $this->profile['country'])), array_map('trim', explode(',', $license['grantedCountries'])));
-        }
-        if (isset($license['grantedOrganizationCountries']) && isset($this->profile['organizationcountry']))  {
-            $fulfill = $fulfill || $this->matches(array_map('trim', explode(',', $this->profile['organizationcountry'])), array_map('trim', explode(',', $license['grantedOrganizationCountries'])));
-        }
-        
-        return $fulfill;
+    public function removeRights($rights, $collectionName = null, $featureIdentifier = null) {
+        $this->context->dbDriver->remove(RestoDatabaseDriver::RIGHTS, $this->getRightsArray($rights, $collectionName, $featureIdentifier));
+        $this->rights = $this->context->dbDriver->get(RestoDatabaseDriver::RIGHTS, array('user' => $this));
+        return true;
+    }
+    
+    
+    /**
+     * Add groups to user
+     * 
+     * @param string $groups
+     * @return array
+     * @throws Exception
+     */
+    public function addGroups($groups) {
+        return RestoLogUtil::success('Groups updated', array(
+                'email' => $this->profile['email'],
+                'groups' => $this->context->dbDriver->store(RestoDatabaseDriver::GROUPS, array(
+                    'userid' => $this->profile['userid'],
+                    'groups' => $groups
+                ))
+        ));
     }
     
     /**
-     * Check if user has to sign license
+     * Remove groups from user
      * 
-     * @param array $license
+     * @param string $groups
+     * @return array
+     * @throws Exception
      */
-    public function hasToSignLicense($license) {
-        
-        /*
-         * No need to sign for 'never' 
-         */
-        if ($license['hasToBeSigned'] === 'never') {
-            return false;
-        }
-        
-        /*
-         * Always need to sign for 'always'
-         */
-        if ($license['hasToBeSigned'] === 'always') {
-            return true;
-        }
-        
-        /*
-         * Otherwise check if license has been signed once
-         */
-        return !$this->context->dbDriver->check(RestoDatabaseDriver::SIGNATURE, array(
-            'email' => $this->profile['email'],
-            'licenseId' => $license['licenseId']
+    public function removeGroups($groups) {
+        return RestoLogUtil::success('Groups updated', array(
+                'email' => $this->profile['email'],
+                'groups' => $this->context->dbDriver->remove(RestoDatabaseDriver::GROUPS, array(
+                    'userid' => $this->profile['userid'],
+                    'groups' => $groups
+                ))
         ));
+    }
+    
+   /**
+     * Return user signatures
+     * 
+     * @throws Exception
+     */
+    public function getSignatures() {
+        
+        /*
+         * Get all licenses
+         */
+        $licenses = $this->context->dbDriver->get(RestoDatabaseDriver::LICENSES);
+        
+        /*
+         * Get user signatures
+         */
+        $signed = $this->context->dbDriver->get(RestoDatabaseDriver::SIGNATURES, array(
+            'email' => $this->profile['email']
+        ));
+        
+        /*
+         * Merge signatures with licences
+         */
+        $signatures = array();
+        for ($i = count($signed); $i--;) {
+            if (isset($licenses[$signed[$i]['licenseId']])) {
+                $signatures[$signed[$i]['licenseId']] = array(
+                    'lastSignatureDate' => $signed[$i]['lastSignatureDate'],
+                    'counter' => $signed[$i]['counter'],
+                    'license' => $licenses[$signed[$i]['licenseId']]
+                );
+            }
+        }
+
+        return $signatures;
         
     }
     
     /**
      * Sign license
      * 
-     *  @param array $license
+     *  @param RestoLicense $license
      */
     public function signLicense($license) {
-        return $this->context->dbDriver->execute(RestoDatabaseDriver::SIGNATURE, array(
+        
+        /*
+         * User can sign license if it does not reach the signature quota
+         */
+        if ($this->context->dbDriver->execute(RestoDatabaseDriver::SIGNATURE, array(
             'email' => $this->profile['email'],
             'licenseId' => $license['licenseId'],
             'signatureQuota' => $license['signatureQuota']
-        ));
-    }
-    
-    /**
-     * Disconnect user
-     */
-    public function disconnect() {
-        if (!$this->context->dbDriver->execute(RestoDatabaseDriver::DISCONNECT_USER, array('token' => $this->token))) {
-            return false;
+        ))) {
+            return RestoLogUtil::success('License signed', array(
+                'email' => $this->profile['email'],
+                'license' => $license
+            ));
         }
-        return true;
+        else {
+            return RestoLogUtil::error('Cannot sign license');
+        }
     }
     
     /**
@@ -344,6 +363,41 @@ class RestoUser{
         return $order;
     }
     
+    /**
+     * Send reset password link to user email adress
+     * 
+     */
+    public function sendResetPasswordLink() {
+
+        /*
+         * Only existing local user can change there password
+         */
+        if (!$this->context->dbDriver->check(RestoDatabaseDriver::USER, array('email' => $this->profile['email'])) || $this->context->dbDriver->get(RestoDatabaseDriver::USER_PASSWORD, array('email' => $this->profile['email'])) === str_repeat('*', 40)) {
+            RestoLogUtil::httpError(3005);
+        }
+
+        /*
+         * Send email with reset link
+         */
+        $shared = $this->context->dbDriver->get(RestoDatabaseDriver::SHARED_LINK, array(
+            'email' => $this->profile['email'],
+            'resourceUrl' => $this->context->resetPasswordUrl . '/' . base64_encode($this->profile['email']),
+            'duration' => isset($this->context->sharedLinkDuration) ? $this->context->sharedLinkDuration : null
+        ));
+        $fallbackLanguage = isset($this->context->mail['resetPassword'][$this->context->dictionary->language]) ? $this->context->dictionary->language : 'en';
+        if (!RestoUtil::sendMail(array(
+                    'to' => $this->profile['email'],
+                    'senderName' => $this->context->mail['senderName'],
+                    'senderEmail' => $this->context->mail['senderEmail'],
+                    'subject' => $this->context->dictionary->translate($this->context->mail['resetPassword'][$fallbackLanguage]['subject'], $this->context->title),
+                    'message' => $this->context->dictionary->translate($this->context->mail['resetPassword'][$fallbackLanguage]['message'], $this->context->title, $shared['resourceUrl'] . '?_tk=' . $shared['token'])
+                ))) {
+            RestoLogUtil::httpError(3003);
+        }
+
+        return RestoLogUtil::success('Reset link sent to ' . $this->profile['email']);
+    }
+
     /**
      * Store user query to database
      * 
@@ -380,24 +434,82 @@ class RestoUser{
      * @param string $featureIdentifier
      * @return boolean
      */
-    private function hasDownloadOrVisualizeRights($action, $collectionName = null, $featureIdentifier = null){
+    private function hasDownloadOrVisualizeRights($action, $collectionName, $featureIdentifier = null){
         $rights = $this->getRights($collectionName, $featureIdentifier);
         return $rights[$action];
     }
     
     /**
-     * Return true if there is at least one match between user and license grant
+     * Can user create collection ?
      * 
-     * @param array $userGrant
-     * @param array $licenseGrant
-     * @return type
+     * @return boolean
      */
-    private function matches($userGrant, $licenseGrant) {
-        $match = false;
-        foreach (array_values($userGrant) as $grant) {
-            $match = $match || (array_search($grant, $licenseGrant) !== false);
+    private function hasCreateRights() {
+        $rights = $this->getRights();
+        return isset($rights['collections']['*']) ? $rights['collections']['*']['create'] : 0;
+    }
+    
+    /**
+     * A user can update a collection if he is the owner of the collection
+     * or if he is an admin
+     * 
+     * @param RestoCollection $collection
+     * @return boolean
+     */
+    private function hasUpdateRights($collection) {
+        
+        if (!$this->hasCreateRights()) {
+            return false;
         }
-        return $match;
+        /*
+         * Only collection owner and admin can update the collection
+         */
+        else if (!$this->isAdmin() && $collection->owner !== $this->profile['email']) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Return rights array for add/update/delete
+     * 
+     * @param array $rights
+     * @param string $collectionName
+     * @param string $featureIdentifier
+     * 
+     * @return string
+     */
+    private function getRightsArray($rights, $collectionName = null, $featureIdentifier = null) {
+        
+        /*
+         * Default target is all collections
+         */
+        $target = '*';
+        
+        /*
+         * Check that collection/feature exists
+         */
+        if (isset($collectionName)) {
+            if (!$this->context->dbDriver->store(RestoDatabaseDriver::COLLECTION, array('collectionName' => $collectionName))) {
+                RestoLogUtil::httpError(404, 'Collection does not exist');
+            }
+            $target = $collectionName;
+        }
+        if (isset($featureIdentifier)) {
+            if (!$this->context->dbDriver->store(RestoDatabaseDriver::FEATURE, array('featureIdentifier' => $featureIdentifier))) {
+                RestoLogUtil::httpError(404, 'Feature does not exist');
+            }
+            $target = $featureIdentifier;
+        }
+        
+        return array(
+            'rights' => $rights,
+            'ownerType' => 'user',
+            'owner' => $this->user->profile['email'],
+            'targetType' => isset($featureIdentifier) ? 'feature' : 'collection',
+            'target' => $target
+        );
         
     }
     

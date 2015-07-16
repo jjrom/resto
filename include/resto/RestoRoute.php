@@ -33,18 +33,12 @@ abstract class RestoRoute {
      */
     protected $user;
     
-    /*
-     * API functions
-     */
-    protected $API;
-    
     /**
      * Constructor
      */
     public function __construct($context, $user) {
         $this->context = $context;
         $this->user = $user;
-        $this->API = new RestoAPI($context);
     }
    
     /**
@@ -90,86 +84,6 @@ abstract class RestoRoute {
         if (!isset($module)) {
             RestoLogUtil::httpError(404);
         }
-    }
-
-    /**
-     * Store query to database
-     * 
-     * @param string $serviceName
-     * @param RestoUser $user
-     * @param string $collectionName
-     * @param string $featureIdentifier
-     * 
-     */
-    protected function storeQuery($serviceName, $user, $collectionName, $featureIdentifier) {
-        if ($this->context->storeQuery === true) {
-            $user->storeQuery($this->context->method, $serviceName, isset($collectionName) ? $collectionName : null, isset($featureIdentifier) ? $featureIdentifier : null, $this->context->query, $this->context->getUrl());
-        }
-    }
-   
-    /**
-     * Return userid from email or id string
-     * 
-     * @param string $emailOrId
-     */
-    protected function userid($emailOrId) {
-        
-        if (!ctype_digit($emailOrId)) {
-            if ($this->user->profile['userid'] !== -1 && $this->user->profile['email'] === strtolower($emailOrId)) {
-                return $this->user->profile['userid'];
-            }
-        }
-        
-        return $emailOrId;
-    }
-    
-    /**
-     * Return user object if authorized
-     * 
-     * @param string $emailOrId
-     * @param boolean $byPassAuthorization
-     */
-    protected function getAuthorizedUser($emailOrId, $byPassAuthorization = false) {
-        
-        $user = $this->user;
-        $userid = $this->userid($emailOrId);
-        if ($user->profile['userid'] !== $userid) {
-            
-            if (!$user->isAdmin()) {
-                if (!$byPassAuthorization) {
-                    RestoLogUtil::httpError(403);
-                }
-            }
-            
-            if (!ctype_digit($emailOrId)) {
-                $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('email' => strtolower($emailOrId))), $this->context);
-            }
-            else {
-                $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('userid' => $userid)), $this->context);
-            }
-        }
-        
-        return $user;
-        
-    }
-    
-    /**
-     * Return the requested email/id
-     * 
-     * Order of preseance :
-     *  - "_emailorid" parameter from query
-     *  - authenticated user userid
-     * 
-     * @return string
-     */
-    protected function getRequestedEmailOrId() {
-        
-        if (isset($this->context->query['_emailorid'])) {
-            return $this->context->query['_emailorid'];
-        }
-        
-        return $this->user->profile['userid'];
-        
     }
 
 }
