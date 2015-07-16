@@ -17,7 +17,7 @@
 -- features
 ALTER table resto.features ALTER COLUMN visibility SET DEFAULT 'public';
 ALTER table resto.features ADD COLUMN licensid TEXT;
-UPDATE resto.features SET groupid='public' where groupid='PUBLIC';
+UPDATE resto.features SET visibility='public' where visibility='PUBLIC';
 
 -- users
 ALTER table usermanagement.users ADD COLUMN validatedby TEXT;

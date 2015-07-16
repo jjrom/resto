@@ -193,7 +193,7 @@ CREATE TABLE resto.features (
     identifier          TEXT UNIQUE,
     parentidentifier    TEXT,
     collection          TEXT,
-    groupid             TEXT DEFAULT 'public'::text,
+    visibility          TEXT DEFAULT 'public'::text,
     licenseid           TEXT,
     productidentifier   TEXT,
     title               TEXT,
