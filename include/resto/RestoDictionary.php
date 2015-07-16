@@ -171,8 +171,10 @@ abstract class RestoDictionary {
          */
         foreach(array_keys($this->dictionary['keywords']) as $currentType) {
             if (isset($types)) {
-                if ($types[0] === RestoDictionary::NOLOCATION && $this->isLocationType($currentType)) {
-                    continue;
+                if ($types[0] === RestoDictionary::NOLOCATION) {
+                    if ($this->isLocationType($currentType)) {
+                        continue;
+                    }
                 }
                 else {
                     if (!in_array($currentType, $types)) {
