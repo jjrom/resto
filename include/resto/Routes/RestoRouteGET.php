@@ -426,14 +426,14 @@ class RestoRouteGET extends RestoRoute {
         /*
          * User do not fullfill license requirements
          */
-        if (!$user->fulfillLicenseRequirements($feature->getLicense())) {
+        if (!$feature->getLicense()->isApplicableToUser($user)) {
             RestoLogUtil::httpError(403, 'You do not fulfill license requirements');
         }
         
         /*
          * User has to sign the license before downloading
          */
-        if ($user->hasToSignLicense($feature->getLicense())) {
+        if ($feature->getLicense()->hasToBeSignedByUser($user)) {
             return array(
                 'ErrorMessage' => 'Forbidden',
                 'feature' => $feature->identifier,
@@ -478,7 +478,7 @@ class RestoRouteGET extends RestoRoute {
         
         $wmsUtil = new RestoWMSUtil($this->context, $user);
         $license = $feature->getLicense();
-        if (!$user->fulfillLicenseRequirements($license)) {
+        if (!$license->isApplicableToUser($user)) {
             if ($license['viewService'] !== 'public') {
                 RestoLogUtil::httpError(403, 'You do not fulfill license requirements');
             }
