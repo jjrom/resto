@@ -200,8 +200,10 @@ class RestoRoutePOST extends RestoRoute {
             if (!$this->user->hasRightsTo(RestoUser::CREATE)) {
                 RestoLogUtil::httpError(403);
             }
-
-            return $this->createCollection($data);
+            
+            $collections = new RestoCollections($this->context, $this->user, array('autoload' => true));
+            $collections->create($data);
+            return RestoLogUtil::success('Collection ' . $data['name'] . ' created');
             
         }
         /*
@@ -346,34 +348,6 @@ class RestoRoutePOST extends RestoRoute {
         }
 
         return RestoLogUtil::success('User ' . $data['email'] . ' created');
-    }
-    
-    /**
-     * Create collection from input data
-     * 
-     * @param RestoUser $user
-     * @param array $data
-     * 
-     */
-    private function createCollection($user, $data) {
-        
-        if (!isset($data['name'])) {
-            RestoLogUtil::httpError(400);
-        }
-        if ($this->context->dbDriver->check(RestoDatabaseDriver::COLLECTION, array('collectionName' => $data['name']))) {
-            RestoLogUtil::httpError(2003);
-        }
-        $collection = new RestoCollection($data['name'], $this->context, $user);
-        $collection->loadFromJSON($data, true);
-        
-        /*
-         * Store query
-         */
-        if ($this->context->storeQuery === true) {
-            $user->storeQuery($this->context->method, 'create', $data['name'], null, $this->context->query, $this->context->getUrl());
-        }
-        
-        return RestoLogUtil::success('Collection ' . $data['name'] . ' created');
     }
     
     /**

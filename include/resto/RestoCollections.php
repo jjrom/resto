@@ -92,12 +92,36 @@ class RestoCollections {
     }
     
     /**
-     * Add a collection
+     * Create a collection and store it within database
      * 
-     * @param RestoCollection $collection
+     * @param array $object : collection description as json file
      */
-    public function add($collection) {
-        $this->collections[$collection->name] = $collection;
+    public function create($object) {
+        
+        $name = isset($object['name']) ? $object['name'] : null;
+        
+        /*
+         * Check that collection does not exist
+         */
+        if (isset($name) && isset($this->collections[$name])) {
+            RestoLogUtil::httpError(2003);
+        }
+        
+        /*
+         * Load collection
+         */
+        $collection = new RestoCollection($name, $this->context, $this->user);
+        $collection->loadFromJSON($object, true);
+        
+        /*
+         * Store query
+         */
+        if ($this->context->storeQuery === true) {
+            $this->user->storeQuery($this->context->method, 'create', $name, null, $this->context->query, $this->context->getUrl());
+        }
+        
+        return true;
+        
     }
     
     /**
@@ -130,7 +154,7 @@ class RestoCollections {
             $collection->owner = $collectionsDescriptions[$key]['owner'];
             $collection->license = new RestoLicense($this->context,$collectionsDescriptions[$key]['license']);
             $collection->propertiesMapping = $collectionsDescriptions[$key]['propertiesMapping'];
-            $this->add($collection);
+            $this->collections[$collection->name] = $collection;
         }
         return $this;
     }
