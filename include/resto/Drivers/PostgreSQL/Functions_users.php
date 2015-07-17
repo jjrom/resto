@@ -147,8 +147,8 @@ class Functions_users {
             'groups' => '\'' . (isset($profile['groups']) ? pg_escape_string($profile['groups']) : 'default') . '\'',
             'activationcode' => '\'' . pg_escape_string(RestoUtil::encrypt($email . microtime())) . '\'',
             'activated' => $profile['activated'],
-            'validateby' => isset($profile['validateby']) ? $profile['validateby'] : 'NULL',
-            'validationdate' => isset($profile['validateby']) ? 'now()' : 'NULL',
+            'validatedby' => isset($profile['validatedby']) ? $profile['validatedby'] : 'NULL',
+            'validationdate' => isset($profile['validatedby']) ? 'now()' : 'NULL',
             'registrationdate' => 'now()'
         );
         foreach (array_values(array('username', 'givenname', 'lastname', 'country', 'organization', 'topics', 'organizationcountry', 'flags')) as $field) {
