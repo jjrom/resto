@@ -131,7 +131,7 @@ class Functions_rights {
      */
     public function removeRights($ownerType, $owner, $targetType = null, $target = null) {
         try{
-            $result = pg_query($this->dbDriver->dbh, 'DELETE from usermanagement.rights WHERE ownertype=\'' . pg_escape_string($ownerType) . '\' AND owner=\'' . pg_escape_string($ownerType) . '\'' . (isset($targetType) ? ' AND targettype=\'' . pg_escape_string($targetType) . '\'' : '') . (isset($target) ? ' AND target=\'' . pg_escape_string($target) . '\'' : ''));
+            $result = pg_query($this->dbDriver->dbh, 'DELETE from usermanagement.rights WHERE ownertype=\'' . pg_escape_string($ownerType) . '\' AND owner=\'' . pg_escape_string($owner) . '\'' . (isset($targetType) ? ' AND targettype=\'' . pg_escape_string($targetType) . '\'' : '') . (isset($target) ? ' AND target=\'' . pg_escape_string($target) . '\'' : ''));
             if (!$result){
                 throw new Exception;
             }
@@ -309,7 +309,7 @@ class Functions_rights {
      */
     private function rightExists($ownerType, $owner, $targetType, $target) {
         $query = 'SELECT 1 from usermanagement.rights WHERE ownertype=\'' . pg_escape_string($ownerType). '\' AND owner=\'' . pg_escape_string($owner). '\' AND targettype=\'' . pg_escape_string($targetType). '\' AND target=\'' . pg_escape_string($target). '\'';
-        $results = $this->dbDriver->fetch($this->dbDriver->query(($query)));
+        $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         return !empty($results);
     }
     

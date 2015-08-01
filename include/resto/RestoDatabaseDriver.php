@@ -38,25 +38,26 @@ abstract class RestoDatabaseDriver {
     const FEATURE_DESCRIPTION = 13;
     const GROUPS = 14;
     const HANDLER = 15;
-    const KEYWORDS = 16;
-    const LICENSE = 17;
-    const LICENSES = 18;
-    const ORDER = 19;
-    const ORDERS = 20;
-    const QUERY = 21;
-    const RIGHTS = 22;
-    const SCHEMA = 23;
-    const SHARED_LINK = 24;
-    const SIGNATURE = 25;
-    const SIGNATURES = 26;
-    const STATISTICS = 27;
-    const TABLE = 28;
-    const TABLE_EMPTY = 29;
-    const TOKEN_REVOKED = 30;
-    const USER = 31;
-    const USER_PASSWORD = 32;
-    const USER_PROFILE = 33;
-    const USERS_PROFILES = 34;
+    const HISTORY = 16;
+    const KEYWORDS = 17;
+    const LICENSE = 18;
+    const LICENSES = 19;
+    const ORDER = 20;
+    const ORDERS = 21;
+    const QUERY = 22;
+    const RIGHTS = 23;
+    const SCHEMA = 24;
+    const SHARED_LINK = 25;
+    const SIGNATURE = 26;
+    const SIGNATURES = 27;
+    const STATISTICS = 28;
+    const TABLE = 29;
+    const TABLE_EMPTY = 30;
+    const TOKEN_REVOKED = 31;
+    const USER = 32;
+    const USER_PASSWORD = 33;
+    const USER_PROFILE = 34;
+    const USERS_PROFILES = 35;
     
     /*
      * Results per page

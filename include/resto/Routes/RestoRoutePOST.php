@@ -124,6 +124,17 @@ class RestoRoutePOST extends RestoRoute {
                 if (!isset($data['email']) || !isset($data['password'])) {
                     RestoLogUtil::httpError(400);
                 }
+                else {
+                    try {
+                        $profile = $this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array(
+                            'email' => strtolower($data['email']),
+                            'password' => $data['password']
+                        ));
+                    } catch (Exception $ex) {
+                        $profile = null;
+                    }
+                    $this->user = new RestoUser($profile, $this->context);
+                }
                 
                 /*
                  * Disconnect user

@@ -86,7 +86,7 @@ class Functions_collections {
      */
     public function collectionExists($name) {
         $query = 'SELECT collection FROM resto.collections WHERE collection=\'' . pg_escape_string($name) . '\'';
-        $results = $this->dbDriver->fetch($this->dbDriver->query(($query)));
+        $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         return !empty($results);
     }
     

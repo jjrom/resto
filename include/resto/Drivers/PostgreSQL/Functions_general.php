@@ -41,7 +41,7 @@ class Functions_general {
      */
     public function schemaExists($name) {
         $query = 'SELECT 1 FROM pg_namespace WHERE nspname = \'' . pg_escape_string($name) . '\'';
-        $results = $this->dbDriver->fetch($this->dbDriver->query(($query)));
+        $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         return !empty($results);
     }
 
@@ -55,7 +55,7 @@ class Functions_general {
      */
     public function tableExists($name, $schema = 'public') {
         $query = 'SELECT 1 FROM pg_tables WHERE schemaname=\'' . pg_escape_string($schema) . '\' AND tablename=\'' . pg_escape_string($name) . '\'';
-        $results = $this->dbDriver->fetch($this->dbDriver->query(($query)));
+        $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         return !empty($results);
     }
     
@@ -69,7 +69,7 @@ class Functions_general {
      */
     public function tableIsEmpty($name, $schema = 'public') {
         $query = 'SELECT count(*) as count FROM ' . pg_escape_string($schema) . '.' . pg_escape_string($name) . '';
-        $results = $this->dbDriver->query(($query));
+        $results = $this->dbDriver->query($query);
         $result = pg_fetch_assoc($results);
         return (integer) $result['count'] === 0 ? true : false;
     }
@@ -127,7 +127,7 @@ class Functions_general {
             return false;
         }
         $query = 'SELECT email FROM usermanagement.sharedlinks WHERE url=\'' . pg_escape_string($resourceUrl) . '\' AND token=\'' . pg_escape_string($token) . '\' AND validity > now()';
-        $results = $this->dbDriver->fetch($this->dbDriver->query(($query)));
+        $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         return !empty($results) ? $results[0]['email'] : false;
     }
     
@@ -190,7 +190,7 @@ class Functions_general {
      */
     public function isTokenRevoked($token) {
         $query = 'SELECT 1 FROM usermanagement.revokedtokens WHERE token= \'' . pg_escape_string($token) . '\'';
-        $results = $this->dbDriver->fetch($this->dbDriver->query(($query)));
+        $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         return !empty($results);
     }
 

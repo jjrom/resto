@@ -27,6 +27,7 @@ require 'PostgreSQL/Functions_filters.php';
 require 'PostgreSQL/Functions_licenses.php';
 require 'PostgreSQL/Functions_rights.php';
 require 'PostgreSQL/Functions_users.php';
+require 'PostgreSQL/Functions_history.php';
 
 /**
  * RESTo PostgreSQL Database
@@ -185,7 +186,14 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             case parent::USERS_PROFILES:
                 $usersFunctions = new Functions_users($this);
                 return $usersFunctions->getUsersProfiles();
-
+            
+            /*
+             * Get all history information
+             */
+            case parent::HISTORY:
+                $usersFunctions = new Functions_history($this);
+                return $usersFunctions->getHistory($params);
+                
             default:
                 return null;
         }
@@ -378,7 +386,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             case parent::RIGHTS:
                 $rightsFunctions = new Functions_rights($this);
-                return $rightsFunctions->removeRights($params['ownerType'], $params['owner'], isset($params['targetType']) ? $params['targetType'] : null, isset($params['targetType']) ? $params['target'] : null);
+                return $rightsFunctions->removeRights($params['ownerType'], $params['owner'], isset($params['targetType']) ? $params['targetType'] : null, isset($params['target']) ? $params['target'] : null);
                 
             /*
              * Remove groups for user

@@ -228,7 +228,7 @@ class RestoUser{
      * @throws Exception
      */
     public function setRights($rights, $collectionName = null, $featureIdentifier = null) {
-        $this->context->dbDriver->store(RestoDatabaseDriver::RIGHTS, $this->getRightsArray($this->user, $rights, $collectionName, $featureIdentifier));
+        $this->context->dbDriver->store(RestoDatabaseDriver::RIGHTS, $this->getRightsArray($rights, $collectionName, $featureIdentifier));
         $this->rights = $this->context->dbDriver->get(RestoDatabaseDriver::RIGHTS, array('user' => $this));
         return true;
     }
@@ -491,13 +491,13 @@ class RestoUser{
          * Check that collection/feature exists
          */
         if (isset($collectionName)) {
-            if (!$this->context->dbDriver->store(RestoDatabaseDriver::COLLECTION, array('collectionName' => $collectionName))) {
+            if (!$this->context->dbDriver->check(RestoDatabaseDriver::COLLECTION, array('collectionName' => $collectionName))) {
                 RestoLogUtil::httpError(404, 'Collection does not exist');
             }
             $target = $collectionName;
         }
         if (isset($featureIdentifier)) {
-            if (!$this->context->dbDriver->store(RestoDatabaseDriver::FEATURE, array('featureIdentifier' => $featureIdentifier))) {
+            if (!$this->context->dbDriver->check(RestoDatabaseDriver::FEATURE, array('featureIdentifier' => $featureIdentifier))) {
                 RestoLogUtil::httpError(404, 'Feature does not exist');
             }
             $target = $featureIdentifier;
@@ -506,7 +506,7 @@ class RestoUser{
         return array(
             'rights' => $rights,
             'ownerType' => 'user',
-            'owner' => $this->user->profile['email'],
+            'owner' => $this->profile['email'],
             'targetType' => isset($featureIdentifier) ? 'feature' : 'collection',
             'target' => $target
         );

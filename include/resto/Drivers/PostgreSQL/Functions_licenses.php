@@ -152,7 +152,7 @@ class Functions_licenses {
      */
     public function licenseExists($licenseId) {
         $query = 'SELECT 1 FROM resto.licenses WHERE licenseid=\'' . pg_escape_string($licenseId) . '\'';
-        $results = $this->dbDriver->fetch($this->dbDriver->query(($query)));
+        $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         return !empty($results);
     }
     
@@ -166,7 +166,7 @@ class Functions_licenses {
      */
     public function isLicenseSigned($identifier, $licenseId) {
         $query = 'SELECT 1 FROM usermanagement.signatures WHERE email= \'' . pg_escape_string($identifier) . '\' AND licenseid= \'' . pg_escape_string($licenseId) . '\'';
-        $results = $this->dbDriver->fetch($this->dbDriver->query(($query)));
+        $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         return !empty($results);
     }
     

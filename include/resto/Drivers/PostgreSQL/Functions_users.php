@@ -116,7 +116,7 @@ class Functions_users {
      */
     public function userExists($email) {
         $query = 'SELECT 1 FROM usermanagement.users WHERE email=\'' . pg_escape_string($email) . '\'';
-        $results = $this->dbDriver->fetch($this->dbDriver->query(($query)));
+        $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         return !empty($results);
     }
     
