@@ -361,7 +361,7 @@ class RestoUtil {
             return $output;
         }
         
-        return explode(' ', $str);
+        return explode(' ', str_replace('"', '', $str));
     }
     
     /**
