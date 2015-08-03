@@ -310,7 +310,11 @@ class Functions_collections {
      */
     private function storeCollectionDescription($collection) {
         
-        $licenseId = isset($collection->license) ? '\'' . pg_escape_string($collection->license['licenseId']) . '\'' : 'NULL';
+        $licenseId = 'NULL';
+        if (isset($collection->license)) {
+            $licenseDescription = $collection->license->toArray();
+            $licenseId = '\'' . pg_escape_string($licenseDescription['licenseId']) . '\'';
+        }
         
         /*
          * Create collection
