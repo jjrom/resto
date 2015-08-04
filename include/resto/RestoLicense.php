@@ -23,6 +23,11 @@ class RestoLicense {
     public $context;
     
     /*
+     * Identifier
+     */
+    public $licenseId;
+    
+    /*
      * Description
      */
     private $description;
@@ -31,11 +36,63 @@ class RestoLicense {
      * Constructor
      * 
      * @param RestoContext $context
-     * @param array $description : license description
+     * @param string $licenseId : license identifier
+     * @param boolean autoload : true to load from store
      */
-    public function __construct($context, $description) {
+    public function __construct($context, $licenseId, $autoload = true) {
+        
+        if (!isset($licenseId)) {
+            RestoLogUtil::httpError(400, 'License identifier is not set');
+        }
+        
         $this->context = $context;
+        $this->licenseId = $licenseId;
+        
+        if ($autoload) {
+            $this->loadFromStore();
+        }
+    }
+    
+    /**
+     * Set license description
+     * 
+     * @param array $description
+     * @param $synchronize : true to synchronize to database
+     */
+    public function setDescription($description, $synchronize = true) {
         $this->description = $description;
+        if ($synchronize) {
+            $this->saveToStore();
+        }
+    }
+    
+    /**
+     * Load license from database - throw exception if not found
+     */
+    public function loadFromStore() {
+        $licenses = $this->context->dbDriver->get(RestoDatabaseDriver::LICENSES, array('licenseId' => $this->licenseId));
+        if (!isset($licenses[$this->licenseId])) {
+            RestoLogUtil::httpError(400, 'License ' . $this->licenseId . ' does not exist in database');
+        }
+        $this->description = $licenses[$this->licenseId];
+    }
+    
+    /**
+     * Store license to database
+     */
+    public function saveToStore() {
+        $this->context->dbDriver->store(RestoDatabaseDriver::LICENSE, array(
+            'license' => array(
+                'licenseId' => $this->licenseId,
+                'grantedCountries' => isset($this->description['grantedCountries']) ? $this->description['grantedCountries'] : null,
+                'grantedOrganizationCountries' => isset($this->description['grantedOrganizationCountries']) ? $this->description['grantedOrganizationCountries'] : null,
+                'grantedFlags' => isset($this->description['grantedFlags']) ? $this->description['grantedFlags'] : null,
+                'viewService' => isset($this->description['viewService']) ? $this->description['viewService'] : null,
+                'hasToBeSigned' => isset($this->description['hasToBeSigned']) ? $this->description['hasToBeSigned'] : null,
+                'signatureQuota' => isset($this->description['signatureQuota']) ? $this->description['signatureQuota'] : -1,
+                'description' => isset($this->description['description']) ? $this->description['description'] : null
+            ))
+        );
     }
     
     /**

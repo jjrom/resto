@@ -94,13 +94,7 @@ class RestoRoutePOST extends RestoRoute {
                 if ($this->user->profile['email'] === 'unregistered') {
                     RestoLogUtil::httpError(403);
                 }
-                $licenses = $this->context->dbDriver->get(RestoDatabaseDriver::LICENSES, array(
-                    'licenseId' => $segments[2]
-                ));
-                if (!isset($licenses[$segments[2]])) {
-                    RestoLogUtil::httpError(400, 'Non existing license : ' . $segments[2]);
-                }
-                return $this->user->signLicense(new RestoLicense($this->context, $licenses[$segments[2]]));
+                return $this->user->signLicense(new RestoLicense($this->context, $segments[2]));
             }
             
             RestoLogUtil::httpError(404);

@@ -311,8 +311,15 @@ class Admin extends RestoModule {
         if (isset($segments[1])) {
             RestoLogUtil::httpError(404);
         }
+        
+        if (!isset($data['licenseId'])) {
+            RestoLogUtil::httpError(400, 'license Identifier is not set');
+        }
+        
+        $license = new RestoLicense($this->context, $data['licenseId'], false);
+        $license->setDescription($data);
 
-        return $this->createLicense($data);
+        return RestoLogUtil::success('license ' . $data['licenseId'] . ' created');
         
     }
     
@@ -465,36 +472,5 @@ class Admin extends RestoModule {
         ));
         
     }
-    
-    /**
-     * Create license
-     *
-     * @param array $data
-     */
-    private function createLicense($data) {
-
-        if (!isset($data['licenseId'])) {
-            RestoLogUtil::httpError(400, 'license Identifier is not set');
-        }
-
-        $license = $this->context->dbDriver->store(RestoDatabaseDriver::LICENSE, array(
-            'license' => array(
-                'licenseId' => isset($data['licenseId']) ? $data['licenseId'] : null,
-                'grantedCountries' => isset($data['grantedCountries']) ? $data['grantedCountries'] : null,
-                'grantedOrganizationCountries' => isset($data['grantedOrganizationCountries']) ? $data['grantedOrganizationCountries'] : null,
-                'grantedFlags' => isset($data['grantedFlags']) ? $data['grantedFlags'] : null,
-                'viewService' => isset($data['viewService']) ? $data['viewService'] : null,
-                'hasToBeSigned' => isset($data['hasToBeSigned']) ? $data['hasToBeSigned'] : null,
-                'signatureQuota' => isset($data['signatureQuota']) ? $data['signatureQuota'] : -1,
-                'description' => isset($data['description']) ? $data['description'] : null
-            ))
-        );
-        if (!isset($license)) {
-            RestoLogUtil::httpError(500, 'Database connection error');
-        }
-
-        return RestoLogUtil::success('license ' . $data['licenseId'] . ' created');
-    }
-    
     
 }

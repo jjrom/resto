@@ -242,9 +242,7 @@ class RestoCollection {
         /*
          * Licence - set to 'unlicensed' if not specified
          */
-        $licenseId = isset($object['licenseId']) ? $object['licenseId'] : 'unlicensed';
-        $licenses = $this->context->dbDriver->get(RestoDatabaseDriver::LICENSES, array('licenseId' => $licenseId)); 
-        $this->license = new RestoLicense($this->context, $licenses[$licenseId]);
+        $this->license = new RestoLicense($this->context, isset($object['licenseId']) ? $object['licenseId'] : 'unlicensed');
         
         /*
          * Properties mapping
