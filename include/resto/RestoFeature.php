@@ -45,6 +45,11 @@ class RestoFeature {
      */
     private $featureArray;
     
+    /*
+     * License
+     */
+    private $license;
+    
     /**
      * Constructor 
      * 
@@ -68,7 +73,11 @@ class RestoFeature {
      * Return feature license
      */
     public function getLicense() {
-        return new RestoLicense($this->context, $this->featureArray['properties']['license']);
+        if (!isset($this->license)) {
+            $this->license = new RestoLicense($this->context, $this->featureArray['properties']['license']['licenseId'], false);
+            $this->license->setDescription($this->featureArray['properties']['license'], false);
+        }
+        return $license;
     }
     
     /**

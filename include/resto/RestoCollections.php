@@ -152,7 +152,8 @@ class RestoCollections {
             $collection->osDescription = $collectionsDescriptions[$key]['osDescription'];
             $collection->status = $collectionsDescriptions[$key]['status'];
             $collection->owner = $collectionsDescriptions[$key]['owner'];
-            $collection->license = new RestoLicense($this->context,$collectionsDescriptions[$key]['license']);
+            $collection->license = new RestoLicense($this->context, $collectionsDescriptions[$key]['license']['licenseId'], false);
+            $collection->license->setDescription($collectionsDescriptions[$key]['license'], false);
             $collection->propertiesMapping = $collectionsDescriptions[$key]['propertiesMapping'];
             $this->collections[$collection->name] = $collection;
         }
