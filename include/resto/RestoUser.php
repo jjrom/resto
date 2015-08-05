@@ -99,6 +99,18 @@ class RestoUser{
     }
     
     /**
+     * Return true if user is validated by admin - false otherwise
+     * 
+     * @return boolean
+     */
+    public function isValidated() {
+        if ($this->profile['userid'] !== -1 && !isset($this->profile['validatedby'])) {
+            return true;
+        }
+        return false;
+    }
+    
+    /**
      * Do user has rights to :
      *   - 'download' feature,
      *   - 'view' feature,

@@ -119,14 +119,7 @@ class RestoLicense {
         if (!isset($this->description['grantedCountries']) && !isset($this->description['grantedOrganizationCountries']) && !isset($this->description['grantedFlags'])) {
             return true;
         }
-
-        /**
-         * Registered user profile should be validated
-         */
-        if ($user->profile['userid'] !== -1 && !isset($user->profile['validatedby'])) {
-            RestoLogUtil::httpError(403, 'User profile has not been validated. Please contact an administrator');
-        }
-
+        
         /**
          * User profile should match at least one of the license granted flags 
          */
