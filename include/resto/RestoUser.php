@@ -104,7 +104,7 @@ class RestoUser{
      * @return boolean
      */
     public function isValidated() {
-        if ($this->profile['userid'] !== -1 && !isset($this->profile['validatedby'])) {
+        if ($this->profile['userid'] !== -1 && isset($this->profile['validatedby'])) {
             return true;
         }
         return false;

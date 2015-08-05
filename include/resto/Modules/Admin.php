@@ -264,15 +264,38 @@ class Admin extends RestoModule {
          * users/{userid}/signatures
          */
         if ($segments[2] === 'signatures' && !isset($segments[3])) {
+            
+            
             return RestoLogUtil::success('Signatures for ' . $user->profile['email'], array(
                         'email' => $user->profile['email'],
                         'userid' => $user->profile['userid'],
                         'groups' => $user->profile['groups'],
-                        'signatures' => $user->getSignatures()
+                        'signatures' => $this->getSignatures($user)
             ));
         }
         
         return RestoLogUtil::httpError(404);
+    }
+    
+    /**
+     * Get signatures informations
+     * 
+     * @param RestoUser $_user
+     * @return array
+     */
+    private function getSignatures($_user){
+
+        $_collections = new RestoCollections($this->context, $_user, array('autoload' => true));
+        $_collectionsList = $_collections->getCollections();
+        $signatures = array();
+        foreach($_collectionsList as $collection){
+            $signatures[$collection->name] = array(
+                'isApplicableToUser' => $collection->license->isApplicableToUser($_user),
+                'hasToBeSignedByUser' => $collection->license->hasToBeSignedByUser($_user)
+            );
+        }
+        
+        return $signatures;
     }
     
     /**

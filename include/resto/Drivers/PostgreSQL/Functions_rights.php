@@ -242,9 +242,9 @@ class Functions_rights {
             'owner' => '\'' . pg_escape_string($owner) . '\'',
             'targettype' => '\'' . pg_escape_string($targetType) . '\'',
             'target' => '\'' . pg_escape_string($target) . '\'',
-            'visualize' => $this->integerOrZero($rights['visualize']),
-            'download' => $this->integerOrZero($rights['download']),
-            'createcollection' => $this->integerOrZero($rights['create']),
+            'visualize' => isset($rights['visualize']) ? $this->integerOrZero($rights['visualize']) : 0,
+            'download' => isset($rights['download']) ? $this->integerOrZero($rights['download']) : 0,
+            'createcollection' => isset($rights['create']) ? $this->integerOrZero($rights['create']) : 0,
             'productIdentifier' => isset($productIdentifier) ? '\'' . pg_escape_string($productIdentifier) . '\'' : 'NULL',
         );
         
