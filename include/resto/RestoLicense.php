@@ -147,7 +147,7 @@ class RestoLicense {
          * User profile should match either one of the license granted countries or organization countries
          */
         if (isset($this->description['grantedCountries']) && isset($user->profile['country']))  {
-            $fulfill = $fulfill || $this->matches(array_map('trim', explode(',', $this->profile['country'])), array_map('trim', explode(',', $this->description['grantedCountries'])));
+            $fulfill = $fulfill || $this->matches(array_map('trim', explode(',', $user->profile['country'])), array_map('trim', explode(',', $this->description['grantedCountries'])));
         }
         if (isset($this->description['grantedOrganizationCountries']) && isset($user->profile['organizationcountry']))  {
             $fulfill = $fulfill || $this->matches(array_map('trim', explode(',', $user->profile['organizationcountry'])), array_map('trim', explode(',', $this->description['grantedOrganizationCountries'])));
