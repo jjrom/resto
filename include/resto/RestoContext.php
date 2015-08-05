@@ -240,7 +240,8 @@ class RestoContext {
             'title',
             'tokenDuration',
             'tokenEncryptions',
-            'uploadDirectory'
+            'uploadDirectory',
+            'userAutoValidation'
             )) as $key) {
             if (isset($config['general'][$key])) {
                 $this->$key = $config['general'][$key];
