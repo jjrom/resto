@@ -362,7 +362,7 @@ class RestoCollection {
      */
     private function saveToStore($rights, $synchronize) {
         if ($synchronize) {
-            $this->context->dbDriver->store(RestoDatabaseDriver::COLLECTION, array('collection' => $this, '$rights' => $rights));
+            $this->context->dbDriver->store(RestoDatabaseDriver::COLLECTION, array('collection' => $this, 'rights' => $rights));
             return true;
         }
         return false;
