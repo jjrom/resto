@@ -309,14 +309,14 @@ class RestoContext {
         }
         
         /*
-         * Trim all values
+         * Trim all values and remove empty values
          */
-        if (!function_exists('trim_value')) {
-            function trim_value(&$value) {
-                $value = trim($value);
+        foreach ($query as $key => $value) {
+            $query[$key] = trim($value);
+            if (empty($query[$key])) {
+                unset($query[$key]);
             }
         }
-        array_walk_recursive($query, 'trim_value');
         
         $this->query = $query;
         
