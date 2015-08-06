@@ -319,8 +319,8 @@ class Resto {
      */
     private function authenticateBasic($token) {
         list($username, $password) = explode(':', base64_decode($token), 2);
-        if (!empty($username) && !empty($password)) {
-            try {
+        if (!empty($username) && !empty($password) && (bool) preg_match('//u', $username) && (bool) preg_match('//u', $password) && strrpos($username, '\'') === false) { 
+             try {
                 $profile = $this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array(
                     'email' => strtolower($username),
                     'password' => $password
