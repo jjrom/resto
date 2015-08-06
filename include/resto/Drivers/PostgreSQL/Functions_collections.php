@@ -195,15 +195,15 @@ class Functions_collections {
              */
             if (!$this->dbDriver->check(RestoDatabaseDriver::SCHEMA, array('name' => $schemaName))) {
                 $this->dbDriver->query('ROLLBACK');
-                throw new Exception();
+                RestoLogUtil::httpError(2000);
             }
             if (!$this->collectionExists($collection->name)) {
                 $this->dbDriver->query('ROLLBACK');
-                throw new Exception();
+                RestoLogUtil::httpError(2000);
             }
             
         } catch (Exception $e) {
-            RestoLogUtil::httpError(2000);
+            RestoLogUtil::httpError($e->getCode(), $e->getMessage());
         }
     }
     
@@ -341,19 +341,19 @@ class Functions_collections {
 
         /*
          * Insert OpenSearch descriptions within osdescriptions table
-         * (one description per lang
+         * (one description per lang)
          * 
          * CREATE TABLE resto.osdescriptions (
-         *  collection          VARCHAR(50),
-         *  lang                VARCHAR(2),
-         *  shortname           VARCHAR(50),
-         *  longname            VARCHAR(255),
-         *  description         TEXT,
-         *  tags                TEXT,
-         *  developper          VARCHAR(50),
-         *  contact             VARCHAR(50),
-         *  query               VARCHAR(255),
-         *  attribution         VARCHAR(255)
+         *  collection          TEXT,
+         *  lang                TEXT,
+         *  shortname           VARCHAR(16),
+         *  longname            VARCHAR(48),
+         *  description         VARCHAR(1024),
+         *  tags                VARCHAR(256),
+         *  developper          VARCHAR(64),
+         *  contact             TEXT,
+         *  query               TEXT,
+         *  attribution         VARCHAR(256),
          * );
          */
         $this->dbDriver->query('DELETE FROM resto.osdescriptions WHERE collection=\'' . pg_escape_string($collection->name) . '\'');
@@ -367,9 +367,33 @@ class Functions_collections {
                 '\'' . pg_escape_string($collection->name) . '\'',
                 '\'' . pg_escape_string($lang) . '\''
             );
+            
+            /*
+             * OpenSearch 1.1 draft 5 constraints
+             * (http://www.opensearch.org/Specifications/OpenSearch/1.1)
+             */
+            $validProperties = array(
+                'ShortName' => 16,
+                'LongName' => 48,
+                'Description' => 1024,
+                'Tags' => 256,
+                'Developper' => 64,
+                'Contact' => -1,
+                'Query' => -1,
+                'Attribution' => 256
+            );
             foreach (array_keys($description) as $key) {
-                $osFields[] = strtolower($key);
-                $osValues[] = '\'' . pg_escape_string($description[$key]) . '\'';
+                
+                /*
+                 * Throw exception if property is invalid
+                 */
+                if (isset($validProperties[$key])) {
+                    if ($validProperties[$key] !== -1 && strlen($description[$key]) > $validProperties[$key]) {
+                        RestoLogUtil::httpError(400, 'OpenSearch property ' . $key . ' length is greater than ' . $validProperties[$key] . ' characters');
+                    }
+                    $osFields[] = strtolower($key);
+                    $osValues[] = '\'' . pg_escape_string($description[$key]) . '\'';
+                }
             }
             $this->dbDriver->query('INSERT INTO resto.osdescriptions (' . join(',', $osFields) . ') VALUES(' . join(',', $osValues) . ')');
         }

@@ -308,7 +308,7 @@ class RestoUtil {
         /*
          * No file is posted - check HTTP request body
          */
-        if (count($_FILES) === 0 || !is_array($_FILES['file'])) {
+        if (count($_FILES) === 0) {
             return RestoUtil::readStream();
         }
         /*
@@ -544,6 +544,9 @@ class RestoUtil {
      * @throws Exception
      */
     private static function readFile($uploadDirectory, $deleteAfterRead = true) {
+        if (!isset($_FILES['file']) || !is_array($_FILES['file'])) {
+            RestoLogUtil::httpError(500, 'Cannot upload file(s)');
+        }
         try {
             $fileToUpload = is_array($_FILES['file']['tmp_name']) ? $_FILES['file']['tmp_name'][0] : $_FILES['file']['tmp_name'];
             if (is_uploaded_file($fileToUpload)) {
@@ -586,7 +589,7 @@ class RestoUtil {
          * Assume that input data format is JSON by default
          */
         $json = json_decode($content, true);
-        
+
         return $json === null ? explode("\n", $content) : $json;
     }
     
