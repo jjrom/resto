@@ -444,7 +444,7 @@ class RestoATOMFeed extends RestoXML {
         $this->startElement('os:Query');
         $this->writeAttributes(array('role' => 'request'));
         if (isset($properties['query'])) {
-            $this->writeAttributes(array('searchTerms' => $properties['query']['analysis']['query']));
+            $this->writeAttributes($properties['query']['searchFilters']);
         }
         $this->endElement();
     }

@@ -229,7 +229,14 @@ class RestoFeatureCollection {
         /*
          * Query is made from request parameters
          */
-        $query = $this->cleanFilters($analysis['searchFilters']);
+        $query = array('searchFilters' => $analysis['searchFilters']);
+        
+        /*
+         * Analysis
+         */
+        if (isset($analysis['analysis'])) {
+            $query['analysis'] = $analysis['analysis'];
+        }
         
         /*
          * Sort results
@@ -237,16 +244,11 @@ class RestoFeatureCollection {
         $this->description = array(
             'type' => 'FeatureCollection',
             'properties' => array(
-                'title' => $analysis['analysis']['query'],
-                'id' => RestoUtil::UUIDv5((isset($this->defaultCollection) ? $this->defaultCollection->name : '*') . ':' . json_encode($query)),
+                'id' => RestoUtil::UUIDv5((isset($this->defaultCollection) ? $this->defaultCollection->name : '*') . ':' . json_encode($this->cleanFilters($analysis['searchFilters']))),
                 'totalResults' => $this->totalCount !== -1 ? $this->totalCount : null,
                 'startIndex' => $offset + 1,
                 'itemsPerPage' => count($this->restoFeatures),
-                'query' => array(
-                    'searchFilters' => $analysis['searchFilters'],
-                    'analysis' => $analysis['analysis'],
-                    'processingTime' => microtime(true) - $this->requestStartTime
-                ),
+                'query' => array_merge($query, array('processingTime' => microtime(true) - $this->requestStartTime)),
                 'links' => $this->getLinks($limit, $offset)
             )
         );
@@ -585,10 +587,7 @@ class RestoFeatureCollection {
          */
         if (empty($params['searchTerms'])) {
             return array(
-                'searchFilters' => $params,
-                'analysis' => array(
-                    'query' => ''
-                )
+                'searchFilters' => $params
             );
         }
         
