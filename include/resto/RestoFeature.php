@@ -77,7 +77,7 @@ class RestoFeature {
             $this->license = new RestoLicense($this->context, $this->featureArray['properties']['license']['licenseId'], false);
             $this->license->setDescription($this->featureArray['properties']['license'], false);
         }
-        return $license;
+        return $this->license;
     }
     
     /**
