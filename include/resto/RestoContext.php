@@ -313,7 +313,7 @@ class RestoContext {
          */
         foreach ($query as $key => $value) {
             $query[$key] = trim($value);
-            if (empty($query[$key])) {
+            if ($query[$key] === '') {
                 unset($query[$key]);
             }
         }

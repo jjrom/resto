@@ -228,6 +228,8 @@ abstract class RestoModel {
      *      OpenSearch property name in template urls
      *  'operation' : 
      *      Search operation (keywords, intersects, distance, =, <=, >=)
+     *  'htmlFilter' : 
+     *      If set to true then this filter is added to the text/html OpenSearch <Url>
      * 
      * 
      *  Below properties follow the "Paramater extension" (http://www.opensearch.org/Specifications/OpenSearch/Extensions/Parameter/1.0/Draft_2)
@@ -282,15 +284,14 @@ abstract class RestoModel {
         ),
         'language' => array(
             'osKey' => 'lang',
-            'pattern' => '^[a-z]$',
+            'pattern' => '^[a-z]{2}$',
             'title' => 'Two letters language code according to ISO 639-1'
         ),
         'geo:uid' => array(
             'key' => 'identifier',
             'osKey' => 'identifier',
             'operation' => '=',
-            'title' => 'Valid UUID according to RFC 4122',
-            'pattern' => '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+            'title' => 'Either resto identifier or productIdentifier'
         ),
         'geo:geometry' => array(
             'key' => 'geometry',
@@ -314,33 +315,38 @@ abstract class RestoModel {
             'key' => 'geometry',
             'osKey' => 'lon',
             'operation' => 'distance',
-            'title' => 'Longitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lat'
+            'title' => 'Longitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lat',
+            'minInclusive' => -180,
+            'maxInclusive' => 180
         ),
         'geo:lat' => array(
             'key' => 'geometry',
             'osKey' => 'lat',
             'operation' => 'distance',
-            'title' => 'Latitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lon'
+            'title' => 'Latitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lon',
+            'minInclusive' => -90,
+            'maxInclusive' => 90
         ),
         'geo:radius' => array(
             'key' => 'geometry',
             'osKey' => 'radius',
             'operation' => 'distance',
-            'title' => 'Expressed in meters - should be used with geo:lon and geo:lat'
+            'title' => 'Expressed in meters - should be used with geo:lon and geo:lat',
+            'minInclusive' => 1
         ),
         'time:start' => array(
             'key' => 'startDate',
             'osKey' => 'startDate',
             'operation' => '>=',
             'title' => 'Beginning of the time slice of the search query. Format should follow RFC-3339',
-            'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(Z|[\+\-][0-9]{2}:[0-9]{2})$' 
+            'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'
         ),
         'time:end' => array(
             'key' => 'startDate',
             'osKey' => 'completionDate',
             'operation' => '<=',
             'title' => 'End of the time slice of the search query. Format should follow RFC-3339',
-            'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(Z|[\+\-][0-9]{2}:[0-9]{2})$' 
+            'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'
         ),
         'eo:parentIdentifier' => array(
             'key' => 'parentIdentifier',
@@ -415,6 +421,8 @@ abstract class RestoModel {
             'osKey' => 'cloudCover',
             'operation' => 'interval',
             'title' => 'Cloud cover expressed in percent',
+            'minInclusive' => 0,
+            'maxInclusive' => 100,
             'quantity' => array(
                 'value' => 'cloud',
                 'unit' => '%'
@@ -425,6 +433,8 @@ abstract class RestoModel {
             'osKey' => 'snowCover',
             'operation' => 'interval',
             'title' => 'Snow cover expressed in percent',
+            'minInclusive' => 0,
+            'maxInclusive' => 100,
             'quantity' => array(
                 'value' => 'snow',
                 'unit' => '%'
@@ -435,6 +445,8 @@ abstract class RestoModel {
             'osKey' => 'cultivatedCover',
             'operation' => 'interval',
             'title' => 'Cultivated area expressed in percent',
+            'minInclusive' => 0,
+            'maxInclusive' => 100,
             'quantity' => array(
                 'value' => 'cultivated',
                 'unit' => '%'
@@ -445,6 +457,8 @@ abstract class RestoModel {
             'osKey' => 'desertCover',
             'operation' => 'interval',
             'title' => 'Desert area expressed in percent',
+            'minInclusive' => 0,
+            'maxInclusive' => 100,
             'quantity' => array(
                 'value' => 'desert',
                 'unit' => '%'
@@ -455,6 +469,8 @@ abstract class RestoModel {
             'osKey' => 'floodedCover',
             'operation' => 'interval',
             'title' => 'Flooded area expressed in percent',
+            'minInclusive' => 0,
+            'maxInclusive' => 100,
             'quantity' => array(
                 'value' => 'flooded',
                 'unit' => '%'
@@ -465,6 +481,8 @@ abstract class RestoModel {
             'osKey' => 'forestCover',
             'operation' => 'interval',
             'title' => 'Forest area expressed in percent',
+            'minInclusive' => 0,
+            'maxInclusive' => 100,
             'quantity' => array(
                 'value' => 'forest',
                 'unit' => '%'
@@ -475,6 +493,8 @@ abstract class RestoModel {
             'osKey' => 'herbaceousCover',
             'operation' => 'interval',
             'title' => 'Herbaceous area expressed in percent',
+            'minInclusive' => 0,
+            'maxInclusive' => 100,
             'quantity' => array(
                 'value' => 'herbaceous',
                 'unit' => '%'
@@ -485,6 +505,8 @@ abstract class RestoModel {
             'osKey' => 'iceCover',
             'operation' => 'interval',
             'title' => 'Ice area expressed in percent',
+            'minInclusive' => 0,
+            'maxInclusive' => 100,
             'quantity' => array(
                 'value' => 'ice',
                 'unit' => '%'
@@ -495,6 +517,8 @@ abstract class RestoModel {
             'osKey' => 'urbanCover',
             'operation' => 'interval',
             'title' => 'Urban area expressed in percent',
+            'minInclusive' => 0,
+            'maxInclusive' => 100,
             'quantity' => array(
                 'value' => 'urban',
                 'unit' => '%'
@@ -505,6 +529,8 @@ abstract class RestoModel {
             'osKey' => 'waterCover',
             'operation' => 'interval',
             'title' => 'Water area expressed in percent',
+            'minInclusive' => 0,
+            'maxInclusive' => 100,
             'quantity' => array(
                 'value' => 'water',
                 'unit' => '%'
@@ -514,7 +540,7 @@ abstract class RestoModel {
             'key' => 'updated',
             'osKey' => 'updated',
             'operation' => '>=',
-            'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(Z|[\+\-][0-9]{2}:[0-9]{2})$'
+            'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'
         )
     );
 
@@ -667,6 +693,41 @@ abstract class RestoModel {
             }
         }
         return $facetFields;
+    }
+    
+    /**
+     * Check if value is valid for a given filter regarding the model
+     * 
+     * @param string $filterKey
+     * @param string $value
+     */
+    public function validateFilter($filterKey, $value) {
+        
+        /*
+         * Check pattern for string
+         */
+        if (isset($this->searchFilters[$filterKey]['pattern'])) {
+            if (preg_match('\'' . $this->searchFilters[$filterKey]['pattern'] . '\'', $value) !== 1) {
+                RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must follow the pattern ' . $this->searchFilters[$filterKey]['pattern']);
+            }
+        }
+        /*
+         * Check pattern for number
+         */
+        else if (isset($this->searchFilters[$filterKey]['minInclusive']) || isset($this->searchFilters[$filterKey]['maxInclusive'])) {
+            if (!is_numeric($value)) {
+                RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be numeric');
+            }
+            if (isset($this->searchFilters[$filterKey]['minInclusive']) && $value < $this->searchFilters[$filterKey]['minInclusive']) {
+                RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be greater than ' . ($this->searchFilters[$filterKey]['minInclusive'] - 1));
+            }
+            if (isset($this->searchFilters[$filterKey]['maxInclusive']) && $value > $this->searchFilters[$filterKey]['maxInclusive']) {
+                RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be lower than ' . ($this->searchFilters[$filterKey]['maxInclusive'] + 1));
+            }
+        }
+            
+        return true;
+        
     }
     
     /**
