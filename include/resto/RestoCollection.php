@@ -151,8 +151,7 @@ class RestoCollection {
             'owner' => $this->owner,
             'model' => $this->model->name,
             'license' => isset($this->license) ? $this->license->toArray() : null,
-            'osDescription' => $this->osDescription,
-            //'propertiesMapping' => $this->propertiesMapping,
+            'osDescription' => isset($this->osDescription[$this->context->dictionary->language]) ? $this->osDescription[$this->context->dictionary->language] : $this->osDescription['en'],
             'statistics' => $setStatistics ? $this->getStatistics() : array()
         );
     }
