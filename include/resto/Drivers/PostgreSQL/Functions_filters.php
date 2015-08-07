@@ -230,22 +230,7 @@ class Functions_filters {
      * @return type
      */
     private function prepareFilterQuery_date($model, $filterName, $filters) {
-        
-        if (!RestoUtil::isISO8601($filters[$filterName])) {
-            RestoLogUtil::httpError(400, 'Invalid date parameter - ' . $filterName);
-        }
-
-            /*
-             * Process time:start and time:end filters
-             */
-            switch ($filterName) {
-                case 'time:start':
-                    return $model->getDbKey($model->searchFilters['time:start']['key']) . ' >= \'' . pg_escape_string($filters['time:start']) . '\'';
-                case 'time:end':
-                    return $model->getDbKey($model->searchFilters['time:end']['key']) . ' <= \'' . pg_escape_string($filters['time:end']) . '\'';
-                default:
-                    return null;
-        }
+        return $model->getDbKey($model->searchFilters[$filterName]['key']) . ' ' . $model->searchFilters[$filterName]['operation'] . ' \'' . pg_escape_string($filters[$filterName]) . '\'';
     }
     
     /**
