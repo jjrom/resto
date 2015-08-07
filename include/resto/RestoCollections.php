@@ -177,8 +177,12 @@ class RestoCollections {
      */
     public function toJSON($pretty) {
         $collections = array(
-            'collections' => array(),
-            'statistics' => $this->context->dbDriver->get(RestoDatabaseDriver::STATISTICS, array('collectionName' => null, 'facetFields' => $this->model->getFacetFields()))
+            'synthesis' => array(
+                'name' => '*',
+                'osDescription' => isset($this->context->osDescription[$this->context->dictionary->language]) ? $this->context->osDescription[$this->context->dictionary->language] : $this->context->osDescription['en'],
+                'statistics' => $this->context->dbDriver->get(RestoDatabaseDriver::STATISTICS, array('collectionName' => null, 'facetFields' => $this->model->getFacetFields()))
+            ),
+            'collections' => array()
         );
         foreach(array_keys($this->collections) as $key) {
             $collections['collections'][] = $this->collections[$key]->toArray(true);
