@@ -181,7 +181,7 @@ class RestoCollections {
             'statistics' => $this->context->dbDriver->get(RestoDatabaseDriver::STATISTICS, array('collectionName' => null, 'facetFields' => $this->model->getFacetFields()))
         );
         foreach(array_keys($this->collections) as $key) {
-            $collections['collections'][] = $this->collections[$key]->toArray(false);
+            $collections['collections'][] = $this->collections[$key]->toArray(true);
         }
         return RestoUtil::json_format($collections, $pretty);
     }

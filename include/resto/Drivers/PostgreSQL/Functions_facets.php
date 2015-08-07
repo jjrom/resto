@@ -129,20 +129,13 @@ class Functions_facets {
         /*
          * Retrieve pivot for each input facet fields
          */
-        $statistics = array();
-        if (isset($facetFields) && count($facetFields) > 0) {
-            $statistics = $this->getCounts($this->getFacetsPivots($collectionName, $facetFields, null));
-        }
-        /*
-         * or for all master facet fields
-         */
-        else {
-            $fields = array();
+        if (!isset($facetFields)) {
+            $facetFields = array();
             foreach (array_values($this->dbDriver->facetUtil->facetCategories) as $facetCategory) {
-                $fields[] = $facetCategory[0];
+                $facetFields[] = $facetCategory[0];
             }
-            $statistics = $this->getCounts($this->getFacetsPivots($collectionName, $fields, null));
         }
+        $statistics = $this->getCounts($this->getFacetsPivots($collectionName, $facetFields, null), $collectionName);
         
         $this->dbDriver->cache->store(array('getStatistics', $collectionName, $facetFields), $statistics);
         
@@ -226,22 +219,49 @@ class Functions_facets {
      * Return counts for all pivots elements
      * 
      * @param array $pivots
+     * @param string $collectionName
      * @return type
      */
-    private function getCounts($pivots) {
-        $statistics = array();
+    private function getCounts($pivots, $collectionName) {
+        $facets = array();
         foreach(array_values($pivots) as $pivot) {
             if (isset($pivot) && count($pivot) > 0) {
                 for ($j = count($pivot); $j--;) {
-                    if (isset($statistics[$pivot[$j]['field']][$pivot[$j]['value']])) {
-                        $statistics[$pivot[$j]['field']][$pivot[$j]['value']] += (integer) $pivot[$j]['count'];
+                    if (isset($facets[$pivot[$j]['field']][$pivot[$j]['value']])) {
+                        $facets[$pivot[$j]['field']][$pivot[$j]['value']] += (integer) $pivot[$j]['count'];
                     }
                     else {
-                        $statistics[$pivot[$j]['field']][$pivot[$j]['value']] = (integer) $pivot[$j]['count'];
+                        $facets[$pivot[$j]['field']][$pivot[$j]['value']] = (integer) $pivot[$j]['count'];
                     }
                 }
             }
         }
-        return $statistics;
+        
+        /*
+         * Empty result
+         */
+        if (!isset($facets['collection'])) {
+            return array(
+                'count' => 0,
+                'facets' => array()
+            );
+        }
+        
+        /*
+         * Total count
+         */
+        $count = 0;
+        foreach (array_values($facets['collection']) as $collectionCount) {
+            $count += $collectionCount;
+        }
+        
+        if (isset($collectionName)) {
+            unset($facets['collection']);
+        }
+        
+        return array(
+            'count' => $collectionCount,
+            'facets' => $facets
+        );
     }
 }
