@@ -17,6 +17,11 @@
 
 class RestoATOMFeed extends RestoXML {
     
+    /*
+     * GeoRSS Where or Simple
+     */
+    private $useGeoRSSSimple = true;
+    
     /**
      * Constructor
      * 
@@ -248,9 +253,9 @@ class RestoATOMFeed extends RestoXML {
         $this->addGmlTime($feature['properties']['startDate'], $feature['properties']['completionDate']);
         
         /*
-         * georss:polygon
+         * Add georss
          */
-        $this->addGeorssPolygon($feature['geometry']['coordinates']);
+        $this->addGeoRSS($feature['geometry']['type'], $feature['geometry']['coordinates']);
 
     }
     
@@ -271,36 +276,89 @@ class RestoATOMFeed extends RestoXML {
     }
     
     /**
-     * Add georss:polygon from geojson entry
+     * Add GeoRSS element
+     * 
+     * @param string $type
+     * @param array $coordinates
+     */
+    private function addGeoRSS($type, $coordinates) {
+        $geometry = array();
+        switch ($type) {
+            case 'Polygon':
+            case 'LineString':
+                foreach ($coordinates as $key) {
+                    foreach ($key as $value) {
+                        $geometry[] = $value[1] . ' ' . $value[0];
+                    }
+                }
+                break;
+            default:
+                $geometry[] = $value[1] . ' ' . $value[0];
+        }
+        
+        $this->useGeoRSSSimple ? $this->addGeoRSSSimple($type, join(' ', $geometry)) : $this->addGeoRSSWhere($type, join(' ', $geometry));
+    }
+    
+    /**
+     * Add georss:where from geojson entry
      * 
      * WARNING !
      *
      *  GeoJSON coordinates order is longitude,latitude
      *  GML coordinates order is latitude,longitude
      * 
-     *  @param array $coordinates
+     *  @param string $type
+     *  @param string $geometry
      */
-    private function addGeorssPolygon($coordinates) {
-        if (isset($coordinates)) {
-            $geometry = array();
-            foreach ($coordinates as $key) {
-                foreach ($key as $value) {
-                    $geometry[] = $value[1] . ' ' . $value[0];
-                }
-            }
-            $this->startElement('georss:where');
-            $this->startElement('gml:Polygon');
-            $this->startElement('gml:exterior');
-            $this->startElement('gml:LinearRing');
-            $this->startElement('gml:posList');
-            $this->writeAttributes(array('srsDimensions' => '2'));
-            $this->text(join(' ', $geometry));
-            $this->endElement(); // gml:posList
-            $this->endElement(); // gml:LinearRing
-            $this->endElement(); // gml:exterior
-            $this->endElement(); // gml:Polygon
-            $this->endElement(); // georss:where
+    private function addGeoRSSWhere($type, $geometry) {
+        $this->startElement('georss:where');
+        $this->startElement('gml:' . $type);
+        switch ($type) {
+            case 'Polygon':
+                $this->startElement('gml:exterior');
+                $this->startElement('gml:LinearRing');
+                $this->startElement('gml:posList');
+                $this->writeAttributes(array('srsDimensions' => '2'));
+                $this->text($geometry);
+                $this->endElement(); // gml:posList
+                $this->endElement(); // gml:LinearRing
+                $this->endElement(); // gml:exterior
+                break;
+            case 'LineString':
+                $this->startElement('gml:LinearString');
+                $this->startElement('gml:posList');
+                $this->text($geometry);
+                $this->endElement(); // gml:posList
+                $this->endElement(); // gml:LineString
+                break;
+            case 'Point':
+                $this->startElement('gml:pos');
+                $this->text($geometry);
+                $this->endElement(); // gml:pos
+                break;
         }
+        $this->endElement(); // gml:<$type>
+        $this->endElement(); // georss:where
+    }
+    
+    /**
+     * Add georss simple
+     * 
+     * WARNING !
+     *
+     *  GeoJSON coordinates order is longitude,latitude
+     *  GML coordinates order is latitude,longitude
+     * 
+     *  @param string $type
+     *  @param string geometry
+     */
+    private function addGeoRSSSimple($type, $geometry) {
+        if ($type === 'LineString') {
+            $type = 'Line';
+        }
+        $this->startElement('georss:' . strtolower($type));
+        $this->text($geometry);
+        $this->endElement(); // georss:<$type>
     }
     
     /**
