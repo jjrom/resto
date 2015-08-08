@@ -202,7 +202,7 @@ class RestoATOMFeed extends RestoXML {
         /*
          * Date of creation is now
          */
-        $this->writeElement('updated', date('Y-m-dTH:i:sO'));
+        $this->writeElement('updated', date('Y-m-d\TH:i:s\Z'));
     }
     
     /**
