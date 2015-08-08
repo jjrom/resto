@@ -226,6 +226,14 @@ class RestoFeatureCollection {
      */
     private function setDescription($analysis, $offset, $limit) {
         
+        $count = count($this->restoFeatures);
+        
+        /*
+         * Recompute totalCount
+         */
+        if ($this->totalCount === -1 && $count < $limit) {
+            $this->totalCount = $count;
+        }
         /*
          * Query is made from request parameters
          */
@@ -250,9 +258,9 @@ class RestoFeatureCollection {
                 'id' => RestoUtil::UUIDv5((isset($this->defaultCollection) ? $this->defaultCollection->name : '*') . ':' . json_encode($this->cleanFilters($analysis['appliedFilters']))),
                 'totalResults' => $this->totalCount,
                 'startIndex' => $offset + 1,
-                'itemsPerPage' => count($this->restoFeatures),
+                'itemsPerPage' => $count,
                 'query' => array_merge($query, array('processingTime' => microtime(true) - $this->requestStartTime)),
-                'links' => $this->getLinks($limit, $offset)
+                'links' => $this->getLinks($count, $limit, $offset)
             )
         );
     }
@@ -394,11 +402,12 @@ class RestoFeatureCollection {
     /**
      * Get navigation links (i.e. next, previous, first, last)
      * 
+     * @param integer $count
      * @param integer $limit
      * @param integer $offset
      * @return array
      */
-    private function getLinks($limit, $offset) {
+    private function getLinks($count, $limit, $offset) {
         
         /*
          * Base links are always returned
@@ -408,7 +417,7 @@ class RestoFeatureCollection {
         /*
          * Get paging infos
          */
-        $paging = $this->getPaging($limit, $offset);
+        $paging = $this->getPaging($count, $limit, $offset);
         
         /*
          * Start page cannot be lower than 1
@@ -517,11 +526,11 @@ class RestoFeatureCollection {
     /**
      * Get start, next and last page from limit and offset
      * 
+     * @param integer $count
      * @param integer $limit
      * @param integer $offset
      */
-    private function getPaging($limit, $offset) {
-        $count = count($this->restoFeatures);
+    private function getPaging($count, $limit, $offset) {
         $paging = array(
             'startPage' => 1,
             'nextPage' => 1,
