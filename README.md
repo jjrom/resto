@@ -1,6 +1,8 @@
 #resto
 
 [![Code Climate](https://codeclimate.com/github/jjrom/resto2/badges/gpa.svg)](https://codeclimate.com/github/jjrom/resto2)
+[![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/jjrom/resto.svg)](http://isitmaintained.com/project/jjrom/resto "Average time to resolve an issue")
+[![Percentage of issues still open](http://isitmaintained.com/badge/open/jjrom/resto.svg)](http://isitmaintained.com/project/jjrom/resto "Percentage of issues still open")
 
 [resto](http://mapshup.com/resto2/) - an Earth Observation products search engine 
 
