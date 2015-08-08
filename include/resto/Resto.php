@@ -195,6 +195,7 @@ class Resto {
             /*
              * GET
              */
+            case 'HEAD':
             case 'GET':
                 $route = new RestoRouteGET($this->context, $this->user);
                 break;
@@ -260,9 +261,11 @@ class Resto {
             $this->setCORSHeaders();
 
             /*
-             * Stream data
+             * Stream data unless HTTP HEAD is requested
              */
-            echo $response;
+            if ($this->context->method !== 'HEAD') {
+                echo $response;
+            }
             
         }
         
