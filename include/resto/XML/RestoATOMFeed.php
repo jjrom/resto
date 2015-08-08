@@ -395,7 +395,7 @@ class RestoATOMFeed extends RestoXML {
              */
             $this->startElement('media:group');
             if (isset($feature['properties']['thumbnail'])) {
-                $this->addMedia('THUMNAIL', $feature['properties']['thumbnail']);
+                $this->addMedia('THUMBNAIL', $feature['properties']['thumbnail']);
             }
             if (isset($feature['properties']['quicklook'])) {
                 $this->addMedia('QUICKLOOK', $feature['properties']['quicklook']);
