@@ -92,7 +92,12 @@ class RestoOSDD extends RestoXML {
         $this->statistics = $statistics;
         $this->collection = $collection;
         $this->clientId = isset($this->context->query['clientId']) ? 'clientId=' . rawurlencode($this->context->query['clientId']) . '&' : '';
-        $this->osDescription = isset($this->collection) ? $this->collection->osDescription[$this->context->dictionary->language] : $this->context->osDescription[$this->context->dictionary->language];
+        if (isset($this->collection)) {
+            $this->osDescription = isset($this->collection->osDescription[$this->context->dictionary->language]) ? $this->collection->osDescription[$this->context->dictionary->language] : $this->collection->osDescription['en'];
+        }
+        else {
+            $this->osDescription = isset($this->context->osDescription[$this->context->dictionary->language]) ? $this->context->osDescription[$this->context->dictionary->language] : $this->context->osDescription['en'];
+        }
         $this->setOSDD();
     }
     
