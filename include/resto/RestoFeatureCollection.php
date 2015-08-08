@@ -207,7 +207,7 @@ class RestoFeatureCollection {
          */   
         else {
             $forceCount = isset($this->context->query['_rc']) ? filter_var($this->context->query['_rc'], FILTER_VALIDATE_BOOLEAN) : false;
-            $this->loadFeatures($analysis['searchFilters'], $limit, $offset, $forceCount);
+            $this->loadFeatures($analysis['appliedFilters'], $limit, $offset, $forceCount);
         }
         
         /*
@@ -229,7 +229,10 @@ class RestoFeatureCollection {
         /*
          * Query is made from request parameters
          */
-        $query = array('searchFilters' => $analysis['searchFilters']);
+        $query = array(
+            'originalFilters' => $analysis['originalFilters'],
+            'appliedFilters' => $analysis['appliedFilters']
+        );
         
         /*
          * Analysis
@@ -244,7 +247,7 @@ class RestoFeatureCollection {
         $this->description = array(
             'type' => 'FeatureCollection',
             'properties' => array(
-                'id' => RestoUtil::UUIDv5((isset($this->defaultCollection) ? $this->defaultCollection->name : '*') . ':' . json_encode($this->cleanFilters($analysis['searchFilters']))),
+                'id' => RestoUtil::UUIDv5((isset($this->defaultCollection) ? $this->defaultCollection->name : '*') . ':' . json_encode($this->cleanFilters($analysis['appliedFilters']))),
                 'totalResults' => $this->totalCount,
                 'startIndex' => $offset + 1,
                 'itemsPerPage' => count($this->restoFeatures),
@@ -585,11 +588,17 @@ class RestoFeatureCollection {
     private function analyze($params) {
         
         /*
+         * Store original params
+         */
+        $originalFilters = $params;
+        
+        /*
          * No searchTerms specify - leave input search filters untouched
          */
         if (empty($params['searchTerms'])) {
             return array(
-                'searchFilters' => $params
+                'originalFilters' => $originalFilters,
+                'appliedFilters' => $originalFilters
             );
         }
         
@@ -604,7 +613,8 @@ class RestoFeatureCollection {
         if (empty($analysis['analyze']['What']) && empty($analysis['analyze']['When']) && empty($analysis['analyze']['Where'])) {
             return array(
                 'notUnderstood' => true,
-                'searchFilters' => $params,
+                'originalFilters' => $originalFilters,
+                'appliedFilters' => $params,
                 'analysis' => $analysis
             );
         }
@@ -625,7 +635,8 @@ class RestoFeatureCollection {
         $params = $this->setWhereFilters($analysis['analyze']['Where'], $params);
         
         return array(
-            'searchFilters' => $params,
+            'originalFilters' => $originalFilters,
+            'appliedFilters' => $params,
             'analysis' => $analysis
         );
     }
