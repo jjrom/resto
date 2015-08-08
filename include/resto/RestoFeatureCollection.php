@@ -122,7 +122,7 @@ class RestoFeatureCollection {
         /*
          * Initialize ATOM feed
          */
-        $atomFeed = new RestoATOMFeed($this->description['properties']['id'], isset($this->description['properties']['title']) ? $this->description['properties']['title'] : '', $this->getATOMSubtitle());
+        $atomFeed = new RestoATOMFeed($this->description['properties']['id'], !empty($this->description['properties']['title']) ? $this->description['properties']['title'] : $this->context->title, $this->getATOMSubtitle());
        
         /*
          * Set collection elements
