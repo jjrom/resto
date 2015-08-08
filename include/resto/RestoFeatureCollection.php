@@ -245,7 +245,7 @@ class RestoFeatureCollection {
             'type' => 'FeatureCollection',
             'properties' => array(
                 'id' => RestoUtil::UUIDv5((isset($this->defaultCollection) ? $this->defaultCollection->name : '*') . ':' . json_encode($this->cleanFilters($analysis['searchFilters']))),
-                'totalResults' => $this->totalCount !== -1 ? $this->totalCount : null,
+                'totalResults' => $this->totalCount,
                 'startIndex' => $offset + 1,
                 'itemsPerPage' => count($this->restoFeatures),
                 'query' => array_merge($query, array('processingTime' => microtime(true) - $this->requestStartTime)),
@@ -568,7 +568,7 @@ class RestoFeatureCollection {
      */
     private function getATOMSubtitle() {
         $subtitle = '';
-        if (isset($this->description['properties']['totalResults'])) {
+        if (isset($this->description['properties']['totalResults']) && $this->description['properties']['totalResults'] !== -1) {
             $subtitle = $this->context->dictionary->translate($this->description['properties']['totalResults'] === 1 ? '_oneResult' : '_multipleResult', $this->description['properties']['totalResults']);
         }
         $previous = isset($this->description['properties']['links']['previous']) ? '<a href="' . RestoUtil::updateUrlFormat($this->description['properties']['links']['previous'], 'atom') . '">' . $this->context->dictionary->translate('_previousPage') . '</a>&nbsp;' : '';
