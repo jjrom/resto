@@ -134,6 +134,13 @@ class RestoFeatureUtil {
         $properties = $rawCorrectedArray;
         
         /*
+         * Compute title
+         */
+        if (empty($properties['title'])) {
+            $properties['title'] = isset($properties['productIdentifier']) ? $properties['productIdentifier'] : $properties['identifier'];
+        }
+        
+        /*
          * Update metadata values from propertiesMapping
          */
         $this->updatePaths($properties, $collection);

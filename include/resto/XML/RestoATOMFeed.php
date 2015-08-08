@@ -234,9 +234,9 @@ class RestoATOMFeed extends RestoXML {
          * Base elements
          */
         $this->writeElements(array(
+            'title' => $feature['properties']['title'], 
             'id' => $feature['id'], // ! THIS SHOULD BE AN ABSOLUTE UNIQUE  AND PERMANENT IDENTIFIER !!
             'dc:identifier' => $feature['id'], // Local identifier - i.e. last part of uri
-            'title' => isset($feature['properties']['title']) ? $feature['properties']['title'] : '',
             'published' => $feature['properties']['published'],
             'updated' => $feature['properties']['updated'],
             /*
