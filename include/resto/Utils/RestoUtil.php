@@ -571,16 +571,17 @@ class RestoUtil {
     private static function sanitizeString($str) {
 
         /*
-         * No Hexadecimal allowed
-         */
-        if (ctype_xdigit($str)) {
-            return null;
-        }
-
-        /*
          * Remove html tags and NULL (i.e. \0)
          */
         if (is_string($str)) {
+            
+            /*
+             * No Hexadecimal allowed i.e. nothing that starts with 0x
+             */
+            if (strlen($str) > 1 && substr($str, 0, 2) === '0x') {
+                return null;
+            }
+            
             return strip_tags(str_replace(chr(0), '', $str));
         }
 
