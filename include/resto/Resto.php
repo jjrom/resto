@@ -360,8 +360,8 @@ class Resto {
              * If issuer_id is specified in the request then assumes a third party token.
              * In this case, transform this third party token into a resto token
              */
-            if (isset($this->context->query['issuerId'])) {
-                $auth = new Auth($this->context, null);
+            if (isset($this->context->query['issuerId']) && isset($this->context->modules['Auth'])) {
+                $auth = RestoUtil::instantiate($this->context->modules['Auth']['className'],$this->context, null);
                 $token = $auth->getProfileToken($this->context->query['issuerId'], $token);
             }
             

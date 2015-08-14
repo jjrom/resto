@@ -85,7 +85,7 @@ class RestoFeatureCollection {
         $this->context = $context;
         $this->user = $user;
         if (isset($this->context->modules['QueryAnalyzer'])) {
-            $this->queryAnalyzer = new QueryAnalyzer($this->context, $this->user);
+            $this->queryAnalyzer = RestoUtil::instantiate($this->context->modules['QueryAnalyzer']['className'], array($this->context, $this->user));
         }
  
         $this->initialize($collections);

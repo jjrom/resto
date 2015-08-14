@@ -444,15 +444,23 @@ class RestoContext {
             /*
              * Only activated module are registered
              */
-            if (isset($modulesConfig[$moduleName]['activate']) && $modulesConfig[$moduleName]['activate'] === true && class_exists($moduleName)) {
-                
-                $modules[$moduleName] = isset($modulesConfig[$moduleName]['options']) ? $modulesConfig[$moduleName]['options'] : array();
+            if (isset($modulesConfig[$moduleName]['activate']) && $modulesConfig[$moduleName]['activate'] === true) {
                 
                 /*
-                 * Add route to module
+                 * Check for className
                  */
-                if (isset($modulesConfig[$moduleName]['route'])) {
-                    $modules[$moduleName] = array_merge($modules[$moduleName], array('route' => $modulesConfig[$moduleName]['route']));
+                $className = isset($modulesConfig[$moduleName]['className']) ? $modulesConfig[$moduleName]['className'] : $moduleName;
+                if (class_exists($moduleName)) {
+                
+                    $modules[$moduleName] = isset($modulesConfig[$moduleName]['options']) ? array_merge($modulesConfig[$moduleName]['options'], array('className' => $className)) : array('className' => $className);
+
+                    /*
+                     * Add route to module
+                     */
+                    if (isset($modulesConfig[$moduleName]['route'])) {
+                        $modules[$moduleName] = array_merge($modules[$moduleName], array('route' => $modulesConfig[$moduleName]['route']));
+                    }
+                
                 }
                 
             }
