@@ -165,10 +165,22 @@ class QueryManager {
      */
     public function getLocationKeyword($name) {
         return $this->dictionary->getKeyword($name, array(
-            RestoDictionary::CONTINENT,
-            RestoDictionary::COUNTRY,
-            RestoDictionary::REGION,
-            RestoDictionary::STATE
+                    RestoDictionary::CONTINENT,
+                    RestoDictionary::COUNTRY,
+                    RestoDictionary::REGION,
+                    RestoDictionary::STATE,
+                    RestoDictionary::BAY,
+                    RestoDictionary::CHANNEL,
+                    RestoDictionary::FJORD,
+                    RestoDictionary::GULF,
+                    RestoDictionary::INLET,
+                    RestoDictionary::LAGOON,
+                    RestoDictionary::OCEAN,
+                    RestoDictionary::REEF,
+                    RestoDictionary::RIVER,
+                    RestoDictionary::SEA,
+                    RestoDictionary::SOUND,
+                    RestoDictionary::STRAIT
         ));
     }
     
