@@ -301,8 +301,8 @@ class Functions_filters {
              * LIKE case only if at least 4 characters
              */
             if ($operation === '=' && substr($requestParams[$filterName][$i], -1) === '%') {
-                if  (strlen($requestParams[$filterName][$i]) < 5) {
-                    RestoLogUtil::httpError(400, '% is only allowed for string with 5+ characters');
+                if  (strlen($requestParams[$filterName][$i]) < 3) {
+                    RestoLogUtil::httpError(400, '% is only allowed for string with 3+ characters');
                 }
                 $ors[] = $model->getDbKey($model->searchFilters[$filterName]['key']) . ' LIKE ' . $quote . pg_escape_string($requestParams[$filterName][$i]) . $quote;
             }
