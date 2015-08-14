@@ -24,7 +24,12 @@ class QueryManager {
      * Words
      */
     public $words = array();
-
+    
+    /*
+     * True if keywords are present
+     */
+    public $hasKeywords = false;
+    
     /*
      * Query length
      */
@@ -63,6 +68,9 @@ class QueryManager {
      */
     public function initialize($words) {
         for ($i = 0, $ii = count($words); $i < $ii; $i++) {
+            if (strpos($words[$i], ':') !== false) {
+                $this->hasKeywords = true;
+            }
             $this->words[$i] = array(
                 'word' => $words[$i],
                 'processed' => false

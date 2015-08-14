@@ -222,6 +222,18 @@ class QueryAnalyzer extends RestoModule {
         $this->queryManager->initialize($this->queryToWords($query));
         
         /*
+         * Extract type:value keywords
+         */
+        if ($this->queryManager->hasKeywords) {
+            return array(
+                'What' => $this->processKeywords(),
+                'When' => array(),
+                'Where' => array(),
+                'Errors' => $this->getErrors()
+            );
+        }
+        
+        /*
          * Extract (in this order !) "what", "when" and "where" elements from query
          * Suppose that query is structured (i.e. is a sentence) 
          */
@@ -246,6 +258,36 @@ class QueryAnalyzer extends RestoModule {
             'Errors' => $this->getErrors()
         );
         
+    }
+    
+    /**
+     * Process "type:value" keywords
+     */
+    private function processKeywords() {
+        $results = array();
+        for ($i = 0, $ii = $this->queryManager->length; $i < $ii; $i++) {
+            $exploded = explode(':', $this->queryManager->words[$i]['word']);
+            if (count($exploded) === 2 && !empty($exploded[0]) && !empty($exploded[1])) {
+                $this->queryManager->words[$i]['processed'] = true;
+                $filterName = 'searchTerms';
+                foreach ($this->queryManager->model->searchFilters as $key => $filter) {
+                    if (strtolower($filter['osKey']) === strtolower($exploded[0])) {
+                        $filterName = $key;
+                        break;
+                    }
+                }
+                if ($filterName === 'searchTerms') {
+                    if (!isset($results[$filterName])) {
+                        $results[$filterName] = array();
+                    }
+                    $results[$filterName][] = $this->queryManager->words[$i]['word'];
+                }
+                else {
+                    $results[$filterName] = (isset($results[$filterName]) ? $results[$filterName] . ' ' : '') . $exploded[1];
+                }
+            }
+        }
+        return $results;
     }
     
     /**
