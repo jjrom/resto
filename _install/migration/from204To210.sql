@@ -53,7 +53,7 @@ INSERT INTO usermanagement.rights (ownertype, owner, targettype, target, downloa
 ALTER TABLE resto.collections RENAME COLUMN license TO licenseid;
 ALTER TABLE resto.collections ALTER COLUMN licenseid SET DEFAULT 'unlicensed'::text;
 ALTER TABLE resto.collections ADD COLUMN owner TEXT;
-UPDATE TABLE resto.collections SET license='unlicensed';
+UPDATE resto.collections SET licenseid='unlicensed';
 
 -- signatures
 DELETE FROM usermanagement.signatures;
