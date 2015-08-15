@@ -282,7 +282,7 @@ class RestoUtil {
         } catch (Exception $e) {
             RestoLogUtil::httpError(500, $className . ' is not instantiable');
         }
-        
+       
         switch (count($params)) {
             case 1:
                 return $class->newInstance($params[0]);

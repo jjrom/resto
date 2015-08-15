@@ -87,7 +87,8 @@ class RestoKeywordsUtil {
          * Compute keywords from iTag
          */
         if (isset($collection->context->modules['iTag'])) {
-            $iTag = RestoUtil::instantiate($collection->context->modules['iTag']['className'], isset($collection->context->modules['iTag']['database']) && isset($collection->context->modules['iTag']['database']['dbname']) ? $collection->context->modules['iTag']['database'] : array('dbh' => $collection->context->dbDriver->dbh));
+            $iTagParam = isset($collection->context->modules['iTag']['database']) && isset($collection->context->modules['iTag']['database']['dbname']) ? $collection->context->modules['iTag']['database'] : array('dbh' => $collection->context->dbDriver->dbh); 
+            $iTag = RestoUtil::instantiate($collection->context->modules['iTag']['className'], array($iTagParam));
             $metadata = array(
                 'footprint' => RestoGeometryUtil::geoJSONGeometryToWKT($geometry),
                 'timestamp' => isset($properties['startDate']) ? $properties['startDate'] : null
