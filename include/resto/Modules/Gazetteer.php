@@ -420,9 +420,7 @@ class Gazetteer extends RestoModule {
      */
     private function getToponymsFilters($constraints, $name, $lang) {
         
-        $where = array(
-            'fclass=\'P\''
-        );
+        $where = array();
         
         /*
          * Constrain search on country name or state
