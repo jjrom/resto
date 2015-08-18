@@ -2,6 +2,11 @@
     "name": "Landsat",
     "model": "RestoModel_muscate",
     "status": "public",
+    "licenseId": "unlicensed",
+    "rights":{
+        "download":1,
+        "visualize":1
+    },
     "osDescription": {
         "fr": {
             "ShortName": "Landsat",
@@ -10,7 +15,7 @@
             "Tags": "landsat niveau2A reflectance muscate CNES",
             "Developper": "J\u00e9r\u00f4me Gasperi",
             "Contact": "jerome.gasperi@cnes.fr",
-            "Query": "Images sur la France entre octobre et decembre 2013",
+            "Query": "Images%20sur%20la%20France%20entre%20octobre%20et%20decembre%202013",
             "Attribution": "CNES. Copyright 2014, All Rights Reserved"
         },
         "en": {
@@ -20,7 +25,7 @@
             "Tags": "landsat level2A reflectance muscate CNES",
             "Developper": "J\u00e9r\u00f4me Gasperi",
             "Contact": "jerome.gasperi@cnes.fr",
-            "Query": "Images acquired in France between october and december 2013",
+            "Query": "Images%20acquired%20in%20France%20between%20october%20and%20december%202013",
             "Attribution": "CNES. Copyright 2014, All Rights Reserved"
         }
     },

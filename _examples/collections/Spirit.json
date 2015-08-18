@@ -2,8 +2,10 @@
     "name": "Spirit",
     "model": "RestoModel_spirit",
     "status": "public",
-    "license":{
-        "en":"https://theia.cnes.fr/documents/License_Spirit_en.pdf"
+    "licenseId": "spirit",
+    "rights":{
+        "download":1,
+        "visualize":1
     },
     "osDescription": {
         "en": {
