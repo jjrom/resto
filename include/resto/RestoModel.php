@@ -307,7 +307,7 @@ abstract class RestoModel {
         ),
         'geo:name' => array(
             'key' => 'geometry',
-            'osKey' => 'location',
+            'osKey' => 'name',
             'operation' => 'distance',
             'title' => 'Location string e.g. Paris, France'
         ),
