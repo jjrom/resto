@@ -421,7 +421,7 @@ abstract class RestoModel {
             'osKey' => 'cloudCover',
             'operation' => 'interval',
             'title' => 'Cloud cover expressed in percent',
-            //'pattern' => '^(\[|\]|[0-9+])?(?:,[0-9])?(\[|\]|[0-9]+)$',
+            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
             'quantity' => array(
                 'value' => 'cloud',
                 'unit' => '%'
@@ -432,6 +432,7 @@ abstract class RestoModel {
             'osKey' => 'snowCover',
             'operation' => 'interval',
             'title' => 'Snow cover expressed in percent',
+            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
             'quantity' => array(
                 'value' => 'snow',
                 'unit' => '%'
@@ -442,6 +443,7 @@ abstract class RestoModel {
             'osKey' => 'cultivatedCover',
             'operation' => 'interval',
             'title' => 'Cultivated area expressed in percent',
+            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
             'quantity' => array(
                 'value' => 'cultivated',
                 'unit' => '%'
@@ -452,6 +454,7 @@ abstract class RestoModel {
             'osKey' => 'desertCover',
             'operation' => 'interval',
             'title' => 'Desert area expressed in percent',
+            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
             'quantity' => array(
                 'value' => 'desert',
                 'unit' => '%'
@@ -462,6 +465,7 @@ abstract class RestoModel {
             'osKey' => 'floodedCover',
             'operation' => 'interval',
             'title' => 'Flooded area expressed in percent',
+            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
             'quantity' => array(
                 'value' => 'flooded',
                 'unit' => '%'
@@ -472,6 +476,7 @@ abstract class RestoModel {
             'osKey' => 'forestCover',
             'operation' => 'interval',
             'title' => 'Forest area expressed in percent',
+            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
             'quantity' => array(
                 'value' => 'forest',
                 'unit' => '%'
@@ -482,6 +487,7 @@ abstract class RestoModel {
             'osKey' => 'herbaceousCover',
             'operation' => 'interval',
             'title' => 'Herbaceous area expressed in percent',
+            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
             'quantity' => array(
                 'value' => 'herbaceous',
                 'unit' => '%'
@@ -492,6 +498,7 @@ abstract class RestoModel {
             'osKey' => 'iceCover',
             'operation' => 'interval',
             'title' => 'Ice area expressed in percent',
+            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
             'quantity' => array(
                 'value' => 'ice',
                 'unit' => '%'
@@ -502,6 +509,7 @@ abstract class RestoModel {
             'osKey' => 'urbanCover',
             'operation' => 'interval',
             'title' => 'Urban area expressed in percent',
+            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
             'quantity' => array(
                 'value' => 'urban',
                 'unit' => '%'
@@ -512,6 +520,7 @@ abstract class RestoModel {
             'osKey' => 'waterCover',
             'operation' => 'interval',
             'title' => 'Water area expressed in percent',
+            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
             'quantity' => array(
                 'value' => 'water',
                 'unit' => '%'
