@@ -192,13 +192,6 @@ class QueryAnalyzer extends RestoModule {
         
         $startTime = microtime(true);
         
-        /*
-         * QueryAnalyzer only apply on searchTerms filter
-         */
-        if (!isset($query)) {
-            RestoLogUtil::httpError(400, 'Missing mandatory searchTerms');
-        }
-       
         return array(
             'query' => $query,
             'language' => $this->context->dictionary->language,
@@ -215,6 +208,18 @@ class QueryAnalyzer extends RestoModule {
      * @return array
      */
     private function process($query) {
+        
+        /*
+         * Empty $query
+         */
+        if (empty($query)) {
+            return array(
+                'What' => array(),
+                'When' => array(),
+                'Where' => array(),
+                'Errors' => array()
+            );
+        }
         
         /*
          * Initialize QueryManager
