@@ -602,19 +602,15 @@ class RestoFeatureCollection {
         $originalFilters = $params;
         
         /*
-         * No searchTerms specify - leave input search filters untouched
-         */
-        if (empty($params['searchTerms'])) {
-            return array(
-                'originalFilters' => $originalFilters,
-                'appliedFilters' => $originalFilters
-            );
-        }
-        
-        /*
          * Analyse query
          */
         $analysis = $this->queryAnalyzer->analyze($params['searchTerms']);
+        
+        /*
+         * Special case for geo:geometry containing geohash
+         * 
+         */
+        $analysis['analyze']['Where'] = array_merge($this->whereFromGeohash($params), $analysis['analyze']['Where']);
         
         /*
          * Not understood - return error
@@ -734,12 +730,30 @@ class RestoFeatureCollection {
              * Geometry
              */
             else {
-                $params['geo:geometry'] = $where[$i]['geometry'];
+                $params['geo:geometry'] = $where[$i]['geo:geometry'];
             }
         }
         $params['searchTerms'] = join(' ', $params['searchTerms']);
         return $params;
     }
     
+    /**
+     * Returns location from geohash
+     * 
+     * @param array $params
+     */
+    private function whereFromGeohash($params) {
+        if (!empty($params['geo:geometry']) && strpos($params['geo:geometry'],'geohash:') === 0) {
+            if (isset($this->context->modules['GazetteerPro'])) {
+                $gazetteerPro = RestoUtil::instantiate($this->context->modules['GazetteerPro']['className'], array($this->context, $this->user));
+                $location = $gazetteerPro->search(array(
+                    'q' => $params['geo:geometry'],
+                    'wkt' => true
+                ));
+                return $location['results'];
+            }
+        }
+        return array();
+    }
     
 }
