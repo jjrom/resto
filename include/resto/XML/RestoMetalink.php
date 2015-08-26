@@ -116,7 +116,7 @@ class RestoMetalink extends RestoXML {
             'resourceUrl' => $resourceUrl,
             'duration' => isset($this->context->sharedLinkDuration) ? $this->context->sharedLinkDuration : null
         ));
-        return $resourceUrl . (strrpos($resourceUrl, '?') === false ? '?_tk=' : '&_tk=') . $shared['token'];       
+        return $resourceUrl . (strpos($resourceUrl, '?') === false ? '?_tk=' : '&_tk=') . $shared['token'];       
     }
     
     /**

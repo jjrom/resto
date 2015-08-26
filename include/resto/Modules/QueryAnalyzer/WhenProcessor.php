@@ -67,7 +67,7 @@ class WhenProcessor {
      */
     public function getResult() {
        
-        if (isset($this->result['year']) && strrpos($this->result['year'], "|") === false) {
+        if (isset($this->result['year']) && strpos($this->result['year'], "|") === false) {
             
             /*
              * Translate year:xxx and season:xxx to time:start/time:stop

@@ -176,7 +176,7 @@ class WhereExtractor {
             /*
              * Location was found or toponym name has only one word left
              */
-            $pos = strrpos($toponymName, '-');
+            $pos = strpos($toponymName, '-');
             if ($pos === false || count($location['results']) > 0) {
                 break;
             }
