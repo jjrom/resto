@@ -326,10 +326,10 @@ class RestoFeatureCollection {
          * Get features array from database
          */
         $featuresArray = $this->context->dbDriver->get(RestoDatabaseDriver::FEATURES_DESCRIPTIONS, array(
-            'context' => $this->context,
-            'user' => $this->user,
-            'collection' => isset($this->defaultCollection) ? $this->defaultCollection : null,
-            'filters' => $params,
+                'context' => $this->context,
+                'user' => $this->user,
+                'collection' => isset($this->defaultCollection) ? $this->defaultCollection : null,
+                'filters' => $params,
                 'options' => array(
                     'limit' => $limit,
                     'offset' => $offset,
@@ -610,6 +610,7 @@ class RestoFeatureCollection {
          * Special case for geo:geometry containing geohash
          * 
          */
+        $hashTodiscard = null;
         if (!empty($params['geo:geometry']) && strpos($params['geo:geometry'],'geohash:') === 0) {
             $where = $this->queryAnalyzer->whereFromGeohash($params['geo:geometry']);
             if (count($where) > 0) {
@@ -622,7 +623,7 @@ class RestoFeatureCollection {
         /*
          * Not understood - return error
          */
-        if (empty($analysis['analyze']['What']) && empty($analysis['analyze']['When']) && empty($analysis['analyze']['Where'])) {
+        if (isset($params['searchTerms']) && empty($analysis['analyze']['What']) && empty($analysis['analyze']['When']) && empty($analysis['analyze']['Where'])) {
             return array(
                 'notUnderstood' => true,
                 'originalFilters' => $originalFilters,
