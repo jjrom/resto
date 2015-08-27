@@ -202,15 +202,15 @@ class QueryAnalyzer extends RestoModule {
     }
     
     /**
-     * Returns location from geohash
+     * Returns location from geohash/geouid
      * 
-     * @param string $geohash
+     * @param string $hashOrUid
      */
-    public function whereFromGeohash($geohash) {
+    public function whereFromGeohashOrGeouid($hashOrUid) {
         if (isset($this->context->modules['GazetteerPro'])) {
             $gazetteerPro = RestoUtil::instantiate($this->context->modules['GazetteerPro']['className'], array($this->context, $this->user));
             $location = $gazetteerPro->search(array(
-                'q' => $geohash,
+                'q' => $hashOrUid,
                 'wkt' => true
             ));
             return $location['results'];

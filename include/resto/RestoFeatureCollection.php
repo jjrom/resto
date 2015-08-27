@@ -607,12 +607,12 @@ class RestoFeatureCollection {
         $analysis = $this->queryAnalyzer->analyze(isset($params['searchTerms']) ? $params['searchTerms'] : null);
         
         /*
-         * Special case for geo:geometry containing geohash
+         * Special case for geo:geometry containing geouid
          * 
          */
         $hashTodiscard = null;
-        if (!empty($params['geo:geometry']) && strpos($params['geo:geometry'],'geohash:') === 0) {
-            $where = $this->queryAnalyzer->whereFromGeohash($params['geo:geometry']);
+        if (!empty($params['geo:geometry']) && strpos($params['geo:geometry'],'geouid:') === 0) {
+            $where = $this->queryAnalyzer->whereFromGeohashOrGeouid($params['geo:geometry']);
             if (count($where) > 0) {
                 $hashTodiscard = $where[0]['hash'];
                 $params['geo:geometry'] = $where[0]['geo:geometry'];
