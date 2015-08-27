@@ -202,6 +202,23 @@ class QueryAnalyzer extends RestoModule {
     }
     
     /**
+     * Returns location from geohash
+     * 
+     * @param string $geohash
+     */
+    public function whereFromGeohash($geohash) {
+        if (isset($this->context->modules['GazetteerPro'])) {
+            $gazetteerPro = RestoUtil::instantiate($this->context->modules['GazetteerPro']['className'], array($this->context, $this->user));
+            $location = $gazetteerPro->search(array(
+                'q' => $geohash,
+                'wkt' => true
+            ));
+            return $location['results'];
+        }
+        return array();
+    }
+    
+    /**
      * Return array of search terms from input query
      * 
      * @param string $query
@@ -230,12 +247,7 @@ class QueryAnalyzer extends RestoModule {
          * Extract type:value keywords
          */
         if ($this->queryManager->hasKeywords) {
-            return array(
-                'What' => $this->processKeywords(),
-                'When' => array(),
-                'Where' => array(),
-                'Errors' => $this->getErrors()
-            );
+            return $this->processKeywords();
         }
         
         /*
@@ -270,6 +282,7 @@ class QueryAnalyzer extends RestoModule {
      */
     private function processKeywords() {
         $results = array();
+        $where = array();
         for ($i = 0, $ii = $this->queryManager->length; $i < $ii; $i++) {
             $exploded = explode(':', $this->queryManager->words[$i]['word']);
             if (count($exploded) === 2 && !empty($exploded[0]) && !empty($exploded[1])) {
@@ -282,17 +295,33 @@ class QueryAnalyzer extends RestoModule {
                     }
                 }
                 if ($filterName === 'searchTerms') {
-                    if (!isset($results[$filterName])) {
-                        $results[$filterName] = array();
+                    
+                    /*
+                     * Special case for geohash
+                     */
+                    if ($exploded[0] === 'geohash') {
+                        $where = $this->whereFromGeohash($this->queryManager->words[$i]['word']);
                     }
-                    $results[$filterName][] = $this->queryManager->words[$i]['word'];
+                    else {
+                        if (!isset($results[$filterName])) {
+                            $results[$filterName] = array();
+                        }
+                        $results[$filterName][] = $this->queryManager->words[$i]['word'];
+                    }
                 }
                 else {
                     $results[$filterName] = (isset($results[$filterName]) ? $results[$filterName] . ' ' : '') . $exploded[1];
                 }
             }
         }
-        return $results;
+        
+        return array(
+            'What' => $results,
+            'When' => array(),
+            'Where' => $where,
+            'Errors' => $this->getErrors()
+        );
+        
     }
     
     /**

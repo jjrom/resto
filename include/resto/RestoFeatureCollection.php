@@ -604,13 +604,20 @@ class RestoFeatureCollection {
         /*
          * Analyse query
          */
-        $analysis = $this->queryAnalyzer->analyze($params['searchTerms']);
+        $analysis = $this->queryAnalyzer->analyze(isset($params['searchTerms']) ? $params['searchTerms'] : null);
         
         /*
          * Special case for geo:geometry containing geohash
          * 
          */
-        $analysis['analyze']['Where'] = array_merge($this->whereFromGeohash($params), $analysis['analyze']['Where']);
+        if (!empty($params['geo:geometry']) && strpos($params['geo:geometry'],'geohash:') === 0) {
+            $where = $this->queryAnalyzer->whereFromGeohash($params['geo:geometry']);
+            if (count($where) > 0) {
+                $hashTodiscard = $where[0]['hash'];
+                $params['geo:geometry'] = $where[0]['geo:geometry'];
+            }
+            $analysis['analyze']['Where'] = array_merge($where, $analysis['analyze']['Where']);
+        }
         
         /*
          * Not understood - return error
@@ -625,23 +632,11 @@ class RestoFeatureCollection {
         }
         
         /*
-         * What
+         * Where, When, What
          */
-        $params = $this->setWhatFilters($analysis['analyze']['What'], $params);
-        
-        /*
-         * When
-         */
-        $params = $this->setWhenFilters($analysis['analyze']['When'], $params);
-        
-        /*
-         * Where
-         */
-        $params = $this->setWhereFilters($analysis['analyze']['Where'], $params);
-        
         return array(
             'originalFilters' => $originalFilters,
-            'appliedFilters' => $params,
+            'appliedFilters' => $this->setWhereFilters($analysis['analyze']['Where'], $this->setWhenFilters($analysis['analyze']['When'], $this->setWhatFilters($analysis['analyze']['What'], $params)), $hashTodiscard),
             'analysis' => $analysis
         );
     }
@@ -709,8 +704,10 @@ class RestoFeatureCollection {
      * 
      * @param array $where
      * @param array $params
+     * @param string $hashTodiscard
      */
-    private function setWhereFilters($where, $params) {
+    private function setWhereFilters($where, $params, $hashTodiscard = null) {
+        
         for ($i = count($where); $i--;) {
             
             /*
@@ -721,10 +718,13 @@ class RestoFeatureCollection {
                 $params['geo:lat'] = $where[$i]['geo:lat'];
             }
             /*
-             * Searching for keywords is faster than geometry
+             * Searching for hash/keywords is faster than geometry
              */
             else if (isset($where[$i]['searchTerms'])) {
                 $params['searchTerms'][] = $where[$i]['searchTerms'];
+            }
+            else if (isset($where[$i]['hash']) && $where[$i]['hash'] !== $hashTodiscard) {
+                $params['searchTerms'][] = 'hash:' . $where[$i]['hash'];
             }
             /*
              * Geometry
@@ -733,27 +733,13 @@ class RestoFeatureCollection {
                 $params['geo:geometry'] = $where[$i]['geo:geometry'];
             }
         }
-        $params['searchTerms'] = join(' ', $params['searchTerms']);
-        return $params;
-    }
-    
-    /**
-     * Returns location from geohash
-     * 
-     * @param array $params
-     */
-    private function whereFromGeohash($params) {
-        if (!empty($params['geo:geometry']) && strpos($params['geo:geometry'],'geohash:') === 0) {
-            if (isset($this->context->modules['GazetteerPro'])) {
-                $gazetteerPro = RestoUtil::instantiate($this->context->modules['GazetteerPro']['className'], array($this->context, $this->user));
-                $location = $gazetteerPro->search(array(
-                    'q' => $params['geo:geometry'],
-                    'wkt' => true
-                ));
-                return $location['results'];
-            }
+        if (count($params['searchTerms']) > 0) {
+            $params['searchTerms'] = join(' ', $params['searchTerms']);
         }
-        return array();
+        else {
+            unset($params['searchTerms']);
+        }
+        return $params;
     }
     
 }
