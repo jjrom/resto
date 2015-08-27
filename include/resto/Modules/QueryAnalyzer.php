@@ -300,7 +300,7 @@ class QueryAnalyzer extends RestoModule {
                      * Special case for geohash
                      */
                     if ($exploded[0] === 'geohash') {
-                        $where = $this->whereFromGeohash($this->queryManager->words[$i]['word']);
+                        $where = $this->whereFromGeohashOrGeouid($this->queryManager->words[$i]['word']);
                     }
                     else {
                         if (!isset($results[$filterName])) {
