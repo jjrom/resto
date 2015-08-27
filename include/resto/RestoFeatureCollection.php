@@ -723,8 +723,10 @@ class RestoFeatureCollection {
             else if (isset($where[$i]['searchTerms'])) {
                 $params['searchTerms'][] = $where[$i]['searchTerms'];
             }
-            else if (isset($where[$i]['hash']) && $where[$i]['hash'] !== $hashTodiscard) {
-                $params['searchTerms'][] = 'hash:' . $where[$i]['hash'];
+            else if (isset($where[$i]['hash'])) {
+                if (!isset($hashTodiscard) || $where[$i]['hash'] !== $hashTodiscard) {
+                    $params['searchTerms'][] = 'hash:' . $where[$i]['hash'];
+                }
             }
             /*
              * Geometry
