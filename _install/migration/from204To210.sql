@@ -17,6 +17,7 @@
 -- features
 ALTER table resto.features ALTER COLUMN visibility SET DEFAULT 'public';
 ALTER table resto.features ADD COLUMN licenseid TEXT;
+ALTER TABLE resto.features ALTER COLUMN resource_size TYPE NUMERIC USING resource_size::INTEGER;
 UPDATE resto.features SET visibility='public' where visibility='PUBLIC';
 
 -- users

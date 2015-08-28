@@ -130,7 +130,7 @@ abstract class RestoModel {
         ),
         'resourceSize' => array(
             'name' => 'resource_size',
-            'type' => 'INTEGER'
+            'type' => 'NUMERIC'
         ),
         'resourceChecksum' => array(
             'name' => 'resource_checksum',
