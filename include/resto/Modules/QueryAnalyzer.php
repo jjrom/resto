@@ -211,7 +211,10 @@ class QueryAnalyzer extends RestoModule {
             $gazetteerPro = RestoUtil::instantiate($this->context->modules['GazetteerPro']['className'], array($this->context, $this->user));
             $location = $gazetteerPro->search(array(
                 'q' => $hashOrUid,
-                'wkt' => true
+                'wkt' => true,
+                'preserve' => true,
+                'tolerance' => 0.05,
+                'snap' => true
             ));
             return $location['results'];
         }
