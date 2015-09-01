@@ -82,7 +82,7 @@ class RestoDictionary_fr extends RestoDictionary {
             'after' => array('apres'),
             'before' => array('avant'),
             'between' => array('entre', 'de'),
-            'in' => array('en' , 'a' , 'durant'),
+            'in' => array('en' , 'a' , 'au', 'durant'),
             'last' => array('dernier', 'derniers', 'derniere', 'dernieres'),
             'next' => array('prochain', 'prochaine', 'prochains', 'prochaines'),
             'since' => array('depuis'),
