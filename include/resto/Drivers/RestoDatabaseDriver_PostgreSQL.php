@@ -137,10 +137,10 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             case parent::RIGHTS:
                 $rightsFunctions = new Functions_rights($this);
-                if ($params['user']) {
+                if (isset($params['user'])) {
                     return $rightsFunctions->getRightsForUser($params['user'], isset($params['targetType']) ? $params['targetType'] : null, isset($params['target']) ? $params['target'] : null);
                 }
-                else if ($params['groups']) {
+                else if (isset($params['groups'])) {
                     return $rightsFunctions->getRightsForGroups($params['groups'], isset($params['targetType']) ? $params['targetType'] : null, isset($params['target']) ? $params['target'] : null);
                 }
                 return null;
