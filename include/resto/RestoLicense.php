@@ -188,19 +188,6 @@ class RestoLicense {
     }
     
     /**
-     * Sign license
-     * 
-     *  @param array $license
-     */
-    public function signLicense($license) {
-        return $this->context->dbDriver->execute(RestoDatabaseDriver::SIGNATURE, array(
-            'email' => $this->profile['email'],
-            'licenseId' => $license['licenseId'],
-            'signatureQuota' => $license['signatureQuota']
-        ));
-    }
-    
-    /**
      * Return license as an array with description in the current language
      */
     public function toArray() {
