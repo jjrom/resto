@@ -479,6 +479,13 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             case parent::GROUPS:
                 $usersFunctions = new Functions_users($this);
                 return $usersFunctions->storeUserGroups($params['userid'], $params['groups']);
+                
+            /*
+             * Store new group
+             */    
+            case parent::GROUP:
+                $usersFunctions = new Functions_rights($this);
+                return $usersFunctions->storeGroup($params['groupid']);
 
 
             default:

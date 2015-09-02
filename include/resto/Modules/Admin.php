@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright 2014 Jérôme Gasperi
  *
@@ -37,6 +38,7 @@
  *      {module_route}/users/{userid}/rights/{collection}/{feature}   |  Show rights for user on {feature} from {collection}
  *      {module_route}/users/{userid}/signatures                      |  Show signatures for user
  *      {module_route}/history                                        |  Show history
+ *      {module_route}/groups/{groupid}/rights                        |  Show all rights for group {groupid}
  * 
  * -- POST
  *    
@@ -44,10 +46,12 @@
  *      {module_route}/users/{userid}/rights                          |  Add/update rights for {userid} on all collections
  *      {module_route}/users/{userid}/rights/{collection}             |  Add/update rights for {userid} on {collection}
  *      {module_route}/users/{userid}/rights/{collection}/{featureid} |  Add/update rights for {userid} on {featureid}
+ *      {module_route}/groups                                         |  Add new group
  * 
  * -- PUT
  * 
  *      {module_route}/users/{userid}/groups                          |  Update {userid} groups
+ *      {module_route}/groups/{groupid}/rights                        |  Update {groupid] group rights
  * 
  * -- DELETE
  * 
@@ -59,7 +63,7 @@
  *    
  */
 class Admin extends RestoModule {
-    
+
     /**
      * Constructor
      * 
@@ -79,14 +83,14 @@ class Admin extends RestoModule {
      * @return string : result from run process in the $context->outputFormat
      */
     public function run($segments, $data) {
-        
+
         /*
          * Only administrators can access this module
          */
         if (!$this->user->isAdmin()) {
             RestoLogUtil::httpError(403);
         }
-        
+
         /*
          * Switch on HTTP methods
          */
@@ -102,9 +106,8 @@ class Admin extends RestoModule {
             default:
                 RestoLogUtil::httpError(404);
         }
-        
     }
-    
+
     /**
      * Process HTTP GET requests
      * 
@@ -116,11 +119,13 @@ class Admin extends RestoModule {
                 return $this->GET_users($segments);
             case 'history':
                 return $this->GET_history($segments);
+            case 'groups':
+                return $this->GET_groups($segments);
             default:
                 RestoLogUtil::httpError(404);
         }
     }
-    
+
     /**
      * Process HTTP POST requests
      * 
@@ -128,17 +133,19 @@ class Admin extends RestoModule {
      * @param array $data
      */
     private function processPOST($segments, $data) {
-        
+
         switch ($segments[0]) {
             case 'licenses':
                 return $this->POST_licenses($segments, $data);
             case 'users':
                 return $this->POST_users($segments, $data);
+            case 'groups':
+                return $this->POST_groups($segments, $data);
             default:
                 RestoLogUtil::httpError(404);
         }
     }
-    
+
     /**
      * Process HTTP PUT requests
      * 
@@ -149,11 +156,13 @@ class Admin extends RestoModule {
         switch ($segments[0]) {
             case 'users':
                 return $this->PUT_users($segments, $data);
+            case 'groups':
+                return $this->PUT_groups($segments, $data);
             default:
                 RestoLogUtil::httpError(404);
         }
     }
-    
+
     /**
      * Process HTTP PUT requests
      * 
@@ -168,9 +177,8 @@ class Admin extends RestoModule {
             default:
                 RestoLogUtil::httpError(404);
         }
-        
     }
-    
+
     /**
      * Process HTTP GET request on user
      * 
@@ -188,7 +196,7 @@ class Admin extends RestoModule {
      * @param array $segments
      */
     private function GET_users($segments) {
-        
+
         /*
          * No {userid} => return all profiles
          */
@@ -196,18 +204,17 @@ class Admin extends RestoModule {
             return RestoLogUtil::success('Profiles for all users', array(
                         'profiles' => $this->context->dbDriver->get(RestoDatabaseDriver::USERS_PROFILES)
             ));
-        }
-        else if ($segments[1] === 'groups') {
+        } else if ($segments[1] === 'groups') {
             return RestoLogUtil::success('Groups for all users', array(
                         'groups' => $this->context->dbDriver->get(RestoDatabaseDriver::GROUPS)
             ));
         }
-        
+
         /*
          * Get user
          */
         $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('userid' => $segments[1])), $this->context);
-        
+
         /*
          * users/{userid}
          */
@@ -216,7 +223,7 @@ class Admin extends RestoModule {
                         'profile' => $user->profile
             ));
         }
-    
+
         /*
          * users/{userid}/groups
          */
@@ -236,22 +243,21 @@ class Admin extends RestoModule {
         if ($segments[2] === 'rights') {
             return $this->getRights($user, isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
         }
-        
+
         /*
          * users/{userid}/cart
          */
         if ($segments[2] === 'cart' && !isset($segments[3])) {
             return $this->user->getCart();
         }
-        
+
         /*
          * users/{userid}/orders
          */
         if ($segments[2] === 'orders') {
             if (isset($segments[3])) {
                 return new RestoOrder($user, $this->context, $segments[3]);
-            }
-            else {
+            } else {
                 return RestoLogUtil::success('Orders for user ' . $user->profile['email'], array(
                             'email' => $user->profile['email'],
                             'userid' => $user->profile['userid'],
@@ -264,8 +270,8 @@ class Admin extends RestoModule {
          * users/{userid}/signatures
          */
         if ($segments[2] === 'signatures' && !isset($segments[3])) {
-            
-            
+
+
             return RestoLogUtil::success('Signatures for ' . $user->profile['email'], array(
                         'email' => $user->profile['email'],
                         'userid' => $user->profile['userid'],
@@ -273,31 +279,31 @@ class Admin extends RestoModule {
                         'signatures' => $this->getSignatures($user)
             ));
         }
-        
+
         return RestoLogUtil::httpError(404);
     }
-    
+
     /**
      * Get signatures informations
      * 
      * @param RestoUser $_user
      * @return array
      */
-    private function getSignatures($_user){
+    private function getSignatures($_user) {
 
         $_collections = new RestoCollections($this->context, $_user, array('autoload' => true));
         $_collectionsList = $_collections->getCollections();
         $signatures = array();
-        foreach($_collectionsList as $collection){
+        foreach ($_collectionsList as $collection) {
             $signatures[$collection->name] = array(
                 'isApplicableToUser' => $collection->license->isApplicableToUser($_user),
                 'hasToBeSignedByUser' => $collection->license->hasToBeSignedByUser($_user)
             );
         }
-        
+
         return $signatures;
     }
-    
+
     /**
      * Process HTTP GET request on history
      * 
@@ -312,6 +318,27 @@ class Admin extends RestoModule {
          */
         if (!isset($segments[2])) {
             return RestoLogUtil::success('History', array('history' => $this->context->dbDriver->get(RestoDatabaseDriver::HISTORY, $this->context->query)));
+        }
+
+        return RestoLogUtil::httpError(404);
+    }
+
+    /**
+     * Process HTTP GET request on groups
+     * 
+     *      groups                     
+     * 
+     * @param array $segments
+     */
+    private function GET_groups($segments) {
+        /*
+         * Get on /groups/{groupid}/rights
+         */
+        if (isset($segments[2]) && $segments[2] === 'rights' && !isset($segments[3])) {
+            return RestoLogUtil::success('Group rights', array(
+                        'groupid' => $segments[1],
+                        'rights' => $this->context->dbDriver->get(RestoDatabaseDriver::RIGHTS, array('groups' => $segments[1]))
+            ));
         }
 
         return RestoLogUtil::httpError(404);
@@ -334,18 +361,17 @@ class Admin extends RestoModule {
         if (isset($segments[1])) {
             RestoLogUtil::httpError(404);
         }
-        
+
         if (!isset($data['licenseId'])) {
             RestoLogUtil::httpError(400, 'license Identifier is not set');
         }
-        
+
         $license = new RestoLicense($this->context, $data['licenseId'], false);
         $license->setDescription($data);
 
         return RestoLogUtil::success('license ' . $data['licenseId'] . ' created');
-        
     }
-    
+
     /**
      *
      * Process HTTP POST request on users
@@ -358,29 +384,57 @@ class Admin extends RestoModule {
      * @param array $data
      */
     private function POST_users($segments, $data) {
-        
+
         /*
          * Check route pattern
          */
         if (!isset($segments[2]) || $segments[2] !== 'rights' || !isset($data['rights'])) {
             RestoLogUtil::httpError(404);
         }
-        
+
         /*
          * Get user
          */
         $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('userid' => $segments[1])), $this->context);
-        
+
         /*
          * Store/update rights
          */
         $user->setRights($data['rights'], isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
- 
+
         return $this->getRights($user, isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
-        
     }
     
-    
+     /**
+     *
+     * Process HTTP POST request on groups
+     *
+     *      groups
+      * 
+     * @param array $segments
+     * @param array $data
+     */
+    private function POST_groups($segments, $data){
+        
+        /*
+         * Check endpoint and data content
+         */
+        if(isset($segments[1]) || !isset($data['groupid'])){
+            return RestoLogUtil::httpError(404);
+        }else{
+            /*
+             * Store group
+             */
+            $groups = $this->context->dbDriver->store(RestoDatabaseDriver::GROUP, array('groupid' => $data['groupid']));
+            
+            return RestoLogUtil::success('Group created', array(
+                        'groupid' => $data['groupid'],
+                        'groups' => $groups
+            ));
+        }
+        
+    }
+
     /**
      *
      * Process HTTP PUT request on users
@@ -398,7 +452,7 @@ class Admin extends RestoModule {
         if (empty($segments[2]) || !ctype_digit($segments[1]) || $segments[2] !== 'groups') {
             return RestoLogUtil::httpError(404);
         }
-        
+
         /*
          * Get user
          */
@@ -406,11 +460,59 @@ class Admin extends RestoModule {
         if (!isset($data['groups'])) {
             RestoLogUtil::httpError(400, 'Groups is not set');
         }
-        
+
         return $user->addGroups($data['groups']);
-        
     }
-    
+
+    /**
+     *
+     * Process HTTP PUT request on groups
+     *
+     *    users/{userid}/groups 
+     *
+     * @param array $segments
+     * @param array $data
+     */
+    private function PUT_groups($segments, $data) {
+
+        /*
+         * Mandatory {groupid}
+         */
+        if (empty($segments[1]) || empty($segments[2]) || $segments[2] !== 'rights' || !isset($data['rights']) || !isset($data['targetType']) || !isset($data['target'])) {
+            return RestoLogUtil::httpError(404);
+        } else {
+            /*
+             * Update rights
+             */
+            try {
+                $this->context->dbDriver->update(RestoDatabaseDriver::RIGHTS, array(
+                    'rights' => array(
+                        'create' => isset($data['rights']['create']) ? $data['rights']['create'] : null,
+                        'download' => isset($data['rights']['download']) ? $data['rights']['download'] : null,
+                        'visualize' => isset($data['rights']['visualize']) ? $data['rights']['visualize'] : null
+                    ),
+                    'ownerType' => 'group',
+                    'owner' => $segments[1],
+                    'targetType' => $data['targetType'],
+                    'target' => $data['target']
+                ));
+            } catch (Exception $ex) {
+                /*
+                 * TODO : set error code
+                 */
+                RestoLogUtil::httpError(404);
+            }
+
+            return RestoLogUtil::success('Rights updated', array(
+                        'rights' => $data['rights'],
+                        'ownerType' => 'group',
+                        'owner' => $segments[1],
+                        'targetType' => $data['targetType'],
+                        'target' => $data['target']
+            ));
+        }
+    }
+
     /**
      * 
      * Process HTTP DELETE request on licenses
@@ -420,21 +522,20 @@ class Admin extends RestoModule {
      * @param array $segments
      */
     private function DELETE_licenses($segments) {
-        
+
         /*
          * {licenseid} is mandatory
          */
         if (!isset($segments[1]) || isset($segments[2])) {
             RestoLogUtil::httpError(404);
         }
-        
+
         $this->context->dbDriver->remove(RestoDatabaseDriver::LICENSE, array('licenseId' => $segments[1]));
         return RestoLogUtil::success('License removed', array(
-            'licenseId' => $segments[1]
+                    'licenseId' => $segments[1]
         ));
-        
     }
-    
+
     /**
      * 
      * Process HTTP DELETE request on users
@@ -447,19 +548,19 @@ class Admin extends RestoModule {
      * @param array $segments
      */
     private function DELETE_users($segments) {
-        
+
         /*
          * Check route pattern
          */
         if (empty($segments[2]) || !ctype_digit($segments[1])) {
             RestoLogUtil::httpError(404);
         }
-        
+
         /*
          * Get user
          */
         $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('userid' => $segments[1])), $this->context);
-        
+
         /*
          * users/{userid}/groups/{groups}
          */
@@ -468,17 +569,14 @@ class Admin extends RestoModule {
         }
         /*
          * users/{userid}/rights
-         */
-        else if ($segments[2] !== 'rights') {
+         */ else if ($segments[2] !== 'rights') {
             $user->removeRights(isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
             return $user->getRights(isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
         }
-        
+
         RestoLogUtil::httpError(404);
-        
-        
     }
-    
+
     /**
      * Return formated rights
      * 
@@ -493,7 +591,6 @@ class Admin extends RestoModule {
                     'groups' => $user->profile['groups'],
                     'rights' => $user->getRights($collectionName, $featureIdentifier)
         ));
-        
     }
-    
+
 }
