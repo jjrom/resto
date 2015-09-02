@@ -214,7 +214,8 @@ class QueryAnalyzer extends RestoModule {
                 'wkt' => true,
                 'preserve' => true,
                 'tolerance' => 0.05,
-                'snap' => true
+                'snap' => true,
+                'lang' => $this->context->dictionary->language === 'en' ? 'en' : $this->context->dictionary->language . ',en'
             ));
             return $location['results'];
         }
