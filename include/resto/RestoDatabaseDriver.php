@@ -58,6 +58,7 @@ abstract class RestoDatabaseDriver {
     const USER_PASSWORD = 33;
     const USER_PROFILE = 34;
     const USERS_PROFILES = 35;
+    const GROUP = 36;
     
     /*
      * Results per page
