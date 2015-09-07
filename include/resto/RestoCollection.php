@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright 2014 Jérôme Gasperi
  *
@@ -19,52 +20,52 @@
  * RESTo Collection
  */
 class RestoCollection {
-    
     /*
      * Collection name must be unique
      */
-    public $name =  null;
-   
+
+    public $name = null;
+
     /*
      * Data model for this collection
      */
     public $model = null;
-    
+
     /*
      * Properties mapping
      */
     public $propertiesMapping = array();
-    
+
     /*
      * Context reference
      */
     public $context = null;
-    
+
     /*
      * User
      */
     public $user = null;
-    
+
     /*
      * Array of OpenSearch Description parameters per lang
      */
     public $osDescription = null;
-    
+
     /*
      * Collection license 
      */
     public $license;
-    
+
     /*
      * Statistics
      */
     private $statistics = null;
-    
+
     /*
      * Array of options
      */
     private $options = array();
-    
+
     /**
      * Constructor
      * 
@@ -74,35 +75,34 @@ class RestoCollection {
      * @param array $options : constructor options
      */
     public function __construct($name, $context, $user, $options = array()) {
-        
+
         /*
          * Context is mandatory
          */
         if (!isset($context) || !is_a($context, 'RestoContext')) {
             RestoLogUtil::httpError(500, 'Context must be defined');
         }
-        
+
         /*
          * Collection name should be alphanumeric based only except for reserved '*' collection
          */
         if (!isset($name) || !ctype_alnum($name) || is_numeric(substr($name, 0, 1))) {
             RestoLogUtil::httpError(500, 'Collection name must be an alphanumeric string not starting with a digit');
         }
-        
+
         $this->name = $name;
         $this->context = $context;
         $this->user = $user;
         $this->options = $options;
-        
+
         /*
          * Load collection description from database 
          */
         if (isset($options['autoload']) && $options['autoload']) {
             $this->loadFromStore();
         }
-        
     }
-    
+
     /**
      * Return collection url
      * 
@@ -111,7 +111,7 @@ class RestoCollection {
     public function getUrl($format = '') {
         return RestoUtil::restoUrl($this->context->baseUrl, '/collections/' . $this->name, $format);
     }
-    
+
     /**
      * Search features within collection
      * 
@@ -120,7 +120,7 @@ class RestoCollection {
     public function search() {
         return new RestoFeatureCollection($this->context, $this->user, $this);
     }
-    
+
     /**
      * Add feature to the {collection}.features table
      * 
@@ -129,7 +129,7 @@ class RestoCollection {
     public function addFeature($data) {
         return $this->model->storeFeature($data, $this);
     }
-    
+
     /**
      * Return UUIDv5 from input $identifier
      * 
@@ -138,7 +138,7 @@ class RestoCollection {
     public function toFeatureId($identifier) {
         return RestoUtil::UUIDv5($this->name . ':' . strtoupper($identifier));
     }
-    
+
     /**
      * Output collection description as an array
      * 
@@ -155,7 +155,7 @@ class RestoCollection {
             'statistics' => $setStatistics ? $this->getStatistics() : array()
         );
     }
-    
+
     /**
      * Output collection description as a JSON stream
      * 
@@ -164,7 +164,7 @@ class RestoCollection {
     public function toJSON($pretty = false) {
         return RestoUtil::json_format($this->toArray(), $pretty);
     }
-    
+
     /**
      * Output collection description as an XML OpenSearch document
      */
@@ -172,7 +172,7 @@ class RestoCollection {
         $osdd = new RestoOSDD($this->context, $this->model, $this->getStatistics(), $this);
         return $osdd->toString();
     }
- 
+
     /**
      * Load collection parameters from input collection description 
      * Collection description is a JSON file with the following structure
@@ -212,66 +212,75 @@ class RestoCollection {
      * @param boolean $synchronize : true to store collection to database
      */
     public function loadFromJSON($object, $synchronize = false) {
-        
+
         /*
          * Check JSON validity
          */
         $this->checkJSONValidity($object);
-        
+
         /*
          * Set Model
          */
         $this->setModel($object['model']);
-        
+
         /*
          * Default collection status is 'public'
          */
         $this->status = isset($object['status']) && $object['status'] === 'private' ? 'private' : 'public';
-        
+
         /*
          * Collection owner is the current user
          */
         $this->owner = $this->user->profile['email'];
-        
+
         /*
          * OpenSearch Description
          */
         $this->osDescription = $object['osDescription'];
-        
+
         /*
          * Licence - set to 'unlicensed' if not specified
          */
         $this->license = new RestoLicense($this->context, isset($object['licenseId']) ? $object['licenseId'] : 'unlicensed');
-        
+
         /*
          * Properties mapping
          */
         $this->propertiesMapping = isset($object['propertiesMapping']) ? $object['propertiesMapping'] : array();
-        
+
         /*
          * Save on database
          */
         $this->saveToStore(isset($object['rights']) ? $object['rights'] : array(), $synchronize);
-        
     }
-   
+
     /**
      * Remove collection  from RESTo database
      */
     public function removeFromStore() {
         $this->context->dbDriver->remove(RestoDatabaseDriver::COLLECTION, array('collection' => $this));
+
+        /*
+         * Remove collection default rights
+         */
+        $this->context->dbDriver->remove(RestoDatabaseDriver::RIGHTS, array(
+            'targetType' => 'collection',
+            'target' => $this->name,
+            'ownerType' => 'group',
+            'owner' => 'default'
+        ));
     }
-    
+
     /**
      * Return collection statistics
      */
     public function getStatistics() {
         if (!isset($this->statistics)) {
-            $this->statistics = $this->context->dbDriver->get(RestoDatabaseDriver::STATISTICS, array('collectionName' => $this->name, 'facetFields' => $this->model->getFacetFields())); 
+            $this->statistics = $this->context->dbDriver->get(RestoDatabaseDriver::STATISTICS, array('collectionName' => $this->name, 'facetFields' => $this->model->getFacetFields()));
         }
         return $this->statistics;
     }
-    
+
     /**
      * Load collection parameters from RESTo database
      */
@@ -290,14 +299,14 @@ class RestoCollection {
         $this->license->setDescription($descriptions[$this->name]['license'], false);
         $this->propertiesMapping = $descriptions[$this->name]['propertiesMapping'];
     }
-    
+
     /**
      * Set model 
      * 
      * @param string $name
      */
     private function setModel($name) {
-        
+
         /*
          * Check that input file is for the current collection
          */
@@ -308,50 +317,47 @@ class RestoCollection {
         }
         /*
          * Set model
-         */
-        else {
+         */ else {
             $this->model = RestoUtil::instantiate($name, array($this->context, $this->user));
         }
-        
     }
-    
+
     /**
      * Check that input json description is valid
      * 
      * @param array $object
      */
     private function checkJSONValidity($object) {
-        
+
         /*
          * Input $object should be JSON
          */
         if (!isset($object) || !is_array($object)) {
             RestoLogUtil::httpError(500, 'Invalid input JSON');
         }
-        
+
         /*
          * Check that input file is for the current collection
          */
-        if (!isset($object['name']) ||$this->name !== $object['name']) {
+        if (!isset($object['name']) || $this->name !== $object['name']) {
             RestoLogUtil::httpError(500, 'Property "name" and collection name differ');
         }
-        
+
         /*
          * Model name must be set in JSON file
          */
         if (!isset($object['model'])) {
             RestoLogUtil::httpError(500, 'Property "model" is mandatory');
         }
-        
+
         /*
          * At least an english OpenSearch Description object is mandatory
          */
         if (!is_array($object['osDescription']) || !is_array($object['osDescription']['en'])) {
             RestoLogUtil::httpError(500, 'English OpenSearch description is mandatory');
         }
-        
     }
-    
+
     /**
      * Save collection to database if synchronize is set to true
      * 
@@ -366,5 +372,5 @@ class RestoCollection {
         }
         return false;
     }
-    
+
 }
