@@ -235,11 +235,11 @@ class RestoFeatureCollection {
             $this->totalCount = $count;
         }
         /*
-         * Query is made from request parameters
+         * Convert resto model to search service "osKey"
          */
         $query = array(
-            'originalFilters' => $analysis['originalFilters'],
-            'appliedFilters' => $analysis['appliedFilters']
+            'originalFilters' => $this->toOSKeys($analysis['originalFilters']),
+            'appliedFilters' => $this->toOSKeys($analysis['appliedFilters'])
         );
         
         /*
@@ -743,6 +743,23 @@ class RestoFeatureCollection {
             unset($params['searchTerms']);
         }
         return $params;
+    }
+    
+    /**
+     * Convert array of filter names to array of OpenSearch keys
+     * 
+     * @param array $filterNames
+     * @return array
+     */
+    private function toOSKeys($filterNames) {
+        $arr = array();
+        foreach ($filterNames as $key => $value) {
+            if (isset($this->defaultModel->searchFilters[$key])) {
+                $arr[$this->defaultModel->searchFilters[$key]['osKey']] = $value;
+            }
+            
+        }
+        return $arr;
     }
     
 }
