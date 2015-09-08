@@ -119,7 +119,6 @@ class Functions_collections {
             $query = 'BEGIN;';
             $query .= 'DELETE FROM resto.osdescriptions WHERE collection=\'' . pg_escape_string($collection->name) . '\';';
             $query .= 'DELETE FROM resto.collections WHERE collection=\'' . pg_escape_string($collection->name) . '\';';
-            $query .= 'DELETE FROM usermanagement.rights WHERE ownertype=\'group\' AND owner=\'default\' AND targettype=\'collection\' AND target=\'' . pg_escape_string($collection->name) . '\';';
             
             /*
              * Do not drop schema if product table is not empty
