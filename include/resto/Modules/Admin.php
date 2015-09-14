@@ -39,6 +39,7 @@
  *      {module_route}/users/{userid}/signatures                      |  Show signatures for user
  *      {module_route}/history                                        |  Show history
  *      {module_route}/groups/{groupid}/rights                        |  Show all rights for group {groupid}
+ *      {module_route}/groups/{groupid}/users                         |  Show all users for group {groupid}
  * 
  * -- POST
  *    
@@ -196,13 +197,23 @@ class Admin extends RestoModule {
      * @param array $segments
      */
     private function GET_users($segments) {
-
         /*
          * No {userid} => return all profiles
          */
         if (!isset($segments[1])) {
+            /*
+             * Get filters
+             */
+            $limit = filter_input(INPUT_GET, 'limit', FILTER_SANITIZE_STRING);
+            $offset = filter_input(INPUT_GET, 'offset', FILTER_SANITIZE_STRING);
+            $keywords = filter_input(INPUT_GET, 'keywords', FILTER_SANITIZE_STRING);
+            
             return RestoLogUtil::success('Profiles for all users', array(
-                        'profiles' => $this->context->dbDriver->get(RestoDatabaseDriver::USERS_PROFILES)
+                        'profiles' => $this->context->dbDriver->get(RestoDatabaseDriver::USERS_PROFILES, array(
+                            'limit' => $limit,
+                            'offset' => $offset,
+                            'keywords' => $keywords
+                        ))
             ));
         } else if ($segments[1] === 'groups') {
             return RestoLogUtil::success('Groups for all users', array(
@@ -339,6 +350,26 @@ class Admin extends RestoModule {
                         'groupid' => $segments[1],
                         'rights' => $this->context->dbDriver->get(RestoDatabaseDriver::RIGHTS, array('groups' => $segments[1]))
             ));
+        } else if (isset($segments[2]) && $segments[2] === 'users' && !isset($segments[3])) {
+            /*
+             * Get filters
+             */
+            $limit = filter_input(INPUT_GET, 'limit', FILTER_SANITIZE_STRING);
+            $offset = filter_input(INPUT_GET, 'offset', FILTER_SANITIZE_STRING);
+            $keywords = filter_input(INPUT_GET, 'keywords', FILTER_SANITIZE_STRING);
+            
+            /*
+             * Get on /groups/{groupid}/users
+             */
+            return RestoLogUtil::success('Group users', array(
+                        'groupid' => $segments[1],
+                        'users' => $this->context->dbDriver->get(RestoDatabaseDriver::USERS_PROFILES, array(
+                            'groupid' => $segments[1],
+                            'limit' => $limit,
+                            'offset' => $offset,
+                            'keywords' => $keywords
+                                ))
+            ));
         }
 
         return RestoLogUtil::httpError(404);
@@ -404,35 +435,34 @@ class Admin extends RestoModule {
 
         return $this->getRights($user, isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
     }
-    
-     /**
+
+    /**
      *
      * Process HTTP POST request on groups
      *
      *      groups
-      * 
+     * 
      * @param array $segments
      * @param array $data
      */
-    private function POST_groups($segments, $data){
-        
+    private function POST_groups($segments, $data) {
+
         /*
          * Check endpoint and data content
          */
-        if(isset($segments[1]) || !isset($data['groupid'])){
+        if (isset($segments[1]) || !isset($data['groupid'])) {
             return RestoLogUtil::httpError(404);
-        }else{
+        } else {
             /*
              * Store group
              */
             $groups = $this->context->dbDriver->store(RestoDatabaseDriver::GROUP, array('groupid' => $data['groupid']));
-            
+
             return RestoLogUtil::success('Group created', array(
                         'groupid' => $data['groupid'],
                         'groups' => $groups
             ));
         }
-        
     }
 
     /**
@@ -468,7 +498,7 @@ class Admin extends RestoModule {
      *
      * Process HTTP PUT request on groups
      *
-     *    users/{userid}/groups 
+     *    groups/{groupid}/rights
      *
      * @param array $segments
      * @param array $data
@@ -481,36 +511,45 @@ class Admin extends RestoModule {
         if (empty($segments[1]) || empty($segments[2]) || $segments[2] !== 'rights' || !isset($data['rights']) || !isset($data['targetType']) || !isset($data['target'])) {
             return RestoLogUtil::httpError(404);
         } else {
-            /*
-             * Update rights
-             */
-            try {
-                $this->context->dbDriver->update(RestoDatabaseDriver::RIGHTS, array(
-                    'rights' => array(
-                        'create' => isset($data['rights']['create']) ? $data['rights']['create'] : null,
-                        'download' => isset($data['rights']['download']) ? $data['rights']['download'] : null,
-                        'visualize' => isset($data['rights']['visualize']) ? $data['rights']['visualize'] : null
-                    ),
-                    'ownerType' => 'group',
-                    'owner' => $segments[1],
-                    'targetType' => $data['targetType'],
-                    'target' => $data['target']
-                ));
-            } catch (Exception $ex) {
-                /*
-                 * TODO : set error code
-                 */
-                RestoLogUtil::httpError(404);
-            }
-
-            return RestoLogUtil::success('Rights updated', array(
-                        'rights' => $data['rights'],
-                        'ownerType' => 'group',
-                        'owner' => $segments[1],
-                        'targetType' => $data['targetType'],
-                        'target' => $data['target']
-            ));
+            return $this->update_group_rights($segments[1], $data);
         }
+    }
+
+    /**
+     * Update rights for group
+     * 
+     * @param string $groupid
+     * @param array $data
+     * @return type
+     */
+    private function update_group_rights($groupid, $data) {
+
+        /*
+         * Update rights
+         */
+        try {
+            $this->context->dbDriver->update(RestoDatabaseDriver::RIGHTS, array(
+                'rights' => array(
+                    'create' => isset($data['rights']['create']) ? $data['rights']['create'] : null,
+                    'download' => isset($data['rights']['download']) ? $data['rights']['download'] : null,
+                    'visualize' => isset($data['rights']['visualize']) ? $data['rights']['visualize'] : null
+                ),
+                'ownerType' => 'group',
+                'owner' => $groupid,
+                'targetType' => $data['targetType'],
+                'target' => $data['target']
+            ));
+        } catch (Exception $ex) {
+            /*
+             * TODO : set error code
+             */
+            RestoLogUtil::httpError(404);
+        }
+
+        return RestoLogUtil::success('Rights updated', array(
+                    'groupid' => $groupid,
+                    'rights' => $this->context->dbDriver->get(RestoDatabaseDriver::RIGHTS, array('groups' => $groupid))
+        ));
     }
 
     /**
@@ -555,23 +594,27 @@ class Admin extends RestoModule {
         if (empty($segments[2]) || !ctype_digit($segments[1])) {
             RestoLogUtil::httpError(404);
         }
-
         /*
          * Get user
          */
         $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('userid' => $segments[1])), $this->context);
 
-        /*
-         * users/{userid}/groups/{groups}
-         */
+
         if ($segments[2] === 'groups' && !empty($segments[3])) {
+            /*
+             * users/{userid}/groups/{groups}
+             */
             return $user->removeGroups($segments[3]);
-        }
-        /*
-         * users/{userid}/rights
-         */ else if ($segments[2] !== 'rights') {
+        } else if ($segments[2] === 'rights') {
+            /*
+             * users/{userid}/rights
+             */
             $user->removeRights(isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
-            return $user->getRights(isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
+            return RestoLogUtil::success('Rights updated', array(
+                    'email' => $user->profile['email'],
+                    'userid' => $user->profile['userid'],
+                    'groups' => $user->profile['groups']
+        ));
         }
 
         RestoLogUtil::httpError(404);
