@@ -26,6 +26,7 @@ ALTER table usermanagement.users ADD COLUMN validationdate TIMESTAMP;
 ALTER table usermanagement.users ADD COLUMN flags TEXT;
 ALTER table usermanagement.users ADD COLUMN organizationcountry TEXT;
 ALTER table usermanagement.users RENAME COLUMN groupname TO groups;
+ALTER table usermanagement.users ALTER COLUMN groups TYPE TEXT[] USING array[groups];
 ALTER table usermanagement.users DROP COLUMN grantedvisibility;
 DROP INDEX usermanagement.idx_groupname_users;
 
