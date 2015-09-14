@@ -245,7 +245,7 @@ CREATE SCHEMA usermanagement;
 CREATE TABLE usermanagement.users (
     userid              SERIAL PRIMARY KEY,
     email               TEXT UNIQUE,  -- should be an email adress
-    groups              TEXT, -- list of groupid (comma separated)
+    groups              TEXT[], -- array of groupid
     username            TEXT,
     givenname           TEXT,
     lastname            TEXT,

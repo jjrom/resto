@@ -185,7 +185,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             case parent::USERS_PROFILES:
                 $usersFunctions = new Functions_users($this);
-                return $usersFunctions->getUsersProfiles();
+                return $usersFunctions->getUsersProfiles($params);
             
             /*
              * Get all history information
