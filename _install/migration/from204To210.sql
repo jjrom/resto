@@ -68,6 +68,8 @@ CREATE TABLE usermanagement.groups (
     childrens           TEXT -- groupids that are childrens of this groupid (comma separated)
 );
 CREATE INDEX idx_groups_groupid ON usermanagement.groups (groupid);
+GRANT SELECT,INSERT,UPDATE,DELETE ON usermanagement.groups TO resto;
+
 -- INSERT base groups
 INSERT INTO usermanagement.groups (groupid) VALUES ('admin');
 INSERT INTO usermanagement.groups (groupid) VALUES ('default');
