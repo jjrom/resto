@@ -148,7 +148,7 @@ class Functions_users {
         $toBeSet = array(
             'email' => '\'' . pg_escape_string($email) . '\'',
             'password' => '\'' . (isset($profile['password']) ? RestoUtil::encrypt($profile['password']) : str_repeat('*', 40)) . '\'',
-            'groups' => '\'' . (isset($profile['groups']) ? pg_escape_string($profile['groups']) : 'default') . '\'',
+            'groups' => '\'{' . (isset($profile['groups']) ? pg_escape_string($profile['groups']) : 'default') . '}\'',
             'activationcode' => '\'' . pg_escape_string(RestoUtil::encrypt($email . microtime())) . '\'',
             'activated' => $profile['activated'],
             'validatedby' => isset($profile['validatedby']) ? $profile['validatedby'] : 'NULL',
