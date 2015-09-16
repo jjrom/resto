@@ -156,7 +156,7 @@ class Functions_users {
             'registrationdate' => 'now()'
         );
         foreach (array_values(array('username', 'givenname', 'lastname', 'country', 'organization', 'topics', 'organizationcountry', 'flags')) as $field) {
-            $toBeSet[$field] = '\'' . (isset($profile[$field]) ? "'" . $profile[$field] . "'" : 'NULL') . '\'';
+            $toBeSet[$field] = (isset($profile[$field]) ? "'" . $profile[$field] . "'" : 'NULL');
         }
 
         return pg_fetch_array($this->dbDriver->query('INSERT INTO usermanagement.users (' . join(',', array_keys($toBeSet)) . ') VALUES (' . join(',', array_values($toBeSet)) . ') RETURNING userid, activationcode'));
