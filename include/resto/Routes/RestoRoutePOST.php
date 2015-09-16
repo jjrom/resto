@@ -336,7 +336,7 @@ class RestoRoutePOST extends RestoRoute {
             ))
         );
         if (isset($userInfo)) {
-            $activationLink = $this->context->baseUrl . '/api/users/activate?email=' . rawurlencode($userInfo['email']) . '&act=' . $userInfo['activationcode'] . $redirect;
+            $activationLink = $this->context->baseUrl . '/api/user/activate?email=' . rawurlencode($data['email']) . '&act=' . $userInfo['activationcode'] . $redirect;
             $fallbackLanguage = isset($this->context->mail['accountActivation'][$this->context->dictionary->language]) ? $this->context->dictionary->language : 'en';
             if (!RestoUtil::sendMail(array(
                         'to' => $data['email'],
