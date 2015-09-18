@@ -594,31 +594,45 @@ abstract class RestoModel {
      *              'propertyNameInInputFile' => 'restoPropertyName' or array('restoPropertyName1', 'restoPropertyName2)
      *          )
      * 
-     * @param Array $properties
+     * @param Array $geojson
      */
-    public function mapInputProperties($properties) {
+    public function mapInputProperties($geojson) {
         if (property_exists($this, 'inputMapping')) {
             foreach ($this->inputMapping as $key => $arr) {
-                if (isset($properties[$key])) {
-                    if (!is_array($arr)) {
-                        $arr = Array($arr);
+                
+                /*
+                 * key can be a path i.e. key1.key2.key3 
+                 */
+                $childs = explode('.', $key);
+                $property = isset($geojson[$childs[0]]) ? $geojson[$childs[0]] : null;
+                if ($property) {
+                    
+                    for ($i = 1, $ii = count($childs); $i < $ii; $i++) {
+                        if (isset($property[$childs[$i]])) {
+                            $property = $property[$childs[$i]];
+                        }
                     }
-                    for ($i = count($arr); $i--;) {
-                        $properties[$arr[$i]] = $properties[$key];
+
+                    if (isset($property)) {
+                        if (!is_array($arr)) {
+                            $arr = Array($arr);
+                        }
+                        for ($i = count($arr); $i--;) {
+                            $geojson['properties'][$arr[$i]] = $property;
+                        }
                     }
-                    unset($properties[$key]);
                 }
             }
         }
         /*
          * Remove unknown properties (i.e. properties not in model)
          */
-        foreach (array_keys($properties) as $key) {
+        foreach (array_keys($geojson['properties']) as $key) {
             if (!isset($this->properties[$key])) {
-                unset($properties[$key]);
+                unset($geojson['properties'][$key]);
             }
         }
-        return $properties;
+        return $geojson['properties'];
     }
     
     /**
@@ -641,7 +655,7 @@ abstract class RestoModel {
          * Remap properties between RESTo model and input
          * GeoJSON Feature file 
          */
-        $properties = $this->mapInputProperties($data['properties']);
+        $properties = $this->mapInputProperties($data);
         
         /*
          * Compute unique identifier

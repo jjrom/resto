@@ -24,15 +24,15 @@ class RestoModel_example extends RestoModel {
      */
 
     public $inputMapping = array(
-        'productId' => 'productIdentifier',
-        'acquisitionDate' => array('startDate', 'completionDate'),
-        'satellite' => 'platform',
-        'sensorfamily' => 'sensorMode',
-        'imageUrl' => 'quicklook',
-        'archivingStation' => 'archivingCenter',
-        'receivingStation' => 'acquisitionStation',
-        'cloudCoverPercentage' => 'cloudCover',
-        'snowCoverPercentage' => 'snowCover'
+        'properties.productId' => 'productIdentifier',
+        'properties.acquisitionDate' => array('startDate', 'completionDate'),
+        'properties.satellite' => 'platform',
+        'properties.sensorfamily' => 'sensorMode',
+        'properties.imageUrl' => 'quicklook',
+        'properties.archivingStation' => 'archivingCenter',
+        'properties.receivingStation' => 'acquisitionStation',
+        'properties.cloudCoverPercentage' => 'cloudCover',
+        'properties.snowCoverPercentage' => 'snowCover'
     );
     public $extendedProperties = array(
         'test' => array(
