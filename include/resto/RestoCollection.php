@@ -346,7 +346,7 @@ class RestoCollection {
         /*
          * At least an english OpenSearch Description object is mandatory
          */
-        if (!is_array($object['osDescription']) || !is_array($object['osDescription']['en'])) {
+        if (!isset($object['osDescription']) || !is_array($object['osDescription']) || !isset($object['osDescription']['en']) || !is_array($object['osDescription']['en'])) {
             RestoLogUtil::httpError(500, 'English OpenSearch description is mandatory');
         }
         
