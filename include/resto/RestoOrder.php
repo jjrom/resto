@@ -45,9 +45,28 @@ class RestoOrder{
      * @param RestoContext $context
      */
     public function __construct($user, $context, $orderId){
+        /*
+         * Context is mandatory
+         */
+        if (!isset($context) || !is_a($context, 'RestoContext')) {
+            RestoLogUtil::httpError(500, 'Context must be defined');
+        }
+        /*
+         * User is mandatory
+         */
+        if (!isset($user) || !is_a($user, 'RestoUser')) {
+            RestoLogUtil::httpError(500, 'User must be defined');
+        }
+        
         $this->user = $user;
         $this->context = $context;
         $this->order = $this->context->dbDriver->get(RestoDatabaseDriver::ORDERS, array('email' => $this->user->profile['email'], 'orderId' => $orderId));
+        /*
+         * Is order id associated to a valid order
+         */
+        if(!isset($this->order['orderId'])){
+            RestoLogUtil::httpError(500, 'Order with id=' . $orderId . ' does not exist');
+        }
     }
     
     /**
