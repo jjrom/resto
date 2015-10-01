@@ -245,10 +245,6 @@ class Functions_filters {
      */
     private function prepareFilterQuery_general($model, $filterName, $requestParams, $type) {
         
-        if (!is_array($requestParams[$filterName])) {
-            $requestParams[$filterName] = array($requestParams[$filterName]);
-        }
-        
         /*
          * Array of values assumes a 'OR' operation
          */
@@ -294,23 +290,27 @@ class Functions_filters {
          */
         $operation = $model->searchFilters[$filterName]['operation'];
         
+        /*
+         * Split requestParams on |
+         */
+        $values = explode('|', $requestParams[$filterName]);
         $ors = array();
-        for ($i = count($requestParams[$filterName]); $i--;) {
+        for ($i = count($values); $i--;) {
             
             /*
              * LIKE case only if at least 4 characters
              */
-            if ($operation === '=' && substr($requestParams[$filterName][$i], -1) === '%') {
-                if  (strlen($requestParams[$filterName][$i]) < 3) {
+            if ($operation === '=' && substr($values[$i], -1) === '%') {
+                if  (strlen($values[$i]) < 3) {
                     RestoLogUtil::httpError(400, '% is only allowed for string with 3+ characters');
                 }
-                $ors[] = $model->getDbKey($model->searchFilters[$filterName]['key']) . ' LIKE ' . $quote . pg_escape_string($requestParams[$filterName][$i]) . $quote;
+                $ors[] = $model->getDbKey($model->searchFilters[$filterName]['key']) . ' LIKE ' . $quote . pg_escape_string($values[$i]) . $quote;
             }
             /*
              * Otherwise use operation
              */
             else {
-                $ors[] = $model->getDbKey($model->searchFilters[$filterName]['key']) . ' ' . $operation . ' ' . $quote . pg_escape_string($requestParams[$filterName][$i]) . $quote;
+                $ors[] = $model->getDbKey($model->searchFilters[$filterName]['key']) . ' ' . $operation . ' ' . $quote . pg_escape_string($values[$i]) . $quote;
             }
         }
         return $ors;
