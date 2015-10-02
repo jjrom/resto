@@ -101,3 +101,37 @@ GRANT SELECT,INSERT,UPDATE,DELETE ON resto.licenses TO resto;
 
 -- Unusued
 DROP TABLE resto.tags;
+
+
+-- UPDATE platforms
+UPDATE resto.keywords SET value='SPOT1|SPOT2|SPOT3|SPOT4|SPOT5|SPOT6|SPOT7' where name='spot' and type='platform';
+UPDATE resto.keywords SET value='ALOS1' where name='alos' and type='platform';
+UPDATE resto.keywords SET value='ALSAT1' where name='alsat' and type='platform';
+UPDATE resto.keywords SET value='BEIJING1' where name='beijing' and type='platform';
+UPDATE resto.keywords SET value='CBERS1' where name='cbers' and type='platform';
+UPDATE resto.keywords SET value='DEIMOS1' where name='deimos' and type='platform';
+UPDATE resto.keywords SET value='ENVISAT' where name='envisat' and type='platform';
+UPDATE resto.keywords SET value='ERS1|ERS2' where name='ers' and type='platform';
+UPDATE resto.keywords SET value='FORMOSAT2' where name='formosat' and type='platform';
+UPDATE resto.keywords SET value='IRSP5|IRSP6' where name='irsp' and type='platform';
+UPDATE resto.keywords SET value='KOMPSAT2' where name='kompsat' and type='platform';
+UPDATE resto.keywords SET value='LANDSAT5|LANDSAT6|LANDSAT7|LANDSAT8' where name='landsat' and type='platform';
+UPDATE resto.keywords SET value='PHR1A|PHR1B' where name='pleiades' and type='platform';
+UPDATE resto.keywords SET value='PHR1A|PHR1B' where name='phr' and type='platform';
+UPDATE resto.keywords SET value='RADARSAT1|RADARSAT2' where name='radarsat' and type='platform';
+UPDATE resto.keywords SET value='S1A|S1B' where name='s1' and type='platform';
+UPDATE resto.keywords SET value='S1A|S1B' where name='sentinel1' and type='platform';
+UPDATE resto.keywords SET value='S1A|S1B' where name='sentinel-1' and type='platform';
+UPDATE resto.keywords SET value='S2A|S2B' where name='s2' and type='platform';
+UPDATE resto.keywords SET value='S2A|S2B' where name='sentinel2' and type='platform';
+UPDATE resto.keywords SET value='S2A|S2B' where name='sentinel-2' and type='platform';
+UPDATE resto.keywords SET value='TDX1' where name='tdx' and type='platform';
+UPDATE resto.keywords SET value='TSX1' where name='tsx' and type='platform';
+UPDATE resto.keywords SET value='UKDMC1|UKDMC2' where name='ukdmc' and type='platform';
+UPDATE resto.keywords SET value='HRG1|HRG2' where name='hrg' and type='instrument';
+UPDATE resto.keywords SET value='HRV1|HRV2' where name='hrv' and type='instrument';
+UPDATE resto.keywords SET value='HRVIR1|HRVIR2' where name='hrvir' and type='instrument';
+UPDATE resto.keywords SET value='POLDER1|POLDER2|POLDER3' where name='polder' and type='instrument';
+UPDATE resto.keywords SET value='VEGETATION1|VEGETATION2' where name='vegetation' and type='instrument';
+UPDATE resto.keywords SET value='VEGETATION1|VEGETATION2' where name='vgt' and type='instrument';
+
