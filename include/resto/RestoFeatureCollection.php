@@ -726,7 +726,7 @@ class RestoFeatureCollection {
             }
             else if (isset($where[$i]['hash'])) {
                 if (!isset($hashTodiscard) || $where[$i]['hash'] !== $hashTodiscard) {
-                    $params['searchTerms'][] = 'hash:' . $where[$i]['hash'];
+                    $params['searchTerms'][] = 'geohash:' . $where[$i]['hash'];
                 }
             }
             /*

@@ -391,10 +391,12 @@ class Functions_filters {
         );
         
         /*
-         * Process each searcTerms
+         * Process each searchTerms
+         * 
+         * Note: replace geohash: by hash: (see rocket)
          */
         for ($i = 0, $l = count($splitted); $i < $l; $i++) {
-            $terms = array_merge($this->processSearchTerms($splitted[$i], $filters, $model, $filterName, $exclusion));
+            $terms = array_merge($this->processSearchTerms(str_replace('geohash:', 'hash:', $splitted[$i]), $filters, $model, $filterName, $exclusion));
         }
 
         return join(' AND ', array_merge($terms, $this->mergeHashesFilters($model->getDbKey($model->searchFilters[$filterName]['key']), $filters)));
