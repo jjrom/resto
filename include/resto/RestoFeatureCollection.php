@@ -602,6 +602,13 @@ class RestoFeatureCollection {
         $originalFilters = $params;
         
         /*
+         * Special case for name alone
+         */
+        if (isset($params['geo:name'])) {
+            $params = $this->extendParamsWithGazetteer($params);
+        }
+        
+        /*
          * Analyse query
          */
         $analysis = $this->queryAnalyzer->analyze(isset($params['searchTerms']) ? $params['searchTerms'] : null);
@@ -761,5 +768,40 @@ class RestoFeatureCollection {
         }
         return $arr;
     }
+    
+    /**
+     * Extend search params with gazetteer results
+     * 
+     * @param RestoContext $context
+     * @param RestoUser $user
+     * @param array $params
+     */
+    private function extendParamsWithGazetteer($params) {
+        if(!isset($params['searchTerms']) && !isset($params['geo:lon']) && !isset($params['geo:geometry']) && !isset($params['geo:box'])) {
+            if (isset($this->context->modules['GazetteerPro'])) {
+                $gazetteer = RestoUtil::instantiate($this->context->modules['GazetteerPro']['className'], array($this->context, $this->user));
+            }
+            else if (isset($this->context->modules['Gazetteer'])) {
+                $gazetteer = RestoUtil::instantiate($this->context->modules['Gazetteer']['className'], array($this->context, $this->user));
+            }
+            if ($gazetteer) {
+                $location = $gazetteer->search(array(
+                    'q' => $params['geo:name'],
+                    'wkt' => true
+                ));
+                if (count($location['results']) > 0) {
+                    if (isset($location['results'][0]['geo:geometry'])) {
+                        $params['geo:geometry'] = $location['results'][0]['geo:geometry'];
+                    }
+                    if (isset($location['results'][0]['geo:lon'])) {
+                        $params['geo:lon'] = $location['results'][0]['geo:lon'];
+                        $params['geo:lat'] = $location['results'][0]['geo:lat'];
+                    }
+                }
+            }
+        }
+        return $params;
+    }
+
     
 }

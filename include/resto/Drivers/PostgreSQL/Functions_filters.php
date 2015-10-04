@@ -616,5 +616,5 @@ class Functions_filters {
         }
         return $typeAndValue;
     }
-
+   
 }
