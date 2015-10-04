@@ -790,10 +790,13 @@ class RestoFeatureCollection {
                     'wkt' => true
                 ));
                 if (count($location['results']) > 0) {
-                    if (isset($location['results'][0]['geo:geometry'])) {
+                    if (isset($location['results'][0]['hash'])) {
+                        $params['searchTerms'] = 'geohash:' . $location['results'][0]['hash'];
+                    }
+                    else if (isset($location['results'][0]['geo:geometry'])) {
                         $params['geo:geometry'] = $location['results'][0]['geo:geometry'];
                     }
-                    if (isset($location['results'][0]['geo:lon'])) {
+                    else if (isset($location['results'][0]['geo:lon'])) {
                         $params['geo:lon'] = $location['results'][0]['geo:lon'];
                         $params['geo:lat'] = $location['results'][0]['geo:lat'];
                     }
