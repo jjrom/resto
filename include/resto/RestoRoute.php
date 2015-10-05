@@ -20,6 +20,15 @@
  * 
  * See list of routes per HTTP verb in Routes/*.php
  * 
+ * @SWG\Swagger(
+ *      schemes={"http", "https"},
+ *      host="localhost",
+ *      basePath="/resto",
+ *      @SWG\Info(
+ *          title="resto API",
+ *          version="2.1"
+ *      )
+ * )
  */
 abstract class RestoRoute {
     

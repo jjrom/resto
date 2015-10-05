@@ -118,6 +118,321 @@ class RestoRouteGET extends RestoRoute {
     /**
      * Process api/collections
      * 
+     * @SWG\Get(
+     *      tags={"collections"},
+     *      path="/api/collections/describe.xml",
+     *      summary="Describe OSDD",
+     *      description="Returns the OpenSearch Document Description (OSDD) for the search service on all collections",
+     *      operationId="describeCollections",
+     *      produces={"application/xml"},
+     *      @SWG\Response(
+     *          response="200",
+     *          description="OpenSearch Document Description (OSDD)"
+     *      )
+     * )
+     * 
+     * @SWG\Get(
+     *      tags={"collection"},
+     *      path="/api/collections/{collectionId}/describe.xml",
+     *      summary="Describe OSDD",
+     *      description="Returns the OpenSearch Document Description (OSDD) for the search service of collection {collectionId}",
+     *      operationId="describeCollection",
+     *      produces={"application/xml"},
+     *      @SWG\Parameter(
+     *          name="collectionId",
+     *          in="path",
+     *          description="Collection identifier",
+     *          required=true,
+     *          type="string",
+     *          @SWG\Items(type="string")
+     *      ),
+     *      @SWG\Response(
+     *          response="200",
+     *          description="OpenSearch Document Description (OSDD)"
+     *      ),
+     *      @SWG\Response(
+     *          response="404",
+     *          description="Collection not found"
+     *      )
+     * )
+     * 
+     * @SWG\Get(
+     *      tags={"collections"},
+     *      path="/api/collections/search.{format}",
+     *      summary="Search",
+     *      description="Search products within all collections",
+     *      operationId="searchInCollections",
+     *      produces={"application/json", "application/atom+xml"},
+     *      @SWG\Parameter(
+     *          name="format",
+     *          in="path",
+     *          description="Output format",
+     *          required=true,
+     *          type="string",
+     *          @SWG\Items(type="string"),
+     *          enum={"atom", "json"}
+     *      ),
+     *      @SWG\Parameter(
+     *          name="q",
+     *          in="query",
+     *          description="Free text search - OpenSearch {searchTerms}",
+     *          required=false,
+     *          type="string"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="maxRecords",
+     *          in="query",
+     *          description="Number of results returned per page - OpenSearch {count}",
+     *          required=false,
+     *          type="integer",
+     *          minimum=1,
+     *          maximum=500,
+     *          default=50
+     *      ),
+     *      @SWG\Parameter(
+     *          name="index",
+     *          in="query",
+     *          description="First result to provide - OpenSearch {startIndex}",
+     *          required=false,
+     *          type="integer",
+     *          minimum=1,
+     *          default=1
+     *      ),
+     *      @SWG\Parameter(
+     *          name="page",
+     *          in="query",
+     *          description="First page to provide - OpenSearch {startPage}",
+     *          required=false,
+     *          type="integer",
+     *          minimum=1,
+     *          default=1
+     *      ),
+     *      @SWG\Parameter(
+     *          name="lang",
+     *          in="query",
+     *          description="Two letters language code according to ISO 639-1 - OpenSearch {language}",
+     *          required=false,
+     *          type="string",
+     *          pattern="^[a-z]{2}$",
+     *          default="en"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="identifier",
+     *          in="query",
+     *          description="Either resto identifier or productIdentifier - OpenSearch {geo:uid}",
+     *          required=false,
+     *          type="string"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="geometry",
+     *          in="query",
+     *          description="Region of Interest defined in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326) - OpenSearch {geo:geometry}",
+     *          required=false,
+     *          type="string"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="box",
+     *          in="query",
+     *          description="Region of Interest defined by 'west, south, east, north' coordinates of longitude, latitude, in decimal degrees (EPSG:4326) - OpenSearch {geo:box}",
+     *          required=false,
+     *          type="string"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="name",
+     *          in="query",
+     *          description="Location string e.g. Paris, France - OpenSearch {geo:name}",
+     *          required=false,
+     *          type="string"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="lon",
+     *          in="query",
+     *          description="Longitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lat - OpenSearch {geo:lon}",
+     *          required=false,
+     *          minimum=-180,
+     *          maximum=180,
+     *          type="string"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="lat",
+     *          in="query",
+     *          description="Latitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lon - OpenSearch {geo:lat}",
+     *          required=false,
+     *          minimum=-90,
+     *          maximum=90,
+     *          type="string"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="radius",
+     *          in="query",
+     *          description="Expressed in meters - should be used with geo:lon and geo:lat - OpenSearch {geo:radius}",
+     *          required=false,
+     *          minimum=1,
+     *          type="string"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="startDate",
+     *          in="query",
+     *          description="Beginning of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:start}",
+     *          type="string",
+     *          pattern="^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="completionDate",
+     *          in="query",
+     *          description="End of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:end}",
+     *          type="string",
+     *          pattern="^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="parentIdentifier",
+     *          in="query",
+     *          description="OpenSearch {eo:parentIdentifier}",
+     *          type="string",
+     *          pattern="^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="productType",
+     *          in="query",
+     *          description="OpenSearch {eo:productType}",
+     *          type="string",
+     *          enum={}
+     *      ),
+     *      @SWG\Parameter(
+     *          name="processingLevel",
+     *          in="query",
+     *          description="OpenSearch {eo:processingLevel}",
+     *          type="string",
+     *          enum={}
+     *      ),
+     *      @SWG\Parameter(
+     *          name="platform",
+     *          in="query",
+     *          description="OpenSearch {eo:platform}",
+     *          type="string",
+     *          enum={}
+     *      ),
+     *      @SWG\Parameter(
+     *          name="instrument",
+     *          in="query",
+     *          description="OpenSearch {eo:instrument}",
+     *          type="string",
+     *          enum={}
+     *      ),
+     *      @SWG\Parameter(
+     *          name="sensorMode",
+     *          in="query",
+     *          description="OpenSearch {eo:sensorMode}",
+     *          type="string"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="resolution",
+     *          in="query",
+     *          description="Spatial resolution expressed in meters - OpenSearch {eo:resolution}",
+     *          type="numeric",
+     *          pattern="^(?:[1-9]\d*|0)?(?:\.\d+)?$"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="organisationName",
+     *          in="query",
+     *          description="OpenSearch {eo:organisationName}",
+     *          type="string"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="orbitNumber",
+     *          in="query",
+     *          description="OpenSearch {eo:orbitNumber}",
+     *          type="integer",
+     *          minimum=1
+     *      ),
+     *      @SWG\Parameter(
+     *          name="cloudCover",
+     *          in="query",
+     *          description="Cloud cover expressed in percent - OpenSearch {eo:cloudCover}",
+     *          type="string",
+     *          pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="snowCover",
+     *          in="query",
+     *          description="Snow cover expressed in percent - OpenSearch {eo:snowCover}",
+     *          type="string",
+     *          pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="cultivatedCover",
+     *          in="query",
+     *          description="Cultivated area expressed in percent - OpenSearch {resto:cultivatedCover}",
+     *          type="string",
+     *          pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="desertCover",
+     *          in="query",
+     *          description="Desert area expressed in percent - OpenSearch {resto:cultivatedCover}",
+     *          type="string",
+     *          pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="floodedCover",
+     *          in="query",
+     *          description="Flooded area expressed in percent - OpenSearch {resto:cultivatedCover}",
+     *          type="string",
+     *          pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="forestCover",
+     *          in="query",
+     *          description="Forest area expressed in percent - OpenSearch {resto:cultivatedCover}",
+     *          type="string",
+     *          pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="herbaceousCover",
+     *          in="query",
+     *          description="Herbaceous area expressed in percent - OpenSearch {resto:cultivatedCover}",
+     *          type="string",
+     *          pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="iceCover",
+     *          in="query",
+     *          description="Ice area expressed in percent - OpenSearch {resto:cultivatedCover}",
+     *          type="string",
+     *          pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="urbanCover",
+     *          in="query",
+     *          description="Urban area expressed in percent - OpenSearch {resto:cultivatedCover}",
+     *          type="string",
+     *          pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="waterCover",
+     *          in="query",
+     *          description="Water area expressed in percent - OpenSearch {resto:waterCover}",
+     *          type="string",
+     *          pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+     *      ),
+     *      @SWG\Parameter(
+     *          name="updated",
+     *          in="query",
+     *          description="Last update of the product within database - OpenSearch {dc:date}",
+     *          type="string",
+     *          pattern="^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$"
+     *      ),
+     *      @SWG\Response(
+     *          response="200",
+     *          description="OpenSearch Document Description (OSDD)"
+     *      ),
+     *      @SWG\Response(
+     *          response="404",
+     *          description="Collection not found"
+     *      )
+     * )
+     * 
+     * 
      * @param array $segments
      * @return type
      */
@@ -216,6 +531,60 @@ class RestoRouteGET extends RestoRoute {
     /**
      * 
      * Process HTTP GET request on collections
+     *  
+     * @SWG\Get(
+     *      tags={"collections"},
+     *      path="/collections.{format}",
+     *      summary="Describe",
+     *      description="Returns a list of all collection descriptions including license information and collection content statistics (i.e. number of products, etc.)",
+     *      produces={"application/json"},
+     *      @SWG\Parameter(
+     *          name="format",
+     *          in="path",
+     *          description="Output format",
+     *          required=true,
+     *          type="string",
+     *          @SWG\Items(type="string"),
+     *          enum={"json"}
+     *      ),
+     *      @SWG\Response(
+     *          response="200",
+     *          description="List of all collection descriptions"
+     *      )
+     * )
+     * 
+     * @SWG\Get(
+     *      tags={"collection"},
+     *      path="/collections/{collectionId}.{format}",
+     *      summary="Describe",
+     *      description="Returns the {collectionId} collection description including license information and collection content statistics (i.e. number of products, etc.)",
+     *      produces={"application/json"},
+     *      @SWG\Parameter(
+     *          name="format",
+     *          in="path",
+     *          description="Output format",
+     *          required=true,
+     *          type="string",
+     *          @SWG\Items(type="string"),
+     *          enum={"json"}
+     *      ),
+     *      @SWG\Parameter(
+     *          name="collectionId",
+     *          in="path",
+     *          description="Collection identifier",
+     *          required=true,
+     *          type="string",
+     *          @SWG\Items(type="string")
+     *      ),
+     *      @SWG\Response(
+     *          response="200",
+     *          description="Describe collection {collectionId}"
+     *      ),
+     *      @SWG\Response(
+     *          response="404",
+     *          description="Collection not found"
+     *      )
+     * )
      * 
      * @param array $segments
      */

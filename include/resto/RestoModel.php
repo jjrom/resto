@@ -16,7 +16,7 @@
  */
 
 /**
- * RESTo Model
+ * RESTo Model 
  */
 abstract class RestoModel {
     
@@ -297,13 +297,13 @@ abstract class RestoModel {
             'key' => 'geometry',
             'osKey' => 'geometry',
             'operation' => 'intersects',
-            'title' => 'Defined in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326)'
+            'title' => 'Region of Interest defined in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326)'
         ),
         'geo:box' => array(
             'key' => 'geometry',
             'osKey' => 'box',
             'operation' => 'intersects',
-            'title' => 'Defined by \'west, south, east, north\' coordinates of longitude, latitude, in decimal degrees (EPSG:4326)'
+            'title' => 'Region of Interest defined by \'west, south, east, north\' coordinates of longitude, latitude, in decimal degrees (EPSG:4326)'
         ),
         'geo:name' => array(
             'key' => 'geometry',
@@ -529,6 +529,7 @@ abstract class RestoModel {
         'dc:date' => array(
             'key' => 'updated',
             'osKey' => 'updated',
+            'title' => 'Last update of the product within database',
             'operation' => '>=',
             'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'
         )
