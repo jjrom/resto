@@ -329,7 +329,7 @@ class RestoRouteGET extends RestoRoute {
      *          name="resolution",
      *          in="query",
      *          description="Spatial resolution expressed in meters - OpenSearch {eo:resolution}",
-     *          type="numeric",
+     *          type="number",
      *          pattern="^(?:[1-9]\d*|0)?(?:\.\d+)?$"
      *      ),
      *      @SWG\Parameter(
