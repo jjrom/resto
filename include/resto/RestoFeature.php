@@ -17,6 +17,11 @@
 
 /**
  * RESTo Feature
+ * 
+ *  @SWG\Tag(
+ *      name="feature",
+ *      description="A feature is usually an Earth Observation product described by its metadata (including geolocation)"
+ *  )
  */
 class RestoFeature {
 

@@ -16,7 +16,12 @@
  */
 
 /**
- * RESTo Collection
+ *  resto collection
+ * 
+ *  @SWG\Tag(
+ *      name="collection",
+ *      description="A collection is a set of features that usually share common properties - for instance features from the same mission (e.g. 'Sentinel1')"
+ *  )
  */
 class RestoCollection {
     

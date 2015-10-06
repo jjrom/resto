@@ -132,6 +132,134 @@ class RestoRouteGET extends RestoRoute {
      * )
      * 
      * @SWG\Get(
+     *      tags={"collections"},
+     *      path="/api/collections/search.{format}",
+     *      summary="Search",
+     *      description="Search products within all collections",
+     *      operationId="searchInCollections",
+     *      produces={"application/json", "application/atom+xml"},
+     *      @SWG\Parameter(
+     *          name="format",
+     *          in="path",
+     *          description="Output format",
+     *          required=true,
+     *          type="string",
+     *          @SWG\Items(type="string"),
+     *          enum={"atom", "json"}
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/q"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/maxRecords"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/index"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/page"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/lang"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/identifier"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/geometry"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/box"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/name"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/lon"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/lat"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/radius"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/startDate"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/completionDate"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/parentIdentifier"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/platform"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/instrument"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/sensorMode"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/productType"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/processingLevel"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/resolution"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/organisationName"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/orbitNumber"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/cloudCover"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/snowCover"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/cultivatedCover"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/desertCover"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/floodedCover"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/forestCover"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/herbaceousCover"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/iceCover"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/urbanCover"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/waterCover"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/updated"
+     *      ),
+     *      @SWG\Response(
+     *          response="200",
+     *          description="OpenSearch Document Description (OSDD)"
+     *      ),
+     *      @SWG\Response(
+     *          response="404",
+     *          description="Collection not found"
+     *      )
+     * )
+     * 
+     * @SWG\Get(
      *      tags={"collection"},
      *      path="/api/collections/{collectionId}/describe.xml",
      *      summary="Describe OSDD",
@@ -155,13 +283,13 @@ class RestoRouteGET extends RestoRoute {
      *          description="Collection not found"
      *      )
      * )
-     * 
+     *
      * @SWG\Get(
-     *      tags={"collections"},
-     *      path="/api/collections/search.{format}",
+     *      tags={"collection"},
+     *      path="/api/collections/{collectionId}/search.{format}",
      *      summary="Search",
-     *      description="Search products within all collections",
-     *      operationId="searchInCollections",
+     *      description="Search products within collection {collectionId}",
+     *      operationId="searchInCollection",
      *      produces={"application/json", "application/atom+xml"},
      *      @SWG\Parameter(
      *          name="format",
@@ -173,254 +301,114 @@ class RestoRouteGET extends RestoRoute {
      *          enum={"atom", "json"}
      *      ),
      *      @SWG\Parameter(
-     *          name="q",
-     *          in="query",
-     *          description="Free text search - OpenSearch {searchTerms}",
-     *          required=false,
-     *          type="string"
-     *      ),
-     *      @SWG\Parameter(
-     *          name="maxRecords",
-     *          in="query",
-     *          description="Number of results returned per page - OpenSearch {count}",
-     *          required=false,
-     *          type="integer",
-     *          minimum=1,
-     *          maximum=500,
-     *          default=50
-     *      ),
-     *      @SWG\Parameter(
-     *          name="index",
-     *          in="query",
-     *          description="First result to provide - OpenSearch {startIndex}",
-     *          required=false,
-     *          type="integer",
-     *          minimum=1,
-     *          default=1
-     *      ),
-     *      @SWG\Parameter(
-     *          name="page",
-     *          in="query",
-     *          description="First page to provide - OpenSearch {startPage}",
-     *          required=false,
-     *          type="integer",
-     *          minimum=1,
-     *          default=1
-     *      ),
-     *      @SWG\Parameter(
-     *          name="lang",
-     *          in="query",
-     *          description="Two letters language code according to ISO 639-1 - OpenSearch {language}",
-     *          required=false,
+     *          name="collectionId",
+     *          in="path",
+     *          description="Collection identifier",
+     *          required=true,
      *          type="string",
-     *          pattern="^[a-z]{2}$",
-     *          default="en"
+     *          @SWG\Items(type="string")
      *      ),
      *      @SWG\Parameter(
-     *          name="identifier",
-     *          in="query",
-     *          description="Either resto identifier or productIdentifier - OpenSearch {geo:uid}",
-     *          required=false,
-     *          type="string"
+     *          ref="#/parameters/q"
      *      ),
      *      @SWG\Parameter(
-     *          name="geometry",
-     *          in="query",
-     *          description="Region of Interest defined in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326) - OpenSearch {geo:geometry}",
-     *          required=false,
-     *          type="string"
+     *          ref="#/parameters/maxRecords"
      *      ),
      *      @SWG\Parameter(
-     *          name="box",
-     *          in="query",
-     *          description="Region of Interest defined by 'west, south, east, north' coordinates of longitude, latitude, in decimal degrees (EPSG:4326) - OpenSearch {geo:box}",
-     *          required=false,
-     *          type="string"
+     *          ref="#/parameters/index"
      *      ),
      *      @SWG\Parameter(
-     *          name="name",
-     *          in="query",
-     *          description="Location string e.g. Paris, France - OpenSearch {geo:name}",
-     *          required=false,
-     *          type="string"
+     *          ref="#/parameters/page"
      *      ),
      *      @SWG\Parameter(
-     *          name="lon",
-     *          in="query",
-     *          description="Longitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lat - OpenSearch {geo:lon}",
-     *          required=false,
-     *          minimum=-180,
-     *          maximum=180,
-     *          type="string"
+     *          ref="#/parameters/lang"
      *      ),
      *      @SWG\Parameter(
-     *          name="lat",
-     *          in="query",
-     *          description="Latitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lon - OpenSearch {geo:lat}",
-     *          required=false,
-     *          minimum=-90,
-     *          maximum=90,
-     *          type="string"
+     *          ref="#/parameters/identifier"
      *      ),
      *      @SWG\Parameter(
-     *          name="radius",
-     *          in="query",
-     *          description="Expressed in meters - should be used with geo:lon and geo:lat - OpenSearch {geo:radius}",
-     *          required=false,
-     *          minimum=1,
-     *          type="string"
+     *          ref="#/parameters/geometry"
      *      ),
      *      @SWG\Parameter(
-     *          name="startDate",
-     *          in="query",
-     *          description="Beginning of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:start}",
-     *          type="string",
-     *          pattern="^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$"
+     *          ref="#/parameters/box"
      *      ),
      *      @SWG\Parameter(
-     *          name="completionDate",
-     *          in="query",
-     *          description="End of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:end}",
-     *          type="string",
-     *          pattern="^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$"
+     *          ref="#/parameters/name"
      *      ),
      *      @SWG\Parameter(
-     *          name="parentIdentifier",
-     *          in="query",
-     *          description="OpenSearch {eo:parentIdentifier}",
-     *          type="string",
-     *          pattern="^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$"
+     *          ref="#/parameters/lon"
      *      ),
      *      @SWG\Parameter(
-     *          name="productType",
-     *          in="query",
-     *          description="OpenSearch {eo:productType}",
-     *          type="string",
-     *          enum={}
+     *          ref="#/parameters/lat"
      *      ),
      *      @SWG\Parameter(
-     *          name="processingLevel",
-     *          in="query",
-     *          description="OpenSearch {eo:processingLevel}",
-     *          type="string",
-     *          enum={}
+     *          ref="#/parameters/radius"
      *      ),
      *      @SWG\Parameter(
-     *          name="platform",
-     *          in="query",
-     *          description="OpenSearch {eo:platform}",
-     *          type="string",
-     *          enum={}
+     *          ref="#/parameters/startDate"
      *      ),
      *      @SWG\Parameter(
-     *          name="instrument",
-     *          in="query",
-     *          description="OpenSearch {eo:instrument}",
-     *          type="string",
-     *          enum={}
+     *          ref="#/parameters/completionDate"
      *      ),
      *      @SWG\Parameter(
-     *          name="sensorMode",
-     *          in="query",
-     *          description="OpenSearch {eo:sensorMode}",
-     *          type="string"
+     *          ref="#/parameters/parentIdentifier"
      *      ),
      *      @SWG\Parameter(
-     *          name="resolution",
-     *          in="query",
-     *          description="Spatial resolution expressed in meters - OpenSearch {eo:resolution}",
-     *          type="number",
-     *          pattern="^(?:[1-9]\d*|0)?(?:\.\d+)?$"
+     *          ref="#/parameters/platform"
      *      ),
      *      @SWG\Parameter(
-     *          name="organisationName",
-     *          in="query",
-     *          description="OpenSearch {eo:organisationName}",
-     *          type="string"
+     *          ref="#/parameters/instrument"
      *      ),
      *      @SWG\Parameter(
-     *          name="orbitNumber",
-     *          in="query",
-     *          description="OpenSearch {eo:orbitNumber}",
-     *          type="integer",
-     *          minimum=1
+     *          ref="#/parameters/sensorMode"
      *      ),
      *      @SWG\Parameter(
-     *          name="cloudCover",
-     *          in="query",
-     *          description="Cloud cover expressed in percent - OpenSearch {eo:cloudCover}",
-     *          type="string",
-     *          pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+     *          ref="#/parameters/productType"
      *      ),
      *      @SWG\Parameter(
-     *          name="snowCover",
-     *          in="query",
-     *          description="Snow cover expressed in percent - OpenSearch {eo:snowCover}",
-     *          type="string",
-     *          pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+     *          ref="#/parameters/processingLevel"
      *      ),
      *      @SWG\Parameter(
-     *          name="cultivatedCover",
-     *          in="query",
-     *          description="Cultivated area expressed in percent - OpenSearch {resto:cultivatedCover}",
-     *          type="string",
-     *          pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+     *          ref="#/parameters/resolution"
      *      ),
      *      @SWG\Parameter(
-     *          name="desertCover",
-     *          in="query",
-     *          description="Desert area expressed in percent - OpenSearch {resto:cultivatedCover}",
-     *          type="string",
-     *          pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+     *          ref="#/parameters/organisationName"
      *      ),
      *      @SWG\Parameter(
-     *          name="floodedCover",
-     *          in="query",
-     *          description="Flooded area expressed in percent - OpenSearch {resto:cultivatedCover}",
-     *          type="string",
-     *          pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+     *          ref="#/parameters/orbitNumber"
      *      ),
      *      @SWG\Parameter(
-     *          name="forestCover",
-     *          in="query",
-     *          description="Forest area expressed in percent - OpenSearch {resto:cultivatedCover}",
-     *          type="string",
-     *          pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+     *          ref="#/parameters/cloudCover"
      *      ),
      *      @SWG\Parameter(
-     *          name="herbaceousCover",
-     *          in="query",
-     *          description="Herbaceous area expressed in percent - OpenSearch {resto:cultivatedCover}",
-     *          type="string",
-     *          pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+     *          ref="#/parameters/snowCover"
      *      ),
      *      @SWG\Parameter(
-     *          name="iceCover",
-     *          in="query",
-     *          description="Ice area expressed in percent - OpenSearch {resto:cultivatedCover}",
-     *          type="string",
-     *          pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+     *          ref="#/parameters/cultivatedCover"
      *      ),
      *      @SWG\Parameter(
-     *          name="urbanCover",
-     *          in="query",
-     *          description="Urban area expressed in percent - OpenSearch {resto:cultivatedCover}",
-     *          type="string",
-     *          pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+     *          ref="#/parameters/desertCover"
      *      ),
      *      @SWG\Parameter(
-     *          name="waterCover",
-     *          in="query",
-     *          description="Water area expressed in percent - OpenSearch {resto:waterCover}",
-     *          type="string",
-     *          pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+     *          ref="#/parameters/floodedCover"
      *      ),
      *      @SWG\Parameter(
-     *          name="updated",
-     *          in="query",
-     *          description="Last update of the product within database - OpenSearch {dc:date}",
-     *          type="string",
-     *          pattern="^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$"
+     *          ref="#/parameters/forestCover"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/herbaceousCover"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/iceCover"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/urbanCover"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/waterCover"
+     *      ),
+     *      @SWG\Parameter(
+     *          ref="#/parameters/updated"
      *      ),
      *      @SWG\Response(
      *          response="200",
@@ -430,8 +418,7 @@ class RestoRouteGET extends RestoRoute {
      *          response="404",
      *          description="Collection not found"
      *      )
-     * )
-     * 
+     * ) 
      * 
      * @param array $segments
      * @return type
@@ -490,20 +477,89 @@ class RestoRouteGET extends RestoRoute {
                 
         switch ($segments[2]) {
 
-            /*
-             * api/user/activate
+            /**
+             *  @SWG\Get(
+             *      tags={"user"},
+             *      path="/api/user/activate",
+             *      summary="Activate user",
+             *      description="Activate registered user",
+             *      operationId="activateUser",
+             *      produces={"application/json"},
+             *      @SWG\Parameter(
+             *          name="act",
+             *          in="query",
+             *          description="Activation token",
+             *          required=true,
+             *          type="string",
+             *          @SWG\Items(type="string")
+             *      ),
+             *      @SWG\Parameter(
+             *          name="redirect",
+             *          in="query",
+             *          description="Redirect url to the rocket activation status page",
+             *          required=true,
+             *          type="string",
+             *          @SWG\Items(type="string")
+             *      ),
+             *      @SWG\Response(
+             *          response="200",
+             *          description="Activation status - user activated or not"
+             *      ),
+             *      @SWG\Response(
+             *          response="400",
+             *          description="Bad request"
+             *      )
+             *  )
              */
             case 'activate':
                 return $this->activateUser($user);
                 
-            /*
-             * api/user/connect
+            /**
+             *  @SWG\Get(
+             *      tags={"user"},
+             *      path="/api/user/connect",
+             *      summary="Connect user",
+             *      description="Connect user and return user profile encoded within a JWT",
+             *      operationId="connectUser",
+             *      produces={"application/json"},
+             *      @SWG\Response(
+             *          response="200",
+             *          description="Return user profile encoded within a JWT"
+             *      ),
+             *      @SWG\Response(
+             *          response="403",
+             *          description="Forbidden"
+             *      )
+             *  )
              */
             case 'connect':
                 return $this->user->connect();
 
-            /*
-             * api/user/checkToken
+            /**
+             *  @SWG\Get(
+             *      tags={"user"},
+             *      path="/api/user/checkToken",
+             *      summary="Check security token",
+             *      description="Check if security token associated to user is valid. Usually security token is used to temporarely replace authentication to download/visualize ressources",
+             *      operationId="checkToken",
+             *      produces={"application/json"},
+             *      @SWG\Parameter(
+             *          name="_tk",
+             *          in="query",
+             *          description="Security token",
+             *          required=true,
+             *          type="string",
+             *          @SWG\Items(type="string")
+             *      ),
+             *      @SWG\Response(
+             *          response="200",
+             *          description="Token validity - valid or invalid"
+             *      ),
+             *      @SWG\Response(
+             *          response="400",
+             *          description="Bad request"
+             *      )
+             *  )
              */
             case 'checkToken':
                 if (!isset($this->context->query['_tk'])) {
@@ -511,8 +567,23 @@ class RestoRouteGET extends RestoRoute {
                 }
                 return $this->context->checkJWT($this->context->query['_tk']) ? RestoLogUtil::success('Valid token') : RestoLogUtil::error('Invalid token');
                 
-            /*
-             * api/user/resetPassword
+            /**
+             *  @SWG\Get(
+             *      tags={"user"},
+             *      path="/api/user/resetPassword",
+             *      summary="Send reset password link",
+             *      description="Send reset password link to the user email adress",
+             *      operationId="resetPassword",
+             *      produces={"application/json"},
+             *      @SWG\Response(
+             *          response="200",
+             *          description="Acknowledgment of email notification"
+             *      ),
+             *      @SWG\Response(
+             *          response="400",
+             *          description="Bad request"
+             *      )
+             *  )
              */
             case 'resetPassword':
                 if (isset($user)) {
@@ -531,60 +602,6 @@ class RestoRouteGET extends RestoRoute {
     /**
      * 
      * Process HTTP GET request on collections
-     *  
-     * @SWG\Get(
-     *      tags={"collections"},
-     *      path="/collections.{format}",
-     *      summary="Describe",
-     *      description="Returns a list of all collection descriptions including license information and collection content statistics (i.e. number of products, etc.)",
-     *      produces={"application/json"},
-     *      @SWG\Parameter(
-     *          name="format",
-     *          in="path",
-     *          description="Output format",
-     *          required=true,
-     *          type="string",
-     *          @SWG\Items(type="string"),
-     *          enum={"json"}
-     *      ),
-     *      @SWG\Response(
-     *          response="200",
-     *          description="List of all collection descriptions"
-     *      )
-     * )
-     * 
-     * @SWG\Get(
-     *      tags={"collection"},
-     *      path="/collections/{collectionId}.{format}",
-     *      summary="Describe",
-     *      description="Returns the {collectionId} collection description including license information and collection content statistics (i.e. number of products, etc.)",
-     *      produces={"application/json"},
-     *      @SWG\Parameter(
-     *          name="format",
-     *          in="path",
-     *          description="Output format",
-     *          required=true,
-     *          type="string",
-     *          @SWG\Items(type="string"),
-     *          enum={"json"}
-     *      ),
-     *      @SWG\Parameter(
-     *          name="collectionId",
-     *          in="path",
-     *          description="Collection identifier",
-     *          required=true,
-     *          type="string",
-     *          @SWG\Items(type="string")
-     *      ),
-     *      @SWG\Response(
-     *          response="200",
-     *          description="Describe collection {collectionId}"
-     *      ),
-     *      @SWG\Response(
-     *          response="404",
-     *          description="Collection not found"
-     *      )
-     * )
      * 
      * @param array $segments
      */
@@ -603,22 +620,117 @@ class RestoRouteGET extends RestoRoute {
             }
         }
         
-        /*
-         * collections
+        /**
+         * Collection descriptions
+         * 
+         *  @SWG\Get(
+         *      tags={"collections"},
+         *      path="/collections.{format}",
+         *      summary="Describe",
+         *      description="Returns a list of all collection descriptions including license information and collection content statistics (i.e. number of products, etc.)",
+         *      produces={"application/json"},
+         *      @SWG\Parameter(
+         *          name="format",
+         *          in="path",
+         *          description="Output format",
+         *          required=true,
+         *          type="string",
+         *          @SWG\Items(type="string"),
+         *          enum={"json"}
+         *      ),
+         *      @SWG\Response(
+         *          response="200",
+         *          description="List of all collection descriptions"
+         *      )
+         *  )
+         * 
          */
         if (!isset($collection)) {
             return new RestoCollections($this->context, $this->user, array('autoload' => true));
         }
 
-        /*
+        /**
          * Collection description (XML is not allowed - see api/describe/collections)
+         * 
+         *  @SWG\Get(
+         *      tags={"collection"},
+         *      path="/collections/{collectionId}.{format}",
+         *      summary="Describe",
+         *      description="Returns the {collectionId} collection description including license information and collection content statistics (i.e. number of products, etc.)",
+         *      produces={"application/json"},
+         *      @SWG\Parameter(
+         *          name="format",
+         *          in="path",
+         *          description="Output format",
+         *          required=true,
+         *          type="string",
+         *          @SWG\Items(type="string"),
+         *          enum={"json"}
+         *      ),
+         *      @SWG\Parameter(
+         *          name="collectionId",
+         *          in="path",
+         *          description="Collection identifier",
+         *          required=true,
+         *          type="string",
+         *          @SWG\Items(type="string")
+         *      ),
+         *      @SWG\Response(
+         *          response="200",
+         *          description="Describe collection {collectionId}"
+         *      ),
+         *      @SWG\Response(
+         *          response="404",
+         *          description="Collection not found"
+         *      )
+         *  )
+         * 
          */
         else if (!isset($feature->identifier)) {
             return $collection;
         }
 
-        /*
+        /**
          * Feature description
+         * 
+         *  @SWG\Get(
+         *      tags={"feature"},
+         *      path="/collections/{collectionId}/{featureId}.{format}",
+         *      summary="Get feature",
+         *      description="Returns feature {featureId} metadata",
+         *      produces={"application/json", "application/atom+xml"},
+         *      security={
+         *          {
+         *             "localAuthentication": {"read:feature"}
+         *          }
+         *      },
+         *      @SWG\Parameter(
+         *          name="format",
+         *          in="path",
+         *          description="Output format",
+         *          required=true,
+         *          type="string",
+         *          @SWG\Items(type="string"),
+         *          enum={"json", "atom"}
+         *      ),
+         *      @SWG\Parameter(
+         *          name="collectionId",
+         *          in="path",
+         *          description="Collection identifier",
+         *          required=true,
+         *          type="string",
+         *          @SWG\Items(type="string")
+         *      ),
+         *      @SWG\Response(
+         *          response="200",
+         *          description="Feature metadata"
+         *      ),
+         *      @SWG\Response(
+         *          response="404",
+         *          description="Collection not found"
+         *      )
+         *  )
+         *  
          */
         else if (!isset($segments[3])) {
             if ($this->context->storeQuery === true) {
@@ -627,15 +739,115 @@ class RestoRouteGET extends RestoRoute {
             return $feature;
         }
 
-        /*
-         * Download feature then exit
+        /**
+         * Download feature and exit
+         * 
+         *  @SWG\Get(
+         *      tags={"feature"},
+         *      path="/collections/{collectionId}/{featureId}/download",
+         *      summary="Download feature",
+         *      description="Download feature attached resource i.e. usually the eo product as a zip file or an image file (e.g. TIF)",
+         *      produces={"application/octet-stream"},
+         *      security={
+         *          {
+         *             "localAuthentication": {"download:resource"}
+         *          }
+         *      },
+         *      @SWG\Parameter(
+         *          name="collectionId",
+         *          in="path",
+         *          description="Collection identifier",
+         *          required=true,
+         *          type="string",
+         *          @SWG\Items(type="string")
+         *      ),
+         *      @SWG\Parameter(
+         *          name="featureId",
+         *          in="path",
+         *          description="Feature identifier (i.e. resto UUID)",
+         *          required=true,
+         *          type="string",
+         *          @SWG\Items(type="string")
+         *      ),
+         *      @SWG\Parameter(
+         *          name="_tk",
+         *          in="query",
+         *          description="Security token",
+         *          required=false,
+         *          type="string",
+         *          @SWG\Items(type="string")
+         *      ),
+         *      @SWG\Response(
+         *          response="200",
+         *          description="Resource stream"
+         *      ),
+         *      @SWG\Response(
+         *          response="404",
+         *          description="Feature not found"
+         *      ),
+         *      @SWG\Response(
+         *          response="403",
+         *          description="Forbidden"
+         *      )
+         *  )
+         *  
          */
         else if ($segments[3] === 'download') {
             return $this->downloadFeature($collection, $feature, isset($this->context->query['_tk']) ? $this->context->query['_tk'] : null);
         }
         
-        /*
-         * Access WMS for feature
+        /**
+         * View feature as a WMS stream
+         * 
+         *  @SWG\Get(
+         *      tags={"feature"},
+         *      path="/collections/{collectionId}/{featureId}/wms",
+         *      summary="View full resolution product",
+         *      description="View feature attached resource (i.e. usually the eo product) in full resolution through a WMS stream",
+         *      produces={"application/octet-stream"},
+         *      security={
+         *          {
+         *             "localAuthentication": {"view:resource"}
+         *          }
+         *      },
+         *      @SWG\Parameter(
+         *          name="collectionId",
+         *          in="path",
+         *          description="Collection identifier",
+         *          required=true,
+         *          type="string",
+         *          @SWG\Items(type="string")
+         *      ),
+         *      @SWG\Parameter(
+         *          name="featureId",
+         *          in="path",
+         *          description="Feature identifier (i.e. resto UUID)",
+         *          required=true,
+         *          type="string",
+         *          @SWG\Items(type="string")
+         *      ),
+         *      @SWG\Parameter(
+         *          name="_tk",
+         *          in="query",
+         *          description="Security token",
+         *          required=false,
+         *          type="string",
+         *          @SWG\Items(type="string")
+         *      ),
+         *      @SWG\Response(
+         *          response="200",
+         *          description="Resource stream"
+         *      ),
+         *      @SWG\Response(
+         *          response="404",
+         *          description="Feature not found"
+         *      ),
+         *      @SWG\Response(
+         *          response="403",
+         *          description="Forbidden"
+         *      )
+         *  )
+         *  
          */
         else if ($segments[3] === 'wms') {
             return $this->viewFeature($collection, $feature, isset($this->context->query['_tk']) ? $this->context->query['_tk'] : null);
@@ -657,8 +869,28 @@ class RestoRouteGET extends RestoRoute {
      */
     private function GET_user($segments) {
         
-        /*
-         * user
+        /**
+         *  @SWG\Get(
+         *      tags={"user"},
+         *      path="/user",
+         *      summary="User profile",
+         *      description="Returns user profile",
+         *      operationId="getUserProfile",
+         *      produces={"application/json"},
+         *      security={
+         *          {
+         *             "localAuthentication": {"read:profile"}
+         *          }
+         *      },
+         *      @SWG\Response(
+         *          response="200",
+         *          description="Return user profile"
+         *      ),
+         *      @SWG\Response(
+         *          response="403",
+         *          description="Forbidden"
+         *      )
+         *  )
          */
         if (!isset($segments[1])) {
             return RestoLogUtil::success('Profile for ' . $this->user->profile['email'], array(
@@ -666,8 +898,28 @@ class RestoRouteGET extends RestoRoute {
             ));
         }
 
-        /*
-         * user/groups
+        /**
+         *  @SWG\Get(
+         *      tags={"user"},
+         *      path="/user/groups",
+         *      summary="User groups",
+         *      description="Returns user groups list",
+         *      operationId="getUserGroups",
+         *      produces={"application/json"},
+         *      security={
+         *          {
+         *             "localAuthentication": {"read:groups"}
+         *          }
+         *      },
+         *      @SWG\Response(
+         *          response="200",
+         *          description="Return user groups list"
+         *      ),
+         *      @SWG\Response(
+         *          response="403",
+         *          description="Forbidden"
+         *      )
+         *  )
          */
         if ($segments[1] === 'groups') {
             if (isset($segments[2])) {
@@ -679,8 +931,28 @@ class RestoRouteGET extends RestoRoute {
             ));
         }
 
-        /*
-         * user/rights
+        /**
+         *  @SWG\Get(
+         *      tags={"user"},
+         *      path="/user/rights",
+         *      summary="User rights",
+         *      description="Returns user rights",
+         *      operationId="getUserRights",
+         *      produces={"application/json"},
+         *      security={
+         *          {
+         *             "localAuthentication": {"read:rights"}
+         *          }
+         *      },
+         *      @SWG\Response(
+         *          response="200",
+         *          description="Return user rights"
+         *      ),
+         *      @SWG\Response(
+         *          response="403",
+         *          description="Forbidden"
+         *      )
+         *  )
          */
         if ($segments[1] === 'rights') {
             return RestoLogUtil::success('Rights for ' . $this->user->profile['email'], array(
@@ -691,15 +963,55 @@ class RestoRouteGET extends RestoRoute {
             ));
         }
         
-        /*
-         * user/cart
+        /**
+         *  @SWG\Get(
+         *      tags={"user"},
+         *      path="/user/cart",
+         *      summary="User cart",
+         *      description="Returns user cart",
+         *      operationId="getUserCart",
+         *      produces={"application/json"},
+         *      security={
+         *          {
+         *             "localAuthentication": {"read:cart"}
+         *          }
+         *      },
+         *      @SWG\Response(
+         *          response="200",
+         *          description="Return user cart"
+         *      ),
+         *      @SWG\Response(
+         *          response="403",
+         *          description="Forbidden"
+         *      )
+         *  )
          */
         if ($segments[1] === 'cart' && !isset($segments[2])) {
             return $this->user->getCart();
         }
         
-        /*
-         * user/orders
+        /**
+         *  @SWG\Get(
+         *      tags={"user"},
+         *      path="/user/orders",
+         *      summary="User orders",
+         *      description="Returns user orders",
+         *      operationId="getUserOrders",
+         *      produces={"application/json"},
+         *      security={
+         *          {
+         *             "localAuthentication": {"read:orders"}
+         *          }
+         *      },
+         *      @SWG\Response(
+         *          response="200",
+         *          description="Return user orders"
+         *      ),
+         *      @SWG\Response(
+         *          response="403",
+         *          description="Forbidden"
+         *      )
+         *  )
          */
         if ($segments[1] === 'orders') {
             if (isset($segments[2])) {
@@ -714,8 +1026,28 @@ class RestoRouteGET extends RestoRoute {
             }
         }
 
-        /*
-         * user/signatures
+        /**
+         *  @SWG\Get(
+         *      tags={"user"},
+         *      path="/user/signatures",
+         *      summary="User signatures",
+         *      description="Returns user license signatures (i.e. on feature and/or on collection)",
+         *      operationId="getUserSignatures",
+         *      produces={"application/json"},
+         *      security={
+         *          {
+         *             "localAuthentication": {"read:signatures"}
+         *          }
+         *      },
+         *      @SWG\Response(
+         *          response="200",
+         *          description="Return user signatures"
+         *      ),
+         *      @SWG\Response(
+         *          response="403",
+         *          description="Forbidden"
+         *      )
+         *  )
          */
         if ($segments[1] === 'signatures' && !isset($segments[2])) {
             return RestoLogUtil::success('Signatures for ' . $this->user->profile['email'], array(
@@ -732,6 +1064,27 @@ class RestoRouteGET extends RestoRoute {
     /**
      *
      * Process licenses
+     * 
+     * @SWG\Get(
+     *      tags={"license"},
+     *      path="/licenses/{licenseId}",
+     *      summary="Get license description",
+     *      description="Returns license(s) description(s)",
+     *      operationId="getLicenses",
+     *      produces={"application/json"},
+     *      @SWG\Parameter(
+     *          name="licenseId",
+     *          in="path",
+     *          description="License identifier",
+     *          required=false,
+     *          type="string",
+     *          @SWG\Items(type="string")
+     *      ),      
+     *      @SWG\Response(
+     *          response="200",
+     *          description="License(s) description(s)"
+     *      )
+     * )
      *
      * @param array $segments
      */

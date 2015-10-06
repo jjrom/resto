@@ -18,6 +18,11 @@
 /**
  * RESToCollections is a list of RestoCollection objects
  * 
+ *  @SWG\Tag(
+ *      name="collections",
+ *      description="List of all collections"
+ *  )
+ * 
  */
 class RestoCollections {
     

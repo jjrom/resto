@@ -26,7 +26,32 @@
  *      basePath="/resto",
  *      @SWG\Info(
  *          title="resto API",
- *          version="2.1"
+ *          version="2.1",
+ *          description="An OpenSource REST search engine for Earth Observation products", 
+ *          @SWG\License(
+ *              name="Apache 2.0",
+ *              url="http://www.apache.org/licenses/LICENSE-2.0.html"
+ *          )
+ *      ),
+ *      @SWG\SecurityScheme(
+ *          securityDefinition="localAuthentication",
+ *          type="basic",
+ *          in="header",
+ *          scopes={
+ *              "read:profile": "Get user profile",
+ *              "read:groups": "Get user groups",
+ *              "read:rights": "Get user rights",
+ *              "read:cart": "Get user cart",
+ *              "read:orders": "Get user orders",
+ *              "read:signatures": "Get user licenses signatures",
+ *              "read:feature": "Get feature metadata",
+ *              "download:resource": "Download resource",
+ *              "view:resource": "View resource"
+ *          }
+ *      ),
+ *      @SWG\ExternalDocumentation(
+ *          description="Get the source code",
+ *          url="http://github.com/jjrom/resto"
  *      )
  * )
  */

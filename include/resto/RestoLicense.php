@@ -15,6 +15,12 @@
  * under the License.
  */
 
+/**
+ *  @SWG\Tag(
+ *      name="license",
+ *      description="License attached to a collection or a feature"
+ *  )
+ */
 class RestoLicense {
     
     /*

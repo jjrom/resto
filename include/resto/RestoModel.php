@@ -219,7 +219,7 @@ abstract class RestoModel {
         )
     );
     
-    /*
+    /**
      * OpenSearch search filters
      * 
      *  'key' : 
@@ -258,9 +258,18 @@ abstract class RestoModel {
      *              ...
      *          )
      *      2. 'auto'
-     *         In this case will be computed from facets table
+     *         In this case will be computed from facets table      
      */
     public $searchFilters = array(
+        /**
+         *  @SWG\Parameter(
+         *      name="q",
+         *      in="query",
+         *      description="Free text search - OpenSearch {searchTerms}",
+         *      required=false,
+         *      type="string"
+         *  )
+         */
         'searchTerms' => array(
             'key' => 'hashes',
             'osKey' => 'q',
@@ -268,49 +277,141 @@ abstract class RestoModel {
             'title' => 'Free text search',
             'htmlFilter' => true
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="maxRecords",
+         *      in="query",
+         *      description="Number of results returned per page - OpenSearch {count}",
+         *      required=false,
+         *      type="integer",
+         *      minimum=1,
+         *      maximum=500,
+         *      default=50
+         *  )
+         */
         'count' => array(
             'osKey' => 'maxRecords',
             'minInclusive' => 1,
             'maxInclusive' => 500,
             'title' => 'Number of results returned per page (default 50)'
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="index",
+         *      in="query",
+         *      description="First result to provide - OpenSearch {startIndex}",
+         *      required=false,
+         *      type="integer",
+         *      minimum=1,
+         *      default=1
+         *  )
+         */
         'startIndex' => array(
             'osKey' => 'index',
             'minInclusive' => 1
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="page",
+         *      in="query",
+         *      description="First page to provide - OpenSearch {startPage}",
+         *      required=false,
+         *      type="integer",
+         *      minimum=1,
+         *      default=1
+         *  )
+         */
         'startPage' => array(
             'osKey' => 'page',
             'minInclusive' => 1
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="lang",
+         *      in="query",
+         *      description="Two letters language code according to ISO 639-1 - OpenSearch {language}",
+         *      required=false,
+         *      type="string",
+         *      pattern="^[a-z]{2}$",
+         *      default="en"
+         *  )
+         */
         'language' => array(
             'osKey' => 'lang',
             'pattern' => '^[a-z]{2}$',
             'title' => 'Two letters language code according to ISO 639-1'
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="identifier",
+         *      in="query",
+         *      description="Either resto identifier or productIdentifier - OpenSearch {geo:uid}",
+         *      required=false,
+         *      type="string"
+         *  )
+         */
         'geo:uid' => array(
             'key' => 'identifier',
             'osKey' => 'identifier',
             'operation' => '=',
             'title' => 'Either resto identifier or productIdentifier'
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="geometry",
+         *      in="query",
+         *      description="Region of Interest defined in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326) - OpenSearch {geo:geometry}",
+         *      required=false,
+         *      type="string"
+         *  )
+         */
         'geo:geometry' => array(
             'key' => 'geometry',
             'osKey' => 'geometry',
             'operation' => 'intersects',
             'title' => 'Region of Interest defined in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326)'
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="box",
+         *      in="query",
+         *      description="Region of Interest defined by 'west, south, east, north' coordinates of longitude, latitude, in decimal degrees (EPSG:4326) - OpenSearch {geo:box}",
+         *      required=false,
+         *      type="string"
+         *  )
+         */
         'geo:box' => array(
             'key' => 'geometry',
             'osKey' => 'box',
             'operation' => 'intersects',
             'title' => 'Region of Interest defined by \'west, south, east, north\' coordinates of longitude, latitude, in decimal degrees (EPSG:4326)'
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="name",
+         *      in="query",
+         *      description="Location string e.g. Paris, France - OpenSearch {geo:name}",
+         *      required=false,
+         *      type="string"
+         *  )
+         */
         'geo:name' => array(
             'key' => 'geometry',
             'osKey' => 'name',
             'operation' => 'distance',
             'title' => 'Location string e.g. Paris, France'
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="lon",
+         *      in="query",
+         *      description="Longitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lat - OpenSearch {geo:lon}",
+         *      required=false,
+         *      minimum=-180,
+         *      maximum=180,
+         *      type="string"
+         *  )
+         */
         'geo:lon' => array(
             'key' => 'geometry',
             'osKey' => 'lon',
@@ -319,6 +420,17 @@ abstract class RestoModel {
             'minInclusive' => -180,
             'maxInclusive' => 180
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="lat",
+         *      in="query",
+         *      description="Latitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lon - OpenSearch {geo:lat}",
+         *      required=false,
+         *      minimum=-90,
+         *      maximum=90,
+         *      type="string"
+         *  )
+         */
         'geo:lat' => array(
             'key' => 'geometry',
             'osKey' => 'lat',
@@ -327,6 +439,16 @@ abstract class RestoModel {
             'minInclusive' => -90,
             'maxInclusive' => 90
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="radius",
+         *      in="query",
+         *      description="Expressed in meters - should be used with geo:lon and geo:lat - OpenSearch {geo:radius}",
+         *      required=false,
+         *      minimum=1,
+         *      type="string"
+         *  )
+         */
         'geo:radius' => array(
             'key' => 'geometry',
             'osKey' => 'radius',
@@ -334,6 +456,15 @@ abstract class RestoModel {
             'title' => 'Expressed in meters - should be used with geo:lon and geo:lat',
             'minInclusive' => 1
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="startDate",
+         *      in="query",
+         *      description="Beginning of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:start}",
+         *      type="string",
+         *      pattern="^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$"
+         *  )
+         */
         'time:start' => array(
             'key' => 'startDate',
             'osKey' => 'startDate',
@@ -341,6 +472,15 @@ abstract class RestoModel {
             'title' => 'Beginning of the time slice of the search query. Format should follow RFC-3339',
             'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="completionDate",
+         *      in="query",
+         *      description="End of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:end}",
+         *      type="string",
+         *      pattern="^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$"
+         *  )
+         */
         'time:end' => array(
             'key' => 'startDate',
             'osKey' => 'completionDate',
@@ -348,23 +488,59 @@ abstract class RestoModel {
             'title' => 'End of the time slice of the search query. Format should follow RFC-3339',
             'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="parentIdentifier",
+         *      in="query",
+         *      description="OpenSearch {eo:parentIdentifier}",
+         *      type="string",
+         *      pattern="^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$"
+         *  )
+         */
         'eo:parentIdentifier' => array(
             'key' => 'parentIdentifier',
             'osKey' => 'parentIdentifier',
             'operation' => '='
         ),
+        /**
+         * @SWG\Parameter(
+         *      name="productType",
+         *      in="query",
+         *      description="OpenSearch {eo:productType}",
+         *      type="string",
+         *      enum={}
+         *  ) 
+         */
         'eo:productType' => array(
             'key' => 'productType',
             'osKey' => 'productType',
             'operation' => '=',
             'options' => 'auto'
         ),
+        /**
+         * @SWG\Parameter(
+         *      name="processingLevel",
+         *      in="query",
+         *      description="OpenSearch {eo:processingLevel}",
+         *      type="string",
+         *      enum={}
+         *  ) 
+         */
         'eo:processingLevel' => array(
             'key' => 'processingLevel',
             'osKey' => 'processingLevel',
             'operation' => '=',
             'options' => 'auto'
         ),
+        /**
+         * @SWG\Parameter(
+         *      name="platform",
+         *      in="query",
+         *      description="OpenSearch {eo:platform}",
+         *      type="string",
+         *      enum={}
+         *  ) 
+         */
         'eo:platform' => array(
             'key' => 'platform',
             'osKey' => 'platform',
@@ -375,6 +551,15 @@ abstract class RestoModel {
             ),
             'options' => 'auto'
         ),
+        /**
+         * @SWG\Parameter(
+         *      name="instrument",
+         *      in="query",
+         *      description="OpenSearch {eo:instrument}",
+         *      type="string",
+         *      enum={}
+         *  )
+         */
         'eo:instrument' => array(
             'key' => 'instrument',
             'osKey' => 'instrument',
@@ -385,6 +570,15 @@ abstract class RestoModel {
             ),
             'options' => 'auto'
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="resolution",
+         *      in="query",
+         *      description="Spatial resolution expressed in meters - OpenSearch {eo:resolution}",
+         *      type="number",
+         *      pattern="^(?:[1-9]\d*|0)?(?:\.\d+)?$"
+         *  )
+         */
         'eo:resolution' => array(
             'key' => 'resolution',
             'osKey' => 'resolution',
@@ -396,11 +590,28 @@ abstract class RestoModel {
                 'unit' => 'm'
             )
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="organisationName",
+         *      in="query",
+         *      description="OpenSearch {eo:organisationName}",
+         *      type="string"
+         *  )
+         */
         'eo:organisationName' => array(
             'key' => 'organisationName',
             'osKey' => 'organisationName',
             'operation' => '='
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="orbitNumber",
+         *      in="query",
+         *      description="OpenSearch {eo:orbitNumber}",
+         *      type="integer",
+         *      minimum=1
+         *  )
+         */
         'eo:orbitNumber' => array(
             'key' => 'orbitNumber',
             'osKey' => 'orbitNumber',
@@ -410,12 +621,29 @@ abstract class RestoModel {
                 'value' => 'orbit'
             )
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="sensorMode",
+         *      in="query",
+         *      description="OpenSearch {eo:sensorMode}",
+         *      type="string"
+         *  )
+         */
         'eo:sensorMode' => array(
             'key' => 'sensorMode',
             'osKey' => 'sensorMode',
             'operation' => '=',
             'options' => 'auto'
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="cloudCover",
+         *      in="query",
+         *      description="Cloud cover expressed in percent - OpenSearch {resto:cloudCover}",
+         *      type="string",
+         *      pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+         *  )
+         */
         'eo:cloudCover' => array(
             'key' => 'cloudCover',
             'osKey' => 'cloudCover',
@@ -427,6 +655,15 @@ abstract class RestoModel {
                 'unit' => '%'
             )
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="snowCover",
+         *      in="query",
+         *      description="Snow cover expressed in percent - OpenSearch {resto:snowCover}",
+         *      type="string",
+         *      pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+         *  )
+         */
         'eo:snowCover' => array(
             'key' => 'snowCover',
             'osKey' => 'snowCover',
@@ -438,6 +675,15 @@ abstract class RestoModel {
                 'unit' => '%'
             )
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="cultivatedCover",
+         *      in="query",
+         *      description="Cultivated area expressed in percent - OpenSearch {resto:cultivatedCover}",
+         *      type="string",
+         *      pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+         *  )
+         */
         'resto:cultivatedCover' => array(
             'key' => 'cultivatedCover',
             'osKey' => 'cultivatedCover',
@@ -449,6 +695,15 @@ abstract class RestoModel {
                 'unit' => '%'
             )
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="desertCover",
+         *      in="query",
+         *      description="Desert area expressed in percent - OpenSearch {resto:desertCover}",
+         *      type="string",
+         *      pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+         *  )
+         */
         'resto:desertCover' => array(
             'key' => 'desertCover',
             'osKey' => 'desertCover',
@@ -460,6 +715,15 @@ abstract class RestoModel {
                 'unit' => '%'
             )
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="floodedCover",
+         *      in="query",
+         *      description="Flooded area expressed in percent - OpenSearch {resto:floodedCover}",
+         *      type="string",
+         *      pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+         *  )
+         */
         'resto:floodedCover' => array(
             'key' => 'floodedCover',
             'osKey' => 'floodedCover',
@@ -471,6 +735,15 @@ abstract class RestoModel {
                 'unit' => '%'
             )
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="forestCover",
+         *      in="query",
+         *      description="Forest area expressed in percent - OpenSearch {resto:forestCover}",
+         *      type="string",
+         *      pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+         *  )
+         */
         'resto:forestCover' => array(
             'key' => 'forestCover',
             'osKey' => 'forestCover',
@@ -482,6 +755,15 @@ abstract class RestoModel {
                 'unit' => '%'
             )
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="herbaceousCover",
+         *      in="query",
+         *      description="Herbaceous area expressed in percent - OpenSearch {resto:herbaceousCover}",
+         *      type="string",
+         *      pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+         *  )
+         */
         'resto:herbaceousCover' => array(
             'key' => 'herbaceousCover',
             'osKey' => 'herbaceousCover',
@@ -493,6 +775,15 @@ abstract class RestoModel {
                 'unit' => '%'
             )
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="iceCover",
+         *      in="query",
+         *      description="Ice area expressed in percent - OpenSearch {resto:iceCover}",
+         *      type="string",
+         *      pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+         *  )
+         */
         'resto:iceCover' => array(
             'key' => 'iceCover',
             'osKey' => 'iceCover',
@@ -504,6 +795,15 @@ abstract class RestoModel {
                 'unit' => '%'
             )
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="urbanCover",
+         *      in="query",
+         *      description="Urban area expressed in percent - OpenSearch {resto:urbanCover}",
+         *      type="string",
+         *      pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+         *  )
+         */
         'resto:urbanCover' => array(
             'key' => 'urbanCover',
             'osKey' => 'urbanCover',
@@ -515,6 +815,15 @@ abstract class RestoModel {
                 'unit' => '%'
             )
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="waterCover",
+         *      in="query",
+         *      description="Water area expressed in percent - OpenSearch {resto:waterCover}",
+         *      type="string",
+         *      pattern="^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$"
+         *  )
+         */
         'resto:waterCover' => array(
             'key' => 'waterCover',
             'osKey' => 'waterCover',
@@ -526,6 +835,15 @@ abstract class RestoModel {
                 'unit' => '%'
             )
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="updated",
+         *      in="query",
+         *      description="Last update of the product within database - OpenSearch {dc:date}",
+         *      type="string",
+         *      pattern="^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$"
+         *  )
+         */
         'dc:date' => array(
             'key' => 'updated',
             'osKey' => 'updated',

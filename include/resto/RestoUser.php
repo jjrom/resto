@@ -15,6 +15,12 @@
  * under the License.
  */
 
+/**
+ *  @SWG\Tag(
+ *      name="user",
+ *      description="Everything about user - profile, access rights, history, etc."
+ *  )
+ */
 class RestoUser{
     
     const CREATE = 'create'; 
