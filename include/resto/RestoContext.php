@@ -152,13 +152,13 @@ class RestoContext {
         
         try {
 
-            $profile = json_decode(json_encode((array) $this->context->decodeJWT($token)), true);
+            $profile = json_decode(json_encode((array) $this->decodeJWT($token)), true);
 
             /*
              * Token is valid - i.e. signed by server and still in the validity period
              * Check if it is not revoked
              */
-            if (isset($profile['data']['email']) && !$this->context->dbDriver->check(RestoDatabaseDriver::TOKEN_REVOKED, array('token' => $token))) {
+            if (isset($profile['data']['email']) && !$this->dbDriver->check(RestoDatabaseDriver::TOKEN_REVOKED, array('token' => $token))) {
                 return true;
             }
             else {
