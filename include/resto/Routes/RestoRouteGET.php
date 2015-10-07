@@ -1032,7 +1032,7 @@ class RestoRouteGET extends RestoRoute {
          *      path="/user/signatures",
          *      summary="User signatures",
          *      description="Returns user license signatures (i.e. on feature and/or on collection)",
-         *      operationId="getUserSignatures",
+         *      operationId="getSignatures",
          *      produces={"application/json"},
          *      security={
          *          {
@@ -1054,7 +1054,7 @@ class RestoRouteGET extends RestoRoute {
                         'email' => $this->user->profile['email'],
                         'userid' => $this->user->profile['userid'],
                         'groups' => $this->user->profile['groups'],
-                        'signatures' => $this->user->getUserSignatures()
+                        'signatures' => $this->user->getSignatures()
             ));
         }
         
