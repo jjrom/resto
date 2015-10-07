@@ -86,8 +86,37 @@ class RestoRouteDELETE extends RestoRoute {
             RestoLogUtil::httpError(403);
         }
 
-        /*
+        /**
          * collections/{collection}
+         * 
+         *  @SWG\Delete(
+         *      tags={"collection"},
+         *      path="/collections/{collectionId}",
+         *      summary="Delete collection",
+         *      description="Delete collection {collectionId} if collection is not empty",
+         *      operationId="deleteCollection",
+         *      produces={"application/json"},
+         *      @SWG\Parameter(
+         *          name="collectionId",
+         *          in="path",
+         *          description="Collection identifier",
+         *          required=true,
+         *          type="string",
+         *          @SWG\Items(type="string")
+         *      ),
+         *      @SWG\Response(
+         *          response="200",
+         *          description="Acknowledgment on successful collection deletion"
+         *      ),
+         *      @SWG\Response(
+         *          response="404",
+         *          description="Collection not found"
+         *      ),
+         *      @SWG\Response(
+         *          response="403",
+         *          description="Forbidden"
+         *      )
+         *  )
          */
         if (!isset($feature)) {
             
@@ -102,8 +131,45 @@ class RestoRouteDELETE extends RestoRoute {
             
             return RestoLogUtil::success('Collection ' . $collection->name . ' deleted');
         }
-        /*
-         * collections/{collection}/{feature}
+        /**
+         * collections/{collection}/{featureId}
+         * 
+         *  @SWG\Delete(
+         *      tags={"feature"},
+         *      path="/collections/{collectionId}/{featureId}",
+         *      summary="Delete feature",
+         *      description="Delete feature {featureId} within collection {collectionId}",
+         *      operationId="deleteFeature",
+         *      produces={"application/json"},
+         *      @SWG\Parameter(
+         *          name="collectionId",
+         *          in="path",
+         *          description="Collection identifier",
+         *          required=true,
+         *          type="string",
+         *          @SWG\Items(type="string")
+         *      ),
+         *      @SWG\Parameter(
+         *          name="featureId",
+         *          in="path",
+         *          description="Feature identifier",
+         *          required=true,
+         *          type="string",
+         *          @SWG\Items(type="string")
+         *      ),
+         *      @SWG\Response(
+         *          response="200",
+         *          description="Acknowledgment on successful feature deletion"
+         *      ),
+         *      @SWG\Response(
+         *          response="404",
+         *          description="Feature not found"
+         *      ),
+         *      @SWG\Response(
+         *          response="403",
+         *          description="Forbidden"
+         *      )
+         *  )
          */
         else {
             
@@ -130,6 +196,35 @@ class RestoRouteDELETE extends RestoRoute {
      *    user/cart                                     |  Remove all cart items
      *    user/cart/{itemid}                            |  Remove {itemid} from user cart
      * 
+     *  @SWG\Delete(
+     *      tags={"user"},
+     *      path="/user/cart/{itemId}",
+     *      summary="Delete cart item(s)",
+     *      description="Delete cart item {itemId}. Delete all items if no {itemId} is specified",
+     *      operationId="deleteCartItem",
+     *      produces={"application/json"},
+     *      @SWG\Parameter(
+     *          name="itemId",
+     *          in="path",
+     *          description="Cart item identifier",
+     *          required=false,
+     *          type="string",
+     *          @SWG\Items(type="string")
+     *      ),
+     *      @SWG\Response(
+     *          response="200",
+     *          description="Acknowledgment on successful cart item(s) deletion"
+     *      ),
+     *      @SWG\Response(
+     *          response="404",
+     *          description="ItemId not found"
+     *      ),
+     *      @SWG\Response(
+     *          response="403",
+     *          description="Forbidden"
+     *      )
+     *  )
+     * 
      * @param array $segments
      */
     private function DELETE_user($segments) {
@@ -147,8 +242,7 @@ class RestoRouteDELETE extends RestoRoute {
              * Delete itemId only
              */
             else {
-                return $this->user->getCart()->remove($segments[2], true) ? RestoLogUtil::success('Item removed from cart', array('itemid' => $itemId)) : RestoLogUtil::error('Item cannot be removed', array('itemid' => $itemId));
-                
+                return $this->user->getCart()->remove($segments[2], true) ? RestoLogUtil::success('Item removed from cart', array('itemid' => $segments[2])) : RestoLogUtil::error('Item cannot be removed', array('itemid' => $segments[2]));   
             }
         }
         else {
