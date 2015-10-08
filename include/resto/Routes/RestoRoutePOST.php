@@ -85,8 +85,36 @@ class RestoRoutePOST extends RestoRoute {
             RestoLogUtil::httpError(404);
         }
         
-        /*
-         * api/licenses/{licenseid}/sign
+        /**
+         *  @SWG\Post(
+         *      tags={"license"},
+         *      path="/api/licenses/{licenseId}/sign",
+         *      summary="Sign license",
+         *      description="Sign license {licenseId}",
+         *      operationId="signLicense",
+         *      produces={"application/json"},
+         *      @SWG\Parameter(
+         *          name="licenseId",
+         *          in="path",
+         *          description="License identifier",
+         *          required=true,
+         *          type="string",
+         *          @SWG\Items(type="string")
+         *      ),
+         *      @SWG\Response(
+         *          response="200",
+         *          description="Acknowledgment that the license was signed"
+         *      ),
+         *      @SWG\Response(
+         *          response="404",
+         *          description="License not found"
+         *      ),
+         *      @SWG\Response(
+         *          response="403",
+         *          description="Forbidden"
+         *      )
+         * )
+         * 
          */
         if ($segments[1] === 'licenses') {
             
@@ -101,20 +129,52 @@ class RestoRoutePOST extends RestoRoute {
             
         }
         
-        /*
-         * api/user
-         */
         else if ($segments[1] === 'user') {
             
             if (!isset($segments[2])) {
                 RestoLogUtil::httpError(404);
             }
             
-            /*
-             * api/user/connect
+            /**
+             *  @SWG\Post(
+             *      tags={"user"},
+             *      path="/api/user/connect",
+             *      summary="Connect user",
+             *      description="Connect user and return user profile encoded within a JWT",
+             *      operationId="connectUser",
+             *      produces={"application/json"},
+             *      @SWG\Parameter(
+             *          name="email",
+             *          in="query",
+             *          description="Email address",
+             *          required=true,
+             *          type="string",
+             *          @SWG\Items(type="string")
+             *      ),
+             *      @SWG\Parameter(
+             *          name="password",
+             *          in="query",
+             *          description="Password",
+             *          required=true,
+             *          type="string",
+             *          @SWG\Items(type="string")
+             *      ),
+             *      @SWG\Response(
+             *          response="200",
+             *          description="Return user profile encoded within a JWT"
+             *      ),
+             *      @SWG\Response(
+             *          response="400",
+             *          description="Bad request"
+             *      ),
+             *      @SWG\Response(
+             *          response="403",
+             *          description="Forbidden"
+             *      )
+             *  )
              */
             if ($segments[2] === 'connect' && !isset($segments[3])) {
-                
+
                 if (!isset($data['email']) || !isset($data['password'])) {
                     RestoLogUtil::httpError(400);
                 }
@@ -141,16 +201,82 @@ class RestoRoutePOST extends RestoRoute {
                 
             }
 
-            /*
-             * api/user/disconnect
+            /**
+             *  @SWG\Post(
+             *      tags={"user"},
+             *      path="/api/user/disconnect",
+             *      summary="Disconnect user",
+             *      description="Disconnect user",
+             *      operationId="disconnectUser",
+             *      produces={"application/json"},
+             *      @SWG\Response(
+             *          response="200",
+             *          description="Acknowledgement that the user is disconnected"
+             *      ),
+             *      @SWG\Response(
+             *          response="403",
+             *          description="Forbidden"
+             *      )
+             *  )
              */
             if ($segments[2] === 'disconnect' && !isset($segments[3])) {
                 $this->user->disconnect();
                 return RestoLogUtil::success('User disconnected');
             }
             
-            /*
-             * api/user/resetPassword
+            /**
+             *  @SWG\Post(
+             *      tags={"user"},
+             *      path="/api/user/resetPassword",
+             *      summary="Reset password",
+             *      description="Replace existing password by provided password",
+             *      operationId="resetPassword",
+             *      produces={"application/json"},
+             *      @SWG\Parameter(
+             *          name="_tk",
+             *          in="query",
+             *          description="Security token",
+             *          required=true,
+             *          type="string",
+             *          @SWG\Items(type="string")
+             *      ),
+             *      @SWG\Parameter(
+             *          name="email",
+             *          in="query",
+             *          description="Email address",
+             *          required=true,
+             *          type="string",
+             *          @SWG\Items(type="string")
+             *      ),
+             *      @SWG\Parameter(
+             *          name="password",
+             *          in="query",
+             *          description="Password",
+             *          required=true,
+             *          type="string",
+             *          @SWG\Items(type="string")
+             *      ),
+             *      @SWG\Parameter(
+             *          name="url",
+             *          in="query",
+             *          description="Reset password url (to validate that issuer has rights to reset password)",
+             *          required=true,
+             *          type="string",
+             *          @SWG\Items(type="string")
+             *      ),
+             *      @SWG\Response(
+             *          response="200",
+             *          description="Acknowledgement that the password changed"
+             *      ),
+             *      @SWG\Response(
+             *          response="400",
+             *          description="Bad request"
+             *      ),
+             *      @SWG\Response(
+             *          response="403",
+             *          description="Forbidden"
+             *      )
+             *  )
              */
             if ($segments[2] === 'resetPassword' && !isset($segments[3])) {
                 if (!isset($data['email']) || !isset($data['password']) || !isset($data['url'])) {
@@ -194,8 +320,27 @@ class RestoRoutePOST extends RestoRoute {
             $collection = new RestoCollection($segments[1], $this->context, $this->user, array('autoload' => true));
         }
         
-        /*
+        /**
+         * 
          * Create new collection
+         * 
+         *  @SWG\Post(
+         *      tags={"collections"},
+         *      path="/collections",
+         *      summary="Create collection",
+         *      description="Create new collection within database",
+         *      operationId="createCollection",
+         *      produces={"application/json"},
+         *      @SWG\Response(
+         *          response="200",
+         *          description="Acknowledgment that collection was created"
+         *      ),
+         *      @SWG\Response(
+         *          response="403",
+         *          description="Forbidden"
+         *      )
+         * )
+         * 
          */
         if (!isset($collection)) {
             
@@ -211,8 +356,35 @@ class RestoRoutePOST extends RestoRoute {
             return RestoLogUtil::success('Collection ' . $data['name'] . ' created');
             
         }
-        /*
+        /**
+         * 
          * Insert new feature in collection
+         * 
+         *  @SWG\Post(
+         *      tags={"feature"},
+         *      path="/collections/{collectionId}",
+         *      summary="Insert feature",
+         *      description="Insert new feature in collection {collectionId}",
+         *      operationId="insertFeature",
+         *      produces={"application/json"},
+         *      @SWG\Parameter(
+         *          name="collectionId",
+         *          in="path",
+         *          description="Collection identifier",
+         *          required=true,
+         *          type="string",
+         *          @SWG\Items(type="string")
+         *      ),
+         *      @SWG\Response(
+         *          response="200",
+         *          description="Acknowledgment that feature was inserted"
+         *      ),
+         *      @SWG\Response(
+         *          response="403",
+         *          description="Forbidden"
+         *      )
+         * )
+         * 
          */
         else {
             
@@ -244,8 +416,36 @@ class RestoRoutePOST extends RestoRoute {
             RestoLogUtil::httpError(404);
         }
         
-        /*
-         * user/cart
+        /**
+         * 
+         * Insert item in cart
+         * 
+         *  @SWG\Post(
+         *      tags={"cart"},
+         *      path="/user/cart",
+         *      summary="Insert item",
+         *      description="Insert item in user cart",
+         *      operationId="insertCartItem",
+         *      produces={"application/json"},
+         *      @SWG\Parameter(
+         *          name="_clear",
+         *          in="query",
+         *          description="True to clear cart before inserting item",
+         *          required=false,
+         *          default=false,
+         *          type="string",
+         *          @SWG\Items(type="string")
+         *      ),
+         *      @SWG\Response(
+         *          response="200",
+         *          description="Acknowledgment that item was added to cart"
+         *      ),
+         *      @SWG\Response(
+         *          response="403",
+         *          description="Forbidden"
+         *      )
+         * )
+         * 
          */
         if ($segments[1] === 'cart') {
             
@@ -266,8 +466,27 @@ class RestoRoutePOST extends RestoRoute {
             
         }
       
-        /*
-         * user/orders
+        /**
+         * 
+         * Place order
+         * 
+         *  @SWG\Post(
+         *      tags={"orders"},
+         *      path="/user/orders",
+         *      summary="Place order",
+         *      description="Place an order within the orders list",
+         *      operationId="placeOrder",
+         *      produces={"application/json"},
+         *      @SWG\Response(
+         *          response="200",
+         *          description="Acknowledgment that order was placed"
+         *      ),
+         *      @SWG\Response(
+         *          response="403",
+         *          description="Forbidden"
+         *      )
+         * )
+         * 
          */
         else if ($segments[1] === 'orders') {
             $order = $this->user->placeOrder($data);

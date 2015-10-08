@@ -493,8 +493,7 @@ abstract class RestoModel {
          *      name="parentIdentifier",
          *      in="query",
          *      description="OpenSearch {eo:parentIdentifier}",
-         *      type="string",
-         *      pattern="^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$"
+         *      type="string"
          *  )
          */
         'eo:parentIdentifier' => array(
