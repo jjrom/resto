@@ -1097,7 +1097,7 @@ class RestoRouteGET extends RestoRoute {
         }
         
         return array(
-            'licences' => $this->context->dbDriver->get(RestoDatabaseDriver::LICENSES, array('licenseId' => isset($segments[1]) ? $segments[1] : null))
+            'licenses' => $this->context->dbDriver->get(RestoDatabaseDriver::LICENSES, array('licenseId' => isset($segments[1]) ? $segments[1] : null))
         );
     }
     
