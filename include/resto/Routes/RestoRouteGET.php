@@ -69,8 +69,6 @@ class RestoRouteGET extends RestoRoute {
                 return $this->GET_api($segments);
             case 'collections':
                 return $this->GET_collections($segments);
-            case 'users':
-                return $this->GET_users($segments);
             case 'user':
                 return $this->GET_user($segments);
             case 'licenses':
