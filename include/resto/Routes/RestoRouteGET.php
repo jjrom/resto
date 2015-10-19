@@ -473,6 +473,8 @@ class RestoRouteGET extends RestoRoute {
          */
         if (isset($this->context->query['email'])) {
             $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('email' => $this->context->query['email'])), $this->context);
+        }else{
+            $user = null;
         }
                 
         switch ($segments[2]) {
