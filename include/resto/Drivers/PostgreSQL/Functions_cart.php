@@ -189,8 +189,16 @@ class Functions_cart{
         if (!isset($identifier) || !isset($itemId)) {
             return false;
         }
-        $this->dbDriver->query('DELETE FROM usermanagement.cart WHERE itemid=\'' . pg_escape_string($itemId) . '\' AND email=\'' . pg_escape_string($identifier) . '\'', 500, 'Cannot remove ' . $itemId . ' from cart');
-        return true;
+        $result = $this->dbDriver->query('DELETE FROM usermanagement.cart WHERE itemid=\'' . pg_escape_string($itemId) . '\' AND email=\'' . pg_escape_string($identifier) . '\'', 500, 'Cannot remove ' . $itemId . ' from cart');
+        
+        if (pg_num_rows($result) < 1) {
+            /*
+             * If no deletion, return false
+             */
+            return false;
+        } else {
+            return true;
+        }
     }
     
     /**
