@@ -229,7 +229,7 @@ class RestoRouteDELETE extends RestoRoute {
      */
     private function DELETE_user($segments) {
         
-        if ($segments[1] === 'cart') {
+        if (isset($segments[1]) && $segments[1] === 'cart') {
             
             /*
              * Clear all cart items
