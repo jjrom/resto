@@ -229,6 +229,11 @@ class RestoFeatureCollection {
         $count = count($this->restoFeatures);
         
         /*
+         * Define collectionName
+         */
+        $collectionName = isset($this->defaultCollection) ? $this->defaultCollection->name : '*';
+        
+        /*
          * Recompute totalCount
          */
         if ($this->totalCount === -1 && $count < $limit) {
@@ -238,8 +243,8 @@ class RestoFeatureCollection {
          * Convert resto model to search service "osKey"
          */
         $query = array(
-            'originalFilters' => $this->toOSKeys($analysis['originalFilters']),
-            'appliedFilters' => $this->toOSKeys($analysis['appliedFilters'])
+            'originalFilters' => array_merge($this->toOSKeys($analysis['originalFilters']), array('collection' => $collectionName)),
+            'appliedFilters' => array_merge($this->toOSKeys($analysis['appliedFilters']), array('collection' => $collectionName))
         );
         
         /*
@@ -255,7 +260,7 @@ class RestoFeatureCollection {
         $this->description = array(
             'type' => 'FeatureCollection',
             'properties' => array(
-                'id' => RestoUtil::UUIDv5((isset($this->defaultCollection) ? $this->defaultCollection->name : '*') . ':' . json_encode($this->cleanFilters($analysis['appliedFilters']))),
+                'id' => RestoUtil::UUIDv5($collectionName . ':' . json_encode($this->cleanFilters($analysis['appliedFilters']))),
                 'totalResults' => $this->totalCount,
                 'startIndex' => $offset + 1,
                 'itemsPerPage' => $count,
