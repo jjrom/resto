@@ -238,7 +238,8 @@ class QueryAnalyzer extends RestoModule {
                 'What' => array(),
                 'When' => array(),
                 'Where' => array(),
-                'Errors' => array()
+                'Errors' => array(),
+                'Explained' => array()
             );
         }
         
@@ -324,7 +325,8 @@ class QueryAnalyzer extends RestoModule {
             'What' => $results,
             'When' => array(),
             'Where' => $where,
-            'Errors' => $this->getErrors()
+            'Errors' => $this->getErrors(),
+            'Explained' => $this->getExplanation()
         );
         
     }
