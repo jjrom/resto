@@ -276,7 +276,8 @@ class QueryAnalyzer extends RestoModule {
             'What' => $this->whatProcessor->getResult(),
             'When' => $this->whenProcessor->getResult(),
             'Where' => isset($this->whereProcessor) ? $this->whereProcessor->getResult() : array(),
-            'Errors' => $this->getErrors()
+            'Errors' => $this->getErrors(),
+            'Explained' => $this->getExplanation()
         );
         
     }
@@ -486,6 +487,31 @@ class QueryAnalyzer extends RestoModule {
     }
     
     /**
+     * Return comprehensive explanation of query analysis
+     */
+    private function getExplanation() {
+        $currentBy = null;
+        $explanation = array();
+        for ($i = 0; $i < $this->queryManager->length; $i++) {
+            $word = $this->queryManager->words[$i];
+            if ($word['processed'] && !isset($word['error'])) {
+                $by = $word['by'];
+                if ($by !== $currentBy) {
+                    $explanation[] = array(
+                        'processor' => $by,
+                        'word' => $word['word']
+                    );
+                    $currentBy = $by;
+                }
+                else {
+                    $explanation[count($explanation) - 1]['word'] .= ' ' . $word['word'];
+                }
+            }
+        }
+        return $explanation;
+    }
+    
+    /**
      * Return errors array from remaining words list
      */
     private function getErrors() {
@@ -528,21 +554,21 @@ class QueryAnalyzer extends RestoModule {
     private function getInErrorWords() {
         
         $inError = array();
+        
         for ($i = 0; $i < $this->queryManager->length; $i++) {
             
             $word = $this->queryManager->words[$i];
             
-            if (!$word['processed'] && !$this->queryManager->dictionary->isStopWord($word['word']) && !$this->queryManager->dictionary->isNoise($word['word'])) {
-                $inError[] = array(
-                    'word' => $word['word'],
-                    'error' => QueryAnalyzer::NOT_UNDERSTOOD
-                );
-            }
-            else if (isset($word['error'])) {
-                $inError[] = array(
-                    'word' => $word['word'],
-                    'error' => $word['error']
-                );
+            /*
+             * Do not process noise or stopWords
+             */
+            if (!$this->queryManager->dictionary->isStopWord($word['word']) && !$this->queryManager->dictionary->isNoise($word['word'])) {
+                if (isset($word['error']) || !$word['processed']) {
+                    $inError[] = array(
+                        'word' => $word['word'],
+                        'error' => isset($word['error']) ? $word['error'] : QueryAnalyzer::NOT_UNDERSTOOD
+                    );
+                }
             }
         }
         return $inError;
