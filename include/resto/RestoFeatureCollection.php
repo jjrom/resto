@@ -628,8 +628,12 @@ class RestoFeatureCollection {
             if (count($where) > 0) {
                 $hashTodiscard = $where[0]['hash'];
                 $params['geo:geometry'] = $where[0]['geo:geometry'];
+                $analysis['analyze']['Where'] = array_merge($where, $analysis['analyze']['Where']);
+                $analysis['analyze']['Explained'] = array_merge(array(
+                    'processor' => 'WhereProcessor::processIn',
+                    'word' => $where[0]['name']
+                ), $analysis['analyze']['Explained']);
             }
-            $analysis['analyze']['Where'] = array_merge($where, $analysis['analyze']['Where']);
         }
         
         /*
