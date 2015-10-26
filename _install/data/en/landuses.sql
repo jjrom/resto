@@ -17,7 +17,6 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Herbaceous', 'herb
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Grass', 'herbaceous','en', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Desert', 'desert','en', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Bare area', 'desert','en', 'landuse');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Snow', 'snow', 'en', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Flooded', 'flooded','en', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Water', 'water','en', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Ice', 'ice','en', 'landuse');

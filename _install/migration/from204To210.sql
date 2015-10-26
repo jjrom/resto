@@ -135,3 +135,5 @@ UPDATE resto.keywords SET value='POLDER1|POLDER2|POLDER3' where name='polder' an
 UPDATE resto.keywords SET value='VEGETATION1|VEGETATION2' where name='vegetation' and type='instrument';
 UPDATE resto.keywords SET value='VEGETATION1|VEGETATION2' where name='vgt' and type='instrument';
 
+-- Correct issue (snow is not landuse)
+DELETE FROM resto.keywords WHERE type='landuse' AND value='snow';

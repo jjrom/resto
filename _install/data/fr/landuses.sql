@@ -10,7 +10,6 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Forêts', 'forest'
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Herbacé', 'herbaceous','fr', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Zone Herbacée', 'herbaceous','fr', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Désert', 'desert','fr', 'landuse');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Neige', 'snow','fr', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Zone Inondable', 'herbaceous','fr', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Inondable', 'flooded','fr', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Eau', 'water','fr', 'landuse');

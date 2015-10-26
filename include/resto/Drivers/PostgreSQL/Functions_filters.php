@@ -466,7 +466,7 @@ class Functions_filters {
      */
     private function getLandUseFilters($value, $exclusion) {
         $terms = array();
-        if (in_array($value, array('cultivated', 'desert', 'flooded', 'forest','herbaceous','snow','ice','urban','water'))) {
+        if (in_array($value, array('cultivated', 'desert', 'flooded', 'forest','herbaceous','ice','urban','water'))) {
             $terms[] = 'lu_' . $value . ($exclusion ? ' = ' : ' > ') . '0';
         }
         else {

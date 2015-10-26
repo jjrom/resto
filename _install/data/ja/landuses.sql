@@ -5,7 +5,6 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('森林', 'forest',
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('草地', 'herbaceous','ja', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('砂漠', 'desert','ja', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('砂地', 'desert','ja', 'landuse');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('雪', 'snow','ja', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('浸水域', 'flooded','ja', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('水域', 'water','ja', 'landuse');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('氷', 'ice','ja', 'landuse');
