@@ -137,3 +137,12 @@ UPDATE resto.keywords SET value='VEGETATION1|VEGETATION2' where name='vgt' and t
 
 -- Correct issue (snow is not landuse)
 DELETE FROM resto.keywords WHERE type='landuse' AND value='snow';
+
+-- Correct issue with keyword detection
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Zone côtière', 'coastal', 'fr', 'location');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Zones côtières', 'coastal', 'fr', 'location');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Zone littorale', 'coastal', 'fr', 'location');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Zones littorales', 'coastal', 'fr', 'location');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('zones equatoriales', 'equatorial', 'fr', 'location');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('zones tropicales', 'tropical', 'fr', 'location');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('coastal area', 'coastal', 'en', 'location');
