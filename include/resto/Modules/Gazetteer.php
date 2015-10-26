@@ -429,24 +429,6 @@ class Gazetteer extends RestoModule {
     }
     
     /**
-     * Return " LIKE " if last character of $name is '%' and length is at least 4 characters 
-     * Return "=" otherwise
-     * 
-     * @param string $name
-     */
-    private function likeOrEqual($name) {
-        if (substr($name, -1) === '%') {
-            if (isset($name{4})) {
-                return ' LIKE ';
-            }
-            else {
-                RestoLogUtil::httpError(400);
-            }
-        }
-        return '=';
-    }
- 
-    /**
      * Return array of search filters for toponyms
      * 
      * @param array $constraints
@@ -480,10 +462,10 @@ class Gazetteer extends RestoModule {
          * Lang filter
          */
         if ($lang !== 'en') {
-            $where[] = 'geonameid = ANY((SELECT array(SELECT geonameid FROM gazetteer.alternatename WHERE normalize(alternatename)' . $this->likeOrEqual($name) . 'normalize(\'' . pg_escape_string($name) . '\')  AND isolanguage=\'' . $lang . '\' LIMIT 30))::integer[])';
+            $where[] = 'geonameid = ANY((SELECT array(SELECT geonameid FROM gazetteer.alternatename WHERE normalize(alternatename)=normalize(\'' . pg_escape_string($name) . '\')  AND isolanguage=\'' . $lang . '\' LIMIT 30))::integer[])';
         }
         else {
-            $where[] = 'normalize(name)' . $this->likeOrEqual($name) . 'normalize(\'' . pg_escape_string($name) . '\')';
+            $where[] = 'normalize(name)=normalize(\'' . pg_escape_string($name) . '\')';
         }
        
         return $where;
