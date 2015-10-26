@@ -434,16 +434,21 @@ class WhenProcessor {
          * 
          */
         $duration = $this->extractor->extractDuration(max(array(0, $startPosition - 1)));
-        
+        if (isset($duration)) {
+            if ($duration['endPosition'] === $startPosition - 1) {
+                $duration['endPosition'] = $duration['endPosition'] + 1; 
+            }
+        }
         /*
          * <next> "(year|month|day)"
          */
-        if (!isset($duration)) {
+        else {
             $startPosition = $startPosition + 1;
             $duration = $this->extractor->extractDuration($startPosition);
         }
         
         $delta = 0;
+        
         if (isset($duration)) {
             $this->setResultForLastAndNext($this->getTimesFromDuration($duration, $lastOrNext), $duration['duration']['unit']);
             $delta = $duration['firstIsNotLast'] ? 1 : 0;
