@@ -293,6 +293,7 @@ class QueryAnalyzer extends RestoModule {
             $exploded = explode(':', $this->queryManager->words[$i]['word']);
             if (count($exploded) === 2 && !empty($exploded[0]) && !empty($exploded[1])) {
                 $this->queryManager->words[$i]['processed'] = true;
+                $this->queryManager->words[$i]['by'] = __METHOD__;
                 $filterName = 'searchTerms';
                 foreach ($this->queryManager->model->searchFilters as $key => $filter) {
                     if (strtolower($filter['osKey']) === strtolower($exploded[0])) {
