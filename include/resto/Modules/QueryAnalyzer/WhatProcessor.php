@@ -276,12 +276,6 @@ class WhatProcessor {
             $endPosition = $quantity['endPosition'];
         }
         /*
-         * Equality ?
-         */
-        else if ($this->processEqualOrGreaterOrLesser($startPosition, WhatProcessor::EQUAL)) {
-            return;
-        }
-        /*
          * Keyword ?
          */
         else {
