@@ -61,7 +61,7 @@ class RestoDictionary_fr extends RestoDictionary {
          * Location modifiers
          */
         'locationModifiers' => array(
-            'in' => array('en', 'au', 'aux', 'a', 'sur', 'pres de', 'vers' , 'de'),
+            'in' => array('en', 'au', 'aux', 'a', 'sur', 'pres de', 'vers' , 'de', 'du'),
         ),
         /*
          * Quantity modifiers
@@ -94,7 +94,7 @@ class RestoDictionary_fr extends RestoDictionary {
         /*
          * Stop words i.e. excluded words
          */
-        'stopWords' => array('le', 'la', 'les', 'de', 'des', 'et', 'ou', 'un', 'une', 'avec'),
+        'stopWords' => array('le', 'la', 'les', 'de', 'des', 'et', 'ou', 'un', 'une', 'avec', 'du'),
         /*
          * List of words in the query that are
          * considered as 'noise' for the query analysis
