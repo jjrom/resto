@@ -574,8 +574,8 @@ abstract class RestoModel {
          *      name="resolution",
          *      in="query",
          *      description="Spatial resolution expressed in meters - OpenSearch {eo:resolution}",
-         *      type="number",
-         *      pattern="^(?:[1-9]\d*|0)?(?:\.\d+)?$"
+         *      type="string",
+         *      pattern="'^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$'"
          *  )
          */
         'eo:resolution' => array(
@@ -583,7 +583,7 @@ abstract class RestoModel {
             'osKey' => 'resolution',
             'operation' => 'interval',
             'title' => 'Spatial resolution expressed in meters',
-            'pattern' => '^(?:[1-9]\d*|0)?(?:\.\d+)?$',
+            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
             'quantity' => array(
                 'value' => 'resolution',
                 'unit' => 'm'
