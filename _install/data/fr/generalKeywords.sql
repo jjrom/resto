@@ -1,7 +1,7 @@
 -- Feature types
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('image', 'image', 'fr', 'type');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('images', 'image', 'fr', 'type');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('imagerie', 'image', 'fr', 'type');
+--INSERT INTO resto.keywords (name, value, lang, type) VALUES ('image', 'image', 'fr', 'type');
+--INSERT INTO resto.keywords (name, value, lang, type) VALUES ('images', 'image', 'fr', 'type');
+--INSERT INTO resto.keywords (name, value, lang, type) VALUES ('imagerie', 'image', 'fr', 'type');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('document', 'document', 'fr', 'type');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('documents', 'document', 'fr', 'type');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('rapport', 'document', 'fr', 'type');

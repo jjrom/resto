@@ -1,7 +1,7 @@
 -- Feature types
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('画像', 'image', 'ja', 'type');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('データ', 'image', 'ja', 'type');
-INSERT INTO resto.keywords (name, value, lang, type) VALUES ('イメージ', 'image', 'ja', 'type');
+--INSERT INTO resto.keywords (name, value, lang, type) VALUES ('画像', 'image', 'ja', 'type');
+--INSERT INTO resto.keywords (name, value, lang, type) VALUES ('データ', 'image', 'ja', 'type');
+--INSERT INTO resto.keywords (name, value, lang, type) VALUES ('イメージ', 'image', 'ja', 'type');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('ドキュメント', 'document', 'ja', 'type');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('文書', 'document', 'ja', 'type');
 
