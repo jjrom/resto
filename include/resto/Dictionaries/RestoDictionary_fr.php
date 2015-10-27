@@ -39,7 +39,8 @@ class RestoDictionary_fr extends RestoDictionary {
         'hiver boreal',
         'printemps boreal',
         'automne boreal',
-        'aujourd hui'
+        'aujourd hui',
+        'avec de'
     );
     
     protected $dictionary = array(
@@ -68,7 +69,7 @@ class RestoDictionary_fr extends RestoDictionary {
          */
         'quantityModifiers' => array(
             'equal' => array('egal', 'egale', 'egaux'),
-            'with' => array('avec', 'contenant'),
+            'with' => array('avec', 'contenant', 'avec de'),
             'for' => array('pour', 'de', 'sur', 'dans'),
             'between' => array('entre', 'de'),
             'greater' => array('plus', 'plus grand que', 'superieur a', 'superieure a', '>'),
