@@ -74,7 +74,7 @@ class RestoDictionary_fr extends RestoDictionary {
             'between' => array('entre', 'de'),
             'greater' => array('plus', 'plus grand que', 'superieur a', 'superieure a', '>'),
             'lesser' => array('moins', 'plus petit que', '<', 'inferieur a', 'inferieure a'),
-            'without' => array('sans', 'pas')
+            'without' => array('sans', 'pas', 'non')
         ),
         /*
          * Time modifiers
