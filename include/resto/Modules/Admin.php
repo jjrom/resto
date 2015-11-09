@@ -504,7 +504,7 @@ class Admin extends RestoModule {
             /*
              * Activate user
              */
-            if ($user->activate()) {
+            if ($this->context->dbDriver->execute(RestoDatabaseDriver::ACTIVATE_USER, array('userid' => $segments[1], 'activationCode' =>  null, 'userAutoValidation' => false))) {
                 RestoLogUtil::success('User activated');
             } else {
                 RestoLogUtil::httpError(500);
