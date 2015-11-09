@@ -268,7 +268,47 @@ class Functions_users {
      * @throws Exception
      */
     public function deactivateUser($userid) {
-        return count($this->dbDriver->fetch($this->dbDriver->query('UPDATE usermanagement.users SET activated=0 WHERE userid=\'' . pg_escape_string($userid) . '\''))) === 1 ? true : false;
+        return count($this->dbDriver->fetch($this->dbDriver->query('UPDATE usermanagement.users SET activated=0 WHERE userid=\'' . pg_escape_string($userid) . '\' RETURNING userid'))) === 1 ? true : false;
+    }
+    
+    /**
+     * Validate user
+     * 
+     * @param string $userid
+     * @param string $validatedBy
+     * @return boolean
+     */
+    public function validateUser($userid, $validatedBy) {
+
+        /*
+         * Validate user. 
+         * If user is already validate, update date and validatedby.
+         */
+        $toBeSet = array(
+            'validatedby=\'' . $validatedBy . '\'',
+            'validationdate=now()'
+        );
+        
+        $query = 'UPDATE usermanagement.users SET ' . join(',', $toBeSet) . ' WHERE userid=\'' . pg_escape_string($userid) . '\'' . ' RETURNING userid';
+        $results = $this->dbDriver->fetch($this->dbDriver->query($query));
+
+        return count($results) === 1 ? true : false;
+    }
+    
+    /**
+     * Unvalidate user
+     * 
+     * @param string $userid
+     * @return boolean
+     */
+    public function unvalidateUser($userid){
+        
+        $toBeSet = array(
+            'validatedby=NULL',
+            'validationdate=NULL'
+        );
+        
+        return count($this->dbDriver->fetch($this->dbDriver->query('UPDATE usermanagement.users SET ' . join(',', $toBeSet) . ' WHERE userid=\'' . pg_escape_string($userid) . '\'  RETURNING userid'))) === 1 ? true : false;
     }
 
     /**

@@ -52,6 +52,10 @@
  * -- PUT
  * 
  *      {module_route}/users/{userid}/groups                          |  Update {userid} groups
+ *      {module_route}/users/{userid}/validate                        |  Validate user
+ *      {module_route}/users/{userid}/unvalidate                      |  Unvalidate user
+ *      {module_route}/users/{userid}/activate                        |  Activate user
+ *      {module_route}/users/{userid}/deactivate                        |  Deactivate user
  *      {module_route}/groups/{groupid}/rights                        |  Update {groupid] group rights
  * 
  * -- DELETE
@@ -207,7 +211,7 @@ class Admin extends RestoModule {
             $limit = filter_input(INPUT_GET, 'limit', FILTER_SANITIZE_STRING);
             $offset = filter_input(INPUT_GET, 'offset', FILTER_SANITIZE_STRING);
             $keywords = filter_input(INPUT_GET, 'keywords', FILTER_SANITIZE_STRING);
-            
+
             return RestoLogUtil::success('Profiles for all users', array(
                         'profiles' => $this->context->dbDriver->get(RestoDatabaseDriver::USERS_PROFILES, array(
                             'limit' => $limit,
@@ -357,7 +361,7 @@ class Admin extends RestoModule {
             $limit = filter_input(INPUT_GET, 'limit', FILTER_SANITIZE_STRING);
             $offset = filter_input(INPUT_GET, 'offset', FILTER_SANITIZE_STRING);
             $keywords = filter_input(INPUT_GET, 'keywords', FILTER_SANITIZE_STRING);
-            
+
             /*
              * Get on /groups/{groupid}/users
              */
@@ -368,7 +372,7 @@ class Admin extends RestoModule {
                             'limit' => $limit,
                             'offset' => $offset,
                             'keywords' => $keywords
-                                ))
+                        ))
             ));
         }
 
@@ -479,7 +483,7 @@ class Admin extends RestoModule {
         /*
          * Mandatory {userid}
          */
-        if (empty($segments[2]) || !ctype_digit($segments[1]) || $segments[2] !== 'groups') {
+        if (empty($segments[2]) || !ctype_digit($segments[1])) {
             return RestoLogUtil::httpError(404);
         }
 
@@ -487,11 +491,54 @@ class Admin extends RestoModule {
          * Get user
          */
         $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('userid' => $segments[1])), $this->context);
-        if (!isset($data['groups'])) {
-            RestoLogUtil::httpError(400, 'Groups is not set');
-        }
 
-        return $user->addGroups($data['groups']);
+        if ($segments[2] === 'groups') {
+            /*
+             * Update groups
+             */
+            if (!isset($data['groups'])) {
+                RestoLogUtil::httpError(400, 'Groups is not set');
+            }
+            return $user->addGroups($data['groups']);
+        } else if ($segments[2] === 'activate') {
+            /*
+             * Activate user
+             */
+            if ($this->context->dbDriver->execute(RestoDatabaseDriver::ACTIVATE_USER, array('userid' => $segments[1], 'activationCode' =>  null, 'userAutoValidation' => false))) {
+                RestoLogUtil::success('User activated');
+            } else {
+                RestoLogUtil::httpError(500);
+            }
+        } else if ($segments[2] === 'deactivate') {
+            /*
+             * Deactivate user
+             */
+            if ($this->context->dbDriver->execute(RestoDatabaseDriver::DEACTIVATE_USER, array('userid' => $segments[1]))) {
+                RestoLogUtil::success('User deactivated');
+            } else {
+                RestoLogUtil::httpError(500);
+            }
+        } else if ($segments[2] === 'validate') {
+            /*
+             * Validate user
+             */
+            if ($this->context->dbDriver->execute(RestoDatabaseDriver::VALIDATE_USER, array('userid' => $segments[1], 'validatedBy' => $this->user->profile['userid']))) {
+                RestoLogUtil::success('User validated');
+            } else {
+                RestoLogUtil::httpError(500);
+            }
+        } else if ($segments[2] === 'unvalidate') {
+            /*
+             * Unvalidate user
+             */
+            if ($this->context->dbDriver->execute(RestoDatabaseDriver::UNVALIDATE_USER, array('userid' => $segments[1]))) {
+                RestoLogUtil::success('User unvalidated');
+            } else {
+                RestoLogUtil::httpError(500);
+            }
+        } else {
+            return RestoLogUtil::httpError(404);
+        }
     }
 
     /**
@@ -611,10 +658,10 @@ class Admin extends RestoModule {
              */
             $user->removeRights(isset($segments[3]) ? $segments[3] : null, isset($segments[4]) ? $segments[4] : null);
             return RestoLogUtil::success('Rights updated', array(
-                    'email' => $user->profile['email'],
-                    'userid' => $user->profile['userid'],
-                    'groups' => $user->profile['groups']
-        ));
+                        'email' => $user->profile['email'],
+                        'userid' => $user->profile['userid'],
+                        'groups' => $user->profile['groups']
+            ));
         }
 
         RestoLogUtil::httpError(404);
