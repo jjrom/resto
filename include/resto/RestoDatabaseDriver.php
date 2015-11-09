@@ -59,6 +59,8 @@ abstract class RestoDatabaseDriver {
     const USER_PROFILE = 34;
     const USERS_PROFILES = 35;
     const GROUP = 36;
+    const VALIDATE_USER = 37;
+    const UNVALIDATE_USER = 38;
     
     /*
      * Results per page

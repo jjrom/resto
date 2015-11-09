@@ -223,6 +223,20 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             case parent::DEACTIVATE_USER:
                 $usersFunctions = new Functions_users($this);
                 return $usersFunctions->deactivateUser($params['userid']);
+                
+            /*
+             * Validate user
+             */
+            case parent::VALIDATE_USER:
+                $usersFunctions = new Functions_users($this);
+                return $usersFunctions->validateUser($params['userid'], $params['validatedBy']);    
+                
+            /*
+             * Unvalidate user
+             */
+            case parent::UNVALIDATE_USER:
+                $usersFunctions = new Functions_users($this);
+                return $usersFunctions->unvalidateUser($params['userid']);        
             
             /*
              * Deactivate user
