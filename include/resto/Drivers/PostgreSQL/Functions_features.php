@@ -249,11 +249,13 @@ class Functions_features {
         /*
          * Initialize columns array
          */
+        $geom = 'ST_GeomFromText(\'' . RestoGeometryUtil::geoJSONGeometryToWKT($featureArray['geometry']) . '\', 4326)';
         $columns = array_merge(
             array(
                 $collection->model->getDbKey('identifier') => '\'' . $featureArray['id'] . '\'',
                 $collection->model->getDbKey('collection') => '\'' . $collection->name . '\'',
-                $collection->model->getDbKey('geometry') => 'ST_GeomFromText(\'' . RestoGeometryUtil::geoJSONGeometryToWKT($featureArray['geometry']) . '\', 4326)',
+                $collection->model->getDbKey('geometry') => $geom,
+                $collection->model->getDbKey('centroid') => 'ST_Centroid(' . $geom .')',
                 'updated' => 'now()',
                 'published' => 'now()'
             ),

@@ -146,3 +146,8 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('Zones littorales',
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('zones equatoriales', 'equatorial', 'fr', 'location');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('zones tropicales', 'tropical', 'fr', 'location');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('coastal area', 'coastal', 'en', 'location');
+
+-- Centroid
+SELECT AddGeometryColumn('resto', 'features', 'centroid', '4326', 'POINT', 2);
+-- Could be quite long !!
+UPDATE resto.features SET centroid=ST_Centroid(geometry) WHERE centroid IS NULL;

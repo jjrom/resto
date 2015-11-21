@@ -292,6 +292,7 @@ class Functions_collections {
                 'waterCover' => 'btree',
                 'cloudCover' => 'btree',
                 'geometry' => 'gist',
+                'centroid' => 'gist',
                 'hashes' => 'gin'
             );
             foreach ($indices as $key => $indexType) {

@@ -212,6 +212,10 @@ abstract class RestoModel {
             'name' => 'geometry',
             'type' => 'GEOMETRY'
         ),
+        'centroid' => array(
+            'name' => 'centroid',
+            'type' => 'POINT'
+        ),
         'hashes' => array(
             'name' => 'hashes',
             'type' => 'TEXT[]',
