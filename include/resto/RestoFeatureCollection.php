@@ -176,7 +176,7 @@ class RestoFeatureCollection {
         /*
          * Clean search filters
          */
-        $originalFilters = $this->getOriginalFilters();
+        $originalFilters = $this->defaultModel->getFiltersFromQuery($this->context->query);
         
         /*
          * Number of returned results is never greater than MAXIMUM_LIMIT
@@ -366,26 +366,6 @@ class RestoFeatureCollection {
         
     }
 
-    /**
-     * Clean input parameters
-     *  - change parameter keys to model parameter key
-     *  - remove unset parameters
-     *  - remove all HTML tags from input to avoid XSS injection
-     *  - check that filter value is valid regarding the model definition
-     */
-    private function getOriginalFilters() {
-        $params = array();
-        foreach ($this->context->query as $key => $value) {
-            foreach (array_keys($this->defaultModel->searchFilters) as $filterKey) {
-                if ($key === $this->defaultModel->searchFilters[$filterKey]['osKey']) {
-                    $params[$filterKey] = preg_replace('/<.*?>/', '', $value);
-                    $this->defaultModel->validateFilter($filterKey, $params[$filterKey]);
-                }
-            }
-        }
-        return $params;
-    }
-    
     /**
      * Search offset - first element starts at offset 0
      * Note: startPage has preseance over startIndex if both are specified in request

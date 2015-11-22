@@ -1022,12 +1022,34 @@ abstract class RestoModel {
     }
     
     /**
+     * Get resto filters from input query parameters
+     *  - change parameter keys to model parameter key
+     *  - remove unset parameters
+     *  - remove all HTML tags from input to avoid XSS injection
+     *  - check that filter value is valid regarding the model definition
+     * 
+     * @param array $query
+     */
+    public function getFiltersFromQuery($query) {
+        $params = array();
+        foreach ($query as $key => $value) {
+            foreach (array_keys($this->searchFilters) as $filterKey) {
+                if ($key === $this->searchFilters[$filterKey]['osKey']) {
+                    $params[$filterKey] = preg_replace('/<.*?>/', '', $value);
+                    $this->validateFilter($filterKey, $params[$filterKey]);
+                }
+            }
+        }
+        return $params;
+    }
+    
+    /**
      * Check if value is valid for a given filter regarding the model
      * 
      * @param string $filterKey
      * @param string $value
      */
-    public function validateFilter($filterKey, $value) {
+    private function validateFilter($filterKey, $value) {
         
         /*
          * Check pattern for string
