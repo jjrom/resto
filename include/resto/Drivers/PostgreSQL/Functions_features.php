@@ -42,7 +42,7 @@ class Functions_features {
      * @param RestoContext $context
      * @param RestoUser $user
      * @param RestoCollection $collection
-     * @param RestoModel $params
+     * @param array $params
      * @param array $options
      *      array(
      *          'limit',
@@ -86,6 +86,22 @@ class Functions_features {
          */
         return $this->toFeatureArray($context, $user, $collection, $results = $this->dbDriver->query($query));
         
+    }
+    
+    /**
+     * 
+     * Get Where clause from input parameters
+     * 
+     * @param RestoUser $user
+     * @param RestoModel $model
+     * @param array $params
+     * 
+     * @return array
+     * @throws Exception
+     */
+    public function getWhereClause($user, $model, $params) {
+        $filtersUtils = new Functions_filters();
+        return implode(' AND ', $filtersUtils->prepareFilters($user, $model, $params));
     }
     
     /**
