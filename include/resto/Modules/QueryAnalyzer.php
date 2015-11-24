@@ -321,7 +321,7 @@ class QueryAnalyzer extends RestoModule {
                             'value' => $exploded[1]
                         ));
                         if (isset($facet)) {
-                            $where = $this->whereFromGeohashOrGeouid('geohash'.$facet['hash']);
+                            $where = $this->whereFromGeohashOrGeouid('geohash:'.$facet['hash']);
                             $inWhere = true;
                         }
                     }
