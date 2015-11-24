@@ -303,13 +303,29 @@ class QueryAnalyzer extends RestoModule {
                 }
                 if ($filterName === 'searchTerms') {
                     
+                    $inWhere = false;
+                    
                     /*
                      * Special case for geohash
                      */
                     if ($exploded[0] === 'geohash') {
                         $where = $this->whereFromGeohashOrGeouid($this->queryManager->words[$i]['word']);
+                        $inWhere = true;
                     }
-                    else {
+                    /*
+                     * Special case for location keywords
+                     */
+                    else if ($this->context->dictionary->isLocationType($exploded[0])) {
+                        $facet = $this->context->dbDriver->get(RestoDatabaseDriver::FACET, array(
+                            'type' => $exploded[0],
+                            'value' => $exploded[1]
+                        ));
+                        if (isset($facet)) {
+                            $where = $this->whereFromGeohashOrGeouid('geohash'.$facet['hash']);
+                            $inWhere = true;
+                        }
+                    }
+                    if (!$inWhere) {
                         if (!isset($results[$filterName])) {
                             $results[$filterName] = array();
                         }
@@ -369,7 +385,7 @@ class QueryAnalyzer extends RestoModule {
      */
     private function processWords($type) {
         for ($i = 0; $i < $this->queryManager->length; $i++) {
-            if ($this->queryManager->isValidPosition($i) && !$this->queryManager->isStopWordPosition($i) && !$this->queryManager->dictionary->isNoise($this->queryManager->words[$i]['word'])) {
+            if ($this->queryManager->isValidPosition($i) && !$this->queryManager->isStopWordPosition($i) && !$this->context->dictionary->isNoise($this->queryManager->words[$i]['word'])) {
                 switch ($type) {
                     case 'what':
                         $this->whatProcessor->processWith($i, 0);
@@ -467,8 +483,8 @@ class QueryAnalyzer extends RestoModule {
      */
     private function escapeMultiwords($query) {
         $query = ' ' . $query . ' ';
-        for ($i = count($this->queryManager->dictionary->multiwords); $i--;) {
-            $multiword = $this->queryManager->dictionary->multiwords[$i];
+        for ($i = count($this->context->dictionary->multiwords); $i--;) {
+            $multiword = $this->context->dictionary->multiwords[$i];
             $query = str_replace(' ' . $multiword . ' ', ' "' . $multiword . '" ', $query);
         }
         return trim($query);
@@ -484,7 +500,7 @@ class QueryAnalyzer extends RestoModule {
         $splittedQuery = explode(' ', $query);
         $words = array();
         for ($i = 0, $ii = count($splittedQuery); $i < $ii; $i++) {
-            $words[] = $this->queryManager->dictionary->stripPrefix($splittedQuery[$i]);
+            $words[] = $this->context->dictionary->stripPrefix($splittedQuery[$i]);
         }
         return join(' ', $words);
     }
@@ -565,7 +581,7 @@ class QueryAnalyzer extends RestoModule {
             /*
              * Do not process noise or stopWords
              */
-            if (!$this->queryManager->dictionary->isStopWord($word['word']) && !$this->queryManager->dictionary->isNoise($word['word'])) {
+            if (!$this->context->dictionary->isStopWord($word['word']) && !$this->context->dictionary->isNoise($word['word'])) {
                 if (isset($word['error']) || !$word['processed']) {
                     $inError[] = array(
                         'word' => $word['word'],

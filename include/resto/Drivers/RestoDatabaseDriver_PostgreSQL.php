@@ -84,6 +84,13 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 return $cartFunctions->getCartItems($params['email']);
             
             /*
+             * Get facet
+             */
+            case parent::FACET:
+                $facetsFunctions = new Functions_facets($this);
+                return $facetsFunctions->getFacet($params['type'], $params['value']);
+             
+            /*
              * Get collections descriptions
              */
             case parent::COLLECTIONS_DESCRIPTIONS:

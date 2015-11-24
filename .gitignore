@@ -9,3 +9,4 @@
 /include/resto/Models/RestoModel_restec.php
 /include/config.local.php
 /include/config.dev.php
+/include/resto/Modules/Heatmap.php

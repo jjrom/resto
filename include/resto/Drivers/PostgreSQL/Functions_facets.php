@@ -33,6 +33,25 @@ class Functions_facets {
     }
 
     /**
+     * Get facet hash from a type/value
+     * 
+     * @param string $type
+     * @param string $value
+     */
+    public function getFacet($type, $value) {
+        $results = $this->dbDriver->query('SELECT uid,pid,type,value FROM resto.facets WHERE type=\'' . pg_escape_string($type) . '\' AND normalize(value)=normalize(\'' . pg_escape_string($value) . '\') LIMIT 1');
+        while ($result = pg_fetch_assoc($results)) {
+            return array(
+                'field' => $result['type'],
+                'value' => $result['value'],
+                'hash' => $result['uid'],
+                'parentHash' => isset($result['pid']) ? $result['pid'] : null
+            );
+        }
+        return null;
+    }
+    
+    /**
      * Store facet within database (i.e. add 1 to the counter of facet if exist)
      * 
      * !! THIS FUNCTION IS THREAD SAFE !!

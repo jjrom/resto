@@ -313,6 +313,34 @@ abstract class RestoDictionary {
     }
     
     /**
+     * Return true if input $type is a location type
+     * @param string $type
+     */
+    public function isLocationType($type) {
+        if (in_array($type, array(
+                    RestoDictionary::CONTINENT,
+                    RestoDictionary::COUNTRY,
+                    RestoDictionary::REGION,
+                    RestoDictionary::STATE,
+                    RestoDictionary::BAY,
+                    RestoDictionary::CHANNEL,
+                    RestoDictionary::FJORD,
+                    RestoDictionary::GULF,
+                    RestoDictionary::INLET,
+                    RestoDictionary::LAGOON,
+                    RestoDictionary::OCEAN,
+                    RestoDictionary::REEF,
+                    RestoDictionary::RIVER,
+                    RestoDictionary::SEA,
+                    RestoDictionary::SOUND,
+                    RestoDictionary::STRAIT
+                ))) {
+            return true;
+        }
+        return false;
+    }
+    
+    /**
      * Return the more similar dictionary keyword from input string
      * Return null if similarity is < 90%
      * 
@@ -350,34 +378,6 @@ abstract class RestoDictionary {
         else {
             return array('keyword' => $this->dictionary['keywords'][$type][$name]['value'], 'bbox' => $this->dictionary['keywords'][$type][$name]['bbox'], 'isoa2' => $this->dictionary['keywords'][$type][$name]['isoa2'], 'type' => $type);
         }
-    }
-    
-    /**
-     * Return true if input $type is a location type
-     * @param string $type
-     */
-    private function isLocationType($type) {
-        if (in_array($type, array(
-                    RestoDictionary::CONTINENT,
-                    RestoDictionary::COUNTRY,
-                    RestoDictionary::REGION,
-                    RestoDictionary::STATE,
-                    RestoDictionary::BAY,
-                    RestoDictionary::CHANNEL,
-                    RestoDictionary::FJORD,
-                    RestoDictionary::GULF,
-                    RestoDictionary::INLET,
-                    RestoDictionary::LAGOON,
-                    RestoDictionary::OCEAN,
-                    RestoDictionary::REEF,
-                    RestoDictionary::RIVER,
-                    RestoDictionary::SEA,
-                    RestoDictionary::SOUND,
-                    RestoDictionary::STRAIT
-                ))) {
-            return true;
-        }
-        return false;
     }
     
 }
