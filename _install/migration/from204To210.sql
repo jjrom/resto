@@ -150,4 +150,4 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('coastal area', 'co
 -- Centroid
 SELECT AddGeometryColumn('resto', 'features', 'centroid', '4326', 'POINT', 2);
 -- Could be quite long !!
-UPDATE resto.features SET centroid=ST_Centroid(ST_Shift_Longitude(geometry)) WHERE centroid IS NULL;
+UPDATE resto.features SET centroid=ST_Centroid(geometry) WHERE centroid IS NULL;

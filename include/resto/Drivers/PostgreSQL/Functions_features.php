@@ -271,7 +271,7 @@ class Functions_features {
                 $collection->model->getDbKey('identifier') => '\'' . $featureArray['id'] . '\'',
                 $collection->model->getDbKey('collection') => '\'' . $collection->name . '\'',
                 $collection->model->getDbKey('geometry') => $geom,
-                $collection->model->getDbKey('centroid') => 'ST_Centroid(ST_Shift_Longitude(' . $geom .'))',
+                $collection->model->getDbKey('centroid') => 'ST_Centroid(' . $geom .')',
                 'updated' => 'now()',
                 'published' => 'now()'
             ),
