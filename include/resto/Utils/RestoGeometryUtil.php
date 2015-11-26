@@ -74,6 +74,32 @@ class RestoGeometryUtil {
     }
     
     /**
+     * Return BBOX from WKT
+     * 
+     * @param array $polygon - WKT Polygon
+     */
+    public static function getExtent($polygon) {
+        $extent = [360, 180, -360, -180];
+        $stringPairs = explode(',', str_replace('POLYGON((', '', str_replace('))', '', $polygon)));
+        for ($i = 0, $ii = count($stringPairs); $i < $ii; $i++) {
+            $coordinates = explode(' ', trim($stringPairs[$i]));
+            if (floatval($coordinates[0]) > $extent[2]) {
+                $extent[2] = $coordinates[0];
+            }
+            if (floatval($coordinates[0]) < $extent[0]) {
+                $extent[0] = $coordinates[0];
+            }
+            if (floatval($coordinates[1]) > $extent[3]) {
+                $extent[3] = $coordinates[1];
+            }
+            if (floatval($coordinates[1]) < $extent[1]) {
+                $extent[1] = $coordinates[1];
+            }
+        }
+        return $extent;
+    }
+    
+    /**
      * Return radius length in degrees for a radius in meters
      * at a given latitude
      * 

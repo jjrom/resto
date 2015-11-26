@@ -265,13 +265,23 @@ class Functions_features {
         /*
          * Initialize columns array
          */
-        $geom = 'ST_GeomFromText(\'' . RestoGeometryUtil::geoJSONGeometryToWKT($featureArray['geometry']) . '\', 4326)';
+        $wkt = RestoGeometryUtil::geoJSONGeometryToWKT($featureArray['geometry']);
+        $extent = RestoGeometryUtil::getExtent($wkt);
+        
+        /*
+         * Compute "in house centroid" to avoid -180/180 date line issue
+         */
+        $factor = 1;
+        if (abs($extent[2] - $extent[0]) >= 180) {
+            $factor = -1;
+        }
+        
         $columns = array_merge(
             array(
                 $collection->model->getDbKey('identifier') => '\'' . $featureArray['id'] . '\'',
                 $collection->model->getDbKey('collection') => '\'' . $collection->name . '\'',
-                $collection->model->getDbKey('geometry') => $geom,
-                $collection->model->getDbKey('centroid') => 'ST_Centroid(' . $geom .')',
+                $collection->model->getDbKey('geometry') => 'ST_GeomFromText(\'' . $wkt . '\', 4326)',
+                $collection->model->getDbKey('centroid') => 'ST_GeomFromText(\'POINT(' . (($extent[2] + ($extent[0] * $factor)) / 2.0) . ' ' . (($extent[3] + $extent[1]) / 2.0) . ')\', 4326)',
                 'updated' => 'now()',
                 'published' => 'now()'
             ),
