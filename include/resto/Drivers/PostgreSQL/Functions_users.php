@@ -69,9 +69,14 @@ class Functions_users {
         if (count($results) === 0) {
             RestoLogUtil::httpError(404);
         }
-
+        
         $results[0]['activated'] = (integer) $results[0]['activated'];
         $results[0]['groups'] = substr($results[0]['groups'], 1, -1);
+        
+        /*
+         * Add picture
+         */
+        $results[0]['picture'] = $this->getPicture($results[0]['email']);
 
         return $results[0];
     }
@@ -92,6 +97,7 @@ class Functions_users {
             $profiles[] = array(
                 'userid' => $profile['userid'],
                 'email' => $profile['email'],
+                'picture' => $this->getPicture($profile['email']),
                 'groups' => $profile['groups'],
                 'username' => $profile['username'],
                 'givenname' => $profile['givenname'],
@@ -384,6 +390,15 @@ class Functions_users {
         $this->dbDriver->fetch($this->dbDriver->query('UPDATE usermanagement.users SET groups=' . (isset($results) ? '\'{' . pg_escape_string($results) . '}\'' : 'NULL') . ' WHERE userid=\'' . $userid . '\''));
 
         return $results;
+    }
+    
+    /**
+     * Return gravatar picture from $email
+     * 
+     * @param string $email
+     */
+    private function getPicture($email, $size = 200) {
+        return '//www.gravatar.com/avatar/' . md5($email) . '?d=mm&s=' . $size;
     }
 
 }
