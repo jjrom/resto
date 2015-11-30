@@ -1251,7 +1251,15 @@ class RestoRouteGET extends RestoRoute {
                 'resourceUrl' => $this->context->baseUrl . '/' . $this->context->path,
                 'token' => $token
             ));
-            if ($initiatorEmail && $user->profile['email'] !== $initiatorEmail) {
+            
+            /*
+             * Non existing Token => exit
+             */
+            if (!$initiatorEmail) {
+                RestoLogUtil::httpError(403);
+            }
+            
+            if ($user->profile['email'] !== $initiatorEmail) {
                 $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('email' => strtolower($initiatorEmail))), $this->context);
             }
         }
