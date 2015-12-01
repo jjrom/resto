@@ -130,8 +130,9 @@ class RestoUser{
     public function hasRightsTo($action, $params = array()) {
         switch ($action) {
             case RestoUser::DOWNLOAD:
+                return $this->hasDownloadOrVisualizeRights(RestoUser::DOWNLOAD, isset($params['collectionName']) ? $params['collectionName'] : null, isset($params['featureIdentifier']) ? $params['featureIdentifier'] : null);
             case RestoUser::VISUALIZE:
-                return $this->hasDownloadOrVisualizeRights($action, isset($params['collectionName']) ? $params['collectionName'] : null, isset($params['featureIdentifier']) ? $params['featureIdentifier'] : null);
+                return $this->hasDownloadOrVisualizeRights(RestoUser::VISUALIZE, isset($params['collectionName']) ? $params['collectionName'] : null, isset($params['featureIdentifier']) ? $params['featureIdentifier'] : null);
             case RestoUser::CREATE:
                 return $this->hasCreateRights();
             case RestoUser::UPDATE:
