@@ -79,7 +79,7 @@ class RestoGeometryUtil {
      * @param array $polygon - WKT Polygon
      */
     public static function getExtent($polygon) {
-        $extent = [360, 180, -360, -180];
+        $extent = array(360, 180, -360, -180);
         $stringPairs = explode(',', str_replace('POLYGON((', '', str_replace('))', '', $polygon)));
         for ($i = 0, $ii = count($stringPairs); $i < $ii; $i++) {
             $coordinates = explode(' ', trim($stringPairs[$i]));
