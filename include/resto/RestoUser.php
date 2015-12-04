@@ -343,6 +343,10 @@ class RestoUser{
      *  @param RestoLicense $license
      */
     public function signLicense($license) {
+        /*
+         * Get array which describe the license
+         */
+        $license = $license->toArray();
         
         /*
          * User can sign license if it does not reach the signature quota
