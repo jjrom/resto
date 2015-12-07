@@ -206,6 +206,7 @@ class RestoLicense {
         else {
             $description = $this->description['description'][$this->context->dictionary->language];
         }
+        
         return array(
             'licenseId' => $this->description['licenseId'],
             'hasToBeSigned' => $this->description['hasToBeSigned'],

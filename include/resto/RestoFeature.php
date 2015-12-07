@@ -79,8 +79,8 @@ class RestoFeature {
      */
     public function getLicense() {
         if (!isset($this->license)) {
-            $this->license = new RestoLicense($this->context, $this->featureArray['properties']['license']['licenseId'], false);
-            $this->license->setDescription($this->featureArray['properties']['license'], false);
+            $this->license = new RestoLicense($this->context, $this->featureArray['properties']['license']['licenseId'], true);
+            //$this->license->setDescription($this->featureArray['properties']['license'], false);
         }
         return $this->license;
     }
