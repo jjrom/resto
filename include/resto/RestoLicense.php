@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright 2014 Jérôme Gasperi
  *
@@ -22,22 +23,22 @@
  *  )
  */
 class RestoLicense {
-    
     /*
      * Context
      */
+
     public $context;
-    
+
     /*
      * Identifier
      */
     public $licenseId;
-    
+
     /*
      * Description
      */
     private $description;
-    
+
     /**
      * Constructor
      * 
@@ -46,19 +47,19 @@ class RestoLicense {
      * @param boolean autoload : true to load from store
      */
     public function __construct($context, $licenseId, $autoload = true) {
-        
+
         if (!isset($licenseId)) {
             RestoLogUtil::httpError(400, 'License identifier is not set');
         }
-        
+
         $this->context = $context;
         $this->licenseId = $licenseId;
-        
+
         if ($autoload) {
             $this->loadFromStore();
         }
     }
-    
+
     /**
      * Set license description
      * 
@@ -71,7 +72,7 @@ class RestoLicense {
             $this->saveToStore();
         }
     }
-    
+
     /**
      * Load license from database - throw exception if not found
      */
@@ -82,7 +83,7 @@ class RestoLicense {
         }
         $this->description = $licenses[$this->licenseId];
     }
-    
+
     /**
      * Store license to database
      */
@@ -100,7 +101,7 @@ class RestoLicense {
             ))
         );
     }
-    
+
     /**
      * Check if $user fulfill license requirements 
      * 
@@ -112,12 +113,12 @@ class RestoLicense {
      * @param RestoUser $user
      */
     public function isApplicableToUser($user) {
-        
+
         /*
          * Always be pessimistic :)
          */
         $fulfill = false;
-        
+
         /**
          * No license restriction (e.g. 'unlicensed' license)
          * => Every user fulfill license requirements
@@ -125,12 +126,12 @@ class RestoLicense {
         if (!isset($this->description['grantedCountries']) && !isset($this->description['grantedOrganizationCountries']) && !isset($this->description['grantedFlags'])) {
             return true;
         }
-        
+
         /**
          * User profile should match at least one of the license granted flags 
          */
-        if (isset($this->description['grantedFlags']))  {
-           
+        if (isset($this->description['grantedFlags'])) {
+
             /*
              * Registered user has automatically the REGISTERED flag
              * (see 'unlicensedwithregistration' license)
@@ -139,74 +140,91 @@ class RestoLicense {
             if ($user->profile['userid'] !== -1) {
                 $userFlags[] = 'REGISTERED';
             }
-            
+
             /*
              * No match => no fulfill
              */
             if (!$this->matches($userFlags, array_map('trim', explode(',', $this->description['grantedFlags'])))) {
                 return false;
             }
-            
         }
-        
+
         /**
          * User profile should match either one of the license granted countries or organization countries
          */
-        if (isset($this->description['grantedCountries']) && isset($user->profile['country']))  {
+        if (isset($this->description['grantedCountries']) && isset($user->profile['country'])) {
             $fulfill = $fulfill || $this->matches(array_map('trim', explode(',', $user->profile['country'])), array_map('trim', explode(',', $this->description['grantedCountries'])));
         }
-        if (isset($this->description['grantedOrganizationCountries']) && isset($user->profile['organizationcountry']))  {
+        if (isset($this->description['grantedOrganizationCountries']) && isset($user->profile['organizationcountry'])) {
             $fulfill = $fulfill || $this->matches(array_map('trim', explode(',', $user->profile['organizationcountry'])), array_map('trim', explode(',', $this->description['grantedOrganizationCountries'])));
         }
-        
+
         return $fulfill;
     }
-    
+
     /**
      * Check if $user has to sign license
      * 
      * @param RestoUser $user
      */
     public function hasToBeSignedByUser($user) {
-        
+
         /*
          * No need to sign for 'never' 
          */
         if ($this->description['hasToBeSigned'] === 'never') {
             return false;
         }
-        
+
         /*
          * Always need to sign for 'always'
          */
         if ($this->description['hasToBeSigned'] === 'always') {
             return true;
         }
-        
+
         /*
          * Otherwise check if license has been signed once
          */
         return !$this->context->dbDriver->check(RestoDatabaseDriver::SIGNATURE, array(
-            'email' => $user->profile['email'],
-            'licenseId' => $this->description['licenseId']
+                    'email' => $user->profile['email'],
+                    'licenseId' => $this->description['licenseId']
         ));
-        
     }
-    
+
     /**
      * Return license as an array with description in the current language
      */
     public function toArray() {
         $description = array();
-        if (!isset($this->description['description'][$this->context->dictionary->language])) {
-            if (isset($this->description['description']['en'])) {
-                $description = $this->description['description']['en'];
+        /*
+         * Test if lang is already selected
+         * 
+         * 1. If not : apply lang selection
+         * 2. If yes : return description without selecting lang
+         * 3. If descritpion does not exist return empty array
+         */
+        if (isset($this->description['description']) && !isset($this->description['description']['url'])) {
+            if (!isset($this->description['description'][$this->context->dictionary->language])) {
+                if (isset($this->description['description']['en'])) {
+                    /*
+                     * Description does not exist in prefered lang, but exists in english
+                     */
+                    $description = $this->description['description']['en'];
+                }
+            } else {
+                /*
+                 * Description exists in prefered lang
+                 */
+                $description = $this->description['description'][$this->context->dictionary->language];
             }
+        } else if (isset($this->description['description']) && isset($this->description['description']['url'])) {
+            /*
+             * Description is already in prefered language
+             */
+            $description = $this->description['description'];
         }
-        else {
-            $description = $this->description['description'][$this->context->dictionary->language];
-        }
-        
+
         return array(
             'licenseId' => $this->description['licenseId'],
             'hasToBeSigned' => $this->description['hasToBeSigned'],
@@ -218,7 +236,7 @@ class RestoLicense {
             'description' => $description
         );
     }
-    
+
     /**
      * Return true if there is at least one match between user and license grant
      * 
@@ -232,8 +250,6 @@ class RestoLicense {
             $match = $match || (array_search($grant, $licenseGrant) !== false);
         }
         return $match;
-        
     }
-    
-}
 
+}
