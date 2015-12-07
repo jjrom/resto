@@ -1,12 +1,12 @@
 #resto
 
-[![Code Climate](https://codeclimate.com/github/jjrom/resto2/badges/gpa.svg)](https://codeclimate.com/github/jjrom/resto2)
+[![Code Climate](https://codeclimate.com/github/jjrom/resto/badges/gpa.svg)](https://codeclimate.com/github/jjrom/resto)
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/jjrom/resto.svg)](http://isitmaintained.com/project/jjrom/resto "Average time to resolve an issue")
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/jjrom/resto.svg)](http://isitmaintained.com/project/jjrom/resto "Percentage of issues still open")
 
-[resto](http://mapshup.com/resto2/) - an Earth Observation products search engine 
+[resto](http://mapshup.com/resto/) - an Earth Observation products search engine 
 
-Try the [demo] (http://mapshup.com/resto2/) !
+Try the [demo] (http://mapshup.com/resto/) !
 
 ## Installation
 
@@ -16,7 +16,7 @@ In the following, we suppose that $RESTO_HOME is the directory where resto sourc
 
 If not already done, download resto sources to $RESTO_HOME
 
-        git clone https://github.com/jjrom/resto2.git $RESTO_HOME
+        git clone https://github.com/jjrom/resto.git $RESTO_HOME
 
 ### Prerequesites
 
