@@ -105,21 +105,6 @@ class RestoMetalink extends RestoXML {
     }
     
     /**
-     * Return a sharable public link from input resourceUrl
-     * 
-     * @param string $resourceUrl
-     * @return string
-     */
-    private function getSharedLink($resourceUrl) {
-        $shared = $this->context->dbDriver->get(RestoDatabaseDriver::SHARED_LINK, array(
-            'email' => $this->user->profile['email'],
-            'resourceUrl' => $resourceUrl,
-            'duration' => isset($this->context->sharedLinkDuration) ? $this->context->sharedLinkDuration : null
-        ));
-        return $resourceUrl . (strpos($resourceUrl, '?') === false ? '?_tk=' : '&_tk=') . $shared['token'];       
-    }
-    
-    /**
      * Add file checksum if available
      * 
      * @param array $item
@@ -145,7 +130,7 @@ class RestoMetalink extends RestoXML {
             //'location' => 'TODO',
             'priority' => 1
         ));
-        $this->text($this->getSharedLink($item['properties']['services']['download']['url']));
+        $this->text($item['properties']['services']['download']['url']);
         $this->endElement(); // End url
     }
     
