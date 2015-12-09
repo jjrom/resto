@@ -60,7 +60,7 @@ class RestoFeatureCollection {
      * 
      * If "_rc" query parameter is set to true, each query include
      * returns a real count of the total number of resources relative to the query
-     * Otherwise, the total count is not known and set to -1
+     * Otherwise, the total count is estimated from count_estimate function
      */
     private $totalCount = -1;
     
@@ -203,11 +203,11 @@ class RestoFeatureCollection {
         }
         /*
          * Read features from database
-         * If '_rc' parameter is set to true, then totalCount is also computed
+         * If '_rc' parameter is set to true, then the true count is computed - otherwise it's an estimate
          */   
         else {
-            $forceCount = isset($this->context->query['_rc']) ? filter_var($this->context->query['_rc'], FILTER_VALIDATE_BOOLEAN) : false;
-            $this->loadFeatures($analysis['appliedFilters'], $limit, $offset, $forceCount);
+            $trueCount = isset($this->context->query['_rc']) ? filter_var($this->context->query['_rc'], FILTER_VALIDATE_BOOLEAN) : false;
+            $this->loadFeatures($analysis['appliedFilters'], $limit, $offset, $trueCount);
         }
         
         /*

@@ -47,7 +47,8 @@ class Functions_features {
      *      array(
      *          'limit',
      *          'offset',
-     *          'count'// true to return the total number of results without pagination
+     *          'count'// true to return the exact total number of results without pagination
+     *                 // otherwise an estimate is returned
      * 
      * @return array
      * @throws Exception
@@ -71,20 +72,22 @@ class Functions_features {
         
         /*
          * Set search filters
-         * TODO - get count from facet statistic and not from count() OVER()
          */
         $oFilter = implode(' AND ', $filtersUtils->prepareFilters($user, $model, $params));
         
         /*
-         * Note that the total number of results (i.e. with no LIMIT constraint)
-         * is retrieved with PostgreSQL "count(*) OVER()" technique
+         * Prepare query
          */
-        $query = 'SELECT ' . implode(',', $filtersUtils->getSQLFields($model)) . ($options['count'] ? ', count(' . $model->getDbKey('identifier') . ') OVER() AS totalcount' : '') . ' FROM ' . (isset($collection) ? '_' . strtolower($collection->name) : 'resto') . '.features' . ($oFilter ? ' WHERE ' . $oFilter : '') . ' ORDER BY startdate DESC LIMIT ' . $options['limit'] . ' OFFSET ' . $options['offset'];
-       
+        $fields = implode(',', $filtersUtils->getSQLFields($model));
+        $from = ' FROM ' . (isset($collection) ? '_' . strtolower($collection->name) : 'resto') . '.features' . ($oFilter ? ' WHERE ' . $oFilter : '');
+        
         /*
          * Retrieve products from database
          */
-        return $this->toFeatureArray($context, $user, $collection, $results = $this->dbDriver->query($query));
+        return array(
+            'totalcount' => $this->count($from, $options['count']),
+            'features' => $this->toFeatureArray($context, $user, $collection, $results = $this->dbDriver->query('SELECT ' . $fields . $from . ' ORDER BY startdate DESC LIMIT ' . $options['limit'] . ' OFFSET ' . $options['offset']))
+        );
         
     }
     
@@ -123,7 +126,7 @@ class Functions_features {
         $filtersUtils = new Functions_filters();
         $results = $this->dbDriver->query('SELECT ' . implode(',', $filtersUtils->getSQLFields($model)) . ' FROM ' . (isset($collection) ? '_' . strtolower($collection->name) : 'resto') . '.features WHERE ' . $model->getDbKey('identifier') . "='" . pg_escape_string($identifier) . "'" . (count($filters) > 0 ? ' AND ' . join(' AND ', $filters) : ''));
         $arrayOfFeatureArray = $this->toFeatureArray($context, $user, $collection, $results);
-        return isset($arrayOfFeatureArray['features']) && isset($arrayOfFeatureArray['features'][0]) ? $arrayOfFeatureArray['features'][0] : null;
+        return isset($arrayOfFeatureArray[0]) ? $arrayOfFeatureArray[0] : null;
     }
     
     /**
@@ -443,13 +446,26 @@ class Functions_features {
         $featureUtil = new RestoFeatureUtil($context, $user, $collection);
         while ($result = pg_fetch_assoc($results)) {
             $featuresArray[] = $featureUtil->toFeatureArray($result);
-            if (isset($result['totalcount'])) {
-                $totalcount = $result['totalcount'];
-            }
         }
-        return array(
-            'totalcount' => isset($totalcount) ? (integer) $totalcount : -1,
-            'features' => $featuresArray
-        );
+        return $featuresArray;
+    }
+    
+    /**
+     * Return exact count or estimate count from query
+     * 
+     * @param String $from
+     * @param Boolean $realcount
+     */
+    private function count($from, $realcount = false) {
+        if ($realcount) {
+            $result = $this->dbDriver->query('SELECT count(*) as count' . $from);
+        }
+        else {
+            $result = $this->dbDriver->query('SELECT count_estimate(\'' . pg_escape_string($from) . '\') as count');
+        }
+        while ($row = pg_fetch_assoc($result)) {
+            return (integer) $row['count'];
+        }
+        return -1;
     }
 }
