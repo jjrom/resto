@@ -208,6 +208,13 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 $featuresFunctions = new Functions_features($this);
                 return $featuresFunctions->getWhereClause($params['user'], $params['model'], $params['filters']);
             
+            /*
+             * Get count estimate from query
+             */
+            case parent::COUNT_ESTIMATE:
+                $featuresFunctions = new Functions_features($this);
+                return $featuresFunctions->getCount($params['from'], false);
+            
             default:
                 return null;
         }

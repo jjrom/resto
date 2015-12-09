@@ -85,7 +85,7 @@ class Functions_features {
          * Retrieve products from database
          */
         return array(
-            'totalcount' => $this->count($from, $options['count']),
+            'totalcount' => $this->getCount($from, $options['count']),
             'features' => $this->toFeatureArray($context, $user, $collection, $results = $this->dbDriver->query('SELECT ' . $fields . $from . ' ORDER BY startdate DESC LIMIT ' . $options['limit'] . ' OFFSET ' . $options['offset']))
         );
         
@@ -224,6 +224,25 @@ class Functions_features {
         }
     }
    
+    /**
+     * Return exact count or estimate count from query
+     * 
+     * @param String $from
+     * @param Boolean $realcount
+     */
+    public function getCount($from, $realcount = false) {
+        if ($realcount) {
+            $result = $this->dbDriver->query('SELECT count(*) as count' . $from);
+        }
+        else {
+            $result = $this->dbDriver->query('SELECT count_estimate(\'' . pg_escape_string('SELECT *' . $from) . '\') as count');
+        }
+        while ($row = pg_fetch_assoc($result)) {
+            return (integer) $row['count'];
+        }
+        return -1;
+    }
+    
     /**
      * Store keywords facets
      * 
@@ -450,22 +469,4 @@ class Functions_features {
         return $featuresArray;
     }
     
-    /**
-     * Return exact count or estimate count from query
-     * 
-     * @param String $from
-     * @param Boolean $realcount
-     */
-    private function count($from, $realcount = false) {
-        if ($realcount) {
-            $result = $this->dbDriver->query('SELECT count(*) as count' . $from);
-        }
-        else {
-            $result = $this->dbDriver->query('SELECT count_estimate(\'' . pg_escape_string('SELECT *' . $from) . '\') as count');
-        }
-        while ($row = pg_fetch_assoc($result)) {
-            return (integer) $row['count'];
-        }
-        return -1;
-    }
 }
