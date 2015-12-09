@@ -461,7 +461,7 @@ class Functions_features {
             $result = $this->dbDriver->query('SELECT count(*) as count' . $from);
         }
         else {
-            $result = $this->dbDriver->query('SELECT count_estimate(\'' . pg_escape_string($from) . '\') as count');
+            $result = $this->dbDriver->query('SELECT count_estimate(\'' . pg_escape_string('SELECT *' . $from) . '\') as count');
         }
         while ($row = pg_fetch_assoc($result)) {
             return (integer) $row['count'];
