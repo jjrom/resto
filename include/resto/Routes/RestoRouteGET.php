@@ -1200,13 +1200,6 @@ class RestoRouteGET extends RestoRoute {
         $user = $this->checkRights('visualize', $this->user, $token, $collection, $feature);
         
         /*
-         * User must be validated
-         */
-        if (!$user->isValidated()) {
-            RestoLogUtil::httpError(403, 'User profile has not been validated. Please contact an administrator');
-        }
-
-        /*
          * User do not fullfill license requirements
          * Stream low resolution WMS if viewService is public
          * Forbidden otherwise
@@ -1214,10 +1207,20 @@ class RestoRouteGET extends RestoRoute {
         $wmsUtil = new RestoWMSUtil($this->context, $user);
         $license = $feature->getLicense();
         if (!$license->isApplicableToUser($user)) {
-            if ($license['viewService'] !== 'public') {
+            /*
+             * Check if viewService is public
+             */
+            $t_license_arr = $license->toArray();
+            if ($t_license_arr['viewService'] !== 'public') {
+                /*
+                 * viewService isn't public
+                 */
                 RestoLogUtil::httpError(403, 'You do not fulfill license requirements');
             }
             else {
+                /*
+                 * viewService is public, Stream low resolution WMS
+                 */
                 $wmsUtil->streamWMS($feature, true);
             }
         }
