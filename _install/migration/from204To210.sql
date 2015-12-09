@@ -14,6 +14,21 @@
 --     CREATE INDEX _myCollection_features_visibility_idx ON _myCollection.features USING btree (visibility);
 -- 
 
+-- Count estimate
+CREATE FUNCTION count_estimate(query text) RETURNS INTEGER AS
+$func$
+DECLARE
+    rec   record;
+    ROWS  INTEGER;
+BEGIN
+    FOR rec IN EXECUTE 'EXPLAIN ' || query LOOP
+        ROWS := SUBSTRING(rec."QUERY PLAN" FROM ' rows=([[:digit:]]+)');
+        EXIT WHEN ROWS IS NOT NULL;
+    END LOOP;
+    RETURN ROWS;
+END
+$func$ LANGUAGE plpgsql;
+
 -- features
 ALTER table resto.features ALTER COLUMN visibility SET DEFAULT 'public';
 ALTER table resto.features ADD COLUMN licenseid TEXT;
