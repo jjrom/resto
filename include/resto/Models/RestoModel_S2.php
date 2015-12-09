@@ -18,7 +18,7 @@
  * resto Sentinel-2 model to ingest GeoJSON metadata
  * from PEPS server at https://peps.cnes.fr/resto/api/collections/S2/search.json
  */
-class RestoModel_S1 extends RestoModel {
+class RestoModel_S2 extends RestoModel {
     
     public $extendedProperties = array(
         
