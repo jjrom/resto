@@ -149,7 +149,7 @@ class RestoWMSUtil {
      */
     private function stream($url) {
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_URL, urldecode($url));
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, FALSE);
         curl_setopt($curl, CURLOPT_FOLLOWLOCATION, TRUE);
         header('Pragma: public');
