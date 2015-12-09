@@ -353,7 +353,7 @@ class RestoFeatureCollection {
         /*
          * Total count
          */
-        $this->totalCount = max(count($this->restoFeatures, $featuresArray['totalcount']));
+        $this->totalCount = max(count($this->restoFeatures), $featuresArray['totalcount']);
         
     }
 
