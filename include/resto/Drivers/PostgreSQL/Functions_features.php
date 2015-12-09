@@ -79,7 +79,7 @@ class Functions_features {
          * Prepare query
          */
         $fields = implode(',', $filtersUtils->getSQLFields($model));
-        $from = ' FROM ' . (isset($collection) ? '_' . strtolower($collection->name) : 'resto') . '.features' . ($oFilter ? ' WHERE ' . $oFilter : '');
+        $from = 'FROM ' . (isset($collection) ? '_' . strtolower($collection->name) : 'resto') . '.features' . ($oFilter ? ' WHERE ' . $oFilter : '');
         
         /*
          * Retrieve products from database
@@ -232,10 +232,10 @@ class Functions_features {
      */
     public function getCount($from, $realcount = false) {
         if ($realcount) {
-            $result = $this->dbDriver->query('SELECT count(*) as count' . $from);
+            $result = $this->dbDriver->query('SELECT count(*) as count ' . $from);
         }
         else {
-            $result = $this->dbDriver->query('SELECT count_estimate(\'' . pg_escape_string('SELECT *' . $from) . '\') as count');
+            $result = $this->dbDriver->query('SELECT count_estimate(\'' . pg_escape_string('SELECT * ' . $from) . '\') as count');
         }
         while ($row = pg_fetch_assoc($result)) {
             return (integer) $row['count'];
