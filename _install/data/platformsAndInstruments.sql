@@ -57,6 +57,10 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('tsx1', 'TSX1','**'
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('ukdmc', 'UKDMC1|UKDMC2','**', 'platform');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('ukdmc1', 'UKDMC1','**', 'platform');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('ukdmc2', 'UKDMC2','**', 'platform');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('cryosat', 'CRYOSAT2','**', 'platform');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('cryosat-2', 'CRYOSAT2','**', 'platform');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('seasat', 'SEASAT1','**', 'platform');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('seasat-1', 'SEASAT1','**', 'platform');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('amsr', 'AMSR','**','instrument');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('avhrr', 'AVHRR','**','instrument');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('etm', 'ETM','**','instrument');
