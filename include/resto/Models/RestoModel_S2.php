@@ -14,33 +14,18 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-
 /**
- * resto Sentinel-1 model to ingest GeoJSON metadata
- * from PEPS server at https://peps.cnes.fr/resto/api/collections/S1/search.json
+ * resto Sentinel-2 model to ingest GeoJSON metadata
+ * from PEPS server at https://peps.cnes.fr/resto/api/collections/S2/search.json
  */
 class RestoModel_S1 extends RestoModel {
     
     public $extendedProperties = array(
-        'swath' => array(
-            'name' => 'swath',
-            'type' => 'TEXT'
-        ),
-        'polarisation' => array(
-            'name' => 'polarisation',
-            'type' => 'TEXT'
-        ),
-        'missionTakeId' => array(
-            'name' => 'missiontakeid',
-            'type' => 'INTEGER'
-        )
+        
     );
     
     /**
      * Constructor
-     * 
-     * @param RestoContext $context : Resto context
-     * @param RestoContext $user : Resto user
      */
     public function __construct() {
         parent::__construct();
