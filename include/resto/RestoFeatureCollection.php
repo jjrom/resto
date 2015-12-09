@@ -58,11 +58,10 @@ class RestoFeatureCollection {
     /*
      * Total number of resources relative to the query
      * 
-     * If "_rc" query parameter is set to true, each query include
-     * returns a real count of the total number of resources relative to the query
+     * If "_rc" query parameter is set returns a real count of the total number of resources relative to the query
      * Otherwise, the total count is estimated from count_estimate function
      */
-    private $totalCount = -1;
+    private $totalCount;
     
     /*
      * Query analyzer
@@ -203,11 +202,9 @@ class RestoFeatureCollection {
         }
         /*
          * Read features from database
-         * If '_rc' parameter is set to true, then the true count is computed - otherwise it's an estimate
          */   
         else {
-            $trueCount = isset($this->context->query['_rc']) ? filter_var($this->context->query['_rc'], FILTER_VALIDATE_BOOLEAN) : false;
-            $this->loadFeatures($analysis['appliedFilters'], $limit, $offset, $trueCount);
+            $this->loadFeatures($analysis['appliedFilters'], $limit, $offset, isset($this->context->query['_rc']) ? filter_var($this->context->query['_rc'], FILTER_VALIDATE_BOOLEAN) : false);
         }
         
         /*
@@ -233,12 +230,6 @@ class RestoFeatureCollection {
          */
         $collectionName = isset($this->defaultCollection) ? $this->defaultCollection->name : '*';
         
-        /*
-         * Recompute totalCount
-         */
-        if ($this->totalCount === -1 && $count < $limit) {
-            $this->totalCount = $count;
-        }
         /*
          * Convert resto model to search service "osKey"
          */
@@ -362,7 +353,7 @@ class RestoFeatureCollection {
         /*
          * Total count
          */
-        $this->totalCount = $featuresArray['totalcount'];
+        $this->totalCount = max(count($this->restoFeatures, $featuresArray['totalcount']));
         
     }
 
@@ -448,17 +439,6 @@ class RestoFeatureCollection {
             );
         }
         
-        /*
-         * If total = -1 then it means that total number of resources is unknown
-         * The last index cannot be displayed
-         */
-        if ($this->totalCount === -1 && $paging['count'] >= $limit) {
-            $links[] = $this->getLink('next', '_nextCollectionLink', array(
-                'startPage' => $paging['startPage'] + 1,
-                'count' => $limit)
-            );
-        }
-        
         return $links;
         
     }
@@ -524,7 +504,7 @@ class RestoFeatureCollection {
         );
         if ($count > 0) {
             $startPage = ceil(($offset + 1) / $limit);
-            $totalPage = ceil(($this->totalCount !== -1 ? $this->totalCount : $count) / $limit);
+            $totalPage = ceil($this->totalCount / $limit);
             $paging = array(
                 'startPage' => $startPage,
                 'nextPage' => $startPage + 1,

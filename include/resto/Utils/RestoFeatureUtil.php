@@ -341,8 +341,7 @@ class RestoFeatureUtil {
      * @param array $properties
      */
     private function cleanProperties(&$properties) {
-        unset($properties['totalcount'],
-              $properties['identifier'],
+        unset($properties['identifier'],
               $properties['geometry'], 
               $properties['metadata'], 
               $properties['metadataMimeType'],
