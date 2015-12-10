@@ -1,5 +1,5 @@
 {
-    "name": "Landsat",
+    "name": "Landsat_CNES",
     "model": "RestoModel_muscate",
     "status": "public",
     "licenseId": "unlicensed",
@@ -30,7 +30,7 @@
         }
     },
     "propertiesMapping":{
-        "oragnisationName": "CNES",
+        "organisationName": "CNES",
         "parentIdentifier": "urn:ogc:def:EOP:CNES::Landsat:",
         "quicklook" : "http://spirit.cnes.fr/landsat/ql/{:productIdentifier:}.png",
         "thumbnail" : "http://spirit.cnes.fr/landsat/ql/{:productIdentifier:}_thumb.png",
