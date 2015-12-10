@@ -88,6 +88,8 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('mss', 'MSS','**','
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('mviri', 'MVIRI','**','instrument');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('oci', 'OCI','**','instrument');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('oli', 'OLI','**','instrument');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('olitirs', 'OLI_TIRS','**','instrument');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('oli_tirs', 'OLI_TIRS','**','instrument');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('pana', 'PANA','**','instrument');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('phr1a', 'PHR1A','**','instrument');
 INSERT INTO resto.keywords (name, value, lang, type) VALUES ('phr1b', 'PHR1B','**','instrument');

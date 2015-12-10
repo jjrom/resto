@@ -166,3 +166,11 @@ INSERT INTO resto.keywords (name, value, lang, type) VALUES ('coastal area', 'co
 SELECT AddGeometryColumn('resto', 'features', 'centroid', '4326', 'POINT', 2);
 -- Could be quite long !!
 UPDATE resto.features SET centroid=ST_Centroid(geometry) WHERE centroid IS NULL;
+
+-- Keywords update
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('cryosat', 'CRYOSAT2','**', 'platform');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('cryosat-2', 'CRYOSAT2','**', 'platform');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('seasat', 'SEASAT1','**', 'platform');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('seasat-1', 'SEASAT1','**', 'platform');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('olitirs', 'OLI_TIRS','**','instrument');
+INSERT INTO resto.keywords (name, value, lang, type) VALUES ('oli_tirs', 'OLI_TIRS','**','instrument');

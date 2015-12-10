@@ -1,0 +1,32 @@
+{
+    "name": "Landsat",
+    "model": "RestoModel_Landsat",
+    "status": "public",
+    "licenseId": "unlicensed",
+    "rights":{
+        "download":1,
+        "visualize":1
+    },
+    "osDescription": {
+        "en": {
+            "ShortName": "Landsat",
+            "LongName": "Images Landsat niveau 1C",
+            "Description": "Landsat represents the world's longest continuously acquired collection of space-based moderate-resolution land remote sensing data. Four decades of imagery provides a unique resource for those who work in agriculture, geology, forestry, regional planning, education, mapping, and global change research. Landsat images are also invaluable for emergency response and disaster relief",
+            "Tags": "landsat level1C USGS",
+            "Developper": "J\u00e9r\u00f4me Gasperi",
+            "Contact": "jerome.gasperi@gmail.com",
+            "Query": "USA 2014",
+            "Attribution": "USGS/NASA Landsat"
+        },
+        "fr": {
+            "ShortName": "Landsat",
+            "LongName": "Landsat Level 1C product",
+            "Description": "Le programme Landsat est le premier programme spatial d'observation de la Terre dédié à des fins civiles. Quarante années d'imageries spatiales fournissent une ressource unique dans les secteurs de l'agriculture, de la géologie, de la gestion des forêts, de l'éducation, et de la recherche sur le changement climatique",
+            "Tags": "landsat level1C USGS",
+            "Developper": "J\u00e9r\u00f4me Gasperi",
+            "Contact": "jerome.gasperi@gmail.com",
+            "Query": "US 2014",
+            "Attribution": "USGS/NASA Landsat"
+        }
+    }
+}
