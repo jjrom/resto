@@ -66,7 +66,7 @@ class RestoOrder {
          * Is order id associated to a valid order
          */
         if (!isset($this->order['orderId'])) {
-            RestoLogUtil::httpError(500, 'Order with id=' . $orderId . ' does not exist');
+            RestoLogUtil::httpError(404, 'Order with id=' . $orderId . ' does not exist');
         }
     }
 
@@ -146,7 +146,7 @@ class RestoOrder {
                 array_push($errors, array(
                     'type' => 'Feature',
                     'ErrorMessage' => 'Wrong item',
-                    'ErrorCode' => 500,
+                    'ErrorCode' => 404,
                     'properties' => isset($item['properties']) ? $item['properties'] : null
                 ));
                 continue;
@@ -201,7 +201,7 @@ class RestoOrder {
                     'type' => 'Feature',
                     'id' => $feature->identifier,
                     'ErrorMessage' => 'Invalid item',
-                    'ErrorCode' => 500,
+                    'ErrorCode' => 404,
                     'properties' => isset($item['properties']) ? $item['properties'] : null
                 ));
 
@@ -217,7 +217,7 @@ class RestoOrder {
                     'type' => 'Feature',
                     'id' => $feature->identifier,
                     'ErrorMessage' => 'Item not downloadable',
-                    'ErrorCode' => 500,
+                    'ErrorCode' => 404,
                     'properties' => isset($item['properties']) ? $item['properties'] : null
                 ));
 
