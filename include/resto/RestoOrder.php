@@ -201,7 +201,7 @@ class RestoOrder {
                     'type' => 'Feature',
                     'id' => $feature->identifier,
                     'ErrorMessage' => 'Invalid item',
-                    'ErrorCode' => 403,
+                    'ErrorCode' => 500,
                     'properties' => isset($item['properties']) ? $item['properties'] : null
                 ));
 
@@ -217,7 +217,7 @@ class RestoOrder {
                     'type' => 'Feature',
                     'id' => $feature->identifier,
                     'ErrorMessage' => 'Item not downloadable',
-                    'ErrorCode' => 403,
+                    'ErrorCode' => 500,
                     'properties' => isset($item['properties']) ? $item['properties'] : null
                 ));
 
