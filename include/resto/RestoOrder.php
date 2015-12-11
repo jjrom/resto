@@ -147,7 +147,7 @@ class RestoOrder {
                     'type' => 'Feature',
                     'ErrorMessage' => 'Wrong item',
                     'ErrorCode' => 500,
-                    'properties' => $item['properties']
+                    'properties' => isset($item['properties']) ? $item['properties'] : null
                 ));
                 continue;
             }
@@ -169,7 +169,7 @@ class RestoOrder {
                     'id' => $feature->identifier,
                     'ErrorMessage' => 'User does not fulfill license requirements',
                     'ErrorCode' => 403,
-                    'properties' => $item['properties']
+                    'properties' => isset($item['properties']) ? $item['properties'] : null
                 ));
 
                 continue;
@@ -186,7 +186,7 @@ class RestoOrder {
                     'ErrorMessage' => 'User has to sign license',
                     'ErrorCode' => 3002,
                     'license' => $feature->getLicense()->toArray(),
-                    'properties' => $item['properties']
+                    'properties' => isset($item['properties']) ? $item['properties'] : null
                 ));
 
                 continue;
@@ -202,7 +202,7 @@ class RestoOrder {
                     'id' => $feature->identifier,
                     'ErrorMessage' => 'Invalid item',
                     'ErrorCode' => 403,
-                    'properties' => $item['properties']
+                    'properties' => isset($item['properties']) ? $item['properties'] : null
                 ));
 
                 continue;
@@ -218,7 +218,7 @@ class RestoOrder {
                     'id' => $feature->identifier,
                     'ErrorMessage' => 'Item not downloadable',
                     'ErrorCode' => 403,
-                    'properties' => $item['properties']
+                    'properties' => isset($item['properties']) ? $item['properties'] : null
                 ));
 
                 continue;
@@ -239,7 +239,7 @@ class RestoOrder {
                         'id' => $feature->identifier,
                         'ErrorMessage' => "User hasn't enough rights. Please contact an administrator",
                         'ErrorCode' => 403,
-                        'properties' => $item['properties']
+                        'properties' => isset($item['properties']) ? $item['properties'] : null
                     ));
 
                     continue;
@@ -257,7 +257,7 @@ class RestoOrder {
             array_push($items, array(
                 'type' => 'Feature',
                 'id' => $feature->identifier,
-                'properties' => $item['properties']
+                'properties' => isset($item['properties']) ? $item['properties'] : null
             ));
         }
         

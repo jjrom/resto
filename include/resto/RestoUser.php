@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright 2014 Jérôme Gasperi
  *
@@ -21,38 +22,39 @@
  *      description="Everything about user - profile, access rights, history, etc."
  *  )
  */
-class RestoUser{
-    
-    const CREATE = 'create'; 
+class RestoUser {
+
+    const CREATE = 'create';
     const DOWNLOAD = 'download';
     const UPDATE = 'update';
     const VISUALIZE = 'visualize';
-    
+
     /*
      * User profile
      */
+
     public $profile;
-    
+
     /*
      * Context
      */
     public $context;
-    
+
     /*
      * Current JWT token
      */
     public $token = null;
-    
+
     /*
      * Reference to cart object
      */
     private $cart;
-    
+
     /*
      * Reference to rights object
      */
     private $rights;
-    
+
     /*
      * Fallback rights if no collection is found
      */
@@ -61,7 +63,7 @@ class RestoUser{
         'visualize' => 0,
         'create' => 0
     );
-    
+
     /**
      * Constructor
      * 
@@ -69,9 +71,9 @@ class RestoUser{
      * @param RestoContext $context
      */
     public function __construct($profile, $context) {
-        
+
         $this->context = $context;
-        
+
         /*
          * Set profile
          */
@@ -86,9 +88,8 @@ class RestoUser{
          * Set cart
          */
         $this->cart = new RestoCart($this, true);
-        
     }
-    
+
     /**
      * Return true if user has administration rights
      * 
@@ -96,14 +97,14 @@ class RestoUser{
      */
     public function isAdmin() {
         $exploded = explode(',', $this->profile['groups']);
-        for ($i = count($exploded);$i--;) {
+        for ($i = count($exploded); $i--;) {
             if (trim($exploded[$i]) === 'admin') {
                 return true;
             }
         }
         return false;
     }
-    
+
     /**
      * Return true if user is validated by admin - false otherwise
      * 
@@ -115,7 +116,7 @@ class RestoUser{
         }
         return false;
     }
-    
+
     /**
      * Do user has rights to :
      *   - 'download' feature,
@@ -143,7 +144,7 @@ class RestoUser{
         }
         return false;
     }
-    
+
     /**
      * Activate user
      * 
@@ -154,8 +155,7 @@ class RestoUser{
     public function activate($activationCode = null) {
         if ($this->context->dbDriver->execute(RestoDatabaseDriver::ACTIVATE_USER, array('userid' => $this->profile['userid'], 'activationCode' => isset($activationCode) ? $activationCode : null, 'userAutoValidation' => $this->context->userAutoValidation))) {
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -169,12 +169,11 @@ class RestoUser{
             return array(
                 'token' => $this->token
             );
-        }
-        else {
+        } else {
             RestoLogUtil::httpError(403);
         }
     }
-    
+
     /**
      * Disconnect user
      */
@@ -184,21 +183,21 @@ class RestoUser{
         }
         return true;
     }
-    
+
     /**
      * Return user cart
      */
     public function getCart() {
         return $this->cart;
     }
-    
+
     /**
      * Return user orders
      */
     public function getOrders() {
         return $this->context->dbDriver->get(RestoDatabaseDriver::ORDERS, array('email' => $this->profile['email']));
     }
-    
+
     /**
      * Returns rights
      * 
@@ -206,14 +205,14 @@ class RestoUser{
      * @param string $featureIdentifier
      */
     public function getRights($collectionName = null, $featureIdentifier = null) {
-        
+
         /*
          * Compute rights if they are not already set
          */
         if (!isset($this->rights)) {
             $this->rights = $this->context->dbDriver->get(RestoDatabaseDriver::RIGHTS, array('user' => $this));
         }
-        
+
         /*
          * Return specific rights for feature
          */
@@ -223,20 +222,20 @@ class RestoUser{
             }
             return $this->getRights($collectionName);
         }
-        
+
         /*
          * Return specific rights for collection
          */
         if (isset($collectionName)) {
             return isset($this->rights['collections'][$collectionName]) ? $this->rights['collections'][$collectionName] : (isset($this->rights['collections']['*']) ? $this->rights['collections']['*'] : $this->fallbackRights);
         }
-        
+
         /*
          * Return rights for all collections/features
          */
         return $this->rights;
     }
-    
+
     /**
      * Set/update user rights
      * 
@@ -250,7 +249,7 @@ class RestoUser{
         $this->rights = $this->context->dbDriver->get(RestoDatabaseDriver::RIGHTS, array('user' => $this));
         return true;
     }
-    
+
     /**
      * Remove user rights
      * 
@@ -264,8 +263,7 @@ class RestoUser{
         $this->rights = $this->context->dbDriver->get(RestoDatabaseDriver::RIGHTS, array('user' => $this));
         return true;
     }
-    
-    
+
     /**
      * Add groups to user
      * 
@@ -275,14 +273,14 @@ class RestoUser{
      */
     public function addGroups($groups) {
         return RestoLogUtil::success('Groups updated', array(
-                'email' => $this->profile['email'],
-                'groups' => $this->context->dbDriver->store(RestoDatabaseDriver::GROUPS, array(
-                    'userid' => $this->profile['userid'],
-                    'groups' => $groups
-                ))
+                    'email' => $this->profile['email'],
+                    'groups' => $this->context->dbDriver->store(RestoDatabaseDriver::GROUPS, array(
+                        'userid' => $this->profile['userid'],
+                        'groups' => $groups
+                    ))
         ));
     }
-    
+
     /**
      * Remove groups from user
      * 
@@ -292,33 +290,33 @@ class RestoUser{
      */
     public function removeGroups($groups) {
         return RestoLogUtil::success('Groups updated', array(
-                'email' => $this->profile['email'],
-                'groups' => $this->context->dbDriver->remove(RestoDatabaseDriver::GROUPS, array(
-                    'userid' => $this->profile['userid'],
-                    'groups' => $groups
-                ))
+                    'email' => $this->profile['email'],
+                    'groups' => $this->context->dbDriver->remove(RestoDatabaseDriver::GROUPS, array(
+                        'userid' => $this->profile['userid'],
+                        'groups' => $groups
+                    ))
         ));
     }
-    
-   /**
+
+    /**
      * Return user signatures
      * 
      * @throws Exception
      */
     public function getSignatures() {
-        
+
         /*
          * Get all licenses
          */
         $licenses = $this->context->dbDriver->get(RestoDatabaseDriver::LICENSES);
-        
+
         /*
          * Get user signatures
          */
         $signed = $this->context->dbDriver->get(RestoDatabaseDriver::SIGNATURES, array(
             'email' => $this->profile['email']
         ));
-        
+
         /*
          * Merge signatures with licences
          */
@@ -334,38 +332,40 @@ class RestoUser{
         }
 
         return $signatures;
-        
     }
-    
+
     /**
      * Sign license
      * 
      *  @param RestoLicense $license
      */
     public function signLicense($license) {
+
+        if (!isset($license) || !is_object($license)) {
+            return RestoLogUtil::error('License not set');
+        }
         /*
          * Get array which describe the license
          */
         $license = $license->toArray();
-        
+
         /*
          * User can sign license if it does not reach the signature quota
          */
         if ($this->context->dbDriver->execute(RestoDatabaseDriver::SIGNATURE, array(
-            'email' => $this->profile['email'],
-            'licenseId' => $license['licenseId'],
-            'signatureQuota' => $license['signatureQuota']
-        ))) {
+                    'email' => $this->profile['email'],
+                    'licenseId' => $license['licenseId'],
+                    'signatureQuota' => $license['signatureQuota']
+                ))) {
             return RestoLogUtil::success('License signed', array(
-                'email' => $this->profile['email'],
-                'license' => $license
+                        'email' => $this->profile['email'],
+                        'license' => $license
             ));
-        }
-        else {
+        } else {
             return RestoLogUtil::error('Cannot sign license');
         }
     }
-    
+
     /**
      * Place order
      * 
@@ -378,13 +378,12 @@ class RestoUser{
             if (isset($order) && isset($this->cart)) {
                 $this->cart->clear();
             }
-        }
-        else {
+        } else {
             $order = $this->context->dbDriver->store(RestoDatabaseDriver::ORDER, array('email' => $this->profile['email'], 'items' => $data));
         }
         return $order;
     }
-    
+
     /**
      * Send reset password link to user email adress
      * 
@@ -430,9 +429,9 @@ class RestoUser{
      * @param array $query
      * @param string $url
      */
-    public function storeQuery($method, $service, $collectionName, $featureIdentifier, $query, $url){
+    public function storeQuery($method, $service, $collectionName, $featureIdentifier, $query, $url) {
         try {
-            $remoteAdress = filter_input(INPUT_SERVER, 'REMOTE_ADDR', FILTER_SANITIZE_STRING); 
+            $remoteAdress = filter_input(INPUT_SERVER, 'REMOTE_ADDR', FILTER_SANITIZE_STRING);
             $this->context->dbDriver->store(RestoDatabaseDriver::QUERY, array(
                 'email' => $this->profile['email'],
                 'query' => array(
@@ -445,9 +444,11 @@ class RestoUser{
                     'ip' => $remoteAdress,
                 ))
             );
-        } catch (Exception $e) {}
+        } catch (Exception $e) {
+            
+        }
     }
-    
+
     /**
      * Can User download or visualize 
      * 
@@ -456,11 +457,11 @@ class RestoUser{
      * @param string $featureIdentifier
      * @return boolean
      */
-    private function hasDownloadOrVisualizeRights($action, $collectionName, $featureIdentifier = null){
+    private function hasDownloadOrVisualizeRights($action, $collectionName, $featureIdentifier = null) {
         $rights = $this->getRights($collectionName, $featureIdentifier);
         return $rights[$action];
     }
-    
+
     /**
      * Can user create collection ?
      * 
@@ -470,7 +471,7 @@ class RestoUser{
         $rights = $this->getRights();
         return isset($rights['collections']['*']) ? $rights['collections']['*']['create'] : 0;
     }
-    
+
     /**
      * A user can update a collection if he is the owner of the collection
      * or if he is an admin
@@ -479,20 +480,19 @@ class RestoUser{
      * @return boolean
      */
     private function hasUpdateRights($collection) {
-        
+
         if (!$this->hasCreateRights()) {
             return false;
         }
         /*
          * Only collection owner and admin can update the collection
-         */
-        else if (!$this->isAdmin() && $collection->owner !== $this->profile['email']) {
+         */ else if (!$this->isAdmin() && $collection->owner !== $this->profile['email']) {
             return false;
         }
-        
+
         return true;
     }
-    
+
     /**
      * Return rights array for add/update/delete
      * 
@@ -503,12 +503,12 @@ class RestoUser{
      * @return string
      */
     private function getRightsArray($rights, $collectionName = null, $featureIdentifier = null) {
-        
+
         /*
          * Default target is all collections
          */
         $target = '*';
-        
+
         /*
          * Check that collection/feature exists
          */
@@ -524,7 +524,7 @@ class RestoUser{
             }
             $target = $featureIdentifier;
         }
-        
+
         return array(
             'rights' => $rights,
             'ownerType' => 'user',
@@ -532,8 +532,6 @@ class RestoUser{
             'targetType' => isset($featureIdentifier) ? 'feature' : 'collection',
             'target' => $target
         );
-        
     }
-    
-}
 
+}
