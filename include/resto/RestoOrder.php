@@ -46,16 +46,16 @@ class RestoOrder {
      * @param RestoContext $context
      */
     public function __construct($user, $context, $orderId) {
-        /*
-         * Context is mandatory
-         */
+
         if (!isset($context) || !is_a($context, 'RestoContext')) {
+            /*
+             * Context is mandatory
+             */
             RestoLogUtil::httpError(500, 'Context must be defined');
-        }
-        /*
-         * User is mandatory
-         */
-        if (!isset($user) || !is_a($user, 'RestoUser')) {
+        } else if (!isset($user) || !is_a($user, 'RestoUser')) {
+            /*
+             * User is mandatory
+             */
             RestoLogUtil::httpError(500, 'User must be defined');
         }
 
@@ -76,7 +76,7 @@ class RestoOrder {
      * @param boolean $pretty
      */
     public function toJSON($pretty) {
-        
+
         $informations = $this->generateItemsInformations();
 
         return RestoUtil::json_format(array(
@@ -84,7 +84,7 @@ class RestoOrder {
                     'message' => 'Order ' . $this->order['orderId'] . ' for user ' . $this->user->profile['email'],
                     'order' => array(
                         'orderId' => $this->order['orderId'],
-                        'items' => $informations['items'],   // downloadable items
+                        'items' => $informations['items'], // downloadable items
                         'errors' => $informations['errors']   // undownloadable items
                     )
                         ), $pretty);
@@ -98,7 +98,7 @@ class RestoOrder {
     public function toMETA4() {
 
         $meta4 = new RestoMetalink($this->context, $this->user);
-        
+
         $informations = $this->generateItemsInformations();
 
         /*
@@ -124,7 +124,7 @@ class RestoOrder {
      * @return array
      */
     private function generateItemsInformations() {
-        
+
         /*
          * Features with errors
          */
@@ -201,7 +201,7 @@ class RestoOrder {
                     'type' => 'Feature',
                     'id' => $feature->identifier,
                     'ErrorMessage' => 'Invalid item',
-                    'ErrorCode' => 403,
+                    'ErrorCode' => 500,
                     'properties' => isset($item['properties']) ? $item['properties'] : null
                 ));
 
@@ -217,7 +217,7 @@ class RestoOrder {
                     'type' => 'Feature',
                     'id' => $feature->identifier,
                     'ErrorMessage' => 'Item not downloadable',
-                    'ErrorCode' => 403,
+                    'ErrorCode' => 500,
                     'properties' => isset($item['properties']) ? $item['properties'] : null
                 ));
 
@@ -245,7 +245,7 @@ class RestoOrder {
                     continue;
                 }
             }
-            
+
             /*
              * Update download url with a shared link
              */
@@ -260,7 +260,7 @@ class RestoOrder {
                 'properties' => isset($item['properties']) ? $item['properties'] : null
             ));
         }
-        
+
         /*
          * Return array containing errors and downloadable items
          */
