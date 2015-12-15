@@ -21,7 +21,10 @@
 class RestoModel_S2 extends RestoModel {
     
     public $extendedProperties = array(
-        
+        's2TakeId' => array(
+            'name' => 's2takeid',
+            'type' => 'TEXT'
+        )
     );
     
     /**
