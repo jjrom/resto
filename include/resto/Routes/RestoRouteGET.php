@@ -738,7 +738,7 @@ class RestoRouteGET extends RestoRoute {
             }
             return $feature;
         }
-
+        
         /**
          * Download feature and exit
          * 
@@ -1129,7 +1129,7 @@ class RestoRouteGET extends RestoRoute {
             RestoLogUtil::httpError(400);
         }
     }
-    
+   
     /**
      * Download feature
      * 
@@ -1167,7 +1167,7 @@ class RestoRouteGET extends RestoRoute {
                 'ErrorMessage' => 'Forbidden',
                 'feature' => $feature->identifier,
                 'collection' => $collection->name,
-                'license' => $feature->getLicense(),
+                'license' => $feature->getLicense()->toArray(),
                 'userid' => $user->profile['userid'],
                 'ErrorCode' => 3002
             );
