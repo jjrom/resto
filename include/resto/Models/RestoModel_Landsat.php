@@ -43,6 +43,28 @@ class RestoModel_Landsat extends RestoModel {
     );
 
     /**
+     * Generate landsat download url on Google Storage from
+     * scene identifier
+     * 
+     *   e.g. LC81501212015343LGN00
+     *
+     * @param $properties
+     * @return string
+     */
+    public function generateDownloadUrl($properties) {
+        if (isset($properties['productIdentifier']) && strlen($properties['productIdentifier']) === 21) {
+            $sat = substr($properties['productIdentifier'], 2, 1);
+            $rowpathscene = array(
+                substr($properties['productIdentifier'], 3, 3),
+                substr($properties['productIdentifier'], 6, 3),
+                $properties['productIdentifier']
+            ); 
+            return 'http://storage.googleapis.com/earthengine-public/landsat/L' . $sat . '/' . join('/', $rowpathscene) . '.tar.bz';
+        }
+        return null;
+    }
+    
+    /**
      * Constructor
      */
     public function __construct() {

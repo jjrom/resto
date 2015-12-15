@@ -187,6 +187,10 @@ class RestoFeatureUtil {
             $properties['thumbnail'] = $collection->model->generateThumbnailPath($properties);
         }
         
+        if (method_exists($collection->model,'generateDownloadUrl')) {
+            $properties['resource'] = $collection->model->generateDownloadUrl($properties);
+        }
+        
         /*
          * Modify properties as defined in collection propertiesMapping associative array
          */
