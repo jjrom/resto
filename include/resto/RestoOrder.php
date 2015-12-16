@@ -227,30 +227,27 @@ class RestoOrder {
             /*
              * Check user rights
              */
-            $exploded = parse_url($item['properties']['services']['download']['url']);
-            $segments = explode('/', $exploded['path']);
-            $last = count($segments) - 1;
-            if ($last > 2) {
-                list($modifier) = explode('.', $segments[$last], 1);
-                if ($modifier !== 'download' || !$this->user->hasRightsTo(RestoUser::DOWNLOAD, array('collectionName' => $segments[$last - 2], 'featureIdentifier' => $segments[$last - 1]))) {
+            if (!$this->user->hasRightsTo(RestoUser::DOWNLOAD, array('collectionName' => $item['properties']['collection'], 'featureIdentifier' => $feature->identifier))) {
 
                     array_push($errors, array(
-                        'type' => 'Feature',
-                        'id' => $feature->identifier,
-                        'ErrorMessage' => "User hasn't enough rights. Please contact an administrator",
-                        'ErrorCode' => 403,
-                        'properties' => isset($item['properties']) ? $item['properties'] : null
-                    ));
+                    'type' => 'Feature',
+                    'id' => $feature->identifier,
+                    'ErrorMessage' => "User hasn't enough rights. Please contact an administrator",
+                    'ErrorCode' => 403,
+                    'properties' => isset($item['properties']) ? $item['properties'] : null
+                ));
 
-                    continue;
-                }
+                continue;
             }
             
             /*
-             * Update download url with a shared link
+             * Update local download url with a shared link
              */
-            $item['properties']['services']['download']['url'] = $this->getSharedLink($item['properties']['services']['download']['url']);
-
+            $exploded = explode('?', $item['properties']['services']['download']['url']);
+            if ($exploded[0] === $this->context->baseUrl . join('/',['/collections', $item['properties']['collection'], $feature->identifier, 'download'])) {
+                $item['properties']['services']['download']['url'] = $this->getSharedLink($item['properties']['services']['download']['url']);
+            }
+            
             /*
              * Add item to downloadable items list
              */
