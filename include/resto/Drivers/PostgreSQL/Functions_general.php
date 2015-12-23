@@ -212,7 +212,7 @@ class Functions_general {
      * @param String $wkt
      */
     public function getArea($wkt) {
-        $result = $this->dbDriver->query('SELECT st_area(geography(st_geometryFromText(\'' . $wkt . '\', 4326)) as area;');
+        $result = $this->dbDriver->query('SELECT st_area(geography(st_geometryFromText(\'' . $wkt . '\', 4326))) as area;');
         while ($row = pg_fetch_assoc($result)) {
             return (integer) $row['area'];
         }
