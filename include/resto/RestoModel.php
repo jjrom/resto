@@ -990,6 +990,14 @@ abstract class RestoModel {
         }
         
         /*
+         * First check if feature is already in database
+         * (do this before getKeywords to avoid iTag process)
+         */
+        if ($collection->context->dbDriver->check(RestoDatabaseDriver::FEATURE, array('featureIdentifier' => $featureIdentifier))) {
+            RestoLogUtil::httpError(500, 'Feature ' . $featureIdentifier . ' already in database');
+        }
+        
+        /*
          * Store feature
          */
         $collection->context->dbDriver->store(RestoDatabaseDriver::FEATURE, array(
