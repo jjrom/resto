@@ -114,11 +114,6 @@ class RestoLicense {
      */
     public function isApplicableToUser($user) {
 
-        /*
-         * Always be pessimistic :)
-         */
-        $fulfill = false;
-
         /**
          * No license restriction (e.g. 'unlicensed' license)
          * => Every user fulfill license requirements
@@ -152,14 +147,17 @@ class RestoLicense {
         /**
          * User profile should match either one of the license granted countries or organization countries
          */
-        if (isset($this->description['grantedCountries']) && isset($user->profile['country'])) {
-            $fulfill = $fulfill || $this->matches(array_map('trim', explode(',', $user->profile['country'])), array_map('trim', explode(',', $this->description['grantedCountries'])));
+        if (isset($this->description['grantedCountries']) || isset($this->description['grantedOrganizationCountries'])) {
+            $fulfill = false;
+            if (isset($this->description['grantedCountries']) && isset($user->profile['country'])) {
+                $fulfill = $fulfill || $this->matches(array_map('trim', explode(',', $user->profile['country'])), array_map('trim', explode(',', $this->description['grantedCountries'])));
+            }
+            if (isset($this->description['grantedOrganizationCountries']) && isset($user->profile['organizationcountry'])) {
+                $fulfill = $fulfill || $this->matches(array_map('trim', explode(',', $user->profile['organizationcountry'])), array_map('trim', explode(',', $this->description['grantedOrganizationCountries'])));
+            }
+            return $fulfill;
         }
-        if (isset($this->description['grantedOrganizationCountries']) && isset($user->profile['organizationcountry'])) {
-            $fulfill = $fulfill || $this->matches(array_map('trim', explode(',', $user->profile['organizationcountry'])), array_map('trim', explode(',', $this->description['grantedOrganizationCountries'])));
-        }
-
-        return $fulfill;
+        return true;
     }
 
     /**
