@@ -1,6 +1,6 @@
 {
     "name": "S1",
-    "model": "RestoModel_sentinel1",
+    "model": "RestoModel_S1",
     "status": "public",
     "osDescription": {
         "fr": {
@@ -23,12 +23,5 @@
             "Query": "Japan",
             "Attribution": "ESA. Copyright 2014, All Rights Reserved"
         }
-    },
-    "propertiesMapping":{
-        "parentIdentifier": "urn:ogc:def:EOP:ESA::SENTINEL-1:",
-        "quicklook" : "https://peps.cnes.fr/hpss/peps/data/{:quicklook:}_quicklook.gif",
-        "metadata" : "https://peps.cnes.fr/hpss/peps/data/{:quicklook:}_Metadata.xml",
-        "resource" : "/hpss/peps/data/{:quicklook:}.zip",
-        "resourceMimeType": "application/zip"
     }
 }
