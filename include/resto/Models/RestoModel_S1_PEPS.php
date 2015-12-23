@@ -16,7 +16,7 @@
  */
 
 /**
- * RESTo Sentinel-1 model 
+ * RESTo Sentinel-1 model for PEPS project 
  * 
  * Input metadata is an XML file with the following structure 
  * 
@@ -45,7 +45,7 @@
         <longitude>1.785002983064243e+02</longitude>
     (...)
  */
-class RestoModel_sentinel1 extends RestoModel {
+class RestoModel_S1_PEPS extends RestoModel {
     
     public $extendedProperties = array(
         'swath' => array(
