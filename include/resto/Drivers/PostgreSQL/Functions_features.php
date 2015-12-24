@@ -83,9 +83,10 @@ class Functions_features {
         
         /*
          * Retrieve products from database
+         * Note: totalcount is estimated except if input search contains a lon/lat filter
          */
         return array(
-            'totalcount' => $this->getCount($from, $options['count']),
+            'totalcount' => $this->getCount($from, isset($params['geo:lon']) ? true : $options['count']),
             'features' => $this->toFeatureArray($context, $user, $collection, $results = $this->dbDriver->query('SELECT ' . $fields . $from . ' ORDER BY startdate DESC LIMIT ' . $options['limit'] . ' OFFSET ' . $options['offset']))
         );
         
