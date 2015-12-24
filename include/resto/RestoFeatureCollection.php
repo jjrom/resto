@@ -418,9 +418,11 @@ class RestoFeatureCollection {
         }
 
         /*
-         * StartPage cannot be greater than the one from lastURL 
+         * Theorically, startPage cannot be greater than the one from lastURL
+         * ...but since we use a count estimate it is not possible to know the 
+         * real last page. So always set a nextPage !
          */
-        if ($paging['nextPage'] <= $paging['totalPage']) {
+        if ($count >= $limit) {
             
             /*
              * Next URL is the next search URL from the self URL
@@ -429,7 +431,7 @@ class RestoFeatureCollection {
                 'startPage' => $paging['nextPage'],
                 'count' => $limit)
             );
-            
+
             /*
              * Last URL has the highest startIndex
              */
@@ -438,7 +440,7 @@ class RestoFeatureCollection {
                 'count' => $limit)
             );
         }
-        
+    
         return $links;
         
     }
