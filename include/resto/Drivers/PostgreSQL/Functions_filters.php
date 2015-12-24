@@ -70,6 +70,9 @@ class Functions_filters {
                 $columns[] = 'ST_AsGeoJSON(' . $value . ') AS ' . $key;
                 $columns[] = 'Box2D(' . $value . ') AS bbox4326';
             }
+            else if ($key === 'centroid') {
+                $columns[] = 'ST_AsGeoJSON(' . $value . ') AS ' . $key;
+            }
             else if ($model->getDbType($key) === 'date') {
                 $columns[] = 'to_char(' . $value . ', \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') AS "' . $key . '"';
             }

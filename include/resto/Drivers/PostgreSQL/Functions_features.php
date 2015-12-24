@@ -79,7 +79,7 @@ class Functions_features {
          * Prepare query
          */
         $fields = implode(',', $filtersUtils->getSQLFields($model));
-        $from = 'FROM ' . (isset($collection) ? '_' . strtolower($collection->name) : 'resto') . '.features' . ($oFilter ? ' WHERE ' . $oFilter : '');
+        $from = ' FROM ' . (isset($collection) ? '_' . strtolower($collection->name) : 'resto') . '.features' . ($oFilter ? ' WHERE ' . $oFilter : '');
         
         /*
          * Retrieve products from database

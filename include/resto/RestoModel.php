@@ -884,6 +884,7 @@ abstract class RestoModel {
                 return 'float';
             case 'TIMESTAMP':
                 return 'date';
+            case 'POINT':
             case 'GEOMETRY':
                 return 'geometry';
             case 'TEXT[]':
