@@ -252,7 +252,7 @@ class RestoFeatureUtil {
         /*
          * Proxify WMS url depending on user rights
          */
-        if (!method_exists($collection->model,'getWmsUrl')) {
+        if (!method_exists($collection->model,'generateWMSUrl')) {
             $properties['wms'] = $this->proxifyWMSUrl($properties, $this->user, $this->context->baseUrl);
         }
         
