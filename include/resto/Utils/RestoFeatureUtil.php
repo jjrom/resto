@@ -191,6 +191,10 @@ class RestoFeatureUtil {
             $properties['resource'] = $collection->model->generateDownloadUrl($properties);
         }
         
+        if (method_exists($collection->model,'generateWMSUrl')) {
+            $properties['wms'] = $collection->model->generateWMSUrl($properties);
+        }
+        
         /*
          * Modify properties as defined in collection propertiesMapping associative array
          */
@@ -248,13 +252,10 @@ class RestoFeatureUtil {
         /*
          * Proxify WMS url depending on user rights
          */
-        if (method_exists($collection->model,'getWmsUrl')) {
-            $properties['wms'] = $collection->model->proxifyWMSUrl($properties, $this->user, $this->context->baseUrl);
-        }
-        else {
+        if (!method_exists($collection->model,'getWmsUrl')) {
             $properties['wms'] = $this->proxifyWMSUrl($properties, $this->user, $this->context->baseUrl);
         }
-
+        
         if (!isset($properties['wms'])) {
             unset($properties['wms'], $properties['wmsInfos']);
         }

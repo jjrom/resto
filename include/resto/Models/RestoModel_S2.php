@@ -28,6 +28,19 @@ class RestoModel_S2 extends RestoModel {
     );
     
     /**
+     * Generate S2 download from PEPS 
+     *
+     * @param $properties
+     * @return string
+     */
+    public function generateDownloadUrl($properties) {
+        if (isset($properties['identifier'])) {
+            return '//peps.mapshup.com/resto/collections/S2/' . $properties['identifier'] . '/download';
+        }
+        return null;
+    }
+    
+    /**
      * Constructor
      */
     public function __construct() {

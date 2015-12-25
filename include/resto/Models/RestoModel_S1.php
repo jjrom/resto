@@ -37,6 +37,43 @@ class RestoModel_S1 extends RestoModel {
     );
     
     /**
+     * Generate S1 download from PEPS 
+     * 
+     * @param $properties
+     * @return string
+     */
+    public function generateDownloadUrl($properties) {
+        if (isset($properties['identifier'])) {
+            return '//peps.mapshup.com/resto/collections/S1/' . $properties['identifier'] . '/download';
+        }
+        return null;
+    }
+    
+    /**
+     * Generate WMS url on PEPS server based on image identifier
+     * 
+     *   e.g. S1A_EW_GRDM_1SSH_20151225T081351_20151225T081451_009196_00D3FB_2673
+     *
+     * @param $properties
+     * @return string
+     */
+    public function generateWMSUrl($properties) {
+        if (isset($properties['productIdentifier'])) {
+            $exploded = explode('_', $properties['productIdentifier']);
+            $mission = substr($exploded[0], 0, 2);
+            $params = array(
+                substr($exploded[4], 0, 4),
+                substr($exploded[4], 4, 2),
+                substr($exploded[4], 6, 2),
+                $exploded[0],
+                $properties['productIdentifier']
+            );
+            return 'https://peps.cnes.fr/cgi-bin/mapserver?map=WMS_' . $mission . '&data=' . join('/', $params) . '&layers=quicklook&format=image/png';
+        }
+        return null;
+    }
+    
+    /**
      * Constructor
      * 
      * @param RestoContext $context : Resto context
