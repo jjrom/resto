@@ -244,7 +244,7 @@ class RestoOrder {
              * Update local download url with a shared link
              */
             $exploded = explode('?', $item['properties']['services']['download']['url']);
-            if ($exploded[0] === $this->context->baseUrl . join('/',['/collections', $item['properties']['collection'], $feature->identifier, 'download'])) {
+            if ($exploded[0] === $this->context->baseUrl . join('/',array('/collections', $item['properties']['collection'], $feature->identifier, 'download'))) {
                 $item['properties']['services']['download']['url'] = $this->getSharedLink($item['properties']['services']['download']['url']);
             }
             
