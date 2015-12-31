@@ -6,7 +6,7 @@
 
 [resto](http://mapshup.com/resto/) - an Earth Observation products search engine 
 
-Try the [demo] (http://mapshup.com/resto/) !
+Try the [demo] (http://mapshup.com/projects/rocket/) !
 
 ## Installation
 
