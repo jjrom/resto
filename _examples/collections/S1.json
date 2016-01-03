@@ -6,7 +6,7 @@
         "fr": {
             "ShortName": "Sentinel-1",
             "LongName": "Images radar Sentinel-1 Niveau 1",
-            "Description": "La mission SENTINEL-1 comprend une constellation de deux satellites SAR en bande C en orbite polaire opérant jour et nuit quelles que soient les conditions météorologiques. Ces satellites sont exploités en quatre modes d’imagerie de différentes résolutions (jusqu’à une précision de 10 m) et couvertures (pouvant atteindre 400 km). La capacité d'observation des deux satellites permettra une surveillance fiable et répétée de zones très étendues du globe tous les 6 jours",
+            "Description": "La mission SENTINEL-1 comprend une constellation de deux satellites SAR en bande C en orbite polaire opérant jour et nuit quelles que soient les conditions météorologiques. Ces satellites sont exploités en quatre modes d'imagerie de différentes résolutions (jusqu'à une précision de 10 m) et couvertures (pouvant atteindre 400 km). La capacité d'observation des deux satellites permettra une surveillance fiable et répétée de zones très étendues du globe tous les 6 jours. Les données sont téléchargées depuis la <a href=\"https://peps.cnes.fr\">Plateforme d’Exploitation des Produits Sentinel (PEPS)</a> du CNES",
             "Tags": "CNES ESA sentinel1 radar",
             "Developper": "Jérôme Gasperi",
             "Contact": "jerome.gasperi@gmail.com",
@@ -16,7 +16,7 @@
         "en": {
             "ShortName": "Sentinel-1",
             "LongName": "Images radar Sentinel-1 Niveau 1",
-            "Description": "The SENTINEL-1 mission comprises a constellation of two polar-orbiting satellites, operating day and night performing C-band Synthetic Aperture Radar (SAR) imaging, enabling them to acquire imagery regardless of the weather. Sentinel-1 is operated in four imaging modes with different resolutions (down to 10 m) and coverage (up to 400 km swath), offering reliable wide area monitoring every 12 days with one satellite and 6 days with two satellites",
+            "Description": "The SENTINEL-1 mission comprises a constellation of two polar-orbiting satellites, operating day and night performing C-band Synthetic Aperture Radar (SAR) imaging, enabling them to acquire imagery regardless of the weather. Sentinel-1 is operated in four imaging modes with different resolutions (down to 10 m) and coverage (up to 400 km swath), offering reliable wide area monitoring every 12 days with one satellite and 6 days with two satellites. Data are downloaded from the <a href=\"https://peps.cnes.fr\">French Space Agency Sentinel Exploitation Platform (PEPS)</a>",
             "Tags": "CNES ESA sentinel1 radar",
             "Developper": "Jérôme Gasperi",
             "Contact": "jerome.gasperi@gmail.com",
