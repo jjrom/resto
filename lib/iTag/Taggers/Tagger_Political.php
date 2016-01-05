@@ -116,10 +116,10 @@ class Tagger_Political extends Tagger {
     private function add(&$continents, $footprint, $what) {
         $geom = $this->postgisGeomFromText($footprint);
         if ($what === Tagger_Political::COUNTRIES) {
-            $query = 'SELECT name as name, normalize(name) as id, continent as continent, normalize(continent) as continentid, ' . $this->postgisArea($this->postgisIntersection('geom', $geom)) . ' as area FROM datasources.countries WHERE st_intersects(geom, ' . $geom . ') ORDER BY area DESC';
+            $query = 'SELECT name as name, normalize(name) as id, continent as continent, normalize(continent) as continentid, ' . $this->postgisArea($this->postgisIntersection('geom', $geom)) . ' as area, ' . $this->postgisArea('geom') . ' as entityarea FROM datasources.countries WHERE st_intersects(geom, ' . $geom . ') ORDER BY area DESC';
         }
         else {
-            $query = 'SELECT region, name as state, normalize(name) as stateid, normalize(region) as regionid, adm0_a3 as isoa3, ' .  $this->postgisArea($this->postgisIntersection('geom', $geom)) . ' as area, ' . $this->postgisIntersection('geom', $geom) . ' as wkb_geom FROM datasources.states WHERE st_intersects(geom, ' . $geom . ') ORDER BY area DESC';
+            $query = 'SELECT region, name as state, normalize(name) as stateid, normalize(region) as regionid, adm0_a3 as isoa3, ' .  $this->postgisArea($this->postgisIntersection('geom', $geom)) . ' as area, ' . $this->postgisArea('geom') . ' as entityarea, ' . $this->postgisIntersection('geom', $geom) . ' as wkb_geom FROM datasources.states WHERE st_intersects(geom, ' . $geom . ') ORDER BY area DESC';
         }
         $results = $this->query($query);
         while ($element = pg_fetch_assoc($results)) {
@@ -210,10 +210,12 @@ class Tagger_Political extends Tagger {
             ));
             $index = count($continents) - 1;
         }
+        $area = $this->toSquareKm($element['area']);
         array_push($continents[$index]['countries'], array(
             'name' => $element['name'],
             'id' => 'country:' . $element['id'],
-            'pcover' => $this->percentage($this->toSquareKm($element['area']), $this->area)
+            'pcover' => $this->percentage($area, $this->area),
+            'gcover' => $this->percentage($area, $this->toSquareKm($element['entityarea']))
         ));
     }
     
@@ -230,10 +232,12 @@ class Tagger_Political extends Tagger {
             ));
         }
         else {
+            $area = $this->toSquareKm($element['area']);
             array_push($regions, array(
                 'name' => $element['region'],
                 'id' => 'region:' . $element['regionid'],
-                'pcover' => $this->percentage($this->toSquareKm($element['area']), $this->area),
+                'pcover' => $this->percentage($area, $this->area),
+                'gcover' => $this->percentage($area, $this->toSquareKm($element['entityarea'])),
                 'states' => array()
             ));
         }
@@ -246,10 +250,12 @@ class Tagger_Political extends Tagger {
      * @param array $element
      */
     private function mergeState(&$states, $element) {
+        $area = $this->toSquareKm($element['area']);
         $state = array(
             'name' => $element['state'],
             'id' => 'state:' . $element['stateid'],
-            'pcover' => $this->percentage($this->toSquareKm($element['area']), $this->area)
+            'pcover' => $this->percentage($area, $this->area),
+            'gcover' => $this->percentage($area, $this->toSquareKm($element['entityarea']))
         );
         
         if ($this->addToponyms) {

@@ -98,9 +98,13 @@ class Tagger_Generic extends Tagger {
                 $result['id'] = strtolower($result['type']) . ':' . $result['normalized'];
             }
             if (isset($result['area'])) {
-                $result['pcover'] = $this->percentage($this->toSquareKm($result['area']), $this->area);
+                $area = $this->toSquareKm($result['area']);
+                $result['pcover'] = $this->percentage($area, $this->area);
+                if (isset($result['entityarea'])) {
+                    $result['gcover'] = $this->percentage($area, $this->toSquareKm($result['entityarea']));
+                }
             }
-            unset($result['area'], $result['normalized'], $result['type']);
+            unset($result['area'], $result['entityarea'], $result['normalized'], $result['type']);
             $content[] = $result;
         }
         return $content;
@@ -137,6 +141,7 @@ class Tagger_Generic extends Tagger {
          */
         if (isset($options['computeArea']) && $options['computeArea'] === true) {
             $propertyList[] = $this->postgisArea($this->postgisIntersection('geom', $geom)) . ' as area';
+            $propertyList[] = $this->postgisArea('geom') . ' as entityarea';
             $orderBy = ' ORDER BY area DESC';
         }
         

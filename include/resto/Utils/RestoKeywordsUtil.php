@@ -330,6 +330,13 @@ class RestoKeywordsUtil {
         if (isset($property['pcover'])) {
             $value['value'] = $property['pcover'];
         }
+        /*
+         * Absolute coverage of geographical entity
+         */
+        if (isset($property['gcover'])) {
+            $value['gcover'] = $property['gcover'];
+        }
+        
         return array(
             'hash' => $hash,
             'value' => $value

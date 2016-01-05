@@ -387,10 +387,12 @@ class Functions_features {
         foreach (array_keys($keywords) as $hash) {
             
             /*
-             * Do not index keywords if cover is lower than 10 %
+             * Do not index keywords if relative cover is lower than 10 % or if absolute coverage is lower than 20%
              */
             if (isset($keywords[$hash]['value']) && $keywords[$hash]['value'] < 10) {
-                continue;
+                if (!isset($keywords[$hash]['gcover']) || $keywords[$hash]['gcover'] < 20) {
+                    continue;
+                }
             }
             $hashes[] = '"' . pg_escape_string($hash) . '"';
             $hashes[] = '"' . pg_escape_string($keywords[$hash]['type'] . ':' . (isset($keywords[$hash]['normalized']) ? $keywords[$hash]['normalized'] : strtolower($keywords[$hash]['name']))) . '"';
