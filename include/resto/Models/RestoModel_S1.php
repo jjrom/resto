@@ -44,7 +44,7 @@ class RestoModel_S1 extends RestoModel {
      */
     public function generateDownloadUrl($properties) {
         if (isset($properties['identifier'])) {
-            return '//peps.mapshup.com/resto/collections/S1/' . $properties['identifier'] . '/download';
+            return 'http://peps.mapshup.com/resto/collections/S1/' . $properties['identifier'] . '/download';
         }
         return null;
     }
