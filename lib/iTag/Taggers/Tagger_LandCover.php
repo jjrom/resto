@@ -156,7 +156,7 @@ class Tagger_LandCover extends Tagger {
         $landUse = array();
         foreach ($sums as $key => $val) {
             $pcover = $this->percentage($this->toSquareKm($val), $this->area);
-            if ($val !== 0 && $pcover > 10) {
+            if ($val !== 0 && $pcover > 0) {
                 $name = isset($this->clcClassNames[$key]) ? $this->clcClassNames[$key] : 'unknown';
                 array_push($landUse, array(
                     'name' => $name,
