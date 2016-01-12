@@ -2,7 +2,7 @@
     "name": "Example",
     "model": "RestoModel_example",
     "status": "public",
-    "licenseId": "Example",
+    "licenseId": "unlicensed",
     "rights":{
         "download":0,
         "visualize":1
