@@ -13,7 +13,7 @@
             "LongName": "SPOT 5 stereoscopic survey of Polar Ice",
             "Description": "Astrium Services and CNES supplied satellite data for the international Polar Year research programmes. Earth-observing satellites are mapping the poles to provide scientists with a more precise picture of how glaciers are changing and to help them understand the impacts of climate change on our planet. Astrium Services and CNES joined the SPIRIT project (SPOT 5 stereoscopic survey of Polar Ice: Reference Images and Topographies) in partnership with French survey, the French mapping agency IGN and the LEGOS, space geophysics and oceanography research laboratory. During two years, from 2007 to 2009, an archive of SPOT 5 HRS images was compiled over polar ice in order to produce DTMs and ortho-image",
             "Tags": "spirit polar SPOT5 CNES IGN LEGOS Astrium services",
-            "Developper": "J\u00e9r\u00f4me Gasperi",
+            "Developer": "J\u00e9r\u00f4me Gasperi",
             "Contact": "jerome.gasperi@cnes.fr",
             "Query": "Svalbard",
             "Attribution": "CNES. Copyright 2013, All Rights Reserved"

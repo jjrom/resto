@@ -13,7 +13,7 @@
             "LongName": "A dummy resto collection example",
             "Description": "A dummy resto collection example",
             "Tags": "resto example",
-            "Developper": "Jérôme Gasperi",
+            "Developer": "Jérôme Gasperi",
             "Contact": "jerome.gasperi@gmail.com",
             "Query": "SPOT6",
             "Attribution": "resto - Copyright 2014, All Rights Reserved"
@@ -22,7 +22,7 @@
             "ShortName": "Collection resto",
             "LongName": "Un exemple de collection resto",
             "Description": "Un exemple de collection resto",
-            "Developper": "Jérôme Gasperi",
+            "Developer": "Jérôme Gasperi",
             "Contact": "jerome.gasperi@cnes.fr",
             "Query": "SPOT6",
             "Attribution": "resto - Copyright 2014, All Rights Reserved"

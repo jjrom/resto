@@ -13,7 +13,7 @@
             "LongName": "Optical satellite images (Pleiades HR)",
             "Description": "With any point on Earth covered at least once a day, Airbus Defense and Space provides unrivalled access to the most comprehensive range of commercial Earth observation data available today. Our data products comprise imagery acquired by the Pléiades constellation, the SPOT constellation, TerraSAR-X, TanDEM-X and from partner satellites such as FORMOSAT-2 and DEIMOS-1.",
             "Tags": "pleiades phr very high resolution",
-            "Developper": "Jérôme Gasperi",
+            "Developer": "Jérôme Gasperi",
             "Contact": "jerome.gasperi@gmail.com",
             "Query": "Images%20on%20Toulouse%20acquired%20in%20december%202013",
             "Attribution": "Images courtesy of Airbus Defense and Space. Copyright 2014, All Rights Reserved"
@@ -23,7 +23,7 @@
             "LongName": "Images satellite optique (Pléiades HR)",
             "Description": "Grâce à des images quotidiennes de chaque recoin de la planète, Airbus Defense and Space fournit un accès inégalé au plus large spectre de données commerciales d’observation de la Terre disponible à ce jour. Nos produits comprennent des images acquises par la constellation Pléiades, la constellation SPOT et les satellites TerraSAR-X et TanDEM-X, ainsi que des images issues de nos satellites partenaires, FORMOSAT-2 et DEIMOS-1.",
             "Tags": "pleiades phr satellite high resolution",
-            "Developper": "Jérôme Gasperi",
+            "Developer": "Jérôme Gasperi",
             "Contact": "jerome.gasperi@gmail.com",
             "Query": "Images%20acquises%20sur%20Toulouse%20en%20décembre%202013",
             "Attribution": "Images courtesy of Airbus Defense and Space. Copyright 2014, All Rights Reserved"

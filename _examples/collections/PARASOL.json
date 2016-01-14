@@ -9,7 +9,7 @@
             "LongName": "PARASOL",
             "Description": "The PARASOL mission aims at measuring polarization and directionality of reflectances in coincidence with observations from the lidar onboard CALIPSO. Solar radiation becomes polarized when scattered by certain particles such as aerosols, water droplets or ice crystals. PARASOL measures light polarized in different directions to characterize clouds and aerosols more accurately than traditional methods that only rely on their spectral signature",
             "Tags": "parasol polder3 cnes icare",
-            "Developper": "J\u00e9r\u00f4me Gasperi",
+            "Developer": "J\u00e9r\u00f4me Gasperi",
             "Contact": "jerome.gasperi@cnes.fr",
             "Query": "Djibouti 2005",
             "Attribution": "CNES. Copyright 2013, All Rights Reserved"
@@ -19,7 +19,7 @@
             "LongName": "PARASOL",
             "Description": "La mission PARASOL vise à mesurer la polarisation et la directivité de la réflectance en coïncidence avec les observations du lidar CALIPSO. Le rayonnement solaire se polarise quand il est diffusé par certaines particules comme les aérosols, les gouttelettes d'eau ou de cristaux de glace. PARAOL mesure la lumière polarisée dans des directions différentes afin de caractériser les nuages et les aérosols avec plus de précision que les méthodes traditionnelles qui reposent uniquement sur leur signature spectrale",
             "Tags": "parasol polder3 cnes icare",
-            "Developper": "J\u00e9r\u00f4me Gasperi",
+            "Developer": "J\u00e9r\u00f4me Gasperi",
             "Contact": "jerome.gasperi@cnes.fr",
             "Query": "Djibouti 2005",
             "Attribution": "CNES. Copyright 2013, All Rights Reserved"

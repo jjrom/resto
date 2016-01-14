@@ -26,7 +26,7 @@
  *      <Tags>opensearch</Tags>
  *      <LongName>My OpenSearch search interface</LongName>
  *      <Query role="example" searchTerms="observatory"/>
- *      <Developper>Jérôme Gasperi</Developper>
+ *      <Developer>Jérôme Gasperi</Developer>
  *      <Attribution>mapshup.com</Attribution>
  *      <Language>fr</Language>
  * </OpenSearchDescription>
@@ -179,7 +179,7 @@ class RestoOSDD extends RestoXML {
         ));
         $this->endElement('Query');
         $this->writeElements(array(
-            'Developper' => $this->osDescription['Developper'],
+            'Developer' => $this->osDescription['Developer'],
             'Attribution' => $this->osDescription['Attribution'],
             'SyndicationRight' => 'open',
             'AdultContent' => 'false'

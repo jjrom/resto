@@ -197,7 +197,7 @@ class RestoCollection {
      *                  "LongName": "International Charter Space and Major Disasters catalog",
      *                  "Description": "The International Charter aims at providing a unified system of space data acquisition and delivery to those affected by natural or man-made disasters through Authorized Users. Each member agency has committed resources to support the provisions of the Charter and thus is helping to mitigate the effects of disasters on human life and property",
      *                  "Tags": "international charter space disasters",
-     *                  "Developper": "J\u00e9r\u00f4me Gasperi",
+     *                  "Developer": "J\u00e9r\u00f4me Gasperi",
      *                  "Contact": "jerome.gasperi@gmail.com",
      *                  "Query": "Cyclones in Asia in october 2013",
      *                  "Attribution": "RESTo framework. Copyright 2013, All Rights Reserved"

@@ -226,7 +226,7 @@ class Functions_collections {
                 'LongName' => $description['longname'],
                 'Description' => $description['description'],
                 'Tags' => $description['tags'],
-                'Developper' => $description['developper'],
+                'Developer' => $description['developer'],
                 'Contact' => $description['contact'],
                 'Query' => $description['query'],
                 'Attribution' => $description['attribution']
@@ -352,7 +352,7 @@ class Functions_collections {
          *  longname            VARCHAR(48),
          *  description         VARCHAR(1024),
          *  tags                VARCHAR(256),
-         *  developper          VARCHAR(64),
+         *  developer           VARCHAR(64),
          *  contact             TEXT,
          *  query               TEXT,
          *  attribution         VARCHAR(256),
@@ -379,7 +379,7 @@ class Functions_collections {
                 'LongName' => 48,
                 'Description' => 1024,
                 'Tags' => 256,
-                'Developper' => 64,
+                'Developer' => 64,
                 'Contact' => -1,
                 'Query' => -1,
                 'Attribution' => 256

@@ -144,7 +144,7 @@ CREATE TABLE resto.osdescriptions (
     longname            TEXT,
     description         TEXT,
     tags                TEXT,
-    developper          TEXT,
+    Developer           TEXT,
     contact             TEXT,
     query               TEXT,
     attribution         TEXT
