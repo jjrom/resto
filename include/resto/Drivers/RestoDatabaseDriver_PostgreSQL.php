@@ -198,8 +198,8 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              * Get all history information
              */
             case parent::HISTORY:
-                $usersFunctions = new Functions_history($this);
-                return $usersFunctions->getHistory($params);
+                $historyFunctions = new Functions_history($this);
+                return $historyFunctions->getHistory($params);
             
             /*
              * Get Where clause from filters
