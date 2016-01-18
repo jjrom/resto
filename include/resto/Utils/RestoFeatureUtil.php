@@ -316,17 +316,12 @@ class RestoFeatureUtil {
         if (!isset($properties['links']) || !is_array($properties['links'])) {
             $properties['links'] = array();
         }
+        
         $properties['links'][] = array(
-            'rel' => 'alternate',
+            'rel' => 'self',
             'type' => RestoUtil::$contentTypes['json'],
             'title' => $this->context->dictionary->translate('_jsonLink', $properties['identifier']),
             'href' => RestoUtil::updateUrl($thisUrl . '.json', array($collection->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
-        );
-        $properties['links'][] = array(
-            'rel' => 'alternate',
-            'type' => RestoUtil::$contentTypes['atom'],
-            'title' => $this->context->dictionary->translate('_atomLink', $properties['identifier']),
-            'href' => RestoUtil::updateUrl($thisUrl . '.atom', array($collection->model->searchFilters['language']['osKey'] => $this->context->dictionary->language))
         );
         
         if (isset($properties['metadata'])) {

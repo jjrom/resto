@@ -66,7 +66,7 @@ class RestoATOMFeed extends RestoXML {
         /*
          * Add entry base elements, time and geometry
          */
-        $this->addEntryElements($feature);
+        $this->addEntryElements($feature, $context);
         
         /*
          * Links
@@ -198,7 +198,7 @@ class RestoATOMFeed extends RestoXML {
          */
         $this->startElement('generator');
         $this->writeAttributes(array(
-            'uri' => 'http://github.com/jjrom/resto2',
+            'uri' => 'http://github.com/jjrom/resto',
             'version' => Resto::VERSION
         ));
         $this->text('resto');
@@ -227,15 +227,29 @@ class RestoATOMFeed extends RestoXML {
      * Add atom entry base elements
      * 
      * @param array $feature
+     * @param RestoContext $context
      */
-    private function addEntryElements($feature) {
+    private function addEntryElements($feature, $context) {
+        
+        /*
+         * General links
+         */
+        if (is_array($feature['properties']['links'])) {
+            for ($j = 0, $k = count($feature['properties']['links']); $j < $k; $j++) {
+                if ($feature['properties']['links'][$j]['rel'] === 'self') {
+                    $explodedSelf = explode('?',RestoUtil::updateUrlFormat($feature['properties']['links'][$j]['href'], 'atom'));
+                    break;
+                }
+            }
+        }
         
         /*
          * Base elements
          */
         $this->writeElements(array(
-            'title' => $feature['properties']['title'], 
-            'id' => $feature['id'], // ! THIS SHOULD BE AN ABSOLUTE UNIQUE  AND PERMANENT IDENTIFIER !!
+            'title' => $feature['properties']['title'],
+            // IRI is self url
+            'id' => is_array($explodedSelf) ? $explodedSelf[0] : $feature['id'],
             'dc:identifier' => $feature['id'], // Local identifier - i.e. last part of uri
             'published' => $feature['properties']['published'],
             'updated' => $feature['properties']['updated'],
@@ -256,7 +270,20 @@ class RestoATOMFeed extends RestoXML {
          * Add georss
          */
         $this->addGeoRSS($feature['geometry']['type'], $feature['geometry']['coordinates']);
-
+        
+        /*
+         * Add self
+         */
+        if (is_array($explodedSelf)) {
+            $this->startElement('link');
+            $this->writeAttributes(array(
+                'rel' => 'self',
+                'type' => RestoUtil::$contentTypes['atom'],
+                'title' => $context->dictionary->translate('_atomLink', $feature['id']),
+                'href' => join('?', $explodedSelf)
+            ));
+            $this->endElement(); // link
+        }
     }
     
     /**
@@ -392,6 +419,9 @@ class RestoATOMFeed extends RestoXML {
          */
         if (is_array($feature['properties']['links'])) {
             for ($j = 0, $k = count($feature['properties']['links']); $j < $k; $j++) {
+                if ($feature['properties']['links'][$j]['rel'] === 'self') {
+                    continue;
+                }
                 $this->startElement('link');
                 $this->writeAttributes(array(
                     'rel' => $feature['properties']['links'][$j]['rel'],
