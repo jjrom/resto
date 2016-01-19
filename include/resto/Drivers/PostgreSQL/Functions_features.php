@@ -84,7 +84,7 @@ class Functions_features {
          * Note: totalcount is estimated except if input search contains a lon/lat filter
          */
         return array(
-            'count' => $this->getCount($from, isset($params['geo:lon']) ? true : false),
+            'count' => $this->getCount($from, $params),
             'features' => $this->toFeatureArray($context, $user, $collection, $results = $this->dbDriver->query('SELECT ' . $fields . $from . ' ORDER BY startdate DESC LIMIT ' . $options['limit'] . ' OFFSET ' . $options['offset']))
         );
         
@@ -227,10 +227,19 @@ class Functions_features {
      * Return exact count or estimate count from query
      * 
      * @param String $from
-     * @param Boolean $realcount
+     * @param Boolean $filters
      */
-    public function getCount($from, $realcount = false) {
-        if ($realcount) {
+    public function getCount($from, $filters = array()) {
+        
+        /*
+         * Determine if the count is estimated or real
+         */
+        $realCount = false;
+        if (isset($filters['geo:lon'])) {
+            $realCount = true;
+        }
+        
+        if ($realCount) {
             $result = $this->dbDriver->query('SELECT count(*) as count ' . $from);
         }
         else {
@@ -239,12 +248,12 @@ class Functions_features {
         while ($row = pg_fetch_assoc($result)) {
             return array(
                 'total' => (integer) $row['count'],
-                'isExact' => $realcount
+                'isExact' => $realCount
             );
         }
         return array(
             'total' => -1,
-            'isExact' => false
+            'isExact' => $realCount
         );
     }
     

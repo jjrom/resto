@@ -213,7 +213,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
              */
             case parent::COUNT_ESTIMATE:
                 $featuresFunctions = new Functions_features($this);
-                return $featuresFunctions->getCount($params['from'], false);
+                return $featuresFunctions->getCount($params['from'], $params['filters']);
             
             /*
              * Compute area from geometry
