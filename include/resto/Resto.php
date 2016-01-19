@@ -61,7 +61,6 @@
  *    | _tk                |     string     | (For download/visualize/resetPassword) token for resource access
  *    |                                     | (For /api/user/checkToken) JWT profile token 
  *    | _emailorid         |     string     | (For /api/user and /user endpoints) user "userid" or user "email"
- *    | _rc                |     boolean    | (For search) true to perform the total count of search results
  *    | _fromCart          |     boolean    | (For orders) true to order the content of the cart
  *    | _clear             |     boolean    | (For POST /user/cart) true to remove cart items before inserting new items
  *    | _bearer            |     string     | (For authentication) JWT token - has preseance over header authentication (see rocket)

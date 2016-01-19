@@ -46,9 +46,7 @@ class Functions_features {
      * @param array $options
      *      array(
      *          'limit',
-     *          'offset',
-     *          'count'// true to return the exact total number of results without pagination
-     *                 // otherwise an estimate is returned
+     *          'offset'
      * 
      * @return array
      * @throws Exception
@@ -86,7 +84,7 @@ class Functions_features {
          * Note: totalcount is estimated except if input search contains a lon/lat filter
          */
         return array(
-            'totalcount' => $this->getCount($from, isset($params['geo:lon']) ? true : $options['count']),
+            'count' => $this->getCount($from, isset($params['geo:lon']) ? true : false),
             'features' => $this->toFeatureArray($context, $user, $collection, $results = $this->dbDriver->query('SELECT ' . $fields . $from . ' ORDER BY startdate DESC LIMIT ' . $options['limit'] . ' OFFSET ' . $options['offset']))
         );
         
@@ -239,9 +237,15 @@ class Functions_features {
             $result = $this->dbDriver->query('SELECT count_estimate(\'' . pg_escape_string('SELECT * ' . $from) . '\') as count');
         }
         while ($row = pg_fetch_assoc($result)) {
-            return (integer) $row['count'];
+            return array(
+                'total' => (integer) $row['count'],
+                'isExact' => $realcount
+            );
         }
-        return -1;
+        return array(
+            'total' => -1,
+            'isExact' => false
+        );
     }
     
     /**

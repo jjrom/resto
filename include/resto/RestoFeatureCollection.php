@@ -57,9 +57,6 @@ class RestoFeatureCollection {
     
     /*
      * Total number of resources relative to the query
-     * 
-     * If "_rc" query parameter is set returns a real count of the total number of resources relative to the query
-     * Otherwise, the total count is estimated from count_estimate function
      */
     private $totalCount;
     
@@ -204,7 +201,7 @@ class RestoFeatureCollection {
          * Read features from database
          */   
         else {
-            $this->loadFeatures($analysis['appliedFilters'], $limit, $offset, isset($this->context->query['_rc']) ? filter_var($this->context->query['_rc'], FILTER_VALIDATE_BOOLEAN) : false);
+            $this->loadFeatures($analysis['appliedFilters'], $limit, $offset);
         }
         
         /*
@@ -305,9 +302,8 @@ class RestoFeatureCollection {
      * @param array $params
      * @param integer $limit
      * @param integer $offset
-     * @param integer $realCount
      */
-    private function loadFeatures($params, $limit, $offset, $realCount) {
+    private function loadFeatures($params, $limit, $offset) {
         
         /*
          * Convert productIdentifier to identifier if needed
@@ -328,8 +324,7 @@ class RestoFeatureCollection {
                 'filters' => $params,
                 'options' => array(
                     'limit' => $limit,
-                    'offset' => $offset,
-                    'count' => $realCount
+                    'offset' => $offset
                 )
             )
         );
@@ -353,7 +348,7 @@ class RestoFeatureCollection {
         /*
          * Total count
          */
-        $this->totalCount = max(count($this->restoFeatures), $featuresArray['totalcount']);
+        $this->totalCount = max(count($this->restoFeatures), $featuresArray['count']['total']);
         
     }
 
