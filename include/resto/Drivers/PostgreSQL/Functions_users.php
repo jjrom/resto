@@ -157,7 +157,7 @@ class Functions_users {
             'groups' => '\'{' . (isset($profile['groups']) ? pg_escape_string($profile['groups']) : 'default') . '}\'',
             'activationcode' => '\'' . pg_escape_string(RestoUtil::encrypt($email . microtime())) . '\'',
             'activated' => $profile['activated'],
-            'validatedby' => isset($profile['validatedby']) ? $profile['validatedby'] : 'NULL',
+            'validatedby' => isset($profile['validatedby']) ? '\'' . $profile['validatedby'] .'\'' : 'NULL',
             'validationdate' => isset($profile['validatedby']) ? 'now()' : 'NULL',
             'registrationdate' => 'now()'
         );
