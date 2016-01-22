@@ -506,7 +506,7 @@ class RestoFeatureCollection {
              * and the pseudo real count based on the retrieved features count
              */
             if (!$count['isExact']) {
-                $count['total'] = max(count($this->restoFeatures) + (($startPage - 1) * $offset), $count['total']);
+                $count['total'] = max(count($this->restoFeatures) + (($startPage - 1) * $limit), $count['total']);
             }
             $totalPage = ceil($count['total'] / $limit);
             $paging = array(
