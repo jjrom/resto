@@ -52,7 +52,7 @@ class Wikipedia extends RestoModule {
      */
     public function __construct($context, $user) {
         parent::__construct($context, $user);
-        $this->dbh = $this->getDatabaseHandler();   
+        $this->dbh = $this->getDatabaseHandler(isset($this->options['database']) ? $this->options['database'] : null);   
     }
 
     /**

@@ -999,6 +999,15 @@ abstract class RestoModel {
         }
         
         /*
+         * Tagger module
+         */
+        $keywords = array();
+        if (isset($collection->context->modules['Tagger'])) {
+            $tagger = RestoUtil::instantiate($collection->context->modules['Tagger']['className'], array($collection->context, $collection->user));
+            $keywords = $tagger->getKeywords($properties, $data['geometry']);
+        }
+        
+        /*
          * Store feature
          */
         $collection->context->dbDriver->store(RestoDatabaseDriver::FEATURE, array(
@@ -1007,7 +1016,7 @@ abstract class RestoModel {
                 'type' => 'Feature',
                 'id' => $featureIdentifier,
                 'geometry' => $data['geometry'],
-                'properties' => array_merge($properties, array('keywords' => $this->getKeywords($properties, $data['geometry'], $collection)))
+                'properties' => array_merge($properties, array('keywords' => $keywords))
             )
         ));
         
@@ -1085,36 +1094,6 @@ abstract class RestoModel {
             
         return true;
         
-    }
-    
-    /**
-     * Compute keywords from properties array
-     * 
-     * @param array $properties
-     * @param array $geometry (GeoJSON)
-     * @param RestoCollection $collection
-     */
-    private function getKeywords($properties, $geometry, $collection) {
-        
-        /*
-         * Keywords utilities
-         */
-        $keywordsUtil = new RestoKeywordsUtil();
-        
-        /*
-         * Initialize keywords array
-         */
-        $keywords = isset($properties['keywords']) ? $properties['keywords'] : array();
-        
-        /*
-         * Validate keywords
-         */
-        if (!$keywordsUtil->areValids($keywords)) {
-            RestoLogUtil::httpError(500, 'Invalid keywords property elements');
-        }
-        
-        return array_merge($keywords, $keywordsUtil->computeKeywords($properties, $geometry, $collection));
-       
     }
     
 }

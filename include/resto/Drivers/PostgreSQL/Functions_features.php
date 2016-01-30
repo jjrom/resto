@@ -224,6 +224,70 @@ class Functions_features {
     }
    
     /**
+     * Update feature keywords
+     * 
+     * @param RestoFeature $feature
+     * @param array $keywords
+     * @throws Exception
+     */
+    public function updateFeatureKeywords($feature, $keywords) {
+        
+        $toUpdate = array();
+        
+        /*
+         * Store new keywords
+         */
+        if (is_array($keywords)) {
+            $columns = array_merge(array(
+               'keywords' => '\'' . pg_escape_string(json_encode($keywords)) . '\''
+            ), $this->landuseColumns($keywords));
+            $columns[$feature->collection->model->getDbKey('hashes')] = '\'{' . join(',', $this->getHashes($keywords)) . '}\'';
+            foreach ($columns as $columnName => $columnValue) {
+                array_push($toUpdate, $columnName . '=' . $columnValue);
+            }
+        }
+        
+        if (empty($toUpdate)) {
+            RestoLogUtil::httpError(400, 'Nothing to update for ' . $feature->identifier);
+        }
+        
+        try {
+            
+            /*
+             * Begin transaction
+             */
+            $this->dbDriver->query('BEGIN');
+            
+            /*
+             * Remove previous facets
+             */
+            $this->removeFeatureFacets($feature->toArray());
+            
+            /*
+             * Update feature
+             */
+            $this->dbDriver->query('UPDATE resto.features SET ' . join(',', $toUpdate) . ' WHERE identifier = \'' . pg_escape_string($feature->identifier) . '\'');
+            
+            /*
+             * Store new facets
+             */
+            $this->storeKeywordsFacets($feature->collection, $keywords, true);
+            
+            /*
+             * Commit
+             */
+            $this->dbDriver->query('COMMIT');
+            
+        } catch (Exception $e) {
+            $this->dbDriver->query('ROLLBACK'); 
+            RestoLogUtil::httpError(500, 'Cannot update feature ' . $feature->identifier);
+        }
+        
+        return true;
+        
+    }
+    
+    /**
      * Return exact count or estimate count from query
      * 
      * @param String $from
@@ -420,7 +484,16 @@ class Functions_features {
      * @return type
      */
     private function landuseColumns($keywords) {
-        $columns = array();
+        $columns = array(
+            'lu_cultivated' => 0,
+            'lu_desert' => 0,
+            'lu_flooded' => 0,
+            'lu_forest' => 0,
+            'lu_herbaceous' => 0,
+            'lu_ice' => 0,
+            'lu_urban' => 0,
+            'lu_water' => 0
+        );
         foreach (array_values($keywords) as $keyword) {
             if ($keyword['type'] === 'landuse') {
                 $columns['lu_' . strtolower($keyword['name'])] = $keyword['value'];
@@ -459,11 +532,13 @@ class Functions_features {
      * @param array $featureArray
      */
     private function removeFeatureFacets($featureArray) {
-        foreach (array_keys($featureArray['properties']['keywords']) as $hash) {
-            $this->dbDriver->remove(RestoDatabaseDriver::FACET, array(
-                'hash' => $hash,
-                'collectionName' => $featureArray['properties']['collection']
-            ));
+        if (isset($featureArray['properties']['keywords'])) {
+            foreach (array_keys($featureArray['properties']['keywords']) as $hash) {
+                $this->dbDriver->remove(RestoDatabaseDriver::FACET, array(
+                    'hash' => $hash,
+                    'collectionName' => $featureArray['properties']['collection']
+                ));
+            }
         }
     }
 

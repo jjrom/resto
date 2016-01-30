@@ -566,6 +566,13 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 $usersFunctions = new Functions_users($this);
                 return $usersFunctions->updateUserProfile($params['profile']);
             
+            /*
+             * Update Keywords
+             */
+            case parent::KEYWORDS:
+                $featuresFunctions = new Functions_features($this);
+                return $featuresFunctions->updateFeatureKeywords($params['feature'], $params['keywords']);
+            
             default:
                 return null;
         }

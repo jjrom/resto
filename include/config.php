@@ -51,7 +51,7 @@ return array(
                 'LongName' => 'resto search service',
                 'Description' => 'Search on all collections',
                 'Tags' => 'resto',
-                'Developper' => 'resto team',
+                'Developer' => 'resto team',
                 'Contact' => 'restoadmin@localhost',
                 'Query' => 'europe 2015',
                 'Attribution' => 'resto framework. Copyright 2015, All Rights Reserved'
@@ -347,26 +347,29 @@ return array(
         ),
         
         /*
-         * iTag module - automatically tag posted feature 
+         * Tag module - automatically tag posted feature 
          * 
          * !!! Require iTag !!!
          */
-        'iTag' => array(
+        'Tag' => array(
             'activate' => false,
+            'route' => 'api/tag',
             'options' => array(
-                'database' => array(
-                    'dbname' => 'itag',
-                    /*
-                     * Database host - if not specified connect through unix domain socket (IPC socket) instead of TCP/IP socket
-                     */
-                    //'host' => 'localhost',
-                    'user' => 'itag',
-                    'password' => 'itag'
-                ),
-                'taggers' => array(
-                    'Political' => array(),
-                    'LandCover' => array(),
-                    'Physical' => array()
+                'iTag' => array(
+                    'database' => array(
+                        'dbname' => 'itag',
+                        /*
+                         * Database host - if not specified connect through unix domain socket (IPC socket) instead of TCP/IP socket
+                         */
+                        //'host' => 'localhost',
+                        'user' => 'itag',
+                        'password' => 'itag'
+                    ),
+                    'taggers' => array(
+                        'Political' => array(),
+                        'LandCover' => array(),
+                        'Physical' => array()
+                    )
                 )
             )
         )

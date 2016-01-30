@@ -101,7 +101,7 @@ class Resto {
     /*
      * RESTo major version number
      */
-    const VERSION = '2.1';
+    const VERSION = '2.2';
     
     /*
      * Default output format if not specified in request
@@ -312,7 +312,7 @@ class Resto {
         }
         
         /*
-         * If we land here - set an user unregistered user
+         * If we land here - set an unregistered user
          */
         if (!isset($this->user)) {
             $this->user = new RestoUser(null, $this->context);

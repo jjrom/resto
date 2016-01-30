@@ -53,16 +53,16 @@ abstract class RestoModule{
     /**
      * Set the database handler from config.php
      * 
-     * @param array $config
+     * @param array $dbOptions
      * @throws Exception
      */
-    protected function getDatabaseHandler() {
+    protected function getDatabaseHandler($dbOptions) {
     
         /*
          * Set database handler from configuration
          */
-        if (isset($this->options['database'])) {
-            $dbh = $this->context->dbDriver->get(RestoDatabaseDriver::HANDLER, $this->options['database']);
+        if (isset($dbOptions)) {
+            $dbh = $this->context->dbDriver->get(RestoDatabaseDriver::HANDLER, $dbOptions);
         }
 
         /*
