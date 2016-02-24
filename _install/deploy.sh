@@ -38,7 +38,7 @@ then
 fi
 
 if [ -d "$TARGETDIR" ]; then
-    if [ "$(ls $DIR)" ]; then
+    if [ "$(ls $TARGETDIR)" ]; then
         echo "ERROR : $TARGETDIR is not empty. Cannot install"
         exit 1
     fi
