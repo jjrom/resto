@@ -440,7 +440,7 @@ class Functions_features {
                 $columnValue = '\'{' . pg_escape_string(join(',', $propertyValue)) . '}\'';
             }
             else {
-                $columnValue = '\'' . pg_escape_string($propertyValue) . '\'';
+                $columnValue = '\'' . pg_escape_string(is_array($propertyValue) ? join(',', $propertyValue) : $propertyValue) . '\'';
             }
             
             /*
