@@ -134,7 +134,7 @@ class RestoModel_S1_PEPS extends RestoModel {
          * The datahub systematically performs an inversion of the Sentinel-1 quicklooks taking as input the quicklook images (.png) inside
          * the ZIP files (i.e. as produced by the S1 ground segment).
          */
-        $polygon = array($this->reorderSafeFootprintToDhus(RestoGeometryUtil::wktPolygonToArray($dom->getElementsByTagName('footprint')->item(0)->nodeValue), $orbitDirection));
+        $polygon = array($this->reorderSafeFootprintToDhus(RestoGeometryUtil::WKTPolygonToArray($dom->getElementsByTagName('footprint')->item(0)->nodeValue), $orbitDirection));
 
         /*
          * Initialize feature

@@ -19,7 +19,7 @@
 /**
  * RESTo Sentinel-2 model for PEPS project
  */
-class RestoModel_sentinel2 extends RestoModel {
+class RestoModel_S2_PEPS extends RestoModel {
 
     public $extendedProperties = array(
         's2TakeId' => array(
@@ -94,7 +94,7 @@ class RestoModel_sentinel2 extends RestoModel {
          */
         $orbitDirection = strtolower($dom->getElementsByTagName('orbitDirection')->item(0)->nodeValue);
 
-        $polygon = RestoGeometryUtil::wktPolygonToArray($dom->getElementsByTagName('footprint')->item(0)->nodeValue);
+        $polygon = RestoGeometryUtil::WKTPolygonToArray($dom->getElementsByTagName('footprint')->item(0)->nodeValue);
 
         /*
          * Initialize feature
