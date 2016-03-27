@@ -307,7 +307,6 @@ class Functions_rights {
             }
         }
 
-        $this->dbDriver->query('UPDATE usermanagement.rights SET ' . join(',', $toBeSet) . ' WHERE ' . join(' AND ', $where));
         if (count($toBeSet) > 0) {
             $this->dbDriver->query('UPDATE usermanagement.rights SET ' . join(',', $toBeSet) . ' WHERE ' . join(' AND ', $where));
         }
