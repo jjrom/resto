@@ -291,7 +291,7 @@ class Functions_collections {
                 'urbanCover' => 'btree',
                 'waterCover' => 'btree',
                 'cloudCover' => 'btree',
-                'geometry' => 'gist',
+                '_geometry' => 'gist', // _geometry is geometry splitted against -180/180 degrees line
                 'centroid' => 'gist',
                 'hashes' => 'gin'
             );

@@ -342,7 +342,8 @@ class RestoFeatureUtil {
      */
     private function cleanProperties(&$properties) {
         unset($properties['identifier'],
-              $properties['geometry'], 
+              $properties['geometry'],
+              $properties['_geometry'], 
               $properties['metadata'], 
               $properties['metadataMimeType'],
               $properties['wms'],
