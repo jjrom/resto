@@ -44,8 +44,8 @@ if [ -d "$TARGETDIR" ]; then
     fi
 fi
 
-mkdir $TARGETDIR
+mkdir "$TARGETDIR"
 echo " ==> Copy files to $TARGETDIR directory"
-cp -Rf $SRCDIR/.htaccess $SRCDIR/favicon.ico $SRCDIR/index.php $SRCDIR/include $SRCDIR/lib $TARGETDIR
-echo " ==> Successfully install resto to $TARGETDIR directory"
+cp -t "$TARGETDIR" -Rf "$SRCDIR/.htaccess" "$SRCDIR/favicon.ico" "$SRCDIR/index.php" "$SRCDIR/include" "$SRCDIR/lib"
+echo " ==> Successfully installed resto to $TARGETDIR directory"
 echo " ==> Now, do not forget to check $TARGETDIR/include/config.php configuration !"
