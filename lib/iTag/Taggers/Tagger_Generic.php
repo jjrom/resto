@@ -145,7 +145,7 @@ class Tagger_Generic extends Tagger {
             $orderBy = ' ORDER BY area DESC';
         }
         
-        return $this->query('SELECT ' . join(',', $propertyList) .  ' FROM ' . $tableName . ' WHERE st_intersects(geom, ' . $this->postgisGeomFromText($footprint) . ')' . $orderBy);
+        return $this->query('WITH prequery (SELECT ' . $this->postgisGeomFromText($footprint) . ' AS corrected_geometry) SELECT ' . join(',', $propertyList) .  ' FROM prequery,' . $tableName . ' WHERE st_intersects(geom, corrected_geometry)' . $orderBy);
         
     }
     

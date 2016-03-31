@@ -207,12 +207,12 @@ class Tagger_LandCover extends Tagger {
      */
     private function retrieveRawLandCover($footprint) {
         $classes = array();
-        $geom = $this->postgisGeomFromText($footprint);
+        $prequery = 'WITH prequery (SELECT ' . $this->postgisGeomFromText($footprint) . ' AS corrected_geometry)';
         if ($this->config['returnGeometries']) {
-            $query = 'SELECT dn as dn, ' . $this->postgisArea($this->postgisIntersection('wkb_geometry', $geom)) . ' as area, ' . $this->postgisAsWKT($this->postgisSimplify($this->postgisIntersection('wkb_geometry', $geom))) . ' as wkt FROM datasources.landcover WHERE st_intersects(wkb_geometry, ' . $geom . ')';
+            $query = $prequery . ' SELECT dn as dn, ' . $this->postgisArea($this->postgisIntersection('wkb_geometry', 'corrected_geometry')) . ' as area, ' . $this->postgisAsWKT($this->postgisSimplify($this->postgisIntersection('wkb_geometry', 'corrected_geometry'))) . ' as wkt FROM prequery, datasources.landcover WHERE st_intersects(wkb_geometry, corrected_geometry)';
         }
         else {
-            $query = 'SELECT dn as dn, ' . $this->postgisArea($this->postgisIntersection('wkb_geometry', $geom)) . ' as area FROM datasources.landcover WHERE st_intersects(wkb_geometry, ' . $geom . ')';
+            $query = $prequery . ' SELECT dn as dn, ' . $this->postgisArea($this->postgisIntersection('wkb_geometry', 'corrected_geometry')) . ' as area FROM prequery, datasources.landcover WHERE st_intersects(wkb_geometry, corrected_geometry)';
         }
         $results = $this->query($query);
         while ($result = pg_fetch_assoc($results)) {

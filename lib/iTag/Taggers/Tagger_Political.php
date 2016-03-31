@@ -114,12 +114,12 @@ class Tagger_Political extends Tagger {
      * 
      */
     private function add(&$continents, $footprint, $what) {
-        $geom = $this->postgisGeomFromText($footprint);
+        $prequery = 'WITH prequery (SELECT ' . $this->postgisGeomFromText($footprint) . ' AS corrected_geometry)';
         if ($what === Tagger_Political::COUNTRIES) {
-            $query = 'SELECT name as name, normalize(name) as id, continent as continent, normalize(continent) as continentid, ' . $this->postgisArea($this->postgisIntersection('geom', $geom)) . ' as area, ' . $this->postgisArea('geom') . ' as entityarea FROM datasources.countries WHERE st_intersects(geom, ' . $geom . ') ORDER BY area DESC';
+            $query = $prequery . ' SELECT name as name, normalize(name) as id, continent as continent, normalize(continent) as continentid, ' . $this->postgisArea($this->postgisIntersection('geom', 'corrected_geometry')) . ' as area, ' . $this->postgisArea('geom') . ' as entityarea FROM prequery, datasources.countries WHERE st_intersects(geom, corrected_geometry) ORDER BY area DESC';
         }
         else {
-            $query = 'SELECT region, name as state, normalize(name) as stateid, normalize(region) as regionid, adm0_a3 as isoa3, ' .  $this->postgisArea($this->postgisIntersection('geom', $geom)) . ' as area, ' . $this->postgisArea('geom') . ' as entityarea, ' . $this->postgisIntersection('geom', $geom) . ' as wkb_geom FROM datasources.states WHERE st_intersects(geom, ' . $geom . ') ORDER BY area DESC';
+            $query = $prequery . ' SELECT region, name as state, normalize(name) as stateid, normalize(region) as regionid, adm0_a3 as isoa3, ' .  $this->postgisArea($this->postgisIntersection('geom', 'corrected_geometry')) . ' as area, ' . $this->postgisArea('geom') . ' as entityarea, ' . $this->postgisIntersection('geom', 'corrected_geometry') . ' as wkb_geom FROM prequery, datasources.states WHERE st_intersects(geom, corrected_geometry) ORDER BY area DESC';
         }
         $results = $this->query($query);
         while ($element = pg_fetch_assoc($results)) {
