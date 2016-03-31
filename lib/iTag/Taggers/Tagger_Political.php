@@ -114,7 +114,7 @@ class Tagger_Political extends Tagger {
      * 
      */
     private function add(&$continents, $footprint, $what) {
-        $prequery = 'WITH prequery (SELECT ' . $this->postgisGeomFromText($footprint) . ' AS corrected_geometry)';
+        $prequery = 'WITH prequery AS (SELECT ' . $this->postgisGeomFromText($footprint) . ' AS corrected_geometry)';
         if ($what === Tagger_Political::COUNTRIES) {
             $query = $prequery . ' SELECT name as name, normalize(name) as id, continent as continent, normalize(continent) as continentid, ' . $this->postgisArea($this->postgisIntersection('geom', 'corrected_geometry')) . ' as area, ' . $this->postgisArea('geom') . ' as entityarea FROM prequery, datasources.countries WHERE st_intersects(geom, corrected_geometry) ORDER BY area DESC';
         }

@@ -59,7 +59,7 @@ class Tagger_Population extends Tagger {
      * @return integer
      */
     public function process($footprint) {
-        $prequery = 'WITH prequery (SELECT ' . $this->postgisGeomFromText($footprint) . ' AS corrected_geometry)';
+        $prequery = 'WITH prequery AS (SELECT ' . $this->postgisGeomFromText($footprint) . ' AS corrected_geometry)';
         $query = $prequery . ' SELECT pcount FROM prequery, gpw.' . $this->getTableName() . ' WHERE ST_intersects(footprint, corrected_geometry)';
         $results = $this->query($query);
         $total = 0;

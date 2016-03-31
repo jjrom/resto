@@ -207,7 +207,7 @@ class Tagger_LandCover extends Tagger {
      */
     private function retrieveRawLandCover($footprint) {
         $classes = array();
-        $prequery = 'WITH prequery (SELECT ' . $this->postgisGeomFromText($footprint) . ' AS corrected_geometry)';
+        $prequery = 'WITH prequery AS (SELECT ' . $this->postgisGeomFromText($footprint) . ' AS corrected_geometry)';
         if ($this->config['returnGeometries']) {
             $query = $prequery . ' SELECT dn as dn, ' . $this->postgisArea($this->postgisIntersection('wkb_geometry', 'corrected_geometry')) . ' as area, ' . $this->postgisAsWKT($this->postgisSimplify($this->postgisIntersection('wkb_geometry', 'corrected_geometry'))) . ' as wkt FROM prequery, datasources.landcover WHERE st_intersects(wkb_geometry, corrected_geometry)';
         }
