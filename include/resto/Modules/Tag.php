@@ -497,10 +497,12 @@ class Tag extends RestoModule {
              * Collection
              */
             if ($facetCategory[0] === 'collection') {
-                $keywords[RestoUtil::getHash('collection:' . strtolower($properties['collection']))] = array(
-                    'name' => $properties['collection'],
-                    'type' => 'collection',
-                );
+                if (isset($properties['collection'])) {
+                    $keywords[RestoUtil::getHash('collection:' . strtolower($properties['collection']))] = array(
+                        'name' => $properties['collection'],
+                        'type' => 'collection',
+                    );
+                }
                 continue;
             }
             
