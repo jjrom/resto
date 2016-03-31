@@ -148,7 +148,7 @@ abstract class Tagger {
      * 
      */
     protected function postgisGeomFromText($footprint, $srid = '4326') {
-        return 'ST_GeomFromText(\'' . $footprint . '\', ' . $srid . ')';
+        return 'ST_SplitDateLine(ST_GeomFromText(\'' . $footprint . '\', ' . $srid . '))';
     }
     
     /**

@@ -27,7 +27,7 @@ class iTag {
     /*
      * iTag version
      */
-    const version = '3.0.7';
+    const version = '3.0.9';
     
     /*
      * Database handler
@@ -92,8 +92,9 @@ class iTag {
         
         /*
          * Convert footprint in case of -180/+180 meridian crossing
+         * Note : This is deprecated and replaced by ST_SplitDateLine function
          */
-        $metadata['footprint'] = $this->correctWrapDateLine($metadata['footprint']);
+        //$metadata['footprint'] = $this->correctWrapDateLine($metadata['footprint']);
         
         /*
          * Datasources reference information
