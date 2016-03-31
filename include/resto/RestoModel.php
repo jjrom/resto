@@ -1003,11 +1003,11 @@ abstract class RestoModel {
         }
         
         /*
-         * Tagger module
+         * Tag module
          */
         $keywords = array();
-        if (isset($collection->context->modules['Tagger'])) {
-            $tagger = RestoUtil::instantiate($collection->context->modules['Tagger']['className'], array($collection->context, $collection->user));
+        if (isset($collection->context->modules['Tag'])) {
+            $tagger = RestoUtil::instantiate($collection->context->modules['Tag']['className'], array($collection->context, $collection->user));
             $keywords = $tagger->getKeywords($properties, $data['geometry']);
         }
         
