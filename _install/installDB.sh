@@ -175,7 +175,7 @@ BEGIN
 
 	RETURN geom_out;
 END
-\$\$ LANGUAGE 'plpgsql';
+\$\$ LANGUAGE 'plpgsql' IMMUTABLE;
 
 --
 -- resto schema contains collections descriptions tables
