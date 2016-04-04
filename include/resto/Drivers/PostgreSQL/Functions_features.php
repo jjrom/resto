@@ -462,18 +462,18 @@ class Functions_features {
      */
     private function getHashes($keywords) {
         $hashes = array();
-        foreach (array_keys($keywords) as $hash) {
+        for ($i = count($keywords); $i--;) {
             
             /*
              * Do not index keywords if relative cover is lower than 10 % or if absolute coverage is lower than 20%
              */
-            if (isset($keywords[$hash]['value']) && $keywords[$hash]['value'] < 10) {
-                if (!isset($keywords[$hash]['gcover']) || $keywords[$hash]['gcover'] < 20) {
+            if (isset($keywords[$i]['value']) && $keywords[$i]['value'] < 10) {
+                if (!isset($keywords[$i]['gcover']) || $keywords[$i]['gcover'] < 20) {
                     continue;
                 }
             }
-            $hashes[] = '"' . pg_escape_string($hash) . '"';
-            $hashes[] = '"' . pg_escape_string($keywords[$hash]['type'] . ':' . (isset($keywords[$hash]['normalized']) ? $keywords[$hash]['normalized'] : strtolower($keywords[$hash]['name']))) . '"';
+            $hashes[] = '"' . pg_escape_string($keywords[$i]['id']) . '"';
+            $hashes[] = '"' . pg_escape_string($keywords[$i]['type'] . ':' . (isset($keywords[$i]['normalized']) ? $keywords[$i]['normalized'] : strtolower($keywords[$i]['name']))) . '"';
         }
         return $hashes;
     }

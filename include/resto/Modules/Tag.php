@@ -140,8 +140,8 @@ class Tag extends RestoModule {
         if (!isset($keywords) || !is_array($keywords)) {
             return false;
         }
-        foreach (array_values($keywords) as $value) {
-            if (!$this->isValid($value)) {
+        for ($i = count($keywords); $i--;) {
+            if (!$this->isValid($keywords[$i])) {
                 return false;
             }
         }
@@ -266,12 +266,15 @@ class Tag extends RestoModule {
     private function getAlwaysKeywords($properties) {
         $keywords = array();
         foreach (array_values($properties) as $keyword) {
-            $hash = RestoUtil::getHash($keyword);
+            $id = RestoUtil::getHash($keyword);
             list($type, $normalized) = explode(':', $keyword, 2);
-            $keywords[$hash] = array(
-                'name' => ucfirst($normalized),
-                'type' => $type
-            );
+            if (!$this->alreadyExists($keywords, $id)) {
+                array_push($keywords, array(
+                    'id' => $id,
+                    'name' => ucfirst($normalized),
+                    'type' => $type
+                ));
+            }
         }
         return $keywords;
     }
@@ -290,15 +293,18 @@ class Tag extends RestoModule {
          */
         if (isset($properties['landUse'])) {
             foreach (array_values($properties['landUse']) as $landuse) {
-                $hash = RestoUtil::getHash($landuse['id']);
+                $id = RestoUtil::getHash($landuse['id']);
                 list($type, $normalized) = explode(':', $landuse['id'], 2);
-                $keywords[$hash] = array(
-                    'name' => $landuse['name'],
-                    'normalized' => $normalized,
-                    'type' => $type,
-                    'area' => $landuse['area'],
-                    'value' => $landuse['pcover']
-                );
+                if (!$this->alreadyExists($keywords, $id)) {
+                    array_push($keywords, array(
+                        'id' => $id,
+                        'name' => $landuse['name'],
+                        'normalized' => $normalized,
+                        'type' => $type,
+                        'area' => $landuse['area'],
+                        'value' => $landuse['pcover']
+                    ));
+                }
             }
         }
         
@@ -308,16 +314,19 @@ class Tag extends RestoModule {
         if (isset($properties['landCover']['landUseDetails'])) {
             foreach (array_values($properties['landCover']['landUseDetails']) as $landuse) {
                 $parentHash = RestoUtil::getHash($landuse['parentId']);
-                $hash = RestoUtil::getHash($landuse['id'], $parentHash);
+                $id = RestoUtil::getHash($landuse['id'], $parentHash);
                 list($type, $normalized) = explode(':', $landuse['id'], 2);
-                $keywords[$hash] = array(
-                    'name' => $landuse['name'],
-                    'normalized' => $normalized,
-                    'type' => $type,
-                    'parentHash' => $parentHash,
-                    'area' => $landuse['area'],
-                    'value' => $landuse['pcover']
-                );
+                if (!$this->alreadyExists($keywords, $id)) {
+                    array_push($keywords, array(
+                        'id' => $id,
+                        'name' => $landuse['name'],
+                        'normalized' => $normalized,
+                        'type' => $type,
+                        'parentHash' => $parentHash,
+                        'area' => $landuse['area'],
+                        'value' => $landuse['pcover']
+                    ));
+                }
             }
         }
         return $keywords;
@@ -411,33 +420,31 @@ class Tag extends RestoModule {
      */
     private function getGenericKeyword($property, $type, $defaultName, $parentHash) {
         $propertyId = isset($property['id']) ? $property['id'] : $type . ':' . $defaultName;
-        $hash = RestoUtil::getHash($propertyId, $parentHash);
+        $id = RestoUtil::getHash($propertyId, $parentHash);
         $exploded = explode(':', $propertyId);
-        $value = array(
+        $keyword = array(
+            'id' => $id,
             'name' => isset($property['name']) ? $property['name'] : $defaultName,
             'normalized' => $exploded[1],
             'type' => isset($type) ? $type : $exploded[0]
         );
         if (isset($parentHash)) {
-            $value['parentHash'] = $parentHash;
+            $keyword['parentHash'] = $parentHash;
         }
         if (isset($property['area'])) {
-            $value['value'] = $property['area'];
+            $keyword['value'] = $property['area'];
         }
         if (isset($property['pcover'])) {
-            $value['value'] = $property['pcover'];
+            $keyword['value'] = $property['pcover'];
         }
         /*
          * Absolute coverage of geographical entity
          */
         if (isset($property['gcover'])) {
-            $value['gcover'] = $property['gcover'];
+            $keyword['gcover'] = $property['gcover'];
         }
         
-        return array(
-            'hash' => $hash,
-            'value' => $value
-        );
+        return $keyword;
     }
     
     /**
@@ -451,21 +458,23 @@ class Tag extends RestoModule {
         $keywords = array();
         for ($i = 0, $ii = count($properties); $i < $ii; $i++) {
             $keyword = $this->getGenericKeyword($properties[$i], $options['type'], $options['defaultName'],  $options['parentHash']);
-            $keywords[$keyword['hash']] = $keyword['value'];
-            switch ($options['type']) {
-                case 'continent':
-                    $keywords = array_merge($keywords, $this->getCountriesKeywords($properties[$i]['countries'], $keyword['hash']));
-                    break;
-                case 'country':
-                    if (isset($properties[$i]['regions'])) {
-                        $keywords = array_merge($keywords, $this->getRegionsKeywords($properties[$i]['regions'], $keyword['hash']));
-                    }
-                    break;
-                case 'region':
-                    $keywords = array_merge($keywords, $this->getStatesKeywords($properties[$i]['states'], $keyword['hash']));
-                    break;
-                default:
-                    break;
+            if (!$this->alreadyExists($keywords, $keyword['id'])) {
+                array_push($keywords, $keyword);
+                switch ($options['type']) {
+                    case 'continent':
+                        $keywords = array_merge($keywords, $this->getCountriesKeywords($properties[$i]['countries'], $keyword['id']));
+                        break;
+                    case 'country':
+                        if (isset($properties[$i]['regions'])) {
+                            $keywords = array_merge($keywords, $this->getRegionsKeywords($properties[$i]['regions'], $keyword['id']));
+                        }
+                        break;
+                    case 'region':
+                        $keywords = array_merge($keywords, $this->getStatesKeywords($properties[$i]['states'], $keyword['id']));
+                        break;
+                    default:
+                        break;
+                }
             }
         }
         return $keywords;
@@ -498,10 +507,14 @@ class Tag extends RestoModule {
              */
             if ($facetCategory[0] === 'collection') {
                 if (isset($properties['collection'])) {
-                    $keywords[RestoUtil::getHash('collection:' . strtolower($properties['collection']))] = array(
-                        'name' => $properties['collection'],
-                        'type' => 'collection',
-                    );
+                    $id = RestoUtil::getHash('collection:' . strtolower($properties['collection']));
+                    if (!$this->alreadyExists($keywords, $id)) {
+                        array_push($keywords, array(
+                            'id' => $id,
+                            'name' => $properties['collection'],
+                            'type' => 'collection',
+                        ));
+                    }
                 }
                 continue;
             }
@@ -530,15 +543,20 @@ class Tag extends RestoModule {
         $keywords = array();
         for ($i = 0, $ii = count($facetCategory); $i < $ii; $i++) {
             if (isset($properties[$facetCategory[$i]])) {
-                $hash = RestoUtil::getHash($facetCategory[$i] . ':' . strtolower($properties[$facetCategory[$i]]), $parentHash);
-                $keywords[$hash] = array(
-                    'name' => $properties[$facetCategory[$i]],
-                    'type' => $facetCategory[$i],
-                );
-                if (isset($parentHash)) {
-                    $keywords[$hash]['parentHash'] = $parentHash;
+                $keyword = array();
+                $id = RestoUtil::getHash($facetCategory[$i] . ':' . strtolower($properties[$facetCategory[$i]]), $parentHash);
+                if (!$this->alreadyExists($keywords, $id)) {
+                    $keyword = array(
+                        'id' => $id,
+                        'name' => $properties[$facetCategory[$i]],
+                        'type' => $facetCategory[$i],
+                    );
+                    if (isset($parentHash)) {
+                        $keyword['parentHash'] = $parentHash;
+                    }
+                    $parentHash = $id;
+                    array_push($keywords, $keyword);
                 }
-                $parentHash = $hash;
             } else {
                 $parentHash = null;
             }
@@ -554,29 +572,24 @@ class Tag extends RestoModule {
      */
     private function getDateKeywords($properties) {
         
-        $keywords = array();
-        
         $model = new RestoModel_default();
         
         /*
          * Year
          */
         $yearKeyword = $this->getYearKeyword(substr($properties[$model->searchFilters['time:start']['key']], 0, 4));
-        $keywords[$yearKeyword['hash']] = $yearKeyword['value'];
         
         /*
          * Month
          */
-        $monthKeyword = $this->getMonthKeyword(substr($properties[$model->searchFilters['time:start']['key']], 5, 2), $yearKeyword['hash']);
-        $keywords[$monthKeyword['hash']] = $monthKeyword['value'];
+        $monthKeyword = $this->getMonthKeyword(substr($properties[$model->searchFilters['time:start']['key']], 5, 2), $yearKeyword['id']);
         
         /*
          * Day
          */
-        $dayKeyword = $this->getDayKeyword(substr($properties[$model->searchFilters['time:start']['key']], 8, 2), $monthKeyword['hash']);
-        $keywords[$dayKeyword['hash']] = $dayKeyword['value'];
+        $dayKeyword = $this->getDayKeyword(substr($properties[$model->searchFilters['time:start']['key']], 8, 2), $monthKeyword['id']);
         
-        return $keywords;
+        return array($yearKeyword, $monthKeyword, $dayKeyword);
     }
     
     /**
@@ -586,11 +599,9 @@ class Tag extends RestoModule {
      */
     private function getYearKeyword($year) {
         return array(
-            'hash' => RestoUtil::getHash('year:' . $year),
-            'value' => array(
-                'name' => $year,
-                'type' => 'year'
-            )
+            'id' => RestoUtil::getHash('year:' . $year),
+            'name' => $year,
+            'type' => 'year'
         );
     }
     
@@ -602,12 +613,10 @@ class Tag extends RestoModule {
      */
     private function getMonthKeyword($month, $parentHash) {
         return array(
-            'hash' => RestoUtil::getHash('month:' . $month, $parentHash),
-            'value' => array(
-                'name' => $month,
-                'type' => 'month',
-                'parentHash' => $parentHash
-            )
+            'id' =>  RestoUtil::getHash('month:' . $month, $parentHash),
+            'name' => $month,
+            'type' => 'month',
+            'parentHash' => $parentHash
         );
     }
     
@@ -619,12 +628,10 @@ class Tag extends RestoModule {
      */
     private function getDayKeyword($day, $parentHash) {
         return array(
-            'hash' => RestoUtil::getHash('day:' . $day),
-            'value' => array(
-                'name' => $day,
-                'type' => 'day',
-                'parentHash' => $parentHash   
-            )
+            'id' => RestoUtil::getHash('day:' . $day),
+            'name' => $day,
+            'type' => 'day',
+            'parentHash' => $parentHash   
         );
     }
     
@@ -634,15 +641,28 @@ class Tag extends RestoModule {
      * @param array $populationProperty
      */
     private function getPopulationKeywords($populationProperty) {
-        $hash = RestoUtil::getHash('other:population');
         return array(
-            $hash => array(
-                'name' => 'Population',
-                'type' => 'other',
-                'count' => $populationProperty['count'],
-                'densityPerSquareKm' => $populationProperty['densityPerSquareKm']
-            )
+            'id' => RestoUtil::getHash('other:population'),
+            'name' => 'Population',
+            'type' => 'other',
+            'count' => $populationProperty['count'],
+            'densityPerSquareKm' => $populationProperty['densityPerSquareKm']
         );
+    }
+    
+    /**
+     * Return true if id exists in keywords array
+     * 
+     * @param array $keywords
+     * @param string id
+     */
+    private function alreadyExists($keywords, $id) {
+        for ($i = count($keywords); $i--;) {
+            if ($id === $keywords[$i]['id']) {
+                return true;
+            }
+        }
+        return false;
     }
     
 }
