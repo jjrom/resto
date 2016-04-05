@@ -25,6 +25,29 @@
  */
 class Tag extends RestoModule {
     
+    /*
+     * resto reserved types
+     */
+    private $reservedTypes = array(
+        'collection',
+        'day',
+        'year',
+        'month',
+        'season',
+        'continent',
+        'country',
+        'region',
+        'state',
+        'landuse',
+        'landuse_details',
+        'location',
+        'productType',
+        'processingLevel',
+        'platform',
+        'instrument',
+        'sensor'
+    );
+    
     /**
      * Constructor
      * 
@@ -100,7 +123,7 @@ class Tag extends RestoModule {
         $featureArray = $feature->toArray();
         $this->context->dbDriver->update(RestoDatabaseDriver::KEYWORDS, array(
             'feature' => $feature,
-            'keywords' => $this->getKeywords($featureArray['properties'], $featureArray['geometry'])
+            'keywords' => $this->getKeywords($this->removeReservedProperties($featureArray['properties']), $featureArray['geometry'])
         ));
     }
     
@@ -663,6 +686,22 @@ class Tag extends RestoModule {
             }
         }
         return false;
+    }
+    
+    /**
+     * Remove resto properties from input array to avoid double tagging
+     * 
+     * @param array $_properties
+     * @return array
+     */
+    private function removeReservedProperties($_properties) {
+        $properties = array();
+        for ($i = 0, $ii = count($_properties); $i < $ii; $i++) {
+            if (in_array($_properties[$i]['type'], $this->reservedTypes)) {
+                
+            }
+        }
+        return $properties;
     }
     
 }
