@@ -57,7 +57,7 @@ function upgradeJSON($oldJSON) {
     return $newJSON;
 }
 
-$hostname = 'localhost';
+$hostname = 'localhost/resto';
 $protocol = 'http';
 $help = "\nCorrect invalid keywords hash generated in resto v2.1 i.e. hashes for:";
 $help .= "\n        - region:franche-comte";
