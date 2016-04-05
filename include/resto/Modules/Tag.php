@@ -696,9 +696,17 @@ class Tag extends RestoModule {
      */
     private function removeReservedProperties($_properties) {
         $properties = array();
-        for ($i = 0, $ii = count($_properties); $i < $ii; $i++) {
-            if (in_array($_properties[$i]['type'], $this->reservedTypes)) {
-                
+        foreach ($_properties as $key => $value) {
+            if ($key !== 'keywords') {
+                $properties[$key] = $value;
+            }
+            else {
+                $properties[$key] = array();
+                for ($i = 0, $ii = count($_properties[$key]); $i < $ii; $i++) {
+                    if (!in_array($_properties[$key][$i]['type'], $this->reservedTypes)) {
+                        array_push($properties[$key], $_properties[$key][$i]);
+                    }
+                }
             }
         }
         return $properties;
