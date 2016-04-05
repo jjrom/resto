@@ -57,14 +57,32 @@ function upgradeJSON($oldJSON) {
     return $newJSON;
 }
 
-
-$help = "\nGenerate SQL commands to update keywords column to follow resto v2.2 interface\n";
-$help .= "\n USAGE : updateKeywords -u <db user> -p <db password> \n";
-$help .= "   OPTIONS:\n";
-$help .= "          -u <db user> : Database user name with update rights on resto database\n";
-$help .= "          -p <db password> : Database user password\n";
-$options = getopt("u:p:h");
+$hostname = 'localhost';
+$protocol = 'http';
+$help = "\nCorrect invalid keywords hash generated in resto v2.1 i.e. hashes for:";
+$help .= "\n        - region:franche-comte";
+$help .= "\n        - region:western-transdanubia";
+$help .= "\n        - state:montana";
+$help .= "\n        - state:nebraska";
+$help .= "\n        - state:zasavska\n";    
+$help .= "\n USAGE: correctInvalidKeywords -H <hostname> -a <admin:password> -u <db user> -p <db password> \n";
+$help .= " OPTIONS:\n";
+$help .= "       -H <resto endpoint> : endpoint (default localhost/resto)\n";
+$help .= "       -P <protocol> : protocol (default http)\n";
+$help .= "       -a <resto admin user:user password> : resto admin username:password\n";
+$help .= "       -u <db user> : Database user name with update rights on resto database\n";
+$help .= "       -p <db password> : Database user password\n\n";
+$options = getopt("P:H:a:u:p:h");
 foreach ($options as $option => $value) {
+    if ($option === "P") {
+        $protocol = $value;
+    }
+    if ($option === "H") {
+        $hostname = $value;
+    }
+    if ($option === "a") {
+        $admin = $value;
+    }
     if ($option === "u") {
         $username = $value;
     }
@@ -77,7 +95,7 @@ foreach ($options as $option => $value) {
     }
 }
 
-if (!isset($username) || !isset($password)) {
+if (!isset($username) || !isset($password) || !isset($admin)) {
     echo $help;
     exit;
 }
@@ -90,9 +108,9 @@ $dbh = getHandler(array(
     'password' => $password
 ));
 
-$results = pg_query($dbh, 'SELECT identifier, keywords FROM resto.features ORDER BY identifier');
+$results = pg_query($dbh, 'SELECT distinct(identifier) FROM resto.features WHERE (hashes @> ARRAY[\'region:franche-comte\'] OR hashes @> ARRAY[\'region:western-transdanubia\'] OR hashes @> ARRAY[\'state:montana\'] OR hashes @> ARRAY[\'state:nebraska\'] OR hashes @> ARRAY[\'state:zasavska\']) ORDER BY identifier');
 while ($result = pg_fetch_assoc($results)) {
-    $newJSON = upgradeJSON(json_decode($result['keywords'], true));
-    echo 'UPDATE resto.features SET keywords=\'' . pg_escape_string(json_encode($newJSON)) . '\' WHERE identifier=\'' . $result['identifier'] . '\';' ."\n";
+    echo 'curl -k -X PUT  "'. $protocol .'://' . $admin . '@' . $hostname . '/api/tag/' . $result['identifier'] . '/refresh"'."\n";
 }
 pg_close($dbh);
+
