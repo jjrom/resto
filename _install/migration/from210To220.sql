@@ -64,22 +64,21 @@ BEGIN
 
 	RETURN geom_out;
 END
-$$ LANGUAGE 'plpgsql';
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
 
 -- Add indexed geometry column
 SELECT AddGeometryColumn('resto', 'features', '_geometry', '4326', 'GEOMETRY', 2);
 -- Could be quite long !!
 UPDATE resto.features SET _geometry=ST_SplitDateLine(geometry);
 
-DROP INDEX _s1._features_geometry_idx;
-DROP INDEX _s2._features_geometry_idx;
-DROP INDEX _spot._features_geometry_idx;
-DROP INDEX _pleiades._features_geometry_idx;
-DROP INDEX _landsat._features_geometry_idx;
-CREATE INDEX _features__geometry_idx ON _s1.features USING gist(_geometry);
-CREATE INDEX _features__geometry_idx ON _s2.features USING gist(_geometry);
-CREATE INDEX _features__geometry_idx ON _spot.features USING gist(_geometry);
-CREATE INDEX _features__geometry_idx ON _pleiades.features USING gist(_geometry);
-CREATE INDEX _features__geometry_idx ON _landsat.features USING gist(_geometry);
-
+DROP INDEX _s1._s1_features_geometry_idx;
+DROP INDEX _s2._s2_features_geometry_idx;
+DROP INDEX _spot._spot_features_geometry_idx;
+DROP INDEX _pleiades._pleiades_features_geometry_idx;
+DROP INDEX _landsat._landsat_features_geometry_idx;
+CREATE INDEX _s1_features__geometry_idx ON _s1.features USING gist(_geometry);
+CREATE INDEX _s2_features__geometry_idx ON _s2.features USING gist(_geometry);
+CREATE INDEX _spot_features__geometry_idx ON _spot.features USING gist(_geometry);
+CREATE INDEX _pleiades_features__geometry_idx ON _pleiades.features USING gist(_geometry);
+CREATE INDEX _landsat_features__geometry_idx ON _landsat.features USING gist(_geometry);
 
