@@ -50,6 +50,12 @@ class RestoModel_S2_AWS extends RestoModel {
      */
     public function __construct() {
         parent::__construct();
+  
+        $this->searchFilters['resto:dataTakeId'] = array(
+            'key' => 'dataTakeId',
+            'osKey' => 'dataTakeId',
+            'operation' => '='
+        );
     }
 
 }
