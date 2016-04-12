@@ -19,7 +19,7 @@
 /**
  * RESTo Sentinel-2 model for PEPS project
  */
-class RestoModel_S2_PEPS extends RestoModel {
+class RestoModel_S2_AWS extends RestoModel {
 
     public $extendedProperties = array(
         'dataTakeId' => array(
