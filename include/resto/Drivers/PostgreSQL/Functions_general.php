@@ -217,7 +217,7 @@ class Functions_general {
             $result = $this->dbDriver->query('SELECT st_area(st_geometryFromText(\'' . $wkt . '\', 4326)) as area;');
         }
         else {
-            $result = $this->dbDriver->query('SELECT st_area(geography(st_geometryFromText(\'' . $wkt . '\', 4326))) as area;');
+            $result = $this->dbDriver->query('SELECT st_area(geography(st_geometryFromText(\'' . $wkt . '\', 4326)), false) as area;');
         }
         while ($row = pg_fetch_assoc($result)) {
             return (integer) $row['area'];
