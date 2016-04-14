@@ -277,6 +277,7 @@ class Functions_collections {
             $this->dbDriver->query('CREATE TABLE ' . $schemaName . '.features (' . (count($table) > 0 ? join(',', $table) . ',' : '') . 'CHECK( collection = \'' . $collection->name . '\')) INHERITS (resto.features);');
             $indices = array(
                 'identifier' => 'btree',
+                'productIdentifier' => 'btree',
                 'visibility' => 'btree',
                 'platform' => 'btree',
                 'resolution' => 'btree',

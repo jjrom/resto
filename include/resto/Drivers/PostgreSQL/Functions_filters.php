@@ -190,7 +190,14 @@ class Functions_filters {
         if ($model->getDbType($model->searchFilters[$filterName]['key']) === 'date') {
             return $this->prepareFilterQuery_date($model, $filterName, $requestParams);
         }
-
+        
+        /*
+         * Special case identifier - use productIdentifier or identifier
+         */
+        if ($filterName === 'geo:uid' && !RestoUtil::isValidUUID($requestParams['geo:uid'])) {
+            return $model->getDbKey('productIdentifier') . ' = \'' . pg_escape_string($requestParams['geo:uid']) . '\'';
+        }
+        
         /*
          * Prepare filter from operation
          */

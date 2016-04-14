@@ -308,15 +308,6 @@ class RestoFeatureCollection {
     private function loadFeatures($params, $limit, $offset) {
         
         /*
-         * Convert productIdentifier to identifier if needed
-         */
-        if (isset($params['geo:uid']) && !RestoUtil::isValidUUID($params['geo:uid'])) {
-            if (isset($this->defaultCollection)) {
-                $params['geo:uid'] = RestoUtil::UUIDv5($this->defaultCollection->name . ':' . strtoupper($params['geo:uid']));
-            }
-        }
-        
-        /*
          * Get features array from database
          */
         $featuresArray = $this->context->dbDriver->get(RestoDatabaseDriver::FEATURES_DESCRIPTIONS, array(
