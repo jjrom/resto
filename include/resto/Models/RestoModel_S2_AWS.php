@@ -38,7 +38,7 @@ class RestoModel_S2_AWS extends RestoModel {
         // Percentage of tile coverage (i.e. 100 if completely fill the tile)
         'coverage' => array(
             'name' => 'coverage',
-            'type' => 'TEXT'
+            'type' => 'NUMERIC'
         )
     );
 
