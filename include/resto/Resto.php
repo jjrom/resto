@@ -262,7 +262,7 @@ class Resto {
             /*
              * Stream data unless HTTP HEAD is requested
              */
-            if ($this->context->method !== 'HEAD') {
+            if ($this->context == null || $this->context->method !== 'HEAD') {
                 echo $response;
             }
             
