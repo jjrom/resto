@@ -208,9 +208,9 @@ class Admin extends RestoModule {
             /*
              * Get filters
              */
-            $limit = $this->context->query['limit'];
-            $offset = $this->context->query['offset'];
-            $keywords = $this->context->query['keywords'];
+            $limit = isset($this->context->query['limit']) ? $this->context->query['limit'] : null;
+            $offset = isset($this->context->query['offset']) ? $this->context->query['offset'] : null;
+            $keywords = isset($this->context->query['keywords']) ? $this->context->query['keywords'] : null;
 
             return RestoLogUtil::success('Profiles for all users', array(
                         'profiles' => $this->context->dbDriver->get(RestoDatabaseDriver::USERS_PROFILES, array(
@@ -358,9 +358,9 @@ class Admin extends RestoModule {
             /*
              * Get filters
              */
-            $limit = $this->context->query['limit'];
-            $offset = $this->context->query['offset'];
-            $keywords = $this->context->query['keywords'];
+            $limit = isset($this->context->query['limit']) ? $this->context->query['limit'] : null;
+            $offset = isset($this->context->query['offset']) ? $this->context->query['offset'] : null;
+            $keywords = isset($this->context->query['keywords']) ? $this->context->query['keywords'] : null;
 
             /*
              * Get on /groups/{groupid}/users
