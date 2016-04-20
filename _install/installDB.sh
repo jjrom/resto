@@ -314,6 +314,7 @@ CREATE TABLE resto.features (
     cloudcover          NUMERIC
 );
 SELECT AddGeometryColumn('resto', 'features', 'geometry', '4326', 'GEOMETRY', 2);
+SELECT AddGeometryColumn('resto', 'features', '_geometry', '4326', 'GEOMETRY', 2);
 SELECT AddGeometryColumn('resto', 'features', 'centroid', '4326', 'POINT', 2);
 
 -- 
