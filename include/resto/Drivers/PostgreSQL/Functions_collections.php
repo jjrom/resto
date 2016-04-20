@@ -244,7 +244,7 @@ class Functions_collections {
     private function createSchema($schemaName) {
         if (!$this->dbDriver->check(RestoDatabaseDriver::SCHEMA, array('name' => $schemaName))) {
             $this->dbDriver->query('CREATE SCHEMA ' . $schemaName);
-            $this->dbDriver->query('GRANT ALL ON SCHEMA ' . $schemaName . ' TO resto');
+            $this->dbDriver->query('GRANT ALL ON SCHEMA ' . $schemaName . ' TO ' . $this->dbDriver->dbUsername);
             return true;
         }
         return false;
@@ -301,7 +301,7 @@ class Functions_collections {
                     $this->dbDriver->query('CREATE INDEX ' . $schemaName . '_features_' . $collection->model->getDbKey($key) . '_idx ON ' . $schemaName . '.features USING ' . $indexType . ' (' . $collection->model->getDbKey($key) . ($key === 'startDate' ? ' DESC)' : ')'));
                 }
             }
-            $this->dbDriver->query('GRANT SELECT ON TABLE ' . $schemaName . '.features TO resto');
+            $this->dbDriver->query('GRANT SELECT ON TABLE ' . $schemaName . '.features TO ' . $this->dbDriver->dbUsername);
         }
     }
     

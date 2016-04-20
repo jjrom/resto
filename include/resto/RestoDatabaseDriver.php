@@ -80,6 +80,11 @@ abstract class RestoDatabaseDriver {
      */
     public $dbh;
     
+    /*
+     * Database username
+     */
+    public $dbUsername = 'resto';
+    
     /**
      * Constructor
      * 

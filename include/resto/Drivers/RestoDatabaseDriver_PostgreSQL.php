@@ -655,6 +655,13 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
     
         $dbh = null;
         
+        /*
+         * Store db username
+         */
+        if (isset($options) && isset($options['user'])) {
+            $this->dbUsername = $options['user'];
+        }
+        
         if (isset($options) && isset($options['dbname'])) {
             try {
                 $dbInfo = array(
@@ -678,7 +685,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 RestoLogUtil::httpError(500, 'Database connection error');
             }
         }   
-
+        
         return $dbh;
     }
     
