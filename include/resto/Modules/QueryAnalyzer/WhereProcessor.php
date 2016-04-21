@@ -113,6 +113,9 @@ class WhereProcessor {
         
         $bestPosition = 0;
         for ($i = 0, $ii = count($locations); $i < $ii; $i++) {
+            if (!isset($locations[$i]['type'])) {
+                continue;
+            }
             if ($locations[$i]['type'] === 'continent') {
                 $bestPosition = $i;
                 break;
