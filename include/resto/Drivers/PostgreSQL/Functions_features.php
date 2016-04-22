@@ -338,7 +338,7 @@ class Functions_features {
                 $facets[] = array(
                     'name' => $keyword['name'],
                     'type' => $keyword['type'],
-                    'hash' => $hash,
+                    'hash' => $keyword['id'],
                     'parentHash' => isset($keyword['parentHash']) ? $keyword['parentHash'] : null
                 );
             }
@@ -534,9 +534,9 @@ class Functions_features {
      */
     private function removeFeatureFacets($featureArray) {
         if (isset($featureArray['properties']['keywords'])) {
-            foreach (array_keys($featureArray['properties']['keywords']) as $hash) {
+            foreach ($featureArray['properties']['keywords'] as $hash) {
                 $this->dbDriver->remove(RestoDatabaseDriver::FACET, array(
-                    'hash' => $hash,
+                    'hash' => $hash['id'],
                     'collectionName' => $featureArray['properties']['collection']
                 ));
             }
