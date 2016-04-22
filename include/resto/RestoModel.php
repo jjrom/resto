@@ -985,6 +985,11 @@ abstract class RestoModel {
         $properties = $this->mapInputProperties($data);
         
         /*
+         * Add collection to $properties to initialize facet counts on collection
+         */
+        $properties['collection']  = isset($properties['collection']) ? $properties['collection'] : $collection->name;
+        
+        /*
          * Compute unique identifier
          */
         if (!isset($data['id']) || !RestoUtil::isValidUUID($data['id'])) {
