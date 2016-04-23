@@ -20,6 +20,7 @@ require 'Taggers/Tagger_Geology.php';
 require 'Taggers/Tagger_Hydrology.php';
 require 'Taggers/Tagger_LandCover.php';
 require 'Taggers/Tagger_Political.php';
+require 'Taggers/Tagger_Toponyms.php';
 require 'Taggers/Tagger_Population.php';
 require 'Taggers/Tagger_Physical.php';
 class iTag {
@@ -27,7 +28,7 @@ class iTag {
     /*
      * iTag version
      */
-    const version = '3.0.11';
+    const version = '3.0.12';
     
     /*
      * Database handler
