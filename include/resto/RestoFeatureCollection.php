@@ -748,7 +748,7 @@ class RestoFeatureCollection {
             else if (isset($this->context->modules['Gazetteer'])) {
                 $gazetteer = RestoUtil::instantiate($this->context->modules['Gazetteer']['className'], array($this->context, $this->user));
             }
-            if ($gazetteer) {
+            if (isset($gazetteer)) {
                 $location = $gazetteer->search(array(
                     'q' => $params['geo:name'],
                     'wkt' => true
