@@ -857,6 +857,38 @@ abstract class RestoModel {
             'title' => 'Last update of the product within database',
             'operation' => '>=',
             'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'
+        ),
+        /**
+         *  @SWG\Parameter(
+         *      name="publishedAfter",
+         *      in="query",
+         *      description="Product publication within search engine after specified date and time - OpenSearch {resto:publishedAfter}",
+         *      type="string",
+         *      pattern="^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$"
+         *  )
+         */
+        'resto:publishedAfter' => array(
+            'key' => 'published',
+            'osKey' => 'publishedAfter',
+            'title' => 'Product publication within search engine after specified date and time',
+            'operation' => '>=',
+            'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'
+        ),
+        /**
+         *  @SWG\Parameter(
+         *      name="publishedBefore",
+         *      in="query",
+         *      description="Product publication within search engine before specified date and time - OpenSearch {resto:publishedBefore}",
+         *      type="string",
+         *      pattern="^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$"
+         *  )
+         */
+        'resto:publishedBefore' => array(
+            'key' => 'published',
+            'osKey' => 'publishedBefore',
+            'title' => 'Product publication within search engine before specified date and time',
+            'operation' => '<=',
+            'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'
         )
     );
 
