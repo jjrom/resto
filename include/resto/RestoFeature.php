@@ -170,7 +170,7 @@ class RestoFeature {
         /*
          * Initialize ATOM feed
          */
-        $atomFeed = new RestoATOMFeed($this->featureArray['id'], $this->featureArray['properties']['title'], 'resto feature');
+        $atomFeed = new RestoATOMFeed($this->featureArray['id'], $this->featureArray['properties']['title'], 'resto feature', $this->collection->model);
         
         /*
          * Entry for feature

@@ -1092,14 +1092,26 @@ abstract class RestoModel {
     public function getFiltersFromQuery($query) {
         $params = array();
         foreach ($query as $key => $value) {
-            foreach (array_keys($this->searchFilters) as $filterKey) {
-                if ($key === $this->searchFilters[$filterKey]['osKey']) {
-                    $params[$filterKey] = preg_replace('/<.*?>/', '', $value);
-                    $this->validateFilter($filterKey, $params[$filterKey]);
-                }
+            $filterKey = $this->getFilterName($key);
+            if (isset($filterKey)) {
+                $params[$filterKey] = preg_replace('/<.*?>/', '', $value);
+                $this->validateFilter($filterKey, $params[$filterKey]);
             }
         }
         return $params;
+    }
+    
+    /**
+     * Return OpenSearch filter name from OpenSearch key
+     * @param string $osKey
+     */
+    public function getFilterName($osKey) {
+        foreach (array_keys($this->searchFilters) as $filterKey) {
+            if ($osKey === $this->searchFilters[$filterKey]['osKey']) {
+                return $filterKey;
+            }
+        }
+        return null;
     }
     
     /**

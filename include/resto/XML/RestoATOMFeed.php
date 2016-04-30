@@ -22,16 +22,24 @@ class RestoATOMFeed extends RestoXML {
      */
     private $useGeoRSSSimple = true;
     
+    /*
+     * Model
+     */
+    private $model;
+    
     /**
      * Constructor
      * 
      * @param string $id
      * @param string $title
      * @param string $subtitle
+     * @param RestoModel $model
      */
-    public function __construct($id, $title, $subtitle) {
+    public function __construct($id, $title, $subtitle, $model) {
         
         parent::__construct();
+        
+        $this->model = $model;
         
         /*
          * Start ATOM feed
@@ -125,11 +133,6 @@ class RestoATOMFeed extends RestoXML {
     public function setCollectionElements($properties) {
         
         /*
-         * Update outputFormat links except for OSDD 'search'
-         */
-        $this->setCollectionLinks($properties);
-        
-        /*
          * Total results, startIndex and itemsPerpage
          */
         if (isset($properties['totalResults'])) {
@@ -146,6 +149,11 @@ class RestoATOMFeed extends RestoXML {
          * Query element
          */
         $this->setQuery($properties);
+        
+        /*
+         * Update outputFormat links except for OSDD 'search'
+         */
+        $this->setCollectionLinks($properties);
         
     }
     
@@ -248,11 +256,10 @@ class RestoATOMFeed extends RestoXML {
          */
         $this->writeElements(array(
             'title' => $feature['properties']['title'],
+            'updated' => $feature['properties']['updated'],
             // IRI is self url
             'id' => is_array($explodedSelf) ? $explodedSelf[0] : $feature['id'],
             'dc:identifier' => $feature['id'], // Local identifier - i.e. last part of uri
-            'published' => $feature['properties']['published'],
-            'updated' => $feature['properties']['updated'],
             /*
              * Element 'dc:date' - date of the resource is duration of acquisition following
              * the Dublin Core Collection Description on date
@@ -532,7 +539,11 @@ class RestoATOMFeed extends RestoXML {
         $this->startElement('os:Query');
         $this->writeAttributes(array('role' => 'request'));
         if (isset($properties['query'])) {
-            $this->writeAttributes($properties['query']['originalFilters']);
+            foreach ($properties['query']['originalFilters'] as $key => $value) {
+                if ($key !== 'collection') {
+                    $this->writeAttribute($this->model->getFilterName($key), $value);
+                }
+            }
         }
         $this->endElement();
     }

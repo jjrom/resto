@@ -169,7 +169,7 @@ class RestoOSDD extends RestoXML {
     private function setEndingElements() {
         $this->writeElements(array(
             'Contact' => $this->osDescription['Contact'],
-            'Tags' => $this->osDescription['Tags'],
+            'Tags' => implode(' ', array('CEOS-OS-BP-V1.0', $this->osDescription['Tags'])),
             'LongName' => $this->osDescription['LongName']
         ));
         $this->startElement('Query');
