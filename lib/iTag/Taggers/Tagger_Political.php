@@ -119,7 +119,7 @@ class Tagger_Political extends Tagger {
             $query = $prequery . ' SELECT name as name, normalize(name) as id, continent as continent, normalize(continent) as continentid, ' . $this->postgisArea($this->postgisIntersection('geom', 'corrected_geometry')) . ' as area, ' . $this->postgisArea('geom') . ' as entityarea FROM prequery, datasources.countries WHERE st_intersects(geom, corrected_geometry) ORDER BY area DESC';
         }
         else {
-            $query = $prequery . ' SELECT region, name as state, normalize(name) as stateid, normalize(region) as regionid, adm0_a3 as isoa3, ' .  $this->postgisArea($this->postgisIntersection('geom', 'corrected_geometry')) . ' as area, ' . $this->postgisArea('geom') . ' as entityarea, ' . $this->postgisIntersection('geom', 'corrected_geometry') . ' as wkb_geom FROM prequery, datasources.states WHERE st_intersects(geom, corrected_geometry) ORDER BY area DESC';
+            $query = $prequery . ' SELECT region, name as state, normalize(name) as stateid, normalize(region) as regionid, adm0_a3 as isoa3, ' .  $this->postgisArea($this->postgisIntersection('geom', 'corrected_geometry')) . ' as area, ' . $this->postgisArea('geom') . ' as entityarea, ' . $this->postgisIntersection('geom', 'corrected_geometry') . ' as wkb_geom, iso_a2 FROM prequery, datasources.states WHERE st_intersects(geom, corrected_geometry) ORDER BY area DESC';
         }
         $results = $this->query($query);
         while ($element = pg_fetch_assoc($results)) {
@@ -127,6 +127,16 @@ class Tagger_Political extends Tagger {
                 $this->addCountriesToContinents($continents, $element);
             }
             else {
+                
+                /*
+                 * Get the region area
+                 */
+                $query2 = 'WITH prequery AS (SELECT ' . $this->postgisGeomFromText($footprint) . ' AS corrected_geometry) SELECT ' . $this->postgisArea($this->postgisIntersection('geom', 'corrected_geometry')) . ' as regionarea, ' . $this->postgisArea('geom') . ' as regionentityarea FROM prequery, datasources.regions WHERE normalize(name)=\'' . $element['regionid'] . '\' AND iso_a2=\'' . $element['iso_a2'] . '\' LIMIT 1';
+                $results2 = $this->query($query2);
+                while ($element2 = pg_fetch_assoc($results2)) {
+                    $element['regionarea'] = $element2['regionarea'];
+                    $element['regionentityarea'] = $element2['regionentityarea'];
+                }
                 $this->addRegionsToCountries($continents, $element);
             }
         }
@@ -232,14 +242,25 @@ class Tagger_Political extends Tagger {
             ));
         }
         else {
-            $area = $this->toSquareKm($element['area']);
-            array_push($regions, array(
-                'name' => $element['region'],
-                'id' => 'region:' . $element['regionid'],
-                'pcover' => $this->percentage($area, $this->area),
-                'gcover' => $this->percentage($area, $this->toSquareKm($element['entityarea'])),
-                'states' => array()
-            ));
+            if (isset($element['regionarea']) && isset($element['regionentityarea'])) {
+                $area = $this->toSquareKm($element['regionarea']);
+                array_push($regions, array(
+                    'name' => $element['region'],
+                    'id' => 'region:' . $element['regionid'],
+                    'pcover' => $this->percentage($area, $this->area),
+                    'gcover' => $this->percentage($area, $this->toSquareKm($element['regionentityarea'])),
+                    'states' => array()
+                ));
+            }
+            else {
+                array_push($regions, array(
+                    'name' => $element['region'],
+                    'id' => 'region:' . $element['regionid'],
+                    'pcover' => -1,
+                    'gcover' => -1,
+                    'states' => array()
+                ));
+            }
         }
     }
 
@@ -278,8 +299,8 @@ class Tagger_Political extends Tagger {
         while ($result = pg_fetch_assoc($results)) {
             $toponyms[] = array(
                 'name' => $result['name'],
-                'geo:lon' => (integer) $result['longitude'],
-                'geo:lat' => (integer) $result['latitude'],
+                'geo:lon' => (float) $result['longitude'],
+                'geo:lat' => (float) $result['latitude'],
                 'fcode' => $result['fcode'],
                 'population' => (integer) $result['population']
             );      
