@@ -77,21 +77,6 @@ class RestoATOMFeed extends RestoXML {
         $this->addEntryElements($feature, $context);
         
         /*
-         * Links
-         */
-        $this->addLinks($feature);
-        
-        /*
-         * Media (i.e. Quicklook / Thumbnail / etc.)
-         */
-        $this->addQuicklooks($feature);
-        
-        /*
-         * Summary
-         */
-        $this->addSummary($feature, $context);
-        
-        /*
          * entry - close element
          */
         $this->endElement(); // entry   
@@ -133,6 +118,11 @@ class RestoATOMFeed extends RestoXML {
     public function setCollectionElements($properties) {
         
         /*
+         * Update outputFormat links except for OSDD 'search'
+         */
+        $this->setCollectionLinks($properties);
+        
+        /*
          * Total results, startIndex and itemsPerpage
          */
         if (isset($properties['totalResults'])) {
@@ -149,11 +139,6 @@ class RestoATOMFeed extends RestoXML {
          * Query element
          */
         $this->setQuery($properties);
-        
-        /*
-         * Update outputFormat links except for OSDD 'search'
-         */
-        $this->setCollectionLinks($properties);
         
     }
     
@@ -258,7 +243,42 @@ class RestoATOMFeed extends RestoXML {
             'title' => $feature['properties']['title'],
             'updated' => $feature['properties']['updated'],
             // IRI is self url
-            'id' => is_array($explodedSelf) ? $explodedSelf[0] : $feature['id'],
+            'id' => is_array($explodedSelf) ? $explodedSelf[0] : $feature['id']
+        ));
+        
+        /*
+         * Summary
+         */
+        $this->addSummary($feature, $context);
+        
+        /*
+         * Add self
+         */
+        if (is_array($explodedSelf)) {
+            $this->startElement('link');
+            $this->writeAttributes(array(
+                'rel' => 'self',
+                'type' => RestoUtil::$contentTypes['atom'],
+                'title' => $context->dictionary->translate('_atomLink', $feature['id']),
+                'href' => join('?', $explodedSelf)
+            ));
+            $this->endElement(); // link
+        }
+        
+        /*
+         * Links
+         */
+        $this->addLinks($feature);
+        
+        /*
+         * Media (i.e. Quicklook / Thumbnail / etc.)
+         */
+        $this->addQuicklooks($feature);
+        
+        /*
+         * Base elements
+         */
+        $this->writeElements(array(
             'dc:identifier' => $feature['id'], // Local identifier - i.e. last part of uri
             /*
              * Element 'dc:date' - date of the resource is duration of acquisition following
@@ -278,19 +298,6 @@ class RestoATOMFeed extends RestoXML {
          */
         $this->addGeoRSS($feature['geometry']['type'], $feature['geometry']['coordinates']);
         
-        /*
-         * Add self
-         */
-        if (is_array($explodedSelf)) {
-            $this->startElement('link');
-            $this->writeAttributes(array(
-                'rel' => 'self',
-                'type' => RestoUtil::$contentTypes['atom'],
-                'title' => $context->dictionary->translate('_atomLink', $feature['id']),
-                'href' => join('?', $explodedSelf)
-            ));
-            $this->endElement(); // link
-        }
     }
     
     /**
