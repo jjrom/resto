@@ -4,7 +4,7 @@
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/jjrom/resto.svg)](http://isitmaintained.com/project/jjrom/resto "Average time to resolve an issue")
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/jjrom/resto.svg)](http://isitmaintained.com/project/jjrom/resto "Percentage of issues still open")
 
-[resto](http://mapshup.com/resto/) - an Earth Observation products search engine 
+resto - an Earth Observation products search engine 
 
 Try the [demo] (http://mapshup.com/projects/rocket/) !
 
