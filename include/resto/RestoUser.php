@@ -32,7 +32,6 @@ class RestoUser {
     /*
      * User profile
      */
-
     public $profile;
 
     /*
@@ -447,6 +446,52 @@ class RestoUser {
         } catch (Exception $e) {
             
         }
+    }
+
+    /**
+     * Return user search queries
+     * 
+     * @param array $params
+     */
+    public function getSearchQueries($params) {
+        /*
+         * 'unregistered' can't view search history
+         */
+        if ($this->profile['userid'] == -1)
+            return array();
+
+        /*
+         * prepare filters
+         */
+        $params['_email'] = $this->profile['email'];
+        $params['_service'] = 'search';
+        $params['_firstquery'] = true;
+        if (isset($params['_limit']) && is_numeric($params['_limit']) && $params['_limit'] > 0)
+            $params['_limit'] = max(100, $params['_limit']);
+        else
+            $params['_limit'] = 10;
+
+        /*
+         * Get queries
+         */
+        $results = $this->context->dbDriver->get(RestoDatabaseDriver::HISTORY, $params);
+
+        /*
+         * prepare response object
+         */
+        $queries = array();
+        foreach ($results as $q){
+            $queries[] = array(
+                'gid' => $q['gid'],
+                'url' => $q['url'],
+                'collection' => $q['collection'],
+                'query' => json_decode($q['query']),
+                'querytime' => $q['querytime'],
+                'ip' => $q['ip']
+            );
+        }
+
+        return $queries;
     }
 
     /**

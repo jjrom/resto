@@ -45,6 +45,7 @@ class Functions_history {
      *      _collection
      *      _maxdate
      *      _mindate
+     *      _firstquery
      * @return array
      * @throws Exception
      */
@@ -73,11 +74,12 @@ class Functions_history {
         if (isset($options['_mindate'])) {
             $where[] = 'querytime >=\'' . pg_escape_string($options['_mindate']) . '\'';
         }
-        
-        $query = 'SELECT gid, email, method, service, collection, resourceid, query, querytime, url, ip FROM usermanagement.history' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : ' ') . ' ORDER BY ' . pg_escape_string($orderBy) . ' ' . pg_escape_string($ascOrDesc) . ' LIMIT ' . $numberOfResults . ' OFFSET ' . $startIndex;
-        
-        return $this->dbDriver->fetch($this->dbDriver->query($query));
-        
-    }
+        if (isset($options['_firstquery']) && $options['_firstquery']) {
+            $where[] = 'query !~ \'"page":\'';
+        }
 
+        $query = 'SELECT gid, email, method, service, collection, resourceid, query, querytime, url, ip FROM usermanagement.history' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : ' ') . ' ORDER BY ' . pg_escape_string($orderBy) . ' ' . pg_escape_string($ascOrDesc) . ' LIMIT ' . $numberOfResults . ' OFFSET ' . $startIndex;
+
+        return $this->dbDriver->fetch($this->dbDriver->query($query));
+    }
 }

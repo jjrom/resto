@@ -1058,6 +1058,37 @@ class RestoRouteGET extends RestoRoute {
             ));
         }
         
+        /**
+         *  @SWG\Get(
+         *      tags={"user"},
+         *      path="/user/queries",
+         *      summary="User search queries",
+         *      description="Returns user search queries",
+         *      operationId="getSearchQueries",
+         *      produces={"application/json"},
+         *      security={
+         *          {
+         *             "localAuthentication": {"read:history"}
+         *          }
+         *      },
+         *      @SWG\Response(
+         *          response="200",
+         *          description="Return user search queries"
+         *      ),
+         *      @SWG\Response(
+         *          response="403",
+         *          description="Forbidden"
+         *      )
+         *  )
+         */
+        if ($segments[1] === 'queries'){
+            return RestoLogUtil::success('Last search queries for ' . $this->user->profile['email'], array(
+                        'email' => $this->user->profile['email'],
+                        'userid' => $this->user->profile['userid'],
+                        'queries' => $this->user->getSearchQueries($this->context->query)
+            ));
+        }
+        
         return RestoLogUtil::httpError(404);
     }
 
