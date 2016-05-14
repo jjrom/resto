@@ -33,7 +33,7 @@ class Functions_history {
 
     /**
      * Get history
-     * 
+     *
      * @param array $options
      *      _order
      *      _ascordesc
@@ -50,11 +50,11 @@ class Functions_history {
      * @throws Exception
      */
     public function getHistory($options) {
-        
+
         $orderBy = isset($options['_order']) ? $options['_order'] : 'querytime';
-        $ascOrDesc = isset($options['_ascordesc']) ? $options['_ascordesc'] : 'DESC';
-        $startIndex = isset($options['_offset']) ? $options['_offset'] : 0;
-        $numberOfResults = isset($options['_limit']) ? $options['_limit'] : 50;
+        $ascOrDesc = isset($options['_ascordesc']) && $options['_ascordesc'] === 'ASC' ? 'ASC' : 'DESC';
+        $startIndex = isset($options['_offset']) && is_numeric($options['_offset']) ? $options['_offset'] : 0;
+        $numberOfResults = isset($options['_limit']) && is_numeric($options['_limit']) ? $options['_limit'] : 50;
         $where = array();
         if (isset($options['_email'])) {
             $where[] = 'email=\'' . pg_escape_string($options['_email']) . '\'';

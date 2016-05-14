@@ -43,4 +43,4 @@ spl_autoload_register('autoload');
 /*
  * Launch RESTo
  */
-new Resto(realpath(dirname(__FILE__)) . '/include/config.php');
+new Resto(realpath(dirname(__FILE__)) . '/include/config.local.php');
