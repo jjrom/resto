@@ -26,8 +26,8 @@ function autoload($className) {
         'include/resto/Models/',
         'include/resto/Dictionaries/',
         'include/resto/Modules/',
-        'include/resto/Routes/', 
-        'include/resto/Utils/', 
+        'include/resto/Routes/',
+        'include/resto/Utils/',
         'include/resto/XML/',
         'lib/iTag/',
         'lib/JWT/') as $current_dir) {
@@ -43,4 +43,4 @@ spl_autoload_register('autoload');
 /*
  * Launch RESTo
  */
-new Resto(realpath(dirname(__FILE__)) . '/include/config.local.php');
+new Resto(realpath(dirname(__FILE__)) . '/include/config.php');
