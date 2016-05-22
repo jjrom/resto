@@ -19,78 +19,78 @@
  * RESTo FeatureCollection
  */
 class RestoFeatureCollection {
-    
+
     /*
      * Context
      */
     public $context;
-    
+
     /*
      * User
      */
     public $user;
-    
+
     /*
      * Parent collection
      */
     private $defaultCollection;
-    
+
     /*
      * FeatureCollectionDescription
      */
     private $description;
-    
+
     /*
      * Features
      */
     private $restoFeatures;
-    
+
     /*
      * All collections
      */
     private $collections = array();
-    
+
     /*
      * Model of the main collection
      */
     private $defaultModel;
-    
+
     /*
      * Total number of resources relative to the query
      */
     private $paging = array();
-    
+
     /*
      * Query analyzer
      */
     private $queryAnalyzer;
-    
+
     /**
-     * Constructor 
-     * 
+     * Constructor
+     *
      * @param RestoResto $context : Resto Context
      * @param RestoUser $user : Resto user
      * @param RestoCollection or array of RestoCollection $collections => First collection is the master collection !!
      */
     public function __construct($context, $user, $collections) {
-        
+
         if (!isset($context) || !is_a($context, 'RestoContext')) {
             RestoLogUtil::httpError(500, 'Context is undefined or not valid');
         }
-        
+
         $this->context = $context;
         $this->user = $user;
         if (isset($this->context->modules['QueryAnalyzer'])) {
             $this->queryAnalyzer = RestoUtil::instantiate($this->context->modules['QueryAnalyzer']['className'], array($this->context, $this->user));
         }
- 
+
         $this->initialize($collections);
-        
+
     }
-  
+
     /**
      * Output product description as a PHP array
-     * 
+     *
      * @param boolean publicOutput
      */
     public function toArray($publicOutput = false) {
@@ -100,31 +100,31 @@ class RestoFeatureCollection {
         }
         return array_merge($this->description, array('features' => $features));
     }
-    
+
     /**
      * Output product description as a GeoJSON FeatureCollection
-     * 
+     *
      * @param boolean $pretty : true to return pretty print
      */
     public function toJSON($pretty = false) {
         return RestoUtil::json_format($this->toArray(true), $pretty);
     }
-    
+
     /**
      * Output product description as an ATOM feed
      */
     public function toATOM() {
-        
+
         /*
          * Initialize ATOM feed
          */
-        $atomFeed = new RestoATOMFeed($this->description['properties']['id'], $this->context->title, $this->getATOMSubtitle(), $this->collection->model);
-       
+        $atomFeed = new RestoATOMFeed($this->description['properties']['id'], $this->context->title, $this->getATOMSubtitle(), $this->defaultCollection->model);
+
         /*
          * Set collection elements
          */
         $atomFeed->setCollectionElements($this->description['properties']);
-        
+
         /*
          * Add one entry per product
          */
@@ -135,10 +135,10 @@ class RestoFeatureCollection {
          */
         return $atomFeed->toString();
     }
-    
+
     /**
      * Initialize RestoFeatureCollection from database
-     * 
+     *
      * @param RestoCollection or array of RestoCollection $collections
      * @return type
      */
@@ -163,17 +163,17 @@ class RestoFeatureCollection {
      * Set featureCollection from database
      */
     private function loadFromStore() {
-        
+
         /*
          * Request start time
          */
         $this->requestStartTime = microtime(true);
-        
+
         /*
          * Clean search filters
          */
         $originalFilters = $this->defaultModel->getFiltersFromQuery($this->context->query);
-        
+
         /*
          * Number of returned results is never greater than MAXIMUM_LIMIT
          */
@@ -183,12 +183,12 @@ class RestoFeatureCollection {
          * Compute offset based on startPage or startIndex
          */
         $offset = $this->getOffset($originalFilters, $limit);
-        
+
         /*
-         * Query Analyzer 
+         * Query Analyzer
          */
         $analysis = $this->analyze($originalFilters);
-        
+
         /*
          * Completely not understood query - return an empty result without
          * launching a search on the database
@@ -202,32 +202,32 @@ class RestoFeatureCollection {
         }
         /*
          * Read features from database
-         */   
+         */
         else {
             $this->loadFeatures($analysis['appliedFilters'], $limit, $offset);
         }
-        
+
         /*
          * Set description
          */
         $this->setDescription($analysis, $offset, $limit);
-        
+
     }
-    
+
     /**
      * Set description
-     * 
+     *
      * @param array $analysis
      * @param integer $offset
      * @param integer $limit
      */
     private function setDescription($analysis, $offset, $limit) {
-        
+
         /*
          * Define collectionName
          */
         $collectionName = isset($this->defaultCollection) ? $this->defaultCollection->name : '*';
-        
+
         /*
          * Convert resto model to search service "osKey"
          */
@@ -235,14 +235,14 @@ class RestoFeatureCollection {
             'originalFilters' => array_merge($this->toOSKeys($analysis['originalFilters']), array('collection' => $collectionName)),
             'appliedFilters' => array_merge($this->toOSKeys($analysis['appliedFilters']), array('collection' => $collectionName))
         );
-        
+
         /*
          * Analysis
          */
         if (isset($analysis['analysis'])) {
             $query['analysis'] = $analysis['analysis'];
         }
-        
+
         /*
          * Sort results
          */
@@ -259,12 +259,12 @@ class RestoFeatureCollection {
             )
         );
     }
-    
+
     /**
      * Return an array of request parameters formated for output url
-     * 
+     *
      * @param {array} $params - input params
-     * 
+     *
      */
     private function writeRequestParams($params) {
 
@@ -294,10 +294,10 @@ class RestoFeatureCollection {
                 }
             }
         }
-        
+
         return $arr;
     }
-    
+
     /**
      * Set restoFeatures and collections array
      *
@@ -306,7 +306,7 @@ class RestoFeatureCollection {
      * @param integer $offset
      */
     private function loadFeatures($params, $limit, $offset) {
-        
+
         /*
          * Get features array from database
          */
@@ -321,7 +321,7 @@ class RestoFeatureCollection {
                 )
             )
         );
-        
+
         /*
          * Load collections array
          */
@@ -337,19 +337,19 @@ class RestoFeatureCollection {
                 $this->restoFeatures[] = $feature;
             }
         }
-        
+
         /*
          * Compute paging
          */
         $this->paging = $this->getPaging($featuresArray['count'], $limit, $offset);
-        
+
     }
 
     /**
      * Search offset - first element starts at offset 0
      * Note: startPage has preseance over startIndex if both are specified in request
      * (see CEOS-BP-006 requirement of CEOS OpenSearch Best Practice document)
-     *     
+     *
      * @param type $params
      */
     private function getOffset($params, $limit) {
@@ -362,34 +362,34 @@ class RestoFeatureCollection {
         }
         return $offset;
     }
-    
+
     /**
      * Get navigation links (i.e. next, previous, first, last)
-     * 
+     *
      * @param integer $limit
-     * 
+     *
      * @return array
      */
     private function getLinks($limit) {
-        
+
         /*
          * Base links are always returned
          */
         $links = $this->getBaseLinks();
-        
+
         /*
          * Start page cannot be lower than 1
          */
         if ($this->paging['startPage'] > 1) {
-            
+
             /*
              * Previous URL is the previous URL from the self URL
-             * 
+             *
              */
             $links[] = $this->getLink('previous', '_previousCollectionLink', array(
                 'startPage' => max($this->paging['startPage'] - 1, 1),
                 'count' => $limit));
-            
+
             /*
              * First URL is the first search URL i.e. with startPage = 1
              */
@@ -401,11 +401,11 @@ class RestoFeatureCollection {
 
         /*
          * Theorically, startPage cannot be greater than the one from lastURL
-         * ...but since we use a count estimate it is not possible to know the 
+         * ...but since we use a count estimate it is not possible to know the
          * real last page. So always set a nextPage !
          */
         if (count($this->restoFeatures) >= $limit) {
-            
+
             /*
              * Next URL is the next search URL from the self URL
              */
@@ -422,11 +422,11 @@ class RestoFeatureCollection {
                 'count' => $limit)
             );
         }
-    
+
         return $links;
-        
+
     }
-    
+
     /**
      * Return base links (i.e. links always present in response)
      */
@@ -446,24 +446,24 @@ class RestoFeatureCollection {
             )
         );
     }
-    
+
     /**
      * Return Link
-     * 
+     *
      * @param string $rel
      * @param string $title
      * @param array $params
      * @return array
      */
     private function getLink($rel, $title, $params) {
-        
+
         /*
          * Do not set count if equal to default limit
          */
         if (isset($params['count']) && $params['count'] === $this->context->dbDriver->resultsPerPage) {
             unset($params['count']);
         }
-            
+
         return array(
             'rel' => $rel,
             'type' => RestoUtil::$contentTypes['json'],
@@ -471,10 +471,10 @@ class RestoFeatureCollection {
             'href' => RestoUtil::updateUrl($this->context->getUrl(false), $this->writeRequestParams(array_merge($this->context->query, $params)))
         );
     }
-    
+
     /**
      * Get start, next and last page from limit and offset
-     * 
+     *
      * @param array $count
      * @param integer $limit
      * @param integer $offset
@@ -488,11 +488,11 @@ class RestoFeatureCollection {
             'totalPage' => 0
         );
         if (count($this->restoFeatures) > 0) {
-            
+
             $startPage = ceil(($offset + 1) / $limit);
-            
+
             /*
-             * Tricky part if count is estimate, then 
+             * Tricky part if count is estimate, then
              * the total count is the maximum between the database estimate
              * and the pseudo real count based on the retrieved features count
              */
@@ -509,10 +509,10 @@ class RestoFeatureCollection {
         }
         return $paging;
     }
-     
+
    /**
      * Return query array from search filters
-     * 
+     *
      * @param array $searchFilters
      * @return array
      */
@@ -532,10 +532,10 @@ class RestoFeatureCollection {
         ksort($query);
         return $query;
     }
-    
+
     /**
      * Get ATOM subtitle - construct from $this->description['properties']['title']
-     * 
+     *
      * @return string
      */
     private function getATOMSubtitle() {
@@ -548,34 +548,34 @@ class RestoFeatureCollection {
         $subtitle .= isset($this->description['properties']['startIndex']) ? '&nbsp;|&nbsp;' . $previous . $this->context->dictionary->translate('_pagination', $this->description['properties']['startIndex'], $this->description['properties']['startIndex'] + 1) . $next : '';
         return $subtitle;
     }
-    
+
     /**
      * Analyse searchTerms
-     * 
+     *
      * @param array $params
      */
     private function analyze($params) {
-        
+
         /*
          * Store original params
          */
         $originalFilters = $params;
-        
+
         /*
          * Special case for name alone
          */
         if (isset($params['geo:name'])) {
             $params = $this->extendParamsWithGazetteer($params);
         }
-        
+
         /*
          * Analyse query
          */
         $analysis = $this->queryAnalyzer->analyze(isset($params['searchTerms']) ? $params['searchTerms'] : null);
-        
+
         /*
          * Special case for geo:geometry containing geouid
-         * 
+         *
          */
         $hashTodiscard = null;
         if (!empty($params['geo:geometry']) && strpos($params['geo:geometry'],'geouid:') === 0) {
@@ -590,7 +590,7 @@ class RestoFeatureCollection {
                 ), $analysis['analyze']['Explained']);
             }
         }
-        
+
         /*
          * Not understood - return error
          */
@@ -602,7 +602,7 @@ class RestoFeatureCollection {
                 'analysis' => $analysis
             );
         }
-        
+
         /*
          * Where, When, What
          */
@@ -612,10 +612,10 @@ class RestoFeatureCollection {
             'analysis' => $analysis
         );
     }
-    
+
     /**
      * Set what filters from query analysis
-     * 
+     *
      * @param array $what
      * @param array $params
      */
@@ -633,16 +633,16 @@ class RestoFeatureCollection {
         }
         return $params;
     }
-    
+
     /**
      * Set when filters from query analysis
-     * 
+     *
      * @param array $when
      * @param array $params
      */
     private function setWhenFilters($when, $params) {
         foreach($when as $key => $value) {
-            
+
             /*
              * times is an array of time:start/time:end pairs
              * TODO : Currently only one pair is supported
@@ -656,9 +656,9 @@ class RestoFeatureCollection {
         }
         return $params;
     }
-    
+
     /**
-     * 
+     *
      * @param array $times
      */
     private function timesToOpenSearch($times) {
@@ -670,20 +670,20 @@ class RestoFeatureCollection {
         }
         return $params;
     }
-    
+
     /**
      * Set location filters from query analysis
-     * 
+     *
      * @param array $where
      * @param array $params
      * @param string $hashTodiscard
      */
     private function setWhereFilters($where, $params, $hashTodiscard = null) {
-        
+
         for ($i = count($where); $i--;) {
-            
+
             /*
-             * Only one toponym is supported (the last one) 
+             * Only one toponym is supported (the last one)
              */
             if (isset($where[$i]['geo:lon'])) {
                 $params['geo:lon'] = $where[$i]['geo:lon'];
@@ -715,10 +715,10 @@ class RestoFeatureCollection {
         }
         return $params;
     }
-    
+
     /**
      * Convert array of filter names to array of OpenSearch keys
-     * 
+     *
      * @param array $filterNames
      * @return array
      */
@@ -728,14 +728,14 @@ class RestoFeatureCollection {
             if (isset($this->defaultModel->searchFilters[$key])) {
                 $arr[$this->defaultModel->searchFilters[$key]['osKey']] = $value;
             }
-            
+
         }
         return $arr;
     }
-    
+
     /**
      * Extend search params with gazetteer results
-     * 
+     *
      * @param RestoContext $context
      * @param RestoUser $user
      * @param array $params
@@ -770,5 +770,5 @@ class RestoFeatureCollection {
         return $params;
     }
 
-    
+
 }
