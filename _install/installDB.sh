@@ -143,7 +143,7 @@ BEGIN
         blade := ST_SetSrid(ST_MakeLine(ST_MakePoint(180, -90), ST_MakePoint(180, 90)), 4326);
 
 	-- Delta longitude is greater than 180 then return splitted geometry
-	IF ST_XMin(geom_in) < -90 AND ST_XMax(geom_in) > 90 THEN
+	IF (ST_XMin(geom_in) < -90 AND ST_XMax(geom_in) > 90) OR ST_XMax(geom_in) > 180 OR ST_XMax(geom_in) < -180 THEN
 
             -- Add 360 to all negative longitudes
             WITH tmp0 AS (
