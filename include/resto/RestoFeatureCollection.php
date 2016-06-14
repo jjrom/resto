@@ -480,7 +480,19 @@ class RestoFeatureCollection {
      * @param integer $offset
      */
     private function getPaging($count, $limit, $offset) {
+        /*
+         * If first page contains no features count must be 0 not estimated value
+         */
+        if ($offset == 0 && count($this->restoFeatures) == 0){
+            $count = array(
+                'total' => 0,
+                'isExact' => true
+            );
+        }
 
+        /*
+         * Default paging
+         */
         $paging = array(
             'count' => $count,
             'startPage' => 1,
@@ -507,6 +519,7 @@ class RestoFeatureCollection {
                 'totalPage' => $totalPage
             );
         }
+
         return $paging;
     }
 
