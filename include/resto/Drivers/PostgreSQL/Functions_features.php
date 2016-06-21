@@ -294,7 +294,6 @@ class Functions_features {
      * @param Boolean $filters
      */
     public function getCount($from, $filters = array()) {
-        
         /*
          * Determine if the count is estimated or real
          */
@@ -302,21 +301,22 @@ class Functions_features {
         if (isset($filters['geo:lon'])) {
             $realCount = true;
         }
-        
-        if ($realCount) {
-            $result = $this->dbDriver->query('SELECT count(*) as count ' . $from);
+
+        /*
+         * Perform count estimation
+         */
+        $result = -1;
+        if (!$realCount) {
+            $result = pg_fetch_result($this->dbDriver->query('SELECT count_estimate(\'' . pg_escape_string('SELECT * ' . $from) . '\') as count'), 0, 0);
         }
-        else {
-            $result = $this->dbDriver->query('SELECT count_estimate(\'' . pg_escape_string('SELECT * ' . $from) . '\') as count');
+
+        if ($result !== false && $result < 10 * $this->dbDriver->resultsPerPage) {
+            $result = pg_fetch_result($this->dbDriver->query('SELECT count(*) as count ' . $from), 0, 0);
+            $realCount = true;
         }
-        while ($row = pg_fetch_assoc($result)) {
-            return array(
-                'total' => (integer) $row['count'],
-                'isExact' => $realCount
-            );
-        }
+
         return array(
-            'total' => -1,
+            'total' => $result === false ? -1 : (integer) $result,
             'isExact' => $realCount
         );
     }
