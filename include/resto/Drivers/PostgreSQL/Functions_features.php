@@ -52,44 +52,49 @@ class Functions_features {
      * @throws Exception
      */
     public function search($context, $user, $collection, $params, $options) {
-        
         /*
          * Search filters functions
          */
         $filtersUtils = new Functions_filters();
-        
+
         /*
          * Set model
          */
         $model = isset($collection) ? $collection->model : new RestoModel_default();
-        
+
         /*
          * Check that mandatory filters are set
          */
         $this->checkMandatoryFilters($model, $params);
-        
+
         /*
          * Set search filters
          */
         $oFilter = implode(' AND ', $filtersUtils->prepareFilters($user, $model, $params));
-        
+
         /*
          * Prepare query
          */
         $fields = implode(',', $filtersUtils->getSQLFields($model));
         $from = ' FROM ' . (isset($collection) ? '_' . strtolower($collection->name) : 'resto') . '.features' . ($oFilter ? ' WHERE ' . $oFilter : '');
-        
+
+        /*
+         * Result set ordering and limit
+         */
+        $sort = isset($options['sort']) && in_array(strtolower($options['sort']), $this->dbDriver->sortParams) ? strtolower($options['sort']) : 'startdate';
+        $extra = ' ORDER BY ' . $sort . ' ' . (isset($options['order']) && preg_match('/^asc/i', $options['order']) ? 'ASC' : 'DESC');
+        $extra .= ' LIMIT ' . $options['limit'] . ' OFFSET ' . $options['offset'];
+
         /*
          * Retrieve products from database
          * Note: totalcount is estimated except if input search contains a lon/lat filter
          */
         return array(
             'count' => $this->getCount($from, $params),
-            'features' => $this->toFeatureArray($context, $user, $collection, $results = $this->dbDriver->query('SELECT ' . $fields . $from . ' ORDER BY startdate DESC LIMIT ' . $options['limit'] . ' OFFSET ' . $options['offset']))
+            'features' => $this->toFeatureArray($context, $user, $collection, $this->dbDriver->query('SELECT ' . $fields . $from . $extra))
         );
-        
     }
-    
+
     /**
      * 
      * Get Where clause from input parameters
@@ -560,5 +565,4 @@ class Functions_features {
         }
         return $featuresArray;
     }
-    
 }

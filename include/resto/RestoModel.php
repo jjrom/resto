@@ -889,7 +889,39 @@ abstract class RestoModel {
             'title' => 'Product publication within search engine before specified date and time',
             'operation' => '<=',
             'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'
-        )
+        ),
+        /**
+         *  @SWG\Parameter(
+         *      name="sortParam",
+         *      in="query",
+         *      description="Sort results by parameter",
+         *      required=false,
+         *      type="string",
+         *      pattern="^[a-zA-Z0-9]{4,}$",
+         *      default="startDate"
+         *  )
+         */
+        'resto:sortParam' => array(
+            'osKey' => 'sortParam',
+            'pattern' => '^[a-zA-Z0-9]{4,}$',
+            'title' => 'Sort results by parameter (default: startDate)'
+        ),
+        /**
+         *  @SWG\Parameter(
+         *      name="sortOrder",
+         *      in="query",
+         *      description="Sorting order (ascending or descending)",
+         *      required=false,
+         *      type="string",
+         *      pattern="^(asc|desc|ascending|descending)$",
+         *      default="descending"
+         *  )
+         */
+        'resto:sortOrder' => array(
+            'osKey' => 'sortOrder',
+            'pattern' => '^(asc|desc|ascending|descending)$',
+            'title' => 'Sorting order (ascending or descending)',
+        ),
     );
 
     public $extendedProperties = array();
@@ -1146,7 +1178,5 @@ abstract class RestoModel {
         }
             
         return true;
-        
     }
-    
 }

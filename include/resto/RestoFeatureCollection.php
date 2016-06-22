@@ -163,7 +163,6 @@ class RestoFeatureCollection {
      * Set featureCollection from database
      */
     private function loadFromStore() {
-
         /*
          * Request start time
          */
@@ -175,14 +174,9 @@ class RestoFeatureCollection {
         $originalFilters = $this->defaultModel->getFiltersFromQuery($this->context->query);
 
         /*
-         * Number of returned results is never greater than MAXIMUM_LIMIT
+         * result options 
          */
-        $limit = isset($originalFilters['count']) && is_numeric($originalFilters['count']) ? min($originalFilters['count'], isset($this->defaultModel->searchFilters['count']->maximumInclusive) ? $this->defaultModel->searchFilters['count']->maximumInclusive : 500) : $this->context->dbDriver->resultsPerPage;
-
-        /*
-         * Compute offset based on startPage or startIndex
-         */
-        $offset = $this->getOffset($originalFilters, $limit);
+        $options = $this->resultOptions($originalFilters);
 
         /*
          * Query Analyzer
@@ -198,20 +192,19 @@ class RestoFeatureCollection {
              $this->paging = $this->getPaging(array(
                  'total' => 0,
                  'isExact' => true
-             ), $limit, $offset);
+             ), $options['limit'], $options['offset']);
         }
         /*
          * Read features from database
          */
         else {
-            $this->loadFeatures($analysis['appliedFilters'], $limit, $offset);
+            $this->loadFeatures($analysis['appliedFilters'], $options);
         }
 
         /*
          * Set description
          */
-        $this->setDescription($analysis, $offset, $limit);
-
+        $this->setDescription($analysis, $options);
     }
 
     /**
@@ -221,8 +214,7 @@ class RestoFeatureCollection {
      * @param integer $offset
      * @param integer $limit
      */
-    private function setDescription($analysis, $offset, $limit) {
-
+    private function setDescription(&$analysis, &$options) {
         /*
          * Define collectionName
          */
@@ -252,10 +244,10 @@ class RestoFeatureCollection {
                 'id' => RestoUtil::UUIDv5($collectionName . ':' . json_encode($this->cleanFilters($analysis['appliedFilters']))),
                 'totalResults' => $this->paging['count']['total'],
                 'exactCount' => $this->paging['count']['isExact'],
-                'startIndex' => $offset + 1,
+                'startIndex' => $options['offset'] + 1,
                 'itemsPerPage' => count($this->restoFeatures),
                 'query' => array_merge($query, array('processingTime' => microtime(true) - $this->requestStartTime)),
-                'links' => $this->getLinks($limit)
+                'links' => $this->getLinks($options['limit'])
             )
         );
     }
@@ -305,8 +297,7 @@ class RestoFeatureCollection {
      * @param integer $limit
      * @param integer $offset
      */
-    private function loadFeatures($params, $limit, $offset) {
-
+    private function loadFeatures(&$params, &$options) {
         /*
          * Get features array from database
          */
@@ -315,10 +306,7 @@ class RestoFeatureCollection {
                 'user' => $this->user,
                 'collection' => isset($this->defaultCollection) ? $this->defaultCollection : null,
                 'filters' => $params,
-                'options' => array(
-                    'limit' => $limit,
-                    'offset' => $offset
-                )
+                'options' => $options
             )
         );
 
@@ -341,8 +329,7 @@ class RestoFeatureCollection {
         /*
          * Compute paging
          */
-        $this->paging = $this->getPaging($featuresArray['count'], $limit, $offset);
-
+        $this->paging = $this->getPaging($featuresArray['count'], $options['limit'], $options['offset']);
     }
 
     /**
@@ -783,5 +770,41 @@ class RestoFeatureCollection {
         return $params;
     }
 
+    /**
+     * Returns result options (offset,limit & sorting)
+     *
+     * @param array $filters
+     */
+    private function resultOptions($filters){
+        /*
+         * Number of returned results is never greater than MAXIMUM_LIMIT
+         */
+        $limit = isset($filters['count']) && is_numeric($filters['count']) ? min($filters['count'], isset($this->defaultModel->searchFilters['count']->maximumInclusive) ? $this->defaultModel->searchFilters['count']->maximumInclusive : 500) : $this->context->dbDriver->resultsPerPage;
 
+        /*
+         * Compute offset based on startPage or startIndex
+         */
+        $offset = $this->getOffset($filters, $limit);
+
+        /*
+         * Sort by parameter
+         */
+        $key = @strtolower($filters['resto:sortParam']);
+        $sort = in_array($key, $this->context->dbDriver->sortParams) ? $key : 'startdate';
+
+        /*
+         * Sorting order
+         */
+        $order = isset($filters['resto:sortOrder']) ? strtolower($filters['resto:sortOrder']) : 'descending';
+
+        /*
+         * Result options
+         */
+        return array(
+            'offset' => $offset,
+            'limit' => $limit,
+            'sort' => $sort,
+            'order' => $order
+        );
+    }
 }

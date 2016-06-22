@@ -33,12 +33,12 @@ require 'PostgreSQL/Functions_history.php';
  * RESTo PostgreSQL Database
  */
 class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
-    
+
     /*
      * Facet Util reference
      */
     public $facetUtil;
-    
+
     /**
      * Constructor
      * 
@@ -47,19 +47,13 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      * @throws Exception
      */
     public function __construct($config, $cache) {
-        
         parent::__construct($config, $cache);
         
         $this->dbh = $this->getHandler($config);
         
         $this->facetUtil = new RestoFacetUtil();
-        
-        if (isset($config['resultsPerPage'])) {
-            $this->resultsPerPage = $config['resultsPerPage'];
-        }
-        
     }
-    
+
     /**
      * Get object by typename
      * 
@@ -688,5 +682,4 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
         
         return $dbh;
     }
-    
 }
