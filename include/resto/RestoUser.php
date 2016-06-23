@@ -467,9 +467,9 @@ class RestoUser {
         $params['_service'] = 'search';
         $params['_firstquery'] = true;
         if (isset($params['_limit']) && is_numeric($params['_limit']) && $params['_limit'] > 0)
-            $params['_limit'] = max(100, $params['_limit']);
+            $params['_limit'] = min(10 * $this->context->dbDriver->resultsPerPage, $params['_limit']);
         else
-            $params['_limit'] = 10;
+            $params['_limit'] = $this->context->dbDriver->resultsPerPage;
 
         /*
          * Get queries
