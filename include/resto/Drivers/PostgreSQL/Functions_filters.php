@@ -30,7 +30,9 @@ class Functions_filters {
         'language',
         'geo:name',
         'geo:lat', // linked to geo:lon
-        'geo:radius' // linked to geo:lon
+        'geo:radius', // linked to geo:lon
+        'resto:sortParam',
+        'resto:sortOrder'
     );
     
     /**
@@ -651,5 +653,4 @@ class Functions_filters {
         }
         return $typeAndValue;
     }
-   
 }

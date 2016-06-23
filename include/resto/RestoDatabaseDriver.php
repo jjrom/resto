@@ -64,27 +64,32 @@ abstract class RestoDatabaseDriver {
     const WHERE_CLAUSE = 39;
     const COUNT_ESTIMATE = 40;
     const AREA = 41;
-    
+
     /*
      * Results per page
      */
     public $resultsPerPage = 20;
 
     /*
+     * Allowed sort parameters
+     */
+    public $sortParams = array('startdate');
+
+    /*
      * Cache object
      */
     public $cache = null;
-    
+
     /*
      * Database handler
      */
     public $dbh;
-    
+
     /*
      * Database username
      */
     public $dbUsername = 'resto';
-    
+
     /**
      * Constructor
      * 
@@ -94,8 +99,15 @@ abstract class RestoDatabaseDriver {
      */
     public function __construct($config, $cache) {
         $this->cache = isset($cache) ? $cache : new RestoCache(null);
+
+        if (isset($config['resultsPerPage'])) {
+            $this->resultsPerPage = $config['resultsPerPage'];
+        }
+        if (isset($config['sortParams']) && is_array($config['sortParams'])) {
+            $this->sortParams = $config['sortParams'];
+        }
     } 
-    
+
     /**
      * List object by type name
      * 
@@ -103,7 +115,7 @@ abstract class RestoDatabaseDriver {
      * @throws Exception
      */
     abstract public function get($typeName);
-    
+
     /**
      * Check if $typeName constraint is true
      * 
