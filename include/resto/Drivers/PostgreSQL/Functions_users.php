@@ -25,7 +25,7 @@ class Functions_users {
 
     /**
      * Constructor
-     * 
+     *
      * @param RestoDatabaseDriver $dbDriver
      * @throws Exception
      */
@@ -35,9 +35,9 @@ class Functions_users {
 
     /**
      * Return encrypted user password
-     * 
+     *
      * @param string $identifier : email
-     * 
+     *
      * @throws Exception
      */
     public function getUserPassword($identifier) {
@@ -48,7 +48,7 @@ class Functions_users {
 
     /**
      * Get user profile
-     * 
+     *
      * @param string $identifier : can be email (or string) or integer (i.e. uid)
      * @param string $password : if set then profile is returned only if password is valid
      * @return array : this function return HTTP 404 if user is not found in database
@@ -69,10 +69,10 @@ class Functions_users {
         if (count($results) === 0) {
             RestoLogUtil::httpError(404);
         }
-        
+
         $results[0]['activated'] = (integer) $results[0]['activated'];
         $results[0]['groups'] = substr($results[0]['groups'], 1, -1);
-        
+
         /*
          * Add picture
          */
@@ -83,12 +83,12 @@ class Functions_users {
 
     /**
      * Get full profiles for all users
-     * 
+     *
      * @return array
      * @throws exception
      */
     public function getUsersProfiles($data = array()) {
-        
+
         $results = $this->dbDriver->query('SELECT userid, email, groups, username, givenname, lastname, to_char(registrationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as registrationdate, country, organization, organizationcountry, flags, topics, activated, validatedby, to_char(validationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as validationdate FROM usermanagement.users' . (isset($data['groupid']) ? ' WHERE \'' . pg_escape_string($data['groupid']) . '\' = any(groups)' : (isset($data['keywords']) ? ' WHERE email LIKE \'' . pg_escape_string($data['keywords']) .'\' OR username LIKE \''  . pg_escape_string($data['keywords']) .'\' OR givenname LIKE \''  . pg_escape_string($data['keywords']) .'\' OR lastname LIKE \''  . pg_escape_string($data['keywords']) .'\' OR country LIKE \''  . pg_escape_string($data['keywords']) .'\' OR organization LIKE \''  . pg_escape_string($data['keywords']) .'\'' : '')) . (isset($data['limit']) ? ' LIMIT ' . pg_escape_string($data['limit']) : '') . (isset($data['offset']) ? ' OFFSET ' . pg_escape_string($data['offset']) : '') );
         $profiles = array();
         while ($profile = pg_fetch_assoc($results)) {
@@ -118,9 +118,9 @@ class Functions_users {
 
     /**
      * Check if user identified by $identifier exists within database
-     * 
+     *
      * @param string $email - user email
-     * 
+     *
      * @return boolean
      * @throws Exception
      */
@@ -132,7 +132,7 @@ class Functions_users {
 
     /**
      * Save user profile to database i.e. create new entry if user does not exist
-     * 
+     *
      * @param array $profile
      * @return array (userid, activationcode)
      * @throws exception
@@ -170,7 +170,7 @@ class Functions_users {
 
     /**
      * Update user profile to database
-     * 
+     *
      * @param array $profile
      * @return integer (userid)
      * @throws exception
@@ -184,12 +184,12 @@ class Functions_users {
         /*
          * The following parameters cannot be updated :
          *   - email
-         *   - userid 
+         *   - userid
          *   - activationcode
          *   - registrationdate
          */
         $values = array();
-        foreach (array_values(array('username', 'givenname', 'lastname', 'groups', 'country', 'organization', 'topics', 'organizationcountry', 'flags')) as $field) {
+        foreach (array_values(array('password', 'activated', 'username', 'givenname', 'lastname', 'groups', 'country', 'organization', 'topics', 'organizationcountry', 'flags')) as $field) {
             if (isset($profile[$field])) {
                 switch ($field) {
                     case 'password':
@@ -214,7 +214,7 @@ class Functions_users {
 
     /**
      * Add groups to user $userid
-     * 
+     *
      * @param integer $userid
      * @param string $groups
      * @return null
@@ -226,7 +226,7 @@ class Functions_users {
 
     /**
      * Remove groups for user $userid
-     * 
+     *
      * @param integer $userid
      * @param string $groups
      * @return null
@@ -238,11 +238,11 @@ class Functions_users {
 
     /**
      * Activate user
-     * 
+     *
      * @param string $userid
      * @param string $activationcode
      * @param boolean $autoValidateUser
-     * 
+     *
      * @throws Exception
      */
     public function activateUser($userid, $activationcode, $autoValidateUser = false) {
@@ -269,17 +269,17 @@ class Functions_users {
 
     /**
      * Deactivate user
-     * 
+     *
      * @param string $userid
      * @throws Exception
      */
     public function deactivateUser($userid) {
         return count($this->dbDriver->fetch($this->dbDriver->query('UPDATE usermanagement.users SET activated=0 WHERE userid=\'' . pg_escape_string($userid) . '\' RETURNING userid'))) === 1 ? true : false;
     }
-    
+
     /**
      * Validate user
-     * 
+     *
      * @param string $userid
      * @param string $validatedBy
      * @return boolean
@@ -287,39 +287,39 @@ class Functions_users {
     public function validateUser($userid, $validatedBy) {
 
         /*
-         * Validate user. 
+         * Validate user.
          * If user is already validate, update date and validatedby.
          */
         $toBeSet = array(
             'validatedby=\'' . $validatedBy . '\'',
             'validationdate=now()'
         );
-        
+
         $query = 'UPDATE usermanagement.users SET ' . join(',', $toBeSet) . ' WHERE userid=\'' . pg_escape_string($userid) . '\'' . ' RETURNING userid';
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
 
         return count($results) === 1 ? true : false;
     }
-    
+
     /**
      * Unvalidate user
-     * 
+     *
      * @param string $userid
      * @return boolean
      */
     public function unvalidateUser($userid){
-        
+
         $toBeSet = array(
             'validatedby=NULL',
             'validationdate=NULL'
         );
-        
+
         return count($this->dbDriver->fetch($this->dbDriver->query('UPDATE usermanagement.users SET ' . join(',', $toBeSet) . ' WHERE userid=\'' . pg_escape_string($userid) . '\'  RETURNING userid'))) === 1 ? true : false;
     }
 
     /**
      * Return filter on user
-     * 
+     *
      * @param string $identifier
      */
     private function useridOrEmailFilter($identifier) {
@@ -328,7 +328,7 @@ class Functions_users {
 
     /**
      * Store or remove groups for user $userid
-     * 
+     *
      * @param string $storeOrRemove
      * @param integer $userid
      * @param string $groups
@@ -391,10 +391,10 @@ class Functions_users {
 
         return $results;
     }
-    
+
     /**
      * Return gravatar picture from $email
-     * 
+     *
      * @param string $email
      */
     private function getPicture($email, $size = 200) {
