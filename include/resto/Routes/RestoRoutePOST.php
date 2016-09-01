@@ -17,43 +17,43 @@
 
 /**
  * RESTo REST router for POST requests
- * 
+ *
  *    api/licenses/{licenseid}/sign                 |  Sign license
  *    api/user/connect                              |  Connect user
  *    api/user/disconnect                           |  Disconnect user
  *    api/user/resetPassword                        |  Reset password
- * 
- *    collections                                   |  Create a new {collection}            
+ *
+ *    collections                                   |  Create a new {collection}
  *    collections/{collection}                      |  Insert new product within {collection}
  *
  *    user/cart                                     |  Add new item in user cart
  *    user/orders                                   |  Send an order for user
  *    user/groups                                   |  Set groups for user (only admin)
- * 
+ *
  *    users                                         |  Add a user
- *    
+ *
  */
 class RestoRoutePOST extends RestoRoute {
-    
+
     /**
      * Constructor
      */
     public function __construct($context, $user) {
         parent::__construct($context, $user);
     }
-   
+
     /**
      * Process HTTP POST request
-     * 
+     *
      * @param array $segments
      */
     public function route($segments) {
-        
+
         /*
          * Input data for POST request
          */
         $data = RestoUtil::readInputData($this->context->uploadDirectory);
-        
+
         switch($segments[0]) {
             case 'api':
                 return $this->POST_api($segments, $data);
@@ -67,24 +67,24 @@ class RestoRoutePOST extends RestoRoute {
                 return $this->processModuleRoute($segments, $data);
         }
     }
-   
+
     /**
-     * 
+     *
      * Process HTTP POST request on api
-     * 
+     *
      *    api/licenses/{licenseid}/sign                |  Sign license
      *    api/user/connect                             |  Connect user
      *    api/user/disconnect                          |  Disconnect user
-     * 
+     *
      * @param array $segments
      * @param array $data
      */
     private function POST_api($segments, $data) {
-        
+
         if (!isset($segments[1])) {
             RestoLogUtil::httpError(404);
         }
-        
+
         /**
          *  @SWG\Post(
          *      tags={"license"},
@@ -114,27 +114,27 @@ class RestoRoutePOST extends RestoRoute {
          *          description="Forbidden"
          *      )
          * )
-         * 
+         *
          */
         if ($segments[1] === 'licenses') {
-            
+
             if (isset($segments[3]) && $segments[3] === 'sign' && !isset($segments[4])) {
                 if ($this->user->profile['email'] === 'unregistered') {
                     RestoLogUtil::httpError(403);
                 }
                 return $this->user->signLicense(new RestoLicense($this->context, $segments[2]));
             }
-            
+
             RestoLogUtil::httpError(404);
-            
+
         }
-        
+
         else if ($segments[1] === 'user') {
-            
+
             if (!isset($segments[2])) {
                 RestoLogUtil::httpError(404);
             }
-            
+
             /**
              *  @SWG\Post(
              *      tags={"user"},
@@ -189,16 +189,16 @@ class RestoRoutePOST extends RestoRoute {
                     }
                     $this->user = new RestoUser($profile, $this->context);
                 }
-                
+
                 /*
                  * Disconnect user
                  */
                 if ($this->user->profile['userid'] !== -1) {
                     $this->user->disconnect();
                 }
-                
+
                 return $this->user->connect();
-                
+
             }
 
             /**
@@ -223,7 +223,7 @@ class RestoRoutePOST extends RestoRoute {
                 $this->user->disconnect();
                 return RestoLogUtil::success('User disconnected');
             }
-            
+
             /**
              *  @SWG\Post(
              *      tags={"user"},
@@ -284,9 +284,9 @@ class RestoRoutePOST extends RestoRoute {
                 }
                 return $this->resetUserPassword(strtolower($data['email']), $data['password'], $data['url']);
             }
-            
+
             RestoLogUtil::httpError(404);
-            
+
         }
         /*
          * Process module
@@ -294,36 +294,36 @@ class RestoRoutePOST extends RestoRoute {
         else {
             return $this->processModuleRoute($segments, $data);
         }
-        
+
     }
 
     /**
-     * 
+     *
      * Process HTTP POST request on collections
-     * 
-     *    collections                                   |  Create a new {collection}            
+     *
+     *    collections                                   |  Create a new {collection}
      *    collections/{collection}                      |  Insert new product within {collection}
-     * 
+     *
      * @param array $segments
      * @param array $data
      */
     private function POST_collections($segments, $data) {
-        
+
         /*
          * No feature allowed
          */
         if (isset($segments[2]) ? $segments[2] : null) {
             RestoLogUtil::httpError(404);
         }
-        
+
         if (isset($segments[1])) {
             $collection = new RestoCollection($segments[1], $this->context, $this->user, array('autoload' => true));
         }
-        
+
         /**
-         * 
+         *
          * Create new collection
-         * 
+         *
          *  @SWG\Post(
          *      tags={"collections"},
          *      path="/collections",
@@ -340,26 +340,26 @@ class RestoRoutePOST extends RestoRoute {
          *          description="Forbidden"
          *      )
          * )
-         * 
+         *
          */
         if (!isset($collection)) {
-            
+
             /*
              * Only a user with 'create' rights can POST a collection
              */
             if (!$this->user->hasRightsTo(RestoUser::CREATE)) {
                 RestoLogUtil::httpError(403);
             }
-            
+
             $collections = new RestoCollections($this->context, $this->user, array('autoload' => true));
             $collections->create($data);
             return RestoLogUtil::success('Collection ' . $data['name'] . ' created');
-            
+
         }
         /**
-         * 
+         *
          * Insert new feature in collection
-         * 
+         *
          *  @SWG\Post(
          *      tags={"feature"},
          *      path="/collections/{collectionId}",
@@ -384,26 +384,26 @@ class RestoRoutePOST extends RestoRoute {
          *          description="Forbidden"
          *      )
          * )
-         * 
+         *
          */
         else {
-            
+
             /*
              * Only a user with 'update' rights on collection can POST feature
              */
             if (!$this->user->hasRightsTo(RestoUser::UPDATE, array('collection' => $collection))) {
                 RestoLogUtil::httpError(403);
             }
-            
+
             return $this->addFeatureToCollection($collection, $data);
-            
+
         }
     }
-   
+
     /**
-     * 
+     *
      * Process HTTP POST request on users
-     * 
+     *
      *    user/cart                                     |  Add new item in user cart
      *    user/orders                                   |  Send an order for user
      *
@@ -411,15 +411,15 @@ class RestoRoutePOST extends RestoRoute {
      * @param array $data
      */
     private function POST_user($segments, $data) {
-        
+
         if (!isset($segments[1]) || isset($segments[2])) {
             RestoLogUtil::httpError(404);
         }
-        
+
         /**
-         * 
+         *
          * Insert item in cart
-         * 
+         *
          *  @SWG\Post(
          *      tags={"cart"},
          *      path="/user/cart",
@@ -445,31 +445,31 @@ class RestoRoutePOST extends RestoRoute {
          *          description="Forbidden"
          *      )
          * )
-         * 
+         *
          */
         if ($segments[1] === 'cart') {
-            
+
             $clear = isset($this->context->query['_clear']) ? filter_var($this->context->query['_clear'], FILTER_VALIDATE_BOOLEAN) : false;
-            
+
             /*
              * Remove items first
              */
             if ($clear) {
                 $this->user->getCart()->clear(true);
             }
-            
+
             /*
              * Add items
              */
             $items = $this->user->getCart()->add($data, true);
             return $items !== false ? RestoLogUtil::success('Add items to cart', array('items' => $items)) : RestoLogUtil::error('Cannot add items to cart');
-            
+
         }
-      
+
         /**
-         * 
+         *
          * Place order
-         * 
+         *
          *  @SWG\Post(
          *      tags={"orders"},
          *      path="/user/orders",
@@ -486,7 +486,7 @@ class RestoRoutePOST extends RestoRoute {
          *          description="Forbidden"
          *      )
          * )
-         * 
+         *
          */
         else if ($segments[1] === 'orders') {
             $order = $this->user->placeOrder($data);
@@ -499,38 +499,38 @@ class RestoRoutePOST extends RestoRoute {
         else {
             RestoLogUtil::httpError(404);
         }
-        
+
     }
-    
+
     /**
-     * 
+     *
      * Process HTTP POST request on users
-     * 
+     *
      *    users                                         |  Add a user
      *
      * @param array $segments
      * @param array $data
      */
     private function POST_users($segments, $data) {
-        
+
         /*
          * No modifier allowed
          */
         if (isset($segments[1])) {
             RestoLogUtil::httpError(404);
         }
-        
+
         return $this->createUser($data);
-        
-    }   
+
+    }
 
     /**
      * Create user
-     * 
+     *
      * @param array $data
      */
     private function createUser($data) {
-        
+
         if (!isset($data['email'])) {
             RestoLogUtil::httpError(400, 'Email is not set');
         }
@@ -538,7 +538,7 @@ class RestoRoutePOST extends RestoRoute {
         if ($this->context->dbDriver->check(RestoDatabaseDriver::USER, array('email' => $data['email']))) {
             RestoLogUtil::httpError(3000);
         }
-        
+
         $redirect = isset($data['activateUrl']) ? '&redirect=' . rawurlencode($data['activateUrl']) : '';
         $userInfo = $this->context->dbDriver->store(RestoDatabaseDriver::USER_PROFILE, array(
             'profile' => array(
@@ -573,18 +573,18 @@ class RestoRoutePOST extends RestoRoute {
 
         return RestoLogUtil::success('User ' . $data['email'] . ' created');
     }
-    
+
     /**
      * Reset user password
-     * 
+     *
      * @param string $email
      * @param string $password
      * @param string $url
-     * 
+     *
      * @return type
      */
     private function resetUserPassword($email, $password, $url) {
-        
+
         /*
          * Explod data['url'] into resourceUrl and queryString
          */
@@ -592,7 +592,7 @@ class RestoRoutePOST extends RestoRoute {
         if (!isset($pair[1])) {
             RestoLogUtil::httpError(403);
         }
-        
+
         /*
          * Only initiator of reset password can change its email
          */
@@ -600,47 +600,47 @@ class RestoRoutePOST extends RestoRoute {
         if (strtolower(base64_decode($splittedUrl[count($splittedUrl) - 1])) !== $email) {
             RestoLogUtil::httpError(403);
         }
-        
+
         $query = RestoUtil::queryStringToKvps($pair[1]);
         if (!isset($query['_tk']) || !$this->context->dbDriver->check(RestoDatabaseDriver::SHARED_LINK, array('resourceUrl' => $pair[0], 'token' => $query['_tk']))) {
             RestoLogUtil::httpError(403);
         }
-        
+
         if ($this->context->dbDriver->get(RestoDatabaseDriver::USER_PASSWORD, array('email' => $email)) === str_repeat('*', 40)) {
             RestoLogUtil::httpError(3004);
         }
-        
+
         if ($this->context->dbDriver->update(RestoDatabaseDriver::USER_PROFILE, array('profile' => array('email' => $email, 'password' => $password)))) {
             return RestoLogUtil::success('Password updated');
         }
         else {
             RestoLogUtil::httpError(400);
         }
-        
+
     }
-    
+
     /**
-     * Add feature to collection 
-     * 
+     * Add feature to collection
+     *
      * @param RestoCollection $collection
      * @param array $data
-     * 
+     *
      */
     private function addFeatureToCollection($collection, $data) {
-        
+
         $feature = $collection->addFeature($data);
-        
+
         /*
          * Store query
          */
         if ($this->context->storeQuery === true) {
             $this->user->storeQuery($this->context->method, 'insert', $collection->name, $feature->identifier, $this->context->query, $this->context->getUrl());
         }
-        
+
         return RestoLogUtil::success('Feature ' . $feature->identifier . ' inserted within ' . $collection->name, array(
             'featureIdentifier' => $feature->identifier
         ));
     }
-    
-    
+
+
 }

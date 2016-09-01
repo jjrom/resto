@@ -32,7 +32,7 @@ class Tagger_Toponyms extends Tagger {
 
     /**
      * Constructor
-     * 
+     *
      * @param DatabaseHandler $dbh
      * @param array $config
      */
@@ -42,7 +42,7 @@ class Tagger_Toponyms extends Tagger {
 
     /**
      * Tag metadata
-     * 
+     *
      * @param array $metadata
      * @param array $options
      * @return array
@@ -55,36 +55,38 @@ class Tagger_Toponyms extends Tagger {
 
     /**
      * Return the closest toponym from centroid that is within the footprint
-     * 
+     *
      * @param string $footprint
      * @param array $options
-     * 
+     *
      */
     private function process($footprint, $options) {
         $toponyms = array();
         $codes = "('PPL', 'PPLC', 'PPLA', 'PPLA2', 'PPLA3', 'PPLA4', 'STLMT')";
-        
+
         $prequery = 'WITH prequery AS (SELECT ' . $this->postgisGeomFromText($footprint) . ' AS corrected_geometry, ST_centroid(' . $this->postgisGeomFromText($footprint) . ') AS corrected_centroid)';
-        $query = $prequery . ' SELECT geonameid, name, country, countryname, longitude, latitude, fcode, population, ST_Distance(geom, corrected_centroid) as distance FROM prequery, gazetteer.geoname WHERE st_intersects(geom, corrected_geometry) AND fcode IN ' . $codes . ' ORDER BY distance ASC';
+        $query = $prequery . ' SELECT geonameid, name, normalize(name) as normalized, country, countryname, longitude, latitude, fcode, population, ST_Distance(geom, corrected_centroid) as distance FROM prequery, gazetteer.geoname WHERE st_intersects(geom, corrected_geometry) AND fcode IN ' . $codes . ' ORDER BY distance ASC';
         $results = $this->query($query);
-        while ($result = pg_fetch_assoc($results)) {
-            $toponyms[] = array(
-                'id' => (integer) $result['geonameid'],
-                'name' => $result['name'],
-                'country' => $result['countryname'],
-                'ccode' => $result['country'],
-                'geo:lon' => (float) $result['longitude'],
-                'geo:lat' => (float) $result['latitude'],
-                'fcode' => $result['fcode'],
-                'population' => (integer) $result['population'],
-                'distanceToCentroid' => (float) $result['distance']
-            );
+        if ($results) {
+          while ($result = pg_fetch_assoc($results)) {
+              $toponyms[] = array(
+                  'id' => (integer) $result['geonameid'],
+                  'name' => $result['name'],
+                  'normalized' => $result['normalized'],
+                  'country' => $result['countryname'],
+                  'ccode' => $result['country'],
+                  'geo:lon' => (float) $result['longitude'],
+                  'geo:lat' => (float) $result['latitude'],
+                  'fcode' => $result['fcode'],
+                  'population' => (integer) $result['population'],
+                  'distanceToCentroid' => (float) $result['distance']
+              );
+          }
         }
-        
         return array(
             'toponyms' => $toponyms
         );
-        
+
     }
 
 }

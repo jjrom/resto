@@ -16,30 +16,30 @@
  */
 
 abstract class Tagger {
-    
+
     /*
      * Data references description
      */
     public $references;
-    
+
     /*
      * Database Handler reference
      */
     protected $dbh;
-    
+
     /*
      * Configuration array
      */
     protected $config;
-    
+
     /*
      * Footprint area
      */
     protected $area;
-    
+
     /**
      * Constructor
-     * 
+     *
      * @param DatabaseHandler $dbh
      * @param array $config
      */
@@ -47,14 +47,14 @@ abstract class Tagger {
         $this->dbh = $dbh;
         $this->config = $config;
     }
-    
+
     /**
      * Tag metadata
-     * 
+     *
      * metadata array should contains at least the following properties:
-     * 
+     *
      *      'footprint' => // WKT footprint
-     * 
+     *
      * @param array $metadata
      * @param array $options
      * @return array
@@ -66,16 +66,16 @@ abstract class Tagger {
 
     /**
      * Return true if area is lower than maximum limit
-     * 
+     *
      * @param float $area (in square kilometers)
      */
     protected function isValidArea($area) {
         return $area > $this->config['areaLimit'] ? false : true;
     }
-    
+
     /**
      * Return percentage of $part regarding $total
-     * 
+     *
      * @param <float> $part
      * @param <float> $total
      * @return <float>
@@ -89,17 +89,17 @@ abstract class Tagger {
 
     /**
      * Return results database from query
-     * 
+     *
      * @param string $query
      */
     protected function query($query) {
-        $results = pg_query($this->dbh, $query);
+        $results = @pg_query($this->dbh, $query);
         if (!isset($results)) {
             throw new Exception('Database Connection Error', 500);
         }
         return $results;
     }
-    
+
     /**
      * Return postgis area function
      * @param string $geometry
@@ -107,65 +107,65 @@ abstract class Tagger {
     protected function postgisArea($geometry) {
         return 'st_area(geography(' . $geometry . '), false)';
     }
-    
+
     /**
      * Return postgis WKT function
-     * 
+     *
      * @param string $geom
-     * 
+     *
      */
     protected function postgisAsWKT($geom) {
         return 'st_astext(' . $geom . ')';
     }
-    
+
     /**
      * Return postgis intersection function
-     * 
+     *
      * @param string $geomA
      * @param string $geomB
-     * 
+     *
      */
     protected function postgisIntersection($geomA, $geomB) {
         return 'st_intersection(' . $geomA . ',' . $geomB . ')';
     }
-    
+
     /**
      * Return postgis intersection function
-     * 
+     *
      * @param string $geom
      * @param boolean $preserveTopology
-     * 
+     *
      */
     protected function postgisSimplify($geom, $preserveTopology = false) {
         return $this->config['geometryTolerance'] > 0 ? 'ST_Simplify' . ($preserveTopology ? 'PreserveTopology' : '') . '(' . $geom . ',' . $this->config['geometryTolerance'] . ')' : $geom;
     }
-    
+
     /**
      * Return postgis intersection function
-     * 
+     *
      * @param string $footprint
      * @param string $srid
-     * 
+     *
      */
     protected function postgisGeomFromText($footprint, $srid = '4326') {
         return 'ST_SplitDateLine(ST_GeomFromText(\'' . $footprint . '\', ' . $srid . '))';
     }
-    
+
     /**
      * Return area in square kilometers
-     * 
+     *
      * @param string $areaInSquareMeters
      */
     protected function toSquareKm($areaInSquareMeters) {
         return floatval($areaInSquareMeters) / 1000000;
     }
-    
+
     /**
-     * 
+     *
      * Return true if input date string is a valid timestamp,
      * i.e. an ISO 8601 formatted date with at least YYYY-MM-DD
      * Accepted forms are :
-     * 
+     *
      *      YYYY-MM-DD
      *      YYYY-MM-DDTHH:MM:SS
      *      YYYY-MM-DDTHH:MM:SSZ
@@ -175,15 +175,15 @@ abstract class Tagger {
      *      YYYY-MM-DDTHH:MM:SS-HHMM
      *      YYYY-MM-DDTHH:MM:SS.sssss+HHMM
      *      YYYY-MM-DDTHH:MM:SS.sssss-HHMM
-     * 
+     *
      * @param {String} $dateStr
-     *    
+     *
      */
     protected function isValidTimeStamp($dateStr) {
 
         /**
          * Construct the regex to match all ISO 8601 format date case
-         * The regex is constructed as a combination of all pattern       
+         * The regex is constructed as a combination of all pattern
          */
         return preg_match('/^' . join('$|^', array(
                     '\d{4}-\d{2}-\d{2}', // YYYY-MM-DD

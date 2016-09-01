@@ -28,20 +28,20 @@ class Tagger_Population extends Tagger {
             'url' => 'http://sedac.ciesin.columbia.edu/data/set/gpw-v3-population-count-future-estimates/data-download'
         )
     );
-    
+
     /**
      * Constructor
-     * 
+     *
      * @param DatabaseHandler $dbh
      * @param array $config
      */
     public function __construct($dbh, $config) {
         parent::__construct($dbh, $config);
     }
-    
+
     /**
      * Tag metadata
-     * 
+     *
      * @param array $metadata
      * @param array $options
      * @return array
@@ -51,7 +51,7 @@ class Tagger_Population extends Tagger {
         parent::tag($metadata, $options);
         return $this->process($metadata['footprint']);
     }
-    
+
     /**
      * Return the estimated population for a given footprint
      *
@@ -63,8 +63,10 @@ class Tagger_Population extends Tagger {
         $query = $prequery . ' SELECT pcount FROM prequery, gpw.' . $this->getTableName() . ' WHERE ST_intersects(footprint, corrected_geometry)';
         $results = $this->query($query);
         $total = 0;
-        while ($counts = pg_fetch_assoc($results)) {
-            $total += $counts['pcount'];
+        if ($results) {
+          while ($counts = pg_fetch_assoc($results)) {
+              $total += $counts['pcount'];
+          }
         }
         return array(
             'population' => array(
@@ -72,17 +74,17 @@ class Tagger_Population extends Tagger {
                 'densityPerSquareKm' => $this->densityPerSquareKm($total)
         ));
     }
-    
+
     /**
-     * Return table name dataset 
-     * 
+     * Return table name dataset
+     *
      * Dataset depends on the input polygon size
      * to avoid performance issues with large polygons
      * over the high resolution glp15ag table
-     * 
+     *
      * @param array $footprint
      * @return string
-     * 
+     *
      */
     private function getTableName() {
         if ($this->area > 0 && $this->area < 6000) {
@@ -102,10 +104,13 @@ class Tagger_Population extends Tagger {
 
     /**
      * Return the density of people per square kilometer
-     * 
+     *
      * @param integer $total
      */
     private function densityPerSquareKm($total) {
-        return $total / $this->area;
+        if ($this->area && $this->area > 0) {
+          return $total / $this->area;
+        }
+        return 0;
     }
 }

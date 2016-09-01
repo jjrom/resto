@@ -28,40 +28,40 @@ class iTag {
     /*
      * iTag version
      */
-    const version = '3.0.13';
-    
+    const version = '3.0.14';
+
     /*
      * Database handler
      */
     private $dbh;
-    
+
     /*
      * Configuration
      */
     private $config = array(
-        
+
         /*
          * Maximum area allowed (in square kilometers)
-         * for LandCover computation 
+         * for LandCover computation
          */
         'areaLimit' => 200000,
-        
+
         /*
          * Return WKT geometries
          */
         'returnGeometries' => false,
-        
+
         /*
          * Tolerance value for simplication (in degrees)
          */
         'geometryTolerance' => 0.1
     );
-    
+
     /**
      * Constructor
-     * 
+     *
      * @param array $database : database configuration array
-     * @param array $config : configuration 
+     * @param array $config : configuration
      */
     public function __construct($database, $config = array()) {
         if (isset($database['dbh'])) {
@@ -72,13 +72,13 @@ class iTag {
         }
         else {
             throw new Exception('Database connection error', 500);
-        }  
+        }
         $this->setConfig($config);
     }
-    
+
     /**
      * Tag a polygon using taggers
-     * 
+     *
      * @param array $metadata // must include a 'footprint' in WKT format
      *                        // and optionnaly a 'timestamp' ISO8601 date
      * @param array $taggers
@@ -86,32 +86,32 @@ class iTag {
      * @throws Exception
      */
     public function tag($metadata, $taggers = array()) {
-       
+
         if (!isset($metadata['footprint'])) {
             throw new Exception('Missing mandatory footprint', 500);
         }
-        
+
         /*
          * Convert footprint in case of -180/+180 meridian crossing
          * Note : This is deprecated and replaced by ST_SplitDateLine function
          */
         //$metadata['footprint'] = $this->correctWrapDateLine($metadata['footprint']);
-        
+
         /*
          * Datasources reference information
          */
         $references = array();
-        
+
         /*
          * These tag are always performed
          */
         $content = $this->always($metadata);
-        
+
         /*
          * Add footprint area to metadata
          */
         $metadata['area'] = $content['area'];
-        
+
         /*
          * Call the 'tag' function of all input taggers
          */
@@ -122,12 +122,12 @@ class iTag {
                 $references = array_merge($references, $tagger->references);
             }
         }
-        
+
         /*
          * Close database handler
          */
         pg_close($this->dbh);
-        
+
         return array(
             'footprint' => $metadata['footprint'],
             'timestamp' => isset($metadata['timestamp']) ? $metadata['timestamp'] : null,
@@ -136,20 +136,20 @@ class iTag {
         );
 
     }
-    
+
     /**
      * Always performed tags
-     * 
+     *
      * @param array $metadata
      */
     private function always($metadata) {
         $tagger = new Tagger_Always($this->dbh, $this->config);
         return $tagger->tag($metadata);
     }
-    
+
     /**
      * Set configuration
-     * 
+     *
      * @param array $config
      */
     private function setConfig($config) {
@@ -158,7 +158,7 @@ class iTag {
 
     /**
      * Return PostgreSQL database handler
-     * 
+     *
      * @param array $options
      * @throws Exception
      */
@@ -183,21 +183,21 @@ class iTag {
             }
         } catch (Exception $e) {
             throw new Exception('Database connection error', 500);
-        }  
+        }
         $this->dbh = $dbh;
     }
-  
+
     /**
      * Instantiate a class with params
-     * 
+     *
      * @param string $className : class name to instantiate
      */
     private function instantiateTagger($className) {
-        
+
         if (!$className) {
             return null;
         }
-        
+
         try {
             $class = new ReflectionClass('Tagger_' . $className);
             if (!$class->isInstantiable()) {
@@ -206,14 +206,14 @@ class iTag {
         } catch (Exception $e) {
             return null;
         }
-        
+
         return $class->newInstance($this->dbh, $this->config);
-        
+
     }
-    
+
     /**
      * Correct input polygon WKT from -180/180 crossing problem
-     * 
+     *
      * @param String $footprint
      */
     private function correctWrapDateLine($footprint) {
@@ -235,7 +235,7 @@ class iTag {
             if ($lon - $lonPrev >= 180) {
                 $lon = $lon - 360;
                 $add360 = true;
-            } 
+            }
             else if ($lon - $lonPrev <= -180) {
                 $lon = $lon + 360;
                 $add360 = true;
@@ -250,7 +250,7 @@ class iTag {
 
     /**
      * Convert WKT into an array of coordinates
-     * 
+     *
      * @param string $footprint
      * @return array
      */
@@ -266,7 +266,7 @@ class iTag {
 
     /**
      * Convert an array of coordinates into a WKT string
-     * 
+     *
      * @param array $coordinates
      * @param boolean $add360
      * @return string

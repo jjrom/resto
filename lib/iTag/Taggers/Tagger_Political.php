@@ -16,10 +16,10 @@
  */
 require 'CountryInfos.php';
 class Tagger_Political extends Tagger {
-    
+
     const COUNTRIES = 1;
     const REGIONS = 2;
-    
+
     /*
      * Data references
      */
@@ -42,20 +42,20 @@ class Tagger_Political extends Tagger {
      * Compute toponyms : 'main', 'all', null
      */
     private $addToponyms = 'main';
-    
+
     /**
      * Constructor
-     * 
+     *
      * @param DatabaseHandler $dbh
      * @param array $config
      */
     public function __construct($dbh, $config) {
         parent::__construct($dbh, $config);
     }
-    
+
     /**
      * Tag metadata
-     * 
+     *
      * @param array $metadata
      * @param array $options
      * @return array
@@ -65,13 +65,13 @@ class Tagger_Political extends Tagger {
         parent::tag($metadata, $options);
         return $this->process($metadata['footprint'], $options);
     }
-    
+
     /**
      * Compute intersected information from input WKT footprint
-     * 
+     *
      * @param string $footprint
      * @param array $options
-     * 
+     *
      */
     private function process($footprint, $options) {
 
@@ -81,37 +81,37 @@ class Tagger_Political extends Tagger {
         if (isset($options['toponyms'])) {
             $this->addToponyms = $options['toponyms'];
         }
-        
+
         /*
          * Initialize empty array
          */
         $continents = array();
-                
+
         /*
          * Add continents and countries
          */
         $this->add($continents, $footprint, Tagger_Political::COUNTRIES);
-        
+
         /*
          * Add regions/states
          */
         $this->add($continents, $footprint, Tagger_Political::REGIONS);
-        
+
         return array(
             'political' => array(
                 'continents' => $continents
             )
         );
-        
+
     }
-    
+
     /**
      * Add continents/countries or regions/states to political array
-     * 
+     *
      * @param array $continents
      * @param string $footprint
      * @param integer $what
-     * 
+     *
      */
     private function add(&$continents, $footprint, $what) {
         $prequery = 'WITH prequery AS (SELECT ' . $this->postgisGeomFromText($footprint) . ' AS corrected_geometry)';
@@ -122,29 +122,33 @@ class Tagger_Political extends Tagger {
             $query = $prequery . ' SELECT region, name as state, normalize(name) as stateid, normalize(region) as regionid, adm0_a3 as isoa3, ' .  $this->postgisArea($this->postgisIntersection('geom', 'corrected_geometry')) . ' as area, ' . $this->postgisArea('geom') . ' as entityarea, ' . $this->postgisIntersection('geom', 'corrected_geometry') . ' as wkb_geom, iso_a2 FROM prequery, datasources.states WHERE st_intersects(geom, corrected_geometry) ORDER BY area DESC';
         }
         $results = $this->query($query);
-        while ($element = pg_fetch_assoc($results)) {
-            if ($what === Tagger_Political::COUNTRIES) {
-                $this->addCountriesToContinents($continents, $element);
-            }
-            else {
-                
-                /*
-                 * Get the region area
-                 */
-                $query2 = 'WITH prequery AS (SELECT ' . $this->postgisGeomFromText($footprint) . ' AS corrected_geometry) SELECT ' . $this->postgisArea($this->postgisIntersection('geom', 'corrected_geometry')) . ' as regionarea, ' . $this->postgisArea('geom') . ' as regionentityarea FROM prequery, datasources.regions WHERE normalize(name)=\'' . $element['regionid'] . '\' AND iso_a2=\'' . $element['iso_a2'] . '\' LIMIT 1';
-                $results2 = $this->query($query2);
-                while ($element2 = pg_fetch_assoc($results2)) {
-                    $element['regionarea'] = $element2['regionarea'];
-                    $element['regionentityarea'] = $element2['regionentityarea'];
-                }
-                $this->addRegionsToCountries($continents, $element);
-            }
+        if ($results) {
+          while ($element = pg_fetch_assoc($results)) {
+              if ($what === Tagger_Political::COUNTRIES) {
+                  $this->addCountriesToContinents($continents, $element);
+              }
+              else {
+
+                  /*
+                   * Get the region area
+                   */
+                  $query2 = 'WITH prequery AS (SELECT ' . $this->postgisGeomFromText($footprint) . ' AS corrected_geometry) SELECT ' . $this->postgisArea($this->postgisIntersection('geom', 'corrected_geometry')) . ' as regionarea, ' . $this->postgisArea('geom') . ' as regionentityarea FROM prequery, datasources.regions WHERE normalize(name)=\'' . $element['regionid'] . '\' AND iso_a2=\'' . $element['iso_a2'] . '\' LIMIT 1';
+                  $results2 = $this->query($query2);
+                  if ($results2) {
+                    while ($element2 = pg_fetch_assoc($results2)) {
+                        $element['regionarea'] = $element2['regionarea'];
+                        $element['regionentityarea'] = $element2['regionentityarea'];
+                    }
+                  }
+                  $this->addRegionsToCountries($continents, $element);
+              }
+          }
         }
     }
-    
+
     /**
      * Add regions/states under countries
-     * 
+     *
      * @param array $continents
      * @param array $element
      */
@@ -159,10 +163,10 @@ class Tagger_Political extends Tagger {
             }
         }
     }
-    
+
     /**
      * Add regions/states under countries
-     * 
+     *
      * @param array $country
      * @param array $element
      */
@@ -181,7 +185,7 @@ class Tagger_Political extends Tagger {
                 break;
             }
         }
-        
+
         /*
          * Add region
          */
@@ -189,7 +193,7 @@ class Tagger_Political extends Tagger {
             $this->mergeRegion($country['regions'], $element);
             $index = count($country['regions']) - 1;
         }
-        
+
         /*
          * Add state (and toponyms)
          */
@@ -197,10 +201,10 @@ class Tagger_Political extends Tagger {
             $this->mergeState($country['regions'][$index]['states'], $element);
         }
     }
-    
+
     /**
      * Add countries under content
-     * 
+     *
      * @param array $continents
      * @param array $element
      */
@@ -228,10 +232,10 @@ class Tagger_Political extends Tagger {
             'gcover' => $this->percentage($area, $this->toSquareKm($element['entityarea']))
         ));
     }
-    
+
     /**
      * Merge region to country array
-     * 
+     *
      * @param array $country
      * @param array $element
      */
@@ -266,7 +270,7 @@ class Tagger_Political extends Tagger {
 
     /**
      * Merge state to region array
-     * 
+     *
      * @param array $country
      * @param array $element
      */
@@ -278,17 +282,17 @@ class Tagger_Political extends Tagger {
             'pcover' => $this->percentage($area, $this->area),
             'gcover' => $this->percentage($area, $this->toSquareKm($element['entityarea']))
         );
-        
+
         if ($this->addToponyms) {
             $state['toponyms'] = $this->getToponyms($element['wkb_geom']);
         }
-        
+
         array_push($states, $state);
     }
-    
+
     /**
      * Add toponyms to political array
-     * 
+     *
      * @param string $wkb geometry as wkb
      */
     private function getToponyms($wkb) {
@@ -296,16 +300,18 @@ class Tagger_Political extends Tagger {
         $codes = $this->addToponyms === 'all' && $this->isValidArea($this->area) ? "('PPL', 'PPLC', 'PPLA', 'PPLA2', 'PPLA3', 'PPLA4', 'STLMT')" : "('PPLA','PPLC')";
         $query = 'SELECT name, longitude, latitude, fcode, population FROM gazetteer.geoname WHERE st_intersects(geom, \'' . $wkb .  '\') AND fcode IN ' . $codes . ' ORDER BY CASE fcode WHEN \'PPLC\' then 1 WHEN \'PPLG\' then 2 WHEN \'PPLA\' then 3 WHEN \'PPLA2\' then 4 WHEN \'PPLA4\' then 5 WHEN \'PPL\' then 6 ELSE 7 END ASC, population DESC';
         $results = $this->query($query);
-        while ($result = pg_fetch_assoc($results)) {
-            $toponyms[] = array(
-                'name' => $result['name'],
-                'geo:lon' => (float) $result['longitude'],
-                'geo:lat' => (float) $result['latitude'],
-                'fcode' => $result['fcode'],
-                'population' => (integer) $result['population']
-            );      
+        if ($results) {
+          while ($result = pg_fetch_assoc($results)) {
+              $toponyms[] = array(
+                  'name' => $result['name'],
+                  'geo:lon' => (float) $result['longitude'],
+                  'geo:lat' => (float) $result['latitude'],
+                  'fcode' => $result['fcode'],
+                  'population' => (integer) $result['population']
+              );
+          }
         }
         return $toponyms;
     }
-    
+
 }

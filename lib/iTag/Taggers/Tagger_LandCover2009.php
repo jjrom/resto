@@ -15,17 +15,17 @@
  * under the License.
  */
 
-class Tagger_LandCover extends Tagger {
+class Tagger_LandCover2009 extends Tagger {
 
     /*
      * Data references
      */
     public $references = array(
         array(
-            'dataset' => 'Global Land Cover 2000',
-            'author' => 'JRC',
+            'dataset' => 'GlobCover 2009',
+            'author' => 'ESA',
             'license' => 'Free of Charge for non-commercial use',
-            'url' => 'http://bioval.jrc.ec.europa.eu/products/glc2000/data_access.php'
+            'url' => 'http://due.esrin.esa.int/page_globcover.php'
         )
     );
 
@@ -46,29 +46,30 @@ class Tagger_LandCover extends Tagger {
     /*
      * Global Land Cover class names
      */
-    private $glcClassNames = array(
-        1 => 'Tree Cover, broadleaved, evergreen',
-        2 => 'Tree Cover, broadleaved, deciduous, closed',
-        3 => 'Tree Cover, broadleaved, deciduous, open',
-        4 => 'Tree Cover, needle-leaved, evergreen',
-        5 => 'Tree Cover, needle-leaved, deciduous',
-        6 => 'Tree Cover, mixed leaf type',
-        7 => 'Tree Cover, regularly flooded, fresh  water',
-        8 => 'Tree Cover, regularly flooded, saline water',
-        9 => 'Mosaic - Tree cover / Other natural vegetation',
-        10 => 'Tree Cover, burnt',
-        11 => 'Shrub Cover, closed-open, evergreen',
-        12 => 'Shrub Cover, closed-open, deciduous',
-        13 => 'Herbaceous Cover, closed-open',
-        14 => 'Sparse Herbaceous or sparse Shrub Cover',
-        15 => 'Regularly flooded Shrub and/or Herbaceous Cover',
-        16 => 'Cultivated and managed areas',
-        17 => 'Mosaic - Cropland / Tree Cover / Other natural vegetation',
-        18 => 'Mosaic - Cropland / Shrub or Grass Cover',
-        19 => 'Bare Areas',
-        20 => 'Water Bodies',
-        21 => 'Snow and Ice',
-        22 => 'Artificial surfaces and associated areas'
+    private $globcoverClassNames = array(
+        11 => 'Post-flooding or irrigated croplands',
+        14 => 'Rainfed croplands',
+        20 => 'Mosaic cropland (50-70%) / vegetation (grassland/shrubland/forest) (20-50%)',
+        30 => 'Mosaic vegetation (grassland/shrubland/forest) (50-70%) / cropland (20-50%)',
+        40 => 'Closed to open (>15%) broadleaved evergreen or semi-deciduous forest (>5m)',
+        50 => 'Closed (>40%) broadleaved deciduous forest (>5m)',
+        60 => 'Open (15-40%) broadleaved deciduous forest/woodland (>5m)',
+        70 => 'Closed (>40%) needleleaved evergreen forest (>5m)',
+        90 => 'Open (15-40%) needleleaved deciduous or evergreen forest (>5m)',
+        100 => 'Closed to open (>15%) mixed broadleaved and needleleaved forest (>5m)',
+        110 => 'Mosaic forest or shrubland (50-70%) / grassland (20-50%)',
+        120 => 'Mosaic grassland (50-70%) / forest or shrubland (20-50%)',
+        130 => 'Closed to open (>15%) (broadleaved or needleleaved, evergreen or deciduous) shrubland (<5m)',
+        140 => 'Closed to open (>15%) herbaceous vegetation (grassland, savannas or lichens/mosses)',
+        150 => 'Sparse (<15%) vegetation',
+        160 => 'Closed to open (>15%) broadleaved forest regularly flooded (semi-permanently or temporarily) - Fresh or brackish water',
+        170 => 'Closed (>40%) broadleaved forest or shrubland permanently flooded - Saline or brackish water',
+        180 => 'Closed to open (>15%) grassland or woody vegetation on regularly flooded or waterlogged soil - Fresh, brackish or saline water',
+        190 => 'Artificial surfaces and associated areas (Urban areas >50%)',
+        200 => 'Bare areas',
+        210 => 'Water bodies',
+        220 => 'Permanent snow and ice',
+        230 => 'No data (burnt areas, clouds)'
     );
 
     /*
@@ -76,13 +77,13 @@ class Tagger_LandCover extends Tagger {
      */
     private $linkage = array(
         100 => array(22), // Urban
-        200 => array(15, 16, 17, 18), // Cultivated
-        310 => array(1, 2, 3, 4, 5, 6), // Forest
-        320 => array(9, 11, 12, 13), // Herbaceous
-        330 => array(10, 14, 19), // Desert
-        335 => array(21), // Ice
-        400 => array(7, 8), // Flooded
-        500 => array(20) // Water
+        200 => array(11, 14 ,20, 30), // Cultivated
+        310 => array(40, 50, 60, 70, 90, 100, 110), // Forest
+        320 => array(120, 130, 140, 150), // Herbaceous
+        330 => array(200), // Desert
+        335 => array(220), // Ice
+        400 => array(160, 170, 180), // Flooded
+        500 => array(210) // Water
     );
 
     /**
@@ -180,7 +181,7 @@ class Tagger_LandCover extends Tagger {
         $landUseDetails = array();
         foreach ($rawLandCover as $key => $val) {
             if ($val['area'] !== 0) {
-                $name = isset($this->glcClassNames[$key]) ? $this->glcClassNames[$key] : 'unknown';
+                $name = isset($this->globecoverClassNames[$key]) ? $this->globecoverClassNames[$key] : 'unknown';
                 $area = $this->toSquareKm($val['area']);
                 $details = array(
                     'name' => $name,
@@ -209,7 +210,7 @@ class Tagger_LandCover extends Tagger {
         $classes = array();
         $prequery = 'WITH prequery AS (SELECT ' . $this->postgisGeomFromText($footprint) . ' AS corrected_geometry)';
         if ($this->config['returnGeometries']) {
-            $query = $prequery . ' SELECT dn as dn, ' . $this->postgisArea($this->postgisIntersection('wkb_geometry', 'corrected_geometry')) . ' as area, ' . $this->postgisAsWKT($this->postgisSimplify($this->postgisIntersection('wkb_geometry', 'corrected_geometry'))) . ' as wkt FROM prequery, datasources.landcover WHERE st_intersects(wkb_geometry, corrected_geometry)';
+            $query = $prequery . ' SELECT dn as dn, ' . $this->postgisArea($this->postgisIntersection('wkb_geometry', 'corrected_geometry')) . ' as area, ' . $this->postgisAsWKT($this->postgisSimplify($this->postgisIntersection('wkb_geometry', 'corrected_geometry'))) . ' as wkt FROM prequery, datasources.landcover2009 WHERE st_intersects(wkb_geometry, corrected_geometry)';
         }
         else {
             $query = $prequery . ' SELECT dn as dn, ' . $this->postgisArea($this->postgisIntersection('wkb_geometry', 'corrected_geometry')) . ' as area FROM prequery, datasources.landcover WHERE st_intersects(wkb_geometry, corrected_geometry)';
@@ -251,7 +252,7 @@ class Tagger_LandCover extends Tagger {
     }
 
     /**
-     * Return CLC class name from child GLC $code
+     * Return CLC class name from child GlobeCover $code
      *
      * @param integer $code
      */
