@@ -174,7 +174,7 @@ class RestoFeatureCollection {
         $originalFilters = $this->defaultModel->getFiltersFromQuery($this->context->query);
 
         /*
-         * result options 
+         * result options
          */
         $options = $this->resultOptions($originalFilters);
 

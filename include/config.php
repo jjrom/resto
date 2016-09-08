@@ -15,32 +15,32 @@
  * under the License.
  */
 return array(
-    
+
     /*
      * General
      */
     'general' => array(
-        
+
         /*
          * Title
          */
         'title' => 'resto',
-        
+
         /*
          * Relative endpoint to directory containing index.php
          * i.e. if index.php is at http://localhost/resto then
          * rootEndPoint would be '/resto'
          */
         'rootEndpoint' => '/resto',
-        
+
         /*
          * Supported languages
-         * 
+         *
          * All supported languages must be associated with a dictionary class
-         * called RestoDictionary_{language} (usually located under $RESTO_BUILD/include/resto/Dictionaries) 
+         * called RestoDictionary_{language} (usually located under $RESTO_BUILD/include/resto/Dictionaries)
          */
         'languages' => array('en', 'fr'),
-        
+
         /*
          * OpenSearch description for "all collections" search service
          * (i.e. API call to /api/collections/search)
@@ -57,17 +57,17 @@ return array(
                 'Attribution' => 'resto framework. Copyright 2015, All Rights Reserved'
             )
         ),
-        
+
         /*
          * Debug mode
          */
         'debug' => false,
-        
+
         /*
          * Timezone
          */
         'timezone' => 'Europe/Paris',
-        
+
         /*
          * Protocol :
          *  - http : use http
@@ -75,50 +75,50 @@ return array(
          *  - auto : server will choose depending on input request
          */
         'protocol' => 'auto',
-        
+
         /*
          * Store queries ? (i.e. logs)
          */
         'storeQuery' => true,
-        
+
         /*
          * Shared links validity duration (in seconds)
          * Default is 1 day (i.e. 86400 seconds)
          */
         'sharedLinkDuration' => 86400,
-        
+
         /*
          * Authentication tokens validity duration (in seconds)
          * Default is 1 hour (i.e. 3600 seconds)
          */
         'tokenDuration' => 3600,
-        
+
         /*
          * JSON Web Token passphrase
          * (see https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32)
          */
         'passphrase' => 'Super secret passphrase',
-        
+
         /*
          * JSON Web Token accepted encryption algorithms
          */
         'tokenEncryptions' => array('HS256','HS512','HS384','RS256'),
-        
+
         /*
          * Url to call for password reset
          */
         'resetPasswordUrl' => 'http://localhost/rocket/#/resetPassword',
-        
+
         /*
          * Url to call for search HTML client
          */
         'htmlSearchUrl' => 'http://localhost/rocket/#/search',
-        
+
         /*
          * Upload directory (for POST with attachement request)
          */
         'uploadDirectory' => '/tmp/resto_uploads',
-        
+
         /*
          * Set how the products are streamed to user :
          *   - 'php' : stream through PHP process (slowest but works on all platforms)
@@ -126,93 +126,100 @@ return array(
          *   - 'nginx' : stream through Nginx using the X-accel method
          */
         'streamMethod' => 'php',
-        
+
         /*
          * Automatic user validation on activation
-         * 
+         *
          * If set to 'true' the user is automatically validated on activation
-         * 
+         *
          * If set to 'false' the user is not validated on activation.
          * Validation should then be done throught Administration module
-         * 
+         *
          * Note: a non validated user can connect but cannot download products
          * under license
          */
         'userAutoValidation' => true,
-        
+
         /*
          * List of http origin that have CORS access to server
          * (see http://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
-         * 
+         *
          * If the array is empty, then every http origin have CORS access
          */
         'corsWhiteList' => array(
             'localhost'
         )
-        
+
     ),
-    
+
     /*
      * Database configuration
      */
     'database' => array(
-        
+
         /*
          * Driver name must be associated to a RestoDatabaseDriver class called
          * RestoDatabaseDriver_{driver} (usually located under $RESTO_BUILD/include/resto/Drivers)
          */
         'driver' => 'PostgreSQL',
-        
+
         /*
          * Cache directory used to store Database queries
          * Must be readable and writable for Webserver user
          * If not set, then no cache is used
          */
         //'dircache' => '/tmp',
-        
+
         /*
          * Database name
          */
         'dbname' => 'resto',
-        
+
         /*
          * Database host - if not specified connect through unix domain socket (IPC socket) instead of TCP/IP socket
          */
         //'host' => 'localhost',
-        
+
         /*
          * Database port
          */
         'port' => 5432,
-        
+
         /*
          * Pagination
          * Default number of search results returned by page if not specified in the request
          */
         'resultsPerPage' => 20,
-        
+
+        /*
+         * List of fields that can be sorted - by default only startdate
+         * WARNING - if you add a field here, be sure to set an index on this field within the database
+         * otherwise performance can be degraded
+         */
+        'sortParams' => array('startDate'),
+
         /*
          * Database user with READ+WRITE privileges (see http://github.com/jjrom/resto/README.md)
          */
         'user' => 'resto',
         'password' => 'resto'
     ),
-    
+
     /*
      * Authentication
      */
     'mail' => array(
-        
+
         /*
          * Name display to users when they receive email from application
          */
         'senderName' => 'admin',
-        
+
         /*
          * Email display to users when they receive email from application
          */
         'senderEmail' => 'restoadmin@localhost',
-        
+
         /*
          * Account activation email
          */
@@ -226,7 +233,7 @@ return array(
                 'message' => "Bonjour,<br><br>Vous vous êtes enregistré sur l'application {a:1}<br><br>Pour valider votre compte, cliquer sur le lien {a:2} <br><br>Cordialement<br><br>L'équipe {a:1}"
             )
         ),
-        
+
         /*
          * Reset password email
          */
@@ -241,12 +248,12 @@ return array(
             )
         )
     ),
-    
+
     /*
      * Modules
      */
     'modules' => array(
-        
+
         /*
          * Query Analyzer module - convert natural language query to EO query
          */
@@ -255,7 +262,7 @@ return array(
             'route' => 'admin',
             'options' => array()
         ),
-        
+
         /*
          * OAuth authentication module
          */
@@ -291,7 +298,7 @@ return array(
                 )
             )
         ),
-        
+
         /*
          * Query Analyzer module - convert natural language query to EO query
          */
@@ -302,11 +309,11 @@ return array(
                 'minimalQuantity' => 25
             )
         ),
-        
+
         /*
          * Gazetteer module - enable location based search
          * Note : set database options if gazetteer is not installed in RESTo database
-         * 
+         *
          * !!! Require iTag !!!
          */
         'Gazetteer' => array(
@@ -324,10 +331,10 @@ return array(
                 )
             )
         ),
-        
+
         /*
          * Wikipedia module - enable location based wikipedia entries display
-         * 
+         *
          * !!! Require iTag !!!
          */
         'Wikipedia' => array(
@@ -345,10 +352,10 @@ return array(
                 )
             )
         ),
-        
+
         /*
-         * Tag module - automatically tag posted feature 
-         * 
+         * Tag module - automatically tag posted feature
+         *
          * !!! Require iTag !!!
          */
         'Tag' => array(
@@ -373,6 +380,6 @@ return array(
                 )
             )
         )
-        
+
     )
 );
