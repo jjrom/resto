@@ -19,12 +19,12 @@
  * RESTo PostgreSQL collections functions
  */
 class Functions_collections {
-    
+
     private $dbDriver = null;
-    
+
     /**
      * Constructor
-     * 
+     *
      * @param RestoDatabaseDriver $dbDriver
      * @throws Exception
      */
@@ -34,23 +34,23 @@ class Functions_collections {
 
     /**
      * Get description of all collections including facets
-     * 
+     *
      * @param string $collectionName
      * @return array
      * @throws Exception
      */
     public function getCollectionsDescriptions($collectionName = null) {
-        
+
         $cached = $this->dbDriver->cache->retrieve(array('getCollectionsDescriptions', $collectionName));
         if (isset($cached)) {
             return $cached;
         }
-        
+
         /*
          * First get licenses
          */
         $licenses = $this->dbDriver->get(RestoDatabaseDriver::LICENSES);
-        
+
         /*
          * Then collections
          */
@@ -67,19 +67,19 @@ class Functions_collections {
                 'osDescription' => $this->getOSDescriptions($collection['collection'])
             );
         }
-        
+
         /*
          * Store in cache
          */
         $this->dbDriver->cache->store(array('getCollectionsDescriptions', $collectionName), $collectionsDescriptions);
-        
+
         return $collectionsDescriptions;
-        
+
     }
-    
+
     /**
      * Check if collection $name exists within resto database
-     * 
+     *
      * @param string $name - collection name
      * @return boolean
      * @throws Exception
@@ -89,28 +89,28 @@ class Functions_collections {
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         return !empty($results);
     }
-    
+
     /**
      * Remove collection from RESTo database
-     * 
+     *
      * @param RestoCollection $collection
      * @return array
      * @throws Exception
      */
     public function removeCollection($collection) {
-        
+
         /*
          * Never remove a non empty collection
          */
         if (!$this->collectionIsEmpty($collection)) {
             RestoLogUtil::httpError(403, 'Cannot delete a non empty collection ' . $collection->name);
         }
-            
+
         $results = $this->dbDriver->query('SELECT collection FROM resto.collections WHERE collection=\'' . pg_escape_string($collection->name) . '\'');
         $schemaName = '_' . strtolower($collection->name);
-        
+
         if (pg_fetch_assoc($results)) {
-                
+
             /*
              * Delete (within transaction)
              *  - entry within osdescriptions table
@@ -120,7 +120,7 @@ class Functions_collections {
             $query .= 'DELETE FROM resto.osdescriptions WHERE collection=\'' . pg_escape_string($collection->name) . '\';';
             $query .= 'DELETE FROM resto.collections WHERE collection=\'' . pg_escape_string($collection->name) . '\';';
             $query .= 'DELETE FROM usermanagement.rights WHERE ownertype=\'group\' AND owner=\'default\' AND targettype=\'collection\' AND target=\'' . pg_escape_string($collection->name) . '\';';
-            
+
             /*
              * Do not drop schema if product table is not empty
              */
@@ -138,23 +138,23 @@ class Functions_collections {
                 RestoLogUtil::httpError(500, 'Cannot delete collection ' . $collection->name);
             }
         }
-        
+
     }
-    
+
     /**
      * Save collection to database
-     * 
+     *
      * @param RestoCollection $collection
      * @param Array $rights
-     * 
+     *
      * @throws Exception
      */
     public function storeCollection($collection, $rights) {
-        
+
         $schemaName = '_' . strtolower($collection->name);
-        
+
         try {
-            
+
             /*
              * Start transaction
              */
@@ -164,17 +164,17 @@ class Functions_collections {
              * Create schema if needed
              */
             $this->createSchema($schemaName);
-            
+
             /*
              * Create schema.features if needed
              */
             $this->createFeaturesTable($collection, $schemaName);
-            
+
             /*
              * Create new entry in collections osdescriptions tables
              */
             $this->storeCollectionDescription($collection);
-            
+
             /*
              * Store default rights for collection
              */
@@ -185,7 +185,7 @@ class Functions_collections {
                 'targetType' => 'collection',
                 'target' => $collection->name
             ));
-            
+
             /*
              * Close transaction
              */
@@ -202,23 +202,23 @@ class Functions_collections {
                 $this->dbDriver->query('ROLLBACK');
                 RestoLogUtil::httpError(2000);
             }
-            
+
         } catch (Exception $e) {
             RestoLogUtil::httpError($e->getCode(), $e->getMessage());
         }
     }
-    
+
     /**
      * Get OpenSearch description array for input collection
-     * 
+     *
      * @param string $collectionName
      * @return array
      * @throws Exception
      */
     private function getOSDescriptions($collectionName) {
-        
+
         $osDescriptions = array();
-                
+
         $results = $this->dbDriver->query('SELECT * FROM resto.osdescriptions WHERE collection = \'' . pg_escape_string($collectionName) . '\'');
         while ($description = pg_fetch_assoc($results)) {
             $osDescriptions[$description['lang']] = array(
@@ -232,13 +232,13 @@ class Functions_collections {
                 'Attribution' => $description['attribution']
             );
         }
-        
+
         return $osDescriptions;
     }
-    
+
     /**
      * Create schema if not already exist in database
-     * 
+     *
      * @param string $schemaName
      */
     private function createSchema($schemaName) {
@@ -249,15 +249,15 @@ class Functions_collections {
         }
         return false;
     }
-    
+
     /**
      * Create schema.features table
-     * 
+     *
      * @param RestoCollection $collection
      * @param string $schemaName
      */
     private function createFeaturesTable($collection, $schemaName) {
-        
+
         /*
          * Prepare one column for each key entry in model
          */
@@ -282,6 +282,7 @@ class Functions_collections {
                 'platform' => 'btree',
                 'resolution' => 'btree',
                 'startDate' => 'btree',
+                'updated' => 'btree',
                 'cultivatedCover' => 'btree',
                 'desertCover' => 'btree',
                 'floodedCover' => 'btree',
@@ -304,21 +305,21 @@ class Functions_collections {
             $this->dbDriver->query('GRANT SELECT ON TABLE ' . $schemaName . '.features TO ' . $this->dbDriver->dbUsername);
         }
     }
-    
+
     /**
-     * Store Collection description 
-     * 
+     * Store Collection description
+     *
      * @param RestoCollection $collection
-     * 
+     *
      */
     private function storeCollectionDescription($collection) {
-        
+
         $licenseId = 'NULL';
         if (isset($collection->license)) {
             $licenseDescription = $collection->license->toArray();
             $licenseId = '\'' . pg_escape_string($licenseDescription['licenseId']) . '\'';
         }
-        
+
         /*
          * Create collection
          */
@@ -327,7 +328,7 @@ class Functions_collections {
                 'collection' => '\'' . pg_escape_string($collection->name) . '\'',
                 'creationdate' => 'now()',
                 'model' => '\'' . pg_escape_string($collection->model->name) . '\'',
-                'licenseid' => $licenseId, 
+                'licenseid' => $licenseId,
                 'mapping' => '\'' . pg_escape_string(json_encode($collection->propertiesMapping)) . '\'',
                 'status' => '\'' . pg_escape_string($collection->status) . '\'',
                 'owner' => '\'' . pg_escape_string($collection->owner) . '\''
@@ -345,7 +346,7 @@ class Functions_collections {
         /*
          * Insert OpenSearch descriptions within osdescriptions table
          * (one description per lang)
-         * 
+         *
          * CREATE TABLE resto.osdescriptions (
          *  collection          TEXT,
          *  lang                TEXT,
@@ -360,7 +361,7 @@ class Functions_collections {
          * );
          */
         $this->dbDriver->query('DELETE FROM resto.osdescriptions WHERE collection=\'' . pg_escape_string($collection->name) . '\'');
-        
+
         foreach ($collection->osDescription as $lang => $description) {
             $osFields = array(
                 'collection',
@@ -370,7 +371,7 @@ class Functions_collections {
                 '\'' . pg_escape_string($collection->name) . '\'',
                 '\'' . pg_escape_string($lang) . '\''
             );
-            
+
             /*
              * OpenSearch 1.1 draft 5 constraints
              * (http://www.opensearch.org/Specifications/OpenSearch/1.1)
@@ -386,7 +387,7 @@ class Functions_collections {
                 'Attribution' => 256
             );
             foreach (array_keys($description) as $key) {
-                
+
                 /*
                  * Throw exception if property is invalid
                  */
@@ -405,7 +406,7 @@ class Functions_collections {
 
     /**
      * Return true if collection is empty, false otherwise
-     * 
+     *
      * @param RestoCollection $collection
      * @return boolean
      */
@@ -417,5 +418,5 @@ class Functions_collections {
         }
         return false;
     }
-    
+
 }
