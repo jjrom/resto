@@ -417,7 +417,7 @@ class RestoFeatureUtil {
             case 'array':
                 return explode(',', substr($value, 1, -1));
             case 'date':
-                return RestoUtil:formatTimestamp($value);
+                return RestoUtil::formatTimestamp($value);
             default:
                 return $value;
         }
