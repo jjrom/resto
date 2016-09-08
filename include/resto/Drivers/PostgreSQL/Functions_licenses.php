@@ -19,7 +19,7 @@
  * RESTo PostgreSQL licenses functions
  */
 class Functions_licenses {
-    
+
     private $dbDriver = null;
 
     /**
@@ -40,12 +40,12 @@ class Functions_licenses {
      * @throws exception
      */
     public function getLicenses($licenseId = null) {
-        
+
         $cached = $this->dbDriver->cache->retrieve(array('getLicenses', $licenseId));
         if (isset($cached)) {
             return $cached;
         }
-        
+
         $results = $this->dbDriver->query('SELECT licenseid, grantedcountries, grantedorganizationcountries, grantedflags, viewservice, hastobesigned, signaturequota, description FROM resto.licenses' . (isset($licenseId) ? ' WHERE licenseid=\'' . pg_escape_string($licenseId) . '\'' : ''));
         $licenses = array();
         while ($license = pg_fetch_assoc($results)) {
@@ -65,13 +65,13 @@ class Functions_licenses {
          * Store in cache
          */
         $this->dbDriver->cache->store(array('getLicenses', $licenseId), $licenses);
-        
+
         return $licenses;
     }
 
     /**
      * Store license to database
-     *     
+     *
      *     array(
      *          'licenseId'      => short name
      *          'grantedCountries' => Comma separated list of isoa2 list of allowed user countries eg. "FR,US,EN"
@@ -92,7 +92,7 @@ class Functions_licenses {
      *                  }
      *             }
      *     )
-     * 
+     *
      * @param array $license
      * @throws Exception
      */
@@ -121,7 +121,7 @@ class Functions_licenses {
 
     /**
      * Remove license from database
-     * 
+     *
      * @param string $licenseId
      *
      * @throws Exception
@@ -139,7 +139,7 @@ class Functions_licenses {
         } catch (Exception $e) {
             RestoLogUtil::httpError(500, 'Cannot delete license ' . $licenseId);
         }
-        
+
         return true;
     }
 
@@ -155,13 +155,13 @@ class Functions_licenses {
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         return !empty($results);
     }
-    
+
     /**
      * Check if user signed license identified by $licenseId
-     * 
+     *
      * @param string $identifier
      * @param string $licenseId
-     * 
+     *
      * @return boolean
      */
     public function isLicenseSigned($identifier, $licenseId) {
@@ -169,24 +169,24 @@ class Functions_licenses {
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         return !empty($results);
     }
-    
+
     /**
      * Sign license identified by $licenseId
      * If license was already signed, add 1 to the signatures counter
-     * 
-     * @param string $identifier : user identifier 
+     *
+     * @param string $identifier : user identifier
      * @param string $licenseId
      * @param integer $signatureQuota
      * @return boolean
      * @throws Exception
      */
     public function signLicense($identifier, $licenseId, $signatureQuota = -1) {
-        
+
         /*
          * Get previous signature
          */
         $results = $this->dbDriver->fetch($this->dbDriver->query('SELECT email, counter FROM usermanagement.signatures WHERE email=\'' . pg_escape_string($identifier) . '\' AND licenseid=\'' . pg_escape_string($licenseId) . '\''));
-        
+
         /*
          * Sign license
          */
@@ -203,34 +203,34 @@ class Functions_licenses {
                 }
             }
             $this->dbDriver->query('UPDATE usermanagement.signatures SET signdate=now(),counter=counter+1 WHERE email=\'' . pg_escape_string($identifier) . '\' AND licenseid=\'' . pg_escape_string($licenseId) . '\'');
-       
+
         }
-        
+
         return true;
     }
-    
+
     /**
      * Return licenses signatures for user $identifier
-     * 
-     * @param string $identifier 
+     *
+     * @param string $identifier
      * @param string $licenseId
-     * 
+     *
      * @return array
      * @throws Exception
      */
     public function getSignatures($identifier, $licenseId = null) {
         $signatures = array();
-        $results = $this->dbDriver->query('SELECT email, licenseid, to_char(signdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as signdate, counter FROM usermanagement.signatures WHERE email=\'' . pg_escape_string($identifier) . '\'' . (isset($licenseId) ? ' AND licenseid=\'' . pg_escape_string($licenseId) . '\'' : ''));
+        $results = $this->dbDriver->query('SELECT email, licenseid, signdate, counter FROM usermanagement.signatures WHERE email=\'' . pg_escape_string($identifier) . '\'' . (isset($licenseId) ? ' AND licenseid=\'' . pg_escape_string($licenseId) . '\'' : ''));
         while ($row = pg_fetch_assoc($results)) {
             $signatures[] = array(
                 'email' => $row['email'],
                 'licenseId' => $row['licenseid'],
-                'lastSignatureDate' => $row['signdate'],
+                'lastSignatureDate' => RestoUtil::formatTimestamp($row['signdate']),
                 'counter' => (integer) $row['counter'],
-                
+
             );
         }
         return $signatures;
     }
-    
+
 }

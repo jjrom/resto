@@ -31,21 +31,21 @@ class RestoUtil {
         'meta4' => 'application/metalink4+xml',
         'csv' => 'text/csv'
     );
-    
+
     /**
      * Encrypt a string using $algorithm
-     * 
+     *
      * @param string $str
      */
     public static function encrypt($str, $algo = 'sha1') {
         return sha1($str);
     }
-    
+
     /**
      * Format a flat JSON string to make it more human-readable
      *
      * @param array $json JSON as an array
-     * 
+     *
      * @return string Indented version of the original JSON string
      */
     public static function json_format($json, $pretty = false) {
@@ -56,7 +56,7 @@ class RestoUtil {
         if (!$pretty) {
             return json_encode($json);
         }
-        
+
         /*
          * Pretty print only works for PHP >= 5.4
          * Home made pretty print otherwise
@@ -67,22 +67,22 @@ class RestoUtil {
         else {
              return RestoUtil::prettyPrintJsonString(json_encode($json));
         }
-     
+
     }
 
     /**
      * Generate v5 UUID
-     * 
-     * Version 5 UUIDs are named based. They require a namespace (another 
-     * valid UUID) and a value (the name). Given the same namespace and 
+     *
+     * Version 5 UUIDs are named based. They require a namespace (another
+     * valid UUID) and a value (the name). Given the same namespace and
      * name, the output is always the same.
-     * 
+     *
      * Note: if not set, the default namespace is a RESTo v4 UUID
      * generated at http://uuidgenerator.net/
-     * 
+     *
      * @param string $name
      * @param uuid $namespace
-     * 
+     *
      * @author Andrew Moore
      * @link http://www.php.net/manual/en/function.uniqid.php#94959
      */
@@ -126,13 +126,13 @@ class RestoUtil {
     /**
      * Check that input $uuid has a valid uuid syntax
      * @link http://tools.ietf.org/html/rfc4122
-     * 
+     *
      * @param uuid $uuid
      */
     public static function isValidUUID($uuid) {
         return preg_match('/^\{?[0-9a-f]{8}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{12}\}?$/i', $uuid) === 1;
     }
-    
+
     /**
      * Upgraded implode($glue, $arr) function that
      * do not aggregate NULL elements in result
@@ -147,10 +147,10 @@ class RestoUtil {
         }
         return $ret_str;
     }
-    
+
     /**
      * Rewrite URL with input query parameters
-     * 
+     *
      * @param string $url
      * @param array $newParams
      */
@@ -162,10 +162,10 @@ class RestoUtil {
         }
         return RestoUtil::baseUrl($exploded) . $exploded['path'] . RestoUtil::kvpsToQueryString(array_merge($existingParams, $newParams));
     }
-    
+
     /**
      * Rewrite URL with new format
-     * 
+     *
      * @param string $url
      * @param string $format
      */
@@ -179,10 +179,10 @@ class RestoUtil {
         }
         return RestoUtil::baseUrl($exploded) . $path . '.' . $format . (isset($exploded['query']) ? '?' . $exploded['query'] : '');
     }
-    
+
     /**
      * Write a valid RESTo URL
-     * 
+     *
      * @param string $baseUrl
      * @param string $route
      * @param string $format
@@ -190,12 +190,12 @@ class RestoUtil {
     public static function restoUrl($baseUrl = '//', $route = '', $format = '') {
         return trim($baseUrl . $route, '/') . (isset($format) && $format !== '' ? '.' . $format : '');
     }
-    
+
     /**
-     * 
+     *
      * Return true if input date string is ISO 8601 formatted
      * i.e. one in the following form :
-     * 
+     *
      *      YYYY
      *      YYYY-MM
      *      YYYY-MM-DD
@@ -207,15 +207,15 @@ class RestoUtil {
      *      YYYY-MM-DDTHH:MM:SS-HHMM
      *      YYYY-MM-DDTHH:MM:SS.sssss+HHMM
      *      YYYY-MM-DDTHH:MM:SS.sssss-HHMM
-     * 
+     *
      * @param {String} $dateStr
-     *    
+     *
      */
     public static function isISO8601($dateStr) {
 
         /**
          * Construct the regex to match all ISO 8601 format date case
-         * The regex is constructed as a combination of all pattern       
+         * The regex is constructed as a combination of all pattern
          */
         return preg_match('/^' . join('$|^', array(
                     '\d{4}', // YYYY
@@ -238,12 +238,12 @@ class RestoUtil {
     }
 
     /**
-     * 
+     *
      * Return an ISO 8601 formatted YYYY-MM-DDT00:00:00Z from
      * a valid iso8601 string
-     * 
+     *
      * @param {String} $dateStr
-     *    
+     *
      */
     public static function toISO8601($dateStr) {
 
@@ -262,19 +262,19 @@ class RestoUtil {
 
         return $dateStr;
     }
-    
+
     /**
      * Instantiate class with params
-     * 
+     *
      * @param string $className : class name to instantiate
      * @param array $params : array of params to pass to the instantiate class
      */
     public static function instantiate($className, $params = array()) {
-        
+
         if (!$className) {
             RestoLogUtil::httpError(500, 'Class name is not set');
         }
-        
+
         try {
             $class = new ReflectionClass($className);
             if (!$class->isInstantiable()) {
@@ -283,7 +283,7 @@ class RestoUtil {
         } catch (Exception $e) {
             RestoLogUtil::httpError(500, $className . ' is not instantiable');
         }
-       
+
         switch (count($params)) {
             case 1:
                 return $class->newInstance($params[0]);
@@ -298,9 +298,9 @@ class RestoUtil {
 
     /**
      * Return an array of posted/put files or POST stream within HTTP request Body
-     * 
+     *
      * @param string $uploadDirectory - Upload directory
-     * 
+     *
      * @return array
      * @throws Exception
      */
@@ -318,23 +318,23 @@ class RestoUtil {
         else {
             return RestoUtil::readFile($uploadDirectory);
         }
-        
+
     }
-    
+
     /**
-     * Split a string on space character into an array of words 
-     * 
+     * Split a string on space character into an array of words
+     *
      * Note: if parts of the input string are inside quotes (i.e. " character"),
      * the content of the quotes is considered as a single word
-     * 
-     * 
+     *
+     *
      * @param string $str
      * @return array
      */
     public static function splitString($str) {
-        
+
         $quotted = explode('"', $str);
-        
+
         /*
          * Search for quotted (i.e. text within " ") parts
          */
@@ -358,16 +358,16 @@ class RestoUtil {
                     }
                 }
             }
-            
+
             return $output;
         }
-        
+
         return explode(' ', str_replace('"', '', $str));
     }
-    
+
     /**
      * Check if string starts like an url i.e. http:// or https:// or //:
-     * 
+     *
      * @param {String} $str
      */
     public static function isUrl($str) {
@@ -379,10 +379,10 @@ class RestoUtil {
         }
         return false;
     }
-    
+
     /**
      * Compute a sha1 hash from $input,$parent truncated to 15 characters
-     * 
+     *
      * @param string $input
      * @param string $parent
      * @return string
@@ -390,19 +390,19 @@ class RestoUtil {
     public static function getHash($input, $parent = null) {
         return substr(sha1($input . (isset($parent) ? ',' . $parent : '')), 0, 15);
     }
-    
+
     /**
      * Sanitize input parameter to avoid code injection
      *   - remove html tags
-     * 
+     *
      * @param {String or Array} $strOrArray
      */
     public static function sanitize($strOrArray) {
-        
+
         if (!isset($strOrArray)) {
             return null;
         }
-        
+
         if (is_array($strOrArray)) {
             $result = array();
             foreach ($strOrArray as $key => $value) {
@@ -410,14 +410,14 @@ class RestoUtil {
             }
             return $result;
         }
-        
+
         return RestoUtil::sanitizeString($strOrArray);
-        
+
     }
-    
+
     /**
      * Format input Key/Value pairs array to query string
-     * 
+     *
      * @param array $kvps
      * @return string
      */
@@ -438,10 +438,10 @@ class RestoUtil {
         }
         return '?' . $paramsStr;
     }
-    
+
     /**
      * Explode query string to input Key/Value pairs array
-     * 
+     *
      * @param string $queryString
      * @return array
      */
@@ -450,10 +450,20 @@ class RestoUtil {
         parse_str($queryString, $output);
         return $output;
     }
-    
+
+    /**
+     * Format TIMESTAMP WITHOUT TIMEZONE output from PostgreSQL
+     * i.e. convert 'YYYY-MM-DD HH24:MI:SS.SSSS' to 'YYYY-MM-DD"T"HH24:MI:SS.SSSS"Z"'
+     *
+     * @param array $params
+     */
+    public static function formatTimestamp($str) {
+      return str_replace(' ', 'T', $str) . 'Z';
+    }
+
     /**
      * Send mail
-     * 
+     *
      * @param array $params
      */
     public static function sendMail($params) {
@@ -472,7 +482,7 @@ class RestoUtil {
     /**
      * Pretty print a json string
      * Code from https://github.com/ryanuber/projects/blob/master/PHP/JSON/jsonpp.php
-     * 
+     *
      * @param string $json
      */
     private static function prettyPrintJsonString($json, $istr = '   ') {
@@ -493,10 +503,10 @@ class RestoUtil {
         }
         return $result;
     }
-    
+
     /**
      * Construct base url from parse_url fragments
-     * 
+     *
      * @param array $exploded
      */
     private static function baseUrl($exploded) {
@@ -504,10 +514,10 @@ class RestoUtil {
                (isset($exploded['user']) ? $exploded['user'] . ':' . $exploded['pass'] . '@' : '') .
                $exploded['host'] . (isset($exploded['port']) ? ':' . $exploded['port'] : '');
     }
-    
+
     /**
      * Read file content attached in POST request
-     * 
+     *
      * @param string $uploadDirectory
      * @param boolean deleteAfterRead
      * @return type
@@ -533,28 +543,28 @@ class RestoUtil {
         } catch (Exception $e) {
             RestoLogUtil::httpError(500, 'Cannot upload file(s)');
         }
-        
+
         /*
          * Assume that input data format is JSON by default
          */
         $json = json_decode(join('', $lines), true);
-        
+
         return $json === null ? $lines : $json;
     }
-    
+
     /**
      * Read file content within header body of POST request
-     * 
+     *
      * @return type
      * @throws Exception
      */
     private static function readStream() {
-        
+
         $content = file_get_contents('php://input');
         if (!isset($content)) {
             return null;
         }
-        
+
         /*
          * Assume that input data format is JSON by default
          */
@@ -562,10 +572,10 @@ class RestoUtil {
 
         return $json === null ? explode("\n", $content) : $json;
     }
-    
+
     /**
      * Sanitize string
-     * 
+     *
      * @param string $str
      * @return string
      */
@@ -575,14 +585,14 @@ class RestoUtil {
          * Remove html tags and NULL (i.e. \0)
          */
         if (is_string($str)) {
-            
+
             /*
              * No Hexadecimal allowed i.e. nothing that starts with 0x
              */
             if (strlen($str) > 1 && substr($str, 0, 2) === '0x') {
                 return null;
             }
-            
+
             return strip_tags(str_replace(chr(0), '', $str));
         }
 

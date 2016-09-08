@@ -19,7 +19,7 @@
  * RESTo PostgreSQL filters functions
  */
 class Functions_filters {
-    
+
     /*
      * Non search filters are excluded from search
      */
@@ -34,17 +34,17 @@ class Functions_filters {
         'resto:sortParam',
         'resto:sortOrder'
     );
-    
+
     /**
      * Constructor
      */
     public function __construct() {}
-    
+
     /**
      * Return an array of database column names
-     * 
+     *
      * @param RestoModel $model
-     * 
+     *
      * @return array
      */
     public function getSQLFields($model) {
@@ -61,9 +61,9 @@ class Functions_filters {
             if (!isset($model->properties[$key]) || isset($model->properties[$key]['notDisplayed'])) {
                 continue;
             }
-            
+
             $value = is_array($model->properties[$key]) ? $model->properties[$key]['name'] : $model->properties[$key];
-            
+
             /*
              * Force geometry element to be retrieved as GeoJSON
              * Retrieve also BoundinBox in EPSG:4326
@@ -75,9 +75,6 @@ class Functions_filters {
             else if ($key === 'centroid') {
                 $columns[] = 'ST_AsGeoJSON(' . $value . ') AS ' . $key;
             }
-            else if ($model->getDbType($key) === 'date') {
-                $columns[] = 'to_char(' . $value . ', \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') AS "' . $key . '"';
-            }
             /*
              * Other fields are retrieved normally
              */
@@ -87,10 +84,10 @@ class Functions_filters {
         }
 
         return $columns;
-        
+
     }
 
-    
+
     /**
      * Return search filters based on model and input search parameters
      *
@@ -100,9 +97,9 @@ class Functions_filters {
      * @return boolean
      */
     public function prepareFilters($user, $model, $params) {
-       
+
         $filters = array();
-        
+
         /**
          * Append filter for contextual search
          */
@@ -115,11 +112,11 @@ class Functions_filters {
          * Process each input search filter excepted excluded filters
          */
         foreach (array_keys($model->searchFilters) as $filterName) {
-            
+
             if (!isset($params[$filterName]) || $params[$filterName] === '') {
                 continue;
             }
-            
+
             /*
              * First check if filter is valid and as an associated column within database
              */
@@ -137,28 +134,28 @@ class Functions_filters {
                 $filters[] = $model->$function($params[$filterName], $user);
             }
         }
-        
+
         return $filters;
-        
+
     }
 
     /**
      * Filter search result on group attribute using
      * the groups list from user profile
-     * 
+     *
      * @param RestoUser $user
      * @param RestoModel $model
      * @return string
      */
     private function prepareFilterQuery_contextualSearch($user, $model) {
-        
+
         /*
          * Admin user has no restriction on search
          */
         if ($user->isAdmin()) {
             return null;
         }
-         
+
         /*
          * Merge user groups with 'public' visibility
          * Note: feature with 'public' visibility can be seen by every user
@@ -169,20 +166,20 @@ class Functions_filters {
         for ($i = count($groups); $i--;) {
             $visibilities[] = '\'' . pg_escape_string($groups[$i]) . '\'';
         }
- 
+
         return $model->properties['visibility']['name'] . ' IN (' . join(',', $visibilities) . ')';
-        
+
     }
 
     /**
-     * 
+     *
      * Prepare an SQL WHERE clause from input filterName
-     * 
+     *
      * @param RestoModel $model (with model keys)
      * @param array $requestParams (with model keys)
      * @param string $filterName
      * @param boolean $exclusion : if true, exclude instead of include filter (WARNING ! only works for geometry and keywords)
-     * 
+     *
      */
     private function prepareFilterQuery($model, $requestParams, $filterName, $exclusion = false) {
 
@@ -192,19 +189,19 @@ class Functions_filters {
         if ($model->getDbType($model->searchFilters[$filterName]['key']) === 'date') {
             return $this->prepareFilterQuery_date($model, $filterName, $requestParams);
         }
-        
+
         /*
          * Special case identifier - use productIdentifier or identifier
          */
         if ($filterName === 'geo:uid' && !RestoUtil::isValidUUID($requestParams['geo:uid'])) {
             return $model->getDbKey('productIdentifier') . ' = \'' . pg_escape_string($requestParams['geo:uid']) . '\'';
         }
-        
+
         /*
          * Prepare filter from operation
          */
         switch ($model->searchFilters[$filterName]['operation']) {
-            
+
             /*
              * Keywords i.e. searchTerms
              */
@@ -221,7 +218,7 @@ class Functions_filters {
             case 'distance':
                 return $this->prepareFilterQuery_distance($model, $filterName, $requestParams, $exclusion);
             /*
-             * Intervals 
+             * Intervals
              */
             case 'interval':
                 return $this->prepareFilterQuery_interval($model, $filterName, $requestParams);
@@ -232,10 +229,10 @@ class Functions_filters {
                 return $this->prepareFilterQuery_general($model, $filterName, $requestParams, $model->getDbType($model->searchFilters[$filterName]['key']));
         }
     }
-    
+
     /**
      * Prepare SQL query for date
-     * 
+     *
      * @param RestoModel $model
      * @param string $filterName
      * @param array $filters
@@ -244,11 +241,11 @@ class Functions_filters {
     private function prepareFilterQuery_date($model, $filterName, $filters) {
         return $model->getDbKey($model->searchFilters[$filterName]['key']) . ' ' . $model->searchFilters[$filterName]['operation'] . ' \'' . pg_escape_string($filters[$filterName]) . '\'';
     }
-    
+
     /**
      * Prepare SQL query for non 'interval' operation on value or arrays
      * If operation is '=' and last character of input value is a '%' sign then perform a like instead of an =
-     * 
+     *
      * @param RestoModel $model
      * @param string $filterName
      * @param array $requestParams
@@ -256,18 +253,18 @@ class Functions_filters {
      * @return type
      */
     private function prepareFilterQuery_general($model, $filterName, $requestParams, $type) {
-        
+
         /*
          * Array of values assumes a 'OR' operation
          */
         $ors = $this->prepareORFilters($model, $filterName, $requestParams, $type);
-        
+
         return count($ors) > 1 ? '(' . join(' OR ', $ors) . ')' : $ors[0];
     }
-    
+
     /**
      * Prepare SQL query for spatial operation ST_Intersects (Input bbox or polygon)
-     * 
+     *
      * @param RestoModel $model
      * @param string $filterName
      * @param array $requestParams
@@ -275,40 +272,40 @@ class Functions_filters {
      * @return type
      */
     private function prepareFilterQuery_intersects($model, $filterName, $requestParams, $exclusion) {
-        
+
         /*
          * Default bounding box is the whole earth
          */
         if ($filterName === 'geo:box') {
             return $this->intersectFilterBBOX($model, $filterName, explode(',', $requestParams[$filterName]), $exclusion);
         }
-        
+
         if ($filterName === 'geo:geometry') {
             return ($exclusion ? 'NOT ' : '') . 'ST_intersects(' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ", ST_GeomFromText('" . pg_escape_string($requestParams[$filterName]) . "', 4326))";
         }
-        
+
         return null;
     }
-    
+
     private function prepareORFilters($model, $filterName, $requestParams, $type) {
-        
+
         /*
          * Set quote to "'" for non numeric filter types
          */
         $quote = $type === 'numeric' ? '' : '\'';
-        
+
         /*
          * Set operation
          */
         $operation = $model->searchFilters[$filterName]['operation'];
-        
+
         /*
          * Split requestParams on |
          */
         $values = explode('|', $requestParams[$filterName]);
         $ors = array();
         for ($i = count($values); $i--;) {
-            
+
             /*
              * LIKE case only if at least 4 characters
              */
@@ -327,12 +324,12 @@ class Functions_filters {
         }
         return $ors;
     }
-    
+
     /**
      * Prepare SQL query for spatial operation ST_Intersects with BBOX
-     * 
+     *
      * Note : in case of bounding box crosses the -180/180 line, split it into two separated polygons
-     * 
+     *
      * @param RestoModel $model
      * @param string $filterName
      * @param array $coords
@@ -343,13 +340,13 @@ class Functions_filters {
         if (count($coords) !== 4) {
             RestoLogUtil::httpError(400, 'Invalid geo:box');
         }
-        
+
         /*
          * Query build is $start . $geometry . $end
          */
         $start = 'ST_intersects(' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ', ST_GeomFromText(\'';
         $end = '\', 4326))';
-        
+
         /*
          * -180/180 line is not crossed
          * (aka the easy part)
@@ -365,13 +362,13 @@ class Functions_filters {
             $filter = '(' . $start . pg_escape_string('POLYGON((' . $coords[0] . ' ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[3] . ',180 ' . $coords[3] . ',180 ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[1] . '))') . $end;
             $filter = $filter . ' OR ' . $start . pg_escape_string('POLYGON((-180 ' . $coords[1] . ',-180 ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[1] . ',-180 ' . $coords[1] . '))') . $end . ')';
         }
-        
+
         return ($exclusion ? 'NOT ' : '') . $filter;
     }
-    
+
     /**
      * Prepare SQL query for spatial operation ST_Distance (Input bbox or polygon)
-     * 
+     *
      * @param RestoModel $model
      * @param string $filterName
      * @param array $requestParams
@@ -379,7 +376,7 @@ class Functions_filters {
      * @return type
      */
     private function prepareFilterQuery_distance($model, $filterName, $requestParams, $exclusion) {
-        
+
         /*
          * WARNING ! Quick benchmark show that st_distance is 100x slower than st_intersects
          * TODO - check if st_distance performance can be improved.
@@ -404,14 +401,14 @@ class Functions_filters {
             }
         }
     }
-    
+
     /**
      * Prepare SQL query for keywords- i.e. searchTerms
-     * 
+     *
      * !! IMPORTANT NOTE !!
-     *      
+     *
      *      Searches are done on the array 'hashes' column
-     * 
+     *
      * @param RestoModel $model
      * @param string $filterName
      * @param array $requestParams
@@ -419,17 +416,17 @@ class Functions_filters {
      * @return type
      */
     private function prepareFilterQuery_keywords($model, $filterName, $requestParams, $exclusion) {
-        
+
         $terms = array();
         $splitted = RestoUtil::splitString($requestParams[$filterName]);
         $filters = array(
             'with' => array(),
             'without' => array()
         );
-        
+
         /*
          * Process each searchTerms
-         * 
+         *
          * Note: replace geohash: by hash: (see rocket)
          */
         for ($i = 0, $l = count($splitted); $i < $l; $i++) {
@@ -439,16 +436,16 @@ class Functions_filters {
         return join(' AND ', array_merge($terms, $this->mergeHashesFilters($model->getDbKey($model->searchFilters[$filterName]['key']), $filters)));
 
     }
-    
+
     /**
-     * 
+     *
      * @param type $model
      * @param type $filterName
      * @param type $requestParams
      * @param boolean $exclusion
      */
     private function processSearchTerms($searchTerm, &$filters, $model, $filterName, $exclusion) {
-        
+
         /*
          * If term as a '-' prefix then performs a "NOT keyword"
          * If keyword contain a + then transform it into a ' '
@@ -473,11 +470,11 @@ class Functions_filters {
         /*
          * Everything other types are stored within hashes column
          * If input keyword is a hash leave value unchanged
-         * 
+         *
          * Structure is :
-         * 
+         *
          *      type:id or type:id1|id2|id3|.etc.
-         * 
+         *
          * In second case, '|' is understood as "OR"
          */
         $ors = array();
@@ -488,15 +485,15 @@ class Functions_filters {
             }
             return ($exclusion ? 'NOT (' : '(') . join(' OR ', $ors) . ')';
         }
-        
+
         $filters[$exclusion ? 'without' : 'with'][] = "'" . pg_escape_string($typeAndValue[0] !== 'hash' ? $searchTerm : $typeAndValue[1]) . "'";
-        
+
         return array();
     }
-    
+
     /**
      * Prepare terms for landuse search
-     * 
+     *
      * @param string $value
      * @param boolean $exclusion
      * @return array
@@ -511,10 +508,10 @@ class Functions_filters {
         }
         return $terms;
     }
-    
+
     /**
      * Merge filters on hashes
-     * 
+     *
      * @param string $key
      * @param array $filters
      * @return array
@@ -529,10 +526,10 @@ class Functions_filters {
         }
         return $terms;
     }
-    
+
     /**
      * Prepare SQL query for intervals
-     * 
+     *
      * If
      *      A is the value of $this->request['params'][$this->description['searchFilters'][$filterName]['osKey']]
      * Then
@@ -544,15 +541,15 @@ class Functions_filters {
      *      A = ]n1 then returns n1 < value
      *      A = [n1 then returns  n1 ≤ value
      *      A = n1[ then returns value < n2
-     *      A = n1] then returns value ≤ n2 
-     * 
+     *      A = n1] then returns value ≤ n2
+     *
      * @param RestoModel $model
      * @param string $filterName
      * @param array $requestParams
      * @return type
      */
     private function prepareFilterQuery_interval($model, $filterName, $requestParams) {
-        
+
         $values = explode(',', $requestParams[$filterName]);
 
         /*
@@ -567,12 +564,12 @@ class Functions_filters {
         else if (count($values) === 2) {
             return $this->processComplexInterval($model, $filterName, $values);
         }
-        
+
     }
-    
+
     /**
      * Process simple interval
-     * 
+     *
      * @param RestoModel $model
      * @param string $filterName
      * @param array $requestParams
@@ -580,8 +577,8 @@ class Functions_filters {
      * @return string
      */
     private function processSimpleInterval($model, $filterName, $requestParams, $value) {
-        
-        /* 
+
+        /*
          * A = ]n1 then returns n1 < value
          * A = n1[ then returns value < n2
          */
@@ -589,25 +586,25 @@ class Functions_filters {
         if ($op1 === '[' || $op1 === ']') {
             return $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op1 === '[' ? ' >= ' : ' > ') . pg_escape_string(substr($value, 1));
         }
-        
+
         /*
          * A = [n1 then returns  n1 ≤ value
-         * A = n1] then returns value ≤ n2 
+         * A = n1] then returns value ≤ n2
          */
         $op2 = substr($value, -1);
         if ($op2 === '[' || $op2 === ']') {
             return $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op2 === ']' ? ' <= ' : ' < ') . pg_escape_string(substr($value, 0, strlen($value) - 1));
         }
-        
+
         /*
          * A = n1 then returns value = n1
          */
         return $model->getDbKey($model->searchFilters[$filterName]['key']) . ' = ' . pg_escape_string($requestParams[$filterName]);
     }
-    
+
     /**
      * Process complex interval
-     * 
+     *
      * @param RestoModel $model
      * @param string $filterName
      * @param array $requestParams
@@ -615,7 +612,7 @@ class Functions_filters {
      * @return string
      */
     private function processComplexInterval($model, $filterName, $values) {
-        
+
         /*
          * First and last characters give operators
          */
@@ -630,20 +627,20 @@ class Functions_filters {
         }
 
         /*
-         * Other cases i.e. 
+         * Other cases i.e.
          * A = [n1,n2] then returns <= n1 and <= n2
          * A = [n1,n2[ then returns <= n1 and B < n2
          * A = ]n1,n2[ then returns < n1 and B < n2
-         * 
+         *
          */
         if (($op1 === '[' || $op1 === ']') && ($op2 === '[' || $op2 === ']')) {
             return $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op1 === '[' ? ' >= ' : ' > ') . pg_escape_string(substr($values[0], 1)) . ' AND ' . $model->getDbKey($model->searchFilters[$filterName]['key']) . ($op2 === ']' ? ' <= ' : ' < ') . pg_escape_string(substr($values[1], 0, strlen($values[1]) - 1));
         }
     }
-    
+
     /**
      * Return type and value from searchTerm
-     * 
+     *
      * @param string $searchTerm
      */
     private function getTypeAndValue($searchTerm) {
