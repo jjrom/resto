@@ -262,6 +262,7 @@ class Functions_collections {
          * Prepare one column for each key entry in model
          */
         $table = array();
+        $indices = array();
         foreach (array_keys($collection->model->extendedProperties) as $key) {
             if (is_array($collection->model->extendedProperties[$key])) {
                 if (isset($collection->model->extendedProperties[$key]['name']) && isset($collection->model->extendedProperties[$key]['type'])) {
@@ -275,31 +276,13 @@ class Functions_collections {
          */
         if (!$this->dbDriver->check(RestoDatabaseDriver::TABLE, array('name' => 'features', 'schema' => $schemaName))) {
             $this->dbDriver->query('CREATE TABLE ' . $schemaName . '.features (' . (count($table) > 0 ? join(',', $table) . ',' : '') . 'CHECK( collection = \'' . $collection->name . '\')) INHERITS (resto.features);');
-            $indices = array(
-                'identifier' => 'btree',
-                'productIdentifier' => 'btree',
-                'visibility' => 'btree',
-                'platform' => 'btree',
-                'resolution' => 'btree',
-                'startDate' => 'btree',
-                'updated' => 'btree',
-                'cultivatedCover' => 'btree',
-                'desertCover' => 'btree',
-                'floodedCover' => 'btree',
-                'forestCover' => 'btree',
-                'herbaceousCover' => 'btree',
-                'iceCover' => 'btree',
-                'snowCover' => 'btree',
-                'urbanCover' => 'btree',
-                'waterCover' => 'btree',
-                'cloudCover' => 'btree',
-                '_geometry' => 'gist', // _geometry is geometry splitted against -180/180 degrees line
-                'centroid' => 'gist',
-                'hashes' => 'gin'
-            );
-            foreach ($indices as $key => $indexType) {
-                if (!empty($key)) {
-                    $this->dbDriver->query('CREATE INDEX ' . $schemaName . '_features_' . $collection->model->getDbKey($key) . '_idx ON ' . $schemaName . '.features USING ' . $indexType . ' (' . $collection->model->getDbKey($key) . ($key === 'startDate' ? ' DESC)' : ')'));
+            // Add index
+            if (isset($collection->model->extendedProperties[$key]['index'])) {
+                $indices[$key] = $collection->model->extendedProperties[$key]['index'];
+            }
+            foreach ($collection->model->properties as $key => $value) {
+                if (!empty($key) && isset($value['index'])) {
+                  $this->dbDriver->query('CREATE INDEX ' . $schemaName . '_features_' . $collection->model->getDbKey($key) . '_idx ON ' . $schemaName . '.features USING ' . $value['index']['type'] . ' (' . $collection->model->getDbKey($key) . ( isset($value['index']['direction']) ? ' ' . $value['index']['direction'] : '') . ')');
                 }
             }
             $this->dbDriver->query('GRANT SELECT ON TABLE ' . $schemaName . '.features TO ' . $this->dbDriver->dbUsername);

@@ -16,16 +16,16 @@
  */
 
 /**
- * RESTo Model 
+ * RESTo Model
  */
 abstract class RestoModel {
-    
+
     /*
      * Model name is mandatory and based on the name
      * of the class
      */
     public $name;
-    
+
     /*
      * Mapping between RESTo model property keys (i.e. array keys - left column)
      * and RESTo database column names (i.e. array values - right column)
@@ -34,7 +34,10 @@ abstract class RestoModel {
         'identifier' => array(
             'name' => 'identifier',
             'type' => 'TEXT',
-            'constraint' => 'UNIQUE'
+            'constraint' => 'UNIQUE',
+            'index' => array(
+                'type' => 'btree'
+            )
         ),
         'collection' => array(
             'name' => 'collection',
@@ -42,7 +45,10 @@ abstract class RestoModel {
         ),
         'visibility' => array(
             'name' => 'visibility',
-            'type' => 'TEXT'
+            'type' => 'TEXT',
+            'index' => array(
+                'type' => 'btree'
+            )
         ),
         'licenseId' => array(
             'name' => 'licenseid',
@@ -50,7 +56,10 @@ abstract class RestoModel {
         ),
         'productIdentifier' => array(
             'name' => 'productidentifier',
-            'type' => 'TEXT'
+            'type' => 'TEXT',
+            'index' => array(
+                'type' => 'btree'
+            )
         ),
         'parentIdentifier' => array(
             'name' => 'parentIdentifier',
@@ -70,7 +79,11 @@ abstract class RestoModel {
         ),
         'startDate' => array(
             'name' => 'startdate',
-            'type' => 'TIMESTAMP'
+            'type' => 'TIMESTAMP',
+            'index' => array(
+                'type' => 'btree',
+                'direction' => 'DESC'
+            )
         ),
         'completionDate' => array(
             'name' => 'completiondate',
@@ -86,7 +99,10 @@ abstract class RestoModel {
         ),
         'platform' => array(
             'name' => 'platform',
-            'type' => 'TEXT'
+            'type' => 'TEXT',
+            'index' => array(
+                'type' => 'btree'
+            )
         ),
         'instrument' => array(
             'name' => 'instrument',
@@ -94,7 +110,10 @@ abstract class RestoModel {
         ),
         'resolution' => array(
             'name' => 'resolution',
-            'type' => 'NUMERIC'
+            'type' => 'NUMERIC',
+            'index' => array(
+                'type' => 'btree'
+            )
         ),
         'sensorMode' => array(
             'name' => 'sensormode',
@@ -142,7 +161,11 @@ abstract class RestoModel {
         ),
         'updated' => array(
             'name' => 'updated',
-            'type' => 'TIMESTAMP'
+            'type' => 'TIMESTAMP',
+            'index' => array(
+                'type' => 'btree',
+                'direction' => 'DESC'
+            )
         ),
         'published' => array(
             'name' => 'published',
@@ -152,57 +175,87 @@ abstract class RestoModel {
             'name' => 'lu_cultivated',
             'type' => 'NUMERIC',
             'constraint' => 'DEFAULT 0',
-            'notDisplayed' => true
+            'notDisplayed' => true,
+            'index' => array(
+                'type' => 'btree'
+            )
         ),
         'desertCover' => array(
             'name' => 'lu_desert',
             'type' => 'NUMERIC',
             'contraint' => 'DEFAULT 0',
-            'notDisplayed' => true
+            'notDisplayed' => true,
+            'index' => array(
+                'type' => 'btree'
+            )
         ),
         'floodedCover' => array(
             'name' => 'lu_flooded',
             'type' => 'NUMERIC',
             'contraint' => 'DEFAULT 0',
-            'notDisplayed' => true
+            'notDisplayed' => true,
+            'index' => array(
+                'type' => 'btree'
+            )
         ),
         'forestCover' => array(
             'name' => 'lu_forest',
             'type' => 'NUMERIC',
             'constraint' => 'DEFAULT 0',
-            'notDisplayed' => true
+            'notDisplayed' => true,
+            'index' => array(
+                'type' => 'btree'
+            )
         ),
         'herbaceousCover' => array(
             'name' => 'lu_herbaceous',
             'type' => 'NUMERIC',
             'constraint' => 'DEFAULT 0',
-            'notDisplayed' => true
+            'notDisplayed' => true,
+            'index' => array(
+                'type' => 'btree'
+            )
         ),
         'iceCover' => array(
             'name' => 'lu_ice',
             'type' => 'NUMERIC',
             'constraint' => 'DEFAULT 0',
-            'notDisplayed' => true
+            'notDisplayed' => true,
+            'index' => array(
+                'type' => 'btree'
+            )
         ),
         'urbanCover' => array(
             'name' => 'lu_urban',
             'type' => 'NUMERIC',
             'constraint' => 'DEFAULT 0',
-            'notDisplayed' => true
+            'notDisplayed' => true,
+            'index' => array(
+                'type' => 'btree'
+            )
         ),
         'waterCover' => array(
             'name' => 'lu_water',
             'type' => 'NUMERIC',
             'constraint' => 'DEFAULT 0',
-            'notDisplayed' => true
+            'notDisplayed' => true,
+            'index' => array(
+                'type' => 'btree'
+            )
         ),
         'snowCover' => array(
             'name' => 'snowcover',
-            'type' => 'NUMERIC'
+            'type' => 'NUMERIC',
+            'index' => array(
+                'type' => 'btree'
+            )
         ),
         'cloudCover' => array(
             'name' => 'cloudcover',
-            'type' => 'NUMERIC'
+            'type' => 'NUMERIC',
+            'index' => array(
+                'type' => 'btree'
+            )
         ),
         'keywords' => array(
             'name' => 'keywords',
@@ -212,43 +265,53 @@ abstract class RestoModel {
             'name' => 'geometry',
             'type' => 'GEOMETRY'
         ),
+        // _geometry is geometry splitted against -180/180 degrees line
         '_geometry' => array(
             'name' => '_geometry',
-            'type' => 'GEOMETRY'
+            'type' => 'GEOMETRY',
+            'index' => array(
+                'type' => 'gist'
+            )
         ),
         'centroid' => array(
             'name' => 'centroid',
-            'type' => 'POINT'
+            'type' => 'POINT',
+            'index' => array(
+                'type' => 'gist'
+            )
         ),
         'hashes' => array(
             'name' => 'hashes',
             'type' => 'TEXT[]',
-            'notDisplayed' => true
+            'notDisplayed' => true,
+            'index' => array(
+                'type' => 'gin'
+            )
         )
     );
-    
+
     /**
      * OpenSearch search filters
-     * 
-     *  'key' : 
+     *
+     *  'key' :
      *      RESTo model property name
-     *  'osKey' : 
+     *  'osKey' :
      *      OpenSearch property name in template urls
-     *  'operation' : 
+     *  'operation' :
      *      Search operation (keywords, intersects, distance, =, <=, >=)
-     *  'htmlFilter' : 
+     *  'htmlFilter' :
      *      If set to true then this filter is added to the text/html OpenSearch <Url>
-     * 
-     * 
+     *
+     *
      *  Below properties follow the "Paramater extension" (http://www.opensearch.org/Specifications/OpenSearch/Extensions/Parameter/1.0/Draft_2)
-     *  
-     *  'minimum' : 
+     *
+     *  'minimum' :
      *      Minimum number of times this parameter must be included in the search request (default 0)
-     *  'maximum' : 
+     *  'maximum' :
      *      Maximum number of times this parameter must be included in the search request (default 1)
-     *  'pattern' : 
-     *      Regular expression against which the parameter's value 
-     *      Pattern follows Javascript (http://www.ecma-international.org/publications/standards/Ecma-262.htm) 
+     *  'pattern' :
+     *      Regular expression against which the parameter's value
+     *      Pattern follows Javascript (http://www.ecma-international.org/publications/standards/Ecma-262.htm)
      *  'title' :
      *      Tooltip
      *  'minExclusive'
@@ -256,7 +319,7 @@ abstract class RestoModel {
      *  'maxExclusive'
      *      Maximum value for the element that cannot be reached
      *  'options'
-     *      List of possible values. Two ways 
+     *      List of possible values. Two ways
      *      1. Array of predefined value/label
      *          array(
      *              array(
@@ -266,7 +329,7 @@ abstract class RestoModel {
      *              ...
      *          )
      *      2. 'auto'
-     *         In this case will be computed from facets table      
+     *         In this case will be computed from facets table
      */
     public $searchFilters = array(
         /**
@@ -516,7 +579,7 @@ abstract class RestoModel {
          *      description="OpenSearch {eo:productType}",
          *      type="string",
          *      enum={}
-         *  ) 
+         *  )
          */
         'eo:productType' => array(
             'key' => 'productType',
@@ -531,7 +594,7 @@ abstract class RestoModel {
          *      description="OpenSearch {eo:processingLevel}",
          *      type="string",
          *      enum={}
-         *  ) 
+         *  )
          */
         'eo:processingLevel' => array(
             'key' => 'processingLevel',
@@ -546,7 +609,7 @@ abstract class RestoModel {
          *      description="OpenSearch {eo:platform}",
          *      type="string",
          *      enum={}
-         *  ) 
+         *  )
          */
         'eo:platform' => array(
             'key' => 'platform',
@@ -925,7 +988,7 @@ abstract class RestoModel {
     );
 
     public $extendedProperties = array();
-    
+
     /**
      * Constructor
      */
@@ -933,18 +996,18 @@ abstract class RestoModel {
         $this->name = get_class($this);
         $this->properties = array_merge($this->properties, $this->extendedProperties);
     }
-   
+
     /**
      * Return property database column type
-     * 
+     *
      * @param type $modelKey
      */
     public function getDbType($modelKey) {
-        
+
         if (!isset($this->properties[$modelKey])) {
             return null;
         }
-        
+
         switch(strtoupper($this->properties[$modelKey]['type'])) {
             case 'INTEGER':
                 return 'integer';
@@ -956,16 +1019,16 @@ abstract class RestoModel {
             case 'GEOMETRY':
                 return 'geometry';
             case 'TEXT[]':
-                return 'array';    
+                return 'array';
             default:
                 return 'string';
         }
-        
+
     }
-    
+
     /**
      * Return property database column name
-     * 
+     *
      * @param string $modelKey : RESTo model key
      * @return array
      */
@@ -975,29 +1038,29 @@ abstract class RestoModel {
         }
         return $this->properties[$modelKey]['name'];
     }
-    
+
     /**
      * Remap properties array accordingly to $inputMapping array
-     * 
+     *
      *  $inputMapping array structure:
-     *      
+     *
      *          array(
      *              'propertyNameInInputFile' => 'restoPropertyName' or array('restoPropertyName1', 'restoPropertyName2)
      *          )
-     * 
+     *
      * @param Array $geojson
      */
     public function mapInputProperties($geojson) {
         if (property_exists($this, 'inputMapping')) {
             foreach ($this->inputMapping as $key => $arr) {
-                
+
                 /*
-                 * key can be a path i.e. key1.key2.key3 
+                 * key can be a path i.e. key1.key2.key3
                  */
                 $childs = explode('.', $key);
                 $property = isset($geojson[$childs[0]]) ? $geojson[$childs[0]] : null;
                 if ($property) {
-                    
+
                     for ($i = 1, $ii = count($childs); $i < $ii; $i++) {
                         if (isset($property[$childs[$i]])) {
                             $property = $property[$childs[$i]];
@@ -1025,34 +1088,34 @@ abstract class RestoModel {
         }
         return $geojson['properties'];
     }
-    
+
     /**
      * Store feature within {collection}.features table following the class model
-     * 
+     *
      * @param array $data : array (MUST BE GeoJSON in abstract Model)
      * @param RestoCollection $collection
-     * 
+     *
      */
     public function storeFeature($data, $collection) {
-        
+
         /*
          * Assume input file or stream is a JSON Feature
          */
         if (!RestoGeometryUtil::isValidGeoJSONFeature($data)) {
             RestoLogUtil::httpError(500, 'Invalid feature description');
         }
-        
+
         /*
          * Remap properties between RESTo model and input
-         * GeoJSON Feature file 
+         * GeoJSON Feature file
          */
         $properties = $this->mapInputProperties($data);
-        
+
         /*
          * Add collection to $properties to initialize facet counts on collection
          */
         $properties['collection']  = isset($properties['collection']) ? $properties['collection'] : $collection->name;
-        
+
         /*
          * Compute unique identifier
          */
@@ -1062,7 +1125,7 @@ abstract class RestoModel {
         else {
             $featureIdentifier = $data['id'];
         }
-        
+
         /*
          * First check if feature is already in database
          * (do this before getKeywords to avoid iTag process)
@@ -1070,7 +1133,7 @@ abstract class RestoModel {
         if ($collection->context->dbDriver->check(RestoDatabaseDriver::FEATURE, array('featureIdentifier' => $featureIdentifier))) {
             RestoLogUtil::httpError(500, 'Feature ' . $featureIdentifier . ' already in database');
         }
-        
+
         /*
          * Tag module
          */
@@ -1079,7 +1142,7 @@ abstract class RestoModel {
             $tagger = RestoUtil::instantiate($collection->context->modules['Tag']['className'], array($collection->context, $collection->user));
             $keywords = $tagger->getKeywords($properties, $data['geometry']);
         }
-        
+
         /*
          * Store feature
          */
@@ -1092,13 +1155,13 @@ abstract class RestoModel {
                 'properties' => array_merge($properties, array('keywords' => $keywords))
             )
         ));
-        
+
         return new RestoFeature($collection->context, $collection->user, array(
             'featureIdentifier' => $featureIdentifier
         ));
-        
+
     }
-    
+
     /**
      * Get facet fields from model
      */
@@ -1111,14 +1174,14 @@ abstract class RestoModel {
         }
         return $facetFields;
     }
-    
+
     /**
      * Get resto filters from input query parameters
      *  - change parameter keys to model parameter key
      *  - remove unset parameters
      *  - remove all HTML tags from input to avoid XSS injection
      *  - check that filter value is valid regarding the model definition
-     * 
+     *
      * @param array $query
      */
     public function getFiltersFromQuery($query) {
@@ -1132,7 +1195,7 @@ abstract class RestoModel {
         }
         return $params;
     }
-    
+
     /**
      * Return OpenSearch filter name from OpenSearch key
      * @param string $osKey
@@ -1145,15 +1208,15 @@ abstract class RestoModel {
         }
         return null;
     }
-    
+
     /**
      * Check if value is valid for a given filter regarding the model
-     * 
+     *
      * @param string $filterKey
      * @param string $value
      */
     private function validateFilter($filterKey, $value) {
-        
+
         /*
          * Check pattern for string
          */
@@ -1176,7 +1239,7 @@ abstract class RestoModel {
                 RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be lower than ' . ($this->searchFilters[$filterKey]['maxInclusive'] + 1));
             }
         }
-            
+
         return true;
     }
 }
