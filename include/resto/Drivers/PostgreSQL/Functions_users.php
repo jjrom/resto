@@ -63,7 +63,7 @@ class Functions_users {
             RestoLogUtil::httpError(404);
         }
 
-        $query = 'SELECT userid, email, groups, username, givenname, lastname, to_char(registrationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as registrationdate, country, organization, organizationcountry, flags, topics, activated, validatedby, to_char(validationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as validationdate FROM ' . $this->dbDriver->schemaName . '.users WHERE ' . $this->useridOrEmailFilter($identifier) . (isset($password) ? ' AND password=\'' . pg_escape_string(RestoUtil::encrypt($password)) . '\'' : '');
+        $query = 'SELECT userid, email, groups, username, firstname, lastname, to_char(registrationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as registrationdate, country, organization, organizationcountry, flags, topics, activated, validatedby, to_char(validationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as validationdate FROM ' . $this->dbDriver->schemaName . '.users WHERE ' . $this->useridOrEmailFilter($identifier) . (isset($password) ? ' AND password=\'' . pg_escape_string(RestoUtil::encrypt($password)) . '\'' : '');
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
 
         if (count($results) === 0) {
@@ -89,7 +89,7 @@ class Functions_users {
      */
     public function getUsersProfiles($data = array()) {
 
-        $results = $this->dbDriver->query('SELECT userid, email, groups, username, givenname, lastname, to_char(registrationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as registrationdate, country, organization, organizationcountry, flags, topics, activated, validatedby, to_char(validationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as validationdate FROM ' . $this->dbDriver->schemaName . '.users' . (isset($data['groupid']) ? ' WHERE \'' . pg_escape_string($data['groupid']) . '\' = any(groups)' : (isset($data['keywords']) ? ' WHERE email LIKE \'' . pg_escape_string($data['keywords']) .'\' OR username LIKE \''  . pg_escape_string($data['keywords']) .'\' OR givenname LIKE \''  . pg_escape_string($data['keywords']) .'\' OR lastname LIKE \''  . pg_escape_string($data['keywords']) .'\' OR country LIKE \''  . pg_escape_string($data['keywords']) .'\' OR organization LIKE \''  . pg_escape_string($data['keywords']) .'\'' : '')) . (isset($data['limit']) ? ' LIMIT ' . pg_escape_string($data['limit']) : '') . (isset($data['offset']) ? ' OFFSET ' . pg_escape_string($data['offset']) : '') );
+        $results = $this->dbDriver->query('SELECT userid, email, groups, username, firstname, lastname, to_char(registrationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as registrationdate, country, organization, organizationcountry, flags, topics, activated, validatedby, to_char(validationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as validationdate FROM ' . $this->dbDriver->schemaName . '.users' . (isset($data['groupid']) ? ' WHERE \'' . pg_escape_string($data['groupid']) . '\' = any(groups)' : (isset($data['keywords']) ? ' WHERE email LIKE \'' . pg_escape_string($data['keywords']) .'\' OR username LIKE \''  . pg_escape_string($data['keywords']) .'\' OR firstname LIKE \''  . pg_escape_string($data['keywords']) .'\' OR lastname LIKE \''  . pg_escape_string($data['keywords']) .'\' OR country LIKE \''  . pg_escape_string($data['keywords']) .'\' OR organization LIKE \''  . pg_escape_string($data['keywords']) .'\'' : '')) . (isset($data['limit']) ? ' LIMIT ' . pg_escape_string($data['limit']) : '') . (isset($data['offset']) ? ' OFFSET ' . pg_escape_string($data['offset']) : '') );
         $profiles = array();
         while ($profile = pg_fetch_assoc($results)) {
             $profile['groups'] = substr($profile['groups'], 1, -1);
@@ -100,7 +100,7 @@ class Functions_users {
                 'picture' => $this->getPicture($profile['email']),
                 'groups' => $profile['groups'],
                 'username' => $profile['username'],
-                'givenname' => $profile['givenname'],
+                'firstname' => $profile['firstname'],
                 'lastname' => $profile['lastname'],
                 'registrationdate' => $profile['registrationdate'],
                 'country' => $profile['country'],
@@ -161,7 +161,7 @@ class Functions_users {
             'validationdate' => isset($profile['validatedby']) ? 'now()' : 'NULL',
             'registrationdate' => 'now()'
         );
-        foreach (array_values(array('username', 'givenname', 'lastname', 'country', 'organization', 'topics', 'organizationcountry', 'flags')) as $field) {
+        foreach (array_values(array('username', 'firstname', 'lastname', 'country', 'organization', 'topics', 'organizationcountry', 'flags')) as $field) {
             $toBeSet[$field] = (isset($profile[$field]) ? "'" . pg_escape_string($profile[$field]) . "'" : 'NULL');
         }
 
@@ -189,7 +189,7 @@ class Functions_users {
          *   - registrationdate
          */
         $values = array();
-        foreach (array_values(array('password', 'activated', 'username', 'givenname', 'lastname', 'groups', 'country', 'organization', 'topics', 'organizationcountry', 'flags')) as $field) {
+        foreach (array_values(array('password', 'activated', 'username', 'firstname', 'lastname', 'groups', 'country', 'organization', 'topics', 'organizationcountry', 'flags')) as $field) {
             if (isset($profile[$field])) {
                 switch ($field) {
                     case 'password':

@@ -545,7 +545,7 @@ class RestoRoutePOST extends RestoRoute {
                 'email' => $data['email'],
                 'password' => isset($data['password']) ? $data['password'] : null,
                 'username' => isset($data['username']) ? $data['username'] : null,
-                'givenname' => isset($data['givenname']) ? $data['givenname'] : null,
+                'firstname' => isset($data['firstname']) ? $data['firstname'] : null,
                 'lastname' => isset($data['lastname']) ? $data['lastname'] : null,
                 'country' => isset($data['country']) ? $data['country'] : null,
                 'organization' => isset($data['organization']) ? $data['organization'] : null,

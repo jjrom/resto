@@ -327,7 +327,7 @@ CREATE TABLE ${SCHEMA}.users (
     email               TEXT UNIQUE,  -- should be an email adress
     groups              TEXT[], -- array of groupid
     username            TEXT,
-    givenname           TEXT,
+    firstname           TEXT,
     lastname            TEXT,
     country             TEXT,
     organization        TEXT,

@@ -19,23 +19,23 @@
  * resto Metalink class
  */
 class RestoMetalink extends RestoXML {
-    
+
     /*
      * Context reference
      */
     private $context;
-    
+
     /*
      * User reference
      */
     private $user;
-    
+
     /**
      * Constructor
-     * 
+     *
      * @param RestoContext $context
      * @param RestoUser $user
-     * 
+     *
      */
     public function __construct($context, $user) {
         parent::__construct();
@@ -43,44 +43,44 @@ class RestoMetalink extends RestoXML {
         $this->user = $user;
         $this->initialize();
     }
-    
+
     /**
      * Add link to metalink
-     * 
+     *
      * @param array $item
      * @param RestoUser $user
-     * 
+     *
      * @return type
      */
     public function addLink($item) {
-        
+
         /*
          * Compute file name from productIdentifier and mimeType - identifier otherwise
          */
         $this->startElement('file');
         $this->writeAttribute('name', (isset($item['properties']['productIdentifier']) ? $item['properties']['productIdentifier'] : $item['id']) . (isset($item['properties']['services']['download']['mimeType']) ? $this->getExtension($item['properties']['services']['download']['mimeType']) : ''));
-        
+
         if (isset($item['properties']['services']['download']['size'])) {
             $this->writeElement('size', $item['properties']['services']['download']['size']);
         }
-        
+
         $this->writeElements(array(
             //'identity' => 'TODO',
             'version' => '1.0',
             'language' => 'en'
             //'description', 'TODO'
         ));
-        
+
         /*
          * Checksum
          */
         $this->addChecksum($item);
-        
+
         /*
          * Url
          */
         $this->addUrl($item);
-        
+
         $this->endElement(); // End file
     }
 
@@ -91,7 +91,7 @@ class RestoMetalink extends RestoXML {
         $this->endElement(); // End metalink
         return parent::toString();
     }
-    
+
     /**
      * Set Metalink in META4 format
      * @return type
@@ -103,10 +103,10 @@ class RestoMetalink extends RestoXML {
         ));
         $this->writeElement('published', date('Y-m-d\TH:i:sO'));
     }
-    
+
     /**
      * Add file checksum if available
-     * 
+     *
      * @param array $item
      */
     private function addChecksum($item) {
@@ -118,10 +118,10 @@ class RestoMetalink extends RestoXML {
             $this->endElement(); // End hash
         }
     }
-    
+
     /**
      * Add file checksum if available
-     * 
+     *
      * @param array $item
      */
     private function addUrl($item) {
@@ -133,10 +133,10 @@ class RestoMetalink extends RestoXML {
         $this->text($item['properties']['services']['download']['url']);
         $this->endElement(); // End url
     }
-    
+
     /**
      * Return extension from mimeType
-     * 
+     *
      * @param string $mimeType
      */
     private function getExtension($mimeType) {
@@ -152,5 +152,5 @@ class RestoMetalink extends RestoXML {
                 return '';
         }
     }
-    
+
 }
