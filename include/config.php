@@ -179,7 +179,7 @@ return array(
          * Database schema name
          */
         'schemaName' => 'resto',
-        
+
         /*
          * Database host - if not specified connect through unix domain socket (IPC socket) instead of TCP/IP socket
          */
@@ -224,6 +224,20 @@ return array(
          * Email display to users when they receive email from application
          */
         'senderEmail' => 'restoadmin@localhost',
+
+        /*
+         * SMTP configuration
+         */
+        'smtp' => array(
+            'activate' => false,
+            'host' => 'xxx.xxx.xxx',
+            'port' => 465,
+            'secure' => 'ssl', // one of 'ssl' or 'tls'
+            'auth' => array(
+                'user' => 'xxx'
+                'password' => 'xxx'
+            )
+        ),
 
         /*
          * Account activation email

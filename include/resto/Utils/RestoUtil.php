@@ -465,18 +465,36 @@ class RestoUtil {
      * Send mail
      *
      * @param array $params
+     * @param array $smtp
      */
-    public static function sendMail($params) {
-        $headers = 'From: ' . $params['senderName'] . ' <' . $params['senderEmail'] . '>' . "\r\n";
-        $headers .= 'Reply-To: doNotReply <' . $params['senderEmail'] . '>' . "\r\n";
-        $headers .= 'X-Mailer: PHP/' . phpversion() . "\r\n";
-        $headers .= 'X-Priority: 3' . "\r\n";
-        $headers .= 'MIME-Version: 1.0' . "\r\n";
-        $headers .= 'Content-type: text/html; charset=UTF-8' . "\r\n";
-        if (mail($params['to'], $params['subject'], $params['message'] , $headers, '-f' . $params['senderEmail'])) {
-            return true;
+    public static function sendMail($params, $smtp = array()) {
+        $mail = new PHPMailer();
+        if (isset($smtp) && $smtp['activate']) {
+            $mail->isSMTP();                                      // Set mailer to use SMTP
+            $mail->Host = $smtp['activate'];                      // Specify main and backup SMTP servers
+            if (isset($smtp['secure'])) {
+                $mail->SMTPSecure = $smtp['secure'];              // Enable TLS encryption, `ssl` also accepted
+            }
+            $mail->Port = $smtp['port'];                          // TCP port to connect to
+            if (isset($smtp['auth'])) {
+                $mail->SMTPAuth = true;                           // Enable SMTP authentication
+                $mail->Username = $smtp['auth']['user'];          // SMTP username
+                $mail->Password = $smtp['auth']['password'];      // SMTP password
+            }
         }
-        return false;
+
+        $mail->setFrom($params['senderEmail'], $params['senderName']);
+        $mail->addAddress($params['to']);
+        $mail->isHTML(true);
+        $mail->Subject = $params['subject'];
+        $mail->Body = $params['message'];
+
+        if($mail->send()) {
+            return true;
+        } else {
+            return false;
+        }
+
     }
 
     /**

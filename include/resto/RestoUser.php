@@ -65,7 +65,7 @@ class RestoUser {
 
     /**
      * Constructor
-     * 
+     *
      * @param array $profile : User profile
      * @param RestoContext $context
      */
@@ -91,7 +91,7 @@ class RestoUser {
 
     /**
      * Return true if user has administration rights
-     * 
+     *
      * @return boolean
      */
     public function isAdmin() {
@@ -106,7 +106,7 @@ class RestoUser {
 
     /**
      * Return true if user is validated by admin - false otherwise
-     * 
+     *
      * @return boolean
      */
     public function isValidated() {
@@ -122,10 +122,10 @@ class RestoUser {
      *   - 'view' feature,
      *   - 'create' collection,
      *   - 'update' collection (i.e. add/delete feature and/or delete collection)
-     * 
+     *
      * @param string $action
      * @param array $params
-     * @return boolean 
+     * @return boolean
      */
     public function hasRightsTo($action, $params = array()) {
         switch ($action) {
@@ -146,10 +146,10 @@ class RestoUser {
 
     /**
      * Activate user
-     * 
+     *
      * @param string $activationCode
      * @param string $redirectUrl
-     * 
+     *
      */
     public function activate($activationCode = null) {
         if ($this->context->dbDriver->execute(RestoDatabaseDriver::ACTIVATE_USER, array('userid' => $this->profile['userid'], 'activationCode' => isset($activationCode) ? $activationCode : null, 'userAutoValidation' => $this->context->userAutoValidation))) {
@@ -199,7 +199,7 @@ class RestoUser {
 
     /**
      * Returns rights
-     * 
+     *
      * @param string $collectionName
      * @param string $featureIdentifier
      */
@@ -237,7 +237,7 @@ class RestoUser {
 
     /**
      * Set/update user rights
-     * 
+     *
      * @param array $rights
      * @param string $collectionName
      * @param string $featureIdentifier
@@ -251,7 +251,7 @@ class RestoUser {
 
     /**
      * Remove user rights
-     * 
+     *
      * @param array $rights
      * @param string $collectionName
      * @param string $featureIdentifier
@@ -265,7 +265,7 @@ class RestoUser {
 
     /**
      * Add groups to user
-     * 
+     *
      * @param string $groups
      * @return array
      * @throws Exception
@@ -282,7 +282,7 @@ class RestoUser {
 
     /**
      * Remove groups from user
-     * 
+     *
      * @param string $groups
      * @return array
      * @throws Exception
@@ -299,7 +299,7 @@ class RestoUser {
 
     /**
      * Return user signatures
-     * 
+     *
      * @throws Exception
      */
     public function getSignatures() {
@@ -335,7 +335,7 @@ class RestoUser {
 
     /**
      * Sign license
-     * 
+     *
      *  @param RestoLicense $license
      */
     public function signLicense($license) {
@@ -367,7 +367,7 @@ class RestoUser {
 
     /**
      * Place order
-     * 
+     *
      * @param array $data
      */
     public function placeOrder($data) {
@@ -385,7 +385,7 @@ class RestoUser {
 
     /**
      * Send reset password link to user email adress
-     * 
+     *
      */
     public function sendResetPasswordLink() {
 
@@ -411,7 +411,7 @@ class RestoUser {
                     'senderEmail' => $this->context->mail['senderEmail'],
                     'subject' => $this->context->dictionary->translate($this->context->mail['resetPassword'][$fallbackLanguage]['subject'], $this->context->title),
                     'message' => $this->context->dictionary->translate($this->context->mail['resetPassword'][$fallbackLanguage]['message'], $this->context->title, $shared['resourceUrl'] . '?_tk=' . $shared['token'])
-                ))) {
+                ), $this->context->mail['smtp'])) {
             RestoLogUtil::httpError(3003);
         }
 
@@ -420,7 +420,7 @@ class RestoUser {
 
     /**
      * Store user query to database
-     * 
+     *
      * @param string $method
      * @param string $service
      * @param string $collectionName
@@ -444,13 +444,13 @@ class RestoUser {
                 ))
             );
         } catch (Exception $e) {
-            
+
         }
     }
 
     /**
      * Return user search queries
-     * 
+     *
      * @param array $params
      */
     public function getSearchQueries($params) {
@@ -495,8 +495,8 @@ class RestoUser {
     }
 
     /**
-     * Can User download or visualize 
-     * 
+     * Can User download or visualize
+     *
      * @param string $action
      * @param string $collectionName
      * @param string $featureIdentifier
@@ -509,7 +509,7 @@ class RestoUser {
 
     /**
      * Can user create collection ?
-     * 
+     *
      * @return boolean
      */
     private function hasCreateRights() {
@@ -520,7 +520,7 @@ class RestoUser {
     /**
      * A user can update a collection if he is the owner of the collection
      * or if he is an admin
-     * 
+     *
      * @param RestoCollection $collection
      * @return boolean
      */
@@ -540,11 +540,11 @@ class RestoUser {
 
     /**
      * Return rights array for add/update/delete
-     * 
+     *
      * @param array $rights
      * @param string $collectionName
      * @param string $featureIdentifier
-     * 
+     *
      * @return string
      */
     private function getRightsArray($rights, $collectionName = null, $featureIdentifier = null) {

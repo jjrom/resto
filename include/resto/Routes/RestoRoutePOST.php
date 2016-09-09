@@ -563,7 +563,7 @@ class RestoRoutePOST extends RestoRoute {
                         'senderEmail' => $this->context->mail['senderEmail'],
                         'subject' => $this->context->dictionary->translate($this->context->mail['accountActivation'][$fallbackLanguage]['subject'], $this->context->title),
                         'message' => $this->context->dictionary->translate($this->context->mail['accountActivation'][$fallbackLanguage]['message'], $this->context->title, $activationLink)
-                    ))) {
+                    ), $this->context->mail['smtp'])) {
                 RestoLogUtil::httpError(3001);
             }
         }
