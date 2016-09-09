@@ -423,7 +423,13 @@ class Functions_users {
      * @param string $hash
      */
     private function password_verify($password, $hash) {
-        return password_hash($password) === $hash ? true : false;
+        switch ($this->dbDriver->hashing) {
+            case 'sha1':
+                return $this->password_hash($password) === $hash ? true : false;
+                break;
+            default:
+                return password_verify($password, $hash);
+        }
     }
 
 
