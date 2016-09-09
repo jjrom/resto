@@ -55,7 +55,7 @@ class Functions_collections {
          * Then collections
          */
         $collectionsDescriptions = array();
-        $descriptions = $this->dbDriver->query('SELECT collection, status, owner, model, mapping, licenseid FROM resto.collections' . (isset($collectionName) ? ' WHERE collection=\'' . pg_escape_string($collectionName) . '\'' : '') . ' ORDER BY collection');
+        $descriptions = $this->dbDriver->query('SELECT collection, status, owner, model, mapping, licenseid FROM ' . $this->dbDriver->schemaName . '.collections' . (isset($collectionName) ? ' WHERE collection=\'' . pg_escape_string($collectionName) . '\'' : '') . ' ORDER BY collection');
         while ($collection = pg_fetch_assoc($descriptions)) {
             $collectionsDescriptions[$collection['collection']] = array(
                 'name' => $collection['collection'],
@@ -85,7 +85,7 @@ class Functions_collections {
      * @throws Exception
      */
     public function collectionExists($name) {
-        $query = 'SELECT collection FROM resto.collections WHERE collection=\'' . pg_escape_string($name) . '\'';
+        $query = 'SELECT collection FROM ' . $this->dbDriver->schemaName . '.collections WHERE collection=\'' . pg_escape_string($name) . '\'';
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         return !empty($results);
     }
@@ -106,7 +106,7 @@ class Functions_collections {
             RestoLogUtil::httpError(403, 'Cannot delete a non empty collection ' . $collection->name);
         }
 
-        $results = $this->dbDriver->query('SELECT collection FROM resto.collections WHERE collection=\'' . pg_escape_string($collection->name) . '\'');
+        $results = $this->dbDriver->query('SELECT collection FROM ' . $this->dbDriver->schemaName . '.collections WHERE collection=\'' . pg_escape_string($collection->name) . '\'');
         $schemaName = '_' . strtolower($collection->name);
 
         if (pg_fetch_assoc($results)) {
@@ -117,9 +117,9 @@ class Functions_collections {
              *  - entry within collections table
              */
             $query = 'BEGIN;';
-            $query .= 'DELETE FROM resto.osdescriptions WHERE collection=\'' . pg_escape_string($collection->name) . '\';';
-            $query .= 'DELETE FROM resto.collections WHERE collection=\'' . pg_escape_string($collection->name) . '\';';
-            $query .= 'DELETE FROM usermanagement.rights WHERE ownertype=\'group\' AND owner=\'default\' AND targettype=\'collection\' AND target=\'' . pg_escape_string($collection->name) . '\';';
+            $query .= 'DELETE FROM ' . $this->dbDriver->schemaName . '.osdescriptions WHERE collection=\'' . pg_escape_string($collection->name) . '\';';
+            $query .= 'DELETE FROM ' . $this->dbDriver->schemaName . '.collections WHERE collection=\'' . pg_escape_string($collection->name) . '\';';
+            $query .= 'DELETE FROM ' . $this->dbDriver->schemaName . '.rights WHERE ownertype=\'group\' AND owner=\'default\' AND targettype=\'collection\' AND target=\'' . pg_escape_string($collection->name) . '\';';
 
             /*
              * Do not drop schema if product table is not empty
@@ -219,7 +219,7 @@ class Functions_collections {
 
         $osDescriptions = array();
 
-        $results = $this->dbDriver->query('SELECT * FROM resto.osdescriptions WHERE collection = \'' . pg_escape_string($collectionName) . '\'');
+        $results = $this->dbDriver->query('SELECT * FROM ' . $this->dbDriver->schemaName . '.osdescriptions WHERE collection = \'' . pg_escape_string($collectionName) . '\'');
         while ($description = pg_fetch_assoc($results)) {
             $osDescriptions[$description['lang']] = array(
                 'ShortName' => $description['shortname'],
@@ -275,7 +275,7 @@ class Functions_collections {
          * Create schema.features if needed with a CHECK on collection name
          */
         if (!$this->dbDriver->check(RestoDatabaseDriver::TABLE, array('name' => 'features', 'schema' => $schemaName))) {
-            $this->dbDriver->query('CREATE TABLE ' . $schemaName . '.features (' . (count($table) > 0 ? join(',', $table) . ',' : '') . 'CHECK( collection = \'' . $collection->name . '\')) INHERITS (resto.features);');
+            $this->dbDriver->query('CREATE TABLE ' . $schemaName . '.features (' . (count($table) > 0 ? join(',', $table) . ',' : '') . 'CHECK( collection = \'' . $collection->name . '\')) INHERITS (' . $this->dbDriver->schemaName . '.features);');
             // Add index
             if (isset($collection->model->extendedProperties[$key]['index'])) {
                 $indices[$key] = $collection->model->extendedProperties[$key]['index'];
@@ -316,21 +316,21 @@ class Functions_collections {
                 'status' => '\'' . pg_escape_string($collection->status) . '\'',
                 'owner' => '\'' . pg_escape_string($collection->owner) . '\''
             );
-            $this->dbDriver->query('INSERT INTO resto.collections (' . join(',', array_keys($toBeSet)) . ') VALUES(' . join(',', array_values($toBeSet)) . ')');
+            $this->dbDriver->query('INSERT INTO ' . $this->dbDriver->schemaName . '.collections (' . join(',', array_keys($toBeSet)) . ') VALUES(' . join(',', array_values($toBeSet)) . ')');
         }
         /*
          * TODO - review this code
          * Update collection fields (status, mapping and licenseid)
          */
         else {
-            $this->dbDriver->query('UPDATE resto.collections SET status = \'' . pg_escape_string($collection->status) . '\', mapping = \'' . pg_escape_string(json_encode($collection->propertiesMapping)) . '\', licenseid=' . $licenseId . ' WHERE collection = \'' . pg_escape_string($collection->name) . '\'');
+            $this->dbDriver->query('UPDATE ' . $this->dbDriver->schemaName . '.collections SET status = \'' . pg_escape_string($collection->status) . '\', mapping = \'' . pg_escape_string(json_encode($collection->propertiesMapping)) . '\', licenseid=' . $licenseId . ' WHERE collection = \'' . pg_escape_string($collection->name) . '\'');
         }
 
         /*
          * Insert OpenSearch descriptions within osdescriptions table
          * (one description per lang)
          *
-         * CREATE TABLE resto.osdescriptions (
+         * CREATE TABLE $this->dbDriver->schemaName.osdescriptions (
          *  collection          TEXT,
          *  lang                TEXT,
          *  shortname           VARCHAR(16),
@@ -343,7 +343,7 @@ class Functions_collections {
          *  attribution         VARCHAR(256),
          * );
          */
-        $this->dbDriver->query('DELETE FROM resto.osdescriptions WHERE collection=\'' . pg_escape_string($collection->name) . '\'');
+        $this->dbDriver->query('DELETE FROM ' . $this->dbDriver->schemaName . '.osdescriptions WHERE collection=\'' . pg_escape_string($collection->name) . '\'');
 
         foreach ($collection->osDescription as $lang => $description) {
             $osFields = array(
@@ -382,7 +382,7 @@ class Functions_collections {
                     $osValues[] = '\'' . pg_escape_string($description[$key]) . '\'';
                 }
             }
-            $this->dbDriver->query('INSERT INTO resto.osdescriptions (' . join(',', $osFields) . ') VALUES(' . join(',', $osValues) . ')');
+            $this->dbDriver->query('INSERT INTO ' . $this->dbDriver->schemaName . '.osdescriptions (' . join(',', $osFields) . ') VALUES(' . join(',', $osValues) . ')');
         }
         return true;
     }

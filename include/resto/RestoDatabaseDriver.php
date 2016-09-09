@@ -19,7 +19,7 @@
  * RESTo Database
  */
 abstract class RestoDatabaseDriver {
-    
+
     /*
      * Constant
      */
@@ -66,6 +66,11 @@ abstract class RestoDatabaseDriver {
     const AREA = 41;
 
     /*
+     * Schema name
+     */
+    public $schemaName = 'resto';
+
+    /*
      * Results per page
      */
     public $resultsPerPage = 20;
@@ -92,7 +97,7 @@ abstract class RestoDatabaseDriver {
 
     /**
      * Constructor
-     * 
+     *
      * @param array $config
      * @param RestoCache $cache
      * @throws Exception
@@ -106,11 +111,14 @@ abstract class RestoDatabaseDriver {
         if (isset($config['sortParams']) && is_array($config['sortParams'])) {
             $this->sortParams = $config['sortParams'];
         }
-    } 
+        if (isset($config['schemaName'])) {
+            $this->schemaName = $config['schemaName'];
+        }
+    }
 
     /**
      * List object by type name
-     * 
+     *
      * @return array
      * @throws Exception
      */
@@ -118,7 +126,7 @@ abstract class RestoDatabaseDriver {
 
     /**
      * Check if $typeName constraint is true
-     * 
+     *
      * @param string $typeName - object type name ('collection', 'feature', 'user')
      * @param array $params
      * @return boolean
@@ -128,33 +136,33 @@ abstract class RestoDatabaseDriver {
 
     /**
      * Execute action
-     * 
+     *
      * @param string $typeName - object type name ('collection', 'feature', 'user')
      * @param array $params
      * @return boolean
      * @throws Exception
      */
     abstract public function execute($typeName, $params);
-    
+
     /**
      * Return normalized $sentence i.e. in lowercase and without accents
      * This function is superseed in RestoDabaseDriver_PostgreSQL and use
      * the inner function normalize($sentence) defined in installDB.sh
-     * 
+     *
      * @param string $sentence
      */
     abstract public function normalize($sentence);
-    
+
     /**
      * Remove object from database
-     * 
+     *
      * @param Object $object
      */
     abstract public function remove($object);
 
     /**
      * Store object within database
-     * 
+     *
      * @param string $typeName
      * @param array $params
      * @throws Exception
@@ -163,13 +171,13 @@ abstract class RestoDatabaseDriver {
 
     /**
      * Update object within database
-     * 
+     *
      * @param string $typeName
      * @param array $params
      * @throws Exception
      */
     abstract public function update($typeName, $params);
-    
+
     /**
      * Close database handler
      */

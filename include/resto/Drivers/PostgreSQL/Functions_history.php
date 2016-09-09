@@ -78,7 +78,7 @@ class Functions_history {
             $where[] = 'query !~ \'"page":\'';
         }
 
-        $query = 'SELECT gid, email, method, service, collection, resourceid, query, querytime, url, ip FROM usermanagement.history' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : ' ') . ' ORDER BY ' . pg_escape_string($orderBy) . ' ' . pg_escape_string($ascOrDesc) . ' LIMIT ' . $numberOfResults . ' OFFSET ' . $startIndex;
+        $query = 'SELECT gid, email, method, service, collection, resourceid, query, querytime, url, ip FROM ' . $this->dbDriver->schemaName . '.history' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : ' ') . ' ORDER BY ' . pg_escape_string($orderBy) . ' ' . pg_escape_string($ascOrDesc) . ' LIMIT ' . $numberOfResults . ' OFFSET ' . $startIndex;
 
         return $this->dbDriver->fetch($this->dbDriver->query($query));
     }

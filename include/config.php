@@ -176,6 +176,11 @@ return array(
         'dbname' => 'resto',
 
         /*
+         * Database schema name
+         */
+        'schemaName' => 'resto',
+        
+        /*
          * Database host - if not specified connect through unix domain socket (IPC socket) instead of TCP/IP socket
          */
         //'host' => 'localhost',
@@ -196,7 +201,7 @@ return array(
          * WARNING - if you add a field here, be sure to set an index on this field within the database
          * otherwise performance can be degraded
          */
-        'sortParams' => array('startDate'),
+        'sortParams' => array('startdate'),
 
         /*
          * Database user with READ+WRITE privileges (see http://github.com/jjrom/resto/README.md)

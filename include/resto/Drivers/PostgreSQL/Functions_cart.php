@@ -18,37 +18,37 @@
 /**
  * RESTo PostgreSQL cart functions
  */
-class Functions_cart{
-    
+class Functions_cart {
+
     private $dbDriver = null;
-    
+
     /**
      * Constructor
-     * 
+     *
      * @param RestoDatabaseDriver $dbDriver
      * @throws Exception
      */
     public function __construct($dbDriver) {
         $this->dbDriver = $dbDriver;
     }
-    
+
     /**
      * Return cart for user
-     * 
+     *
      * @param string $identifier
      * @param boolean associative
      * @return array
      * @throws exception
      */
     public function getCartItems($identifier, $associative = true) {
-        
+
         $items = array();
-        
+
         if (!isset($identifier)) {
             return $items;
         }
-        
-        $query = 'SELECT itemid, item FROM usermanagement.cart WHERE email=\'' . pg_escape_string($identifier) . '\'';
+
+        $query = 'SELECT itemid, item FROM ' . $this->dbDriver->schemaName . '.cart WHERE email=\'' . pg_escape_string($identifier) . '\'';
         $results = $this->dbDriver->query($query, 500, 'Cannot get cart items');
         while ($result = pg_fetch_assoc($results)) {
             if ($associative) {
@@ -58,27 +58,27 @@ class Functions_cart{
                 $items[] = json_decode($result['item'], true);
             }
         }
-        
+
         return $items;
     }
-    
+
     /**
      * Return orders list for user
-     * 
+     *
      * @param string $identifier
      * @param string $orderId
      * @return array
      * @throws exception
      */
     public function getOrders($identifier, $orderId = null) {
-        
+
         $items = array();
-        
+
         if (!isset($identifier)) {
             return $items;
         }
-        
-        $query = 'SELECT orderid, querytime, items FROM usermanagement.orders WHERE email=\'' . pg_escape_string($identifier) . '\'' . (isset($orderId) ? ' AND orderid=\'' . pg_escape_string($orderId) . '\'' : '') . ' ORDER BY querytime DESC';
+
+        $query = 'SELECT orderid, querytime, items FROM ' . $this->dbDriver->schemaName . '.orders WHERE email=\'' . pg_escape_string($identifier) . '\'' . (isset($orderId) ? ' AND orderid=\'' . pg_escape_string($orderId) . '\'' : '') . ' ORDER BY querytime DESC';
         $results = $this->dbDriver->query($query);
         while ($result = pg_fetch_assoc($results)) {
             $items[] = array(
@@ -90,13 +90,13 @@ class Functions_cart{
         if (isset($orderId) && isset($items[0])) {
             return $items[0];
         }
-        
+
         return $items;
     }
-    
+
     /**
      * Return true if resource is within cart
-     * 
+     *
      * @param string $itemId
      * @return boolean
      * @throws exception
@@ -105,19 +105,19 @@ class Functions_cart{
         if (!isset($itemId)) {
             return false;
         }
-        $query = 'SELECT 1 FROM usermanagement.cart WHERE itemid=\'' . pg_escape_string($itemId) . '\'';
+        $query = 'SELECT 1 FROM ' . $this->dbDriver->schemaName . '.cart WHERE itemid=\'' . pg_escape_string($itemId) . '\'';
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         return !empty($results);
     }
-    
+
     /**
      * Add resource url to cart
-     * 
+     *
      * @param string $identifier
      * @param array $item
-     *   
+     *
      *   Must contain at least an 'id' entry
-     *   
+     *
      * @return boolean
      * @throws exception
      */
@@ -135,19 +135,19 @@ class Functions_cart{
             '\'' . pg_escape_string(json_encode($item)) . '\'',
             'now()'
         );
-        $this->dbDriver->query('INSERT INTO usermanagement.cart (itemid, email, item, querytime) VALUES (' . join(',', $values) . ')');
+        $this->dbDriver->query('INSERT INTO ' . $this->dbDriver->schemaName . '.cart (itemid, email, item, querytime) VALUES (' . join(',', $values) . ')');
         return array($itemId => $item);
     }
-    
+
     /**
      * Update cart
-     * 
+     *
      * @param string $identifier
      * @param string $itemId
      * @param array $item
-     *   
+     *
      *   Must contain at least a 'url' entry
-     *   
+     *
      * @return boolean
      * @throws exception
      */
@@ -158,13 +158,13 @@ class Functions_cart{
         if (!$this->isInCart($itemId)) {
             RestoLogUtil::httpError(1001, 'Cannot update item : ' . $itemId . ' does not exist');
         }
-        $this->dbDriver->query('UPDATE usermanagement.cart SET item = \''. pg_escape_string(json_encode($item)) . '\', querytime=now() WHERE email=\'' . pg_escape_string($identifier) . '\' AND itemid=\'' . pg_escape_string($itemId) . '\'');
+        $this->dbDriver->query('UPDATE ' . $this->dbDriver->schemaName . '.cart SET item = \''. pg_escape_string(json_encode($item)) . '\', querytime=now() WHERE email=\'' . pg_escape_string($identifier) . '\' AND itemid=\'' . pg_escape_string($itemId) . '\'');
         return true;
     }
-    
+
     /**
      * Remove all items from cart for user $identifier
-     * 
+     *
      * @param string $identifier
      * @return boolean
      * @throws exception
@@ -173,13 +173,13 @@ class Functions_cart{
         if (!isset($identifier)) {
             return false;
         }
-        $this->dbDriver->query('DELETE FROM usermanagement.cart WHERE email=\'' . pg_escape_string($identifier) . '\'', 500, 'Cannot clear cart');
+        $this->dbDriver->query('DELETE FROM ' . $this->dbDriver->schemaName . '.cart WHERE email=\'' . pg_escape_string($identifier) . '\'', 500, 'Cannot clear cart');
         return true;
     }
-    
+
     /**
      * Remove resource from cart
-     * 
+     *
      * @param string $identifier
      * @param string $itemId
      * @return boolean
@@ -189,8 +189,8 @@ class Functions_cart{
         if (!isset($identifier) || !isset($itemId)) {
             return false;
         }
-        $result = $this->dbDriver->query('DELETE FROM usermanagement.cart WHERE itemid=\'' . pg_escape_string($itemId) . '\' AND email=\'' . pg_escape_string($identifier) . '\'', 500, 'Cannot remove ' . $itemId . ' from cart');
-        
+        $result = $this->dbDriver->query('DELETE FROM ' . $this->dbDriver->schemaName . '.cart WHERE itemid=\'' . pg_escape_string($itemId) . '\' AND email=\'' . pg_escape_string($identifier) . '\'', 500, 'Cannot remove ' . $itemId . ' from cart');
+
         if (pg_num_rows($result) < 1) {
             /*
              * If no deletion, return false
@@ -200,38 +200,38 @@ class Functions_cart{
             return true;
         }
     }
-    
+
     /**
      * Place order for user
-     * 
+     *
      * @param string $identifier
      * @param array $items
-     * 
+     *
      * @return array
      * @throws exception
      */
     public function placeOrder($identifier, $items = null) {
-        
+
         if (!isset($identifier)) {
             return false;
         }
-        
+
         /*
          * No input items => place order from cart
          */
         if (!isset($items)) {
             return $this->placeOrderFromCart($identifier);
         }
-        
+
         /*
          * Not a valid items => no order
          */
         if (!$this->isValidOrder($items)) {
             return false;
         }
-        
+
         try {
-            
+
             /*
              * Get order items from cart
              */
@@ -239,36 +239,36 @@ class Functions_cart{
             if ($orderId === -1) {
                 return false;
             }
-            
+
             return array(
                 'orderId' => $orderId,
                 'items' => $items
             );
-            
+
         } catch (Exception $e) {
             RestoLogUtil::httpError($e->getCode(), $e->getMessage());
         }
-        
+
         return false;
     }
-    
+
     /**
      * Place order for user from cart - empty cart afterward
-     * 
+     *
      * @param string $identifier
-     * 
+     *
      * @return array
      * @throws exception
      */
     private function placeOrderFromCart($identifier) {
-        
+
         try {
-            
+
             /*
              * Transaction
              */
             $this->dbDriver->query('BEGIN');
-                
+
             /*
              * Get order items from cart
              */
@@ -277,47 +277,47 @@ class Functions_cart{
             if ($orderId === -1) {
                 return false;
             }
-            
+
             /*
              * Empty cart
              */
-            $this->dbDriver->query('DELETE FROM usermanagement.cart WHERE email=\'' . pg_escape_string($identifier) . '\'');
+            $this->dbDriver->query('DELETE FROM ' . $this->dbDriver->schemaName . '.cart WHERE email=\'' . pg_escape_string($identifier) . '\'');
             $this->dbDriver->query('COMMIT');
-            
+
             return array(
                 'orderId' => $orderId,
                 'items' => $items
             );
-            
+
         } catch (Exception $e) {
             $this->dbDriver->query('ROLLBACK');
             RestoLogUtil::httpError($e->getCode(), $e->getMessage());
         }
-        
+
         return false;
-        
+
     }
-    
+
     /**
      * Place order for user from cart - empty cart afterward
-     * 
+     *
      * @param string $identifier
      * @param array $items
-     * 
+     *
      * @return array
      * @throws exception
      */
     private function storeOrder($identifier, $items) {
-        
+
         /*
          * Do not create empty orders
          */
         if (!isset($items) || count($items) === 0) {
             return -1;
         }
-        
+
         try {
-            
+
             $orderId = RestoUtil::encrypt($identifier . microtime());
             $values = array(
                 '\'' . pg_escape_string($orderId) . '\'',
@@ -325,20 +325,20 @@ class Functions_cart{
                 '\'' . pg_escape_string(json_encode($items)) . '\'',
                 'now()'
             );
-            $this->dbDriver->query('INSERT INTO usermanagement.orders (orderid, email, items, querytime) VALUES (' . join(',', $values) . ')');
-            
+            $this->dbDriver->query('INSERT INTO ' . $this->dbDriver->schemaName . '.orders (orderid, email, items, querytime) VALUES (' . join(',', $values) . ')');
+
         } catch (Exception $e) {
             RestoLogUtil::httpError($e->getCode(), $e->getMessage());
         }
-        
+
         return $orderId;
-        
+
     }
-    
+
     /**
      * Check if an array items is a valid order.
      * A valid order should be an array of array
-     * 
+     *
      * @param type $items
      */
     private function isValidOrder($items) {
@@ -347,5 +347,5 @@ class Functions_cart{
         }
         return false;
     }
-    
+
 }

@@ -25,7 +25,7 @@ class Functions_rights {
 
     /**
      * Constructor
-     * 
+     *
      * @param RestoDatabaseDriver $dbDriver
      * @throws Exception
      */
@@ -35,36 +35,36 @@ class Functions_rights {
 
     /**
      * List all groups
-     * 
+     *
      * @return array
      * @throws Exception
      */
     public function getGroups($groupid = null) {
-        return $this->dbDriver->fetch($this->dbDriver->query('SELECT groupid, childrens FROM usermanagement.groups' . (isset($groupid) ? ' WHERE groupid=\'' . pg_escape_string($groupid) . '\'' : '')));
+        return $this->dbDriver->fetch($this->dbDriver->query('SELECT groupid, childrens FROM ' . $this->dbDriver->schemaName . '.groups' . (isset($groupid) ? ' WHERE groupid=\'' . pg_escape_string($groupid) . '\'' : '')));
     }
 
     /**
      * Return rights for groups
-     * 
+     *
      * @param string $groups
      * @param string $targetType
      * @param string $target
-     * 
+     *
      * @return array
      * @throws exception
      */
     public function getRightsForGroups($groups, $targetType = null, $target = null, $merge = true) {
-        $query = 'SELECT owner, targettype, target, download, visualize, createcollection as create FROM usermanagement.rights WHERE ownertype=\'group\' AND owner IN (' . $this->quoteForIn($groups) . ')' . (isset($targetType) ? ' AND targettype=\'' . pg_escape_string($targetType) . '\'' : '') . (isset($target) ? ' AND target IN (\'' . pg_escape_string($target) . '\', \'*\')' : '');
+        $query = 'SELECT owner, targettype, target, download, visualize, createcollection as create FROM ' . $this->dbDriver->schemaName . '.rights WHERE ownertype=\'group\' AND owner IN (' . $this->quoteForIn($groups) . ')' . (isset($targetType) ? ' AND targettype=\'' . pg_escape_string($targetType) . '\'' : '') . (isset($target) ? ' AND target IN (\'' . pg_escape_string($target) . '\', \'*\')' : '');
         return $this->getRightsFromQuery($query, $merge);
     }
 
     /**
      * Return rights for user
-     * 
+     *
      * @param string $user
      * @param string $targetType
      * @param string $target
-     * 
+     *
      * @return array
      * @throws exception
      */
@@ -74,7 +74,7 @@ class Functions_rights {
          * Retrieve rights for user
          */
         if ($user->profile['userid'] !== -1) {
-            $query = 'SELECT owner, targettype, target, download, visualize, createcollection as create FROM usermanagement.rights WHERE ownertype=\'user\' AND owner=\'' . pg_escape_string($user->profile['email']) . '\'' . (isset($targetType) ? ' AND targettype=\'' . pg_escape_string($targetType) . '\'' : '') . (isset($target) ? ' AND target IN (\'' . pg_escape_string($target) . '\', \'*\')' : '');
+            $query = 'SELECT owner, targettype, target, download, visualize, createcollection as create FROM ' . $this->dbDriver->schemaName . '.rights WHERE ownertype=\'user\' AND owner=\'' . pg_escape_string($user->profile['email']) . '\'' . (isset($targetType) ? ' AND targettype=\'' . pg_escape_string($targetType) . '\'' : '') . (isset($target) ? ' AND target IN (\'' . pg_escape_string($target) . '\', \'*\')' : '');
         }
         $userRights = $this->getRightsFromQuery(isset($query) ? $query : null, false);
 
@@ -91,20 +91,20 @@ class Functions_rights {
 
     /**
      * Store or update rights to database
-     *     
+     *
      *     array(
      *          'visualize' => // 0 or 1
      *          'download' => // 0 or 1
      *          'create' => // 0 or 1
      *     )
-     * 
+     *
      * @param array  $rights
      * @param string $ownerType
      * @param string $owner
      * @param string $targetType
      * @param string $target
      * @param string $productIdentifier
-     * 
+     *
      * @throws Exception
      */
     public function storeOrUpdateRights($rights, $ownerType, $owner, $targetType, $target, $productIdentifier = null) {
@@ -121,17 +121,17 @@ class Functions_rights {
 
     /**
      * Delete rights from database
-     * 
+     *
      * @param string $ownerType
      * @param string $owner
      * @param string $targetType
      * @param string $target
-     * 
+     *
      * @throws Exception
      */
     public function removeRights($ownerType, $owner, $targetType = null, $target = null) {
         try {
-            $result = pg_query($this->dbDriver->dbh, 'DELETE from usermanagement.rights WHERE ownertype=\'' . pg_escape_string($ownerType) . '\' AND owner=\'' . pg_escape_string($owner) . '\'' . (isset($targetType) ? ' AND targettype=\'' . pg_escape_string($targetType) . '\'' : '') . (isset($target) ? ' AND target=\'' . pg_escape_string($target) . '\'' : ''));
+            $result = pg_query($this->dbDriver->dbh, 'DELETE from ' . $this->dbDriver->schemaName . '.rights WHERE ownertype=\'' . pg_escape_string($ownerType) . '\' AND owner=\'' . pg_escape_string($owner) . '\'' . (isset($targetType) ? ' AND targettype=\'' . pg_escape_string($targetType) . '\'' : '') . (isset($target) ? ' AND target=\'' . pg_escape_string($target) . '\'' : ''));
             if (!$result) {
                 throw new Exception;
             }
@@ -143,10 +143,10 @@ class Functions_rights {
     /**
      * Return rights for user/group classified by collections/features
      * (if merge is set to true)
-     * 
+     *
      * @param string $query
      * @param boolean $merge
-     * 
+     *
      * @return array
      * @throws exception
      */
@@ -169,7 +169,7 @@ class Functions_rights {
 
     /**
      * Merge right
-     * 
+     *
      * @param array $newRight
      * @param array $existingRight
      */
@@ -190,7 +190,7 @@ class Functions_rights {
 
     /**
      * Merge simple rights array to an associative collections/features array
-     * 
+     *
      * @param array $rights
      */
     private function mergeRights($rights) {
@@ -223,14 +223,14 @@ class Functions_rights {
 
     /**
      * Store rights to database
-     *     
+     *
      * @param array  $rights
      * @param string $ownerType
      * @param string $owner
      * @param string $targetType
      * @param string $target
      * @param string $productIdentifier
-     * 
+     *
      * @throws Exception
      */
     private function storeRights($rights, $ownerType, $owner, $targetType, $target, $productIdentifier = null) {
@@ -247,7 +247,7 @@ class Functions_rights {
         );
 
         try {
-            $result = pg_query($this->dbDriver->dbh, 'INSERT INTO usermanagement.rights (' . join(',', array_keys($values)) . ') VALUES (' . join(',', array_values($values)) . ')');
+            $result = pg_query($this->dbDriver->dbh, 'INSERT INTO ' . $this->dbDriver->schemaName . '.rights (' . join(',', array_keys($values)) . ') VALUES (' . join(',', array_values($values)) . ')');
             if (!$result) {
                 throw new Exception();
             }
@@ -258,7 +258,7 @@ class Functions_rights {
 
     /**
      * Store new group - check if group exists before
-     * 
+     *
      * @param string $groupid
      * @throws Exception
      */
@@ -266,7 +266,7 @@ class Functions_rights {
         $groups = $this->getGroups($groupid);
         if (empty($groups)) {
             try {
-                $result = pg_query($this->dbDriver->dbh, 'INSERT INTO usermanagement.groups (groupid) VALUES (\'' . pg_escape_string($groupid) . '\')');
+                $result = pg_query($this->dbDriver->dbh, 'INSERT INTO ' . $this->dbDriver->schemaName . '.groups (groupid) VALUES (\'' . pg_escape_string($groupid) . '\')');
                 if (!$result) {
                     throw new Exception();
                 }
@@ -281,14 +281,14 @@ class Functions_rights {
 
     /**
      * Update rights to database
-     * 
+     *
      * @param array  $rights
      * @param string $ownerType
      * @param string $owner
      * @param string $targetType
      * @param string $target
      * @param string $productIdentifier
-     * 
+     *
      * @throws Exception
      */
     private function updateRights($rights, $ownerType, $owner, $targetType, $target) {
@@ -308,7 +308,7 @@ class Functions_rights {
         }
 
         if (count($toBeSet) > 0) {
-            $this->dbDriver->query('UPDATE usermanagement.rights SET ' . join(',', $toBeSet) . ' WHERE ' . join(' AND ', $where));
+            $this->dbDriver->query('UPDATE ' . $this->dbDriver->schemaName . '.rights SET ' . join(',', $toBeSet) . ' WHERE ' . join(' AND ', $where));
         }
         return true;
     }
@@ -323,21 +323,21 @@ class Functions_rights {
 
     /**
      * Check if right exists in database
-     * 
+     *
      * @param string $ownerType
      * @param string $owner
      * @param string $targetType
      * @param string $target
      */
     private function rightExists($ownerType, $owner, $targetType, $target) {
-        $query = 'SELECT 1 from usermanagement.rights WHERE ownertype=\'' . pg_escape_string($ownerType) . '\' AND owner=\'' . pg_escape_string($owner) . '\' AND targettype=\'' . pg_escape_string($targetType) . '\' AND target=\'' . pg_escape_string($target) . '\'';
+        $query = 'SELECT 1 from ' . $this->dbDriver->schemaName . '.rights WHERE ownertype=\'' . pg_escape_string($ownerType) . '\' AND owner=\'' . pg_escape_string($owner) . '\' AND targettype=\'' . pg_escape_string($targetType) . '\' AND target=\'' . pg_escape_string($target) . '\'';
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         return !empty($results);
     }
 
     /**
      * Return quoted comma separated groupid for SQL IN(...) clause
-     * 
+     *
      * @param string $groups - comma separated list of groups
      */
     private function quoteForIn($groups) {

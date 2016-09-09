@@ -19,15 +19,15 @@
  * RESTo PostgreSQL features functions
  */
 class Functions_features {
-    
+
     /*
      * Reference to database driver
      */
     private $dbDriver = null;
-    
+
     /**
      * Constructor
-     * 
+     *
      * @param RestoDatabaseDriver $dbDriver
      * @throws Exception
      */
@@ -36,9 +36,9 @@ class Functions_features {
     }
 
     /**
-     * 
+     *
      * Get an array of features descriptions
-     * 
+     *
      * @param RestoContext $context
      * @param RestoUser $user
      * @param RestoCollection $collection
@@ -47,7 +47,7 @@ class Functions_features {
      *      array(
      *          'limit',
      *          'offset'
-     * 
+     *
      * @return array
      * @throws Exception
      */
@@ -76,7 +76,7 @@ class Functions_features {
          * Prepare query
          */
         $fields = implode(',', $filtersUtils->getSQLFields($model));
-        $from = ' FROM ' . (isset($collection) ? '_' . strtolower($collection->name) : 'resto') . '.features' . ($oFilter ? ' WHERE ' . $oFilter : '');
+        $from = ' FROM ' . (isset($collection) ? '_' . strtolower($collection->name) : $this->dbDriver->schemaName) . '.features' . ($oFilter ? ' WHERE ' . $oFilter : '');
 
         /*
          * Result set ordering and limit
@@ -96,13 +96,13 @@ class Functions_features {
     }
 
     /**
-     * 
+     *
      * Get Where clause from input parameters
-     * 
+     *
      * @param RestoUser $user
      * @param RestoModel $model
      * @param array $params
-     * 
+     *
      * @return array
      * @throws Exception
      */
@@ -110,9 +110,9 @@ class Functions_features {
         $filtersUtils = new Functions_filters();
         return implode(' AND ', $filtersUtils->prepareFilters($user, $model, $params));
     }
-    
+
     /**
-     * 
+     *
      * Get feature description
      *
      * @param RestoContext $context
@@ -121,124 +121,124 @@ class Functions_features {
      * @param RestoModel $model
      * @param RestoCollection $collection
      * @param array $filters
-     * 
+     *
      * @return array
      * @throws Exception
      */
     public function getFeatureDescription($context, $user, $identifier, $collection = null, $filters = array()) {
         $model = isset($collection) ? $collection->model : new RestoModel_default();
         $filtersUtils = new Functions_filters();
-        $results = $this->dbDriver->query('SELECT ' . implode(',', $filtersUtils->getSQLFields($model)) . ' FROM ' . (isset($collection) ? '_' . strtolower($collection->name) : 'resto') . '.features WHERE ' . $model->getDbKey('identifier') . "='" . pg_escape_string($identifier) . "'" . (count($filters) > 0 ? ' AND ' . join(' AND ', $filters) : ''));
+        $results = $this->dbDriver->query('SELECT ' . implode(',', $filtersUtils->getSQLFields($model)) . ' FROM ' . (isset($collection) ? '_' . strtolower($collection->name) : $this->dbDriver->schemaName) . '.features WHERE ' . $model->getDbKey('identifier') . "='" . pg_escape_string($identifier) . "'" . (count($filters) > 0 ? ' AND ' . join(' AND ', $filters) : ''));
         $arrayOfFeatureArray = $this->toFeatureArray($context, $user, $collection, $results);
         return isset($arrayOfFeatureArray[0]) ? $arrayOfFeatureArray[0] : null;
     }
-    
+
     /**
      * Check if feature identified by $identifier exists within {schemaName}.features table
-     * 
-     * @param string $identifier - feature unique identifier 
+     *
+     * @param string $identifier - feature unique identifier
      * @param string $schema - schema name
      * @return boolean
      * @throws Exception
      */
     public function featureExists($identifier, $schema = null) {
-        $query = 'SELECT 1 FROM ' . (isset($schema) ? pg_escape_string($schema) : 'resto') . '.features WHERE identifier=\'' . pg_escape_string($identifier) . '\'';
+        $query = 'SELECT 1 FROM ' . (isset($schema) ? pg_escape_string($schema) : $this->dbDriver->schemaName) . '.features WHERE identifier=\'' . pg_escape_string($identifier) . '\'';
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         return !empty($results);
     }
-    
+
     /**
      * Insert feature within collection
-     * 
+     *
      * @param RestoCollection $collection
      * @param array $featureArray
      * @throws Exception
      */
     public function storeFeature($collection, $featureArray) {
-        
+
         /*
          * Check that resource does not already exist in database
          */
         if ($collection->context->dbDriver->check(RestoDatabaseDriver::FEATURE, array('featureIdentifier' => $featureArray['id']))) {
             RestoLogUtil::httpError(500, 'Feature ' . $featureArray['id'] . ' already in database');
         }
-        
+
         /*
          * Get database columns array
          */
         $columnsAndValues = $this->getColumnsAndValues($collection, $featureArray);
-        
+
         try {
-            
+
             /*
              * Start transaction
              */
             pg_query($this->dbDriver->dbh, 'BEGIN');
-            
+
             /*
              * Store feature
              */
             pg_query($this->dbDriver->dbh, 'INSERT INTO ' . pg_escape_string('_' . strtolower($collection->name)) . '.features (' . join(',', array_keys($columnsAndValues)) . ') VALUES (' . join(',', array_values($columnsAndValues)) . ')');
-            
+
             /*
              * Store facets
              */
             $this->storeKeywordsFacets($collection, json_decode(trim($columnsAndValues['keywords'], '\''), true));
-            
+
             pg_query($this->dbDriver->dbh, 'COMMIT');
-            
+
         } catch (Exception $e) {
             pg_query($this->dbDriver->dbh, 'ROLLBACK');
             RestoLogUtil::httpError(500, 'Feature ' . $featureArray['id'] . ' cannot be inserted in database');
         }
     }
-    
+
     /**
      * Remove feature from database
-     * 
+     *
      * @param RestoFeature $feature
      */
     public function removeFeature($feature) {
-        
+
         try {
-            
+
             /*
              * Begin transaction
              */
             $this->dbDriver->query('BEGIN');
-            
+
             /*
              * Remove feature
              */
-            $this->dbDriver->query('DELETE FROM ' . (isset($feature->collection) ? '_' . strtolower($feature->collection->name): 'resto') . '.features WHERE identifier=\'' . pg_escape_string($feature->identifier) . '\'');
-            
+            $this->dbDriver->query('DELETE FROM ' . (isset($feature->collection) ? '_' . strtolower($feature->collection->name): $this->dbDriver->schemaName) . '.features WHERE identifier=\'' . pg_escape_string($feature->identifier) . '\'');
+
             /*
              * Remove facets
              */
             $this->removeFeatureFacets($feature->toArray());
-            
+
             /*
              * Commit
              */
             $this->dbDriver->query('COMMIT');
-            
+
         } catch (Exception $e) {
-            $this->dbDriver->query('ROLLBACK'); 
+            $this->dbDriver->query('ROLLBACK');
             RestoLogUtil::httpError(500, 'Cannot delete feature ' . $feature->identifier);
         }
     }
-   
+
     /**
      * Update feature keywords
-     * 
+     *
      * @param RestoFeature $feature
      * @param array $keywords
      * @throws Exception
      */
     public function updateFeatureKeywords($feature, $keywords) {
-        
+
         $toUpdate = array();
-        
+
         /*
          * Store new keywords
          */
@@ -251,50 +251,50 @@ class Functions_features {
                 array_push($toUpdate, $columnName . '=' . $columnValue);
             }
         }
-        
+
         if (empty($toUpdate)) {
             RestoLogUtil::httpError(400, 'Nothing to update for ' . $feature->identifier);
         }
-        
+
         try {
-            
+
             /*
              * Begin transaction
              */
             $this->dbDriver->query('BEGIN');
-            
+
             /*
              * Remove previous facets
              */
             $this->removeFeatureFacets($feature->toArray());
-            
+
             /*
              * Update feature
              */
-            $this->dbDriver->query('UPDATE resto.features SET ' . join(',', $toUpdate) . ' WHERE identifier = \'' . pg_escape_string($feature->identifier) . '\'');
-            
+            $this->dbDriver->query('UPDATE ' . $this->dbDriver->schemaName . '.features SET ' . join(',', $toUpdate) . ' WHERE identifier = \'' . pg_escape_string($feature->identifier) . '\'');
+
             /*
              * Store new facets
              */
             $this->storeKeywordsFacets($feature->collection, $keywords, true);
-            
+
             /*
              * Commit
              */
             $this->dbDriver->query('COMMIT');
-            
+
         } catch (Exception $e) {
-            $this->dbDriver->query('ROLLBACK'); 
+            $this->dbDriver->query('ROLLBACK');
             RestoLogUtil::httpError(500, 'Cannot update feature ' . $feature->identifier);
         }
-        
+
         return true;
-        
+
     }
-    
+
     /**
      * Return exact count or estimate count from query
-     * 
+     *
      * @param String $from
      * @param Boolean $filters
      */
@@ -325,15 +325,15 @@ class Functions_features {
             'isExact' => $realCount
         );
     }
-    
+
     /**
      * Store keywords facets
-     * 
+     *
      * @param RestoCollection $collection
      * @param array $keywords
      */
     private function storeKeywordsFacets($collection, $keywords) {
-        
+
         /*
          * One facet per keyword
          */
@@ -348,7 +348,7 @@ class Functions_features {
                 );
             }
         }
-        
+
         /*
          * Store to database
          */
@@ -356,23 +356,23 @@ class Functions_features {
             'facets' => $facets,
             'collectionName' => $collection->name
         ));
-            
+
     }
     /**
      * Convert feature array to database column/value pairs
-     * 
+     *
      * @param RestoCollection $collection
      * @param array $featureArray
      * @throws Exception
      */
     private function getColumnsAndValues($collection, $featureArray) {
-        
+
         /*
          * Initialize columns array
          */
         $wkt = RestoGeometryUtil::geoJSONGeometryToWKT($featureArray['geometry']);
         $extent = RestoGeometryUtil::getExtent($wkt);
-        
+
         /*
          * Compute "in house centroid" to avoid -180/180 date line issue
          */
@@ -380,7 +380,7 @@ class Functions_features {
         if (abs($extent[2] - $extent[0]) >= 180) {
             $factor = -1;
         }
-        
+
         $columns = array_merge(
             array(
                 $collection->model->getDbKey('identifier') => '\'' . $featureArray['id'] . '\'',
@@ -393,20 +393,20 @@ class Functions_features {
             ),
             $this->propertiesToColumns($collection, $featureArray['properties'])
         );
-        
+
         return $columns;
-            
+
     }
-    
+
     /**
      * Convert feature properties array to database column/value pairs
-     * 
+     *
      * @param RestoCollection $collection
      * @param array $properties
      * @throws Exception
      */
     private function propertiesToColumns($collection, $properties) {
-        
+
         /*
          * Roll over properties
          */
@@ -419,25 +419,25 @@ class Functions_features {
             if (!isset($propertyValue) || in_array($propertyName, array('updated', 'published', 'collection'))) {
                 continue;
             }
-            
+
             /*
              * Keywords
              */
             if ($propertyName === 'keywords' && is_array($propertyValue)) {
-                
+
                 $columnValue = '\'' . pg_escape_string(json_encode($propertyValue)) . '\'';
-                
+
                 /*
                  * Compute hashes
                  */
                 $columns[$collection->model->getDbKey('hashes')] = '\'{' . join(',', $this->getHashes($propertyValue)) . '}\'';
-                
+
                 /*
                  * landuse keywords are also stored in dedicated
                  * table columns to speed up search requests
                  */
                 $columns = array_merge($columns, $this->landuseColumns($propertyValue));
-                
+
             }
             /*
              * Special case for array
@@ -448,27 +448,27 @@ class Functions_features {
             else {
                 $columnValue = '\'' . pg_escape_string(is_array($propertyValue) ? join(',', $propertyValue) : $propertyValue) . '\'';
             }
-            
+
             /*
              * Add element
              */
             $columns[$collection->model->getDbKey($propertyName)] = $columnValue;
-            
+
         }
-        
+
         return $columns;
 
     }
-    
+
     /**
      * Return array of hashes from keywords
-     * 
+     *
      * @param type $keywords
      */
     private function getHashes($keywords) {
         $hashes = array();
         for ($i = count($keywords); $i--;) {
-            
+
             /*
              * Do not index keywords if relative cover is lower than 10 % or if absolute coverage is lower than 20%
              */
@@ -482,10 +482,10 @@ class Functions_features {
         }
         return $hashes;
     }
-    
+
     /**
      * Get landuse database columns from input keywords
-     * 
+     *
      * @param array $keywords
      * @return type
      */
@@ -510,7 +510,7 @@ class Functions_features {
 
     /**
      * Check that mandatory filters are set
-     * 
+     *
      * @param RestoModel $model
      * @param Array $params
      * @return boolean
@@ -522,19 +522,19 @@ class Functions_features {
                 if (isset($model->searchFilters[$filterName]['minimum']) && $model->searchFilters[$filterName]['minimum'] === 1 && (!isset($params[$filterName]))) {
                     $missing[] = $filterName;
                 }
-            } 
+            }
         }
         if (count($missing) > 0) {
             RestoLogUtil::httpError(400, 'Missing mandatory filter(s) ' . join(', ', $filterName));
         }
-        
+
         return true;
-        
+
     }
-    
+
     /**
      * Remove feature facets
-     * 
+     *
      * @param array $featureArray
      */
     private function removeFeatureFacets($featureArray) {
@@ -550,7 +550,7 @@ class Functions_features {
 
     /**
      * Return featureArray array from database results
-     * 
+     *
      * @param RestoContext $context
      * @param RestoUser $user
      * @param RestoCollection $collection

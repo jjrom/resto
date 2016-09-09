@@ -16,14 +16,16 @@
 
 USER=admin
 SUPERUSER=postgres
+SCHEMA=resto
 DB=resto
-usage="## resto - Create administrator user account\n\n  Usage $0 -u <admin user name (default 'admin')> -p <admin user password> [-d <databasename (default resto)> -s <superuser (default postgres)>]\n"
+usage="## resto - Create administrator user account\n\n  Usage $0 -u <admin user name (default 'admin')> -p <admin user password> [-d <databasename (default resto)> -S <schemaname (default resto)> -s <superuser (default postgres)>]\n"
 while getopts "d:u:p:s:h" options; do
     case $options in
         d ) DB=`echo $OPTARG`;;
         u ) USER=`echo $OPTARG`;;
         p ) PASSWORD=`echo $OPTARG`;;
         s ) SUPERUSER=`echo $OPTARG`;;
+        S ) SCHEMA=`echo $OPTARG`;;
         h ) echo -e $usage;;
         \? ) echo -e $usage
             exit 1;;
@@ -40,5 +42,5 @@ fi
 SHA1PASSWORD=`php -r "echo sha1('$PASSWORD');"`
 ACTIVATIONCODE=`php -r "echo sha1(mt_rand() . microtime());"`
 psql -d $DB -U $SUPERUSER << EOF
-INSERT INTO usermanagement.users (email,groups,username,password,activationcode,activated,registrationdate) VALUES ('$USER','{"admin"}','$USER','$SHA1PASSWORD','$ACTIVATIONCODE', 1, now());
+INSERT INTO ${SCHEMA}.users (email,groups,username,password,activationcode,activated,registrationdate) VALUES ('$USER','{"admin"}','$USER','$SHA1PASSWORD','$ACTIVATIONCODE', 1, now());
 EOF

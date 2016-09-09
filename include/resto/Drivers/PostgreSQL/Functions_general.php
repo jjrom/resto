@@ -19,12 +19,12 @@
  * RESTo PostgreSQL general functions
  */
 class Functions_general {
-    
+
     private $dbDriver = null;
-    
+
     /**
      * Constructor
-     * 
+     *
      * @param RestoDatabaseDriver $dbDriver
      * @throws Exception
      */
@@ -34,7 +34,7 @@ class Functions_general {
 
     /**
      * Check if schema $name exists within resto database
-     * 
+     *
      * @param string $name - schema name
      * @return boolean
      * @throws Exception
@@ -47,7 +47,7 @@ class Functions_general {
 
     /**
      * Check if table $name exists within resto database
-     * 
+     *
      * @param string $name - table name
      * @param string $schema - schema name
      * @return boolean
@@ -58,10 +58,10 @@ class Functions_general {
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         return !empty($results);
     }
-    
+
     /**
      * Check if table $name is empty
-     * 
+     *
      * @param string $name : table name
      * @param string $schema : schema name
      * @return boolean
@@ -73,13 +73,13 @@ class Functions_general {
         $result = pg_fetch_assoc($results);
         return (integer) $result['count'] === 0 ? true : false;
     }
-    
+
     /**
-     * 
+     *
      * Return keywords from database
      *
      * @param string $language : ISO A2 language code
-     * 
+     *
      * @return array
      * @throws Exception
      */
@@ -104,20 +104,20 @@ class Functions_general {
                 $keywords[$result['type']][$result['normalized']]['isoa2'] = $isoa2;
             }
         }
-        
+
         /*
          * Store in cache
          */
         $this->dbDriver->cache->store(array('getKeywords', $language, $types), $keywords);
-        
+
         return array('keywords' => $keywords);
     }
-   
-   
+
+
     /**
      * Returns shared link initiator email if resource is shared (checked with proof)
      * Returns false otherwise
-     * 
+     *
      * @param string $resourceUrl
      * @param string $token
      * @return boolean
@@ -126,48 +126,48 @@ class Functions_general {
         if (!isset($resourceUrl) || !isset($token)) {
             return false;
         }
-        $query = 'SELECT email FROM usermanagement.sharedlinks WHERE url=\'' . pg_escape_string($resourceUrl) . '\' AND token=\'' . pg_escape_string($token) . '\' AND validity > now()';
+        $query = 'SELECT email FROM ' . $this->dbDriver->schemaName . '.sharedlinks WHERE url=\'' . pg_escape_string($resourceUrl) . '\' AND token=\'' . pg_escape_string($token) . '\' AND validity > now()';
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         return !empty($results) ? $results[0]['email'] : false;
     }
-    
+
     /**
      * Create a shared resource and return it
-     * 
+     *
      * @param string $identifier
      * @param string $resourceUrl
      * @param integer $duration
      * @return array
      */
     public function createSharedLink($identifier, $resourceUrl, $duration = 86400) {
-        
+
         if (!isset($resourceUrl) || !RestoUtil::isUrl($resourceUrl)) {
             return null;
         }
         if (!is_int($duration)) {
             $duration = 86400;
         }
-        $results = $this->dbDriver->fetch($this->dbDriver->query('INSERT INTO usermanagement.sharedlinks (url, token, email, validity) VALUES (\'' . pg_escape_string($resourceUrl) . '\',\'' . (RestoUtil::encrypt(mt_rand() . microtime())) . '\',\'' . pg_escape_string($identifier) . '\',now() + ' . $duration . ' * \'1 second\'::interval) RETURNING token', 500, 'Cannot share link'));
+        $results = $this->dbDriver->fetch($this->dbDriver->query('INSERT INTO ' . $this->dbDriver->schemaName . '.sharedlinks (url, token, email, validity) VALUES (\'' . pg_escape_string($resourceUrl) . '\',\'' . (RestoUtil::encrypt(mt_rand() . microtime())) . '\',\'' . pg_escape_string($identifier) . '\',now() + ' . $duration . ' * \'1 second\'::interval) RETURNING token', 500, 'Cannot share link'));
         if (count($results) === 1) {
             return array(
                 'resourceUrl' => $resourceUrl,
                 'token' => $results[0]['token']
             );
         }
-        
+
         return null;
-        
+
     }
-    
+
     /**
      * Save query to database
-     * 
+     *
      * @param string $identifier
      * @param array $query
      * @throws Exception
      */
     public function storeQuery($identifier, $query) {
-        
+
         $toBeSet = array(
             'email' => '\'' . pg_escape_string($identifier) . '\'',
             'method' => isset($query['method']) ? '\'' . pg_escape_string($query['method']) . '\'' : 'NULL',
@@ -177,38 +177,38 @@ class Functions_general {
             'query' => isset($query['query']) ? '\'' . pg_escape_string(json_encode($query['query'])) . '\'' : 'NULL',
             'querytime' => 'now()',
             'url' => isset($query['url']) ? '\'' . pg_escape_string($query['url']) . '\'' : 'NULL',
-            'ip' => isset($query['ip']) ? '\'' . pg_escape_string($query['ip']) . '\'' : '127.0.0.1'  
+            'ip' => isset($query['ip']) ? '\'' . pg_escape_string($query['ip']) . '\'' : '127.0.0.1'
         );
-        $this->dbDriver->query('INSERT INTO usermanagement.history (' . join(',', array_keys($toBeSet)) . ') VALUES (' . join(',', array_values($toBeSet)) . ')');
+        $this->dbDriver->query('INSERT INTO ' . $this->dbDriver->schemaName . '.history (' . join(',', array_keys($toBeSet)) . ') VALUES (' . join(',', array_values($toBeSet)) . ')');
         return true;
     }
-    
+
     /**
      * Return true if token is revoked
-     * 
+     *
      * @param string $token
      */
     public function isTokenRevoked($token) {
-        $query = 'SELECT 1 FROM usermanagement.revokedtokens WHERE token= \'' . pg_escape_string($token) . '\'';
+        $query = 'SELECT 1 FROM ' . $this->dbDriver->schemaName . '.revokedtokens WHERE token= \'' . pg_escape_string($token) . '\'';
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         return !empty($results);
     }
 
     /**
      * Revoke token
-     * 
+     *
      * @param string $token
      */
     public function revokeToken($token) {
         if (isset($token) && !$this->isTokenRevoked($token)) {
-            $this->dbDriver->query('INSERT INTO usermanagement.revokedtokens (token) VALUES(\'' . pg_escape_string($token) . '\')');
+            $this->dbDriver->query('INSERT INTO ' . $this->dbDriver->schemaName . '.revokedtokens (token) VALUES(\'' . pg_escape_string($token) . '\')');
         }
         return true;
     }
-    
+
     /**
-     * Return area of input EPSG:4326 WKT 
-     * 
+     * Return area of input EPSG:4326 WKT
+     *
      * @param string $wkt
      * @param string $unit
      */
@@ -224,5 +224,5 @@ class Functions_general {
         }
         return -1;
     }
-    
+
 }

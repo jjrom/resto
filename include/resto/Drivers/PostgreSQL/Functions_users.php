@@ -41,7 +41,7 @@ class Functions_users {
      * @throws Exception
      */
     public function getUserPassword($identifier) {
-        $query = 'SELECT password FROM usermanagement.users WHERE email=\'' . pg_escape_string($identifier) . '\'';
+        $query = 'SELECT password FROM ' . $this->dbDriver->schemaName . '.users WHERE email=\'' . pg_escape_string($identifier) . '\'';
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         return count($results) === 1 ? $results[0]['password'] : null;
     }
@@ -63,7 +63,7 @@ class Functions_users {
             RestoLogUtil::httpError(404);
         }
 
-        $query = 'SELECT userid, email, groups, username, givenname, lastname, to_char(registrationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as registrationdate, country, organization, organizationcountry, flags, topics, activated, validatedby, to_char(validationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as validationdate FROM usermanagement.users WHERE ' . $this->useridOrEmailFilter($identifier) . (isset($password) ? ' AND password=\'' . pg_escape_string(RestoUtil::encrypt($password)) . '\'' : '');
+        $query = 'SELECT userid, email, groups, username, givenname, lastname, to_char(registrationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as registrationdate, country, organization, organizationcountry, flags, topics, activated, validatedby, to_char(validationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as validationdate FROM ' . $this->dbDriver->schemaName . '.users WHERE ' . $this->useridOrEmailFilter($identifier) . (isset($password) ? ' AND password=\'' . pg_escape_string(RestoUtil::encrypt($password)) . '\'' : '');
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
 
         if (count($results) === 0) {
@@ -89,7 +89,7 @@ class Functions_users {
      */
     public function getUsersProfiles($data = array()) {
 
-        $results = $this->dbDriver->query('SELECT userid, email, groups, username, givenname, lastname, to_char(registrationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as registrationdate, country, organization, organizationcountry, flags, topics, activated, validatedby, to_char(validationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as validationdate FROM usermanagement.users' . (isset($data['groupid']) ? ' WHERE \'' . pg_escape_string($data['groupid']) . '\' = any(groups)' : (isset($data['keywords']) ? ' WHERE email LIKE \'' . pg_escape_string($data['keywords']) .'\' OR username LIKE \''  . pg_escape_string($data['keywords']) .'\' OR givenname LIKE \''  . pg_escape_string($data['keywords']) .'\' OR lastname LIKE \''  . pg_escape_string($data['keywords']) .'\' OR country LIKE \''  . pg_escape_string($data['keywords']) .'\' OR organization LIKE \''  . pg_escape_string($data['keywords']) .'\'' : '')) . (isset($data['limit']) ? ' LIMIT ' . pg_escape_string($data['limit']) : '') . (isset($data['offset']) ? ' OFFSET ' . pg_escape_string($data['offset']) : '') );
+        $results = $this->dbDriver->query('SELECT userid, email, groups, username, givenname, lastname, to_char(registrationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as registrationdate, country, organization, organizationcountry, flags, topics, activated, validatedby, to_char(validationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as validationdate FROM ' . $this->dbDriver->schemaName . '.users' . (isset($data['groupid']) ? ' WHERE \'' . pg_escape_string($data['groupid']) . '\' = any(groups)' : (isset($data['keywords']) ? ' WHERE email LIKE \'' . pg_escape_string($data['keywords']) .'\' OR username LIKE \''  . pg_escape_string($data['keywords']) .'\' OR givenname LIKE \''  . pg_escape_string($data['keywords']) .'\' OR lastname LIKE \''  . pg_escape_string($data['keywords']) .'\' OR country LIKE \''  . pg_escape_string($data['keywords']) .'\' OR organization LIKE \''  . pg_escape_string($data['keywords']) .'\'' : '')) . (isset($data['limit']) ? ' LIMIT ' . pg_escape_string($data['limit']) : '') . (isset($data['offset']) ? ' OFFSET ' . pg_escape_string($data['offset']) : '') );
         $profiles = array();
         while ($profile = pg_fetch_assoc($results)) {
             $profile['groups'] = substr($profile['groups'], 1, -1);
@@ -125,7 +125,7 @@ class Functions_users {
      * @throws Exception
      */
     public function userExists($email) {
-        $query = 'SELECT 1 FROM usermanagement.users WHERE email=\'' . pg_escape_string($email) . '\'';
+        $query = 'SELECT 1 FROM ' . $this->dbDriver->schemaName . '.users WHERE email=\'' . pg_escape_string($email) . '\'';
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         return !empty($results);
     }
@@ -165,7 +165,7 @@ class Functions_users {
             $toBeSet[$field] = (isset($profile[$field]) ? "'" . pg_escape_string($profile[$field]) . "'" : 'NULL');
         }
 
-        return pg_fetch_array($this->dbDriver->query('INSERT INTO usermanagement.users (' . join(',', array_keys($toBeSet)) . ') VALUES (' . join(',', array_values($toBeSet)) . ') RETURNING userid, activationcode'));
+        return pg_fetch_array($this->dbDriver->query('INSERT INTO ' . $this->dbDriver->schemaName . '.users (' . join(',', array_keys($toBeSet)) . ') VALUES (' . join(',', array_values($toBeSet)) . ') RETURNING userid, activationcode'));
     }
 
     /**
@@ -206,7 +206,7 @@ class Functions_users {
 
         $results = array();
         if (count($values) > 0) {
-            $results = $this->dbDriver->fetch($this->dbDriver->query('UPDATE usermanagement.users SET ' . join(',', $values) . ' WHERE email=\'' . pg_escape_string(trim(strtolower($profile['email']))) . '\' RETURNING userid'));
+            $results = $this->dbDriver->fetch($this->dbDriver->query('UPDATE ' . $this->dbDriver->schemaName . '.users SET ' . join(',', $values) . ' WHERE email=\'' . pg_escape_string(trim(strtolower($profile['email']))) . '\' RETURNING userid'));
         }
 
         return count($results) === 1 ? $results[0]['userid'] : null;
@@ -261,7 +261,7 @@ class Functions_users {
             ));
         }
 
-        $query = 'UPDATE usermanagement.users SET ' . join(',', $toBeSet) . ' WHERE userid=\'' . pg_escape_string($userid) . '\'' . (isset($activationcode) ? ' AND activationcode=\'' . pg_escape_string($activationcode) . '\'' : '') . ' RETURNING userid';
+        $query = 'UPDATE ' . $this->dbDriver->schemaName . '.users SET ' . join(',', $toBeSet) . ' WHERE userid=\'' . pg_escape_string($userid) . '\'' . (isset($activationcode) ? ' AND activationcode=\'' . pg_escape_string($activationcode) . '\'' : '') . ' RETURNING userid';
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
 
         return count($results) === 1 ? true : false;
@@ -274,7 +274,7 @@ class Functions_users {
      * @throws Exception
      */
     public function deactivateUser($userid) {
-        return count($this->dbDriver->fetch($this->dbDriver->query('UPDATE usermanagement.users SET activated=0 WHERE userid=\'' . pg_escape_string($userid) . '\' RETURNING userid'))) === 1 ? true : false;
+        return count($this->dbDriver->fetch($this->dbDriver->query('UPDATE ' . $this->dbDriver->schemaName . '.users SET activated=0 WHERE userid=\'' . pg_escape_string($userid) . '\' RETURNING userid'))) === 1 ? true : false;
     }
 
     /**
@@ -295,7 +295,7 @@ class Functions_users {
             'validationdate=now()'
         );
 
-        $query = 'UPDATE usermanagement.users SET ' . join(',', $toBeSet) . ' WHERE userid=\'' . pg_escape_string($userid) . '\'' . ' RETURNING userid';
+        $query = 'UPDATE ' . $this->dbDriver->schemaName . '.users SET ' . join(',', $toBeSet) . ' WHERE userid=\'' . pg_escape_string($userid) . '\'' . ' RETURNING userid';
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
 
         return count($results) === 1 ? true : false;
@@ -314,7 +314,7 @@ class Functions_users {
             'validationdate=NULL'
         );
 
-        return count($this->dbDriver->fetch($this->dbDriver->query('UPDATE usermanagement.users SET ' . join(',', $toBeSet) . ' WHERE userid=\'' . pg_escape_string($userid) . '\'  RETURNING userid'))) === 1 ? true : false;
+        return count($this->dbDriver->fetch($this->dbDriver->query('UPDATE ' . $this->dbDriver->schemaName . '.users SET ' . join(',', $toBeSet) . ' WHERE userid=\'' . pg_escape_string($userid) . '\'  RETURNING userid'))) === 1 ? true : false;
     }
 
     /**
@@ -387,7 +387,7 @@ class Functions_users {
          * Update user profile
          */
         $results = count($newGroups) > 0 ? implode(',', $newGroups) : null;
-        $this->dbDriver->fetch($this->dbDriver->query('UPDATE usermanagement.users SET groups=' . (isset($results) ? '\'{' . pg_escape_string($results) . '}\'' : 'NULL') . ' WHERE userid=\'' . $userid . '\''));
+        $this->dbDriver->fetch($this->dbDriver->query('UPDATE ' . $this->dbDriver->schemaName . '.users SET groups=' . (isset($results) ? '\'{' . pg_escape_string($results) . '}\'' : 'NULL') . ' WHERE userid=\'' . $userid . '\''));
 
         return $results;
     }

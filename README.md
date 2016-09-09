@@ -4,7 +4,7 @@
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/jjrom/resto.svg)](http://isitmaintained.com/project/jjrom/resto "Average time to resolve an issue")
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/jjrom/resto.svg)](http://isitmaintained.com/project/jjrom/resto "Percentage of issues still open")
 
-resto - an Earth Observation products search engine 
+resto - an Earth Observation products search engine
 
 Try the [demo] (http://mapshup.com/projects/rocket/) !
 
@@ -32,13 +32,11 @@ However there is no guaranty of success and unwanted result may occured !
 
 ### Install resto database
 
-resto installs a PostgreSQL database named 'resto'. 
+resto installs a PostgreSQL database named 'resto'.
 
 The 'resto' database is created with PostGIS extension enabled within the 'public' schema.
 
-During the installation, two additional schemas are created :
-* 'resto' schema - among others, it stores the table containing the collections description
-* 'usermanagement' schema - it stores users related tables
+During the installation, the 'resto' schema is created. It stores all tables needed by the application.
 
 The user 'resto' is automatically created within this database :
 * 'resto' user has READ+WRITE access to 'resto' databases
@@ -92,7 +90,7 @@ http://localhost/resto/whatever/youwant/to/access will be rewrite as http://loca
 
 For instance on MacOS X, looks for something like this in /etc/apache2/httpd.conf
 
-        LoadModule rewrite_module libexec/apache2/mod_rewrite.so 
+        LoadModule rewrite_module libexec/apache2/mod_rewrite.so
 
 **Configure target directory**
 
@@ -145,7 +143,7 @@ there is no need to edit $RESTO_TARGET/.htaccess file
 For a comprehensive migration from apache to nginx, [you should read this article](https://www.digitalocean.com/community/tutorials/how-to-migrate-from-an-apache-web-server-to-nginx-on-an-ubuntu-vps)
 
 The resto nginx configuration block should look like this :
-    
+
         # Tell nginx to use php-fhm
         location ~ \.php$ {
                 fastcgi_split_path_info ^(.+\.php)(/.+)$;
@@ -158,7 +156,7 @@ The resto nginx configuration block should look like this :
         location ~ /\.ht {
                 deny all;
         }
-        
+
         # resto url rewrite configuration
         location /resto/ {
                 if (!-e $request_filename){
@@ -166,7 +164,7 @@ The resto nginx configuration block should look like this :
                 }
         }
 
-**IMPORTANT** the previous configuration assumes that your resto installation is in the 
+**IMPORTANT** the previous configuration assumes that your resto installation is in the
 "resto" directory within the web server document root. If it is not the case, you should
 change all "/resto/" occurences in the configuration example to match your installation
 
@@ -209,7 +207,7 @@ Then restart postgresql (e.g. "pg_ctl restart")
 Note : **Read the following if you are using Fedora, Red Hat Enterprise Linux, CentOS, Scientific Linux,
 or one of the other distros that enable SELinux by default**
 
-        # 
+        #
         #  Enable the specific permission to allow Apache to issue HTTP connections.
         #
         service httpd stop
@@ -229,14 +227,14 @@ The configuration file is self explanatory. For a standard installation you shou
 * **database.password** value is **the same as the 'resto' user password set during database installation**
 
 Create an admin user within the database
-        
+
         $RESTO_HOME/_install/createAdminUser.sh -u admin -p admin
 
 **Note : you should change the above script parameters to set a stronger password than 'admin' !!!**
 
 **If you are using Fedora, Red Hat Enterprise Linux, CentOS, Scientific Linux, or one of the other distros that enable SELinux by default**
 
-        # 
+        #
         #  Enable sendmail
         #
         setsebool -P httpd_can_sendmail on
@@ -244,7 +242,7 @@ Create an admin user within the database
 ## Quick Start
 
 ### Create a collection
-        
+
         $RESTO_HOME/_scripts/createCollection.sh -f $RESTO_HOME/_examples/collections/Example.json -u admin:admin
 
 ### Access OpenSearch Description for a collection
@@ -316,7 +314,7 @@ For [Mac OS X] (http://blog.andyhunt.info/2011/11/26/apache-ssl-on-max-osx-lion-
 (Warning http://stackoverflow.com/questions/18251128/why-am-i-suddenly-getting-a-blocked-loading-mixed-active-content-issue-in-fire)
 
 
-### My collection contains products but my collection is empty 
+### My collection contains products but my collection is empty
 
 Check if all the mandatory search terms are defined. Mandatory search terms are the OpenSearch terms
 without a question mark '?' defined within the Url template of the OpenSearch Document Description (i.e. http://localhost/resto/api/collections/{collection}/describe)

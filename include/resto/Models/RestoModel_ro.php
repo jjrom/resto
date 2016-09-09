@@ -6,7 +6,7 @@
  * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at:
  *
- *   http://www.apache.org/licenses/LICENSE-2.0 
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
@@ -88,7 +88,7 @@ class RestoModel_ro extends RestoModel {
         if (strtolower($param) === 'true') {
             $filter = 'license is null';
             if ($user->profile['userid'] !== -1) {
-                $filter .= ' OR license in (SELECT DISTINCT license_id FROM usermanagement.signatureslicense WHERE email=\'' . $user->profile['email'] . '\')';
+                $filter .= ' OR license in (SELECT DISTINCT license_id FROM ' . $this->dbDriver->schemaName . '.signatureslicense WHERE email=\'' . $user->profile['email'] . '\')';
             }
             return $filter;
         }

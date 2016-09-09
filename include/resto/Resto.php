@@ -17,67 +17,67 @@
 
 /**
  * RESTo entry point
- * 
+ *
  * This class should be instantiate with
- * 
+ *
  *      $resto = new Resto();
- * 
+ *
  * Access to resource
  * ==================
- * 
+ *
  * General url template
  * --------------------
- *     
+ *
  *      http(s)://host/resto/api/collections/{collection}/search.json?key1=value1&key2=value2&...
  *      \__________________/\__________________________________/\____/\___________________________/
  *            baseUrl                   path                    format          query
  *
  *      Where :
- * 
+ *
  *          {collection} is the name of the collection (e.g. 'Charter', 'SPIRIT', etc.)
- * 
+ *
  * List of "paths"
  * ---------------
- * 
+ *
  *  Available routes are described per  HTTP verbs in
  *      Routes/RestoRouteGET.php
  *      Routes/RestoRoutePOST.php
  *      Routes/RestoRoutePUT.php
  *      Routes/RestoRouteDELETE.php
- * 
- *    
+ *
+ *
  * Query
  * -----
- * 
+ *
  *   Query parameters are described within OpenSearch Description file
  *
- *   Special query parameters can be used to modify the query. These parameters are not specified 
+ *   Special query parameters can be used to modify the query. These parameters are not specified
  *   within the OpenSearch Description file. Below is the list of Special query parameters
  *
- * 
+ *
  *    | Query parameter    |      Type      | Description
  *    |______________________________________________________________________________________________
  *    | _pretty            |     boolean    | (For JSON output only) true to return pretty print JSON
  *    | _tk                |     string     | (For download/visualize/resetPassword) token for resource access
- *    |                                     | (For /api/user/checkToken) JWT profile token 
+ *    |                                     | (For /api/user/checkToken) JWT profile token
  *    | _emailorid         |     string     | (For /api/user and /user endpoints) user "userid" or user "email"
  *    | _fromCart          |     boolean    | (For orders) true to order the content of the cart
  *    | _clear             |     boolean    | (For POST /user/cart) true to remove cart items before inserting new items
  *    | _bearer            |     string     | (For authentication) JWT token - has preseance over header authentication (see rocket)
  *    | callback           |     string     | (For JSON output only) name of callback funtion for JSON-P
- * 
+ *
  * Returned error
  * --------------
- *  
+ *
  *   - HTTP 400 'Bad Request' for invalid request
  *   - HTTP 403 'Forbiden' when accessing protected resource/service with invalid credentials
  *   - HTTP 404 'Not Found' when accessing non existing resource/service
  *   - HTTP 405 'Method Not Allowed' when accessing existing resource/service with unallowed HTTP method
  *   - HTTP 500 'Internal Server Error' for technical errors (i.e. database connection error, etc.)
- * 
+ *
  * ErrorCode list
  * --------------
- * 
+ *
  *   - 1000 : Cannot add item to cart because item already exist
  *   - 1001 : Cannot update item in cart because item does not exist in cart
  *   - 2000 : Abort create collection - schema does not exist
@@ -97,52 +97,52 @@
  *   - 4005 : Invalid input array
  */
 class Resto {
-    
+
     /*
      * RESTo major version number
      */
-    const VERSION = '2.2';
-    
+    const VERSION = '2.3';
+
     /*
      * Default output format if not specified in request
      */
     const DEFAULT_GET_OUTPUT_FORMAT = 'json';
-    
+
     /*
      * RestoContext
      */
     public $context;
-    
+
     /*
      * RestoUser
      */
     public $user;
-    
+
     /*
-     * If true then output is set to JSON 
+     * If true then output is set to JSON
      */
     private $inError = false;
-    
+
     /*
      * CORS white list
      */
     private $corsWhiteList = array();
-    
+
     /**
      * Constructor
-     * 
+     *
      * @param string $configFile
-     * 
+     *
      */
     public function __construct($configFile) {
-        
+
         try {
-           
+
             /*
              * Context
              */
             $this->context = new RestoContext($this->readConfig($configFile));
-            
+
             /*
              * Authenticate user
              */
@@ -152,45 +152,45 @@ class Resto {
              * Route
              */
             $response = $this->getResponse();
-            
-            
+
+
         } catch (Exception $e) {
-            
+
             /*
              * Output in error - format output as JSON in the following
              */
             $this->inError = true;
-            
+
             /*
              * Code under 500 is an HTTP code - otherwise it is a resto error code
              * All resto error codes lead to HTTP 200 error code
              */
             $responseStatus = $e->getCode() < 502 ? $e->getCode() : 400;
             $response = RestoUtil::json_format(array('ErrorMessage' => $e->getMessage(), 'ErrorCode' => $e->getCode()));
-            
+
         }
-        
+
         /*
          * Close database handler
          */
         if (isset($this->context) && isset($this->context->dbDriver)) {
             $this->context->dbDriver->closeDbh();
         }
-        
+
         $this->answer(isset($response) ? $response : null, isset($responseStatus) ? $responseStatus : 200);
-        
+
     }
-    
+
     /**
      * Initialize route and get response from server
      */
     private function getResponse() {
-        
+
         /*
          * Initialize route from HTTP method
          */
         switch ($this->context->method) {
-            
+
             /*
              * GET
              */
@@ -218,7 +218,7 @@ class Resto {
                 break;
             /*
              * OPTIONS
-             */    
+             */
             case 'OPTIONS':
                 $this->setCORSHeaders();
                 return null;
@@ -228,7 +228,7 @@ class Resto {
             default:
                 RestoLogUtil::httpError(404);
         }
-        
+
         /*
          * Process route
          */
@@ -241,7 +241,7 @@ class Resto {
      * Stream HTTP result and exit
      */
     private function answer($response, $responseStatus) {
-        
+
         if (isset($response)) {
 
             /*
@@ -252,7 +252,7 @@ class Resto {
             header('Cache-Control: no-cache, no-store, must-revalidate');
             header('Expires: Fri, 1 Jan 2010 00:00:00 GMT');
             header('Content-Type: ' . RestoUtil::$contentTypes[$this->inError ? 'json' : $this->context->outputFormat]);
-            
+
             /*
              * Set headers including cross-origin resource sharing (CORS)
              * http://en.wikipedia.org/wiki/Cross-origin_resource_sharing
@@ -265,22 +265,22 @@ class Resto {
             if ($this->context == null || $this->context->method !== 'HEAD') {
                 echo $response;
             }
-            
+
         }
-        
+
     }
-    
+
     /**
      * Authenticate and set user accordingly
-     * 
+     *
      * Various authentication method
-     * 
-     *   - HTTP user:password (i.e. http authorization mechanism) 
+     *
+     *   - HTTP user:password (i.e. http authorization mechanism)
      *   - Single Sign On request with oAuth2
-     * 
+     *
      */
     private function authenticate() {
-        
+
         /*
          * Authentication through token in url
          */
@@ -288,7 +288,7 @@ class Resto {
             $this->authenticateBearer($this->context->query['_bearer']);
             unset($this->context->query['_bearer']);
         }
-        
+
         /*
          * ...or from headers
          */
@@ -310,27 +310,27 @@ class Resto {
                 }
             }
         }
-        
+
         /*
          * If we land here - set an unregistered user
          */
         if (!isset($this->user)) {
             $this->user = new RestoUser(null, $this->context);
         }
-        
+
         return true;
-        
+
     }
-    
+
     /**
      * Authenticate user from Basic authentication
      * (i.e. HTTP user:password)
-     * 
+     *
      * @param string $token
      */
     private function authenticateBasic($token) {
         list($username, $password) = explode(':', base64_decode($token), 2);
-        if (!empty($username) && !empty($password) && (bool) preg_match('//u', $username) && (bool) preg_match('//u', $password) && strpos($username, '\'') === false) { 
+        if (!empty($username) && !empty($password) && (bool) preg_match('//u', $username) && (bool) preg_match('//u', $password) && strpos($username, '\'') === false) {
             try {
                 $profile = $this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array(
                     'email' => strtolower($username),
@@ -342,19 +342,19 @@ class Resto {
             $this->user = new RestoUser($profile, $this->context);
         }
     }
-    
+
     /**
      * Authenticate user from Bearer authentication
      * (i.e. Single Sign On request with oAuth2)
-     * 
+     *
      * Assume either a JSON Web Token encoded by resto or a token generated by an SSO issuer (e.g. google)
-     * 
+     *
      * @param string $token
      */
     private function authenticateBearer($token) {
-        
+
         try {
-            
+
             /*
              * If issuer_id is specified in the request then assumes a third party token.
              * In this case, transform this third party token into a resto token
@@ -363,18 +363,18 @@ class Resto {
                 $auth = RestoUtil::instantiate($this->context->modules['Auth']['className'],$this->context, null);
                 $token = $auth->getProfileToken($this->context->query['issuerId'], $token);
             }
-            
+
             $payloadObject = json_decode(json_encode((array) $this->context->decodeJWT($token)), true);
             $this->user = new RestoUser($payloadObject['data'], $this->context);
-            
+
             /*
              * Assign token to user
              */
             $this->user->token = $token;
-            
+
         } catch (Exception $ex) {}
     }
-    
+
     /**
      * Read configuration from config.php file
      */
@@ -383,51 +383,51 @@ class Resto {
             RestoLogUtil::httpError(4000);
         }
         $config = include($configFile);
-        
+
         /*
          * Set global debug mode
          */
         if (isset($config['general']['debug'])) {
             RestoLogUtil::$debug = $config['general']['debug'];
         }
-        
+
         /*
          * Set white list for CORS
          */
         if (isset($config['general']['corsWhiteList'])) {
             $this->corsWhiteList = $config['general']['corsWhiteList'];
         }
-        
+
         return $config;
     }
-    
+
     /**
      * Call one of the output method from $object (i.e. toJSON(), toATOM(), etc.)
-     * 
+     *
      * @param object $object
      * @throws Exception
      */
     private function format($object) {
-        
+
         /*
          * Case 0 - Object is null
          */
         if (!isset($object)) {
             RestoLogUtil::httpError(4004);
         }
-        
+
         /*
-         * Case 1 - Object is an array 
+         * Case 1 - Object is an array
          */
         if (is_array($object)) {
-            
+
             /*
              * Only JSON is supported for arrays
              */
             $this->context->outputFormat = 'json';
             return $this->toJSON($object);
         }
-        
+
         /*
          * Case 2 - Object is an object
          */
@@ -440,17 +440,17 @@ class Resto {
         else {
             RestoLogUtil::httpError(4004);
         }
-        
+
     }
-    
+
     /**
      * Encode input $array to JSON
-     * 
+     *
      * @param array $array
      * @throws Exception
      */
     private function toJSON($array) {
-        
+
         /*
          * JSON-P case
          */
@@ -458,14 +458,14 @@ class Resto {
         if (isset($this->context->query['callback'])) {
             return $this->context->query['callback'] . '(' . json_encode($array, $pretty) . ')';
         }
-        
+
         return RestoUtil::json_format($array, $pretty);
-        
+
     }
-    
+
     /**
      * Encode input $array to JSON
-     * 
+     *
      * @param array $object
      * @throws Exception
      */
@@ -491,7 +491,7 @@ class Resto {
             RestoLogUtil::httpError(404);
         }
     }
-    
+
     /**
      * Set CORS headers (HTTP OPTIONS request)
      */
@@ -500,7 +500,7 @@ class Resto {
         $httpOrigin = filter_input(INPUT_SERVER, 'HTTP_ORIGIN', FILTER_SANITIZE_STRING);
         $httpRequestMethod = filter_input(INPUT_SERVER, 'HTTP_ACCESS_CONTROL_REQUEST_METHOD', FILTER_SANITIZE_STRING);
         $httpRequestHeaders = filter_input(INPUT_SERVER, 'HTTP_ACCESS_CONTROL_REQUEST_HEADERS', FILTER_SANITIZE_STRING);
-        
+
         /*
          * Only set access to known servers
          */
@@ -520,23 +520,23 @@ class Resto {
             header('Access-Control-Allow-Headers: ' . $httpRequestHeaders);
         }
     }
-    
+
     /**
      * Return true if $httpOrigin is allowed to do CORS
      * If corsWhiteList is empty, then every $httpOrigin is allowed.
      * Otherwise only origin in white list are allowed
-     * 
+     *
      * @param {String} $httpOrigin
      */
     private function corsIsAllowed($httpOrigin) {
-        
+
         /*
          * No white list => all allowed
          */
         if (!isset($this->corsWhiteList) || count($this->corsWhiteList) === 0) {
             return true;
         }
-        
+
         $url = explode('//', $httpOrigin);
         if (isset($url[1])) {
             for ($i = count($this->corsWhiteList); $i--;) {
@@ -545,9 +545,9 @@ class Resto {
                 }
             }
         }
-        
+
         return false;
-        
+
     }
-    
+
 }

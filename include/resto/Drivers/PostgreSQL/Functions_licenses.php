@@ -46,7 +46,7 @@ class Functions_licenses {
             return $cached;
         }
 
-        $results = $this->dbDriver->query('SELECT licenseid, grantedcountries, grantedorganizationcountries, grantedflags, viewservice, hastobesigned, signaturequota, description FROM resto.licenses' . (isset($licenseId) ? ' WHERE licenseid=\'' . pg_escape_string($licenseId) . '\'' : ''));
+        $results = $this->dbDriver->query('SELECT licenseid, grantedcountries, grantedorganizationcountries, grantedflags, viewservice, hastobesigned, signaturequota, description FROM ' . $this->dbDriver->schemaName . '.licenses' . (isset($licenseId) ? ' WHERE licenseid=\'' . pg_escape_string($licenseId) . '\'' : ''));
         $licenses = array();
         while ($license = pg_fetch_assoc($results)) {
             $licenses[$license['licenseid']] = array(
@@ -115,7 +115,7 @@ class Functions_licenses {
             'signaturequota' => pg_escape_string($license['signatureQuota']),
             'description' => isset($license['description']) ? '\'' . pg_escape_string(json_encode($license['description'])) . '\'' : 'NULL'
         );
-        $results = $this->dbDriver->query('INSERT INTO resto.licenses(' . join(',', array_keys($values)) . ') VALUES (' . join(',', array_values($values)) . ')  RETURNING licenseid');
+        $results = $this->dbDriver->query('INSERT INTO ' . $this->dbDriver->schemaName . '.licenses(' . join(',', array_keys($values)) . ') VALUES (' . join(',', array_values($values)) . ')  RETURNING licenseid');
         return pg_fetch_array($results);
     }
 
@@ -132,7 +132,7 @@ class Functions_licenses {
             RestoLogUtil::httpError(400, 'Cannot delete license - '. $licenseId . ' does not exist');
         }
         try {
-            $result = pg_query($this->dbDriver->dbh, 'DELETE from resto.licenses WHERE licenseid=\'' . pg_escape_string($licenseId) . '\'');
+            $result = pg_query($this->dbDriver->dbh, 'DELETE from ' . $this->dbDriver->schemaName . '.licenses WHERE licenseid=\'' . pg_escape_string($licenseId) . '\'');
             if (!$result){
                 throw new Exception;
             }
@@ -151,7 +151,7 @@ class Functions_licenses {
      * @return boolean
      */
     public function licenseExists($licenseId) {
-        $query = 'SELECT 1 FROM resto.licenses WHERE licenseid=\'' . pg_escape_string($licenseId) . '\'';
+        $query = 'SELECT 1 FROM ' . $this->dbDriver->schemaName . '.licenses WHERE licenseid=\'' . pg_escape_string($licenseId) . '\'';
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         return !empty($results);
     }
@@ -165,7 +165,7 @@ class Functions_licenses {
      * @return boolean
      */
     public function isLicenseSigned($identifier, $licenseId) {
-        $query = 'SELECT 1 FROM usermanagement.signatures WHERE email= \'' . pg_escape_string($identifier) . '\' AND licenseid= \'' . pg_escape_string($licenseId) . '\'';
+        $query = 'SELECT 1 FROM ' . $this->dbDriver->schemaName . '.signatures WHERE email= \'' . pg_escape_string($identifier) . '\' AND licenseid= \'' . pg_escape_string($licenseId) . '\'';
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         return !empty($results);
     }
@@ -185,13 +185,13 @@ class Functions_licenses {
         /*
          * Get previous signature
          */
-        $results = $this->dbDriver->fetch($this->dbDriver->query('SELECT email, counter FROM usermanagement.signatures WHERE email=\'' . pg_escape_string($identifier) . '\' AND licenseid=\'' . pg_escape_string($licenseId) . '\''));
+        $results = $this->dbDriver->fetch($this->dbDriver->query('SELECT email, counter FROM ' . $this->dbDriver->schemaName . '.signatures WHERE email=\'' . pg_escape_string($identifier) . '\' AND licenseid=\'' . pg_escape_string($licenseId) . '\''));
 
         /*
          * Sign license
          */
         if (count($results) === 0) {
-            $this->dbDriver->query('INSERT INTO usermanagement.signatures (email, licenseid, signdate, counter) VALUES (\'' . pg_escape_string($identifier) . '\',\'' . pg_escape_string($licenseId) . '\',now(), 1)');
+            $this->dbDriver->query('INSERT INTO ' . $this->dbDriver->schemaName . '.signatures (email, licenseid, signdate, counter) VALUES (\'' . pg_escape_string($identifier) . '\',\'' . pg_escape_string($licenseId) . '\',now(), 1)');
         }
         /*
          * Update signatures counter (check quota first)
@@ -202,7 +202,7 @@ class Functions_licenses {
                     RestoLogUtil::httpError(403, 'Maximum signature quota exceed for this license');
                 }
             }
-            $this->dbDriver->query('UPDATE usermanagement.signatures SET signdate=now(),counter=counter+1 WHERE email=\'' . pg_escape_string($identifier) . '\' AND licenseid=\'' . pg_escape_string($licenseId) . '\'');
+            $this->dbDriver->query('UPDATE ' . $this->dbDriver->schemaName . '.signatures SET signdate=now(),counter=counter+1 WHERE email=\'' . pg_escape_string($identifier) . '\' AND licenseid=\'' . pg_escape_string($licenseId) . '\'');
 
         }
 
@@ -220,7 +220,7 @@ class Functions_licenses {
      */
     public function getSignatures($identifier, $licenseId = null) {
         $signatures = array();
-        $results = $this->dbDriver->query('SELECT email, licenseid, signdate, counter FROM usermanagement.signatures WHERE email=\'' . pg_escape_string($identifier) . '\'' . (isset($licenseId) ? ' AND licenseid=\'' . pg_escape_string($licenseId) . '\'' : ''));
+        $results = $this->dbDriver->query('SELECT email, licenseid, signdate, counter FROM ' . $this->dbDriver->schemaName . '.signatures WHERE email=\'' . pg_escape_string($identifier) . '\'' . (isset($licenseId) ? ' AND licenseid=\'' . pg_escape_string($licenseId) . '\'' : ''));
         while ($row = pg_fetch_assoc($results)) {
             $signatures[] = array(
                 'email' => $row['email'],
