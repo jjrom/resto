@@ -71,6 +71,11 @@ abstract class RestoDatabaseDriver {
     public $schemaName = 'resto';
 
     /*
+     * Hashing method
+     */
+    public $hashing = 'sha1';
+
+    /*
      * Results per page
      */
     public $resultsPerPage = 20;
@@ -113,6 +118,9 @@ abstract class RestoDatabaseDriver {
         }
         if (isset($config['schemaName'])) {
             $this->schemaName = $config['schemaName'];
+        }
+        if (isset($config['hashing'])) {
+            $this->hashing = $config['hashing'];
         }
     }
 
