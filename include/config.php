@@ -234,7 +234,7 @@ return array(
             'port' => 465,
             'secure' => 'ssl', // one of 'ssl' or 'tls'
             'auth' => array(
-                'user' => 'xxx'
+                'user' => 'xxx',
                 'password' => 'xxx'
             )
         ),
