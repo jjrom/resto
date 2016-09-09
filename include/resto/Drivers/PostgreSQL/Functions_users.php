@@ -63,7 +63,7 @@ class Functions_users {
             RestoLogUtil::httpError(404);
         }
 
-        $query = 'SELECT userid, email, groups, username, firstname, lastname, to_char(registrationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as registrationdate, country, organization, organizationcountry, flags, topics, activated, validatedby, to_char(validationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as validationdate FROM ' . $this->dbDriver->schemaName . '.users WHERE ' . $this->useridOrEmailFilter($identifier) . (isset($password) ? ' AND password=\'' . pg_escape_string(RestoUtil::encrypt($password)) . '\'' : '');
+        $query = 'SELECT userid, email, groups, username, firstname, lastname, to_char(registrationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as registrationdate, country, organization, organizationcountry, flags, topics, activated, validatedby, to_char(validationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as validationdate FROM ' . $this->dbDriver->schemaName . '.users WHERE ' . $this->useridOrEmailFilter($identifier) . (isset($password) ? ' AND password=\'' . pg_escape_string($this->password_hash($password)) . '\'' : '');
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
 
         if (count($results) === 0) {
@@ -153,7 +153,7 @@ class Functions_users {
 
         $toBeSet = array(
             'email' => '\'' . pg_escape_string($email) . '\'',
-            'password' => '\'' . (isset($profile['password']) ? RestoUtil::encrypt($profile['password']) : str_repeat('*', 40)) . '\'',
+            'password' => '\'' . (isset($profile['password']) ? $this->password_hash($profile['password']) : str_repeat('*', 40)) . '\'',
             'groups' => '\'{' . (isset($profile['groups']) ? pg_escape_string($profile['groups']) : 'default') . '}\'',
             'activationcode' => '\'' . pg_escape_string(RestoUtil::encrypt($email . microtime())) . '\'',
             'activated' => $profile['activated'],
@@ -193,7 +193,7 @@ class Functions_users {
             if (isset($profile[$field])) {
                 switch ($field) {
                     case 'password':
-                        $values[] = 'password=\'' . RestoUtil::encrypt($profile['password']) . '\'';
+                        $values[] = 'password=\'' . $this->password_hash($profile['password']) . '\'';
                         break;
                     case 'activated':
                         $values[] = 'activated=' . $profile['activated'];
@@ -400,5 +400,31 @@ class Functions_users {
     private function getPicture($email, $size = 200) {
         return '//www.gravatar.com/avatar/' . md5($email) . '?d=mm&s=' . $size;
     }
+
+    /**
+     * Hash password
+     *
+     * @param string $password
+     */
+    private function password_hash($password) {
+        switch ($this->dbDriver->hashing) {
+            case 'sha1':
+                return RestoUtil::encrypt($password);
+                break;
+            default:
+                return password_hash($password, PASSWORD_BCRYPT);
+        }
+    }
+
+    /**
+     * Verify password
+     *
+     * @param string $password
+     * @param string $hash
+     */
+    private function password_verify($password, $hash) {
+        return password_hash($password) === $hash ? true : false;
+    }
+
 
 }

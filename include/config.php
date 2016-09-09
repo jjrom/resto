@@ -204,6 +204,12 @@ return array(
         'sortParams' => array('startdate'),
 
         /*
+         * Password encryption method (sha1 or bcrypt)
+         * Note that bcrypt is only supported by PHP >= 5.5.0
+         */
+        'hashing' => 'sha1',
+
+        /*
          * Database user with READ+WRITE privileges (see http://github.com/jjrom/resto/README.md)
          */
         'user' => 'resto',
