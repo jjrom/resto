@@ -22,7 +22,7 @@ USER=resto
 SCHEMA=resto
 DATADIR=`dirname $0`/data
 usage="## resto database installation\n\n  Usage $0 -p <resto (Read+Write database) user password> [-d <databasename> -S <schemaname> -f <PostGIS directory> -s <database SUPERUSER> -F]\n\n  -d : database name (default resto)\n  -S : schema name (default resto)\n  -f : absolute path to the directory containing postgis.sql - If not set EXTENSION mechanism will be used\n  -s : dabase SUPERUSER (default "postgres")\n  -F : WARNING - suppress existing resto schema within resto database\n"
-while getopts "f:d:s:u:p:hF" options; do
+while getopts "f:d:s:u:p:S:hF" options; do
     case $options in
         f ) ROOTDIR=`echo $OPTARG`;;
         d ) DB=`echo $OPTARG`;;

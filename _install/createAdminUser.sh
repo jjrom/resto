@@ -18,14 +18,15 @@ USER=admin
 SUPERUSER=postgres
 SCHEMA=resto
 DB=resto
-usage="## resto - Create administrator user account\n\n  Usage $0 -u <admin user name (default 'admin')> -p <admin user password> [-d <databasename (default resto)> -S <schemaname (default resto)> -s <superuser (default postgres)>]\n"
-while getopts "d:u:p:s:h" options; do
+usage="## resto - Create administrator user account\n\n  Usage $0 -u <admin user name (default 'admin')> -p <admin user password> [-B <use bcrypt hashing (needs PHP >= 5.5.0)> -d <databasename (default resto)> -S <schemaname (default resto)> -s <superuser (default postgres)>]\n"
+while getopts "d:u:p:s:S:Bh" options; do
     case $options in
         d ) DB=`echo $OPTARG`;;
         u ) USER=`echo $OPTARG`;;
         p ) PASSWORD=`echo $OPTARG`;;
         s ) SUPERUSER=`echo $OPTARG`;;
         S ) SCHEMA=`echo $OPTARG`;;
+        B ) BCRYPT=YES
         h ) echo -e $usage;;
         \? ) echo -e $usage
             exit 1;;
@@ -39,8 +40,13 @@ then
     exit 1
 fi
 # Change password !!!
-SHA1PASSWORD=`php -r "echo sha1('$PASSWORD');"`
+if [ "$BCRYPT" = ""]
+then
+    HASH=`php -r "echo sha1('$PASSWORD');"`
+else
+    HASH=`php -r "echo password_hash('$PASSWORD');"`
+fi
 ACTIVATIONCODE=`php -r "echo sha1(mt_rand() . microtime());"`
 psql -d $DB -U $SUPERUSER << EOF
-INSERT INTO ${SCHEMA}.users (email,groups,username,password,activationcode,activated,registrationdate) VALUES ('$USER','{"admin"}','$USER','$SHA1PASSWORD','$ACTIVATIONCODE', 1, now());
+INSERT INTO ${SCHEMA}.users (email,groups,username,password,activationcode,activated,registrationdate) VALUES ('$USER','{"admin"}','$USER','$HASH','$ACTIVATIONCODE', 1, now());
 EOF
