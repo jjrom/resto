@@ -26,7 +26,7 @@ while getopts "d:u:p:s:S:Bh" options; do
         p ) PASSWORD=`echo $OPTARG`;;
         s ) SUPERUSER=`echo $OPTARG`;;
         S ) SCHEMA=`echo $OPTARG`;;
-        B ) BCRYPT=YES
+        B ) BCRYPT=YES;;
         h ) echo -e $usage;;
         \? ) echo -e $usage
             exit 1;;
