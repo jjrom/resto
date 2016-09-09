@@ -15,7 +15,7 @@
  * under the License.
  */
 
-require_once(realpath(dirname(__FILE__)) . '/../../../lib/PHPMail/PHPMailerAutoload.php');
+require_once(realpath(dirname(__FILE__)) . '/../../../lib/PHPMailer/PHPMailerAutoload.php');
 
 /**
  * RESTo Utilities functions
