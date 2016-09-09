@@ -18,6 +18,7 @@ USER=admin
 SUPERUSER=postgres
 SCHEMA=resto
 DB=resto
+BCRYPT=NO
 usage="## resto - Create administrator user account\n\n  Usage $0 -u <admin user name (default 'admin')> -p <admin user password> [-B <use bcrypt hashing (needs PHP >= 5.5.0)> -d <databasename (default resto)> -S <schemaname (default resto)> -s <superuser (default postgres)>]\n"
 while getopts "d:u:p:s:S:Bh" options; do
     case $options in
@@ -40,11 +41,11 @@ then
     exit 1
 fi
 # Change password !!!
-if [ "$BCRYPT" = ""]
+if [ "$BCRYPT" = "NO"]
 then
     HASH=`php -r "echo sha1('$PASSWORD');"`
 else
-    HASH=`php -r "echo password_hash('$PASSWORD');"`
+    HASH=`php -r "echo password_hash('$PASSWORD', PASSWORD_BCRYPT);"`
 fi
 ACTIVATIONCODE=`php -r "echo sha1(mt_rand() . microtime());"`
 psql -d $DB -U $SUPERUSER << EOF
