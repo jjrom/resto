@@ -41,7 +41,7 @@ then
     exit 1
 fi
 # Change password !!!
-if [ "$BCRYPT" = "NO"]
+if [ "$BCRYPT" = "NO" ]
 then
     HASH=`php -r "echo sha1('$PASSWORD');"`
 else
