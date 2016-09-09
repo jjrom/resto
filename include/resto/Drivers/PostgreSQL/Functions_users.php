@@ -63,12 +63,26 @@ class Functions_users {
             RestoLogUtil::httpError(404);
         }
 
-        $query = 'SELECT userid, email, groups, username, firstname, lastname, to_char(registrationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as registrationdate, country, organization, organizationcountry, flags, topics, activated, validatedby, to_char(validationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as validationdate FROM ' . $this->dbDriver->schemaName . '.users WHERE ' . $this->useridOrEmailFilter($identifier) . (isset($password) ? ' AND password=\'' . pg_escape_string($this->password_hash($password)) . '\'' : '');
+        $query = 'SELECT userid, email, password, groups, username, firstname, lastname, to_char(registrationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as registrationdate, country, organization, organizationcountry, flags, topics, activated, validatedby, to_char(validationdate, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as validationdate FROM ' . $this->dbDriver->schemaName . '.users WHERE ' . $this->useridOrEmailFilter($identifier);
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
 
         if (count($results) === 0) {
             RestoLogUtil::httpError(404);
         }
+
+        /*
+         * Check password
+         */
+        if (isset($password)) {
+            if (!$this->password_verify($password, $results[0]['password'])) {
+                RestoLogUtil::httpError(404);
+            }
+        }
+
+        /*
+         * Never return password !!
+         */
+        unset($results[0]['password']);
 
         $results[0]['activated'] = (integer) $results[0]['activated'];
         $results[0]['groups'] = substr($results[0]['groups'], 1, -1);
