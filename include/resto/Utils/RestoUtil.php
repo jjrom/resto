@@ -470,32 +470,33 @@ class RestoUtil {
      * @param array $smtp
      */
     public static function sendMail($params, $smtp = array()) {
-        $mail = new PHPMailer();
-        if (isset($smtp) && $smtp['activate']) {
-            $mail->isSMTP();                                      // Set mailer to use SMTP
-            $mail->Host = $smtp['activate'];                      // Specify main and backup SMTP servers
-            if (isset($smtp['secure'])) {
-                $mail->SMTPSecure = $smtp['secure'];              // Enable TLS encryption, `ssl` also accepted
-            }
-            $mail->Port = $smtp['port'];                          // TCP port to connect to
-            if (isset($smtp['auth'])) {
-                $mail->SMTPAuth = true;                           // Enable SMTP authentication
-                $mail->Username = $smtp['auth']['user'];          // SMTP username
-                $mail->Password = $smtp['auth']['password'];      // SMTP password
-            }
-        }
 
-        $mail->setFrom($params['senderEmail'], $params['senderName']);
-        $mail->addAddress($params['to']);
-        $mail->isHTML(true);
-        $mail->Subject = $params['subject'];
-        $mail->Body = $params['message'];
+      $mail = new PHPMailer();
+      if (isset($smtp) && $smtp['activate']) {
+          $mail->isSMTP();                                      // Set mailer to use SMTP
+          $mail->Host = $smtp['host'];                          // Specify main and backup SMTP servers
+          if (isset($smtp['secure'])) {
+              $mail->SMTPSecure = $smtp['secure'];              // Enable TLS encryption, `ssl` also accepted
+          }
+          $mail->Port = $smtp['port'];                          // TCP port to connect to
+          if (isset($smtp['auth'])) {
+              $mail->SMTPAuth = true;                           // Enable SMTP authentication
+              $mail->Username = $smtp['auth']['user'];          // SMTP username
+              $mail->Password = $smtp['auth']['password'];      // SMTP password
+          }
+      }
 
-        if($mail->send()) {
-            return true;
-        } else {
-            return false;
-        }
+      $mail->setFrom($params['senderEmail'], $params['senderName']);
+      $mail->addAddress($params['to']);
+      $mail->isHTML(true);
+      $mail->Subject = $params['subject'];
+      $mail->Body = $params['message'];
+
+      if($mail->send()) {
+          return true;
+      } else {
+          return false;
+      }
 
     }
 
