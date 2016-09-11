@@ -16,9 +16,9 @@
  */
 
 /**
- * 
+ *
  * RESTo REST router for GET requests
- * 
+ *
  *    api/collections/search                        |  Search on all collections
  *    api/collections/{collection}/search           |  Search on {collection}
  *    api/collections/describe                      |  Opensearch service description at collections level
@@ -27,17 +27,19 @@
  *    api/user/resetPassword                        |  Ask for password reset (i.e. reset link sent to user email adress)
  *    api/user/checkToken                           |  Check if token is valid
  *    api/user/activate                             |  Activate users with activation code
- *    
- *    collections                                   |  List all collections            
+ *
+ *    collections                                   |  List all collections
  *    collections/{collection}                      |  Get {collection} description
  *    collections/{collection}/{feature}            |  Get {feature} description within {collection}
  *    collections/{collection}/{feature}/download   |  Download {feature}
  *    collections/{collection}/{feature}/wms        |  Access WMS for {feature}
  *
  *    licenses                                      |  List all licenses
- *    licenses/{licenseid}                          |  Get {licenseid} license description 
- * 
- *    user                                          |  Show user information
+ *    licenses/{licenseid}                          |  Get {licenseid} license description
+ *
+ *    users                                         |  Show users profiles
+ *
+ *    user                                          |  Show user profile
  *    user/groups                                   |  Show user groups
  *    user/cart                                     |  Show user cart
  *    user/orders                                   |  Show orders for user
@@ -69,6 +71,8 @@ class RestoRouteGET extends RestoRoute {
                 return $this->GET_api($segments);
             case 'collections':
                 return $this->GET_collections($segments);
+            case 'users':
+                return $this->GET_users($segments);
             case 'user':
                 return $this->GET_user($segments);
             case 'licenses':
@@ -79,9 +83,9 @@ class RestoRouteGET extends RestoRoute {
     }
 
     /**
-     * 
+     *
      * Process HTTP GET request on api
-     * 
+     *
      * @param array $segments
      */
     private function GET_api($segments) {
@@ -110,12 +114,12 @@ class RestoRouteGET extends RestoRoute {
         else {
             return $this->processModuleRoute($segments);
         }
-        
+
     }
 
     /**
      * Process api/collections
-     * 
+     *
      * @SWG\Get(
      *      tags={"collections"},
      *      path="/api/collections/describe.xml",
@@ -128,7 +132,7 @@ class RestoRouteGET extends RestoRoute {
      *          description="OpenSearch Document Description (OSDD)"
      *      )
      * )
-     * 
+     *
      * @SWG\Get(
      *      tags={"collections"},
      *      path="/api/collections/search.{format}",
@@ -256,7 +260,7 @@ class RestoRouteGET extends RestoRoute {
      *          description="Collection not found"
      *      )
      * )
-     * 
+     *
      * @SWG\Get(
      *      tags={"collection"},
      *      path="/api/collections/{collectionId}/describe.xml",
@@ -416,25 +420,25 @@ class RestoRouteGET extends RestoRoute {
      *          response="404",
      *          description="Collection not found"
      *      )
-     * ) 
-     * 
+     * )
+     *
      * @param array $segments
      * @return type
      */
     private function GET_apiCollections($segments) {
-        
+
         /*
          * Search/describe in all collections or in a given collection
          */
         $collectionName = isset($segments[3]) ? $segments[2] : null;
         $resource = isset($collectionName) ? new RestoCollection($collectionName, $this->context, $this->user, array('autoload' => true)) : new RestoCollections($this->context, $this->user);
         $action = isset($collectionName) ? $segments[3] : $segments[2];
-        
+
         /*
          * Search
          */
         if ($action === 'search' || $action === 'describe') {
-            
+
             /*
              * Store query
              */
@@ -445,36 +449,36 @@ class RestoRouteGET extends RestoRoute {
             /*
              * Search or describe
              */
-            return $action === 'search' ? $resource->search() : $resource;      
-            
+            return $action === 'search' ? $resource->search() : $resource;
+
         }
         else {
             RestoLogUtil::httpError(404);
         }
-        
+
     }
 
     /**
      * Process api/user
-     * 
+     *
      * @param array $segments
      * @return type
      */
     private function GET_apiUser($segments) {
-       
+
         if (isset($segments[3])) {
             RestoLogUtil::httpError(404);
         }
-        
+
         /*
-         * Generate user from input email 
+         * Generate user from input email
          */
         if (isset($this->context->query['email'])) {
             $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('email' => $this->context->query['email'])), $this->context);
         } else {
             $user = null;
         }
-                
+
         switch ($segments[2]) {
 
             /**
@@ -513,7 +517,7 @@ class RestoRouteGET extends RestoRoute {
              */
             case 'activate':
                 return $this->activateUser($user);
-                
+
             /**
              *  @SWG\Get(
              *      tags={"user"},
@@ -566,7 +570,7 @@ class RestoRouteGET extends RestoRoute {
                     RestoLogUtil::httpError(400);
                 }
                 return $this->context->checkJWT($this->context->query['_tk']) ? RestoLogUtil::success('Valid token') : RestoLogUtil::error('Invalid token');
-                
+
             /**
              *  @SWG\Get(
              *      tags={"user"},
@@ -590,19 +594,19 @@ class RestoRouteGET extends RestoRoute {
                     return $user->sendResetPasswordLink();
                 }
                 else {
-                    RestoLogUtil::httpError(400); 
+                    RestoLogUtil::httpError(400);
                 }
             default:
                 RestoLogUtil::httpError(404);
 
         }
-        
+
     }
 
     /**
-     * 
+     *
      * Process HTTP GET request on collections
-     * 
+     *
      * @param array $segments
      */
     private function GET_collections($segments) {
@@ -612,17 +616,17 @@ class RestoRouteGET extends RestoRoute {
         }
         if (isset($segments[2])) {
             $feature = new RestoFeature($this->context, $this->user, array(
-                'featureIdentifier' => $segments[2], 
+                'featureIdentifier' => $segments[2],
                 'collection' => $collection
             ));
             if (!$feature->isValid()) {
                 RestoLogUtil::httpError(404);
             }
         }
-        
+
         /**
          * Collection descriptions
-         * 
+         *
          *  @SWG\Get(
          *      tags={"collections"},
          *      path="/collections.{format}",
@@ -643,7 +647,7 @@ class RestoRouteGET extends RestoRoute {
          *          description="List of all collection descriptions"
          *      )
          *  )
-         * 
+         *
          */
         if (!isset($collection)) {
             return new RestoCollections($this->context, $this->user, array('autoload' => true));
@@ -651,7 +655,7 @@ class RestoRouteGET extends RestoRoute {
 
         /**
          * Collection description (XML is not allowed - see api/describe/collections)
-         * 
+         *
          *  @SWG\Get(
          *      tags={"collection"},
          *      path="/collections/{collectionId}.{format}",
@@ -684,7 +688,7 @@ class RestoRouteGET extends RestoRoute {
          *          description="Collection not found"
          *      )
          *  )
-         * 
+         *
          */
         else if (!isset($feature->identifier)) {
             return $collection;
@@ -692,7 +696,7 @@ class RestoRouteGET extends RestoRoute {
 
         /**
          * Feature description
-         * 
+         *
          *  @SWG\Get(
          *      tags={"feature"},
          *      path="/collections/{collectionId}/{featureId}.{format}",
@@ -730,7 +734,7 @@ class RestoRouteGET extends RestoRoute {
          *          description="Collection not found"
          *      )
          *  )
-         *  
+         *
          */
         else if (!isset($segments[3])) {
             if ($this->context->storeQuery === true) {
@@ -738,10 +742,10 @@ class RestoRouteGET extends RestoRoute {
             }
             return $feature;
         }
-        
+
         /**
          * Download feature and exit
-         * 
+         *
          *  @SWG\Get(
          *      tags={"feature"},
          *      path="/collections/{collectionId}/{featureId}/download",
@@ -790,15 +794,15 @@ class RestoRouteGET extends RestoRoute {
          *          description="Forbidden"
          *      )
          *  )
-         *  
+         *
          */
         else if ($segments[3] === 'download') {
             return $this->downloadFeature($collection, $feature, isset($this->context->query['_tk']) ? $this->context->query['_tk'] : null);
         }
-        
+
         /**
          * View feature as a WMS stream
-         * 
+         *
          *  @SWG\Get(
          *      tags={"feature"},
          *      path="/collections/{collectionId}/{featureId}/wms",
@@ -847,12 +851,12 @@ class RestoRouteGET extends RestoRoute {
          *          description="Forbidden"
          *      )
          *  )
-         *  
+         *
          */
         else if ($segments[3] === 'wms') {
             return $this->viewFeature($collection, $feature, isset($this->context->query['_tk']) ? $this->context->query['_tk'] : null);
         }
-        
+
         /*
          * 404
          */
@@ -862,13 +866,13 @@ class RestoRouteGET extends RestoRoute {
     }
 
     /**
-     * 
+     *
      * Process HTTP GET request on users
-     * 
+     *
      * @param array $segments
      */
     private function GET_user($segments) {
-        
+
         /**
          *  @SWG\Get(
          *      tags={"user"},
@@ -962,7 +966,7 @@ class RestoRouteGET extends RestoRoute {
                         'rights' => $this->user->getRights(isset($segments[2]) ? $segments[2] : null, isset($segments[3]) ? $segments[3] : null)
             ));
         }
-        
+
         /**
          *  @SWG\Get(
          *      tags={"user"},
@@ -989,7 +993,7 @@ class RestoRouteGET extends RestoRoute {
         if ($segments[1] === 'cart' && !isset($segments[2])) {
             return $this->user->getCart();
         }
-        
+
         /**
          *  @SWG\Get(
          *      tags={"user"},
@@ -1057,7 +1061,7 @@ class RestoRouteGET extends RestoRoute {
                         'signatures' => $this->user->getSignatures()
             ));
         }
-        
+
         /**
          *  @SWG\Get(
          *      tags={"user"},
@@ -1088,14 +1092,14 @@ class RestoRouteGET extends RestoRoute {
                         'queries' => $this->user->getSearchQueries($this->context->query)
             ));
         }
-        
+
         return RestoLogUtil::httpError(404);
     }
 
     /**
      *
      * Process licenses
-     * 
+     *
      * @SWG\Get(
      *      tags={"license"},
      *      path="/licenses/{licenseId}",
@@ -1110,7 +1114,7 @@ class RestoRouteGET extends RestoRoute {
      *          required=false,
      *          type="string",
      *          @SWG\Items(type="string")
-     *      ),      
+     *      ),
      *      @SWG\Response(
      *          response="200",
      *          description="License(s) description(s)"
@@ -1120,16 +1124,16 @@ class RestoRouteGET extends RestoRoute {
      * @param array $segments
      */
     private function GET_licenses($segments) {
-        
+
         if (isset($segments[2])) {
             RestoLogUtil::httpError(404);
         }
-        
+
         return array(
             'licenses' => $this->context->dbDriver->get(RestoDatabaseDriver::LICENSES, array('licenseId' => isset($segments[1]) ? $segments[1] : null))
         );
     }
-    
+
     /**
      * Activate user
      * @param RestoUser $user
@@ -1160,22 +1164,22 @@ class RestoRouteGET extends RestoRoute {
             RestoLogUtil::httpError(400);
         }
     }
-   
+
     /**
      * Download feature
-     * 
+     *
      * @param RestoCollection $collection
      * @param RestoFeature $feature
      * @param String $token
-     * 
+     *
      */
     private function downloadFeature($collection, $feature, $token) {
-        
+
         /*
          * Check user download rights
          */
         $user = $this->checkRights('download', $this->user, $token, $collection, $feature);
-        
+
         /*
          * User must be validated
          */
@@ -1189,7 +1193,7 @@ class RestoRouteGET extends RestoRoute {
         if (!$feature->getLicense()->isApplicableToUser($user)) {
             RestoLogUtil::httpError(403, 'You do not fulfill license requirements');
         }
-        
+
         /*
          * User has to sign the license before downloading
          */
@@ -1212,24 +1216,24 @@ class RestoRouteGET extends RestoRoute {
         }
         $feature->download();
         return null;
-        
+
     }
-    
+
     /**
      * Access WMS for a given feature
      *
      * @param RestoCollection $collection
      * @param RestoFeature $feature
      * @param string $token
-     * 
+     *
      */
     private function viewFeature($collection, $feature, $token) {
-        
+
         /*
          * Check user visualize rights
          */
         $user = $this->checkRights('visualize', $this->user, $token, $collection, $feature);
-        
+
         /*
          * User do not fullfill license requirements
          * Stream low resolution WMS if viewService is public
@@ -1264,19 +1268,19 @@ class RestoRouteGET extends RestoRoute {
         return null;
     }
 
-    
+
     /**
      * Check $action rights returning user
-     * 
+     *
      * @param string $action
      * @param RestoUser $user
      * @param string $token
      * @param RestoCollection $collection
      * @param RestoFeature $feature
-     * 
+     *
      */
     private function checkRights($action, $user, $token, $collection, $feature) {
-        
+
         /*
          * Get token inititiator - bypass user rights
          */
@@ -1285,14 +1289,14 @@ class RestoRouteGET extends RestoRoute {
                 'resourceUrl' => $this->context->baseUrl . '/' . $this->context->path,
                 'token' => $token
             ));
-            
+
             /*
              * Non existing Token => exit
              */
             if (!$initiatorEmail) {
                 RestoLogUtil::httpError(403);
             }
-            
+
             if ($user->profile['email'] !== $initiatorEmail) {
                 $user = new RestoUser($this->context->dbDriver->get(RestoDatabaseDriver::USER_PROFILE, array('email' => strtolower($initiatorEmail))), $this->context);
             }
@@ -1305,8 +1309,8 @@ class RestoRouteGET extends RestoRoute {
                 RestoLogUtil::httpError(403);
             }
         }
-        
+
         return $user;
     }
-    
+
 }

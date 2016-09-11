@@ -148,7 +148,6 @@ class RestoUser {
      * Activate user
      *
      * @param string $activationCode
-     * @param string $redirectUrl
      *
      */
     public function activate($activationCode = null) {
