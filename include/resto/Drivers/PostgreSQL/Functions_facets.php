@@ -279,7 +279,7 @@ class Functions_facets {
         }
 
         return array(
-            'count' => $collectionCount,
+            'count' => $count,
             'facets' => $facets
         );
     }
