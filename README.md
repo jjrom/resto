@@ -255,7 +255,7 @@ Only works for an existing collection (so create a collection first !)
 
         $RESTO_HOME/_scripts/deleteCollection.sh -c Example -u admin:admin
 
-**Note** : only non empty collection can be deleted this way 
+**Note** : only empty collection can be deleted this way 
 
 ### List all collections
 
