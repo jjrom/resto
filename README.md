@@ -255,11 +255,11 @@ Only works for an existing collection (so create a collection first !)
 
 WARNING ! This will also destroy all the resources within the collection
 
-        $RESTO_HOME/_scripts/deleteCollection.sh -p -c Example -u admin:admin
+        $RESTO_HOME/_scripts/deleteCollection.sh -c Example -u admin:admin
 
 ### List all collections
 
-        Open your browser to http://localhost/resto/collections/
+        Open your browser to http://localhost/resto/collections.json/
 
 ### Insert a resource
 
