@@ -253,9 +253,9 @@ Only works for an existing collection (so create a collection first !)
 
 ###Delete a collection
 
-WARNING ! This will also destroy all the resources within the collection
-
         $RESTO_HOME/_scripts/deleteCollection.sh -c Example -u admin:admin
+
+**Note** : only non empty collection can be deleted this way 
 
 ### List all collections
 
