@@ -26,7 +26,7 @@ If not already done, download resto sources to $RESTO_HOME
 * PostGIS (v2.0+)
 
 **Note 1:** resto could work with lower version of the specified requirements.
-However there is no guaranty of success and unwanted result may occured !
+However there is no guaranty of success and unwanted result may occurred !
 
 **Note 2:** Apache server can be replaced by nginx server (see configuration)
 
@@ -54,7 +54,7 @@ and that it has access to psql on localhost without password.
 
 Last step is to install application to the target directory. This directory will be accessed
 by the web server so it could be either directly under the DocumentRoot web server directory
-or in whatever directory accessed through web server Alias configuration. The latter case is prefered
+or in whatever directory accessed through web server Alias configuration. The latter case is preferred
 (see Apache configuration part below for Alias configuration)
 
 To install resto launch the following script
@@ -69,7 +69,7 @@ To install resto launch the following script
 [iTag] (http://github.com/jjrom/itag) is an application to automatically tag geospatial metadata
 with geographical information (such as location, landuse, etc.)
 
-resto uses iTag during the ressource ingestion process and also for the Gazetteer and the Wikipedia modules
+resto uses iTag during the resource ingestion process and also for the Gazetteer and the Wikipedia modules
 
 If you want to use iTag with resto, you should install it (follow the [instructions] (http://github.com/jjrom/itag/))
 
@@ -81,7 +81,7 @@ Choose between configuration 1 and 2 depending on your configuration
 
 ### Web server option 1 : Apache
 
-The first thing to do is to configure Apache (or wathever is your web server) to support URL rewriting.
+The first thing to do is to configure Apache (or whatever is your web server) to support URL rewriting.
 
 Basically, with URLs rewriting every request sent to resto application will end up to index.php. For example,
 http://localhost/resto/whatever/youwant/to/access will be rewrite as http://localhost/resto/index.php?restoURL=/whatever/youwant/to/access
@@ -120,7 +120,7 @@ For Apache >= 2.4 :
 
 **Configure apache to support https (optional)**
 
-resto can be accessed either in http or https. For security reason, https is prefered when
+resto can be accessed either in http or https. For security reason, https is preferred when
 dealing with authenticated request (e.g. creation of a collection, insertion of a resource in the collection, etc.)
 
 Thus, turning https in apache is optional to make resto work.
@@ -166,13 +166,13 @@ The resto nginx configuration block should look like this :
 
 **IMPORTANT** the previous configuration assumes that your resto installation is in the
 "resto" directory within the web server document root. If it is not the case, you should
-change all "/resto/" occurences in the configuration example to match your installation
+change all "/resto/" occurrences in the configuration example to match your installation
 
 ### PostgreSQL configuration
 
 Two configurations are possible :
 
-* A socket configuration (**prefered** if PostgreSQL and Apache are on the same server you should)
+* A socket configuration (**preferred** if PostgreSQL and Apache are on the same server you should)
 * A TCP/IP configuration
 
 **Socket configuration**
@@ -298,7 +298,7 @@ For production use, you should take a look at the $RESTO_TARGET/include/config.p
 * set "debug" to false
 * set a "tokenDuration" no greater than 3600 seconds (i.e. 1 hour)
 * set a non obvious "passphrase" for JWT (or at least change the default one !)
-* if you want to limit API access, remove 'localhost' from the corsWhiteList and explicitely add allowed domain names
+* if you want to limit API access, remove 'localhost' from the corsWhiteList and explicitly add allowed domain names
 * set a strong password for the database 'resto' user
 
 
