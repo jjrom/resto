@@ -177,7 +177,7 @@ Two configurations are possible :
 
 **Socket configuration**
 
-Edit $RESTO_TARGET/include/config.php and comment the general/host parameter
+Edit $RESTO_TARGET/include/config.php and comment the general->database->host parameter
 
 Edit the PostgreSQL pg_hba.conf file and add the following rules :
 
@@ -255,7 +255,7 @@ Only works for an existing collection (so create a collection first !)
 
         $RESTO_HOME/_scripts/deleteCollection.sh -c Example -u admin:admin
 
-**Note** : only empty collection can be deleted this way 
+**Note** : only empty collection can be deleted this way
 
 ### List all collections
 
