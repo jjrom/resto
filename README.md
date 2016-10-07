@@ -188,7 +188,7 @@ Then restart postgresql (e.g. "pg_ctl restart")
 
 **TCP/IP configuration**
 
-Edit $RESTO_TARGET/include/config.php and uncomment the general/host parameter to set the right IP of the PostgreSQL server (default 'localhost')
+Edit $RESTO_TARGET/include/config.php and uncomment the general->database->host parameter to set the right IP of the PostgreSQL server (default 'localhost')
 
 Edit the PostgreSQL pg_hba.conf file and add the following rules :
 
