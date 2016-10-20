@@ -95,7 +95,7 @@ ALTER FUNCTION unaccent(text) IMMUTABLE;
 --
 CREATE OR REPLACE FUNCTION normalize(text)
 RETURNS text AS \$\$
-SELECT replace(replace(lower(unaccent(\$1)),' ','-'), '''', '-')
+SELECT replace(replace(lower(public.unaccent(\$1)),' ','-'), '''', '-')
 \$\$ LANGUAGE sql;
 
 --
