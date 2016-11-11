@@ -360,7 +360,7 @@ class Resto {
              * In this case, transform this third party token into a resto token
              */
             if (isset($this->context->query['issuerId']) && isset($this->context->modules['Auth'])) {
-                $auth = RestoUtil::instantiate($this->context->modules['Auth']['className'],$this->context, null);
+                $auth = RestoUtil::instantiate($this->context->modules['Auth']['className'], array($this->context, null));
                 $token = $auth->getProfileToken($this->context->query['issuerId'], $token);
             }
 
