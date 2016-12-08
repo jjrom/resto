@@ -429,7 +429,6 @@ class RestoUser {
      */
     public function storeQuery($method, $service, $collectionName, $featureIdentifier, $query, $url) {
         try {
-            $remoteAdress = filter_input(INPUT_SERVER, 'REMOTE_ADDR', FILTER_SANITIZE_STRING);
             $this->context->dbDriver->store(RestoDatabaseDriver::QUERY, array(
                 'email' => $this->profile['email'],
                 'query' => array(
@@ -439,7 +438,7 @@ class RestoUser {
                     'resourceid' => $featureIdentifier,
                     'query' => $query,
                     'url' => $url,
-                    'ip' => $remoteAdress,
+                    'ip' => $this->getIp(),
                 ))
             );
         } catch (Exception $e) {
@@ -576,6 +575,32 @@ class RestoUser {
             'targetType' => isset($featureIdentifier) ? 'feature' : 'collection',
             'target' => $target
         );
+    }
+
+    /**
+     * Get calling IP
+     * 
+     * @return string
+     */
+    private function getIp() {
+
+        // Try all IPs - the latest, the better
+        $ips = array (
+            'REMOTE_ADDR',
+            'HTTP_FORWARDED',
+            'HTTP_CLIENT_IP',
+            'HTTP_X_FORWARDED', 
+            'HTTP_X_FORWARDED_FOR'
+        );
+
+        $best = '';
+        foreach ($ips as $key => $ip) {
+            if (filter_input(INPUT_SERVER, $ip, FILTER_SANITIZE_STRING) !== FALSE && !is_null(filter_input(INPUT_SERVER, $ip, FILTER_SANITIZE_STRING))) {
+                $best = filter_input(INPUT_SERVER, $ip, FILTER_SANITIZE_STRING);
+            }
+        }
+        
+        return $best;
     }
 
 }
