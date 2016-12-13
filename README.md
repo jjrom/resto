@@ -8,6 +8,17 @@ resto - an Earth Observation products search engine
 
 Try the [demo] (http://mapshup.com/projects/rocket/) !
 
+## Who is using resto ?
+
+Here are some big projects that use resto.
+
+* [The French Sentinel Data Processing center](https://peps.cnes.fr/rocket/#/home)
+* [The French Space Agency, THEIA land data center](https://theia.cnes.fr/atdistrib/rocket/#/home)
+* [The Polish EO Data finder](http://finder.eocloud.eu/www/)
+* [Remote Sensor Technology Center of Japan, EPIC project](http://www.geomatys.com/en/portfolio/epic.html)
+
+If you plan to use resto and would like to have your project added to this list, feel free to send an email to jerome[dot]gasperi[at]gmail[dot]com 
+
 ## Installation
 
 In the following, we suppose that $RESTO_HOME is the directory where resto sources will be installed
