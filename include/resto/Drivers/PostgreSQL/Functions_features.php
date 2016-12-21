@@ -157,13 +157,6 @@ class Functions_features {
     public function storeFeature($collection, $featureArray) {
 
         /*
-         * Check that resource does not already exist in database
-         */
-        if ($collection->context->dbDriver->check(RestoDatabaseDriver::FEATURE, array('featureIdentifier' => $featureArray['id']))) {
-            RestoLogUtil::httpError(500, 'Feature ' . $featureArray['id'] . ' already in database');
-        }
-
-        /*
          * Get database columns array
          */
         $columnsAndValues = $this->getColumnsAndValues($collection, $featureArray);
