@@ -445,8 +445,9 @@ class Functions_features {
             /*
              * Add element only if exist in model
              */
-            if (isset($collection->model->getDbKey($propertyName))) {
-                $columns[$collection->model->getDbKey($propertyName)] = $columnValue;
+            $column = $collection->model->getDbKey($propertyName);
+            if (isset($column)) {
+                $columns[$column] = $columnValue;
             }
 
         }
