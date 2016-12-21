@@ -409,7 +409,7 @@ class Functions_features {
             /*
              * Do not process null and already processed values
              */
-            if (!isset($propertyValue) || in_array($propertyName, array('updated', 'published', 'collection'))) {
+            if (!isset($propertyValue) || in_array($propertyName, array('updated', 'published', 'collection', 'identifier', 'geometry', '_geometry', 'centroid'))) {
                 continue;
             }
 
@@ -443,9 +443,11 @@ class Functions_features {
             }
 
             /*
-             * Add element
+             * Add element only if exist in model
              */
-            $columns[$collection->model->getDbKey($propertyName)] = $columnValue;
+            if (isset($collection->model->getDbKey($propertyName))) {
+                $columns[$collection->model->getDbKey($propertyName)] = $columnValue;
+            }
 
         }
 
