@@ -1113,8 +1113,9 @@ abstract class RestoModel {
 
         /*
          * Add collection to $properties to initialize facet counts on collection
+         * [WARNING] if properties['collection'] is already set, it is discarded and replaced by the current collection
          */
-        $properties['collection']  = isset($properties['collection']) ? $properties['collection'] : $collection->name;
+        $properties['collection']  = $collection->name;
 
         /*
          * Compute unique identifier
