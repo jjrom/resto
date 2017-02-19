@@ -127,15 +127,15 @@ class RestoModel_S2_SAFE extends RestoModel {
     }
 
     /**
-     * Convert string of lon lat pairs to Array of coordinates
+     * Convert string of lat lon pairs to Array of coordinates
      * 
-     * @param string $strCoords lon lat coordinates space separated
+     * @param string $strCoords lat lon coordinates space separated
      */
     private function EXTPOSLIST2Array($strCoords) {
         $strExploded = explode(' ', trim($strCoords));
         $coords = array();
         for ($i = 0, $ii = count($strExploded); $i < $ii; $i = $i + 2) {
-            $coords[] = array(floatval($strExploded[$i]), floatval($strExploded[$i + 1]));
+            $coords[] = array(floatval($strExploded[$i + 1]), floatval($strExploded[$i]));
         }
         return $coords;
     }
