@@ -105,7 +105,7 @@ class Tagger_LandCover extends Tagger {
      */
     public function tag($metadata, $options = array()) {
         parent::tag($metadata, $options);
-        return $this->process($metadata['footprint']);
+        return $this->process($metadata['footprint'], $options);
     }
 
     /**
@@ -113,9 +113,19 @@ class Tagger_LandCover extends Tagger {
      * Compute land cover from input WKT footprint
      *
      * @param string $footprint
+     * @param array $options
      *
      */
-    private function process($footprint) {
+    private function process($footprint, $options) {
+
+        /*
+         * Superseed areaLimit
+         */
+        if (isset($options['areaLimit']) && $this->area > $options['areaLimit']) {
+            return array(
+                'landCover' => array()
+            );
+        }
 
         /*
          * Do not process if footprint area is greater

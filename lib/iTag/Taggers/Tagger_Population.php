@@ -49,16 +49,27 @@ class Tagger_Population extends Tagger {
      */
     public function tag($metadata, $options = array()) {
         parent::tag($metadata, $options);
-        return $this->process($metadata['footprint']);
+        return $this->process($metadata['footprint'], $options);
     }
 
     /**
      * Return the estimated population for a given footprint
      *
      * @param string $footprint
+     * @param  array $options
      * @return integer
      */
-    public function process($footprint) {
+    public function process($footprint, $options) {
+
+        /*
+         * Superseed areaLimit
+         */
+        if (isset($options['areaLimit']) && $this->area > $options['areaLimit']) {
+            return array(
+                'population' => array()
+            );
+        }
+        
         $prequery = 'WITH prequery AS (SELECT ' . $this->postgisGeomFromText($footprint) . ' AS corrected_geometry)';
         $query = $prequery . ' SELECT pcount FROM prequery, gpw.' . $this->getTableName() . ' WHERE ST_intersects(footprint, corrected_geometry)';
         $results = $this->query($query);

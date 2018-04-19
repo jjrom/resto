@@ -55,6 +55,13 @@ class Tagger_Generic extends Tagger {
     protected function process($footprint, $options) {
 
         $result = array();
+
+        /*
+         * Superseed areaLimit
+         */
+        if (isset($options['areaLimit']) && $this->area > $options['areaLimit']) {
+            return $result;
+        }
         
         /*
          * Process required classes

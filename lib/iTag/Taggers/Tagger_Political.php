@@ -76,6 +76,15 @@ class Tagger_Political extends Tagger {
     private function process($footprint, $options) {
 
         /*
+         * Superseed areaLimit
+         */
+        if (isset($options['areaLimit']) && $this->area > $options['areaLimit']) {
+            return array(
+                'political' => array()
+            );
+        }
+
+        /*
          * Toponyms
          */
         if (isset($options['toponyms'])) {
