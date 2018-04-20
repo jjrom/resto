@@ -64,6 +64,7 @@
  *    | _fromCart          |     boolean    | (For orders) true to order the content of the cart
  *    | _clear             |     boolean    | (For POST /user/cart) true to remove cart items before inserting new items
  *    | _bearer            |     string     | (For authentication) JWT token - has preseance over header authentication (see rocket)
+ *    | _useItag           |     boolean    | (For POST /collections/{collectionId}) - set to false to not use iTag in feature insertion 
  *    | callback           |     string     | (For JSON output only) name of callback funtion for JSON-P
  *
  * Returned error

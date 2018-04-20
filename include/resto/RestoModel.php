@@ -1139,9 +1139,33 @@ abstract class RestoModel {
          * Tag module
          */
         $keywords = array();
+
         if (isset($collection->context->modules['Tag'])) {
+
             $tagger = RestoUtil::instantiate($collection->context->modules['Tag']['className'], array($collection->context, $collection->user));
-            $keywords = $tagger->getKeywords($properties, $data['geometry']);
+
+            /*
+             * By default iTag is triggered (i.e. useItag = true) unless :
+             *  - the collection is one of Tag module "excludedCollections" array option
+             *  - query parameter "_useItag" is set to false 
+             *
+             *  [WARNING] if collection is excluded BUT _useItag is set to true then iTag is used
+             */
+            $useItag = true;
+
+            if (isset($collection->context->modules['Tag']['options']['iTag']['excludedCollections']) {
+                for ($i = count($collection->context->modules['Tag']['options']['iTag']['excludedCollections']); $i--;) {
+                    if ($collection->name === $collection->context->modules['Tag']['options']['iTag']['excludedCollections'][$i]) {
+                        $useItag = false;
+                        break;
+                    }
+                }
+            }
+
+            $useItag = isset($collection->context->query['_useItag']) ? filter_var($collection->context->query['_useItag'], FILTER_VALIDATE_BOOLEAN) : $useItag;
+
+            $keywords = $tagger->getKeywords($properties, $data['geometry'], $useItag);
+
         }
 
         /*

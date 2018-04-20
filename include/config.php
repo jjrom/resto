@@ -401,7 +401,11 @@ return array(
                         'Political' => array(),
                         'LandCover' => array(),
                         'Physical' => array()
-                    )
+                    ),
+                    /* 
+                     * Collection names that should not be indexed by iTag
+                     */
+                    'excludedCollections' => array()
                 )
             )
         )

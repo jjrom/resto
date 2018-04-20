@@ -92,8 +92,9 @@ class Tag extends RestoModule {
      * 
      * @param array $properties
      * @param array $geometry (GeoJSON geometry)
+     * @param boolean useItag 
      */
-    public function getKeywords($properties, $geometry) {
+    public function getKeywords($properties, $geometry, $useItag = true) {
         
         /*
          * Initialize keywords array
@@ -110,7 +111,12 @@ class Tag extends RestoModule {
         /*
          * Compute keywords from iTag and other properties
          */
-        return array_merge($inputKeywords, array_merge($this->keywordsFromITag($properties, $geometry), $this->keywordsFromProperties($properties)));
+        if ($useItag) {
+            return array_merge($inputKeywords, array_merge($this->keywordsFromITag($properties, $geometry), $this->keywordsFromProperties($properties)));
+        }
+        else {
+            return array_merge($inputKeywords, $this->keywordsFromProperties($properties));
+        }
         
     }
     
