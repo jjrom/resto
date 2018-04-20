@@ -1153,7 +1153,7 @@ abstract class RestoModel {
              */
             $useItag = true;
 
-            if (isset($collection->context->modules['Tag']['options']['iTag']['excludedCollections']) {
+            if (isset($collection->context->modules['Tag']['options']['iTag']['excludedCollections'])) {
                 for ($i = count($collection->context->modules['Tag']['options']['iTag']['excludedCollections']); $i--;) {
                     if ($collection->name === $collection->context->modules['Tag']['options']['iTag']['excludedCollections'][$i]) {
                         $useItag = false;
