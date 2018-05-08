@@ -1,4 +1,4 @@
-#resto
+# resto
 
 [![Code Climate](https://codeclimate.com/github/jjrom/resto/badges/gpa.svg)](https://codeclimate.com/github/jjrom/resto)
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/jjrom/resto.svg)](http://isitmaintained.com/project/jjrom/resto "Average time to resolve an issue")
