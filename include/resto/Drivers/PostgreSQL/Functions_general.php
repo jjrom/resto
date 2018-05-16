@@ -226,7 +226,7 @@ class Functions_general {
     }
 
     /**
-     * Return true if geometry is topologically valid
+     * Return footprint topology analysis
      *
      * @param string $wkt
      */
@@ -239,8 +239,10 @@ class Functions_general {
             );
         }
 
+        $geometryFromText = 'ST_GeomFromText(\'' . $wkt . '\', 4326)';
+
         try {
-            $results = pg_query($this->dbDriver->dbh, 'SELECT ST_isValid(ST_GeomFromText(\'' . $wkt . '\', 4326)) as valid');
+            $results = pg_query($this->dbDriver->dbh, 'SELECT ST_isValid(' . $geometryFromText . ') as valid');
             if (!isset($results) || $results === false) {
                 throw new Exception();
             }
@@ -248,7 +250,20 @@ class Functions_general {
         catch (Exception $e) {
             return array(
                 'isValid' => false,
-                'error' => pg_last_error($this->dbDriver->dbh)
+                'error' => '[GEOMETRY] ' . pg_last_error($this->dbDriver->dbh)
+            );
+        }
+
+        try {
+            $results = pg_query($this->dbDriver->dbh, 'SELECT ST_isValid(ST_SplitDateLine(' . $geometryFromText . ')) as valid');
+            if (!isset($results) || $results === false) {
+                throw new Exception();
+            }
+        }
+        catch (Exception $e) {
+            return array(
+                'isValid' => false,
+                'error' => '[GEOMETRY][SPLITTED] ' . pg_last_error($this->dbDriver->dbh)
             );
         }
 
