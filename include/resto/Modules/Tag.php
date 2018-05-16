@@ -252,6 +252,7 @@ class Tag extends RestoModule {
             catch (Exception $e) {
                 RestoLogUtil::httpError($e->getCode(), $e->getMessage());
             }
+            
         }
         
         if (!isset($iTagFeature) || !isset($iTagFeature['content'])) {
