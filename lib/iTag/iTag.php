@@ -28,7 +28,7 @@ class iTag {
     /*
      * iTag version
      */
-    const version = '3.0.14';
+    const version = '3.1.0';
 
     /*
      * Database handler
@@ -89,6 +89,13 @@ class iTag {
 
         if (!isset($metadata['footprint'])) {
             throw new Exception('Missing mandatory footprint', 500);
+        }
+
+        /*
+         * Throws exception if geometry is invalid
+         */
+        if ( !$this->isValidGeometry($metadata['footprint']) ) {
+            throw new Exception('Invalid geometry', 400);
         }
 
         /*
@@ -280,6 +287,29 @@ class iTag {
             $pairs[] = join(' ', $coordinates[$i]);
         }
         return 'POLYGON((' . join(',', $pairs) . '))';
+    }
+
+    /**
+     * Check if geometry is valid
+     * 
+     * @param string $footprint
+     * @param string $srid
+     */
+    private function isValidGeometry($footprint, $srid = '4326') {
+        
+        $results = @pg_query($this->dbh, 'SELECT ST_isValid(ST_GeomFromText(\'' . $footprint . '\', ' . $srid . ')) as valid');
+        if (!isset($results)) {
+            throw new Exception('Database Connection Error', 500);
+        }
+
+        $result = pg_fetch_result($results, 0, 'valid');
+
+        if ($result === false || $result === 'f') {
+            return false;
+        }
+        
+        return true;
+
     }
 
 }
