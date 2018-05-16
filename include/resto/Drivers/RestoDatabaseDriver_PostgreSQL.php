@@ -595,7 +595,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             if (!isset($sentence)) {
                 throw new Exception();
             }
-            $results = pg_query($this->dbh, 'SELECT lower(unaccent(\'' . pg_escape_string($sentence) . '\')) as normalized');
+            $results = pg_query($this->dbh, 'SELECT lower(public.unaccent(\'' . pg_escape_string($sentence) . '\')) as normalized');
             if (!$results) {
                 throw new Exception();
             }
