@@ -215,7 +215,14 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             case parent::AREA:
                 $featuresFunctions = new Functions_general($this);
                 return $featuresFunctions->getArea($params['geometry']);
-                
+            
+            /*
+             * Return toplogy analysis
+             */
+            case parent::TOPOLOGY:
+                $generalFunctions = new Functions_general($this);
+                return $generalFunctions->getTopologyAnalysis($params['wkt']);
+        
             default:
                 return null;
         }
@@ -359,7 +366,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             case parent::USER:
                 $usersFunctions = new Functions_users($this);
                 return $usersFunctions->userExists($params['email']);
-            
+
             default:
                 return null;
         }

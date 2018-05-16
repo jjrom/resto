@@ -1106,6 +1106,14 @@ abstract class RestoModel {
         }
 
         /*
+         * Check geometry topology integrity
+         */
+        $topologyAnalysis = $collection->context->dbDriver->get(RestoDatabaseDriver::TOPOLOGY, array('wkt' => RestoGeometryUtil::geoJSONGeometryToWKT($data['geometry'])));
+        if ( !$topologyAnalysis['isValid'] ) {
+            RestoLogUtil::httpError(400, $topologyAnalysis['error']);
+        }  
+        
+        /*
          * Remap properties between RESTo model and input
          * GeoJSON Feature file
          */

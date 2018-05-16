@@ -225,4 +225,45 @@ class Functions_general {
         return -1;
     }
 
+    /**
+     * Return true if geometry is topologically valid
+     *
+     * @param string $wkt
+     */
+    public function getTopologyAnalysis($wkt) {
+        
+        if ( !isset($wkt) || $wkt === '') {
+            return array(
+                'isValid' => false,
+                'error' => 'Empty geometry'
+            );
+        }
+
+        try {
+            $results = pg_query($this->dbDriver->dbh, 'SELECT ST_isValid(ST_GeomFromText(\'' . $wkt . '\', 4326)) as valid');
+            if (!isset($results) || $results === false) {
+                throw new Exception();
+            }
+        }
+        catch (Exception $e) {
+            return array(
+                'isValid' => false,
+                'error' => pg_last_error($this->dbDriver->dbh)
+            );
+        }
+
+        $result = pg_fetch_result($results, 0, 'valid');
+        if ($result === false || $result === 'f') {
+            return array(
+                'isValid' => false,
+                'error' => 'Invalid geometry'
+            );
+        }
+        
+        return array(
+            'isValid' => true
+        );
+
+    }
+
 }
