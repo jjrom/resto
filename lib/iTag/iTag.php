@@ -28,7 +28,7 @@ class iTag {
     /*
      * iTag version
      */
-    const version = '3.1.0';
+    const version = '3.1.1';
 
     /*
      * Database handler
@@ -94,8 +94,9 @@ class iTag {
         /*
          * Throws exception if geometry is invalid
          */
-        if ( !$this->isValidGeometry($metadata['footprint']) ) {
-            throw new Exception('Invalid geometry', 400);
+        $topologyAnalysis = $this->getTopologyAnalysis($metadata['footprint']);
+        if ( !$topologyAnalysis['isValid'] ) {
+            throw new Exception($topologyAnalysis['error'], 400);
         }
 
         /*
@@ -290,25 +291,44 @@ class iTag {
     }
 
     /**
-     * Check if geometry is valid
-     * 
+     * Return footprint topology analysis
+     *
      * @param string $footprint
      * @param string $srid
      */
-    private function isValidGeometry($footprint, $srid = '4326') {
+    private function getTopologyAnalysis($footprint, $srid = '4326') {
         
-        $results = @pg_query($this->dbh, 'SELECT ST_isValid(ST_GeomFromText(\'' . $footprint . '\', ' . $srid . ')) as valid');
-        if (!isset($results)) {
-            throw new Exception('Database Connection Error', 500);
+        if ( !isset($footprint) || $footprint === '') {
+            return array(
+                'isValid' => false,
+                'error' => 'Empty geometry'
+            );
+        }
+
+        try {
+            $results = pg_query($this->dbDriver->dbh, 'SELECT ST_isValid(ST_GeomFromText(\'' . $footprint . '\', ' . $srid . ')) as valid');
+            if (!isset($results) || $results === false) {
+                throw new Exception();
+            }
+        }
+        catch (Exception $e) {
+            return array(
+                'isValid' => false,
+                'error' => pg_last_error($this->dbDriver->dbh)
+            );
         }
 
         $result = pg_fetch_result($results, 0, 'valid');
-
         if ($result === false || $result === 'f') {
-            return false;
+            return array(
+                'isValid' => false,
+                'error' => 'Invalid geometry'
+            );
         }
         
-        return true;
+        return array(
+            'isValid' => true
+        );
 
     }
 
