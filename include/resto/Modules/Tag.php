@@ -242,7 +242,16 @@ class Tag extends RestoModule {
                 'footprint' => RestoGeometryUtil::geoJSONGeometryToWKT($geometry),
                 'timestamp' => isset($properties['startDate']) ? $properties['startDate'] : null
             );
-            $iTagFeature = $iTag->tag($metadata, isset($this->options['iTag']['taggers']) ? $this->options['iTag']['taggers'] : array());
+
+            /*
+             * Exit from invalid iTag
+             */
+            try {
+                $iTagFeature = $iTag->tag($metadata, isset($this->options['iTag']['taggers']) ? $this->options['iTag']['taggers'] : array());
+            }
+            catch (Exception $e) {
+                RestoLogUtil::httpError($e->getCode(), $e->getMessage());
+            }
         }
         
         if (!isset($iTagFeature) || !isset($iTagFeature['content'])) {
