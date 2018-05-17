@@ -176,7 +176,9 @@ class Functions_features {
             /*
              * Store facets
              */
-            $this->storeKeywordsFacets($collection, json_decode(trim($columnsAndValues['keywords'], '\''), true));
+            if ($collection->context->storeFacets) {
+                $this->storeKeywordsFacets($collection, json_decode(trim($columnsAndValues['keywords'], '\''), true));
+            }
 
             pg_query($this->dbDriver->dbh, 'COMMIT');
 
@@ -208,8 +210,10 @@ class Functions_features {
             /*
              * Remove facets
              */
-            $this->removeFeatureFacets($feature->toArray());
-
+            if ($feature->context->storeFacets) {
+                $this->removeFeatureFacets($feature->toArray());
+            }
+            
             /*
              * Commit
              */
@@ -259,8 +263,10 @@ class Functions_features {
             /*
              * Remove previous facets
              */
-            $this->removeFeatureFacets($feature->toArray());
-
+            if ($feature->context->storeFacets) {
+                $this->removeFeatureFacets($feature->toArray());
+            }
+            
             /*
              * Update feature
              */
@@ -269,7 +275,9 @@ class Functions_features {
             /*
              * Store new facets
              */
-            $this->storeKeywordsFacets($feature->collection, $keywords, true);
+            if ($feature->context->storeFacets) {
+                $this->storeKeywordsFacets($feature->collection, $keywords, true);
+            }
 
             /*
              * Commit

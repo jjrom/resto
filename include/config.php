@@ -82,6 +82,17 @@ return array(
         'storeQuery' => true,
 
         /*
+         * Store facets
+         * True to compute exact count of features statistics for each POST,PUT,DELETE
+         * 
+         * !!!!!WARNING!!!!!
+         * This function uses a LOCK IN SHARE ROW EXCLUSIVE MODE that can lead to database deadlocks for massive
+         * parrallel imports
+         * If you are in this case, you should set to false and compute the facets differently (with a cron job for instance)
+         */
+        'storeFacets' => true,
+
+        /*
          * Shared links validity duration (in seconds)
          * Default is 1 day (i.e. 86400 seconds)
          */

@@ -236,6 +236,7 @@ class RestoContext {
             'passphrase',
             'resetPasswordUrl',
             'storeQuery',
+            'storeFacets',
             'streamMethod',
             'title',
             'tokenDuration',
