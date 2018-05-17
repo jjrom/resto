@@ -359,6 +359,7 @@ class Functions_features {
         ));
 
     }
+    
     /**
      * Convert feature array to database column/value pairs
      *

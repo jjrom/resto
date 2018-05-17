@@ -28,7 +28,7 @@ class iTag {
     /*
      * iTag version
      */
-    const version = '3.1.2';
+    const version = '3.1.3';
 
     /*
      * Database handler
@@ -308,7 +308,7 @@ class iTag {
         $geometryFromText = 'ST_GeomFromText(\'' . $footprint . '\', ' . $srid . ')';
 
         try {
-            $results = pg_query($this->dbDriver->dbh, 'SELECT ST_isValid(' . $geometryFromText . ') as valid');
+            $results = pg_query($this->dbh, 'SELECT ST_isValid(' . $geometryFromText . ') as valid');
             if (!isset($results) || $results === false) {
                 throw new Exception();
             }
@@ -316,12 +316,12 @@ class iTag {
         catch (Exception $e) {
             return array(
                 'isValid' => false,
-                'error' => '[GEOMETRY] ' . pg_last_error($this->dbDriver->dbh)
+                'error' => '[GEOMETRY] ' . pg_last_error($this->dbh)
             );
         }
 
         try {
-            $results = pg_query($this->dbDriver->dbh, 'SELECT ST_isValid(ST_SplitDateLine(' . $geometryFromText . ')) as valid');
+            $results = pg_query($this->dbh, 'SELECT ST_isValid(ST_SplitDateLine(' . $geometryFromText . ')) as valid');
             if (!isset($results) || $results === false) {
                 throw new Exception();
             }
@@ -329,7 +329,7 @@ class iTag {
         catch (Exception $e) {
             return array(
                 'isValid' => false,
-                'error' => '[GEOMETRY][SPLITTED] ' . pg_last_error($this->dbDriver->dbh)
+                'error' => '[GEOMETRY][SPLITTED] ' . pg_last_error($this->dbh)
             );
         }
 
