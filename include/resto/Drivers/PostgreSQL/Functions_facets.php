@@ -54,7 +54,7 @@ class Functions_facets {
     /**
      * Store facet within database (i.e. add 1 to the counter of facet if exist)
      *
-     * !! THIS FUNCTION IS THREAD SAFE !!
+     * !! THIS FUNCTION IS THREAD SAFE AND MUST BE CALLED WITHIN A BEGIN/COMMIT TRANSACTION !!
      *
      * Input facet structure :
      *      array(
@@ -68,10 +68,20 @@ class Functions_facets {
      *      )
      *
      * @param array $facets
-     * @param type $collectionName
+     * @param string $collectionName
+     * @param boolean $lockTransaction
      */
-    public function storeFacets($facets, $collectionName) {
+    public function storeFacets($facets, $collectionName, $lockTransaction = true) {
 
+        /*
+         * Thread safe ingestion if $lockTransaction is set to true
+         * 
+         * !! ASSUME THAT THIS FUNCTION IS CALLED WITHIN A BEGIN/COMMIT TRANSACTION !!
+         */
+        if ($lockTransaction) {
+            $this->dbDriver->query('LOCK TABLE ' . $this->dbDriver->schemaName . '.facets IN SHARE ROW EXCLUSIVE MODE;');
+        }
+            
         foreach (array_values($facets) as $facetElement) {
 
             $arr = array(
@@ -83,13 +93,9 @@ class Functions_facets {
                 '1'
             );
 
-            /*
-             * Thread safe ingestion
-             */
-            $lock = 'LOCK TABLE ' . $this->dbDriver->schemaName . '.facets IN SHARE ROW EXCLUSIVE MODE;';
             $insert = 'INSERT INTO ' . $this->dbDriver->schemaName . '.facets (uid, value, type, pid, collection, counter) SELECT ' . join(',', $arr);
             $upsert = 'UPDATE ' . $this->dbDriver->schemaName . '.facets SET counter = counter + 1 WHERE uid = \'' . pg_escape_string($facetElement['hash']) . '\' AND collection = \'' . pg_escape_string($collectionName) . '\'';
-            $this->dbDriver->query($lock . 'WITH upsert AS (' . $upsert . ' RETURNING *) ' . $insert . ' WHERE NOT EXISTS (SELECT * FROM upsert)', 500, 'Cannot insert facet for ' . $collectionName);
+            $this->dbDriver->query('WITH upsert AS (' . $upsert . ' RETURNING *) ' . $insert . ' WHERE NOT EXISTS (SELECT * FROM upsert)', 500, 'Cannot insert facet for ' . $collectionName);
 
         }
     }
