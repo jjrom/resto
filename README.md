@@ -252,6 +252,31 @@ Create an admin user within the database
         #
         setsebool -P httpd_can_sendmail on
 
+## Facets computation
+
+The database table "resto.facets" stores a real count of features per :
+
+* collection
+* productType
+* processingLevel
+* platform
+* instrument
+* sensorMode
+* continent
+* country
+* region
+* state
+* year
+* month
+* day
+
+By default, these counts are automatically updated each time a feature is added (POST), modified (PUT) or deleted (DELETE).
+
+**IMPORTANT** If you plan **massive parallel ingestion**, we recommand to deactivate the automatic update of the facets and to compute them manually of via a cron job by using the dedicated $RESTO_HOME/_scripts/updateFacets.php (see -h to have info on this script)
+
+You can deactivate the automatic facets computation, by settings "'storeFacets' => false" in $RESTO_HOME/include/config.php
+
+
 ## Quick Start
 
 ### Create a collection
@@ -313,6 +338,7 @@ For production use, you should take a look at the $RESTO_TARGET/include/config.p
 * set a non obvious "passphrase" for JWT (or at least change the default one !)
 * if you want to limit API access, remove 'localhost' from the corsWhiteList and explicitly add allowed domain names
 * set a strong password for the database 'resto' user
+* set "storeFacets" to false if you plan **massive parallel ingestion** (see chapter on Facets)
 
 
 ### How to force all database connection to be socket only (i.e. no http)
