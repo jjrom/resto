@@ -34,10 +34,7 @@ abstract class RestoModel {
         'identifier' => array(
             'name' => 'identifier',
             'type' => 'TEXT',
-            'constraint' => 'UNIQUE',
-            'index' => array(
-                'type' => 'btree'
-            )
+            'constraint' => 'UNIQUE'
         ),
         'collection' => array(
             'name' => 'collection',

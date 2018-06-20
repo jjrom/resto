@@ -285,6 +285,10 @@ class Functions_collections {
                   $this->dbDriver->query('CREATE INDEX ' . $schemaName . '_features_' . $collection->model->getDbKey($key) . '_idx ON ' . $schemaName . '.features USING ' . $value['index']['type'] . ' (' . $collection->model->getDbKey($key) . ( isset($value['index']['direction']) ? ' ' . $value['index']['direction'] : '') . ')');
                 }
             }
+
+            // Add unique constraint on id => this will create automatically an index
+            $this->dbDriver->query('ALTER TABLE ' . $schemaName . '.features ADD CONSTRAINT ' . $schemaName . '_unique_id UNIQUE (' . $collection->model->getDbKey('identifier') . ')');
+
             $this->dbDriver->query('GRANT SELECT ON TABLE ' . $schemaName . '.features TO ' . $this->dbDriver->dbUsername);
         }
     }
