@@ -277,6 +277,7 @@ CREATE TABLE ${SCHEMA}.features (
     parentidentifier    TEXT,
     collection          TEXT,
     visibility          TEXT DEFAULT 'public'::text,
+    status              INTEGER DEFAULT 0,
     licenseid           TEXT,
     productidentifier   TEXT,
     title               TEXT,

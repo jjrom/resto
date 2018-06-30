@@ -74,9 +74,9 @@ class RestoRoutePUT extends RestoRoute {
     private function PUT_collections($segments, $data) {
         
         /*
-         * {collection} is mandatory and no modifier is allowed
+         * {collection} is mandatory
          */
-        if (!isset($segments[1]) || isset($segments[3])) {
+        if ( !isset($segments[1]) ) {
             RestoLogUtil::httpError(404);
         }
         
@@ -93,7 +93,7 @@ class RestoRoutePUT extends RestoRoute {
         }
         
         /*
-         * Only owner of the collection can update it
+         * Only a user with 'update' rights on collection can update it
          */
         if (!$this->user->hasRightsTo(RestoUser::UPDATE, array('collection' => $collection))) {
             RestoLogUtil::httpError(403);
@@ -112,13 +112,54 @@ class RestoRoutePUT extends RestoRoute {
             return RestoLogUtil::success('Collection ' . $collection->name . ' updated');
         }
         /*
-         * collections/{collection}/{feature}
+         * collections/{collection}/{feature}/*
          */
         else {
-            RestoLogUtil::httpError(501);
+
+            /*
+             * collections/{collection}/{feature}
+             */
+            if ( !isset($segments[3]) ) {
+            
+                $feature->loadFromGeoJSON($data);
+
+                if ($this->context->storeQuery === true) {
+                    $this->user->storeQuery($this->context->method, 'update', $collection->name, $feature->identifier, $this->context->query, $this->context->getUrl());
+                }
+
+                $featureArray = $feature->toArray();
+                return RestoLogUtil::success('Feature ' . $feature->identifier . ' updated',  array(
+                    'featureIdentifier' => $feature->identifier,
+                    'date' => $featureArray['properties']['updated']
+                ));
+
+            }
+
+            /*
+             * collections/{collection}/{feature}/status
+             */
+            else if ( $segments[3] === 'status' ) {
+
+                if ( ! isset($data['status']) || !is_int($data['status']) ) {
+                    return RestoLogUtil::httpError(400);
+                }
+
+                $this->context->dbDriver->update(RestoDatabaseDriver::FEATURE_STATUS, array('feature' => $feature, 'status' => $data['status']));
+
+                return RestoLogUtil::success('Update status for feature ' . $featureIdentifier);
+
+            }
+            /*
+             * Not Found
+             */
+            else {
+                RestoLogUtil::httpError(404);
+            }
+
         }
         
     }
+
     
     
     /**

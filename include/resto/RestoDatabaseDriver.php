@@ -65,6 +65,7 @@ abstract class RestoDatabaseDriver {
     const COUNT_ESTIMATE = 40;
     const AREA = 41;
     const TOPOLOGY = 42;
+    const FEATURE_STATUS = 43;
 
     /*
      * Schema name

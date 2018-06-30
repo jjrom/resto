@@ -183,6 +183,71 @@ class RestoFeature {
         return $atomFeed->toString();
         
     }
+
+    /**
+     * Update feature from geojson following the class model
+     * 
+     * @param array $data : array (MUST BE GeoJSON in abstract Model)
+     */
+    public function loadFromGeoJSON($data){
+        
+        /*
+         * check if feature is exists
+         */
+        if (!$this->isValid()){
+            
+            return;
+        }
+
+        /*
+         * Assume input file or stream is a JSON Feature
+         */
+        if (!RestoGeometryUtil::isValidGeoJSONFeature($data)) {
+            RestoLogUtil::httpError(500, 'Invalid feature description');
+        }
+
+        /*
+         * Remap properties between RESTo model and input
+         * GeoJSON Feature file 
+         */
+        $properties = $this->collection->model->mapInputProperties($data);
+
+        /*
+         * Set collection to $properties to initialize facet counts on collection
+         */
+        $properties['collection']  = $this->collection->name;
+
+        /*
+         * can't be updated
+         */
+        unset($properties['centroid'], $properties['links'], $properties['services']);
+
+        /*
+         * Tag module
+         */
+        if (isset($this->context->modules['Tag'])) {
+            $tagger = RestoUtil::instantiate($this->context->modules['Tag']['className'], array($this->context, $this->user));
+            $properties['keywords'] = $tagger->getKeywords($tagger->removeReservedProperties($properties), $data['geometry']);
+        }
+
+        /*
+         * Store feature
+         */
+        $this->context->dbDriver->update(RestoDatabaseDriver::FEATURE, array(
+            'feature' => $this,
+            'featureArray' => array(
+                'type' => 'Feature',
+                'id' => $this->identifier,
+                'geometry' => $data['geometry'],
+                'properties' => $properties
+            )
+        ));
+
+        /*
+         * reinitialize
+         */
+        $this->initialize(array('featureIdentifier' => $this->identifier));
+    }
     
     /**
      * Set feature either from input description or from database

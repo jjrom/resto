@@ -132,6 +132,30 @@ class Tag extends RestoModule {
             'keywords' => $this->getKeywords($this->removeReservedProperties($featureArray['properties']), $featureArray['geometry'])
         ));
     }
+
+    /**
+     * Remove resto properties from input array to avoid double tagging
+     * 
+     * @param array $_properties
+     * @return array
+     */
+    public function removeReservedProperties($_properties) {
+        $properties = array();
+        foreach ($_properties as $key => $value) {
+            if ($key !== 'keywords') {
+                $properties[$key] = $value;
+            }
+            else {
+                $properties[$key] = array();
+                for ($i = 0, $ii = count($_properties[$key]); $i < $ii; $i++) {
+                    if (!in_array($_properties[$key][$i]['type'], $this->reservedTypes)) {
+                        array_push($properties[$key], $_properties[$key][$i]);
+                    }
+                }
+            }
+        }
+        return $properties;
+    }
     
     /**
      * Check if keyword is valid
@@ -702,30 +726,6 @@ class Tag extends RestoModule {
             }
         }
         return false;
-    }
-    
-    /**
-     * Remove resto properties from input array to avoid double tagging
-     * 
-     * @param array $_properties
-     * @return array
-     */
-    private function removeReservedProperties($_properties) {
-        $properties = array();
-        foreach ($_properties as $key => $value) {
-            if ($key !== 'keywords') {
-                $properties[$key] = $value;
-            }
-            else {
-                $properties[$key] = array();
-                for ($i = 0, $ii = count($_properties[$key]); $i < $ii; $i++) {
-                    if (!in_array($_properties[$key][$i]['type'], $this->reservedTypes)) {
-                        array_push($properties[$key], $_properties[$key][$i]);
-                    }
-                }
-            }
-        }
-        return $properties;
     }
     
 }

@@ -226,35 +226,48 @@ class Functions_features {
     }
 
     /**
-     * Update feature keywords
+     * Update feature
      *
      * @param RestoFeature $feature
-     * @param array $keywords
+     * @param array $featureArray
      * @throws Exception
      */
-    public function updateFeatureKeywords($feature, $keywords) {
+    public function updateFeature($feature, $featureArray) {
 
-        $toUpdate = array();
+        /*
+         * Get database columns and new values
+         */
+        $properties = @$featureArray['properties'];
+        $columns = (count($properties) > 1 || !isset($properties['keywords'])) ? $this->getColumnsAndValues($feature->collection, $featureArray) : array();
+        unset($columns['identifier'], $columns['productidentifier'], $columns['collection'], $columns['published']); // avoid publication date update
 
         /*
          * Store new keywords
          */
-        if (is_array($keywords)) {
-            $columns = array_merge(array(
-               'keywords' => '\'' . pg_escape_string(json_encode($keywords)) . '\''
-            ), $this->landuseColumns($keywords));
+        $keywords = array();
+        if (isset($properties['keywords']) && is_array($properties['keywords'])) {
+            $keywords = $properties['keywords'];
+            $columns = array_merge($columns, $this->landuseColumns($keywords));
+            $columns['keywords'] = '\'' . pg_escape_string(json_encode($keywords)) . '\'';
             $columns[$feature->collection->model->getDbKey('hashes')] = '\'{' . join(',', $this->getHashes($keywords)) . '}\'';
-            foreach ($columns as $columnName => $columnValue) {
-                array_push($toUpdate, $columnName . '=' . $columnValue);
-            }
         }
 
-        if (empty($toUpdate)) {
+        /*
+         * check is something to set
+         */
+        if (count($columns) < 1) {
             RestoLogUtil::httpError(400, 'Nothing to update for ' . $feature->identifier);
         }
 
-        try {
+        /*
+         * Prepare SET clause
+         */
+        $toUpdate = array();
+        foreach ($columns as $columnName => $columnValue) {
+            array_push($toUpdate, $columnName . '=' . $columnValue);
+        }
 
+        try {
             /*
              * Begin transaction
              */
@@ -283,14 +296,51 @@ class Functions_features {
              * Commit
              */
             $this->dbDriver->query('COMMIT');
-
         } catch (Exception $e) {
             $this->dbDriver->query('ROLLBACK');
             RestoLogUtil::httpError(500, 'Cannot update feature ' . $feature->identifier);
         }
 
         return true;
+    }
 
+
+    /**
+     * Update feature keywords
+     *
+     * @param RestoFeature $feature
+     * @param array $keywords
+     * @throws Exception
+     */
+    public function updateFeatureKeywords($feature, $keywords) {
+        return $this->updateFeature($feature, array(
+            'properties' => array('keywords' => $keywords)
+        ));
+    }
+
+    /**
+     * Update feature status
+     * 
+     * @param RestoFeature $feature
+     * @param integer $status
+     * @throws Exception
+     */
+    public function updateFeatureStatus($feature, $status) {
+        
+        try {
+            
+            /*
+             * Update feature
+             */
+            $this->dbDriver->query('UPDATE ' . $this->dbDriver->schemaName . '.features SET status=' . $status . ' WHERE identifier = \'' . pg_escape_string($feature->identifier) . '\'');
+            
+        } catch (Exception $e) {
+            $this->dbDriver->query('ROLLBACK'); 
+            RestoLogUtil::httpError(500, 'Cannot update status for feature ' . $feature->identifier);
+        }
+        
+        return true;
+        
     }
 
     /**

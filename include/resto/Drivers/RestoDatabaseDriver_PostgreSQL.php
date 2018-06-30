@@ -574,6 +574,20 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 $featuresFunctions = new Functions_features($this);
                 return $featuresFunctions->updateFeatureKeywords($params['feature'], $params['keywords']);
             
+            /*
+             * Update Feature
+             */
+            case parent::FEATURE:
+                $featuresFunctions = new Functions_features($this);
+                return $featuresFunctions->updateFeature($params['feature'], $params['featureArray']);
+
+            /*
+             * Update status
+             */
+            case parent::FEATURE_STATUS:
+                $featuresFunctions = new Functions_features($this);
+                return $featuresFunctions->updateFeatureStatus($params['feature'], $params['status']);
+
             default:
                 return null;
         }

@@ -47,6 +47,14 @@ abstract class RestoModel {
                 'type' => 'btree'
             )
         ),
+        'status' => array(
+            'name' => 'status',
+            'type' => 'INTEGER',
+            'constraint' => 'DEFAULT 0',
+            'index' => array(
+                'type' => 'btree'
+            )
+        ),
         'licenseId' => array(
             'name' => 'licenseid',
             'type' => 'TEXT'
@@ -982,6 +990,22 @@ abstract class RestoModel {
             'pattern' => '^(asc|desc|ascending|descending)$',
             'title' => 'Sorting order (ascending or descending)',
         ),
+        /**
+         *  @SWG\Parameter(
+         *      name="status",
+         *      in="query",
+         *      description="Feature status",
+         *      required=false,
+         *      type="integer""
+         *  )
+         */
+        'resto:status' => array(
+            'key' => 'status',
+            'osKey' => 'status',
+            'title' => 'Feature status',
+            'operation' => '=',
+            'pattern' => '^[0-9]+$'
+        )
     );
 
     public $extendedProperties = array();

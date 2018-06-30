@@ -630,6 +630,12 @@ class RestoRoutePOST extends RestoRoute {
 
         $feature = $collection->addFeature($data);
 
+        if ( ! isset($feature) ) {
+            return RestoLogUtil::httpError(500);
+        }
+
+        $featureArray = $feature->toArray();
+
         /*
          * Store query
          */
@@ -638,7 +644,8 @@ class RestoRoutePOST extends RestoRoute {
         }
 
         return RestoLogUtil::success('Feature ' . $feature->identifier . ' inserted within ' . $collection->name, array(
-            'featureIdentifier' => $feature->identifier
+            'featureIdentifier' => $feature->identifier,
+            'date' => $featureArray['properties']['updated']
         ));
     }
 
