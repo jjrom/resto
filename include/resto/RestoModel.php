@@ -1080,20 +1080,22 @@ abstract class RestoModel {
                  */
                 $childs = explode('.', $key);
                 $property = isset($geojson[$childs[0]]) ? $geojson[$childs[0]] : null;
-                if ($property) {
+                $finalProperty = null;
+
+                if (isset($property)) {
 
                     for ($i = 1, $ii = count($childs); $i < $ii; $i++) {
                         if (isset($property[$childs[$i]])) {
-                            $property = $property[$childs[$i]];
+                            $finalProperty = $property[$childs[$i]];
                         }
                     }
 
-                    if (isset($property)) {
+                    if (isset($finalProperty)) {
                         if (!is_array($arr)) {
                             $arr = Array($arr);
                         }
                         for ($i = count($arr); $i--;) {
-                            $geojson['properties'][$arr[$i]] = $property;
+                            $geojson['properties'][$arr[$i]] = $finalProperty;
                         }
                     }
                 }
