@@ -18,6 +18,7 @@ Here are some projects that use resto.
 * [Remote Sensor Technology Center of Japan, EPIC project](http://www.geomatys.com/en/portfolio/epic.html)
 * [Sentinel Australia Regional Access](https://copernicus.nci.org.au/sara.client/#/home)
 * [Sinergise sentinel-hub OpenSearch API](http://sentinelhub-py.readthedocs.io/en/latest/opensearch.html)
+* [European Space Agency, Federated EO missions FedEO](https://fedeo.esa.int/opensearch/readme.html)
 
 If you plan to use resto and would like to have your project added to this list, feel free to send an email to jerome[dot]gasperi[at]gmail[dot]com 
 
