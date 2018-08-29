@@ -194,7 +194,18 @@ class Functions_filters {
          * Special case identifier - use productIdentifier or identifier
          */
         if ($filterName === 'geo:uid' && !RestoUtil::isValidUUID($requestParams['geo:uid'])) {
-            return $model->getDbKey('productIdentifier') . ' = \'' . pg_escape_string($requestParams['geo:uid']) . '\'';
+
+            /*
+             * Add support for '%' characters
+             */
+            $operator = '=';
+            if (substr($requestParams['geo:uid'], -1) === '%') {
+                if  (strlen($requestParams['geo:uid']) < 3) {
+                    RestoLogUtil::httpError(400, '% is only allowed for string with 3+ characters');
+                }
+                $operator = ' LIKE ';
+            }
+            return $model->getDbKey('productIdentifier') . $operator . '\'' . pg_escape_string($requestParams['geo:uid']) . '\'';
         }
 
         /*
