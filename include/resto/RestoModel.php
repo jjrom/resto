@@ -578,6 +578,20 @@ abstract class RestoModel {
             'operation' => '='
         ),
         /**
+         *  @SWG\Parameter(
+         *      name="productIdentifier",
+         *      in="query",
+         *      description="OpenSearch {eo:productIdentifier}",
+         *      type="string"
+         *  )
+         */
+        'eo:productIdentifier' => array(
+            'key' => 'productIdentifier',
+            'osKey' => 'productIdentifier',
+            'operation' => '='
+
+        ),
+        /**
          * @SWG\Parameter(
          *      name="productType",
          *      in="query",
