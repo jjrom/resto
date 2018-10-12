@@ -43,7 +43,7 @@ class RestoFeatureCollection {
     /*
      * Features
      */
-    private $restoFeatures;
+    private $restoFeatures = array();
 
     /*
      * All collections
