@@ -10,7 +10,7 @@ resto search API is compliant with the [CEOS OpenSearch Best Practice Document](
 
 ## Online demo
 
-You an try resto capability from the online [demo] (http://mapshup.com/projects/rocket/) !
+You an try resto capability from the online [demo](http://mapshup.com/projects/rocket/) !
 
 ## Looking for support ?
 
