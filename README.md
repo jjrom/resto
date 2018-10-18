@@ -4,22 +4,36 @@
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/jjrom/resto.svg)](http://isitmaintained.com/project/jjrom/resto "Average time to resolve an issue")
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/jjrom/resto.svg)](http://isitmaintained.com/project/jjrom/resto "Percentage of issues still open")
 
-resto - an Earth Observation products search engine
+resto is cataalog and a search engine dedicated to Earth Observation products. It's main purpose it to handle EO satellite imagery but it can be used to store any kind of geospatialized data.
 
-Try the [demo] (http://mapshup.com/projects/rocket/) !
+resto search API is compliant with the [CEOS OpenSearch Best Practice Document](http://ceos.org/ourwork/workinggroups/wgiss/access/opensearch/) and is mentioned in ESA's "Exploitation Platform Common Core Components" as the closest implementation of a catalogue component according to the requirements specified in ESA's ["Exploitation Platform Open Architecture"](https://tep.eo.esa.int/news/-/blogs/exploitation-platforms-open-architecture-released)
 
-## Who is using resto ?
+## Online demo
 
+You an try resto capability from the online [demo] (http://mapshup.com/projects/rocket/) !
+
+## Looking for support ?
+
+resto have been used in several projects and supported by multiple private companies.
 Here are some projects that use resto.
 
+* [Rocket - The Earth in your pocket](http://mapshup.com/projects/rocket/#/home)
 * [The French Sentinel Data Processing center](https://peps.cnes.fr/rocket/#/home)
 * [The French Space Agency, THEIA land data center](https://theia.cnes.fr/atdistrib/rocket/#/home)
 * [The Polish EO Data finder](http://finder.eocloud.eu/www/)
 * [Remote Sensor Technology Center of Japan, EPIC project](http://www.geomatys.com/en/portfolio/epic.html)
 * [Sentinel Australia Regional Access](https://copernicus.nci.org.au/sara.client/#/home)
 * [Sinergise sentinel-hub OpenSearch API](http://sentinelhub-py.readthedocs.io/en/latest/opensearch.html)
+* [ESA's Food Security Thematic Exploitation Platform](https://github.com/cgi-eoss/fstep)
+* [ESA's Forestry Thematic Exploitation Platform](https://github.com/cgi-eoss/ftep)
 
 If you plan to use resto and would like to have your project added to this list, feel free to send an email to jerome[dot]gasperi[at]gmail[dot]com 
+
+## Looking for support ?
+
+resto have been supported and maintened by multiple private companies in the frame of different projects.
+
+Official support is provided by [jeobrowser](https://jeobrowser.com) 
 
 ## Installation
 
