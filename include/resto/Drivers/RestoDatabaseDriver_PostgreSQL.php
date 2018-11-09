@@ -607,7 +607,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
      * replaced by a space
      * 
      * This function is superseed in RestoDabaseDriver_PostgreSQL and use
-     * the inner function lower(unaccent($sentence)) defined in installDB.sh
+     * the inner function lower(f_unaccent($sentence)) defined in installDB.sh
      * 
      * @param string $sentence
      */
@@ -616,7 +616,7 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
             if (!isset($sentence)) {
                 throw new Exception();
             }
-            $results = pg_query($this->dbh, 'SELECT lower(public.unaccent(\'' . pg_escape_string($sentence) . '\')) as normalized');
+            $results = pg_query($this->dbh, 'SELECT lower(public.f_unaccent(\'' . pg_escape_string($sentence) . '\')) as normalized');
             if (!$results) {
                 throw new Exception();
             }

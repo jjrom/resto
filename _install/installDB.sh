@@ -85,17 +85,24 @@ psql -d $DB -U $SUPERUSER << EOF
 -- Use unaccent function from postgresql >= 9
 -- Set it as IMMUTABLE to use it in index
 --
-CREATE EXTENSION unaccent;
-ALTER FUNCTION unaccent(text) IMMUTABLE;
+CREATE EXTENSION unaccent SCHEMA public;
+
+--
+-- Create IMMUTABLE unaccent function 
+--
+CREATE OR REPLACE FUNCTION public.f_unaccent(text)
+RETURNS text AS \$func\$
+SELECT public.unaccent('public.unaccent', \$1)  -- schema-qualify function and dictionary
+\$func\$ LANGUAGE sql IMMUTABLE;
 
 --
 -- Create function normalize
 -- This function will return input text
 -- in lower case, without accents and with spaces replaced as '-'
 --
-CREATE OR REPLACE FUNCTION normalize(text)
+CREATE OR REPLACE FUNCTION public.normalize(text)
 RETURNS text AS \$\$
-SELECT replace(replace(lower(public.unaccent(\$1)),' ','-'), '''', '-')
+SELECT replace(replace(lower(public.f_unaccent(\$1)),' ','-'), '''', '-')
 \$\$ LANGUAGE sql;
 
 --
