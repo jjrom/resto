@@ -14,7 +14,7 @@ You an try resto capability from the online [demo](http://mapshup.com/projects/r
 
 ## Looking for support ?
 
-**For official support to resto, please contact [jeobrowser](https://jeobrowser.com)**
+**For official support to resto, please contact [jeobrowser](https://mapshup.com)**
 
 resto have been used in several projects and supported and maintened by multiple private companies.
 
