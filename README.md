@@ -14,6 +14,8 @@ You an try resto capability from the online [demo](http://mapshup.com/projects/r
 
 ## Looking for support ?
 
+**For official support to resto, please contact [jeobrowser](https://jeobrowser.com)**
+
 resto have been used in several projects and supported and maintened by multiple private companies.
 
 Here are some projects that use resto.
@@ -30,8 +32,6 @@ Here are some projects that use resto.
 * [ESA's Forestry Thematic Exploitation Platform](https://github.com/cgi-eoss/ftep)
 
 If you plan to use resto and would like to have your project added to this list, feel free to send an email to jerome[dot]gasperi[at]gmail[dot]com 
-
-Official support is provided by [jeobrowser](https://jeobrowser.com) 
 
 ## Installation
 
