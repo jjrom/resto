@@ -14,7 +14,8 @@ You an try resto capability from the online [demo](http://mapshup.com/projects/r
 
 ## Looking for support ?
 
-resto have been used in several projects and supported by multiple private companies.
+resto have been used in several projects and supported and maintened by multiple private companies.
+
 Here are some projects that use resto.
 
 * [CREODIAS](https://creodias.eu/eo-data-finder-api-manual)
@@ -29,10 +30,6 @@ Here are some projects that use resto.
 * [ESA's Forestry Thematic Exploitation Platform](https://github.com/cgi-eoss/ftep)
 
 If you plan to use resto and would like to have your project added to this list, feel free to send an email to jerome[dot]gasperi[at]gmail[dot]com 
-
-## Looking for support ?
-
-resto have been supported and maintened by multiple private companies in the frame of different projects.
 
 Official support is provided by [jeobrowser](https://jeobrowser.com) 
 
