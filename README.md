@@ -17,6 +17,7 @@ You an try resto capability from the online [demo](http://mapshup.com/projects/r
 resto have been used in several projects and supported by multiple private companies.
 Here are some projects that use resto.
 
+* [CREODIAS](https://creodias.eu/eo-data-finder-api-manual)
 * [Rocket - The Earth in your pocket](http://mapshup.com/projects/rocket/#/home)
 * [The French Sentinel Data Processing center](https://peps.cnes.fr/rocket/#/home)
 * [The French Space Agency, THEIA land data center](https://theia.cnes.fr/atdistrib/rocket/#/home)
