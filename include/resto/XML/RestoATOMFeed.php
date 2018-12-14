@@ -325,6 +325,9 @@ class RestoATOMFeed extends RestoXML {
     private function addGeoRSS($type, $coordinates) {
         $geometry = array();
         switch ($type) {
+            case 'Point':
+                $geometry[] = $coordinates[1] . ' ' . $coordinates[0];
+                break;
             case 'Polygon':
             case 'LineString':
                 foreach ($coordinates as $key) {
@@ -334,10 +337,12 @@ class RestoATOMFeed extends RestoXML {
                 }
                 break;
             default:
-                $geometry[] = $value[1] . ' ' . $value[0];
+                break;
         }
         
-        $this->useGeoRSSSimple ? $this->addGeoRSSSimple($type, join(' ', $geometry)) : $this->addGeoRSSWhere($type, join(' ', $geometry));
+        if (count($geometry) > 0) {
+            $this->useGeoRSSSimple ? $this->addGeoRSSSimple($type, join(' ', $geometry)) : $this->addGeoRSSWhere($type, join(' ', $geometry));
+        }
     }
     
     /**
