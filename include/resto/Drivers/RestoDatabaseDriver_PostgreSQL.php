@@ -210,13 +210,6 @@ class RestoDatabaseDriver_PostgreSQL extends RestoDatabaseDriver {
                 return $featuresFunctions->getCount($params['from'], $params['filters']);
             
             /*
-             * Compute area from geometry
-             */
-            case parent::AREA:
-                $featuresFunctions = new Functions_general($this);
-                return $featuresFunctions->getArea($params['geometry']);
-            
-            /*
              * Return toplogy analysis
              */
             case parent::TOPOLOGY:

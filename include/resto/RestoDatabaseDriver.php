@@ -63,7 +63,6 @@ abstract class RestoDatabaseDriver {
     const UNVALIDATE_USER = 38;
     const WHERE_CLAUSE = 39;
     const COUNT_ESTIMATE = 40;
-    const AREA = 41;
     const TOPOLOGY = 42;
     const FEATURE_STATUS = 43;
 
