@@ -542,7 +542,7 @@ class Functions_features {
      * Get landuse database columns from input keywords
      *
      * @param array $keywords
-     * @return type
+     * @return array
      */
     private function landuseColumns($keywords) {
         $columns = array(
