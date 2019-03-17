@@ -100,12 +100,6 @@ class iTag {
         }
 
         /*
-         * Convert footprint in case of -180/+180 meridian crossing
-         * Note : This is deprecated and replaced by ST_SplitDateLine function
-         */
-        //$metadata['footprint'] = $this->correctWrapDateLine($metadata['footprint']);
-
-        /*
          * Datasources reference information
          */
         $references = array();
@@ -217,77 +211,6 @@ class iTag {
 
         return $class->newInstance($this->dbh, $this->config);
 
-    }
-
-    /**
-     * Correct input polygon WKT from -180/180 crossing problem
-     *
-     * @param String $footprint
-     */
-    private function correctWrapDateLine($footprint) {
-
-        /*
-         * Convert WKT POLYGON to array of coordinates
-         */
-        $coordinates = $this->wktToCoordinates($footprint);
-
-        /*
-         * If Delta(lon(i) - lon(i - 1)) is greater than 180 degrees then add 360 to lon
-         */
-        $add360 = false;
-        $lonPrev = $coordinates[0][0];
-        $latPrev = $coordinates[0][1];
-        $newCoordinates = array(array($lonPrev, $latPrev));
-        for ($i = 1, $ii = count($coordinates); $i < $ii; $i++) {
-            $lon = $coordinates[$i][0];
-            if ($lon - $lonPrev >= 180) {
-                $lon = $lon - 360;
-                $add360 = true;
-            }
-            else if ($lon - $lonPrev <= -180) {
-                $lon = $lon + 360;
-                $add360 = true;
-            }
-            $lonPrev = $lon;
-            $latPrev = $coordinates[$i][1];
-            $newCoordinates[] = array($lon, $coordinates[$i][1]);
-        }
-
-        return $this->coordinatesToWkt($newCoordinates, $add360);
-    }
-
-    /**
-     * Convert WKT into an array of coordinates
-     *
-     * @param string $footprint
-     * @return array
-     */
-    private function wktToCoordinates($footprint) {
-        $pairs = explode(',', str_replace('POLYGON((', ' ', str_replace('))', ' ', strtoupper($footprint))));
-        $coordinates = array();
-        for ($i = 0, $ii = count($pairs); $i < $ii; $i++) {
-            $lonlat = explode(' ', trim($pairs[$i]));
-            $coordinates[] = array(floatval($lonlat[0]), floatval($lonlat[1]));
-        }
-        return $coordinates;
-    }
-
-    /**
-     * Convert an array of coordinates into a WKT string
-     *
-     * @param array $coordinates
-     * @param boolean $add360
-     * @return string
-     */
-    private function coordinatesToWkt($coordinates, $add360 = false) {
-        $pairs = array();
-        for ($i = 0, $ii = count($coordinates); $i < $ii; $i++) {
-            if ($add360) {
-                $coordinates[$i][0] = $coordinates[$i][0] + 360;
-            }
-            $pairs[] = join(' ', $coordinates[$i]);
-        }
-        return 'POLYGON((' . join(',', $pairs) . '))';
     }
 
     /**
