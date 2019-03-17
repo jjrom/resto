@@ -95,8 +95,10 @@ class RestoFeatureCollection {
      */
     public function toArray($publicOutput = false) {
         $features = array();
-        for ($i = 0, $l = count($this->restoFeatures); $i < $l; $i++) {
-            $features[] = $this->restoFeatures[$i]->toArray($publicOutput);
+        if (isset($this->restoFeatures)) {
+            for ($i = 0, $l = count($this->restoFeatures); $i < $l; $i++) {
+                $features[] = $this->restoFeatures[$i]->toArray($publicOutput);
+            }
         }
         return array_merge($this->description, array('features' => $features));
     }
@@ -245,7 +247,7 @@ class RestoFeatureCollection {
                 'totalResults' => $this->paging['count']['total'],
                 'exactCount' => $this->paging['count']['isExact'],
                 'startIndex' => $options['offset'] + 1,
-                'itemsPerPage' => count($this->restoFeatures),
+                'itemsPerPage' => isset($this->restoFeatures) ? count($this->restoFeatures) : 0,
                 'query' => array_merge($query, array('processingTime' => microtime(true) - $this->requestStartTime)),
                 'links' => $this->getLinks($options['limit'])
             )
@@ -391,7 +393,7 @@ class RestoFeatureCollection {
          * ...but since we use a count estimate it is not possible to know the
          * real last page. So always set a nextPage !
          */
-        if (count($this->restoFeatures) >= $limit) {
+        if (isset($this->restoFeatures) && count($this->restoFeatures) >= $limit) {
 
             /*
              * Next URL is the next search URL from the self URL
@@ -470,7 +472,7 @@ class RestoFeatureCollection {
         /*
          * If first page contains no features count must be 0 not estimated value
          */
-        if ($offset == 0 && count($this->restoFeatures) == 0){
+        if ($offset == 0 && isset($this->restoFeatures) && count($this->restoFeatures) == 0){
             $count = array(
                 'total' => 0,
                 'isExact' => true
@@ -486,7 +488,7 @@ class RestoFeatureCollection {
             'nextPage' => 1,
             'totalPage' => 0
         );
-        if (count($this->restoFeatures) > 0) {
+        if (isset($this->restoFeatures) && count($this->restoFeatures) > 0) {
 
             $startPage = ceil(($offset + 1) / $limit);
 
