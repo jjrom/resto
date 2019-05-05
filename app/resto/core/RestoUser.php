@@ -179,7 +179,7 @@ class RestoUser
         /*
          * Impossible
          */
-        if (!isset($profile) || (!isset($profile['id']) && !isset($profile['email']))) {
+        if (!isset($profile) || (!isset($profile['id']) && (!isset($profile['email']) ||  $profile['email'] == 'unregistered'))) {
             $this->profile = $this->unregistered;
         }
         /*
@@ -187,15 +187,15 @@ class RestoUser
          * or if no id is provided
          */
         elseif ($autoload || !isset($profile['id'])) {
-            $params = array();
-            if (isset($profile['id'])) {
-                $params['id'] = $profile['id'];
-            } else {
-                $params['email'] = $profile['email'];
-                $params['password'] = $profile['password'] ?? null;
-            }
             
-            $this->profile = (new UsersFunctions($this->context->dbDriver))->getUserProfile($params);
+            if (isset($profile['id'])) {
+                $this->profile = (new UsersFunctions($this->context->dbDriver))->getUserProfile('id', $profile['id']);
+            } 
+            else {
+                $this->profile = (new UsersFunctions($this->context->dbDriver))->getUserProfile('email', $profile['email'], array(
+                    'password' => $profile['password'] ?? null
+                ));
+            }
             
             if (!$this->profile) {
                 $this->profile = $this->unregistered;
@@ -476,9 +476,7 @@ class RestoUser
     public function loadProfile()
     {
         if (!$this->isComplete && isset($this->profile['id'])) {
-            $this->profile = (new UsersFunctions($this->context->dbDriver))->getUserProfile(array(
-                'id' => $this->profile['id']
-            ));
+            $this->profile = (new UsersFunctions($this->context->dbDriver))->getUserProfile('id', $this->profile['id']);
             $this->isComplete = true;
         }
     }

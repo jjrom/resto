@@ -214,9 +214,8 @@ class UsersAPI
             return $this->user->profile;
         }
         
-        return (new UsersFunctions($this->context->dbDriver))->getUserProfile(
+        return (new UsersFunctions($this->context->dbDriver))->getUserProfile('id', $params['userid'],
             array(
-                'id' => $params['userid'],
                 'from' => $this->user->profile['id'],
                 'partial' => true
             )

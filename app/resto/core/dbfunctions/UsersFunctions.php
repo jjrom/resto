@@ -52,28 +52,23 @@ class UsersFunctions
     /**
      * Get user profile
      *
+     * @param string $fieldName
+     * @param string $fieldValue
      * @param array $params
      * @throws exception
      */
-    public function getUserProfile($params)
+    public function getUserProfile($fieldName, $fieldValue, $params = array())
     {
-        $searchOn = null;
         
-        if (isset($params['id'])) {
-            $searchOn = array('id', pg_escape_string($params['id']));
-        } elseif (isset($params['email']) && $params['email'] !== 'unregistered') {
-            $searchOn = array('email', '\'' . pg_escape_string($params['email']) . '\'');
-        } else {
-            RestoLogUtil::httpError(404, 'Unknown user');
-        }
-
         // Add followed and followme booleans
         $fields = 'id,email,name,firstname,lastname,bio,groups,lang,country,organization,organizationcountry,flags,topics,password,picture,to_iso8601(registrationdate),activated,followers,followings,validatedby,to_iso8601(validationdate),externalidp,settings';
         if (isset($params['from'])) {
             $fields = $fields . ',EXISTS(SELECT followerid FROM resto.follower WHERE followerid=id AND userid=' . pg_escape_string($params['from']) . ') AS followme,EXISTS(SELECT followerid FROM resto.follower WHERE userid=id AND followerid=' . pg_escape_string($params['from']) . ') AS followed';
         }
         
-        $results = $this->dbDriver->fetch($this->dbDriver->query('SELECT ' . $fields . ' FROM resto.user WHERE ' . $searchOn[0] . '=' . $searchOn[1]));
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT ' . $fields . ' FROM resto.user WHERE ' . $fieldName . '=$1', array(
+            $fieldValue
+        )));
         
         if (count($results) === 0) {
             RestoLogUtil::httpError(404, 'Unknown user');
@@ -99,12 +94,8 @@ class UsersFunctions
          * Full profile if id is caller / partial otherwise
          */
         $formatedProfile = isset($params['partial']) && $params['partial'] ? FormatUtil::partialUserProfile($results[0]) : FormatUtil::fullUserProfile($results[0]);
-        
-        if (isset($formatedProfile)) {
-            return $formatedProfile;
-        } else {
-            RestoLogUtil::httpError(404);
-        }
+        return isset($formatedProfile) ? $formatedProfile : RestoLogUtil::httpError(404);
+
     }
 
     /**
@@ -475,7 +466,7 @@ class UsersFunctions
             RestoLogUtil::httpError(400, 'Cannot ' . $storeOrRemove . ' groups - empty input groups');
         }
 
-        $profile = $this->getUserProfile($userid);
+        $profile = $this->getUserProfile('id', $userid);
         if (!isset($profile)) {
             RestoLogUtil::httpError(404, 'Cannot ' . $storeOrRemove . ' groups - user profile not found for : ' . $userid);
         }
