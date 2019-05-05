@@ -1,0 +1,41 @@
+server {
+  
+  listen 80 default_server;
+	listen [::]:80 default_server;
+  server_name _;
+  
+  root /app;
+
+  server_tokens off;
+
+  index index.php;
+  
+  location / {
+    try_files $uri /index.php?_path=$uri&$args;
+  }
+
+  location /static/ {
+    root /var/www/;
+	  autoindex off;
+  }
+
+  location = /index.php {
+    fastcgi_pass 127.0.0.1:9000;
+    #fastcgi_pass unix:/var/run/php/php7.2-fpm.pid;
+    fastcgi_buffers 8 16k;
+    fastcgi_buffer_size 32k;
+    fastcgi_busy_buffers_size 32k;
+    fastcgi_connect_timeout 60s;
+    fastcgi_send_timeout 60s;
+    fastcgi_read_timeout 60s;
+    fastcgi_index index.php;
+    include fastcgi.conf;
+  }
+
+  location ~ /\. {
+    access_log off;
+    log_not_found off; 
+    deny all;
+  }
+
+}

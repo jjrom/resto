@@ -1,0 +1,183 @@
+#!/bin/bash
+#
+# Copyright 2018 Jérôme Gasperi
+#
+# Licensed under the Apache License, version 2.0 (the "License");
+# You may not use this file except in compliance with the License.
+# You may obtain a copy of the License at:
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+
+####### DO NOT TOUCH THIS ######
+ENV_FILE=./config.env
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+PROJECT_NAME=resto
+
+### PostgreSQL PGDATA directory i.e. directory on host where the database files are stored
+### If set to a string and not a path, then a volume is created within docker volumes storage
+POSTGRES_DATA=database_data
+
+### resto static content permanent directory
+RESTO_STATIC_CONTENT=static_content
+
+RESTO_EXPOSED_PORT=5252
+
+################################
+
+#
+# Force script to exit on error
+#
+set -e
+err_report() {
+    echo -e "${RED}[ERROR] Error on line $1 ${NC}"
+}
+trap 'err_report $LINENO' ERR
+
+#
+# Help function
+#
+function showUsage {
+    echo -e ""
+    echo -e "Deploy a ${PROJECT_NAME} docker instance "
+    echo -e ""
+    echo -e "   Usage $0 <target> [options]"
+    echo -e ""
+    echo -e "   Where target is either \"prod\" or \"dev\""
+    echo -e ""
+    echo -e "   Options:"
+    echo -e ""
+    echo -e "      -e | --envfile Environnement file (default is ${GREEN}config.env${NC})"
+    echo -e "      -p | --projectName Project name (default is ${GREEN}resto${NC})"
+    echo -e "      -h | --help show this help"
+    echo -e ""
+    echo -e "      !!! This script requires docker and docker-compose !!!"
+    echo -e ""
+}
+TARGET=""
+while (( "$#" ));
+do
+	case "$1" in
+        -e|--envfile)
+            if [[ "$2" == "" || ${2:0:1} == "-" ]]; then
+                showUsage
+                echo -e "${RED}[ERROR] Missing config file name${NC}"
+                echo -e ""
+                exit 1
+            fi
+            ENV_FILE="$2"
+            shift 2 # past argument
+            ;;
+        -p|--projectName)
+            PROJECT_NAME="$2"
+            if [[ "$2" == "" || "$2" == /- ]]; then
+                showUsage
+                echo -e "${RED}[ERROR] Missing project name${NC}"
+                echo -e ""
+                exit 1
+            fi
+            shift # past argument
+            ;;
+        -h|--help)
+            showUsage
+            shift # past argument
+            exit 0
+            ;;
+        --) # end argument parsing
+            shift
+            break
+            ;;
+        -*|--*=) # unsupported flags
+            showUsage
+            echo -e "${RED}[ERROR] Unsupported flag $1${NC}"
+            echo -e ""
+            exit 1
+            ;;
+        *) # preserve positional arguments
+            TARGET="$1"
+            shift
+            ;;
+	esac
+done
+
+#
+# TARGET is mandatory - should be "prod" or "dev"
+#
+if [[ "${TARGET}" != "prod" && "${TARGET}" != "dev" ]]; then
+    showUsage
+    echo -e "${RED}[ERROR] Missing target - choose between \"prod\" or \"dev\"${NC}"
+    echo ""
+    exit 0
+fi
+
+#
+# The environement file is mandatory
+# It contains all configuration to build and run resto images
+#
+if [[ ! -f ${ENV_FILE} ]]; then
+    showUsage
+    echo -e "${RED}[ERROR] The \"${ENV_FILE}\" file does not exist!${NC}"
+    echo ""
+    exit 0
+fi
+
+PUBLIC_ENDPOINT=$(grep ^PUBLIC_ENDPOINT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+RESTO_EXPOSED_PORT=$(grep ^RESTO_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+
+echo -e "${YELLOW}[INFO] You're now running ${PROJECT_NAME} installation in **${TARGET}** mode${NC}"
+echo -e "[INFO] Public endpoint is ${GREEN}${PUBLIC_ENDPOINT}${NC}"
+
+#
+# Containers are part of the external network "rnet" (resto network)
+# From containers, host IP is accessible as "dockerhost"
+#
+DOCKERHOST=$(ifconfig | grep -E "([0-9]{1,3}\.){3}[0-9]{1,3}" | grep -v 127.0.0.1 | awk '{ print $2 }' | cut -f2 -d: | head -n1)
+if [[ "${DOCKERHOST}" != "" ]]; then
+    echo -e "[INFO] Docker host IP is ${GREEN}${DOCKERHOST}${NC}"
+else
+    echo -e "${RED}[WARNING] Cannot get docker host IP - check your network ${NC}"
+    DOCKERHOST=192.168.0.1
+    echo -e "[INFO] Use dummy value for Docker host IP ${GREEN}${DOCKERHOST}${NC}"
+fi
+RNET_EXIST=$(docker network ls | grep rnet | wc | awk '{print $1}')
+if [[ "${RNET_EXIST}" == "0" ]]; then
+    echo -e "[INFO] Creating external network ${GREEN}rnet${NC}"
+    docker network create rnet
+else
+    echo -e "[INFO] Using existing network ${GREEN}rnet${NC}"
+fi
+
+# echo -e "[INFO] Starting ${PROJECT_NAME} docker instance"
+if [[ "${TARGET}" == "dev" ]]; then
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose.dev.yml up -d
+else
+    docker-compose --project-name ${PROJECT_NAME} -f docker-compose.yml up -d
+fi
+
+#
+# Create ADMIN_USER if no exist or update ADMIN_USER's password if it already exists
+#
+$(dirname $0)/scripts/createAdminUser.sh -e ${ENV_FILE}
+
+echo -e ""
+
+# 
+# Display mount point for database  
+# MacOS X is a bit tricky - https://stackoverflow.com/questions/41273514/access-docker-volume-mountpoint-with-docker-for-mac
+#
+if [[ ! "$OSTYPE" == "darwin"* ]]; then
+    MOUNT_POINT=$(docker volume inspect ${PROJECT_NAME}"_database_data"| grep Mountpoint | awk -F\" '{print $4}')
+    echo -e "[INFO] Database mount point is ${GREEN}${MOUNT_POINT}${NC}"
+fi
+
+echo -e "[INFO] Application ${GREEN}${PROJECT_NAME}${NC} up and running locally in ${GREEN}${TARGET}${NC} mode at ${GREEN}http://127.0.0.1:${RESTO_EXPOSED_PORT}${NC}"
+echo ""

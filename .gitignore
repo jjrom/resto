@@ -1,13 +1,3 @@
-/nbproject/
-/include/resto/Modules/Administration.php
-/themes/default/Modules/Administration/
-/include/resto/Modules/PopulationCounter.php
-/js/lib/ol3-cesium/
-/js/lib/slick/
-/js/lib/responsiveslides/
-/include/resto/Models/RestoModel_alos.php
-/include/resto/Models/RestoModel_restec.php
-/include/config.local.php
-/include/config.dev.php
-/include/resto/Modules/Heatmap.php
-/_docs
+# [SECURITY] Never commit these files since they can contains productions environment info
+.private
+.DS_Store

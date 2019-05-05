@@ -1,0 +1,96 @@
+version: '2.1'
+volumes:
+  database_data:
+    driver: local
+  static_content:
+    driver: local
+  #cache:
+  #  driver_opts:
+  #    type: tmpfs
+  #    device: tmpfs
+networks:
+  default:
+    driver: bridge
+  external:
+    external:
+      name: rnet 
+services:
+  resto:
+    image: jjrom/resto:5.0
+    restart: always
+    build:
+      context: ./
+      dockerfile: ./build/resto/Dockerfile
+    depends_on:
+      - restodb
+    networks:
+      - default
+    ports:
+      - ${RESTO_EXPOSED_PORT:-5252}:80
+    env_file:
+      - ${ENV_FILE:-config.env}
+    environment: 
+      # Set to 0 in production environment to activate opcache
+      - RESTO_DEBUG_MODE=1
+      - PHP_ENABLE_XDEBUG=1
+      ### Server configuration (uncomment to change values) 
+      #- PHP_FPM_MAX_CHILDREN=4096
+      #- PHP_FPM_START_SERVERS=20
+      #- PHP_FPM_MAX_REQUESTS=1024
+      #- PHP_FPM_MIN_SPARE_SERVERS=5
+      #- PHP_FPM_MAX_SPARE_SERVERS=128
+      #- PHP_FPM_MEMORY_LIMIT=256M
+      #- PHP_FPM_MAX_EXECUTION_TIME=60
+      #- PHP_FPM_UPLOAD_MAX_FILESIZE=20M
+      #- PHP_OPCACHE_MEMORY_CONSUMPTION=128
+      #- PHP_OPCACHE_INTERNED_STRINGS_BUFFER=16
+      #- PHP_OPCACHE_MAX_WASTED_PERCENTAGE=5
+      #- NGINX_FASTCGI_BUFFERS=8 16k
+      #- NGINX_FASTCGI_BUFFER_SIZE=32k
+      #- NGINX_FASTCGI_BUSY_BUFFERS_SIZE=32k
+      #- NGINX_FASTCGI_CONNECT_TIMEOUT=60s
+      #- NGINX_FASTCGI_SEND_TIMEOUT=60s
+      #- NGINX_FASTCGI_READ_TIMEOUT=60s
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1"]
+      interval: 1m
+      timeout: 5s
+    volumes:
+      - ${RESTO_STATIC_CONTENT:-static_content}:/var/www/static
+      - ./app:/app
+  restodb:
+    image: jjrom/resto-database:5.0
+    restart: always
+    build:
+      context: ./
+      dockerfile: ./build/resto-database/Dockerfile
+    command: docker-entrypoint.sh -c config_file=/etc/postgresql.conf
+    networks:
+      - default
+      - external
+    env_file:
+      - ${ENV_FILE:-config.env}
+    environment:
+      - POSTGRES_PASSWORD=${DATABASE_USER_PASSWORD:-resto}
+      - POSTGRES_USER=${DATABASE_USER_NAME:-resto}
+      - POSTGRES_DB=${DATABASE_NAME:-resto}
+      ### Server configuration (uncomment to change values)
+      #- POSTGRES_MAX_CONNECTIONS=300
+      #- POSTGRES_DEFAULT_STATISTICS_TARGET=100
+      #- POSTGRES_SHARED_BUFFERS=8GB
+      #- POSTGRES_WORK_MEM=320MB
+      #- POSTGRES_WALL_BUFFERS=32MB
+      #- POSTGRES_MAINTENANCE_WORK_MEM=1GB
+      #- POSTGRES_EFFECTIVE_CACHE_SIZE=32GB
+      #- POSTGRES_RANDOM_PAGE_COST=1.5
+      #- POSTGRES_SYNCHRONOUS_COMMIT=off
+      - POSTGRES_LOG_MIN_DURATION_STATEMENT=0
+      #- POSTGRES_AUTOVACUUM=on
+    ports:
+      - ${DATABASE_EXPOSED_PORT:-5253}:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER_NAME:-resto}"]
+      interval: 1m
+      timeout: 5s
+    volumes:
+      - ${POSTGRES_DATA:-database_data}:/var/lib/postgresql/data

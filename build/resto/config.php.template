@@ -1,0 +1,98 @@
+<?php
+return array(
+    'baseUrl' => '${PUBLIC_ENDPOINT:-http://127.0.0.1:5252}',
+    'debug' => ${RESTO_DEBUG_MODE:-false},
+    'languages' => array(${SUPPORTED_LANGUAGES}),
+    'passphrase' => '${JWT_PASSPHRASE}',
+    'sharedLinkDuration' => ${SHAREDLINK_DURATION:-86400},
+    'storageInfo' => array(
+        'path' => '/var/www/static',
+        'endpoint' => '${STORAGE_PUBLIC_ENDPOINT}'
+    ),
+    'storeQuery' => ${STORE_QUERY:-true},
+    'streamMethod' => '${STREAM_METHOD:-php}',
+    'timezone' => '${TIMEZONE:-Europe/Paris}',
+    'tokenDuration' => ${JWT_DURATION:-3600},
+    'userAutoValidation' => ${USER_AUTOVALIDATION:-true},
+    'userAutoActivation' => ${USER_AUTOACTIVATION:-true},
+    'useCache' => ${USE_CACHE:-false}, 
+    'corsWhiteList' => array($CORS_WHITELIST),
+    'htmlSearchEndpoint' => '${SEARCH_OPENSEARCH_HTML_ENDPOINT}',
+    'database' => array(
+        'dbname' => '${DATABASE_NAME:-resto}',
+        'host' => '${DATABASE_HOST:-restodb}',
+        'port' => ${DATABASE_PORT:-5432},
+        'resultsPerPage' => ${SEARCH_RESULTS_PER_PAGE:-20},
+        'sortKeys' => array(${SEARCH_SORTABLE_FIELDS:-startDate,published}),
+        'user' => '${DATABASE_USER_NAME:-resto}',
+        'password' => '${DATABASE_USER_PASSWORD:-resto}'
+    ),
+    'sendmail' => array(
+        'senderName' => '${SENDMAIL_SENDER_NAME}',
+        'senderEmail' => '${SENDMAIL_SENDER_EMAIL}',
+        'smtp' => array(
+            'activate' => ${SENDMAIL_SMTP_ACTIVATE:-false},
+            'host' => '${SENDMAIL_SMTP_HOST}',
+            'port' => ${SENDMAIL_SMTP_PORT:-465},
+            'secure' => '${SENDMAIL_SMTP_SECURE}', // one of 'ssl' or 'tls'
+            'debug' => ${SENDMAIL_SMTP_DEBUG:-0}, // 0: no debug, 1: error and message, 2: message only
+            'auth' => array(
+                'user' => '${SENDMAIL_SMTP_USER}',
+                'password' => '${SENDMAIL_SMTP_PASSWORD}'
+            )
+        )
+    ),
+    'serviceInfos' => array(
+        'activateUser' => array(
+            'endpoint' => '${ACTIVATE_USER_ENDPOINT}',
+            'message' => array(
+                'en' => array(
+                    'title' => '[resto] Activation code',
+                    'body' => 'Hi,<br>You have registered an account to resto application<br><br>To validate this account, <a href=\'{a:1}\'>click this link</a> <br><br>If it does not work, you can also copy the link below and paste it within the address bar of your Web browser<br><br>{a:1}<br><br>Regards<br><br>resto team'
+                ),
+                'fr' => array(
+                    'title' => '[resto] Code d\'activation',
+                    'body' => 'Bonjour,<br><br>Vous vous êtes enregistré sur l\'application resto<br><br>Pour valider votre compte, <a href=\'{a:1}\'>cliquer sur le lien</a> <br><br>Si cela ne fonctionne pas, vous pouvez aussi copier le lien ci-dessous et le coller dans la barre d\'URL de votre navigateur Web<br><br>{a:1}<br><br>Cordialement<br><br>L\'équipe resto'
+                )
+            )
+        ),
+        'resetPassword' => array(
+            'endPoint' => '${RESET_PASSWORD_ENDPOINT}',
+            'message' => array(
+                'en' => array(
+                    'title' => '[resto] Reset password',
+                    'body' => 'Hi,<br><br>You ask to reset your password for the resto application<br><br>To reset your password, <a href=\'{a:1}\'>click this link</a> <br><br>If it does not work, you can also copy the link below and paste it within the address bar of your Web browser<br><br>{a:1}<br><br>Regards<br><br>resto team'
+                ),
+                'fr' => array(
+                    'title' => '[resto] Demande de réinitialisation de mot de passe',
+                    'body' => 'Bonjour,<br><br>Vous avez demandé une réinitialisation de votre mot de passe pour l\'application resto<br><br>Pour réinitialiser ce mot de passe, veuillez <a href=\'{a:1}\'>cliquer sur ce lien</a> <br><br>Si cela ne fonctionne pas, vous pouvez aussi copier le lien ci-dessous et le coller dans la barre d\'URL de votre navigateur Web<br><br>{a:2}<br><br>Cordialement<br><br>L\'équipe resto'
+                )
+            )
+        )
+    ),
+    'osDescriptions' => array(
+        'en' => array(
+            'ShortName' => '${SEARCH_OPENSEARCH_SHORTNAME}',
+            'LongName' => '${SEARCH_OPENSEARCH_LONGNAME}',
+            'Description' => '${SEARCH_OPENSEARCH_DESCRIPTION}',
+            'Tags' => '${SEARCH_OPENSEARCH_TAGS}',
+            'Developer' => '${SEARCH_OPENSEARCH_DEVELOPER}',
+            'Contact' => '${SEARCH_OPENSEARCH_CONTACT}',
+            'Query' => '${SEARCH_OPENSEARCH_QUERY}',
+            'Attribution' => '${SEARCH_OPENSEARCH_ATTRIBUTION}'
+        )
+    ),
+    'addons' => array(
+        'Tag' => array(
+            'options' => array(
+                'iTag' => array(
+                    'endpoint' => '${ADDON_TAG_ITAG_ENDPOINT}',
+                    'taggers' => array(${ADDON_TAG_ITAG_TAGGERS})/*,
+                    'excludedCollections' => array()*/
+                )
+            )
+        ),
+        __ADDONS__
+    ),
+    'defaultRoutes' => array()
+);
