@@ -255,12 +255,11 @@ class ServicesAPI
     public function resetPassword($params, $body)
     {
         if (isset($body['password']) && isset($body['token'])) {
-            $userid = (new UsersFunctions($this->context->dbDriver))->updateUserProfile(
+            $userid = (new UsersFunctions($this->context->dbDriver))->updateUserPassword(
                 array(
                     'token' => $body['token'],
                     'password' => $body['password']
-                ),
-                $this->context->core['storageInfo']
+                )
             );
             if (isset($userid)) {
                 return RestoLogUtil::success('Password updated for user ' . $userid);

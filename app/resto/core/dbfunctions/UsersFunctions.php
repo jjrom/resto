@@ -236,6 +236,30 @@ class UsersFunctions
     }
 
     /**
+     * Update user password from token
+     *
+     * @param array $params
+     * @return integer (userid)
+     * @throws exception
+     */
+    public function updateUserPassword($params)
+    {
+        if (!is_array($params) || !isset($params['token']) || !isset($params['password'])) {
+            RestoLogUtil::httpError(400);
+        }
+
+        /*
+         * Reset password through token
+         */
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('UPDATE resto.user SET password=$1 WHERE resettoken=$2 AND resetexpire > now() RETURNING id', array(
+            password_hash($params['password'], PASSWORD_BCRYPT),
+            $params['token']
+        )));
+        return count($results) === 1 ? $results[0]['id'] : null;
+        
+    }
+
+    /**
      * Update user profile to database
      *
      * @param array $profile
@@ -245,75 +269,57 @@ class UsersFunctions
      */
     public function updateUserProfile($profile, $storageInfo)
     {
-        if (!is_array($profile)) {
+        if (!is_array($profile) || !isset($profile['email'])) {
             RestoLogUtil::httpError(400);
         }
 
         /*
-         * Case 1 - reset password through token
+         * The following parameters cannot be updated :
+         *   - id
+         *   - email
+         *   - resettoken
+         *   - resetexpire
+         *   - registrationdate
          */
-        if (isset($profile['token']) && isset($profile['password'])) {
-            $results = $this->dbDriver->fetch($this->dbDriver->pQuery('UPDATE resto.user SET password=$1 WHERE resettoken=$2 AND resetexpire > now() RETURNING id', array(
-                password_hash($profile['password'], PASSWORD_BCRYPT),
-                $profile['token']
-            )));
-            return count($results) === 1 ? $results[0]['id'] : null;
-        }
-
-        /*
-         * Normal case - update based on email
-         */
-        elseif (isset($profile['email'])) {
-
-            /*
-             * The following parameters cannot be updated :
-             *   - id
-             *   - email
-             *   - resettoken
-             *   - resetexpire
-             *   - registrationdate
-             */
-            $values = array();
-            foreach (array_values(array('password', 'activated', 'bio', 'name', 'firstname', 'lastname', 'groups', 'country', 'organization', 'topics', 'organizationcountry', 'flags', 'lang', 'settings', 'picture', 'externalidp')) as $field) {
-                if (isset($profile[$field])) {
-                    switch ($field) {
-                        case 'password':
-                            $values[] = 'password=\'' . password_hash($profile['password'], PASSWORD_BCRYPT) . '\'';
-                            break;
-                        case 'activated':
-                            $values[] = 'activated=' . $profile['activated'];
-                            break;
-                        case 'externalidp':
-                        case 'settings':
-                            $jsonEncoded = json_encode($profile[$field]);
-                            if (is_object(json_decode($jsonEncoded))) {
-                                $values[] = $field . '=\'' . pg_escape_string($jsonEncoded) . '\'';
-                            } else {
-                                RestoLogUtil::httpError(400);
-                            }
-                            break;
-                        case 'groups':
-                        case 'topics':
-                            $values[] = $field . '=\'{' . pg_escape_string($profile[$field]) . '}\'';
-                            break;
-                        case 'picture':
-                            $values[] = 'picture=\'' . pg_escape_string($this->getPicture(array('picture' => $profile['picture']), $storageInfo)) . '\'';
-                            break;
-                        default:
-                            $values[] = $field . '=\'' . pg_escape_string($profile[$field]) . '\'';
-                    }
+        $values = array();
+        foreach (array_values(array('password', 'activated', 'bio', 'name', 'firstname', 'lastname', 'groups', 'country', 'organization', 'topics', 'organizationcountry', 'flags', 'lang', 'settings', 'picture', 'externalidp')) as $field) {
+            if (isset($profile[$field])) {
+                switch ($field) {
+                    case 'password':
+                        $values[] = 'password=\'' . password_hash($profile['password'], PASSWORD_BCRYPT) . '\'';
+                        break;
+                    case 'activated':
+                        $values[] = 'activated=' . $profile['activated'];
+                        break;
+                    case 'externalidp':
+                    case 'settings':
+                        $jsonEncoded = json_encode($profile[$field]);
+                        if (is_object(json_decode($jsonEncoded))) {
+                            $values[] = $field . '=\'' . pg_escape_string($jsonEncoded) . '\'';
+                        } else {
+                            RestoLogUtil::httpError(400);
+                        }
+                        break;
+                    case 'groups':
+                    case 'topics':
+                        $values[] = $field . '=\'{' . pg_escape_string($profile[$field]) . '}\'';
+                        break;
+                    case 'picture':
+                        $values[] = 'picture=\'' . pg_escape_string($this->getPicture(array('picture' => $profile['picture']), $storageInfo)) . '\'';
+                        break;
+                    default:
+                        $values[] = $field . '=\'' . pg_escape_string($profile[$field]) . '\'';
                 }
             }
-
-            $results = array();
-            if (count($values) > 0) {
-                $results = $this->dbDriver->fetch($this->dbDriver->query('UPDATE resto.user SET ' . join(',', $values) . ' WHERE email=\'' . pg_escape_string(trim(strtolower($profile['email']))) . '\' RETURNING id'));
-            }
-
-            return count($results) === 1 ? $results[0]['id'] : null;
-        } else {
-            RestoLogUtil::httpError(400);
         }
+
+        $results = array();
+        if (count($values) > 0) {
+            $results = $this->dbDriver->fetch($this->dbDriver->query('UPDATE resto.user SET ' . join(',', $values) . ' WHERE email=\'' . pg_escape_string(trim(strtolower($profile['email']))) . '\' RETURNING id'));
+        }
+
+        return count($results) === 1 ? $results[0]['id'] : null;
+        
     }
 
     /**
