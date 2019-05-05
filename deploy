@@ -132,6 +132,7 @@ fi
 
 PUBLIC_ENDPOINT=$(grep ^PUBLIC_ENDPOINT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 RESTO_EXPOSED_PORT=$(grep ^RESTO_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+DATABASE_EXPOSED_PORT=$(grep ^DATABASE_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 
 echo -e "${YELLOW}[INFO] You're now running ${PROJECT_NAME} installation in **${TARGET}** mode${NC}"
 echo -e "[INFO] Public endpoint is ${GREEN}${PUBLIC_ENDPOINT}${NC}"
@@ -165,7 +166,19 @@ fi
 
 #
 # Create ADMIN_USER if no exist or update ADMIN_USER's password if it already exists
-#
+# Wait for database to be ready
+echo -e "[INFO] Waiting for database port localhost:${DATABASE_EXPOSED_PORT} to be ready..."
+while ! pg_isready -h localhost -p ${DATABASE_EXPOSED_PORT} 2>/dev/null
+do
+    let elapsed=elapsed+1
+    if [ "$elapsed" -gt 90 ] 
+    then
+        echo -e "${RED}[ERROR]${NC} Database startup timed out =("
+        exit 0
+    fi  
+    sleep 1;
+done
+
 $(dirname $0)/scripts/createAdminUser.sh -e ${ENV_FILE}
 
 echo -e ""
