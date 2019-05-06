@@ -176,22 +176,18 @@ class RestoGeometryUtil
     /**
      * Transform EPSG:4326 BBOX to EPSG:3857 bbox
      *
-     * @param {String} $bbox : bbox in EPSG:4326 (i.e. lonmin,latmin,lonmax,latmax)
+     * @param array $bbox : bbox in EPSG:4326 (i.e. [lonmin,latmin,lonmax,latmax])
      */
     public static function bboxToMercator($bbox)
     {
-        if (!$bbox) {
+        if (!isset($bbox) || count($bbox) !== 4) {
             return null;
         }
-        $coords = explode(',', $bbox);
-        if (count($coords) !== 4) {
-            return null;
-        }
-
+      
         /*
          * Lower left coordinate
          */
-        $lowerLeft = RestoGeometryUtil::forwardMercator(array(floatval($coords[0]), floatval($coords[1])));
+        $lowerLeft = RestoGeometryUtil::forwardMercator(array(floatval($bbox[0]), floatval($bbox[1])));
         if (!$lowerLeft) {
             return null;
         }
@@ -199,7 +195,7 @@ class RestoGeometryUtil
         /*
          * Upper right coordinate
          */
-        $upperRight = RestoGeometryUtil::forwardMercator(array(floatval($coords[2]), floatval($coords[3])));
+        $upperRight = RestoGeometryUtil::forwardMercator(array(floatval($bbox[2]), floatval($bbox[3])));
         if (!$upperRight) {
             return null;
         }

@@ -223,6 +223,7 @@ class RestoFeatureUtil
     {
         $properties = array();
         $geometry = null;
+        $bbox = null;
         
         foreach ($rawFeatureArray as $key => $value) {
             if (is_null($value)) {
@@ -235,8 +236,8 @@ class RestoFeatureUtil
                         break;
 
                     case 'bbox4326':
-                        $properties[$key] = str_replace(' ', ',', substr(substr($rawFeatureArray[$key], 0, strlen($rawFeatureArray[$key]) - 1), 4));
-                        $properties['bbox3857'] = RestoGeometryUtil::bboxToMercator($properties[$key]);
+                        $bbox = array_map('floatval', explode(',', str_replace(' ', ',', substr(substr($rawFeatureArray[$key], 0, strlen($rawFeatureArray[$key]) - 1), 4))));
+                        $properties['bbox3857'] = RestoGeometryUtil::bboxToMercator($bbox);
                         break;
 
                     case 'keywords':
@@ -280,6 +281,7 @@ class RestoFeatureUtil
         return array(
             'type' => 'Feature',
             'id' => $rawFeatureArray['id'],
+            'bbox' => $bbox,
             'geometry' => $geometry,
             'properties' => $this->toProperties($properties)
         );
