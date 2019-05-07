@@ -279,8 +279,6 @@ abstract class RestoModel
     
     /**
      * Constructor
-     *
-     * @param array $params
      */
     public function __construct()
     {
