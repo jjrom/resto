@@ -50,7 +50,16 @@ CREATE TABLE IF NOT EXISTS resto.collection (
     owner               BIGINT,
 
     -- Timestamp of collection creation
-    created             TIMESTAMP
+    created             TIMESTAMP,
+
+    -- Start time of the collection 
+    startdate           TIMESTAMP,
+
+    -- Completion time of the collection 
+    completiondate      TIMESTAMP,
+
+    -- Spatial extent of the collection
+    bbox                GEOMETRY(GEOMETRY, 4326)
 
 );
 

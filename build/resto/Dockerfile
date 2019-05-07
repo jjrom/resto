@@ -1,4 +1,5 @@
 FROM ubuntu:bionic
+LABEL maintainer="jerome.gasperi@gmail.com"
 
 ENV BUILD_DIR=./build/resto \
     PHP_VERSION=7.2 \

@@ -1,4 +1,5 @@
 FROM mdillon/postgis:11-alpine
+LABEL maintainer="jerome.gasperi@gmail.com"
 
 ENV BUILD_DIR=./build/resto-database \
     JUST_CONTAINERS_VERSION=1.22.1.0 \

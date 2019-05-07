@@ -82,7 +82,7 @@ DATABASE_USER_PASSWORD=$(grep ^DATABASE_USER_PASSWORD= ${ENV_FILE} | awk -F= '{p
 DATABASE_USER_NAME=$(grep ^DATABASE_USER_NAME= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 DATABASE_NAME=$(grep ^DATABASE_NAME= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 ADMIN_USER_NAME=$(grep ^ADMIN_USER_NAME= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
-ADMIN_USER_PASSWORD==$(grep ^ADMIN_USER_PASSWORD= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+ADMIN_USER_PASSWORD=$(grep ^ADMIN_USER_PASSWORD= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 
 if [ "${ADMIN_USER_PASSWORD}" == "" ]; then
     showUsage
@@ -92,6 +92,7 @@ if [ "${ADMIN_USER_PASSWORD}" == "" ]; then
 fi
 
 # Change password !!!
+echo ${ADMIN_USER_PASSWORD};
 HASH=`docker run --rm php:7.2-alpine -r "echo password_hash('${ADMIN_USER_PASSWORD}', PASSWORD_BCRYPT);"`
 
 if [ "${ADMIN_USER_ID}" != "" ]; then
