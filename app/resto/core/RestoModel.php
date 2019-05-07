@@ -344,6 +344,7 @@ abstract class RestoModel
         }
 
         $productIdentifier = $data['id'] ?? $data['properties']['productIdentifier'] ?? null;
+        $data['properties']['productIdentifier'] = $productIdentifier;
         $featureId = isset($productIdentifier) ? RestoUtil::toUUID($productIdentifier) : RestoUtil::toUUID(md5(microtime().rand()));
 
         /*
