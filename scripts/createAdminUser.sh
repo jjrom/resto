@@ -92,7 +92,6 @@ if [ "${ADMIN_USER_PASSWORD}" == "" ]; then
 fi
 
 # Change password !!!
-echo ${ADMIN_USER_PASSWORD};
 HASH=`docker run --rm php:7.2-alpine -r "echo password_hash('${ADMIN_USER_PASSWORD}', PASSWORD_BCRYPT);"`
 
 if [ "${ADMIN_USER_ID}" != "" ]; then
