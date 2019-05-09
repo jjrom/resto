@@ -10,7 +10,7 @@ ALTER TABLE resto.osdescription DROP CONSTRAINT IF EXISTS cl_collection;
 ALTER TABLE ONLY resto.osdescription ADD CONSTRAINT cl_collection UNIQUE(collection, lang);
 
 CREATE INDEX IF NOT EXISTS idx_collection_osdescription ON resto.osdescription (collection);
-CREATE INDEX IF NOT EXISTS idx_lang_osdescription ON resto.osdescription (lang);
+-- CREATE INDEX IF NOT EXISTS idx_lang_osdescription ON resto.osdescription (lang);
 
 -- [TABLE resto.user]
 CREATE INDEX IF NOT EXISTS idx_resettoken_user ON resto.user (resettoken);
