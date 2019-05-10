@@ -21,9 +21,9 @@
  * @OA\Schema(
  *      schema="RestoFeatureCollection",
  *      description="Feature collection",
- *      required={"type", "_properties", "features"},
+ *      required={"type", "properties", "features"},
  *      @OA\Property(
- *          property="_properties",
+ *          property="properties",
  *          description="Information on query",
  *          @OA\Items(
  *              @OA\Property(
@@ -72,7 +72,7 @@
  *      ),
  *      example={
  *          "type": "FeatureCollection",
- *          "_properties": {
+ *          "properties": {
  *              "id": "20ac2fc6-daee-5621-bca4-d88c0bb19da1",
  *              "totalResults": 1,
  *              "exactCount": true,
@@ -299,12 +299,12 @@ class RestoFeatureCollection
         /*
          * Initialize ATOM feed
          */
-        $atomFeed = new ATOMFeed($this->description['_properties']['id'], $this->context->core['title'] ?? null, $this->getATOMSubtitle());
+        $atomFeed = new ATOMFeed($this->description['properties']['id'], $this->context->core['title'] ?? null, $this->getATOMSubtitle());
 
         /*
          * Set collection elements
          */
-        $atomFeed->setCollectionElements($this->description['_properties'], $this->model);
+        $atomFeed->setCollectionElements($this->description['properties'], $this->model);
 
         /*
          * Add one entry per product
@@ -368,7 +368,7 @@ class RestoFeatureCollection
          */
         $this->description = array(
             'type' => 'FeatureCollection',
-            '_properties' => array(
+            'properties' => array(
                 'id' => RestoUtil::toUUID($defaultName . ':' . json_encode($this->cleanFilters($analysis['details']['appliedFilters']))),
                 'totalResults' => $this->paging['count']['total'],
                 'exactCount' => $this->paging['count']['isExact'],
@@ -701,20 +701,20 @@ class RestoFeatureCollection
     }
 
     /**
-     * Get ATOM subtitle - construct from $this->description['_properties']['title']
+     * Get ATOM subtitle - construct from $this->description['properties']['title']
      *
      * @return string
      */
     private function getATOMSubtitle()
     {
         $subtitle = '';
-        if (isset($this->description['_properties']['totalResults']) && $this->description['_properties']['totalResults'] !== -1) {
-            $subtitle = $this->description['_properties']['totalResults'] . ($this->description['_properties']['totalResults'] > 1 ? 'results' : 'result');
+        if (isset($this->description['properties']['totalResults']) && $this->description['properties']['totalResults'] !== -1) {
+            $subtitle = $this->description['properties']['totalResults'] . ($this->description['properties']['totalResults'] > 1 ? 'results' : 'result');
         }
-        if (isset($this->description['_properties']['startIndex'])) {
-            $previous = isset($this->description['_properties']['links']['previous']) ? '<a href="' . RestoUtil::updateUrlFormat($this->description['_properties']['links']['previous'], 'atom') . '">Previous</a>&nbsp;' : '';
-            $next = isset($this->description['_properties']['links']['next']) ? '&nbsp;<a href="' . RestoUtil::updateUrlFormat($this->description['_properties']['links']['next'], 'atom') . '">Next</a>' : '';
-            return $subtitle . '&nbsp;|&nbsp;' . $previous . $this->description['_properties']['startIndex'] . ' - ' .  ($this->description['_properties']['startIndex'] + 1) . $next;
+        if (isset($this->description['properties']['startIndex'])) {
+            $previous = isset($this->description['properties']['links']['previous']) ? '<a href="' . RestoUtil::updateUrlFormat($this->description['properties']['links']['previous'], 'atom') . '">Previous</a>&nbsp;' : '';
+            $next = isset($this->description['properties']['links']['next']) ? '&nbsp;<a href="' . RestoUtil::updateUrlFormat($this->description['properties']['links']['next'], 'atom') . '">Next</a>' : '';
+            return $subtitle . '&nbsp;|&nbsp;' . $previous . $this->description['properties']['startIndex'] . ' - ' .  ($this->description['properties']['startIndex'] + 1) . $next;
         }
         return $subtitle;
     }
