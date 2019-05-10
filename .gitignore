@@ -1,3 +1,4 @@
 # [SECURITY] Never commit these files since they can contains productions environment info
+app/resto/addons
 .private
 .DS_Store
