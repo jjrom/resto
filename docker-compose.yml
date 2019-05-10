@@ -21,6 +21,7 @@ services:
       - restodb
     networks:
       - default
+      - external
     ports:
       - ${RESTO_EXPOSED_PORT:-5252}:80
     env_file:
