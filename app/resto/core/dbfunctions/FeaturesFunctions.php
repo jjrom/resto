@@ -819,8 +819,7 @@ class FeaturesFunctions
      */
     private function getSelectClause($featureColumns, $user, $options)
     {
-        $sanitized = $this->sanitizeSQLColumns('trim', explode(',', $options['fields'])
-        ));
+        $sanitized = $this->sanitizeSQLColumns('trim', explode(',', $options['fields']));
 
         /*
          * Get Controller database fields
