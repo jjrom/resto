@@ -30,12 +30,12 @@ class FeaturesFunctions
     private $featureColumns = array(
         'id',
         'collection',
-        'productIdentifier',
+        'productidentifier',
         'visibility',
         'title',
         'description',
-        'startDate',
-        'completionDate',
+        'startdate',
+        'completiondate',
         'quicklook',
         'thumbnail',
         'metadata',
@@ -819,7 +819,13 @@ class FeaturesFunctions
      */
     private function getSelectClause($featureColumns, $user, $options)
     {
-        $sanitized = $this->sanitizeSQLColumns($featureColumns, array_map('trim', explode(',', $options['fields'])));
+        $sanitized = $this->sanitizeSQLColumns($featureColumns, array_map(
+            function($item)
+            {
+                return strtolower(trim($item));
+            },
+            explode(',', $options['fields'])
+        ));
 
         /*
          * Get Controller database fields
