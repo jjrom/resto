@@ -30,12 +30,12 @@ class FeaturesFunctions
     private $featureColumns = array(
         'id',
         'collection',
-        'productidentifier',
+        'productIdentifier',
         'visibility',
         'title',
         'description',
-        'startdate',
-        'completiondate',
+        'startDate',
+        'completionDate',
         'quicklook',
         'thumbnail',
         'metadata',
@@ -819,12 +819,7 @@ class FeaturesFunctions
      */
     private function getSelectClause($featureColumns, $user, $options)
     {
-        $sanitized = $this->sanitizeSQLColumns($featureColumns, array_map(
-            function($item)
-            {
-                return strtolower(trim($item));
-            },
-            explode(',', $options['fields'])
+        $sanitized = $this->sanitizeSQLColumns('trim', explode(',', $options['fields'])
         ));
 
         /*
@@ -855,8 +850,8 @@ class FeaturesFunctions
                     $columns[] = 'ST_AsGeoJSON(resto.feature.centroid, 6) AS centroid';
                     break;
 
-                case 'startdate':
-                case 'completiondate':
+                case 'startDate':
+                case 'completionDate':
                     $columns[] = 'to_iso8601(resto.feature.' . $key . ') AS "' . $key . '"';
                     break;
 
