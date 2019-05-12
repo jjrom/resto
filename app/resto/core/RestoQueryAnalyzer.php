@@ -147,7 +147,7 @@ class RestoQueryAnalyzer
          * Order is "name" over "searchTerms"
          */
         $locationName = $params['geo:name'] ?? $params['searchTerms'] ?? null;
-
+    
         /*
          * Search on toponym name
          */
@@ -159,7 +159,7 @@ class RestoQueryAnalyzer
             if ( strpos($locationName, 'geouid' . Resto::TAG_SEPARATOR) === 0 )
             {
                 $location = $this->gazetteer->getToponym(array(
-                    'id' => substr($params['geo:geometry'], 7)
+                    'id' => substr($locationName, 7)
                 ));
                 if (isset($location['_source'])) {
                     $foundLocation = $location['_source'];
