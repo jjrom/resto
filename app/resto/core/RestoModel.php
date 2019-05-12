@@ -129,7 +129,7 @@ abstract class RestoModel
             'operation' => 'intersects',
             'title' => 'Region of Interest defined in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326)'
         ),
-        
+
         'geo:box' => array(
             'key' => 'geom',
             'osKey' => 'box',
@@ -141,7 +141,7 @@ abstract class RestoModel
             'key' => 'geom',
             'osKey' => 'name',
             'operation' => 'distance',
-            'title' => 'Location string e.g. Paris, France'
+            'title' => 'Location string e.g. Paris, France or toponym identifier (i.e. geouid:xxxx)'
         ),
         
         'geo:lon' => array(

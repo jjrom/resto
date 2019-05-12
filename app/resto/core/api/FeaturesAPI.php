@@ -165,7 +165,7 @@ class FeaturesAPI
      *      @OA\Parameter(
      *          name="name",
      *          in="query",
-     *          description="[EXTENSION][egg] Location string e.g. Paris, France - OpenSearch {geo:name}",
+     *          description="[EXTENSION][egg] Location string e.g. Paris, France  or toponym identifier (i.e. geouid:xxxx) - OpenSearch {geo:name}",
      *          required=false
      *      ),
      *      @OA\Parameter(
@@ -361,7 +361,7 @@ class FeaturesAPI
      *      @OA\Parameter(
      *          name="name",
      *          in="query",
-     *          description="[EXTENSION][egg] Location string e.g. Paris, France - OpenSearch {geo:name}",
+     *          description="[EXTENSION][egg] Location string e.g. Paris, France  or toponym identifier (i.e. geouid:xxxx) - OpenSearch {geo:name}",
      *          required=false
      *      ),
      *      @OA\Parameter(

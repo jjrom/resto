@@ -107,6 +107,7 @@ class RestoQueryAnalyzer
             elseif (isset($this->gazetteer)) {
                 $this->extractToponym($params, $details, $hashTodiscard);
             }
+
         }
         
         /*
@@ -145,52 +146,50 @@ class RestoQueryAnalyzer
         /*
          * Order is "name" over "searchTerms"
          */
-        $locationName = null;
-        if (isset($params['geo:name'])) {
-            $locationName = $params['geo:name'];
-        } elseif (isset($params['searchTerms'])) {
-            $locationName = $params['searchTerms'];
-        }
+        $locationName = $params['geo:name'] ?? $params['searchTerms'] ?? null;
 
         /*
          * Search on toponym name
          */
         if (isset($locationName) && ! isset($params['geo:lon']) && ! isset($params['geo:geometry']) && ! isset($params['geo:box'])) {
-            $locations = $this->gazetteer->search(array(
-                'q' => $locationName
-            ));
-            if (isset($locations['hits']) && count($locations['hits']['hits']) > 0) {
-                $foundLocation = $locations['hits']['hits'][0]['_source'];
-                if (isset($foundLocation['wkt'])) {
-                    $params['geo:geometry'] = $foundLocation['wkt'];
-                } elseif (isset($foundLocation['coordinates'])) {
-                    $coordinates = explode(',', $foundLocation['coordinates']);
-                    $params['geo:lon'] = floatval(trim($coordinates[1]));
-                    $params['geo:lat'] = floatval(trim($coordinates[0]));
+            
+            /*
+             * Search on toponym identifier i.e. geo:name starts with geouid
+             */
+            if ( strpos($locationName, 'geouid' . Resto::TAG_SEPARATOR) === 0 )
+            {
+                $location = $this->gazetteer->getToponym(array(
+                    'id' => substr($params['geo:geometry'], 7)
+                ));
+                if (isset($location['_source'])) {
+                    $foundLocation = $location['_source'];
+                    if (isset($foundLocation['hash'])) {
+                        $hashToDiscard = $foundLocation['hash'];
+                    }
+                    if (isset($foundLocation['wkt'])) {
+                        $params['geo:geometry'] = $foundLocation['wkt'];
+                    } else {
+                        $coordinates = explode(',', $foundLocation['coordinates']);
+                        $params['geo:geometry'] = 'POINT(' . trim($coordinates[1]) . ' ' . trim($coordinates[0]) . ')';
+                    }
                 }
             }
-        }
-
-        /*
-         * Search on toponym identifier
-         * i.e. geo:geometry starts with geouid
-         */
-        elseif (! empty($params['geo:geometry']) && (strpos($params['geo:geometry'], 'geouid' . Resto::TAG_SEPARATOR) === 0)) {
-            $location = $this->gazetteer->getToponym(array(
-                'id' => substr($params['geo:geometry'], 7)
-            ));
-            if (isset($location['_source'])) {
-                $foundLocation = $location['_source'];
-                if (isset($foundLocation['hash'])) {
-                    $hashToDiscard = $foundLocation['hash'];
-                }
-                if (isset($foundLocation['wkt'])) {
-                    $params['geo:geometry'] = $foundLocation['wkt'];
-                } else {
-                    $coordinates = explode(',', $foundLocation['coordinates']);
-                    $params['geo:geometry'] = 'POINT(' . trim($coordinates[1]) . ' ' . trim($coordinates[0]) . ')';
+            else {
+                $locations = $this->gazetteer->search(array(
+                    'q' => $locationName
+                ));
+                if (isset($locations['hits']) && count($locations['hits']['hits']) > 0) {
+                    $foundLocation = $locations['hits']['hits'][0]['_source'];
+                    if (isset($foundLocation['wkt'])) {
+                        $params['geo:geometry'] = $foundLocation['wkt'];
+                    } elseif (isset($foundLocation['coordinates'])) {
+                        $coordinates = explode(',', $foundLocation['coordinates']);
+                        $params['geo:lon'] = floatval(trim($coordinates[1]));
+                        $params['geo:lat'] = floatval(trim($coordinates[0]));
+                    }
                 }
             }
+            
         }
 
         if (isset($foundLocation)) {
@@ -200,6 +199,7 @@ class RestoQueryAnalyzer
                 'word' => $foundLocation['name']
             ), $details['Explained']);
         }
+
     }
 
 
