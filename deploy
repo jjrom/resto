@@ -116,7 +116,7 @@ if [[ "${TARGET}" != "prod" && "${TARGET}" != "dev" ]]; then
     showUsage
     echo -e "${RED}[ERROR] Missing target - choose between \"prod\" or \"dev\"${NC}"
     echo ""
-    exit 0
+    exit 1
 fi
 
 #
@@ -127,7 +127,7 @@ if [[ ! -f ${ENV_FILE} ]]; then
     showUsage
     echo -e "${RED}[ERROR] The \"${ENV_FILE}\" file does not exist!${NC}"
     echo ""
-    exit 0
+    exit 1
 fi
 
 PUBLIC_ENDPOINT=$(grep ^PUBLIC_ENDPOINT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
@@ -174,7 +174,7 @@ do
     if [ "$elapsed" -gt 90 ] 
     then
         echo -e "${RED}[ERROR]${NC} Database startup timed out =("
-        exit 0
+        exit 1
     fi  
     sleep 1;
 done
