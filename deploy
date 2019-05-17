@@ -57,7 +57,7 @@ function showUsage {
     echo -e "   Options:"
     echo -e ""
     echo -e "      -e | --envfile Environnement file (default is ${GREEN}config.env${NC})"
-    echo -e "      -p | --projectName Project name (default is ${GREEN}resto${NC})"
+    echo -e "      -p | --projectName Project name (default is ${GREEN}${PROJECT_NAME}${NC})"
     echo -e "      -h | --help show this help"
     echo -e ""
     echo -e "      !!! This script requires docker and docker-compose !!!"
