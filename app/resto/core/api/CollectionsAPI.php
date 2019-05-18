@@ -40,6 +40,15 @@ class CollectionsAPI
      *      summary="Get collections",
      *      description="Returns a list of all collection descriptions including statistics (i.e. number of products, etc.)",
      *      tags={"Collection"},
+     *      @OA\Parameter(
+     *         name="_stats",
+     *         in="query",
+     *         required=false,
+     *         description="Set to get individual statistics for all collection",
+     *         @OA\Schema(
+     *             type="boolean"
+     *         )
+     *      ),
      *      @OA\Response(
      *          response="200",
      *          description="List of all collection descriptions",
@@ -131,8 +140,8 @@ class CollectionsAPI
      *
      */
     public function getCollections($params)
-    {
-        return (new RestoCollections($this->context, $this->user))->load();
+    {   
+        return (new RestoCollections($this->context, $this->user, array('fullStats' => isset($params['_stats']) ? true : false)))->load();
     }
 
     /**

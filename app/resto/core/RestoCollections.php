@@ -41,13 +41,19 @@ class RestoCollections
      */
     private $statistics;
 
+    /*
+     * True to compute individual statistics per collection
+     */
+    private $fullStats = false;
+
     /**
      * Constructor
      *
      * @param RestoContext $context
      * @param RestoUser $user
+     * @param array $params
      */
-    public function __construct($context, $user)
+    public function __construct($context, $user, $params = array())
     {
 
         /*
@@ -59,7 +65,9 @@ class RestoCollections
 
         $this->context = $context;
         $this->user = $user;
-
+        if (isset($params['fullStats'])) {
+            $this->fullStats = $params['fullStats'];
+        }
         return $this;
     }
 
@@ -148,7 +156,7 @@ class RestoCollections
             'collections' => array()
         );
         foreach (array_keys($this->collections) as $key) {
-            $collections['collections'][] = $this->collections[$key]->toArray(false);
+            $collections['collections'][] = $this->collections[$key]->toArray($this->fullStats);
         }
         return json_encode($collections, $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
     }
