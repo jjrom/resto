@@ -139,16 +139,7 @@ echo -e "[INFO] Public endpoint is ${GREEN}${PUBLIC_ENDPOINT}${NC}"
 
 #
 # Containers are part of the external network "rnet" (resto network)
-# From containers, host IP is accessible as "dockerhost"
 #
-DOCKERHOST=$(ifconfig | grep -E "([0-9]{1,3}\.){3}[0-9]{1,3}" | grep -v 127.0.0.1 | awk '{ print $2 }' | cut -f2 -d: | head -n1)
-if [[ "${DOCKERHOST}" != "" ]]; then
-    echo -e "[INFO] Docker host IP is ${GREEN}${DOCKERHOST}${NC}"
-else
-    echo -e "${RED}[WARNING] Cannot get docker host IP - check your network ${NC}"
-    DOCKERHOST=192.168.0.1
-    echo -e "[INFO] Use dummy value for Docker host IP ${GREEN}${DOCKERHOST}${NC}"
-fi
 RNET_EXIST=$(docker network ls | grep rnet | wc | awk '{print $1}')
 if [[ "${RNET_EXIST}" == "0" ]]; then
     echo -e "[INFO] Creating external network ${GREEN}rnet${NC}"
