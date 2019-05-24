@@ -25,12 +25,12 @@ PROJECT_NAME=resto
 
 ### PostgreSQL PGDATA directory i.e. directory on host where the database files are stored
 ### If set to a string and not a path, then a volume is created within docker volumes storage
-POSTGRES_DATA=database_data
+export POSTGRES_DATA=database_data
 
 ### resto static content permanent directory
-RESTO_STATIC_CONTENT=static_content
+export RESTO_STATIC_CONTENT=static_content
 
-RESTO_EXPOSED_PORT=5252
+export RESTO_EXPOSED_PORT=5252
 
 ################################
 
