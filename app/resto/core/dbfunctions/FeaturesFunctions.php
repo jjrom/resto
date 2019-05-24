@@ -851,6 +851,8 @@ class FeaturesFunctions
 
                 case 'startDate':
                 case 'completionDate':
+                case 'published':
+                case 'updated':
                     $columns[] = 'to_iso8601(resto.feature.' . $key . ') AS "' . $key . '"';
                     break;
 
