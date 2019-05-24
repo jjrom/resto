@@ -130,9 +130,9 @@ if [[ ! -f ${ENV_FILE} ]]; then
     exit 1
 fi
 
-PUBLIC_ENDPOINT=$(grep ^PUBLIC_ENDPOINT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
-RESTO_EXPOSED_PORT=$(grep ^RESTO_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
-DATABASE_EXPOSED_PORT=$(grep ^DATABASE_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+export PUBLIC_ENDPOINT=$(grep ^PUBLIC_ENDPOINT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+export RESTO_EXPOSED_PORT=$(grep ^RESTO_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+export DATABASE_EXPOSED_PORT=$(grep ^DATABASE_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 
 echo -e "${YELLOW}[INFO] You're now running ${PROJECT_NAME} installation in **${TARGET}** mode${NC}"
 echo -e "[INFO] Public endpoint is ${GREEN}${PUBLIC_ENDPOINT}${NC}"
