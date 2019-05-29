@@ -94,7 +94,7 @@ class FiltersFunctions
                  * Sorting special case
                  */
                 if (!empty($sortKey) && ($filterName === 'resto:lt' || $filterName === 'resto:gt')) {
-                    $filters[] = 'resto.feature.' . $sortKey . ($sortKey !== 'likes' ? '_idx' : '' ) . $model->searchFilters[$filterName]['operation'] . '\'' . pg_escape_string($params[$filterName]) . '\'';
+                    $filters[] = 'resto.feature.' . $sortKey . $model->searchFilters[$filterName]['operation'] . '\'' . pg_escape_string($params[$filterName]) . '\'';
                 }
 
                 /*

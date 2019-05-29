@@ -785,7 +785,7 @@ class RestoFeatureCollection
         return array(
             'offset' => $offset,
             'limit' => $limit,
-            'sortKey' => $sortKey,
+            'sortKey' => $sortKey === 'likes' ? $sortKey : $sortKey + '_idx',
             'order' => $sortOrder,
             'hasBefore' => isset($filters['resto:lt']) ? true : false,
             'hasAfter' => isset($filters['resto:gt']) ? true : false

@@ -874,7 +874,7 @@ class FeaturesFunctions
          * Add sort idx
          */
         if (!empty($options['sortKey'])) {
-            $columns[] = 'resto.feature.' . $options['sortKey'] . ($options['sortKey'] !== 'likes' ? '_idx' : '') . ' AS sort_idx';
+            $columns[] = 'resto.feature.' . $options['sortKey'] . ' AS sort_idx';
         }
 
         return 'SELECT ' . join(',', $columns) . ' FROM resto.feature';
