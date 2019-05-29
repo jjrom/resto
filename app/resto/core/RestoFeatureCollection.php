@@ -499,25 +499,27 @@ class RestoFeatureCollection
         $links = $this->getBaseLinks($name);
 
         /*
-         * resto:gt has preseance over startPage
+         * resto:lt has preseance over startPage
          */
-        if ($sorting['hasBefore']) {
-            if (count($this->restoFeatures) > 0) {
-                $featureArray = $this->restoFeatures[0]->toArray();
-                $links[] = $this->getLink('previous', array(
-                    'resto:lt' => null,
-                    'resto:gt' => $featureArray['properties']['sort_idx'],
-                    'count' => $sorting['limit']));
-            }
+        if ($sorting['resto:lt']) {
+
+            /* 
+             * Previous
+             */
+            $links[] = $this->getLink('previous', array(
+                'resto:lt' => null,
+                'resto:gt' => $sorting['resto:lt'],
+                'count' => $sorting['limit']));
 
             /*
              * First URL is the first search URL i.e. without any lt/gt
              */
             $links[] = $this->getLink('first', array(
-                'resto:gt' => null,
                 'resto:lt' => null,
+                'resto:gt' => null,
                 'count' => $sorting['limit'])
             );
+
         }
         /*
          * Start page cannot be lower than 1
@@ -562,11 +564,13 @@ class RestoFeatureCollection
 
             /*
              * Last URL has the highest startIndex
-             */
+             *
             $links[] = $this->getLink('last', array(
                 'startPage' => max($this->paging['totalPage'], 1),
                 'count' => $sorting['limit'])
             );
+            */
+            
         }
 
         return $links;
@@ -787,8 +791,8 @@ class RestoFeatureCollection
             'limit' => $limit,
             'sortKey' => $sortKey === 'likes' ? $sortKey : $sortKey . '_idx',
             'order' => $sortOrder,
-            'hasBefore' => isset($filters['resto:lt']) ? true : false,
-            'hasAfter' => isset($filters['resto:gt']) ? true : false
+            'resto:lt' => isset($filters['resto:lt']) ? $filters['resto:lt'] : null,
+            'resto:gt' => isset($filters['resto:gt']) ? $filters['resto:gt'] : null
         );
     }
 }

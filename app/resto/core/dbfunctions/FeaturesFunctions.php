@@ -128,8 +128,6 @@ class FeaturesFunctions
             $sorting['offset'] > 0 ? ' OFFSET ' . $sorting['offset'] : ''
         ));
 
-        $whereClause = $filtersFunctions->getWhereClause($filtersAndJoins);
-        
         /*
          * Prepare query
          */
@@ -139,7 +137,7 @@ class FeaturesFunctions
                 'useSocial' => isset($context->addons['Social']),
                 'sortKey' => $sorting['sortKey']
             )),
-            $whereClause,
+            $filtersFunctions->getWhereClause($filtersAndJoins, true),
             $extra
         ));
         
@@ -151,7 +149,7 @@ class FeaturesFunctions
          */
         $features = (new RestoFeatureUtil($context, $user, $collection))->toFeatureArrayList($this->dbDriver->fetch($this->dbDriver->query($query)));
         return array(
-            'count' => count($features) > 0 ? $this->getCount('FROM resto.feature ' . $whereClause, $params) : array(
+            'count' => count($features) > 0 ? $this->getCount('FROM resto.feature ' . $filtersFunctions->getWhereClause($filtersAndJoins, false), $params) : array(
                 'total' => 0,
                 'isExact' => true
             ),
@@ -186,7 +184,7 @@ class FeaturesFunctions
         // Determine if search on id or productidentifier
         $filtersAndJoins['filters'][] = 'resto.feature.id=\'' . pg_escape_string((RestoUtil::isValidUUID($featureId) ? $featureId : RestoUtil::toUUID($featureId))) . '\'';
         
-        $whereClause = $filterFunctions->getWhereClause($filtersAndJoins);
+        $whereClause = $filterFunctions->getWhereClause($filtersAndJoins, true);
         
         $results = $this->dbDriver->fetch($this->dbDriver->query($selectClause . ' ' . $whereClause));
         if (isset($results) && count($results) === 1) {

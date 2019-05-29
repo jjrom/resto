@@ -279,14 +279,14 @@ class CollectionsFunctions
          * CREATE TABLE resto.osdescription (
          *  collection          TEXT,
          *  lang                TEXT,
-         *  shortname           VARCHAR(16),
-         *  longname            VARCHAR(48),
-         *  description         VARCHAR(1024),
-         *  tags                VARCHAR(256),
-         *  developer           VARCHAR(64),
+         *  shortname           TEXT,
+         *  longname            TEXT,
+         *  description         TEXT,
+         *  tags                TEXT,
+         *  developer           TEXT,
          *  contact             TEXT,
          *  query               TEXT,
-         *  attribution         VARCHAR(256),
+         *  attribution         TEXT
          * );
          */
         $this->dbDriver->pQuery('DELETE FROM resto.osdescription WHERE collection=$1', array(
@@ -310,12 +310,14 @@ class CollectionsFunctions
             $validProperties = array(
                 'ShortName' => 16,
                 'LongName' => 48,
-                'Description' => 1024,
+                //'Description' => 1024,
+                'Description' => -1,
                 'Tags' => 256,
                 'Developer' => 64,
                 'Contact' => -1,
                 'Query' => -1,
-                'Attribution' => 256
+                //'Attribution' => 256
+                'Attribution' => -1
             );
             foreach (array_keys($description) as $key) {
 

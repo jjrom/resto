@@ -68,7 +68,8 @@ class FiltersFunctions
     public function prepareFilters($user, $model, $params, $sortKey)
     {
         $filters = array();
-        
+        $sortFilters = array();
+
         /**
          * Append filter for contextual search
          */
@@ -94,7 +95,7 @@ class FiltersFunctions
                  * Sorting special case
                  */
                 if (!empty($sortKey) && ($filterName === 'resto:lt' || $filterName === 'resto:gt')) {
-                    $filters[] = 'resto.feature.' . $sortKey . $model->searchFilters[$filterName]['operation'] . '\'' . pg_escape_string($params[$filterName]) . '\'';
+                    $sortFilters[] = 'resto.feature.' . $sortKey . $model->searchFilters[$filterName]['operation'] . '\'' . pg_escape_string($params[$filterName]) . '\'';
                 }
 
                 /*
@@ -136,6 +137,7 @@ class FiltersFunctions
         
         return array(
             'filters' => $filters,
+            'sortFilters' => $sortFilters,
             'joins' => $this->joins
         );
     }
@@ -144,21 +146,19 @@ class FiltersFunctions
      *
      * Get Where clause from input parameters
      *
-     * @param RestoUser $user
-     * @param RestoModel $model
-     * @param array $params
-     * @param string $sortKey
+     * @param array $filtersAndJoins
+     * @param boolean $addSortFilters
      *
      * @return array
      * @throws Exception
      */
-    public function getWhereClause($filtersAndJoins)
+    public function getWhereClause($filtersAndJoins, $addSortFilters)
     {
         if (count($filtersAndJoins['filters']) > 0) {
             return join(' ', array(
                 trim(join(' ', array_unique($filtersAndJoins['joins']))),
                 'WHERE',
-                join(' AND ', $filtersAndJoins['filters'])
+                join(' AND ', $addSortFilters ? array_merge($filtersAndJoins['filters'], $filtersAndJoins['sortFilters']) : $filtersAndJoins['filters'])
             ));
         }
     }
