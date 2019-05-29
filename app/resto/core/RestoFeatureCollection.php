@@ -492,7 +492,7 @@ class RestoFeatureCollection
      */
     private function getLinks($sorting, $name)
     {
-
+        
         /*
          * Base links are always returned
          */
@@ -505,8 +505,8 @@ class RestoFeatureCollection
             if (count($this->restoFeatures) > 0) {
                 $featureArray = $this->restoFeatures[0]->toArray();
                 $links[] = $this->getLink('previous', array(
-                    'lt' => null,
-                    'after' => $featureArray['properties'][$sorting['sortKey']],
+                    'resto:lt' => null,
+                    'resto:gt' => $featureArray['properties']['sort_idx'],
                     'count' => $sorting['limit']));
             }
 
@@ -514,8 +514,8 @@ class RestoFeatureCollection
              * First URL is the first search URL i.e. without any lt/gt
              */
             $links[] = $this->getLink('first', array(
-                'gt' => null,
-                'lt' => null,
+                'resto:gt' => null,
+                'resto:lt' => null,
                 'count' => $sorting['limit'])
             );
         }
@@ -555,8 +555,8 @@ class RestoFeatureCollection
             $featureArray = $this->restoFeatures[$count - 1]->toArray();
             $links[] = $this->getLink('next', array(
                 //'startPage' => $this->paging['nextPage'],
-                'gt' => null,
-                'lt' => $featureArray['properties'][$sorting['sortKey']],
+                'resto:gt' => null,
+                'resto:lt' => $featureArray['properties']['sort_idx'],
                 'count' => $sorting['limit'])
             );
 
