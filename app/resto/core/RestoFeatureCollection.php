@@ -499,23 +499,23 @@ class RestoFeatureCollection
         $links = $this->getBaseLinks($name);
 
         /*
-         * resto:after has preseance over startPage
+         * resto:gt has preseance over startPage
          */
         if ($sorting['hasBefore']) {
             if (count($this->restoFeatures) > 0) {
                 $featureArray = $this->restoFeatures[0]->toArray();
                 $links[] = $this->getLink('previous', array(
-                    'before' => null,
+                    'lt' => null,
                     'after' => $featureArray['properties'][$sorting['sortKey']],
                     'count' => $sorting['limit']));
             }
 
             /*
-             * First URL is the first search URL i.e. without any before/after
+             * First URL is the first search URL i.e. without any lt/gt
              */
             $links[] = $this->getLink('first', array(
-                'after' => null,
-                'before' => null,
+                'gt' => null,
+                'lt' => null,
                 'count' => $sorting['limit'])
             );
         }
@@ -555,8 +555,8 @@ class RestoFeatureCollection
             $featureArray = $this->restoFeatures[$count - 1]->toArray();
             $links[] = $this->getLink('next', array(
                 //'startPage' => $this->paging['nextPage'],
-                'after' => null,
-                'before' => $featureArray['properties'][$sorting['sortKey']],
+                'gt' => null,
+                'lt' => $featureArray['properties'][$sorting['sortKey']],
                 'count' => $sorting['limit'])
             );
 
@@ -787,8 +787,8 @@ class RestoFeatureCollection
             'limit' => $limit,
             'sortKey' => $sortKey,
             'order' => $sortOrder,
-            'hasBefore' => isset($filters['resto:before']) ? true : false,
-            'hasAfter' => isset($filters['resto:after']) ? true : false
+            'hasBefore' => isset($filters['resto:lt']) ? true : false,
+            'hasAfter' => isset($filters['resto:gt']) ? true : false
         );
     }
 }

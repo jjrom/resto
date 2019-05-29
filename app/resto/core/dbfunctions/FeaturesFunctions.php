@@ -117,7 +117,7 @@ class FeaturesFunctions
         }
 
         /*
-         * Get sorting - the $sortKey  is used for 'before' and 'after' search filters
+         * Get sorting - the $sortKey  is used for 'lt' and 'gt' search filters
          */
         $extra = join(' ', array(
             'ORDER BY',

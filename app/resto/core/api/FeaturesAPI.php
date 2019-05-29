@@ -205,15 +205,15 @@ class FeaturesAPI
      *          required=false
      *      ),
      *      @OA\Parameter(
-     *          name="after",
+     *          name="gt",
      *          in="query",
-     *          description="Returns features with *sort* key value greater than *after* value - use this for pagination",
+     *          description="Returns features with *sort* key value greater than *gt* value - use this for pagination",
      *          required=false
      *      ),
      *      @OA\Parameter(
-     *          name="before",
+     *          name="lt",
      *          in="query",
-     *          description="Returns features with *sort* key value lower than *before* value - use this for pagination",
+     *          description="Returns features with *sort* key value lower than *lt* value - use this for pagination",
      *          required=false
      *      ),
      *      @OA\Parameter(
@@ -401,15 +401,15 @@ class FeaturesAPI
      *          required=false
      *      ),
      *      @OA\Parameter(
-     *          name="after",
+     *          name="gt",
      *          in="query",
-     *          description="Cursor pagination ISO8601 : after - based on sort value",
+     *          description="Returns features with *sort* key value greater than *gt* value - use this for pagination",
      *          required=false
      *      ),
      *      @OA\Parameter(
-     *          name="before",
+     *          name="lt",
      *          in="query",
-     *          description="Cursor pagination ISO8601 : before - based on sort value",
+     *          description="Returns features with *sort* key value lower than *lt* value - use this for pagination",
      *          required=false
      *      ),
      *      @OA\Parameter(
