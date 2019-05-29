@@ -309,7 +309,8 @@ class CollectionsFunctions
              */
             $validProperties = array(
                 'ShortName' => 16,
-                'LongName' => 48,
+                //'LongName' => 48,
+                'LongName' => -1,
                 //'Description' => 1024,
                 'Description' => -1,
                 'Tags' => 256,
