@@ -7,7 +7,7 @@ return array(
     'sharedLinkDuration' => ${SHAREDLINK_DURATION:-86400},
     'storageInfo' => array(
         'path' => '/var/www/static',
-        'endpoint' => '${STORAGE_PUBLIC_ENDPOINT}'
+        'endpoint' => '${STORAGE_PUBLIC_ENDPOINT:-/static}'
     ),
     'storeQuery' => ${STORE_QUERY:-true},
     'streamMethod' => '${STREAM_METHOD:-php}',

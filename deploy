@@ -25,12 +25,12 @@ PROJECT_NAME=resto
 
 ### PostgreSQL PGDATA directory i.e. directory on host where the database files are stored
 ### If set to a string and not a path, then a volume is created within docker volumes storage
-POSTGRES_DATA=database_data
+export POSTGRES_DATA=database_data
 
 ### resto static content permanent directory
-RESTO_STATIC_CONTENT=static_content
+export RESTO_STATIC_CONTENT=static_content
 
-RESTO_EXPOSED_PORT=5252
+export RESTO_EXPOSED_PORT=5252
 
 ################################
 
@@ -130,25 +130,16 @@ if [[ ! -f ${ENV_FILE} ]]; then
     exit 1
 fi
 
-PUBLIC_ENDPOINT=$(grep ^PUBLIC_ENDPOINT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
-RESTO_EXPOSED_PORT=$(grep ^RESTO_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
-DATABASE_EXPOSED_PORT=$(grep ^DATABASE_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+export PUBLIC_ENDPOINT=$(grep ^PUBLIC_ENDPOINT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+export RESTO_EXPOSED_PORT=$(grep ^RESTO_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+export DATABASE_EXPOSED_PORT=$(grep ^DATABASE_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 
 echo -e "${YELLOW}[INFO] You're now running ${PROJECT_NAME} installation in **${TARGET}** mode${NC}"
 echo -e "[INFO] Public endpoint is ${GREEN}${PUBLIC_ENDPOINT}${NC}"
 
 #
 # Containers are part of the external network "rnet" (resto network)
-# From containers, host IP is accessible as "dockerhost"
 #
-DOCKERHOST=$(ifconfig | grep -E "([0-9]{1,3}\.){3}[0-9]{1,3}" | grep -v 127.0.0.1 | awk '{ print $2 }' | cut -f2 -d: | head -n1)
-if [[ "${DOCKERHOST}" != "" ]]; then
-    echo -e "[INFO] Docker host IP is ${GREEN}${DOCKERHOST}${NC}"
-else
-    echo -e "${RED}[WARNING] Cannot get docker host IP - check your network ${NC}"
-    DOCKERHOST=192.168.0.1
-    echo -e "[INFO] Use dummy value for Docker host IP ${GREEN}${DOCKERHOST}${NC}"
-fi
 RNET_EXIST=$(docker network ls | grep rnet | wc | awk '{print $1}')
 if [[ "${RNET_EXIST}" == "0" ]]; then
     echo -e "[INFO] Creating external network ${GREEN}rnet${NC}"

@@ -393,7 +393,7 @@ class CollectionsAPI
      * @OA\Put(
      *      path="/collections/{collectionName}",
      *      summary="Update collection",
-     *      description="Note that the collection *collectionName* property cannot be updated",
+     *      description="Note that *collectionName* and *model* properties cannot be updated",
      *      tags={"Collection"},
      *      @OA\Parameter(
      *         name="collectionName",
