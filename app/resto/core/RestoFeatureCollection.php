@@ -501,15 +501,22 @@ class RestoFeatureCollection
         /*
          * resto:lt has preseance over startPage
          */
-        if ($sorting['resto:lt']) {
+        if ($sorting['resto:lt'] || $sorting['resto:gt']) {
 
-            /* 
-             * Previous
-             */
-            $links[] = $this->getLink('previous', array(
-                'resto:lt' => null,
-                'resto:gt' => $sorting['resto:lt'],
-                'count' => $sorting['limit']));
+            if (isset($this->restoFeatures[0]))
+            {
+                $featureArray = $this->restoFeatures[0]->toArray();
+
+                /* 
+                * Previous
+                */
+                $links[] = $this->getLink('previous', array(
+                    'resto:lt' => null,
+                    'resto:gt' => $featureArray['properties']['sort_idx'],
+                    'count' => $sorting['limit'])
+                );
+                
+            }
 
             /*
              * First URL is the first search URL i.e. without any lt/gt
@@ -791,6 +798,8 @@ class RestoFeatureCollection
             'limit' => $limit,
             'sortKey' => $sortKey === 'likes' ? $sortKey : $sortKey . '_idx',
             'order' => $sortOrder,
+            // [IMPORTANT] We need to force ASC order to make "previous" link working
+            'realOrder' => isset($filters['resto:gt']) ? 'ASC' : $sortOrder,
             'resto:lt' => isset($filters['resto:lt']) ? $filters['resto:lt'] : null,
             'resto:gt' => isset($filters['resto:gt']) ? $filters['resto:gt'] : null
         );

@@ -122,7 +122,7 @@ class FeaturesFunctions
         $extra = join(' ', array(
             'ORDER BY',
             'resto.feature.' . $sorting['sortKey'],
-            $sorting['order'],
+            $sorting['realOrder'],
             'LIMIT',
             $sorting['limit'],
             $sorting['offset'] > 0 ? ' OFFSET ' . $sorting['offset'] : ''
@@ -153,7 +153,8 @@ class FeaturesFunctions
                 'total' => 0,
                 'isExact' => true
             ),
-            'features' => $features
+            // Reverse features array if needed
+            'features' => $sorting['realOrder'] !== $sorting['order'] ? array_reverse($features) : $features
         );
     }
 
