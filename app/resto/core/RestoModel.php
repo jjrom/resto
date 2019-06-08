@@ -337,7 +337,7 @@ abstract class RestoModel
     {
         
         /*
-         * Input feature cannot have both and id and a productIdentifier
+         * Input feature cannot have both an id and a productIdentifier
          */
         if (isset($data['id']) && isset($data['properties']['productIdentifier']) && $data['id'] !== $data['properties']['productIdentifier']) {
             return RestoLogUtil::httpError(400, 'Invalid input feature - found both "id" and "properties.productIdentifier"');
@@ -362,6 +362,7 @@ abstract class RestoModel
             $collection,
             $this->prepareFeatureArray($collection, $data, $params)
         );
+
     }
 
     /**
@@ -570,7 +571,8 @@ abstract class RestoModel
          */
         return array(
             'topologyAnalysis' => $topologyAnalysis,
-            'properties' => array_merge($properties, array('keywords' => $keywords))
+            'properties' => array_merge($properties, array('keywords' => $keywords)),
+            'assets' => $data['assets'] ?? null
         );
     }
 

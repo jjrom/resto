@@ -39,7 +39,7 @@ class FeaturesFunctions
         'quicklook',
         'thumbnail',
         'metadata',
-        'links',
+        'assets',
         'updated',
         'published',
         'keywords',
@@ -714,13 +714,6 @@ class FeaturesFunctions
             }
             
             /*
-             * Resource property is json
-             */
-            elseif ($propertyName === 'links') {
-                $keysAndValues[$propertyName] = json_encode($propertyValue);
-            }
-            
-            /*
              * Directly add to metadata
              */
             else {
@@ -742,9 +735,14 @@ class FeaturesFunctions
        
         // JSON encode metadata
         $keysAndValues['metadata'] = json_encode($keysAndValues['metadata']);
-        $output['keysAndValues'] = array_merge($protected, $keysAndValues);
+
+        // JSON encode assets
+        if (isset($featureArray['assets'])) {
+            $keysAndValues['assets'] = json_encode($featureArray['assets']);
+        }
 
         $counter = 0;
+        $output['keysAndValues'] = array_merge($protected, $keysAndValues);
         foreach (array_keys($output['keysAndValues'] ?? array()) as $key) {
             if ($key === 'normalized_hashtags') {
                 $output['params'][] = 'normalize_array($' . ++$counter . ')';

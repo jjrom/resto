@@ -231,6 +231,9 @@ class RestoFeatureUtil
             } else {
                 switch ($key) {
 
+                    case 'assets':
+                        break;
+
                     case 'geometry':
                         $geometry = json_decode($value, true);
                         break;
@@ -278,13 +281,19 @@ class RestoFeatureUtil
             }
         }
         
-        return array(
+        $feature = array(
             'type' => 'Feature',
             'id' => $rawFeatureArray['id'],
             'bbox' => $bbox,
             'geometry' => $geometry,
             'properties' => $this->toProperties($properties)
         );
+
+        if (isset($rawFeatureArray['assets'])) {
+            $feature['assets'] = json_decode($rawFeatureArray['assets'], true);
+        }
+        
+        return $feature;
     }
 
 

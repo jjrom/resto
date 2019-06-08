@@ -166,11 +166,10 @@ CREATE TABLE IF NOT EXISTS resto.feature (
     --      }
     metadata            JSON,
 
-    -- Contains links to download, metadata original file, etc.
+    -- Assets array contains download, metadata original file, etc.
     --  
-    --      [
-    --          {
-    --              "rel":"download",
+    --      {
+    --          download:{
     --              "title":"Download link",
     --              "href":"http://localhost/image123.tif",
     --              "realPath":"file://data/images/image123.tif",
@@ -178,22 +177,16 @@ CREATE TABLE IF NOT EXISTS resto.feature (
     --              "integrity": "sha384-oqVuAfXRKap...7f86",
     --              "type":"application/tif"
     --          },
-    --          {
+    --          metadata:{
     --              "rel":"alternate",
     --              "title":"Metadata link",
     --              "href":"http://localhost/image123.xml",
     --              "realPath":"file://data/images/image123.xml",
     --              "type":"application/xml"
-    --          },
-    --          {
-    --              "rel":"license",
-    --              "title":"License link",
-    --              "href":"http://localhost/licenses/license",
-    --              "type":"application/json"
     --          }
-    --       ]
+    --      }
     --
-    links               JSON,
+    assets               JSON,
 
     -- Timestamp of publication for this feature
     published           TIMESTAMP,
