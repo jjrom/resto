@@ -18,14 +18,6 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m'
 
-###### DO NOT TOUCH DEFAULT VALUES ########
-DATABASE_NAME=resto
-DATABASE_USER_NAME=resto
-DATABASE_USER_PASSWORD=resto
-DATABASE_EXPOSED_PORT=5253
-ADMIN_USER_NAME=admin
-###########################################
-
 # Force script to exit on error
 set -e
 err_report() {
@@ -78,12 +70,31 @@ fi
 
 # Read environment from ENV_FILE
 DATABASE_EXPOSED_PORT=$(grep ^DATABASE_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
-DATABASE_USER_PASSWORD=$(grep ^DATABASE_USER_PASSWORD= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
-DATABASE_USER_NAME=$(grep ^DATABASE_USER_NAME= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
-DATABASE_NAME=$(grep ^DATABASE_NAME= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
-ADMIN_USER_NAME=$(grep ^ADMIN_USER_NAME= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
-ADMIN_USER_PASSWORD=$(grep ^ADMIN_USER_PASSWORD= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+if [ "${DATABASE_EXPOSED_PORT}" == "" ]; then
+    DATABASE_EXPOSED_PORT=5253
+fi
 
+DATABASE_USER_PASSWORD=$(grep ^DATABASE_USER_PASSWORD= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+if [ "${DATABASE_USER_PASSWORD}" == "" ]; then
+    DATABASE_USER_PASSWORD=resto
+fi
+
+DATABASE_USER_NAME=$(grep ^DATABASE_USER_NAME= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+if [ "${DATABASE_USER_NAME}" == "" ]; then
+    DATABASE_USER_NAME=resto
+fi
+
+DATABASE_NAME=$(grep ^DATABASE_NAME= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+if [ "${DATABASE_NAME}" == "" ]; then
+    DATABASE_NAME=resto
+fi
+
+ADMIN_USER_NAME=$(grep ^ADMIN_USER_NAME= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+if [ "${ADMIN_USER_NAME}" == "" ]; then
+    ADMIN_USER_NAME=admin
+fi
+
+ADMIN_USER_PASSWORD=$(grep ^ADMIN_USER_PASSWORD= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 if [ "${ADMIN_USER_PASSWORD}" == "" ]; then
     showUsage
     echo -e "${RED}[ERROR]${NC} ADMIN_USER_PASSWORD cannot be empty (see ${ENV_FILE})"
