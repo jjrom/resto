@@ -190,9 +190,21 @@ class GeneralFunctions
             );
         }
 
+        /*
+         * Convert to EPSG:4326 if input SRID differs from this projection
+         */
+        $epsgCode = RestoGeometryUtil::geoJSONGeometryToSRID($geometry);
+        $geoJsonParser = 'ST_SetSRID(ST_GeomFromGeoJSON($1), 4326)';
+        if ($epsgCode !== "4326") {
+            $geoJsonParser = 'ST_Transform(ST_SetSRID(ST_GeomFromGeoJSON($1), ' . $epsgCode . '), 4326)';
+        }
+
         try {
-            $result = pg_fetch_row(pg_query_params($this->dbDriver->getConnection(), 'WITH tmp AS (SELECT ST_SetSRID(ST_GeomFromGeoJSON($1), 4326) AS geom) SELECT geom, ST_SetSRID(' . $this->getSplitterFunction($params) . ', 4326) AS _geom, ST_SetSRID(ST_Centroid(geom::geography)::geometry, 4326) AS centroid FROM tmp', array(
-                json_encode($geometry)
+            $result = pg_fetch_row(pg_query_params($this->dbDriver->getConnection(), 'WITH tmp AS (SELECT ' . $geoJsonParser . ' AS geom) SELECT geom, ST_SetSRID(' . $this->getSplitterFunction($params) . ', 4326) AS _geom, ST_SetSRID(ST_Centroid(geom::geography)::geometry, 4326) AS centroid FROM tmp', array(
+                json_encode(array(
+                    'type' => $geometry['type'],
+                    'coordinates' => $geometry['coordinates']
+                ))
             )), 0, PGSQL_ASSOC);
 
         } catch (Exception $e) {
@@ -253,4 +265,5 @@ class GeneralFunctions
         return  'ST_SimplifyPreserveTopologyWhenTooBig(ST_SplitDateLine(geom),' . $params['tolerance'] . (isset($params['maxpoints']) ? ',' . $params['maxpoints'] : '') . ')';
 
     }
+
 }

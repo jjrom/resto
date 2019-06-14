@@ -204,6 +204,55 @@ class RestoGeometryUtil
     }
 
     /**
+     * Return WKT from geometry
+     * @param array $geometry - GeoJSON geometry
+     */
+    public static function geoJSONGeometryToWKT($geometry)
+    {
+        $type = strtoupper($geometry['type']);
+        $epsgCode = RestoGeometryUtil::geoJSONGeometryToSRID($geometry);
+        $srid = $epsgCode === 4326 ? '' : 'SRID=' . $epsgCode . ';';
+        switch ($type) {
+
+            case 'POINT':
+                return $srid . $type . RestoGeometryUtil::toPoint($geometry['coordinates']);
+            
+            case 'MULTIPOINT':
+                return $srid . $type . RestoGeometryUtil::coordinatesToString($geometry['coordinates'], 'toPoint');
+            
+            case 'LINESTRING':
+                return $srid . $type . RestoGeometryUtil::coordinatesToString($geometry['coordinates']);
+            
+            case 'MULTILINESTRING':
+            case 'POLYGON':
+                return $srid . $type . RestoGeometryUtil::coordinatesToString($geometry['coordinates'], 'toLineString');
+            
+            case 'MULTIPOLYGON':
+                return $srid . $type . RestoGeometryUtil::coordinatesToString($geometry['coordinates'], 'toPolygon');
+            
+            default:
+                return null;
+                
+        }
+    }
+
+    /**
+     * Return SRID from GeoJSON geometry
+     * @param array $geometry - GeoJSON geometry
+     */
+    public static function geoJSONGeometryToSRID($geometry)
+    {
+        if (isset($geometry) && isset($geometry['crs']) && isset($geometry['crs']['properties']) && isset($geometry['crs']['properties']['name'])) {
+            // Get code from EPSG string (e.g. urn:ogc:def:crs:EPSG:8.8.1:32610)
+            $exploded = explode(':', $geometry['crs']['properties']['name']);
+            $epsgCode = $exploded[count($exploded) - 1];
+            return (integer) $epsgCode;
+            
+        }
+        return 4326;
+    }
+
+    /**
      * Return POINT WKT from coordinates (without WKT type)
      *
      * @param array $coordinates - GeoJSON geometry
@@ -211,36 +260,6 @@ class RestoGeometryUtil
     private static function toPoint($coordinates)
     {
         return '(' . join(' ', $coordinates) . ')';
-    }
-
-    /**
-     * Return WKT from geometry
-     * @param array $geometry - GeoJSON geometry
-     */
-    public static function geoJSONGeometryToWKT($geometry)
-    {
-        $type = strtoupper($geometry['type']);
-        switch ($type) {
-
-            case 'POINT':
-                return $type . RestoGeometryUtil::toPoint($geometry['coordinates']);
-            
-            case 'MULTIPOINT':
-                return $type . RestoGeometryUtil::coordinatesToString($geometry['coordinates'], 'toPoint');
-            
-            case 'LINESTRING':
-                return $type . RestoGeometryUtil::coordinatesToString($geometry['coordinates']);
-            
-            case 'MULTILINESTRING':
-            case 'POLYGON':
-                return $type . RestoGeometryUtil::coordinatesToString($geometry['coordinates'], 'toLineString');
-            
-            case 'MULTIPOLYGON':
-                return $type . RestoGeometryUtil::coordinatesToString($geometry['coordinates'], 'toPolygon');
-            
-            default:
-                return null;
-        }
     }
 
     /**
