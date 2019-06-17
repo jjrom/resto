@@ -463,16 +463,16 @@ class RestoCollection
         }
 
         /*
-         * Load for creation - mandatory properties are required
+         * This is an update - remove properties that *CANNOT BE* updated
          */
-        if (! $update) {
-            $this->checkCreationMandatoryProperties($object);
+        if ($update) {
+            unset($object['name'], $object['model']);
         }
         /*
-         * Otherwise, these are forbidden
+         * Load for creation - mandatory properties are required
          */
         else {
-            $this->checkUpdateForbiddenProperties($object);
+            unset($object['name'], $object['model']);
         }
 
         /*
@@ -553,17 +553,4 @@ class RestoCollection
 
     }
     
-    /**
-     * Check forbidden properties for collection update
-     *
-     * @param array $object
-     */
-    private function checkUpdateForbiddenProperties($object)
-    {
-        foreach (array('name', 'model') as $key) {
-            if (isset($object[$key])) {
-                RestoLogUtil::httpError(400, 'Property "' . $key . '" cannot be updated');
-            }
-        }
-    }
 }
