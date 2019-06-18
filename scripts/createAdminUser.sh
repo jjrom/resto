@@ -94,6 +94,8 @@ if [ "${ADMIN_USER_NAME}" == "" ]; then
     ADMIN_USER_NAME=admin
 fi
 
+ADMIN_USER_ID=$(grep ^ADMIN_USER_ID= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+
 ADMIN_USER_PASSWORD=$(grep ^ADMIN_USER_PASSWORD= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 if [ "${ADMIN_USER_PASSWORD}" == "" ]; then
     showUsage
