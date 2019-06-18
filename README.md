@@ -48,6 +48,9 @@ For a local installation, you can leave it untouched. Otherwise, just make your 
 
 Note that each time you change the configuration file, you should undeploy then redeploy the service.
 
+### Hardware
+**[IMPORTANT]** In production mode (see below), the default configuration of the PostgreSQL server is for a 64Go RAM server. Changes this in [configuration](https://github.com/jjrom/resto/blob/master/config.env) file accordingly to your real configuration
+
 ### Building and deploying
 After reviewing your [configuration](https://github.com/jjrom/resto/blob/master/config.env) file, run one of following command:
 
@@ -91,6 +94,7 @@ The development environment differs from the production environment by the follo
 * The Xdebug extension is enabled
 * PHP opcache is disabled
 * All SQL requests are logged
+* The default postgres configuration is set for a small configuration (i.e. 4Go RAM)
 
 ## FAQ
 
