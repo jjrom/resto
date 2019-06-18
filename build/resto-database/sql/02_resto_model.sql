@@ -188,6 +188,15 @@ CREATE TABLE IF NOT EXISTS resto.feature (
     --
     assets               JSON,
 
+    -- Links array contains related url
+    --  
+    --      [
+    --          {"rel": "acquisition", "href": "http://cool-sat.com/catalog/acquisitions/20160503_56"}
+    --          {"rel": "something", "title":"SIVolcano", "href": "http://volcano.si.edu/volcano.cfm?vn=233020"}
+    --      ]
+    --
+    links               JSON,
+
     -- Timestamp of publication for this feature
     published           TIMESTAMP,
 

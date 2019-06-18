@@ -572,7 +572,8 @@ abstract class RestoModel
         return array(
             'topologyAnalysis' => $topologyAnalysis,
             'properties' => array_merge($properties, array('keywords' => $keywords)),
-            'assets' => $data['assets'] ?? null
+            'assets' => $data['assets'] ?? null,
+            'links' => $data['links'] ?? null
         );
     }
 

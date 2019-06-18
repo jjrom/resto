@@ -231,6 +231,7 @@ class RestoFeatureUtil
             } else {
                 switch ($key) {
 
+                    case 'links':
                     case 'assets':
                         break;
 
@@ -291,6 +292,10 @@ class RestoFeatureUtil
 
         if (isset($rawFeatureArray['assets'])) {
             $feature['assets'] = json_decode($rawFeatureArray['assets'], true);
+        }
+
+        if (isset($rawFeatureArray['links'])) {
+            $feature['links'] = json_decode($rawFeatureArray['links'], true);
         }
         
         return $feature;

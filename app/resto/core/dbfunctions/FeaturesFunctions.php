@@ -40,6 +40,7 @@ class FeaturesFunctions
         'thumbnail',
         'metadata',
         'assets',
+        'links',
         'updated',
         'published',
         'keywords',
@@ -650,8 +651,13 @@ class FeaturesFunctions
      */
     private function featureArrayToKeysValues($collection, $featureArray, $protected, $updatabled)
     {
-        $keysAndValues = array();
-        
+
+        // Initialize
+        $keysAndValues = array(
+            'links' => isset($featureArray['links']) ? json_encode($featureArray['links']) : null,
+            'assets' => isset($featureArray['assets']) ? json_encode($featureArray['assets']) : null
+        );
+
         $output = array(
             'keysAndValues' => array(),
             'params' => array(),
@@ -735,12 +741,7 @@ class FeaturesFunctions
        
         // JSON encode metadata
         $keysAndValues['metadata'] = json_encode($keysAndValues['metadata']);
-
-        // JSON encode assets
-        if (isset($featureArray['assets'])) {
-            $keysAndValues['assets'] = json_encode($featureArray['assets']);
-        }
-
+        
         $counter = 0;
         $output['keysAndValues'] = array_merge($protected, $keysAndValues);
         foreach (array_keys($output['keysAndValues'] ?? array()) as $key) {
