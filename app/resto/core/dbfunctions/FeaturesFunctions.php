@@ -234,7 +234,7 @@ class FeaturesFunctions
                 'metadata' => array(),
                 'published' => 'now()',
                 'published_idx' => 'now()',
-                'updated' => 'now()',
+                'updated' => isset($featureArray['properties']) && isset($featureArray['properties']['updated']) ? $featureArray['properties']['updated'] : 'now()',
                 'geometry' => $featureArray['topologyAnalysis']['geometry'] ?? null,
                 'centroid' => $featureArray['topologyAnalysis']['centroid'],
                 '_geometry' => $featureArray['topologyAnalysis']['_geometry']
@@ -371,7 +371,7 @@ class FeaturesFunctions
                 'metadata' => array(),
                 'published' => $oldFeatureArray['properties']['published'],
                 'published_idx' => $oldFeatureArray['properties']['published_idx'],
-                'updated' => 'now()'
+                'updated' => isset($newFeatureArray['properties']) && isset($newFeatureArray['properties']['updated']) ? $newFeatureArray['properties']['updated'] : 'now()'
             ),
             array(
                 'title',
