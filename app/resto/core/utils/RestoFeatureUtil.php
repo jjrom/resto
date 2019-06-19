@@ -264,7 +264,6 @@ class RestoFeatureUtil
                         $properties[$key] = (integer) $value;
                         break;
 
-                    case '_geometry':
                     case 'centroid':
                     case 'metadata':
                     case 'links':

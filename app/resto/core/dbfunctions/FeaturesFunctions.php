@@ -51,8 +51,7 @@ class FeaturesFunctions
         'owner',
         'status',
         'centroid',
-        //'geometry',
-        '_geometry'
+        'geometry'
     );
 
     /*
@@ -838,7 +837,8 @@ class FeaturesFunctions
              */
             switch ($key) {
 
-                case '_geometry':
+                // [IMPORTANT] The geometry returned is _geometry not geometry !!!
+                case 'geometry':
                     $columns[] = 'ST_AsGeoJSON(resto.feature._geometry, 6) AS geometry';
                     $columns[] = 'Box2D(resto.feature._geometry) AS bbox4326';
                     break;
@@ -897,7 +897,7 @@ class FeaturesFunctions
             if ($fields[0] === '_default') {
                 $discarded[] = 'keywords';
             }
-            // Always add mandatories field id, _geometry and collection
+            // Always add mandatories field id, geometry and collection
             elseif ($fields[0] !== '_all') {
                 
                 foreach ($fields as $column) {
@@ -906,7 +906,7 @@ class FeaturesFunctions
                     }
                 }
 
-                $featureColumns = array_unique(array_merge(array('id','_geometry','collection'), $fields));
+                $featureColumns = array_unique(array_merge(array('id','geometry','collection'), $fields));
             }
         }
 
