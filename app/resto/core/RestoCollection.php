@@ -472,7 +472,7 @@ class RestoCollection
          * Load for creation - mandatory properties are required
          */
         else {
-            unset($object['name'], $object['model']);
+            $this->checkCreationMandatoryProperties($object);
         }
 
         /*
