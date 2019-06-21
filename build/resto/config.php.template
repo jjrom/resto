@@ -9,7 +9,7 @@ return array(
         'path' => '/var/www/static',
         'endpoint' => '${STORAGE_PUBLIC_ENDPOINT:-/static}'
     ),
-    'storeQuery' => ${STORE_QUERY:-true},
+    'storeQuery' => ${STORE_QUERY:-false},
     'streamMethod' => '${STREAM_METHOD:-php}',
     'timezone' => '${TIMEZONE:-Europe/Paris}',
     'tokenDuration' => ${JWT_DURATION:-3600},

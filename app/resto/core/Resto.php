@@ -206,6 +206,11 @@ class Resto
     public $user;
 
     /*
+     * Time measurement
+     */
+    private $startTime;
+
+    /*
      * CORS white list
      */
     private $corsWhiteList = array();
@@ -219,6 +224,9 @@ class Resto
     public function __construct($config = array())
     {
 
+        // Initialize start of processing
+        $this->startTime = microtime(true);
+        
         try {
 
             /*
@@ -330,6 +338,7 @@ class Resto
             header('Pragma: no-cache');
             header('Cache-Control: no-cache, no-store, must-revalidate');
             header('Expires: Fri, 1 Jan 2010 00:00:00 GMT');
+            header('Server-processing-time: ' . (microtime(true) - $this->startTime));
             header('Content-Type: ' . RestoUtil::$contentTypes[$this->context->outputFormat]);
 
             /*
