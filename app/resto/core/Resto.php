@@ -660,7 +660,7 @@ class Resto
         $toCheck = 'null';
         $url = explode('//', $httpOrigin);
         if (isset($url[1])) {
-            $toCheck = $url[1];
+            $toCheck = explode(':', $url[1])[0];
         }
         for ($i = count($this->corsWhiteList); $i--;) {
             if ($this->corsWhiteList[$i] === $toCheck) {
