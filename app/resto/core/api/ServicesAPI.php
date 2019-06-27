@@ -268,30 +268,4 @@ class ServicesAPI
         RestoLogUtil::httpError(404);
     }
 
-    /**
-     * Get hashtags
-     *
-     * @SWG\Get(
-     *      tags={"hashtags"},
-     *      path="/services/search/hashtags/{q}",
-     *      summary="Return hashtags",
-     *      description="Return hashtags",
-     *      produces={"application/json"},
-     *      @SWG\Response(
-     *          response="200",
-     *          description="Hashtags list"
-     *      )
-     *  )
-     *
-     * @param array params
-     *
-     */
-    public function getHashtags($params)
-    {
-        return (new FeaturesFunctions($this->context->dbDriver))->searchHashtags(array(
-            'q' => $params['q'] ?? null,
-            'id' => $params['id'] ?? null,
-            'user' => $this->user
-        ));
-    }
 }

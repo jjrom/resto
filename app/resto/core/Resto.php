@@ -112,7 +112,7 @@ class Resto
     private $defaultRoutes = array(
 
         // Hello
-        array('GET', '/', false, 'ServicesAPI::hello'),                                       // List users profiles
+        array('GET', '/', false, 'ServicesAPI::hello'),                                                    // List users profiles
 
         // API for users
         array('GET', '/users', true, 'UsersAPI::getUsersProfiles'),                                       // List users profiles
@@ -128,9 +128,9 @@ class Resto
 
         // API for groups
         array('GET', '/groups', true, 'GroupsAPI::getGroups'),                                            // List users profiles
-        array('GET', '/groups/{id}', true, 'GroupsAPI::getGroup'),                                    // Create group
-        array('POST', '/groups', true, 'GroupsAPI::createGroup'),                                    // Create group
-        array('DELETE', '/groups/{id}', true, 'GroupsAPI::deleteGroup'),                                    // Create group
+        array('GET', '/groups/{id}', true, 'GroupsAPI::getGroup'),                                        // Get group
+        array('POST', '/groups', true, 'GroupsAPI::createGroup'),                                        // Create group
+        array('DELETE', '/groups/{id}', true, 'GroupsAPI::deleteGroup'),                                    // Delete group
 
         // API for collections
         array('GET', '/collections', false, 'CollectionsAPI::getCollections'),                            // List all collections
@@ -164,8 +164,6 @@ class Resto
         // API for services
         array('GET', '/services/osdd', false, 'ServicesAPI::getOSDD'),                                    // Opensearch service description at collections level
         array('GET', '/services/osdd/{collectionName}', false, 'ServicesAPI::getOSDDForCollection'),                    // Opensearch service description for products on {collection}
-        array('GET', '/services/hashtags/search/{q}', false, 'ServicesAPI::getHashtags'),                  // Search hashtags
-        array('GET', '/services/hashtags/search', false, 'ServicesAPI::getHashtags'),                     // Return 50 most used hashtags
         array('POST', '/services/activation/send', false, 'ServicesAPI::sendActivationLink'),              // Send activation link
         array('POST', '/services/password/forgot', false, 'ServicesAPI::forgotPassword'),                  // Send reset password link
         array('POST', '/services/password/reset', false, 'ServicesAPI::resetPassword'),                    // Reset password

@@ -133,36 +133,6 @@ class FacetsFunctions
         $this->dbDriver->pQuery('UPDATE resto.facet SET counter = GREATEST(counter - 1) WHERE normalize(id)=normalize($1) AND normalize(collection)=normalize($2)', array($facetId, $collectionName), 500, 'Cannot delete facet for ' . $collectionName);
     }
 
-
-    /**
-     * Return facets
-     *
-     * @param string $params
-     * @return array
-     */
-    public function searchFacets($params)
-    {
-        
-        $facets = [];
-        $select = 'SELECT id,collection,value,type,pid,counter,to_iso8601(created) as created,creator FROM resto.facet';
-        
-        if (isset($params['q'])) {
-            $results = $this->dbDriver->pQuery($select . ' WHERE value LIKE normalize($1) ORDER BY counter DESC', array(
-                $params['q'] . '%'
-            ));
-        } else {
-            $results = $this->dbDriver->query($select . ' ORDER BY counter DESC LIMIT 50');
-        }
-        while ($result = pg_fetch_assoc($results)) {
-            $facets[] = FormatUtil::facet($result);
-        }
-        return array(
-            'id' => isset($params['id']) && is_numeric($params['id']) ? (integer) $params['id'] : -1,
-            'query' => $params['q'],
-            'results' => $facets
-        );
-    }
-
     /**
      * Return facets elements from a type for a given collection
      *

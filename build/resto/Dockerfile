@@ -75,8 +75,10 @@ COPY ./app /app
 RUN mkdir /var/www/static
 
 # Copy template configuration file to /tmp (will be used by 15-resto-config.sh during startup to generate /etc/resto/config.php)
+COPY ${BUILD_DIR}/config.php.template /tmp/config.php.template
+
+# Create configuration directory
 RUN mkdir /cfg
-COPY ${BUILD_DIR}/config.php.template /cfg/config.php.template
 
 # Set environment variables
 # opcache https://www.scalingphpbook.com/best-zend-opcache-settings-tuning-config/

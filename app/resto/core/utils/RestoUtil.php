@@ -276,7 +276,7 @@ class RestoUtil
      */
     public static function sanitize($strOrArray)
     {   
-    
+        
         if (!isset($strOrArray)) {
             return null;
         }

@@ -3,7 +3,7 @@
 # Generate resto config.php from environment variables
 
 # The file /tmp/config.php.template should exist !
-CONFIG_TEMPLATE_FILE=/cfg/config.php.template
+CONFIG_TEMPLATE_FILE=/tmp/config.php.template
 if [ ! -f ${CONFIG_TEMPLATE_FILE} ]; then
     showUsage
     echo "[GRAVE] Missing ${CONFIG_TEMPLATE_FILE} file - using default resto configuration";
@@ -11,15 +11,15 @@ if [ ! -f ${CONFIG_TEMPLATE_FILE} ]; then
 fi
 
 # Add-ons configuration
-touch /cfg/addons.template
+touch /tmp/addons.template
 for config in $(ls /cfg/*.config); do
     echo "[CONFIG] Add add-on configuration " . $config
-    cat $config | awk '{print "      ", $0}' >> /cfg/addons.template
-    echo -n "," >> /cfg/addons.template
+    cat $config | awk '{print "      ", $0}' >> /tmp/addons.template
+    echo -n "," >> /tmp/addons.template
 done
 
 # Replace __ADDONS__
-sed -i -e '/__ADDONS__/{' -e 'r /cfg/addons.template' -e 'd' -e '}' ${CONFIG_TEMPLATE_FILE}
+sed -i -e '/__ADDONS__/{' -e 'r /tmp/addons.template' -e 'd' -e '}' ${CONFIG_TEMPLATE_FILE}
 
 # From there we use environment variables passed during container startup
 mkdir -v /etc/resto
