@@ -179,7 +179,7 @@ class RestoQueryAnalyzer
                  * [IMPORTANT] The search is performed on a modified "searchTerms" with hashtags REMOVED
                  */
                 $locations = $this->gazetteer->search(array(
-                    'q' => trim(preg_replace('~#[\w-]+~', '', $locationName))
+                    'q' => trim(preg_replace("/(#|-#)([^ ]+)/", '', $locationName))
                 ));
                 if (isset($locations['hits']) && count($locations['hits']['hits']) > 0) {
                     $foundLocation = $locations['hits']['hits'][0]['_source'];
