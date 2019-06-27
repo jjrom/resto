@@ -91,7 +91,6 @@ class RestoQueryAnalyzer
             
             /*
              * Extract hashtags (i.e. #something or -#something)
-             * If found stop here and return only hashtags
              */
             $hashtags = isset($params['searchTerms']) ? RestoUtil::extractHashtags($params['searchTerms']) : array();
             
@@ -102,9 +101,9 @@ class RestoQueryAnalyzer
             }
 
             /*
-             * No hashtags - search for toponym ?
+             * Extract toponym
              */
-            elseif (isset($this->gazetteer)) {
+            if (isset($this->gazetteer)) {
                 $this->extractToponym($params, $details, $hashTodiscard);
             }
 
@@ -175,8 +174,12 @@ class RestoQueryAnalyzer
                 }
             }
             else {
+
+                /*
+                 * [IMPORTANT] The search is performed on a modified "searchTerms" with hashtags REMOVED
+                 */
                 $locations = $this->gazetteer->search(array(
-                    'q' => $locationName
+                    'q' => trim(preg_replace('~#[\w-]+~', '', $locationName))
                 ));
                 if (isset($locations['hits']) && count($locations['hits']['hits']) > 0) {
                     $foundLocation = $locations['hits']['hits'][0]['_source'];
