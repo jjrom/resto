@@ -117,7 +117,6 @@ class Resto
         // API for users
         array('GET', '/users', true, 'UsersAPI::getUsersProfiles'),                                       // List users profiles
         array('GET', '/users/{userid}', true, 'UsersAPI::getUserProfile'),                                 // Show user profile
-        array('GET', '/users/{userid}/groups', true, 'UsersAPI::getUserGroups'),                           // Show user groups
         array('GET', '/users/{userid}/logs', true, 'UsersAPI::getUserLogs'),                               // Show user logs
         array('GET', '/users/{userid}/rights', true, 'UsersAPI::getUserRights'),                           // Show user rights
         array('GET', '/users/{userid}/rights/{collectionName}', true, 'UsersAPI::getUserRights'),           // Show user rights for :collectionName
@@ -125,12 +124,6 @@ class Resto
         array('GET', '/users/{userid}/signatures', true, 'UsersAPI::getUserSignatures'),                   // Show user signatures
         array('POST', '/users', false, 'UsersAPI::createUser'),                                            // Create user
         array('PUT', '/users/{userid}', true, 'UsersAPI::updateUserProfile'),                              // Update :userid profile
-
-        // API for groups
-        array('GET', '/groups', true, 'GroupsAPI::getGroups'),                                            // List users profiles
-        array('GET', '/groups/{id}', true, 'GroupsAPI::getGroup'),                                        // Get group
-        array('POST', '/groups', true, 'GroupsAPI::createGroup'),                                        // Create group
-        array('DELETE', '/groups/{id}', true, 'GroupsAPI::deleteGroup'),                                    // Delete group
 
         // API for collections
         array('GET', '/collections', false, 'CollectionsAPI::getCollections'),                            // List all collections
