@@ -28,9 +28,6 @@ CREATE INDEX IF NOT EXISTS idx_groupid_right ON resto.right (groupid);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_uname_group ON resto.group (normalize(name));
 CREATE INDEX idx_name_group ON resto.group USING GIN (normalize(name) gin_trgm_ops);
 
--- [TABLE resto.signature]
-CREATE INDEX IF NOT EXISTS idx_userid_signature ON resto.signature (userid);
-
 -- [TABLE resto.facet]
 CREATE INDEX IF NOT EXISTS idx_id_facet ON resto.facet (normalize(id));
 CREATE INDEX IF NOT EXISTS idx_pid_facet ON resto.facet (normalize(pid));
