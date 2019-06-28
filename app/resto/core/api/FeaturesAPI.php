@@ -630,23 +630,32 @@ class FeaturesAPI
         }
 
         /*
-         * User do not fullfill license requirements
+         * Additional check needs License add-on
          */
-        if (!$feature->getLicense()->isApplicableToUser($user)) {
-            RestoLogUtil::httpError(403, 'You do not fulfill license requirements');
-        }
+        if (class_exists('RestoLicense')) {
+            
+            $license = (new RestoLicense($this->context, $feature->toArray()['properties']['links']['license']['id']))->load();
 
-        /*
-         * User has to sign the license before downloading
-         */
-        if ($feature->getLicense()->hasToBeSignedByUser($user)) {
-            return array(
-                'ErrorMessage' => 'Forbidden',
-                'feature' => $feature->id,
-                'collection' => $feature->collectionName,
-                'license' => $feature->getLicense()->toArray(),
-                'ErrorCode' => 3002
-            );
+            /*
+            * User do not fullfill license requirements
+            */
+            if (!$license->isApplicableToUser($user)) {
+                RestoLogUtil::httpError(403, 'You do not fulfill license requirements');
+            }
+
+            /*
+            * User has to sign the license before downloading
+            */
+            if ($license->hasToBeSignedByUser($user)) {
+                return array(
+                    'ErrorMessage' => 'Forbidden',
+                    'feature' => $feature->id,
+                    'collection' => $feature->collectionName,
+                    'license' => $license->toArray(),
+                    'ErrorCode' => 3002
+                );
+            }
+
         }
 
         $feature->download();
@@ -702,6 +711,7 @@ class FeaturesAPI
      */
     public function viewFeature($params)
     {
+
         $feature = new RestoFeature($this->context, $this->user, array(
             'featureId' => $params['featureId']
         ));
@@ -712,36 +722,51 @@ class FeaturesAPI
         $user = $this->checkRights('visualize', $this->user, $params['_tk'] ?? null, $feature->collectionName, $feature);
 
         /*
-         * User do not fullfill license requirements
-         * Stream low resolution WMS if viewService is public
-         * Forbidden otherwise
+         * Default is to stream full resolution
          */
-        $license = $feature->getLicense();
-        if (!$license->isApplicableToUser($user)) {
+        $lowRes = false;
+
+        /*
+         * Additional check needs License add-on
+         */
+        if (class_exists('RestoLicense')) {
 
             /*
-             * Check if viewService is public
+             * User do not fullfill license requirements
+             * Stream low resolution WMS if viewService is public
+             * Forbidden otherwise
              */
-            $tLicenseArr = $license->toArray();
-            if ($tLicenseArr['viewService'] !== 'public') {
+            $license = (new RestoLicense($this->context, $feature->toArray()['properties']['links']['license']['id']))->load();
+
+            if (!$license->isApplicableToUser($user)) {
+
                 /*
-                 * viewService isn't public
+                 * Check if viewService is public
                  */
-                RestoLogUtil::httpError(403, 'You do not fulfill license requirements');
-            } else {
-                /*
-                 * viewService is public, Stream low resolution WMS
-                 */
-                (new RestoWMSUtil($this->context, $user))->streamWMS($feature, true);
+                if ($license->toArray()['viewService'] !== 'public') {
+                    
+                    /*
+                     * viewService isn't public
+                     */
+                    return RestoLogUtil::httpError(403, 'You do not fulfill license requirements');
+
+                } else {
+                    
+                    /*
+                     * viewService is public, Stream low resolution WMS
+                     */
+                    $lowRes = true;
+
+                }
             }
+
         }
+
         /*
          * Stream full resolution WMS
          */
-        else {
-            (new RestoWMSUtil($this->context, $user))->streamWMS($feature);
-        }
-
+        (new RestoWMSUtil($this->context, $user))->streamWMS($feature, $lowRes);
+        
         // Very important to stop HTTP Header streaming
         return null;
     }

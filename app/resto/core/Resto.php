@@ -121,7 +121,6 @@ class Resto
         array('GET', '/users/{userid}/rights', true, 'UsersAPI::getUserRights'),                           // Show user rights
         array('GET', '/users/{userid}/rights/{collectionName}', true, 'UsersAPI::getUserRights'),           // Show user rights for :collectionName
         array('GET', '/users/{userid}/rights/{collectionName}/{featureId}', true, 'UsersAPI::getUserRights'), // Show user rights for :featureId
-        array('GET', '/users/{userid}/signatures', true, 'UsersAPI::getUserSignatures'),                   // Show user signatures
         array('POST', '/users', false, 'UsersAPI::createUser'),                                            // Create user
         array('PUT', '/users/{userid}', true, 'UsersAPI::updateUserProfile'),                              // Update :userid profile
 
@@ -142,11 +141,6 @@ class Resto
         array('PUT', '/features/{featureId}', true, 'FeaturesAPI::updateFeature'),                         // Update feature :featureId
         array('PUT', '/features/{featureId}/{property}', true, 'FeaturesAPI::updateFeatureProperty'),
         array('DELETE', '/features/{featureId}', true, 'FeaturesAPI::deleteFeature'),                         // Delete :featureId
-
-        // API for licenses
-        array('GET', '/licenses', true, 'LicensesAPI::getLicenses'),                                      // List all licenses
-        array('GET', '/licenses/{licenseId}', true, 'LicensesAPI::getLicenses'),                           // Get :licenseId license description
-        array('POST', '/licenses/{licenseId}/sign', true, 'LicensesAPI::signLicense'),                      // Sign :licenseId
 
         // API for authentication (token based)
         array('GET', '/auth', true, 'AuthAPI::getToken'),                                                 // Return a valid auth token

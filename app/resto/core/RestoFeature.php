@@ -397,11 +397,6 @@ class RestoFeature
      */
     private $featureArray;
 
-    /*
-     * License
-     */
-    private $license;
-
     /**
      * Constructor
      *
@@ -420,17 +415,6 @@ class RestoFeature
         $this->context = $context;
         $this->user = $user;
         $this->load($options);
-    }
-
-    /**
-     * Return feature license
-     */
-    public function getLicense()
-    {
-        if (! isset($this->license)) {
-            $this->license = (new RestoLicense($this->context, $this->featureArray['properties']['links']['license']['id']))->load();
-        }
-        return $this->license;
     }
 
     /**

@@ -244,20 +244,6 @@ class UsersAPI
     }
 
     /**
-     *  Get user signatures
-     *
-     *  [TODO] - Write API
-     */
-    public function getUserSignatures($params)
-    {
-        RestoUtil::checkUser($this->user, $params['userid']);
-        return array(
-            'id' => $this->user->profile['id'],
-            'signatures' => $this->user->getSignatures()
-        );
-    }
-
-    /**
      * Create user
      *
      * @OA\Post(
@@ -666,19 +652,6 @@ class UsersAPI
             'fullDisplay' => $isAdmin
         ));
         
-    }
-
-    /**
-     * Create user object from userid
-     *
-     * @param string userid
-     */
-    private function getUser($userid)
-    {
-        if (!ctype_digit($userid)) {
-            RestoLogUtil::httpError(400, 'Invalid userid');
-        }
-        return new RestoUser(array('id' => $userid), $this->context, true);
     }
 
     /**

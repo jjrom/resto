@@ -41,6 +41,9 @@ services:
     volumes:
       - ${RESTO_STATIC_CONTENT:-static_content}:/var/www/static
       - ./app:/app
+      - /Users/jrom/Devel/resto-addons/resto-addon-group/group.config:/cfg/group.config
+      - /Users/jrom/Devel/resto-addons/resto-addon-group/src/GroupsAPI.php:/app/resto/addons/GroupsAPI.php
+      - /Users/jrom/Devel/resto-addons/resto-addon-group/src/GroupsFunctions.php:/app/resto/addons/GroupsFunctions.php
   restodb:
     image: jjrom/resto-database:5.0
     restart: always

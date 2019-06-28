@@ -393,41 +393,6 @@ class RestoUser
     }
 
     /**
-     * Return user signatures
-     *
-     * @throws Exception
-     */
-    public function getSignatures()
-    {
-
-        /*
-         * Get all licenses
-         */
-        $licenses = (new LicensesFunctions($this->context->dbDriver))->getLicenses();
-
-        /*
-         * Get user signatures
-         */
-        $signed = (new LicensesFunctions($this->context->dbDriver))->getSignatures($this->profile['id']);
-
-        /*
-         * Merge signatures with licenses
-         */
-        $signatures = array();
-        for ($i = count($signed); $i--;) {
-            if (isset($licenses[$signed[$i]['licenseId']])) {
-                $signatures[$signed[$i]['licenseId']] = array(
-                    'lastSigned' => $signed[$i]['lastSigned'],
-                    'counter' => $signed[$i]['counter'],
-                    'license' => $licenses[$signed[$i]['licenseId']]
-                );
-            }
-        }
-
-        return $signatures;
-    }
-
-    /**
      * Send reset password link to user email adress
      *
      */

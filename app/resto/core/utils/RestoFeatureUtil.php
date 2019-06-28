@@ -326,47 +326,4 @@ class RestoFeatureUtil
         return $keywords;
     }
 
-    /**
-     * Proxify WMS URL depending on user rights
-     *
-     * @param $properties
-     * @param $user
-     * @param $baseUrl
-     * @return string relative path in the form of YYYYMMdd/thumbnail_filename with YYYYMMdd is the formated startDate parameter
-     */
-    private function proxifyWMSUrl($properties, $user, $baseUrl)
-    {
-        if (! isset($properties['resource']['browse']) || ! isset($properties['resource']['browse']['href'])) {
-            return null;
-        }
-
-        $wmsUrl = RestoUtil::restoUrl($baseUrl, '/features/' . $properties['id'] . '/browse') . '?';
-
-        if (isset($user->token)) {
-            $wmsUrl .= '_bearer=' . $user->token . '&';
-        }
-        $wmsUrl .= substr($properties['resource']['browse']['href'], strpos($properties['wms'], '?') + 1);
-
-        /*
-         * If the feature has a license check authentication
-         * [TODO] : something missing here !!!
-         */
-        if (isset($properties['links']['license']) && $properties['links']['license']['id'] !== 'unlicensed') {
-
-            /*
-             * Get License
-             */
-            $license = (new LicensesFunctions($this->context->dbDriver))->getLicense($properties['links']['license']['id']);
-
-            /*
-             * User is not authenticated
-             * Returns wms url only if license has a 'public' view service
-             */
-            if (!isset($user->profile['id'])) {
-                return $license['viewService'] === 'public' ? $wmsUrl : null;
-            }
-        }
-
-        return $wmsUrl;
-    }
 }
