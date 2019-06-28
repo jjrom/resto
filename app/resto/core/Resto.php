@@ -112,7 +112,7 @@ class Resto
     private $defaultRoutes = array(
 
         // Hello
-        array('GET', '/', false, 'ServicesAPI::hello'),                                                    // List users profiles
+        array('GET', '/', false, 'ServicesAPI::hello'),                                                    // Dummy endpoint
 
         // API for users
         array('GET', '/users', true, 'UsersAPI::getUsersProfiles'),                                       // List users profiles
