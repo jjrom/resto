@@ -226,7 +226,7 @@ class FeaturesFunctions
                 'id' => $id,
                 'collection' => $collection->name,
                 'visibility' => Resto::GROUP_DEFAULT_ID,
-                'owner' => null,
+                'owner' => isset($collection) && isset($collection->user) ? $collection->user->profile['id'] : null,
                 'status' => isset($featureArray['properties']) && isset($featureArray['properties']['status']) && is_int($featureArray['properties']['status']) ? $featureArray['properties']['status'] : 1,
                 'likes' => 0,
                 'comments' => 0,
