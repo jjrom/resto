@@ -507,7 +507,8 @@ class RestoFeature
             // Clean properties
             $feature['properties'] = $this->cleanProperties($feature['properties'], array(
                 'id',
-                'visibility'
+                'visibility',
+                'owner'
             ));
 
             // Correct links
