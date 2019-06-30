@@ -21,7 +21,7 @@ server {
 
   location = /index.php {
     #fastcgi_pass 127.0.0.1:9000;
-    fastcgi_pass unix:/var/run/php/php7.2-fpm.pid;
+    fastcgi_pass unix:/var/run/php/php7.2-fpm.sock;
     fastcgi_buffers 8 16k;
     fastcgi_buffer_size 32k;
     fastcgi_busy_buffers_size 32k;
