@@ -82,11 +82,12 @@ RUN mkdir /cfg
 
 # Set environment variables
 # opcache https://www.scalingphpbook.com/best-zend-opcache-settings-tuning-config/
-ENV PHP_FPM_MAX_CHILDREN=4096 \
-    PHP_FPM_START_SERVERS=20 \
+ENV PHP_FPM_PM=dynamic \
+    PHP_FPM_MAX_CHILDREN=20 \
+    PHP_FPM_START_SERVERS=5 \
     PHP_FPM_MAX_REQUESTS=1024 \
-    PHP_FPM_MIN_SPARE_SERVERS=5 \
-    PHP_FPM_MAX_SPARE_SERVERS=128 \
+    PHP_FPM_MIN_SPARE_SERVERS=3 \
+    PHP_FPM_MAX_SPARE_SERVERS=19 \
     PHP_FPM_MEMORY_LIMIT=256M \
     PHP_FPM_MAX_EXECUTION_TIME=300 \
     PHP_FPM_UPLOAD_MAX_FILESIZE=20M \
