@@ -1,7 +1,7 @@
 <?php
 return array(
     'baseUrl' => '${PUBLIC_ENDPOINT:-http://127.0.0.1:5252}',
-    'debug' => ${RESTO_DEBUG_MODE:-false},
+    'debug' => ${RESTO_DEBUG:-false},
     'languages' => array(${SUPPORTED_LANGUAGES}),
     'passphrase' => '${JWT_PASSPHRASE}',
     'sharedLinkDuration' => ${SHAREDLINK_DURATION:-86400},

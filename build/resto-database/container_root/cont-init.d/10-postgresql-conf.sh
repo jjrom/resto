@@ -5,12 +5,6 @@ CONF_POSTGRESQL=/etc/postgresql.conf
 if [[ $POSTGRES_MAX_CONNECTIONS ]]
 then
   echo "[postgresql] setting max_connections ${POSTGRES_MAX_CONNECTIONS}"
-  sed -i "s/\max_connections=.*/max_connections=${NGINX_FASTCGI_BUFFERS}/" $CONF_POSTGRESQL
-fi
-
-if [[ $POSTGRES_MAX_CONNECTIONS ]]
-then
-  echo "[postgresql] setting max_connections ${POSTGRES_MAX_CONNECTIONS}"
   sed -i "s/\max_connections=.*/max_connections=${POSTGRES_MAX_CONNECTIONS}/" $CONF_POSTGRESQL
 fi
 

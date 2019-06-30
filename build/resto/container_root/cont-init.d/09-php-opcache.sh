@@ -1,6 +1,6 @@
 #!/usr/bin/with-contenv bash
 
-if [[ $RESTO_DEBUG_MODE = 1 || $RESTO_DEBUG_MODE = '1' || $RESTO_DEBUG_MODE = 'true' ]]
+if [[ $RESTO_DEBUG = 1 || $RESTO_DEBUG = '1' || $RESTO_DEBUG = 'true' ]]
 then
   echo '[debug] Opcache WATCHING for file changes'
 else

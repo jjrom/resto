@@ -28,7 +28,7 @@ services:
       - ${ENV_FILE:-config.env}
     environment: 
       ### Set to 0 in production environment to activate opcache
-      - RESTO_DEBUG_MODE=0
+      - RESTO_DEBUG=0
     healthcheck:
       test: ["CMD", "curl", "-f", "http://127.0.0.1"]
       interval: 1m
