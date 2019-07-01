@@ -71,6 +71,9 @@ COPY ${BUILD_DIR}/container_root/cont-init.d /etc/cont-init.d
 RUN mkdir /app
 COPY ./app /app
 
+# Cache directory
+RUN mkdir -p /cache
+
 # Static directory contains static files exposed by nginx
 RUN mkdir /var/www/static
 

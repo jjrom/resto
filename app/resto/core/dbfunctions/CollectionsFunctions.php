@@ -43,7 +43,6 @@ class CollectionsFunctions
     public function getCollectionDescription($name)
     {
         
-        
         // Get Opensearch description
         $osDescriptions = $this->getOSDescriptions($name);
         $collection = null;
@@ -138,6 +137,11 @@ class CollectionsFunctions
                 throw new Exception(500, 'Cannot delete collection ' . $collectionName);
             }
 
+            /*
+             * Clear cache
+             */
+            (new RestoCache())->clear();
+
         } catch (Exception $e) {
             RestoLogUtil::httpError($e->getCode(), $e->getMessage());
         }
@@ -192,6 +196,11 @@ class CollectionsFunctions
                 $this->dbDriver->query('ROLLBACK');
                 throw new Exception(500, 'Missing collection');
             }
+
+            /*
+             * Clear cache
+             */
+            (new RestoCache())->clear();
             
         } catch (Exception $e) {
             RestoLogUtil::httpError($e->getCode(), $e->getMessage());
@@ -335,7 +344,9 @@ class CollectionsFunctions
             }
             $this->dbDriver->query('INSERT INTO resto.osdescription (' . join(',', $osFields) . ') VALUES(' . join(',', $osValues) . ')');
         }
+
         return true;
+
     }
 
     /**

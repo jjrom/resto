@@ -282,18 +282,24 @@ class RestoCollection
             return $this->loadFromJSON($object);
         }
         
-        $cacheKey = $this->context->path . join(',', $this->context->query);
-        $collectionObject = $this->context->fromCache($cacheKey) ?? (new CollectionsFunctions($this->context->dbDriver))->getCollectionDescription($this->name);
-        
-        if (! isset($collectionObject)) {
-            return RestoLogUtil::httpError(404);
+        $cacheKey = 'collection';
+        $collectionObject = $this->context->fromCache($cacheKey);
+    
+        if (! isset($collectionObject)) {  
+
+            $collectionObject = (new CollectionsFunctions($this->context->dbDriver))->getCollectionDescription($this->name);
+
+            if (! isset($collectionObject)) {  
+                return RestoLogUtil::httpError(404);
+            }
+
+            $this->context->toCache($cacheKey, $collectionObject);
+
         }
         
         foreach ($collectionObject as $key => $value) {
             $this->$key = $key === 'model' ? new $value() : $value;
         }
-        
-        $this->context->toCache($cacheKey, $collectionObject);
 
         return $this;
     }
@@ -408,8 +414,11 @@ class RestoCollection
     {
         if (!isset($this->statistics)) {
             $cacheKey = 'getStatistics:' . $this->name;
-            $this->statistics = $this->context->fromCache($cacheKey) ?? (new FacetsFunctions($this->context->dbDriver))->getStatistics($this, $this->model->getFacetFields());
-            $this->context->toCache($cacheKey, $this->statistics);
+            $this->statistics = $this->context->fromCache($cacheKey);
+            if (!isset($this->statistics)) {
+                $this->statistics = (new FacetsFunctions($this->context->dbDriver))->getStatistics($this, $this->model->getFacetFields());
+                $this->context->toCache($cacheKey, $this->statistics);
+            }
         }
         return $this->statistics;
     }

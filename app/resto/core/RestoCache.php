@@ -31,10 +31,35 @@ class RestoCache
      *
      * @param string $directory : cache directory (must be readable+writable for Webserver user)
      */
-    public function __construct($directory)
+    public function __construct($directory = '/cache')
     {
         if (isset($directory) && is_writable($directory)) {
             $this->directory = $directory;
+        }
+    }
+
+    /**
+     * Clear cache
+     *
+     * @param string $key
+     */
+    public function clear($key = null)
+    {   
+        if (isset($this->directory)) {
+            if (isset($key)) {
+                $file = $this->directory . DIRECTORY_SEPARATOR . crc32($key);
+                if (is_file($file)) {
+                    unlink($file);
+                }
+            }
+            else {
+                $files = glob($this->directory . DIRECTORY_SEPARATOR . '*');
+                foreach($files as $file) {
+                    if (is_file($file)) {
+                        unlink($file);
+                    }
+                }
+            }
         }
     }
 
@@ -45,7 +70,7 @@ class RestoCache
      */
     public function retrieve($key)
     {
-        return $this->directory && $key ? $this->read(crc32($key)) : null;
+        return isset($this->directory) && isset($key) ? $this->read(crc32($key)) : null;
     }
     
     /**
@@ -56,7 +81,7 @@ class RestoCache
      */
     public function store($key, $obj)
     {
-        return $this->directory && $key ? $this->write(crc32($key), $obj) : null;
+        return isset($this->directory) && isset($key) ? $this->write(crc32($key), $obj) : null;
     }
     
     /**
@@ -100,9 +125,10 @@ class RestoCache
      */
     private function write($key, $obj)
     {
-        $handle = fopen($this->directory . DIRECTORY_SEPARATOR . $key, 'a');
+        $handle = fopen($this->directory . DIRECTORY_SEPARATOR . $key, 'w');
         fwrite($handle, json_encode($obj, true));
         fclose($handle);
         return $key;
     }
+    
 }

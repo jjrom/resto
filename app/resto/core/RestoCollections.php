@@ -115,8 +115,15 @@ class RestoCollections
     public function load()
     {
         
-        $collectionsDesc = (new CollectionsFunctions($this->context->dbDriver))->getCollectionsDescriptions($this->user->hasGroup(Resto::GROUP_ADMIN_ID) ? null : $this->user->profile['groups']);
+        $group = $this->user->hasGroup(Resto::GROUP_ADMIN_ID) ? null : $this->user->profile['groups'];
+        $cacheKey = 'collections:' . ($group ? join(',', $group) : '');
         
+        $collectionsDesc = $this->context->fromCache($cacheKey);
+        if (!isset($collectionsDesc)) {
+            $collectionsDesc = (new CollectionsFunctions($this->context->dbDriver))->getCollectionsDescriptions($group);
+            $this->context->toCache($cacheKey, $collectionsDesc);
+        }
+
         foreach (array_keys($collectionsDesc) as $key) {
             $collection = new RestoCollection($key, $this->context, $this->user);
             $collection->model = new $collectionsDesc[$key]['model']();
@@ -127,6 +134,7 @@ class RestoCollections
             $collection->propertiesMapping = $collectionsDesc[$key]['propertiesMapping'];
             $this->collections[$collection->name] = $collection;
         }
+
         return $this;
     }
 
@@ -137,8 +145,11 @@ class RestoCollections
     {
         if (!isset($this->statistics)) {
             $cacheKey = 'getStatistics';
-            $this->statistics = $this->context->fromCache($cacheKey) ?? (new FacetsFunctions($this->context->dbDriver))->getStatistics(null, (new DefaultModel())->getFacetFields());
-            $this->context->toCache('getStatistics', $this->statistics);
+            $this->statistics = $this->context->fromCache($cacheKey);
+            if (!isset($this->statistics)) {
+                $this->statistics = (new FacetsFunctions($this->context->dbDriver))->getStatistics(null, (new DefaultModel())->getFacetFields());
+                $this->context->toCache('getStatistics', $this->statistics);
+            }
         }
         return $this->statistics;
     }
