@@ -116,7 +116,7 @@ class RestoCollections
     {
         
         $group = $this->user->hasGroup(Resto::GROUP_ADMIN_ID) ? null : $this->user->profile['groups'];
-        $cacheKey = 'collections:' . ($group ? join(',', $group) : '');
+        $cacheKey = 'collections' . ($group ? join(',', $group) : '');
         
         $collectionsDesc = $this->context->fromCache($cacheKey);
         if (!isset($collectionsDesc)) {

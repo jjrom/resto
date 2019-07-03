@@ -282,7 +282,7 @@ class RestoCollection
             return $this->loadFromJSON($object);
         }
         
-        $cacheKey = 'collection';
+        $cacheKey = 'collection:' . $this->name;
         $collectionObject = $this->context->fromCache($cacheKey);
     
         if (! isset($collectionObject)) {  
