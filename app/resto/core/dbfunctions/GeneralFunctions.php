@@ -162,15 +162,17 @@ class GeneralFunctions
      */
     public function getArea($wkt, $unit = 'deg')
     {
-        if ($unit === 'deg') {
-            $result = $this->dbDriver->pQuery('SELECT st_area(st_geometryFromText$1, 4326)) as area', array($wkt));
-        } else {
-            $result = $this->dbDriver->pQuery('SELECT st_area(geography(st_geometryFromText($1, 4326)), false) as area', array($wkt));
+        // Compute area for surfaces only
+        if (strrpos($wkt, 'POLYGON') === false) {
+            return 0;
         }
+
+        $result = $this->dbDriver->pQuery('SELECT st_area(' . ($unit === 'deg' ? 'st_geometryFromText($1, 4326)' : 'geography(st_geometryFromText($1, 4326)), false') . ') as area', array($wkt));
+
         while ($row = pg_fetch_assoc($result)) {
             return (integer) $row['area'];
         }
-        return -1;
+        return 0;
     }
 
     /**
