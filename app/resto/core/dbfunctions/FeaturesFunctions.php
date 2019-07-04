@@ -142,14 +142,16 @@ class FeaturesFunctions
         ));
         
         //echo $query;
-        
+
         /*
          * Retrieve products from database
          * Note: totalcount is estimated except if input search contains a lon/lat filter
          */
         $features = (new RestoFeatureUtil($context, $user, $collection))->toFeatureArrayList($this->dbDriver->fetch($this->dbDriver->query($query)));
+        $whereClause = $filtersFunctions->getWhereClause($filtersAndJoins, false);
         return array(
-            'count' => count($features) > 0 ? $this->getCount('FROM resto.feature ' . $filtersFunctions->getWhereClause($filtersAndJoins, false), $params) : array(
+            'whereClause' => $whereClause,
+            'count' => count($features) > 0 ? $this->getCount('FROM resto.feature ' . $whereClause, $params) : array(
                 'total' => 0,
                 'isExact' => true
             ),

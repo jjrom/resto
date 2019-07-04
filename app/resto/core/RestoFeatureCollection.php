@@ -172,6 +172,11 @@ class RestoFeatureCollection
      */
     private $paging = array();
 
+    /*
+     * Links
+     */
+    private $links = array();
+
     /**
      * Constructor
      *
@@ -434,7 +439,7 @@ class RestoFeatureCollection
             $params,
             $sorting
         );
-
+        
         /*
          * Load collections array
          */
@@ -453,6 +458,14 @@ class RestoFeatureCollection
          * Compute paging
          */
         $this->paging = $this->getPaging($featuresArray['count'], $sorting['limit'], $sorting['offset']);
+
+        /*
+         * Heatmap add-on
+         */
+        if (class_exists('Heatmap')) {
+            $this->links[] = (new Heatmap($this->context, $this->user))->getEndPoint($featuresArray['whereClause'], $featuresArray['count'], $params['geo:geometry'] ?? null);
+        }
+
     }
 
     /**
@@ -496,7 +509,7 @@ class RestoFeatureCollection
         /*
          * Base links are always returned
          */
-        $links = $this->getBaseLinks($name);
+        $this->getBaseLinks($name);
 
         /*
          * resto:lt has preseance over startPage
@@ -510,7 +523,7 @@ class RestoFeatureCollection
                 /* 
                 * Previous
                 */
-                $links[] = $this->getLink('previous', array(
+                $this->links[] = $this->getLink('previous', array(
                     'resto:lt' => null,
                     'resto:gt' => $featureArray['properties']['sort_idx'],
                     'count' => $sorting['limit'])
@@ -521,7 +534,7 @@ class RestoFeatureCollection
             /*
              * First URL is the first search URL i.e. without any lt/gt
              */
-            $links[] = $this->getLink('first', array(
+            $this->links[] = $this->getLink('first', array(
                 'resto:lt' => null,
                 'resto:gt' => null,
                 'count' => $sorting['limit'])
@@ -537,14 +550,14 @@ class RestoFeatureCollection
              * Previous URL is the previous URL from the self URL
              *
              */
-            $links[] = $this->getLink('previous', array(
+            $this->links[] = $this->getLink('previous', array(
                 'startPage' => max($this->paging['startPage'] - 1, 1),
                 'count' => $sorting['limit']));
 
             /*
              * First URL is the first search URL i.e. with startPage = 1
              */
-            $links[] = $this->getLink('first', array(
+            $this->links[] = $this->getLink('first', array(
                 'startPage' => 1,
                 'count' => $sorting['limit'])
             );
@@ -562,7 +575,7 @@ class RestoFeatureCollection
              * Next URL is the next search URL from the self URL
              */
             $featureArray = $this->restoFeatures[$count - 1]->toArray();
-            $links[] = $this->getLink('next', array(
+            $this->links[] = $this->getLink('next', array(
                 //'startPage' => $this->paging['nextPage'],
                 'resto:gt' => null,
                 'resto:lt' => $featureArray['properties']['sort_idx'],
@@ -572,7 +585,7 @@ class RestoFeatureCollection
             /*
              * Last URL has the highest startIndex
              *
-            $links[] = $this->getLink('last', array(
+            $this->links[] = $this->getLink('last', array(
                 'startPage' => max($this->paging['totalPage'], 1),
                 'count' => $sorting['limit'])
             );
@@ -580,7 +593,7 @@ class RestoFeatureCollection
             
         }
 
-        return $links;
+        return $this->links;
     }
 
     /**
@@ -590,17 +603,16 @@ class RestoFeatureCollection
      */
     private function getBaseLinks($name)
     {
-        return array(
-            array(
-                'rel' => 'self',
-                'type' => RestoUtil::$contentTypes['json'],
-                'href' => RestoUtil::updateUrl($this->context->getUrl(false), $this->writeRequestParams($this->context->query))
-            ),
-            array(
-                'rel' => 'search',
-                'type' => 'application/opensearchdescription+xml',
-                'href' => $this->context->core['baseUrl'] . '/services/osdd' . (isset($name) ? '/' . $name : '')
-            )
+        $this->links[] = array(
+            'rel' => 'self',
+            'type' => RestoUtil::$contentTypes['json'],
+            'href' => RestoUtil::updateUrl($this->context->getUrl(false), $this->writeRequestParams($this->context->query))
+        );
+
+        $this->links[] = array(
+            'rel' => 'search',
+            'type' => 'application/opensearchdescription+xml',
+            'href' => $this->context->core['baseUrl'] . '/services/osdd' . (isset($name) ? '/' . $name : '')
         );
     }
 

@@ -161,16 +161,20 @@ class RestoGeometryUtil
         }
 
         /*
-         * Latitude limits are -85/+85 degrees
+         * Constrain latitude limits between -85/+85 degrees
          */
-        if ($lonlat[1] > 85 || $lonlat[1] < -85) {
-            return null;
+        if ($lonlat[1] > 85) {
+            $lonlat[1] = 85;
+        }
+        else if ($lonlat[1] < -85) {
+            $lonlat[1] = -85;
         }
 
         return array(
             $lonlat[0] * 20037508.34 / 180.0,
             max(-20037508.34, min(log(tan((90.0 + $lonlat[1]) * M_PI / 360.0)) / M_PI * 20037508.34, 20037508.34))
         );
+
     }
 
     /**

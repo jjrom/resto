@@ -161,6 +161,8 @@ class FiltersFunctions
                 join(' AND ', $addSortFilters ? array_merge($filtersAndJoins['filters'], $filtersAndJoins['sortFilters']) : $filtersAndJoins['filters'])
             ));
         }
+
+        return '';
     }
 
     /**
