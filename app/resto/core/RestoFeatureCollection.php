@@ -462,7 +462,7 @@ class RestoFeatureCollection
         /*
          * Heatmap add-on
          */
-        if (class_exists('Heatmap')) {
+        if (isset($this->context->addons['Heatmap'])) {
             $heatmapLink = (new Heatmap($this->context, $this->user))->getEndPoint($featuresArray['whereClause'], $featuresArray['count'], $params['geo:geometry'] ?? null);
             if ($heatmapLink) {
                 $this->links[] = $heatmapLink;
