@@ -454,7 +454,8 @@ abstract class RestoModel
         $facetFields = array();
         foreach (array_values($this->searchFilters) as $filter) {
             if (isset($filter['options']) && $filter['options'] === 'auto') {
-                $facetFields[] = $filter['key'];
+                // [IMPORTANT] prefix has preseance over key
+                $facetFields[] = $filter['prefix'] ?? $filter['key'];
             }
         }
         return $facetFields;

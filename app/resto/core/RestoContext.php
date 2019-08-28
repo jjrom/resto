@@ -281,7 +281,7 @@ class RestoContext
      * @param string $key
      */
     public function fromCache($key) {
-        return isset($this->core['useCache']) ? (new RestoCache())->retrieve($key) : null;
+        return $this->core['useCache'] ? (new RestoCache())->retrieve($key) : null;
     }
 
     /**
@@ -291,7 +291,7 @@ class RestoContext
      * @param array $arr
      */
     public function toCache($key, $arr) {
-        return isset($this->core['useCache']) ? (new RestoCache())->store($key, $arr) : null;
+        return $this->core['useCache'] ? (new RestoCache())->store($key, $arr) : null;
     }
 
     /**
