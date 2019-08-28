@@ -192,7 +192,7 @@ class FiltersFunctions
      * @param RestoModel $model (with model keys)
      * @param array $requestParams (with model keys)
      * @param string $filterName
-     * @param boolean $exclusion : if true, exclude instead of include filter (WARNING ! only works for geometry and keywords)
+     * @param boolean $exclusion : if true, exclude instead of include filter (WARNING ! only works for geometry)
      *
      */
     private function prepareFilterQuery($model, $requestParams, $filterName, $exclusion = false)
@@ -226,7 +226,7 @@ class FiltersFunctions
              * searchTerms
              */
             case 'keywords':
-                return $this->prepareFilterQueryKeywords($model, $filterName, $requestParams, $exclusion);
+                return $this->prepareFilterQueryKeywords($model, $filterName, $requestParams);
             /*
              * Intersects i.e. geo:*
              */
@@ -432,12 +432,12 @@ class FiltersFunctions
      * @param RestoModel $model
      * @param string $filterName
      * @param array $requestParams
-     * @param boolean $exclusion
      * @return string
      */
-    private function prepareFilterQueryKeywords($model, $filterName, $requestParams, $exclusion)
+    private function prepareFilterQueryKeywords($model, $filterName, $requestParams)
     {
         $terms = array();
+        $exclusion = false;
         $splitted = RestoUtil::splitString($requestParams[$filterName]);
         $filters = array(
             'with' => array(),
@@ -451,15 +451,25 @@ class FiltersFunctions
          */
         for ($i = 0, $l = count($splitted); $i < $l; $i++) {
 
+            $searchTerm = $splitted[$i];
+
             /*
              * Hashtags start with "#" or with "-#" (equivalent to "NOT #")
              */
-            if (substr($splitted[$i], 0, 1) === '#') {
-                $searchTerm = ltrim($splitted[$i], '#');
-            } elseif (substr($splitted[$i], 0, 2) === '-#') {
-                $searchTerm = '-' . ltrim($splitted[$i], '-#');
+            if (substr($searchTerm, 0, 1) === '#') {
+                $searchTerm = ltrim($searchTerm, '#');
+            } elseif (substr($searchTerm, 0, 2) === '-#') {
+                $exclusion = true;
+                $searchTerm = ltrim($searchTerm, '-#');
             }
 
+            /*
+             * Add prefix if needed
+             */
+            if (isset($model->searchFilters[$filterName]['prefix'])) {
+                $searchTerm = $model->searchFilters[$filterName]['prefix'] . Resto::TAG_SEPARATOR . $searchTerm;
+            }
+            
             $terms = array_merge($this->processSearchTerms($searchTerm, $filters, $model, $filterName, $exclusion));
         }
 
@@ -477,49 +487,48 @@ class FiltersFunctions
     private function processSearchTerms($searchTerm, &$filters, $model, $filterName, $exclusion)
     {
 
+        $type = null;
+        
         /*
-         * If term as a '-' prefix then performs a "NOT keyword"
-         * If keyword contain a + then transform it into a ' '
+         * searchTerm format is "value" or "type:value"
          */
-        if (substr($searchTerm, 0, 1) === '-') {
-            $searchTerm = substr($searchTerm, 1);
-            $exclusion = true;
+        $splitted = explode(Resto::TAG_SEPARATOR, $searchTerm);
+        if (isset($splitted[1])) {
+            $type = $splitted[0];
+            array_shift($splitted);
+            $searchTerm = join(Resto::TAG_SEPARATOR, $splitted);
         }
+        
+        if (isset($type)) {
 
-        $typeAndValue = explode(Resto::TAG_SEPARATOR, $searchTerm);
-
-        /*
-         * landcover columns are NUMERIC columns
-         */
-        if ($typeAndValue[0] === 'landcover') {
-            return $this->getLandCoverFilters($typeAndValue[1], count($model->tables) > 0 ? $model->tables[0]['name'] : null, $exclusion);
-        }
-
-        /*
-         * Everything other types are stored within hashtags column
-         *
-         * Structure is :
-         *
-         *      type{Resto::TAG_SEPARATOR}id or type{Resto::TAG_SEPARATOR}id1|id2|id3|.etc.
-         *
-         * In second case, '|' is understood as "OR"
-         */
-        $ors = array();
-        $values = explode('|', $typeAndValue[1]);
-        if (count($values) > 1) {
-            for ($j = count($values); $j--;) {
-                $ors[] = 'resto.feature.' . $model->searchFilters[$filterName]['key'] . " @> normalize_array(ARRAY['" . pg_escape_string($values[$j]) . "'])";
+            /*
+             * Everything other types are stored within hashtags column
+             *
+             * Structure is :
+             *
+             *      type{Resto::TAG_SEPARATOR}id or type{Resto::TAG_SEPARATOR}id1|id2|id3|.etc.
+             *
+             * In second case, '|' is understood as "OR"
+             */
+            $ors = array();
+            $values = explode('|', $searchTerm);
+            if (count($values) > 1) {
+                for ($j = count($values); $j--;) {
+                    $ors[] = 'resto.feature.' . $model->searchFilters[$filterName]['key'] . " @> normalize_array(ARRAY['" . pg_escape_string($type . Resto::TAG_SEPARATOR . $values[$j]) . "'])";
+                }
+                return array(($exclusion ? 'NOT (' : '(') . join(' OR ', $ors) . ')');
             }
-            return array(($exclusion ? 'NOT (' : '(') . join(' OR ', $ors) . ')');
         }
-
-        $filters[$exclusion ? 'without' : 'with'][] = "'" . pg_escape_string($searchTerm) . "'";
+        
+        $filters[$exclusion ? 'without' : 'with'][] = "'" . pg_escape_string((isset($type) ? $type . Resto::TAG_SEPARATOR : '') . $searchTerm) . "'";
 
         return array();
     }
 
     /**
      * Prepare terms for landcover search
+     * 
+     * Search within landcover table for value greater or lower than 25%
      *
      * @param string $value
      * @param string $tableName
@@ -538,8 +547,8 @@ class FiltersFunctions
         
         // Add to joins table
         $this->addToJoins($tableName, 'id');
-
-        return 'resto.' . $tableName . '.' . $value . ($exclusion ? ' = ' : ' > ') . '34)';
+        
+        return 'resto.' . $tableName . '.' . $value . ($exclusion ? ' < ' : ' > ') . '25)';
 
     }
 

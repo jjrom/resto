@@ -48,40 +48,45 @@ class SatelliteModel extends LandCoverModel
     private $extendedSearchFilters = array(
         
         'eo:productType' => array(
-            'key' => 'productType',
+            'key' => 'normalized_hashtags',
             'osKey' => 'productType',
+            'prefix' => 'productType',
             'operation' => 'keywords',
             'title' => 'A string identifying the entry type (e.g. ER02_SAR_IM__0P, MER_RR__1P, SM_SLC__1S, GES_DISC_AIRH3STD_V005)',
             'options' => 'auto'
         ),
         
         'eo:processingLevel' => array(
-            'key' => 'processingLevel',
+            'key' => 'normalized_hashtags',
             'osKey' => 'processingLevel',
+            'prefix' => 'processingLevel',
             'operation' => 'keywords',
             'title' => 'A string identifying the processing level applied to the entry',
             'options' => 'auto'
         ),
         
         'eo:platform' => array(
-            'key' => 'platform',
+            'key' => 'normalized_hashtags',
             'osKey' => 'platform',
+            'prefix' => 'platform',
             'operation' => 'keywords',
             'title' => 'A string with the platform short name (e.g. Sentinel-1)',
             'options' => 'auto'
         ),
         
         'eo:instrument' => array(
-            'key' => 'instrument',
+            'key' => 'normalized_hashtags',
             'osKey' => 'instrument',
+            'prefix' => 'instrument',
             'operation' => 'keywords',
             'title' => 'A string identifying the instrument (e.g. MERIS, AATSR, ASAR, HRVIR. SAR)',
             'options' => 'auto'
         ),
         
         'eo:sensorType' => array(
-            'key' => 'sensorType',
+            'key' => 'normalized_hashtags',
             'osKey' => 'sensorType',
+            'prefix' => 'sensorType',
             'operation' => 'keywords',
             'title' => 'A string identifying the sensor type. Suggested values are: OPTICAL, RADAR, ALTIMETRIC, ATMOSPHERIC, LIMB',
             'options' => 'auto'

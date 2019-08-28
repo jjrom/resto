@@ -48,6 +48,8 @@ abstract class RestoModel
      *      RESTo model property name
      *  'osKey' :
      *      OpenSearch property name in template urls
+     *  'prefix' :
+     *      (for "keywords" operation only) Prefix to add to input value
      *  'operation' :
      *      Search operation (keywords, intersects, distance, =, <=, >=)
      *
