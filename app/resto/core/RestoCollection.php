@@ -25,11 +25,42 @@
  *
  *  @OA\Schema(
  *      schema="OutputCollection",
- *      required={"name", "visibility", "owner", "model", "licenseId", "osDescription", "statistics"},
+ *      required={"stac_version", "id", "description", license", "extent", "links"},
  *      @OA\Property(
- *          property="name",
+ *          property="stac_version",
+ *          type="string",
+ *          description="The STAC version the Collection implements"
+ *      ),
+ *      @OA\Property(
+ *          property="stac_extensions",
+ *          type="array",
+ *          description="A list of extensions the Collection implements."
+ *      ),
+ *      @OA\Property(
+ *          property="id",
  *          type="string",
  *          description="Unique collection name. It is used as the collection identifier"
+ *      ),
+ *      @OA\Property(
+ *          property="title",
+ *          type="string",
+ *          description="A short descriptive one-line title for the collection."
+ *      ),
+ *      @OA\Property(
+ *          property="description",
+ *          type="string",
+ *          description="Detailed multi-line description to fully explain the collection. CommonMark 0.28 syntax MAY be used for rich text representation."
+ *      ),
+ *      @OA\Property(
+ *          property="keywords",
+ *          type="array",
+ *          description="List of keywords describing the collection."
+ *      ),
+ *      @OA\Property(
+ *          property="license",
+ *          type="enum",
+ *          enum={"proprietary","various", "<license id>"},
+ *          description="License for this collection as a SPDX License identifier or expression. Alternatively, use proprietary if the license is not on the SPDX license list or various if multiple licenses apply. In these two cases links to the license texts SHOULD be added, see the license link relation type."
  *      ),
  *      @OA\Property(
  *          property="visibility",
@@ -47,12 +78,7 @@
  *          type="string",
  *          description="[For developper] Name of the collection model corresponding to the class under $SRC/include/resto/Models without *Model* suffix."
  *      ),
- *      @OA\Property(
- *          property="licenseId",
- *          type="enum",
- *          enum={"proprietary","various", "<license id>"},
- *          description="License for this collectionas a SPDX License identifier or expression. Alternatively, use proprietary if the license is not on the SPDX license list or various if multiple licenses apply. In these two cases links to the license texts SHOULD be added, see the license link relation type."
- *      ),
+ *      
  *      @OA\Property(
  *          property="osDescription",
  *          type="object",
@@ -361,13 +387,21 @@ class RestoCollection
      */
     public function toArray($setStatistics = true)
     {
+        
+        $osDescription = $this->osDescription[$this->context->lang] ?? $this->osDescription['en'];
+
         $collectionArray = array(
-            'name' => $this->name,
-            'model' => $this->model->getName(),
+            'stac_version' => RestoModel::STAC_VERSION,
+            'stac_extensions' => $this->model->stacExtensions,
+            'id' => $this->name,
+            'title' => $osDescription['ShortName'],
+            'description' => $osDescription['Description'],
+            'keywords' => explode(' ', $osDescription['Tags']),
+            'license' => $this->licenseId    
+            //'model' => $this->model->getName(),
             //'lineage' => $this->model->getLineage(),
-            'licenseId' => $this->licenseId,
-            'osDescription' => $this->osDescription[$this->context->lang] ?? $this->osDescription['en'],
-            'owner' => $this->owner
+            //'osDescription' => $this->osDescription[$this->context->lang] ?? $this->osDescription['en'],
+            //'owner' => $this->owner
         );
 
         if ($this->visibility !== Resto::GROUP_DEFAULT_ID) {
