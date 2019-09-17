@@ -277,7 +277,7 @@ class OSDD extends RestoXML
                         $this->writeAttribute($this->extensionParams[$i], $filter[$this->extensionParams[$i]]);
                     }
                 }
-
+                
                 /*
                  * Options - two cases
                  * 1. predefined value/label
@@ -295,8 +295,8 @@ class OSDD extends RestoXML
                         }
                     } elseif ($filter['options'] === 'auto') {
                         $statistics = $this->statistics;
-                        if (isset($filter['key']) && isset($statistics['facets'][$filter['key']])) {
-                            foreach (array_keys($statistics['facets'][$filter['key']]) as $key) {
+                        if (isset($filter['osKey']) && isset($statistics['facets'][$filter['osKey']])) {
+                            foreach (array_keys($statistics['facets'][$filter['osKey']]) as $key) {
                                 $this->startElement('parameters:Option');
                                 $this->writeAttribute('value', $key);
                                 $this->endElement();
