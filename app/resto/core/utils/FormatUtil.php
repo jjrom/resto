@@ -228,6 +228,13 @@ class FormatUtil
             'visibility' => (integer) $rawDescription['visibility'],
             'owner' => $rawDescription['owner'],
             'propertiesMapping' => json_decode($rawDescription['mapping'], true),
+            'providers' => json_decode($rawDescription['providers'], true),
+            'properties' => json_decode($rawDescription['properties'], true),
+            'datetime' => array(
+                'min' => $rawDescription['startdate'] ?? null,
+                'max' => $rawDescription['completiondate'] ?? null
+            ),
+            'bbox' => RestoGeometryUtil::box2dTobbox($rawDescription['box2d']),
             'licenseId' => $rawDescription['licenseid']
         );
     }

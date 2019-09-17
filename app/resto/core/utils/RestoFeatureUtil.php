@@ -240,7 +240,7 @@ class RestoFeatureUtil
                         break;
 
                     case 'bbox4326':
-                        $bbox = array_map('floatval', explode(',', str_replace(' ', ',', substr(substr($rawFeatureArray[$key], 0, strlen($rawFeatureArray[$key]) - 1), 4))));
+                        $bbox = RestoGeometryUtil::box2dTobbox($rawFeatureArray[$key]);
                         $properties['bbox3857'] = RestoGeometryUtil::bboxToMercator($bbox);
                         break;
 

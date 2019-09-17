@@ -50,7 +50,13 @@ CREATE TABLE IF NOT EXISTS resto.collection (
     completiondate      TIMESTAMP,
 
     -- Spatial extent of the collection
-    bbox                GEOMETRY(GEOMETRY, 4326)
+    bbox                GEOMETRY(GEOMETRY, 4326),
+
+    -- [STAC] Providers
+    providers           JSON,
+
+    -- [STAC] Additional properties
+    properties          JSON
 
 );
 

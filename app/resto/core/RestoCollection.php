@@ -108,11 +108,6 @@ class RestoCollection
     public $model = null;
 
     /*
-     * Properties mapping
-     */
-    public $propertiesMapping = array();
-
-    /*
      * Context reference
      */
     public $context = null;
@@ -267,11 +262,6 @@ class RestoCollection
      */
     private $statistics = null;
 
-    /*
-     * Collection rights - set during creation or during update
-     */
-    private $rights = array();
-
     /**
      * Constructor
      *
@@ -397,7 +387,10 @@ class RestoCollection
             'title' => $osDescription['ShortName'],
             'description' => $osDescription['Description'],
             'keywords' => explode(' ', $osDescription['Tags']),
-            'license' => $this->licenseId    
+            'license' => $this->licenseId,
+            'providers' => $this->providers,
+            'extent' => $this->getExtent(),
+            'properties' => $this->properties,
             //'model' => $this->model->getName(),
             //'lineage' => $this->model->getLineage(),
             //'osDescription' => $this->osDescription[$this->context->lang] ?? $this->osDescription['en'],
@@ -455,6 +448,27 @@ class RestoCollection
             }
         }
         return $this->statistics;
+    }
+
+    /**
+     * Return STAC extent
+     */
+    public function getExtent()
+    {
+        return array(
+            'spatial' => array(
+                'bbox' => array(
+                    $this->bbox ?? array(-180.0, -90.0, 180.0, 90.0)
+                )
+            ),
+            'temporal' => array(
+                'interval' => array(
+                    array(
+                        $this->datetime['min'], $this->datetime['max']
+                    )
+                )
+            )
+        );
     }
 
     /**
@@ -529,21 +543,13 @@ class RestoCollection
          * License - set to 'proprietary' if not specified
          */
         $this->licenseId = $object['licenseId'] ?? 'proprietary';
-        
+       
         /*
-         * Properties mapping
+         * Set values
          */
-        $this->propertiesMapping = $object['propertiesMapping'] ?? $this->propertiesMapping;
-        
-        /*
-         * OpenSearch description
-         */
-        $this->osDescription = $object['osDescription'] ?? $this->osDescription;
-
-        /*
-         * Rights
-         */
-        $this->rights = $object['rights'] ?? $this->rights;
+        foreach (array_values(array('osDescription', 'propertiesMapping', 'providers', 'properties', 'rights')) as $key) {
+            $this->$key = $object[$key] ?? array();
+        }
 
         return $this;
 

@@ -134,6 +134,11 @@ class SatelliteModel extends LandCoverModel
         $this->addFacetCategories($this->extendedFacetCategories);
 
         /*
+         * Satellite model follows STAC EO Extension Specification
+         */
+        $this->stacExtensions[] = 'eo';
+        
+        /*
          * [IMPORTANT] The table resto.feature_satellite must exist
          * with columns 'id' and at least the columns list below
          */

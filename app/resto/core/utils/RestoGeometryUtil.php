@@ -178,6 +178,17 @@ class RestoGeometryUtil
     }
 
     /**
+     * Return a PostGIS BOX2D to a bbox array
+     * 
+     * @param string $box2d
+     * @return array
+     */
+    public static function box2dTobbox($box2d)
+    {
+        return isset($box2d) ? array_map('floatval', explode(',', str_replace(' ', ',', substr(substr($box2d, 0, strlen($box2d) - 1), 4)))) : null;
+    }
+
+    /**
      * Transform EPSG:4326 BBOX to EPSG:3857 bbox
      *
      * @param array $bbox : bbox in EPSG:4326 (i.e. [lonmin,latmin,lonmax,latmax])

@@ -1,0 +1,118 @@
+{
+    "name": "S2",
+    "model": "OpticalModel",
+    "rights": {
+        "download": 1,
+        "visualize": 1
+    },
+    "visibility": 1,
+    "licenseId": "proprietary",
+    "osDescription": {
+        "en": {
+            "ShortName": "Sentinel-2",
+            "LongName": "Level 1C Sentinel-2 images",
+            "Description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites",
+            "Tags": "copernicus esa eu msi radiance sentinel sentinel2",
+            "Developer": "Jérôme Gasperi",
+            "Contact": "jrom@snapplanet.io",
+            "Query": "Toulouse",
+            "Attribution": "European Union/ESA/Copernicus"
+        },
+        "fr": {
+            "ShortName": "Sentinel-2",
+            "LongName": "Images Sentinel-2 Niveau 1C",
+            "Description": "La mission SENTINEL-2 est constituée de deux satellites d'imagerie optique équipés d’un imageur multispectral (MSI) en 13 bandes spectrales avec des résolutions de 10, 20 et 60 mètres et d'une fauchée unique de 290 km de large. La capacité d'observation des deux satellites permet de surveiller l'intégralité des terres émergées du globe tous les 5 jours",
+            "Tags": "copernicus esa eu msi radiance sentinel sentinel2",
+            "Developer": "Jérôme Gasperi",
+            "Contact": "jrom@snapplanet.io",
+            "Query": "Toulouse",
+            "Attribution": "European Union/ESA/Copernicus"
+        }
+    },
+    "providers": [
+        {
+            "name": "European Union/ESA/Copernicus",
+            "roles": [
+                "producer",
+                "licensor"
+            ],
+            "url": "https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi"
+        }
+    ],
+    "properties": {
+        "eo:bands": [
+            {
+                "name": "B1",
+                "common_name": "coastal",
+                "center_wavelength": 4.439,
+                "gsd": 60
+            },
+            {
+                "name": "B2",
+                "common_name": "blue",
+                "center_wavelength": 4.966,
+                "gsd": 10
+            },
+            {
+                "name": "B3",
+                "common_name": "green",
+                "center_wavelength": 5.6,
+                "gsd": 10
+            },
+            {
+                "name": "B4",
+                "common_name": "red",
+                "center_wavelength": 6.645,
+                "gsd": 10
+            },
+            {
+                "name": "B5",
+                "center_wavelength": 7.039,
+                "gsd": 20
+            },
+            {
+                "name": "B6",
+                "center_wavelength": 7.402,
+                "gsd": 20
+            },
+            {
+                "name": "B7",
+                "center_wavelength": 7.825,
+                "gsd": 20
+            },
+            {
+                "name": "B8",
+                "common_name": "nir",
+                "center_wavelength": 8.351,
+                "gsd": 10
+            },
+            {
+                "name": "B8A",
+                "center_wavelength": 8.648,
+                "gsd": 20
+            },
+            {
+                "name": "B9",
+                "center_wavelength": 9.45,
+                "gsd": 60
+            },
+            {
+                "name": "B10",
+                "center_wavelength": 1.3735,
+                "gsd": 60
+            },
+            {
+                "name": "B11",
+                "common_name": "swir16",
+                "center_wavelength": 1.6137,
+                "gsd": 20
+            },
+            {
+                "name": "B12",
+                "common_name": "swir22",
+                "center_wavelength": 2.2024,
+                "gsd": 20
+            }
+        ]
+    }
+}
