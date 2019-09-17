@@ -374,7 +374,7 @@ class RestoFeatureCollection
         $this->description = array(
             'type' => 'FeatureCollection',
             'properties' => array(
-                'id' => RestoUtil::toUUID($defaultName . ':' . json_encode($this->cleanFilters($analysis['details']['appliedFilters']))),
+                'id' => RestoUtil::toUUID($defaultName . ':' . json_encode($this->cleanFilters($analysis['details']['appliedFilters']), JSON_UNESCAPED_SLASHES)),
                 'totalResults' => $this->paging['count']['total'],
                 'exactCount' => $this->paging['count']['isExact'],
                 'startIndex' => $sorting['offset'] + 1,

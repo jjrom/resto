@@ -263,7 +263,7 @@ class CollectionsFunctions
                 'model' => $collection->model->getName(),
                 'lineage' => '{' . join(',', $collection->model->getLineage()) . '}',
                 'licenseid' => $collection->licenseId,
-                'mapping' => json_encode($collection->propertiesMapping),
+                'mapping' => json_encode($collection->propertiesMapping, JSON_UNESCAPED_SLASHES),
                 'visibility' => $collection->visibility,
                 'owner' => $collection->owner
             );
@@ -275,7 +275,7 @@ class CollectionsFunctions
         else {
             $this->dbDriver->pQuery('UPDATE resto.collection SET visibility=$1, mapping=$2, licenseid=$3 WHERE name=$4', array(
                 $collection->visibility,
-                json_encode($collection->propertiesMapping),
+                json_encode($collection->propertiesMapping, JSON_UNESCAPED_SLASHES),
                 $collection->licenseId,
                 $collection->name
             ));

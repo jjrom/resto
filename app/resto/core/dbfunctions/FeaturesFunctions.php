@@ -655,8 +655,8 @@ class FeaturesFunctions
 
         // Initialize
         $keysAndValues = array(
-            'links' => isset($featureArray['links']) ? json_encode($featureArray['links']) : null,
-            'assets' => isset($featureArray['assets']) ? json_encode($featureArray['assets']) : null
+            'links' => isset($featureArray['links']) ? json_encode($featureArray['links'], JSON_UNESCAPED_SLASHES) : null,
+            'assets' => isset($featureArray['assets']) ? json_encode($featureArray['assets'], JSON_UNESCAPED_SLASHES) : null
         );
 
         $output = array(
@@ -701,7 +701,7 @@ class FeaturesFunctions
                 $facetsFunctions = new FacetsFunctions($this->dbDriver);
 
                 // Initialize keywords
-                $keysAndValues['keywords'] = json_encode($propertyValue);
+                $keysAndValues['keywords'] = json_encode($propertyValue, JSON_UNESCAPED_SLASHES);
 
                 // Compute facets
                 $output['facets'] = array_merge($facetsFunctions->getFacetsFromKeywords($propertyValue, $collection->model->facetCategories, $collection->name), $this->extractHashtagsFromText($featureArray['properties']['description'] ?? '', true));
@@ -741,7 +741,7 @@ class FeaturesFunctions
         }
        
         // JSON encode metadata
-        $keysAndValues['metadata'] = json_encode($keysAndValues['metadata']);
+        $keysAndValues['metadata'] = json_encode($keysAndValues['metadata'], JSON_UNESCAPED_SLASHES);
         
         $counter = 0;
         $output['keysAndValues'] = array_merge($protected, $keysAndValues);

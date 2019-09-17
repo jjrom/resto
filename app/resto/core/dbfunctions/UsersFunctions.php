@@ -293,7 +293,7 @@ class UsersFunctions
                         break;
                     case 'externalidp':
                     case 'settings':
-                        $jsonEncoded = json_encode($profile[$field]);
+                        $jsonEncoded = json_encode($profile[$field], JSON_UNESCAPED_SLASHES);
                         if (is_object(json_decode($jsonEncoded))) {
                             $values[] = $field . '=\'' . pg_escape_string($jsonEncoded) . '\'';
                         } else {

@@ -206,7 +206,7 @@ class GeneralFunctions
                 json_encode(array(
                     'type' => $geometry['type'],
                     'coordinates' => $geometry['coordinates']
-                ))
+                ), JSON_UNESCAPED_SLASHES)
             )), 0, PGSQL_ASSOC);
 
         } catch (Exception $e) {
