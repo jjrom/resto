@@ -120,7 +120,7 @@ class CollectionsAPI
      *                          "visibility": "public",
      *                          "owner": "1919680409029837825",
      *                          "model": "OpticalModel",
-     *                          "licenseId": "unlicensed",
+     *                          "licenseId": "proprietary",
      *                          "osDescription": {
      *                              "ShortName": "S2",
      *                              "LongName": "Sentinel-2",
@@ -169,7 +169,7 @@ class CollectionsAPI
      *              example={
      *                  "name": "S2",
      *                  "model": "OpticalModel",
-     *                  "licenseId": "unlicensedwithregistration",
+     *                  "licenseId": "proprietary",
      *                  "osDescription": {
      *                      "ShortName": "S2",
      *                      "LongName": "Sentinel-2",
@@ -294,7 +294,7 @@ class CollectionsAPI
      *              @OA\Property(
      *                  property="licenseId",
      *                  type="string",
-     *                  description="License for this collection. *unlicensed* collection are available for all users. *unlicensedwithregistration* collection are available for all users that are registered and authenticated"
+     *                  description="License for this collection as a SPDX License identifier. Alternatively, use proprietary if the license is not on the SPDX license list or various if multiple licenses apply. In these two cases links to the license texts SHOULD be added, see the license link relation type."
      *              ),
      *              @OA\Property(
      *                  property="rights",
@@ -331,7 +331,7 @@ class CollectionsAPI
      *                  "name": "Example",
      *                  "model": "SatelliteModel",
      *                  "visibility": 1,
-     *                  "licenseId": "unlicensed",
+     *                  "licenseId": "proprietary",
      *                  "rights":{
      *                      "download":0,
      *                      "visualize":1
@@ -454,7 +454,7 @@ class CollectionsAPI
      *              @OA\Property(
      *                  property="licenseId",
      *                  type="string",
-     *                  description="License for this collection. *unlicensed* collection are available for all users. *unlicensedwithregistration* collection are available for all users that are registered and authenticated"
+     *                  description="License for this collectionas a SPDX License identifier or expression. Alternatively, use proprietary if the license is not on the SPDX license list or various if multiple licenses apply. In these two cases links to the license texts SHOULD be added, see the license link relation type."
      *              ),
      *              @OA\Property(
      *                  property="rights",

@@ -21,15 +21,6 @@ CREATE TABLE IF NOT EXISTS resto.collection (
     -- It cannot start with a digit and cannot contains special characters
     name                TEXT PRIMARY KEY,
 
-    -- A short descriptive one-line title for the collection
-    title               TEXT,
-
-    -- Detailed multi-line description to fully explain the collection.
-    description         TEXT,
-
-    -- Keywords
-    keywords            TEXT[],
-
     -- Model used to ingest collection metadata
     model               TEXT,
 

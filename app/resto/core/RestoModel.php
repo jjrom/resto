@@ -22,6 +22,16 @@ abstract class RestoModel
 {
 
     /*
+     * STAC version
+     */
+    const STAC_VERSION = '0.8.0';
+
+    /*
+     * STAC extensions - override in child models
+     */
+    public $stacExtensions = array();
+
+    /*
      * Facet hierarchy
      */
     public $facetCategories = array(

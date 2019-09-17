@@ -161,7 +161,7 @@ class Resto
      * ============================================================*/
 
     // resto version
-    const VERSION = '5.0.0';
+    const VERSION = '6.0.0';
 
     // PostgreSQL max value for integer
     const INT_MAX_VALUE = 2147483647;

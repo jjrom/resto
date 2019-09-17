@@ -50,8 +50,8 @@
  *      @OA\Property(
  *          property="licenseId",
  *          type="enum",
- *          enum={"unlicensed","unlicensedwithregistration", "<license id>"},
- *          description="License for this collection. *unlicensed* collection are available for all users. *unlicensedwithregistration* collection are available for all users that are registered an authenticated"
+ *          enum={"proprietary","various", "<license id>"},
+ *          description="License for this collectionas a SPDX License identifier or expression. Alternatively, use proprietary if the license is not on the SPDX license list or various if multiple licenses apply. In these two cases links to the license texts SHOULD be added, see the license link relation type."
  *      ),
  *      @OA\Property(
  *          property="osDescription",
@@ -161,7 +161,7 @@ class RestoCollection
     /*
      * Collection licenseId
      */
-    public $licenseId = 'unlicensed';
+    public $licenseId = 'proprietary';
 
     /**
      * Statistics
@@ -492,9 +492,9 @@ class RestoCollection
         $this->visibility = Resto::GROUP_DEFAULT_ID;
         
         /*
-         * License - set to 'unlicensed' if not specified
+         * License - set to 'proprietary' if not specified
          */
-        $this->licenseId = $object['licenseId'] ?? 'unlicensed';
+        $this->licenseId = $object['licenseId'] ?? 'proprietary';
         
         /*
          * Properties mapping
