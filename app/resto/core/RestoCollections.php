@@ -124,15 +124,12 @@ class RestoCollections
             $this->context->toCache($cacheKey, $collectionsDesc);
         }
 
-        foreach (array_keys($collectionsDesc) as $key) {
-            $collection = new RestoCollection($key, $this->context, $this->user);
-            $collection->model = new $collectionsDesc[$key]['model']();
-            $collection->osDescription = $collectionsDesc[$key]['osDescription'];
-            $collection->visibility = intval($collectionsDesc[$key]['visibility']);
-            $collection->owner = $collectionsDesc[$key]['owner'];
-            $collection->licenseId = $collectionsDesc[$key]['licenseId'];
-            $collection->propertiesMapping = $collectionsDesc[$key]['propertiesMapping'];
-            $this->collections[$collection->name] = $collection;
+        foreach (array_keys($collectionsDesc) as $collectionName) {
+            $collection = new RestoCollection($collectionName, $this->context, $this->user);
+            foreach ($collectionsDesc[$collectionName] as $key => $value) {
+                $collection->$key = $key === 'model' ? new $value() : $value;
+            }
+            $this->collections[$collectionName] = $collection;
         }
 
         return $this;

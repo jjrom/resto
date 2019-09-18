@@ -388,15 +388,19 @@ class RestoCollection
             'description' => $osDescription['Description'],
             'keywords' => explode(' ', $osDescription['Tags']),
             'license' => $this->licenseId,
-            'providers' => $this->providers,
-            'extent' => $this->getExtent(),
-            'properties' => $this->properties,
+            'extent' => $this->getExtent()
             //'model' => $this->model->getName(),
             //'lineage' => $this->model->getLineage(),
             //'osDescription' => $this->osDescription[$this->context->lang] ?? $this->osDescription['en'],
             //'owner' => $this->owner
         );
 
+        foreach (array_values(array('providers', 'properties')) as $key) {
+            if (isset($this->$key)) {
+                $collectionArray[$key] = $this->$key;
+            }
+        }
+        
         if ($this->visibility !== Resto::GROUP_DEFAULT_ID) {
             $collectionArray['visibility'] = $this->visibility;
         }
