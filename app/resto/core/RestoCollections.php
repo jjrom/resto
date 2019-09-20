@@ -41,19 +41,13 @@ class RestoCollections
      */
     private $statistics;
 
-    /*
-     * True to compute individual statistics per collection
-     */
-    private $fullStats = false;
-
     /**
      * Constructor
      *
      * @param RestoContext $context
      * @param RestoUser $user
-     * @param array $params
      */
-    public function __construct($context, $user, $params = array())
+    public function __construct($context, $user)
     {
 
         /*
@@ -65,9 +59,7 @@ class RestoCollections
 
         $this->context = $context;
         $this->user = $user;
-        if (isset($params['fullStats'])) {
-            $this->fullStats = $params['fullStats'];
-        }
+
         return $this;
     }
 
@@ -144,7 +136,7 @@ class RestoCollections
             $cacheKey = 'getStatistics';
             $this->statistics = $this->context->fromCache($cacheKey);
             if (!isset($this->statistics)) {
-                $this->statistics = (new FacetsFunctions($this->context->dbDriver))->getStatistics(null, (new DefaultModel())->getFacetFields());
+                $this->statistics = (new FacetsFunctions($this->context->dbDriver))->getStatistics(null, (new DefaultModel())->getAutoFacetFields());
                 $this->context->toCache('getStatistics', $this->statistics);
             }
         }
@@ -156,16 +148,23 @@ class RestoCollections
      *
      * @param boolean $pretty : true to return pretty print
      */
-    public function toJSON($pretty)
+    public function toJSON($pretty = false)
     {
         $collections = array(
             'osDescription' => $this->context->osDescription,
-            'statistics' => $this->getStatistics(),
+            'extent' => $this->getExtent(),
+            'summaries' => array(
+                'resto:stats' => $this->getStatistics()
+            ),
             'collections' => array()
         );
+        
         foreach (array_keys($this->collections) as $key) {
-            $collections['collections'][] = $this->collections[$key]->toArray($this->fullStats);
+            $collections['collections'][] = $this->collections[$key]->toArray(array(
+                'stats' => isset($this->context->query['_stats']) ? filter_var($this->context->query['_stats'], FILTER_VALIDATE_BOOLEAN) : false
+            ));
         }
+
         return json_encode($collections, $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
     }
 
@@ -176,4 +175,50 @@ class RestoCollections
     {
         return new OSDD($this->context, $model ?? new DefaultModel(), $this->getStatistics(), null);
     }
+
+    /**
+     * Return STAC overal extent 
+     */
+    public function getExtent()
+    {
+        $bbox = array(-180, -90, 180, 90);
+        $dateMin = null;
+        $dateMax = null;
+
+        foreach (array_keys($this->collections) as $key) {
+            if ($this->collections[$key]->datetime['min']) {
+                if ( ! isset($dateMin) || $this->collections[$key]->datetime['min'] < $dateMin) {
+                    $dateMin = $this->collections[$key]->datetime['min'];
+                }
+            }
+            if ($this->collections[$key]->datetime['max']) {
+                if ( ! isset($dateMax) || $this->collections[$key]->datetime['max'] > $dateMax) {
+                    $dateMax = $this->collections[$key]->datetime['max'];
+                }
+            }
+            $bbox = array(
+                min($bbox[0], $this->collections[$key]->bbox[0]),
+                min($bbox[1], $this->collections[$key]->bbox[1]),
+                max($bbox[2], $this->collections[$key]->bbox[2]),
+                max($bbox[3], $this->collections[$key]->bbox[3])
+            );
+            
+        }
+
+        return array(
+            'spatial' => array(
+                'bbox' => array(
+                    $bbox
+                )
+            ),
+            'temporal' => array(
+                'interval' => array(
+                    array(
+                        $dateMin, $dateMax
+                    )
+                )
+            )
+        );
+    }
+
 }

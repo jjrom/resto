@@ -32,6 +32,11 @@ abstract class RestoModel
     public $stacExtensions = array();
 
     /*
+     * STAC mapping
+     */
+    public $stacMapping = array();
+
+    /*
      * Facet hierarchy
      */
     public $facetCategories = array(
@@ -318,26 +323,6 @@ abstract class RestoModel
     }
 
     /**
-     * Add filters to default search filters
-     *
-     * @param array searchFilters
-     */
-    public function addSearchFilters($searchFilters)
-    {
-        $this->searchFilters = array_merge($this->searchFilters, $searchFilters);
-    }
-
-    /**
-     * Add facet categories to default facet categories
-     *
-     * @param array facetCategories
-     */
-    public function addFacetCategories($facetCategories)
-    {
-        $this->facetCategories = array_merge($this->facetCategories, $facetCategories);
-    }
-
-    /**
      * Store feature within {collection}.features table following the class model
      *
      * @param RestoCollection $collection
@@ -457,9 +442,9 @@ abstract class RestoModel
     }
 
     /**
-     * Get facet fields from model
+     * Get auto facet fields from model
      */
-    public function getFacetFields()
+    public function getAutoFacetFields()
     {
         $facetFields = array();
         foreach (array_values($this->searchFilters) as $filter) {

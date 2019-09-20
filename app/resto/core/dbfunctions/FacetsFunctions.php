@@ -156,34 +156,14 @@ class FacetsFunctions
      *
      * Or an array of array indexed by collection name if $collectionName is null
      *
-     * @param RestoCollection $collection
+     * @param string $collectionName
      * @param array $facetFields
-     * @param string $id
      *
      * @return array
      */
-    public function getStatistics($collection, $facetFields)
+    public function getStatistics($collectionName, $facetFields)
     {
-        if (isset($collection)) {
-            $collectionName = $collection->name;
-            $facetCategories = $collection->model->facetCategories;
-        } else {
-            $collectionName = null;
-            $facetCategories = (new DefaultModel())->facetCategories;
-        }
-
-        /*
-         * Retrieve pivot for each input facet fields
-         */
-        if (!isset($facetFields)) {
-            $facetFields = array();
-            foreach (array_values($facetCategories) as $facetCategory) {
-                $facetFields[] = $facetCategory[0];
-            }
-        }
-       
         return $this->getCounts($this->getFacetsPivots($collectionName, $facetFields, null), $collectionName);
-
     }
 
     /**

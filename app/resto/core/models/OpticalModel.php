@@ -21,43 +21,49 @@ class OpticalModel extends SatelliteModel
 {
 
     /**
-     * Extended search filters for optical collection
-     */
-    private $extendedSearchFilters = array(
-
-        'eo:cloudCover' => array(
-            'key' => 'cloudCover',
-            'osKey' => 'cloudCover',
-            'operation' => 'interval',
-            'title' => 'Cloud cover expressed in percent',
-            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
-            'quantity' => array(
-                'value' => 'cloud',
-                'unit' => '%'
-            )
-        ),
-
-        'eo:snowCover' => array(
-            'key' => 'snowCover',
-            'osKey' => 'snowCover',
-            'operation' => 'interval',
-            'title' => 'Snow cover expressed in percent',
-            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
-            'quantity' => array(
-                'value' => 'snow',
-                'unit' => '%'
-            )
-        )
-    );
-
-    /**
      * Constructor
      */
     public function __construct()
     {
+
         parent::__construct();
 
-        $this->addSearchFilters($this->extendedSearchFilters);
+        /*
+         * Extend STAC mapping
+         */
+        $this->stacMapping = array_merge($this->stacMapping, array(
+            'cloudCover' => 'eo:cloud_cover'
+        ));
+
+        /*
+         * Extend search filters
+         */
+        $this->searchFilters = array_merge($this->searchFilters, array(
+
+            'eo:cloudCover' => array(
+                'key' => 'cloudCover',
+                'osKey' => 'cloudCover',
+                'operation' => 'interval',
+                'title' => 'Cloud cover expressed in percent',
+                'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
+                'quantity' => array(
+                    'value' => 'cloud',
+                    'unit' => '%'
+                )
+            ),
+    
+            'eo:snowCover' => array(
+                'key' => 'snowCover',
+                'osKey' => 'snowCover',
+                'operation' => 'interval',
+                'title' => 'Snow cover expressed in percent',
+                'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
+                'quantity' => array(
+                    'value' => 'snow',
+                    'unit' => '%'
+                )
+            )
+        ));
 
         /*
          * [IMPORTANT] The table resto.feature_optical must exist

@@ -1,0 +1,91 @@
+{
+    "id": "S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040",
+    "type": "Feature",
+    "geometry": {
+        "type": "Polygon",
+        "crs": {
+            "type": "name",
+            "properties": {
+                "name": "urn:ogc:def:crs:EPSG:8.8.1:32623"
+            }
+        },
+        "coordinates": [
+            [
+                [
+                    399961,
+                    8399999
+                ],
+                [
+                    509759,
+                    8399999
+                ],
+                [
+                    509759,
+                    8331376.374510167
+                ],
+                [
+                    508678.07176464616,
+                    8330381.064352994
+                ],
+                [
+                    485694.78540273,
+                    8304807.407595847
+                ],
+                [
+                    474762.9610673143,
+                    8292575.366276582
+                ],
+                [
+                    472851.1336759121,
+                    8290201
+                ],
+                [
+                    399961,
+                    8290201
+                ],
+                [
+                    399961,
+                    8399999
+                ]
+            ]
+        ]
+    },
+    "properties": {
+        "authority": "ESA",
+        "startDate": "2019-06-11T16:11:41.808Z",
+        "productType": "REFLECTANCE",
+        "processingLevel": "LEVEL1C",
+        "platform": "S2A",
+        "instrument": "MSI",
+        "tileId": "23XMD",
+        "dataTakeId": "GS2A_20190611T160901_020729_N02.07",
+        "cloudCover": 54.76,
+        "coverage": 93.62,
+        "datastripId": "S2A_OPER_MSI_L1C_DS_MTI__20190611T193040_S20190611T160904_N02.07",
+        "path": "tiles/23/X/MD/2019/6/11/0",
+        "sciHubIngestion": "2019-06-11T21:06:44.314Z",
+        "s3Ingestion": "2019-06-11T21:24:01.585Z",
+        "eo:sun_elevation": 52.7900601006242,
+        "eo:sun_azimuth": 199.076369728221,
+        "viewZenith": 7.67887190207369,
+        "viewAzimuth": 312.400523076109
+    },
+    "assets": {
+        "thumbnail": {
+            "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/preview.jpg",
+            "type": "image/jpeg"
+        },
+        "metadata": {
+            "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/metadata.xml",
+            "type": "text/xml"
+        },
+        "tileInfo": {
+            "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/tileInfo.json",
+            "type": "application/json"
+        },
+        "productInfo": {
+            "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/productInfo.json",
+            "type": "application/json"
+        }
+    }
+}

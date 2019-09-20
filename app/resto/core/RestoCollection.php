@@ -373,9 +373,9 @@ class RestoCollection
     /**
      * Output collection description as an array
      *
-     * @param boolean $setStatistics (true to return statistics)
+     * @param array $options 
      */
-    public function toArray($setStatistics = true)
+    public function toArray($options = array())
     {
         
         $osDescription = $this->osDescription[$this->context->lang] ?? $this->osDescription['en'];
@@ -400,13 +400,16 @@ class RestoCollection
                 $collectionArray[$key] = $this->$key;
             }
         }
-        
+
         if ($this->visibility !== Resto::GROUP_DEFAULT_ID) {
             $collectionArray['visibility'] = $this->visibility;
         }
             
-        if ($setStatistics) {
-            $collectionArray['statistics'] = $this->getStatistics();
+        if (isset($options['stats'])) {
+            $collectionArray['summaries'] = $this->getSummaries($options['stats']);
+            if ($options['stats']) {
+                $collectionArray['summaries']['resto:stats'] = $this->statistics;
+            }
         }
 
         return $collectionArray;
@@ -419,7 +422,9 @@ class RestoCollection
      */
     public function toJSON($pretty = false)
     {
-        return json_encode($this->toArray(), $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
+        return json_encode($this->toArray(array(
+            'stats' => isset($this->context->query['_stats']) ? filter_var($this->context->query['_stats'], FILTER_VALIDATE_BOOLEAN) : false
+        )), $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
     }
 
     /**
@@ -427,7 +432,7 @@ class RestoCollection
      */
     public function getOSDD()
     {
-        return new OSDD($this->context, $this->model, $this->getStatistics(), $this);
+        return new OSDD($this->context, $this->model, $this->getStatistics($this->model->getAutoFacetFields()), $this);
     }
 
     /**
@@ -440,14 +445,16 @@ class RestoCollection
 
     /**
      * Return collection statistics
+     * 
+     * @param array $facetFields : Facet fields
      */
-    public function getStatistics()
+    public function getStatistics($facetFields = null)
     {
         if (!isset($this->statistics)) {
             $cacheKey = 'getStatistics:' . $this->name;
             $this->statistics = $this->context->fromCache($cacheKey);
             if (!isset($this->statistics)) {
-                $this->statistics = (new FacetsFunctions($this->context->dbDriver))->getStatistics($this, $this->model->getFacetFields());
+                $this->statistics = (new FacetsFunctions($this->context->dbDriver))->getStatistics($this->name, $facetFields);
                 $this->context->toCache($cacheKey, $this->statistics);
             }
         }
@@ -462,7 +469,7 @@ class RestoCollection
         return array(
             'spatial' => array(
                 'bbox' => array(
-                    $this->bbox ?? array(-180.0, -90.0, 180.0, 90.0)
+                    $this->bbox
                 )
             ),
             'temporal' => array(
@@ -604,6 +611,42 @@ class RestoCollection
          */
         $this->owner = $this->user->profile['id'];
 
+    }
+
+    /**
+     * Return STAC summaries
+     * 
+     * @param boolean $stats
+     */
+    private function getSummaries($stats = false)
+    {
+        $summaries = array(
+            'datetime' => $this->datetime
+        );
+        
+        /*
+         * Compute statistics from facets
+         */
+        if (!isset($this->statistics)) {
+            $facetFields = array();
+            if ($stats) {
+                foreach (array_values($this->model->facetCategories) as $facetCategory) {
+                    for ($i = 0, $ii = count($facetCategory); $i < $ii; $i++)
+                    {
+                        $facetFields[] = $facetCategory[$i];
+                    }
+                }
+            }
+            else {
+                $facetFields = $this->model->getAutoFacetFields();
+            }
+            $this->getStatistics($facetFields);
+        }
+        foreach ($this->statistics['facets'] as $key => $value) {
+            $summaries[$this->model->stacMapping[$key] ?? $key] = array_keys($value);
+        }
+
+        return $summaries;
     }
     
 }

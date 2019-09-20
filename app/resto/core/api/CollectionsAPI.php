@@ -141,7 +141,7 @@ class CollectionsAPI
      */
     public function getCollections($params)
     {   
-        return (new RestoCollections($this->context, $this->user, array('fullStats' => isset($params['_stats']) ? true : false)))->load();
+        return (new RestoCollections($this->context, $this->user))->load();
     }
 
     /**
@@ -159,6 +159,14 @@ class CollectionsAPI
      *         description="Collection name",
      *         @OA\Schema(
      *             type="string"
+     *         )
+     *      ),
+     *      @OA\Parameter(
+     *         name="_stats",
+     *         in="query",
+     *         description="True to return full statistics in summaries property. Default is *false*",
+     *         @OA\Schema(
+     *             type="boolean"
      *         )
      *      ),
      *      @OA\Response(
