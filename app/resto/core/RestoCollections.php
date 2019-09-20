@@ -31,6 +31,15 @@ class RestoCollections
      */
     public $user;
 
+    /**
+     * STAC extent
+     */
+    private $datetime = array(
+        'min' => null,
+        'max' => null
+    );
+    private $bbox = null;
+
     /*
      * Array of RestoCollection (key = collection name)
      */
@@ -122,6 +131,7 @@ class RestoCollections
                 $collection->$key = $key === 'model' ? new $value() : $value;
             }
             $this->collections[$collectionName] = $collection;
+            $this->updateExtent($collection);
         }
 
         return $this;
@@ -181,44 +191,62 @@ class RestoCollections
      */
     public function getExtent()
     {
-        $bbox = array(-180, -90, 180, 90);
-        $dateMin = null;
-        $dateMax = null;
-
-        foreach (array_keys($this->collections) as $key) {
-            if ($this->collections[$key]->datetime['min']) {
-                if ( ! isset($dateMin) || $this->collections[$key]->datetime['min'] < $dateMin) {
-                    $dateMin = $this->collections[$key]->datetime['min'];
-                }
-            }
-            if ($this->collections[$key]->datetime['max']) {
-                if ( ! isset($dateMax) || $this->collections[$key]->datetime['max'] > $dateMax) {
-                    $dateMax = $this->collections[$key]->datetime['max'];
-                }
-            }
-            $bbox = array(
-                min($bbox[0], $this->collections[$key]->bbox[0]),
-                min($bbox[1], $this->collections[$key]->bbox[1]),
-                max($bbox[2], $this->collections[$key]->bbox[2]),
-                max($bbox[3], $this->collections[$key]->bbox[3])
-            );
-            
-        }
-
         return array(
             'spatial' => array(
                 'bbox' => array(
-                    $bbox
+                    $this->bbox
                 )
             ),
             'temporal' => array(
                 'interval' => array(
                     array(
-                        $dateMin, $dateMax
+                        $this->datetime['min'], $this->datetime['max']
                     )
                 )
             )
         );
+    }
+
+    /**
+     * Update collections extent using input collection extent
+     * 
+     * @param RestoCollection $collection
+     */
+    private function updateExtent($collection)
+    {
+
+        if (isset($collection->datetime['min'])) {
+            if ( ! isset($this->datetime['min']) || $collection->datetime['min'] < $this->datetime['min']) {
+                $this->datetime['min'] = $collection->datetime['min'];
+            }
+        }
+
+        if (isset($collection->datetime['max'])) {
+            if ( ! isset($this->datetime['max']) || $collection->datetime['max'] > $this->datetime['max']) {
+                $this->datetime['max'] = $collection->datetime['max'];
+            }
+        }
+           
+        if (isset($collection->bbox)) {
+            if ( ! isset($this->bbox) ) {
+                $this->bbox = $collection->bbox;
+            }
+            else {
+                if ( $collection->bbox[0] < $this->bbox[0] ) {
+                    $this->bbox[0] = $collection->bbox[0];
+                }
+                if ( $collection->bbox[1] < $this->bbox[1] ) {
+                    $this->bbox[1] = $collection->bbox[1];
+                }
+                if ( $collection->bbox[2] > $this->bbox[2] ) {
+                    $this->bbox[2] = $collection->bbox[2];
+                }
+                if ( $collection->bbox[3] > $this->bbox[3] ) {
+                    $this->bbox[3] = $collection->bbox[3];
+                }
+            }
+        }
+
     }
 
 }
