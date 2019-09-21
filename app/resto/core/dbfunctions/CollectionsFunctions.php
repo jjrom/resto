@@ -216,6 +216,7 @@ class CollectionsFunctions
      */
     public function updateExtent($collection, $featureArray)
     {
+        
         $toUpdate = array();
 
         // Time
