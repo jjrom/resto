@@ -208,6 +208,50 @@ class CollectionsFunctions
     }
 
     /**
+     * Update
+     *
+     * @param RestoCollection $collection
+     * @return array
+     * @throws Exception
+     */
+    public function updateExtent($collection, $featureArray)
+    {
+        $toUpdate = array();
+
+        // Time
+        if ( ! isset($collection->datetime) || ! isset($collection->datetime['min']) || $collection->datetime['min'] > $featureArray['properties']['startDate'])
+        {
+            $toUpdate[] = 'startdate=\'' . pg_escape_string($featureArray['properties']['startDate']) .'\'';
+        }
+        if ( ! isset($collection->datetime) ||  ! isset($collection->datetime['max']) || $collection->datetime['max'] < $featureArray['properties']['startDate'])
+        {
+            $toUpdate[] = 'completiondate=\'' . pg_escape_string($featureArray['properties']['startDate']) .'\'';
+        }
+        
+        // Space
+        if ( ! isset($collection->bbox))
+        {
+            $toUpdate[] = 'bbox=ST_SetSRID(ST_MakeBox2D(ST_Point(' . $featureArray['topologyAnalysis']['bbox'][0] . ',' . $featureArray['topologyAnalysis']['bbox'][1] . '), ST_Point(' . $featureArray['topologyAnalysis']['bbox'][2] . ',' . $featureArray['topologyAnalysis']['bbox'][3] . ')), 4326)';
+        }
+        else if ( $collection->bbox[0] > $featureArray['topologyAnalysis']['bbox'][0] || $collection->bbox[1] > $featureArray['topologyAnalysis']['bbox'][1] || $collection->bbox[2] < $featureArray['topologyAnalysis']['bbox'][2] || $collection->bbox[3] < $featureArray['topologyAnalysis']['bbox'][3])
+        {
+            $bbox = array(
+                min($collection->bbox[0],$featureArray['topologyAnalysis']['bbox'][0]),
+                min($collection->bbox[1],$featureArray['topologyAnalysis']['bbox'][1]),
+                max($collection->bbox[2],$featureArray['topologyAnalysis']['bbox'][2]),
+                max($collection->bbox[3],$featureArray['topologyAnalysis']['bbox'][3]),
+            );
+            $toUpdate[] = 'bbox=ST_SetSRID(ST_MakeBox2D(ST_Point(' . $bbox[0] . ',' . $bbox[1] . '), ST_Point(' . $bbox[2] . ',' . $bbox[3] . ')), 4326)';
+        }
+
+        if ( ! empty($toUpdate) )
+        {
+            $this->dbDriver->query('UPDATE resto.collection SET ' . join(',', $toUpdate) . ' WHERE name=\'' . pg_escape_string($collection->name) . '\'');
+        }
+        
+    }   
+        
+    /**
      * Get OpenSearch description array for input collection
      *
      * @param string $collectionName

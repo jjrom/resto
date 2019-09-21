@@ -234,7 +234,7 @@ class FormatUtil
                 'min' => $rawDescription['startdate'] ?? null,
                 'max' => $rawDescription['completiondate'] ?? null
             ),
-            'bbox' => RestoGeometryUtil::box2dTobbox($rawDescription['box2d']) ?? array(-180.0, -90.0, 180.0, 90.0),
+            'bbox' => RestoGeometryUtil::box2dTobbox($rawDescription['box2d']),
             'licenseId' => $rawDescription['licenseid']
         );
     }

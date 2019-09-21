@@ -275,7 +275,12 @@ class FeaturesFunctions
              * Store feature content
              */
             $this->storeFeatureAdditionalContent($result['id'], $collection->name, $keysValues['modelTables']);
-            
+
+            /*
+             * Update collection spatio temporal extent
+             */
+            (new CollectionsFunctions($this->dbDriver))->updateExtent($collection, $featureArray);
+        
             /*
              * Commit everything - rollback if one of the inserts failed
              */
