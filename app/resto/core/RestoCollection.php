@@ -388,7 +388,22 @@ class RestoCollection
             'description' => $osDescription['Description'],
             'keywords' => explode(' ', $osDescription['Tags']),
             'license' => $this->licenseId,
-            'extent' => $this->getExtent()
+            'extent' => $this->getExtent(),
+            'links' => array_merge(
+                array(
+                    array(
+                        'rel' => 'self',
+                        'type' => RestoUtil::$contentTypes['json'],
+                        'href' => $this->context->getUrl(false)
+                    ),
+                    array(
+                        'rel' => 'root',
+                        'type' => RestoUtil::$contentTypes['json'],
+                        'href' => $this->context->core['baseUrl']
+                    )
+                ), 
+                $this->links ?? array()    
+            )
             //'model' => $this->model->getName(),
             //'lineage' => $this->model->getLineage(),
             //'osDescription' => $this->osDescription[$this->context->lang] ?? $this->osDescription['en'],
@@ -558,7 +573,7 @@ class RestoCollection
         /*
          * Set values
          */
-        foreach (array_values(array('osDescription', 'propertiesMapping', 'providers', 'properties', 'rights')) as $key) {
+        foreach (array_values(array('osDescription', 'propertiesMapping', 'providers', 'properties', 'links', 'rights')) as $key) {
             $this->$key = $object[$key] ?? array();
         }
 

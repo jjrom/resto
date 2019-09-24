@@ -230,6 +230,7 @@ class FormatUtil
             'propertiesMapping' => json_decode($rawDescription['mapping'], true),
             'providers' => json_decode($rawDescription['providers'], true),
             'properties' => json_decode($rawDescription['properties'], true),
+            'links' => json_decode($rawDescription['links'], true),
             'datetime' => array(
                 'min' => $rawDescription['startdate'] ?? null,
                 'max' => $rawDescription['completiondate'] ?? null

@@ -56,7 +56,10 @@ CREATE TABLE IF NOT EXISTS resto.collection (
     providers           JSON,
 
     -- [STAC] Additional properties
-    properties          JSON
+    properties          JSON,
+
+    -- [STAC] Static links
+    links               JSON
 
 );
 
