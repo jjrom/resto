@@ -149,7 +149,7 @@ class FiltersFunctions
      * @param array $filtersAndJoins
      * @param boolean $addSortFilters
      *
-     * @return array
+     * @return string
      * @throws Exception
      */
     public function getWhereClause($filtersAndJoins, $addSortFilters)
@@ -193,6 +193,7 @@ class FiltersFunctions
      * @param array $requestParams (with model keys)
      * @param string $filterName
      * @param boolean $exclusion : if true, exclude instead of include filter (WARNING ! only works for geometry)
+     * @return string
      *
      */
     private function prepareFilterQuery($model, $requestParams, $filterName, $exclusion = false)
@@ -254,7 +255,7 @@ class FiltersFunctions
      * Prepare SQL query for model
      *
      * @param string $modelName
-     * @return array
+     * @return string
      */
     private function prepareFilterQueryModel($modelName)
     {
@@ -308,6 +309,14 @@ class FiltersFunctions
         return null;
     }
 
+    /**
+     * Return array for OR filters
+     *
+     * @param RestoModel $model
+     * @param string $filterName
+     * @param array $requestParams
+     * @return array
+     */
     private function prepareORFilters($model, $filterName, $requestParams)
     {
 
@@ -483,6 +492,7 @@ class FiltersFunctions
      * @param object $model
      * @param string $filterName
      * @param boolean $exclusion
+     * @return array
      */
     private function processSearchTerms($searchTerm, &$filters, $model, $filterName, $exclusion)
     {
@@ -533,7 +543,7 @@ class FiltersFunctions
      * @param string $value
      * @param string $tableName
      * @param boolean $exclusion
-     * @return array
+     * @return string
      */
     private function getLandCoverFilters($value, $tableName, $exclusion)
     {
