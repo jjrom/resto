@@ -33,11 +33,163 @@ class ServicesAPI
     }
 
     /**
-     * Hello
+     * Return API server definition as OpenAPI 3.0 document
+     * (see https://github.com/opengeospatial/ogcapi-features/blob/master/core/standard/17-069.adoc)
+     *
+     *    @OA\Get(
+     *      path="/api",
+     *      summary="Get server OpenAPI 3.0 definition",
+     *      description="Returns the server API definition as an OpenAPI 3.0 JSON document",
+     *      tags={"API"},
+     *      @OA\Response(
+     *          response="200",
+     *          description="OpenAPI 3.0 definition"
+     *      ),
+     *      @OA\Response(
+     *          response="404",
+     *          description="Not found"
+     *      )
+     *    )
+     */
+    public function api()
+    {
+        $content = file_get_contents('/docs/resto-api.json');
+        if (!isset($content)) {
+            return RestoLogUtil::httpError(404);
+        }
+        return json_decode($content, true);
+    }
+
+    /**
+     * Return conformance page conforms to OGC API Feature
+     * (see https://github.com/opengeospatial/ogcapi-features/blob/master/core/standard/17-069.adoc)
+     *
+     *    @OA\Get(
+     *      path="/conformance",
+     *      summary="Conformance page",
+     *      description="Returns the OGC API Feature conformance description as JSON document",
+     *      tags={"API"},
+     *      @OA\Response(
+     *          response="200",
+     *          description="OGC API Feature conformance definition",
+     *          @OA\JsonContent(
+     *               @OA\Property(
+     *                  property="conformsTo",
+     *                  type="array",
+     *                  description="Array of conformance specification urls",
+     *                  @OA\Items(
+     *                      type="string"
+     *                  )
+     *               )
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response="404",
+     *          description="Not found"
+     *      )
+     *    )
+     */
+    public function conformance()
+    {
+        return array(
+            'conformsTo' => array(
+                'http://www.opengis.net/spec/ogcapi-features-1/1.0/req/core',
+                'http://www.opengis.net/spec/ogcapi-features-1/1.0/req/oas30',
+                'http://www.opengis.net/spec/ogcapi-features-1/1.0/req/geojson'
+            )
+        );
+    }
+    
+    /**
+     * Landing page conforms to OGC API Feature
+     * (see https://github.com/opengeospatial/ogcapi-features/blob/master/core/standard/17-069.adoc)
+     *
+     *    @OA\Get(
+     *      path="/",
+     *      summary="Landing page",
+     *      description="Landing page for the server. Should be used by client to automatically detects endpoints to API, collections, etc.",
+     *      tags={"API"},
+     *      @OA\Response(
+     *          response="200",
+     *          description="OGC API Feature conformance definition",
+     *          @OA\JsonContent(
+     *               @OA\Property(
+     *                  property="title",
+     *                  type="string",
+     *                  description="Server title",
+     *              ),
+     *              @OA\Property(
+     *                  property="description",
+     *                  type="string",
+     *                  description="Server description",
+     *              ),
+     *              @OA\Property(
+     *                  property="links",
+     *                  type="array",
+     *                  @OA\Items(
+     *                      type="object",
+     *                      @OA\Property(
+     *                          property="rel",
+     *                          type="string",
+     *                          description="Relationship between the feature and the linked document/resource"
+     *                      ),
+     *                      @OA\Property(
+     *                          property="type",
+     *                          type="string",
+     *                          description="Mimetype of the resource"
+     *                      ),
+     *                      @OA\Property(
+     *                          property="title",
+     *                          type="string",
+     *                          description="Title of the resource"
+     *                      ),
+     *                      @OA\Property(
+     *                          property="href",
+     *                          type="string",
+     *                          description="Url to the resource"
+     *                      )
+     *                  )
+     *              )   
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response="404",
+     *          description="Not found"
+     *      )
+     *    )
      */
     public function hello()
     {
-        return RestoLogUtil::success('Hello');
+        return array(
+            'title' => getenv('API_INFO_TITLE'),
+            'description' => getenv('API_INFO_DESCRIPTION'),
+            'links' => array(
+                array(
+                    'rel' => 'self',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'title' => getenv('API_INFO_TITLE'),
+                    'href' => $this->context->core['baseUrl']
+                ),
+                array(
+                    'rel' => 'service',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'title' => 'OpenAPI 3.0 definition endpoint',
+                    'href' => $this->context->core['baseUrl'] . '/api'
+                ),
+                array(
+                    'rel' => 'conformance',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'title' => 'Conformance declaration',
+                    'href' => $this->context->core['baseUrl'] . '/conformance'
+                ),
+                array(
+                    'rel' => 'data',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'title' => 'Collections metadata',
+                    'href' => $this->context->core['baseUrl'] . '/collections'
+                )
+            )
+        );
     }
 
     /**

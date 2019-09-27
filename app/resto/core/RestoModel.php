@@ -149,7 +149,7 @@ abstract class RestoModel
 
         'geo:box' => array(
             'key' => 'geom',
-            'osKey' => 'box',
+            'osKey' => 'bbox',
             'operation' => 'intersects',
             'title' => 'Region of Interest defined by \'west, south, east, north\' coordinates of longitude, latitude, in decimal degrees (EPSG:4326)'
         ),
@@ -383,7 +383,7 @@ abstract class RestoModel
      * Set properties['resource'] object if applicable
      *
      *    {
-     *       href: 'http://localhost/features/id/download',     // url to the resource (i.e. download link)
+     *       href: 'http://localhost/items/id/download',     // url to the resource (i.e. download link)
      *       type: 'application/zip',                           // mimeType of the resource
      *       size: 12345678,                                    // size in bytes of the resource
      *       checksum: 'MD5:1223ab45ef',                        // checksum of the resource (prefixed by the checksum type)
@@ -393,7 +393,7 @@ abstract class RestoModel
      *            type: 'application/xml'                       // mimeType of the metadata file
      *       },
      *       browse:{
-     *            href: 'http://localhost/features/id/browse',  // url to browse (wms) service
+     *            href: 'http://localhost/items/id/browse',  // url to browse (wms) service
      *            realhref: 'http://my.wms.server/wms',         // real wms href
      *            title: 'My wms',                              // Title
      *            type: 'WMS',                                  // Should be WMS
@@ -402,7 +402,7 @@ abstract class RestoModel
      *    }
      *
      * @param array $properties : feature properties
-     * @param string $href : resto download url i.e. http://locahost/features/id/download
+     * @param string $href : resto download url i.e. http://locahost/items/id/download
      *
      */
     public function generateLinksArray($properties, $href)

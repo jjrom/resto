@@ -245,7 +245,7 @@ class OSDD extends RestoXML
             return $this->context->core['htmlSearchEndpoint'] . '?' . $this->model->searchFilters['searchTerms']['osKey'] .'={searchTerms?}';
         }
        
-        $url = RestoUtil::restoUrl($this->context->core['baseUrl'], (isset($this->collection) ? '/collections/' . $this->collection->name : '/features'), $format) . '?' . $this->clientId;
+        $url = RestoUtil::restoUrl($this->context->core['baseUrl'], (isset($this->collection) ? '/collections/' . $this->collection->name : '/items'), $format) . '?' . $this->clientId;
         
         $count = 0;
         foreach ($this->model->searchFilters as $filterName => $filter) {

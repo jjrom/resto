@@ -111,49 +111,48 @@ class Resto
      */
     private $defaultRoutes = array(
 
-        // Hello
-        array('GET', '/', false, 'ServicesAPI::hello'),                                                    // Dummy endpoint
+        // Landing page and conformance (see WFS 3.0)
+        array('GET',    '/', false, 'ServicesAPI::hello'),                                                                                  // Landing page
+        array('GET',    '/api', false, 'ServicesAPI::api'),                                                                                 // API page
+        array('GET',    '/conformance', false, 'ServicesAPI::conformance'),                                                                 // Conformance page
 
         // API for users
-        array('GET', '/users', true, 'UsersAPI::getUsersProfiles'),                                       // List users profiles
-        array('GET', '/users/{userid}', true, 'UsersAPI::getUserProfile'),                                 // Show user profile
-        array('GET', '/users/{userid}/logs', true, 'UsersAPI::getUserLogs'),                               // Show user logs
-        array('GET', '/users/{userid}/rights', true, 'UsersAPI::getUserRights'),                           // Show user rights
-        array('GET', '/users/{userid}/rights/{collectionName}', true, 'UsersAPI::getUserRights'),           // Show user rights for :collectionName
-        array('GET', '/users/{userid}/rights/{collectionName}/{featureId}', true, 'UsersAPI::getUserRights'), // Show user rights for :featureId
-        array('POST', '/users', false, 'UsersAPI::createUser'),                                            // Create user
-        array('PUT', '/users/{userid}', true, 'UsersAPI::updateUserProfile'),                              // Update :userid profile
-
+        array('GET',    '/users', true, 'UsersAPI::getUsersProfiles'),                                                                      // List users profiles
+        array('POST',   '/users', false, 'UsersAPI::createUser'),                                                                           // Create user
+        array('GET',    '/users/{userid}', true, 'UsersAPI::getUserProfile'),                                                               // Show user profile
+        array('PUT',    '/users/{userid}', true, 'UsersAPI::updateUserProfile'),                                                            // Update :userid profile
+        array('GET',    '/users/{userid}/logs', true, 'UsersAPI::getUserLogs'),                                                             // Show user logs
+        array('GET',    '/users/{userid}/rights', true, 'UsersAPI::getUserRights'),                                                         // Show user rights
+        array('GET',    '/users/{userid}/rights/{collectionName}', true, 'UsersAPI::getUserRights'),                                        // Show user rights for :collectionName
+        array('GET',    '/users/{userid}/rights/{collectionName}/{featureId}', true, 'UsersAPI::getUserRights'),                            // Show user rights for :featureId
+        
         // API for collections
-        array('GET', '/collections', false, 'CollectionsAPI::getCollections'),                            // List all collections
-        array('GET', '/collections/{collectionName}', false, 'CollectionsAPI::getCollection'),             // Get :collectionName description
-        array('GET', '/collections/{collectionName}/features', false, 'FeaturesAPI::getFeaturesInCollection'),              // Search features in :collectionName
-        array('POST', '/collections', true, 'CollectionsAPI::createCollection'),                           // Create collection
-        array('POST', '/collections/{collectionName}', true, 'CollectionsAPI::insertFeature'),              // Insert feature
-        array('PUT', '/collections/{collectionName}', true, 'CollectionsAPI::updateCollection'),           // Update :collectionName
-        array('DELETE', '/collections/{collectionName}', true, 'CollectionsAPI::deleteCollection'),           // Delete :collectionName
+        array('GET',    '/collections', false, 'CollectionsAPI::getCollections'),                                                           // List all collections
+        array('POST',   '/collections', true, 'CollectionsAPI::createCollection'),                                                          // Create collection
+        array('GET',    '/collections/{collectionName}', false, 'CollectionsAPI::getCollection'),                                           // Get :collectionName description
+        array('PUT',    '/collections/{collectionName}', true, 'CollectionsAPI::updateCollection'),                                         // Update :collectionName
+        array('DELETE', '/collections/{collectionName}', true, 'CollectionsAPI::deleteCollection'),                                         // Delete :collectionName
 
         // API for features
-        array('GET', '/features', false, 'FeaturesAPI::getFeatures'),                           // Get feature :featureId
-        array('GET', '/features/{featureId}', false, 'FeaturesAPI::getFeature'),                         // Get feature :featureId
-        array('GET', '/features/{featureId}/download', false, 'FeaturesAPI::downloadFeature'),             // Download feature :featureId
-        array('GET', '/features/{featureId}/view', false, 'FeaturesAPI::viewFeature'),                     // View service for feature :featureId (i.e. wms/wmts/etc.)
-        array('PUT', '/features/{featureId}', true, 'FeaturesAPI::updateFeature'),                         // Update feature :featureId
-        array('PUT', '/features/{featureId}/{property}', true, 'FeaturesAPI::updateFeatureProperty'),
-        array('DELETE', '/features/{featureId}', true, 'FeaturesAPI::deleteFeature'),                         // Delete :featureId
-
+        array('GET',    '/collections/{collectionName}/items', false, 'FeaturesAPI::getFeaturesInCollection'),                              // Search features in :collectionName
+        array('POST',   '/collections/{collectionName}/items', true, 'CollectionsAPI::insertFeature'),                                      // Insert feature
+        array('GET',    '/collections/{collectionName}/items/{featureId}', false, 'FeaturesAPI::getFeature'),                               // Get feature :featureId
+        array('PUT',    '/collections/{collectionName}/items/{featureId}', true, 'FeaturesAPI::updateFeature'),                             // Update feature :featureId
+        array('DELETE', '/collections/{collectionName}/items/{featureId}', true, 'FeaturesAPI::deleteFeature'),                             // Delete :featureId
+        array('PUT',    '/collections/{collectionName}/items/{featureId}/{property}', true, 'FeaturesAPI::updateFeatureProperty'),          // Update feature :featureId single property 
+        
         // API for authentication (token based)
-        array('GET', '/auth', true, 'AuthAPI::getToken'),                                                 // Return a valid auth token
-        array('GET', '/auth/check/{token}', false, 'AuthAPI::checkToken'),                                 // Check auth token validity
-        array('DELETE', '/auth/revoke/{token}', true, 'AuthAPI::revokeToken'),                                // Revoke auth token
-        array('PUT', '/auth/activate/{token}', false, 'AuthAPI::activateUser'),                            // Activate owner of the token
+        array('GET',    '/auth', true, 'AuthAPI::getToken'),                                                                                // Return a valid auth token
+        array('GET',    '/auth/check/{token}', false, 'AuthAPI::checkToken'),                                                               // Check auth token validity
+        array('DELETE', '/auth/revoke/{token}', true, 'AuthAPI::revokeToken'),                                                              // Revoke auth token
+        array('PUT',    '/auth/activate/{token}', false, 'AuthAPI::activateUser'),                                                          // Activate owner of the token
 
         // API for services
-        array('GET', '/services/osdd', false, 'ServicesAPI::getOSDD'),                                    // Opensearch service description at collections level
-        array('GET', '/services/osdd/{collectionName}', false, 'ServicesAPI::getOSDDForCollection'),                    // Opensearch service description for products on {collection}
-        array('POST', '/services/activation/send', false, 'ServicesAPI::sendActivationLink'),              // Send activation link
-        array('POST', '/services/password/forgot', false, 'ServicesAPI::forgotPassword'),                  // Send reset password link
-        array('POST', '/services/password/reset', false, 'ServicesAPI::resetPassword'),                    // Reset password
+        array('GET',    '/services/osdd', false, 'ServicesAPI::getOSDD'),                                                                   // Opensearch service description at collections level
+        array('GET',    '/services/osdd/{collectionName}', false, 'ServicesAPI::getOSDDForCollection'),                                     // Opensearch service description for products on {collection}
+        array('POST',   '/services/activation/send', false, 'ServicesAPI::sendActivationLink'),                                             // Send activation link
+        array('POST',   '/services/password/forgot', false, 'ServicesAPI::forgotPassword'),                                                 // Send reset password link
+        array('POST',   '/services/password/reset', false, 'ServicesAPI::resetPassword'),                                                   // Reset password
     );
 
     /* ============================================================

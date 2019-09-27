@@ -12,7 +12,7 @@ networks:
       name: rnet 
 services:
   resto:
-    image: jjrom/resto:5.0
+    image: jjrom/resto:6.0
     restart: always
     build:
       context: ./
@@ -36,7 +36,7 @@ services:
     volumes:
       - ${RESTO_STATIC_CONTENT:-static_content}:/var/www/static
   restodb:
-    image: jjrom/resto-database:5.0
+    image: jjrom/resto-database:6.0
     restart: always
     build:
       context: ./

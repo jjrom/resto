@@ -52,7 +52,7 @@ class ExampleModel extends SatelliteModel
      * output feature properties['links'] object
      *
      * @param array $properties : feature properties
-     * @param string $href : resto download url i.e. http://locahost/features/id/download
+     * @param string $href : resto download url i.e. http://locahost/items/id/download
      *
      */
     public function generateLinksArray($properties, $href)

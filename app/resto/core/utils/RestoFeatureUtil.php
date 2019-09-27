@@ -196,7 +196,7 @@ class RestoFeatureUtil
         // This is always set
         $properties['links']['self'] = array(
             'type' => RestoUtil::$contentTypes['json'],
-            'href' => RestoUtil::updateUrl($this->context->core['baseUrl'] . '/features/' . $featureId . '.json', array($collection->model->searchFilters['language']['osKey'] => $this->context->lang))
+            'href' => RestoUtil::updateUrl($this->context->core['baseUrl'] . '/collections/' . $collection->name . '/items/' . $featureId . '.json', array($collection->model->searchFilters['language']['osKey'] => $this->context->lang))
         );
 
         /*

@@ -628,7 +628,7 @@ class CollectionsAPI
      * Add a feature to collection
      *
      *  @OA\Post(
-     *      path="/collections/{collectionName}",
+     *      path="/collections/{collectionName}/items",
      *      summary="Add feature to collection",
      *      tags={"Collection"},
      *      @OA\Parameter(

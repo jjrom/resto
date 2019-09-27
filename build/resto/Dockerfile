@@ -83,6 +83,10 @@ COPY ${BUILD_DIR}/config.php.template /tmp/config.php.template
 # Create configuration directory
 RUN mkdir /cfg
 
+# Docs directory (for API)
+RUN mkdir -p /docs
+COPY ./docs /docs
+
 # Set environment variables
 # opcache https://www.scalingphpbook.com/best-zend-opcache-settings-tuning-config/
 ENV PHP_FPM_PM=dynamic \

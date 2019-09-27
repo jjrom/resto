@@ -25,7 +25,7 @@
  *
  *  @OA\Schema(
  *      schema="OutputCollection",
- *      required={"stac_version", "id", "description", license", "extent", "links"},
+ *      required={"stac_version", "id", "description", "license", "extent", "links"},
  *      @OA\Property(
  *          property="stac_version",
  *          type="string",
@@ -34,7 +34,10 @@
  *      @OA\Property(
  *          property="stac_extensions",
  *          type="array",
- *          description="A list of extensions the Collection implements."
+ *          description="A list of extensions the Collection implements.",
+ *          @OA\Items(
+ *              type="string",
+ *          )
  *      ),
  *      @OA\Property(
  *          property="id",
@@ -54,7 +57,10 @@
  *      @OA\Property(
  *          property="keywords",
  *          type="array",
- *          description="List of keywords describing the collection."
+ *          description="List of keywords describing the collection.",
+ *          @OA\Items(
+ *              type="string",
+ *          )
  *      ),
  *      @OA\Property(
  *          property="license",
@@ -485,14 +491,16 @@ class RestoCollection
             'spatial' => array(
                 'bbox' => array(
                     $this->bbox
-                )
+                ),
+                'crs' => 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'
             ),
             'temporal' => array(
                 'interval' => array(
                     array(
                         $this->datetime['min'], $this->datetime['max']
                     )
-                )
+                ),
+                'trs' => 'http://www.opengis.net/def/uom/ISO-8601/0/Gregorian'
             )
         );
     }

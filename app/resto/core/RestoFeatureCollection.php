@@ -449,7 +449,7 @@ class RestoFeatureCollection
                 'collection' => $this->collections[$featuresArray['features'][$i]['properties']['collection']] ?? null,
                 'fields' => $this->context->query['fields'] ?? "_default"
             ));
-            if (isset($feature)) {
+            if ( $feature->isValid() ) {
                 $this->restoFeatures[] = $feature;
             }
         }

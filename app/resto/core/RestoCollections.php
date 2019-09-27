@@ -195,14 +195,16 @@ class RestoCollections
             'spatial' => array(
                 'bbox' => array(
                     $this->bbox
-                )
+                ),
+                'crs' => 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'
             ),
             'temporal' => array(
                 'interval' => array(
                     array(
                         $this->datetime['min'], $this->datetime['max']
                     )
-                )
+                ),
+                'trs' => 'http://www.opengis.net/def/uom/ISO-8601/0/Gregorian'
             )
         );
     }
