@@ -41,6 +41,7 @@ services:
     volumes:
       - ${RESTO_STATIC_CONTENT:-static_content}:/var/www/static
       - ./app:/app
+      - ./docs:/docs
       - /Users/jrom/Devel/resto-addons/resto-addon-stac/src/STACAPI.php:/app/resto/addons/STACAPI.php
       - /Users/jrom/Devel/resto-addons/resto-addon-stac/stac.config:/cfg/stac.config
   restodb:

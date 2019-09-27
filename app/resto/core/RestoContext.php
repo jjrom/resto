@@ -390,7 +390,7 @@ class RestoContext
     private function setOutputFormat()
     {
         $this->outputFormat = $this->getPathSuffix();
-
+        
         /*
          * Extract outputFormat from HTTP_ACCEPT
          */

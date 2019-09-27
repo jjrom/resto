@@ -37,10 +37,20 @@ class ServicesAPI
      * (see https://github.com/opengeospatial/ogcapi-features/blob/master/core/standard/17-069.adoc)
      *
      *    @OA\Get(
-     *      path="/api",
-     *      summary="Get server OpenAPI 3.0 definition",
-     *      description="Returns the server API definition as an OpenAPI 3.0 JSON document",
-     *      tags={"API"},
+     *      path="/api.{format}",
+     *      summary="OpenAPI definition",
+     *      description="Returns the server API definition as an OpenAPI 3.0 JSON document (default) or as an HTML page (if format is specified and set to *html*)",
+     *      tags={"Server"},
+     *      @OA\Parameter(
+     *          name="format",
+     *          in="path",
+     *          description="Output format - *json* or *html*",
+     *          required=false,
+     *          @OA\Items(
+     *              type="string",
+     *              enum={"json", "html"}
+     *          )
+     *      ),
      *      @OA\Response(
      *          response="200",
      *          description="OpenAPI 3.0 definition"
@@ -53,11 +63,28 @@ class ServicesAPI
      */
     public function api()
     {
-        $content = file_get_contents('/docs/resto-api.json');
-        if (!isset($content)) {
+        try {
+            $content = @file_get_contents('/docs/resto-api.' . $this->context->outputFormat);
+        }
+        catch (Exception $e) {
+        }
+
+        if ($content === FALSE) {
             return RestoLogUtil::httpError(404);
         }
-        return json_decode($content, true);
+
+        if ($this->context->outputFormat === 'json') {
+            return json_decode($content, true);
+        }
+        
+        /*
+         * Set range and headers
+         */
+        header('HTTP/1.1 200 OK');
+        header('Content-Type: ' . RestoUtil::$contentTypes[$this->context->outputFormat]);
+        echo $content;
+
+        return null;
     }
 
     /**
@@ -68,7 +95,7 @@ class ServicesAPI
      *      path="/conformance",
      *      summary="Conformance page",
      *      description="Returns the OGC API Feature conformance description as JSON document",
-     *      tags={"API"},
+     *      tags={"Server"},
      *      @OA\Response(
      *          response="200",
      *          description="OGC API Feature conformance definition",
@@ -108,7 +135,7 @@ class ServicesAPI
      *      path="/",
      *      summary="Landing page",
      *      description="Landing page for the server. Should be used by client to automatically detects endpoints to API, collections, etc.",
-     *      tags={"API"},
+     *      tags={"Server"},
      *      @OA\Response(
      *          response="200",
      *          description="OGC API Feature conformance definition",
