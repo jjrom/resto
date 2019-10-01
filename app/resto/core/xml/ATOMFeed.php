@@ -220,10 +220,10 @@ class ATOMFeed extends RestoXML
         /*
          * General links
          */
-        if (is_array($feature['properties']['links'])) {
-            foreach ($feature['properties']['links'] as $key => $value) {
-                if ($key === 'self') {
-                    $explodedSelf = explode('?', RestoUtil::updateUrlFormat($value['href'], 'atom'));
+        if (is_array($feature['links'])) {
+            for ($i = 0, $ii = count($feature['links']); $i < $ii; $i++) {
+                if ($feature['links'][$i]['rel'] === 'self') {
+                    $explodedSelf = explode('?', RestoUtil::updateUrlFormat($feature['links'][$i]['href'], 'atom'));
                     break;
                 }
             }
@@ -434,27 +434,24 @@ class ATOMFeed extends RestoXML
         /*
          * General links
          */
-        if (is_array($feature['properties']['links'])) {
+        if (is_array($feature['links'])) {
             
-            foreach ($feature['properties']['links'] as $key => $value) {
+            for ($i = 0, $ii = count($feature['links']); $i < $ii; $i++) {
                 
-                if ($key === 'self') {
+                if ($feature['links'][$i]['rel'] === 'self') {
                     continue;
                 }
 
                 $this->startElement('link');
 
-                $attributes = array(
-                    'rel' => $key,
-                    'type' => $value['type'],
-                    'href' => $value['href']
-                );
+                $attributes = $feature['links'][$i];
 
                 /*
                  * Element 'enclosure' - download product
+                 * [TODO][STAC] => download is in assets not links
                  */
-                if ($key === 'download') {
-                    $attributes['length'] = $value['size'] ?? 0;
+                if ($feature['links'][$i]['rel'] === 'download') {
+                    $attributes['length'] = $feature['links'][$i]['size'] ?? 0;
                     $attributes['metalink:priority'] = 50;
                 }
                 
@@ -476,34 +473,27 @@ class ATOMFeed extends RestoXML
     {
         
         /*
-         * Quicklook / Thumbnail
+         * Thumbnail
          */
-        if (isset($feature['properties']['thumbnail']) || isset($feature['properties']['quicklook'])) {
+        if ( isset($feature['assets']['thumbnail']) ) {
 
             /*
              * rel=icon
              */
-            if (isset($feature['properties']['quicklook'])) {
-                $this->startElement('link');
-                $this->writeAttributes(array(
-                    'rel' => 'icon',
-                    //'type' => 'TODO',
-                    'title' => 'Browse image URL for ' . $feature['id'] . ' product',
-                    'href' => $feature['properties']['quicklook']
-                ));
-                $this->endElement(); // link
-            }
-
+            $this->startElement('link');
+            $this->writeAttributes(array(
+                'rel' => 'icon',
+                //'type' => 'TODO',
+                'title' => 'Browse image URL for ' . $feature['id'] . ' product',
+                'href' => $feature['assets']['thumbnail']['href']
+            ));
+            $this->endElement(); // link
+            
             /*
              * media:group
              */
             $this->startElement('media:group');
-            if (isset($feature['properties']['thumbnail'])) {
-                $this->addMedia('THUMBNAIL', $feature['properties']['thumbnail']);
-            }
-            if (isset($feature['properties']['quicklook'])) {
-                $this->addMedia('QUICKLOOK', $feature['properties']['quicklook']);
-            }
+            $this->addMedia('THUMBNAIL', $feature['assets']['thumbnail']['href']);
             $this->endElement();
         }
     }

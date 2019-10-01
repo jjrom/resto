@@ -278,9 +278,19 @@ class RestoFeatureCollection
      */
     public function toArray($publicOutput = false)
     {
+        $collection = null;
+        for ($i = count($this->collections); $i--;) {
+            if ($this->collections[$i]->name === $this->restoFeatures[$i]->collectionName) {
+                $collection = $this->collections[$i];
+                break;
+            }
+        }
         $features = array();
         for ($i = 0, $l = count($this->restoFeatures); $i < $l; $i++) {
-            $features[] = $this->restoFeatures[$i]->toArray($publicOutput);
+            $features[] = $this->restoFeatures[$i]->toArray(array(
+                'publicOutput' => $publicOutput,
+                'collection' => $collection
+            ));
         }
         return array_merge($this->description, array('features' => $features));
     }
@@ -446,7 +456,7 @@ class RestoFeatureCollection
         for ($i = 0, $l = count($featuresArray['features']); $i < $l; $i++) {
             $feature = new RestoFeature($this->context, $this->user, array(
                 'featureArray' => $featuresArray['features'][$i],
-                'collection' => $this->collections[$featuresArray['features'][$i]['properties']['collection']] ?? null,
+                'collection' => $this->collections[$featuresArray['features'][$i]['collection']] ?? null,
                 'fields' => $this->context->query['fields'] ?? "_default"
             ));
             if ( $feature->isValid() ) {

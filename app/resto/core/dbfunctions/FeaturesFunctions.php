@@ -36,13 +36,11 @@ class FeaturesFunctions
         'description',
         'startDate',
         'completionDate',
-        'quicklook',
-        'thumbnail',
         'metadata',
         'assets',
         'links',
         'updated',
-        'published',
+        'created',
         'keywords',
         'hashtags',
         //'normalized_hashtags',
@@ -233,8 +231,8 @@ class FeaturesFunctions
                 'likes' => 0,
                 'comments' => 0,
                 'metadata' => array(),
-                'published' => 'now()',
-                'published_idx' => 'now()',
+                'created' => 'now()',
+                'created_idx' => 'now()',
                 'updated' => isset($featureArray['properties']) && isset($featureArray['properties']['updated']) ? $featureArray['properties']['updated'] : 'now()',
                 'geometry' => $featureArray['topologyAnalysis']['geometry'] ?? null,
                 'centroid' => $featureArray['topologyAnalysis']['centroid'],
@@ -245,9 +243,7 @@ class FeaturesFunctions
                 'title',
                 'description',
                 'startDate',
-                'completionDate',
-                'quicklook',
-                'thumbnail'
+                'completionDate'
             )
        );
 
@@ -334,7 +330,7 @@ class FeaturesFunctions
          */
         $facetsDeleted = true;
         try {
-            (new FacetsFunctions($this->dbDriver))->removeFacetsFromHashtags($featureArray['properties']['hashtags'] ?? array(), $featureArray['properties']['collection']);
+            (new FacetsFunctions($this->dbDriver))->removeFacetsFromHashtags($featureArray['properties']['hashtags'] ?? array(), $featureArray['collection']);
         } catch (Exception $e) {
             $facetsDeleted = false;
         }
@@ -368,24 +364,22 @@ class FeaturesFunctions
             array(
                 'id' => $oldFeatureArray['id'],
                 'productIdentifier' => $oldFeatureArray['properties']['productIdentifier'],
-                'collection' => $oldFeatureArray['properties']['collection'],
+                'collection' => $oldFeatureArray['collection'],
                 'visibility' => $oldFeatureArray['properties']['visibility'],
                 'owner' => $oldFeatureArray['properties']['owner'],
                 'status' => isset($newFeatureArray['properties']) && isset($newFeatureArray['properties']['status']) && is_int($newFeatureArray['properties']['status']) ? $newFeatureArray['properties']['status'] : $oldFeatureArray['properties']['status'],
                 'likes' => $oldFeatureArray['properties']['likes'],
                 'comments' => $oldFeatureArray['properties']['comments'],
                 'metadata' => array(),
-                'published' => $oldFeatureArray['properties']['published'],
-                'published_idx' => $oldFeatureArray['properties']['published_idx'],
+                'created' => $oldFeatureArray['properties']['created'],
+                'created_idx' => $oldFeatureArray['properties']['created_idx'],
                 'updated' => isset($newFeatureArray['properties']) && isset($newFeatureArray['properties']['updated']) ? $newFeatureArray['properties']['updated'] : 'now()'
             ),
             array(
                 'title',
                 'description',
                 'startDate',
-                'completionDate',
-                'quicklook',
-                'thumbnail'
+                'completionDate'
             )
         );
 
@@ -754,7 +748,7 @@ class FeaturesFunctions
             if ($key === 'normalized_hashtags') {
                 $output['params'][] = 'normalize_array($' . ++$counter . ')';
             }
-            else if ($key === 'published_idx' || $key === 'startdate_idx') {
+            else if ($key === 'created_idx' || $key === 'startdate_idx') {
                 $output['params'][] = 'public.timestamp_to_id($' . ++$counter . ', 1, nextval(\'resto.table_id_seq\'))';
             }
             else {
@@ -856,7 +850,7 @@ class FeaturesFunctions
 
                 case 'startDate':
                 case 'completionDate':
-                case 'published':
+                case 'created':
                 case 'updated':
                     $columns[] = 'to_iso8601(resto.feature.' . $key . ') AS "' . $key . '"';
                     break;

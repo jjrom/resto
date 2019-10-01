@@ -63,7 +63,7 @@ class FeaturesAPI
      *          in="path",
      *          description="Output format of the feature - *json* or *atom*",
      *          required=false,
-     *          @OA\Items(
+     *          @OA\Schema(
      *              type="string",
      *              enum={"json", "atom"}
      *          )
@@ -73,10 +73,10 @@ class FeaturesAPI
      *          in="query",
      *          description="Comma separated list of property fields to be returned",
      *          required=false,
-     *          @OA\Items(
+     *          @OA\Schema(
      *              type="string"
      *          ),
-     *          description="Comma separated list of property fields to be returned
+     *          description="Comma separated list of property fields to be returned. The following reserved keywords can also be used:
 * _all: Return all properties
 * _default: Return all fields except *keywords* property"
      *      ),
@@ -134,235 +134,360 @@ class FeaturesAPI
      *          name="format",
      *          in="path",
      *          description="Output format - one of *atom* or *json*",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string",
+     *              enum={"json", "atom"}
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="q",
      *          in="query",
      *          description="Free text search - OpenSearch {searchTerms}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="limit",
      *          in="query",
-     *          description="Number of results returned per page - between 1 and 500 (default 50) - OpenSearcg {count}",
-     *          required=false
+     *          description="Number of results returned per page - between 1 and 500 (default 50) - OpenSearch {count}",
+     *          required=false,
+     *          @OA\Schema(
+     *              type="integer"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="index",
      *          in="query",
      *          description="First result to provide - minimum 1, (default 1) - OpenSearch {startIndex}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="integer"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="page",
      *          in="query",
      *          description="First page to provide - minimum 1, (default 1) - OpenSearch {startPage}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="integer"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="lang",
      *          in="query",
-     *          description="Two letters language code according to ISO 639-1 (default en) - OpenSearch {language}",
-     *          required=false
+     *          description="Two letters language code according to ISO 639-1 (default *en*) - OpenSearch {language}",
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="id",
      *          in="query",
      *          description="Feature identifier (UUID) - OpenSearch {geo:uid}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="geometry",
      *          in="query",
      *          description="Region of Interest defined in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326) - OpenSearch {geo:geometry}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="bbox",
      *          in="query",
      *          description="Region of Interest defined by 'west, south, east, north' coordinates of longitude, latitude, in decimal degrees (EPSG:4326) - OpenSearch {geo:box}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string",
+     *              format="west,south,east,north"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="name",
      *          in="query",
      *          description="[EXTENSION][egg] Location string e.g. Paris, France  or toponym identifier (i.e. geouid:xxxx) - OpenSearch {geo:name}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="lon",
      *          in="query",
      *          description="Longitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lat - OpenSearch {geo:lon}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="float"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="lat",
      *          in="query",
      *          description="Latitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lon - OpenSearch {geo:lat}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="float"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="radius",
      *          in="query",
      *          description="Radius expressed in meters - should be used with geo:lon and geo:lat - OpenSearch {geo:radius}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="float"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="startDate",
      *          in="query",
      *          description="Beginning of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:start}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string",
+     *              format="date-time",
+     *              pattern="^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="completionDate",
      *          in="query",
      *          description="End of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:end}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string",
+     *              format="date-time",
+     *              pattern="^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="updated",
      *          in="query",
      *          description="Last update of the product within database - OpenSearch {dc:date}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string",
+     *              format="date-time",
+     *              pattern="^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="gt",
      *          in="query",
-     *          description="Returns features with *sort* key value greater than *gt* value - use this for pagination",
-     *          required=false
+     *          description="Returns features with *sort* key value greater than *gt* value - use this for pagination. The value is a unique iterator computed from the *sort* key value and provided within each feature properties as *sort_idx* property",
+     *          required=false,
+     *          @OA\Schema(
+     *              type="integer"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="lt",
      *          in="query",
-     *          description="Returns features with *sort* key value lower than *lt* value - use this for pagination",
-     *          required=false
+     *          description="Returns features with *sort* key value lower than *lt* value - use this for pagination. The value is a unique iterator computed from the *sort* key value and provided within each feature properties as *sort_idx* property",
+     *          required=false,
+     *          @OA\Schema(
+     *              type="integer"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="pid",
      *          in="query",
      *          description="Like on product identifier",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="sort",
      *          in="query",
-     *          description="Sort results by property *id*, *startDate* or *likes* (default: id which corresponds to the publication date). Sorting order is DESCENDING (ASCENDING if property is prefixed by minus sign)",
-     *          required=false
+     *          description="Sort results by property *startDate* or *created* (default *startDate*). Sorting order is DESCENDING (ASCENDING if property is prefixed by minus sign)",
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="owner",
      *          in="query",
      *          description="Limit search to owner's features",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="integer"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="likes",
      *          in="query",
      *          description="[EXTENSION][social] Limit search to number of likes (interval)",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="liked",
      *          in="query",
      *          description="[EXTENSION][social] Return only liked features from calling user",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="boolean"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="status",
      *          in="query",
      *          description="Feature status (unusued)",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="productType",
      *          in="query",
      *          description="[MODEL][SatelliteModel] A string identifying the entry type (e.g. ER02_SAR_IM__0P, MER_RR__1P, SM_SLC__1S, GES_DISC_AIRH3STD_V005) - OpenSearch {eo:productType}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="processingLevel",
      *          in="query",
      *          description="[MODEL][SatelliteModel] A string identifying the processing level applied to the entry - OpenSearch {eo:processingLevel}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="platform",
      *          in="query",
      *          description="[MODEL][SatelliteModel] A string with the platform short name (e.g. Sentinel-1) - OpenSearch {eo:platform}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="instrument",
      *          in="query",
      *          description="[MODEL][SatelliteModel] A string identifying the instrument (e.g. MERIS, AATSR, ASAR, HRVIR. SAR) - OpenSearch {eo:instrument}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="sensorType",
      *          in="query",
      *          description="[MODEL][SatelliteModel] A string identifying the sensor type. Suggested values are: OPTICAL, RADAR, ALTIMETRIC, ATMOSPHERIC, LIMB - OpenSearch {eo:sensorType}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="cloudCover",
      *          in="query",
      *          description="[MODEL][OpticalModel] Cloud cover expressed in percent",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="snowCover",
      *          in="query",
      *          description="[MODEL][OpticalModel] Snow cover expressed in percent",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="waterCover",
      *          in="query",
      *          description="[MODEL][LandCoverModel] Water area expressed in percent",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="urbanCover",
      *          in="query",
      *          description="[MODEL][LandCoverModel] Urban area expressed in percent",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="iceCover",
      *          in="query",
      *          description="[MODEL][LandCoverModel] Ice area expressed in percent",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="herbaceousCover",
      *          in="query",
      *          description="[MODEL][LandCoverModel] Herbaceous area expressed in percent",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="forestCover",
      *          in="query",
      *          description="[MODEL][LandCoverModel] Forest area expressed in percent",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="floodedCover",
      *          in="query",
      *          description="[MODEL][LandCoverModel] Flooded area expressed in percent",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="desertCover",
      *          in="query",
      *          description="[MODEL][LandCoverModel] Desert area expressed in percent",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="cultivatedCover",
      *          in="query",
      *          description="[MODEL][LandCoverModel] Cultivated area expressed in percent",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Response(
      *          response="200",
@@ -615,7 +740,7 @@ class FeaturesAPI
         }
 
         // Only these properties can be updated
-        if (! in_array($params['property'], array('title', 'description', 'visibility', 'owner', 'status', 'quicklook', 'thumbnail'))) {
+        if (! in_array($params['property'], array('title', 'description', 'visibility', 'owner', 'status'))) {
             return RestoLogUtil::httpError(400, 'Invalid property "' . $params['property'] . '"');
         }
         
@@ -725,7 +850,7 @@ class FeaturesAPI
         }
         
         // Result contains boolean for facetsDeleted
-        $result = $feature->removeFromStore();
+        $result = (new FeaturesFunctions($this->context->dbDriver))->removeFeature($feature);
 
         return RestoLogUtil::success('Feature deleted', array(
             'featureId' => $feature->id,

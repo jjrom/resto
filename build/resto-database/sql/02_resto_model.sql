@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS resto.osdescription (
 --
 CREATE TABLE IF NOT EXISTS resto.feature (
 
-    -- [INDEXED] Unique identifier based on published date
+    -- [INDEXED] Unique identifier based on created date
     -- "id"                BIGINT PRIMARY KEY DEFAULT public.timestamp_to_id(clock_timestamp(), 1, nextval('resto.table_id_seq')),
 
     -- [INDEXED] UUID v5 based on productidentifier
@@ -143,12 +143,6 @@ CREATE TABLE IF NOT EXISTS resto.feature (
 
     -- Number of comments for this feature. Used by Social add-on
     comments            INTEGER, 
-
-    -- Url to a preview for this feature
-    quicklook           TEXT,
-
-    -- Url to a thumbnails for this feature
-    thumbnail           TEXT,
 
     -- Metadata. You can put whatever you want.
     -- Field indexation is based on collection type
@@ -197,10 +191,10 @@ CREATE TABLE IF NOT EXISTS resto.feature (
     --
     links               JSON,
 
-    -- Timestamp of publication for this feature
-    published           TIMESTAMP,
+    -- Timestamp of creation for this feature metadata
+    created           TIMESTAMP,
 
-    -- Timestamp of update for this feature
+    -- Timestamp of update for this feature metadata
     updated             TIMESTAMP,
 
     -- Keywords computed by Tag add-on
@@ -236,8 +230,8 @@ CREATE TABLE IF NOT EXISTS resto.feature (
     -- [INDEXED] Start date unique iterator
     startdate_idx       BIGINT,
     
-    -- [INDEXED] Published date unique iterator
-    published_idx       BIGINT
+    -- [INDEXED] Created date unique iterator
+    created_idx       BIGINT
 
 );
 

@@ -30,7 +30,7 @@ class RestoDatabaseDriver
      * Allowed sort columns
      * Note : the first element in array is used for sorting
      */
-    public $sortKeys = array('startDate', 'published');
+    public $sortKeys = array('startDate', 'created');
 
     /*
      * Database handler

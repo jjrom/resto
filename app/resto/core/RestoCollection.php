@@ -25,20 +25,7 @@
  *
  *  @OA\Schema(
  *      schema="OutputCollection",
- *      required={"stac_version", "id", "description", "license", "extent", "links"},
- *      @OA\Property(
- *          property="stac_version",
- *          type="string",
- *          description="The STAC version the Collection implements"
- *      ),
- *      @OA\Property(
- *          property="stac_extensions",
- *          type="array",
- *          description="A list of extensions the Collection implements.",
- *          @OA\Items(
- *              type="string",
- *          )
- *      ),
+ *      required={"id", "description", "license", "extent", "links"},
  *      @OA\Property(
  *          property="id",
  *          type="string",
@@ -95,6 +82,19 @@
  *          type="object",
  *          ref="#/components/schemas/Statistics"
  *      ),
+ *      @OA\Property(
+ *          property="stac_version",
+ *          type="string",
+ *          description="[EXTENSION][STAC] The STAC version the Collection implements"
+ *      ),
+ *      @OA\Property(
+ *          property="stac_extensions",
+ *          type="array",
+ *          description="[EXTENSION][STAC] A list of extensions the Collection implements.",
+ *          @OA\Items(
+ *              type="string",
+ *          )
+ *      )
  *      example={
  *          "TBD":"TBD"
  *      }
@@ -387,8 +387,6 @@ class RestoCollection
         $osDescription = $this->osDescription[$this->context->lang] ?? $this->osDescription['en'];
 
         $collectionArray = array(
-            'stac_version' => RestoModel::STAC_VERSION,
-            'stac_extensions' => $this->model->stacExtensions,
             'id' => $this->name,
             'title' => $osDescription['ShortName'],
             'description' => $osDescription['Description'],
@@ -433,7 +431,11 @@ class RestoCollection
             }
         }
 
-        return $collectionArray;
+        return isset($this->context->addons['STAC']) ? array_merge($collectionArray, array(
+            'stac_version' => STAC::STAC_VERSION,
+            'stac_extensions' => $this->model->stacExtensions
+        )) : $collectionArray;
+
     }
 
     /**
@@ -454,14 +456,6 @@ class RestoCollection
     public function getOSDD()
     {
         return new OSDD($this->context, $this->model, $this->getStatistics($this->model->getAutoFacetFields()), $this);
-    }
-
-    /**
-     * Remove collection  from RESTo database
-     */
-    public function removeFromStore()
-    {
-        return (new CollectionsFunctions($this->context->dbDriver))->removeCollection($this->name);
     }
 
     /**

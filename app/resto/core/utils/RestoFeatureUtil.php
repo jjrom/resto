@@ -76,11 +76,13 @@ class RestoFeatureUtil
         /*
          * Retrieve collection from database
          */
-        if (!isset($this->collections[$rawFeatureArray['collection']])) {
-            $this->collections[$rawFeatureArray['collection']] = (new RestoCollection($rawFeatureArray['collection'], $this->context, $this->user))->load();
+        $collection = $this->collections[$rawFeatureArray['collection']];
+        if ( !isset($collection) ) {
+            $collection = (new RestoCollection($rawFeatureArray['collection'], $this->context, $this->user))->load();
+            $this->collections[$rawFeatureArray['collection']] = $collection;
         }
 
-        return $this->formatRawFeatureArray($rawFeatureArray);
+        return $this->formatRawFeatureArray($rawFeatureArray, $collection);
     }
 
     /**
@@ -96,48 +98,6 @@ class RestoFeatureUtil
             $featuresArray[] = $this->toFeatureArray($rawFeatureArrayList[$i]);
         }
         return $featuresArray;
-    }
-
-    /**
-     * Update feature properties
-     *
-     * @param array $rawCorrectedArray
-     * @param RestoCollection $collection
-     *
-     */
-    private function toProperties($rawCorrectedArray)
-    {
-        $collection = $this->collections[$rawCorrectedArray['collection']];
-        
-        /*
-         * Copy $rawCorrectedArray to fresh properties
-         * [IMPORTANT] $rawCorrectedArray['metadata'][*] are moved at $properties root level
-         */
-        $properties = array();
-        foreach (array_keys($rawCorrectedArray) as $key) {
-            if ($key === 'metadata' && isset($rawCorrectedArray[$key])) {
-                foreach (array_keys($rawCorrectedArray[$key]) as $metadataKey) {
-                    $properties[$metadataKey] = $rawCorrectedArray[$key][$metadataKey];
-                }
-            } else {
-                $properties[$key] = $rawCorrectedArray[$key];
-            }
-        }
-        
-        /*
-         * Update resource and paths properties
-         */
-        $this->setPaths($properties, $collection);
-
-        /*
-         * Set links
-         */
-        $this->setLinks($properties, $collection, $rawCorrectedArray['id']);
-
-        /*
-         * Return properties
-         */
-        return $properties;
     }
 
     /**
@@ -181,123 +141,93 @@ class RestoFeatureUtil
     }
 
     /**
-     * Set links
-     *
-     * @param array $properties
-     * @param RestoCollection $collection
-     * @param string $featureId
-     */
-    private function setLinks(&$properties, $collection, $featureId)
-    {
-        if (!isset($properties['links']) || !is_array($properties['links'])) {
-            $properties['links'] = array();
-        }
-        
-        // This is always set
-        $properties['links']['self'] = array(
-            'type' => RestoUtil::$contentTypes['json'],
-            'href' => RestoUtil::updateUrl($this->context->core['baseUrl'] . '/collections/' . $collection->name . '/items/' . $featureId . '.json', array($collection->model->searchFilters['language']['osKey'] => $this->context->lang))
-        );
-
-        /*
-         * If not license set, get the collection license
-         */
-        if (!isset($properties['links']['license'])) {
-            $properties['links']['license'] = array(
-                'id' => $collection->licenseId,
-                'type' => 'application/json',
-                'href' => $this->context->core['baseUrl'] . '/licenses/' . $collection->licenseId
-            );
-        }
-    }
-
-    /**
      *
      * PostgreSQL output columns are treated as string
      * thus they need to be converted to their true type
      *
      * @param Array $rawFeatureArray
+     * @param RestoCollection $collection
      * @return array
      */
-    private function formatRawFeatureArray($rawFeatureArray)
+    private function formatRawFeatureArray($rawFeatureArray, $collection)
     {
-        $properties = array();
-        $geometry = null;
-        $bbox = null;
-        
-        foreach ($rawFeatureArray as $key => $value) {
-            if (is_null($value)) {
-                $properties[$key] = null;
-            } else {
-                switch ($key) {
 
-                    case 'links':
-                    case 'assets':
-                        break;
-
-                    case 'geometry':
-                        $geometry = json_decode($value, true);
-                        break;
-
-                    case 'bbox4326':
-                        $bbox = RestoGeometryUtil::box2dTobbox($rawFeatureArray[$key]);
-                        $properties['bbox3857'] = RestoGeometryUtil::bboxToMercator($bbox);
-                        break;
-
-                    case 'keywords':
-                        $properties[$key] = $this->addKeywordsHref(json_decode($value, true), $this->collections[$rawFeatureArray['collection']]);
-                        break;
-
-                    case 'liked':
-                        $properties[$key] = $value === 't' ? true : false;
-                        break;
-                    
-                    case 'centroid':
-                        $json = json_decode($value, true);
-                        $properties[$key] = $json['coordinates'];
-                        break;
-                    
-                    case 'status':
-                    case 'visibility':
-                    case 'likes':
-                    case 'comments':
-                        $properties[$key] = (integer) $value;
-                        break;
-
-                    case 'centroid':
-                    case 'metadata':
-                    case 'links':
-                        $properties[$key] = json_decode($value, true);
-                        break;
-
-                    case 'hashtags':
-                        $properties[$key] = explode(',', substr($value, 1, -1));
-                        break;
-
-                    default:
-                        $properties[$key] = $value;
-
-                }
-            }
-        }
-        
         $feature = array(
             'type' => 'Feature',
             'id' => $rawFeatureArray['id'],
-            'bbox' => $bbox,
-            'geometry' => $geometry,
-            'properties' => $this->toProperties($properties)
+            'bbox' => null,
+            'geometry' => null,
+            'properties' => array(),
+            'collection' => $collection->name,
+            'links' => array(),
+            'assets' => array()
         );
 
-        if (isset($rawFeatureArray['assets'])) {
-            $feature['assets'] = json_decode($rawFeatureArray['assets'], true);
+        if ( isset($this->context->addons['STAC']) ) {
+            $feature = array_merge(array(
+                'stac_version' => STAC::STAC_VERSION,
+                'stac_extensions' => $collection->model->stacExtensions
+            ), $feature);
         }
 
-        if (isset($rawFeatureArray['links'])) {
-            $feature['links'] = json_decode($rawFeatureArray['links'], true);
+        foreach ($rawFeatureArray as $key => $value) {
+            switch ($key) {
+
+                case 'collection':
+                    break;
+
+                case 'assets':
+                case 'geometry':
+                case 'links':
+                    $feature[$key] = $key === 'links' ? array_merge($value ? json_decode($value, true) : array(), $this->getDefaultLinks($collection, $rawFeatureArray)) : json_decode($value, true);
+                    break;
+
+                case 'bbox4326':
+                    $feature['bbox'] = RestoGeometryUtil::box2dTobbox($value);
+                    break;
+
+                case 'keywords':
+                    $feature['properties'][$key] = $this->addKeywordsHref(json_decode($value, true), $collection);
+                    break;
+
+                case 'liked':
+                    $feature['properties'][$key] = $value === 't' ? true : false;
+                    break;
+                
+                case 'centroid':
+                    $json = json_decode($value, true);
+                    $feature['properties'][$key] = $json['coordinates'];
+                    break;
+                
+                case 'status':
+                case 'visibility':
+                case 'likes':
+                case 'comments':
+                    $feature['properties'][$key] = (integer) $value;
+                    break;
+
+                case 'hashtags':
+                    $feature['properties'][$key] = explode(',', substr($value, 1, -1));
+                    break;
+
+                case 'metadata':
+                    $metadata = json_decode($value, true);
+                    foreach (array_keys($metadata) as $metadataKey) {
+                        $feature['properties'][$metadataKey] = $metadata[$metadataKey];
+                    }
+                    break;
+
+                default:
+                    $feature['properties'][$key] = $value;
+
+            }
         }
+
+        // Update paths
+        $this->setPaths($feature['properties'], $collection);
         
         return $feature;
+
     }
 
 
@@ -312,18 +242,41 @@ class RestoFeatureUtil
      */
     private function addKeywordsHref($keywords, $collection)
     {
-        if (!isset($keywords)) {
-            return null;
-        }
         
-        foreach (array_keys($keywords) as $key) {
-            $keywords[$key]['href'] = RestoUtil::updateUrl($this->context->core['baseUrl'] . '/services/search/' . $collection->name, array(
-                $collection->model->searchFilters['language']['osKey'] => $this->context->lang,
-                $collection->model->searchFilters['searchTerms']['osKey'] => count(explode(' ', $keywords[$key]['name'])) > 1 ? '"'. $keywords[$key]['name'] . '"' : $keywords[$key]['name']
-            ));
+        if (isset($keywords)) {
+            foreach (array_keys($keywords) as $key) {
+                $keywords[$key]['href'] = RestoUtil::updateUrl($this->context->core['baseUrl'] . '/collections/' . $collection->name . '/items', array(
+                    $collection->model->searchFilters['language']['osKey'] => $this->context->lang,
+                    $collection->model->searchFilters['searchTerms']['osKey'] => '#' . $keywords[$key]['id']
+                ));
+            }
         }
 
         return $keywords;
+    }
+
+    /**
+     * Get default feature links i.e. self, parent and collection links
+     * 
+     * @param RestoCollection $collection
+     * @param array $rawFeatureArray
+     * @return array
+     */
+    private function getDefaultLinks($collection, $rawFeatureArray) 
+    {
+        return array(
+            array(
+                'rel' => 'self',
+                'type' => RestoUtil::$contentTypes['json'],
+                'href' => RestoUtil::updateUrl($this->context->core['baseUrl'] . '/collections/' . $collection->name . '/items/' . $rawFeatureArray['id'], array($collection->model->searchFilters['language']['osKey'] => $this->context->lang))
+            ),
+            array(
+                'rel' => 'collection',
+                'type' => RestoUtil::$contentTypes['json'],
+                'name' => $collection->name,
+                'href' => RestoUtil::updateUrl($this->context->core['baseUrl'] . '/collections/' . $collection->name, array($collection->model->searchFilters['language']['osKey'] => $this->context->lang))
+            )
+        );
     }
 
 }

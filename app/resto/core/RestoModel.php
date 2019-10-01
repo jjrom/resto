@@ -22,11 +22,6 @@ abstract class RestoModel
 {
 
     /*
-     * STAC version
-     */
-    const STAC_VERSION = '0.8.0';
-
-    /*
      * STAC extensions - override in child models
      */
     public $stacExtensions = array();
@@ -204,9 +199,9 @@ abstract class RestoModel
         ),
         
         'dc:date' => array(
-            'key' => 'updated',
-            'osKey' => 'updated',
-            'title' => 'Last update of the product within database',
+            'key' => 'created',
+            'osKey' => 'created',
+            'title' => 'Metadata product creation within database',
             'operation' => '>=',
             'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'
         ),
@@ -253,7 +248,7 @@ abstract class RestoModel
         'resto:sort' => array(
             'osKey' => 'sort',
             'pattern' => '^[a-zA-Z\-]*$',
-            'title' => 'Sort results by property (default: publication date). Sorting order is DESCENDING (ASCENDING if property is prefixed by minus sign)'
+            'title' => 'Sort results by property (startDate or created - Default is startDate). Sorting order is DESCENDING (ASCENDING if property is prefixed by minus sign)'
         ),
         
         'resto:owner' => array(
