@@ -180,14 +180,9 @@ class FeaturesFunctions
 
         // Determine if search on id or productidentifier
         $filtersAndJoins['filters'][] = 'resto.feature.id=\'' . pg_escape_string((RestoUtil::isValidUUID($featureId) ? $featureId : RestoUtil::toUUID($featureId))) . '\'';
-        
-        $whereClause = $filterFunctions->getWhereClause($filtersAndJoins, true);
-        
-        $results = $this->dbDriver->fetch($this->dbDriver->query($selectClause . ' ' . $whereClause));
-        if (isset($results) && count($results) === 1) {
-            return (new RestoFeatureUtil($context, $user, $collection))->toFeatureArray($results[0]);
-        }
-        return null;
+        $results = $this->dbDriver->fetch($this->dbDriver->query($selectClause . ' ' . $filterFunctions->getWhereClause($filtersAndJoins, true)));
+
+        return isset($results) && count($results) === 1 ? (new RestoFeatureUtil($context, $user, $collection))->toFeatureArray($results[0]) : null;
     }
 
     /**

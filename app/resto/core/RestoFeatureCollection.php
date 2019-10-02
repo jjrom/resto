@@ -226,7 +226,7 @@ class RestoFeatureCollection
          * result options
          */
         $sorting = $this->getSorting($inputFilters);
-
+        
         /*
          * Query Analyzer
          */

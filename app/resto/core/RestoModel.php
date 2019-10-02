@@ -108,7 +108,7 @@ abstract class RestoModel
             'osKey' => 'limit',
             'minInclusive' => 1,
             'maxInclusive' => 500,
-            'title' => 'Number of results returned per page (default 50)'
+            'title' => 'The maximum number of results returned per page (default 10)'
         ),
         
         'startIndex' => array(
@@ -184,7 +184,7 @@ abstract class RestoModel
         
         'time:start' => array(
             'key' => 'startDate',
-            'osKey' => 'startDate',
+            'osKey' => 'start',
             'operation' => '>=',
             'title' => 'Beginning of the time slice of the search query. Format should follow RFC-3339',
             'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'
@@ -192,7 +192,7 @@ abstract class RestoModel
         
         'time:end' => array(
             'key' => 'startDate',
-            'osKey' => 'completionDate',
+            'osKey' => 'end',
             'operation' => '<=',
             'title' => 'End of the time slice of the search query. Format should follow RFC-3339',
             'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'
@@ -205,7 +205,15 @@ abstract class RestoModel
             'operation' => '>=',
             'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'
         ),
-        
+
+        // [STAC/WFS3] datetime is a mix of time:start/time:end
+        'resto:datetime' => array(
+            'key' => 'startDate',
+            'osKey' => 'datetime',
+            'title' => 'Single date+time, or a range ("/" separator) of the search query. Format should follow RFC-3339. Equivalent to OpenSearch {time:start}/{time:end}',
+            'pattern' => '^[a-zA-Z0-9\-\/\.\:]+$'
+        ),
+
         'resto:collection' => array(
             'key' => 'collection',
             'osKey' => 'collection',
@@ -488,6 +496,42 @@ abstract class RestoModel
     }
 
     /**
+     * Check if value is valid for a given filter regarding the model
+     *
+     * @param string $filterKey
+     * @param string $value
+     */
+    public function validateFilter($filterKey, $value)
+    {
+
+        /*
+         * Check pattern for string
+         */
+        if (isset($this->searchFilters[$filterKey]['pattern'])) {
+            if (preg_match('\'' . $this->searchFilters[$filterKey]['pattern'] . '\'', $value) !== 1) {
+                RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must follow the pattern ' . $this->searchFilters[$filterKey]['pattern']);
+            }
+        }
+        /*
+         * Check pattern for number
+         */
+        elseif (isset($this->searchFilters[$filterKey]['minInclusive']) || isset($this->searchFilters[$filterKey]['maxInclusive'])) {
+            if (!is_numeric($value)) {
+                RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be numeric');
+            }
+            if (isset($this->searchFilters[$filterKey]['minInclusive']) && $value < $this->searchFilters[$filterKey]['minInclusive']) {
+                RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be greater than ' . ($this->searchFilters[$filterKey]['minInclusive'] - 1));
+            }
+            if (isset($this->searchFilters[$filterKey]['maxInclusive']) && $value > $this->searchFilters[$filterKey]['maxInclusive']) {
+                RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be lower than ' . ($this->searchFilters[$filterKey]['maxInclusive'] + 1));
+            }
+        }
+
+        return true;
+        
+    }
+
+    /**
      * Prepare featureArray for store/update
      *
      * @param RestoCollection $collection
@@ -642,41 +686,6 @@ abstract class RestoModel
         }
         
         return $properties;
-    }
-
-    /**
-     * Check if value is valid for a given filter regarding the model
-     *
-     * @param string $filterKey
-     * @param string $value
-     */
-    private function validateFilter($filterKey, $value)
-    {
-
-        /*
-         * Check pattern for string
-         */
-        if (isset($this->searchFilters[$filterKey]['pattern'])) {
-            if (preg_match('\'' . $this->searchFilters[$filterKey]['pattern'] . '\'', $value) !== 1) {
-                RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must follow the pattern ' . $this->searchFilters[$filterKey]['pattern']);
-            }
-        }
-        /*
-         * Check pattern for number
-         */
-        elseif (isset($this->searchFilters[$filterKey]['minInclusive']) || isset($this->searchFilters[$filterKey]['maxInclusive'])) {
-            if (!is_numeric($value)) {
-                RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be numeric');
-            }
-            if (isset($this->searchFilters[$filterKey]['minInclusive']) && $value < $this->searchFilters[$filterKey]['minInclusive']) {
-                RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be greater than ' . ($this->searchFilters[$filterKey]['minInclusive'] - 1));
-            }
-            if (isset($this->searchFilters[$filterKey]['maxInclusive']) && $value > $this->searchFilters[$filterKey]['maxInclusive']) {
-                RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be lower than ' . ($this->searchFilters[$filterKey]['maxInclusive'] + 1));
-            }
-        }
-
-        return true;
     }
 
 }

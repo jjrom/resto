@@ -21,7 +21,7 @@
  * <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/" xmlns:geo="http://a9.com/-/opensearch/extensions/geo/1.0/" xmlns:time="http://a9.com/-/opensearch/extensions/time/1.0/">
  *      <ShortName>OpenSearch search</ShortName>
  *      <Description>My OpenSearch search interface</Description>
- *      <Url type="application/atom+xml" template="http://myserver.org/Controller_name/?q={searchTerms}&bbox={geo:box?}&format=atom&startDate={time:start?}&completionDate={time:end?}&modified={time:start?}&platform={take5:platform?}&instrument={take5:instrument?}&product={take5:product?}&limit={count?}&index={startIndex?}"/>
+ *      <Url type="application/atom+xml" template="http://myserver.org/Controller_name/?q={searchTerms}&bbox={geo:box?}&format=atom&start={time:start?}&end={time:end?}&modified={time:start?}&platform={take5:platform?}&instrument={take5:instrument?}&product={take5:product?}&limit={count?}&index={startIndex?}"/>
  *      <Contact>admin@myserver.org</Contact>
  *      <Tags>opensearch</Tags>
  *      <LongName>My OpenSearch search interface</LongName>

@@ -250,9 +250,9 @@ class FeaturesAPI
      *          )
      *      ),
      *      @OA\Parameter(
-     *          name="startDate",
+     *          name="datetime",
      *          in="query",
-     *          description="Beginning of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:start}",
+     *          description="Single date+time, or a range ('/' separator) of the search query. Format should follow RFC-3339 - OpenSearch {time:start}/{time:end}",
      *          required=false,
      *          @OA\Schema(
      *              type="string",
@@ -261,7 +261,18 @@ class FeaturesAPI
      *          )
      *      ),
      *      @OA\Parameter(
-     *          name="completionDate",
+     *          name="start",
+     *          in="query",
+     *          description="Beginning of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:start}.",
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string",
+     *              format="date-time",
+     *              pattern="^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$"
+     *          )
+     *      ),
+     *      @OA\Parameter(
+     *          name="end",
      *          in="query",
      *          description="End of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:end}",
      *          required=false,
@@ -272,9 +283,9 @@ class FeaturesAPI
      *          )
      *      ),
      *      @OA\Parameter(
-     *          name="updated",
+     *          name="created",
      *          in="query",
-     *          description="Last update of the product within database - OpenSearch {dc:date}",
+     *          description="Returns products with metadata creation date greater or equal than *created* - OpenSearch {dc:date}",
      *          required=false,
      *          @OA\Schema(
      *              type="string",

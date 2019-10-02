@@ -77,6 +77,7 @@ class RestoFeatureUtil
         }
 
         return $this->formatRawFeatureArray($rawFeatureArray, $collection);
+
     }
 
     /**
@@ -146,7 +147,7 @@ class RestoFeatureUtil
     private function formatRawFeatureArray($rawFeatureArray, $collection)
     {
 
-        $feature = array(
+        $featureArray = array(
             'type' => 'Feature',
             'id' => $rawFeatureArray['id'],
             'bbox' => null,
@@ -158,10 +159,10 @@ class RestoFeatureUtil
         );
 
         if ( isset($this->context->addons['STAC']) ) {
-            $feature = array_merge(array(
+            $featureArray = array_merge(array(
                 'stac_version' => STAC::STAC_VERSION,
                 'stac_extensions' => $collection->model->stacExtensions
-            ), $feature);
+            ), $featureArray);
         }
 
         foreach ($rawFeatureArray as $key => $value) {
@@ -173,35 +174,35 @@ class RestoFeatureUtil
                 case 'assets':
                 case 'geometry':
                 case 'links':
-                    $feature[$key] = $key === 'links' ? array_merge($value ? json_decode($value, true) : array(), $this->getDefaultLinks($collection, $rawFeatureArray)) : json_decode($value, true);
+                    $featureArray[$key] = $key === 'links' ? array_merge($value ? json_decode($value, true) : array(), $this->getDefaultLinks($collection, $rawFeatureArray)) : json_decode($value, true);
                     break;
 
                 case 'bbox4326':
-                    $feature['bbox'] = RestoGeometryUtil::box2dTobbox($value);
+                    $featureArray['bbox'] = RestoGeometryUtil::box2dTobbox($value);
                     break;
 
                 case 'keywords':
-                    $feature['properties'][$key] = $this->addKeywordsHref(json_decode($value, true), $collection);
+                    $featureArray['properties'][$key] = $this->addKeywordsHref(json_decode($value, true), $collection);
                     break;
 
                 case 'liked':
-                    $feature['properties'][$key] = $value === 't' ? true : false;
+                    $featureArray['properties'][$key] = $value === 't' ? true : false;
                     break;
                 
                 case 'centroid':
                     $json = json_decode($value, true);
-                    $feature['properties'][$key] = $json['coordinates'];
+                    $featureArray['properties'][$key] = $json['coordinates'];
                     break;
                 
                 case 'status':
                 case 'visibility':
                 case 'likes':
                 case 'comments':
-                    $feature['properties'][$key] = (integer) $value;
+                    $featureArray['properties'][$key] = (integer) $value;
                     break;
 
                 case 'hashtags':
-                    $feature['properties'][$key] = explode(',', substr($value, 1, -1));
+                    $featureArray['properties'][$key] = explode(',', substr($value, 1, -1));
                     break;
 
                 case 'metadata':
@@ -209,21 +210,21 @@ class RestoFeatureUtil
                     if (isset($metadata))
                     {
                         foreach (array_keys($metadata) as $metadataKey) {
-                            $feature['properties'][$metadataKey] = $metadata[$metadataKey];
+                            $featureArray['properties'][$metadataKey] = $metadata[$metadataKey];
                         }    
                     }
                     break;
 
                 default:
-                    $feature['properties'][$key] = $value;
+                    $featureArray['properties'][$key] = $value;
 
             }
         }
 
         // Update paths
-        $this->setPaths($feature['properties'], $collection);
+        $this->setPaths($featureArray['properties'], $collection);
         
-        return $feature;
+        return $featureArray;
 
     }
 
