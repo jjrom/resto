@@ -74,7 +74,8 @@ class FeaturesFunctions
      *
      * @param RestoContext $context
      * @param RestoUser $user
-     * @param RestoCollection $collection
+     * @param RestoModel $model
+     * @param array $collections
      * @param array $params
      * @param array $sorting
      *      array(
@@ -84,14 +85,9 @@ class FeaturesFunctions
      * @return array
      * @throws Exception
      */
-    public function search($context, $user, $collection, $params, $sorting)
+    public function search($context, $user, $model, $collections, $params, $sorting)
     {
        
-        /*
-         * Set model
-         */
-        $model = isset($collection) ? $collection->model : new DefaultModel();
-
         /*
          * Check that mandatory filters are set
          */
@@ -145,7 +141,7 @@ class FeaturesFunctions
          * Retrieve products from database
          * Note: totalcount is estimated except if input search contains a lon/lat filter
          */
-        $features = (new RestoFeatureUtil($context, $user, $collection))->toFeatureArrayList($this->dbDriver->fetch($this->dbDriver->query($query)));
+        $features = (new RestoFeatureUtil($context, $user, $collections))->toFeatureArrayList($this->dbDriver->fetch($this->dbDriver->query($query)));
         $whereClause = $filtersFunctions->getWhereClause($filtersAndJoins, false);
         return array(
             'whereClause' => $whereClause,

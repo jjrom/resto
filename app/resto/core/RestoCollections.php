@@ -107,7 +107,7 @@ class RestoCollections
      */
     public function search($model)
     {
-        return (new RestoFeatureCollection($this->context, $this->user))->setCollections($this->collections)->load($model ?? new DefaultModel());
+        return (new RestoFeatureCollection($this->context, $this->user, $this->collections))->load($model ?? new DefaultModel());
     }
 
     /**
@@ -133,7 +133,7 @@ class RestoCollections
             $this->collections[$collectionName] = $collection;
             $this->updateExtent($collection);
         }
-
+        
         return $this;
     }
 

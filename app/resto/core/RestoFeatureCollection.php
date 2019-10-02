@@ -182,22 +182,13 @@ class RestoFeatureCollection
      *
      * @param RestoResto $context : Resto Context
      * @param RestoUser $user : Resto user
+     * @param array $collections
      */
-    public function __construct($context, $user)
+    public function __construct($context, $user, $collections)
     {
         $this->context = $context;
         $this->user = $user;
-    }
-
-    /**
-     * Set collections
-     *
-     * @param array $collections
-     */
-    public function setCollections($collections)
-    {
         $this->collections = $collections;
-        return $this;
     }
 
     /**
@@ -228,7 +219,6 @@ class RestoFeatureCollection
          * Force collection
          */
         if (isset($collection)) {
-            $this->setCollections(array($collection));
             $inputFilters['resto:collection'] = $collection->name;
         }
 
@@ -257,7 +247,7 @@ class RestoFeatureCollection
          * Read features from database
          */
         else {
-            $this->loadFeatures($analysis['details']['appliedFilters'], $sorting, $collection);
+            $this->loadFeatures($analysis['details']['appliedFilters'], $sorting);
         }
 
         /*
@@ -272,37 +262,17 @@ class RestoFeatureCollection
     }
 
     /**
-     * Output product description as a PHP array
-     *
-     * @param boolean publicOutput
-     */
-    public function toArray($publicOutput = false)
-    {
-        $collection = null;
-        for ($i = count($this->collections); $i--;) {
-            if ($this->collections[$i]->name === $this->restoFeatures[$i]->collectionName) {
-                $collection = $this->collections[$i];
-                break;
-            }
-        }
-        $features = array();
-        for ($i = 0, $l = count($this->restoFeatures); $i < $l; $i++) {
-            $features[] = $this->restoFeatures[$i]->toArray(array(
-                'publicOutput' => $publicOutput,
-                'collection' => $collection
-            ));
-        }
-        return array_merge($this->description, array('features' => $features));
-    }
-
-    /**
      * Output product description as a GeoJSON FeatureCollection
      *
      * @param boolean $pretty : true to return pretty print
      */
     public function toJSON($pretty = false)
     {
-        return json_encode($this->toArray(true), $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
+        $features = array();
+        for ($i = 0, $l = count($this->restoFeatures); $i < $l; $i++) {
+            $features[] = $this->restoFeatures[$i]->toPublicArray();
+        }
+        return json_encode(array_merge($this->description, array('features' => $features)), $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
     }
 
     /**
@@ -434,9 +404,8 @@ class RestoFeatureCollection
      *
      * @param array $params
      * @param array $sorting
-     * @param RestoCollection $collection
      */
-    private function loadFeatures(&$params, &$sorting, $collection)
+    private function loadFeatures(&$params, &$sorting)
     {
         
         /*
@@ -445,7 +414,8 @@ class RestoFeatureCollection
         $featuresArray = (new FeaturesFunctions($this->context->dbDriver))->search(
             $this->context,
             $this->user,
-            $collection,
+            $this->model,
+            $this->collections,
             $params,
             $sorting
         );

@@ -609,9 +609,8 @@ class CollectionsAPI
      */
     public function deleteCollection($params)
     {
-        $collection = new RestoCollection($params['collectionName'], $this->context, $this->user);
-        $collection->load();
-
+        $collection = (new RestoCollection($params['collectionName'], $this->context, $this->user))->load();
+       
         /*
          * Only owner of a collection can delete it
          */

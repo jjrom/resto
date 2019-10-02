@@ -368,9 +368,9 @@ class RestoFeature
     public $user;
 
     /*
-     * Parent collection name
+     * Parent collection
      */
-    public $collectionName;
+    public $collection;
 
     /*
      * Feature array
@@ -407,28 +407,40 @@ class RestoFeature
 
     /**
      * Output product description as a PHP array
-     *
-     * @param array $options
      */
-    public function toArray($options = array())
+    public function toArray()
     {
+        return $this->featureArray;
+    }
+
+    /**
+     * Feature for output
+     */
+    public function toPublicArray()
+    {
+
+        $discard = array(
+            'id',
+            'visibility',
+            'owner'
+        );
+
+        $publicArray = $this->featureArray;
+        $publicArray['properties'] = array();
+
+        $model = isset($this->collection) ? $this->collection->model : new DefaultModel();
         
-        $feature = $this->featureArray;
+        foreach (array_keys($this->featureArray['properties']) as $key) {
 
-        /*
-         * Clean public output i.e. remove null and unwanted values
-         */
-        if (isset($options['publicOutput']) && $options['publicOutput']) {
-
-            $feature['properties'] = $this->cleanProperties($feature['properties'], array(
-                'id',
-                'visibility',
-                'owner'
-            ), $options['collection'] ?? null);
-
+            // Remove null properties
+            if (! isset($this->featureArray['properties'][$key]) || in_array($key, $discard)) {
+                continue;
+            }
+            
+            $publicArray['properties'][$model->stacMapping[$key] ?? $key] = $this->featureArray['properties'][$key];
         }
 
-        return $feature;
+        return $publicArray;
 
     }
 
@@ -439,7 +451,7 @@ class RestoFeature
      */
     public function toJSON($pretty = false)
     {
-        return json_encode($this->toArray(true), $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
+        return json_encode($this->toPublicArray(), $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
     }
 
     /**
@@ -499,40 +511,13 @@ class RestoFeature
         /*
          * Empty feature or feature is not in input collection
          */
-        if (empty($this->featureArray) || (isset($options['collectionName']) && $options['collectionName'] !== $this->featureArray['collection'])) {
+        if (empty($this->featureArray) || (isset($this->collection) && $this->collection->name !== $this->featureArray['collection'])) {
             $this->id = null;
             return;
         } 
         
         $this->id = $this->featureArray['id'];
-        $this->collectionName = $this->featureArray['collection'];
         
     }
 
-    /**
-     * Remove redondant or unwanted properties
-     *
-     * @param array $properties
-     * @param array $discard
-     * @param RestoCollection $collection
-     */
-    private function cleanProperties($properties, $discard, $collection)
-    {
-        
-        $output = array();
-
-        $model = isset($collection) ? $collection->model : new DefaultModel();
-        
-        foreach (array_keys($properties) as $key) {
-
-            // Remove null properties
-            if (! isset($properties[$key]) || in_array($key, $discard)) {
-                continue;
-            }
-            
-            $output[$model->stacMapping[$key] ?? $key] = $properties[$key];
-        }
-
-        return $output;
-    }
 }

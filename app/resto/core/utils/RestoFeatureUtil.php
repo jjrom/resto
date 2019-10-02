@@ -41,19 +41,13 @@ class RestoFeatureUtil
      *
      * @param RestoContext $context
      * @param RestoUser $user
-     * @param RestoCollection $collection
+     * @param array $collections
      */
-    public function __construct($context, $user, $collection)
+    public function __construct($context, $user, $collections)
     {
         $this->context = $context;
         $this->user =$user;
-
-        /*
-         * Initialize collections array with input collection
-         */
-        if (isset($collection)) {
-            $this->collections[$collection->name] = $collection;
-        }
+        $this->collections = $collections;
     }
 
     /**
@@ -212,8 +206,11 @@ class RestoFeatureUtil
 
                 case 'metadata':
                     $metadata = json_decode($value, true);
-                    foreach (array_keys($metadata) as $metadataKey) {
-                        $feature['properties'][$metadataKey] = $metadata[$metadataKey];
+                    if (isset($metadata))
+                    {
+                        foreach (array_keys($metadata) as $metadataKey) {
+                            $feature['properties'][$metadataKey] = $metadata[$metadataKey];
+                        }    
                     }
                     break;
 
