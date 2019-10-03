@@ -524,6 +524,12 @@ class FeaturesAPI
         if (isset($params['model'])) {
             return RestoLogUtil::httpError(400, 'You cannot specify a collection and a model at the same time');
         }
+
+        // [STAC] Only one of either intersects or bbox should be specified. If both are specified, a 400 Bad Request response should be returned.
+        if (isset($params['intersects']) && isset($params['bbox'])) {
+            return RestoLogUtil::httpError(400, 'Only one of either intersects or bbox should be specified');
+        }
+
         return (new RestoCollection($params['collectionName'], $this->context, $this->user))->load()->search();
     }
 
