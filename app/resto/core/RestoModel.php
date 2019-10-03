@@ -123,8 +123,8 @@ abstract class RestoModel
         
         'language' => array(
             'osKey' => 'lang',
-            'pattern' => '^[a-z]{2}$',
-            'title' => 'Two letters language code according to ISO 639-1'
+            'title' => 'Two letters language code according to ISO 639-1',
+            'pattern' => '^[a-z]{2}$'
         ),
         
         'geo:uid' => array(
@@ -137,16 +137,17 @@ abstract class RestoModel
         
         'geo:geometry' => array(
             'key' => 'geom',
-            'osKey' => 'geometry',
+            'osKey' => 'intersects',
             'operation' => 'intersects',
-            'title' => 'Region of Interest defined in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326)'
+            'title' => 'Region of Interest defined in GeoJSON or in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326)'
         ),
 
         'geo:box' => array(
             'key' => 'geom',
             'osKey' => 'bbox',
             'operation' => 'intersects',
-            'title' => 'Region of Interest defined by \'west, south, east, north\' coordinates of longitude, latitude, in decimal degrees (EPSG:4326)'
+            'title' => 'Region of Interest defined by \'west, south, east, north\' coordinates of longitude, latitude, in decimal degrees (EPSG:4326)',
+            'pattern' => '^[-]?[0-9]*\.?[0-9]+,[-]?[0-9]*\.?[0-9]+,[-]?[0-9]*\.?[0-9]+,[-]?[0-9]*\.?[0-9]+$'
         ),
         
         'geo:name' => array(
@@ -474,7 +475,8 @@ abstract class RestoModel
         foreach ($query as $key => $value) {
             $filterKey = $this->getFilterName($key);
             if (isset($filterKey)) {
-                $params[$filterKey] = preg_replace('/<.*?>/', '', $value);
+                // Special case geo:geometry also accept GeoJSON => convert it to WKT
+                $params[$filterKey] = preg_replace('/<.*?>/', '', $filterKey === 'geo:geometry' ? $this->forceWKT($value) : $value);
                 $this->validateFilter($filterKey, $params[$filterKey]);
             }
         }
@@ -686,6 +688,26 @@ abstract class RestoModel
         }
         
         return $properties;
+    }
+
+    /**
+     * Convert input GeoJSON string geometry into WKT or leave it untouched if already a WKT
+     * 
+     * @param string $geostring
+     */
+    private function forceWKT($geostring)
+    {
+
+        if (isset($geostring) && isset($geostring[0]) && $geostring[0] === '{') {
+            $geostring = RestoGeometryUtil::geoJSONGeometryToWKT(json_decode($geostring, true));
+        }
+        
+        if ( !isset($geostring) || !RestoGeometryUtil::isValidWKT($geostring) ) {
+            return RestoLogUtil::httpError(400, 'Invalid input geometry for intersects - should be a valid GeoJSON or Well Known Text standard (WKT)');
+        }
+        
+        return $geostring;
+
     }
 
 }

@@ -195,9 +195,9 @@ class FeaturesAPI
      *          )
      *      ),
      *      @OA\Parameter(
-     *          name="geometry",
+     *          name="intersects",
      *          in="query",
-     *          description="Region of Interest defined in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326) - OpenSearch {geo:geometry}",
+     *          description="Region of Interest defined in GeoJSON or in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326) - OpenSearch {geo:geometry}",
      *          required=false,
      *          @OA\Schema(
      *              type="string"

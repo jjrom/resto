@@ -21,6 +21,48 @@
 class RestoGeometryUtil
 {
 
+
+    /**
+     * Check if input object is a valid GeoJSON object
+     *
+     * Valid GeoJSON geometry
+     *
+     *      array(
+     *          'type' =>,
+     *          'coordinates' => array(...)
+     *      )
+     *
+     * @param array $object : json object
+     * @return array
+     */
+    public static function checkGeoJSONGeometry($object)
+    {
+
+        $allowedGeometryTypes = array(
+            'Point',
+            'Polygon',
+            'LineString',
+            'MultiPoint',
+            'MultiPolygon',
+            'MultiLineString'
+        );
+
+        if (!$object || !is_array($object)) {
+            return false;
+        }
+
+        if (!isset($object['coordinates']) || !is_array($object['coordinates'])) {
+            return false;
+        }
+
+        if (!isset($object['type']) || !in_array($object['type'], $allowedGeometryTypes)) {
+            return false;
+        }
+        
+        return true;
+
+    }
+
     /**
      * Check if input object is a valid GeoJSON object
      *
@@ -44,45 +86,27 @@ class RestoGeometryUtil
         // Default is nice
         $error = 'Invalid GeoJSON feature';
 
-        $allowedGeometryTypes = array(
-            'Point',
-            'Polygon',
-            'LineString',
-            'MultiPoint',
-            'MultiPolygon',
-            'MultiLineString'
-        );
-
         if (!$object || !is_array($object)) {
             return array(
                 'isValid' => false,
                 'error' => $error
             );
         }
+
         if (!isset($object['type']) || $object['type'] !== 'Feature') {
             return array(
                 'isValid' => false,
                 'error' => $error . ' - only type *Feature* is supported'
             );
         }
-        if (!isset($object['geometry']) || !is_array($object['geometry'])) {
+
+        if (!isset($object['geometry']) || !is_array($object['geometry']) || ! RestoGeometryUtil::checkGeoJSONGeometry($object['geometry'])) {
             return array(
                 'isValid' => false,
                 'error' => $error . ' - invalid geometry'
             );
         }
-        if (!isset($object['geometry']['coordinates']) || !is_array($object['geometry']['coordinates'])) {
-            return array(
-                'isValid' => false,
-                'error' => $error . ' - invalid coordinates'
-            );
-        }
-        if (!isset($object['geometry']['type']) || !in_array($object['geometry']['type'], $allowedGeometryTypes)) {
-            return array(
-                'isValid' => false,
-                'error' => $error . ' - type should be one of ' . join(', ', $allowedGeometryTypes)
-            );
-        }
+
         if (!isset($object['properties']) || !is_array($object['properties'])) {
             return array(
                 'isValid' => false,
@@ -93,24 +117,40 @@ class RestoGeometryUtil
         return array(
             'isValid' => true
         );
+
     }
 
     /**
-     * Check if input object is a valid GeoJSON object
+     * Check if input object is a valid WKT object
+     * 
+     * [TODO] Does not support mutligeometries and/or (multi)geometries with holes
+     * [TODO] This function does not validates the coordinates validity
      *
-     * Valid GeoJSON Feature
+     * @param string $wktstring
+     * @return boolean
+     */
+    public static function isValidWKT($wktstring)
+    {
+        if (! isset($wktstring) ) {
+            return false;
+        }
+        if ( substr(strtolower($wktstring), 0, 6) === 'point(' && substr($wktstring, -1) === ')') {
+            return true;
+        }
+        if ( substr(strtolower($wktstring), 0, 9) === 'polygon((' && substr($wktstring, -2) === '))') {
+            return true;
+        }
+        if ( substr(strtolower($wktstring), 0, 12) === 'linestring((' && substr($wktstring, -2) === '))') {
+            return true;
+        }
+        return true;
+    }
+
+    /**
+     * Check if input object is a valid WKT polygon
      *
-     *      array(
-     *          'type' => 'Feature',
-     *          'geometry' => array(
-     *              'type' =>,
-     *              'coordinates' => array(...)
-     *          ),
-     *          'properties' => array(...)
-     *      )
-     *
-     * @param array $object : json object
-     * @return array
+     * @param string $wktPolygon
+     * @return boolean
      */
     public static function isValidWKTPolygon($wktPolygon)
     {
@@ -126,6 +166,7 @@ class RestoGeometryUtil
      *
      * @param float $radius
      * @param float $lat
+     * @return float
      */
     public static function radiusInDegrees($radius, $lat)
     {
@@ -224,6 +265,10 @@ class RestoGeometryUtil
      */
     public static function geoJSONGeometryToWKT($geometry)
     {
+        if (!isset($geometry)) {
+            return null;
+        }
+
         $type = strtoupper($geometry['type']);
         $epsgCode = RestoGeometryUtil::geoJSONGeometryToSRID($geometry);
         $srid = $epsgCode === 4326 ? '' : 'SRID=' . $epsgCode . ';';
