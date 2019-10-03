@@ -112,7 +112,7 @@ abstract class RestoModel
         ),
         
         'startIndex' => array(
-            'osKey' => 'index',
+            'osKey' => 'startIndex',
             'minInclusive' => 1
         ),
         
@@ -233,6 +233,9 @@ abstract class RestoModel
             'operation' => '='
         ),
         
+        /*
+         * Opposite to STAC "next" query parameter does not exist but could be named "prev"
+         */
         'resto:gt' => array(
             'osKey' => 'prev',
             'title' => 'Cursor pagination - return result with sort key greater than sort value',
@@ -240,6 +243,10 @@ abstract class RestoModel
             'operation' => '>'
         ),
         
+        /*
+         * The default sort order is DESCENDING - so the STAC "next" query parameter is equivalent
+         * to the "resto:lt" (lower than) filter 
+         */
         'resto:lt' => array(
             'osKey' => 'next',
             'title' => 'Cursor pagination - return result with sort key lower than sort value',

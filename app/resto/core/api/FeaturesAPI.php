@@ -159,7 +159,7 @@ class FeaturesAPI
      *          )
      *      ),
      *      @OA\Parameter(
-     *          name="index",
+     *          name="startIndex,
      *          in="query",
      *          description="First result to provide - minimum 1, (default 1) - OpenSearch {startIndex}",
      *          required=false,
