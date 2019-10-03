@@ -214,14 +214,15 @@ class FiltersFunctions
         }
 
         /*
-         * Special case - collections
+         * Special case - collections and ids
          */
-        if ($filterName === 'resto:collection') {
-            $collections = explode(',', $requestParams[$filterName]);
-            if (count($collections) === 1) {
-                return 'resto.feature.collection=\'' . pg_escape_string($requestParams[$filterName]) . '\'';
+        if ($filterName === 'resto:collection' || $filterName === 'geo:uid') {
+            $columnName = $filterName === 'resto:collection' ? 'collection' : 'id';
+            $elements = explode(',', $requestParams[$filterName]);
+            if (count($elements) === 1) {
+                return 'resto.feature.' . $columnName . '=\'' . pg_escape_string($requestParams[$filterName]) . '\'';
             }
-            return 'resto.feature.collection IN (' . implode(',', array_map(function($str) { return '\'' .  pg_escape_string($str) . '\''; }, $collections) ) . ')';
+            return 'resto.feature.' . $columnName . ' IN (' . implode(',', array_map(function($str) { return '\'' .  pg_escape_string($str) . '\''; }, $elements) ) . ')';
         }
         
         /*

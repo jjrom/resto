@@ -186,9 +186,9 @@ class FeaturesAPI
      *          )
      *      ),
      *      @OA\Parameter(
-     *          name="id",
+     *          name="ids",
      *          in="query",
-     *          description="Feature identifier (UUID) - OpenSearch {geo:uid}",
+     *          description="Array of item ids to return. All other filter parameters that further restrict the number of search results (except next and limit) are ignored",
      *          required=false,
      *          @OA\Schema(
      *              type="string"
