@@ -294,18 +294,18 @@ class FeaturesAPI
      *          )
      *      ),
      *      @OA\Parameter(
-     *          name="gt",
+     *          name="prev",
      *          in="query",
-     *          description="Returns features with *sort* key value greater than *gt* value - use this for pagination. The value is a unique iterator computed from the *sort* key value and provided within each feature properties as *sort_idx* property",
+     *          description="Returns features with *sort* key value greater than *prev* value - use this for pagination. The value is a unique iterator computed from the *sort* key value and provided within each feature properties as *sort_idx* property",
      *          required=false,
      *          @OA\Schema(
      *              type="integer"
      *          )
      *      ),
      *      @OA\Parameter(
-     *          name="lt",
+     *          name="next",
      *          in="query",
-     *          description="Returns features with *sort* key value lower than *lt* value - use this for pagination. The value is a unique iterator computed from the *sort* key value and provided within each feature properties as *sort_idx* property",
+     *          description="Returns features with *sort* key value lower than *next* value - use this for pagination. The value is a unique iterator computed from the *sort* key value and provided within each feature properties as *sort_idx* property",
      *          required=false,
      *          @OA\Schema(
      *              type="integer"

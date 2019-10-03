@@ -111,7 +111,7 @@ class FeaturesFunctions
         }
 
         /*
-         * Get sorting - the $sortKey  is used for 'lt' and 'gt' search filters
+         * Get sorting - the $sortKey  is used for 'resto:lt' and 'resto:gt' search filters
          */
         $extra = join(' ', array(
             'ORDER BY',
