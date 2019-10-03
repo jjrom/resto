@@ -217,9 +217,9 @@ abstract class RestoModel
 
         'resto:collection' => array(
             'key' => 'collection',
-            'osKey' => 'collection',
-            'title' => 'Collection name',
-            'pattern' => '^[A-Za-z][a-zA-Z0-9]+$',
+            'osKey' => 'collections',
+            'title' => 'Comma separated list of collections name',
+            'pattern' => '^[A-Za-z][a-zA-Z0-9,]+$',
             'operation' => '=',
             'hidden' => true,
             'options' => 'auto'

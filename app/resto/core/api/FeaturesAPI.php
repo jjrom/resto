@@ -521,6 +521,10 @@ class FeaturesAPI
      */
     public function getFeaturesInCollection($params)
     {
+        if (isset($params['collections'])) {
+            return RestoLogUtil::httpError(400, 'You cannot specify a list of collections on a single collection search');
+        }
+
         if (isset($params['model'])) {
             return RestoLogUtil::httpError(400, 'You cannot specify a collection and a model at the same time');
         }

@@ -212,12 +212,18 @@ class FiltersFunctions
         if ($filterName === 'created') {
             return 'resto.feature.id ' . $model->searchFilters[$filterName]['operation'] . ' timestamp_to_id(\'' . pg_escape_string($requestParams[$filterName]) . '\')';
         }
-            
-        /*if (in_array($filterName, array('startDate', 'completionDate', 'created', 'updated'))) {
-            return 'resto.feature.' . $model->searchFilters[$filterName]['key'] . ' ' . $model->searchFilters[$filterName]['operation'] . ' \'' . pg_escape_string($filters[$filterName]) . '\'';
-            return $this->prepareFilterQueryDate($model, $filterName, $requestParams);
-        }*/
 
+        /*
+         * Special case - collections
+         */
+        if ($filterName === 'resto:collection') {
+            $collections = explode(',', $requestParams[$filterName]);
+            if (count($collections) === 1) {
+                return 'resto.feature.collection=\'' . pg_escape_string($requestParams[$filterName]) . '\'';
+            }
+            return 'resto.feature.collection IN (' . implode(',', array_map(function($str) { return '\'' .  pg_escape_string($str) . '\''; }, $collections) ) . ')';
+        }
+        
         /*
          * Prepare filter from operation
          */
