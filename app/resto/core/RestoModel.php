@@ -61,7 +61,7 @@ abstract class RestoModel
      *  'prefix' :
      *      (for "keywords" operation only) Prefix to add to input value
      *  'operation' :
-     *      Search operation (keywords, intersects, distance, =, <=, >=)
+     *      Search operation (in, keywords, intersects, distance, =, <=, >=)
      *
      *
      *  Below properties follow the "Paramater extension" (http://www.opensearch.org/Specifications/OpenSearch/Extensions/Parameter/1.0/Draft_2)
@@ -130,8 +130,9 @@ abstract class RestoModel
         'geo:uid' => array(
             'key' => 'id',
             'osKey' => 'ids',
-            'operation' => '=',
-            'title' => 'Array of item ids to return. All other filter parameters that further restrict the number of search results (except next and limit) are ignored'
+            'operation' => 'in',
+            'title' => 'Array of item ids to return. All other filter parameters that further restrict the number of search results (except next and limit) are ignored',
+            'pattern' => '^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$'
         ),
         
         'geo:geometry' => array(
@@ -219,7 +220,7 @@ abstract class RestoModel
             'osKey' => 'collections',
             'title' => 'Comma separated list of collections name',
             'pattern' => '^[A-Za-z][a-zA-Z0-9,]+$',
-            'operation' => '=',
+            'operation' => 'in',
             'hidden' => true,
             'options' => 'auto'
         ),
@@ -487,8 +488,12 @@ abstract class RestoModel
             }
         }
 
-        // [STAC] If "ids" filter is set, then discard every other filters
-        return isset($params['geo:uid']) ? $this->getReducedFilters($params['geo:uid'], $params) : $params;
+        // [STAC] If "ids" filter is set, then discard every other filters except next and limit
+        return isset($params['geo:uid']) ? array(
+            'geo:uid' => $params['geo:uid'],
+            'resto:lt' => $params['resto:lt'] ?? null,
+            'limit' => $params['limit'] ?? null
+        ) : $params;
     }
 
     /**
@@ -518,7 +523,19 @@ abstract class RestoModel
          * Check pattern for string
          */
         if (isset($this->searchFilters[$filterKey]['pattern'])) {
-            if (preg_match('\'' . $this->searchFilters[$filterKey]['pattern'] . '\'', $value) !== 1) {
+
+            /*
+             * If operation = "in" then value is a comma separated list - check pattern for each element of the list
+             */
+            if ($this->searchFilters[$filterKey]['operation'] && $this->searchFilters[$filterKey]['operation'] === 'in') {
+                $elements = array_map('trim', explode(',', $value));
+                for ($i = count($elements); $i--;) {
+                    if (preg_match('\'' . $this->searchFilters[$filterKey]['pattern'] . '\'', $elements[$i]) !== 1) {
+                        return RestoLogUtil::httpError(400, 'Comma separated list of "' . $this->searchFilters[$filterKey]['osKey'] . '" must follow the pattern ' . $this->searchFilters[$filterKey]['pattern']);
+                    }
+                }
+            }
+            else if (preg_match('\'' . $this->searchFilters[$filterKey]['pattern'] . '\'', $value) !== 1) {
                 RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must follow the pattern ' . $this->searchFilters[$filterKey]['pattern']);
             }
         }
@@ -716,29 +733,6 @@ abstract class RestoModel
         
         return $geostring;
 
-    }
-
-    /**
-     * [STAC] Reduce input filters to geo:uid
-     * 
-     * @param string $ids
-     * @param array $params
-     */
-    private function getReducedFilters($ids, $params)
-    {
-        $idsarray = array_map('trim', explode(',', $ids));
-        $pattern = "'^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$'";
-        for ($i = count($idsarray); $i--;) {
-            if (preg_match($pattern, $idsarray[$i]) !== 1) {
-                return RestoLogUtil::httpError(400, 'Comma separated list of "ids" must follow the pattern ' . $pattern);
-            }
-        }
-        
-        return array(
-            'geo:uid' => $ids,
-            'resto:lt' => $params['resto:lt'] ?? null,
-            'limit' => $params['limit'] ?? null
-        );
     }
 
 }

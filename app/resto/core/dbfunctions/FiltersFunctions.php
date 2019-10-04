@@ -214,22 +214,15 @@ class FiltersFunctions
         }
 
         /*
-         * Special case - collections and ids
-         */
-        if ($filterName === 'resto:collection' || $filterName === 'geo:uid') {
-            $columnName = $filterName === 'resto:collection' ? 'collection' : 'id';
-            $elements = explode(',', $requestParams[$filterName]);
-            if (count($elements) === 1) {
-                return 'resto.feature.' . $columnName . '=\'' . pg_escape_string($requestParams[$filterName]) . '\'';
-            }
-            return 'resto.feature.' . $columnName . ' IN (' . implode(',', array_map(function($str) { return '\'' .  pg_escape_string($str) . '\''; }, $elements) ) . ')';
-        }
-        
-        /*
          * Prepare filter from operation
          */
         switch ($model->searchFilters[$filterName]['operation']) {
 
+            /*
+             * in
+             */
+            case 'in':
+                return $this->prepareFilterQueryIn($model, $filterName, $requestParams);
             /*
              * searchTerms
              */
@@ -256,6 +249,23 @@ class FiltersFunctions
             default:
                 return $this->prepareFilterQueryGeneral($model, $filterName, $requestParams);
         }
+    }
+
+    /**
+     * Prepare SQL query for operation in
+     *
+     * @param RestoModel $model
+     * @param string $filterName
+     * @param array $requestParams
+     * @return string
+     */
+    private function prepareFilterQueryIn($model, $filterName, $requestParams)
+    {
+        $elements = explode(',', $requestParams[$filterName]);
+        if (count($elements) === 1) {
+            return 'resto.feature.' . $model->searchFilters[$filterName]['key'] . '=\'' . pg_escape_string($requestParams[$filterName]) . '\'';
+        }
+        return 'resto.feature.' . $model->searchFilters[$filterName]['key'] . ' IN (' . implode(',', array_map(function($str) { return '\'' .  pg_escape_string($str) . '\''; }, $elements) ) . ')';
     }
 
     /**
