@@ -182,7 +182,7 @@ class FeaturesFunctions
         $filtersAndJoins['filters'][] = 'resto.feature.id=\'' . pg_escape_string((RestoUtil::isValidUUID($featureId) ? $featureId : RestoUtil::toUUID($featureId))) . '\'';
         $results = $this->dbDriver->fetch($this->dbDriver->query($selectClause . ' ' . $filterFunctions->getWhereClause($filtersAndJoins, true)));
 
-        return isset($results) && count($results) === 1 ? (new RestoFeatureUtil($context, $user, $collection))->toFeatureArray($results[0]) : null;
+        return isset($results) && count($results) === 1 ? (new RestoFeatureUtil($context, $user, array($collection->name, $collection)))->toFeatureArray($results[0]) : null;
     }
 
     /**

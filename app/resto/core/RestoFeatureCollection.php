@@ -21,43 +21,7 @@
  * @OA\Schema(
  *      schema="RestoFeatureCollection",
  *      description="Feature collection",
- *      required={"type", "properties", "features"},
- *      @OA\Property(
- *          property="properties",
- *          description="Information on query",
- *          @OA\Items(
- *              @OA\Property(
- *                  property="id",
- *                  type="string",
- *                  description="FeatureCollection unique identifier (uuid)"
- *              ),
- *              @OA\Property(
- *                  property="totalResults",
- *                  type="integer",
- *                  description="Number of total results for this query"
- *              ),
- *              @OA\Property(
- *                  property="exactCount",
- *                  type="boolean",
- *                  description="True if totalResults is exact - false means that is is approximative"
- *              ),
- *              @OA\Property(
- *                  property="startIndex",
- *                  type="integer",
- *                  description="Start index for the search (cf. pagination)"
- *              ),
- *              @OA\Property(
- *                  property="query",
- *                  type="object",
- *                  description="Feature collection unique identifier (uuid)"
- *              ),
- *              @OA\Property(
- *                  property="links",
- *                  type="object",
- *                  description="Links to self/search urls"
- *              )
- *          )
- *      ),
+ *      required={"type", "links", "features", "search:metadata"},
  *      @OA\Property(
  *          property="type",
  *          type="enum",
@@ -69,6 +33,80 @@
  *          type="array",
  *          description="Array of features",
  *          @OA\Items(ref="#/components/schemas/OutputFeature")
+ *      ),
+ *      @OA\Property(
+ *           property="links",
+ *           type="array",
+ *           @OA\Items(
+ *               type="object",
+ *               @OA\Property(
+ *                   property="rel",
+ *                   type="string",
+ *                   description="Relationship between the feature and the linked document/resource"
+ *               ),
+ *               @OA\Property(
+ *                   property="type",
+ *                   type="string",
+ *                   description="Mimetype of the resource"
+ *               ),
+ *               @OA\Property(
+ *                   property="title",
+ *                   type="string",
+ *                   description="Title of the resource"
+ *               ),
+ *               @OA\Property(
+ *                   property="href",
+ *                   type="string",
+ *                   description="Url to the resource"
+ *               )
+ *           )
+ *      ),
+ *      @OA\Property(
+ *          property="search:metadata",
+ *          description="Information on search query",
+ *          required={"next", "returned"},
+ *          @OA\Items(
+ *              @OA\Property(
+ *                  property="next",
+ *                  type="string",
+ *                  description="The value to set for the next query parameter in order to get the next page of results"
+ *              ),
+ *              @OA\Property(
+ *                  property="returned",
+ *                  type="integer",
+ *                  description="The count of results returned by this response. equal to the cardinality of features array"
+ *              ),
+ *              @OA\Property(
+ *                  property="limit",
+ *                  type="integer",
+ *                  description="The maximum number of results to which the result was limited"
+ *              ),
+ *              @OA\Property(
+ *                  property="matched",
+ *                  type="integer",
+ *                  description="The count of total number of results that match for this query, possibly estimated"
+ *              ),
+ *              @OA\Property(
+ *                  property="exactCount",
+ *                  type="boolean",
+ *                  description="True if *matched* is exact - false means that it is estimated"
+ *              ),
+ *              @OA\Property(
+ *                  property="startIndex",
+ *                  type="integer",
+ *                  description="Start index for the search (cf. pagination)"
+ *              ),
+ *              @OA\Property(
+ *                  property="query",
+ *                  type="object",
+ *                  description="Query details"
+ *              )
+ *          )
+ *      ),
+ *      @OA\Property(
+ *          property="id",
+ *          type="string",
+ *          description="FeatureCollection unique identifier (uuid)"
  *      ),
  *      example={
  *          "type": "FeatureCollection",
@@ -148,9 +186,14 @@ class RestoFeatureCollection
     public $user;
 
     /*
-     * FeatureCollectionDescription
+     * Unique identifier
      */
-    private $description;
+    private $id;
+
+    /*
+     * Next iterator
+     */
+    private $next = null;
 
     /*
      * Features
@@ -251,9 +294,9 @@ class RestoFeatureCollection
         }
 
         /*
-         * Set description
+         * Initial values
          */
-        $this->setDescription($analysis, $sorting, isset($collection) ? $collection->name : null);
+        $this->init($analysis, $sorting, isset($collection) ? $collection->name : null);
 
         /*
          * Return object
@@ -272,7 +315,15 @@ class RestoFeatureCollection
         for ($i = 0, $l = count($this->restoFeatures); $i < $l; $i++) {
             $features[] = $this->restoFeatures[$i]->toPublicArray();
         }
-        return json_encode(array_merge($this->description, array('features' => $features)), $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
+
+        return json_encode(array(
+            'type' => 'FeatureCollection',
+            'features' => $features,
+            'links' => $this->links,
+            'search:metadata' => $this->searchMetadata,
+            'id' => $this->id
+        ), $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
+        
     }
 
     /**
@@ -284,12 +335,12 @@ class RestoFeatureCollection
         /*
          * Initialize ATOM feed
          */
-        $atomFeed = new ATOMFeed($this->description['properties']['id'], $this->context->core['title'] ?? null, $this->getATOMSubtitle());
+        $atomFeed = new ATOMFeed($this->id, $this->context->core['title'] ?? null, $this->getATOMSubtitle());
 
         /*
          * Set collection elements
          */
-        $atomFeed->setCollectionElements($this->description['properties'], $this->model);
+        $atomFeed->setCollectionElements($this->searchMetadata, $this->model);
 
         /*
          * Add one entry per product
@@ -303,13 +354,13 @@ class RestoFeatureCollection
     }
 
     /**
-     * Set description
+     * Initialize properties based on search query
      *
      * @param array $analysis
      * @param array $sorting
      * @param string $name
      */
-    private function setDescription(&$analysis, $sorting, $name)
+    private function init(&$analysis, $sorting, $name)
     {
 
         // Default name for all collection
@@ -349,19 +400,28 @@ class RestoFeatureCollection
         }
 
         /*
-         * Sort results
+         * Set id
          */
-        $this->description = array(
-            'type' => 'FeatureCollection',
-            'properties' => array(
-                'id' => RestoUtil::toUUID($defaultName . ':' . json_encode($this->cleanFilters($analysis['details']['appliedFilters']), JSON_UNESCAPED_SLASHES)),
-                'totalResults' => $this->paging['count']['total'],
-                'exactCount' => $this->paging['count']['isExact'],
-                'startIndex' => $sorting['offset'] + 1,
-                'query' => $query,
-                'links' => $this->getLinks($sorting, $name)
-            )
+        $this->id = RestoUtil::toUUID($defaultName . ':' . json_encode($this->cleanFilters($analysis['details']['appliedFilters']), JSON_UNESCAPED_SLASHES));
+
+        /*
+         * Set links
+         */
+        $this->links = $this->getLinks($sorting, $name);
+
+        /*
+         * Set search:metadata
+         */
+        $this->searchMetadata = array(
+            'next' => $this->next,
+            'returned' => $this->paging['count']['returned'],
+            'limit' => $sorting['limit'],
+            'matched' => $this->paging['count']['total'],
+            'exactCount' => $this->paging['count']['isExact'],
+            'startIndex' => $sorting['offset'] + 1,
+            'query' => $query
         );
+
     }
 
     /**
@@ -493,7 +553,7 @@ class RestoFeatureCollection
          * Base links are always returned
          */
         $this->getBaseLinks($name);
-
+        
         /*
          * resto:lt has preseance over startPage
          */
@@ -504,8 +564,8 @@ class RestoFeatureCollection
                 $featureArray = $this->restoFeatures[0]->toArray();
 
                 /* 
-                * Previous
-                */
+                 * Previous
+                 */
                 $this->links[] = $this->getLink('previous', array(
                     'resto:lt' => null,
                     'resto:gt' => $featureArray['properties']['sort_idx'],
@@ -552,16 +612,19 @@ class RestoFeatureCollection
          * real last page. So always set a nextPage !
          */
         $count = count($this->restoFeatures);
+
         if ($count >= $sorting['limit']) {
+
+            $featureArray = $this->restoFeatures[$count - 1]->toArray();
+            
+            $this->next = $featureArray['properties']['sort_idx'];
 
             /*
              * Next URL is the next search URL from the self URL
              */
-            $featureArray = $this->restoFeatures[$count - 1]->toArray();
             $this->links[] = $this->getLink('next', array(
-                //'startPage' => $this->paging['nextPage'],
                 'resto:gt' => null,
-                'resto:lt' => $featureArray['properties']['sort_idx'],
+                'resto:lt' => $this->next,
                 'count' => $sorting['limit'])
             );
 
@@ -633,11 +696,14 @@ class RestoFeatureCollection
     private function getPaging($count, $limit, $offset)
     {
 
+        $count['returned'] = count($this->restoFeatures);
+
         /*
          * If first page contains no features count must be 0 not estimated value
          */
-        if ($offset == 0 && count($this->restoFeatures) == 0) {
+        if ($offset == 0 && $count['returned'] == 0) {
             $count = array(
+                'returned' => 0,
                 'total' => 0,
                 'isExact' => true
             );
@@ -658,7 +724,7 @@ class RestoFeatureCollection
             'totalPage' => 0,
             'itemsPerPage' => $limit
         );
-        if (count($this->restoFeatures) > 0) {
+        if ($count['returned'] > 0) {
             $startPage = ceil(($offset + 1) / $limit);
 
             /*
@@ -667,7 +733,7 @@ class RestoFeatureCollection
              * and the pseudo real count based on the retrieved features count
              */
             if (!$count['isExact']) {
-                $count['total'] = max(count($this->restoFeatures) + (($startPage - 1) * $limit), $count['total']);
+                $count['total'] = max($count['returned'] + (($startPage - 1) * $limit), $count['total']);
             }
             $totalPage = ceil($count['total'] / $limit);
             $paging = array(
@@ -707,20 +773,20 @@ class RestoFeatureCollection
     }
 
     /**
-     * Get ATOM subtitle - construct from $this->description['properties']['title']
+     * Get ATOM subtitle
      *
      * @return string
      */
     private function getATOMSubtitle()
     {
         $subtitle = '';
-        if (isset($this->description['properties']['totalResults']) && $this->description['properties']['totalResults'] !== -1) {
-            $subtitle = $this->description['properties']['totalResults'] . ($this->description['properties']['totalResults'] > 1 ? 'results' : 'result');
+        if (isset($this->searchMetadata['totalResults']) && $this->searchMetadata['totalResults'] !== -1) {
+            $subtitle = $this->searchMetadata['totalResults'] . ($this->searchMetadata['totalResults'] > 1 ? 'results' : 'result');
         }
-        if (isset($this->description['properties']['startIndex'])) {
-            $previous = isset($this->description['properties']['links']['previous']) ? '<a href="' . RestoUtil::updateUrlFormat($this->description['properties']['links']['previous'], 'atom') . '">Previous</a>&nbsp;' : '';
-            $next = isset($this->description['properties']['links']['next']) ? '&nbsp;<a href="' . RestoUtil::updateUrlFormat($this->description['properties']['links']['next'], 'atom') . '">Next</a>' : '';
-            return $subtitle . '&nbsp;|&nbsp;' . $previous . $this->description['properties']['startIndex'] . ' - ' .  ($this->description['properties']['startIndex'] + 1) . $next;
+        if (isset($this->searchMetadata['startIndex'])) {
+            $previous = isset($this->links['previous']) ? '<a href="' . RestoUtil::updateUrlFormat($this->links['previous'], 'atom') . '">Previous</a>&nbsp;' : '';
+            $next = isset($this->links['next']) ? '&nbsp;<a href="' . RestoUtil::updateUrlFormat($this->links['next'], 'atom') . '">Next</a>' : '';
+            return $subtitle . '&nbsp;|&nbsp;' . $previous . $this->searchMetadata['startIndex'] . ' - ' .  ($this->searchMetadata['startIndex'] + 1) . $next;
         }
         return $subtitle;
     }

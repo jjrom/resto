@@ -34,7 +34,7 @@ class RestoFeatureUtil
     /*
      * Array of collections
      */
-    private $collections;
+    private $collections = array();
 
     /**
      * Constructor
