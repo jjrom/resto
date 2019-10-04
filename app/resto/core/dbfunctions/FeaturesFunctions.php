@@ -181,8 +181,7 @@ class FeaturesFunctions
         // Determine if search on id or productidentifier
         $filtersAndJoins['filters'][] = 'resto.feature.id=\'' . pg_escape_string((RestoUtil::isValidUUID($featureId) ? $featureId : RestoUtil::toUUID($featureId))) . '\'';
         $results = $this->dbDriver->fetch($this->dbDriver->query($selectClause . ' ' . $filterFunctions->getWhereClause($filtersAndJoins, true)));
-
-        return isset($results) && count($results) === 1 ? (new RestoFeatureUtil($context, $user, array($collection->name, $collection)))->toFeatureArray($results[0]) : null;
+        return isset($results) && count($results) === 1 ? (new RestoFeatureUtil($context, $user, array($collection->name => $collection)))->toFeatureArray($results[0]) : null;
     }
 
     /**
@@ -362,8 +361,6 @@ class FeaturesFunctions
                 'likes' => $oldFeatureArray['properties']['likes'],
                 'comments' => $oldFeatureArray['properties']['comments'],
                 'metadata' => array(),
-                'created' => $oldFeatureArray['properties']['created'],
-                'created_idx' => $oldFeatureArray['properties']['created_idx'],
                 'updated' => isset($newFeatureArray['properties']) && isset($newFeatureArray['properties']['updated']) ? $newFeatureArray['properties']['updated'] : 'now()'
             ),
             array(
@@ -398,7 +395,7 @@ class FeaturesFunctions
              * Update model specific
              */
             for ($i = count($collection->model->tables); $i--;) {
-                if (count($keysAndValues['modelTables'][$collection->model->tables[$i]['name']]) > 0) {
+                if ( isset($keysAndValues['modelTables'][$collection->model->tables[$i]['name']]) && ! empty($keysAndValues['modelTables'][$collection->model->tables[$i]['name']])) {
                     $toUpdate = $this->concatArrays(
                         array_keys($keysAndValues['modelTables'][$collection->model->tables[$i]['name']]),
                         $this->getCounterList(count($keysAndValues['modelTables'][$collection->model->tables[$i]['name']])),
@@ -746,7 +743,7 @@ class FeaturesFunctions
                 $output['params'][] = '$' . ++$counter;
             }
         }
-
+        
         return $output;
     }
 

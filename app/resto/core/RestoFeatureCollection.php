@@ -110,65 +110,131 @@
  *      ),
  *      example={
  *          "type": "FeatureCollection",
- *          "properties": {
- *              "id": "20ac2fc6-daee-5621-bca4-d88c0bb19da1",
- *              "totalResults": 1,
- *              "exactCount": true,
- *              "startIndex": 1,
- *              "query": {
- *                  "inputFilters": {}
- *              },
- *              "links": {
- *                  {
- *                      "rel": "self",
- *                      "type": "application/json",
- *                      "title": "self",
- *                      "href": "http://localhost:5252/features.json?"
- *                  },
- *                  {
- *                      "rel": "search",
- *                      "type": "application/opensearchdescription+xml",
- *                      "title": "OpenSearch Description Document",
- *                      "href": "http://localhost:5252/services/osdd"
- *                  }
- *              }
- *          },
  *          "features":{
  *              {
+ *                  "stac_version": "0.8.0",
+ *                  "stac_extensions": }
+ *                      "eo"
+ *                  },
  *                  "type": "Feature",
+ *                  "id": "8030a391-4002-556f-929b-d7ff9dad6705",
+ *                  "bbox": {
+ *                      -48.6198530870596,
+ *                      74.6749788966259,
+ *                      -44.6464244356188,
+ *                      75.6843970710939
+ *                  },
  *                  "geometry": {
  *                      "type": "Polygon",
  *                      "coordinates": {
  *                          {
  *                              {
- *                                  69.979462,
- *                                  23.507467
+ *                                  -48.619853,
+ *                                  75.657209
  *                              },
  *                              {
- *                                  71.054486,
- *                                  23.496997
+ *                                  -44.646424,
+ *                                  75.684397
  *                              },
  *                              {
- *                                  71.039531,
- *                                  22.505778
+ *                                  -44.660672,
+ *                                  75.069386
  *                              },
  *                              {
- *                                  69.972328,
- *                                  22.515759
+ *                                  -44.698432,
+ *                                  75.060518
  *                              },
  *                              {
- *                                  69.979462,
- *                                  23.507467
+ *                                  -45.489771,
+ *                                  74.830977
+ *                              },
+ *                              {
+ *                                  -45.857954,
+ *                                  74.720238
+ *                              },
+ *                              {
+ *                                  -45.921685,
+ *                                  74.698702
+ *                              },
+ *                              {
+ *                                  -48.392706,
+ *                                  74.674979
+ *                              },
+ *                              {
+ *                                  -48.619853,
+ *                                  75.657209
  *                              }
  *                          }
  *                      }
  *                  },
  *                  "properties": {
- *                      "productIdentifier": "S2:tiles/42/Q/XL/2018/9/13/0",
- *                      "startDate": "2018-09-13T05:58:08.367Z"
+ *                      "datetime":"2019-06-11T16:11:41Z",
+ *                      "productIdentifier": "S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040",
+ *                      "startDate": "2019-06-11T16:11:41.808000Z"
+ *                  },
+ *                  "collection": "S2",
+ *                  "links": {
+ *                      {
+ *                          "rel": "self",
+ *                          "type": "application/json",
+ *                          "href": "http://127.0.0.1:5252/collections/S2/items/8030a391-4002-556f-929b-d7ff9dad6705?&lang=en"
+ *                      },
+ *                      {
+ *                          "rel": "collection",
+ *                          "type": "application/json",
+ *                          "name": "S2",
+ *                          "href": "http://127.0.0.1:5252/collections/S2?&lang=en"
+ *                      }
+ *                  },
+ *                  "assets": {
+ *                      "thumbnail": {
+ *                          "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/preview.jpg",
+ *                          "type": "image/jpeg"
+ *                      },
+ *                      "metadata": {
+ *                          "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/metadata.xml",
+ *                          "type": "text/xml"
+ *                      },
+ *                      "tileInfo": {
+ *                          "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/tileInfo.json",
+ *                          "type": "application/json"
+ *                      },
+ *                      "productInfo": {
+ *                          "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/productInfo.json",
+ *                          "type": "application/json"
+ *                      }
  *                  }
  *              }
- *          }
+ *          },
+ *          "links":{
+ *              {
+ *                  "rel": "self",
+ *                  "type": "application/json",
+ *                  "href": "http://127.0.0.1:5252/stac/search.json?"
+ *              },
+ *              {
+ *                  "rel": "search",
+ *                  "type": "application/opensearchdescription+xml",
+ *                  "href": "http://127.0.0.1:5252/services/osdd"
+ *              },
+ *              {
+ *                  "rel": "next",
+ *                  "type": "application/json",
+ *                  "href": "http://127.0.0.1:5252/stac/search.json?next=204449069316703379"
+ *              }
+ *          },
+ *          "search:metadata": {
+ *              "next": "204449069316703379",
+ *              "returned": 20,
+ *              "limit": 20,
+ *              "matched": 11345,
+ *              "exactCount": false,
+ *              "startIndex": 1,
+ *              "query": {
+ *                  "inputFilters": []
+ *              }
+ *          },
+ *          "id": "20ac2fc6-daee-5621-bca4-d88c0bb19da1"
  *      }
  *  )
  */

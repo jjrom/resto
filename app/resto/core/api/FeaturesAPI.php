@@ -620,7 +620,7 @@ class FeaturesAPI
 
         // Load collection
         $collection = (new RestoCollection($params['collectionName'], $this->context, $this->user))->load();
-
+        
         $feature = new RestoFeature($this->context, $this->user, array(
             'featureId' => $params['featureId'],
             'collection' => $collection
@@ -639,7 +639,7 @@ class FeaturesAPI
                 RestoLogUtil::httpError(403);
             }
         }
-
+        
         return $collection->model->updateFeature($feature, $collection, $body);
 
     }
