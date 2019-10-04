@@ -694,15 +694,6 @@ class RestoFeatureCollection
                 'count' => $sorting['limit'])
             );
 
-            /*
-             * Last URL has the highest startIndex
-             *
-            $this->links[] = $this->getLink('last', array(
-                'startPage' => max($this->paging['totalPage'], 1),
-                'count' => $sorting['limit'])
-            );
-            */
-            
         }
 
         return $this->links;
