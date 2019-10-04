@@ -352,14 +352,14 @@ class FeaturesFunctions
             $collection,
             $newFeatureArray,
             array(
-                'id' => $oldFeatureArray['id'],
+                /*'id' => $oldFeatureArray['id'],
                 'productIdentifier' => $oldFeatureArray['properties']['productIdentifier'],
                 'collection' => $oldFeatureArray['collection'],
                 'visibility' => $oldFeatureArray['properties']['visibility'],
-                'owner' => $oldFeatureArray['properties']['owner'],
+                'owner' => $oldFeatureArray['properties']['owner'],*/
                 'status' => isset($newFeatureArray['properties']) && isset($newFeatureArray['properties']['status']) && is_int($newFeatureArray['properties']['status']) ? $newFeatureArray['properties']['status'] : $oldFeatureArray['properties']['status'],
-                'likes' => $oldFeatureArray['properties']['likes'],
-                'comments' => $oldFeatureArray['properties']['comments'],
+                /*'likes' => $oldFeatureArray['properties']['likes'],
+                'comments' => $oldFeatureArray['properties']['comments'],*/
                 'metadata' => array(),
                 'updated' => isset($newFeatureArray['properties']) && isset($newFeatureArray['properties']['updated']) ? $newFeatureArray['properties']['updated'] : 'now()'
             ),
