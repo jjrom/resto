@@ -25,7 +25,7 @@
  *
  *  @OA\Schema(
  *      schema="OutputCollection",
- *      required={"id", "description", "license", "extent", "links"},
+ *      required={"id", "title", "description", "license", "extent", "links"},
  *      @OA\Property(
  *          property="id",
  *          type="string",
@@ -56,31 +56,72 @@
  *          description="License for this collection as a SPDX License identifier or expression. Alternatively, use proprietary if the license is not on the SPDX license list or various if multiple licenses apply. In these two cases links to the license texts SHOULD be added, see the license link relation type."
  *      ),
  *      @OA\Property(
- *          property="visibility",
- *          type="enum",
- *          enum={"public", "<group id>"},
- *          description="Visibility of this collection. *public* collections are visible to all users. Non public collections are visible to owner and member of <group id> only"
- *      ),
- *      @OA\Property(
- *          property="owner",
- *          type="string",
- *          description="Collection owner (i.e. user identifier)"
- *      ),
- *      @OA\Property(
- *          property="model",
- *          type="string",
- *          description="[For developper] Name of the collection model corresponding to the class under $SRC/include/resto/Models without *Model* suffix."
- *      ),
- *      
- *      @OA\Property(
- *          property="osDescription",
+ *          property="extent",
  *          type="object",
- *          ref="#/components/schemas/OpenSearchDescription"
+ *          @OA\JsonContent(ref="#/components/schemas/Extent")
  *      ),
  *      @OA\Property(
- *          property="statistics",
+ *          property="links",
+ *          type="array",
+ *          @OA\Items(ref="#/components/schemas/Links")
+ *      ),
+ *      @OA\Property(
+ *          property="resto:info",
  *          type="object",
- *          ref="#/components/schemas/Statistics"
+ *          description="resto additional information",
+ *          @OA\JsonContent(
+ *              @OA\Property(
+ *                  property="model",
+ *                  type="string",
+ *                  description="[For developper] Name of the collection model corresponding to the class under $SRC/include/resto/Models without *Model* suffix."
+ *              ),
+ *              @OA\Property(
+ *                  property="lineage",
+ *                  type="array",
+ *                  description="[For developper] Model lineage for this collection. Sort from general to specific.",
+ *                  @OA\Items(
+ *                      type="string",
+ *                  )
+ *              ),
+ *              @OA\Property(
+ *                  property="osDescription",
+ *                  type="object",
+ *                  ref="#/components/schemas/OpenSearchDescription"
+ *              ),
+ *              @OA\Property(
+ *                  property="owner",
+ *                  type="string",
+ *                  description="Collection owner (i.e. user identifier)"
+ *              )
+ *          )
+ *      ),
+ *      @OA\Property(
+ *          property="providers",
+ *          type="array",
+ *          description="A list of providers, which may include all organizations capturing or processing the data or the hosting provider. Providers should be listed in chronological order with the most recent provider being the last element of the list",
+ *          @OA\Items(ref="#/components/schemas/Provider")
+ *      ),
+ *      @OA\Property(
+ *          property="properties",
+ *          type="object",
+ *          @OA\JsonContent()
+ *      ),
+ *      @OA\Property(
+ *          property="summaries",
+ *          type="object",
+ *          @OA\JsonContent(
+ *              @OA\Property(
+ *                  property="datetime",
+ *                  type="enum",
+ *                  enum={"public", "<group id>"},
+ *                  description="Visibility of this collection. *public* collections are visible to all users. Non public collections are visible to owner and member of <group id> only"
+ *              ),
+ *              @OA\Property(
+ *                  property="resto:stats",
+ *                  type="object",
+ *                  ref="#/components/schemas/Statistics"
+ *              )
+ *          )
  *      ),
  *      @OA\Property(
  *          property="stac_version",
@@ -92,11 +133,193 @@
  *          type="array",
  *          description="[EXTENSION][STAC] A list of extensions the Collection implements.",
  *          @OA\Items(
- *              type="string",
+ *              type="string"
  *          )
- *      )
+ *      ),
  *      example={
- *          "TBD":"TBD"
+ *          "id": "S2",
+ *          "title": "Sentinel-2",
+ *          "description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites",
+ *          "keywords": {
+ *              "copernicus",
+ *              "esa",
+ *              "eu",
+ *              "msi",
+ *              "radiance",
+ *              "sentinel",
+ *              "sentinel2"
+ *          },
+ *          "license": "proprietary",
+ *          "extent": {
+ *              "spatial": {
+ *                  "bbox": {
+ *                      {
+ *                          -48.6198530870596,
+ *                          74.6749788966259,
+ *                          -44.6464244356188,
+ *                          75.6843970710939
+ *                      }
+ *                  },
+ *                  "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
+ *              },
+ *              "temporal": {
+ *                  "interval": {
+ *                      {
+ *                          "2019-06-11T16:11:41.808000Z",
+ *                          "2019-06-11T16:11:41.808000Z"
+ *                      }
+ *                  },
+ *                  "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"
+ *              }
+ *          },
+ *          "links": {
+ *              {
+ *                  "rel": "self",
+ *                  "type": "application/json",
+ *                  "href": "http://127.0.0.1:5252/collections/S2.json?&_pretty=1"
+ *              },
+ *              {
+ *                  "rel": "root",
+ *                  "type": "application/json",
+ *                  "href": "http://127.0.0.1:5252"
+ *              },
+ *              {
+ *                  "rel": "license",
+ *                  "href": "https://scihub.copernicus.eu/twiki/pub/SciHubWebPortal/TermsConditions/Sentinel_Data_Terms_and_Conditions.pdf",
+ *                  "title": "Legal notice on the use of Copernicus Sentinel Data and Service Information"
+ *              }
+ *          },
+ *          "resto:info": {
+ *              "model": "OpticalModel",
+ *              "lineage": {
+ *                  "DefaultModel",
+ *                  "LandCoverModel",
+ *                  "SatelliteModel",
+ *                  "OpticalModel"
+ *              },
+ *              "osDescription": {
+ *                  "ShortName": "Sentinel-2",
+ *                  "LongName": "Level 1C Sentinel-2 images",
+ *                  "Description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites",
+ *                  "Tags": "copernicus esa eu msi radiance sentinel sentinel2",
+ *                  "Developer": "J\u00e9r\u00f4me Gasperi",
+ *                  "Contact": "jrom@snapplanet.io",
+ *                  "Query": "Toulouse",
+ *                  "Attribution": "European Union/ESA/Copernicus"
+ *              },
+ *              "owner": "203883411255198721"
+ *          },
+ *          "providers": {
+ *              {
+ *                  "name": "European Union/ESA/Copernicus",
+ *                  "roles": {
+ *                      "producer",
+ *                      "licensor"
+ *                  },
+ *                  "url": "https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi"
+ *              }
+ *          },
+ *          "properties": {
+ *              "eo:bands": {
+ *                  {
+ *                      "name": "B1",
+ *                      "common_name": "coastal",
+ *                      "center_wavelength": 4.439,
+ *                      "gsd": 60
+ *                  },
+ *                  {
+ *                      "name": "B2",
+ *                      "common_name": "blue",
+ *                      "center_wavelength": 4.966,
+ *                      "gsd": 10
+ *                  },
+ *                  {
+ *                      "name": "B3",
+ *                      "common_name": "green",
+ *                      "center_wavelength": 5.6,
+ *                      "gsd": 10
+ *                  },
+ *                  {
+ *                      "name": "B4",
+ *                      "common_name": "red",
+ *                      "center_wavelength": 6.645,
+ *                      "gsd": 10
+ *                  },
+ *                  {
+ *                      "name": "B5",
+ *                      "center_wavelength": 7.039,
+ *                      "gsd": 20
+ *                  },
+ *                  {
+ *                      "name": "B6",
+ *                      "center_wavelength": 7.402,
+ *                      "gsd": 20
+ *                  },
+ *                  {
+ *                      "name": "B7",
+ *                      "center_wavelength": 7.825,
+ *                      "gsd": 20
+ *                  },
+ *                  {
+ *                      "name": "B8",
+ *                      "common_name": "nir",
+ *                      "center_wavelength": 8.351,
+ *                      "gsd": 10
+ *                  },
+ *                  {
+ *                      "name": "B8A",
+ *                      "center_wavelength": 8.648,
+ *                      "gsd": 20
+ *                  },
+ *                  {
+ *                      "name": "B9",
+ *                      "center_wavelength": 9.45,
+ *                      "gsd": 60
+ *                  },
+ *                  {
+ *                      "name": "B10",
+ *                      "center_wavelength": 1.3735,
+ *                      "gsd": 60
+ *                  },
+ *                  {
+ *                      "name": "B11",
+ *                      "common_name": "swir16",
+ *                      "center_wavelength": 1.6137,
+ *                      "gsd": 20
+ *                  },
+ *                  {
+ *                      "name": "B12",
+ *                      "common_name": "swir22",
+ *                      "center_wavelength": 2.2024,
+ *                      "gsd": 20
+ *                  }
+ *              }
+ *          },
+ *          "summaries": {
+ *              "datetime": {
+ *                  "min": "2019-06-11T16:11:41.808000Z",
+ *                  "max": "2019-06-11T16:11:41.808000Z"
+ *              },
+ *              "eo:instrument": {
+ *                  "MSI"
+ *              },
+ *              "eo:platform": {
+ *                  "S2A"
+ *              },
+ *              "processingLevel": {
+ *                  "LEVEL1C"
+ *              },
+ *              "productType": {
+ *                  "REFLECTANCE"
+ *              }
+ *          },
+ *          "resto:info": {
+ * 
+ *          },
+ *          "stac_version": "0.8.0",
+ *          "stac_extensions": {
+ *              "eo"
+ *          }
  *      }
  *  )
  */
@@ -267,6 +490,38 @@ class RestoCollection
      * )
      */
     private $statistics = null;
+    
+    /**
+     * @OA\Schema(
+     *      schema="Provider",
+     *      description="A provider is any of the organizations that captured or processed the content of the collection and therefore influenced the data offered by this collection",
+     *      required={"name"},
+     *      @OA\Property(
+     *          property="name",
+     *          type="string",
+     *          description="The name of the organization or the individual"
+     *      ),
+     *      @OA\Property(
+     *          property="description",
+     *          type="string",
+     *          description="Multi-line description to add further provider information such as processing details for processors and producers, hosting details for hosts or basic contact information. CommonMark 0.28 syntax MAY be used for rich text representation"
+     *      ),
+     *      @OA\Property(
+     *          property="roles",
+     *          type="array",
+     *          description="Roles of the provider.",
+     *          @OA\Items(
+     *              type="enum",
+     *              enum={"licensor", "producer", "processor", "host"},
+     *          )
+     *      ),
+     *      @OA\Property(
+     *          property="url",
+     *          type="string",
+     *          description="Homepage on which the provider describes the dataset and publishes contact information."
+     *      )
+     *  )
+     */
 
     /**
      * Constructor
@@ -407,11 +662,13 @@ class RestoCollection
                     )
                 ), 
                 $this->links ?? array()    
+            ),
+            'resto:info' => array(
+                'model' => $this->model->getName(),
+                'lineage' => $this->model->getLineage(),
+                'osDescription' => $this->osDescription[$this->context->lang] ?? $this->osDescription['en'],
+                'owner' => $this->owner
             )
-            //'model' => $this->model->getName(),
-            //'lineage' => $this->model->getLineage(),
-            //'osDescription' => $this->osDescription[$this->context->lang] ?? $this->osDescription['en'],
-            //'owner' => $this->owner
         );
 
         foreach (array_values(array('providers', 'properties')) as $key) {
@@ -478,6 +735,45 @@ class RestoCollection
 
     /**
      * Return STAC extent
+     * 
+     * @OA\Schema(
+     *      schema="Extent",
+     *      description="Spatio-temporal extents of the Collection",
+     *      required={"spatial", "temporal"},
+     *      @OA\Property(
+     *          property="spatial",
+     *          type="object",
+     *          description="The spatial extents of the Collection",
+     *          @OA\JsonContent(
+     *              required={"bbox"},
+     *              @OA\Property(
+     *                  property="bbox",
+     *                  type="array",
+     *                  description="Potential spatial extent covered by the collection. The coordinate reference system of the values is WGS 84 longitude/latitude",
+     *                  @OA\Items(
+     *                      type="float"
+     *                  )
+     *              )
+     *          )
+     *      ),
+     *      @OA\Property(
+     *          property="temporal",
+     *          type="object",
+     *          description="The temporal extents of the Collection",
+     *          @OA\JsonContent(
+     *              required={"interval"},
+     *              @OA\Property(
+     *                  property="interval",
+     *                  type="array",
+     *                  description="Potential temporal extent covered by the collection. The temporal reference system is the Gregorian calendar",
+     *                  @OA\Items(
+     *                      type="string"
+     *                  )
+     *              )
+     *          )
+     *      )
+     *  )
+     * 
      */
     public function getExtent()
     {

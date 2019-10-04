@@ -153,29 +153,7 @@ class ServicesAPI
      *              @OA\Property(
      *                  property="links",
      *                  type="array",
-     *                  @OA\Items(
-     *                      type="object",
-     *                      @OA\Property(
-     *                          property="rel",
-     *                          type="string",
-     *                          description="Relationship between the feature and the linked document/resource"
-     *                      ),
-     *                      @OA\Property(
-     *                          property="type",
-     *                          type="string",
-     *                          description="Mimetype of the resource"
-     *                      ),
-     *                      @OA\Property(
-     *                          property="title",
-     *                          type="string",
-     *                          description="Title of the resource"
-     *                      ),
-     *                      @OA\Property(
-     *                          property="href",
-     *                          type="string",
-     *                          description="Url to the resource"
-     *                      )
-     *                  )
+     *                  @OA\Items(ref="#/components/schemas/Links")
      *              )   
      *          )
      *      ),
