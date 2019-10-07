@@ -279,19 +279,6 @@ abstract class RestoModel
             'operation' => '='
         ),
         
-        'resto:likes' => array(
-            'key' => 'likes',
-            'osKey' => 'likes',
-            'operation' => 'interval',
-            'title' => 'Number of likes for feature',
-            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$'
-        ),
-        
-        'resto:liked' => array(
-            'osKey' => 'liked',
-            'title' => 'Return only liked feature from calling user'
-        ),
-        
         'resto:status' => array(
             'key' => 'status',
             'osKey' => 'status',
@@ -318,6 +305,24 @@ abstract class RestoModel
     public function __construct($options = array())
     {
         $this->options = $options;
+
+        if ( isset($this->options['addons']['Social']) ) {
+            $this->searchFilters = array_merge($this->searchFilters, array(
+                'resto:likes' => array(
+                    'key' => 'likes',
+                    'osKey' => 'likes',
+                    'operation' => 'interval',
+                    'title' => 'Number of likes for feature',
+                    'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$'
+                ),
+                
+                'resto:liked' => array(
+                    'osKey' => 'liked',
+                    'title' => 'Return only liked feature from calling user'
+                )
+            ));       
+        }
+
     }
 
     /**

@@ -35,7 +35,7 @@ class LandCoverModel extends DefaultModel
         /*
          * Extend search filters
          */
-        if ( isset($this->options['addons']) && isset($this->options['addons']['Tag']) && $this->options['addons']['Tag']['options']['iTag']['addSearchFilters'] ) {
+        if ( isset($this->options['addons']['Tag']) && $this->options['addons']['Tag']['options']['iTag']['addSearchFilters'] ) {
             $this->searchFilters = array_merge($this->searchFilters, array(
 
                 'resto:cultivatedCover' => array(

@@ -393,10 +393,10 @@ class RestoFeatureCollection
 
         return json_encode(array(
             'type' => 'FeatureCollection',
-            'features' => $features,
-            'links' => $this->links,
+            'id' => $this->id,
             'search:metadata' => $this->searchMetadata,
-            'id' => $this->id
+            'links' => $this->links,
+            'features' => $features
         ), $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
         
     }
