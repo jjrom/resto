@@ -94,6 +94,17 @@ class RestoRouter
      *
      * Route structure is :
      *  array('path', 'isAuthenticated', 'className::methodName')
+     * 
+     * Some path examples:
+     * 
+     *      /collections/{collectionName}, myFunction::myClass
+     * 
+     * Will call function myFunction($params) from class myClass with $params = array('collectionName' => // The value of collectionName in path)
+     * 
+     *      /anyroute/isvalidafter/*, myFunction::myClass
+     * 
+     * Will call function function myFunction($params) from class myClass with $params = array('segments' => array('a', 'b', 'c', etc.))
+     * Where (a, b, c, etc.) are the values of everything after '/anyroute/isvalidafter/' splitted by '/' character
      *
      * @param string $method // One of GET, POST, PUT or DELETE
      * @param string $path // url to process
