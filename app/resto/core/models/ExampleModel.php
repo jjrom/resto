@@ -41,10 +41,12 @@ class ExampleModel extends SatelliteModel
 
     /**
      * Constructor
+     * 
+     * @param array $options
      */
-    public function __construct()
+    public function __construct($options = array())
     {
-        parent::__construct();
+        parent::__construct($options);
     }
 
     /**

@@ -23,12 +23,12 @@ class DefaultModel extends RestoModel
 
     /**
      * Constructor
-     *
-     * @param array $params
+     * 
+     * @param array $options
      */
-    public function __construct()
+    public function __construct($options = array())
     {
-        parent::__construct();
+        parent::__construct($options);
     }
 
 }

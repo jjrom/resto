@@ -582,7 +582,10 @@ class RestoCollection
         }
         
         foreach ($collectionObject as $key => $value) {
-            $this->$key = $key === 'model' ? new $value() : $value;
+            $this->$key = $key === 'model' ? new $value(array(
+                'collectionName' => $this->name,
+                'addons' => $this->context->addons
+            )) : $value;
         }
 
         return $this;
@@ -880,13 +883,14 @@ class RestoCollection
             RestoLogUtil::httpError(400, 'English OpenSearch description is mandatory');
         }
 
-
         /*
          * Set collection model
          */
-        $this->model = new $object['model']();
+        $this->model = new $object['model'](array(
+            'collectionName' => $this->name,
+            'addons' => $this->context->addons
+        ));
         
-
         /*
          * Collection owner is the current user
          */

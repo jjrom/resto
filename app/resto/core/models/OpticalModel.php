@@ -22,11 +22,13 @@ class OpticalModel extends SatelliteModel
 
     /**
      * Constructor
+     * 
+     * @param array $options
      */
-    public function __construct()
+    public function __construct($options = array())
     {
 
-        parent::__construct();
+        parent::__construct($options);
 
         /*
          * Extend STAC mapping
@@ -45,11 +47,7 @@ class OpticalModel extends SatelliteModel
                 'osKey' => 'cloudCover',
                 'operation' => 'interval',
                 'title' => 'Cloud cover expressed in percent',
-                'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
-                'quantity' => array(
-                    'value' => 'cloud',
-                    'unit' => '%'
-                )
+                'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$'
             ),
     
             'eo:snowCover' => array(
@@ -57,11 +55,7 @@ class OpticalModel extends SatelliteModel
                 'osKey' => 'snowCover',
                 'operation' => 'interval',
                 'title' => 'Snow cover expressed in percent',
-                'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
-                'quantity' => array(
-                    'value' => 'snow',
-                    'unit' => '%'
-                )
+                'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$'
             )
         ));
 

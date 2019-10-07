@@ -399,7 +399,8 @@ class RestoFeature
         $discard = array(
             'id',
             'visibility',
-            'owner'
+            'owner',
+            'sort_idx'
         );
 
         $publicArray = $this->featureArray;

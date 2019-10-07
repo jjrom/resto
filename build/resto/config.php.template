@@ -87,6 +87,7 @@ return array(
             'options' => array(
                 'iTag' => array(
                     'endpoint' => '${ADDON_TAG_ITAG_ENDPOINT}',
+                    'addSearchFilters' => ${ADDON_TAG_ADD_SEARCH_FILTERS:-false}, 
                     'taggers' => array(${ADDON_TAG_ITAG_TAGGERS})/*,
                     'excludedCollections' => array()*/
                 )

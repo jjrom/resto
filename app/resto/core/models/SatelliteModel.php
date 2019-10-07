@@ -22,11 +22,13 @@ class SatelliteModel extends LandCoverModel
 
     /**
      * Constructor
+     * 
+     * @param array $options
      */
-    public function __construct()
+    public function __construct($options = array())
     {
         
-        parent::__construct();
+        parent::__construct($options);
         
         /*
          * Satellite model follows STAC EO Extension Specification
@@ -102,11 +104,7 @@ class SatelliteModel extends LandCoverModel
                 'osKey' => 'resolution',
                 'operation' => 'interval',
                 'title' => 'Spatial resolution expressed in meters',
-                'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
-                'quantity' => array(
-                    'value' => 'resolution',
-                    'unit' => 'm'
-                )
+                'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$'
             ),
     
             /*
@@ -116,10 +114,7 @@ class SatelliteModel extends LandCoverModel
                 'key' => 'orbitNumber',
                 'osKey' => 'orbitNumber',
                 'operation' => 'interval',
-                'minInclusive' => 1,
-                'quantity' => array(
-                    'value' => 'orbit'
-                )
+                'minInclusive' => 1
             ),*/
             
         ));

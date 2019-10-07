@@ -269,7 +269,9 @@ class ServicesAPI
             if (! class_exists($params['model'])) {
                 return RestoLogUtil::httpError(400, 'Unknown model ' . $params['model']);
             }
-            $model = new $params['model']();
+            $model = new $params['model'](array(
+                'addons' => $this->context->addons
+            ));
         }
         return (new RestoCollections($this->context, $this->user))->getOSDD($model);
     }

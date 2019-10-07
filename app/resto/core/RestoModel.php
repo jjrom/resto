@@ -22,6 +22,11 @@ abstract class RestoModel
 {
 
     /*
+     * Model options
+     */
+    public $options = array();
+
+    /*
      * STAC extensions - override in child models
      */
     public $stacExtensions = array();
@@ -55,16 +60,16 @@ abstract class RestoModel
      * OpenSearch search filters
      *
      *  'key' :
-     *      RESTo model property name
+     *      resto.feature column name
      *  'osKey' :
      *      OpenSearch property name in template urls
      *  'prefix' :
-     *      (for "keywords" operation only) Prefix to add to input value
+     *      (for "keywords" operation only) Prefix systematically added to input value (i.e. prefix:value)
      *  'operation' :
-     *      Search operation (in, keywords, intersects, distance, =, <=, >=)
+     *      Type of operation applied to the filter ("in", "keywords", "intersects", "distance", "=", "<=", ">=")
      *
      *
-     *  Below properties follow the "Paramater extension" (http://www.opensearch.org/Specifications/OpenSearch/Extensions/Parameter/1.0/Draft_2)
+     *  Below properties follow the "Parameter extension" (http://www.opensearch.org/Specifications/OpenSearch/Extensions/Parameter/1.0/Draft_2)
      *
      *  'minimum' :
      *      Minimum number of times this parameter must be included in the search request (default 0)
@@ -307,9 +312,12 @@ abstract class RestoModel
     
     /**
      * Constructor
+     * 
+     * @param array $options
      */
-    public function __construct()
+    public function __construct($options = array())
     {
+        $this->options = $options;
     }
 
     /**
