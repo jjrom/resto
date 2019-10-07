@@ -54,12 +54,32 @@ class CollectionsAPI
      *          description="List of all collection descriptions",
      *          @OA\JsonContent(
      *              @OA\Property(
-     *                  property="osDescription",
-     *                  ref="#/components/schemas/OpenSearchDescription"
+     *                  property="extent",
+     *                  type="object",
+     *                  ref="#/components/schemas/Extent"
      *              ),
      *              @OA\Property(
-     *                  property="statistics",
-     *                  ref="#/components/schemas/Statistics"
+     *                   property="resto:info",
+     *                   type="object",
+     *                   description="resto additional information",
+     *                   @OA\JsonContent(
+     *                       @OA\Property(
+     *                           property="osDescription",
+     *                           type="object",
+     *                           ref="#/components/schemas/OpenSearchDescription"
+     *                       )
+     *                   )
+     *              ),
+     *              @OA\Property(
+     *                  property="summaries",
+     *                  type="object",
+     *                  @OA\JsonContent(
+     *                      @OA\Property(
+     *                          property="resto:stats",
+     *                          type="object",
+     *                          ref="#/components/schemas/Statistics"
+     *                      )
+     *                  )
      *              ),
      *              @OA\Property(
      *                  property="collections",
@@ -70,66 +90,215 @@ class CollectionsAPI
      *                  )
      *              ),
      *              example={
-     *                  "osDescription": {
-     *                      "ShortName": "Datasources",
-     *                      "LongName": "Datasources search service",
-     *                      "Description": "Search on all datasources (i.e. S2)",
-     *                      "Tags": "snapplanet",
-     *                      "Developer": "SnapPlanet team",
-     *                      "Contact": "jrom@snapplanet.io",
-     *                      "Query": "europe 2016",
-     *                      "Attribution": "SnapPlanet. Copyright 2016, All Rights Reserved"
+     *                  "extent": {
+     *                      "spatial": {
+     *                          "bbox": {
+     *                              {
+     *                                  -180,
+     *                                  -77.28054,
+     *                                  180,
+     *                                  82.77201
+     *                              }
+     *                          },
+     *                          "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
+     *                      },
+     *                      "temporal": {
+     *                          "interval": {
+     *                              {
+     *                                  "min": "2018-09-13T05:58:08.367000Z",
+     *                                  "max": "2019-06-11T16:11:41.808000Z"
+     *                              }
+     *                          },
+     *                          "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"
+     *                      }
      *                  },
-     *                  "statistics": {
-     *                      "count": 5322692,
-     *                      "facets": {
-     *                          "collection": {
-     *                              "Example": 5074851
-     *                          },
-     *                          "continent": {
-     *                              "Africa": 671538,
-     *                              "Antarctica": 106337,
-     *                              "Asia": 747836,
-     *                              "Europe": 1992742,
-     *                              "North America": 1012027,
-     *                              "Oceania": 218789,
-     *                              "Seven seas (open ocean)": 9481,
-     *                              "South America": 313983
-     *                          },
-     *                          "instrument": {
-     *                              "HRS": 2,
-     *                              "MSI": 5322690
-     *                          },
-     *                          "platform": {
-     *                              "S2A": 3346304,
-     *                              "S2B": 1976386,
-     *                              "SPOT6": 1
-     *                          },
-     *                          "processingLevel": {
-     *                              "LEVEL1C": 5322690
-     *                          },
-     *                          "productType": {
-     *                              "PX": 2,
-     *                              "REFLECTANCE": 5322690
+     *                  "summaries": {
+     *                      "resto:stats": {
+     *                          "count": 11310,
+     *                          "facets": {
+     *                              "collection": {
+     *                                  "L8": 11307,
+     *                                  "S2": 3
+     *                              }
      *                          }
+     *                      }
+     *                  },
+     *                  "resto:info": {
+     *                      "osDescription": {
+     *                          "ShortName": "resto",
+     *                          "LongName": "resto search service",
+     *                          "Description": "Search on all collections",
+     *                          "Tags": "resto",
+     *                          "Developer": "J\u00e9r\u00f4me Gasperi",
+     *                          "Contact": "jerome.gasperi@gmail.com",
+     *                          "Query": "europe 2015",
+     *                          "Attribution": "Copyright 2018, All Rights Reserved"
      *                      }
      *                  },
      *                  "collections": {
      *                      {
-     *                          "name": "S2",
-     *                          "visibility": "public",
-     *                          "owner": "1919680409029837825",
-     *                          "model": "OpticalModel",
-     *                          "licenseId": "proprietary",
-     *                          "osDescription": {
-     *                              "ShortName": "S2",
-     *                              "LongName": "Sentinel-2",
-     *                              "Description": "Sentinel-2 tiles",
-     *                              "Tags": "s2 sentinel2",
-     *                              "Developer": "Jérôme Gasperi",
-     *                              "Contact": "jerome.gasperi@gmail.com",
-     *                              "Query": "Toulouse",
-     *                              "Attribution": "Copyright 2019, All Rights Reserved"
+     *                          "id": "Example",
+     *                          "title": "resto collection",
+     *                          "description": "A dummy resto collection example",
+     *                          "keywords": {
+     *                              "resto",
+     *                              "example"
+     *                          },
+     *                          "license": "proprietary",
+     *                          "extent": {
+     *                              "spatial": {
+     *                                  "bbox": {
+     *                                      {
+     *                                          69.972328,
+     *                                          22.505778,
+     *                                          71.054486,
+     *                                          23.507467
+     *                                      }
+     *                                  },
+     *                                  "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
+     *                              },
+     *                              "temporal": {
+     *                                  "interval": {
+     *                                      {
+     *                                          "2018-09-13T05:58:08.367000Z",
+     *                                          "2018-09-13T05:58:08.367000Z"
+     *                                      }
+     *                                  },
+     *                                  "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"
+     *                              }
+     *                          },
+     *                          "links": {
+     *                              {
+     *                                  "rel": "self",
+     *                                  "type": "application/json",
+     *                                  "href": "http://127.0.0.1:5252/collections.json?&_pretty=1"
+     *                              },
+     *                              {
+     *                                  "rel": "root",
+     *                                  "type": "application/json",
+     *                                  "href": "http://127.0.0.1:5252"
+     *                              }
+     *                          },
+     *                          "resto:info": {
+     *                              "model": "SatelliteModel",
+     *                              "lineage": {
+     *                                  "DefaultModel",
+     *                                  "LandCoverModel",
+     *                                  "SatelliteModel"
+     *                              },
+     *                              "osDescription": {
+     *                                  "ShortName": "resto collection",
+     *                                  "LongName": "A dummy resto collection example",
+     *                                  "Description": "A dummy resto collection example",
+     *                                  "Tags": "resto example",
+     *                                  "Developer": "John Doe",
+     *                                  "Contact": "john.doe@dev.null",
+     *                                  "Query": "Toulouse",
+     *                                  "Attribution": "Copyright 2019, All Rights Reserved"
+     *                              },
+     *                              "owner": "203883411255198721"
+     *                          },
+     *                          "summaries": {
+     *                              "datetime": {
+     *                                  "min": "2018-09-13T05:58:08.367000Z",
+     *                                  "max": "2018-09-13T05:58:08.367000Z"
+     *                              }
+     *                          },
+     *                          "stac_version": "0.8.0",
+     *                          "stac_extensions": {
+     *                              "eo"
+     *                          }
+     *                      },
+     *                      {
+     *                          "id": "L8",
+     *                          "title": "Landsat-8",
+     *                          "description": "Landsat represents the world's longest continuously acquired collection of space-based moderate-resolution land remote sensing data. Four decades of imagery provides a unique resource for those who work in agriculture, geology, forestry, regional planning, education, mapping, and global change research. Landsat images are also invaluable for emergency response and disaster relief",
+     *                          "keywords": {
+     *                              "landsat",
+     *                              "level1C",
+     *                              "USGS"
+     *                          },
+     *                          "license": "proprietary",
+     *                          "extent": {
+     *                              "spatial": {
+     *                                  "bbox": {
+     *                                      {
+     *                                          -180,
+     *                                          -77.28054,
+     *                                          180,
+     *                                          82.77201
+     *                                      }
+     *                                  },
+     *                                  "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
+     *                              },
+     *                              "temporal": {
+     *                                  "interval": {
+     *                                      {
+     *                                          "2019-05-19T13:59:47.695508Z",
+     *                                          "2019-06-06T13:28:04.338517Z"
+     *                                      }
+     *                                  },
+     *                                  "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"
+     *                              }
+     *                          },
+     *                          "links": {
+     *                              {
+     *                                  "rel": "self",
+     *                                  "type": "application/json",
+     *                                  "href": "http://127.0.0.1:5252/collections.json?&_pretty=1"
+     *                              },
+     *                              {
+     *                                  "rel": "root",
+     *                                  "type": "application/json",
+     *                                  "href": "http://127.0.0.1:5252"
+     *                              }
+     *                          },
+     *                          "resto:info": {
+     *                              "model": "OpticalModel",
+     *                              "lineage": {
+     *                                  "DefaultModel",
+     *                                  "LandCoverModel",
+     *                                  "SatelliteModel",
+     *                                  "OpticalModel"
+     *                              },
+     *                              "osDescription": {
+     *                                  "ShortName": "Landsat-8",
+     *                                  "LongName": "Images Landsat-8 niveau 1C",
+     *                                  "Description": "Landsat represents the world's longest continuously acquired collection of space-based moderate-resolution land remote sensing data. Four decades of imagery provides a unique resource for those who work in agriculture, geology, forestry, regional planning, education, mapping, and global change research. Landsat images are also invaluable for emergency response and disaster relief",
+     *                                  "Tags": "landsat level1C USGS",
+     *                                  "Developer": "J\u00e9r\u00f4me Gasperi",
+     *                                  "Contact": "jrom@snapplanet.io",
+     *                                  "Query": "USA 2019",
+     *                                  "Attribution": "USGS/NASA Landsat"
+     *                              },
+     *                              "owner": "203883411255198721"
+     *                          },
+     *                          "summaries": {
+     *                              "datetime": {
+     *                                  "min": "2019-05-19T13:59:47.695508Z",
+     *                                  "max": "2019-06-06T13:28:04.338517Z"
+     *                              },
+     *                              "eo:instrument": {
+     *                                  "OLI_TIRS",
+     *                                  "TIRS"
+     *                              },
+     *                              "eo:platform": {
+     *                                  "LANDSAT_8"
+     *                              },
+     *                              "processingLevel": {
+     *                                  "LEVEL1C"
+     *                              },
+     *                              "productType": {
+     *                                  "L1GT",
+     *                                  "L1TP"
+     *                              },
+     *                              "sensorType": {
+     *                                  "OPTICAL"
+     *                              }
+     *                          },
+     *                          "stac_version": "0.8.0",
+     *                          "stac_extensions": {
+     *                              "eo"
      *                          }
      *                      }
      *                  }
@@ -172,57 +341,7 @@ class CollectionsAPI
      *      @OA\Response(
      *          response="200",
      *          description="Collection description",
-     *          @OA\JsonContent(
-     *              ref="#/components/schemas/OutputCollection",
-     *              example={
-     *                  "name": "S2",
-     *                  "model": "OpticalModel",
-     *                  "licenseId": "proprietary",
-     *                  "osDescription": {
-     *                      "ShortName": "S2",
-     *                      "LongName": "Sentinel-2",
-     *                      "Description": "Sentinel-2 tiles",
-     *                      "Tags": "s2 sentinel2",
-     *                      "Developer": "Jérôme Gasperi",
-     *                      "Contact": "jerome.gasperi@@gmail.com",
-     *                      "Query": "Toulouse",
-     *                      "Attribution": "Copyright 2019, All Rights Reserved"
-     *                  },
-     *                  "owner": "1359450309943886849",
-     *                  "visibility": 1,
-     *                  "statistics": {
-     *                      "count": 5322724,
-     *                      "facets": {
-     *                          "continent": {
-     *                              "Africa": 671538,
-     *                              "Antarctica": 106337,
-     *                              "Asia": 747847,
-     *                              "Europe": 1992756,
-     *                              "North America": 1012027,
-     *                              "Oceania": 218789,
-     *                              "Seven seas (open ocean)": 9481,
-     *                              "South America": 313983
-     *                          },
-     *                          "instrument": {
-     *                              "HRS": 2,
-     *                              "MSI": 5322722
-     *                          },
-     *                          "platform": {
-     *                              "S2A": 3346319,
-     *                              "S2B": 1976403,
-     *                              "SPOT6": 1
-     *                          },
-     *                          "processingLevel": {
-     *                              "LEVEL1C": 5322722
-     *                          },
-     *                          "productType": {
-     *                              "PX": 2,
-     *                              "REFLECTANCE": 5322722
-     *                          }
-     *                      }
-     *                  }
-     *              }
-     *          )
+     *          @OA\JsonContent(ref="#/components/schemas/OutputCollection")
      *      ),
      *      @OA\Response(
      *          response="404",

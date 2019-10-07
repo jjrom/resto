@@ -58,7 +58,7 @@
  *      @OA\Property(
  *          property="extent",
  *          type="object",
- *          @OA\JsonContent(ref="#/components/schemas/Extent")
+ *          ref="#/components/schemas/Extent"
  *      ),
  *      @OA\Property(
  *          property="links",
@@ -313,9 +313,6 @@
  *                  "REFLECTANCE"
  *              }
  *          },
- *          "resto:info": {
- * 
- *          },
  *          "stac_version": "0.8.0",
  *          "stac_extensions": {
  *              "eo"
@@ -519,7 +516,17 @@ class RestoCollection
      *          property="url",
      *          type="string",
      *          description="Homepage on which the provider describes the dataset and publishes contact information."
-     *      )
+     *      ),
+     *      example={
+     *          {
+     *              "name": "European Union/ESA/Copernicus",
+     *              "roles": {
+     *                  "producer",
+     *                  "licensor"
+     *              },
+     *              "url": "https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi"
+     *          }
+     *      }
      *  )
      */
 
@@ -735,45 +742,6 @@ class RestoCollection
 
     /**
      * Return STAC extent
-     * 
-     * @OA\Schema(
-     *      schema="Extent",
-     *      description="Spatio-temporal extents of the Collection",
-     *      required={"spatial", "temporal"},
-     *      @OA\Property(
-     *          property="spatial",
-     *          type="object",
-     *          description="The spatial extents of the Collection",
-     *          @OA\JsonContent(
-     *              required={"bbox"},
-     *              @OA\Property(
-     *                  property="bbox",
-     *                  type="array",
-     *                  description="Potential spatial extent covered by the collection. The coordinate reference system of the values is WGS 84 longitude/latitude",
-     *                  @OA\Items(
-     *                      type="float"
-     *                  )
-     *              )
-     *          )
-     *      ),
-     *      @OA\Property(
-     *          property="temporal",
-     *          type="object",
-     *          description="The temporal extents of the Collection",
-     *          @OA\JsonContent(
-     *              required={"interval"},
-     *              @OA\Property(
-     *                  property="interval",
-     *                  type="array",
-     *                  description="Potential temporal extent covered by the collection. The temporal reference system is the Gregorian calendar",
-     *                  @OA\Items(
-     *                      type="string"
-     *                  )
-     *              )
-     *          )
-     *      )
-     *  )
-     * 
      */
     public function getExtent()
     {
