@@ -39,12 +39,7 @@ class RestoRouter
     /*
      * Registered routes sorted by method
      */
-    private $routes = array(
-        'GET' => array(),
-        'POST' => array(),
-        'PUT' => array(),
-        'DELETE' => array()
-    );
+    private $routes = array();
 
     /**
      * Constructor
@@ -66,11 +61,14 @@ class RestoRouter
         if (!is_array($route) || count($route) !== 4) {
             return false;
         }
-        if (isset($this->routes[$route[0]])) {
-            $this->routes[$route[0]][] = array($route[1], $route[2], $route[3]);
-            return true;
+        if (!isset($this->routes[$route[1]])) {
+            $this->routes[$route[1]] = array();
         }
-        return false;
+        
+        $this->routes[$route[1]][$route[0]] = array($route[2], $route[3]);
+        
+        return true;
+        
     }
 
     /**
@@ -113,7 +111,7 @@ class RestoRouter
     public function process($method, $path, $query)
     {
         $segments = explode('/', $path);
-        $workingRoutes = $this->getWorkingRoutes($method, count($segments));
+        $workingRoutes = $this->getWorkingRoutes(count($segments));
         $nbOfRoutes = count($workingRoutes);
         $workIndex = 0;
         $params = array();
@@ -160,7 +158,13 @@ class RestoRouter
             $workIndex++;
         }
 
-        return isset($validRoute) ? $this->instantiateRoute($validRoute, $method, array_merge($query, $params)) : RestoLogUtil::httpError(404);
+        // No route found
+        if ( !isset($validRoute) ) {
+            RestoLogUtil::httpError(404);
+        }
+
+        return isset($validRoute[1][$method]) ? $this->instantiateRoute($validRoute[1][$method], $method, array_merge($query, $params)) : RestoLogUtil::httpError(405);
+
     }
 
     /**
@@ -176,14 +180,14 @@ class RestoRouter
         /*
          * Authentication is required
          */
-        if ($validRoute[1] && !isset($this->user->profile['id'])) {
+        if ($validRoute[0] && !isset($this->user->profile['id'])) {
             return RestoLogUtil::httpError(401);
         }
 
         /*
          * Instantiates route class and calls method
          */
-        list($className, $methodName) = explode('::', $validRoute[2]);
+        list($className, $methodName) = explode('::', $validRoute[1]);
 
         /*
          * Read input data
@@ -205,17 +209,16 @@ class RestoRouter
      *  - routes with exactly the same number of segments as input path
      *  - routes with last segment equal to '*'
      *
-     * @param string $method HTTP method
      * @param integer $length Number of segments in input path
      */
-    private function getWorkingRoutes($method, $length)
+    private function getWorkingRoutes($length)
     {
         $workingRoutes = array();
-        for ($j = 0, $jj = count($this->routes[$method]); $j < $jj; $j++) {
-            $segments = explode('/', $this->routes[$method][$j][0]);
+        foreach ($this->routes as $key => $value) {
+            $segments = explode('/', $key);
             $count = count($segments);
             if ($count === $length || ($segments[$count - 1] === '*' && $count < $length)) {
-                $workingRoutes[] = $this->routes[$method][$j];
+                $workingRoutes[] = array($key, $value);
             }
         }
 
