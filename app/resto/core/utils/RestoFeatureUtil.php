@@ -227,19 +227,35 @@ class RestoFeatureUtil
      */
     private function getDefaultLinks($collection, $rawFeatureArray) 
     {
-        return array(
+        $links = array(
             array(
                 'rel' => 'self',
                 'type' => RestoUtil::$contentTypes['geojson'],
-                'href' => RestoUtil::updateUrl($this->context->core['baseUrl'] . '/collections/' . $collection->id . '/items/' . $rawFeatureArray['id'], array($collection->model->searchFilters['language']['osKey'] => $this->context->lang))
+                'href' => $this->context->core['baseUrl'] . '/collections/' . $collection->id . '/items/' . $rawFeatureArray['id']
+            ),
+            array(
+                'rel' => 'parent',
+                'type' => RestoUtil::$contentTypes['json'],
+                'title' => $collection->id,
+                'href' => $this->context->core['baseUrl'] . '/collections/' . $collection->id
             ),
             array(
                 'rel' => 'collection',
                 'type' => RestoUtil::$contentTypes['json'],
                 'title' => $collection->id,
-                'href' => RestoUtil::updateUrl($this->context->core['baseUrl'] . '/collections/' . $collection->id, array($collection->model->searchFilters['language']['osKey'] => $this->context->lang))
+                'href' => $this->context->core['baseUrl'] . '/collections/' . $collection->id
             )
         );
+
+        if (isset($this->context->addons['STAC'])) {
+            $links[] = array(
+                'rel' => 'root',
+                'href' => $this->context->core['baseUrl'] . '/stac'
+            );
+        }
+
+        return $links;
+
     }
 
 }
