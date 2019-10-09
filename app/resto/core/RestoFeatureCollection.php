@@ -337,7 +337,7 @@ class RestoFeatureCollection
          * Force collection
          */
         if (isset($collection)) {
-            $inputFilters['resto:collection'] = $collection->name;
+            $inputFilters['resto:collection'] = $collection->id;
         }
 
         /*
@@ -371,7 +371,7 @@ class RestoFeatureCollection
         /*
          * Initial values
          */
-        $this->init($analysis, $sorting, isset($collection) ? $collection->name : null);
+        $this->init($analysis, $sorting, isset($collection) ? $collection->id : null);
 
         /*
          * Return object
@@ -433,13 +433,13 @@ class RestoFeatureCollection
      *
      * @param array $analysis
      * @param array $sorting
-     * @param string $name
+     * @param string $collectionId
      */
-    private function init(&$analysis, $sorting, $name)
+    private function init(&$analysis, $sorting, $collectionId)
     {
 
         // Default name for all collection
-        $defaultName = $name ?? '*';
+        $defaultName = $collectionId ?? '*';
 
         /*
          * Convert resto model to search service "osKey"
@@ -482,7 +482,7 @@ class RestoFeatureCollection
         /*
          * Set links
          */
-        $this->links = $this->getLinks($sorting, $name);
+        $this->links = $this->getLinks($sorting, $collectionId);
 
         /*
          * Set search:metadata
@@ -617,17 +617,17 @@ class RestoFeatureCollection
      * Get navigation links (i.e. next, previous, first, last)
      *
      * @param array $limit
-     * @param string $name
+     * @param string $collectionId
      *
      * @return array
      */
-    private function getLinks($sorting, $name)
+    private function getLinks($sorting, $collectionId)
     {
         
         /*
          * Base links are always returned
          */
-        $this->getBaseLinks($name);
+        $this->getBaseLinks($collectionId);
         
         /*
          * resto:lt has preseance over startPage
@@ -711,20 +711,20 @@ class RestoFeatureCollection
     /**
      * Return base links (i.e. links always present in response)
      * 
-     * @param string $name
+     * @param string $collectionId
      */
-    private function getBaseLinks($name)
+    private function getBaseLinks($collectionId)
     {
         $this->links[] = array(
             'rel' => 'self',
-            'type' => RestoUtil::$contentTypes['json'],
+            'type' => RestoUtil::$contentTypes['geojson'],
             'href' => RestoUtil::updateUrl($this->context->getUrl(false), $this->writeRequestParams($this->context->query))
         );
 
         $this->links[] = array(
             'rel' => 'search',
             'type' => 'application/opensearchdescription+xml',
-            'href' => $this->context->core['baseUrl'] . '/services/osdd' . (isset($name) ? '/' . $name : '')
+            'href' => $this->context->core['baseUrl'] . '/services/osdd' . (isset($collectionId) ? '/' . $collectionId : '')
         );
     }
 
@@ -747,7 +747,7 @@ class RestoFeatureCollection
 
         return array(
             'rel' => $rel,
-            'type' => RestoUtil::$contentTypes['json'],
+            'type' => RestoUtil::$contentTypes['geojson'],
             'href' => RestoUtil::updateUrl($this->context->getUrl(false), $this->writeRequestParams(array_merge($this->context->query, $params)))
         );
     }

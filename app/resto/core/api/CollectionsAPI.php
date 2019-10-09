@@ -317,15 +317,15 @@ class CollectionsAPI
      * Return collection description
      *
      *  @OA\Get(
-     *      path="/collections/{collectionName}",
+     *      path="/collections/{collectionId}",
      *      summary="Get collection",
      *      description="Returns collection description including statistics (i.e. number of products, etc.)",
      *      tags={"Collection"},
      *      @OA\Parameter(
-     *         name="collectionName",
+     *         name="collectionId",
      *         in="path",
      *         required=true,
-     *         description="Collection name",
+     *         description="Collection identifier",
      *         @OA\Schema(
      *             type="string"
      *         )
@@ -354,7 +354,7 @@ class CollectionsAPI
      */
     public function getCollection($params)
     {
-        return (new RestoCollection($params['collectionName'], $this->context, $this->user))->load();
+        return (new RestoCollection($params['collectionId'], $this->context, $this->user))->load();
     }
 
     /**
@@ -387,7 +387,7 @@ class CollectionsAPI
      *      ),
      *      @OA\Response(
      *          response="400",
-     *          description="Missing mandatory collection name or collection already exist",
+     *          description="Missing mandatory collection id or collection already exist",
      *          @OA\JsonContent(ref="#/components/schemas/BadRequestError")
      *      ),
      *      @OA\Response(
@@ -402,93 +402,7 @@ class CollectionsAPI
      *      ),
      *      @OA\RequestBody(
      *         description="Collection description",
-     *         @OA\JsonContent(
-     *              required={"name", "model", "osDescription"},
-     *              @OA\Property(
-     *                  property="name",
-     *                  type="string",
-     *                  description="Collection name must be an alphanumeric string containing [a-zA-Z0-9] and not starting with a digit. It is used as the collection identifier"
-     *              ),
-     *              @OA\Property(
-     *                  property="visibility",
-     *                  description="Visibility of this collection. Collections with visibility 1 are visible to all users."
-     *              ),
-     *              @OA\Property(
-     *                  property="model",
-     *                  type="string",
-     *                  description="[For developper] Name of the collection model class under $SRC/include/resto/Models."
-     *              ),
-     *              @OA\Property(
-     *                  property="licenseId",
-     *                  type="string",
-     *                  description="License for this collection as a SPDX License identifier. Alternatively, use proprietary if the license is not on the SPDX license list or various if multiple licenses apply. In these two cases links to the license texts SHOULD be added, see the license link relation type."
-     *              ),
-     *              @OA\Property(
-     *                  property="rights",
-     *                  type="object",
-     *                  description="Default collection rights settings",
-     *                  @OA\Property(
-     *                      property="download",
-     *                      type="enum",
-     *                      enum={0,1},
-     *                      description="Feature download rights (1 can be downloaded; 0 cannot be downloaded)"
-     *                  ),
-     *                  @OA\Property(
-     *                      property="visualize",
-     *                      type="integer",
-     *                      description="Features visualization rights (1 can be visualized; 0 cannot be visualized)"
-     *                  )
-     *              ),
-     *              @OA\Property(
-     *                  property="osDescription",
-     *                  type="object",
-     *                  required={"en"},
-     *                  @OA\Property(
-     *                      property="en",
-     *                      description="OpenSearch description in English",
-     *                      ref="#/components/schemas/OpenSearchDescription"
-     *                  ),
-     *                  @OA\Property(
-     *                      property="fr",
-     *                      description="OpenSearch description in French",
-     *                      ref="#/components/schemas/OpenSearchDescription"
-     *                  )
-     *              ),
-     *              example={
-     *                  "name": "Example",
-     *                  "model": "SatelliteModel",
-     *                  "visibility": 1,
-     *                  "licenseId": "proprietary",
-     *                  "rights":{
-     *                      "download":0,
-     *                      "visualize":1
-     *                  },
-     *                  "osDescription": {
-     *                      "en": {
-     *                          "ShortName": "resto collection",
-     *                          "LongName": "A dummy resto collection example",
-     *                          "Description": "A dummy resto collection example",
-     *                          "Tags": "resto example",
-     *                          "Developer": "John Doe",
-     *                          "Contact": "john.doe@dev.null",
-     *                          "Query": "Toulouse",
-     *                          "Attribution": "Copyright 2019, All Rights Reserved"
-     *                      },
-     *                      "fr": {
-     *                          "ShortName": "Collection resto",
-     *                          "LongName": "Un exemple de collection resto",
-     *                          "Description": "Un exemple de collection resto",
-     *                          "Developer": "John Doe",
-     *                          "Contact": "john.doe@dev.null",
-     *                          "Query": "SPOT6",
-     *                          "Attribution": "Copyright 2019"
-     *                      }
-     *                  },
-     *                  "propertiesMapping":{
-     *
-     *                  }
-     *              }
-     *          )
+     *         @OA\JsonContent(ref="/components/schemas/InputCollection")
      *      ),
      *      security={
      *          {"basicAuth":{}, "bearerAuth":{}, "queryAuth":{}}
@@ -511,22 +425,22 @@ class CollectionsAPI
 
         (new RestoCollections($this->context, $this->user))->create($body);
         
-        return RestoLogUtil::success('Collection ' . $body['name'] . ' created');
+        return RestoLogUtil::success('Collection ' . $body['id'] . ' created');
     }
 
     /**
      * Update collection
      *
      * @OA\Put(
-     *      path="/collections/{collectionName}",
+     *      path="/collections/{collectionId}",
      *      summary="Update collection",
-     *      description="Note that *collectionName* and *model* properties cannot be updated",
+     *      description="Note that *collectionId* and *model* properties cannot be updated",
      *      tags={"Collection"},
      *      @OA\Parameter(
-     *         name="collectionName",
+     *         name="collectionId",
      *         in="path",
      *         required=true,
-     *         description="Collection name",
+     *         description="Collection identifier",
      *         @OA\Schema(
      *             type="string"
      *         )
@@ -553,7 +467,7 @@ class CollectionsAPI
      *      ),
      *      @OA\Response(
      *          response="400",
-     *          description="Missing mandatory collection name",
+     *          description="Missing mandatory collection id",
      *          @OA\JsonContent(ref="#/components/schemas/BadRequestError")
      *      ),
      *      @OA\Response(
@@ -573,65 +487,7 @@ class CollectionsAPI
      *      ),
      *      @OA\RequestBody(
      *         description="Collection description",
-     *         @OA\JsonContent(
-     *              @OA\Property(
-     *                  property="visibility",
-     *                  description="Visibility of this collection. Collections with visibility 1 are visible to all users."
-     *              ),
-     *              @OA\Property(
-     *                  property="licenseId",
-     *                  type="string",
-     *                  description="License for this collectionas a SPDX License identifier or expression. Alternatively, use proprietary if the license is not on the SPDX license list or various if multiple licenses apply. In these two cases links to the license texts SHOULD be added, see the license link relation type."
-     *              ),
-     *              @OA\Property(
-     *                  property="rights",
-     *                  type="object",
-     *                  description="Default collection rights settings",
-     *                  @OA\Property(
-     *                      property="download",
-     *                      type="enum",
-     *                      enum={0,1},
-     *                      description="Feature download rights (1 can be downloaded; 0 cannot be downloaded)"
-     *                  ),
-     *                  @OA\Property(
-     *                      property="visualize",
-     *                      type="integer",
-     *                      description="Features visualization rights (1 can be visualized; 0 cannot be visualized)"
-     *                  )
-     *              ),
-     *              @OA\Property(
-     *                  property="osDescription",
-     *                  type="object",
-     *                  required={"en"},
-     *                  @OA\Property(
-     *                      property="en",
-     *                      description="OpenSearch description in English",
-     *                      ref="#/components/schemas/OpenSearchDescription"
-     *                  ),
-     *                  @OA\Property(
-     *                      property="fr",
-     *                      description="OpenSearch description in French",
-     *                      ref="#/components/schemas/OpenSearchDescription"
-     *                  )
-     *              ),
-     *              example={
-     *                  "osDescription": {
-     *                      "en": {
-     *                          "ShortName": "resto collection",
-     *                          "LongName": "An updated dummy resto collection example",
-     *                          "Description": "A dummy resto collection example",
-     *                          "Tags": "resto example",
-     *                          "Developer": "John Doe",
-     *                          "Contact": "john.doe@dev.null",
-     *                          "Query": "SPOT6",
-     *                          "Attribution": "Copyright 2019, All Rights Reserved"
-     *                      }
-     *                  },
-     *                  "propertiesMapping":{
-     *
-     *                  }
-     *              }
-     *          )
+     *         @OA\JsonContent(ref="/components/schemas/InputCollection")
      *      ),
      *      security={
      *          {"basicAuth":{}, "bearerAuth":{}, "queryAuth":{}}
@@ -643,7 +499,7 @@ class CollectionsAPI
      */
     public function updateCollection($params, $body)
     {
-        $collection = new RestoCollection($params['collectionName'], $this->context, $this->user);
+        $collection = new RestoCollection($params['collectionId'], $this->context, $this->user);
         $collection->load();
         
         /*
@@ -658,22 +514,22 @@ class CollectionsAPI
          */
         $collection->update($body)->store();
 
-        return RestoLogUtil::success('Collection ' . $collection->name . ' updated');
+        return RestoLogUtil::success('Collection ' . $collection->id . ' updated');
     }
 
     /**
      * Delete collection
      *
      * @OA\Delete(
-     *      path="/collections/{collectionName}",
+     *      path="/collections/{collectionId}",
      *      summary="Delete collection",
      *      description="For security reason, only empty collection can be deleted",
      *      tags={"Collection"},
      *      @OA\Parameter(
-     *         name="collectionName",
+     *         name="collectionId",
      *         in="path",
      *         required=true,
-     *         description="Collection name",
+     *         description="Collection identifier",
      *         @OA\Schema(
      *             type="string"
      *         )
@@ -700,7 +556,7 @@ class CollectionsAPI
      *      ),
      *      @OA\Response(
      *          response="400",
-     *          description="Missing mandatory collection name",
+     *          description="Missing mandatory collection id",
      *          @OA\JsonContent(ref="#/components/schemas/BadRequestError")
      *      ),
      *      @OA\Response(
@@ -728,7 +584,7 @@ class CollectionsAPI
      */
     public function deleteCollection($params)
     {
-        $collection = (new RestoCollection($params['collectionName'], $this->context, $this->user))->load();
+        $collection = (new RestoCollection($params['collectionId'], $this->context, $this->user))->load();
        
         /*
          * Only owner of a collection can delete it
@@ -737,23 +593,23 @@ class CollectionsAPI
             RestoLogUtil::httpError(403);
         }
 
-        (new CollectionsFunctions($this->context->dbDriver))->removeCollection($collection->name);
+        (new CollectionsFunctions($this->context->dbDriver))->removeCollection($collection->id);
 
-        return RestoLogUtil::success('Collection ' . $collection->name . ' deleted');
+        return RestoLogUtil::success('Collection ' . $collection->id . ' deleted');
     }
 
     /**
      * Add a feature to collection
      *
      *  @OA\Post(
-     *      path="/collections/{collectionName}/items",
+     *      path="/collections/{collectionId}/items",
      *      summary="Add feature to collection",
      *      tags={"Collection"},
      *      @OA\Parameter(
-     *         name="collectionName",
+     *         name="collectionId",
      *         in="path",
      *         required=true,
-     *         description="Collection name",
+     *         description="Collection identifier",
      *         @OA\Schema(
      *             type="string"
      *         )
@@ -806,7 +662,7 @@ class CollectionsAPI
      *              @OA\Property(
      *                  property="collection",
      *                  type="string",
-     *                  description="Collection name in which feature is inserted"
+     *                  description="Collection identifier in which feature is inserted"
      *              ),
      *              @OA\Property(
      *                  property="featureId",
@@ -861,7 +717,7 @@ class CollectionsAPI
         /*
          * Load collection
          */
-        $collection = new RestoCollection($params['collectionName'], $this->context, $this->user);
+        $collection = new RestoCollection($params['collectionId'], $this->context, $this->user);
         $collection->load();
         
         /*
@@ -887,7 +743,7 @@ class CollectionsAPI
         }
 
         return RestoLogUtil::success('Feature inserted', array(
-            'collection' => $collection->name,
+            'collection' => $collection->id,
             'featureId' => $result['id'],
             'productIdentifier' => $result['productIdentifier'],
             'facetsStored' => $result['facetsStored']

@@ -276,7 +276,7 @@ class FiltersFunctions
      */
     private function prepareFilterQueryModel($modelName)
     {
-        return 'resto.feature.collection IN (SELECT name FROM resto.collection WHERE lineage @> ARRAY[\'' . pg_escape_string($modelName) . '\'])';
+        return 'resto.feature.collection IN (SELECT id FROM resto.collection WHERE lineage @> ARRAY[\'' . pg_escape_string($modelName) . '\'])';
     }
 
     /**

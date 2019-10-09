@@ -600,7 +600,7 @@ abstract class RestoModel
          * Add collection to $properties to initialize facet counts on collection
          * [WARNING] if properties['collection'] is already set, it is discarded and replaced by the current collection
          */
-        $properties['collection']  = $collection->name;
+        $properties['collection']  = $collection->id;
 
         /*
          * Check geometry topology integrity
@@ -626,7 +626,7 @@ abstract class RestoModel
             $tagger = new Tag($collection->context, $collection->user);
             if (isset($collection->context->addons['Tag']['options']['iTag']['excludedCollections'])) {
                 for ($i = count($collection->context->addons['Tag']['options']['iTag']['excludedCollections']); $i--;) {
-                    if ($collection->name === $collection->context->addons['Tag']['options']['iTag']['excludedCollections'][$i]) {
+                    if ($collection->id === $collection->context->addons['Tag']['options']['iTag']['excludedCollections'][$i]) {
                         $useItag = false;
                         break;
                     }

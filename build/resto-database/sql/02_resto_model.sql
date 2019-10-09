@@ -17,9 +17,12 @@ CREATE SEQUENCE IF NOT EXISTS resto.table_id_seq;
 --
 CREATE TABLE IF NOT EXISTS resto.collection (
 
-    -- Unique name for collection.
+    -- Unique id for collection.
     -- It cannot start with a digit and cannot contains special characters
-    name                TEXT PRIMARY KEY,
+    "id"                TEXT PRIMARY KEY,
+
+    -- Collection version
+    version             TEXT,
 
     -- Model used to ingest collection metadata
     model               TEXT,
@@ -68,8 +71,8 @@ CREATE TABLE IF NOT EXISTS resto.collection (
 --
 CREATE TABLE IF NOT EXISTS resto.osdescription (
 
-    -- Reference resto.collection.name
-    collection          TEXT REFERENCES resto.collection (name) ON DELETE CASCADE, 
+    -- Reference resto.collection.id
+    collection          TEXT REFERENCES resto.collection (id) ON DELETE CASCADE, 
 
     -- OpenSearch description lang
     lang                TEXT,
@@ -111,7 +114,7 @@ CREATE TABLE IF NOT EXISTS resto.feature (
     -- [INDEXED] UUID v5 based on productidentifier
     "id"                UUID PRIMARY KEY DEFAULT public.uuid_generate_v4(),
 
-    -- [INDEXED] Reference resto.collection.name - A feature is within one and only one collection
+    -- [INDEXED] Reference resto.collection.id - A feature is within one and only one collection
     collection          TEXT NOT NULL, 
 
     -- Vendor identifier (for migration)
@@ -265,7 +268,7 @@ CREATE TABLE IF NOT EXISTS resto.feature_landcover (
     -- [INDEXED] Reference resto.feature.id
     "id"                UUID PRIMARY KEY REFERENCES resto.feature (id) ON DELETE CASCADE,
 
-    -- Collection name
+    -- Collection id
     collection          TEXT NOT NULL, 
 
     -- Percentage of cultivated area
@@ -308,7 +311,7 @@ CREATE TABLE IF NOT EXISTS resto.feature_satellite (
     -- [INDEXED] Reference resto.feature.id
     "id"                UUID PRIMARY KEY REFERENCES resto.feature (id) ON DELETE CASCADE,
 
-    -- Collection name
+    -- Collection id
     collection          TEXT NOT NULL,
 
     -- Image resolution in meters
@@ -324,7 +327,7 @@ CREATE TABLE IF NOT EXISTS resto.feature_optical (
     -- [INDEXED] Reference resto.feature.id
     "id"                UUID PRIMARY KEY REFERENCES resto.feature (id) ON DELETE CASCADE,
 
-    -- Collection name
+    -- Collection id
     collection          TEXT NOT NULL,
     
     -- Percentage of snow in area
@@ -486,7 +489,7 @@ CREATE TABLE IF NOT EXISTS resto.right (
     -- Reference to resto.group.groupid
     groupid             BIGINT,
 
-    -- Reference resto.collection.name
+    -- Reference resto.collection.id
     collection          TEXT,
 
     -- Reference resto.feature.id
@@ -552,10 +555,10 @@ CREATE TABLE IF NOT EXISTS resto.revokedtoken (
 --
 CREATE TABLE IF NOT EXISTS resto.facet (
 
-    -- Identifier for the facet (unique in combination with collection name)
+    -- Identifier for the facet (unique in combination with collection id)
     id                  TEXT NOT NULL,
 
-    -- Collection name attached to the facet
+    -- Collection id attached to the facet
     collection          TEXT NOT NULL,
     
     -- Facet value

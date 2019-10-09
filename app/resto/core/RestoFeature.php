@@ -212,7 +212,7 @@
  *                      "rel": "self",
  *                      "type": "application/json",
  *                      "title": "GeoJSON link for b9eeaf68-5127-53e5-97ff-ddf44984ef56",
- *                      "href": "https://ds.snapplanet.io/2.0/collections/S2/items/b9eeaf68-5127-53e5-97ff-ddf44984ef56?&collectionName=S2.json&lang=en"
+ *                      "href": "https://ds.snapplanet.io/2.0/collections/S2/items/b9eeaf68-5127-53e5-97ff-ddf44984ef56?&collectionId=S2.json&lang=en"
  *                  }
  *              }
  *          }
@@ -489,7 +489,7 @@ class RestoFeature
         /*
          * Empty feature or feature is not in input collection
          */
-        if (empty($this->featureArray) || (isset($this->collection) && $this->collection->name !== $this->featureArray['collection'])) {
+        if (empty($this->featureArray) || (isset($this->collection) && $this->collection->id !== $this->featureArray['collection'])) {
             $this->id = null;
             return;
         } 

@@ -1,6 +1,6 @@
 
 -- [TABLE resto.collection]
-CREATE UNIQUE INDEX IF NOT EXISTS idx_name_collection on resto.collection (normalize(name));
+CREATE UNIQUE INDEX IF NOT EXISTS idx_id_collection on resto.collection (normalize(id));
 CREATE INDEX IF NOT EXISTS idx_lineage_collection ON resto.collection USING GIN (lineage);
 CREATE INDEX IF NOT EXISTS idx_visibility_collection ON resto.collection (visibility);
 CREATE INDEX IF NOT EXISTS idx_created_collection ON resto.collection (created);

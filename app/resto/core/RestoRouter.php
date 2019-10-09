@@ -54,7 +54,7 @@ class RestoRouter
      * Add a route to routes list
      *
      * @param array $route // Mandatory format is (HTTP Verb, path, need authentication ?, Class name::Method name)
-     *                     // e.g. ('GET', '/collections/{collectionName}', false, 'RestoRouteGet::getFeatures')
+     *                     // e.g. ('GET', '/collections/{collectionId}', false, 'RestoRouteGet::getFeatures')
      */
     public function addRoute($route)
     {
@@ -95,9 +95,9 @@ class RestoRouter
      * 
      * Some path examples:
      * 
-     *      /collections/{collectionName}, myFunction::myClass
+     *      /collections/{collectionId}, myFunction::myClass
      * 
-     * Will call function myFunction($params) from class myClass with $params = array('collectionName' => // The value of collectionName in path)
+     * Will call function myFunction($params) from class myClass with $params = array('collectionId' => // The value of collectionId in path)
      * 
      *      /anyroute/isvalidafter/*, myFunction::myClass
      * 

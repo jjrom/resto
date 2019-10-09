@@ -36,21 +36,21 @@ class CollectionsFunctions
     /**
      * Get description for collection
      *
-     * @param string $name
+     * @param string $id
      * @return array
      * @throws Exception
      */
-    public function getCollectionDescription($name)
+    public function getCollectionDescription($id)
     {
         
         // Get Opensearch description
-        $osDescriptions = $this->getOSDescriptions($name);
+        $osDescriptions = $this->getOSDescriptions($id);
         $collection = null;
-        $results = $this->dbDriver->pQuery('SELECT name, visibility, owner, model, mapping, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links FROM resto.collection WHERE normalize(name)=normalize($1)', array($name));
+        $results = $this->dbDriver->pQuery('SELECT id, version, visibility, owner, model, mapping, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links FROM resto.collection WHERE normalize(id)=normalize($1)', array($id));
         while ($rowDescription = pg_fetch_assoc($results)) {
             $collection = array_merge(
                 FormatUtil::collectionDescription($rowDescription),
-                array('osDescription' => $osDescriptions[$name])
+                array('osDescription' => $osDescriptions[$id])
             );
         }
         return $collection;
@@ -71,11 +71,11 @@ class CollectionsFunctions
         // Get all Opensearch descriptions
         $osDescriptions = $this->getOSDescriptions();
         $where = isset($visibilities) && count($visibilities) > 0 ? ' WHERE visibility IN (' . join(',', $visibilities) . ')' : '';
-        $results = $this->dbDriver->query('SELECT name, visibility, owner, model, mapping, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links FROM resto.collection ' . $where . ' ORDER BY name');
+        $results = $this->dbDriver->query('SELECT id, version, visibility, owner, model, mapping, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links FROM resto.collection ' . $where . ' ORDER BY id');
         while ($rowDescription = pg_fetch_assoc($results)) {
-            $collections[$rowDescription['name']] = array_merge(
+            $collections[$rowDescription['id']] = array_merge(
                 FormatUtil::collectionDescription($rowDescription),
-                array('osDescription' => $osDescriptions[$rowDescription['name']])
+                array('osDescription' => $osDescriptions[$rowDescription['id']])
             );
         }
 
@@ -83,33 +83,33 @@ class CollectionsFunctions
     }
 
     /**
-     * Check if collection $name exists within resto database
+     * Check if collection $id exists within resto database
      *
-     * @param string $name - collection name
+     * @param string $id - collection id
      * @return boolean
      * @throws Exception
      */
-    public function collectionExists($name)
+    public function collectionExists($id)
     {
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT name FROM resto.collection WHERE name=$1', array($name)));
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id FROM resto.collection WHERE id=$1', array($id)));
         return !empty($results);
     }
 
     /**
      * Remove collection from RESTo database
      *
-     * @param string $collectionName
+     * @param string $collectionId
      * @return array
      * @throws Exception
      */
-    public function removeCollection($collectionName)
+    public function removeCollection($collectionId)
     {
 
         /*
          * Never remove a non empty collection
          */
-        if (!$this->collectionIsEmpty($collectionName)) {
-            RestoLogUtil::httpError(403, 'Collection ' . $collectionName . ' cannot be deleted - it is not empty !');
+        if (!$this->collectionIsEmpty($collectionId)) {
+            RestoLogUtil::httpError(403, 'Collection ' . $collectionId . ' cannot be deleted - it is not empty !');
         }
 
         /*
@@ -119,12 +119,12 @@ class CollectionsFunctions
 
             $this->dbDriver->query('BEGIN');
 
-            $this->dbDriver->pQuery('DELETE FROM resto.collection WHERE name=$1', array(
-                $collectionName
+            $this->dbDriver->pQuery('DELETE FROM resto.collection WHERE id=$1', array(
+                $collectionId
             ));
 
             $this->dbDriver->pQuery('DELETE FROM resto.right WHERE collection=$1', array(
-                $collectionName
+                $collectionId
             ));
             
             $this->dbDriver->query('COMMIT');
@@ -132,9 +132,9 @@ class CollectionsFunctions
             /*
              * Rollback on error
              */
-            if ($this->collectionExists($collectionName)) {
+            if ($this->collectionExists($collectionId)) {
                 $this->dbDriver->query('ROLLBACK');
-                throw new Exception(500, 'Cannot delete collection ' . $collectionName);
+                throw new Exception(500, 'Cannot delete collection ' . $collectionId);
             }
 
             /*
@@ -179,7 +179,7 @@ class CollectionsFunctions
                 'right' => $rights,
                 'id' => null,
                 'groupid' => Resto::GROUP_DEFAULT_ID,
-                'collectionName' => $collection->name,
+                'collectionId' => $collection->id,
                 'featureId' => null
                 )
             );
@@ -192,7 +192,7 @@ class CollectionsFunctions
             /*
              * Rollback on errors
              */
-            if (! $this->collectionExists($collection->name)) {
+            if (! $this->collectionExists($collection->id)) {
                 $this->dbDriver->query('ROLLBACK');
                 throw new Exception(500, 'Missing collection');
             }
@@ -247,7 +247,7 @@ class CollectionsFunctions
 
         if ( ! empty($toUpdate) )
         {
-            $this->dbDriver->query('UPDATE resto.collection SET ' . join(',', $toUpdate) . ' WHERE name=\'' . pg_escape_string($collection->name) . '\'');
+            $this->dbDriver->query('UPDATE resto.collection SET ' . join(',', $toUpdate) . ' WHERE id=\'' . pg_escape_string($collection->id) . '\'');
         }
         
     }   
@@ -255,16 +255,16 @@ class CollectionsFunctions
     /**
      * Get OpenSearch description array for input collection
      *
-     * @param string $collectionName
+     * @param string $collectionId
      * @return array
      * @throws Exception
      */
-    private function getOSDescriptions($collectionName = null)
+    private function getOSDescriptions($collectionId = null)
     {
         $osDescriptions = array();
 
-        if (isset($collectionName)) {
-            $results = $this->dbDriver->pQuery('SELECT * FROM resto.osdescription WHERE collection=$1', array($collectionName));
+        if (isset($collectionId)) {
+            $results = $this->dbDriver->pQuery('SELECT * FROM resto.osdescription WHERE collection=$1', array($collectionId));
         }
         else {
             $results = $this->dbDriver->query('SELECT * FROM resto.osdescription');
@@ -297,13 +297,13 @@ class CollectionsFunctions
      */
     private function storeCollectionDescription($collection)
     {
-
+        
         /*
          * Create collection
          */
-        if (! $this->collectionExists($collection->name)) {
+        if (! $this->collectionExists($collection->id)) {
             $toBeSet = array(
-                'name' => $collection->name,
+                'id' => $collection->id,
                 'created' => 'now()',
                 'model' => $collection->model->getName(),
                 'lineage' => '{' . join(',', $collection->model->getLineage()) . '}',
@@ -314,21 +314,23 @@ class CollectionsFunctions
                 'providers' => json_encode($collection->providers, JSON_UNESCAPED_SLASHES),
                 'properties' => json_encode($collection->properties, JSON_UNESCAPED_SLASHES),
                 'links' => json_encode($collection->links, JSON_UNESCAPED_SLASHES),
+                'version' => $collection->version
             );
-            $this->dbDriver->pQuery('INSERT INTO resto.collection (' . join(',', array_keys($toBeSet)) . ') VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', array_values($toBeSet));
+            $this->dbDriver->pQuery('INSERT INTO resto.collection (' . join(',', array_keys($toBeSet)) . ') VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)', array_values($toBeSet));
         }
         /*
-         * Otherwise update collection fields (visibility, mapping, licenseid, providers and properties)
+         * Otherwise update collection fields (version, visibility, mapping, licenseid, providers and properties)
          */
         else {
-            $this->dbDriver->pQuery('UPDATE resto.collection SET visibility=$2, mapping=$3, licenseid=$4, providers=$5, properties=$6, links=$7 WHERE name=$1', array(
-                $collection->name,
+            $this->dbDriver->pQuery('UPDATE resto.collection SET visibility=$2, mapping=$3, licenseid=$4, providers=$5, properties=$6, links=$7, version=$8 WHERE id=$1', array(
+                $collection->id,
                 $collection->visibility,
                 json_encode($collection->propertiesMapping, JSON_UNESCAPED_SLASHES),
                 $collection->licenseId,
                 json_encode($collection->providers, JSON_UNESCAPED_SLASHES),
                 json_encode($collection->properties, JSON_UNESCAPED_SLASHES),
-                json_encode($collection->links, JSON_UNESCAPED_SLASHES)
+                json_encode($collection->links, JSON_UNESCAPED_SLASHES),
+                $collection->version
             ));
         }
 
@@ -350,7 +352,7 @@ class CollectionsFunctions
          * );
          */
         $this->dbDriver->pQuery('DELETE FROM resto.osdescription WHERE collection=$1', array(
-            $collection->name
+            $collection->id
         ));
 
         foreach ($collection->osDescription as $lang => $description) {
@@ -359,7 +361,7 @@ class CollectionsFunctions
                 'lang'
             );
             $osValues = array(
-                '\'' . pg_escape_string($collection->name) . '\'',
+                '\'' . pg_escape_string($collection->id) . '\'',
                 '\'' . pg_escape_string($lang) . '\''
             );
 
@@ -403,12 +405,12 @@ class CollectionsFunctions
     /**
      * Return true if collection is empty, false otherwise
      *
-     * @param string $collectionName
+     * @param string $collectionId
      * @return boolean
      */
-    private function collectionIsEmpty($collectionName)
+    private function collectionIsEmpty($collectionId)
     {
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT count(id) as count FROM resto.feature WHERE collection=$1 LIMIT 1', array($collectionName)));
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT count(id) as count FROM resto.feature WHERE collection=$1 LIMIT 1', array($collectionId)));
         if ($results[0]['count'] === '0') {
             return true;
         }

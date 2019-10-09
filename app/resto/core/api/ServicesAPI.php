@@ -201,14 +201,14 @@ class ServicesAPI
      * Return OpenSearchDescription document
      *
      *    @OA\Get(
-     *      path="/services/osdd/{collectionName}",
+     *      path="/services/osdd/{collectionId}",
      *      summary="Get OpenSearch Description Document for a collection",
-     *      description="Returns the OpenSearch Document Description (OSDD) for the search service of collection {collectionName}",
+     *      description="Returns the OpenSearch Document Description (OSDD) for the search service of collection {collectionId}",
      *      tags={"Collection"},
      *      @OA\Parameter(
-     *          name="collectionName",
+     *          name="collectionId",
      *          in="query",
-     *          description="Collection name",
+     *          description="Collection identifier",
      *          required=true,
      *          @OA\Items(
      *              type="string"
@@ -229,7 +229,7 @@ class ServicesAPI
     public function getOSDDForCollection($params)
     {
         $this->context->outputFormat = 'xml';
-        return (new RestoCollection($params['collectionName'], $this->context, $this->user))->load()->getOSDD();
+        return (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()->getOSDD();
     }
 
     /**

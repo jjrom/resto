@@ -153,7 +153,7 @@ class RestoFeatureUtil
             'bbox' => null,
             'geometry' => null,
             'properties' => array(),
-            'collection' => $collection->name,
+            'collection' => $collection->id,
             'links' => array(),
             'assets' => array()
         );
@@ -243,7 +243,7 @@ class RestoFeatureUtil
         
         if (isset($keywords)) {
             foreach (array_keys($keywords) as $key) {
-                $keywords[$key]['href'] = RestoUtil::updateUrl($this->context->core['baseUrl'] . '/collections/' . $collection->name . '/items', array(
+                $keywords[$key]['href'] = RestoUtil::updateUrl($this->context->core['baseUrl'] . '/collections/' . $collection->id . '/items', array(
                     $collection->model->searchFilters['language']['osKey'] => $this->context->lang,
                     $collection->model->searchFilters['searchTerms']['osKey'] => '#' . $keywords[$key]['id']
                 ));
@@ -265,14 +265,14 @@ class RestoFeatureUtil
         return array(
             array(
                 'rel' => 'self',
-                'type' => RestoUtil::$contentTypes['json'],
-                'href' => RestoUtil::updateUrl($this->context->core['baseUrl'] . '/collections/' . $collection->name . '/items/' . $rawFeatureArray['id'], array($collection->model->searchFilters['language']['osKey'] => $this->context->lang))
+                'type' => RestoUtil::$contentTypes['geojson'],
+                'href' => RestoUtil::updateUrl($this->context->core['baseUrl'] . '/collections/' . $collection->id . '/items/' . $rawFeatureArray['id'], array($collection->model->searchFilters['language']['osKey'] => $this->context->lang))
             ),
             array(
                 'rel' => 'collection',
                 'type' => RestoUtil::$contentTypes['json'],
-                'name' => $collection->name,
-                'href' => RestoUtil::updateUrl($this->context->core['baseUrl'] . '/collections/' . $collection->name, array($collection->model->searchFilters['language']['osKey'] => $this->context->lang))
+                'title' => $collection->id,
+                'href' => RestoUtil::updateUrl($this->context->core['baseUrl'] . '/collections/' . $collection->id, array($collection->model->searchFilters['language']['osKey'] => $this->context->lang))
             )
         );
     }

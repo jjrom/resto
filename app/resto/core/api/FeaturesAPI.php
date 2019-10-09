@@ -36,15 +36,15 @@ class FeaturesAPI
      * Return feature
      *
      * @OA\Get(
-     *      path="/collections/{collectionName}/items/{featureId}.{format}",
+     *      path="/collections/{collectionId}/items/{featureId}.{format}",
      *      summary="Get feature",
      *      description="Returns feature {featureId} metadata",
      *      tags={"Feature"},
      *      @OA\Parameter(
-     *         name="collectionName",
+     *         name="collectionId",
      *         in="path",
      *         required=true,
-     *         description="Collection name",
+     *         description="Collection identifier",
      *         @OA\Schema(
      *             type="string"
      *         )
@@ -103,7 +103,7 @@ class FeaturesAPI
         $feature = new RestoFeature($this->context, $this->user, array(
             'featureId' => $params['featureId'],
             'fields' => $this->context->query['fields'] ?? "_default",
-            'collection' => (new RestoCollection($params['collectionName'], $this->context, $this->user))->load()
+            'collection' => (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()
         ));
 
         if (!$feature->isValid()) {
@@ -117,15 +117,15 @@ class FeaturesAPI
      * Search for features in a given collections
      *
      *  @OA\Get(
-     *      path="/collections/{collectionName}/items.{format}",
+     *      path="/collections/{collectionId}/items.{format}",
      *      summary="Get features (search on a specific collection)",
-     *      description="List of filters to search features within collection {collectionName}",
+     *      description="List of filters to search features within collection {collectionId}",
      *      tags={"Feature"},
      *      @OA\Parameter(
-     *         name="collectionName",
+     *         name="collectionId",
      *         in="path",
      *         required=true,
-     *         description="Collection name",
+     *         description="Collection identifier",
      *         @OA\Schema(
      *             type="string"
      *         )
@@ -534,22 +534,22 @@ class FeaturesAPI
             return RestoLogUtil::httpError(400, 'Only one of either intersects or bbox should be specified');
         }
 
-        return (new RestoCollection($params['collectionName'], $this->context, $this->user))->load()->search();
+        return (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()->search();
     }
 
     /**
      * Update feature
      *
      *  @OA\Put(
-     *      path="/collections/{collectionName}/items/{featureId}",
+     *      path="/collections/{collectionId}/items/{featureId}",
      *      summary="Update feature property",
      *      description="Update feature {featureId}",
      *      tags={"Feature"},
      *      @OA\Parameter(
-     *         name="collectionName",
+     *         name="collectionId",
      *         in="path",
      *         required=true,
-     *         description="Collection name",
+     *         description="Collection identifier",
      *         @OA\Schema(
      *             type="string"
      *         )
@@ -619,7 +619,7 @@ class FeaturesAPI
     {
 
         // Load collection
-        $collection = (new RestoCollection($params['collectionName'], $this->context, $this->user))->load();
+        $collection = (new RestoCollection($params['collectionId'], $this->context, $this->user))->load();
         
         $feature = new RestoFeature($this->context, $this->user, array(
             'featureId' => $params['featureId'],
@@ -648,15 +648,15 @@ class FeaturesAPI
      * Update feature property
      *
      *  @OA\Put(
-     *      path="/collections/{collectionName}/items/{featureId}/{property}",
+     *      path="/collections/{collectionId}/items/{featureId}/{property}",
      *      summary="Update feature property",
      *      description="Update {property} for feature {featureId}",
      *      tags={"Feature"},
      *      @OA\Parameter(
-     *         name="collectionName",
+     *         name="collectionId",
      *         in="path",
      *         required=true,
-     *         description="Collection name",
+     *         description="Collection identifier",
      *         @OA\Schema(
      *             type="string"
      *         )
@@ -744,7 +744,7 @@ class FeaturesAPI
 
         $feature = new RestoFeature($this->context, $this->user, array(
             'featureId' => $params['featureId'],
-            'collection' => (new RestoCollection($params['collectionName'], $this->context, $this->user))->load()
+            'collection' => (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()
         ));
 
         if (!$feature->isValid()) {
@@ -785,14 +785,14 @@ class FeaturesAPI
      *
      * @OA\Delete(
      *      tags={"Feature"},
-     *      path="/collections/{collectionName}/items/{featureId}",
+     *      path="/collections/{collectionId}/items/{featureId}",
      *      summary="Delete feature",
      *      description="Delete feature {featureId}",
      *      @OA\Parameter(
-     *         name="collectionName",
+     *         name="collectionId",
      *         in="path",
      *         required=true,
-     *         description="Collection name",
+     *         description="Collection identifier",
      *         @OA\Schema(
      *             type="string"
      *         )
@@ -857,7 +857,7 @@ class FeaturesAPI
 
         $feature = new RestoFeature($this->context, $this->user, array(
             'featureId' => $params['featureId'],
-            'collection' => (new RestoCollection($params['collectionName'], $this->context, $this->user))->load()
+            'collection' => (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()
         ));
 
         if (!$feature->isValid()) {

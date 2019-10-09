@@ -126,17 +126,17 @@ class FacetsFunctions
      * Remove facet for collection i.e. decrease by one counter
      *
      * @param string $facetId
-     * @param string $collectionName
+     * @param string $collectionId
      */
-    public function removeFacet($facetId, $collectionName)
+    public function removeFacet($facetId, $collectionId)
     {
-        $this->dbDriver->pQuery('UPDATE resto.facet SET counter = GREATEST(counter - 1) WHERE normalize(id)=normalize($1) AND normalize(collection)=normalize($2)', array($facetId, $collectionName), 500, 'Cannot delete facet for ' . $collectionName);
+        $this->dbDriver->pQuery('UPDATE resto.facet SET counter = GREATEST(counter - 1) WHERE normalize(id)=normalize($1) AND normalize(collection)=normalize($2)', array($facetId, $collectionId), 500, 'Cannot delete facet for ' . $collectionId);
     }
 
     /**
      * Return facets elements from a type for a given collection
      *
-     * Returned array structure if collectionName is set
+     * Returned array structure if collectionId is set
      *
      *      array(
      *          'type#' => array(
@@ -154,16 +154,16 @@ class FacetsFunctions
      *          ...
      *      )
      *
-     * Or an array of array indexed by collection name if $collectionName is null
+     * Or an array of array indexed by collection id if $collectionId is null
      *
-     * @param string $collectionName
+     * @param string $collectionId
      * @param array $facetFields
      *
      * @return array
      */
-    public function getStatistics($collectionName, $facetFields)
+    public function getStatistics($collectionId, $facetFields)
     {
-        return $this->getCounts($this->getFacetsPivots($collectionName, $facetFields, null), $collectionName);
+        return $this->getCounts($this->getFacetsPivots($collectionId, $facetFields, null), $collectionId);
     }
 
     /**
@@ -171,10 +171,10 @@ class FacetsFunctions
      *
      * @param array $keywords
      * @param array $facetCategories
-     * @param string $collectionName
+     * @param string $collectionId
      * @param array $options
      */
-    public function getFacetsFromKeywords($keywords, $facetCategories, $collectionName, $options = array())
+    public function getFacetsFromKeywords($keywords, $facetCategories, $collectionId, $options = array())
     {
        
         /*
@@ -200,7 +200,7 @@ class FacetsFunctions
                     'parentId' => $keywords[$i]['parentId'] ?? null,
                     'value' => $keywords[$i]['name'] ?? null,
                     'type' => $keywords[$i]['type'],
-                    'collection' => $collectionName,
+                    'collection' => $collectionId,
                     'isLeaf' => $facetCategory['isLeaf']
                 );
             }
@@ -225,12 +225,12 @@ class FacetsFunctions
      * Remove feature facets from database
      *
      * @param array $hashtags
-     * @param string $collectionName
+     * @param string $collectionId
      */
-    public function removeFacetsFromHashtags($hashtags, $collectionName)
+    public function removeFacetsFromHashtags($hashtags, $collectionId)
     {
         for ($i = count($hashtags); $i--;) {
-            $this->removeFacet($hashtags[$i], strpos($hashtags[$i], Resto::TAG_SEPARATOR) !== false ? $collectionName : '*');
+            $this->removeFacet($hashtags[$i], strpos($hashtags[$i], Resto::TAG_SEPARATOR) !== false ? $collectionId : '*');
         }
     }
 
@@ -270,12 +270,12 @@ class FacetsFunctions
     /**
      * Return facet pivots (SOLR4 like)
      *
-     * @param string $collectionName
+     * @param string $collectionId
      * @param array $fields
      * @param string $parentId : parent hash
      * @return array
      */
-    private function getFacetsPivots($collectionName, $fields, $parentId)
+    private function getFacetsPivots($collectionId, $fields, $parentId)
     {
         
         $pivots = array();
@@ -284,8 +284,8 @@ class FacetsFunctions
          * Facets for one collection
          */
         $query = 'SELECT id,collection,value,type,pid,counter,to_iso8601(created) as created,creator FROM resto.facet WHERE counter > 0 AND ';
-        if (isset($collectionName)) {
-            $results = $this->dbDriver->query($query . 'normalize(collection)=normalize(\'' . pg_escape_string($collectionName) . '\') AND type IN(\'' . join('\',\'', $fields) . '\')' . (isset($parentId) ? ' AND normalize(pid)=normalize(\'' . pg_escape_string($parentId) . '\')' : '') . ' ORDER BY type ASC, value DESC');
+        if (isset($collectionId)) {
+            $results = $this->dbDriver->query($query . 'normalize(collection)=normalize(\'' . pg_escape_string($collectionId) . '\') AND type IN(\'' . join('\',\'', $fields) . '\')' . (isset($parentId) ? ' AND normalize(pid)=normalize(\'' . pg_escape_string($parentId) . '\')' : '') . ' ORDER BY type ASC, value DESC');
         }
         /*
          * Facets for all collections
@@ -299,7 +299,7 @@ class FacetsFunctions
                 $pivots[$result['type']] = array();
             }
             $create = true;
-            if (!isset($collectionName)) {
+            if (!isset($collectionId)) {
                 for ($i = count($pivots[$result['type']]); $i--;) {
                     if ($pivots[$result['type']][$i]['value'] === $result['value']) {
                         $pivots[$result['type']][$i]['count'] += (integer) $result['counter'];
@@ -320,10 +320,10 @@ class FacetsFunctions
      * Return counts for all pivots elements
      *
      * @param array $pivots
-     * @param string $collectionName
+     * @param string $collectionId
      * @return array
      */
-    private function getCounts($pivots, $collectionName)
+    private function getCounts($pivots, $collectionId)
     {
         $facets = array();
         foreach ($pivots as $pivotName => $pivotValue) {
@@ -347,7 +347,7 @@ class FacetsFunctions
                 $count += $collectionCount;
             }
 
-            if (isset($collectionName)) {
+            if (isset($collectionId)) {
                 unset($facets['collection']);
             }
         }

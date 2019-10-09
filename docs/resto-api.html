@@ -1779,12 +1779,12 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X GET http://127.0.0.1:5252/services/osdd/{collectionName}?collectionName=string
+curl -X GET http://127.0.0.1:5252/services/osdd/{collectionId}?collectionId=string
 
 </code></pre>
-<p><code>GET /services/osdd/{collectionName}</code></p>
+<p><code>GET /services/osdd/{collectionId}</code></p>
 <p><em>Get OpenSearch Description Document for a collection</em></p>
-<p>Returns the OpenSearch Document Description (OSDD) for the search service of collection {collectionName}</p>
+<p>Returns the OpenSearch Document Description (OSDD) for the search service of collection {collectionId}</p>
 <h3 id="servicesapi--getosddforcollection-parameters">Parameters</h3>
 <table>
 <thead>
@@ -1798,11 +1798,11 @@ curl -X GET http://127.0.0.1:5252/services/osdd/{collectionName}?collectionName=
 </thead>
 <tbody>
 <tr>
-<td>collectionName</td>
+<td>collectionId</td>
 <td>query</td>
 <td>string</td>
 <td>true</td>
-<td>Collection name</td>
+<td>Collection identifier</td>
 </tr>
 </tbody>
 </table>
@@ -1840,13 +1840,13 @@ This operation does not require authentication
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X POST http://127.0.0.1:5252/collections/{collectionName}/items \
+curl -X POST http://127.0.0.1:5252/collections/{collectionId}/items \
   -H <span class="hljs-string">'Content-Type: application/json'</span> \
   -H <span class="hljs-string">'Accept: application/json'</span> \
   -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
 
 </code></pre>
-<p><code>POST /collections/{collectionName}/items</code></p>
+<p><code>POST /collections/{collectionId}/items</code></p>
 <p><em>Add feature to collection</em></p>
 <blockquote>
 <p>Body parameter</p>
@@ -1899,11 +1899,11 @@ curl -X POST http://127.0.0.1:5252/collections/{collectionName}/items \
 </thead>
 <tbody>
 <tr>
-<td>collectionName</td>
+<td>collectionId</td>
 <td>path</td>
 <td>string</td>
 <td>true</td>
-<td>Collection name</td>
+<td>Collection identifier</td>
 </tr>
 <tr>
 <td>tolerance</td>
@@ -2044,7 +2044,7 @@ curl -X POST http://127.0.0.1:5252/collections/{collectionName}/items \
 <td>string</td>
 <td>false</td>
 <td>none</td>
-<td>Collection name in which feature is inserted</td>
+<td>Collection identifier in which feature is inserted</td>
 </tr>
 </tbody>
 </table>
@@ -2058,15 +2058,15 @@ bearerAuth & basicAuth & queryAuth
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X PUT http://127.0.0.1:5252/collections/{collectionName} \
+curl -X PUT http://127.0.0.1:5252/collections/{collectionId} \
   -H <span class="hljs-string">'Content-Type: application/json'</span> \
   -H <span class="hljs-string">'Accept: application/json'</span> \
   -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
 
 </code></pre>
-<p><code>PUT /collections/{collectionName}</code></p>
+<p><code>PUT /collections/{collectionId}</code></p>
 <p><em>Update collection</em></p>
-<p>Note that <em>collectionName</em> and <em>model</em> properties cannot be updated</p>
+<p>Note that <em>collectionId</em> and <em>model</em> properties cannot be updated</p>
 <blockquote>
 <p>Body parameter</p>
 </blockquote>
@@ -2114,11 +2114,11 @@ curl -X PUT http://127.0.0.1:5252/collections/{collectionName} \
 </thead>
 <tbody>
 <tr>
-<td>collectionName</td>
+<td>collectionId</td>
 <td>path</td>
 <td>string</td>
 <td>true</td>
-<td>Collection name</td>
+<td>Collection identifier</td>
 </tr>
 <tr>
 <td>body</td>
@@ -2299,7 +2299,7 @@ curl -X PUT http://127.0.0.1:5252/collections/{collectionName} \
 <tr>
 <td>400</td>
 <td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.1">Bad Request</a></td>
-<td>Missing mandatory collection name</td>
+<td>Missing mandatory collection id</td>
 <td><a href="#schemabadrequesterror">BadRequestError</a></td>
 </tr>
 <tr>
@@ -2361,11 +2361,11 @@ bearerAuth & basicAuth & queryAuth
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X GET http://127.0.0.1:5252/collections/{collectionName} \
+curl -X GET http://127.0.0.1:5252/collections/{collectionId} \
   -H <span class="hljs-string">'Accept: application/json'</span>
 
 </code></pre>
-<p><code>GET /collections/{collectionName}</code></p>
+<p><code>GET /collections/{collectionId}</code></p>
 <p><em>Get collection</em></p>
 <p>Returns collection description including statistics (i.e. number of products, etc.)</p>
 <h3 id="collectionsapi--getcollection-parameters">Parameters</h3>
@@ -2381,11 +2381,11 @@ curl -X GET http://127.0.0.1:5252/collections/{collectionName} \
 </thead>
 <tbody>
 <tr>
-<td>collectionName</td>
+<td>collectionId</td>
 <td>path</td>
 <td>string</td>
 <td>true</td>
-<td>Collection name</td>
+<td>Collection identifier</td>
 </tr>
 <tr>
 <td>_stats</td>
@@ -2493,12 +2493,12 @@ This operation does not require authentication
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X DELETE http://127.0.0.1:5252/collections/{collectionName} \
+curl -X DELETE http://127.0.0.1:5252/collections/{collectionId} \
   -H <span class="hljs-string">'Accept: application/json'</span> \
   -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
 
 </code></pre>
-<p><code>DELETE /collections/{collectionName}</code></p>
+<p><code>DELETE /collections/{collectionId}</code></p>
 <p><em>Delete collection</em></p>
 <p>For security reason, only empty collection can be deleted</p>
 <h3 id="collectionsapi--deletecollection-parameters">Parameters</h3>
@@ -2514,11 +2514,11 @@ curl -X DELETE http://127.0.0.1:5252/collections/{collectionName} \
 </thead>
 <tbody>
 <tr>
-<td>collectionName</td>
+<td>collectionId</td>
 <td>path</td>
 <td>string</td>
 <td>true</td>
-<td>Collection name</td>
+<td>Collection identifier</td>
 </tr>
 </tbody>
 </table>
@@ -2561,7 +2561,7 @@ curl -X DELETE http://127.0.0.1:5252/collections/{collectionName} \
 <tr>
 <td>400</td>
 <td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.1">Bad Request</a></td>
-<td>Missing mandatory collection name</td>
+<td>Missing mandatory collection id</td>
 <td><a href="#schemabadrequesterror">BadRequestError</a></td>
 </tr>
 <tr>
@@ -2752,7 +2752,7 @@ curl -X POST http://127.0.0.1:5252/collections \
 <td>body</td>
 <td>string</td>
 <td>true</td>
-<td>Collection name must be an alphanumeric string containing [a-zA-Z0-9] and not starting with a digit. It is used as the collection identifier</td>
+<td>Collection identifier must be an alphanumeric string containing [a-zA-Z0-9] and not starting with a digit. It is used as the collection identifier</td>
 </tr>
 <tr>
 <td>» rights</td>
@@ -2933,7 +2933,7 @@ curl -X POST http://127.0.0.1:5252/collections \
 <tr>
 <td>400</td>
 <td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.1">Bad Request</a></td>
-<td>Missing mandatory collection name or collection already exist</td>
+<td>Missing mandatory collection id or collection already exist</td>
 <td><a href="#schemabadrequesterror">BadRequestError</a></td>
 </tr>
 <tr>
@@ -3294,7 +3294,7 @@ curl -X GET http://127.0.0.1:5252/collections \
 <td>string</td>
 <td>true</td>
 <td>none</td>
-<td>Unique collection name. It is used as the collection identifier</td>
+<td>Unique collection id. It is used as the collection identifier</td>
 </tr>
 </tbody>
 </table>
@@ -3340,13 +3340,13 @@ This operation does not require authentication
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X PUT http://127.0.0.1:5252/collections/{collectionName}/items/{featureId}/{property} \
+curl -X PUT http://127.0.0.1:5252/collections/{collectionId}/items/{featureId}/{property} \
   -H <span class="hljs-string">'Content-Type: application/json'</span> \
   -H <span class="hljs-string">'Accept: application/json'</span> \
   -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
 
 </code></pre>
-<p><code>PUT /collections/{collectionName}/items/{featureId}/{property}</code></p>
+<p><code>PUT /collections/{collectionId}/items/{featureId}/{property}</code></p>
 <p><em>Update feature property</em></p>
 <p>Update {property} for feature {featureId}</p>
 <blockquote>
@@ -3369,11 +3369,11 @@ curl -X PUT http://127.0.0.1:5252/collections/{collectionName}/items/{featureId}
 </thead>
 <tbody>
 <tr>
-<td>collectionName</td>
+<td>collectionId</td>
 <td>path</td>
 <td>string</td>
 <td>true</td>
-<td>Collection name</td>
+<td>Collection identifier</td>
 </tr>
 <tr>
 <td>featureId</td>
@@ -3506,12 +3506,12 @@ bearerAuth & basicAuth & queryAuth
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X GET http://127.0.0.1:5252/collections/{collectionName}/items/{featureId}.{format} \
+curl -X GET http://127.0.0.1:5252/collections/{collectionId}/items/{featureId}.{format} \
   -H <span class="hljs-string">'Accept: application/json'</span> \
   -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
 
 </code></pre>
-<p><code>GET /collections/{collectionName}/items/{featureId}.{format}</code></p>
+<p><code>GET /collections/{collectionId}/items/{featureId}.{format}</code></p>
 <p><em>Get feature</em></p>
 <p>Returns feature {featureId} metadata</p>
 <h3 id="featuresapi--getfeature-parameters">Parameters</h3>
@@ -3527,11 +3527,11 @@ curl -X GET http://127.0.0.1:5252/collections/{collectionName}/items/{featureId}
 </thead>
 <tbody>
 <tr>
-<td>collectionName</td>
+<td>collectionId</td>
 <td>path</td>
 <td>string</td>
 <td>true</td>
-<td>Collection name</td>
+<td>Collection identifier</td>
 </tr>
 <tr>
 <td>featureId</td>
@@ -3622,7 +3622,7 @@ curl -X GET http://127.0.0.1:5252/collections/{collectionName}/items/{featureId}
     <span class="hljs-attr">"updated"</span>: <span class="hljs-string">"2018-09-13T12:52:25.971969Z"</span>,
     <span class="hljs-attr">"links"</span>: [
       {
-        <span class="hljs-attr">"href"</span>: <span class="hljs-string">"https://ds.snapplanet.io/2.0/collections/S2/items/b9eeaf68-5127-53e5-97ff-ddf44984ef56?&amp;collectionName=S2.json&amp;lang=en"</span>,
+        <span class="hljs-attr">"href"</span>: <span class="hljs-string">"https://ds.snapplanet.io/2.0/collections/S2/items/b9eeaf68-5127-53e5-97ff-ddf44984ef56?&amp;collectionId=S2.json&amp;lang=en"</span>,
         <span class="hljs-attr">"type"</span>: <span class="hljs-string">"application/json"</span>,
         <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"self"</span>,
         <span class="hljs-attr">"title"</span>: <span class="hljs-string">"GeoJSON link for b9eeaf68-5127-53e5-97ff-ddf44984ef56"</span>
@@ -3686,13 +3686,13 @@ bearerAuth & basicAuth & queryAuth
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X GET http://127.0.0.1:5252/collections/{collectionName}/items.{format} \
+curl -X GET http://127.0.0.1:5252/collections/{collectionId}/items.{format} \
   -H <span class="hljs-string">'Accept: application/json'</span>
 
 </code></pre>
-<p><code>GET /collections/{collectionName}/items.{format}</code></p>
+<p><code>GET /collections/{collectionId}/items.{format}</code></p>
 <p><em>Get features (search on a specific collection)</em></p>
-<p>List of filters to search features within collection {collectionName}</p>
+<p>List of filters to search features within collection {collectionId}</p>
 <h3 id="featuresapi--getfeaturesincollection-parameters">Parameters</h3>
 <table>
 <thead>
@@ -3706,11 +3706,11 @@ curl -X GET http://127.0.0.1:5252/collections/{collectionName}/items.{format} \
 </thead>
 <tbody>
 <tr>
-<td>collectionName</td>
+<td>collectionId</td>
 <td>path</td>
 <td>string</td>
 <td>true</td>
-<td>Collection name</td>
+<td>Collection identifier</td>
 </tr>
 <tr>
 <td>format</td>
@@ -4096,13 +4096,13 @@ This operation does not require authentication
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X PUT http://127.0.0.1:5252/collections/{collectionName}/items/{featureId} \
+curl -X PUT http://127.0.0.1:5252/collections/{collectionId}/items/{featureId} \
   -H <span class="hljs-string">'Content-Type: application/json'</span> \
   -H <span class="hljs-string">'Accept: application/json'</span> \
   -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
 
 </code></pre>
-<p><code>PUT /collections/{collectionName}/items/{featureId}</code></p>
+<p><code>PUT /collections/{collectionId}/items/{featureId}</code></p>
 <p><em>Update feature property</em></p>
 <p>Update feature {featureId}</p>
 <blockquote>
@@ -4156,11 +4156,11 @@ curl -X PUT http://127.0.0.1:5252/collections/{collectionName}/items/{featureId}
 </thead>
 <tbody>
 <tr>
-<td>collectionName</td>
+<td>collectionId</td>
 <td>path</td>
 <td>string</td>
 <td>true</td>
-<td>Collection name</td>
+<td>Collection identifier</td>
 </tr>
 <tr>
 <td>featureId</td>
@@ -4279,12 +4279,12 @@ bearerAuth & basicAuth & queryAuth
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X DELETE http://127.0.0.1:5252/collections/{collectionName}/items/{featureId} \
+curl -X DELETE http://127.0.0.1:5252/collections/{collectionId}/items/{featureId} \
   -H <span class="hljs-string">'Accept: application/json'</span> \
   -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
 
 </code></pre>
-<p><code>DELETE /collections/{collectionName}/items/{featureId}</code></p>
+<p><code>DELETE /collections/{collectionId}/items/{featureId}</code></p>
 <p><em>Delete feature</em></p>
 <p>Delete feature {featureId}</p>
 <h3 id="featuresapi--deletefeature-parameters">Parameters</h3>
@@ -4300,11 +4300,11 @@ curl -X DELETE http://127.0.0.1:5252/collections/{collectionName}/items/{feature
 </thead>
 <tbody>
 <tr>
-<td>collectionName</td>
+<td>collectionId</td>
 <td>path</td>
 <td>string</td>
 <td>true</td>
-<td>Collection name</td>
+<td>Collection identifier</td>
 </tr>
 <tr>
 <td>featureId</td>
@@ -5809,7 +5809,7 @@ bearerAuth & basicAuth & queryAuth
 <td>string</td>
 <td>true</td>
 <td>none</td>
-<td>Unique collection name. It is used as the collection identifier</td>
+<td>Unique collection id. It is used as the collection identifier</td>
 </tr>
 </tbody>
 </table>
@@ -6300,7 +6300,7 @@ bearerAuth & basicAuth & queryAuth
     <span class="hljs-attr">"updated"</span>: <span class="hljs-string">"2018-09-13T12:52:25.971969Z"</span>,
     <span class="hljs-attr">"links"</span>: [
       {
-        <span class="hljs-attr">"href"</span>: <span class="hljs-string">"https://ds.snapplanet.io/2.0/collections/S2/items/b9eeaf68-5127-53e5-97ff-ddf44984ef56?&amp;collectionName=S2.json&amp;lang=en"</span>,
+        <span class="hljs-attr">"href"</span>: <span class="hljs-string">"https://ds.snapplanet.io/2.0/collections/S2/items/b9eeaf68-5127-53e5-97ff-ddf44984ef56?&amp;collectionId=S2.json&amp;lang=en"</span>,
         <span class="hljs-attr">"type"</span>: <span class="hljs-string">"application/json"</span>,
         <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"self"</span>,
         <span class="hljs-attr">"title"</span>: <span class="hljs-string">"GeoJSON link for b9eeaf68-5127-53e5-97ff-ddf44984ef56"</span>

@@ -181,7 +181,7 @@ class FeaturesFunctions
         // Determine if search on id or productidentifier
         $filtersAndJoins['filters'][] = 'resto.feature.id=\'' . pg_escape_string((RestoUtil::isValidUUID($featureId) ? $featureId : RestoUtil::toUUID($featureId))) . '\'';
         $results = $this->dbDriver->fetch($this->dbDriver->query($selectClause . ' ' . $filterFunctions->getWhereClause($filtersAndJoins, true)));
-        return isset($results) && count($results) === 1 ? (new RestoFeatureUtil($context, $user, array($collection->name => $collection)))->toFeatureArray($results[0]) : null;
+        return isset($results) && count($results) === 1 ? (new RestoFeatureUtil($context, $user, array($collection->id => $collection)))->toFeatureArray($results[0]) : null;
     }
 
     /**
@@ -214,7 +214,7 @@ class FeaturesFunctions
             $featureArray,
             array(
                 'id' => $id,
-                'collection' => $collection->name,
+                'collection' => $collection->id,
                 'visibility' => Resto::GROUP_DEFAULT_ID,
                 'owner' => isset($collection) && isset($collection->user) ? $collection->user->profile['id'] : null,
                 'status' => isset($featureArray['properties']) && isset($featureArray['properties']['status']) && is_int($featureArray['properties']['status']) ? $featureArray['properties']['status'] : 1,
@@ -260,7 +260,7 @@ class FeaturesFunctions
             /*
              * Store feature content
              */
-            $this->storeFeatureAdditionalContent($result['id'], $collection->name, $keysValues['modelTables']);
+            $this->storeFeatureAdditionalContent($result['id'], $collection->id, $keysValues['modelTables']);
 
             /*
              * Update collection spatio temporal extent
@@ -431,7 +431,7 @@ class FeaturesFunctions
         $facetsUpdated = true;
         try {
             $facetsFunctions = new FacetsFunctions($this->dbDriver);
-            $facetsFunctions->removeFacetsFromHashtags($oldFeatureArray['properties']['hashtags'] ?? array(), $collection->name);
+            $facetsFunctions->removeFacetsFromHashtags($oldFeatureArray['properties']['hashtags'] ?? array(), $collection->id);
             if ($feature->context->core['storeFacets']) {
                 $facetsFunctions->storeFacets($keysAndValues['facets']);
             }
@@ -606,10 +606,10 @@ class FeaturesFunctions
      * Store feature additional content
      *
      * @param string $featureId
-     * @param string $collectionName
+     * @param string $collectionId
      * @param array $tables
      */
-    private function storeFeatureAdditionalContent($featureId, $collectionName, $tables)
+    private function storeFeatureAdditionalContent($featureId, $collectionId, $tables)
     {
 
         foreach ($tables as $tableName => $columnsAndValues) {
@@ -619,7 +619,7 @@ class FeaturesFunctions
             }
 
             $columnsAndValues['id'] = $featureId;
-            $columnsAndValues['collection'] = $collectionName;
+            $columnsAndValues['collection'] = $collectionId;
             $this->dbDriver->pQuery('INSERT INTO resto.' . $tableName . ' (' . join(',', array_keys($columnsAndValues)) . ') VALUES (' . join(',', $this->getCounterList(count($columnsAndValues))) . ')', array_values($columnsAndValues));
         
         }
@@ -691,7 +691,7 @@ class FeaturesFunctions
                 $keysAndValues['keywords'] = json_encode($propertyValue, JSON_UNESCAPED_SLASHES);
 
                 // Compute facets
-                $output['facets'] = array_merge($facetsFunctions->getFacetsFromKeywords($propertyValue, $collection->model->facetCategories, $collection->name), $this->extractHashtagsFromText($featureArray['properties']['description'] ?? '', true));
+                $output['facets'] = array_merge($facetsFunctions->getFacetsFromKeywords($propertyValue, $collection->model->facetCategories, $collection->id), $this->extractHashtagsFromText($featureArray['properties']['description'] ?? '', true));
                 
                 // Compute hashtags
                 $hashtags = $facetsFunctions->getHashtagsFromFacets($output['facets']);

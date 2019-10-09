@@ -28,6 +28,7 @@ class RestoUtil
         'atom' => 'application/atom+xml',
         'html' => 'text/html',
         'json' => 'application/json',
+        'geojson' => 'application/geo+json',
         'xml' => 'application/xml',
         'meta4' => 'application/metalink4+xml',
         'csv' => 'text/csv'

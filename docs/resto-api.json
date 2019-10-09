@@ -110,7 +110,7 @@
                 "operationId": "checkToken"
             }
         }, 
-        "/services/osdd/{collectionName}": {
+        "/services/osdd/{collectionId}": {
             "get": {
                 "responses": {
                     "200": {
@@ -125,21 +125,21 @@
                         "schema": {
                             "type": "string"
                         }, 
-                        "description": "Collection name", 
+                        "description": "Collection identifier", 
                         "required": true, 
-                        "name": "collectionName", 
+                        "name": "collectionId", 
                         "in": "query"
                     }
                 ], 
                 "tags": [
                     "Collection"
                 ], 
-                "description": "Returns the OpenSearch Document Description (OSDD) for the search service of collection {collectionName}", 
+                "description": "Returns the OpenSearch Document Description (OSDD) for the search service of collection {collectionId}", 
                 "summary": "Get OpenSearch Description Document for a collection", 
                 "operationId": "ServicesAPI::getOSDDForCollection"
             }
         }, 
-        "/collections/{collectionName}/items": {
+        "/collections/{collectionId}/items": {
             "post": {
                 "responses": {
                     "200": {
@@ -168,7 +168,7 @@
                                         }, 
                                         "collection": {
                                             "type": "string", 
-                                            "description": "Collection name in which feature is inserted"
+                                            "description": "Collection identifier in which feature is inserted"
                                         }
                                     }
                                 }
@@ -232,9 +232,9 @@
                         "schema": {
                             "type": "string"
                         }, 
-                        "description": "Collection name", 
+                        "description": "Collection identifier", 
                         "required": true, 
-                        "name": "collectionName", 
+                        "name": "collectionId", 
                         "in": "path"
                     }, 
                     {
@@ -289,7 +289,7 @@
                 "operationId": "CollectionsAPI::insertFeature"
             }
         }, 
-        "/collections/{collectionName}/items/{featureId}/{property}": {
+        "/collections/{collectionId}/items/{featureId}/{property}": {
             "put": {
                 "responses": {
                     "200": {
@@ -363,9 +363,9 @@
                         "schema": {
                             "type": "string"
                         }, 
-                        "description": "Collection name", 
+                        "description": "Collection identifier", 
                         "required": true, 
-                        "name": "collectionName", 
+                        "name": "collectionId", 
                         "in": "path"
                     }, 
                     {
@@ -479,7 +479,7 @@
                 ]
             }
         }, 
-        "/collections/{collectionName}": {
+        "/collections/{collectionId}": {
             "put": {
                 "responses": {
                     "200": {
@@ -544,18 +544,18 @@
                                 }
                             }
                         }, 
-                        "description": "Missing mandatory collection name"
+                        "description": "Missing mandatory collection id"
                     }
                 }, 
-                "description": "Note that *collectionName* and *model* properties cannot be updated", 
+                "description": "Note that *collectionId* and *model* properties cannot be updated", 
                 "parameters": [
                     {
                         "schema": {
                             "type": "string"
                         }, 
-                        "description": "Collection name", 
+                        "description": "Collection identifier", 
                         "required": true, 
-                        "name": "collectionName", 
+                        "name": "collectionId", 
                         "in": "path"
                     }
                 ], 
@@ -717,9 +717,9 @@
                         "schema": {
                             "type": "string"
                         }, 
-                        "description": "Collection name", 
+                        "description": "Collection identifier", 
                         "required": true, 
-                        "name": "collectionName", 
+                        "name": "collectionId", 
                         "in": "path"
                     }, 
                     {
@@ -802,7 +802,7 @@
                                 }
                             }
                         }, 
-                        "description": "Missing mandatory collection name"
+                        "description": "Missing mandatory collection id"
                     }
                 }, 
                 "parameters": [
@@ -810,9 +810,9 @@
                         "schema": {
                             "type": "string"
                         }, 
-                        "description": "Collection name", 
+                        "description": "Collection identifier", 
                         "required": true, 
-                        "name": "collectionName", 
+                        "name": "collectionId", 
                         "in": "path"
                     }
                 ], 
@@ -849,7 +849,7 @@
                 ]
             }
         }, 
-        "/collections/{collectionName}/items/{featureId}.{format}": {
+        "/collections/{collectionId}/items/{featureId}.{format}": {
             "get": {
                 "responses": {
                     "200": {
@@ -871,9 +871,9 @@
                         "schema": {
                             "type": "string"
                         }, 
-                        "description": "Collection name", 
+                        "description": "Collection identifier", 
                         "required": true, 
-                        "name": "collectionName", 
+                        "name": "collectionId", 
                         "in": "path"
                     }, 
                     {
@@ -1007,7 +1007,7 @@
                                 }
                             }
                         }, 
-                        "description": "Missing mandatory collection name or collection already exist"
+                        "description": "Missing mandatory collection id or collection already exist"
                     }
                 }, 
                 "tags": [
@@ -1059,7 +1059,7 @@
                                 "properties": {
                                     "name": {
                                         "type": "string", 
-                                        "description": "Collection name must be an alphanumeric string containing [a-zA-Z0-9] and not starting with a digit. It is used as the collection identifier"
+                                        "description": "Collection identifier must be an alphanumeric string containing [a-zA-Z0-9] and not starting with a digit. It is used as the collection identifier"
                                     }, 
                                     "rights": {
                                         "type": "object", 
@@ -1282,7 +1282,7 @@
                 "operationId": "AuthAPI::getToken"
             }
         }, 
-        "/collections/{collectionName}/items.{format}": {
+        "/collections/{collectionId}/items.{format}": {
             "get": {
                 "responses": {
                     "200": {
@@ -1321,9 +1321,9 @@
                         "schema": {
                             "type": "string"
                         }, 
-                        "description": "Collection name", 
+                        "description": "Collection identifier", 
                         "required": true, 
-                        "name": "collectionName", 
+                        "name": "collectionId", 
                         "in": "path"
                     }, 
                     {
@@ -1564,12 +1564,12 @@
                 "tags": [
                     "Feature"
                 ], 
-                "description": "List of filters to search features within collection {collectionName}", 
+                "description": "List of filters to search features within collection {collectionId}", 
                 "summary": "Get features (search on a specific collection)", 
                 "operationId": "FeaturesAPI::getFeaturesInCollection"
             }
         }, 
-        "/collections/{collectionName}/items/{featureId}": {
+        "/collections/{collectionId}/items/{featureId}": {
             "put": {
                 "responses": {
                     "200": {
@@ -1643,9 +1643,9 @@
                         "schema": {
                             "type": "string"
                         }, 
-                        "description": "Collection name", 
+                        "description": "Collection identifier", 
                         "required": true, 
-                        "name": "collectionName", 
+                        "name": "collectionId", 
                         "in": "path"
                     }, 
                     {
@@ -1753,9 +1753,9 @@
                         "schema": {
                             "type": "string"
                         }, 
-                        "description": "Collection name", 
+                        "description": "Collection identifier", 
                         "required": true, 
-                        "name": "collectionName", 
+                        "name": "collectionId", 
                         "in": "path"
                     }, 
                     {
@@ -2329,7 +2329,7 @@
                     }, 
                     "id": {
                         "type": "string", 
-                        "description": "Unique collection name. It is used as the collection identifier"
+                        "description": "Unique collection id. It is used as the collection identifier"
                     }
                 }, 
                 "example": {
@@ -2641,7 +2641,7 @@
                         "updated": "2018-09-13T12:52:25.971969Z", 
                         "links": [
                             {
-                                "href": "https://ds.snapplanet.io/2.0/collections/S2/items/b9eeaf68-5127-53e5-97ff-ddf44984ef56?&collectionName=S2.json&lang=en", 
+                                "href": "https://ds.snapplanet.io/2.0/collections/S2/items/b9eeaf68-5127-53e5-97ff-ddf44984ef56?&collectionId=S2.json&lang=en", 
                                 "type": "application/json", 
                                 "rel": "self", 
                                 "title": "GeoJSON link for b9eeaf68-5127-53e5-97ff-ddf44984ef56"

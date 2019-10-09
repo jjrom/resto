@@ -24,12 +24,214 @@
  *  )
  *
  *  @OA\Schema(
+ *      schema="InputCollection",
+ *      required={"name", "model", "osDescription"},
+ *      @OA\Property(
+ *          property="name",
+ *          type="string",
+ *          description="Collection identifier must be an alphanumeric string containing [a-zA-Z0-9] and not starting with a digit. It is used as the collection identifier"
+ *      ),
+ *      @OA\Property(
+ *          property="version",
+ *          type="string",
+ *          description="Version of the collection."
+ *      ),
+ *      @OA\Property(
+ *          property="visibility",
+ *          description="Visibility of this collection. Collections with visibility 1 are visible to all users."
+ *      ),
+ *      @OA\Property(
+ *          property="model",
+ *          type="string",
+ *          description="[For developper] Name of the collection model class under $SRC/include/resto/Models."
+ *      ),
+ *      @OA\Property(
+ *          property="licenseId",
+ *          type="string",
+ *          description="License for this collection as a SPDX License identifier. Alternatively, use proprietary if the license is not on the SPDX license list or various if multiple licenses apply. In these two cases links to the license texts SHOULD be added, see the license link relation type."
+ *      ),
+ *      @OA\Property(
+ *          property="rights",
+ *          type="object",
+ *          description="Default collection rights settings",
+ *          @OA\Property(
+ *              property="download",
+ *              type="enum",
+ *              enum={0,1},
+ *              description="Feature download rights (1 can be downloaded; 0 cannot be downloaded)"
+ *          ),
+ *          @OA\Property(
+ *              property="visualize",
+ *              type="integer",
+ *              description="Features visualization rights (1 can be visualized; 0 cannot be visualized)"
+ *          )
+ *      ),
+ *      @OA\Property(
+ *          property="osDescription",
+ *          type="object",
+ *          required={"en"},
+ *          @OA\Property(
+ *              property="en",
+ *              description="OpenSearch description in English",
+ *              ref="#/components/schemas/OpenSearchDescription"
+ *          ),
+ *          @OA\Property(
+ *              property="fr",
+ *              description="OpenSearch description in French",
+ *              ref="#/components/schemas/OpenSearchDescription"
+ *          )
+ *      ),
+ *      @OA\Property(
+ *          property="links",
+ *          type="array",
+ *          @OA\Items(ref="#/components/schemas/Links")
+ *      ),
+ *      @OA\Property(
+ *          property="providers",
+ *          type="array",
+ *          description="A list of providers, which may include all organizations capturing or processing the data or the hosting provider. Providers should be listed in chronological order with the most recent provider being the last element of the list",
+ *          @OA\Items(ref="#/components/schemas/Provider")
+ *      ),
+ *      @OA\Property(
+ *          property="properties",
+ *          type="object",
+ *          @OA\JsonContent()
+ *      ),
+ *      example={
+ *          "name": "S2",
+ *          "version": "1.0",
+ *          "model": "OpticalModel",
+ *          "rights": {
+ *              "download": 1,
+ *              "visualize": 1
+ *          },
+ *          "visibility": 1,
+ *          "licenseId": "proprietary",
+ *          "osDescription": {
+ *              "en": {
+ *                  "ShortName": "Sentinel-2",
+ *                  "LongName": "Level 1C Sentinel-2 images",
+ *                  "Description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites",
+ *                  "Tags": "copernicus esa eu msi radiance sentinel sentinel2",
+ *                  "Developer": "Jérôme Gasperi",
+ *                  "Contact": "jrom@snapplanet.io",
+ *                  "Query": "Toulouse",
+ *                  "Attribution": "European Union/ESA/Copernicus"
+ *              },
+ *              "fr": {
+ *                  "ShortName": "Sentinel-2",
+ *                  "LongName": "Images Sentinel-2 Niveau 1C",
+ *                  "Description": "La mission SENTINEL-2 est constituée de deux satellites d'imagerie optique équipés d’un imageur multispectral (MSI) en 13 bandes spectrales avec des résolutions de 10, 20 et 60 mètres et d'une fauchée unique de 290 km de large. La capacité d'observation des deux satellites permet de surveiller l'intégralité des terres émergées du globe tous les 5 jours",
+ *                  "Tags": "copernicus esa eu msi radiance sentinel sentinel2",
+ *                  "Developer": "Jérôme Gasperi",
+ *                  "Contact": "jrom@snapplanet.io",
+ *                  "Query": "Toulouse",
+ *                  "Attribution": "European Union/ESA/Copernicus"
+ *              }
+ *          },
+ *          "providers": {
+ *              {
+ *                  "name": "European Union/ESA/Copernicus",
+ *                  "roles": {
+ *                      "producer",
+ *                      "licensor"
+ *                  },
+ *                  "url": "https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi"
+ *              }
+ *          },
+ *          "links": {
+ *              {
+ *                  "rel": "license",
+ *                  "href": "https://scihub.copernicus.eu/twiki/pub/SciHubWebPortal/TermsConditions/Sentinel_Data_Terms_and_Conditions.pdf",
+ *                  "title": "Legal notice on the use of Copernicus Sentinel Data and Service Information"
+ *              }
+ *          },
+ *          "properties": {
+ *              "eo:bands": {
+ *                  {
+ *                      "name": "B1",
+ *                      "common_name": "coastal",
+ *                      "center_wavelength": 4.439,
+ *                      "gsd": 60
+ *                  },
+ *                  {
+ *                      "name": "B2",
+ *                      "common_name": "blue",
+ *                      "center_wavelength": 4.966,
+ *                      "gsd": 10
+ *                  },
+ *                  {
+ *                      "name": "B3",
+ *                      "common_name": "green",
+ *                      "center_wavelength": 5.6,
+ *                      "gsd": 10
+ *                  },
+ *                  {
+ *                      "name": "B4",
+ *                      "common_name": "red",
+ *                      "center_wavelength": 6.645,
+ *                      "gsd": 10
+ *                  },
+ *                  {
+ *                      "name": "B5",
+ *                      "center_wavelength": 7.039,
+ *                      "gsd": 20
+ *                  },
+ *                  {
+ *                      "name": "B6",
+ *                      "center_wavelength": 7.402,
+ *                      "gsd": 20
+ *                  },
+ *                  {
+ *                      "name": "B7",
+ *                      "center_wavelength": 7.825,
+ *                      "gsd": 20
+ *                  },
+ *                  {
+ *                      "name": "B8",
+ *                      "common_name": "nir",
+ *                      "center_wavelength": 8.351,
+ *                      "gsd": 10
+ *                  },
+ *                  {
+ *                      "name": "B8A",
+ *                      "center_wavelength": 8.648,
+ *                      "gsd": 20
+ *                  },
+ *                  {
+ *                      "name": "B9",
+ *                      "center_wavelength": 9.45,
+ *                      "gsd": 60
+ *                  },
+ *                  {
+ *                      "name": "B10",
+ *                      "center_wavelength": 1.3735,
+ *                      "gsd": 60
+ *                  },
+ *                  {
+ *                      "name": "B11",
+ *                      "common_name": "swir16",
+ *                      "center_wavelength": 1.6137,
+ *                      "gsd": 20
+ *                  },
+ *                  {
+ *                      "name": "B12",
+ *                      "common_name": "swir22",
+ *                      "center_wavelength": 2.2024,
+ *                      "gsd": 20
+ *                  }
+ *              }   
+ *          }
+ *      }
+ *  )
+ * 
+ *  @OA\Schema(
  *      schema="OutputCollection",
  *      required={"id", "title", "description", "license", "extent", "links"},
  *      @OA\Property(
  *          property="id",
  *          type="string",
- *          description="Unique collection name. It is used as the collection identifier"
+ *          description="Unique collection id. It is used as the collection identifier"
  *      ),
  *      @OA\Property(
  *          property="title",
@@ -52,7 +254,7 @@
  *      @OA\Property(
  *          property="license",
  *          type="enum",
- *          enum={"proprietary","various", "<license id>"},
+ *          enum={"proprietary", "various", "<license id>"},
  *          description="License for this collection as a SPDX License identifier or expression. Alternatively, use proprietary if the license is not on the SPDX license list or various if multiple licenses apply. In these two cases links to the license texts SHOULD be added, see the license link relation type."
  *      ),
  *      @OA\Property(
@@ -324,9 +526,9 @@ class RestoCollection
 {
 
     /*
-     * Collection name must be unique
+     * Collection identifier must be unique
      */
-    public $name =  null;
+    public $id =  null;
 
     /*
      * Data model for this collection
@@ -533,20 +735,20 @@ class RestoCollection
     /**
      * Constructor
      *
-     * @param array $name : collection name
+     * @param array $id : collection id
      * @param RestoContext $context : RESTo context
      * @param RestoUser $user : RESTo user
      */
-    public function __construct($name, $context, $user)
+    public function __construct($id, $context, $user)
     {
-        if (isset($name)) {
+        if (isset($id)) {
 
-            // Collection name should be alphanumeric based only except for reserved '*' collection
-            if (preg_match("/^[a-zA-Z0-9]+$/", $name) !== 1 || ctype_digit(substr($name, 0, 1))) {
-                RestoLogUtil::httpError(400, 'Collection name must be an alphanumeric string [a-zA-Z0-9] and not starting with a digit');
+            // Collection identifier should be alphanumeric based only except for reserved '*' collection
+            if (preg_match("/^[a-zA-Z0-9]+$/", $id) !== 1 || ctype_digit(substr($id, 0, 1))) {
+                RestoLogUtil::httpError(400, 'Collection identifier must be an alphanumeric string [a-zA-Z0-9] and not starting with a digit');
             }
 
-            $this->name = $name;
+            $this->id = $id;
         }
 
         $this->context = $context;
@@ -566,12 +768,12 @@ class RestoCollection
             return $this->loadFromJSON($object);
         }
         
-        $cacheKey = 'collection:' . $this->name;
+        $cacheKey = 'collection:' . $this->id;
         $collectionObject = $this->context->fromCache($cacheKey);
     
         if (! isset($collectionObject)) {  
 
-            $collectionObject = (new CollectionsFunctions($this->context->dbDriver))->getCollectionDescription($this->name);
+            $collectionObject = (new CollectionsFunctions($this->context->dbDriver))->getCollectionDescription($this->id);
 
             if (! isset($collectionObject)) {  
                 return RestoLogUtil::httpError(404);
@@ -583,7 +785,7 @@ class RestoCollection
         
         foreach ($collectionObject as $key => $value) {
             $this->$key = $key === 'model' ? new $value(array(
-                'collectionName' => $this->name,
+                'collectionId' => $this->id,
                 'addons' => $this->context->addons
             )) : $value;
         }
@@ -627,7 +829,7 @@ class RestoCollection
      */
     public function search()
     {
-        return (new RestoFeatureCollection($this->context, $this->user, array($this->name => $this)))->load($this->model, $this);
+        return (new RestoFeatureCollection($this->context, $this->user, array($this->id => $this)))->load($this->model, $this);
     }
 
     /**
@@ -652,8 +854,9 @@ class RestoCollection
         $osDescription = $this->osDescription[$this->context->lang] ?? $this->osDescription['en'];
 
         $collectionArray = array(
-            'id' => $this->name,
+            'id' => $this->id,
             'title' => $osDescription['ShortName'],
+            'version' => $this->version ?? null,
             'description' => $osDescription['Description'],
             'keywords' => explode(' ', $osDescription['Tags']),
             'license' => $this->licenseId,
@@ -669,6 +872,11 @@ class RestoCollection
                         'rel' => 'root',
                         'type' => RestoUtil::$contentTypes['json'],
                         'href' => $this->context->core['baseUrl']
+                    ),
+                    array(
+                        'rel' => 'items',
+                        'type' => RestoUtil::$contentTypes['geojson'],
+                        'href' => $this->context->core['baseUrl'] . '/collections/' . $this->id . '/items'
                     )
                 ), 
                 $this->links ?? array()    
@@ -733,10 +941,10 @@ class RestoCollection
     public function getStatistics($facetFields = null)
     {
         if (!isset($this->statistics)) {
-            $cacheKey = 'getStatistics:' . $this->name;
+            $cacheKey = 'getStatistics:' . $this->id;
             $this->statistics = $this->context->fromCache($cacheKey);
             if (!isset($this->statistics)) {
-                $this->statistics = (new FacetsFunctions($this->context->dbDriver))->getStatistics($this->name, $facetFields);
+                $this->statistics = (new FacetsFunctions($this->context->dbDriver))->getStatistics($this->id, $facetFields);
                 $this->context->toCache($cacheKey, $this->statistics);
             }
         }
@@ -835,6 +1043,11 @@ class RestoCollection
         $this->visibility = Resto::GROUP_DEFAULT_ID;
         
         /*
+         * Version
+         */
+        $this->version = $object['version'];
+       
+        /*
          * License - set to 'proprietary' if not specified
          */
         $this->licenseId = $object['licenseId'] ?? 'proprietary';
@@ -861,8 +1074,8 @@ class RestoCollection
        /*
         * Check that input file is for the current collection
         */
-        if (!isset($object['name']) || $this->name !== $object['name']) {
-            RestoLogUtil::httpError(400, 'Property "name" and collection name differ');
+        if (!isset($object['name']) || $this->id !== $object['name']) {
+            RestoLogUtil::httpError(400, 'Property "name" and collection id differ');
         }
 
         /*
@@ -887,7 +1100,7 @@ class RestoCollection
          * Set collection model
          */
         $this->model = new $object['model'](array(
-            'collectionName' => $this->name,
+            'collectionId' => $this->id,
             'addons' => $this->context->addons
         ));
         

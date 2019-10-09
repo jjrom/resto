@@ -1,5 +1,6 @@
 {
-    "name": "S2",
+    "id": "S2",
+    "version": "1.0",
     "model": "OpticalModel",
     "rights": {
         "download": 1,

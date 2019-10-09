@@ -112,7 +112,7 @@ class RestoCollections
     );
 
     /*
-     * Array of RestoCollection (key = collection name)
+     * Array of RestoCollection (key = collection id)
      */
     private $collections = array();
 
@@ -151,7 +151,7 @@ class RestoCollections
     public function create($object)
     {
         if (!isset($object['name'])) {
-            RestoLogUtil::httpError(400, 'Missing mandatory collection name');
+            RestoLogUtil::httpError(400, 'Missing mandatory collection id');
         }
 
         /*
@@ -196,12 +196,12 @@ class RestoCollections
             $this->context->toCache($cacheKey, $collectionsDesc);
         }
 
-        foreach (array_keys($collectionsDesc) as $collectionName) {
-            $collection = new RestoCollection($collectionName, $this->context, $this->user);
-            foreach ($collectionsDesc[$collectionName] as $key => $value) {
+        foreach (array_keys($collectionsDesc) as $collectionId) {
+            $collection = new RestoCollection($collectionId, $this->context, $this->user);
+            foreach ($collectionsDesc[$collectionId] as $key => $value) {
                 $collection->$key = $key === 'model' ? new $value() : $value;
             }
-            $this->collections[$collectionName] = $collection;
+            $this->collections[$collectionId] = $collection;
             $this->updateExtent($collection);
         }
         

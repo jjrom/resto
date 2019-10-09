@@ -223,7 +223,8 @@ class FormatUtil
      */
     public static function collectionDescription($rawDescription) {
         return array(
-            'name' => $rawDescription['name'],
+            'id' => $rawDescription['id'],
+            'version' => $rawDescription['version'] ?? null,
             'model' => $rawDescription['model'],
             'visibility' => (integer) $rawDescription['visibility'],
             'owner' => $rawDescription['owner'],

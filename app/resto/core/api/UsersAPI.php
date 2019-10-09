@@ -233,13 +233,13 @@ class UsersAPI
         $result = array(
             'id' => $this->user->profile['id']
         );
-        if (isset($params['collectionName'])) {
-            $result['collection'] = $params['collectionName'];
+        if (isset($params['collectionId'])) {
+            $result['collection'] = $params['collectionId'];
         }
         if (isset($params['featureId'])) {
             $result['feature'] = $params['featureId'];
         }
-        $result['rights'] = $this->user->getRights($params['collectionName'] ?? null, $params['featureId'] ?? null);
+        $result['rights'] = $this->user->getRights($params['collectionId'] ?? null, $params['featureId'] ?? null);
         return $result;
     }
 

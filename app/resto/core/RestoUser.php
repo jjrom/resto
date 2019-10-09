@@ -237,7 +237,7 @@ class RestoUser
         switch ($action) {
             case RestoUser::DOWNLOAD:
             case RestoUser::VISUALIZE:
-                return $this->hasDownloadOrVisualizeRights($action, $params['collectionName'] ?? null, $params['featureId'] ?? null);
+                return $this->hasDownloadOrVisualizeRights($action, $params['collectionId'] ?? null, $params['featureId'] ?? null);
             case RestoUser::CREATE:
                 return $this->hasCreateRights();
             case RestoUser::UPDATE:
@@ -283,10 +283,10 @@ class RestoUser
     /**
      * Returns rights
      *
-     * @param string $collectionName
+     * @param string $collectionId
      * @param string $featureId
      */
-    public function getRights($collectionName = null, $featureId = null)
+    public function getRights($collectionId = null, $featureId = null)
     {
         $this->loadProfile();
 
@@ -300,18 +300,18 @@ class RestoUser
         /*
          * Return specific rights for feature
          */
-        if (isset($collectionName) && isset($featureId)) {
+        if (isset($collectionId) && isset($featureId)) {
             if (isset($this->rights['features'][$featureId])) {
                 return $this->rights['features'][$featureId];
             }
-            return $this->getRights($collectionName);
+            return $this->getRights($collectionId);
         }
 
         /*
          * Return specific rights for collection
          */
-        if (isset($collectionName)) {
-            return $this->rights['collections'][$collectionName] ?? ($this->rights['collections']['*'] ?? $this->fallbackRights);
+        if (isset($collectionId)) {
+            return $this->rights['collections'][$collectionId] ?? ($this->rights['collections']['*'] ?? $this->fallbackRights);
         }
 
         /*
@@ -352,14 +352,14 @@ class RestoUser
      * Set/update user rights
      *
      * @param array $rights
-     * @param string $collectionName
+     * @param string $collectionId
      * @param string $featureId
      * @throws Exception
      */
-    public function setRights($rights, $collectionName = null, $featureId = null)
+    public function setRights($rights, $collectionId = null, $featureId = null)
     {
         $this->loadProfile();
-        (new RightsFunctions($this->context->dbDriver))->storeOrUpdateRights($this->getRightsArray($rights, $collectionName, $featureId));
+        (new RightsFunctions($this->context->dbDriver))->storeOrUpdateRights($this->getRightsArray($rights, $collectionId, $featureId));
         $this->rights = (new RightsFunctions($this->context->dbDriver))->getRightsForUser($this, null, null);
         return true;
     }
@@ -368,14 +368,14 @@ class RestoUser
      * Remove user rights
      *
      * @param array $rights
-     * @param string $collectionName
+     * @param string $collectionId
      * @param string $featureId
      * @throws Exception
      */
-    public function removeRights($rights, $collectionName = null, $featureId = null)
+    public function removeRights($rights, $collectionId = null, $featureId = null)
     {
         $this->loadProfile();
-        (new RightsFunctions($this->context->dbDriver))->removeRights($this->getRightsArray($rights, $collectionName, $featureId));
+        (new RightsFunctions($this->context->dbDriver))->removeRights($this->getRightsArray($rights, $collectionId, $featureId));
         $this->rights = (new RightsFunctions($this->context->dbDriver))->getRightsForUser($this, null, null);
         return true;
     }
@@ -450,13 +450,13 @@ class RestoUser
      * Can User download or visualize
      *
      * @param string $action
-     * @param string $collectionName
+     * @param string $collectionId
      * @param string $featureId
      * @return boolean
      */
-    private function hasDownloadOrVisualizeRights($action, $collectionName, $featureId = null)
+    private function hasDownloadOrVisualizeRights($action, $collectionId, $featureId = null)
     {
-        $rights = $this->getRights($collectionName, $featureId);
+        $rights = $this->getRights($collectionId, $featureId);
         return $rights[$action];
     }
 
@@ -498,19 +498,19 @@ class RestoUser
      * Return rights array for add/update/delete
      *
      * @param array $rights
-     * @param string $collectionName
+     * @param string $collectionId
      * @param string $featureId
      *
      * @return string
      */
-    private function getRightsArray($rights, $collectionName, $featureId)
+    private function getRightsArray($rights, $collectionId, $featureId)
     {
 
         /*
          * Check that collection/feature exists
          */
-        if (isset($collectionName)) {
-            if (! (new CollectionsFunctions($this->context->dbDriver))->collectionExists($collectionName)) {
+        if (isset($collectionId)) {
+            if (! (new CollectionsFunctions($this->context->dbDriver))->collectionExists($collectionId)) {
                 RestoLogUtil::httpError(404, 'Collection does not exist');
             }
         }
@@ -524,7 +524,7 @@ class RestoUser
             'rights' => $rights,
             'id' => $this->profile['id'],
             'groupid' => null,
-            'collectionName' => $collectionName,
+            'collectionId' => $collectionId,
             'featureId' => $featureId
         );
     }
