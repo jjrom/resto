@@ -38,6 +38,20 @@
                 "licensor"
             ],
             "url": "https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi"
+        },
+        {
+            "name": "AWS",
+            "roles": [
+                "host"
+            ],
+            "url": "https://registry.opendata.aws/sentinel-2/"
+        },
+        {
+            "name": "jeobrowser",
+            "roles": [
+                "processor"
+            ],
+            "url": "https://github.com/jjrom/resto"
         }
     ],
     "links": [

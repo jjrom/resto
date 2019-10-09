@@ -1,0 +1,137 @@
+{
+    "id": "L8",
+    "version": "1.0",
+    "model": "OpticalModel",
+    "rights": {
+        "download": 1,
+        "visualize": 1
+    },
+    "visibility": 1,
+    "licenseId": "PDDL-1.0",
+    "osDescription": {
+        "en": {
+            "ShortName": "Landsat-8",
+            "LongName": "Images Landsat-8 niveau 1C",
+            "Description": "Landsat represents the world's longest continuously acquired collection of space-based moderate-resolution land remote sensing data. Four decades of imagery provides a unique resource for those who work in agriculture, geology, forestry, regional planning, education, mapping, and global change research. Landsat images are also invaluable for emergency response and disaster relief",
+            "Tags": "landsat level1C USGS",
+            "Developer": "Jérôme Gasperi",
+            "Contact": "jrom@snapplanet.io",
+            "Query": "USA 2019",
+            "Attribution": "USGS/NASA Landsat"
+        },
+        "fr": {
+            "ShortName": "Landsat-8",
+            "LongName": "Landsat-8 Level 1C product",
+            "Description": "Le programme Landsat est le premier programme spatial d'observation de la Terre d\u00e9di\u00e9 \u00e0 des fins civiles. Quarante ann\u00e9es d'imageries spatiales fournissent une ressource unique dans les secteurs de l'agriculture, de la g\u00e9ologie, de la gestion des for\u00eats, de l'\u00e9ducation, et de la recherche sur le changement climatique",
+            "Tags": "landsat level1C USGS",
+            "Developer": "Jérôme Gasperi",
+            "Contact": "jrom@snapplanet.io",
+            "Query": "US 2019",
+            "Attribution": "USGS/NASA Landsat"
+        }
+    },
+    "providers": [
+        {
+            "name": "USGS",
+            "roles": [
+                "producer"
+            ],
+            "url": "https://landsat.usgs.gov/"
+        },
+        {
+            "name": "AWS",
+            "roles": [
+                "host"
+            ],
+            "url": "https://landsatonaws.com/"
+        },
+        {
+            "name": "jeobrowser",
+            "roles": [
+                "processor"
+            ],
+            "url": "https://github.com/jjrom/resto"
+        }
+    ],
+    "properties": {
+        "eo:bands": [
+            {
+                "name": "B1",
+                "common_name": "coastal",
+                "gsd": 30,
+                "center_wavelength": 0.44,
+                "full_width_half_max": 0.02
+            },
+            {
+                "name": "B2",
+                "common_name": "blue",
+                "gsd": 30,
+                "center_wavelength": 0.48,
+                "full_width_half_max": 0.06
+            },
+            {
+                "name": "B3",
+                "common_name": "green",
+                "gsd": 30,
+                "center_wavelength": 0.56,
+                "full_width_half_max": 0.06
+            },
+            {
+                "name": "B4",
+                "common_name": "red",
+                "gsd": 30,
+                "center_wavelength": 0.65,
+                "full_width_half_max": 0.04
+            },
+            {
+                "name": "B5",
+                "common_name": "nir",
+                "gsd": 30,
+                "center_wavelength": 0.86,
+                "full_width_half_max": 0.03
+            },
+            {
+                "name": "B6",
+                "common_name": "swir16",
+                "gsd": 30,
+                "center_wavelength": 1.6,
+                "full_width_half_max": 0.08
+            },
+            {
+                "name": "B7",
+                "common_name": "swir22",
+                "gsd": 30,
+                "center_wavelength": 2.2,
+                "full_width_half_max": 0.2
+            },
+            {
+                "name": "B8",
+                "common_name": "pan",
+                "gsd": 15,
+                "center_wavelength": 0.59,
+                "full_width_half_max": 0.18
+            },
+            {
+                "name": "B9",
+                "common_name": "cirrus",
+                "gsd": 30,
+                "center_wavelength": 1.37,
+                "full_width_half_max": 0.02
+            },
+            {
+                "name": "B10",
+                "common_name": "lwir11",
+                "gsd": 100,
+                "center_wavelength": 10.9,
+                "full_width_half_max": 0.8
+            },
+            {
+                "name": "B11",
+                "common_name": "lwir12",
+                "gsd": 100,
+                "center_wavelength": 12,
+                "full_width_half_max": 1
+            }
+        ]
+    }
+}

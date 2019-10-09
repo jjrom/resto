@@ -129,6 +129,11 @@ class RestoFeatureUtil
             switch ($key) {
 
                 case 'collection':
+                case 'completionDate':
+                    break;
+
+                case 'startDate':
+                    $featureArray['properties']['datetime'] = $rawFeatureArray[$key] . (isset($rawFeatureArray['completionDate']) ? '/' . $rawFeatureArray['completionDate'] : '');
                     break;
 
                 case 'assets':

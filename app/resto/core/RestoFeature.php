@@ -419,10 +419,16 @@ class RestoFeature
             $properties[$model->stacMapping[$key] ?? $key] = $this->featureArray['properties'][$key];
         }
 
+        /*
+        // Merge collection properties
+        return array_merge($this->featureArray, array(
+            'properties' => isset($this->collection) && is_array($this->collection->properties) ? array_merge($properties, $this->collection->properties) : $properties
+        ));
+        */
+
         return array_merge($this->featureArray, array(
             'properties' => $properties
         ));
-
     }
 
     /**
