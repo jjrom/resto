@@ -25,11 +25,11 @@
  *
  *  @OA\Schema(
  *      schema="InputCollection",
- *      required={"name", "model", "osDescription"},
+ *      required={"id", "model", "osDescription"},
  *      @OA\Property(
- *          property="name",
+ *          property="id",
  *          type="string",
- *          description="Collection identifier must be an alphanumeric string containing [a-zA-Z0-9] and not starting with a digit. It is used as the collection identifier"
+ *          description="Collection identifier. It must be an unique alphanumeric string containing [a-zA-Z0-9] and not starting with a digit."
  *      ),
  *      @OA\Property(
  *          property="version",
@@ -98,7 +98,7 @@
  *          @OA\JsonContent()
  *      ),
  *      example={
- *          "name": "S2",
+ *          "id": "S2",
  *          "version": "1.0",
  *          "model": "OpticalModel",
  *          "rights": {
@@ -231,7 +231,7 @@
  *      @OA\Property(
  *          property="id",
  *          type="string",
- *          description="Unique collection id. It is used as the collection identifier"
+ *          description="Collection identifier. It is an unique alphanumeric string containing [a-zA-Z0-9] and not starting with a digit."
  *      ),
  *      @OA\Property(
  *          property="title",
@@ -976,38 +976,7 @@ class RestoCollection
 
     /**
      * Load collection parameters from input collection description
-     * Collection description is a JSON file with the following structure
-     *
-     *      {
-     *          "name": "Charter",
-     *          "controller": "default",
-     *          "visibility": "public",
-     *          "licenseId": "license",
-     *          "rights":{
-     *              "download":0,
-     *              "visualize":1
-     *          },
-     *          "osDescription": {
-     *              "en": {
-     *                  "ShortName": "International Charter Space and Major Disasters",
-     *                  "LongName": "International Charter Space and Major Disasters catalog",
-     *                  "Description": "The International Charter aims at providing a unified system of space data acquisition and delivery to those affected by natural or man-made disasters through Authorized Users. Each member agency has committed resources to support the provisions of the Charter and thus is helping to mitigate the effects of disasters on human life and property",
-     *                  "Tags": "international charter space disasters",
-     *                  "Developer": "J\u00e9r\u00f4me Gasperi",
-     *                  "Contact": "jerome.gasperi@gmail.com",
-     *                  "Query": "Cyclones in Asia in october 2013",
-     *                  "Attribution": "RESTo framework. Copyright 2013, All Rights Reserved"
-     *              },
-     *              "fr": {
-     *                  ...
-     *              }
-     *          },
-     *          "propertiesMapping": {
-     *              "id": "{a:1} will be replaced by id property value",
-     *              "organisationName": "This is a constant"
-     *              ...
-     *          }
-     *      }
+     * (See collection file example in examples/collections/S2.json)
      *
      * @param array $object : collection description as json file
      * @param boolean $update : true means update

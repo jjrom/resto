@@ -160,7 +160,7 @@
  *                      {
  *                          "rel": "collection",
  *                          "type": "application/json",
- *                          "name": "S2",
+ *                          "title": "S2",
  *                          "href": "http://127.0.0.1:5252/collections/S2?&lang=en"
  *                      }
  *                  },
