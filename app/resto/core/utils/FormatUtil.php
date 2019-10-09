@@ -228,7 +228,6 @@ class FormatUtil
             'model' => $rawDescription['model'],
             'visibility' => (integer) $rawDescription['visibility'],
             'owner' => $rawDescription['owner'],
-            'propertiesMapping' => json_decode($rawDescription['mapping'], true),
             'providers' => json_decode($rawDescription['providers'], true),
             'properties' => json_decode($rawDescription['properties'], true),
             'links' => json_decode($rawDescription['links'], true),

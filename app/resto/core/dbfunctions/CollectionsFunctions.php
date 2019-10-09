@@ -46,7 +46,7 @@ class CollectionsFunctions
         // Get Opensearch description
         $osDescriptions = $this->getOSDescriptions($id);
         $collection = null;
-        $results = $this->dbDriver->pQuery('SELECT id, version, visibility, owner, model, mapping, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links FROM resto.collection WHERE normalize(id)=normalize($1)', array($id));
+        $results = $this->dbDriver->pQuery('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links FROM resto.collection WHERE normalize(id)=normalize($1)', array($id));
         while ($rowDescription = pg_fetch_assoc($results)) {
             $collection = array_merge(
                 FormatUtil::collectionDescription($rowDescription),
@@ -71,7 +71,7 @@ class CollectionsFunctions
         // Get all Opensearch descriptions
         $osDescriptions = $this->getOSDescriptions();
         $where = isset($visibilities) && count($visibilities) > 0 ? ' WHERE visibility IN (' . join(',', $visibilities) . ')' : '';
-        $results = $this->dbDriver->query('SELECT id, version, visibility, owner, model, mapping, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links FROM resto.collection ' . $where . ' ORDER BY id');
+        $results = $this->dbDriver->query('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links FROM resto.collection ' . $where . ' ORDER BY id');
         while ($rowDescription = pg_fetch_assoc($results)) {
             $collections[$rowDescription['id']] = array_merge(
                 FormatUtil::collectionDescription($rowDescription),
@@ -308,7 +308,6 @@ class CollectionsFunctions
                 'model' => $collection->model->getName(),
                 'lineage' => '{' . join(',', $collection->model->getLineage()) . '}',
                 'licenseid' => $collection->licenseId,
-                'mapping' => json_encode($collection->propertiesMapping, JSON_UNESCAPED_SLASHES),
                 'visibility' => $collection->visibility,
                 'owner' => $collection->owner,
                 'providers' => json_encode($collection->providers, JSON_UNESCAPED_SLASHES),
@@ -319,13 +318,12 @@ class CollectionsFunctions
             $this->dbDriver->pQuery('INSERT INTO resto.collection (' . join(',', array_keys($toBeSet)) . ') VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)', array_values($toBeSet));
         }
         /*
-         * Otherwise update collection fields (version, visibility, mapping, licenseid, providers and properties)
+         * Otherwise update collection fields (version, visibility, licenseid, providers and properties)
          */
         else {
-            $this->dbDriver->pQuery('UPDATE resto.collection SET visibility=$2, mapping=$3, licenseid=$4, providers=$5, properties=$6, links=$7, version=$8 WHERE id=$1', array(
+            $this->dbDriver->pQuery('UPDATE resto.collection SET visibility=$2, licenseid=$3, providers=$4, properties=$5, links=$6, version=$7 WHERE id=$1', array(
                 $collection->id,
                 $collection->visibility,
-                json_encode($collection->propertiesMapping, JSON_UNESCAPED_SLASHES),
                 $collection->licenseId,
                 json_encode($collection->providers, JSON_UNESCAPED_SLASHES),
                 json_encode($collection->properties, JSON_UNESCAPED_SLASHES),

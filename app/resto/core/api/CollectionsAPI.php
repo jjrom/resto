@@ -117,8 +117,7 @@ class CollectionsAPI
      *                          "count": 11310,
      *                          "facets": {
      *                              "collection": {
-     *                                  "L8": 11307,
-     *                                  "S2": 3
+     *                                  "L8": 11307
      *                              }
      *                          }
      *                      }
@@ -136,79 +135,6 @@ class CollectionsAPI
      *                      }
      *                  },
      *                  "collections": {
-     *                      {
-     *                          "id": "Example",
-     *                          "title": "resto collection",
-     *                          "description": "A dummy resto collection example",
-     *                          "keywords": {
-     *                              "resto",
-     *                              "example"
-     *                          },
-     *                          "license": "proprietary",
-     *                          "extent": {
-     *                              "spatial": {
-     *                                  "bbox": {
-     *                                      {
-     *                                          69.972328,
-     *                                          22.505778,
-     *                                          71.054486,
-     *                                          23.507467
-     *                                      }
-     *                                  },
-     *                                  "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
-     *                              },
-     *                              "temporal": {
-     *                                  "interval": {
-     *                                      {
-     *                                          "2018-09-13T05:58:08.367000Z",
-     *                                          "2018-09-13T05:58:08.367000Z"
-     *                                      }
-     *                                  },
-     *                                  "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"
-     *                              }
-     *                          },
-     *                          "links": {
-     *                              {
-     *                                  "rel": "self",
-     *                                  "type": "application/json",
-     *                                  "href": "http://127.0.0.1:5252/collections.json?&_pretty=1"
-     *                              },
-     *                              {
-     *                                  "rel": "root",
-     *                                  "type": "application/json",
-     *                                  "href": "http://127.0.0.1:5252"
-     *                              }
-     *                          },
-     *                          "resto:info": {
-     *                              "model": "SatelliteModel",
-     *                              "lineage": {
-     *                                  "DefaultModel",
-     *                                  "LandCoverModel",
-     *                                  "SatelliteModel"
-     *                              },
-     *                              "osDescription": {
-     *                                  "ShortName": "resto collection",
-     *                                  "LongName": "A dummy resto collection example",
-     *                                  "Description": "A dummy resto collection example",
-     *                                  "Tags": "resto example",
-     *                                  "Developer": "John Doe",
-     *                                  "Contact": "john.doe@dev.null",
-     *                                  "Query": "Toulouse",
-     *                                  "Attribution": "Copyright 2019, All Rights Reserved"
-     *                              },
-     *                              "owner": "203883411255198721"
-     *                          },
-     *                          "summaries": {
-     *                              "datetime": {
-     *                                  "min": "2018-09-13T05:58:08.367000Z",
-     *                                  "max": "2018-09-13T05:58:08.367000Z"
-     *                              }
-     *                          },
-     *                          "stac_version": "0.8.0",
-     *                          "stac_extensions": {
-     *                              "eo"
-     *                          }
-     *                      },
      *                      {
      *                          "id": "L8",
      *                          "title": "Landsat-8",
@@ -381,7 +307,7 @@ class CollectionsAPI
      *              ),
      *              example={
      *                  "status": "success",
-     *                  "message": "Collection Example created"
+     *                  "message": "Collection S2 created"
      *              }
      *          )
      *      ),
@@ -461,7 +387,7 @@ class CollectionsAPI
      *              ),
      *              example={
      *                  "status": "success",
-     *                  "message": "Collection Example updated"
+     *                  "message": "Collection S2 updated"
      *              }
      *          )
      *      ),
@@ -550,7 +476,7 @@ class CollectionsAPI
      *              ),
      *              example={
      *                  "status": "success",
-     *                  "message": "Collection Example deleted"
+     *                  "message": "Collection S2 deleted"
      *              }
      *          )
      *      ),
@@ -672,7 +598,7 @@ class CollectionsAPI
      *              example={
      *                  "status": "success",
      *                  "message": "Feature inserted",
-     *                  "collection": "Example",
+     *                  "collection": "S2",
      *                  "featureId": "c4f6ed9f-35ba-5c85-8449-e437c14ae428"
      *              }
      *          )

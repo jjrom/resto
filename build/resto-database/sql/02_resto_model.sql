@@ -34,9 +34,6 @@ CREATE TABLE IF NOT EXISTS resto.collection (
     -- Every feature within this collection will inherit from the collection's license
     licenseid           TEXT,
 
-    -- Mapping for "on the fly" transformation of properties values 
-    mapping             JSON,
-
     -- Visibility - group visibility (only user within this group can see collection)
     visibility          INTEGER,
 

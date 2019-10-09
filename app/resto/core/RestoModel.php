@@ -404,68 +404,6 @@ abstract class RestoModel
     }
 
     /**
-     * Set properties['resource'] object if applicable
-     *
-     *    {
-     *       href: 'http://localhost/items/id/download',     // url to the resource (i.e. download link)
-     *       type: 'application/zip',                           // mimeType of the resource
-     *       size: 12345678,                                    // size in bytes of the resource
-     *       checksum: 'MD5:1223ab45ef',                        // checksum of the resource (prefixed by the checksum type)
-     *       path: '/data/images/xxxxx.zip',                    // local path to the resource
-     *       metadata:{
-     *            href: 'http://my.image.com/xxxxxx.xml,        // url to the original metadata for the resource
-     *            type: 'application/xml'                       // mimeType of the metadata file
-     *       },
-     *       browse:{
-     *            href: 'http://localhost/items/id/browse',  // url to browse (wms) service
-     *            realhref: 'http://my.wms.server/wms',         // real wms href
-     *            title: 'My wms',                              // Title
-     *            type: 'WMS',                                  // Should be WMS
-     *            layers: ''                                    // List of layers comma separated
-     *       }
-     *    }
-     *
-     * @param array $properties : feature properties
-     * @param string $href : resto download url i.e. http://locahost/items/id/download
-     *
-     */
-    public function generateLinksArray($properties, $href)
-    {
-        if (isset($properties['links'])) {
-            return $properties['links'];
-        }
-        return null;
-    }
-
-    /**
-     * The return value from this function will replace
-     * feature properties['quicklook'] string
-     *
-     * @param array $properties : feature properties
-     */
-    public function generateQuicklookUrl($properties)
-    {
-        if (isset($properties['quicklook'])) {
-            return $properties['quicklook'];
-        }
-        return null;
-    }
-
-    /**
-     * The return value from this function will replace
-     * feature properties['thumbnail'] string
-     *
-     * @param array $properties : feature properties
-     */
-    public function generateThumbnailUrl($properties)
-    {
-        if (isset($properties['thumbnail'])) {
-            return $properties['thumbnail'];
-        }
-        return null;
-    }
-
-    /**
      * Get auto facet fields from model
      */
     public function getAutoFacetFields()
@@ -591,10 +529,9 @@ abstract class RestoModel
         }
 
         /*
-         * If model->inputMapping is set then remap input GeoJSON Feature file properties
-         * to match resto model
+         * Clean properties
          */
-        $properties = $this->mapInputProperties($data);
+        $properties = $this->cleanProperties($data['properties']);
         
         /*
          * Add collection to $properties to initialize facet counts on collection
@@ -655,77 +592,25 @@ abstract class RestoModel
     }
 
     /**
-     * Remap properties array accordingly to $inputMapping array
-     *
-     *  $inputMapping array structure:
-     *
-     *          array(
-     *              'propertyNameInInputFile' => 'restoPropertyName' or array('restoPropertyName1', 'restoPropertyName2)
-     *          )
-     *
-     * @param Array $geojson
+     * Clean properties array
+     * 
+     * @param Array $properties
      */
-    private function mapInputProperties($geojson)
+    private function cleanProperties($properties)
     {
 
         // Output properties
-        $properties = array();
-
-        if (!isset($geojson['properties'])) {
-            $geojson['properties'] = array();
-        }
-
-        if (property_exists($this, 'inputMapping')) {
-            foreach ($this->inputMapping as $key => $arr) {
-
-                /*
-                 * key can be a path i.e. key1.key2.key3
-                 */
-                $childs = explode(Resto::MAPPING_PATH_SEPARATOR, $key);
-                if (isset($geojson[$childs[0]])) {
-                    // [IMPORTANT] Pass reference not copy
-                    $property = &$geojson[$childs[0]];
-                } else {
-                    $property =  null;
-                }
-                $propertyKey = null;
-                $isValid = true;
-
-                if (isset($property)) {
-                    for ($i = 1, $ii = count($childs); $i < $ii; $i++) {
-                        if (! isset($property[$childs[$i]])) {
-                            $isValid = false;
-                            break;
-                        }
-                        $propertyKey = $childs[$i];
-                        if ($i < $ii - 1) {
-                            // [IMPORTANT] Pass reference not copy
-                            $property = &$property[$childs[$i]];
-                        }
-                    }
-                    
-                    if ($isValid) {
-                        if (!is_array($arr)) {
-                            $arr = array($arr);
-                        }
-                        for ($i = count($arr); $i--;) {
-                            $geojson['properties'][$arr[$i]] = $property[$propertyKey];
-                        }
-                        unset($property[$propertyKey]);
-                    }
-                }
-            }
-        }
+        $cleanProperties = array();
 
         // Eventually unset all empty properties and array
-        foreach (array_keys($geojson['properties']) as $key) {
-            if (!isset($geojson['properties'][$key]) || (is_array($geojson['properties'][$key]) && count($geojson['properties'][$key]) === 0)) {
+        foreach (array_keys($properties) as $key) {
+            if (!isset($properties[$key]) || (is_array($properties[$key]) && count($properties[$key]) === 0)) {
                 continue;
             }
-            $properties[$key] = $geojson['properties'][$key];
+            $cleanProperties[$key] = $properties[$key];
         }
         
-        return $properties;
+        return $cleanProperties;
     }
 
     /**

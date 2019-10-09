@@ -174,9 +174,6 @@ class Resto
     // Separator for hashtags identifiers - should be the same as iTag
     const TAG_SEPARATOR = ':';
 
-    // Separator for paths in RestoModel->inputMapping()
-    const MAPPING_PATH_SEPARATOR = '.';
-
     /* ============================================================ */
 
     /*

@@ -96,46 +96,6 @@ class RestoFeatureUtil
     }
 
     /**
-     * Update metadata values from propertiesMapping
-     *
-     * @param array $properties
-     * @param RestoCollection $collection
-     */
-    private function setPaths(&$properties, $collection)
-    {
-
-        /*
-         * Update dynamically resource, quicklook and thumbnail path if required before the replaceInTemplate
-         */
-        $properties['quicklook'] = $collection->model->generateQuicklookUrl($properties);
-        $properties['thumbnail'] = $collection->model->generateThumbnailUrl($properties);
-        
-        /*
-         * Modify properties as defined in collection propertiesMapping associative array
-         */
-        if (isset($collection->propertiesMapping)) {
-            $tmpProperties = $properties;
-
-            /*
-             * key can be a path i.e. key1.key2.key3
-             */
-            foreach ($collection->propertiesMapping as $key => $arr) {
-                $childs = explode(Resto::MAPPING_PATH_SEPARATOR, $key);
-                $property = &$properties;
-                for ($i = 0, $ii = count($childs); $i < $ii; $i++) {
-                    if (! isset($property[$childs[$i]])) {
-                        $property[$childs[$i]] = array();
-                    }
-                    $property = &$property[$childs[$i]];
-                    if ($i === $ii - 1) {
-                        $property = RestoUtil::replaceInTemplate($arr, $tmpProperties);
-                    }
-                }
-            }
-        }
-    }
-
-    /**
      *
      * PostgreSQL output columns are treated as string
      * thus they need to be converted to their true type
@@ -173,8 +133,11 @@ class RestoFeatureUtil
 
                 case 'assets':
                 case 'geometry':
+                    $featureArray[$key] = isset($value) ? json_decode($value, true) : array();
+                    break;
+
                 case 'links':
-                    $featureArray[$key] = $key === 'links' ? array_merge($value ? json_decode($value, true) : array(), $this->getDefaultLinks($collection, $rawFeatureArray)) : json_decode($value, true);
+                    $featureArray[$key] = array_merge(isset($value) ? json_decode($value, true) : array(), $this->getDefaultLinks($collection, $rawFeatureArray));
                     break;
 
                 case 'bbox4326':
@@ -221,9 +184,6 @@ class RestoFeatureUtil
             }
         }
 
-        // Update paths
-        $this->setPaths($featureArray['properties'], $collection);
-        
         return $featureArray;
 
     }

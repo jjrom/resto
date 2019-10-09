@@ -396,6 +396,7 @@ class RestoFeature
     public function toPublicArray()
     {
 
+        // These properties are not published
         $discard = array(
             'id',
             'visibility',
@@ -403,22 +404,24 @@ class RestoFeature
             'sort_idx'
         );
 
-        $publicArray = $this->featureArray;
-        $publicArray['properties'] = array();
 
+        $properties = array();
         $model = isset($this->collection) ? $this->collection->model : new DefaultModel();
         
         foreach (array_keys($this->featureArray['properties']) as $key) {
 
-            // Remove null properties
+            // Remove null and non public properties
             if (! isset($this->featureArray['properties'][$key]) || in_array($key, $discard)) {
                 continue;
             }
             
-            $publicArray['properties'][$model->stacMapping[$key] ?? $key] = $this->featureArray['properties'][$key];
+            // [STAC] Eventually follows STAC mapping for properties names 
+            $properties[$model->stacMapping[$key] ?? $key] = $this->featureArray['properties'][$key];
         }
 
-        return $publicArray;
+        return array_merge($this->featureArray, array(
+            'properties' => $properties
+        ));
 
     }
 
