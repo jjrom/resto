@@ -98,7 +98,7 @@
  *   ),
  *   @OA\Server(
  *       description=API_HOST_DESCRIPTION,
- *       url=API_HOST_URL
+ *       url=PUBLIC_ENDPOINT
  *   )
  *  )
  */

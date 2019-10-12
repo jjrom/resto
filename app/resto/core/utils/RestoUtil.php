@@ -26,12 +26,20 @@ class RestoUtil
      */
     public static $contentTypes = array(
         'atom' => 'application/atom+xml',
-        'html' => 'text/html',
-        'json' => 'application/json',
+        'cog' => 'image/tiff; application=geotiff; profile=cloud-optimized',
+        'csv' => 'text/csv',
         'geojson' => 'application/geo+json',
-        'xml' => 'application/xml',
+        'geopackage' => 'application/geopackage+sqlite3',
+        'geotiff' => 'image/tiff; application=geotiff',
+        'hdf' => 'application/x-hdf',
+        'hdf5' => 'application/x-hdf5',
+        'html' => 'text/html',
+        'jpeg' => 'image/jpeg',
+        'jpeg2000' => 'image/jp2',
+        'json' => 'application/json',
         'meta4' => 'application/metalink4+xml',
-        'csv' => 'text/csv'
+        'png' => 'image/png',
+        'xml' => 'application/xml'
     );
 
     /**
