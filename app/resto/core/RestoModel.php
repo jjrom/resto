@@ -461,35 +461,13 @@ abstract class RestoModel
          * Check pattern for string
          */
         if (isset($this->searchFilters[$filterKey]['pattern'])) {
-
-            /*
-             * If operation = "in" then value is a comma separated list - check pattern for each element of the list
-             */
-            if ($this->searchFilters[$filterKey]['operation'] && $this->searchFilters[$filterKey]['operation'] === 'in') {
-                $elements = array_map('trim', explode(',', $value));
-                for ($i = count($elements); $i--;) {
-                    if (preg_match('\'' . $this->searchFilters[$filterKey]['pattern'] . '\'', $elements[$i]) !== 1) {
-                        return RestoLogUtil::httpError(400, 'Comma separated list of "' . $this->searchFilters[$filterKey]['osKey'] . '" must follow the pattern ' . $this->searchFilters[$filterKey]['pattern']);
-                    }
-                }
-            }
-            else if (preg_match('\'' . $this->searchFilters[$filterKey]['pattern'] . '\'', $value) !== 1) {
-                RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must follow the pattern ' . $this->searchFilters[$filterKey]['pattern']);
-            }
+            return $this->validateFilterString($filterKey, $value);
         }
         /*
          * Check pattern for number
          */
         elseif (isset($this->searchFilters[$filterKey]['minInclusive']) || isset($this->searchFilters[$filterKey]['maxInclusive'])) {
-            if (!is_numeric($value)) {
-                RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be numeric');
-            }
-            if (isset($this->searchFilters[$filterKey]['minInclusive']) && $value < $this->searchFilters[$filterKey]['minInclusive']) {
-                RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be greater than ' . ($this->searchFilters[$filterKey]['minInclusive'] - 1));
-            }
-            if (isset($this->searchFilters[$filterKey]['maxInclusive']) && $value > $this->searchFilters[$filterKey]['maxInclusive']) {
-                RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be lower than ' . ($this->searchFilters[$filterKey]['maxInclusive'] + 1));
-            }
+            return $this->validateFilterNumber($filterKey, $value);
         }
 
         return true;
@@ -576,6 +554,55 @@ abstract class RestoModel
             'assets' => $data['assets'] ?? null,
             'links' => $data['links'] ?? null
         );
+    }
+
+    /**
+     * Check if value is valid for a given pattern filter regarding the model
+     *
+     * @param string $filterKey
+     * @param string $value
+     * @return boolean
+     */
+    private function validateFilterString($filterKey, $value)
+    {
+        /*
+         * If operation = "in" then value is a comma separated list - check pattern for each element of the list
+         */
+        if ($this->searchFilters[$filterKey]['operation'] && $this->searchFilters[$filterKey]['operation'] === 'in') {
+            $elements = array_map('trim', explode(',', $value));
+            for ($i = count($elements); $i--;) {
+                if (preg_match('\'' . $this->searchFilters[$filterKey]['pattern'] . '\'', $elements[$i]) !== 1) {
+                    return RestoLogUtil::httpError(400, 'Comma separated list of "' . $this->searchFilters[$filterKey]['osKey'] . '" must follow the pattern ' . $this->searchFilters[$filterKey]['pattern']);
+                }
+            }
+        }
+        else if (preg_match('\'' . $this->searchFilters[$filterKey]['pattern'] . '\'', $value) !== 1) {
+            return RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must follow the pattern ' . $this->searchFilters[$filterKey]['pattern']);
+        }
+
+        return true;
+
+    }
+
+    /**
+     * Check if value is valid for a given number filter regarding the model
+     *
+     * @param string $filterKey
+     * @param string $value
+     * @return boolean
+     */
+    private function validateFilterNumber($filterKey, $value)
+    {
+        if (!is_numeric($value)) {
+            RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be numeric');
+        }
+        if (isset($this->searchFilters[$filterKey]['minInclusive']) && $value < $this->searchFilters[$filterKey]['minInclusive']) {
+            RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be greater than ' . ($this->searchFilters[$filterKey]['minInclusive'] - 1));
+        }
+        if (isset($this->searchFilters[$filterKey]['maxInclusive']) && $value > $this->searchFilters[$filterKey]['maxInclusive']) {
+            RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be lower than ' . ($this->searchFilters[$filterKey]['maxInclusive'] + 1));
+        }
+        return true;
     }
 
 }
