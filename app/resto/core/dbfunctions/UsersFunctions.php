@@ -36,6 +36,148 @@ class UsersFunctions
         $this->dbDriver = $dbDriver;
     }
 
+
+    /**
+     * Return a full formated profile info
+     *
+     * @param array $rawProfile
+     */
+    public static function formatUserProfile($rawProfile)
+    {
+        
+        // Empty profile
+        $profile = array();
+
+        foreach ($rawProfile as $key => $value) {
+            switch ($key) {
+
+                // Never display these one
+                case 'password':
+                case 'resettoken':
+                case 'resetexpire':
+                case 'validationdate':
+                case 'validatedby':
+                    break;
+
+                case 'followed':
+                case 'followme':
+                    $profile[$key] = $value === 't' ? true : false;
+                    break;
+
+                case 'activated':
+                case 'likes':
+                case 'comments':
+                case 'followers':
+                case 'followings':
+                    $profile[$key] = (integer) $value;
+                    break;
+
+                case 'groups':
+                    $profile[$key] = array_map('intval', explode(",", substr($rawProfile['groups'], 1, -1)));
+                    break;
+
+                case 'topics':
+                    $profile[$key] = isset($rawProfile['topics']) ? substr($rawProfile['topics'], 1, -1) : null;
+                    break;
+
+                case 'id':
+                case 'email':
+                case 'name':
+                case 'firstname':
+                case 'lastname':
+                case 'bio':
+                case 'lang':
+                case 'country':
+                case 'organization':
+                case 'organizationcountry':
+                case 'flags':
+                case 'owner':
+                case 'picture':
+                case 'registrationdate':
+                    if (isset($value)) {
+                        $profile[$key] = $value;
+                    }
+                    break;
+
+                case 'settings':
+                    $settings = isset($rawProfile['settings']) ? json_decode($rawProfile['settings'], true) : null;
+                    if (isset($settings)) {
+                        $profile[$key] = $settings;
+                    }
+                    break;
+
+                // Additionnal profile info are in JSON
+                default:
+                    if (isset($value)) {
+                        $profile[$key] = json_decode($value, true);
+                    }
+
+            }
+        }
+        
+        return $profile;
+    }
+
+    /**
+     * Return a partial formated profile info
+     *
+     * @param array $rawProfile
+     */
+    public static function formatPartialUserProfile($rawProfile)
+    {
+
+        // Remove leading "{" and trailing "}" for INTEGER[] (Database returns {group1,group2,etc.})
+        $groups = array_map('intval', explode(",", substr($rawProfile['groups'], 1, -1)));
+        
+        // [SECURITY] Never return users with only one group and group < 100
+        if (count($groups) === 1 && $groups[0] < 100) {
+            return null;
+        }
+        
+        $profile = array(
+            'id' => $rawProfile['id'],
+            'picture' => $rawProfile['picture'],
+            'groups' => $groups,
+            'name' => $rawProfile['name'],
+            'registrationdate' => $rawProfile['registrationdate'],
+            'followers' => (integer) $rawProfile['followers'],
+            'followings' => (integer) $rawProfile['followings']
+        );
+
+        foreach ($rawProfile as $key => $value) {
+            switch ($key) {
+                case 'settings':
+                    $settings = isset($rawProfile['settings']) ? json_decode($rawProfile['settings'], true) : null;
+                    if (isset($settings) && $settings['showIdentity']) {
+                        $profile['firstname'] = $rawProfile['firstname'];
+                        $profile['lastname'] = $rawProfile['lastname'];
+                    }
+                    if (isset($settings) && $settings['showTopics']) {
+                        $topics = isset($rawProfile['topics']) ? substr($rawProfile['topics'], 1, -1) : null;
+                        if (isset($topics)) {
+                            $profile['topics'] = $topics;
+                        }
+                    }
+                    break;
+
+                case 'followed':
+                case 'followme':
+                    $profile[$key] = $value === 't' ? true : false;
+                    break;
+                
+                case 'bio':
+                    $profile[$key] = $rawProfile[$value];
+                    break;
+                
+                default:
+                    break;
+            }
+        }
+            
+        return $profile;
+        
+    }
+
     /**
      * Return encrypted user password
      *
@@ -93,7 +235,7 @@ class UsersFunctions
         /*
          * Full profile if id is caller / partial otherwise
          */
-        $formatedProfile = isset($params['partial']) && $params['partial'] ? FormatUtil::partialUserProfile($results[0]) : FormatUtil::fullUserProfile($results[0]);
+        $formatedProfile = isset($params['partial']) && $params['partial'] ? UsersFunctions::formatPartialUserProfile($results[0]) : UsersFunctions::formatUserProfile($results[0]);
         return isset($formatedProfile) ? $formatedProfile : RestoLogUtil::httpError(404);
 
     }
@@ -147,7 +289,7 @@ class UsersFunctions
         $profiles = array();
         while ($profile = pg_fetch_assoc($results)) {
             $partial = isset($userid) ? $userid !== $profile['id'] : false;
-            $profiles[] = $partial ? FormatUtil::partialUserProfile($profile) : FormatUtil::fullUserProfile($profile);
+            $profiles[] = $partial ? UsersFunctions::formatPartialUserProfile($profile) : UsersFunctions::formatUserProfile($profile);
         }
         return array(
             'profiles' => $profiles
@@ -232,7 +374,7 @@ class UsersFunctions
 
         $results =  $this->dbDriver->fetch($this->dbDriver->query('INSERT INTO resto.user (' . join(',', array_keys($toBeSet)) . ') VALUES (' . join(',', array_values($toBeSet)) . ') RETURNING *'));
 
-        return count($results) === 1 ? FormatUtil::fullUserProfile($results[0]) : null;
+        return count($results) === 1 ? UsersFunctions::formatUserProfile($results[0]) : null;
     }
 
     /**

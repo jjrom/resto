@@ -421,7 +421,7 @@ abstract class RestoModel
             $filterKey = $this->getFilterName($key);
             if (isset($filterKey)) {
                 // Special case geo:geometry also accept GeoJSON => convert it to WKT
-                $params[$filterKey] = preg_replace('/<.*?>/', '', $filterKey === 'geo:geometry' ? $this->forceWKT($value) : $value);
+                $params[$filterKey] = preg_replace('/<.*?>/', '', $filterKey === 'geo:geometry' ? RestoGeometryUtil::forceWKT($value) : $value);
                 $this->validateFilter($filterKey, $params[$filterKey]);
             }
         }
@@ -518,7 +518,7 @@ abstract class RestoModel
         /*
          * Clean properties
          */
-        $properties = $this->cleanProperties($data['properties']);
+        $properties = RestoUtil::cleanAssociativeArray($data['properties']);
         
         /*
          * Add collection to $properties to initialize facet counts on collection
@@ -576,48 +576,6 @@ abstract class RestoModel
             'assets' => $data['assets'] ?? null,
             'links' => $data['links'] ?? null
         );
-    }
-
-    /**
-     * Clean properties array
-     * 
-     * @param Array $properties
-     */
-    private function cleanProperties($properties)
-    {
-
-        // Output properties
-        $cleanProperties = array();
-
-        // Eventually unset all empty properties and array
-        foreach (array_keys($properties) as $key) {
-            if (!isset($properties[$key]) || (is_array($properties[$key]) && count($properties[$key]) === 0)) {
-                continue;
-            }
-            $cleanProperties[$key] = $properties[$key];
-        }
-        
-        return $cleanProperties;
-    }
-
-    /**
-     * Convert input GeoJSON string geometry into WKT or leave it untouched if already a WKT
-     * 
-     * @param string $geostring
-     */
-    private function forceWKT($geostring)
-    {
-
-        if (isset($geostring) && isset($geostring[0]) && $geostring[0] === '{') {
-            $geostring = RestoGeometryUtil::geoJSONGeometryToWKT(json_decode($geostring, true));
-        }
-        
-        if ( !isset($geostring) || !RestoGeometryUtil::isValidWKT($geostring) ) {
-            return RestoLogUtil::httpError(400, 'Invalid input geometry for intersects - should be a valid GeoJSON or Well Known Text standard (WKT)');
-        }
-        
-        return $geostring;
-
     }
 
 }

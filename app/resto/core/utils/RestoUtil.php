@@ -43,6 +43,30 @@ class RestoUtil
     );
 
     /**
+     * Clean associative array i.e. remove empty or null keys
+     * 
+     * @param array $associativeArray
+     * @return array
+     */
+    public static function cleanAssociativeArray($associativeArray)
+    {
+
+        // Output
+        $cleanArray = array();
+
+        // Eventually unset all empty properties and array
+        foreach (array_keys($associativeArray) as $key) {
+            if (!isset($associativeArray[$key]) || (is_array($associativeArray[$key]) && count($associativeArray[$key]) === 0)) {
+                continue;
+            }
+            $cleanArray[$key] = $associativeArray[$key];
+        }
+        
+        return $cleanArray;
+
+    }
+
+    /**
      * Extract hashtags from a string (i.e. #something or -#something)
      *
      * @param string $str

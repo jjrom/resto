@@ -313,6 +313,58 @@ class RestoGeometryUtil
     }
 
     /**
+     * Convert input GeoJSON string geometry into WKT or leave it untouched if already a WKT
+     * 
+     * @param string $geostring
+     */
+    public static function forceWKT($geostring)
+    {
+
+        if (isset($geostring) && isset($geostring[0]) && $geostring[0] === '{') {
+            $geostring = RestoGeometryUtil::geoJSONGeometryToWKT(json_decode($geostring, true));
+        }
+        
+        if ( !isset($geostring) || !RestoGeometryUtil::isValidWKT($geostring) ) {
+            return RestoLogUtil::httpError(400, 'Invalid input geometry for intersects - should be a valid GeoJSON or Well Known Text standard (WKT)');
+        }
+        
+        return $geostring;
+
+    }
+
+    /**
+     * Returns point array from WKT point.
+     *
+     * @param string $wktPoint WKT point
+     * @throws Exception
+     * @return multitype:NULL polygon array
+     */
+    public static function WKTPointToArray($wktPoint)
+    {
+        $coordsAsString = explode(' ', substr($wktPoint, 6, -1));
+        return array((float) $coordsAsString[0], (float) $coordsAsString[1]);
+    }
+
+    /**
+     * Return a WKT Polygon from centroid and radius
+     *
+     * @param float $lon lon
+     * @param float $lat Lat
+     * @param float $radius (in meters)
+     * @throws Exception
+     * @return multitype:NULL polygon array
+     */
+    public static function WKTPolygonFromLonLat($lon, $lat, $radius)
+    {
+        $radius = RestoGeometryUtil::radiusInDegrees($radius, $lat);
+        $lonmin = $lon - $radius;
+        $latmin =  $lat - $radius;
+        $lonmax = $lon + $radius;
+        $latmax =  $lat  + $radius;
+        return 'POLYGON((' . $lonmin . ' ' . $latmin . ',' . $lonmin . ' ' . $latmax . ',' . $lonmax . ' ' . $latmax . ',' . $lonmax . ' ' . $latmin . ',' . $lonmin . ' ' . $latmin . '))';
+    }
+
+    /**
      * Return POINT WKT from coordinates (without WKT type)
      *
      * @param array $coordinates - GeoJSON geometry
@@ -348,38 +400,6 @@ class RestoGeometryUtil
             }
         }
         return '(' . join(',', $output) . ')';
-    }
-
-    /**
-     * Returns point array from WKT point.
-     *
-     * @param string $wktPoint WKT point
-     * @throws Exception
-     * @return multitype:NULL polygon array
-     */
-    public static function WKTPointToArray($wktPoint)
-    {
-        $coordsAsString = explode(' ', substr($wktPoint, 6, -1));
-        return array((float) $coordsAsString[0], (float) $coordsAsString[1]);
-    }
-
-    /**
-     * Return a WKT Polygon from centroid and radius
-     *
-     * @param float $lon lon
-     * @param float $lat Lat
-     * @param float $radius (in meters)
-     * @throws Exception
-     * @return multitype:NULL polygon array
-     */
-    public static function WKTPolygonFromLonLat($lon, $lat, $radius)
-    {
-        $radius = RestoGeometryUtil::radiusInDegrees($radius, $lat);
-        $lonmin = $lon - $radius;
-        $latmin =  $lat - $radius;
-        $lonmax = $lon + $radius;
-        $latmax =  $lat  + $radius;
-        return 'POLYGON((' . $lonmin . ' ' . $latmin . ',' . $lonmin . ' ' . $latmax . ',' . $lonmax . ' ' . $latmax . ',' . $lonmax . ' ' . $latmin . ',' . $lonmin . ' ' . $latmin . '))';
     }
 
 }

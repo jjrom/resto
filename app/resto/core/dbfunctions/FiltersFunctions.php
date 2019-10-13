@@ -242,7 +242,7 @@ class FiltersFunctions
              * Intervals
              */
             case 'interval':
-                return FormatUtil::intervalToQuery($requestParams[$filterName], $this->getTableName($model, $filterName) . $model->searchFilters[$filterName]['key']);
+                return QueryUtil::intervalToQuery($requestParams[$filterName], $this->getTableName($model, $filterName) . $model->searchFilters[$filterName]['key']);
             /*
              * Simple case - non 'interval' operation on value or arrays
              */

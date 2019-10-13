@@ -41,6 +41,24 @@ class FacetsFunctions
     }
 
     /**
+     * Format facet for output
+     *
+     * @param array $rawFacet
+     */
+    public static function format($rawFacet)
+    {
+        return array(
+            'id' => $rawFacet['id'],
+            'collection' => $rawFacet['collection'] ?? '*',
+            'value' => $rawFacet['value'],
+            'parentId' => $rawFacet['pid'] ?? null,
+            'created' => $rawFacet['created'],
+            'creator' => $rawFacet['creator'] ?? null,
+            'count' => (integer) $rawFacet['counter']
+        );
+    }
+
+    /**
      * Get facet from $id
      *
      * @param string $facetId
@@ -51,7 +69,7 @@ class FacetsFunctions
             $facetId
         )));
         if (isset($results[0])) {
-            return FormatUtil::facet($results[0]);
+            return FacetsFunctions::format($results[0]);
         }
         
         return null;
@@ -309,7 +327,7 @@ class FacetsFunctions
                 }
             }
             if ($create) {
-                $pivots[$result['type']][] = FormatUtil::facet($result);
+                $pivots[$result['type']][] = FacetsFunctions::format($result);
             }
         }
         

@@ -34,6 +34,30 @@ class CollectionsFunctions
     }
 
     /**
+     * Return a formated collection description
+     * 
+     * @param array $rawDescription
+     */
+    public static function format($rawDescription) {
+        return array(
+            'id' => $rawDescription['id'],
+            'version' => $rawDescription['version'] ?? null,
+            'model' => $rawDescription['model'],
+            'visibility' => (integer) $rawDescription['visibility'],
+            'owner' => $rawDescription['owner'],
+            'providers' => json_decode($rawDescription['providers'], true),
+            'properties' => json_decode($rawDescription['properties'], true),
+            'links' => json_decode($rawDescription['links'], true),
+            'datetime' => array(
+                'min' => $rawDescription['startdate'] ?? null,
+                'max' => $rawDescription['completiondate'] ?? null
+            ),
+            'bbox' => RestoGeometryUtil::box2dTobbox($rawDescription['box2d']),
+            'licenseId' => $rawDescription['licenseid']
+        );
+    }
+
+    /**
      * Get description for collection
      *
      * @param string $id
@@ -49,7 +73,7 @@ class CollectionsFunctions
         $results = $this->dbDriver->pQuery('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links FROM resto.collection WHERE normalize(id)=normalize($1)', array($id));
         while ($rowDescription = pg_fetch_assoc($results)) {
             $collection = array_merge(
-                FormatUtil::collectionDescription($rowDescription),
+                CollectionsFunctions::format($rowDescription),
                 array('osDescription' => $osDescriptions[$id])
             );
         }
@@ -74,7 +98,7 @@ class CollectionsFunctions
         $results = $this->dbDriver->query('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links FROM resto.collection ' . $where . ' ORDER BY id');
         while ($rowDescription = pg_fetch_assoc($results)) {
             $collections[$rowDescription['id']] = array_merge(
-                FormatUtil::collectionDescription($rowDescription),
+                CollectionsFunctions::format($rowDescription),
                 array('osDescription' => $osDescriptions[$rowDescription['id']])
             );
         }
