@@ -131,12 +131,12 @@ class Resto
         array('POST',   '/services/password/reset', false, 'ServicesAPI::resetPassword'),                                                   // Reset password
     );
 
+    // resto version
+    const VERSION = '6.0.0';
+
     /* ============================================================
      *              NEVER EVER TOUCH THESE VALUES
      * ============================================================*/
-
-    // resto version
-    const VERSION = '6.0.0';
 
     // PostgreSQL max value for integer
     const INT_MAX_VALUE = 2147483647;
