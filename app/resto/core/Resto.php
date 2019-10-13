@@ -242,8 +242,7 @@ class Resto
             $this->context->outputFormat = 'json';
 
             /*
-             * Code under 500 is an HTTP code - otherwise it is a resto error code
-             * All resto error codes lead to HTTP 200 error code
+             * All error codes are HTTP error codes
              */
             $responseStatus = $e->getCode();
             $response = json_encode(array('ErrorMessage' => $e->getMessage(), 'ErrorCode' => $e->getCode()), JSON_UNESCAPED_SLASHES);
