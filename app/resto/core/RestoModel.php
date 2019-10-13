@@ -568,7 +568,7 @@ abstract class RestoModel
         /*
          * If operation = "in" then value is a comma separated list - check pattern for each element of the list
          */
-        if ($this->searchFilters[$filterKey]['operation'] && $this->searchFilters[$filterKey]['operation'] === 'in') {
+        if (isset($this->searchFilters[$filterKey]['operation']) && $this->searchFilters[$filterKey]['operation'] === 'in') {
             $elements = array_map('trim', explode(',', $value));
             for ($i = count($elements); $i--;) {
                 if (preg_match('\'' . $this->searchFilters[$filterKey]['pattern'] . '\'', $elements[$i]) !== 1) {
