@@ -17,6 +17,8 @@
 
 /**
  * resto Default Model
+ * 
+ * [IMPORTANT] Every model *MUST* extend DefaultModel
  */
 class DefaultModel extends RestoModel
 {

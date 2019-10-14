@@ -475,6 +475,44 @@ abstract class RestoModel
     }
 
     /**
+     * Rewrite input $featureArray for output.
+     * This function can be superseeded in child Model
+     * 
+     * @param array $featureArray
+     * @return array
+     */
+    public function remap($featureArray)
+    {
+        /*
+         * These properties are discarded from output
+         */
+        $discardedProperties = array(
+            'id',
+            'visibility',
+            'owner',
+            'sort_idx'
+        );
+
+        $properties = array();
+        
+        foreach (array_keys($featureArray['properties']) as $key) {
+
+            // Remove null and non public properties
+            if (! isset($featureArray['properties'][$key]) || in_array($key, $discardedProperties)) {
+                continue;
+            }
+            
+            // [STAC] Eventually follows STAC mapping for properties names 
+            $properties[$this->stacMapping[$key] ?? $key] = $featureArray['properties'][$key];
+        }
+
+        return array_merge($featureArray, array(
+            'properties' => $properties
+        ));
+
+    }
+
+    /**
      * Prepare featureArray for store/update
      *
      * @param RestoCollection $collection
@@ -521,7 +559,7 @@ abstract class RestoModel
             'assets' => $data['assets'] ?? null,
             'links' => $data['links'] ?? null
         );
-        
+
     }
 
     /**

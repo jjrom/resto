@@ -354,16 +354,6 @@ class RestoFeature
      */
     private $featureArray;
 
-    /*
-     * These properties are discarded from output
-     */
-    private $discardedProperties = array(
-        'id',
-        'visibility',
-        'owner',
-        'sort_idx'
-    );
-
     /**
      * Constructor
      *
@@ -405,31 +395,7 @@ class RestoFeature
      */
     public function toPublicArray()
     {
-
-        $properties = array();
-        $model = isset($this->collection) ? $this->collection->model : new DefaultModel();
-        
-        foreach (array_keys($this->featureArray['properties']) as $key) {
-
-            // Remove null and non public properties
-            if (! isset($this->featureArray['properties'][$key]) || in_array($key, $this->discardedProperties)) {
-                continue;
-            }
-            
-            // [STAC] Eventually follows STAC mapping for properties names 
-            $properties[$model->stacMapping[$key] ?? $key] = $this->featureArray['properties'][$key];
-        }
-
-        /*
-        // Merge collection properties
-        return array_merge($this->featureArray, array(
-            'properties' => isset($this->collection) && is_array($this->collection->properties) ? array_merge($properties, $this->collection->properties) : $properties
-        ));
-        */
-
-        return array_merge($this->featureArray, array(
-            'properties' => $properties
-        ));
+        return (isset($this->collection) ? $this->collection->model : new DefaultModel())->remap($this->featureArray);
     }
 
     /**
@@ -448,15 +414,17 @@ class RestoFeature
     public function toATOM()
     {
 
+        $publicFeatureArray = $this->toPublicArray();
+
         /*
          * Initialize ATOM feed
          */
-        $atomFeed = new ATOMFeed($this->featureArray['id'], $this->featureArray['properties']['title'], 'resto feature', isset($this->collection) ? $this->collection->model : new DefaultModel());
+        $atomFeed = new ATOMFeed($publicFeatureArray['id'], $publicFeatureArray['properties']['title'], 'resto feature', isset($this->collection) ? $this->collection->model : new DefaultModel());
 
         /*
          * Entry for feature
          */
-        $atomFeed->addEntry($this->featureArray, $this->context);
+        $atomFeed->addEntry($publicFeatureArray, $this->context);
 
         /*
          * Return ATOM result
