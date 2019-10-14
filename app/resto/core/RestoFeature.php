@@ -354,6 +354,16 @@ class RestoFeature
      */
     private $featureArray;
 
+    /*
+     * These properties are discarded from output
+     */
+    private $discardedProperties = array(
+        'id',
+        'visibility',
+        'owner',
+        'sort_idx'
+    );
+
     /**
      * Constructor
      *
@@ -396,22 +406,13 @@ class RestoFeature
     public function toPublicArray()
     {
 
-        // These properties are not published
-        $discard = array(
-            'id',
-            'visibility',
-            'owner',
-            'sort_idx'
-        );
-
-
         $properties = array();
         $model = isset($this->collection) ? $this->collection->model : new DefaultModel();
         
         foreach (array_keys($this->featureArray['properties']) as $key) {
 
             // Remove null and non public properties
-            if (! isset($this->featureArray['properties'][$key]) || in_array($key, $discard)) {
+            if (! isset($this->featureArray['properties'][$key]) || in_array($key, $this->discardedProperties)) {
                 continue;
             }
             

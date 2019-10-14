@@ -511,18 +511,38 @@ abstract class RestoModel
         if (!$topologyAnalysis['isValid']) {
             RestoLogUtil::httpError(400, $topologyAnalysis['error']);
         }
-        
+
         /*
-         * Tag add-on
-         *
-         * iTag is triggered by default unless :
-         *
-         *   - the collection is one of Tag add-on "excludedCollections" array option
-         *   - query parameter "_useItag" is set to false
-         *
-         * [WARNING] if collection is excluded BUT _useItag is set to true then iTag is used
+         * Return prepared data
          */
+        return array(
+            'topologyAnalysis' => $topologyAnalysis,
+            'properties' => array_merge($properties, array('keywords' => $this->computeKeywords($collection, $data, $properties))),
+            'assets' => $data['assets'] ?? null,
+            'links' => $data['links'] ?? null
+        );
+        
+    }
+
+    /**
+     * Compute keywords using Tag add-on
+     *
+     * iTag is triggered by default unless :
+     *
+     *   - the collection is one of Tag add-on "excludedCollections" array option
+     *   - query parameter "_useItag" is set to false
+     *
+     * [WARNING] if collection is excluded BUT _useItag is set to true then iTag is used
+     * 
+     * @param RestoCollection $collection
+     * @param array $data : array (MUST BE GeoJSON in abstract Model)
+     * @param array $properties
+     */
+    private function computeKeywords($collection, $data, $properties)
+    {
+        
         $keywords = array();
+
         if (isset($collection->context->addons['Tag'])) {
             $useItag = true;
             $tagger = new Tag($collection->context, $collection->user);
@@ -545,15 +565,8 @@ abstract class RestoModel
             
         }
 
-        /*
-         * Return prepared data
-         */
-        return array(
-            'topologyAnalysis' => $topologyAnalysis,
-            'properties' => array_merge($properties, array('keywords' => $keywords)),
-            'assets' => $data['assets'] ?? null,
-            'links' => $data['links'] ?? null
-        );
+        return $keywords;
+
     }
 
     /**
