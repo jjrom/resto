@@ -479,9 +479,10 @@ abstract class RestoModel
      * This function can be superseeded in child Model
      * 
      * @param array $featureArray
+     * @param RestoCollection $collection
      * @return array
      */
-    public function remap($featureArray)
+    public function remap($featureArray, $collection)
     {
         /*
          * These properties are discarded from output
