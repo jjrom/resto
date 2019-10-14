@@ -1095,25 +1095,36 @@ class RestoCollection
          * Compute statistics from facets
          */
         if (!isset($this->statistics)) {
-            $facetFields = array();
-            if ($stats) {
-                foreach (array_values($this->model->facetCategories) as $facetCategory) {
-                    for ($i = 0, $ii = count($facetCategory); $i < $ii; $i++)
-                    {
-                        $facetFields[] = $facetCategory[$i];
-                    }
-                }
-            }
-            else {
-                $facetFields = $this->model->getAutoFacetFields();
-            }
-            $this->getStatistics($facetFields);
+            $this->getStatistics($this->getFacetFields($stats));
         }
         foreach ($this->statistics['facets'] as $key => $value) {
             $summaries[$this->model->stacMapping[$key] ?? $key] = array_keys($value);
         }
 
         return $summaries;
+    }
+
+    /**
+     * Get facet fields for summaries
+     * 
+     * @param boolean $stats
+     * @return array 
+     */
+    private function getFacetFields($stats)
+    {
+        $facetFields = array();
+        if ($stats) {
+            foreach (array_values($this->model->facetCategories) as $facetCategory) {
+                for ($i = 0, $ii = count($facetCategory); $i < $ii; $i++)
+                {
+                    $facetFields[] = $facetCategory[$i];
+                }
+            }
+        }
+        else {
+            $facetFields = $this->model->getAutoFacetFields();
+        }
+        return $facetFields;
     }
     
 }

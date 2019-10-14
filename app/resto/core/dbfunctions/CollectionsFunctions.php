@@ -241,9 +241,26 @@ class CollectionsFunctions
     public function updateExtent($collection, $featureArray)
     {
 
+        $toUpdate = array_merge($this->updateTimeExtent($collection, $featureArray), $this->updateSpatialExtent($collection, $featureArray));
+
+        if ( ! empty($toUpdate) )
+        {
+            $this->dbDriver->query('UPDATE resto.collection SET ' . join(',', $toUpdate) . ' WHERE id=\'' . pg_escape_string($collection->id) . '\'');
+        }
+        
+    }   
+        
+    /**
+     * Update time extent
+     *
+     * @param RestoCollection $collection
+     * @return array
+     * @throws Exception
+     */
+    private function updateTimeExtent($collection, $featureArray)
+    {
         $toUpdate = array();
 
-        // Time
         if ( ! isset($collection->datetime) || ! isset($collection->datetime['min']) || $collection->datetime['min'] > $featureArray['properties']['startDate'])
         {
             $toUpdate[] = 'startdate=\'' . pg_escape_string($featureArray['properties']['startDate']) .'\'';
@@ -252,8 +269,21 @@ class CollectionsFunctions
         {
             $toUpdate[] = 'completiondate=\'' . pg_escape_string($featureArray['properties']['startDate']) .'\'';
         }
-        
-        // Space
+
+        return $toUpdate;
+    }
+
+    /**
+     * Update spatial extent
+     *
+     * @param RestoCollection $collection
+     * @return array
+     * @throws Exception
+     */
+    private function updateSpatialExtent($collection, $featureArray)
+    {
+        $toUpdate = array();
+
         if ( ! isset($collection->bbox))
         {
             $toUpdate[] = 'bbox=ST_SetSRID(ST_MakeBox2D(ST_Point(' . $featureArray['topologyAnalysis']['bbox'][0] . ',' . $featureArray['topologyAnalysis']['bbox'][1] . '), ST_Point(' . $featureArray['topologyAnalysis']['bbox'][2] . ',' . $featureArray['topologyAnalysis']['bbox'][3] . ')), 4326)';
@@ -269,13 +299,10 @@ class CollectionsFunctions
             $toUpdate[] = 'bbox=ST_SetSRID(ST_MakeBox2D(ST_Point(' . $bbox[0] . ',' . $bbox[1] . '), ST_Point(' . $bbox[2] . ',' . $bbox[3] . ')), 4326)';
         }
 
-        if ( ! empty($toUpdate) )
-        {
-            $this->dbDriver->query('UPDATE resto.collection SET ' . join(',', $toUpdate) . ' WHERE id=\'' . pg_escape_string($collection->id) . '\'');
-        }
-        
-    }   
-        
+        return $toUpdate;
+
+    }
+
     /**
      * Get OpenSearch description array for input collection
      *

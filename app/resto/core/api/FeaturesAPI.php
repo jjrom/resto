@@ -773,11 +773,8 @@ class FeaturesAPI
             RestoLogUtil::httpError(403);
         }
 
-        return (new FeaturesFunctions($this->context->dbDriver))->updateFeatureProperty(
-            $feature,
-            $params['property'],
-            $body['value']
-        );
+        return (new FeaturesFunctions($this->context->dbDriver))->updateFeatureProperty($feature, $params['property'], $body['value']);
+        
     }
 
     /**

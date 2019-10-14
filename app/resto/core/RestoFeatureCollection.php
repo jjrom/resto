@@ -435,12 +435,45 @@ class RestoFeatureCollection
      * @param array $sorting
      * @param string $collectionId
      */
-    private function init(&$analysis, $sorting, $collectionId)
+    private function init($analysis, $sorting, $collectionId)
     {
 
         // Default name for all collection
         $defaultName = $collectionId ?? '*';
 
+        /*
+         * Set id
+         */
+        $this->id = RestoUtil::toUUID($defaultName . ':' . json_encode($this->cleanFilters($analysis['details']['appliedFilters']), JSON_UNESCAPED_SLASHES));
+
+        /*
+         * Set links
+         */
+        $this->links = $this->getLinks($sorting, $collectionId);
+
+        /*
+         * Set search:metadata
+         */
+        $this->searchMetadata = array(
+            'next' => $this->next,
+            'returned' => $this->paging['count']['returned'],
+            'limit' => $sorting['limit'],
+            'matched' => $this->paging['count']['total'],
+            'exactCount' => $this->paging['count']['isExact'],
+            'startIndex' => $sorting['offset'] + 1,
+            'query' => $this->getSearchQuery($analysis)
+        );
+
+    }
+
+    /**
+     * Return detailed query block from query analysis
+     *  
+     * @param array $analysis
+     * @return array
+     */
+    private function getSearchQuery($analysis)
+    {
         /*
          * Convert resto model to search service "osKey"
          */
@@ -474,28 +507,7 @@ class RestoFeatureCollection
             $query['details']['processingTime'] = microtime(true) - $this->requestStartTime;
         }
 
-        /*
-         * Set id
-         */
-        $this->id = RestoUtil::toUUID($defaultName . ':' . json_encode($this->cleanFilters($analysis['details']['appliedFilters']), JSON_UNESCAPED_SLASHES));
-
-        /*
-         * Set links
-         */
-        $this->links = $this->getLinks($sorting, $collectionId);
-
-        /*
-         * Set search:metadata
-         */
-        $this->searchMetadata = array(
-            'next' => $this->next,
-            'returned' => $this->paging['count']['returned'],
-            'limit' => $sorting['limit'],
-            'matched' => $this->paging['count']['total'],
-            'exactCount' => $this->paging['count']['isExact'],
-            'startIndex' => $sorting['offset'] + 1,
-            'query' => $query
-        );
+        return $query;
 
     }
 

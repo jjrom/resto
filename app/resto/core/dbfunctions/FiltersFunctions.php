@@ -311,19 +311,21 @@ class FiltersFunctions
     private function prepareFilterQueryIntersects($model, $filterName, $requestParams, $exclusion)
     {
 
+        $output = null;
+
         /*
          * Default bounding box is the whole earth
          */
         if ($filterName === 'geo:box') {
-            return $this->intersectFilterBBOX($model, $filterName, explode(',', $requestParams[$filterName]), $exclusion);
+            $output = $this->intersectFilterBBOX($model, $filterName, explode(',', $requestParams[$filterName]), $exclusion);
         }
 
-        if ($filterName === 'geo:geometry') {
+        else if ($filterName === 'geo:geometry') {
             $this->addToJoins('geometry_part', 'id');
-            return ($exclusion ? 'NOT ' : '') . 'ST_intersects(resto.geometry_part.' . $model->searchFilters[$filterName]['key'] . ", ST_GeomFromText('" . pg_escape_string($requestParams[$filterName]) . "', 4326))";
+            $output = ($exclusion ? 'NOT ' : '') . 'ST_intersects(resto.geometry_part.' . $model->searchFilters[$filterName]['key'] . ", ST_GeomFromText('" . pg_escape_string($requestParams[$filterName]) . "', 4326))";
         }
 
-        return null;
+        return $output;
     }
 
     /**

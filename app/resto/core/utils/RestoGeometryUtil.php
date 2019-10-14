@@ -273,27 +273,33 @@ class RestoGeometryUtil
         $epsgCode = RestoGeometryUtil::geoJSONGeometryToSRID($geometry);
         $srid = $epsgCode === 4326 ? '' : 'SRID=' . $epsgCode . ';';
         switch ($type) {
-
             case 'POINT':
-                return $srid . $type . RestoGeometryUtil::toPoint($geometry['coordinates']);
-            
+                $wkt = $srid . $type . RestoGeometryUtil::toPoint($geometry['coordinates']);
+                break;
+                
             case 'MULTIPOINT':
-                return $srid . $type . RestoGeometryUtil::coordinatesToString($geometry['coordinates'], 'toPoint');
+                $wkt = $srid . $type . RestoGeometryUtil::coordinatesToString($geometry['coordinates'], 'toPoint');
+                break;
             
             case 'LINESTRING':
-                return $srid . $type . RestoGeometryUtil::coordinatesToString($geometry['coordinates']);
-            
+                $wkt = $srid . $type . RestoGeometryUtil::coordinatesToString($geometry['coordinates']);
+                break;
+
             case 'MULTILINESTRING':
             case 'POLYGON':
-                return $srid . $type . RestoGeometryUtil::coordinatesToString($geometry['coordinates'], 'toLineString');
-            
+                $wkt = $srid . $type . RestoGeometryUtil::coordinatesToString($geometry['coordinates'], 'toLineString');
+                break;
+
             case 'MULTIPOLYGON':
-                return $srid . $type . RestoGeometryUtil::coordinatesToString($geometry['coordinates'], 'toPolygon');
-            
+                $wkt = $srid . $type . RestoGeometryUtil::coordinatesToString($geometry['coordinates'], 'toPolygon');
+                break;
+
             default:
-                return null;
+                $wkt = null;
                 
         }
+
+        return $wkt;
     }
 
     /**
