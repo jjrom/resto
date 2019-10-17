@@ -50,6 +50,11 @@
  *                  description="The value to set for the next query parameter in order to get the next page of results"
  *              ),
  *              @OA\Property(
+ *                  property="prev",
+ *                  type="string",
+ *                  description="The value to set for the prev query parameter in order to get the previous page of results"
+ *              ),
+ *              @OA\Property(
  *                  property="returned",
  *                  type="integer",
  *                  description="The count of results returned by this response. equal to the cardinality of features array"
@@ -238,6 +243,11 @@ class RestoFeatureCollection
      * Next iterator
      */
     private $next = null;
+
+    /*
+     * Previous iterator
+     */
+    private $prev = null;
 
     /*
      * Features
@@ -455,7 +465,8 @@ class RestoFeatureCollection
          * Set search:metadata
          */
         $this->searchMetadata = array(
-            'next' => $this->next,
+            'next' => $this->next ?? null,
+            'prev' => $this->prev ?? null,
             'returned' => $this->paging['count']['returned'],
             'limit' => $sorting['limit'],
             'matched' => $this->paging['count']['total'],
@@ -650,15 +661,17 @@ class RestoFeatureCollection
             {
                 $featureArray = $this->restoFeatures[0]->toArray();
 
+                $this->prev = $featureArray['properties']['sort_idx'];
+
                 /* 
                  * Previous
                  */
                 $this->links[] = $this->getLink('previous', array(
                     'resto:lt' => null,
-                    'resto:gt' => $featureArray['properties']['sort_idx'],
+                    'resto:gt' => $this->prev,
                     'count' => $sorting['limit'])
                 );
-                
+
             }
 
             /*
