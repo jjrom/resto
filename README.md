@@ -28,6 +28,8 @@ Here are some projects that use resto.
 * [Sinergise sentinel-hub OpenSearch API](http://sentinelhub-py.readthedocs.io/en/latest/opensearch.html)
 * [ESA's Food Security Thematic Exploitation Platform](https://github.com/cgi-eoss/fstep)
 * [ESA's Forestry Thematic Exploitation Platform](https://github.com/cgi-eoss/ftep)
+* [CNES Kalideos platform](https://www.kalideos.fr)
+* [CEOS Recovery Observatory](https://www.recovery-observatory.org)
 
 If you plan to use resto and would like to have your project added to this list, feel free to contact [support](#support)
 
