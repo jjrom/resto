@@ -25,10 +25,18 @@ sed -i -e '/__ADDONS__/{' -e 'r /tmp/addons.template' -e 'd' -e '}' ${CONFIG_TEM
 mkdir -v /etc/resto
 
 # Add brackets around elements of comma separated lists
-SUPPORTED_LANGUAGES=\"$(echo $SUPPORTED_LANGUAGES | sed s/,/\",\"/g)\"
-CORS_WHITELIST=\"$(echo $CORS_WHITELIST | sed s/,/\",\"/g)\"
-SEARCH_SORTABLE_FIELDS=\"$(echo $SEARCH_SORTABLE_FIELDS | sed s/,/\",\"/g)\"
-ADDON_TAG_ITAG_TAGGERS=\"$(echo $ADDON_TAG_ITAG_TAGGERS | sed s/,/\",\"/g)\"
+if [ ! -z "${SUPPORTED_LANGUAGES}" ]; then
+    SUPPORTED_LANGUAGES=\"$(echo $SUPPORTED_LANGUAGES | sed s/,/\",\"/g)\"
+fi
+if [ ! -z "${CORS_WHITELIST}" ]; then
+    CORS_WHITELIST=\"$(echo $CORS_WHITELIST | sed s/,/\",\"/g)\"
+fi
+if [ ! -z "${SEARCH_SORTABLE_FIELDS}" ]; then
+    SEARCH_SORTABLE_FIELDS=\"$(echo $SEARCH_SORTABLE_FIELDS | sed s/,/\",\"/g)\"
+fi
+if [ ! -z "${ADDON_TAG_ITAG_TAGGERS}" ]; then
+    ADDON_TAG_ITAG_TAGGERS=\"$(echo $ADDON_TAG_ITAG_TAGGERS | sed s/,/\",\"/g)\"
+fi
 
 # Awfull trick
 eval "cat <<EOF
