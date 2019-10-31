@@ -138,17 +138,25 @@ class ServicesAPI
      *      tags={"Server"},
      *      @OA\Response(
      *          response="200",
-     *          description="OGC API Feature conformance definition",
+     *          description="Server landing page",
      *          @OA\JsonContent(
      *               @OA\Property(
      *                  property="title",
      *                  type="string",
-     *                  description="Server title",
+     *                  description="Server title"
      *              ),
      *              @OA\Property(
      *                  property="description",
      *                  type="string",
-     *                  description="Server description",
+     *                  description="Server description"
+     *              ),
+     *              @OA\Property(
+     *                  property="extensions",
+     *                  type="array",
+     *                  @OA\Items(
+     *                      type="string"
+     *                  ),
+     *                  description="Array of resto-addons list. Used client side to detect resto capabilities",
      *              ),
      *              @OA\Property(
      *                  property="links",
@@ -165,9 +173,16 @@ class ServicesAPI
      */
     public function hello()
     {
+        
+        $extensions = array('resto-core');
+        foreach (array_keys($this->context->addons) as $key) {
+            array_push($extensions, strtolower($key));
+        }
+
         return array(
             'title' => getenv('API_INFO_TITLE'),
             'description' => getenv('API_INFO_DESCRIPTION'),
+            'extensions' => $extensions,
             'links' => array(
                 array(
                     'rel' => 'self',
