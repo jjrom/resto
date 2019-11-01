@@ -179,36 +179,47 @@ class ServicesAPI
             array_push($capabilities, strtolower($key));
         }
 
+        $links = array(
+            array(
+                'rel' => 'self',
+                'type' => RestoUtil::$contentTypes['json'],
+                'title' => getenv('API_INFO_TITLE'),
+                'href' => $this->context->core['baseUrl']
+            ),
+            array(
+                'rel' => 'service',
+                'type' => RestoUtil::$contentTypes['json'],
+                'title' => 'OpenAPI 3.0 definition endpoint',
+                'href' => $this->context->core['baseUrl'] . '/api'
+            ),
+            array(
+                'rel' => 'conformance',
+                'type' => RestoUtil::$contentTypes['json'],
+                'title' => 'Conformance declaration',
+                'href' => $this->context->core['baseUrl'] . '/conformance'
+            ),
+            array(
+                'rel' => 'data',
+                'type' => RestoUtil::$contentTypes['json'],
+                'title' => 'Collections metadata',
+                'href' => $this->context->core['baseUrl'] . '/collections'
+            )
+        );
+
+        if ($this->context->addons['STAC']) {
+            array_push($links, array(
+                'rel' => 'search',
+                'type' => RestoUtil::$contentTypes['geojson'],
+                'title' => 'Search endpoint',
+                'href' => $this->context->core['baseUrl'] . '/stac/search'
+            ));
+        }
+
         return array(
             'title' => getenv('API_INFO_TITLE'),
             'description' => getenv('API_INFO_DESCRIPTION'),
             'capabilities' => $capabilities,
-            'links' => array(
-                array(
-                    'rel' => 'self',
-                    'type' => RestoUtil::$contentTypes['json'],
-                    'title' => getenv('API_INFO_TITLE'),
-                    'href' => $this->context->core['baseUrl']
-                ),
-                array(
-                    'rel' => 'service',
-                    'type' => RestoUtil::$contentTypes['json'],
-                    'title' => 'OpenAPI 3.0 definition endpoint',
-                    'href' => $this->context->core['baseUrl'] . '/api'
-                ),
-                array(
-                    'rel' => 'conformance',
-                    'type' => RestoUtil::$contentTypes['json'],
-                    'title' => 'Conformance declaration',
-                    'href' => $this->context->core['baseUrl'] . '/conformance'
-                ),
-                array(
-                    'rel' => 'data',
-                    'type' => RestoUtil::$contentTypes['json'],
-                    'title' => 'Collections metadata',
-                    'href' => $this->context->core['baseUrl'] . '/collections'
-                )
-            )
+            'links' => $links
         );
     }
 
