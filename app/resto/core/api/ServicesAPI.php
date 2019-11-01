@@ -151,7 +151,7 @@ class ServicesAPI
      *                  description="Server description"
      *              ),
      *              @OA\Property(
-     *                  property="extensions",
+     *                  property="capabilities",
      *                  type="array",
      *                  @OA\Items(
      *                      type="string"
@@ -174,15 +174,15 @@ class ServicesAPI
     public function hello()
     {
         
-        $extensions = array('resto-core');
+        $capabilities = array('resto-core');
         foreach (array_keys($this->context->addons) as $key) {
-            array_push($extensions, strtolower($key));
+            array_push($capabilities, strtolower($key));
         }
 
         return array(
             'title' => getenv('API_INFO_TITLE'),
             'description' => getenv('API_INFO_DESCRIPTION'),
-            'extensions' => $extensions,
+            'capabilities' => $capabilities,
             'links' => array(
                 array(
                     'rel' => 'self',
