@@ -29,7 +29,7 @@
  *      @OA\Property(
  *          property="id",
  *          type="string",
- *          description="Collection identifier. It must be an unique alphanumeric string containing [a-zA-Z0-9] and not starting with a digit."
+ *          description="Collection identifier. It must be an unique alphanumeric string containing only [a-zA-Z0-9\-_]."
  *      ),
  *      @OA\Property(
  *          property="version",
@@ -231,7 +231,7 @@
  *      @OA\Property(
  *          property="id",
  *          type="string",
- *          description="Collection identifier. It is an unique alphanumeric string containing [a-zA-Z0-9] and not starting with a digit."
+ *          description="Collection identifier. It must be an unique alphanumeric string containing only [a-zA-Z0-9\-_]."
  *      ),
  *      @OA\Property(
  *          property="title",
@@ -743,9 +743,9 @@ class RestoCollection
     {
         if (isset($id)) {
 
-            // Collection identifier should be alphanumeric based only except for reserved '*' collection
-            if (preg_match("/^[a-zA-Z0-9]+$/", $id) !== 1 || ctype_digit(substr($id, 0, 1))) {
-                RestoLogUtil::httpError(400, 'Collection identifier must be an alphanumeric string [a-zA-Z0-9] and not starting with a digit');
+            // Collection identifier is an alphanumeric string without special characters
+            if (preg_match("/^[a-zA-Z0-9\-_]+$/", $id) !== 1) {
+                RestoLogUtil::httpError(400, 'Collection identifier must be an alphanumeric string containing only [a-zA-Z0-9\-_]');
             }
 
             $this->id = $id;

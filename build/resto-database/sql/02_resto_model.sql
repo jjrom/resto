@@ -17,8 +17,7 @@ CREATE SEQUENCE IF NOT EXISTS resto.table_id_seq;
 --
 CREATE TABLE IF NOT EXISTS resto.collection (
 
-    -- Unique id for collection.
-    -- It cannot start with a digit and cannot contains special characters
+    -- Unique id for collection
     "id"                TEXT PRIMARY KEY,
 
     -- Collection version
