@@ -187,10 +187,16 @@ class ServicesAPI
                 'href' => $this->context->core['baseUrl']
             ),
             array(
-                'rel' => 'service',
+                'rel' => 'service-desc',
                 'type' => RestoUtil::$contentTypes['json'],
                 'title' => 'OpenAPI 3.0 definition endpoint',
                 'href' => $this->context->core['baseUrl'] . '/api'
+            ),
+            array(
+                'rel' => 'service-doc',
+                'type' => RestoUtil::$contentTypes['html'],
+                'title' => 'OpenAPI 3.0 definition endpoint documentation',
+                'href' => $this->context->core['baseUrl'] . '/api.html'
             ),
             array(
                 'rel' => 'conformance',
