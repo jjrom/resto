@@ -329,7 +329,7 @@ class RestoFeatureCollection
      *
      * @param RestoModel $model
      * @param RestoCollection $collection
-     * @param Array $query (usually $this->context->query)
+     * @param Array $query
      */
     public function load($model, $collection, $query)
     {

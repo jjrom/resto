@@ -102,7 +102,7 @@ class FeaturesAPI
         // [IMPORTANT] Default fields output is "_default"
         $feature = new RestoFeature($this->context, $this->user, array(
             'featureId' => $params['featureId'],
-            'fields' => $this->context->query['fields'] ?? "_default",
+            'fields' => $params['fields'] ?? "_default",
             'collection' => (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()
         ));
 
@@ -534,7 +534,7 @@ class FeaturesAPI
             return RestoLogUtil::httpError(400, 'Only one of either intersects or bbox should be specified');
         }
 
-        return (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()->search($this->context->query);
+        return (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()->search($params);
     }
 
     /**
