@@ -174,11 +174,12 @@ class RestoCollections
      * Search features within collection
      *
      * @param RestoModel $model
+     * @param array $query
      * @return array (FeatureCollection)
      */
-    public function search($model)
+    public function search($model, $query)
     {
-        return (new RestoFeatureCollection($this->context, $this->user, $this->collections))->load($model ?? new DefaultModel());
+        return (new RestoFeatureCollection($this->context, $this->user, $this->collections))->load($model ?? new DefaultModel(), null, $query);
     }
 
     /**

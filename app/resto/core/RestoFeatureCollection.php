@@ -265,6 +265,11 @@ class RestoFeatureCollection
     private $model;
 
     /*
+     * Query for search
+     */
+    private $query = array();
+
+    /*
      * Total number of resources relative to the query
      */
     private $paging = array();
@@ -324,8 +329,9 @@ class RestoFeatureCollection
      *
      * @param RestoModel $model
      * @param RestoCollection $collection
+     * @param Array $query (usually $this->context->query)
      */
-    public function load($model, $collection = null)
+    public function load($model, $collection, $query)
     {
 
         /*
@@ -339,9 +345,14 @@ class RestoFeatureCollection
         $this->model = $model;
 
         /*
+         * Query parameters to perform the search
+         */
+        $this->query = $query;
+
+        /*
          * Clean search filters
          */
-        $inputFilters = $this->model->getFiltersFromQuery($this->context->query);
+        $inputFilters = $this->model->getFiltersFromQuery($query);
         
         /*
          * Force collection
@@ -512,7 +523,7 @@ class RestoFeatureCollection
         /*
          * Display detailed analysis ?
          */
-        if (isset($this->context->query['_analysis']) ? filter_var($this->context->query['_analysis'], FILTER_VALIDATE_BOOLEAN) : false) {
+        if (isset($this->query['_analysis']) ? filter_var($this->query['_analysis'], FILTER_VALIDATE_BOOLEAN) : false) {
             $query['details'] = $analysis['details'];
             $query['details']['appliedFilters'] = $this->toOSKeys($analysis['details']['appliedFilters']);
             $query['details']['processingTime'] = microtime(true) - $this->requestStartTime;
@@ -585,7 +596,7 @@ class RestoFeatureCollection
             $feature = new RestoFeature($this->context, $this->user, array(
                 'featureArray' => $featuresArray['features'][$i],
                 'collection' => $this->collections[$featuresArray['features'][$i]['collection']] ?? null,
-                'fields' => $this->context->query['fields'] ?? "_default"
+                'fields' => $this->query['fields'] ?? "_default"
             ));
             if ( $feature->isValid() ) {
                 $this->restoFeatures[] = $feature;
@@ -743,7 +754,7 @@ class RestoFeatureCollection
         $this->links[] = array(
             'rel' => 'self',
             'type' => RestoUtil::$contentTypes['geojson'],
-            'href' => RestoUtil::updateUrl($this->context->getUrl(false), $this->writeRequestParams($this->context->query))
+            'href' => RestoUtil::updateUrl($this->context->getUrl(false), $this->writeRequestParams($this->query))
         );
 
         $this->links[] = array(
@@ -773,7 +784,7 @@ class RestoFeatureCollection
         return array(
             'rel' => $rel,
             'type' => RestoUtil::$contentTypes['geojson'],
-            'href' => RestoUtil::updateUrl($this->context->getUrl(false), $this->writeRequestParams(array_merge($this->context->query, $params)))
+            'href' => RestoUtil::updateUrl($this->context->getUrl(false), $this->writeRequestParams(array_merge($this->query, $params)))
         );
     }
 

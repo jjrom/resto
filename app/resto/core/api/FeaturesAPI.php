@@ -534,7 +534,7 @@ class FeaturesAPI
             return RestoLogUtil::httpError(400, 'Only one of either intersects or bbox should be specified');
         }
 
-        return (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()->search();
+        return (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()->search($this->context->query);
     }
 
     /**
