@@ -544,7 +544,7 @@ class CollectionsAPI
      *         name="tolerance",
      *         in="query",
      *         required=false,
-     *         description="Simplify input geometry with tolerance in degrees (use in conjunction with *maxpoints*",
+     *         description="Simplify input geometry with tolerance in degrees (use in conjunction with *maxpoints*). [IMPORTANT] Simplification only affects the internal indexed geometry used by the search engine. The original geometry is stored unmodified.",
      *         @OA\Schema(
      *             type="float"
      *         )
