@@ -867,7 +867,7 @@ class RestoCollection
                     array(
                         'rel' => 'self',
                         'type' => RestoUtil::$contentTypes['json'],
-                        'href' => $this->context->getUrl(false)
+                        'href' => $this->context->core['baseUrl'] . '/collections/' . $this->id
                     ),
                     array(
                         'rel' => 'root',
