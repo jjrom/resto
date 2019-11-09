@@ -36,6 +36,9 @@ class RestoContext
         // API endpoint
         'baseUrl' => 'http://127.0.0.1:5252',
 
+        // Data related "planet"
+        'planet' => 'earth',
+
         // JSON Web Token duration (in seconds)
         'tokenDuration' => 3600,
 

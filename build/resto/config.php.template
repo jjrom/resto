@@ -1,6 +1,7 @@
 <?php
 return array(
     'baseUrl' => '${PUBLIC_ENDPOINT:-http://127.0.0.1:5252}',
+    'planet' => '${PLANET:-earth}',
     'debug' => ${RESTO_DEBUG:-false},
     'languages' => array(${SUPPORTED_LANGUAGES}),
     'passphrase' => '${JWT_PASSPHRASE}',

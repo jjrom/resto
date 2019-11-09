@@ -225,6 +225,7 @@ class ServicesAPI
             'title' => getenv('API_INFO_TITLE'),
             'description' => getenv('API_INFO_DESCRIPTION'),
             'capabilities' => $capabilities,
+            'planet' => $this->context->core['planet'],
             'links' => $links
         );
     }
