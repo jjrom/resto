@@ -359,7 +359,8 @@ class Resto
 
         /*
          * Case 2 - Object is an object
-         */ elseif (is_object($object)) {
+         */
+        elseif (is_object($object)) {
             $methodName = 'to' . strtoupper($this->context->outputFormat);
             if (method_exists(get_class($object), $methodName)) {
                 return $this->context->outputFormat === 'json' ? $object->$methodName($pretty) : $object->$methodName();
@@ -367,6 +368,8 @@ class Resto
             return RestoLogUtil::httpError(404);
         }
 
+        return $object;
+        
         /*
          * Unknown stuff
          */
