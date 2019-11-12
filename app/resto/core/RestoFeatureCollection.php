@@ -388,12 +388,12 @@ class RestoFeatureCollection
         else {
             $this->loadFeatures($analysis['details']['appliedFilters'], $sorting);
         }
-
+        
         /*
          * Initial values
          */
         $this->init($analysis, $sorting, isset($collection) ? $collection->id : null);
-
+    
         /*
          * Return object
          */
@@ -612,7 +612,7 @@ class RestoFeatureCollection
          * Heatmap add-on
          */
         if (isset($this->context->addons['Heatmap'])) {
-            $heatmapLink = (new Heatmap($this->context, $this->user))->getEndPoint($featuresArray['whereClause'], $featuresArray['count'], $params['geo:geometry'] ?? null);
+            $heatmapLink = (new Heatmap($this->context, $this->user))->getEndPoint($featuresArray['whereClauseNoGeo'], $featuresArray['count'], $params['geo:geometry'] ?? null);
             if ($heatmapLink) {
                 $this->links[] = $heatmapLink;
             }

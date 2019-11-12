@@ -105,7 +105,10 @@ class FeaturesFunctions
         if (isset($params['resto:liked']) && isset($context->addons['Social'])) {
             $who = $params['resto:owner'] ?? $user->profile['id'];
             if (isset($who)) {
-                $filtersAndJoins['filters'][] = 'resto.likes.featureid=resto.feature.id AND resto.likes.userid=' . pg_escape_string($who);
+                $filtersAndJoins['filters'][] = array(
+                    'value' => 'resto.likes.featureid=resto.feature.id AND resto.likes.userid=' . pg_escape_string($who),
+                    'isGeo' => false
+                );
                 $filtersAndJoins['joins'][] = 'JOIN resto.likes ON resto.feature.id = resto.likes.featureid';
             }
         }
@@ -131,7 +134,10 @@ class FeaturesFunctions
                 'useSocial' => isset($context->addons['Social']),
                 'sortKey' => $sorting['sortKey']
             )),
-            $filtersFunctions->getWhereClause($filtersAndJoins, true),
+            $filtersFunctions->getWhereClause($filtersAndJoins, array(
+                'sort' => true,
+                'addGeo' => true
+            )),
             $extra
         ));
         
@@ -142,10 +148,13 @@ class FeaturesFunctions
          * Note: totalcount is estimated except if input search contains a lon/lat filter
          */
         $features = (new RestoFeatureUtil($context, $user, $collections))->toFeatureArrayList($this->dbDriver->fetch($this->dbDriver->query($query)));
-        $whereClause = $filtersFunctions->getWhereClause($filtersAndJoins, false);
+        
         return array(
-            'whereClause' => $whereClause,
-            'count' => count($features) > 0 ? $this->getCount('FROM resto.feature ' . $whereClause, $params) : array(
+            'whereClauseNoGeo' => $filtersFunctions->getWhereClause($filtersAndJoins, array(
+                'sort' => false,
+                'addGeo' => false)
+            ),
+            'count' => count($features) > 0 ? $this->getCount('FROM resto.feature ' . $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => true)), $params) : array(
                 'total' => 0,
                 'isExact' => true
             ),
@@ -179,7 +188,10 @@ class FeaturesFunctions
         $filtersAndJoins = $filterFunctions->prepareFilters($user, $model, array(), null);
 
         // Determine if search on id or productidentifier
-        $filtersAndJoins['filters'][] = 'resto.feature.id=\'' . pg_escape_string((RestoUtil::isValidUUID($featureId) ? $featureId : RestoUtil::toUUID($featureId))) . '\'';
+        $filtersAndJoins['filters'][] = array(
+            'value' => 'resto.feature.id=\'' . pg_escape_string((RestoUtil::isValidUUID($featureId) ? $featureId : RestoUtil::toUUID($featureId))) . '\'',
+            'isGeo' => false
+        );
         $results = $this->dbDriver->fetch($this->dbDriver->query($selectClause . ' ' . $filterFunctions->getWhereClause($filtersAndJoins, true)));
         return isset($results) && count($results) === 1 ? (new RestoFeatureUtil($context, $user, array($collection->id => $collection)))->toFeatureArray($results[0]) : null;
     }

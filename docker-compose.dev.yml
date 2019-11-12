@@ -46,6 +46,9 @@ services:
       - /Users/jrom/Devel/resto-addons/resto-addon-stac/stac.config:/cfg/stac.config
       - /Users/jrom/Devel/resto-addons/resto-addon-mvt/mvt.config:/cfg/mvt.config
       - /Users/jrom/Devel/resto-addons/resto-addon-mvt/src/MVT.php:/app/resto/addons/MVT.php
+      - /Users/jrom/Devel/resto-addons/resto-addon-heatmap/heatmap.config:/cfg/heatmap.config
+      - /Users/jrom/Devel/resto-addons/resto-addon-heatmap/src/Heatmap.php:/app/resto/addons/Heatmap.php
+      
   restodb:
     image: jjrom/resto-database:6.0
     restart: always
