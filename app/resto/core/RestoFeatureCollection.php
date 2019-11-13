@@ -609,15 +609,12 @@ class RestoFeatureCollection
         $this->paging = $this->getPaging($featuresArray['count'], $sorting['limit'], $sorting['offset']);
 
         /*
-         * Heatmap add-on
+         * Additional links computed during search (e.g. heatmap - see resto-addon-heatmap)
          */
-        if (isset($this->context->addons['Heatmap'])) {
-            $heatmapLink = (new Heatmap($this->context, $this->user))->getEndPoint($featuresArray['whereClauseNoGeo'], $featuresArray['count'], $params['geo:geometry'] ?? null);
-            if ($heatmapLink) {
-                $this->links[] = $heatmapLink;
-            }
+        if ( !empty($featuresArray['links']) ) {
+            $this->links = array_merge($this->links, $featuresArray['links']);
         }
-
+        
     }
 
     /**

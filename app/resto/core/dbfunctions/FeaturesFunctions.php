@@ -89,6 +89,11 @@ class FeaturesFunctions
     {
        
         /*
+         * Prepare empty links
+         */
+        $links = array();
+
+        /*
          * Check that mandatory filters are set
          */
         $this->checkMandatoryFilters($model->searchFilters, $params);
@@ -149,11 +154,19 @@ class FeaturesFunctions
          */
         $features = (new RestoFeatureUtil($context, $user, $collections))->toFeatureArrayList($this->dbDriver->fetch($this->dbDriver->query($query)));
         
+        /*
+         * Heatmap add-on
+         */
+        if (isset($context->addons['Heatmap'])) {
+            $whereClauseNoGeo = $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => false));
+            $heatmapLink = (new Heatmap($context, $user))->getEndPoint($whereClauseNoGeo, $this->getCount('FROM resto.feature ' . $whereClauseNoGeo, $params), null);
+            if ( isset($heatmapLink) ) {
+                $links[] = $heatmapLink;
+            }
+        }
+
         return array(
-            'whereClauseNoGeo' => $filtersFunctions->getWhereClause($filtersAndJoins, array(
-                'sort' => false,
-                'addGeo' => false)
-            ),
+            'links' => $links,
             'count' => count($features) > 0 ? $this->getCount('FROM resto.feature ' . $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => true)), $params) : array(
                 'total' => 0,
                 'isExact' => true
