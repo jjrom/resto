@@ -159,7 +159,7 @@ class FeaturesFunctions
          */
         if (isset($context->addons['Heatmap'])) {
             $whereClauseNoGeo = $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => false));
-            $heatmapLink = (new Heatmap($context, $user))->getEndPoint($whereClauseNoGeo, $this->getCount('FROM resto.feature ' . $whereClauseNoGeo, $params), null);
+            $heatmapLink = (new Heatmap($context, $user))->getEndPoint($whereClauseNoGeo, $this->getCount('FROM resto.feature ' . $whereClauseNoGeo), null);
             if ( isset($heatmapLink) ) {
                 $links[] = $heatmapLink;
             }
