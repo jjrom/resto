@@ -226,11 +226,11 @@ class RestoCollections
     }
 
     /**
-     * Output collections descriptions as a JSON stream
-     *
-     * @param boolean $pretty : true to return pretty print
+     * Return object as an array
+     * 
+     * @return array
      */
-    public function toJSON($pretty = false)
+    public function toArray()
     {
         $collections = array(
             'extent' => $this->extent,
@@ -249,7 +249,17 @@ class RestoCollections
             ));
         }
 
-        return json_encode($collections, $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
+        return $collections;
+    }
+
+    /**
+     * Output collections descriptions as a JSON stream
+     *
+     * @param boolean $pretty : true to return pretty print
+     */
+    public function toJSON($pretty = false)
+    {
+        return json_encode($this->toArray(), $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
     }
 
     /**
