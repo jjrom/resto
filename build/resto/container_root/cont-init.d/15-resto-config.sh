@@ -13,9 +13,12 @@ fi
 # Add-ons configuration
 touch /tmp/addons.template
 for config in $(ls /cfg/*.config); do
-    echo "[CONFIG] Add add-on configuration " . $config
-    cat $config | awk '{print "      ", $0}' >> /tmp/addons.template
-    echo -n "," >> /tmp/addons.template
+    nbOfLines=`wc -l ${config} | awk {print $1}`
+    if [[ "${nbOfLines}" != "0" ]]; then
+        echo "[CONFIG] Add add-on configuration " . $config
+        cat $config | awk '{print "      ", $0}' >> /tmp/addons.template
+        echo -n "," >> /tmp/addons.template
+    fi
 done
 
 # Replace __ADDONS__
