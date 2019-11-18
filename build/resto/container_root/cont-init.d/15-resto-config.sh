@@ -13,7 +13,7 @@ fi
 # Add-ons configuration
 touch /tmp/addons.template
 for config in $(ls /cfg/*.config); do
-    nbOfLines=`wc -l ${config} | awk {print $1}`
+    nbOfLines=`wc -l ${config} | awk '{print $1}'`
     if [[ "${nbOfLines}" != "0" ]]; then
         echo "[CONFIG] Add add-on configuration " . $config
         cat $config | awk '{print "      ", $0}' >> /tmp/addons.template
@@ -45,4 +45,4 @@ fi
 eval "cat <<EOF
 $(<${CONFIG_TEMPLATE_FILE})
 EOF
-" | sed s/\'\"/\'/g | sed s/\"\'/\'/g | sed s/,,/,/g > /etc/resto/config.php
+" | sed s/\'\"/\'/g | sed s/\"\'/\'/g > /etc/resto/config.php
