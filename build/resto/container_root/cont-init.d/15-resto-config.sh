@@ -45,4 +45,4 @@ fi
 eval "cat <<EOF
 $(<${CONFIG_TEMPLATE_FILE})
 EOF
-" | sed s/\'\"/\'/g | sed s/\"\'/\'/g > /etc/resto/config.php
+" | sed s/\'\"/\'/g | sed s/\"\'/\'/g | sed s/,,/,/g > /etc/resto/config.php
