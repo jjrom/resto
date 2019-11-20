@@ -150,7 +150,7 @@ fi
 
 # echo -e "[INFO] Starting ${PROJECT_NAME} docker instance"
 if [[ "${TARGET}" == "dev" ]]; then
-    ENV_FILE=${ENV_FILE} docker-compose --project-name ${PROJECT_NAME} -f docker-compose.dev.yml up -d
+    ENV_FILE=${ENV_FILE} docker-compose --project-name ${PROJECT_NAME} -f docker-compose.yml -f docker-compose.dev.yml up -d
 else
     ENV_FILE=${ENV_FILE} docker-compose --project-name ${PROJECT_NAME} -f docker-compose.yml up -d
 fi
