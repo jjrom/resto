@@ -334,41 +334,63 @@ abstract class RestoModel
     }
 
     /**
-     * Store feature within {collection}.features table following the class model
+     * Store several features within {collection}.features table following the class model
      *
      * @param RestoCollection $collection
-     * @param array $data : array (MUST BE GeoJSON in abstract Model)
+     * @param array $data : array (MUST BE a GeoJSON "FeatureCollection" in abstract Model)
      * @param array $params
      *
      */
-    public function storeFeature($collection, $data, $params)
+    public function storeFeatures($collection, $data, $params)
     {
+
+        if ( !isset($data) || !in_array($data['type'], array('Feature', 'FeatureCollection')) ) {
+            return RestoLogUtil::httpError(400, 'Invalid input type - only "Feature" and "FeatureCollection" are allowed');
+        }
+
+        // Feature case
+        if ( $data['type'] === 'Feature' ) {
+            return $this->storeFeature($collection, $data, $params);
+        }
+
+        // FeatureCollection case
         
-        /*
-         * Input feature cannot have both an id and a productIdentifier
-         */
-        if (isset($data['id']) && isset($data['properties']['productIdentifier']) && $data['id'] !== $data['properties']['productIdentifier']) {
-            return RestoLogUtil::httpError(400, 'Invalid input feature - found both "id" and "properties.productIdentifier"');
-        }
+        $inserted = 0;
+        $inError = 0;
+        $featuresInserted = array();
+        $featuresInError = array();
+        for ($i = 0, $ii = count($data['features']); $i<$ii; $i++)
+        {
 
-        $productIdentifier = $data['id'] ?? $data['properties']['productIdentifier'] ?? null;
-        $data['properties']['productIdentifier'] = $productIdentifier;
-        $featureId = isset($productIdentifier) ? RestoUtil::toUUID($productIdentifier) : RestoUtil::toUUID(md5(microtime().rand()));
+            try {
 
-        /*
-         * First check if feature is already in database
-         * [Note] Feature productIdentifier is UNIQUE
-         *  
-         * (do this before getKeywords to avoid iTag process)
-         */
-        if (isset($productIdentifier) && (new FeaturesFunctions($collection->context->dbDriver))->featureExists($featureId)) {
-            RestoLogUtil::httpError(409, 'Feature ' . $featureId . ' (with productIdentifier=' . $productIdentifier . ') already in database');
-        }
+                $result = $this->storeFeature($collection, $data['features'][$i], $params);
+                if ($result !== false) {
+                    array_push($featuresInserted, array(
+                        'featureId' => $result['id'],
+                        'productIdentifier' => $result['productIdentifier'],
+                        'facetsStored' => $result['facetsStored']
+                    ));
+                    $inserted++;
+                }
+            
+            }
+            catch (Exception $e) {
+                array_push($featuresInError, array(
+                    'code' => $e->getCode(),
+                    'error' => $e->getMessage()
+                ));
+                $inError++;
+                continue;
+            }
 
-        return (new FeaturesFunctions($collection->context->dbDriver))->storeFeature(
-            $featureId,
-            $collection,
-            $this->prepareFeatureArray($collection, $data, $params)
+        }      
+
+        return array(
+            'inserted' => $inserted,
+            'inError' => $inError,
+            'features' => $featuresInserted,
+            'errors' => $featuresInError
         );
 
     }
@@ -510,6 +532,46 @@ abstract class RestoModel
         return array_merge($featureArray, array(
             'properties' => $properties
         ));
+
+    }
+
+    /**
+     * Store individual feature within {collection}.features table following the class model
+     *
+     * @param RestoCollection $collection
+     * @param array $data : array (MUST BE a GeoJSON "Feature" in abstract Model)
+     * @param array $params
+     *
+     */
+    private function storeFeature($collection, $data, $params)
+    {
+        
+        /*
+         * Input feature cannot have both an id and a productIdentifier
+         */
+        if (isset($data['id']) && isset($data['properties']['productIdentifier']) && $data['id'] !== $data['properties']['productIdentifier']) {
+            return RestoLogUtil::httpError(400, 'Invalid input feature - found both "id" and "properties.productIdentifier"');
+        }
+
+        $productIdentifier = $data['id'] ?? $data['properties']['productIdentifier'] ?? null;
+        $data['properties']['productIdentifier'] = $productIdentifier;
+        $featureId = isset($productIdentifier) ? RestoUtil::toUUID($productIdentifier) : RestoUtil::toUUID(md5(microtime().rand()));
+
+        /*
+         * First check if feature is already in database
+         * [Note] Feature productIdentifier is UNIQUE
+         *  
+         * (do this before getKeywords to avoid iTag process)
+         */
+        if (isset($productIdentifier) && (new FeaturesFunctions($collection->context->dbDriver))->featureExists($featureId)) {
+            RestoLogUtil::httpError(409, 'Feature ' . $featureId . ' (with productIdentifier=' . $productIdentifier . ') already in database');
+        }
+
+        return (new FeaturesFunctions($collection->context->dbDriver))->storeFeature(
+            $featureId,
+            $collection,
+            $this->prepareFeatureArray($collection, $data, $params)
+        );
 
     }
 

@@ -525,11 +525,11 @@ class CollectionsAPI
     }
 
     /**
-     * Add a feature to collection
+     * Add feature(s) to collection
      *
      *  @OA\Post(
      *      path="/collections/{collectionId}/items",
-     *      summary="Add feature to collection",
+     *      summary="Add feature(s) to collection",
      *      tags={"Collection"},
      *      @OA\Parameter(
      *         name="collectionId",
@@ -568,8 +568,13 @@ class CollectionsAPI
      *         )
      *      ),
      *      @OA\RequestBody(
-     *         description="Feature description",
-     *         @OA\JsonContent(ref="#/components/schemas/InputFeature")
+     *         description="Either a GeoJSON Feature or a GeoJSON FeatureCollection",
+     *         @OA\JsonContent(
+     *              oneOf={
+     *                  @OA\Schema(ref="#/components/schemas/InputFeatureCollection"),
+     *                  @OA\Schema(ref="#/components/schemas/InputFeature")    
+     *              }
+     *         )
      *      ),
      *      @OA\Response(
      *          response="200",
@@ -637,7 +642,7 @@ class CollectionsAPI
      * @param array $params
      * @param array $body
      */
-    public function insertFeature($params, $body)
+    public function insertFeatures($params, $body)
     {
 
         /*
@@ -654,9 +659,9 @@ class CollectionsAPI
         }
 
         /*
-         * Insert feature within database
+         * Insert feature(s) within database
          */
-        $result = $collection->addFeature($body, array(
+        $result = $collection->addFeatures($body, array(
             'tolerance' => isset($params['tolerance']) && is_numeric($params['tolerance']) ? (float) $params['tolerance'] : null,
             'maxpoints' => isset($params['maxpoints']) && ctype_digit($params['maxpoints']) ? (integer) $params['maxpoints'] : null
         ));
@@ -668,11 +673,6 @@ class CollectionsAPI
             return RestoLogUtil::httpError(500, 'Cannot insert feature in database');
         }
 
-        return RestoLogUtil::success('Feature inserted', array(
-            'collection' => $collection->id,
-            'featureId' => $result['id'],
-            'productIdentifier' => $result['productIdentifier'],
-            'facetsStored' => $result['facetsStored']
-        ));
+        return RestoLogUtil::success('Inserted features', $result);
     }
 }

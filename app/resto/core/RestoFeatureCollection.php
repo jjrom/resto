@@ -220,6 +220,125 @@
  *          "id": "20ac2fc6-daee-5621-bca4-d88c0bb19da1"
  *      }
  *  )
+ * 
+ *  @OA\Schema(
+ *      schema="InputFeatureCollection",
+ *      description="Feature collection",
+ *      required={"type", "features"},
+ *      @OA\Property(
+ *          property="type",
+ *          type="enum",
+ *          enum={"FeatureCollection"},
+ *          description="Always set to *FeatureCollection*"
+ *      ),
+ *      @OA\Property(
+ *          property="features",
+ *          type="array",
+ *          description="Array of features",
+ *          @OA\Items(ref="#/components/schemas/InputFeature")
+ *      ),
+ *      example={
+ *          "type": "FeatureCollection",
+ *          "features":{
+ *              {
+ *                  "stac_version": "0.8.0",
+ *                  "stac_extensions": {
+ *                      "eo"
+ *                  },
+ *                  "type": "Feature",
+ *                  "id": "8030a391-4002-556f-929b-d7ff9dad6705",
+ *                  "bbox": {
+ *                      -48.6198530870596,
+ *                      74.6749788966259,
+ *                      -44.6464244356188,
+ *                      75.6843970710939
+ *                  },
+ *                  "geometry": {
+ *                      "type": "Polygon",
+ *                      "coordinates": {
+ *                          {
+ *                              {
+ *                                  -48.619853,
+ *                                  75.657209
+ *                              },
+ *                              {
+ *                                  -44.646424,
+ *                                  75.684397
+ *                              },
+ *                              {
+ *                                  -44.660672,
+ *                                  75.069386
+ *                              },
+ *                              {
+ *                                  -44.698432,
+ *                                  75.060518
+ *                              },
+ *                              {
+ *                                  -45.489771,
+ *                                  74.830977
+ *                              },
+ *                              {
+ *                                  -45.857954,
+ *                                  74.720238
+ *                              },
+ *                              {
+ *                                  -45.921685,
+ *                                  74.698702
+ *                              },
+ *                              {
+ *                                  -48.392706,
+ *                                  74.674979
+ *                              },
+ *                              {
+ *                                  -48.619853,
+ *                                  75.657209
+ *                              }
+ *                          }
+ *                      }
+ *                  },
+ *                  "properties": {
+ *                      "datetime":"2019-06-11T16:11:41Z",
+ *                      "productIdentifier": "S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040",
+ *                      "startDate": "2019-06-11T16:11:41.808000Z"
+ *                  },
+ *                  "collection": "S2",
+ *                  "links": {
+ *                      {
+ *                          "rel": "self",
+ *                          "type": "application/json",
+ *                          "href": "http://127.0.0.1:5252/collections/S2/items/8030a391-4002-556f-929b-d7ff9dad6705?&lang=en"
+ *                      },
+ *                      {
+ *                          "rel": "collection",
+ *                          "type": "application/json",
+ *                          "title": "S2",
+ *                          "href": "http://127.0.0.1:5252/collections/S2?&lang=en"
+ *                      }
+ *                  },
+ *                  "assets": {
+ *                      "thumbnail": {
+ *                          "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/preview.jpg",
+ *                          "type": "image/jpeg"
+ *                      },
+ *                      "metadata": {
+ *                          "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/metadata.xml",
+ *                          "type": "text/xml"
+ *                      },
+ *                      "tileInfo": {
+ *                          "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/tileInfo.json",
+ *                          "type": "application/json"
+ *                      },
+ *                      "productInfo": {
+ *                          "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/productInfo.json",
+ *                          "type": "application/json"
+ *                      }
+ *                  }
+ *              }
+ *          }
+ *      }
+ *  )
+ * 
+ * 
  */
 class RestoFeatureCollection
 {
