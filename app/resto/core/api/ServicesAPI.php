@@ -176,7 +176,7 @@ class ServicesAPI
         
         $capabilities = array('resto-core');
         foreach (array_keys($this->context->addons) as $key) {
-            array_push($capabilities, strtolower($key));
+            $capabilities[] = strtolower($key);
         }
 
         $links = array(
@@ -213,12 +213,12 @@ class ServicesAPI
         );
 
         if ($this->context->addons['STAC']) {
-            array_push($links, array(
+            $links[] = array(
                 'rel' => 'search',
                 'type' => RestoUtil::$contentTypes['geojson'],
                 'title' => 'Search endpoint',
                 'href' => $this->context->core['baseUrl'] . '/stac/search'
-            ));
+            );
         }
 
         return array(

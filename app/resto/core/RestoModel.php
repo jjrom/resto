@@ -357,7 +357,6 @@ abstract class RestoModel
         }
 
         // FeatureCollection case
-        
         $inserted = 0;
         $inError = 0;
         $featuresInserted = array();
@@ -369,20 +368,20 @@ abstract class RestoModel
 
                 $result = $this->storeFeature($collection, $data['features'][$i], $params);
                 if ($result !== false) {
-                    array_push($featuresInserted, array(
+                    $featuresInserted[] = array(
                         'featureId' => $result['id'],
                         'productIdentifier' => $result['productIdentifier'],
                         'facetsStored' => $result['facetsStored']
-                    ));
+                    );
                     $inserted++;
                 }
             
             }
             catch (Exception $e) {
-                array_push($featuresInError, array(
+                $featuresInError[] = array(
                     'code' => $e->getCode(),
                     'error' => $e->getMessage()
-                ));
+                );
                 $inError++;
                 continue;
             }
