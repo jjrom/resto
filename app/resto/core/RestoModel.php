@@ -546,9 +546,9 @@ abstract class RestoModel
      * @param array $params
      *
      */
-    protected function inputToResto($data, $collection, $params)
+    protected function inputToResto($rawData, $collection, $params)
     {
-        return $data;
+        return $rawData;
     }
 
     /**
