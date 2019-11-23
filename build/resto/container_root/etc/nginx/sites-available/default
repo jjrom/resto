@@ -29,6 +29,7 @@ server {
     fastcgi_send_timeout 300;
     fastcgi_read_timeout 300;
     fastcgi_index index.php;
+    client_max_body_size 1m;
     include fastcgi.conf;
   }
 
