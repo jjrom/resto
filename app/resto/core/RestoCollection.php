@@ -817,7 +817,7 @@ class RestoCollection
             return RestoLogUtil::httpError(400, 'Model does not exist');
         }
 
-        $this->loadFromJSON($object, true);
+        $this->loadFromJSON($object);
         
         return $this;
     }
@@ -980,9 +980,8 @@ class RestoCollection
      * (See collection file example in examples/collections/S2.json)
      *
      * @param array $object : collection description as json file
-     * @param boolean $update : true means update
      */
-    private function loadFromJSON($object, $update = false)
+    private function loadFromJSON($object)
     {
 
         /*
@@ -993,18 +992,10 @@ class RestoCollection
         }
 
         /*
-         * This is an update - remove properties that *CANNOT BE* updated
+         * Check mandatory properties are required
          */
-        if ($update) {
-            unset($object['name'], $object['model']);
-        }
-        /*
-         * Load for creation - mandatory properties are required
-         */
-        else {
-            $this->checkCreationMandatoryProperties($object);
-        }
-
+        $this->checkCreationMandatoryProperties($object);
+        
         /*
          * Default collection visibility is the value of Resto::GROUP_DEFAULT_ID
          * [TODO] Allow to change visibility in collection
@@ -1044,8 +1035,8 @@ class RestoCollection
        /*
         * Check that input file is for the current collection
         */
-        if (!isset($object['name']) || $this->id !== $object['name']) {
-            RestoLogUtil::httpError(400, 'Property "name" and collection id differ');
+        if (!isset($object['id']) || $this->id !== $object['id']) {
+            RestoLogUtil::httpError(400, 'Property "id" and collection id differ');
         }
 
         /*

@@ -150,21 +150,21 @@ class RestoCollections
      */
     public function create($object)
     {
-        if (!isset($object['name'])) {
+        if (!isset($object['id'])) {
             RestoLogUtil::httpError(400, 'Missing mandatory collection id');
         }
 
         /*
-         * Check that collection does not exist based on name
+         * Check that collection does not exist based on id
          */
-        if ((new CollectionsFunctions($this->context->dbDriver))->collectionExists($object['name'])) {
-            RestoLogUtil::httpError(400, 'Collection ' . $object['name'] . ' already exist');
+        if ((new CollectionsFunctions($this->context->dbDriver))->collectionExists($object['id'])) {
+            RestoLogUtil::httpError(400, 'Collection ' . $object['id'] . ' already exist');
         }
 
         /*
          * Create collection
          */
-        $collection = new RestoCollection($object['name'], $this->context, $this->user);
+        $collection = new RestoCollection($object['id'], $this->context, $this->user);
         $collection->load($object)->store();
 
         return true;

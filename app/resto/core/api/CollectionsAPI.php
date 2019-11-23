@@ -657,7 +657,7 @@ class CollectionsAPI
         if (!$this->user->hasRightsTo(RestoUser::UPDATE, array('collection' => $collection))) {
             RestoLogUtil::httpError(403);
         }
-
+        
         /*
          * Insert feature(s) within database
          */

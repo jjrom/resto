@@ -348,7 +348,7 @@ class CollectionsFunctions
      */
     private function storeCollectionDescription($collection)
     {
-        
+    
         /*
          * Create collection
          */
@@ -372,10 +372,12 @@ class CollectionsFunctions
          * Otherwise update collection fields (version, visibility, licenseid, providers and properties)
          */
         else {
-            $this->dbDriver->pQuery('UPDATE resto.collection SET visibility=$2, licenseid=$3, providers=$4, properties=$5, links=$6, version=$7 WHERE id=$1', array(
+            $this->dbDriver->pQuery('UPDATE resto.collection SET model=$2, lineage=$3, licenseid=$4, visibility=$5, providers=$6, properties=$7, links=$8, version=$9 WHERE id=$1', array(
                 $collection->id,
-                $collection->visibility,
+                $collection->model->getName(),
+                '{' . join(',', $collection->model->getLineage()) . '}',
                 $collection->licenseId,
+                $collection->visibility,
                 json_encode($collection->providers, JSON_UNESCAPED_SLASHES),
                 json_encode($collection->properties, JSON_UNESCAPED_SLASHES),
                 json_encode($collection->links, JSON_UNESCAPED_SLASHES),
