@@ -41,7 +41,8 @@ class RestoUtil
         'mvt' => 'application/vnd.mapbox-vector-tile',
         'pbf' => 'application/vnd.mapbox-vector-tile',
         'png' => 'image/png',
-        'xml' => 'application/xml'
+        'xml' => 'application/xml',
+        'zip' => 'application/zip'
     );
 
     /**
