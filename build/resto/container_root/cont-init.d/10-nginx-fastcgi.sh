@@ -1,12 +1,13 @@
 #!/usr/bin/with-contenv bash
 
+CONF_NGINX_GLOBAL=/etc/nginx/nginx.conf
 CONF_NGINX_SITE=/etc/nginx/sites-available/default
 
 
 if [[ $NGINX_CLIENT_MAX_BODY_SIZE ]]
 then
   echo "[nginx] setting client_max_body_size ${NGINX_CLIENT_MAX_BODY_SIZE}"
-  sed -i "s/client_max_body_size .*;/client_max_body_size ${NGINX_CLIENT_MAX_BODY_SIZE};/" $CONF_NGINX_SITE
+  sed -i "s/client_max_body_size .*;/client_max_body_size ${NGINX_CLIENT_MAX_BODY_SIZE};/" $CONF_NGINX_GLOBAL
 fi
 
 if [[ $NGINX_FASTCGI_BUFFERS ]]
