@@ -33,7 +33,7 @@ class SatelliteModel extends LandCoverModel
         /*
          * Satellite model follows STAC EO Extension Specification
          */
-        $this->stacExtensions[] = 'eo';
+        $this->stacExtensions[] = 'sat';
         
         /*
          * Extend STAC mapping
@@ -42,7 +42,9 @@ class SatelliteModel extends LandCoverModel
          */
         $this->stacMapping = array_merge($this->stacMapping, array(
             'instrument' => 'instruments',
-            'resolution' => 'eo:gsd'
+            'resolution' => 'eo:gsd',
+            'relativeOrbitNumber' => 'sat:relative_orbit',
+            'orbitDirection' => 'sat:orbit_state'
         ));
 
         /*

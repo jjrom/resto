@@ -31,6 +31,11 @@ class OpticalModel extends SatelliteModel
         parent::__construct($options);
 
         /*
+         * Satellite model follows STAC EO Extension Specification
+         */
+        $this->stacExtensions[] = 'eo';
+
+        /*
          * Extend STAC mapping
          * 
          * See - https://github.com/radiantearth/stac-spec/tree/dev/extensions/eo
