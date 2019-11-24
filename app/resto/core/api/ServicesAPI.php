@@ -140,7 +140,12 @@ class ServicesAPI
      *          response="200",
      *          description="Server landing page",
      *          @OA\JsonContent(
-     *               @OA\Property(
+     *              @OA\Property(
+     *                  property="id",
+     *                  type="string",
+     *                  description="Server identifier.",
+     *              ),
+     *              @OA\Property(
      *                  property="title",
      *                  type="string",
      *                  description="Server title"
@@ -174,60 +179,58 @@ class ServicesAPI
     public function hello()
     {
         
-        $capabilities = array('resto-core');
-        foreach (array_keys($this->context->addons) as $key) {
-            $capabilities[] = strtolower($key);
-        }
-
-        $links = array(
-            array(
-                'rel' => 'self',
-                'type' => RestoUtil::$contentTypes['json'],
-                'title' => getenv('API_INFO_TITLE'),
-                'href' => $this->context->core['baseUrl']
-            ),
-            array(
-                'rel' => 'service-desc',
-                'type' => RestoUtil::$contentTypes['json'],
-                'title' => 'OpenAPI 3.0 definition endpoint',
-                'href' => $this->context->core['baseUrl'] . '/api'
-            ),
-            array(
-                'rel' => 'service-doc',
-                'type' => RestoUtil::$contentTypes['html'],
-                'title' => 'OpenAPI 3.0 definition endpoint documentation',
-                'href' => $this->context->core['baseUrl'] . '/api.html'
-            ),
-            array(
-                'rel' => 'conformance',
-                'type' => RestoUtil::$contentTypes['json'],
-                'title' => 'Conformance declaration',
-                'href' => $this->context->core['baseUrl'] . '/conformance'
-            ),
-            array(
-                'rel' => 'data',
-                'type' => RestoUtil::$contentTypes['json'],
-                'title' => 'Collections metadata',
-                'href' => $this->context->core['baseUrl'] . '/collections'
+        $output = array(
+            'id' => 'catalogs',
+            'title' => getenv('API_INFO_TITLE'),
+            'description' => getenv('API_INFO_DESCRIPTION'),
+            'capabilities' => array('resto-core'),
+            'planet' => $this->context->core['planet'],
+            'links' => array(
+                array(
+                    'rel' => 'self',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'title' => getenv('API_INFO_TITLE'),
+                    'href' => $this->context->core['baseUrl']
+                ),
+                array(
+                    'rel' => 'service-desc',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'title' => 'OpenAPI 3.0 definition endpoint',
+                    'href' => $this->context->core['baseUrl'] . '/api'
+                ),
+                array(
+                    'rel' => 'service-doc',
+                    'type' => RestoUtil::$contentTypes['html'],
+                    'title' => 'OpenAPI 3.0 definition endpoint documentation',
+                    'href' => $this->context->core['baseUrl'] . '/api.html'
+                ),
+                array(
+                    'rel' => 'conformance',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'title' => 'Conformance declaration',
+                    'href' => $this->context->core['baseUrl'] . '/conformance'
+                ),
+                array(
+                    'rel' => 'data',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'title' => 'Collections metadata',
+                    'href' => $this->context->core['baseUrl'] . '/collections'
+                )
             )
         );
 
-        if ($this->context->addons['STAC']) {
-            $links[] = array(
-                'rel' => 'search',
-                'type' => RestoUtil::$contentTypes['geojson'],
-                'title' => 'Search endpoint',
-                'href' => $this->context->core['baseUrl'] . '/stac/search'
-            );
+        // Update capabilities
+        foreach (array_keys($this->context->addons) as $key) {
+            $output['capabilities'][] = strtolower($key);
         }
 
-        return array(
-            'title' => getenv('API_INFO_TITLE'),
-            'description' => getenv('API_INFO_DESCRIPTION'),
-            'capabilities' => $capabilities,
-            'planet' => $this->context->core['planet'],
-            'links' => $links
-        );
+        // Update with STAC
+        if ($this->context->addons['STAC']) {
+            $output['links'] = array_merge($output['links'], (new STAC($this->context, $this->user))->getRootLinks());
+            $output['stac_version'] = STAC::STAC_VERSION;
+        }
+
+        return $output;
     }
 
     /**
