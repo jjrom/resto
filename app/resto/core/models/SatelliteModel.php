@@ -37,13 +37,12 @@ class SatelliteModel extends LandCoverModel
         
         /*
          * Extend STAC mapping
+         * 
+         * See - https://github.com/radiantearth/stac-spec/tree/dev/extensions/sat
          */
         $this->stacMapping = array_merge($this->stacMapping, array(
-            'instrument' => 'eo:instrument',
-            'platform' => 'eo:platform',
-            'resolution' => 'eo:gsd',
-            'viewAzimuth' => 'eo:azimuth',
-            'viewZenith' => 'eo:off_nadir'
+            'instrument' => 'instruments',
+            'resolution' => 'eo:gsd'
         ));
 
         /*

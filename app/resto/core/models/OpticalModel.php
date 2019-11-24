@@ -32,6 +32,8 @@ class OpticalModel extends SatelliteModel
 
         /*
          * Extend STAC mapping
+         * 
+         * See - https://github.com/radiantearth/stac-spec/tree/dev/extensions/eo
          */
         $this->stacMapping = array_merge($this->stacMapping, array(
             'cloudCover' => 'eo:cloud_cover'
