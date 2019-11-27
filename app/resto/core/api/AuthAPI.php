@@ -49,10 +49,32 @@ class AuthAPI
      *                  type="string",
      *                  description="A rJWT token"
      *              ),
+     *              @OA\Property(
+     *                  property="profile",
+     *                  description="User profile",
+     *                  ref="#/components/schemas/UserDisplayProfile"
+     *              ),
      *              example={
-     *                  "token": "eyJzdWIiOiIxOTQ2NTIwMjk3MjEzNTI3MDUyIiwiaWF0IjoxNTQ2MjY2NTU3LCJleHAiOjE1NDYyNzAxNTd9.nI4q0LBqGOG0a6GCjxWvUiVA6hKndN9mJrjuT1WG1Xo"
+     *                  "token": "eyJzdWIiOiIxOTQ2NTIwMjk3MjEzNTI3MDUyIiwiaWF0IjoxNTQ2MjY2NTU3LCJleHAiOjE1NDYyNzAxNTd9.nI4q0LBqGOG0a6GCjxWvUiVA6hKndN9mJrjuT1WG1Xo",
+     *                  "profile":{
+     *                      "id": "1356771884787565573",
+     *                      "picture": "https://robohash.org/d0e907f8b6f4ee74cd4c38a515e2a4de?gravatar=hashed&bgset=any&size=400x400",
+     *                      "groups": {
+     *                          "1"
+     *                      },
+     *                      "name": "jrom",
+     *                      "followers": 185,
+     *                      "followings": 144,
+     *                      "firstname": "Jérôme",
+     *                      "lastname": "Gasperi",
+     *                      "bio": "Working on new features for the next major release of SnapPlanet",
+     *                      "registrationdate": "2016-10-08T22:50:34.187217Z",
+     *                      "topics":"earth,fires,geology,glaciology,volcanism",
+     *                      "followed": false,
+     *                      "followme": false
+     *                  }
      *              }
-     *          )
+     *         )
      *      ),
      *      @OA\Response(
      *          response="401",
@@ -77,7 +99,8 @@ class AuthAPI
         }
 
         return array(
-            'token' => $this->context->createRJWT($this->user->profile['id'])
+            'token' => $this->context->createRJWT($this->user->profile['id']),
+            'profile' => $this->user->profile
         );
         
     }
