@@ -171,11 +171,14 @@ class FiltersFunctions
                 $filters[] = $filtersAndJoins['filters'][$i]['value'];
             }
             
-            return join(' ', array(
+            $mergedFilters = $options['sort'] ? array_merge($filters, $filtersAndJoins['sortFilters']) : $filters;
+            
+            return count($mergedFilters) === 0 ? trim(join(' ', array_unique($filtersAndJoins['joins']))) : join(' ', array(
                 trim(join(' ', array_unique($filtersAndJoins['joins']))),
                 'WHERE',
-                join(' AND ', $options['sort'] ? array_merge($filters, $filtersAndJoins['sortFilters']) : $filters)
+                join(' AND ', $mergedFilters)
             ));
+            
         }
 
         return '';
