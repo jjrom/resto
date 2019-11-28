@@ -202,11 +202,29 @@ class AuthAPI
      *      ),
      *      @OA\Response(
      *          response="200",
-     *          description="Token validity - VALID or INVALID"
-     *      ),
-     *      @OA\Response(
-     *          response="400",
-     *          description="Bad request"
+     *          description="Return token validity",
+     *          @OA\JsonContent(
+     *              @OA\Property(
+     *                  property="status",
+     *                  type="string",
+     *                  description="Status is *success*"
+     *              ),
+     *              @OA\Property(
+     *                  property="message",
+     *                  type="string",
+     *                  description="Token checked"
+     *              ),
+     *              @OA\Property(
+     *                  property="isValid",
+     *                  type="boolean",
+     *                  description="True if valid - False if not"
+     *              ),
+     *              example={
+     *                  "status": "success",
+     *                  "message": "Token checked",
+     *                  "isValid": False
+     *              }
+     *          )
      *      )
      *  )
      */
@@ -216,10 +234,14 @@ class AuthAPI
         $payload = $this->context->decodeJWT($params['token']);
 
         if (!isset($payload) || (new GeneralFunctions($this->context->dbDriver))->isTokenRevoked($params['token'])) {
-            return RestoLogUtil::success('INVALID');
+            return RestoLogUtil::success('Token checked', array(
+                'isValid' => False
+            ));
         }
         
-        return RestoLogUtil::success('VALID');
+        return RestoLogUtil::success('Token checked', array(
+            'isValid' => True
+        ));
 
     }
 
