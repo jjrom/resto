@@ -762,7 +762,7 @@ class FeaturesFunctions
                 $output['params'][] = 'normalize_array($' . ++$counter . ')';
             }
             else if ($key === 'created_idx' || $key === 'startdate_idx') {
-                $output['params'][] = 'public.timestamp_to_id($' . ++$counter . ', 1, nextval(\'resto.table_id_seq\'))';
+                $output['params'][] = 'public.timestamp_to_id($' . ++$counter . ')';
             }
             else {
                 $output['params'][] = '$' . ++$counter;

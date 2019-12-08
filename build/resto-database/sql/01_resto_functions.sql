@@ -216,33 +216,44 @@ $$ LANGUAGE sql;
 
 --
 -- SYNOPSYS:
---   timestamp_to_id(ts, shard_id, seq_id)
+--   timestamp_to_id(ts)
 --
 -- DESCRIPTION:
 --   Generate a 64 bits time sortable id
 --   (Inspired by http://instagram-engineering.tumblr.com/post/10853187575/sharding-ids-at-instagram)
 --
---   [IMPORTANT]
---     - shard_id must be a positive integer between 1 and 63 included
---     - seq_id must be a positive integer between 1 and 1023 included
---
 -- USAGE:
---   SELECT timestamp_to_id(ts timestampz, shard_id integer, seq_id bigint);
+--   SELECT timestamp_to_id(ts timestampz);
 --
-CREATE OR REPLACE FUNCTION public.timestamp_to_id(ts TIMESTAMP WITH TIME ZONE, shard_id INTEGER DEFAULT 1, seq_id BIGINT DEFAULT 1)
+
+CREATE SEQUENCE IF NOT EXISTS public.resto_id_seq;
+CREATE OR REPLACE FUNCTION public.timestamp_to_id(ts TIMESTAMP WITH TIME ZONE)
 RETURNS BIGINT AS $$
 DECLARE
     result bigint;
     now_millis bigint;
+    seq_id bigint;
 BEGIN
     SELECT FLOOR(EXTRACT(EPOCH FROM ts::TIMESTAMP) * 1000) INTO now_millis;
     result := now_millis << 17;
-    result := result | ((shard_id % 64) << 10);
-    result := result | (seq_id % 1024);
+    seq_id := nextval('public.resto_id_seq');
+    --result := result | ((shard_id % 64) << 10);
+    --result := result | (seq_id % 1024);
+    result := result | (seq_id % 131072);
     RETURN result;
 END;
 $$ LANGUAGE PLPGSQL;
 
+--
+-- SYNOPSIS:
+--   id_to_timestamp(restoid)
+--
+-- DESCRIPTION:
+--   Return timestamp from restoid created with timestamp_to_id function
+--
+-- USAGE:
+--   SELECT id_to_timestamp(restoid bigint);
+--
 CREATE OR REPLACE FUNCTION public.id_to_timestamp(restoid bigint)
 RETURNS TIMESTAMP AS $$
 BEGIN

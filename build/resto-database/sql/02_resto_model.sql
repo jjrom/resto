@@ -7,11 +7,6 @@
 --
 CREATE SCHEMA IF NOT EXISTS resto;
 
--- 
--- Sequence used to generate time based unique identifier (see public.timestamp_to_id() function)
---
-CREATE SEQUENCE IF NOT EXISTS resto.table_id_seq;
-
 --
 -- collections table list all resto collections
 --
@@ -103,9 +98,6 @@ CREATE TABLE IF NOT EXISTS resto.osdescription (
 -- Features table - handle every metadata
 --
 CREATE TABLE IF NOT EXISTS resto.feature (
-
-    -- [INDEXED] Unique identifier based on created date
-    -- "id"                BIGINT PRIMARY KEY DEFAULT public.timestamp_to_id(clock_timestamp(), 1, nextval('resto.table_id_seq')),
 
     -- [INDEXED] UUID v5 based on productidentifier
     "id"                UUID PRIMARY KEY DEFAULT public.uuid_generate_v4(),
@@ -340,7 +332,7 @@ CREATE TABLE IF NOT EXISTS resto.feature_optical (
 CREATE TABLE IF NOT EXISTS resto.user (
 
     -- Unique identifier based on resto serial (timestamp)
-    "id"                BIGINT PRIMARY KEY DEFAULT public.timestamp_to_id(clock_timestamp(), 1, nextval('resto.table_id_seq')),
+    "id"                BIGINT PRIMARY KEY DEFAULT public.timestamp_to_id(clock_timestamp()),
 
     -- Email adress
     email               TEXT NOT NULL UNIQUE,
