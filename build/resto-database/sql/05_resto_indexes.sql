@@ -35,6 +35,7 @@ CREATE INDEX IF NOT EXISTS idx_type_facet ON resto.facet (type);
 CREATE INDEX IF NOT EXISTS idx_collection_facet ON resto.facet (normalize(collection));
 
 -- [TABLE resto.feature]
+CREATE INDEX IF NOT EXISTS idx_collection_feature ON resto.feature USING btree (collection);
 CREATE INDEX IF NOT EXISTS idx_startdateidx_feature ON resto.feature USING btree (startdate_idx);
 CREATE INDEX IF NOT EXISTS idx_createdidx_feature ON resto.feature USING btree (created_idx);
 CREATE INDEX IF NOT EXISTS idx_owner_feature ON resto.feature USING btree (owner) WHERE owner IS NOT NULL;
