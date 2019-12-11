@@ -76,6 +76,16 @@ class Tag extends RestoAddOn
     private function keywordsFromITag($properties, $geometry, $taggers)
     {
         
+        /*
+         * No geometry = no iTag
+         * 
+         * [TODO] Add support to null geometry in iTag instead
+         */
+        if ( ! isset($geometry) ) 
+        {
+            return array();
+        }
+
         // Geometry is mandatory - other parameters optional
         $queryParams = array(
             'geometry' => RestoGeometryUtil::geoJSONGeometryToWKT($geometry),

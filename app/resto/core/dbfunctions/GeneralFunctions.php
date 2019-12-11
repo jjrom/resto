@@ -185,9 +185,12 @@ class GeneralFunctions
     {
         $result = null;
 
+        /*
+         * Null geometry is allowed in GeoJSON
+         */
         if (!isset($geometry)  || !is_array($geometry) || !isset($geometry['type']) || !isset($geometry['coordinates'])) {
             return array(
-                'isValid' => false,
+                'isValid' => true,
                 'error' => 'Empty geometry'
             );
         }

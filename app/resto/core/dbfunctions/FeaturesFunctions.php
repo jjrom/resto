@@ -250,8 +250,8 @@ class FeaturesFunctions
                 'created_idx' => 'now()',
                 'updated' => isset($featureArray['properties']) && isset($featureArray['properties']['updated']) ? $featureArray['properties']['updated'] : 'now()',
                 'geometry' => $featureArray['topologyAnalysis']['geometry'] ?? null,
-                'centroid' => $featureArray['topologyAnalysis']['centroid'],
-                '_geometry' => $featureArray['topologyAnalysis']['_geometry']
+                'centroid' => $featureArray['topologyAnalysis']['centroid'] ?? null,
+                '_geometry' => $featureArray['topologyAnalysis']['_geometry'] ?? null
                 ),
             array(
                 'productIdentifier',

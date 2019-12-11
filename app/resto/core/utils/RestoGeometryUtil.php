@@ -100,11 +100,21 @@ class RestoGeometryUtil
             );
         }
 
-        if (!isset($object['geometry']) || !is_array($object['geometry']) || ! RestoGeometryUtil::checkGeoJSONGeometry($object['geometry'])) {
-            return array(
-                'isValid' => false,
-                'error' => $error . ' - invalid geometry'
-            );
+        /* 
+         * Empty geometry are allowed in GeoJSON specification
+         * 
+         * "The value of the geometry member SHALL be either a Geometry object as
+         *  defined above or, in the case that the Feature is unlocated, a JSON null value"
+         * 
+         * (See https://tools.ietf.org/html/rfc7946#section-1.4)
+         */
+        if ( isset($object['geometry']) ) {
+            if (!is_array($object['geometry']) || ! RestoGeometryUtil::checkGeoJSONGeometry($object['geometry'])) {
+                return array(
+                    'isValid' => false,
+                    'error' => $error . ' - invalid geometry'
+                );
+            }
         }
 
         if (!isset($object['properties']) || !is_array($object['properties'])) {
