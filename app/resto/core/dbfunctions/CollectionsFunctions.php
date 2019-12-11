@@ -283,11 +283,11 @@ class CollectionsFunctions
     private function updateSpatialExtent($collection, $featureArray)
     {
         $toUpdate = array();
-
+        
         /*
          * Empty geometry is allowed in GeoJSON
          */
-        if ( isset($featureArray['topologyAnalysis']) )
+        if ( isset($featureArray['topologyAnalysis']) && isset($featureArray['topologyAnalysis']['bbox']) )
         {
             if ( ! isset($collection->bbox))
             {

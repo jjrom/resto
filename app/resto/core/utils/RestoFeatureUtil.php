@@ -136,8 +136,11 @@ class RestoFeatureUtil
                     $featureArray['properties']['datetime'] = $rawFeatureArray[$key] . (isset($rawFeatureArray['completionDate']) ? '/' . $rawFeatureArray['completionDate'] : '');
                     break;
 
-                case 'assets':
                 case 'geometry':
+                    $featureArray[$key] = isset($value) ? json_decode($value, true) : null;
+                    break;
+                    
+                case 'assets':
                     $featureArray[$key] = isset($value) ? json_decode($value, true) : array();
                     break;
 
