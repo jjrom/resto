@@ -26,4 +26,5 @@ services:
       - POSTGRES_MAINTENANCE_WORK_MEM=320MB
       - POSTGRES_EFFECTIVE_CACHE_SIZE=3GB
       - POSTGRES_LOG_MIN_DURATION_STATEMENT=0
-      
+    volumes:
+      - ./tmp:/backup
