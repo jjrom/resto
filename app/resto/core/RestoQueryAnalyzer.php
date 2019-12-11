@@ -154,7 +154,7 @@ class RestoQueryAnalyzer
          * Order is "name" over "searchTerms"
          */
         $locationName = $params['geo:name'] ?? $params['searchTerms'] ?? null;
-    
+       
         /*
          * Search on toponym name
          */
