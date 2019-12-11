@@ -14,6 +14,11 @@ DECLARE
     geo_type TEXT;
 BEGIN
 
+    -- Do nothing if _geometry is not set
+    IF NEW._geometry IS NULL THEN
+        RETURN NEW;
+    END IF;
+
     -- First get geometry type
     geo_type := GeometryType(NEW._geometry);
     
