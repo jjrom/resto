@@ -139,7 +139,7 @@ class RestoFeatureUtil
                 case 'geometry':
                     $featureArray[$key] = isset($value) ? json_decode($value, true) : null;
                     break;
-                    
+
                 case 'assets':
                     $featureArray[$key] = isset($value) ? json_decode($value, true) : array();
                     break;
@@ -230,7 +230,8 @@ class RestoFeatureUtil
      */
     private function getDefaultLinks($collection, $rawFeatureArray) 
     {
-        $links = array(
+
+        return array(
             array(
                 'rel' => 'self',
                 'type' => RestoUtil::$contentTypes['geojson'],
@@ -247,17 +248,13 @@ class RestoFeatureUtil
                 'type' => RestoUtil::$contentTypes['json'],
                 'title' => $collection->id,
                 'href' => $this->context->core['baseUrl'] . '/collections/' . $collection->id
+            ),
+            array(
+                'rel' => 'root',
+                'type' => RestoUtil::$contentTypes['json'],
+                'href' => $this->context->core['baseUrl']
             )
         );
-
-        if (isset($this->context->addons['STAC'])) {
-            $links[] = array(
-                'rel' => 'root',
-                'href' => $this->context->core['baseUrl'] . '/stac'
-            );
-        }
-
-        return $links;
 
     }
 
