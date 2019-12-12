@@ -1045,28 +1045,28 @@ class RestoFeatureCollection
         $offset = $this->getOffset($filters, $limit);
 
         /*
-         * Default sort key is the first element in "sortKeys" array (cf. config.php)
-         */
-        $sortKey = $this->context->dbDriver->sortKeys[0];
-
-        /*
          * Default order is DESCENDING
          */
         $sortOrder = 'DESC';
+        
+        /*
+         * Default sort key is the first element in "sortKeys" array (cf. config.php)
+         */
+        $sortKey = $filters['resto:sort'] ?? $this->context->dbDriver->sortKeys[0];
 
         /*
-         * Input sorting key
+         * Check sortKey order (i.e. minus sign prefix)
          */
-        if (isset($filters['resto:sort'])) {
+        if (substr($sortKey, 0, 1) === '-') {
+            $sortOrder = 'ASC';
+            $sortKey = substr($sortKey, 1);
+        }
 
-            // Check sort order with minus sign prefix
-            if (substr($filters['resto:sort'], 0, 1) === '-') {
-                $sortOrder = 'ASC';
-                $sortKey = substr($filters['resto:sort'], 1);
-            }
-            if (! in_array($sortKey, $this->context->dbDriver->sortKeys) ) {
-                return RestoLogUtil::httpError(400, "Invalid sorting key");
-            }
+        /*
+         * Finally check validity
+         */
+        if (! in_array($sortKey, $this->context->dbDriver->sortKeys) ) {
+            return RestoLogUtil::httpError(400, "Invalid sorting key");
         }
 
         /*
