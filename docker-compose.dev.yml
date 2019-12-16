@@ -23,6 +23,7 @@ services:
       - /Users/jrom/Devel/resto-addons/resto-addon-heatmap/heatmap.config:/cfg/heatmap.config
       - /Users/jrom/Devel/resto-addons/resto-addon-heatmap/src/Heatmap.php:/app/resto/addons/Heatmap.php
       - /Users/jrom/Devel/resto-models/src/S2PEPSModel.php:/app/resto/addons/S2PEPSModel.php
+      - /Users/jrom/Devel/resto-models/src/S1PEPSModel.php:/app/resto/addons/S1PEPSModel.php
   restodb:
     environment:
       - POSTGRES_MAX_CONNECTIONS=100

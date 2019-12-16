@@ -232,80 +232,130 @@ class CollectionsFunctions
     }
 
     /**
-     * Update
+     * Update collection extent
      *
      * @param RestoCollection $collection
+     * @param array $extentArrays - array of "dates" and "bboxes" arrays
      * @return array
      * @throws Exception
      */
-    public function updateExtent($collection, $featureArray)
+    public function updateExtent($collection, $extentArrays)
     {
 
-        $toUpdate = array_merge($this->updateTimeExtent($collection, $featureArray), $this->updateSpatialExtent($collection, $featureArray));
-
-        if ( ! empty($toUpdate) )
-        {
-            $this->dbDriver->query('UPDATE resto.collection SET ' . join(',', $toUpdate) . ' WHERE id=\'' . pg_escape_string($collection->id) . '\'');
+        if ( ! isset($extentArrays) ) {
+            return false;
         }
-        
+
+        // Compute extents
+        $timeExtent = $this->getTimeExtent($extentArrays['dates']);
+        $bbox = $this->getSpatialExtent($extentArrays['bboxes']);
+
+        $toBeSet = array();
+
+        if ( isset($timeExtent['startDate']) )
+        {
+            $toBeSet[] = 'startdate=least(startdate, \'' . pg_escape_string($timeExtent['startDate']) . '\')';
+        }
+
+        if ( isset($timeExtent['completionDate']) )
+        {
+            $toBeSet[] = 'completiondate=greatest(completiondate, \'' . pg_escape_string($timeExtent['completionDate']) . '\')';
+        }
+
+        if ( isset($bbox) )
+        {
+            $toBeSet[] = 'bbox=ST_Envelope(ST_Union(coalesce(bbox,ST_GeomFromText(\'GEOMETRYCOLLECTION EMPTY\', 4326)), ST_SetSRID(ST_MakeBox2D(ST_Point(' . $bbox[0] . ',' . $bbox[1] . '), ST_Point(' . $bbox[2] . ',' . $bbox[3] . ')), 4326)))'; 
+        }
+
+        if (empty($toBeSet)) {
+            return false;
+        }
+
+        try {
+            $this->dbDriver->pQuery('UPDATE resto.collection SET ' . join(',', $toBeSet) . ' WHERE id=$1', array(
+                $collection->id
+            ));
+        } catch (Exception $e) {
+            return false;
+        }
+
+        return true;
+
     }   
         
     /**
-     * Update time extent
+     * Get time extent from a list of time extent
      *
-     * @param RestoCollection $collection
+     * @param array $dates - array of ISO8601 dates
      * @return array
      * @throws Exception
      */
-    private function updateTimeExtent($collection, $featureArray)
+    private function getTimeExtent($dates)
     {
-        $toUpdate = array();
 
-        if ( ! isset($collection->datetime) || ! isset($collection->datetime['min']) || $collection->datetime['min'] > $featureArray['properties']['startDate'])
-        {
-            $toUpdate[] = 'startdate=\'' . pg_escape_string($featureArray['properties']['startDate']) .'\'';
-        }
-        if ( ! isset($collection->datetime) ||  ! isset($collection->datetime['max']) || $collection->datetime['max'] < $featureArray['properties']['startDate'])
-        {
-            $toUpdate[] = 'completiondate=\'' . pg_escape_string($featureArray['properties']['startDate']) .'\'';
+        if ( count($dates) === 0 || !isset($dates[0]) ) {
+            return array(
+                'startDate' => null,
+                'completionDate' => null
+            );
         }
 
-        return $toUpdate;
+        $startDate = $dates[0];
+        $competionDate = $dates[0];
+        for ( $i = 1, $ii = count($dates); $i < $ii; $i++) 
+        {
+            if ( isset($dates[$i]) ) 
+            {
+                if ($startDate > $dates[$i])
+                {
+                    $startDate = $dates[$i];
+                }
+                if ($competionDate < $dates[$i])
+                {
+                    $competionDate = $dates[$i];
+                }
+            }
+        }
+
+        return array(
+            'startDate' => $startDate,
+            'completionDate' => $competionDate
+        );
+
     }
 
     /**
-     * Update spatial extent
+     * Get bounding box of bounding boxes
      *
-     * @param RestoCollection $collection
+     * @param array $bboxes - array of bbox
      * @return array
      * @throws Exception
      */
-    private function updateSpatialExtent($collection, $featureArray)
+    private function getSpatialExtent($bboxes)
     {
-        $toUpdate = array();
-        
+
+        if ( count($bboxes) === 0 || !isset($bboxes[0]) ) {
+            return null;
+        }
+
         /*
          * Empty geometry is allowed in GeoJSON
          */
-        if ( isset($featureArray['topologyAnalysis']) && isset($featureArray['topologyAnalysis']['bbox']) )
+        $bbox = $bboxes[0];
+        for ( $i = 1, $ii = count($bboxes); $i < $ii; $i++) 
         {
-            if ( ! isset($collection->bbox))
-            {
-                $toUpdate[] = 'bbox=ST_SetSRID(ST_MakeBox2D(ST_Point(' . $featureArray['topologyAnalysis']['bbox'][0] . ',' . $featureArray['topologyAnalysis']['bbox'][1] . '), ST_Point(' . $featureArray['topologyAnalysis']['bbox'][2] . ',' . $featureArray['topologyAnalysis']['bbox'][3] . ')), 4326)';
-            }
-            else if ( $collection->bbox[0] > $featureArray['topologyAnalysis']['bbox'][0] || $collection->bbox[1] > $featureArray['topologyAnalysis']['bbox'][1] || $collection->bbox[2] < $featureArray['topologyAnalysis']['bbox'][2] || $collection->bbox[3] < $featureArray['topologyAnalysis']['bbox'][3])
+            if ( isset($bboxes[$i]) ) 
             {
                 $bbox = array(
-                    min($collection->bbox[0],$featureArray['topologyAnalysis']['bbox'][0]),
-                    min($collection->bbox[1],$featureArray['topologyAnalysis']['bbox'][1]),
-                    max($collection->bbox[2],$featureArray['topologyAnalysis']['bbox'][2]),
-                    max($collection->bbox[3],$featureArray['topologyAnalysis']['bbox'][3]),
+                    min($bbox[0],$bboxes[$i][0]),
+                    min($bbox[1],$bboxes[$i][1]),
+                    max($bbox[2],$bboxes[$i][2]),
+                    max($bbox[3],$bboxes[$i][3]),
                 );
-                $toUpdate[] = 'bbox=ST_SetSRID(ST_MakeBox2D(ST_Point(' . $bbox[0] . ',' . $bbox[1] . '), ST_Point(' . $bbox[2] . ',' . $bbox[3] . ')), 4326)';
             }
         }
-        
-        return $toUpdate;
+
+        return $bbox;
 
     }
 

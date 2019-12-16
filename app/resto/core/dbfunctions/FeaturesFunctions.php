@@ -288,11 +288,6 @@ class FeaturesFunctions
             $this->storeFeatureAdditionalContent($result['id'], $collection->id, $keysValues['modelTables']);
 
             /*
-             * Update collection spatio temporal extent
-             */
-            (new CollectionsFunctions($this->dbDriver))->updateExtent($collection, $featureArray);
-        
-            /*
              * Commit everything - rollback if one of the inserts failed
              */
             pg_query($dbh, 'COMMIT');

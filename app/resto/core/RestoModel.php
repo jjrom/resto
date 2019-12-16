@@ -351,42 +351,68 @@ abstract class RestoModel
             return RestoLogUtil::httpError(400, 'Invalid input type - only "Feature" and "FeatureCollection" are allowed');
         }
 
+        // Extent
+        $dates = array();
+        $bboxes = array();
+        
         // Feature case
         if ( $data['type'] === 'Feature' ) {
-            return $this->storeFeature($collection, $data, $params);
+
+            $insert = $this->storeFeature($collection, $data, $params);
+
+            $dates[] = isset($insert['featureArray']['properties']) && isset($insert['featureArray']['properties']['startDate']) ? $insert['featureArray']['properties']['startDate'] : null;
+            $bboxes[] = isset($insert['featureArray']['topologyAnalysis']) && isset($insert['featureArray']['topologyAnalysis']['bbox']) ? $insert['featureArray']['topologyAnalysis']['bbox'] : null;
+
         }
 
         // FeatureCollection case
-        $inserted = 0;
-        $inError = 0;
-        $featuresInserted = array();
-        $featuresInError = array();
-        for ($i = 0, $ii = count($data['features']); $i<$ii; $i++)
-        {
+        else {
 
-            try {
-
-                $result = $this->storeFeature($collection, $data['features'][$i], $params);
-                if ($result !== false) {
-                    $featuresInserted[] = array(
-                        'featureId' => $result['id'],
-                        'productIdentifier' => $result['productIdentifier'],
-                        'facetsStored' => $result['facetsStored']
-                    );
-                    $inserted++;
-                }
+            $inserted = 0;
+            $inError = 0;
+            $featuresInserted = array();
+            $featuresInError = array();
             
-            }
-            catch (Exception $e) {
-                $featuresInError[] = array(
-                    'code' => $e->getCode(),
-                    'error' => $e->getMessage()
-                );
-                $inError++;
-                continue;
-            }
+            for ($i = 0, $ii = count($data['features']); $i<$ii; $i++)
+            {
 
-        }      
+                try {
+
+                    $insert = $this->storeFeature($collection, $data['features'][$i], $params);
+                    if ($insert['result'] !== false) {
+                        $featuresInserted[] = array(
+                            'featureId' => $insert['result']['id'],
+                            'productIdentifier' => $insert['result']['productIdentifier'],
+                            'facetsStored' => $insert['result']['facetsStored']
+                        );
+                        $inserted++;
+                    
+                        $dates[] = isset($insert['featureArray']['properties']) && isset($insert['featureArray']['properties']['startDate']) ? $insert['featureArray']['properties']['startDate'] : null;
+                        $bboxes[] = isset($insert['featureArray']['topologyAnalysis']) && isset($insert['featureArray']['topologyAnalysis']['bbox']) ? $insert['featureArray']['topologyAnalysis']['bbox'] : null;
+
+                    }
+                
+                }
+                catch (Exception $e) {
+                    $featuresInError[] = array(
+                        'code' => $e->getCode(),
+                        'error' => $e->getMessage()
+                    );
+                    $inError++;
+                    continue;
+                }
+
+            }      
+        
+        }
+        
+        /*
+         * Update collection spatio temporal extent
+         */
+        (new CollectionsFunctions($collection->context->dbDriver))->updateExtent($collection, array(
+            'dates' => $dates,
+            'bboxes' => $bboxes
+        ));
         
         return array(
             'inserted' => $inserted,
@@ -582,10 +608,21 @@ abstract class RestoModel
             RestoLogUtil::httpError(409, 'Feature ' . $featureId . ' (with productIdentifier=' . $productIdentifier . ') already in database');
         }
 
-        return (new FeaturesFunctions($collection->context->dbDriver))->storeFeature(
-            $featureId,
-            $collection,
-            $this->prepareFeatureArray($collection, $data, $params)
+        /*
+         * Compute featureArray
+         */
+        $featureArray = $this->prepareFeatureArray($collection, $data, $params);
+
+        /*
+         * Insert feature
+         */
+        return array(
+            'featureArray' => $featureArray,
+            'result' => (new FeaturesFunctions($collection->context->dbDriver))->storeFeature(
+                $featureId,
+                $collection,
+                $featureArray
+            )
         );
 
     }
