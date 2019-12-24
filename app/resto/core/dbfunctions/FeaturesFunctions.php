@@ -581,6 +581,13 @@ class FeaturesFunctions
             $realCount = true;
         }
 
+        /* 
+         * Approximate
+         */
+        if ( !$realCount && $result !== false ) {
+            $result = $this->approximate((integer) $result);
+        }
+
         return array(
             'total' => $result === false ? -1 : (integer) $result,
             'isExact' => $realCount
@@ -951,6 +958,16 @@ class FeaturesFunctions
             $iterator[] = '$'.$i;
         }
         return $iterator;
+    }
+
+    /**
+     * Return approximated number
+     * 
+     * @param integer $integer
+     */
+    private function approximate($integer) {
+        $precision = pow(10, strlen((string) $integer) - 2);
+        return round($integer / $precision) *  $precision;
     }
 
 
