@@ -535,6 +535,7 @@ class FiltersFunctions
              */
             if (substr($searchTerm, 0, 1) === '#') {
                 $searchTerm = ltrim($searchTerm, '#');
+                $exclusion = false;
             } elseif (substr($searchTerm, 0, 2) === '-#') {
                 $exclusion = true;
                 $searchTerm = ltrim($searchTerm, '-#');
