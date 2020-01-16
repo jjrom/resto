@@ -178,9 +178,19 @@ class RestoRouter
     {
 
         /*
+         * In resto 5.x first element of route is an "authenticationIsRequired" boolean
+         * In restto >=6.x first element of route can also be an array
+         */
+        if (is_bool($validRoute[0])) {
+            $validRoute[0] = array(
+                'auth' => $validRoute[0]
+            );
+        }
+
+        /*
          * Authentication is required
          */
-        if ($validRoute[0] && !isset($this->user->profile['id'])) {
+        if (isset($validRoute[0]['auth']) && $validRoute[0]['auth'] && !isset($this->user->profile['id'])) {
             return RestoLogUtil::httpError(401);
         }
 
@@ -194,12 +204,26 @@ class RestoRouter
          */
         $data = null;
         if ($method === 'POST' || $method === 'PUT') {
-            $data = count($_FILES) === 0 ? $this->readStream() : $this->readFile();
+            
+            /*
+             * File upload is allowed - upload files and populate data with file paths...
+             * In this case, the target $className->$methodName is responsible of the uploaded files
+             */
+            if (isset($validRoute[0]['upload'])) {
+                $data = $this->uploadFiles($validRoute[0]['upload']);
+            }
+            /*
+             * ...or read the input body content and directly populate data with it
+             */
+            else {
+                $data = $this->readStream();    
+            }
+
         }
         
         return (new $className($this->context, $this->user))->$methodName(
             $params,
-            $data ?? null
+            $data
         );
 
     }
@@ -247,38 +271,55 @@ class RestoRouter
     }
 
     /**
-     * Read file content attached in POST request
+     * Upload files locally and return array of file paths
      *
+     * @param string $arrayName
      * @return array
      * @throws Exception
      */
-    private function readFile()
+    private function uploadFiles($arrayName)
     {
-        if (!isset($_FILES['file']) || !is_array($_FILES['file'])) {
+        
+        if ( !isset($arrayName) || !isset($_FILES[$arrayName]) || !is_array($_FILES[$arrayName]) || !is_array($_FILES[$arrayName]['tmp_name']) ) {
             RestoLogUtil::httpError(500, 'Cannot upload file(s)');
         }
+
+        $filePaths = [];
+
+        // All files will be uploaded within a dedicated directory with a random name
+        $uploadDirectory = $this->uploadDirectory . DIRECTORY_SEPARATOR . (substr(sha1(mt_rand(0, 100000) . microtime()), 0, 15));
+
         try {
-            $fileToUpload = is_array($_FILES['file']['tmp_name']) ? $_FILES['file']['tmp_name'][0] : $_FILES['file']['tmp_name'];
-            if (is_uploaded_file($fileToUpload)) {
-                if (!is_dir($this->uploadDirectory)) {
-                    mkdir($this->uploadDirectory);
+            
+            for ($i = count($_FILES[$arrayName]['tmp_name']); $i--;) {
+
+                $fileToUpload = $_FILES[$arrayName]['tmp_name'][$i];
+
+                if (is_uploaded_file($fileToUpload)) {
+
+                    if (!is_dir($uploadDirectory)) {
+                        mkdir($uploadDirectory, 0777, true);
+                    }
+
+                    $fileName = $uploadDirectory . DIRECTORY_SEPARATOR . $_FILES[$arrayName]['name'][$i];
+                    move_uploaded_file($fileToUpload, $fileName);
+
+                    $filePaths[] = $fileName;
+
                 }
-                $fileName = $this->uploadDirectory . DIRECTORY_SEPARATOR . (substr(sha1(mt_rand(0, 100000) . microtime()), 0, 15));
-                move_uploaded_file($fileToUpload, $fileName);
-                $lines = file($fileName);
-                // Delete after read
-                unlink($fileName);
+
             }
+            
+
         } catch (Exception $e) {
             RestoLogUtil::httpError(500, 'Cannot upload file(s)');
         }
 
-        /*
-         * Assume that input data format is JSON by default
-         */
-        $json = json_decode(join('', $lines), true);
+        return array(
+            'uploadDir' => $uploadDirectory,
+            'files' => $filePaths
+        );
 
-        return $json === null ? $lines : $json;
     }
 
 }
