@@ -209,8 +209,8 @@ class RestoRouter
              * File upload is allowed - upload files and populate data with file paths...
              * In this case, the target $className->$methodName is responsible of the uploaded files
              */
-            if (isset($validRoute[0]['upload'])) {
-                $data = $this->uploadFiles($validRoute[0]['upload']);
+            if (isset($validRoute[0]['upload']) && isset($_FILES[$validRoute[0]['upload']]) && is_array($_FILES[$validRoute[0]['upload']])) {
+                $data = $this->uploadFiles($_FILES[$validRoute[0]['upload']]);
             }
             /*
              * ...or read the input body content and directly populate data with it
@@ -273,17 +273,13 @@ class RestoRouter
     /**
      * Upload files locally and return array of file paths
      *
-     * @param string $arrayName
+     * @param array $files
      * @return array
      * @throws Exception
      */
-    private function uploadFiles($arrayName)
+    private function uploadFiles($files)
     {
         
-        if ( !isset($arrayName) || !isset($_FILES[$arrayName]) || !is_array($_FILES[$arrayName]) || !is_array($_FILES[$arrayName]['tmp_name']) ) {
-            RestoLogUtil::httpError(500, 'Cannot upload file(s)');
-        }
-
         $filePaths = [];
 
         // All files will be uploaded within a dedicated directory with a random name
@@ -291,9 +287,9 @@ class RestoRouter
 
         try {
             
-            for ($i = count($_FILES[$arrayName]['tmp_name']); $i--;) {
+            for ($i = count($files['tmp_name']); $i--;) {
 
-                $fileToUpload = $_FILES[$arrayName]['tmp_name'][$i];
+                $fileToUpload = $files['tmp_name'][$i];
 
                 if (is_uploaded_file($fileToUpload)) {
 
@@ -301,7 +297,7 @@ class RestoRouter
                         mkdir($uploadDirectory, 0777, true);
                     }
 
-                    $fileName = $uploadDirectory . DIRECTORY_SEPARATOR . $_FILES[$arrayName]['name'][$i];
+                    $fileName = $uploadDirectory . DIRECTORY_SEPARATOR . $files['name'][$i];
                     move_uploaded_file($fileToUpload, $fileName);
 
                     $filePaths[] = $fileName;
