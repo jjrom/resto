@@ -73,7 +73,7 @@ class FiltersFunctions
         /**
          * Append filter for contextual search
          */
-        $filterCS = $this->prepareFilterQueryContextualSearch($user);
+        $filterCS = $this->prepareFilterQueryContextualSearch($model->schema, $user);
         if (isset($filterCS) && $filterCS !== '') {
             $filters[] = $filterCS;
         }
@@ -95,7 +95,7 @@ class FiltersFunctions
                  * Sorting special case
                  */
                 if (!empty($sortKey) && ($filterName === 'resto:lt' || $filterName === 'resto:gt')) {
-                    $sortFilters[] = 'resto.feature.' . $sortKey . $model->searchFilters[$filterName]['operation'] . '\'' . pg_escape_string($params[$filterName]) . '\'';
+                    $sortFilters[] =  $model->schema . '.feature.' . $sortKey . $model->searchFilters[$filterName]['operation'] . '\'' . pg_escape_string($params[$filterName]) . '\'';
                 }
 
                 /*
@@ -109,7 +109,7 @@ class FiltersFunctions
                          */
                         if ($params[$filterName] === 'f') {
                             $filters[] = array(
-                                'value' => 'resto.feature.' . $model->searchFilters[$filterName]['key'] . ' IN (SELECT userid FROM resto.follower WHERE followerid=' . pg_escape_string($user->profile['id']) .  ')',
+                                'value' => $model->schema . '.feature.' . $model->searchFilters[$filterName]['key'] . ' IN (SELECT userid FROM resto.follower WHERE followerid=' . pg_escape_string($user->profile['id']) .  ')',
                                 'isGeo' => false
                             );
                         }
@@ -118,7 +118,7 @@ class FiltersFunctions
                          */
                         elseif ($params[$filterName] === 'F') {
                             $filters[] = array(
-                                'value' => '(resto.feature.' . $model->searchFilters[$filterName]['key'] . '=' . pg_escape_string($user->profile['id']) . ' OR resto.feature.' . $model->searchFilters[$filterName]['key'] . ' IN (SELECT userid FROM resto.follower WHERE followerid=' . pg_escape_string($user->profile['id']) .  '))',
+                                'value' => '(' . $model->schema . '.feature.' . $model->searchFilters[$filterName]['key'] . '=' . pg_escape_string($user->profile['id']) . ' OR ' . $model->schema . '.feature.' . $model->searchFilters[$filterName]['key'] . ' IN (SELECT userid FROM resto.follower WHERE followerid=' . pg_escape_string($user->profile['id']) .  '))',
                                 'isGeo' => false
                             );
                         } else {
@@ -188,10 +188,11 @@ class FiltersFunctions
      * Filter search result on group attribute using
      * the groups list from user profile
      *
+     * @param string $schema
      * @param RestoUser $user
      * @return string
      */
-    private function prepareFilterQueryContextualSearch($user)
+    private function prepareFilterQueryContextualSearch($schema, $user)
     {
 
         /*
@@ -202,7 +203,7 @@ class FiltersFunctions
         }
 
         return array(
-            'value' => 'resto.feature.visibility IN (' . join(',', $user->profile['groups']) . ')',
+            'value' =>  $schema . '.feature.visibility IN (' . join(',', $user->profile['groups']) . ')',
             'isGeo' => false
         );
     }
@@ -225,7 +226,7 @@ class FiltersFunctions
          * Special case model
          */
         if ($filterName === 'resto:model') {
-            return $this->prepareFilterQueryModel($requestParams[$filterName]);
+            return $this->prepareFilterQueryModel($model->schema, $requestParams[$filterName]);
         }
 
         /*
@@ -233,7 +234,7 @@ class FiltersFunctions
          */
         if ($filterName === 'created') {
             return array(
-                'value' => 'resto.feature.id ' . $model->searchFilters[$filterName]['operation'] . ' timestamp_to_id(\'' . pg_escape_string($requestParams[$filterName]) . '\')',
+                'value' => $model->schema . '.feature.id ' . $model->searchFilters[$filterName]['operation'] . ' timestamp_to_id(\'' . pg_escape_string($requestParams[$filterName]) . '\')',
                 'isGeo' => false
             );
         }
@@ -292,12 +293,12 @@ class FiltersFunctions
         $elements = explode(',', $requestParams[$filterName]);
         if (count($elements) === 1) {
             return array(
-                'value' => 'resto.feature.' . $model->searchFilters[$filterName]['key'] . '=\'' . pg_escape_string($requestParams[$filterName]) . '\'',
+                'value' => $model->schema . '.feature.' . $model->searchFilters[$filterName]['key'] . '=\'' . pg_escape_string($requestParams[$filterName]) . '\'',
                 'isGeo' => false
             );
         }
         return array(
-            'value' => 'resto.feature.' . $model->searchFilters[$filterName]['key'] . ' IN (' . implode(',', array_map(function($str) { return '\'' .  pg_escape_string($str) . '\''; }, $elements) ) . ')',
+            'value' =>  $model->schema . '.feature.' . $model->searchFilters[$filterName]['key'] . ' IN (' . implode(',', array_map(function($str) { return '\'' .  pg_escape_string($str) . '\''; }, $elements) ) . ')',
             'isGeo' => false
         );
     }
@@ -305,13 +306,14 @@ class FiltersFunctions
     /**
      * Prepare SQL query for model
      *
+     * @param string $schema
      * @param string $modelName
      * @return string
      */
-    private function prepareFilterQueryModel($modelName)
+    private function prepareFilterQueryModel($schema, $modelName)
     {
         return array(
-            'value' => 'resto.feature.collection IN (SELECT id FROM resto.collection WHERE lineage @> ARRAY[\'' . pg_escape_string($modelName) . '\'])',
+            'value' => $schema . '.feature.collection IN (SELECT id FROM resto.collection WHERE lineage @> ARRAY[\'' . pg_escape_string($modelName) . '\'])',
             'isGeo' => false
         );
     }
@@ -361,7 +363,7 @@ class FiltersFunctions
         }
 
         else if ($filterName === 'geo:geometry') {
-            $this->addToJoins('geometry_part', 'id');
+            $this->addToJoins($model->schema, $model->schema . '.geometry_part', 'id');
             $output = ($exclusion ? 'NOT ' : '') . 'ST_intersects(resto.geometry_part.' . $model->searchFilters[$filterName]['key'] . ", ST_GeomFromText('" . pg_escape_string($requestParams[$filterName]) . "', 4326))";
         }
 
@@ -437,7 +439,7 @@ class FiltersFunctions
             RestoLogUtil::httpError(400, 'Invalid geo:box');
         }
 
-        $this->addToJoins('geometry_part', 'id');
+        $this->addToJoins($model->schema, $model->schema . '.geometry_part', 'id');
 
         /*
          * Query build is $start . $geometry . $end
@@ -487,7 +489,7 @@ class FiltersFunctions
          * (avoid double call to Gazetteer)
          */
         if (isset($requestParams['geo:lon']) && isset($requestParams['geo:lat'])) {
-            $this->addToJoins('geometry_part', 'id');
+            $this->addToJoins($model->schema, $model->schema . '.geometry_part', 'id');
             $radius = RestoGeometryUtil::radiusInDegrees(isset($requestParams['geo:radius']) ? floatval($requestParams['geo:radius']) : 10000, floatval($requestParams['geo:lat']));
             if ($useDistance) {
                 return array(
@@ -552,7 +554,7 @@ class FiltersFunctions
         }
 
         return array(
-            'value' => join(' AND ', array_merge($terms, $this->mergeHashesFilters('resto.feature.' . $model->searchFilters[$filterName]['key'], $filters))),
+            'value' => join(' AND ', array_merge($terms, $this->mergeHashesFilters($model->schema . '.feature.' . $model->searchFilters[$filterName]['key'], $filters))),
             'isGeo' => false
         );
     }
@@ -596,7 +598,7 @@ class FiltersFunctions
             $values = explode('|', $searchTerm);
             if (count($values) > 1) {
                 for ($j = count($values); $j--;) {
-                    $ors[] = 'resto.feature.' . $model->searchFilters[$filterName]['key'] . " @> normalize_array(ARRAY['" . pg_escape_string($type . Resto::TAG_SEPARATOR . $values[$j]) . "'])";
+                    $ors[] = $model->schema . '.feature.' . $model->searchFilters[$filterName]['key'] . " @> normalize_array(ARRAY['" . pg_escape_string($type . Resto::TAG_SEPARATOR . $values[$j]) . "'])";
                 }
                 return array(($exclusion ? 'NOT (' : '(') . join(' OR ', $ors) . ')');
             }
@@ -616,7 +618,7 @@ class FiltersFunctions
      * @param string $tableName
      * @param boolean $exclusion
      * @return string
-     */
+     *
     private function getLandCoverFilters($value, $tableName, $exclusion)
     {
         if (!isset($tableName)) {
@@ -633,7 +635,8 @@ class FiltersFunctions
         return 'resto.' . $tableName . '.' . $value . ($exclusion ? ' < ' : ' > ') . '25)';
 
     }
-
+    */
+    
     /**
      * Merge filters on hashes
      *
@@ -665,22 +668,23 @@ class FiltersFunctions
        
         for ($i = count($model->tables); $i--;) {
             if (in_array(strtolower($model->searchFilters[$filterName]['key']), $model->tables[$i]['columns'])) {
-                $this->addToJoins($model->tables[$i]['name'], 'id');
-                return 'resto.' . $model->tables[$i]['name'] . '.';
+                $this->addToJoins($model->schema, $model->schema . '.' . $model->tables[$i]['name'], 'id');
+                return $model->schema . '.' . $model->tables[$i]['name'] . '.';
             }
         }
         
-        return 'resto.feature.';
+        return $model->schema . '.feature.';
     }
 
     /**
      * Add a join entry to joins array
      * 
+     * @param string $schema
      * @param string $tableName
      * @param string $idName
      */
-    private function addToJoins($tableName, $idName) {
-        $this->joins[] = 'JOIN resto.' . $tableName . ' ON resto.feature.id=resto.' . $tableName . '.' . $idName;
+    private function addToJoins($schema, $tableName, $idName) {
+        $this->joins[] = 'JOIN ' . $tableName . ' ON ' . $schema . '.feature.id=resto.' . $tableName . '.' . $idName;
     }
 
 }

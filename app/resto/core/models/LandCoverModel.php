@@ -106,7 +106,7 @@ class LandCoverModel extends DefaultModel
         }
 
         /*
-         * [IMPORTANT] The table resto.feature_landcover must exist
+         * [IMPORTANT] The table $this->schema.feature_landcover must exist
          * with columns 'id' and at least the columns list below
          */
         $this->tables[] = array(

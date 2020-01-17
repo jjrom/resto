@@ -109,31 +109,31 @@ class CollectionsFunctions
     /**
      * Check if collection $id exists within resto database
      *
-     * @param string $id - collection id
+     * @param string $collectionId - collection id
      * @return boolean
      * @throws Exception
      */
-    public function collectionExists($id)
+    public function collectionExists($collectionId)
     {
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id FROM resto.collection WHERE id=$1', array($id)));
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id FROM resto.collection WHERE id=$1', array($collectionId)));
         return !empty($results);
     }
 
     /**
      * Remove collection from RESTo database
      *
-     * @param string $collectionId
+     * @param RestoCollection $collection
      * @return array
      * @throws Exception
      */
-    public function removeCollection($collectionId)
+    public function removeCollection($collection)
     {
 
         /*
          * Never remove a non empty collection
          */
-        if (!$this->collectionIsEmpty($collectionId)) {
-            RestoLogUtil::httpError(403, 'Collection ' . $collectionId . ' cannot be deleted - it is not empty !');
+        if (!$this->collectionIsEmpty($collection)) {
+            RestoLogUtil::httpError(403, 'Collection ' . $collection->id . ' cannot be deleted - it is not empty !');
         }
 
         /*
@@ -144,11 +144,11 @@ class CollectionsFunctions
             $this->dbDriver->query('BEGIN');
 
             $this->dbDriver->pQuery('DELETE FROM resto.collection WHERE id=$1', array(
-                $collectionId
+                $collection->id
             ));
 
             $this->dbDriver->pQuery('DELETE FROM resto.right WHERE collection=$1', array(
-                $collectionId
+                $collection->id
             ));
             
             $this->dbDriver->query('COMMIT');
@@ -156,9 +156,9 @@ class CollectionsFunctions
             /*
              * Rollback on error
              */
-            if ($this->collectionExists($collectionId)) {
+            if ($this->collectionExists($collection->id)) {
                 $this->dbDriver->query('ROLLBACK');
-                throw new Exception(500, 'Cannot delete collection ' . $collectionId);
+                throw new Exception(500, 'Cannot delete collection ' . $collection->id);
             }
 
             /*
@@ -512,12 +512,12 @@ class CollectionsFunctions
     /**
      * Return true if collection is empty, false otherwise
      *
-     * @param string $collectionId
+     * @param RestoCollection $collection
      * @return boolean
      */
-    private function collectionIsEmpty($collectionId)
+    private function collectionIsEmpty($collection)
     {
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT count(id) as count FROM resto.feature WHERE collection=$1 LIMIT 1', array($collectionId)));
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT count(id) as count FROM ' . $collection->model->schema. '.feature WHERE collection=$1 LIMIT 1', array($collection->id)));
         if ($results[0]['count'] === '0') {
             return true;
         }

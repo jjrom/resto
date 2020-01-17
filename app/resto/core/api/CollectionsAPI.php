@@ -519,7 +519,7 @@ class CollectionsAPI
             RestoLogUtil::httpError(403);
         }
 
-        (new CollectionsFunctions($this->context->dbDriver))->removeCollection($collection->id);
+        (new CollectionsFunctions($this->context->dbDriver))->removeCollection($collection);
 
         return RestoLogUtil::success('Collection ' . $collection->id . ' deleted');
     }

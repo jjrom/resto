@@ -67,7 +67,7 @@ class OpticalModel extends SatelliteModel
         ));
 
         /*
-         * [IMPORTANT] The table resto.feature_optical must exist
+         * [IMPORTANT] The table $this->schema.feature_optical must exist
          * with columns 'id' and at least the columns list below
          */
         $this->tables[] = array(

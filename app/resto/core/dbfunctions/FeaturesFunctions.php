@@ -22,7 +22,7 @@ class FeaturesFunctions
 {
 
     /**
-     * List of columns from resto.feature table
+     * List of columns from *.feature table
      * that are retrieved with SELECT
      *
      * Commented column are not retrieved
@@ -111,10 +111,10 @@ class FeaturesFunctions
             $who = $params['resto:owner'] ?? $user->profile['id'];
             if (isset($who)) {
                 $filtersAndJoins['filters'][] = array(
-                    'value' => 'resto.likes.featureid=resto.feature.id AND resto.likes.userid=' . pg_escape_string($who),
+                    'value' => 'resto.likes.featureid=' . $model->schema . '.feature.id AND resto.likes.userid=' . pg_escape_string($who),
                     'isGeo' => false
                 );
-                $filtersAndJoins['joins'][] = 'JOIN resto.likes ON resto.feature.id = resto.likes.featureid';
+                $filtersAndJoins['joins'][] = 'JOIN resto.likes ON ' . $model->schema . '.feature.id = resto.likes.featureid';
             }
         }
 
@@ -123,7 +123,7 @@ class FeaturesFunctions
          */
         $extra = join(' ', array(
             'ORDER BY',
-            'resto.feature.' . $sorting['sortKey'],
+            $model->schema . '.feature.' . $sorting['sortKey'],
             $sorting['realOrder'],
             'LIMIT',
             $sorting['limit'],
@@ -134,7 +134,7 @@ class FeaturesFunctions
          * Prepare query
          */
         $query = join(' ', array(
-            $this->getSelectClause($this->featureColumns, $user, array(
+            $this->getSelectClause($model->schema, $this->featureColumns, $user, array(
                 'fields' => $context->query['fields'] ?? '_default',
                 'useSocial' => isset($context->addons['Social']),
                 'sortKey' => $sorting['sortKey']
@@ -159,7 +159,7 @@ class FeaturesFunctions
          */
         if (isset($context->addons['Heatmap'])) {
             $whereClauseNoGeo = $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => false));
-            $heatmapLink = (new Heatmap($context, $user))->getEndPoint($whereClauseNoGeo, $this->getCount('FROM resto.feature ' . $whereClauseNoGeo), null);
+            $heatmapLink = (new Heatmap($context, $user))->getEndPoint($model->schema, $whereClauseNoGeo, $this->getCount('FROM ' . $model->schema . '.feature ' . $whereClauseNoGeo), null);
             if ( isset($heatmapLink) ) {
                 $links[] = $heatmapLink;
             }
@@ -167,7 +167,7 @@ class FeaturesFunctions
 
         return array(
             'links' => $links,
-            'count' => count($features) > 0 ? $this->getCount('FROM resto.feature ' . $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => true)), $params) : array(
+            'count' => count($features) > 0 ? $this->getCount('FROM ' . $model->schema . '.feature ' . $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => true)), $params) : array(
                 'total' => 0,
                 'isExact' => true
             ),
@@ -193,7 +193,7 @@ class FeaturesFunctions
     public function getFeatureDescription($context, $user, $featureId, $collection, $fields)
     {
         $model = isset($collection) ? $collection->model : new DefaultModel();
-        $selectClause = $this->getSelectClause($this->featureColumns, $user, array(
+        $selectClause = $this->getSelectClause($model->schema, $this->featureColumns, $user, array(
             'fields' => $fields,
             'useSocial' => isset($context->addons['Social'])
         ));
@@ -202,7 +202,7 @@ class FeaturesFunctions
 
         // Determine if search on id or productidentifier
         $filtersAndJoins['filters'][] = array(
-            'value' => 'resto.feature.id=\'' . pg_escape_string((RestoUtil::isValidUUID($featureId) ? $featureId : RestoUtil::toUUID($featureId))) . '\'',
+            'value' =>  $model->schema . '.feature.id=\'' . pg_escape_string((RestoUtil::isValidUUID($featureId) ? $featureId : RestoUtil::toUUID($featureId))) . '\'',
             'isGeo' => false
         );
         $results = $this->dbDriver->fetch($this->dbDriver->query($selectClause . ' ' . $filterFunctions->getWhereClause($filtersAndJoins, true)));
@@ -213,12 +213,13 @@ class FeaturesFunctions
      * Check if feature identified by $featureId exists
      *
      * @param string $featureId - feature UUID
+     * @param string $schema
      * @return boolean
      * @throws Exception
      */
-    public function featureExists($featureId)
+    public function featureExists($featureId, $schema)
     {
-        return !empty($this->dbDriver->fetch($this->dbDriver->pQuery('SELECT 1 FROM resto.feature WHERE id=($1)', array(
+        return !empty($this->dbDriver->fetch($this->dbDriver->pQuery('SELECT 1 FROM ' . $schema . ' .feature WHERE id=($1)', array(
             $featureId
         ))));
     }
@@ -280,7 +281,7 @@ class FeaturesFunctions
             /*
              * Store feature - identifier is generated with public.timestamp_to_id()
              */
-            $result = pg_fetch_assoc($this->dbDriver->pQuery('INSERT INTO resto.feature (' . join(',', array_keys($keysValues['keysAndValues'])) . ') VALUES (' . join(',', array_values($keysValues['params'])) . ') RETURNING id, productidentifier', array_values($keysValues['keysAndValues'])), 0);
+            $result = pg_fetch_assoc($this->dbDriver->pQuery('INSERT INTO ' . $collection->model->schema . '.feature (' . join(',', array_keys($keysValues['keysAndValues'])) . ') VALUES (' . join(',', array_values($keysValues['params'])) . ') RETURNING id, productidentifier', array_values($keysValues['keysAndValues'])), 0);
             
             /*
              * Store feature content
@@ -326,11 +327,13 @@ class FeaturesFunctions
     {
         $featureArray = $feature->toArray();
         
+        $model = isset($feature->collection) ? $feature->collection->model : new DefaultModel();
+
         /*
          * Remove feature
          */
         try {
-            $this->dbDriver->pQuery('DELETE FROM resto.feature WHERE id=$1', array($feature->id));
+            $this->dbDriver->pQuery('DELETE FROM ' . $model->schema . '.feature WHERE id=$1', array($feature->id));
         } catch (Exception $e) {
             RestoLogUtil::httpError(500, 'Cannot delete feature ' . $feature->id);
         }
@@ -404,7 +407,7 @@ class FeaturesFunctions
              */
             $toUpdate = $this->concatArrays(array_keys($keysAndValues['keysAndValues']), $keysAndValues['params'], '=');
             $this->dbDriver->pQuery(
-                'UPDATE resto.feature SET ' . join(',', $toUpdate) . ' WHERE id=$' . (count($toUpdate) + 1),
+                'UPDATE ' . $collection->model->schema . '.feature SET ' . join(',', $toUpdate) . ' WHERE id=$' . (count($toUpdate) + 1),
                 array_merge(
                     array_values($keysAndValues['keysAndValues']),
                     array($feature->id)
@@ -486,8 +489,11 @@ class FeaturesFunctions
                 RestoLogUtil::httpError(400, 'Invalid ' . $property . ' type - should be numeric');
             }
         }
+
+        $model = isset($feature->collection) ? $feature->collection->model : new DefaultModel();
+
         try {
-            $this->dbDriver->pQuery('UPDATE resto.feature SET ' . $property . '=$1 WHERE id=$2', array(
+            $this->dbDriver->pQuery('UPDATE ' . $model->schema . '.feature SET ' . $property . '=$1 WHERE id=$2', array(
                 $value,
                 $feature->id
             ));
@@ -512,6 +518,8 @@ class FeaturesFunctions
         $hashtagsToAdd = $this->extractHashtagsFromText($description);
         $hashtags = array_merge(array_diff($feature->toArray()['properties']['hashtags'], $hashtagsToRemove), $hashtagsToAdd);
         
+        $model = isset($feature->collection) ? $feature->collection->model : new DefaultModel();
+
         /*
          * Transaction 
          */
@@ -520,7 +528,7 @@ class FeaturesFunctions
             /*
              * Update description, hashtags and normalized_hashtags
              */
-            $this->dbDriver->pQuery('UPDATE resto.feature SET description=$1, hashtags=$2, normalized_hashtags=normalize_array($2) WHERE id=$3', array(
+            $this->dbDriver->pQuery('UPDATE ' . $model->schema . '.feature SET description=$1, hashtags=$2, normalized_hashtags=normalize_array($2) WHERE id=$3', array(
                 $description,
                 '{' . join(',', $hashtags) . '}',
                 $feature->id
@@ -817,8 +825,9 @@ class FeaturesFunctions
     }
 
     /**
-     * Return resto.feature SELECT clause from input columns
+     * Return $schema.feature SELECT clause from input columns
      *
+     * @param string $schema
      * @param array $featureColumns
      * @param RestoUser $user
      * @param array $options
@@ -830,7 +839,7 @@ class FeaturesFunctions
      *
      * @return array
      */
-    private function getSelectClause($featureColumns, $user, $options)
+    private function getSelectClause($schema, $featureColumns, $user, $options)
     {
         $sanitized = $this->sanitizeSQLColumns($featureColumns, array_map('trim', explode(',', $options['fields'])));
 
@@ -855,23 +864,23 @@ class FeaturesFunctions
 
                 // [IMPORTANT] The geometry returned is _geometry not geometry !!!
                 case 'geometry':
-                    $columns[] = 'ST_AsGeoJSON(resto.feature._geometry, 6) AS geometry';
-                    $columns[] = 'Box2D(resto.feature._geometry) AS bbox4326';
+                    $columns[] = 'ST_AsGeoJSON(' . $schema . '.feature._geometry, 6) AS geometry';
+                    $columns[] = 'Box2D(' . $schema . '.feature._geometry) AS bbox4326';
                     break;
 
                 case 'centroid':
-                    $columns[] = 'ST_AsGeoJSON(resto.feature.centroid, 6) AS centroid';
+                    $columns[] = 'ST_AsGeoJSON(' . $schema . '.feature.centroid, 6) AS centroid';
                     break;
 
                 case 'startDate':
                 case 'completionDate':
                 case 'created':
                 case 'updated':
-                    $columns[] = 'to_iso8601(resto.feature.' . $key . ') AS "' . $key . '"';
+                    $columns[] = 'to_iso8601(' . $schema . '.feature.' . $key . ') AS "' . $key . '"';
                     break;
 
                 default:
-                    $columns[] = 'resto.feature.' . $key . ' AS "' . $key . '"';
+                    $columns[] = '' . $schema . '.feature.' . $key . ' AS "' . $key . '"';
                     break;
             }
             
@@ -881,22 +890,22 @@ class FeaturesFunctions
          * Add liked query if user is set an Social add-on is available
          */
         if (isset($user->profile['id']) && $options['useSocial']) {
-            $columns[] = 'EXISTS(SELECT resto.likes.featureid FROM resto.likes WHERE resto.likes.featureid=resto.feature.id AND resto.likes.userid=' . $user->profile['id'] . ') AS liked';
+            $columns[] = 'EXISTS(SELECT resto.likes.featureid FROM resto.likes WHERE resto.likes.featureid=' . $schema . '.feature.id AND resto.likes.userid=' . $user->profile['id'] . ') AS liked';
         }
 
         /*
          * Add sort idx
          */
         if (!empty($options['sortKey'])) {
-            $columns[] = 'resto.feature.' . $options['sortKey'] . ' AS sort_idx';
+            $columns[] = '' . $schema . '.feature.' . $options['sortKey'] . ' AS sort_idx';
         }
 
-        return 'SELECT ' . join(',', $columns) . ' FROM resto.feature';
+        return 'SELECT ' . join(',', $columns) . ' FROM ' . $schema . '.feature';
 
     }
 
     /**
-     * Sanitize input requested resto.feature columns
+     * Sanitize input requested columns
      * 
      * @param array $featureColumns
      */

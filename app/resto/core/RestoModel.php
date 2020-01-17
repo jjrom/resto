@@ -60,7 +60,7 @@ abstract class RestoModel
      * OpenSearch search filters
      *
      *  'key' :
-     *      resto.feature column name
+     *      *.feature column name
      *  'osKey' :
      *      OpenSearch property name in template urls
      *  'prefix' :
@@ -292,10 +292,21 @@ abstract class RestoModel
     /*
      * Array of table names to store "model specific" properties for feature
      * Usually only numeric properties are stored (for search) since
-     * string property are stored within metadata property of resto.feature table
+     * string property are stored within metadata property of *.feature table
      * and indexed with normalized_hashtags property of the same table
      */
     public $tables = array();
+
+    /*
+     * Name of PostgreSQL schema containing all feature related tables
+     * 
+     * [IMPORTANT] 
+     * If this value is changed in child model, then all features belonging to a collection referencing this model
+     * will be stored in a dedicated table (i.e. "$schema.feature") instead of the regular "resto.feature".
+     * 
+     * For an example of superseed see ObservationModel
+     */
+    public $schema = 'resto';
     
     /**
      * Constructor
@@ -354,25 +365,36 @@ abstract class RestoModel
         // Extent
         $dates = array();
         $bboxes = array();
+
+        $inserted = 0;
+        $inError = 0;
+        $featuresInserted = array();
+        $featuresInError = array();
         
         // Feature case
         if ( $data['type'] === 'Feature' ) {
 
             $insert = $this->storeFeature($collection, $data, $params);
 
-            $dates[] = isset($insert['featureArray']['properties']) && isset($insert['featureArray']['properties']['startDate']) ? $insert['featureArray']['properties']['startDate'] : null;
-            $bboxes[] = isset($insert['featureArray']['topologyAnalysis']) && isset($insert['featureArray']['topologyAnalysis']['bbox']) ? $insert['featureArray']['topologyAnalysis']['bbox'] : null;
+            if ($insert['result'] !== false) {
+                
+                $featuresInserted[] = array(
+                    'featureId' => $insert['result']['id'],
+                    'productIdentifier' => $insert['result']['productIdentifier'],
+                    'facetsStored' => $insert['result']['facetsStored']
+                );
+                $inserted++;
+            
+                $dates[] = isset($insert['featureArray']['properties']) && isset($insert['featureArray']['properties']['startDate']) ? $insert['featureArray']['properties']['startDate'] : null;
+                $bboxes[] = isset($insert['featureArray']['topologyAnalysis']) && isset($insert['featureArray']['topologyAnalysis']['bbox']) ? $insert['featureArray']['topologyAnalysis']['bbox'] : null;
+
+            }
 
         }
 
         // FeatureCollection case
         else {
 
-            $inserted = 0;
-            $inError = 0;
-            $featuresInserted = array();
-            $featuresInError = array();
-            
             for ($i = 0, $ii = count($data['features']); $i<$ii; $i++)
             {
 
@@ -604,7 +626,7 @@ abstract class RestoModel
          *  
          * (do this before getKeywords to avoid iTag process)
          */
-        if (isset($productIdentifier) && (new FeaturesFunctions($collection->context->dbDriver))->featureExists($featureId)) {
+        if (isset($productIdentifier) && (new FeaturesFunctions($collection->context->dbDriver))->featureExists($featureId, $collection->model->schema)) {
             RestoLogUtil::httpError(409, 'Feature ' . $featureId . ' (with productIdentifier=' . $productIdentifier . ') already in database');
         }
 
