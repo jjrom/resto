@@ -308,7 +308,7 @@ abstract class RestoModel
      */
     public $schema = array(
         'name' => 'resto',
-        'useGeometryPart' => true
+        'useGeometryPart' => false
     );
     
     /**
