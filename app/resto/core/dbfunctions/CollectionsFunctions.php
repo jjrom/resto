@@ -517,7 +517,7 @@ class CollectionsFunctions
      */
     private function collectionIsEmpty($collection)
     {
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT count(id) as count FROM ' . $collection->model->schema. '.feature WHERE collection=$1 LIMIT 1', array($collection->id)));
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT count(id) as count FROM ' . $collection->model->schema['name']. '.feature WHERE collection=$1 LIMIT 1', array($collection->id)));
         if ($results[0]['count'] === '0') {
             return true;
         }

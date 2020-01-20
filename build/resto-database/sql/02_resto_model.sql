@@ -200,7 +200,7 @@ CREATE TABLE IF NOT EXISTS resto.feature (
     hashtags            TEXT[],
 
     -- Original geometry as provided during feature insertion
-    -- It is set to NULL if equals to _geometry (see below) 
+    -- It is set to NULL if equals to geom (see below) 
     geometry            GEOMETRY(GEOMETRY, 4326),
     
     -- Centroid computed from geometry
@@ -209,8 +209,8 @@ CREATE TABLE IF NOT EXISTS resto.feature (
     -- Result of ST_SplitDateLine(geometry)
     -- Guarantee a valid geometry in database even if input geometry crosses -180/180 meridian of crosses North or South pole
     -- If input geometry does not cross one of this case, then input geometry is not
-    -- modified and _geometry equals geomety.
-    _geometry           GEOMETRY(GEOMETRY, 4326),
+    -- modified and geom equals geomety.
+    geom           GEOMETRY(GEOMETRY, 4326),
 
     -- [INDEXED] Hashtags
     -- 

@@ -227,7 +227,7 @@ class GeneralFunctions
             'isValid' => true,
             'bbox' => RestoGeometryUtil::box2dTobbox($result['bbox']),
             'geometry' => $result['geom'] === $result['_geom'] ? null : $result['geom'],
-            '_geometry' => $result['_geom'],
+            'geom' => $result['_geom'],
             'centroid' => $result['centroid']
         );
     }

@@ -306,7 +306,10 @@ abstract class RestoModel
      * 
      * For an example of superseed see ObservationModel
      */
-    public $schema = 'resto';
+    public $schema = array(
+        'name' => 'resto',
+        'useGeometryPart' => true
+    );
     
     /**
      * Constructor
@@ -377,7 +380,7 @@ abstract class RestoModel
             $insert = $this->storeFeature($collection, $data, $params);
 
             if ($insert['result'] !== false) {
-                
+
                 $featuresInserted[] = array(
                     'featureId' => $insert['result']['id'],
                     'productIdentifier' => $insert['result']['productIdentifier'],
@@ -626,7 +629,7 @@ abstract class RestoModel
          *  
          * (do this before getKeywords to avoid iTag process)
          */
-        if (isset($productIdentifier) && (new FeaturesFunctions($collection->context->dbDriver))->featureExists($featureId, $collection->model->schema)) {
+        if (isset($productIdentifier) && (new FeaturesFunctions($collection->context->dbDriver))->featureExists($featureId, $collection->model->schema['name'])) {
             RestoLogUtil::httpError(409, 'Feature ' . $featureId . ' (with productIdentifier=' . $productIdentifier . ') already in database');
         }
 

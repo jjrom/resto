@@ -111,10 +111,10 @@ class FeaturesFunctions
             $who = $params['resto:owner'] ?? $user->profile['id'];
             if (isset($who)) {
                 $filtersAndJoins['filters'][] = array(
-                    'value' => 'resto.likes.featureid=' . $model->schema . '.feature.id AND resto.likes.userid=' . pg_escape_string($who),
+                    'value' => 'resto.likes.featureid=' . $model->schema['name'] . '.feature.id AND resto.likes.userid=' . pg_escape_string($who),
                     'isGeo' => false
                 );
-                $filtersAndJoins['joins'][] = 'JOIN resto.likes ON ' . $model->schema . '.feature.id = resto.likes.featureid';
+                $filtersAndJoins['joins'][] = 'JOIN resto.likes ON ' . $model->schema['name'] . '.feature.id = resto.likes.featureid';
             }
         }
 
@@ -123,7 +123,7 @@ class FeaturesFunctions
          */
         $extra = join(' ', array(
             'ORDER BY',
-            $model->schema . '.feature.' . $sorting['sortKey'],
+            $model->schema['name'] . '.feature.' . $sorting['sortKey'],
             $sorting['realOrder'],
             'LIMIT',
             $sorting['limit'],
@@ -134,7 +134,7 @@ class FeaturesFunctions
          * Prepare query
          */
         $query = join(' ', array(
-            $this->getSelectClause($model->schema, $this->featureColumns, $user, array(
+            $this->getSelectClause($model->schema['name'], $this->featureColumns, $user, array(
                 'fields' => $context->query['fields'] ?? '_default',
                 'useSocial' => isset($context->addons['Social']),
                 'sortKey' => $sorting['sortKey']
@@ -159,7 +159,7 @@ class FeaturesFunctions
          */
         if (isset($context->addons['Heatmap'])) {
             $whereClauseNoGeo = $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => false));
-            $heatmapLink = (new Heatmap($context, $user))->getEndPoint($model->schema, $whereClauseNoGeo, $this->getCount('FROM ' . $model->schema . '.feature ' . $whereClauseNoGeo), null);
+            $heatmapLink = (new Heatmap($context, $user))->getEndPoint($model->schema['name'], $whereClauseNoGeo, $this->getCount('FROM ' . $model->schema['name'] . '.feature ' . $whereClauseNoGeo), null);
             if ( isset($heatmapLink) ) {
                 $links[] = $heatmapLink;
             }
@@ -167,7 +167,7 @@ class FeaturesFunctions
 
         return array(
             'links' => $links,
-            'count' => count($features) > 0 ? $this->getCount('FROM ' . $model->schema . '.feature ' . $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => true)), $params) : array(
+            'count' => count($features) > 0 ? $this->getCount('FROM ' . $model->schema['name'] . '.feature ' . $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => true)), $params) : array(
                 'total' => 0,
                 'isExact' => true
             ),
@@ -193,7 +193,7 @@ class FeaturesFunctions
     public function getFeatureDescription($context, $user, $featureId, $collection, $fields)
     {
         $model = isset($collection) ? $collection->model : new DefaultModel();
-        $selectClause = $this->getSelectClause($model->schema, $this->featureColumns, $user, array(
+        $selectClause = $this->getSelectClause($model->schema['name'], $this->featureColumns, $user, array(
             'fields' => $fields,
             'useSocial' => isset($context->addons['Social'])
         ));
@@ -202,7 +202,7 @@ class FeaturesFunctions
 
         // Determine if search on id or productidentifier
         $filtersAndJoins['filters'][] = array(
-            'value' =>  $model->schema . '.feature.id=\'' . pg_escape_string((RestoUtil::isValidUUID($featureId) ? $featureId : RestoUtil::toUUID($featureId))) . '\'',
+            'value' =>  $model->schema['name'] . '.feature.id=\'' . pg_escape_string((RestoUtil::isValidUUID($featureId) ? $featureId : RestoUtil::toUUID($featureId))) . '\'',
             'isGeo' => false
         );
         $results = $this->dbDriver->fetch($this->dbDriver->query($selectClause . ' ' . $filterFunctions->getWhereClause($filtersAndJoins, true)));
@@ -252,7 +252,7 @@ class FeaturesFunctions
                 'updated' => isset($featureArray['properties']) && isset($featureArray['properties']['updated']) ? $featureArray['properties']['updated'] : 'now()',
                 'geometry' => $featureArray['topologyAnalysis']['geometry'] ?? null,
                 'centroid' => $featureArray['topologyAnalysis']['centroid'] ?? null,
-                '_geometry' => $featureArray['topologyAnalysis']['_geometry'] ?? null
+                'geom' => $featureArray['topologyAnalysis']['geom'] ?? null
                 ),
             array(
                 'productIdentifier',
@@ -281,7 +281,7 @@ class FeaturesFunctions
             /*
              * Store feature - identifier is generated with public.timestamp_to_id()
              */
-            $result = pg_fetch_assoc($this->dbDriver->pQuery('INSERT INTO ' . $collection->model->schema . '.feature (' . join(',', array_keys($keysValues['keysAndValues'])) . ') VALUES (' . join(',', array_values($keysValues['params'])) . ') RETURNING id, productidentifier', array_values($keysValues['keysAndValues'])), 0);
+            $result = pg_fetch_assoc($this->dbDriver->pQuery('INSERT INTO ' . $collection->model->schema['name'] . '.feature (' . join(',', array_keys($keysValues['keysAndValues'])) . ') VALUES (' . join(',', array_values($keysValues['params'])) . ') RETURNING id, productidentifier', array_values($keysValues['keysAndValues'])), 0);
             
             /*
              * Store feature content
@@ -333,7 +333,7 @@ class FeaturesFunctions
          * Remove feature
          */
         try {
-            $this->dbDriver->pQuery('DELETE FROM ' . $model->schema . '.feature WHERE id=$1', array($feature->id));
+            $this->dbDriver->pQuery('DELETE FROM ' . $model->schema['name'] . '.feature WHERE id=$1', array($feature->id));
         } catch (Exception $e) {
             RestoLogUtil::httpError(500, 'Cannot delete feature ' . $feature->id);
         }
@@ -407,7 +407,7 @@ class FeaturesFunctions
              */
             $toUpdate = $this->concatArrays(array_keys($keysAndValues['keysAndValues']), $keysAndValues['params'], '=');
             $this->dbDriver->pQuery(
-                'UPDATE ' . $collection->model->schema . '.feature SET ' . join(',', $toUpdate) . ' WHERE id=$' . (count($toUpdate) + 1),
+                'UPDATE ' . $collection->model->schema['name'] . '.feature SET ' . join(',', $toUpdate) . ' WHERE id=$' . (count($toUpdate) + 1),
                 array_merge(
                     array_values($keysAndValues['keysAndValues']),
                     array($feature->id)
@@ -493,7 +493,7 @@ class FeaturesFunctions
         $model = isset($feature->collection) ? $feature->collection->model : new DefaultModel();
 
         try {
-            $this->dbDriver->pQuery('UPDATE ' . $model->schema . '.feature SET ' . $property . '=$1 WHERE id=$2', array(
+            $this->dbDriver->pQuery('UPDATE ' . $model->schema['name'] . '.feature SET ' . $property . '=$1 WHERE id=$2', array(
                 $value,
                 $feature->id
             ));
@@ -528,7 +528,7 @@ class FeaturesFunctions
             /*
              * Update description, hashtags and normalized_hashtags
              */
-            $this->dbDriver->pQuery('UPDATE ' . $model->schema . '.feature SET description=$1, hashtags=$2, normalized_hashtags=normalize_array($2) WHERE id=$3', array(
+            $this->dbDriver->pQuery('UPDATE ' . $model->schema['name'] . '.feature SET description=$1, hashtags=$2, normalized_hashtags=normalize_array($2) WHERE id=$3', array(
                 $description,
                 '{' . join(',', $hashtags) . '}',
                 $feature->id
@@ -862,10 +862,10 @@ class FeaturesFunctions
              */
             switch ($key) {
 
-                // [IMPORTANT] The geometry returned is _geometry not geometry !!!
+                // [IMPORTANT] The geometry returned is geom not geometry !!!
                 case 'geometry':
-                    $columns[] = 'ST_AsGeoJSON(' . $schema . '.feature._geometry, 6) AS geometry';
-                    $columns[] = 'Box2D(' . $schema . '.feature._geometry) AS bbox4326';
+                    $columns[] = 'ST_AsGeoJSON(' . $schema . '.feature.geom, 6) AS geometry';
+                    $columns[] = 'Box2D(' . $schema . '.feature.geom) AS bbox4326';
                     break;
 
                 case 'centroid':

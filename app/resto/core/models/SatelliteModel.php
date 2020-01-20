@@ -138,7 +138,7 @@ class SatelliteModel extends LandCoverModel
         ));
         
         /*
-         * [IMPORTANT] The table $this->schema.feature_satellite must exist
+         * [IMPORTANT] The table $this->schema['name'].feature_satellite must exist
          * with columns 'id' and at least the columns list below
          */
         $this->tables[] = array(
