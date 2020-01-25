@@ -922,7 +922,7 @@ class RestoFeatureCollection
         if ($offset == 0 && $count['returned'] == 0) {
             $count = array(
                 'returned' => 0,
-                'total' => 0,
+                'total' => $count['total'] ?? 0,
                 'isExact' => true
             );
         }

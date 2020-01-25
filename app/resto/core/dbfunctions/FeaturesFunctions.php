@@ -167,10 +167,7 @@ class FeaturesFunctions
 
         return array(
             'links' => $links,
-            'count' => count($features) > 0 ? $this->getCount('FROM ' . $model->schema['name'] . '.feature ' . $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => true)), $params) : array(
-                'total' => 0,
-                'isExact' => true
-            ),
+            'count' => $this->getCount('FROM ' . $model->schema['name'] . '.feature ' . $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => true)), $params),
             // Reverse features array if needed
             'features' => $sorting['realOrder'] !== $sorting['order'] ? array_reverse($features) : $features
         );
@@ -595,7 +592,7 @@ class FeaturesFunctions
         if ( !$realCount && $result !== false ) {
             $result = $this->approximate((integer) $result);
         }
-
+        
         return array(
             'total' => $result === false ? -1 : (integer) $result,
             'isExact' => $realCount
