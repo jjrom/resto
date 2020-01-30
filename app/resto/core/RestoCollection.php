@@ -836,12 +836,12 @@ class RestoCollection
     /**
      * Add feature to the {collection}.features table
      *
-     * @param array $data : GeoJSON file or file splitted in array
+     * @param array $body HTTP body
      * @param array $params : Insertion params
      */
-    public function addFeatures($data, $params)
+    public function addFeatures($body, $params)
     {
-        return $this->model->storeFeatures($this, $data, $params);
+        return $this->model->storeFeatures($this, $body, $params);
     }
 
     /**

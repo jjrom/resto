@@ -351,15 +351,15 @@ abstract class RestoModel
      * Store several features within {collection}.features table following the class model
      *
      * @param RestoCollection $collection
-     * @param array $rawData : array (MUST BE a GeoJSON "Feature" or "FeatureCollection" in abstract Model)
+     * @param array $body : HTTP body (MUST BE a GeoJSON "Feature" or "FeatureCollection" in abstract Model)
      * @param array $params
      *
      */
-    public function storeFeatures($collection, $rawData, $params)
+    public function storeFeatures($collection, $body, $params)
     {
         
         // Convert input to resto model
-        $data = $this->inputToResto($rawData, $collection, $params);
+        $data = $this->inputToResto($body, $collection, $params);
 
         if ( !isset($data) || !in_array($data['type'], array('Feature', 'FeatureCollection')) ) {
             return RestoLogUtil::httpError(400, 'Invalid input type - only "Feature" and "FeatureCollection" are allowed');
@@ -591,14 +591,14 @@ abstract class RestoModel
     /**
      * Convert input data to resto model
      *
-     * @param array $rawData : any input data
+     * @param array $body : any input data
      * @param RestoCollection $collection
      * @param array $params
      *
      */
-    protected function inputToResto($rawData, $collection, $params)
+    protected function inputToResto($body, $collection, $params)
     {
-        return $rawData;
+        return $body;
     }
 
     /**
