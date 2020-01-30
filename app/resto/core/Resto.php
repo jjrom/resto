@@ -111,7 +111,7 @@ class Resto
 
         // API for features
         array('GET',    '/collections/{collectionId}/items', false, 'FeaturesAPI::getFeaturesInCollection'),                              // Search features in :collectionId
-        array('POST',   '/collections/{collectionId}/items', true, 'CollectionsAPI::insertFeatures'),                                     // Insert feature(s)
+        array('POST',   '/collections/{collectionId}/items', array('auth' => true, 'upload' => 'files'), 'CollectionsAPI::insertFeatures'),                                     // Insert feature(s)
         array('GET',    '/collections/{collectionId}/items/{featureId}', false, 'FeaturesAPI::getFeature'),                               // Get feature :featureId
         array('PUT',    '/collections/{collectionId}/items/{featureId}', true, 'FeaturesAPI::updateFeature'),                             // Update feature :featureId
         array('DELETE', '/collections/{collectionId}/items/{featureId}', true, 'FeaturesAPI::deleteFeature'),                             // Delete :featureId

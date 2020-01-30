@@ -28,6 +28,7 @@ services:
       - /Users/jrom/Devel/resto-addons/resto-addon-shp-uploader/src/php-shapefile/:/app/resto/addons/php-shapefile:ro
       - /Users/jrom/Devel/resto-addons/resto-addon-shp-uploader/src/ShapefileUploader.php:/app/resto/addons/ShapefileUploader.php:ro
       - /Users/jrom/Devel/resto-addons/resto-addon-shp-uploader/shp-uploader.config:/cfg/shp-uploader.config:ro
+      - /Users/jrom/Devel/resto-models/src/HysopeLakeModel.php:/app/resto/addons/HysopeLakeModel.php:ro
   restodb:
     environment:
       - POSTGRES_MAX_CONNECTIONS=100
