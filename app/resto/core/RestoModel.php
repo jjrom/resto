@@ -677,6 +677,20 @@ abstract class RestoModel
         $properties = RestoUtil::cleanAssociativeArray($data['properties']);
         
         /*
+         * Convert datetime to startDate / completionDate
+         */
+        if ( isset($properties['datetime']) ) {
+            $dates = explode('/', $properties['datetime']);
+            if ( isset($dates[0]) ) {
+                $properties['startDate'] = $dates[0];
+            }
+            if ( isset($dates[1]) ) {
+                $properties['completionDate'] = $dates[1];
+            }
+            unset($properties['datetime']);
+        }
+
+        /*
          * Add collection to $properties to initialize facet counts on collection
          * [WARNING] if properties['collection'] is already set, it is discarded and replaced by the current collection
          */

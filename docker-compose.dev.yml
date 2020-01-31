@@ -5,7 +5,16 @@ services:
       # Set to 0 in production environment to activate opcache
       - RESTO_DEBUG=1
       - PHP_ENABLE_XDEBUG=1
-      - NGINX_CLIENT_MAX_BODY_SIZE=20m
+      # [START] Support large file
+      - NGINX_CLIENT_MAX_BODY_SIZE=2000m
+      - NGINX_CLIENT_BODY_TIMEOUT=1800
+      - NGINX_FASTCGI_READ_TIMEOUT=1800
+      - NGINX_FASTCGI_CONNECT_TIMEOUT=300
+      - PHP_FPM_UPLOAD_MAX_FILESIZE=2000M
+      - PHP_FPM_MAX_EXECUTION_TIME=300
+      - PHP_FPM_MAX_INPUT_TIME=1800
+      - PHP_FPM_MEMORY_LIMIT=512M
+      # [END] Support large file
       - ADDON_GAZETTEER_EGG_ENDPOINT=https://egg.snapplanet.io
     volumes:
       - ./app/resto/core:/app/resto/core:ro

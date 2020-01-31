@@ -8,6 +8,14 @@ if [[ $NGINX_CLIENT_MAX_BODY_SIZE ]]
 then
   echo "[nginx] setting client_max_body_size ${NGINX_CLIENT_MAX_BODY_SIZE}"
   sed -i "s/client_max_body_size .*;/client_max_body_size ${NGINX_CLIENT_MAX_BODY_SIZE};/" $CONF_NGINX_GLOBAL
+  echo "[nginx] setting client_body_buffer_size ${NGINX_CLIENT_MAX_BODY_SIZE}"
+  sed -i "s/client_body_buffer_size .*;/client_body_buffer_size ${NGINX_CLIENT_MAX_BODY_SIZE};/" $CONF_NGINX_GLOBAL
+fi
+
+if [[ $NGINX_CLIENT_BODY_TIMEOUT ]]
+then
+  echo "[nginx] setting client_body_timeout ${NGINX_CLIENT_BODY_TIMEOUT}"
+  sed -i "s/client_body_timeout .*;/client_body_timeout ${NGINX_CLIENT_BODY_TIMEOUT};/" $CONF_NGINX_GLOBAL
 fi
 
 if [[ $NGINX_FASTCGI_BUFFERS ]]
@@ -42,6 +50,6 @@ fi
 
 if [[ $NGINX_FASTCGI_READ_TIMEOUT ]]
 then
-  echo "[nginx-fastcgi] setting fastcgi_read_timeout ${NGINX_FASTCGI_READ_TIMEOUT}"
+  echo "[nginx-fastcgi] setting  ${NGINX_FASTCGI_READ_TIMEOUT}"
   sed -i "s/fastcgi_read_timeout .*;/fastcgi_read_timeout ${NGINX_FASTCGI_READ_TIMEOUT};/" $CONF_NGINX_SITE
 fi
