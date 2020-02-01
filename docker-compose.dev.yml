@@ -15,7 +15,7 @@ services:
       - PHP_FPM_MAX_INPUT_TIME=1800
       - PHP_FPM_MEMORY_LIMIT=512M
       # [END] Support large file
-      - ADDON_GAZETTEER_EGG_ENDPOINT=https://egg.snapplanet.io
+      #- ADDON_GAZETTEER_EGG_ENDPOINT=https://egg.snapplanet.io
     volumes:
       - ./app/resto/core:/app/resto/core:ro
       - ./app/vendor:/app/vendor:ro
