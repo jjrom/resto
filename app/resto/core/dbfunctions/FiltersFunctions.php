@@ -188,11 +188,11 @@ class FiltersFunctions
      * Filter search result on group attribute using
      * the groups list from user profile
      *
-     * @param string $schema
+     * @param string $schemaName
      * @param RestoUser $user
      * @return string
      */
-    private function prepareFilterQueryContextualSearch($schema, $user)
+    private function prepareFilterQueryContextualSearch($schemaName, $user)
     {
 
         /*
@@ -203,7 +203,7 @@ class FiltersFunctions
         }
 
         return array(
-            'value' =>  $schema . '.feature.visibility IN (' . join(',', $user->profile['groups']) . ')',
+            'value' =>  $schemaName . '.feature.visibility IN (' . join(',', $user->profile['groups']) . ')',
             'isGeo' => false
         );
     }
@@ -306,14 +306,14 @@ class FiltersFunctions
     /**
      * Prepare SQL query for model
      *
-     * @param string $schema
+     * @param string $schemaName
      * @param string $modelName
      * @return string
      */
-    private function prepareFilterQueryModel($schema, $modelName)
+    private function prepareFilterQueryModel($schemaName, $modelName)
     {
         return array(
-            'value' => $schema . '.feature.collection IN (SELECT id FROM resto.collection WHERE lineage @> ARRAY[\'' . pg_escape_string($modelName) . '\'])',
+            'value' => $schemaName . '.feature.collection IN (SELECT id FROM resto.collection WHERE lineage @> ARRAY[\'' . pg_escape_string($modelName) . '\'])',
             'isGeo' => false
         );
     }
@@ -681,12 +681,12 @@ class FiltersFunctions
     /**
      * Add a join entry to joins array
      * 
-     * @param string $schema
+     * @param string $schemaName
      * @param string $tableName
      * @param string $idName
      */
-    private function addToJoins($schema, $tableName, $idName) {
-        $this->joins[] = 'JOIN ' . $tableName . ' ON ' . $schema . '.feature.id=resto.' . $tableName . '.' . $idName;
+    private function addToJoins($schemaName, $tableName, $idName) {
+        $this->joins[] = 'JOIN ' . $tableName . ' ON ' . $schemaName . '.feature.id=resto.' . $tableName . '.' . $idName;
     }
 
     /**

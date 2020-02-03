@@ -210,13 +210,13 @@ class FeaturesFunctions
      * Check if feature identified by $featureId exists
      *
      * @param string $featureId - feature UUID
-     * @param string $schema
+     * @param string $schemaName
      * @return boolean
      * @throws Exception
      */
-    public function featureExists($featureId, $schema)
+    public function featureExists($featureId, $schemaName)
     {
-        return !empty($this->dbDriver->fetch($this->dbDriver->pQuery('SELECT 1 FROM ' . $schema . ' .feature WHERE id=($1)', array(
+        return !empty($this->dbDriver->fetch($this->dbDriver->pQuery('SELECT 1 FROM ' . $schemaName . ' .feature WHERE id=($1)', array(
             $featureId
         ))));
     }
@@ -298,7 +298,7 @@ class FeaturesFunctions
         /*
          * Store facets outside of the transaction because error should not block feature ingestion
          */
-        $facetsStored = $collection->context->core['storeFacets'];
+        $facetsStored = $collection->context->core['storeFacets'] && $collection->model->schema['storeFacets'];
         if ($facetsStored) {
             try {
                 (new FacetsFunctions($this->dbDriver))->storeFacets($keysValues['facets']);
@@ -452,7 +452,7 @@ class FeaturesFunctions
         try {
             $facetsFunctions = new FacetsFunctions($this->dbDriver);
             $facetsFunctions->removeFacetsFromHashtags($oldFeatureArray['properties']['hashtags'] ?? array(), $collection->id);
-            if ($feature->context->core['storeFacets']) {
+            if ($feature->context->core['storeFacets'] && $collection->model->schema['storeFacets']) {
                 $facetsFunctions->storeFacets($keysAndValues['facets']);
             }
         } catch (Exception $e) {
@@ -543,7 +543,7 @@ class FeaturesFunctions
         try {
             $facetsFunctions = new FacetsFunctions($this->dbDriver);
             $facetsFunctions->removeFacetsFromHashtags($hashtagsToRemove, '*');
-            if ($feature->context->core['storeFacets']) {
+            if ( $feature->context->core['storeFacets'] &&  $model->schema['storeFacets'] ) {
                 $facetsFunctions->storeFacets($hashtagsToAdd);
             }
         } catch (Exception $e) {
@@ -822,9 +822,9 @@ class FeaturesFunctions
     }
 
     /**
-     * Return $schema.feature SELECT clause from input columns
+     * Return $schemaName.feature SELECT clause from input columns
      *
-     * @param string $schema
+     * @param string $schemaName
      * @param array $featureColumns
      * @param RestoUser $user
      * @param array $options
@@ -836,7 +836,7 @@ class FeaturesFunctions
      *
      * @return array
      */
-    private function getSelectClause($schema, $featureColumns, $user, $options)
+    private function getSelectClause($schemaName, $featureColumns, $user, $options)
     {
         $sanitized = $this->sanitizeSQLColumns($featureColumns, array_map('trim', explode(',', $options['fields'])));
 
@@ -861,23 +861,23 @@ class FeaturesFunctions
 
                 // [IMPORTANT] The geometry returned is geom not geometry !!!
                 case 'geometry':
-                    $columns[] = 'ST_AsGeoJSON(' . $schema . '.feature.geom, 6) AS geometry';
-                    $columns[] = 'Box2D(' . $schema . '.feature.geom) AS bbox4326';
+                    $columns[] = 'ST_AsGeoJSON(' . $schemaName . '.feature.geom, 6) AS geometry';
+                    $columns[] = 'Box2D(' . $schemaName . '.feature.geom) AS bbox4326';
                     break;
 
                 case 'centroid':
-                    $columns[] = 'ST_AsGeoJSON(' . $schema . '.feature.centroid, 6) AS centroid';
+                    $columns[] = 'ST_AsGeoJSON(' . $schemaName . '.feature.centroid, 6) AS centroid';
                     break;
 
                 case 'startDate':
                 case 'completionDate':
                 case 'created':
                 case 'updated':
-                    $columns[] = 'to_iso8601(' . $schema . '.feature.' . $key . ') AS "' . $key . '"';
+                    $columns[] = 'to_iso8601(' . $schemaName . '.feature.' . $key . ') AS "' . $key . '"';
                     break;
 
                 default:
-                    $columns[] = '' . $schema . '.feature.' . $key . ' AS "' . $key . '"';
+                    $columns[] = '' . $schemaName . '.feature.' . $key . ' AS "' . $key . '"';
                     break;
             }
             
@@ -887,17 +887,17 @@ class FeaturesFunctions
          * Add liked query if user is set an Social add-on is available
          */
         if (isset($user->profile['id']) && $options['useSocial']) {
-            $columns[] = 'EXISTS(SELECT resto.likes.featureid FROM resto.likes WHERE resto.likes.featureid=' . $schema . '.feature.id AND resto.likes.userid=' . $user->profile['id'] . ') AS liked';
+            $columns[] = 'EXISTS(SELECT resto.likes.featureid FROM resto.likes WHERE resto.likes.featureid=' . $schemaName . '.feature.id AND resto.likes.userid=' . $user->profile['id'] . ') AS liked';
         }
 
         /*
          * Add sort idx
          */
         if (!empty($options['sortKey'])) {
-            $columns[] = '' . $schema . '.feature.' . $options['sortKey'] . ' AS sort_idx';
+            $columns[] = '' . $schemaName . '.feature.' . $options['sortKey'] . ' AS sort_idx';
         }
 
-        return 'SELECT ' . join(',', $columns) . ' FROM ' . $schema . '.feature';
+        return 'SELECT ' . join(',', $columns) . ' FROM ' . $schemaName . '.feature';
 
     }
 
