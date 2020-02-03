@@ -1,6 +1,6 @@
 # [SECURITY] Never commit these files since they can contains productions environment info
 app/resto/addons
 tmp
-_tmp
+docker-compose.local.yml
 .private
 .DS_Store

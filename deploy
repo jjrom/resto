@@ -42,7 +42,7 @@ function showUsage {
     echo -e ""
     echo -e "   Usage $0 <target> [options]"
     echo -e ""
-    echo -e "   Where target is either \"prod\" or \"dev\""
+    echo -e "   Where target is either \"prod\" for production, \"dev\" for development"
     echo -e ""
     echo -e "   Options:"
     echo -e ""
@@ -102,7 +102,7 @@ done
 #
 # TARGET is mandatory - should be "prod" or "dev"
 #
-if [[ "${TARGET}" != "prod" && "${TARGET}" != "dev" ]]; then
+if [[ "${TARGET}" == "" ]]; then
     showUsage
     echo -e "${RED}[ERROR] Missing target - choose between \"prod\" or \"dev\"${NC}"
     echo ""
@@ -141,10 +141,15 @@ else
 fi
 
 # echo -e "[INFO] Starting ${PROJECT_NAME} docker instance"
-if [[ "${TARGET}" == "dev" ]]; then
-    ENV_FILE=${ENV_FILE} docker-compose --project-name ${PROJECT_NAME} -f docker-compose.yml -f docker-compose.dev.yml up -d
-else
+if [[ "${TARGET}" == "prod" ]]; then
     ENV_FILE=${ENV_FILE} docker-compose --project-name ${PROJECT_NAME} -f docker-compose.yml up -d
+else
+    if [[ ! -f docker-compose.${TARGET}.yml ]]; then
+        echo -e "${RED}[ERROR] The file docker-compose.${TARGET}.yml does not exist!${NC}"
+        echo ""
+        exit 1
+    fi
+    ENV_FILE=${ENV_FILE} docker-compose --project-name ${PROJECT_NAME} -f docker-compose.yml -f docker-compose.${TARGET}.yml up -d
 fi
 
 #
