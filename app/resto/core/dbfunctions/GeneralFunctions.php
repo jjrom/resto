@@ -34,6 +34,23 @@ class GeneralFunctions
     }
 
     /**
+     * Check if a table exsist in database
+     *
+     * @param string $schemaName
+     * @param string $tableName
+     * @return boolean
+     * @throws Exception
+     */
+    public function tableExists($schemaName, $tableName)
+    {
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT 1 FROM information_schema.tables WHERE table_schema=$1 AND table_name=$2', array(
+            $schemaName,
+            $tableName
+        )));
+        return !empty($results);
+    }
+
+    /**
      *
      * Return keywords from database
      *
