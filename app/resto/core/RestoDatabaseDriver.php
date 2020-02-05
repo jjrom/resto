@@ -40,7 +40,7 @@ class RestoDatabaseDriver
     /*
      * Database connection configuration
      */
-    private $config = array(
+    public $config = array(
         'dbname' => 'resto',
         'host' => 'restodb',
         'port' => 5432,
