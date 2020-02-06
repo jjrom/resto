@@ -370,8 +370,6 @@ abstract class RestoModel
         $dates = array();
         $bboxes = array();
 
-        $inserted = 0;
-        $inError = 0;
         $featuresInserted = array();
         $featuresInError = array();
         
@@ -387,7 +385,6 @@ abstract class RestoModel
                     'productIdentifier' => $insert['result']['productIdentifier'],
                     'facetsStored' => $insert['result']['facetsStored']
                 );
-                $inserted++;
             
                 $dates[] = isset($insert['featureArray']['properties']) && isset($insert['featureArray']['properties']['startDate']) ? $insert['featureArray']['properties']['startDate'] : null;
                 $bboxes[] = isset($insert['featureArray']['topologyAnalysis']) && isset($insert['featureArray']['topologyAnalysis']['bbox']) ? $insert['featureArray']['topologyAnalysis']['bbox'] : null;
@@ -411,8 +408,7 @@ abstract class RestoModel
                             'productIdentifier' => $insert['result']['productIdentifier'],
                             'facetsStored' => $insert['result']['facetsStored']
                         );
-                        $inserted++;
-                    
+                        
                         $dates[] = isset($insert['featureArray']['properties']) && isset($insert['featureArray']['properties']['startDate']) ? $insert['featureArray']['properties']['startDate'] : null;
                         $bboxes[] = isset($insert['featureArray']['topologyAnalysis']) && isset($insert['featureArray']['topologyAnalysis']['bbox']) ? $insert['featureArray']['topologyAnalysis']['bbox'] : null;
 
@@ -424,7 +420,6 @@ abstract class RestoModel
                         'code' => $e->getCode(),
                         'error' => $e->getMessage()
                     );
-                    $inError++;
                     continue;
                 }
 
@@ -441,8 +436,8 @@ abstract class RestoModel
         ));
         
         return array(
-            'inserted' => $inserted,
-            'inError' => $inError,
+            'inserted' => count($featuresInserted),
+            'inError' => count($featuresInError),
             'features' => $featuresInserted,
             'errors' => $featuresInError
         );
