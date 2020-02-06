@@ -21,6 +21,34 @@
 class RestoFileUtil
 {
 
+
+    /**
+     * Physcally remove upload files using multipart in body
+     * 
+     * @param {Object} $body
+     */
+    public static function clearUpload($body)
+    {
+        
+        try {
+
+            if ( isset($body) && is_array($body['files']) ) {
+                for ($i = count($body['files']); $i--;) {
+                    unlink($body['files'][$i]);
+                }
+            }
+            if  ( isset($body['uploadDir']) ) {
+                rmdir($body['uploadDir']);
+            }
+
+        }
+        catch (Exception $e) {
+            error_log('[WARNING] Error during clearUpload');
+        }
+        
+    }
+ 
+
     /**
      * Return type and path of input array of $files
      * 
