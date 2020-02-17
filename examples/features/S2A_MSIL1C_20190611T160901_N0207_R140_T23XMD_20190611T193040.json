@@ -73,19 +73,23 @@
     "assets": {
         "thumbnail": {
             "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/preview.jpg",
-            "type": "image/jpeg"
+            "type": "image/jpeg",
+            "roles": ["thumbnail"]
         },
         "metadata": {
             "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/metadata.xml",
-            "type": "text/xml"
+            "type": "text/xml",
+            "roles": ["metadata"]
         },
         "tileInfo": {
             "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/tileInfo.json",
-            "type": "application/json"
+            "type": "application/json",
+            "roles": ["metadata"]
         },
         "productInfo": {
             "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/productInfo.json",
-            "type": "application/json"
+            "type": "application/json",
+            "roles": ["metadata"]
         }
     }
 }
