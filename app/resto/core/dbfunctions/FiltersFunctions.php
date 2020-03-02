@@ -228,13 +228,13 @@ class FiltersFunctions
         if ($filterName === 'resto:model') {
             return $this->prepareFilterQueryModel($model->schema['name'], $requestParams[$filterName]);
         }
-
+        
         /*
-         * Special case - created
+         * Special case - startDate, created
          */
-        if ($filterName === 'created') {
+        if ( in_array($filterName, array('time:start', 'time:end', 'dc:date')) ) {
             return array(
-                'value' => $model->schema['name'] . '.feature.id ' . $model->searchFilters[$filterName]['operation'] . ' timestamp_to_id(\'' . pg_escape_string($requestParams[$filterName]) . '\')',
+                'value' => $model->schema['name'] . '.feature.' . strtolower($model->searchFilters[$filterName]['key']) . '_idx ' . $model->searchFilters[$filterName]['operation'] . ' timestamp_to_firstid(\'' . pg_escape_string($requestParams[$filterName]) . '\')',
                 'isGeo' => false
             );
         }

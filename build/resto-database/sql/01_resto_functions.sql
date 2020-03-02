@@ -245,6 +245,29 @@ END;
 $$ LANGUAGE PLPGSQL;
 
 --
+-- SYNOPSYS:
+--   timestamp_to_firstid(ts)
+--
+-- DESCRIPTION:
+--   Generate a 64 bits time sortable id
+--   (Inspired by http://instagram-engineering.tumblr.com/post/10853187575/sharding-ids-at-instagram)
+--
+-- USAGE:
+--   SELECT timestamp_to_id(ts timestampz);
+--
+CREATE OR REPLACE FUNCTION public.timestamp_to_firstid(ts TIMESTAMP WITH TIME ZONE)
+RETURNS BIGINT AS $$
+DECLARE
+    result bigint;
+    now_millis bigint;
+BEGIN
+    SELECT FLOOR(EXTRACT(EPOCH FROM ts::TIMESTAMP) * 1000) INTO now_millis;
+    result := now_millis << 17;
+    RETURN result;
+END;
+$$ LANGUAGE PLPGSQL IMMUTABLE;
+
+--
 -- SYNOPSIS:
 --   id_to_timestamp(restoid)
 --
