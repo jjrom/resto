@@ -155,11 +155,18 @@ class FeaturesFunctions
         $features = (new RestoFeatureUtil($context, $user, $collections))->toFeatureArrayList($this->dbDriver->fetch($this->dbDriver->query($query)));
         
         /*
+         * Common where clause
+         */
+        $whereClause = $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => true));
+        $count = $this->getCount('FROM ' . $model->schema['name'] . '.feature ' . $whereClause, $params);
+
+        /*
          * Heatmap add-on
          */
         if (isset($context->addons['Heatmap'])) {
-            $whereClauseNoGeo = $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => false));
-            $heatmapLink = (new Heatmap($context, $user))->getEndPoint($model->schema['name'], $whereClauseNoGeo, $this->getCount('FROM ' . $model->schema['name'] . '.feature ' . $whereClauseNoGeo), null);
+            /*$whereClauseNoGeo = $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => false));
+            $heatmapLink = (new Heatmap($context, $user))->getEndPoint($model->schema['name'], $whereClauseNoGeo, $this->getCount('FROM ' . $model->schema['name'] . '.feature ' . $whereClauseNoGeo), null);*/
+            $heatmapLink = (new Heatmap($context, $user))->getEndPoint($model->schema['name'], $whereClause, $count, null);
             if ( isset($heatmapLink) ) {
                 $links[] = $heatmapLink;
             }
@@ -167,7 +174,7 @@ class FeaturesFunctions
 
         return array(
             'links' => $links,
-            'count' => $this->getCount('FROM ' . $model->schema['name'] . '.feature ' . $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => true)), $params),
+            'count' => $count,
             // Reverse features array if needed
             'features' => $sorting['realOrder'] !== $sorting['order'] ? array_reverse($features) : $features
         );
