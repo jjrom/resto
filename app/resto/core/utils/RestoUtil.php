@@ -36,6 +36,7 @@ class RestoUtil
         'html' => 'text/html',
         'jpeg' => 'image/jpeg',
         'jpeg2000' => 'image/jp2',
+        'jp2' => 'image/jp2',
         'json' => 'application/json',
         'meta4' => 'application/metalink4+xml',
         'mvt' => 'application/vnd.mapbox-vector-tile',
