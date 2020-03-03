@@ -354,12 +354,14 @@ class FiltersFunctions
     {
 
         $output = null;
+        $coords = null;
 
         /*
          * Default bounding box is the whole earth
          */
         if ($filterName === 'geo:box') {
-            $output = $this->intersectFilterBBOX($model, $filterName, explode(',', $requestParams[$filterName]), $exclusion);
+            $coords =  explode(',', $requestParams[$filterName]);
+            $output = $this->intersectFilterBBOX($model, $filterName, $coords, $exclusion);
         }
 
         else if ($filterName === 'geo:geometry') {
@@ -369,6 +371,7 @@ class FiltersFunctions
 
         return array(
             'value' => $output,
+            'wkt' => isset($coords) ? 'POLYGON((' . $coords[0] . ' ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[1] . '))' : $requestParams[$filterName],
             'isGeo' => true
         );
     }
@@ -494,13 +497,17 @@ class FiltersFunctions
 
             $radius = RestoGeometryUtil::radiusInDegrees(isset($requestParams['geo:radius']) ? floatval($requestParams['geo:radius']) : 10000, floatval($requestParams['geo:lat']));
             if ($useDistance) {
+                $wkt = 'POINT(' . $requestParams['geo:lon'] . ' ' . $requestParams['geo:lat'] . ')';
                 return array(
-                    'value' => 'ST_distance(' . $tableName . '.' . $model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'' . pg_escape_string('POINT(' . $requestParams['geo:lon'] . ' ' . $requestParams['geo:lat'] . ')') . '\', 4326)) < ' . $radius,
+                    'value' => 'ST_distance(' . $tableName . '.' . $model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'' . pg_escape_string($wkt) . '\', 4326)) < ' . $radius,
+                    'wkt' => $wkt,
                     'isGeo' => true
                 );
             } else {
+                $wkt = RestoGeometryUtil::WKTPolygonFromLonLat(floatval($requestParams['geo:lon']), floatval($requestParams['geo:lat']), $radius);
                 return array(
-                    'value' => ($exclusion ? 'NOT ' : '') . 'ST_intersects(' . $tableName . '.' . $model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'' . pg_escape_string(RestoGeometryUtil::WKTPolygonFromLonLat(floatval($requestParams['geo:lon']), floatval($requestParams['geo:lat']), $radius)) . '\', 4326))',
+                    'value' => ($exclusion ? 'NOT ' : '') . 'ST_intersects(' . $tableName . '.' . $model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'' . pg_escape_string($wkt) . '\', 4326))',
+                    'wkt' => $wkt,
                     'isGeo' => true
                 );
             }
