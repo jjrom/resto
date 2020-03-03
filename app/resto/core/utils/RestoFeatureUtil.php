@@ -134,6 +134,8 @@ class RestoFeatureUtil
 
                 case 'startDate':
                     $featureArray['properties']['datetime'] = $rawFeatureArray[$key] . (isset($rawFeatureArray['completionDate']) ? '/' . $rawFeatureArray['completionDate'] : '');
+                    $featureArray['properties']['start_datetime'] = $rawFeatureArray[$key];
+                    $featureArray['properties']['end_datetime'] = $rawFeatureArray['completionDate'] ?? $rawFeatureArray[$key];
                     break;
 
                 case 'geometry':
