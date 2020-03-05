@@ -232,7 +232,24 @@ class RestoCollections
      */
     public function toArray()
     {
+
         $collections = array(
+            'id' => $this->context->osDescription['ShortName'],
+            'title' => $this->context->osDescription['LongName'] ?? $this->context->osDescription['ShortName'],
+            'description' => $this->context->osDescription['Description'],
+            'keywords' => explode(' ', $this->context->osDescription['Tags']),
+            'links' => array(
+                array(
+                    'rel' => 'self',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'href' => $this->context->core['baseUrl'] . '/collections'
+                ),
+                array(
+                    'rel' => 'root',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'href' => $this->context->core['baseUrl']
+                )   
+            ),
             'extent' => $this->extent,
             'summaries' => array(
                 'resto:stats' => $this->getStatistics()
@@ -242,14 +259,40 @@ class RestoCollections
             ),
             'collections' => array()
         );
+
+        // STAC
+        if ( isset($this->context->addons['STAC']) ) {
+            
+            $collections['links'][] = array(
+                'rel' => 'items',
+                'type' => RestoUtil::$contentTypes['geojson'],
+                'href' => $this->context->core['baseUrl'] . '/search'
+            );
+
+            $collections['stac_version'] = STAC::STAC_VERSION;
+
+        }
+
         
         foreach (array_keys($this->collections) as $key) {
-            $collections['collections'][] = $this->collections[$key]->toArray(array(
+            $collection = $this->collections[$key]->toArray(array(
                 'stats' => isset($this->context->query['_stats']) ? filter_var($this->context->query['_stats'], FILTER_VALIDATE_BOOLEAN) : false
             ));
+            $collections['collections'][] = $collection;
+            $collections['links'][] = array(
+                'rel' => 'child',
+                'type' => RestoUtil::$contentTypes['json'],
+                'title' => $collection['title'],
+                'description' => $collection['description'],
+                'matched' => $collections['summaries']['resto:stats']['facets']['collection'][$key] ?? 0,
+                'href' => $this->context->core['baseUrl'] . '/collections/' . $key,
+                'roles' => array('collection')
+            );
+                
         }
 
         return $collections;
+
     }
 
     /**
