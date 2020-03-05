@@ -265,6 +265,8 @@ class RestoCollections
             
             $collections['links'][] = array(
                 'rel' => 'items',
+                'title' => 'All collections',
+                'matched' => $collections['summaries']['resto:stats']['count'],
                 'type' => RestoUtil::$contentTypes['geojson'],
                 'href' => $this->context->core['baseUrl'] . '/search'
             );
