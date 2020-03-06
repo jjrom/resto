@@ -158,7 +158,7 @@ class RestoQueryAnalyzer
         /*
          * Search on toponym name
          */
-        if (isset($locationName) && ! isset($params['geo:lon']) && ! isset($params['geo:geometry']) && ! isset($params['geo:box'])) {
+        if ( isset($locationName) && ! isset($params['geo:lon']) && ! isset($params['geo:geometry']) ) {
             
             /*
              * Search on toponym identifier i.e. geo:name starts with geouid

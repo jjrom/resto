@@ -221,7 +221,7 @@ class FiltersFunctions
      */
     private function prepareFilterQuery($model, $requestParams, $filterName, $exclusion = false)
     {
-
+        
         /*
          * Special case model
          */
