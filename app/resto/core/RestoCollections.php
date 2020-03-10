@@ -103,8 +103,8 @@ class RestoCollections
         'temporal' => array(
             'interval' => array(
                 array(
-                    'min' => null,
-                    'max' => null
+                    null,
+                    null
                 )
             ),
             'trs' => 'http://www.opengis.net/def/uom/ISO-8601/0/Gregorian'
@@ -324,14 +324,14 @@ class RestoCollections
     {
 
         if (isset($collection->datetime['min'])) {
-            if ( ! isset($this->extent['temporal']['interval'][0]['min']) || $collection->datetime['min'] < $this->extent['temporal']['interval'][0]['min']) {
-                $this->extent['temporal']['interval'][0]['min'] = $collection->datetime['min'];
+            if ( ! isset($this->extent['temporal']['interval'][0][0]) || $collection->datetime['min'] < $this->extent['temporal']['interval'][0][0]) {
+                $this->extent['temporal']['interval'][0][0] = $collection->datetime['min'];
             }
         }
 
         if (isset($collection->datetime['max'])) {
-            if ( ! isset($this->extent['temporal']['interval'][0]['max']) || $collection->datetime['max'] > $this->extent['temporal']['interval'][0]['max']) {
-                $this->extent['temporal']['interval'][0]['max'] = $collection->datetime['max'];
+            if ( ! isset($this->extent['temporal']['interval'][0][1]) || $collection->datetime['max'] > $this->extent['temporal']['interval'][0][1]) {
+                $this->extent['temporal']['interval'][0][1] = $collection->datetime['max'];
             }
         }
            
