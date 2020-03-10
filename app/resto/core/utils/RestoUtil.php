@@ -155,7 +155,8 @@ class RestoUtil
         if (isset($exploded['query'])) {
             $existingParams = RestoUtil::queryStringToKvps($exploded['query']);
         }
-        return RestoUtil::baseUrl($exploded) . $exploded['path'] . '?' . RestoUtil::kvpsToQueryString(array_merge($existingParams, $newParams));
+        $queryString = RestoUtil::kvpsToQueryString(array_merge($existingParams, $newParams));
+        return RestoUtil::baseUrl($exploded) . $exploded['path'] . ($queryString ? '?' . $queryString : '');
     }
 
     /**
