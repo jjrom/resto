@@ -213,7 +213,7 @@ class ServicesAPI
                 array(
                     'rel' => 'data',
                     'type' => RestoUtil::$contentTypes['json'],
-                    'title' => 'Collections metadata',
+                    'title' => 'Collections',
                     'href' => $this->context->core['baseUrl'] . '/collections'
                 )
             )
