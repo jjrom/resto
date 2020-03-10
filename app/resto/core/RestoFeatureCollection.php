@@ -669,18 +669,20 @@ class RestoFeatureCollection
              */
             if (is_array($value)) {
                 for ($i = 0, $l = count($value); $i < $l; $i++) {
+
                     if (isset($this->model->searchFilters[$key]['osKey'])) {
                         $arr[$this->model->searchFilters[$key]['osKey'] . '[]'] = $value[$i];
-                    } else {
+                    } /*else {
                         $arr[$key . '[]'] = $value;
-                    }
+                    } */
                 }
             } else {
+
                 if (isset($this->model->searchFilters[$key]['osKey'])) {
                     $arr[$this->model->searchFilters[$key]['osKey']] = $value;
-                } else {
+                } /* else {
                     $arr[$key] = $value;
-                }
+                } */
             }
         }
 
