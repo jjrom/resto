@@ -452,7 +452,7 @@ class RestoFeatureCollection
      */
     public function load($model, $collection, $query)
     {
-
+        
         /*
          * Request start time
          */
@@ -473,13 +473,6 @@ class RestoFeatureCollection
          */
         $inputFilters = $this->model->getFiltersFromQuery($query);
         
-        /*
-         * Force collection
-         */
-        if (isset($collection)) {
-            $inputFilters['resto:collection'] = $collection->id;
-        }
-
         /*
          * result options
          */
@@ -505,7 +498,11 @@ class RestoFeatureCollection
          * Read features from database
          */
         else {
-            $this->loadFeatures($analysis['details']['appliedFilters'], $sorting);
+            
+            /*
+             * [IMPORTANT] Add explicit 'resto:collection' filter if $collection is set
+             */
+            $this->loadFeatures(isset($collection) ? array_merge($analysis['details']['appliedFilters'], array('resto:collection' => $collection->id)) : $analysis['details']['appliedFilters'], $sorting);
         }
         
         /*
@@ -695,9 +692,9 @@ class RestoFeatureCollection
      * @param array $params
      * @param array $sorting
      */
-    private function loadFeatures(&$params, &$sorting)
+    private function loadFeatures($params, $sorting)
     {
-        
+
         /*
          * Get features array from database
          */
