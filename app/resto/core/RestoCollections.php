@@ -31,6 +31,11 @@ class RestoCollections
      */
     public $user;
 
+    /*
+     * Array of RestoCollection (key = collection id)
+     */
+    public $collections = array();
+
     /**
      * * @OA\Schema(
      *      schema="Extent",
@@ -110,11 +115,6 @@ class RestoCollections
             'trs' => 'http://www.opengis.net/def/uom/ISO-8601/0/Gregorian'
         )
     );
-
-    /*
-     * Array of RestoCollection (key = collection id)
-     */
-    private $collections = array();
 
     /*
      * Statistics
