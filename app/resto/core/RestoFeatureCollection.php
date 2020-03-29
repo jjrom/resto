@@ -552,7 +552,7 @@ class RestoFeatureCollection
         /*
          * Set collection elements
          */
-        $atomFeed->setCollectionElements($this->searchMetadata, $this->model);
+        $atomFeed->setCollectionElements($this->links, $this->searchMetadata, $this->model);
 
         /*
          * Add one entry per product

@@ -107,30 +107,31 @@ class ATOMFeed extends RestoXML
     /**
      * Set elements for FeatureCollection
      *
-     * @param array $properties
+     * @param array $links
+     * @param array $searchMetadata
      * @param RestoModel $model
      */
-    public function setCollectionElements($properties, $model)
+    public function setCollectionElements($links, $searchMetadata, $model)
     {
         
         /*
          * Update outputFormat links except for OSDD 'search'
          */
-        $this->setCollectionLinks($properties);
+        $this->setCollectionLinks($links);
         
         /*
          * Total results, startIndex and itemsPerpage
          */
         foreach (array('totalResults', 'startIndex', 'itemsPerPage') as $key) {
-            if (isset($properties[$key])) {
-                $this->writeElement('os:' . $key, $properties[$key]);
+            if (isset($searchMetadata[$key])) {
+                $this->writeElement('os:' . $key, $searchMetadata[$key]);
             }
         }
 
         /*
          * Query element
          */
-        $this->setQuery($properties, $model);
+        $this->setQuery($searchMetadata, $model);
     }
     
     /**
@@ -205,7 +206,7 @@ class ATOMFeed extends RestoXML
     {
         $this->startElement('summary');
         $this->writeAttributes(array('type' => 'text'));
-        $this->text(($feature['properties']['platform'] ?? '') . (isset($feature['properties']['platform']) && isset($feature['properties']['instrument']) ? '/' . $feature['properties']['instrument'] : '') . ' acquired on ' . $feature['properties']['startDate']);
+        $this->text(($feature['properties']['platform'] ?? '') . (isset($feature['properties']['platform']) && isset($feature['properties']['instrument']) ? '/' . $feature['properties']['instrument'] : '') . ' acquired on ' . $feature['properties']['start_datetime']);
         $this->endElement(); // content
     }
     
@@ -277,13 +278,13 @@ class ATOMFeed extends RestoXML
              * the Dublin Core Collection Description on date
              * (http://www.ukoln.ac.uk/metadata/dcmi/collection-RKMS-ISO8601/)
              */
-            'dc:date' => $feature['properties']['startDate'] . '/' . ($feature['properties']['completionDate'] ?? $feature['properties']['startDate'])
+            'dc:date' => $feature['properties']['datetime']
         ));
         
         /*
          * Time
          */
-        $this->addGmlTime($feature['properties']['startDate'], ($feature['properties']['completionDate']  ?? $feature['properties']['startDate']));
+        $this->addGmlTime($feature['properties']['start_datetime'], $feature['properties']['end_datetime']);
         
         /*
          * Add georss
@@ -293,7 +294,7 @@ class ATOMFeed extends RestoXML
     
     /**
      * Add gml:validTime element
-     * Element 'gml:validTime' - acquisition duration between startDate and completionDate
+     * Element 'gml:validTime' - acquisition duration between start_datetime and end_datetime
      *
      * @param string $beginPosition
      * @param string $endPosition
@@ -501,25 +502,25 @@ class ATOMFeed extends RestoXML
     /**
      * Set ATOM feed links element for FeatureCollection
      *
-     * @param array $properties
+     * @param array $links
      */
-    private function setCollectionLinks($properties)
+    private function setCollectionLinks($links)
     {
-        if (is_array($properties['links'])) {
-            for ($i = 0, $l = count($properties['links']); $i < $l; $i++) {
+        if (is_array($links)) {
+            for ($i = 0, $l = count($links); $i < $l; $i++) {
                 $this->startElement('link');
                 $this->writeAttributes(array(
-                    'rel' => $properties['links'][$i]['rel']
+                    'rel' => $links[$i]['rel']
                 ));
-                if ($properties['links'][$i]['type'] === 'application/opensearchdescription+xml') {
+                if ($links[$i]['type'] === 'application/opensearchdescription+xml') {
                     $this->writeAttributes(array(
-                        'type' => $properties['links'][$i]['type'],
-                        'href' => $properties['links'][$i]['href']
+                        'type' => $links[$i]['type'],
+                        'href' => $links[$i]['href']
                     ));
                 } else {
                     $this->writeAttributes(array(
                         'type' => RestoUtil::$contentTypes['atom'],
-                        'href' => RestoUtil::updateUrlFormat($properties['links'][$i]['href'], 'atom')
+                        'href' => RestoUtil::updateUrlFormat($links[$i]['href'], 'atom')
                     ));
                 }
                 $this->endElement(); // link
@@ -530,14 +531,14 @@ class ATOMFeed extends RestoXML
     /**
      * Set ATOM feed Query element from request parameters
      *
-     * @param array $properties
+     * @param array $searchMetadata
      */
-    private function setQuery($properties, $model)
+    private function setQuery($searchMetadata, $model)
     {
         $this->startElement('os:Query');
         $this->writeAttributes(array('role' => 'request'));
-        if (isset($properties['query'])) {
-            foreach ($properties['query']['inputFilters'] as $key => $value) {
+        if (isset($searchMetadata['query'])) {
+            foreach ($searchMetadata['query']['inputFilters'] as $key => $value) {
                 if ($key !== 'collection') {
                     $this->writeAttribute($model->getFilterName($key), $value);
                 }
