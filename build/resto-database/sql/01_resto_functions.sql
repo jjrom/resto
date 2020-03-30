@@ -222,6 +222,8 @@ $$ LANGUAGE sql;
 --   Generate a 64 bits time sortable id
 --   (Inspired by http://instagram-engineering.tumblr.com/post/10853187575/sharding-ids-at-instagram)
 --
+--   [IMPORTANT] Input timestamp MUST BE within the range [0260-01-01T00:00:00 BC, 4199-11-24T00:00:00]
+--
 -- USAGE:
 --   SELECT timestamp_to_id(ts timestampz);
 --
