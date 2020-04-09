@@ -108,10 +108,10 @@ class ATOMFeed extends RestoXML
      * Set elements for FeatureCollection
      *
      * @param array $links
-     * @param array $searchMetadata
+     * @param array $searchContext
      * @param RestoModel $model
      */
-    public function setCollectionElements($links, $searchMetadata, $model)
+    public function setCollectionElements($links, $searchContext, $model)
     {
         
         /*
@@ -123,15 +123,15 @@ class ATOMFeed extends RestoXML
          * Total results, startIndex and itemsPerpage
          */
         foreach (array('totalResults', 'startIndex', 'itemsPerPage') as $key) {
-            if (isset($searchMetadata[$key])) {
-                $this->writeElement('os:' . $key, $searchMetadata[$key]);
+            if (isset($searchContext[$key])) {
+                $this->writeElement('os:' . $key, $searchContext[$key]);
             }
         }
 
         /*
          * Query element
          */
-        $this->setQuery($searchMetadata, $model);
+        $this->setQuery($searchContext, $model);
     }
     
     /**
@@ -531,14 +531,14 @@ class ATOMFeed extends RestoXML
     /**
      * Set ATOM feed Query element from request parameters
      *
-     * @param array $searchMetadata
+     * @param array $searchContext
      */
-    private function setQuery($searchMetadata, $model)
+    private function setQuery($searchContext, $model)
     {
         $this->startElement('os:Query');
         $this->writeAttributes(array('role' => 'request'));
-        if (isset($searchMetadata['query'])) {
-            foreach ($searchMetadata['query']['inputFilters'] as $key => $value) {
+        if (isset($searchContext['query'])) {
+            foreach ($searchContext['query']['inputFilters'] as $key => $value) {
                 if ($key !== 'collection') {
                     $this->writeAttribute($model->getFilterName($key), $value);
                 }

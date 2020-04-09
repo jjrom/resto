@@ -21,7 +21,7 @@
  * @OA\Schema(
  *      schema="RestoFeatureCollection",
  *      description="Feature collection",
- *      required={"type", "links", "features", "search:metadata"},
+ *      required={"type", "links", "features", "context"},
  *      @OA\Property(
  *          property="type",
  *          type="enum",
@@ -40,7 +40,7 @@
  *           @OA\Items(ref="#/components/schemas/Links")
  *      ),
  *      @OA\Property(
- *          property="search:metadata",
+ *          property="context",
  *          description="Information on search query",
  *          required={"next", "returned"},
  *          @OA\Items(
@@ -206,7 +206,7 @@
  *                  "href": "http://127.0.0.1:5252/stac/search.json?next=204449069316703379"
  *              }
  *          },
- *          "search:metadata": {
+ *          "context": {
  *              "next": "204449069316703379",
  *              "returned": 20,
  *              "limit": 20,
@@ -531,7 +531,7 @@ class RestoFeatureCollection
         return json_encode(array(
             'type' => 'FeatureCollection',
             'id' => $this->id,
-            'search:metadata' => $this->searchMetadata,
+            'context' => $this->searchContext,
             'links' => $this->links,
             'features' => $features
         ), $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
@@ -552,7 +552,7 @@ class RestoFeatureCollection
         /*
          * Set collection elements
          */
-        $atomFeed->setCollectionElements($this->links, $this->searchMetadata, $this->model);
+        $atomFeed->setCollectionElements($this->links, $this->searchContext, $this->model);
 
         /*
          * Add one entry per product
@@ -589,9 +589,9 @@ class RestoFeatureCollection
         $this->links = $this->getLinks($sorting, $collectionId);
 
         /*
-         * Set search:metadata
+         * Set context
          */
-        $this->searchMetadata = array(
+        $this->searchContext = array(
             'next' => $this->next ?? null,
             'prev' => $this->prev ?? null,
             'returned' => $this->paging['count']['returned'],
@@ -997,13 +997,13 @@ class RestoFeatureCollection
     private function getATOMSubtitle()
     {
         $subtitle = '';
-        if (isset($this->searchMetadata['totalResults']) && $this->searchMetadata['totalResults'] !== -1) {
-            $subtitle = $this->searchMetadata['totalResults'] . ($this->searchMetadata['totalResults'] > 1 ? 'results' : 'result');
+        if (isset($this->searchContext['totalResults']) && $this->searchContext['totalResults'] !== -1) {
+            $subtitle = $this->searchContext['totalResults'] . ($this->searchContext['totalResults'] > 1 ? 'results' : 'result');
         }
-        if (isset($this->searchMetadata['startIndex'])) {
+        if (isset($this->searchContext['startIndex'])) {
             $previous = isset($this->links['previous']) ? '<a href="' . RestoUtil::updateUrlFormat($this->links['previous'], 'atom') . '">Previous</a>&nbsp;' : '';
             $next = isset($this->links['next']) ? '&nbsp;<a href="' . RestoUtil::updateUrlFormat($this->links['next'], 'atom') . '">Next</a>' : '';
-            return $subtitle . '&nbsp;|&nbsp;' . $previous . $this->searchMetadata['startIndex'] . ' - ' .  ($this->searchMetadata['startIndex'] + 1) . $next;
+            return $subtitle . '&nbsp;|&nbsp;' . $previous . $this->searchContext['startIndex'] . ' - ' .  ($this->searchContext['startIndex'] + 1) . $next;
         }
         return $subtitle;
     }
