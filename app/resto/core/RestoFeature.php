@@ -93,9 +93,9 @@
  *              description="The date when the feature metadata was updated (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)"
  *          ),
  *          @OA\Property(
- *              property="created",
+ *              property="published",
  *              type="string",
- *              description="The date when the feature metadata was created (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)"
+ *              description="The date when the feature metadata was published (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)"
  *          ),
  *          @OA\Property(
  *              property="hashtags",
@@ -190,7 +190,7 @@
  *              "productIdentifier": "S2:tiles/42/Q/XL/2018/9/13/0",
  *              "startDate": "2018-09-13T05:58:08.367Z",
  *              "updated": "2018-09-13T12:52:25.971969Z",
- *              "created": "2018-09-13T12:52:25.971969Z",
+ *              "published": "2018-09-13T12:52:25.971969Z",
  *              "hashtags": {
  *                  "#s2b",
  *                  "#reflectance",

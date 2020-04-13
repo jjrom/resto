@@ -32,9 +32,12 @@ abstract class RestoModel
     public $stacExtensions = array();
 
     /*
-     * STAC mapping
+     * STAC mapping is used to convert internal resto property names to STAC properties names
      */
-    public $stacMapping = array();
+    public $stacMapping = array(
+        // STAC 1.0.0
+        'created' => 'published'
+    );
 
     /*
      * Facet hierarchy
@@ -206,8 +209,8 @@ abstract class RestoModel
         
         'dc:date' => array(
             'key' => 'created',
-            'osKey' => 'created',
-            'title' => 'Metadata product creation within database',
+            'osKey' => 'published',
+            'title' => 'Metadata product publication within database',
             'operation' => '>=',
             'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'
         ),

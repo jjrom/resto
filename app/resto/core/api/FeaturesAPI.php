@@ -283,9 +283,9 @@ class FeaturesAPI
      *          )
      *      ),
      *      @OA\Parameter(
-     *          name="created",
+     *          name="published",
      *          in="query",
-     *          description="Returns products with metadata creation date greater or equal than *created* - OpenSearch {dc:date}",
+     *          description="Returns products with metadata publication date greater or equal than *published* - OpenSearch {dc:date}",
      *          required=false,
      *          @OA\Schema(
      *              type="string",
