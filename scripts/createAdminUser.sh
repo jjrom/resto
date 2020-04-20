@@ -108,11 +108,11 @@ fi
 HASH=`docker run --rm php:7.2-alpine -r "echo password_hash('${ADMIN_USER_PASSWORD}', PASSWORD_BCRYPT);"`
 
 if [ "${ADMIN_USER_ID}" != "" ]; then
-PGPASSWORD=${DATABASE_USER_PASSWORD} psql -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h localhost -p ${DATABASE_EXPOSED_PORT} > /dev/null << EOF
+PGPASSWORD=${DATABASE_USER_PASSWORD} psql -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h ${DATABASE_HOST} -p ${DATABASE_EXPOSED_PORT} > /dev/null << EOF
 INSERT INTO resto.user (id,email,groups,firstname,password,activated,registrationdate) VALUES (${ADMIN_USER_ID}, '${ADMIN_USER_NAME}','{0}','${ADMIN_USER_NAME}','${HASH}', 1, now_utc()) ON CONFLICT (id) DO UPDATE SET password='${HASH}';
 EOF
 else
-PGPASSWORD=${DATABASE_USER_PASSWORD} psql -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h localhost -p ${DATABASE_EXPOSED_PORT} > /dev/null << EOF
+PGPASSWORD=${DATABASE_USER_PASSWORD} psql -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h ${DATABASE_HOST} -p ${DATABASE_EXPOSED_PORT} > /dev/null << EOF
 INSERT INTO resto.user (email,groups,firstname,password,activated,registrationdate) VALUES ('${ADMIN_USER_NAME}','{0}','${ADMIN_USER_NAME}','${HASH}', 1, now_utc()) ON CONFLICT (email) DO UPDATE SET password='${HASH}';
 EOF
 fi
