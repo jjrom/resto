@@ -169,10 +169,9 @@ fi
 
 COMPOSE_FILE=${COMPOSE_FILE} ENV_FILE=${ENV_FILE} docker-compose --project-name ${PROJECT_NAME}  up -d
 
-#
+#PGPASSWORD=${DATABASE_USER_PASSWORD}
 # Wait for database to be ready
 echo -e "[INFO] Waiting for database: ${DATABASE_HOST}:${DATABASE_EXPOSED_PORT} to be ready..."
-#PGPASSWORD=${DATABASE_USER_PASSWORD}
 while ! pg_isready -h ${DATABASE_HOST} -U ${DATABASE_USER_NAME} -p ${DATABASE_EXPOSED_PORT} -d ${DATABASE_NAME} 2>/dev/null
 do
     let elapsed=elapsed+1
