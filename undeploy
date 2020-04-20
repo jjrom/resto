@@ -14,6 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+ENV_FILE=./config.env
 PROJECT_NAME=resto
 
 function showUsage {
@@ -62,7 +63,18 @@ if [ "${PROJECT_NAME}" == "" ]; then
 fi
 
 echo "[INFO] Stopping ${GREEN}${PROJECT_NAME}${NC} docker instance"
-docker-compose --project-name ${PROJECT_NAME} down
+
+# manages list of containers to bring down
+# TODO: add ENV_FILE as a script parameter, like deploy ?
+DATABASE_IS_EXTERNAL=$(grep ^DATABASE_IS_EXTERNAL= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+
+if [[ "${DATABASE_IS_EXTERNAL}" == "yes" ]]; then
+  COMPOSE_FILE="docker-compose.yml"
+else
+  COMPOSE_FILE="docker-compose-restodb.yml:docker-compose.yml"
+fi
+
+COMPOSE_FILE=${COMPOSE_FILE} docker-compose --project-name ${PROJECT_NAME} down
 
 echo "[INFO] Done !"
 echo ""
