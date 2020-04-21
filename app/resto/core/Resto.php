@@ -387,7 +387,7 @@ class Resto
          */
         $httpOrigin = filter_input(INPUT_SERVER, 'HTTP_ORIGIN', FILTER_SANITIZE_STRING);
         if (isset($httpOrigin) && $this->corsIsAllowed($httpOrigin)) {
-            header('Access-Control-Allow-Origin: ' . $httpOrigin);
+            header('Access-Control-Allow-Origin: *');
             header('Access-Control-Allow-Credentials: true');
             header('Access-Control-Max-Age: 3600');
         }
