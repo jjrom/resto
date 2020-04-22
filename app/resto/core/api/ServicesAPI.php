@@ -179,58 +179,50 @@ class ServicesAPI
     public function hello()
     {
         
-        $output = array(
+        return array(
+            'stac_version' => STAC::STAC_VERSION,
             'id' => 'catalogs',
             'title' => getenv('API_INFO_TITLE'),
             'description' => getenv('API_INFO_DESCRIPTION'),
-            'capabilities' => array('resto-core'),
+            'capabilities' => array_merge(array('resto-core'), array_map('strtolower', array_keys($this->context->addons))),
             'planet' => $this->context->core['planet'],
-            'links' => array(
+            'links' => array_merge(
                 array(
-                    'rel' => 'self',
-                    'type' => RestoUtil::$contentTypes['json'],
-                    'title' => getenv('API_INFO_TITLE'),
-                    'href' => $this->context->core['baseUrl']
+                    array(
+                        'rel' => 'self',
+                        'type' => RestoUtil::$contentTypes['json'],
+                        'title' => getenv('API_INFO_TITLE'),
+                        'href' => $this->context->core['baseUrl']
+                    ),
+                    array(
+                        'rel' => 'service-desc',
+                        'type' => RestoUtil::$contentTypes['json'],
+                        'title' => 'OpenAPI 3.0 definition endpoint',
+                        'href' => $this->context->core['baseUrl'] . '/api'
+                    ),
+                    array(
+                        'rel' => 'service-doc',
+                        'type' => RestoUtil::$contentTypes['html'],
+                        'title' => 'OpenAPI 3.0 definition endpoint documentation',
+                        'href' => $this->context->core['baseUrl'] . '/api.html'
+                    ),
+                    array(
+                        'rel' => 'conformance',
+                        'type' => RestoUtil::$contentTypes['json'],
+                        'title' => 'Conformance declaration',
+                        'href' => $this->context->core['baseUrl'] . '/conformance'
+                    ),
+                    array(
+                        'rel' => 'data',
+                        'type' => RestoUtil::$contentTypes['json'],
+                        'title' => 'Collections',
+                        'href' => $this->context->core['baseUrl'] . '/collections'
+                    )
                 ),
-                array(
-                    'rel' => 'service-desc',
-                    'type' => RestoUtil::$contentTypes['json'],
-                    'title' => 'OpenAPI 3.0 definition endpoint',
-                    'href' => $this->context->core['baseUrl'] . '/api'
-                ),
-                array(
-                    'rel' => 'service-doc',
-                    'type' => RestoUtil::$contentTypes['html'],
-                    'title' => 'OpenAPI 3.0 definition endpoint documentation',
-                    'href' => $this->context->core['baseUrl'] . '/api.html'
-                ),
-                array(
-                    'rel' => 'conformance',
-                    'type' => RestoUtil::$contentTypes['json'],
-                    'title' => 'Conformance declaration',
-                    'href' => $this->context->core['baseUrl'] . '/conformance'
-                ),
-                array(
-                    'rel' => 'data',
-                    'type' => RestoUtil::$contentTypes['json'],
-                    'title' => 'Collections',
-                    'href' => $this->context->core['baseUrl'] . '/collections'
-                )
+                (new STAC($this->context, $this->user))->getRootLinks()
             )
         );
-
-        // Update capabilities
-        foreach (array_keys($this->context->addons) as $key) {
-            $output['capabilities'][] = strtolower($key);
-        }
-
-        // Update with STAC
-        if ($this->context->addons['STAC']) {
-            $output['links'] = array_merge($output['links'], (new STAC($this->context, $this->user))->getRootLinks());
-            $output['stac_version'] = STAC::STAC_VERSION;
-        }
-
-        return $output;
+            
     }
 
     /**

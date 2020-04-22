@@ -233,7 +233,10 @@ class RestoCollections
     public function toArray()
     {
 
+        $stats = $this->getStatistics();
+
         $collections = array(
+            'stac_version' => STAC::STAC_VERSION,
             'id' => $this->context->osDescription['ShortName'],
             'title' => $this->context->osDescription['LongName'] ?? $this->context->osDescription['ShortName'],
             'description' => $this->context->osDescription['Description'],
@@ -248,11 +251,18 @@ class RestoCollections
                     'rel' => 'root',
                     'type' => RestoUtil::$contentTypes['json'],
                     'href' => $this->context->core['baseUrl']
-                )   
+                ),
+                array(
+                    'rel' => 'items',
+                    'title' => 'All collections',
+                    'matched' => $stats['count'],
+                    'type' => RestoUtil::$contentTypes['geojson'],
+                    'href' => $this->context->core['baseUrl'] . '/search'
+                )
             ),
             'extent' => $this->extent,
             'summaries' => array(
-                'resto:stats' => $this->getStatistics()
+                'resto:stats' => $stats
             ),
             'resto:info' => array(
                 'osDescription' => $this->context->osDescription
@@ -260,22 +270,6 @@ class RestoCollections
             'collections' => array()
         );
 
-        // STAC
-        if ( isset($this->context->addons['STAC']) ) {
-            
-            $collections['links'][] = array(
-                'rel' => 'items',
-                'title' => 'All collections',
-                'matched' => $collections['summaries']['resto:stats']['count'],
-                'type' => RestoUtil::$contentTypes['geojson'],
-                'href' => $this->context->core['baseUrl'] . '/search'
-            );
-
-            $collections['stac_version'] = STAC::STAC_VERSION;
-
-        }
-
-        
         foreach (array_keys($this->collections) as $key) {
             $collection = $this->collections[$key]->toArray(array(
                 'stats' => isset($this->context->query['_stats']) ? filter_var($this->context->query['_stats'], FILTER_VALIDATE_BOOLEAN) : false

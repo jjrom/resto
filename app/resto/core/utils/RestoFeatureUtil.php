@@ -115,15 +115,10 @@ class RestoFeatureUtil
             'properties' => array(),
             'collection' => $collection->id,
             'links' => array(),
-            'assets' => array()
+            'assets' => array(),
+            'stac_version' => STAC::STAC_VERSION,
+            'stac_extensions' => $collection->model->stacExtensions
         );
-
-        if ( isset($this->context->addons['STAC']) ) {
-            $featureArray = array_merge(array(
-                'stac_version' => STAC::STAC_VERSION,
-                'stac_extensions' => $collection->model->stacExtensions
-            ), $featureArray);
-        }
 
         foreach ($rawFeatureArray as $key => $value) {
             switch ($key) {
