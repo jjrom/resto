@@ -32,6 +32,9 @@ mkdir -v /etc/resto
 #if [ ! -z "${SUPPORTED_LANGUAGES}" ]; then
 #    SUPPORTED_LANGUAGES=\"$(echo $SUPPORTED_LANGUAGES | sed s/,/\",\"/g)\"
 #fi
+#if [ ! -z "${CORS_WHITELIST}" ]; then
+#    CORS_WHITELIST=\"$(echo $CORS_WHITELIST | sed s/,/\",\"/g)\"
+#fi
 #if [ ! -z "${SEARCH_SORTABLE_FIELDS}" ]; then
 #    SEARCH_SORTABLE_FIELDS=\"$(echo $SEARCH_SORTABLE_FIELDS | sed s/,/\",\"/g)\"
 #fi

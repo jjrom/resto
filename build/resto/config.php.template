@@ -16,7 +16,8 @@ return array(
     'tokenDuration' => ${JWT_DURATION:-3600},
     'userAutoValidation' => ${USER_AUTOVALIDATION:-true},
     'userAutoActivation' => ${USER_AUTOACTIVATION:-true},
-    'useCache' => ${USE_CACHE:-false},
+    'useCache' => ${USE_CACHE:-false}, 
+    'corsWhiteList' => array(${CORS_WHITELIST}),
     'htmlSearchEndpoint' => '${SEARCH_OPENSEARCH_HTML_ENDPOINT}',
     'database' => array(
         'dbname' => '${DATABASE_NAME:-resto}',

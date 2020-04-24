@@ -171,6 +171,11 @@ class Resto
      */
     private $startTime;
 
+    /*
+     * CORS white list
+     */
+    private $corsWhiteList = array();
+
     /**
      * Constructor
      *
@@ -190,6 +195,13 @@ class Resto
              */
             if (isset($config['debug'])) {
                 RestoLogUtil::$debug = $config['debug'];
+            }
+
+            /*
+             * Set white list for CORS
+             */
+            if (isset($config['corsWhiteList'])) {
+                $this->corsWhiteList = $config['corsWhiteList'];
             }
 
             /*
@@ -261,7 +273,7 @@ class Resto
                 break;
 
             case 'OPTIONS':
-                return null;
+                return $this->setCORSHeaders();
 
             default:
                 return RestoLogUtil::httpError(404);
@@ -288,6 +300,12 @@ class Resto
             header('Expires: Fri, 1 Jan 2010 00:00:00 GMT');
             header('Server-processing-time: ' . (microtime(true) - $this->startTime));
             header('Content-Type: ' . RestoUtil::$contentTypes[$this->context->outputFormat]);
+
+            /*
+             * Set headers including cross-origin resource sharing (CORS)
+             * http://en.wikipedia.org/wiki/Cross-origin_resource_sharing
+             */
+            $this->setCORSHeaders();
 
             /*
              * Stream data unless HTTP HEAD is requested
@@ -360,6 +378,74 @@ class Resto
          * Unknown stuff
          */
         return RestoLogUtil::httpError(400, 'Invalid object');
+    }
+
+    /**
+     * Set CORS headers (HTTP OPTIONS request)
+     */
+    private function setCORSHeaders()
+    {
+
+        /*
+         * Only set access to known servers
+         */
+        $httpOrigin = filter_input(INPUT_SERVER, 'HTTP_ORIGIN', FILTER_SANITIZE_STRING);
+        if (isset($httpOrigin) && $this->corsIsAllowed($httpOrigin)) {
+            header('Access-Control-Allow-Origin: *');
+            header('Access-Control-Allow-Credentials: true');
+            header('Access-Control-Max-Age: 3600');
+        }
+
+        /*
+         * Control header are received during OPTIONS requests
+         */
+        $httpRequestMethod = filter_input(INPUT_SERVER, 'HTTP_ACCESS_CONTROL_REQUEST_METHOD', FILTER_SANITIZE_STRING);
+        if (isset($httpRequestMethod)) {
+            header('Access-Control-Allow-Methods: GET, POST, DELETE, PUT, OPTIONS');
+        }
+
+        $httpRequestHeaders = filter_input(INPUT_SERVER, 'HTTP_ACCESS_CONTROL_REQUEST_HEADERS', FILTER_SANITIZE_STRING);
+        if (isset($httpRequestHeaders)) {
+            header('Access-Control-Allow-Headers: ' . $httpRequestHeaders);
+        }
+
+        return null;
+    }
+
+    /**
+     * Return true if $httpOrigin is allowed to do CORS
+     * If corsWhiteList is empty, then every $httpOrigin is allowed.
+     * Otherwise only origin in white list are allowed
+     *
+     * @param {String} $httpOrigin
+     */
+    private function corsIsAllowed($httpOrigin)
+    {
+
+        /*
+         * No white list => all allowed
+         */
+        if (!isset($this->corsWhiteList) || count($this->corsWhiteList) === 0) {
+            return true;
+        }
+
+        /*
+         * Nasty hack for WKWebView and iOS setting a HTTP_ORIGIN null
+         * Will remove it once corrected by Telerik
+         * (https://github.com/Telerik-Verified-Plugins/WKWebView/issues/59)
+         */
+        $toCheck = 'null';
+        $url = explode('//', $httpOrigin);
+        if (isset($url[1])) {
+            $toCheck = explode(':', $url[1])[0];
+        }
+        for ($i = count($this->corsWhiteList); $i--;) {
+            if ($this->corsWhiteList[$i] === $toCheck) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
