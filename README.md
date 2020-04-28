@@ -65,9 +65,10 @@ A normal PG user with `create schema` rights is necessary in order for resto to 
 
         grant create on database <dbname> to <dbuser>;
 
-resto tables, functions and triggers will be installed in a `resto` schema by running [scripts/installDB.sh](https://github.com/jjrom/resto/blob/resto-stac/scripts/installDB.sh):
+resto tables, functions and triggers will be installed in a `resto` schema by running [scripts/installOnExternalDB.sh](https://github.com/jjrom/resto/blob/resto-stac/scripts/installOnExternalDB.sh):
 
-        ./installDB.sh -e <config file>
+        cd scripts
+        ./installOnExternalDB.sh -e <config file>
 
 ### Hardware
 **[IMPORTANT]** In production mode (see below), the default configuration of the PostgreSQL server is for a 64Go RAM server. Changes this in [configuration](https://github.com/jjrom/resto/blob/master/config.env) file accordingly to your real configuration
