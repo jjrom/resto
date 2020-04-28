@@ -48,6 +48,27 @@ For a local installation, you can leave it untouched. Otherwise, just make your 
 
 Note that each time you change the configuration file, you should undeploy then redeploy the service.
 
+### External Database
+resto can use an external PostgreSQL database (version 11+). 
+
+Set the config.env `DATABASE_IS_EXTERNAL` parameter to `yes` to 
+enable an external database.
+
+The following extensions must be installed on the target database:
+ * postgis
+ * postgis_topology
+ * unaccent
+ * uuid-ossp
+ * pg_trgm
+ 
+A normal PG user with `create schema` rights is necessary in order for resto to operate. To give a user `create schema` rights, run the following sql command:
+
+        grant create on database <dbname> to <dbuser>;
+
+resto tables, functions and triggers will be installed in a `resto` schema by running [scripts/installDB.sh](https://github.com/jjrom/resto/blob/resto-stac/scripts/installDB.sh):
+
+        ./installDB.sh -e <config file>
+
 ### Hardware
 **[IMPORTANT]** In production mode (see below), the default configuration of the PostgreSQL server is for a 64Go RAM server. Changes this in [configuration](https://github.com/jjrom/resto/blob/master/config.env) file accordingly to your real configuration
 
