@@ -247,7 +247,7 @@ abstract class RestoModel
         'resto:gt' => array(
             'osKey' => 'prev',
             'title' => 'Cursor pagination - return result with sort key greater than sort value',
-            'pattern' => "^[0-9]+$",
+            'pattern' => "^[0-9\-]+$",
             'operation' => '>'
         ),
         
@@ -258,7 +258,7 @@ abstract class RestoModel
         'resto:lt' => array(
             'osKey' => 'next',
             'title' => 'Cursor pagination - return result with sort key lower than sort value',
-            'pattern' => "^[0-9]+$",
+            'pattern' => "^[0-9\-]+$",
             'operation' => '<'
         ),
         

@@ -855,6 +855,8 @@ class RestoCollection
         $osDescription = $this->osDescription[$this->context->lang] ?? $this->osDescription['en'];
 
         $collectionArray = array(
+            'stac_version' => STAC::STAC_VERSION,
+            'stac_extensions' => $this->model->stacExtensions,
             'id' => $this->id,
             'title' => $osDescription['ShortName'],
             'version' => $this->version ?? null,
@@ -907,10 +909,7 @@ class RestoCollection
             }
         }
 
-        return isset($this->context->addons['STAC']) ? array_merge($collectionArray, array(
-            'stac_version' => STAC::STAC_VERSION,
-            'stac_extensions' => $this->model->stacExtensions
-        )) : $collectionArray;
+        return $collectionArray;
 
     }
 

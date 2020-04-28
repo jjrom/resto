@@ -129,6 +129,10 @@ class Resto
         array('POST',   '/services/activation/send', false, 'ServicesAPI::sendActivationLink'),                                             // Send activation link
         array('POST',   '/services/password/forgot', false, 'ServicesAPI::forgotPassword'),                                                 // Send reset password link
         array('POST',   '/services/password/reset', false, 'ServicesAPI::resetPassword'),                                                   // Reset password
+
+        // STAC
+        array('GET',    '/search', false, 'STAC::search')                                                                                   // STAC API   
+
     );
 
     // resto version
