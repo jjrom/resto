@@ -43,6 +43,7 @@ CREATE INDEX IF NOT EXISTS idx_visibility_feature ON resto.feature USING btree (
 CREATE INDEX IF NOT EXISTS idx_status_feature ON resto.feature USING btree (status);
 CREATE INDEX IF NOT EXISTS idx_centroid_feature ON resto.feature USING GIST (centroid);
 CREATE INDEX IF NOT EXISTS idx_nhashtags_feature ON resto.feature USING GIN (normalized_hashtags) WHERE normalized_hashtags IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_geom_feature ON resto.feature USING GIST (geom);
 
 -- [TABLE resto.geometry_part]
 CREATE INDEX IF NOT EXISTS idx_id_geometry_part ON resto.geometry_part USING HASH (id);
