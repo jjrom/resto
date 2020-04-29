@@ -51,7 +51,7 @@ class FacetsFunctions
             'id' => $rawFacet['id'],
             'collection' => $rawFacet['collection'] ?? '*',
             'value' => $rawFacet['value'],
-            'parentId' => $rawFacet['pid'] ?? null,
+            'parentId' => $rawFacet['pid'],
             'created' => $rawFacet['created'],
             'creator' => $rawFacet['creator'] ?? null,
             'count' => (integer) $rawFacet['counter']
@@ -131,7 +131,7 @@ class FacetsFunctions
                 $facetElement['collection'] ?? '*',
                 $facetElement['value'],
                 $facetElement['type'],
-                $facetElement['parentId'] ?? null,
+                $facetElement['parentId'] ?? 'root',
                 $facetElement['creator'] ?? null,
                 $facetElement['isLeaf'] ? 1 : 0,
             ), 500, 'Cannot insert facet ' . $facetElement['id']);
@@ -181,7 +181,7 @@ class FacetsFunctions
      */
     public function getStatistics($collectionId, $facetFields)
     {
-        return $this->getCounts($this->getFacetsPivots($collectionId, $facetFields, null), $collectionId);
+        return $this->getCounts($this->getFacetsPivots($collectionId, $facetFields), $collectionId);
     }
 
     /**
@@ -215,7 +215,7 @@ class FacetsFunctions
                 
                 $facets[] = array(
                     'id' => $keywords[$i]['id'],
-                    'parentId' => $keywords[$i]['parentId'] ?? null,
+                    'parentId' => $keywords[$i]['parentId'] ?? 'root',
                     'value' => $keywords[$i]['name'] ?? null,
                     'type' => $keywords[$i]['type'],
                     'collection' => $collectionId,
@@ -293,7 +293,7 @@ class FacetsFunctions
      * @param string $parentId : parent hash
      * @return array
      */
-    private function getFacetsPivots($collectionId, $fields, $parentId)
+    private function getFacetsPivots($collectionId, $fields, $parentId = 'root')
     {
         
         $pivots = array();
@@ -303,13 +303,13 @@ class FacetsFunctions
          */
         $query = 'SELECT id,collection,value,type,pid,counter,to_iso8601(created) as created,creator FROM resto.facet WHERE counter > 0 AND ';
         if (isset($collectionId)) {
-            $results = $this->dbDriver->query($query . 'normalize(collection)=normalize(\'' . pg_escape_string($collectionId) . '\') AND type IN(\'' . join('\',\'', $fields) . '\')' . (isset($parentId) ? ' AND normalize(pid)=normalize(\'' . pg_escape_string($parentId) . '\')' : '') . ' ORDER BY type ASC, value DESC');
+            $results = $this->dbDriver->query($query . 'normalize(collection)=normalize(\'' . pg_escape_string($collectionId) . '\') AND type IN(\'' . join('\',\'', $fields) . '\') AND normalize(pid)=normalize(\'' . pg_escape_string($parentId) . '\') ORDER BY type ASC, value DESC');
         }
         /*
          * Facets for all collections
          */
         else {
-            $results = $this->dbDriver->query($query . 'type IN(\'' . join('\',\'', $fields) . '\')' . (isset($parentId) ? ' AND normalize(pid)=normalize(\'' . pg_escape_string($parentId) . '\')' : '') . ' ORDER BY type ASC, value DESC');
+            $results = $this->dbDriver->query($query . 'type IN(\'' . join('\',\'', $fields) . '\') AND normalize(pid)=normalize(\'' . pg_escape_string($parentId) . '\') ORDER BY type ASC, value DESC');
         }
         
         while ($result = pg_fetch_assoc($results)) {

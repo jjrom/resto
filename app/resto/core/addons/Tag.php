@@ -442,11 +442,13 @@ class Tag extends RestoAddOn
     private function getPopulationKeywords($populationProperty)
     {
         return array(
-            'id' => 'other:population',
-            'name' => 'Population',
-            'type' => 'other',
-            'count' => $populationProperty['count'],
-            'densityPerSquareKm' => $populationProperty['densityPerSquareKm']
+            array(
+                'id' => 'other:population',
+                'name' => 'Population',
+                'type' => 'other',
+                'count' => $populationProperty['count'],
+                'densityPerSquareKm' => $populationProperty['densityPerSquareKm']
+            )
         );
     }
 
