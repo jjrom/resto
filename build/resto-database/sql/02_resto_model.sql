@@ -556,7 +556,7 @@ CREATE TABLE IF NOT EXISTS resto.facet (
     type                TEXT,
 
     -- Parent identifier (i.e. 'europe' for facet 'france')
-    pid                 TEXT,
+    pid                 TEXT NOT NULL,
 
     -- Set to 1 if facet is a terminal leaf, 0 otherwise (used for STAC)
     isleaf              INTEGER,
@@ -570,8 +570,8 @@ CREATE TABLE IF NOT EXISTS resto.facet (
     -- Creator of the facet
     creator             BIGINT,
 
-    -- The id,collection pair should be unique
-    PRIMARY KEY (id, collection)
+    -- The id, pid, collection pair should be unique
+    PRIMARY KEY (id, pid, collection)
 
 );
 
