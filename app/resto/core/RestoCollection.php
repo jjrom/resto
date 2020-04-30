@@ -772,9 +772,9 @@ class RestoCollection
         $collectionObject = $this->context->fromCache($cacheKey);
     
         if (! isset($collectionObject)) {  
-
+            
             $collectionObject = (new CollectionsFunctions($this->context->dbDriver))->getCollectionDescription($this->id);
-
+            
             if (! isset($collectionObject)) {  
                 return RestoLogUtil::httpError(404);
             }
@@ -789,7 +789,7 @@ class RestoCollection
                 'addons' => $this->context->addons
             )) : $value;
         }
-
+        
         return $this;
     }
 

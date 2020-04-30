@@ -77,7 +77,7 @@ class FiltersFunctions
         if (isset($filterCS) && $filterCS !== '') {
             $filters[] = $filterCS;
         }
-
+        
         /*
          * Skip the following
          */

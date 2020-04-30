@@ -326,7 +326,7 @@ class RestoQueryAnalyzer
      */
     private function splitDatetime($datetime, &$params)
     {
-
+       
         $dates = explode('/', trim($datetime));
         $model = new DefaultModel();
 

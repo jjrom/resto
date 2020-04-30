@@ -27,7 +27,7 @@ class SatelliteModel extends LandCoverModel
      */
     public function __construct($options = array())
     {
-        
+
         parent::__construct($options);
         
         /*
