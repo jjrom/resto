@@ -31,6 +31,37 @@ class DefaultModel extends RestoModel
     public function __construct($options = array())
     {
         parent::__construct($options);
+
+        /*
+         * Extend search filters with date related filters
+         */
+        $this->searchFilters = array_merge($this->searchFilters, array(
+
+            // [STAC/WFS3] datetime is a mix of time:start/time:end
+            'resto:datetime' => array(
+                'key' => 'startDate',
+                'osKey' => 'datetime',
+                'title' => 'Single date+time, or a range ("/" separator) of the search query. Format should follow RFC-3339. Equivalent to OpenSearch {time:start}/{time:end}',
+                'pattern' => '^[a-zA-Z0-9\-\/\.\:]+$'
+            ),
+
+            'time:start' => array(
+                'key' => 'startDate',
+                'osKey' => 'start',
+                'operation' => '>=',
+                'title' => 'Beginning of the time slice of the search query. Format should follow RFC-3339',
+                'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'
+            ),
+            
+            'time:end' => array(
+                'key' => 'startDate',
+                'osKey' => 'end',
+                'operation' => '<=',
+                'title' => 'End of the time slice of the search query. Format should follow RFC-3339',
+                'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'
+            )
+
+        ));
     }
 
 }
