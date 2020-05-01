@@ -61,9 +61,13 @@ The following extensions must be installed on the target database:
  * uuid-ossp
  * pg_trgm
 
-You can use the following command to install these extensions
+For instance suppose that the external database is "resto" :
 
-        PGPASSWORD=${DATABASE_SUPERUSER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_SUPERUSER_NAME" -d "$DATABASE_NAME" -f ./build/resto-database/sql/00_resto_extensions.sql
+        DATABASE_NAME=resto
+
+        PGPASSWORD=${DATABASE_SUPERUSER_PASSWORD} createdb -X -v ON_ERROR_STOP=1 -h "${DATABASE_HOST}" -p "${DATABASE_PORT}" -U "${DATABASE_SUPERUSER_NAME}" ${DATABASE_NAME}
+
+        PGPASSWORD=${DATABASE_SUPERUSER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "${DATABASE_HOST}" -p "${DATABASE_PORT}" -U "${DATABASE_SUPERUSER_NAME}" -d "${DATABASE_NAME}" -f ./build/resto-database/sql/00_resto_extensions.sql
 
 Where DATABASE_SUPERUSER_NAME is a database user with sufficient privileges to install extensions ("postgres" user for instance)
 
