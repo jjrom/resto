@@ -858,7 +858,7 @@ class RestoCollection
             'stac_version' => STAC::STAC_VERSION,
             'stac_extensions' => $this->model->stacExtensions,
             'id' => $this->id,
-            'title' => $osDescription['ShortName'],
+            'title' => $osDescription['LongName'] ?? $osDescription['ShortName'],
             'version' => $this->version ?? null,
             'description' => $osDescription['Description'],
             'keywords' => explode(' ', $osDescription['Tags']),
