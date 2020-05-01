@@ -2,5 +2,6 @@
 app/resto/addons
 tmp
 docker-compose.local.yml
+docker-compose-nodb.local.yml
 .private
 .DS_Store
