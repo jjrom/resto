@@ -155,15 +155,20 @@ if [[ "${TARGET}" == "prod" ]]; then
       COMPOSE_FILE=docker-compose-restodb.yml:docker-compose.yml
     fi
 else
-    if [[ ! -f docker-compose.${TARGET}.yml ]]; then
-        echo -e "${RED}[ERROR] The file docker-compose.${TARGET}.yml does not exist!${NC}"
-        echo ""
-        exit 1
-    fi
     if [[ "${DATABASE_IS_EXTERNAL}" == "yes" ]]; then
-      COMPOSE_FILE="docker-compose.yml:docker-compose-nodb.${TARGET}.yml"
+        if [[ ! -f docker-compose-nodb.${TARGET}.yml ]]; then
+            echo -e "${RED}[ERROR] The file docker-compose-nodb.${TARGET}.yml does not exist!${NC}"
+            echo ""
+            exit 1
+        fi
+        COMPOSE_FILE="docker-compose.yml:docker-compose-nodb.${TARGET}.yml"
     else
-      COMPOSE_FILE="docker-compose-restodb.yml:docker-compose.yml:docker-compose.${TARGET}.yml"
+        if [[ ! -f docker-compose.${TARGET}.yml ]]; then
+            echo -e "${RED}[ERROR] The file docker-compose.${TARGET}.yml does not exist!${NC}"
+            echo ""
+            exit 1
+        fi
+        COMPOSE_FILE="docker-compose-restodb.yml:docker-compose.yml:docker-compose.${TARGET}.yml"
     fi
 fi
 
