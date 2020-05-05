@@ -113,21 +113,29 @@ if [ -z "${PASSWORD}" ]; then
 fi
 
 # Read environment from ENV_FILE
+DATABASE_IS_EXTERNAL=$(grep ^DATABASE_IS_EXTERNAL= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 DATABASE_EXPOSED_PORT=$(grep ^DATABASE_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 DATABASE_USER_PASSWORD=$(grep ^DATABASE_USER_PASSWORD= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 DATABASE_USER_NAME=$(grep ^DATABASE_USER_NAME= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 DATABASE_NAME=$(grep ^DATABASE_NAME= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+DATABASE_HOST=$(grep ^DATABASE_HOST= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 
 # Change password !!!
 echo -e "[INFO] Hashing password for secured storage"
 HASH=`docker run --rm php:7.2-alpine -r "echo password_hash('$PASSWORD', PASSWORD_BCRYPT);"`
 
+if [[ "${DATABASE_IS_EXTERNAL}" == "yes" ]]; then
+    DATABASE_HOST_SEEN_FROM_DOCKERHOST=${DATABASE_HOST}
+else
+    DATABASE_HOST_SEEN_FROM_DOCKERHOST=localhost
+fi
+
 if [ "${ID}" != "" ]; then
-PGPASSWORD=${DATABASE_USER_PASSWORD} psql -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h localhost -p ${DATABASE_EXPOSED_PORT} > /dev/null << EOF
+PGPASSWORD=${DATABASE_USER_PASSWORD} psql -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h ${DATABASE_HOST} -p ${DATABASE_EXPOSED_PORT} > /dev/null << EOF
 INSERT INTO resto.user (id,email,groups,firstname,password,activated,registrationdate) VALUES (${ID}, '${USERNAME}','{${GROUP}}','${USERNAME}','${HASH}', 1, now_utc());
 EOF
 else
-PGPASSWORD=${DATABASE_USER_PASSWORD} psql -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h localhost -p ${DATABASE_EXPOSED_PORT} > /dev/null << EOF
+PGPASSWORD=${DATABASE_USER_PASSWORD} psql -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h ${DATABASE_HOST} -p ${DATABASE_EXPOSED_PORT} > /dev/null << EOF
 INSERT INTO resto.user (email,groups,firstname,password,activated,registrationdate) VALUES ('${USERNAME}','{${GROUP}}','${USERNAME}','${HASH}', 1, now_utc());
 EOF
 fi

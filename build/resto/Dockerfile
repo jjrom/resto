@@ -1,20 +1,8 @@
-FROM ubuntu:bionic
+FROM jjrom/s6-overlay:latest
 LABEL maintainer="jerome.gasperi@gmail.com"
 
 ENV BUILD_DIR=./build/resto \
-    PHP_VERSION=7.2 \
-    JUST_CONTAINERS_VERSION=1.22.1.0 \
-    ARCH=amd64
-
-# Add wait-for-it
-ADD https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh /bin/wait-for-it.sh
-RUN chmod +x /bin/wait-for-it.sh
-
-# Add S6 supervisor (for graceful stop)
-ADD https://github.com/just-containers/s6-overlay/releases/download/v${JUST_CONTAINERS_VERSION}/s6-overlay-${ARCH}.tar.gz /tmp/
-RUN tar xzf /tmp/s6-overlay-${ARCH}.tar.gz -C /
-ENTRYPOINT ["/init"]
-CMD []
+    PHP_VERSION=7.2
 
 # Add ppa, curl and syslogd
 RUN apt-get update && apt-get install -y software-properties-common curl inetutils-syslogd && \
@@ -83,20 +71,28 @@ COPY ${BUILD_DIR}/config.php.template /tmp/config.php.template
 # Create configuration directory
 RUN mkdir /cfg
 
+# Docs directory (for API)
+RUN mkdir -p /docs
+COPY ./docs /docs
+
 # Set environment variables
 # opcache https://www.scalingphpbook.com/best-zend-opcache-settings-tuning-config/
 ENV PHP_FPM_PM=dynamic \
-    PHP_FPM_MAX_CHILDREN=20 \
-    PHP_FPM_START_SERVERS=5 \
+    PHP_FPM_MAX_CHILDREN=100 \
+    PHP_FPM_START_SERVERS=10 \
     PHP_FPM_MAX_REQUESTS=1024 \
     PHP_FPM_MIN_SPARE_SERVERS=3 \
     PHP_FPM_MAX_SPARE_SERVERS=19 \
     PHP_FPM_MEMORY_LIMIT=256M \
     PHP_FPM_MAX_EXECUTION_TIME=300 \
+    PHP_FPM_MAX_INPUT_TIME=60 \
     PHP_FPM_UPLOAD_MAX_FILESIZE=20M \
     PHP_OPCACHE_MEMORY_CONSUMPTION=512 \
     PHP_OPCACHE_INTERNED_STRINGS_BUFFER=64 \
     PHP_OPCACHE_MAX_WASTED_PERCENTAGE=5 \
+    PHP_FPM_EMERGENCY_RESTART_TRESHOLD=10 \
+    PHP_FPM_EMERGENCY_RESTART_INTERVAL=1m \
+    PHP_FPM_PROCESS_CONTROL_TIMEOUT=10s \
     RESTO_DEBUG=1
 
 

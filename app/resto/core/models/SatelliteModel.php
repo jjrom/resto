@@ -20,121 +20,125 @@
 class SatelliteModel extends LandCoverModel
 {
 
-    /*
-     * Array of facet categories
-     *
-     * [IMPORTANT]
-     *   - Facet categories is an array of facet category name
-     *   - Each facet category name is indexed as a hashtag "<facetCategoryName>:value"
-     *   - Hierarchy within a facet categories is the order of the array (first element is the parent)
-     */
-    private $extendedFacetCategories = array(
-        array(
-            'productType'
-        ),
-        array(
-            'processingLevel'
-        ),
-        array(
-            'sensorType',
-            'platform',
-            'instrument'
-        )
-    );
-
-    /**
-     * Extended search filters for satellite collections
-     */
-    private $extendedSearchFilters = array(
-        
-        'eo:productType' => array(
-            'key' => 'normalized_hashtags',
-            'osKey' => 'productType',
-            'prefix' => 'productType',
-            'operation' => 'keywords',
-            'title' => 'A string identifying the entry type (e.g. ER02_SAR_IM__0P, MER_RR__1P, SM_SLC__1S, GES_DISC_AIRH3STD_V005)',
-            'options' => 'auto'
-        ),
-        
-        'eo:processingLevel' => array(
-            'key' => 'normalized_hashtags',
-            'osKey' => 'processingLevel',
-            'prefix' => 'processingLevel',
-            'operation' => 'keywords',
-            'title' => 'A string identifying the processing level applied to the entry',
-            'options' => 'auto'
-        ),
-        
-        'eo:platform' => array(
-            'key' => 'normalized_hashtags',
-            'osKey' => 'platform',
-            'prefix' => 'platform',
-            'operation' => 'keywords',
-            'title' => 'A string with the platform short name (e.g. Sentinel-1)',
-            'options' => 'auto'
-        ),
-        
-        'eo:instrument' => array(
-            'key' => 'normalized_hashtags',
-            'osKey' => 'instrument',
-            'prefix' => 'instrument',
-            'operation' => 'keywords',
-            'title' => 'A string identifying the instrument (e.g. MERIS, AATSR, ASAR, HRVIR. SAR)',
-            'options' => 'auto'
-        ),
-        
-        'eo:sensorType' => array(
-            'key' => 'normalized_hashtags',
-            'osKey' => 'sensorType',
-            'prefix' => 'sensorType',
-            'operation' => 'keywords',
-            'title' => 'A string identifying the sensor type. Suggested values are: OPTICAL, RADAR, ALTIMETRIC, ATMOSPHERIC, LIMB',
-            'options' => 'auto'
-        )
-        
-        /* 
-         *  
-         *
-        'eo:resolution' => array(
-            'key' => 'resolution',
-            'osKey' => 'resolution',
-            'operation' => 'interval',
-            'title' => 'Spatial resolution expressed in meters',
-            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
-            'quantity' => array(
-                'value' => 'resolution',
-                'unit' => 'm'
-            )
-        ),
-
-        /*
-         *  
-         *
-        'eo:orbitNumber' => array(
-            'key' => 'orbitNumber',
-            'osKey' => 'orbitNumber',
-            'operation' => 'interval',
-            'minInclusive' => 1,
-            'quantity' => array(
-                'value' => 'orbit'
-            )
-        ),*/
-        
-    );
-
-
     /**
      * Constructor
+     * 
+     * @param array $options
      */
-    public function __construct()
+    public function __construct($options = array())
     {
-        parent::__construct();
+
+        parent::__construct($options);
         
-        $this->addSearchFilters($this->extendedSearchFilters);
-        $this->addFacetCategories($this->extendedFacetCategories);
+        /*
+         * Satellite model follows STAC EO Extension Specification
+         */
+        $this->stacExtensions[] = 'sat';
+        
+        /*
+         * Extend STAC mapping
+         * 
+         * See - https://github.com/radiantearth/stac-spec/tree/dev/extensions/sat
+         */
+        $this->stacMapping = array_merge($this->stacMapping, array(
+            'instrument' => 'instruments',
+            'resolution' => 'eo:gsd',
+            'relativeOrbitNumber' => 'sat:relative_orbit',
+            'orbitDirection' => 'sat:orbit_state'
+        ));
 
         /*
-         * [IMPORTANT] The table resto.feature_satellite must exist
+         * Extend search filters
+         */
+        $this->searchFilters = array_merge($this->searchFilters, array(
+        
+            'eo:productType' => array(
+                'key' => 'normalized_hashtags',
+                'osKey' => 'productType',
+                'prefix' => 'productType',
+                'operation' => 'keywords',
+                'title' => 'A string identifying the entry type (e.g. ER02_SAR_IM__0P, MER_RR__1P, SM_SLC__1S, GES_DISC_AIRH3STD_V005)',
+                'options' => 'auto'
+            ),
+            
+            'eo:processingLevel' => array(
+                'key' => 'normalized_hashtags',
+                'osKey' => 'processingLevel',
+                'prefix' => 'processingLevel',
+                'operation' => 'keywords',
+                'title' => 'A string identifying the processing level applied to the entry',
+                'options' => 'auto'
+            ),
+            
+            'eo:platform' => array(
+                'key' => 'normalized_hashtags',
+                'osKey' => 'platform',
+                'prefix' => 'platform',
+                'operation' => 'keywords',
+                'title' => 'A string with the platform short name (e.g. Sentinel-1)',
+                'options' => 'auto'
+            ),
+            
+            'eo:instrument' => array(
+                'key' => 'normalized_hashtags',
+                'osKey' => 'instrument',
+                'prefix' => 'instrument',
+                'operation' => 'keywords',
+                'title' => 'A string identifying the instrument (e.g. MERIS, AATSR, ASAR, HRVIR. SAR)',
+                'options' => 'auto'
+            ),
+            
+            'eo:sensorType' => array(
+                'key' => 'normalized_hashtags',
+                'osKey' => 'sensorType',
+                'prefix' => 'sensorType',
+                'operation' => 'keywords',
+                'title' => 'A string identifying the sensor type. Suggested values are: OPTICAL, RADAR, ALTIMETRIC, ATMOSPHERIC, LIMB',
+                'options' => 'auto'
+            )
+            
+            /* 
+             *  
+             *
+            'eo:resolution' => array(
+                'key' => 'resolution',
+                'osKey' => 'resolution',
+                'operation' => 'interval',
+                'title' => 'Spatial resolution expressed in meters',
+                'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$'
+            ),
+    
+            /*
+             *  
+             *
+            'eo:orbitNumber' => array(
+                'key' => 'orbitNumber',
+                'osKey' => 'orbitNumber',
+                'operation' => 'interval',
+                'minInclusive' => 1
+            ),*/
+            
+        ));
+
+        /*
+         * Extend facet categories
+         */
+        $this->facetCategories = array_merge($this->facetCategories, array(
+            array(
+                'productType'
+            ),
+            array(
+                'processingLevel'
+            ),
+            array(
+                'sensorType',
+                'platform',
+                'instrument'
+            )
+        ));
+        
+        /*
+         * [IMPORTANT] The table $this->schema['name'].feature_satellite must exist
          * with columns 'id' and at least the columns list below
          */
         $this->tables[] = array(

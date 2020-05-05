@@ -21,46 +21,53 @@ class OpticalModel extends SatelliteModel
 {
 
     /**
-     * Extended search filters for optical collection
-     */
-    private $extendedSearchFilters = array(
-
-        'eo:cloudCover' => array(
-            'key' => 'cloudCover',
-            'osKey' => 'cloudCover',
-            'operation' => 'interval',
-            'title' => 'Cloud cover expressed in percent',
-            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
-            'quantity' => array(
-                'value' => 'cloud',
-                'unit' => '%'
-            )
-        ),
-
-        'eo:snowCover' => array(
-            'key' => 'snowCover',
-            'osKey' => 'snowCover',
-            'operation' => 'interval',
-            'title' => 'Snow cover expressed in percent',
-            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
-            'quantity' => array(
-                'value' => 'snow',
-                'unit' => '%'
-            )
-        )
-    );
-
-    /**
      * Constructor
+     * 
+     * @param array $options
      */
-    public function __construct()
+    public function __construct($options = array())
     {
-        parent::__construct();
 
-        $this->addSearchFilters($this->extendedSearchFilters);
+        parent::__construct($options);
 
         /*
-         * [IMPORTANT] The table resto.feature_optical must exist
+         * Satellite model follows STAC EO Extension Specification
+         */
+        $this->stacExtensions[] = 'eo';
+
+        /*
+         * Extend STAC mapping
+         * 
+         * See - https://github.com/radiantearth/stac-spec/tree/dev/extensions/eo
+         */
+        $this->stacMapping = array_merge($this->stacMapping, array(
+            'cloudCover' => 'eo:cloud_cover'
+        ));
+
+        /*
+         * Extend search filters
+         */
+        $this->searchFilters = array_merge($this->searchFilters, array(
+
+            'eo:cloudCover' => array(
+                'key' => 'cloudCover',
+                'osKey' => 'cloudCover',
+                'operation' => 'interval',
+                'title' => 'Cloud cover expressed in percent',
+                'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$'
+            ),
+    
+            'eo:snowCover' => array(
+                'key' => 'snowCover',
+                'osKey' => 'snowCover',
+                'operation' => 'interval',
+                'title' => 'Snow cover expressed in percent',
+                'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$'
+            )
+        ));
+
+        /*
+         * [IMPORTANT] The table $this->schema['name'].feature_optical must exist
          * with columns 'id' and at least the columns list below
          */
         $this->tables[] = array(

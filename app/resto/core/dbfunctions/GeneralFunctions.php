@@ -34,6 +34,23 @@ class GeneralFunctions
     }
 
     /**
+     * Check if a table exsist in database
+     *
+     * @param string $schemaName
+     * @param string $tableName
+     * @return boolean
+     * @throws Exception
+     */
+    public function tableExists($schemaName, $tableName)
+    {
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT 1 FROM information_schema.tables WHERE table_schema=$1 AND table_name=$2', array(
+            $schemaName,
+            $tableName
+        )));
+        return !empty($results);
+    }
+
+    /**
      *
      * Return keywords from database
      *
@@ -185,9 +202,12 @@ class GeneralFunctions
     {
         $result = null;
 
+        /*
+         * Null geometry is allowed in GeoJSON
+         */
         if (!isset($geometry)  || !is_array($geometry) || !isset($geometry['type']) || !isset($geometry['coordinates'])) {
             return array(
-                'isValid' => false,
+                'isValid' => true,
                 'error' => 'Empty geometry'
             );
         }
@@ -202,11 +222,11 @@ class GeneralFunctions
         }
 
         try {
-            $result = pg_fetch_row(pg_query_params($this->dbDriver->getConnection(), 'WITH tmp AS (SELECT ' . $geoJsonParser . ' AS geom) SELECT geom, ST_SetSRID(' . $this->getSplitterFunction($params) . ', 4326) AS _geom, ST_SetSRID(ST_Centroid(geom::geography)::geometry, 4326) AS centroid FROM tmp', array(
+            $result = pg_fetch_row(pg_query_params($this->dbDriver->getConnection(), 'WITH tmp AS (SELECT ' . $geoJsonParser . ' AS geom) SELECT geom, ST_SetSRID(' . $this->getSplitterFunction($params) . ', 4326) AS _geom, ST_SetSRID(ST_Centroid(geom::geography)::geometry, 4326) AS centroid, Box2D(ST_SetSRID(' . $this->getSplitterFunction($params) . ', 4326)) as bbox FROM tmp', array(
                 json_encode(array(
                     'type' => $geometry['type'],
                     'coordinates' => $geometry['coordinates']
-                ))
+                ), JSON_UNESCAPED_SLASHES)
             )), 0, PGSQL_ASSOC);
 
         } catch (Exception $e) {
@@ -222,8 +242,9 @@ class GeneralFunctions
         
         return array(
             'isValid' => true,
+            'bbox' => RestoGeometryUtil::box2dTobbox($result['bbox']),
             'geometry' => $result['geom'] === $result['_geom'] ? null : $result['geom'],
-            '_geometry' => $result['_geom'],
+            'geom' => $result['_geom'],
             'centroid' => $result['centroid']
         );
     }

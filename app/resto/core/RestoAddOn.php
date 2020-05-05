@@ -18,6 +18,11 @@
 class RestoAddOn
 {
 
+    /**
+     * Add-on version
+     */
+    public $version;
+
     /*
      * Resto context
      */

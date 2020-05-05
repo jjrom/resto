@@ -1,8 +1,9 @@
 <?php
 return array(
     'baseUrl' => '${PUBLIC_ENDPOINT:-http://127.0.0.1:5252}',
+    'planet' => '${PLANET:-earth}',
     'debug' => ${RESTO_DEBUG:-false},
-    'languages' => array(${SUPPORTED_LANGUAGES}),
+    'languages' => array(${SUPPORTED_LANGUAGES:-'en'}),
     'passphrase' => '${JWT_PASSPHRASE}',
     'sharedLinkDuration' => ${SHAREDLINK_DURATION:-86400},
     'storageInfo' => array(
@@ -16,14 +17,14 @@ return array(
     'userAutoValidation' => ${USER_AUTOVALIDATION:-true},
     'userAutoActivation' => ${USER_AUTOACTIVATION:-true},
     'useCache' => ${USE_CACHE:-false}, 
-    'corsWhiteList' => array($CORS_WHITELIST),
+    'corsWhiteList' => array(${CORS_WHITELIST}),
     'htmlSearchEndpoint' => '${SEARCH_OPENSEARCH_HTML_ENDPOINT}',
     'database' => array(
         'dbname' => '${DATABASE_NAME:-resto}',
         'host' => '${DATABASE_HOST:-restodb}',
         'port' => ${DATABASE_PORT:-5432},
-        'resultsPerPage' => ${SEARCH_RESULTS_PER_PAGE:-20},
-        'sortKeys' => array(${SEARCH_SORTABLE_FIELDS:-startDate,published}),
+        'resultsPerPage' => ${SEARCH_RESULTS_PER_PAGE:-10},
+        'sortKeys' => array(${SEARCH_SORTABLE_FIELDS:-'startDate','created'}),
         'user' => '${DATABASE_USER_NAME:-resto}',
         'password' => '${DATABASE_USER_PASSWORD:-resto}'
     ),
@@ -34,7 +35,7 @@ return array(
             'activate' => ${SENDMAIL_SMTP_ACTIVATE:-false},
             'host' => '${SENDMAIL_SMTP_HOST}',
             'port' => ${SENDMAIL_SMTP_PORT:-465},
-            'secure' => '${SENDMAIL_SMTP_SECURE}', // one of 'ssl' or 'tls'
+            'secure' => '${SENDMAIL_SMTP_SECURE:-ssl}', // one of 'ssl' or 'tls'
             'debug' => ${SENDMAIL_SMTP_DEBUG:-0}, // 0: no debug, 1: error and message, 2: message only
             'auth' => array(
                 'user' => '${SENDMAIL_SMTP_USER}',
@@ -87,7 +88,8 @@ return array(
             'options' => array(
                 'iTag' => array(
                     'endpoint' => '${ADDON_TAG_ITAG_ENDPOINT}',
-                    'taggers' => array(${ADDON_TAG_ITAG_TAGGERS})/*,
+                    'addSearchFilters' => ${ADDON_TAG_ADD_SEARCH_FILTERS:-false}, 
+                    'taggers' => array(${ADDON_TAG_ITAG_TAGGERS:-'political','physical'})/*,
                     'excludedCollections' => array()*/
                 )
             )

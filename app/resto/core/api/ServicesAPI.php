@@ -33,25 +33,210 @@ class ServicesAPI
     }
 
     /**
-     * Hello
+     * Return API server definition as OpenAPI 3.0 document
+     * (see https://github.com/opengeospatial/ogcapi-features/blob/master/core/standard/17-069.adoc)
+     *
+     *    @OA\Get(
+     *      path="/api.{format}",
+     *      summary="OpenAPI definition",
+     *      description="Returns the server API definition as an OpenAPI 3.0 JSON document (default) or as an HTML page (if format is specified and set to *html*)",
+     *      tags={"Server"},
+     *      @OA\Parameter(
+     *          name="format",
+     *          in="path",
+     *          description="Output format - *json* or *html*",
+     *          required=false,
+     *          @OA\Items(
+     *              type="string",
+     *              enum={"json", "html"}
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response="200",
+     *          description="OpenAPI 3.0 definition"
+     *      ),
+     *      @OA\Response(
+     *          response="404",
+     *          description="Not found"
+     *      )
+     *    )
+     */
+    public function api()
+    {
+        try {
+            $content = @file_get_contents('/docs/resto-api.' . $this->context->outputFormat);
+        }
+        catch (Exception $e) {
+        }
+
+        if ($content === FALSE) {
+            return RestoLogUtil::httpError(404);
+        }
+
+        if ($this->context->outputFormat === 'json') {
+            return json_decode($content, true);
+        }
+        
+        /*
+         * Set range and headers
+         */
+        header('HTTP/1.1 200 OK');
+        header('Content-Type: ' . RestoUtil::$contentTypes[$this->context->outputFormat]);
+        echo $content;
+
+        return null;
+    }
+
+    /**
+     * Return conformance page conforms to OGC API Feature
+     * (see https://github.com/opengeospatial/ogcapi-features/blob/master/core/standard/17-069.adoc)
+     *
+     *    @OA\Get(
+     *      path="/conformance",
+     *      summary="Conformance page",
+     *      description="Returns the OGC API Feature conformance description as JSON document",
+     *      tags={"Server"},
+     *      @OA\Response(
+     *          response="200",
+     *          description="OGC API Feature conformance definition",
+     *          @OA\JsonContent(
+     *               @OA\Property(
+     *                  property="conformsTo",
+     *                  type="array",
+     *                  description="Array of conformance specification urls",
+     *                  @OA\Items(
+     *                      type="string"
+     *                  )
+     *               )
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response="404",
+     *          description="Not found"
+     *      )
+     *    )
+     */
+    public function conformance()
+    {
+        return array(
+            'conformsTo' => array(
+                'http://www.opengis.net/spec/ogcapi-features-1/1.0/req/core',
+                'http://www.opengis.net/spec/ogcapi-features-1/1.0/req/oas30',
+                'http://www.opengis.net/spec/ogcapi-features-1/1.0/req/geojson'
+            )
+        );
+    }
+    
+    /**
+     * Landing page conforms to OGC API Feature
+     * (see https://github.com/opengeospatial/ogcapi-features/blob/master/core/standard/17-069.adoc)
+     *
+     *    @OA\Get(
+     *      path="/",
+     *      summary="Landing page",
+     *      description="Landing page for the server. Should be used by client to automatically detects endpoints to API, collections, etc.",
+     *      tags={"Server"},
+     *      @OA\Response(
+     *          response="200",
+     *          description="Server landing page",
+     *          @OA\JsonContent(
+     *              @OA\Property(
+     *                  property="id",
+     *                  type="string",
+     *                  description="Server identifier.",
+     *              ),
+     *              @OA\Property(
+     *                  property="title",
+     *                  type="string",
+     *                  description="Server title"
+     *              ),
+     *              @OA\Property(
+     *                  property="description",
+     *                  type="string",
+     *                  description="Server description"
+     *              ),
+     *              @OA\Property(
+     *                  property="capabilities",
+     *                  type="array",
+     *                  @OA\Items(
+     *                      type="string"
+     *                  ),
+     *                  description="Array of resto-addons list. Used client side to detect resto capabilities",
+     *              ),
+     *              @OA\Property(
+     *                  property="links",
+     *                  type="array",
+     *                  @OA\Items(ref="#/components/schemas/Links")
+     *              )   
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response="404",
+     *          description="Not found"
+     *      )
+     *    )
      */
     public function hello()
     {
-        return RestoLogUtil::success('Hello');
+        
+        return array(
+            'stac_version' => STAC::STAC_VERSION,
+            'id' => 'catalogs',
+            'title' => getenv('API_INFO_TITLE'),
+            'description' => getenv('API_INFO_DESCRIPTION'),
+            'capabilities' => array_merge(array('resto-core'), array_map('strtolower', array_keys($this->context->addons))),
+            'planet' => $this->context->core['planet'],
+            'links' => array_merge(
+                array(
+                    array(
+                        'rel' => 'self',
+                        'type' => RestoUtil::$contentTypes['json'],
+                        'title' => getenv('API_INFO_TITLE'),
+                        'href' => $this->context->core['baseUrl']
+                    ),
+                    array(
+                        'rel' => 'service-desc',
+                        'type' => RestoUtil::$contentTypes['json'],
+                        'title' => 'OpenAPI 3.0 definition endpoint',
+                        'href' => $this->context->core['baseUrl'] . '/api'
+                    ),
+                    array(
+                        'rel' => 'service-doc',
+                        'type' => RestoUtil::$contentTypes['html'],
+                        'title' => 'OpenAPI 3.0 definition endpoint documentation',
+                        'href' => $this->context->core['baseUrl'] . '/api.html'
+                    ),
+                    array(
+                        'rel' => 'conformance',
+                        'type' => RestoUtil::$contentTypes['json'],
+                        'title' => 'Conformance declaration',
+                        'href' => $this->context->core['baseUrl'] . '/conformance'
+                    ),
+                    array(
+                        'rel' => 'data',
+                        'type' => RestoUtil::$contentTypes['json'],
+                        'title' => 'Collections',
+                        'href' => $this->context->core['baseUrl'] . '/collections'
+                    )
+                ),
+                (new STAC($this->context, $this->user))->getRootLinks()
+            )
+        );
+            
     }
 
     /**
      * Return OpenSearchDescription document
      *
      *    @OA\Get(
-     *      path="/services/osdd/{collectionName}",
+     *      path="/services/osdd/{collectionId}",
      *      summary="Get OpenSearch Description Document for a collection",
-     *      description="Returns the OpenSearch Document Description (OSDD) for the search service of collection {collectionName}",
+     *      description="Returns the OpenSearch Document Description (OSDD) for the search service of collection {collectionId}",
      *      tags={"Collection"},
      *      @OA\Parameter(
-     *          name="collectionName",
+     *          name="collectionId",
      *          in="query",
-     *          description="Collection name",
+     *          description="Collection identifier",
      *          required=true,
      *          @OA\Items(
      *              type="string"
@@ -72,7 +257,7 @@ class ServicesAPI
     public function getOSDDForCollection($params)
     {
         $this->context->outputFormat = 'xml';
-        return (new RestoCollection($params['collectionName'], $this->context, $this->user))->load()->getOSDD();
+        return (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()->getOSDD();
     }
 
     /**
@@ -112,7 +297,9 @@ class ServicesAPI
             if (! class_exists($params['model'])) {
                 return RestoLogUtil::httpError(400, 'Unknown model ' . $params['model']);
             }
-            $model = new $params['model']();
+            $model = new $params['model'](array(
+                'addons' => $this->context->addons
+            ));
         }
         return (new RestoCollections($this->context, $this->user))->getOSDD($model);
     }

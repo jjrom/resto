@@ -49,10 +49,32 @@ class AuthAPI
      *                  type="string",
      *                  description="A rJWT token"
      *              ),
+     *              @OA\Property(
+     *                  property="profile",
+     *                  description="User profile",
+     *                  ref="#/components/schemas/UserDisplayProfile"
+     *              ),
      *              example={
-     *                  "token": "eyJzdWIiOiIxOTQ2NTIwMjk3MjEzNTI3MDUyIiwiaWF0IjoxNTQ2MjY2NTU3LCJleHAiOjE1NDYyNzAxNTd9.nI4q0LBqGOG0a6GCjxWvUiVA6hKndN9mJrjuT1WG1Xo"
+     *                  "token": "eyJzdWIiOiIxOTQ2NTIwMjk3MjEzNTI3MDUyIiwiaWF0IjoxNTQ2MjY2NTU3LCJleHAiOjE1NDYyNzAxNTd9.nI4q0LBqGOG0a6GCjxWvUiVA6hKndN9mJrjuT1WG1Xo",
+     *                  "profile":{
+     *                      "id": "1356771884787565573",
+     *                      "picture": "https://robohash.org/d0e907f8b6f4ee74cd4c38a515e2a4de?gravatar=hashed&bgset=any&size=400x400",
+     *                      "groups": {
+     *                          "1"
+     *                      },
+     *                      "name": "jrom",
+     *                      "followers": 185,
+     *                      "followings": 144,
+     *                      "firstname": "Jérôme",
+     *                      "lastname": "Gasperi",
+     *                      "bio": "Working on new features for the next major release of SnapPlanet",
+     *                      "registrationdate": "2016-10-08T22:50:34.187217Z",
+     *                      "topics":"earth,fires,geology,glaciology,volcanism",
+     *                      "followed": false,
+     *                      "followme": false
+     *                  }
      *              }
-     *          )
+     *         )
      *      ),
      *      @OA\Response(
      *          response="401",
@@ -77,7 +99,8 @@ class AuthAPI
         }
 
         return array(
-            'token' => $this->context->createRJWT($this->user->profile['id'])
+            'token' => $this->context->createRJWT($this->user->profile['id']),
+            'profile' => $this->user->profile
         );
         
     }
@@ -151,7 +174,7 @@ class AuthAPI
         
         // A token can be only be revoked by admin or by its owner
         if ($this->user->profile['id'] !== $payload['sub']) {
-            if (!$this->hasGroup(Resto::GROUP_ADMIN_ID)) {
+            if (!$this->user->hasGroup(Resto::GROUP_ADMIN_ID)) {
                 return RestoLogUtil::httpError(403);
             }
         }
@@ -179,11 +202,29 @@ class AuthAPI
      *      ),
      *      @OA\Response(
      *          response="200",
-     *          description="Token validity - VALID or INVALID"
-     *      ),
-     *      @OA\Response(
-     *          response="400",
-     *          description="Bad request"
+     *          description="Return token validity",
+     *          @OA\JsonContent(
+     *              @OA\Property(
+     *                  property="status",
+     *                  type="string",
+     *                  description="Status is *success*"
+     *              ),
+     *              @OA\Property(
+     *                  property="message",
+     *                  type="string",
+     *                  description="Token checked"
+     *              ),
+     *              @OA\Property(
+     *                  property="isValid",
+     *                  type="boolean",
+     *                  description="True if valid - False if not"
+     *              ),
+     *              example={
+     *                  "status": "success",
+     *                  "message": "Token checked",
+     *                  "isValid": False
+     *              }
+     *          )
      *      )
      *  )
      */
@@ -193,10 +234,14 @@ class AuthAPI
         $payload = $this->context->decodeJWT($params['token']);
 
         if (!isset($payload) || (new GeneralFunctions($this->context->dbDriver))->isTokenRevoked($params['token'])) {
-            return RestoLogUtil::success('INVALID');
+            return RestoLogUtil::success('Token checked', array(
+                'isValid' => False
+            ));
         }
         
-        return RestoLogUtil::success('VALID');
+        return RestoLogUtil::success('Token checked', array(
+            'isValid' => True
+        ));
 
     }
 

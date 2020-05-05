@@ -1,6 +1,6 @@
 
 -- [TABLE resto.collection]
-CREATE UNIQUE INDEX IF NOT EXISTS idx_name_collection on resto.collection (normalize(name));
+CREATE UNIQUE INDEX IF NOT EXISTS idx_id_collection on resto.collection (normalize(id));
 CREATE INDEX IF NOT EXISTS idx_lineage_collection ON resto.collection USING GIN (lineage);
 CREATE INDEX IF NOT EXISTS idx_visibility_collection ON resto.collection (visibility);
 CREATE INDEX IF NOT EXISTS idx_created_collection ON resto.collection (created);
@@ -35,13 +35,15 @@ CREATE INDEX IF NOT EXISTS idx_type_facet ON resto.facet (type);
 CREATE INDEX IF NOT EXISTS idx_collection_facet ON resto.facet (normalize(collection));
 
 -- [TABLE resto.feature]
-CREATE INDEX IF NOT EXISTS idx_startdateidx_feature ON resto.feature USING btree (startdate_idx DESC);
-CREATE INDEX IF NOT EXISTS idx_publishedidx_feature ON resto.feature USING btree (published_idx DESC);
+CREATE INDEX IF NOT EXISTS idx_collection_feature ON resto.feature USING btree (collection);
+CREATE INDEX IF NOT EXISTS idx_startdateidx_feature ON resto.feature USING btree (startdate_idx);
+CREATE INDEX IF NOT EXISTS idx_createdidx_feature ON resto.feature USING btree (created_idx);
 CREATE INDEX IF NOT EXISTS idx_owner_feature ON resto.feature USING btree (owner) WHERE owner IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_visibility_feature ON resto.feature USING btree (visibility);
 CREATE INDEX IF NOT EXISTS idx_status_feature ON resto.feature USING btree (status);
 CREATE INDEX IF NOT EXISTS idx_centroid_feature ON resto.feature USING GIST (centroid);
 CREATE INDEX IF NOT EXISTS idx_nhashtags_feature ON resto.feature USING GIN (normalized_hashtags) WHERE normalized_hashtags IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_geom_feature ON resto.feature USING GIST (geom);
 
 -- [TABLE resto.geometry_part]
 CREATE INDEX IF NOT EXISTS idx_id_geometry_part ON resto.geometry_part USING HASH (id);
@@ -52,8 +54,14 @@ CREATE INDEX IF NOT EXISTS idx_userid_log ON resto.log (userid);
 CREATE INDEX IF NOT EXISTS idx_querytime_log ON resto.log (querytime);
 
 -- [TABLE resto.feature_landcover]
+CREATE INDEX IF NOT EXISTS idx_cultivated_m_landcover ON resto.feature_landcover USING btree (cultivated);
+CREATE INDEX IF NOT EXISTS idx_desert_m_landcover ON resto.feature_landcover USING btree (desert);
+CREATE INDEX IF NOT EXISTS idx_flooded_m_landcover ON resto.feature_landcover USING btree (flooded);
 CREATE INDEX IF NOT EXISTS idx_forest_m_landcover ON resto.feature_landcover USING btree (forest);
+CREATE INDEX IF NOT EXISTS idx_herbaceous_m_landcover ON resto.feature_landcover USING btree (herbaceous);
+CREATE INDEX IF NOT EXISTS idx_ice_m_landcover ON resto.feature_landcover USING btree (ice);
 CREATE INDEX IF NOT EXISTS idx_urban_m_landcover ON resto.feature_landcover USING btree (urban);
+CREATE INDEX IF NOT EXISTS idx_water_m_landcover ON resto.feature_landcover USING btree (water);
 
 -- [TABLE resto.feature_optical]
 CREATE INDEX IF NOT EXISTS idx_cloudcover_m_optical ON resto.feature_optical USING btree (cloudcover);

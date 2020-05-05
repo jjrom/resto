@@ -66,6 +66,14 @@ class RestoQueryAnalyzer
         $inputFilters = $params;
         
         /*
+         * [STAC][WFS] datetime is converted into start/end
+         */
+        if (isset($params['resto:datetime'])) {
+            $this->splitDatetime($params['resto:datetime'], $params);
+            unset($params['resto:datetime']);
+        }
+          
+        /*
          * Details analysis
          */
         $details = array(
@@ -146,11 +154,11 @@ class RestoQueryAnalyzer
          * Order is "name" over "searchTerms"
          */
         $locationName = $params['geo:name'] ?? $params['searchTerms'] ?? null;
-    
+       
         /*
          * Search on toponym name
          */
-        if (isset($locationName) && ! isset($params['geo:lon']) && ! isset($params['geo:geometry']) && ! isset($params['geo:box'])) {
+        if ( isset($locationName) && ! isset($params['geo:lon']) && ! isset($params['geo:geometry']) ) {
             
             /*
              * Search on toponym identifier i.e. geo:name starts with geouid
@@ -309,4 +317,30 @@ class RestoQueryAnalyzer
         }
         return $params;
     }
+
+    /**
+     * Convert datetime to start/end filters
+     * 
+     * @param string $datetime
+     * @param array $params
+     */
+    private function splitDatetime($datetime, &$params)
+    {
+       
+        $dates = explode('/', trim($datetime));
+        $model = new DefaultModel();
+
+        if ($dates[0] !== '') {
+            $filterKey = $model->getFilterName('start');
+            $params[$filterKey] = preg_replace('/<.*?>/', '', $dates[0]);
+            $model->validateFilter($filterKey, $params[$filterKey]);
+        }
+        if (isset($dates[1]) && $dates[1] !== '') {
+            $filterKey = $model->getFilterName('end');
+            $params[$filterKey] = preg_replace('/<.*?>/', '', $dates[1]);
+            $model->validateFilter($filterKey, $params[$filterKey]);
+        }
+
+    }
+
 }

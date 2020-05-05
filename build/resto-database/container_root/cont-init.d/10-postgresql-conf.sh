@@ -20,6 +20,12 @@ then
   sed -i "s/\shared_buffers=.*/shared_buffers=${POSTGRES_SHARED_BUFFERS}/" $CONF_POSTGRESQL
 fi
 
+if [[ $POSTGRES_MAX_PARALLEL_WORKERS_PER_GATHER ]]
+then
+  echo "[postgresql] setting max_parallel_workers_per_gather ${POSTGRES_MAX_PARALLEL_WORKERS_PER_GATHER}"
+  sed -i "s/\max_parallel_workers_per_gather=.*/max_parallel_workers_per_gather=${POSTGRES_MAX_PARALLEL_WORKERS_PER_GATHER}/" $CONF_POSTGRESQL
+fi
+
 if [[ $POSTGRES_WORK_MEM ]]
 then
   echo "[postgresql] setting work_mem ${POSTGRES_WORK_MEM}"
