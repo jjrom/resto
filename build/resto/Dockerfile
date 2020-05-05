@@ -1,20 +1,8 @@
-FROM ubuntu:bionic
+FROM jjrom/s6-overlay:latest
 LABEL maintainer="jerome.gasperi@gmail.com"
 
 ENV BUILD_DIR=./build/resto \
-    PHP_VERSION=7.2 \
-    JUST_CONTAINERS_VERSION=1.22.1.0 \
-    ARCH=amd64
-
-# Add wait-for-it
-ADD https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh /bin/wait-for-it.sh
-RUN chmod +x /bin/wait-for-it.sh
-
-# Add S6 supervisor (for graceful stop)
-ADD https://github.com/just-containers/s6-overlay/releases/download/v${JUST_CONTAINERS_VERSION}/s6-overlay-${ARCH}.tar.gz /tmp/
-RUN tar xzf /tmp/s6-overlay-${ARCH}.tar.gz -C /
-ENTRYPOINT ["/init"]
-CMD []
+    PHP_VERSION=7.2
 
 # Add ppa, curl and syslogd
 RUN apt-get update && apt-get install -y software-properties-common curl inetutils-syslogd && \
