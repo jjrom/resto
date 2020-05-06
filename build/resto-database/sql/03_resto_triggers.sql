@@ -1,5 +1,5 @@
 --
--- resto triggers
+-- resto geometry_part split
 --
 
 -- 
@@ -36,4 +36,5 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_geometry_part ON resto.feature;
 CREATE TRIGGER update_geometry_part AFTER INSERT ON resto.feature FOR EACH ROW EXECUTE PROCEDURE resto.store_geometry_part();
