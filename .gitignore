@@ -4,5 +4,6 @@ tmp
 docker-compose.local.yml
 docker-compose-nodb.local.yml
 config-local.env
+errors.log
 .private
 .DS_Store
