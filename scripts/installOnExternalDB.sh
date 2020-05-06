@@ -78,8 +78,6 @@ DATABASE_NAME=$(grep ^DATABASE_NAME= ${ENV_FILE} | awk -F= '{print $2}' | sed 's
 DATABASE_USER_NAME=$(grep ^DATABASE_USER_NAME= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 DATABASE_USER_PASSWORD=$(grep ^DATABASE_USER_PASSWORD= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 
-echo "env file: $ENV_FILE, running in dir: $(dirname $0)"
-
 PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME" -f build/resto-database/sql/01_resto_functions.sql > /dev/null 2>> errors.log
 PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME" -f build/resto-database/sql/01_tamn.sql > /dev/null 2>> errors.log
 PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME" -f build/resto-database/sql/02_resto_model.sql > /dev/null 2> errors.log
