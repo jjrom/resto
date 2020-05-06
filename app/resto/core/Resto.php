@@ -50,30 +50,6 @@
  *    | _pretty            |     boolean    | (For JSON output only) true to return pretty print JSON
  *    
  *
- * Activities code
- * ---------------
- *
- *    actionid = (100) + action_code + 'target_code'
- *    (100) is added for symetry (i.e. 110 is "WAS ADDED")
- *
- *    action_code:
- *
- *       10 => ADD
- *       20 => REMOVE
- *       30 => LIKE
- *       40 => UNLIKE
- *       50 => FOLLOW
- *       60 => UNFOLLOW
- *       70 => SCHEDULE
- *
- *    target_code:
- *
- *       1 => FEATURE
- *       2 => USER
- *       3 => COMMENT
- *       4 => ANNOTATION
- *
- *
  * Returned error
  * --------------
  *
@@ -98,7 +74,7 @@
  *   ),
  *   @OA\Server(
  *       description=API_HOST_DESCRIPTION,
- *       url=API_HOST_URL
+ *       url=PUBLIC_ENDPOINT
  *   )
  *  )
  */
@@ -111,57 +87,60 @@ class Resto
      */
     private $defaultRoutes = array(
 
-        // Hello
-        array('GET', '/', false, 'ServicesAPI::hello'),                                                    // Dummy endpoint
+        // Landing page and conformance (see WFS 3.0)
+        array('GET',    '/', false, 'ServicesAPI::hello'),                                                                                  // Landing page
+        array('GET',    '/api', false, 'ServicesAPI::api'),                                                                                 // API page
+        array('GET',    '/conformance', false, 'ServicesAPI::conformance'),                                                                 // Conformance page
 
         // API for users
-        array('GET', '/users', true, 'UsersAPI::getUsersProfiles'),                                       // List users profiles
-        array('GET', '/users/{userid}', true, 'UsersAPI::getUserProfile'),                                 // Show user profile
-        array('GET', '/users/{userid}/logs', true, 'UsersAPI::getUserLogs'),                               // Show user logs
-        array('GET', '/users/{userid}/rights', true, 'UsersAPI::getUserRights'),                           // Show user rights
-        array('GET', '/users/{userid}/rights/{collectionName}', true, 'UsersAPI::getUserRights'),           // Show user rights for :collectionName
-        array('GET', '/users/{userid}/rights/{collectionName}/{featureId}', true, 'UsersAPI::getUserRights'), // Show user rights for :featureId
-        array('POST', '/users', false, 'UsersAPI::createUser'),                                            // Create user
-        array('PUT', '/users/{userid}', true, 'UsersAPI::updateUserProfile'),                              // Update :userid profile
-
+        array('GET',    '/users', true, 'UsersAPI::getUsersProfiles'),                                                                      // List users profiles
+        array('POST',   '/users', false, 'UsersAPI::createUser'),                                                                           // Create user
+        array('GET',    '/users/{userid}', true, 'UsersAPI::getUserProfile'),                                                               // Show user profile
+        array('PUT',    '/users/{userid}', true, 'UsersAPI::updateUserProfile'),                                                            // Update :userid profile
+        array('GET',    '/users/{userid}/logs', true, 'UsersAPI::getUserLogs'),                                                             // Show user logs
+        array('GET',    '/users/{userid}/rights', true, 'UsersAPI::getUserRights'),                                                         // Show user rights
+        array('GET',    '/users/{userid}/rights/{collectionId}', true, 'UsersAPI::getUserRights'),                                        // Show user rights for :collectionId
+        array('GET',    '/users/{userid}/rights/{collectionId}/{featureId}', true, 'UsersAPI::getUserRights'),                            // Show user rights for :featureId
+        
         // API for collections
-        array('GET', '/collections', false, 'CollectionsAPI::getCollections'),                            // List all collections
-        array('GET', '/collections/{collectionName}', false, 'CollectionsAPI::getCollection'),             // Get :collectionName description
-        array('GET', '/collections/{collectionName}/features', false, 'FeaturesAPI::getFeaturesInCollection'),              // Search features in :collectionName
-        array('POST', '/collections', true, 'CollectionsAPI::createCollection'),                           // Create collection
-        array('POST', '/collections/{collectionName}', true, 'CollectionsAPI::insertFeature'),              // Insert feature
-        array('PUT', '/collections/{collectionName}', true, 'CollectionsAPI::updateCollection'),           // Update :collectionName
-        array('DELETE', '/collections/{collectionName}', true, 'CollectionsAPI::deleteCollection'),           // Delete :collectionName
+        array('GET',    '/collections', false, 'CollectionsAPI::getCollections'),                                                           // List all collections
+        array('POST',   '/collections', true, 'CollectionsAPI::createCollection'),                                                          // Create collection
+        array('GET',    '/collections/{collectionId}', false, 'CollectionsAPI::getCollection'),                                           // Get :collectionId description
+        array('PUT',    '/collections/{collectionId}', true, 'CollectionsAPI::updateCollection'),                                         // Update :collectionId
+        array('DELETE', '/collections/{collectionId}', true, 'CollectionsAPI::deleteCollection'),                                         // Delete :collectionId
 
         // API for features
-        array('GET', '/features', false, 'FeaturesAPI::getFeatures'),                           // Get feature :featureId
-        array('GET', '/features/{featureId}', false, 'FeaturesAPI::getFeature'),                         // Get feature :featureId
-        array('GET', '/features/{featureId}/download', false, 'FeaturesAPI::downloadFeature'),             // Download feature :featureId
-        array('GET', '/features/{featureId}/view', false, 'FeaturesAPI::viewFeature'),                     // View service for feature :featureId (i.e. wms/wmts/etc.)
-        array('PUT', '/features/{featureId}', true, 'FeaturesAPI::updateFeature'),                         // Update feature :featureId
-        array('PUT', '/features/{featureId}/{property}', true, 'FeaturesAPI::updateFeatureProperty'),
-        array('DELETE', '/features/{featureId}', true, 'FeaturesAPI::deleteFeature'),                         // Delete :featureId
-
+        array('GET',    '/collections/{collectionId}/items', false, 'FeaturesAPI::getFeaturesInCollection'),                              // Search features in :collectionId
+        array('POST',   '/collections/{collectionId}/items', array('auth' => true, 'upload' => 'files'), 'CollectionsAPI::insertFeatures'),                                     // Insert feature(s)
+        array('GET',    '/collections/{collectionId}/items/{featureId}', false, 'FeaturesAPI::getFeature'),                               // Get feature :featureId
+        array('PUT',    '/collections/{collectionId}/items/{featureId}', true, 'FeaturesAPI::updateFeature'),                             // Update feature :featureId
+        array('DELETE', '/collections/{collectionId}/items/{featureId}', true, 'FeaturesAPI::deleteFeature'),                             // Delete :featureId
+        array('PUT',    '/collections/{collectionId}/items/{featureId}/{property}', true, 'FeaturesAPI::updateFeatureProperty'),          // Update feature :featureId single property 
+        
         // API for authentication (token based)
-        array('GET', '/auth', true, 'AuthAPI::getToken'),                                                 // Return a valid auth token
-        array('GET', '/auth/check/{token}', false, 'AuthAPI::checkToken'),                                 // Check auth token validity
-        array('DELETE', '/auth/revoke/{token}', true, 'AuthAPI::revokeToken'),                                // Revoke auth token
-        array('PUT', '/auth/activate/{token}', false, 'AuthAPI::activateUser'),                            // Activate owner of the token
+        array('GET',    '/auth', true, 'AuthAPI::getToken'),                                                                                // Return a valid auth token
+        array('GET',    '/auth/check/{token}', false, 'AuthAPI::checkToken'),                                                               // Check auth token validity
+        array('DELETE', '/auth/revoke/{token}', true, 'AuthAPI::revokeToken'),                                                              // Revoke auth token
+        array('PUT',    '/auth/activate/{token}', false, 'AuthAPI::activateUser'),                                                          // Activate owner of the token
 
         // API for services
-        array('GET', '/services/osdd', false, 'ServicesAPI::getOSDD'),                                    // Opensearch service description at collections level
-        array('GET', '/services/osdd/{collectionName}', false, 'ServicesAPI::getOSDDForCollection'),                    // Opensearch service description for products on {collection}
-        array('POST', '/services/activation/send', false, 'ServicesAPI::sendActivationLink'),              // Send activation link
-        array('POST', '/services/password/forgot', false, 'ServicesAPI::forgotPassword'),                  // Send reset password link
-        array('POST', '/services/password/reset', false, 'ServicesAPI::resetPassword'),                    // Reset password
+        array('GET',    '/services/osdd', false, 'ServicesAPI::getOSDD'),                                                                   // Opensearch service description at collections level
+        array('GET',    '/services/osdd/{collectionId}', false, 'ServicesAPI::getOSDDForCollection'),                                     // Opensearch service description for products on {collection}
+        array('POST',   '/services/activation/send', false, 'ServicesAPI::sendActivationLink'),                                             // Send activation link
+        array('POST',   '/services/password/forgot', false, 'ServicesAPI::forgotPassword'),                                                 // Send reset password link
+        array('POST',   '/services/password/reset', false, 'ServicesAPI::resetPassword'),                                                   // Reset password
+
+        // STAC
+        array('GET',    '/search', false, 'STAC::search')                                                                                   // STAC API   
+
     );
+
+    // resto version
+    const VERSION = '6.0.0';
 
     /* ============================================================
      *              NEVER EVER TOUCH THESE VALUES
      * ============================================================*/
-
-    // resto version
-    const VERSION = '5.0.0';
 
     // PostgreSQL max value for integer
     const INT_MAX_VALUE = 2147483647;
@@ -174,9 +153,6 @@ class Resto
 
     // Separator for hashtags identifiers - should be the same as iTag
     const TAG_SEPARATOR = ':';
-
-    // Separator for paths in RestoModel->inputMapping()
-    const MAPPING_PATH_SEPARATOR = '.';
 
     /* ============================================================ */
 
@@ -236,7 +212,7 @@ class Resto
             /*
              * Authenticate user
              */
-            $this->authenticate();
+            $this->user = (new SecurityUtil())->authenticate($this->context);
 
             /*
              * Initialize router
@@ -270,8 +246,7 @@ class Resto
             $this->context->outputFormat = 'json';
 
             /*
-             * Code under 500 is an HTTP code - otherwise it is a resto error code
-             * All resto error codes lead to HTTP 200 error code
+             * All error codes are HTTP error codes
              */
             $responseStatus = $e->getCode();
             $response = json_encode(array('ErrorMessage' => $e->getMessage(), 'ErrorCode' => $e->getCode()), JSON_UNESCAPED_SLASHES);
@@ -360,192 +335,6 @@ class Resto
     }
 
     /**
-     * Authenticate and set user accordingly
-     *
-     * Various authentication method
-     *
-     *   - HTTP user:password (i.e. http authorization mechanism)
-     *   - Single Sign On request with oAuth2
-     *
-     *
-     *  @OA\SecurityScheme(
-     *      type="http",
-     *      in="header",
-     *      name="bearer",
-     *      scheme="bearer",
-     *      bearerFormat="JWT",
-     *      securityScheme="bearerAuth",
-     *      description="Access token in HTTP header as JWT or rJWT (_resto JWT_) - this is the default"
-     *  )
-     *
-     *  @OA\SecurityScheme(
-     *      type="http",
-     *      in="header",
-     *      name="basic",
-     *      scheme="basic",
-     *      securityScheme="basicAuth",
-     *      description="Basic authentication in HTTP header - should be used first to get a valid rJWT token"
-     *  )
-     *
-     *  @OA\SecurityScheme(
-     *      type="apiKey",
-     *      in="query",
-     *      name="_bearer",
-     *      securityScheme="queryAuth",
-     *      description="Access token in query as preseance over token in HTTP header"
-     *  )
-     *
-     */
-    private function authenticate()
-    {
-        $authRequested = false;
-
-        /*
-         * Authentication through token in url
-         */
-        if (isset($this->context->query['_bearer'])) {
-            $authRequested = true;
-            $this->authenticateBearer($this->context->query['_bearer']);
-            unset($this->context->query['_bearer']);
-        }
-        /*
-         * ...or from headers
-         */ else {
-            $authRequested = $this->headersAuthenticate();
-        }
-
-        /*
-         * If we land here - set an unregistered user
-         */
-        if (!isset($this->user)) {
-            $this->user = new RestoUser(null, $this->context, false);
-        }
-
-        /*
-         * Authentication headers were present but authentication leades to unauthentified user => security error
-         */
-        if ($authRequested && !isset($this->user->profile['id'])) {
-            return RestoLogUtil::httpError(401);
-        }
-
-        return true;
-    }
-
-    /**
-     * Get authentication info from http headers
-     */
-    private function headersAuthenticate()
-    {
-        $httpAuth = filter_input(INPUT_SERVER, 'HTTP_AUTHORIZATION', FILTER_SANITIZE_STRING);
-        $rhttpAuth = filter_input(INPUT_SERVER, 'REDIRECT_HTTP_AUTHORIZATION', FILTER_SANITIZE_STRING);
-        $authorization = !empty($httpAuth) ? $httpAuth : (!empty($rhttpAuth) ? $rhttpAuth : null);
-        if (isset($authorization)) {
-            list($method, $token) = explode(' ', $authorization, 2);
-            switch ($method) {
-                case 'Basic':
-                    $this->authenticateBasic($token);
-                    break;
-                case 'Bearer':
-                    $this->authenticateBearer($token);
-                    break;
-                default:
-                    break;
-            }
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Authenticate user from Basic authentication
-     * (i.e. HTTP user:password)
-     *
-     * @param string $token
-     */
-    private function authenticateBasic($token)
-    {
-        list($username, $password) = explode(':', base64_decode($token), 2);
-        if (!empty($username) && !empty($password) && (bool)preg_match('//u', $username) && (bool)preg_match('//u', $password) && strpos($username, '\'') === false) {
-            $this->user = new RestoUser(array(
-                'email' => strtolower($username),
-                'password' => $password
-            ), $this->context, true);
-        }
-    }
-
-    /**
-     * Authenticate user from Bearer authentication
-     * (i.e. Single Sign On request with oAuth2)
-     *
-     * Assume either a JSON Web Token encoded by resto or a token generated by an SSO issuer (e.g. google)
-     *
-     * @param string $token
-     */
-    private function authenticateBearer($token)
-    {
-        try {
-
-            /*
-             * If issuer_id is specified in the request then assumes a third party token.
-             * In this case, transform this third party token into a resto token
-             */
-            if (isset($this->context->query['issuerId']) && isset($this->context->addons['Auth'])) {
-                $auth = new Auth($this->context, null);
-                $token = $auth->getProfileToken($this->context->query['issuerId'], $token);
-            }
-
-            /*
-             * Get user from JWT payload if valid
-             */
-            $userid = $this->getIdFromBearer($token);
-
-            if (isset($userid)) {
-                $this->user = new RestoUser(array('id' => $userid), $this->context, false);
-                $this->user->token = $token;
-            }
-        } catch (Exception $ex) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Check if token is not revoked
-     * [PERFO WISE] only do this for long time token i.e. > 7 days
-     *
-     * @param array $payloadObject JWT payload
-     */
-    private function getIdFromBearer($token)
-    {
-        $payloadObject = $this->context->decodeJWT($token);
-
-        // Unvalid token => no auth
-        if (!isset($payloadObject) || !isset($payloadObject['sub'])) {
-            return null;
-        }
-
-        // Missing times in token => no auth
-        if (!isset($payloadObject['iat']) || !isset($payloadObject['exp'])) {
-            return null;
-        }
-
-        // Valid token but too old => no auth
-        if ($payloadObject['exp'] - $payloadObject['iat'] <= 0) {
-            return null;
-        }
-
-        // Token is valid but old - check revokation
-        if ($payloadObject['exp'] - $payloadObject['iat'] > 604800) {
-            if ((new GeneralFunctions($this->context->dbDriver))->isTokenRevoked($token)) {
-                return null;
-            }
-        }
-
-        return $payloadObject['sub'];
-    }
-
-    /**
      * Call one of the output method from $object (i.e. toJSON(), toATOM(), etc.)
      *
      * @param object $object
@@ -574,7 +363,8 @@ class Resto
 
         /*
          * Case 2 - Object is an object
-         */ elseif (is_object($object)) {
+         */
+        elseif (is_object($object)) {
             $methodName = 'to' . strtoupper($this->context->outputFormat);
             if (method_exists(get_class($object), $methodName)) {
                 return $this->context->outputFormat === 'json' ? $object->$methodName($pretty) : $object->$methodName();
@@ -582,6 +372,8 @@ class Resto
             return RestoLogUtil::httpError(404);
         }
 
+        return $object;
+        
         /*
          * Unknown stuff
          */
@@ -599,7 +391,7 @@ class Resto
          */
         $httpOrigin = filter_input(INPUT_SERVER, 'HTTP_ORIGIN', FILTER_SANITIZE_STRING);
         if (isset($httpOrigin) && $this->corsIsAllowed($httpOrigin)) {
-            header('Access-Control-Allow-Origin: ' . $httpOrigin);
+            header('Access-Control-Allow-Origin: *');
             header('Access-Control-Allow-Credentials: true');
             header('Access-Control-Max-Age: 3600');
         }

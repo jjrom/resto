@@ -36,6 +36,9 @@ class RestoContext
         // API endpoint
         'baseUrl' => 'http://127.0.0.1:5252',
 
+        // Data related "planet"
+        'planet' => 'earth',
+
         // JSON Web Token duration (in seconds)
         'tokenDuration' => 3600,
 
@@ -258,7 +261,7 @@ class RestoContext
                 $token = $this->JWTDefaultHeader . $token;
             }
             
-            $payload = json_decode(json_encode((array) JWT::decode($token, $this->core['passphrase'], array('HS256'))), true);
+            $payload = json_decode(json_encode((array) JWT::decode($token, $this->core['passphrase'], array('HS256')), JSON_UNESCAPED_SLASHES), true);
 
             // Check if this token has expired
             if (isset($payload['exp']) && time() >= $payload['exp']) {
@@ -390,7 +393,7 @@ class RestoContext
     private function setOutputFormat()
     {
         $this->outputFormat = $this->getPathSuffix();
-
+        
         /*
          * Extract outputFormat from HTTP_ACCEPT
          */

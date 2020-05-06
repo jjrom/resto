@@ -39,12 +39,7 @@ class RestoRouter
     /*
      * Registered routes sorted by method
      */
-    private $routes = array(
-        'GET' => array(),
-        'POST' => array(),
-        'PUT' => array(),
-        'DELETE' => array()
-    );
+    private $routes = array();
 
     /**
      * Constructor
@@ -59,18 +54,21 @@ class RestoRouter
      * Add a route to routes list
      *
      * @param array $route // Mandatory format is (HTTP Verb, path, need authentication ?, Class name::Method name)
-     *                     // e.g. ('GET', '/collections/{collectionName}', false, 'RestoRouteGet::getFeatures')
+     *                     // e.g. ('GET', '/collections/{collectionId}', false, 'RestoRouteGet::getFeatures')
      */
     public function addRoute($route)
     {
         if (!is_array($route) || count($route) !== 4) {
             return false;
         }
-        if (isset($this->routes[$route[0]])) {
-            $this->routes[$route[0]][] = array($route[1], $route[2], $route[3]);
-            return true;
+        if (!isset($this->routes[$route[1]])) {
+            $this->routes[$route[1]] = array();
         }
-        return false;
+        
+        $this->routes[$route[1]][$route[0]] = array($route[2], $route[3]);
+        
+        return true;
+        
     }
 
     /**
@@ -94,6 +92,17 @@ class RestoRouter
      *
      * Route structure is :
      *  array('path', 'isAuthenticated', 'className::methodName')
+     * 
+     * Some path examples:
+     * 
+     *      /collections/{collectionId}, myFunction::myClass
+     * 
+     * Will call function myFunction($params) from class myClass with $params = array('collectionId' => // The value of collectionId in path)
+     * 
+     *      /anyroute/isvalidafter/*, myFunction::myClass
+     * 
+     * Will call function function myFunction($params) from class myClass with $params = array('segments' => array('a', 'b', 'c', etc.))
+     * Where (a, b, c, etc.) are the values of everything after '/anyroute/isvalidafter/' splitted by '/' character
      *
      * @param string $method // One of GET, POST, PUT or DELETE
      * @param string $path // url to process
@@ -102,7 +111,7 @@ class RestoRouter
     public function process($method, $path, $query)
     {
         $segments = explode('/', $path);
-        $workingRoutes = $this->getWorkingRoutes($method, count($segments));
+        $workingRoutes = $this->getWorkingRoutes(count($segments));
         $nbOfRoutes = count($workingRoutes);
         $workIndex = 0;
         $params = array();
@@ -149,7 +158,13 @@ class RestoRouter
             $workIndex++;
         }
 
-        return isset($validRoute) ? $this->instantiateRoute($validRoute, $method, array_merge($query, $params)) : RestoLogUtil::httpError(404);
+        // No route found
+        if ( !isset($validRoute) ) {
+            RestoLogUtil::httpError(404);
+        }
+
+        return isset($validRoute[1][$method]) ? $this->instantiateRoute($validRoute[1][$method], $method, array_merge($query, $params)) : RestoLogUtil::httpError(405);
+
     }
 
     /**
@@ -163,28 +178,52 @@ class RestoRouter
     {
 
         /*
+         * In resto 5.x first element of route is an "authenticationIsRequired" boolean
+         * In restto >=6.x first element of route can also be an array
+         */
+        if (is_bool($validRoute[0])) {
+            $validRoute[0] = array(
+                'auth' => $validRoute[0]
+            );
+        }
+
+        /*
          * Authentication is required
          */
-        if ($validRoute[1] && !isset($this->user->profile['id'])) {
+        if (isset($validRoute[0]['auth']) && $validRoute[0]['auth'] && !isset($this->user->profile['id'])) {
             return RestoLogUtil::httpError(401);
         }
 
         /*
          * Instantiates route class and calls method
          */
-        list($className, $methodName) = explode('::', $validRoute[2]);
+        list($className, $methodName) = explode('::', $validRoute[1]);
 
         /*
          * Read input data
          */
         $data = null;
         if ($method === 'POST' || $method === 'PUT') {
-            $data = count($_FILES) === 0 ? $this->readStream() : $this->readFile();
+            
+            /*
+             * File upload is allowed - upload files and populate data with file paths...
+             * In this case, the target $className->$methodName is responsible of the uploaded files
+             */
+            if (isset($validRoute[0]['upload']) && isset($_FILES[$validRoute[0]['upload']]) && is_array($_FILES[$validRoute[0]['upload']])) {
+                $data = $this->uploadFiles($_FILES[$validRoute[0]['upload']]);
+            }
+            /*
+             * ...or read the input body content and directly populate data with it
+             */
+            else {
+                $data = $this->readStream();    
+            }
+
         }
         
         return (new $className($this->context, $this->user))->$methodName(
             $params,
-            $data ?? null
+            $data
         );
 
     }
@@ -194,17 +233,16 @@ class RestoRouter
      *  - routes with exactly the same number of segments as input path
      *  - routes with last segment equal to '*'
      *
-     * @param string $method HTTP method
      * @param integer $length Number of segments in input path
      */
-    private function getWorkingRoutes($method, $length)
+    private function getWorkingRoutes($length)
     {
         $workingRoutes = array();
-        for ($j = 0, $jj = count($this->routes[$method]); $j < $jj; $j++) {
-            $segments = explode('/', $this->routes[$method][$j][0]);
+        foreach ($this->routes as $key => $value) {
+            $segments = explode('/', $key);
             $count = count($segments);
             if ($count === $length || ($segments[$count - 1] === '*' && $count < $length)) {
-                $workingRoutes[] = $this->routes[$method][$j];
+                $workingRoutes[] = array($key, $value);
             }
         }
 
@@ -233,38 +271,51 @@ class RestoRouter
     }
 
     /**
-     * Read file content attached in POST request
+     * Upload files locally and return array of file paths
      *
+     * @param array $files
      * @return array
      * @throws Exception
      */
-    private function readFile()
+    private function uploadFiles($files)
     {
-        if (!isset($_FILES['file']) || !is_array($_FILES['file'])) {
-            RestoLogUtil::httpError(500, 'Cannot upload file(s)');
-        }
+        
+        $filePaths = [];
+
+        // All files will be uploaded within a dedicated directory with a random name
+        $uploadDirectory = $this->uploadDirectory . DIRECTORY_SEPARATOR . (substr(sha1(mt_rand(0, 100000) . microtime()), 0, 15));
+
         try {
-            $fileToUpload = is_array($_FILES['file']['tmp_name']) ? $_FILES['file']['tmp_name'][0] : $_FILES['file']['tmp_name'];
-            if (is_uploaded_file($fileToUpload)) {
-                if (!is_dir($this->uploadDirectory)) {
-                    mkdir($this->uploadDirectory);
+            
+            for ($i = count($files['tmp_name']); $i--;) {
+
+                $fileToUpload = $files['tmp_name'][$i];
+
+                if (is_uploaded_file($fileToUpload)) {
+
+                    if (!is_dir($uploadDirectory)) {
+                        mkdir($uploadDirectory, 0777, true);
+                    }
+
+                    $fileName = $uploadDirectory . DIRECTORY_SEPARATOR . $files['name'][$i];
+                    move_uploaded_file($fileToUpload, $fileName);
+
+                    $filePaths[] = $fileName;
+
                 }
-                $fileName = $this->uploadDirectory . DIRECTORY_SEPARATOR . (substr(sha1(mt_rand(0, 100000) . microtime()), 0, 15));
-                move_uploaded_file($fileToUpload, $fileName);
-                $lines = file($fileName);
-                // Delete after read
-                unlink($fileName);
+
             }
+            
+
         } catch (Exception $e) {
             RestoLogUtil::httpError(500, 'Cannot upload file(s)');
         }
 
-        /*
-         * Assume that input data format is JSON by default
-         */
-        $json = json_decode(join('', $lines), true);
+        return array(
+            'uploadDir' => $uploadDirectory,
+            'files' => $filePaths
+        );
 
-        return $json === null ? $lines : $json;
     }
 
 }

@@ -14,6 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+ENV_FILE=./config.env
 PROJECT_NAME=resto
 
 function showUsage {
@@ -22,6 +23,7 @@ function showUsage {
     echo ""
     echo "   Usage $0 <Project name>"
     echo ""
+    echo "      -e | --envfile Environnement file (default is ${GREEN}config.env${NC})"
     echo "      -h | --help show this help"
     echo ""
     echo "      !!! This script requires docker and docker-compose !!!"
@@ -32,6 +34,16 @@ function showUsage {
 while (( "$#" ));
 do
 	case "$1" in
+        -e|--envfile)
+            if [[ "$2" == "" || ${2:0:1} == "-" ]]; then
+                showUsage
+                echo -e "${RED}[ERROR] Missing config file name${NC}"
+                echo -e ""
+                exit 1
+            fi
+            ENV_FILE="$2"
+            shift 2 # past argument
+            ;;
         -h|--help)
             showUsage
             shift # past argument
@@ -61,12 +73,30 @@ if [ "${PROJECT_NAME}" == "" ]; then
     exit 0
 fi
 
+#
+# The environement file is mandatory
+# It contains all configuration to build and run resto images
+#
+if [[ ! -f ${ENV_FILE} ]]; then
+    showUsage
+    echo -e "${RED}[ERROR] The \"${ENV_FILE}\" file does not exist!${NC}"
+    echo ""
+    exit 1
+fi
+
 echo "[INFO] Stopping ${GREEN}${PROJECT_NAME}${NC} docker instance"
-docker-compose --project-name ${PROJECT_NAME} down
+
+# manages list of containers to bring down
+# TODO: add ENV_FILE as a script parameter, like deploy ?
+DATABASE_IS_EXTERNAL=$(grep ^DATABASE_IS_EXTERNAL= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+
+if [[ "${DATABASE_IS_EXTERNAL}" == "yes" ]]; then
+  COMPOSE_FILE="docker-compose.yml"
+else
+  COMPOSE_FILE="docker-compose-restodb.yml:docker-compose.yml"
+fi
+
+COMPOSE_FILE=${COMPOSE_FILE} docker-compose --project-name ${PROJECT_NAME} down
 
 echo "[INFO] Done !"
 echo ""
-    
-
-
-

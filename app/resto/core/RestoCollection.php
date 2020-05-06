@@ -24,47 +24,501 @@
  *  )
  *
  *  @OA\Schema(
- *      schema="OutputCollection",
- *      required={"name", "visibility", "owner", "model", "licenseId", "osDescription", "statistics"},
+ *      schema="InputCollection",
+ *      required={"id", "model", "osDescription"},
  *      @OA\Property(
- *          property="name",
+ *          property="id",
  *          type="string",
- *          description="Unique collection name. It is used as the collection identifier"
+ *          description="Collection identifier. It must be an unique alphanumeric string containing only [a-zA-Z0-9\-_]."
+ *      ),
+ *      @OA\Property(
+ *          property="version",
+ *          type="string",
+ *          description="Version of the collection."
  *      ),
  *      @OA\Property(
  *          property="visibility",
- *          type="enum",
- *          enum={"public", "<group id>"},
- *          description="Visibility of this collection. *public* collections are visible to all users. Non public collections are visible to owner and member of <group id> only"
- *      ),
- *      @OA\Property(
- *          property="owner",
- *          type="string",
- *          description="Collection owner (i.e. user identifier)"
+ *          description="Visibility of this collection. Collections with visibility 1 are visible to all users."
  *      ),
  *      @OA\Property(
  *          property="model",
  *          type="string",
- *          description="[For developper] Name of the collection model corresponding to the class under $SRC/include/resto/Models without *Model* suffix."
+ *          description="[For developper] Name of the collection model class under $SRC/include/resto/Models."
  *      ),
  *      @OA\Property(
  *          property="licenseId",
- *          type="enum",
- *          enum={"unlicensed","unlicensedwithregistration", "<license id>"},
- *          description="License for this collection. *unlicensed* collection are available for all users. *unlicensedwithregistration* collection are available for all users that are registered an authenticated"
+ *          type="string",
+ *          description="License for this collection as a SPDX License identifier. Alternatively, use proprietary if the license is not on the SPDX license list or various if multiple licenses apply. In these two cases links to the license texts SHOULD be added, see the license link relation type."
+ *      ),
+ *      @OA\Property(
+ *          property="rights",
+ *          type="object",
+ *          description="Default collection rights settings",
+ *          @OA\Property(
+ *              property="download",
+ *              type="enum",
+ *              enum={0,1},
+ *              description="Feature download rights (1 can be downloaded; 0 cannot be downloaded)"
+ *          ),
+ *          @OA\Property(
+ *              property="visualize",
+ *              type="integer",
+ *              description="Features visualization rights (1 can be visualized; 0 cannot be visualized)"
+ *          )
  *      ),
  *      @OA\Property(
  *          property="osDescription",
  *          type="object",
- *          ref="#/components/schemas/OpenSearchDescription"
+ *          required={"en"},
+ *          @OA\Property(
+ *              property="en",
+ *              description="OpenSearch description in English",
+ *              ref="#/components/schemas/OpenSearchDescription"
+ *          ),
+ *          @OA\Property(
+ *              property="fr",
+ *              description="OpenSearch description in French",
+ *              ref="#/components/schemas/OpenSearchDescription"
+ *          )
  *      ),
  *      @OA\Property(
- *          property="statistics",
+ *          property="links",
+ *          type="array",
+ *          @OA\Items(ref="#/components/schemas/Links")
+ *      ),
+ *      @OA\Property(
+ *          property="providers",
+ *          type="array",
+ *          description="A list of providers, which may include all organizations capturing or processing the data or the hosting provider. Providers should be listed in chronological order with the most recent provider being the last element of the list",
+ *          @OA\Items(ref="#/components/schemas/Provider")
+ *      ),
+ *      @OA\Property(
+ *          property="properties",
  *          type="object",
- *          ref="#/components/schemas/Statistics"
+ *          @OA\JsonContent()
  *      ),
  *      example={
- *          "TBD":"TBD"
+ *          "id": "S2",
+ *          "version": "1.0",
+ *          "model": "OpticalModel",
+ *          "rights": {
+ *              "download": 1,
+ *              "visualize": 1
+ *          },
+ *          "visibility": 1,
+ *          "licenseId": "proprietary",
+ *          "osDescription": {
+ *              "en": {
+ *                  "ShortName": "Sentinel-2",
+ *                  "LongName": "Level 1C Sentinel-2 images",
+ *                  "Description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites",
+ *                  "Tags": "copernicus esa eu msi radiance sentinel sentinel2",
+ *                  "Developer": "Jérôme Gasperi",
+ *                  "Contact": "jrom@snapplanet.io",
+ *                  "Query": "Toulouse",
+ *                  "Attribution": "European Union/ESA/Copernicus"
+ *              },
+ *              "fr": {
+ *                  "ShortName": "Sentinel-2",
+ *                  "LongName": "Images Sentinel-2 Niveau 1C",
+ *                  "Description": "La mission SENTINEL-2 est constituée de deux satellites d'imagerie optique équipés d’un imageur multispectral (MSI) en 13 bandes spectrales avec des résolutions de 10, 20 et 60 mètres et d'une fauchée unique de 290 km de large. La capacité d'observation des deux satellites permet de surveiller l'intégralité des terres émergées du globe tous les 5 jours",
+ *                  "Tags": "copernicus esa eu msi radiance sentinel sentinel2",
+ *                  "Developer": "Jérôme Gasperi",
+ *                  "Contact": "jrom@snapplanet.io",
+ *                  "Query": "Toulouse",
+ *                  "Attribution": "European Union/ESA/Copernicus"
+ *              }
+ *          },
+ *          "providers": {
+ *              {
+ *                  "name": "European Union/ESA/Copernicus",
+ *                  "roles": {
+ *                      "producer",
+ *                      "licensor"
+ *                  },
+ *                  "url": "https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi"
+ *              }
+ *          },
+ *          "links": {
+ *              {
+ *                  "rel": "license",
+ *                  "href": "https://scihub.copernicus.eu/twiki/pub/SciHubWebPortal/TermsConditions/Sentinel_Data_Terms_and_Conditions.pdf",
+ *                  "title": "Legal notice on the use of Copernicus Sentinel Data and Service Information"
+ *              }
+ *          },
+ *          "properties": {
+ *              "eo:bands": {
+ *                  {
+ *                      "name": "B1",
+ *                      "common_name": "coastal",
+ *                      "center_wavelength": 4.439,
+ *                      "gsd": 60
+ *                  },
+ *                  {
+ *                      "name": "B2",
+ *                      "common_name": "blue",
+ *                      "center_wavelength": 4.966,
+ *                      "gsd": 10
+ *                  },
+ *                  {
+ *                      "name": "B3",
+ *                      "common_name": "green",
+ *                      "center_wavelength": 5.6,
+ *                      "gsd": 10
+ *                  },
+ *                  {
+ *                      "name": "B4",
+ *                      "common_name": "red",
+ *                      "center_wavelength": 6.645,
+ *                      "gsd": 10
+ *                  },
+ *                  {
+ *                      "name": "B5",
+ *                      "center_wavelength": 7.039,
+ *                      "gsd": 20
+ *                  },
+ *                  {
+ *                      "name": "B6",
+ *                      "center_wavelength": 7.402,
+ *                      "gsd": 20
+ *                  },
+ *                  {
+ *                      "name": "B7",
+ *                      "center_wavelength": 7.825,
+ *                      "gsd": 20
+ *                  },
+ *                  {
+ *                      "name": "B8",
+ *                      "common_name": "nir",
+ *                      "center_wavelength": 8.351,
+ *                      "gsd": 10
+ *                  },
+ *                  {
+ *                      "name": "B8A",
+ *                      "center_wavelength": 8.648,
+ *                      "gsd": 20
+ *                  },
+ *                  {
+ *                      "name": "B9",
+ *                      "center_wavelength": 9.45,
+ *                      "gsd": 60
+ *                  },
+ *                  {
+ *                      "name": "B10",
+ *                      "center_wavelength": 1.3735,
+ *                      "gsd": 60
+ *                  },
+ *                  {
+ *                      "name": "B11",
+ *                      "common_name": "swir16",
+ *                      "center_wavelength": 1.6137,
+ *                      "gsd": 20
+ *                  },
+ *                  {
+ *                      "name": "B12",
+ *                      "common_name": "swir22",
+ *                      "center_wavelength": 2.2024,
+ *                      "gsd": 20
+ *                  }
+ *              }   
+ *          }
+ *      }
+ *  )
+ * 
+ *  @OA\Schema(
+ *      schema="OutputCollection",
+ *      required={"id", "title", "description", "license", "extent", "links"},
+ *      @OA\Property(
+ *          property="id",
+ *          type="string",
+ *          description="Collection identifier. It must be an unique alphanumeric string containing only [a-zA-Z0-9\-_]."
+ *      ),
+ *      @OA\Property(
+ *          property="title",
+ *          type="string",
+ *          description="A short descriptive one-line title for the collection."
+ *      ),
+ *      @OA\Property(
+ *          property="description",
+ *          type="string",
+ *          description="Detailed multi-line description to fully explain the collection. CommonMark 0.28 syntax MAY be used for rich text representation."
+ *      ),
+ *      @OA\Property(
+ *          property="keywords",
+ *          type="array",
+ *          description="List of keywords describing the collection.",
+ *          @OA\Items(
+ *              type="string",
+ *          )
+ *      ),
+ *      @OA\Property(
+ *          property="license",
+ *          type="enum",
+ *          enum={"proprietary", "various", "<license id>"},
+ *          description="License for this collection as a SPDX License identifier or expression. Alternatively, use proprietary if the license is not on the SPDX license list or various if multiple licenses apply. In these two cases links to the license texts SHOULD be added, see the license link relation type."
+ *      ),
+ *      @OA\Property(
+ *          property="extent",
+ *          type="object",
+ *          ref="#/components/schemas/Extent"
+ *      ),
+ *      @OA\Property(
+ *          property="links",
+ *          type="array",
+ *          @OA\Items(ref="#/components/schemas/Links")
+ *      ),
+ *      @OA\Property(
+ *          property="resto:info",
+ *          type="object",
+ *          description="resto additional information",
+ *          @OA\JsonContent(
+ *              @OA\Property(
+ *                  property="model",
+ *                  type="string",
+ *                  description="[For developper] Name of the collection model corresponding to the class under $SRC/include/resto/Models without *Model* suffix."
+ *              ),
+ *              @OA\Property(
+ *                  property="lineage",
+ *                  type="array",
+ *                  description="[For developper] Model lineage for this collection. Sort from general to specific.",
+ *                  @OA\Items(
+ *                      type="string",
+ *                  )
+ *              ),
+ *              @OA\Property(
+ *                  property="osDescription",
+ *                  type="object",
+ *                  ref="#/components/schemas/OpenSearchDescription"
+ *              ),
+ *              @OA\Property(
+ *                  property="owner",
+ *                  type="string",
+ *                  description="Collection owner (i.e. user identifier)"
+ *              )
+ *          )
+ *      ),
+ *      @OA\Property(
+ *          property="providers",
+ *          type="array",
+ *          description="A list of providers, which may include all organizations capturing or processing the data or the hosting provider. Providers should be listed in chronological order with the most recent provider being the last element of the list",
+ *          @OA\Items(ref="#/components/schemas/Provider")
+ *      ),
+ *      @OA\Property(
+ *          property="properties",
+ *          type="object",
+ *          @OA\JsonContent()
+ *      ),
+ *      @OA\Property(
+ *          property="summaries",
+ *          type="object",
+ *          @OA\JsonContent(
+ *              @OA\Property(
+ *                  property="datetime",
+ *                  type="enum",
+ *                  enum={"public", "<group id>"},
+ *                  description="Visibility of this collection. *public* collections are visible to all users. Non public collections are visible to owner and member of <group id> only"
+ *              ),
+ *              @OA\Property(
+ *                  property="resto:stats",
+ *                  type="object",
+ *                  ref="#/components/schemas/Statistics"
+ *              )
+ *          )
+ *      ),
+ *      @OA\Property(
+ *          property="stac_version",
+ *          type="string",
+ *          description="[EXTENSION][STAC] The STAC version the Collection implements"
+ *      ),
+ *      @OA\Property(
+ *          property="stac_extensions",
+ *          type="array",
+ *          description="[EXTENSION][STAC] A list of extensions the Collection implements.",
+ *          @OA\Items(
+ *              type="string"
+ *          )
+ *      ),
+ *      example={
+ *          "id": "S2",
+ *          "title": "Sentinel-2",
+ *          "description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites",
+ *          "keywords": {
+ *              "copernicus",
+ *              "esa",
+ *              "eu",
+ *              "msi",
+ *              "radiance",
+ *              "sentinel",
+ *              "sentinel2"
+ *          },
+ *          "license": "proprietary",
+ *          "extent": {
+ *              "spatial": {
+ *                  "bbox": {
+ *                      {
+ *                          -48.6198530870596,
+ *                          74.6749788966259,
+ *                          -44.6464244356188,
+ *                          75.6843970710939
+ *                      }
+ *                  },
+ *                  "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
+ *              },
+ *              "temporal": {
+ *                  "interval": {
+ *                      {
+ *                          "2019-06-11T16:11:41.808000Z",
+ *                          "2019-06-11T16:11:41.808000Z"
+ *                      }
+ *                  },
+ *                  "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"
+ *              }
+ *          },
+ *          "links": {
+ *              {
+ *                  "rel": "self",
+ *                  "type": "application/json",
+ *                  "href": "http://127.0.0.1:5252/collections/S2.json?&_pretty=1"
+ *              },
+ *              {
+ *                  "rel": "root",
+ *                  "type": "application/json",
+ *                  "href": "http://127.0.0.1:5252"
+ *              },
+ *              {
+ *                  "rel": "license",
+ *                  "href": "https://scihub.copernicus.eu/twiki/pub/SciHubWebPortal/TermsConditions/Sentinel_Data_Terms_and_Conditions.pdf",
+ *                  "title": "Legal notice on the use of Copernicus Sentinel Data and Service Information"
+ *              }
+ *          },
+ *          "resto:info": {
+ *              "model": "OpticalModel",
+ *              "lineage": {
+ *                  "DefaultModel",
+ *                  "LandCoverModel",
+ *                  "SatelliteModel",
+ *                  "OpticalModel"
+ *              },
+ *              "osDescription": {
+ *                  "ShortName": "Sentinel-2",
+ *                  "LongName": "Level 1C Sentinel-2 images",
+ *                  "Description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites",
+ *                  "Tags": "copernicus esa eu msi radiance sentinel sentinel2",
+ *                  "Developer": "J\u00e9r\u00f4me Gasperi",
+ *                  "Contact": "jrom@snapplanet.io",
+ *                  "Query": "Toulouse",
+ *                  "Attribution": "European Union/ESA/Copernicus"
+ *              },
+ *              "owner": "203883411255198721"
+ *          },
+ *          "providers": {
+ *              {
+ *                  "name": "European Union/ESA/Copernicus",
+ *                  "roles": {
+ *                      "producer",
+ *                      "licensor"
+ *                  },
+ *                  "url": "https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi"
+ *              }
+ *          },
+ *          "properties": {
+ *              "eo:bands": {
+ *                  {
+ *                      "name": "B1",
+ *                      "common_name": "coastal",
+ *                      "center_wavelength": 4.439,
+ *                      "gsd": 60
+ *                  },
+ *                  {
+ *                      "name": "B2",
+ *                      "common_name": "blue",
+ *                      "center_wavelength": 4.966,
+ *                      "gsd": 10
+ *                  },
+ *                  {
+ *                      "name": "B3",
+ *                      "common_name": "green",
+ *                      "center_wavelength": 5.6,
+ *                      "gsd": 10
+ *                  },
+ *                  {
+ *                      "name": "B4",
+ *                      "common_name": "red",
+ *                      "center_wavelength": 6.645,
+ *                      "gsd": 10
+ *                  },
+ *                  {
+ *                      "name": "B5",
+ *                      "center_wavelength": 7.039,
+ *                      "gsd": 20
+ *                  },
+ *                  {
+ *                      "name": "B6",
+ *                      "center_wavelength": 7.402,
+ *                      "gsd": 20
+ *                  },
+ *                  {
+ *                      "name": "B7",
+ *                      "center_wavelength": 7.825,
+ *                      "gsd": 20
+ *                  },
+ *                  {
+ *                      "name": "B8",
+ *                      "common_name": "nir",
+ *                      "center_wavelength": 8.351,
+ *                      "gsd": 10
+ *                  },
+ *                  {
+ *                      "name": "B8A",
+ *                      "center_wavelength": 8.648,
+ *                      "gsd": 20
+ *                  },
+ *                  {
+ *                      "name": "B9",
+ *                      "center_wavelength": 9.45,
+ *                      "gsd": 60
+ *                  },
+ *                  {
+ *                      "name": "B10",
+ *                      "center_wavelength": 1.3735,
+ *                      "gsd": 60
+ *                  },
+ *                  {
+ *                      "name": "B11",
+ *                      "common_name": "swir16",
+ *                      "center_wavelength": 1.6137,
+ *                      "gsd": 20
+ *                  },
+ *                  {
+ *                      "name": "B12",
+ *                      "common_name": "swir22",
+ *                      "center_wavelength": 2.2024,
+ *                      "gsd": 20
+ *                  }
+ *              }
+ *          },
+ *          "summaries": {
+ *              "datetime": {
+ *                  "min": "2019-06-11T16:11:41.808000Z",
+ *                  "max": "2019-06-11T16:11:41.808000Z"
+ *              },
+ *              "eo:instrument": {
+ *                  "MSI"
+ *              },
+ *              "eo:platform": {
+ *                  "S2A"
+ *              },
+ *              "processingLevel": {
+ *                  "LEVEL1C"
+ *              },
+ *              "productType": {
+ *                  "REFLECTANCE"
+ *              }
+ *          },
+ *          "stac_version": "0.8.0",
+ *          "stac_extensions": {
+ *              "eo"
+ *          }
  *      }
  *  )
  */
@@ -72,19 +526,14 @@ class RestoCollection
 {
 
     /*
-     * Collection name must be unique
+     * Collection identifier must be unique
      */
-    public $name =  null;
+    public $id =  null;
 
     /*
      * Data model for this collection
      */
     public $model = null;
-
-    /*
-     * Properties mapping
-     */
-    public $propertiesMapping = array();
 
     /*
      * Context reference
@@ -161,7 +610,7 @@ class RestoCollection
     /*
      * Collection licenseId
      */
-    public $licenseId = 'unlicensed';
+    public $licenseId = 'proprietary';
 
     /**
      * Statistics
@@ -240,29 +689,66 @@ class RestoCollection
      * )
      */
     private $statistics = null;
-
-    /*
-     * Collection rights - set during creation or during update
+    
+    /**
+     * @OA\Schema(
+     *      schema="Provider",
+     *      description="A provider is any of the organizations that captured or processed the content of the collection and therefore influenced the data offered by this collection",
+     *      required={"name"},
+     *      @OA\Property(
+     *          property="name",
+     *          type="string",
+     *          description="The name of the organization or the individual"
+     *      ),
+     *      @OA\Property(
+     *          property="description",
+     *          type="string",
+     *          description="Multi-line description to add further provider information such as processing details for processors and producers, hosting details for hosts or basic contact information. CommonMark 0.28 syntax MAY be used for rich text representation"
+     *      ),
+     *      @OA\Property(
+     *          property="roles",
+     *          type="array",
+     *          description="Roles of the provider.",
+     *          @OA\Items(
+     *              type="enum",
+     *              enum={"licensor", "producer", "processor", "host"},
+     *          )
+     *      ),
+     *      @OA\Property(
+     *          property="url",
+     *          type="string",
+     *          description="Homepage on which the provider describes the dataset and publishes contact information."
+     *      ),
+     *      example={
+     *          {
+     *              "name": "European Union/ESA/Copernicus",
+     *              "roles": {
+     *                  "producer",
+     *                  "licensor"
+     *              },
+     *              "url": "https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi"
+     *          }
+     *      }
+     *  )
      */
-    private $rights = array();
 
     /**
      * Constructor
      *
-     * @param array $name : collection name
+     * @param array $id : collection id
      * @param RestoContext $context : RESTo context
      * @param RestoUser $user : RESTo user
      */
-    public function __construct($name, $context, $user)
+    public function __construct($id, $context, $user)
     {
-        if (isset($name)) {
+        if (isset($id)) {
 
-            // Collection name should be alphanumeric based only except for reserved '*' collection
-            if (preg_match("/^[a-zA-Z0-9]+$/", $name) !== 1 || ctype_digit(substr($name, 0, 1))) {
-                RestoLogUtil::httpError(400, 'Collection name must be an alphanumeric string [a-zA-Z0-9] and not starting with a digit');
+            // Collection identifier is an alphanumeric string without special characters
+            if (preg_match("/^[a-zA-Z0-9\-_]+$/", $id) !== 1) {
+                RestoLogUtil::httpError(400, 'Collection identifier must be an alphanumeric string containing only [a-zA-Z0-9\-_]');
             }
 
-            $this->name = $name;
+            $this->id = $id;
         }
 
         $this->context = $context;
@@ -282,13 +768,13 @@ class RestoCollection
             return $this->loadFromJSON($object);
         }
         
-        $cacheKey = 'collection:' . $this->name;
+        $cacheKey = 'collection:' . $this->id;
         $collectionObject = $this->context->fromCache($cacheKey);
     
         if (! isset($collectionObject)) {  
-
-            $collectionObject = (new CollectionsFunctions($this->context->dbDriver))->getCollectionDescription($this->name);
-
+            
+            $collectionObject = (new CollectionsFunctions($this->context->dbDriver))->getCollectionDescription($this->id);
+            
             if (! isset($collectionObject)) {  
                 return RestoLogUtil::httpError(404);
             }
@@ -298,9 +784,12 @@ class RestoCollection
         }
         
         foreach ($collectionObject as $key => $value) {
-            $this->$key = $key === 'model' ? new $value() : $value;
+            $this->$key = $key === 'model' ? new $value(array(
+                'collectionId' => $this->id,
+                'addons' => $this->context->addons
+            )) : $value;
         }
-
+        
         return $this;
     }
 
@@ -328,7 +817,7 @@ class RestoCollection
             return RestoLogUtil::httpError(400, 'Model does not exist');
         }
 
-        $this->loadFromJSON($object, true);
+        $this->loadFromJSON($object);
         
         return $this;
     }
@@ -336,49 +825,92 @@ class RestoCollection
     /**
      * Search features within collection
      *
+     * @param array $query
      * @return array (FeatureCollection)
      */
-    public function search()
+    public function search($query)
     {
-        return (new RestoFeatureCollection($this->context, $this->user))->load($this->model, $this);
+        return (new RestoFeatureCollection($this->context, $this->user, array($this->id => $this)))->load($this->model, $this, $query);
     }
 
     /**
      * Add feature to the {collection}.features table
      *
-     * @param array $data : GeoJSON file or file splitted in array
+     * @param array $body HTTP body
      * @param array $params : Insertion params
      */
-    public function addFeature($data, $params)
+    public function addFeatures($body, $params)
     {
-        return $this->model->storeFeature($this, $data, $params);
+        return $this->model->storeFeatures($this, $body, $params);
     }
 
     /**
      * Output collection description as an array
      *
-     * @param boolean $setStatistics (true to return statistics)
+     * @param array $options 
      */
-    public function toArray($setStatistics = true)
+    public function toArray($options = array())
     {
+        
+        $osDescription = $this->osDescription[$this->context->lang] ?? $this->osDescription['en'];
+
         $collectionArray = array(
-            'name' => $this->name,
-            'model' => $this->model->getName(),
-            //'lineage' => $this->model->getLineage(),
-            'licenseId' => $this->licenseId,
-            'osDescription' => $this->osDescription[$this->context->lang] ?? $this->osDescription['en'],
-            'owner' => $this->owner
+            'stac_version' => STAC::STAC_VERSION,
+            'stac_extensions' => $this->model->stacExtensions,
+            'id' => $this->id,
+            'title' => $osDescription['LongName'] ?? $osDescription['ShortName'],
+            'version' => $this->version ?? null,
+            'description' => $osDescription['Description'],
+            'keywords' => explode(' ', $osDescription['Tags']),
+            'license' => $this->licenseId,
+            'extent' => $this->getExtent(),
+            'links' => array_merge(
+                array(
+                    array(
+                        'rel' => 'self',
+                        'type' => RestoUtil::$contentTypes['json'],
+                        'href' => $this->context->core['baseUrl'] . '/collections/' . $this->id
+                    ),
+                    array(
+                        'rel' => 'root',
+                        'type' => RestoUtil::$contentTypes['json'],
+                        'href' => $this->context->core['baseUrl']
+                    ),
+                    array(
+                        'rel' => 'items',
+                        'type' => RestoUtil::$contentTypes['geojson'],
+                        'href' => $this->context->core['baseUrl'] . '/collections/' . $this->id . '/items'
+                    )
+                ), 
+                $this->links ?? array()    
+            ),
+            'resto:info' => array(
+                'model' => $this->model->getName(),
+                'lineage' => $this->model->getLineage(),
+                'osDescription' => $this->osDescription[$this->context->lang] ?? $this->osDescription['en'],
+                'owner' => $this->owner
+            )
         );
+
+        foreach (array_values(array('providers', 'properties')) as $key) {
+            if (isset($this->$key)) {
+                $collectionArray[$key] = $this->$key;
+            }
+        }
 
         if ($this->visibility !== Resto::GROUP_DEFAULT_ID) {
             $collectionArray['visibility'] = $this->visibility;
         }
             
-        if ($setStatistics) {
-            $collectionArray['statistics'] = $this->getStatistics();
+        if (isset($options['stats'])) {
+            $collectionArray['summaries'] = $this->getSummaries($options['stats']);
+            if ($options['stats']) {
+                $collectionArray['summaries']['resto:stats'] = $this->statistics;
+            }
         }
 
         return $collectionArray;
+
     }
 
     /**
@@ -388,7 +920,9 @@ class RestoCollection
      */
     public function toJSON($pretty = false)
     {
-        return json_encode($this->toArray(), $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
+        return json_encode($this->toArray(array(
+            'stats' => isset($this->context->query['_stats']) ? filter_var($this->context->query['_stats'], FILTER_VALIDATE_BOOLEAN) : false
+        )), $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
     }
 
     /**
@@ -396,27 +930,21 @@ class RestoCollection
      */
     public function getOSDD()
     {
-        return new OSDD($this->context, $this->model, $this->getStatistics(), $this);
-    }
-
-    /**
-     * Remove collection  from RESTo database
-     */
-    public function removeFromStore()
-    {
-        return (new CollectionsFunctions($this->context->dbDriver))->removeCollection($this->name);
+        return new OSDD($this->context, $this->model, $this->getStatistics($this->model->getAutoFacetFields()), $this);
     }
 
     /**
      * Return collection statistics
+     * 
+     * @param array $facetFields : Facet fields
      */
-    public function getStatistics()
+    public function getStatistics($facetFields = null)
     {
         if (!isset($this->statistics)) {
-            $cacheKey = 'getStatistics:' . $this->name;
+            $cacheKey = 'getStatistics:' . $this->id;
             $this->statistics = $this->context->fromCache($cacheKey);
             if (!isset($this->statistics)) {
-                $this->statistics = (new FacetsFunctions($this->context->dbDriver))->getStatistics($this, $this->model->getFacetFields());
+                $this->statistics = (new FacetsFunctions($this->context->dbDriver))->getStatistics($this->id, $facetFields);
                 $this->context->toCache($cacheKey, $this->statistics);
             }
         }
@@ -424,44 +952,35 @@ class RestoCollection
     }
 
     /**
+     * Return STAC extent
+     */
+    public function getExtent()
+    {
+        return array(
+            'spatial' => array(
+                'bbox' => array(
+                    $this->bbox
+                ),
+                'crs' => 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'
+            ),
+            'temporal' => array(
+                'interval' => array(
+                    array(
+                        $this->datetime['min'], $this->datetime['max']
+                    )
+                ),
+                'trs' => 'http://www.opengis.net/def/uom/ISO-8601/0/Gregorian'
+            )
+        );
+    }
+
+    /**
      * Load collection parameters from input collection description
-     * Collection description is a JSON file with the following structure
-     *
-     *      {
-     *          "name": "Charter",
-     *          "controller": "default",
-     *          "visibility": "public",
-     *          "licenseId": "license",
-     *          "rights":{
-     *              "download":0,
-     *              "visualize":1
-     *          },
-     *          "osDescription": {
-     *              "en": {
-     *                  "ShortName": "International Charter Space and Major Disasters",
-     *                  "LongName": "International Charter Space and Major Disasters catalog",
-     *                  "Description": "The International Charter aims at providing a unified system of space data acquisition and delivery to those affected by natural or man-made disasters through Authorized Users. Each member agency has committed resources to support the provisions of the Charter and thus is helping to mitigate the effects of disasters on human life and property",
-     *                  "Tags": "international charter space disasters",
-     *                  "Developer": "J\u00e9r\u00f4me Gasperi",
-     *                  "Contact": "jerome.gasperi@gmail.com",
-     *                  "Query": "Cyclones in Asia in october 2013",
-     *                  "Attribution": "RESTo framework. Copyright 2013, All Rights Reserved"
-     *              },
-     *              "fr": {
-     *                  ...
-     *              }
-     *          },
-     *          "propertiesMapping": {
-     *              "id": "{a:1} will be replaced by id property value",
-     *              "organisationName": "This is a constant"
-     *              ...
-     *          }
-     *      }
+     * (See collection file example in examples/collections/S2.json)
      *
      * @param array $object : collection description as json file
-     * @param boolean $update : true means update
      */
-    private function loadFromJSON($object, $update = false)
+    private function loadFromJSON($object)
     {
 
         /*
@@ -472,18 +991,10 @@ class RestoCollection
         }
 
         /*
-         * This is an update - remove properties that *CANNOT BE* updated
+         * Check mandatory properties are required
          */
-        if ($update) {
-            unset($object['name'], $object['model']);
-        }
-        /*
-         * Load for creation - mandatory properties are required
-         */
-        else {
-            $this->checkCreationMandatoryProperties($object);
-        }
-
+        $this->checkCreationMandatoryProperties($object);
+        
         /*
          * Default collection visibility is the value of Resto::GROUP_DEFAULT_ID
          * [TODO] Allow to change visibility in collection
@@ -492,24 +1003,21 @@ class RestoCollection
         $this->visibility = Resto::GROUP_DEFAULT_ID;
         
         /*
-         * License - set to 'unlicensed' if not specified
+         * Version
          */
-        $this->licenseId = $object['licenseId'] ?? 'unlicensed';
-        
+        $this->version = $object['version'];
+       
         /*
-         * Properties mapping
+         * License - set to 'proprietary' if not specified
          */
-        $this->propertiesMapping = $object['propertiesMapping'] ?? $this->propertiesMapping;
-        
+        $this->licenseId = $object['licenseId'] ?? 'proprietary';
+       
         /*
-         * OpenSearch description
+         * Set values
          */
-        $this->osDescription = $object['osDescription'] ?? $this->osDescription;
-
-        /*
-         * Rights
-         */
-        $this->rights = $object['rights'] ?? $this->rights;
+        foreach (array_values(array('osDescription', 'providers', 'properties', 'links', 'rights')) as $key) {
+            $this->$key = $object[$key] ?? array();
+        }
 
         return $this;
 
@@ -526,8 +1034,8 @@ class RestoCollection
        /*
         * Check that input file is for the current collection
         */
-        if (!isset($object['name']) || $this->name !== $object['name']) {
-            RestoLogUtil::httpError(400, 'Property "name" and collection name differ');
+        if (!isset($object['id']) || $this->id !== $object['id']) {
+            RestoLogUtil::httpError(400, 'Property "id" and collection id differ');
         }
 
         /*
@@ -548,18 +1056,66 @@ class RestoCollection
             RestoLogUtil::httpError(400, 'English OpenSearch description is mandatory');
         }
 
-
         /*
          * Set collection model
          */
-        $this->model = new $object['model']();
+        $this->model = new $object['model'](array(
+            'collectionId' => $this->id,
+            'addons' => $this->context->addons
+        ));
         
-
         /*
          * Collection owner is the current user
          */
         $this->owner = $this->user->profile['id'];
 
+    }
+
+    /**
+     * Return STAC summaries
+     * 
+     * @param boolean $stats
+     */
+    private function getSummaries($stats = false)
+    {
+        $summaries = array(
+            'datetime' => $this->datetime
+        );
+        
+        /*
+         * Compute statistics from facets
+         */
+        if (!isset($this->statistics)) {
+            $this->getStatistics($this->getFacetFields($stats));
+        }
+        foreach ($this->statistics['facets'] as $key => $value) {
+            $summaries[$this->model->stacMapping[$key] ?? $key] = array_keys($value);
+        }
+
+        return $summaries;
+    }
+
+    /**
+     * Get facet fields for summaries
+     * 
+     * @param boolean $stats
+     * @return array 
+     */
+    private function getFacetFields($stats)
+    {
+        $facetFields = array();
+        if ($stats) {
+            foreach (array_values($this->model->facetCategories) as $facetCategory) {
+                for ($i = 0, $ii = count($facetCategory); $i < $ii; $i++)
+                {
+                    $facetFields[] = $facetCategory[$i];
+                }
+            }
+        }
+        else {
+            $facetFields = $this->model->getAutoFacetFields();
+        }
+        return $facetFields;
     }
     
 }

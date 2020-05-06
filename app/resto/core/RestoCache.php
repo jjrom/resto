@@ -126,7 +126,7 @@ class RestoCache
     private function write($key, $obj)
     {
         $handle = fopen($this->directory . DIRECTORY_SEPARATOR . $key, 'w');
-        fwrite($handle, json_encode($obj, true));
+        fwrite($handle, json_encode($obj, JSON_UNESCAPED_SLASHES));
         fclose($handle);
         return $key;
     }

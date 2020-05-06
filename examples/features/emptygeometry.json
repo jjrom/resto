@@ -1,0 +1,11 @@
+{
+    "id": "NullGeometry",
+    "type": "Feature",
+    "geometry": null,
+    "properties": {
+        "startDate": "2019-12-11T00:00:00Z",
+        "productType": "DUMMY",
+        "processingLevel": "LEVEL1C",
+        "platform": "None"
+    }
+}

@@ -1,52 +1,8 @@
 --
--- resto extensions and functions
+-- resto functions
 --
-
---------------------------------  EXTENSION -----------------------------------------------
-
---
--- Unaccent extension to support text normalization
---
-CREATE EXTENSION IF NOT EXISTS unaccent SCHEMA public;
-
---
--- UUID extension
---
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp" SCHEMA public;
-
---
--- Trigram extension to support full text search
---
-CREATE EXTENSION IF NOT EXISTS pg_trgm SCHEMA public;
-
--- 
--- PostGIS extension to support geometrical searches
---
-CREATE EXTENSION IF NOT EXISTS postgis;
-CREATE EXTENSION IF NOT EXISTS postgis_topology;
-
 
 --------------------------------  FUNCTIONS -----------------------------------------------
-
---
--- SYNOPSYS:
---   ST_SplitDateLine(polygon, radius)
---
--- DESCRIPTION:
---
---   [WARNING] This is a dummy replacement that does nothing
---
---   Use [TAMN] plugin to get the right function (this is not OpenSource)
---
--- USAGE:
---   SELECT ST_SplitDateLine(geom_in geometry, radius integer DEFAULT 10000);
---
-CREATE OR REPLACE FUNCTION ST_SplitDateLine(geom_in geometry, radius integer default 10000)
-    RETURNS geometry AS $$
-BEGIN
-    RETURN geom_in;
-END
-$$ LANGUAGE 'plpgsql' IMMUTABLE;
 
 --
 -- 
@@ -216,20 +172,48 @@ $$ LANGUAGE sql;
 
 --
 -- SYNOPSYS:
---   timestamp_to_id(ts, shard_id, seq_id)
+--   timestamp_to_id(ts)
 --
 -- DESCRIPTION:
 --   Generate a 64 bits time sortable id
 --   (Inspired by http://instagram-engineering.tumblr.com/post/10853187575/sharding-ids-at-instagram)
 --
---   [IMPORTANT]
---     - shard_id must be a positive integer between 1 and 63 included
---     - seq_id must be a positive integer between 1 and 1023 included
+--   [IMPORTANT] Input timestamp MUST BE within the range [0260-01-01T00:00:00 BC, 4199-11-24T00:00:00]
 --
 -- USAGE:
---   SELECT timestamp_to_id(ts timestampz, shard_id integer, seq_id bigint);
+--   SELECT timestamp_to_id(ts timestampz);
 --
-CREATE OR REPLACE FUNCTION public.timestamp_to_id(ts TIMESTAMP WITH TIME ZONE, shard_id INTEGER DEFAULT 1, seq_id BIGINT DEFAULT 1)
+
+CREATE SEQUENCE IF NOT EXISTS public.resto_id_seq;
+CREATE OR REPLACE FUNCTION public.timestamp_to_id(ts TIMESTAMP WITH TIME ZONE)
+RETURNS BIGINT AS $$
+DECLARE
+    result bigint;
+    now_millis bigint;
+    seq_id bigint;
+BEGIN
+    SELECT FLOOR(EXTRACT(EPOCH FROM ts::TIMESTAMP) * 1000) INTO now_millis;
+    result := now_millis << 17;
+    seq_id := nextval('public.resto_id_seq');
+    --result := result | ((shard_id % 64) << 10);
+    --result := result | (seq_id % 1024);
+    result := result | (seq_id % 131072);
+    RETURN result;
+END;
+$$ LANGUAGE PLPGSQL;
+
+--
+-- SYNOPSYS:
+--   timestamp_to_firstid(ts)
+--
+-- DESCRIPTION:
+--   Generate a 64 bits time sortable id
+--   (Inspired by http://instagram-engineering.tumblr.com/post/10853187575/sharding-ids-at-instagram)
+--
+-- USAGE:
+--   SELECT timestamp_to_id(ts timestampz);
+--
+CREATE OR REPLACE FUNCTION public.timestamp_to_firstid(ts TIMESTAMP WITH TIME ZONE)
 RETURNS BIGINT AS $$
 DECLARE
     result bigint;
@@ -237,22 +221,30 @@ DECLARE
 BEGIN
     SELECT FLOOR(EXTRACT(EPOCH FROM ts::TIMESTAMP) * 1000) INTO now_millis;
     result := now_millis << 17;
-    result := result | ((shard_id % 64) << 10);
-    result := result | (seq_id % 1024);
     RETURN result;
 END;
-$$ LANGUAGE PLPGSQL;
+$$ LANGUAGE PLPGSQL IMMUTABLE;
 
+--
+-- SYNOPSIS:
+--   id_to_timestamp(restoid)
+--
+-- DESCRIPTION:
+--   Return timestamp from restoid created with timestamp_to_id function
+--
+-- USAGE:
+--   SELECT id_to_timestamp(restoid bigint);
+--
 CREATE OR REPLACE FUNCTION public.id_to_timestamp(restoid bigint)
 RETURNS TIMESTAMP AS $$
 BEGIN
     RETURN to_timestamp((restoid >> 17) / 1000.0);
 END;
-$$ LANGUAGE PLPGSQL;
+$$ LANGUAGE PLPGSQL IMMUTABLE;
 
 CREATE OR REPLACE FUNCTION to_iso8601(ts timestamp)
 RETURNS TEXT AS $$
 BEGIN
     RETURN to_char(ts, 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"');
 END;
-$$ LANGUAGE PLPGSQL;
+$$ LANGUAGE PLPGSQL IMMUTABLE;

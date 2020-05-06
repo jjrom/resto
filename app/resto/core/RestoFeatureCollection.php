@@ -21,43 +21,7 @@
  * @OA\Schema(
  *      schema="RestoFeatureCollection",
  *      description="Feature collection",
- *      required={"type", "properties", "features"},
- *      @OA\Property(
- *          property="properties",
- *          description="Information on query",
- *          @OA\Items(
- *              @OA\Property(
- *                  property="id",
- *                  type="string",
- *                  description="FeatureCollection unique identifier (uuid)"
- *              ),
- *              @OA\Property(
- *                  property="totalResults",
- *                  type="integer",
- *                  description="Number of total results for this query"
- *              ),
- *              @OA\Property(
- *                  property="exactCount",
- *                  type="boolean",
- *                  description="True if totalResults is exact - false means that is is approximative"
- *              ),
- *              @OA\Property(
- *                  property="startIndex",
- *                  type="integer",
- *                  description="Start index for the search (cf. pagination)"
- *              ),
- *              @OA\Property(
- *                  property="query",
- *                  type="object",
- *                  description="Feature collection unique identifier (uuid)"
- *              ),
- *              @OA\Property(
- *                  property="links",
- *                  type="object",
- *                  description="Links to self/search urls"
- *              )
- *          )
- *      ),
+ *      required={"type", "links", "features", "context"},
  *      @OA\Property(
  *          property="type",
  *          type="enum",
@@ -70,69 +34,311 @@
  *          description="Array of features",
  *          @OA\Items(ref="#/components/schemas/OutputFeature")
  *      ),
+ *      @OA\Property(
+ *           property="links",
+ *           type="array",
+ *           @OA\Items(ref="#/components/schemas/Links")
+ *      ),
+ *      @OA\Property(
+ *          property="context",
+ *          description="Information on search query",
+ *          required={"next", "returned"},
+ *          @OA\Items(
+ *              @OA\Property(
+ *                  property="next",
+ *                  type="string",
+ *                  description="The value to set for the next query parameter in order to get the next page of results"
+ *              ),
+ *              @OA\Property(
+ *                  property="prev",
+ *                  type="string",
+ *                  description="The value to set for the prev query parameter in order to get the previous page of results"
+ *              ),
+ *              @OA\Property(
+ *                  property="returned",
+ *                  type="integer",
+ *                  description="The count of results returned by this response. equal to the cardinality of features array"
+ *              ),
+ *              @OA\Property(
+ *                  property="limit",
+ *                  type="integer",
+ *                  description="The maximum number of results to which the result was limited"
+ *              ),
+ *              @OA\Property(
+ *                  property="matched",
+ *                  type="integer",
+ *                  description="The count of total number of results that match for this query, possibly estimated"
+ *              ),
+ *              @OA\Property(
+ *                  property="exactCount",
+ *                  type="boolean",
+ *                  description="True if *matched* is exact - false means that it is estimated"
+ *              ),
+ *              @OA\Property(
+ *                  property="startIndex",
+ *                  type="integer",
+ *                  description="Start index for the search (cf. pagination)"
+ *              ),
+ *              @OA\Property(
+ *                  property="query",
+ *                  type="object",
+ *                  description="Query details"
+ *              )
+ *          )
+ *      ),
+ *      @OA\Property(
+ *          property="id",
+ *          type="string",
+ *          description="FeatureCollection unique identifier (uuid)"
+ *      ),
  *      example={
  *          "type": "FeatureCollection",
- *          "properties": {
- *              "id": "20ac2fc6-daee-5621-bca4-d88c0bb19da1",
- *              "totalResults": 1,
- *              "exactCount": true,
- *              "startIndex": 1,
- *              "query": {
- *                  "inputFilters": {}
- *              },
- *              "links": {
- *                  {
- *                      "rel": "self",
- *                      "type": "application/json",
- *                      "title": "self",
- *                      "href": "http://localhost:5252/features.json?"
- *                  },
- *                  {
- *                      "rel": "search",
- *                      "type": "application/opensearchdescription+xml",
- *                      "title": "OpenSearch Description Document",
- *                      "href": "http://localhost:5252/services/osdd"
- *                  }
- *              }
- *          },
  *          "features":{
  *              {
+ *                  "stac_version": "0.8.0",
+ *                  "stac_extensions": {
+ *                      "eo"
+ *                  },
  *                  "type": "Feature",
+ *                  "id": "8030a391-4002-556f-929b-d7ff9dad6705",
+ *                  "bbox": {
+ *                      -48.6198530870596,
+ *                      74.6749788966259,
+ *                      -44.6464244356188,
+ *                      75.6843970710939
+ *                  },
  *                  "geometry": {
  *                      "type": "Polygon",
  *                      "coordinates": {
  *                          {
  *                              {
- *                                  69.979462,
- *                                  23.507467
+ *                                  -48.619853,
+ *                                  75.657209
  *                              },
  *                              {
- *                                  71.054486,
- *                                  23.496997
+ *                                  -44.646424,
+ *                                  75.684397
  *                              },
  *                              {
- *                                  71.039531,
- *                                  22.505778
+ *                                  -44.660672,
+ *                                  75.069386
  *                              },
  *                              {
- *                                  69.972328,
- *                                  22.515759
+ *                                  -44.698432,
+ *                                  75.060518
  *                              },
  *                              {
- *                                  69.979462,
- *                                  23.507467
+ *                                  -45.489771,
+ *                                  74.830977
+ *                              },
+ *                              {
+ *                                  -45.857954,
+ *                                  74.720238
+ *                              },
+ *                              {
+ *                                  -45.921685,
+ *                                  74.698702
+ *                              },
+ *                              {
+ *                                  -48.392706,
+ *                                  74.674979
+ *                              },
+ *                              {
+ *                                  -48.619853,
+ *                                  75.657209
  *                              }
  *                          }
  *                      }
  *                  },
  *                  "properties": {
- *                      "productIdentifier": "S2:tiles/42/Q/XL/2018/9/13/0",
- *                      "startDate": "2018-09-13T05:58:08.367Z"
+ *                      "datetime":"2019-06-11T16:11:41Z",
+ *                      "productIdentifier": "S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040",
+ *                      "startDate": "2019-06-11T16:11:41.808000Z"
+ *                  },
+ *                  "collection": "S2",
+ *                  "links": {
+ *                      {
+ *                          "rel": "self",
+ *                          "type": "application/json",
+ *                          "href": "http://127.0.0.1:5252/collections/S2/items/8030a391-4002-556f-929b-d7ff9dad6705?&lang=en"
+ *                      },
+ *                      {
+ *                          "rel": "collection",
+ *                          "type": "application/json",
+ *                          "title": "S2",
+ *                          "href": "http://127.0.0.1:5252/collections/S2?&lang=en"
+ *                      }
+ *                  },
+ *                  "assets": {
+ *                      "thumbnail": {
+ *                          "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/preview.jpg",
+ *                          "type": "image/jpeg"
+ *                      },
+ *                      "metadata": {
+ *                          "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/metadata.xml",
+ *                          "type": "text/xml"
+ *                      },
+ *                      "tileInfo": {
+ *                          "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/tileInfo.json",
+ *                          "type": "application/json"
+ *                      },
+ *                      "productInfo": {
+ *                          "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/productInfo.json",
+ *                          "type": "application/json"
+ *                      }
+ *                  }
+ *              }
+ *          },
+ *          "links":{
+ *              {
+ *                  "rel": "self",
+ *                  "type": "application/json",
+ *                  "href": "http://127.0.0.1:5252/stac/search.json?"
+ *              },
+ *              {
+ *                  "rel": "search",
+ *                  "type": "application/opensearchdescription+xml",
+ *                  "href": "http://127.0.0.1:5252/services/osdd"
+ *              },
+ *              {
+ *                  "rel": "next",
+ *                  "type": "application/json",
+ *                  "href": "http://127.0.0.1:5252/stac/search.json?next=204449069316703379"
+ *              }
+ *          },
+ *          "context": {
+ *              "next": "204449069316703379",
+ *              "returned": 20,
+ *              "limit": 20,
+ *              "matched": 11345,
+ *              "exactCount": false,
+ *              "startIndex": 1,
+ *              "query": {
+ *                  "inputFilters": {}
+ *              }
+ *          },
+ *          "id": "20ac2fc6-daee-5621-bca4-d88c0bb19da1"
+ *      }
+ *  )
+ * 
+ *  @OA\Schema(
+ *      schema="InputFeatureCollection",
+ *      description="Feature collection",
+ *      required={"type", "features"},
+ *      @OA\Property(
+ *          property="type",
+ *          type="enum",
+ *          enum={"FeatureCollection"},
+ *          description="Always set to *FeatureCollection*"
+ *      ),
+ *      @OA\Property(
+ *          property="features",
+ *          type="array",
+ *          description="Array of features",
+ *          @OA\Items(ref="#/components/schemas/InputFeature")
+ *      ),
+ *      example={
+ *          "type": "FeatureCollection",
+ *          "features":{
+ *              {
+ *                  "stac_version": "0.8.0",
+ *                  "stac_extensions": {
+ *                      "eo"
+ *                  },
+ *                  "type": "Feature",
+ *                  "id": "8030a391-4002-556f-929b-d7ff9dad6705",
+ *                  "bbox": {
+ *                      -48.6198530870596,
+ *                      74.6749788966259,
+ *                      -44.6464244356188,
+ *                      75.6843970710939
+ *                  },
+ *                  "geometry": {
+ *                      "type": "Polygon",
+ *                      "coordinates": {
+ *                          {
+ *                              {
+ *                                  -48.619853,
+ *                                  75.657209
+ *                              },
+ *                              {
+ *                                  -44.646424,
+ *                                  75.684397
+ *                              },
+ *                              {
+ *                                  -44.660672,
+ *                                  75.069386
+ *                              },
+ *                              {
+ *                                  -44.698432,
+ *                                  75.060518
+ *                              },
+ *                              {
+ *                                  -45.489771,
+ *                                  74.830977
+ *                              },
+ *                              {
+ *                                  -45.857954,
+ *                                  74.720238
+ *                              },
+ *                              {
+ *                                  -45.921685,
+ *                                  74.698702
+ *                              },
+ *                              {
+ *                                  -48.392706,
+ *                                  74.674979
+ *                              },
+ *                              {
+ *                                  -48.619853,
+ *                                  75.657209
+ *                              }
+ *                          }
+ *                      }
+ *                  },
+ *                  "properties": {
+ *                      "datetime":"2019-06-11T16:11:41Z",
+ *                      "productIdentifier": "S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040",
+ *                      "startDate": "2019-06-11T16:11:41.808000Z"
+ *                  },
+ *                  "collection": "S2",
+ *                  "links": {
+ *                      {
+ *                          "rel": "self",
+ *                          "type": "application/json",
+ *                          "href": "http://127.0.0.1:5252/collections/S2/items/8030a391-4002-556f-929b-d7ff9dad6705?&lang=en"
+ *                      },
+ *                      {
+ *                          "rel": "collection",
+ *                          "type": "application/json",
+ *                          "title": "S2",
+ *                          "href": "http://127.0.0.1:5252/collections/S2?&lang=en"
+ *                      }
+ *                  },
+ *                  "assets": {
+ *                      "thumbnail": {
+ *                          "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/preview.jpg",
+ *                          "type": "image/jpeg"
+ *                      },
+ *                      "metadata": {
+ *                          "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/metadata.xml",
+ *                          "type": "text/xml"
+ *                      },
+ *                      "tileInfo": {
+ *                          "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/tileInfo.json",
+ *                          "type": "application/json"
+ *                      },
+ *                      "productInfo": {
+ *                          "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/productInfo.json",
+ *                          "type": "application/json"
+ *                      }
  *                  }
  *              }
  *          }
  *      }
  *  )
+ * 
+ * 
  */
 class RestoFeatureCollection
 {
@@ -148,9 +354,19 @@ class RestoFeatureCollection
     public $user;
 
     /*
-     * FeatureCollectionDescription
+     * Unique identifier
      */
-    private $description;
+    private $id;
+
+    /*
+     * Next iterator
+     */
+    private $next = null;
+
+    /*
+     * Previous iterator
+     */
+    private $prev = null;
 
     /*
      * Features
@@ -168,12 +384,48 @@ class RestoFeatureCollection
     private $model;
 
     /*
+     * Query for search
+     */
+    private $query = array();
+
+    /*
      * Total number of resources relative to the query
      */
     private $paging = array();
 
-    /*
+    /**
      * Links
+     *
+     * @OA\Schema(
+     *      schema="Links",
+     *      description="Collection facets statistics",
+     *      required={"rel", "href"},
+     *      @OA\Property(
+     *          property="rel",
+     *          type="string",
+     *          description="Relationship between the feature and the linked document/resource"
+     *      ),
+     *      @OA\Property(
+     *          property="type",
+     *          type="string",
+     *          description="Mimetype of the resource"
+     *      ),
+     *      @OA\Property(
+     *          property="title",
+     *          type="string",
+     *          description="Title of the resource"
+     *      ),
+     *      @OA\Property(
+     *          property="href",
+     *          type="string",
+     *          description="Url to the resource"
+     *      ),
+     *      example={
+     *          "rel": "self",
+     *          "type": "application/json",
+     *          "href": "http://127.0.0.1:5252/collections/S2.json?&_pretty=1"
+     *      }
+     * )
      */
     private $links = array();
 
@@ -182,22 +434,13 @@ class RestoFeatureCollection
      *
      * @param RestoResto $context : Resto Context
      * @param RestoUser $user : Resto user
+     * @param array $collections
      */
-    public function __construct($context, $user)
+    public function __construct($context, $user, $collections)
     {
         $this->context = $context;
         $this->user = $user;
-    }
-
-    /**
-     * Set collections
-     *
-     * @param array $collections
-     */
-    public function setCollections($collections)
-    {
         $this->collections = $collections;
-        return $this;
     }
 
     /**
@@ -205,10 +448,11 @@ class RestoFeatureCollection
      *
      * @param RestoModel $model
      * @param RestoCollection $collection
+     * @param Array $query
      */
-    public function load($model, $collection = null)
+    public function load($model, $collection, $query)
     {
-
+        
         /*
          * Request start time
          */
@@ -220,23 +464,20 @@ class RestoFeatureCollection
         $this->model = $model;
 
         /*
+         * Query parameters to perform the search
+         */
+        $this->query = $query;
+
+        /*
          * Clean search filters
          */
-        $inputFilters = $this->model->getFiltersFromQuery($this->context->query);
+        $inputFilters = $this->model->getFiltersFromQuery($query);
         
-        /*
-         * Force collection
-         */
-        if (isset($collection)) {
-            $this->setCollections(array($collection));
-            $inputFilters['resto:collection'] = $collection->name;
-        }
-
         /*
          * result options
          */
         $sorting = $this->getSorting($inputFilters);
-
+        
         /*
          * Query Analyzer
          */
@@ -257,32 +498,22 @@ class RestoFeatureCollection
          * Read features from database
          */
         else {
-            $this->loadFeatures($analysis['details']['appliedFilters'], $sorting, $collection);
+            
+            /*
+             * [IMPORTANT] Add explicit 'resto:collection' filter if $collection is set
+             */
+            $this->loadFeatures(isset($collection) ? array_merge($analysis['details']['appliedFilters'], array('resto:collection' => $collection->id)) : $analysis['details']['appliedFilters'], $sorting);
         }
-
+        
         /*
-         * Set description
+         * Initial values
          */
-        $this->setDescription($analysis, $sorting, isset($collection) ? $collection->name : null);
-
+        $this->init($analysis, $sorting, isset($collection) ? $collection->id : null);
+    
         /*
          * Return object
          */
         return $this;
-    }
-
-    /**
-     * Output product description as a PHP array
-     *
-     * @param boolean publicOutput
-     */
-    public function toArray($publicOutput = false)
-    {
-        $features = array();
-        for ($i = 0, $l = count($this->restoFeatures); $i < $l; $i++) {
-            $features[] = $this->restoFeatures[$i]->toArray($publicOutput);
-        }
-        return array_merge($this->description, array('features' => $features));
     }
 
     /**
@@ -292,7 +523,19 @@ class RestoFeatureCollection
      */
     public function toJSON($pretty = false)
     {
-        return json_encode($this->toArray(true), $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
+        $features = array();
+        for ($i = 0, $l = count($this->restoFeatures); $i < $l; $i++) {
+            $features[] = $this->restoFeatures[$i]->toPublicArray();
+        }
+
+        return json_encode(array(
+            'type' => 'FeatureCollection',
+            'id' => $this->id,
+            'context' => $this->searchContext,
+            'links' => $this->links,
+            'features' => $features
+        ), $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
+        
     }
 
     /**
@@ -304,12 +547,12 @@ class RestoFeatureCollection
         /*
          * Initialize ATOM feed
          */
-        $atomFeed = new ATOMFeed($this->description['properties']['id'], $this->context->core['title'] ?? null, $this->getATOMSubtitle());
+        $atomFeed = new ATOMFeed($this->id, $this->context->core['title'] ?? null, $this->getATOMSubtitle());
 
         /*
          * Set collection elements
          */
-        $atomFeed->setCollectionElements($this->description['properties'], $this->model);
+        $atomFeed->setCollectionElements($this->links, $this->searchContext, $this->model);
 
         /*
          * Add one entry per product
@@ -323,18 +566,52 @@ class RestoFeatureCollection
     }
 
     /**
-     * Set description
+     * Initialize properties based on search query
      *
      * @param array $analysis
      * @param array $sorting
-     * @param string $name
+     * @param string $collectionId
      */
-    private function setDescription(&$analysis, $sorting, $name)
+    private function init($analysis, $sorting, $collectionId)
     {
 
         // Default name for all collection
-        $defaultName = $name ?? '*';
+        $defaultName = $collectionId ?? '*';
 
+        /*
+         * Set id
+         */
+        $this->id = RestoUtil::toUUID($defaultName . ':' . json_encode($this->cleanFilters($analysis['details']['appliedFilters']), JSON_UNESCAPED_SLASHES));
+
+        /*
+         * Set links
+         */
+        $this->links = $this->getLinks($sorting, $collectionId);
+
+        /*
+         * Set context
+         */
+        $this->searchContext = array(
+            'next' => $this->next ?? null,
+            'prev' => $this->prev ?? null,
+            'returned' => $this->paging['count']['returned'],
+            'limit' => $sorting['limit'],
+            'matched' => $this->paging['count']['total'],
+            'exactCount' => $this->paging['count']['isExact'],
+            'startIndex' => $sorting['offset'] + 1,
+            'query' => $this->getSearchQuery($analysis)
+        );
+
+    }
+
+    /**
+     * Return detailed query block from query analysis
+     *  
+     * @param array $analysis
+     * @return array
+     */
+    private function getSearchQuery($analysis)
+    {
         /*
          * Convert resto model to search service "osKey"
          */
@@ -362,26 +639,14 @@ class RestoFeatureCollection
         /*
          * Display detailed analysis ?
          */
-        if (isset($this->context->query['_analysis']) ? filter_var($this->context->query['_analysis'], FILTER_VALIDATE_BOOLEAN) : false) {
+        if (isset($this->query['_analysis']) ? filter_var($this->query['_analysis'], FILTER_VALIDATE_BOOLEAN) : false) {
             $query['details'] = $analysis['details'];
             $query['details']['appliedFilters'] = $this->toOSKeys($analysis['details']['appliedFilters']);
             $query['details']['processingTime'] = microtime(true) - $this->requestStartTime;
         }
 
-        /*
-         * Sort results
-         */
-        $this->description = array(
-            'type' => 'FeatureCollection',
-            'properties' => array(
-                'id' => RestoUtil::toUUID($defaultName . ':' . json_encode($this->cleanFilters($analysis['details']['appliedFilters']))),
-                'totalResults' => $this->paging['count']['total'],
-                'exactCount' => $this->paging['count']['isExact'],
-                'startIndex' => $sorting['offset'] + 1,
-                'query' => $query,
-                'links' => $this->getLinks($sorting, $name)
-            )
-        );
+        return $query;
+
     }
 
     /**
@@ -401,18 +666,20 @@ class RestoFeatureCollection
              */
             if (is_array($value)) {
                 for ($i = 0, $l = count($value); $i < $l; $i++) {
+
                     if (isset($this->model->searchFilters[$key]['osKey'])) {
                         $arr[$this->model->searchFilters[$key]['osKey'] . '[]'] = $value[$i];
-                    } else {
+                    } /*else {
                         $arr[$key . '[]'] = $value;
-                    }
+                    } */
                 }
             } else {
+
                 if (isset($this->model->searchFilters[$key]['osKey'])) {
                     $arr[$this->model->searchFilters[$key]['osKey']] = $value;
-                } else {
+                } /* else {
                     $arr[$key] = $value;
-                }
+                } */
             }
         }
 
@@ -424,18 +691,18 @@ class RestoFeatureCollection
      *
      * @param array $params
      * @param array $sorting
-     * @param RestoCollection $collection
      */
-    private function loadFeatures(&$params, &$sorting, $collection)
+    private function loadFeatures($params, $sorting)
     {
-        
+
         /*
          * Get features array from database
          */
         $featuresArray = (new FeaturesFunctions($this->context->dbDriver))->search(
             $this->context,
             $this->user,
-            $collection,
+            $this->model,
+            $this->collections,
             $params,
             $sorting
         );
@@ -446,10 +713,10 @@ class RestoFeatureCollection
         for ($i = 0, $l = count($featuresArray['features']); $i < $l; $i++) {
             $feature = new RestoFeature($this->context, $this->user, array(
                 'featureArray' => $featuresArray['features'][$i],
-                'collection' => $this->collections[$featuresArray['features'][$i]['properties']['collection']] ?? null,
-                'fields' => $this->context->query['fields'] ?? "_default"
+                'collection' => $this->collections[$featuresArray['features'][$i]['collection']] ?? null,
+                'fields' => $this->query['fields'] ?? "_default"
             ));
-            if (isset($feature)) {
+            if ( $feature->isValid() ) {
                 $this->restoFeatures[] = $feature;
             }
         }
@@ -460,15 +727,12 @@ class RestoFeatureCollection
         $this->paging = $this->getPaging($featuresArray['count'], $sorting['limit'], $sorting['offset']);
 
         /*
-         * Heatmap add-on
+         * Additional links computed during search (e.g. heatmap - see resto-addon-heatmap)
          */
-        if (isset($this->context->addons['Heatmap'])) {
-            $heatmapLink = (new Heatmap($this->context, $this->user))->getEndPoint($featuresArray['whereClause'], $featuresArray['count'], $params['geo:geometry'] ?? null);
-            if ($heatmapLink) {
-                $this->links[] = $heatmapLink;
-            }
+        if ( !empty($featuresArray['links']) ) {
+            $this->links = array_merge($this->links, $featuresArray['links']);
         }
-
+        
     }
 
     /**
@@ -502,18 +766,18 @@ class RestoFeatureCollection
      * Get navigation links (i.e. next, previous, first, last)
      *
      * @param array $limit
-     * @param string $name
+     * @param string $collectionId
      *
      * @return array
      */
-    private function getLinks($sorting, $name)
+    private function getLinks($sorting, $collectionId)
     {
         
         /*
          * Base links are always returned
          */
-        $this->getBaseLinks($name);
-
+        $this->getBaseLinks($collectionId);
+        
         /*
          * resto:lt has preseance over startPage
          */
@@ -523,15 +787,17 @@ class RestoFeatureCollection
             {
                 $featureArray = $this->restoFeatures[0]->toArray();
 
+                $this->prev = $featureArray['properties']['sort_idx'];
+
                 /* 
-                * Previous
-                */
+                 * Previous
+                 */
                 $this->links[] = $this->getLink('previous', array(
                     'resto:lt' => null,
-                    'resto:gt' => $featureArray['properties']['sort_idx'],
+                    'resto:gt' => $this->prev,
                     'count' => $sorting['limit'])
                 );
-                
+
             }
 
             /*
@@ -572,28 +838,22 @@ class RestoFeatureCollection
          * real last page. So always set a nextPage !
          */
         $count = count($this->restoFeatures);
+
         if ($count >= $sorting['limit']) {
+
+            $featureArray = $this->restoFeatures[$count - 1]->toArray();
+            
+            $this->next = $featureArray['properties']['sort_idx'];
 
             /*
              * Next URL is the next search URL from the self URL
              */
-            $featureArray = $this->restoFeatures[$count - 1]->toArray();
             $this->links[] = $this->getLink('next', array(
-                //'startPage' => $this->paging['nextPage'],
                 'resto:gt' => null,
-                'resto:lt' => $featureArray['properties']['sort_idx'],
+                'resto:lt' => $this->next,
                 'count' => $sorting['limit'])
             );
 
-            /*
-             * Last URL has the highest startIndex
-             *
-            $this->links[] = $this->getLink('last', array(
-                'startPage' => max($this->paging['totalPage'], 1),
-                'count' => $sorting['limit'])
-            );
-            */
-            
         }
 
         return $this->links;
@@ -602,20 +862,20 @@ class RestoFeatureCollection
     /**
      * Return base links (i.e. links always present in response)
      * 
-     * @param string $name
+     * @param string $collectionId
      */
-    private function getBaseLinks($name)
+    private function getBaseLinks($collectionId)
     {
         $this->links[] = array(
             'rel' => 'self',
-            'type' => RestoUtil::$contentTypes['json'],
-            'href' => RestoUtil::updateUrl($this->context->getUrl(false), $this->writeRequestParams($this->context->query))
+            'type' => RestoUtil::$contentTypes['geojson'],
+            'href' => RestoUtil::updateUrl($this->context->getUrl(false), $this->writeRequestParams($this->query))
         );
 
         $this->links[] = array(
             'rel' => 'search',
             'type' => 'application/opensearchdescription+xml',
-            'href' => $this->context->core['baseUrl'] . '/services/osdd' . (isset($name) ? '/' . $name : '')
+            'href' => $this->context->core['baseUrl'] . '/services/osdd' . (isset($collectionId) ? '/' . $collectionId : '')
         );
     }
 
@@ -638,8 +898,8 @@ class RestoFeatureCollection
 
         return array(
             'rel' => $rel,
-            'type' => RestoUtil::$contentTypes['json'],
-            'href' => RestoUtil::updateUrl($this->context->getUrl(false), $this->writeRequestParams(array_merge($this->context->query, $params)))
+            'type' => RestoUtil::$contentTypes['geojson'],
+            'href' => RestoUtil::updateUrl($this->context->getUrl(false), $this->writeRequestParams(array_merge($this->query, $params)))
         );
     }
 
@@ -653,12 +913,15 @@ class RestoFeatureCollection
     private function getPaging($count, $limit, $offset)
     {
 
+        $count['returned'] = count($this->restoFeatures);
+
         /*
          * If first page contains no features count must be 0 not estimated value
          */
-        if ($offset == 0 && count($this->restoFeatures) == 0) {
+        if ($offset == 0 && $count['returned'] == 0) {
             $count = array(
-                'total' => 0,
+                'returned' => 0,
+                'total' => $count['total'] ?? 0,
                 'isExact' => true
             );
         }
@@ -678,7 +941,7 @@ class RestoFeatureCollection
             'totalPage' => 0,
             'itemsPerPage' => $limit
         );
-        if (count($this->restoFeatures) > 0) {
+        if ($count['returned'] > 0) {
             $startPage = ceil(($offset + 1) / $limit);
 
             /*
@@ -687,7 +950,7 @@ class RestoFeatureCollection
              * and the pseudo real count based on the retrieved features count
              */
             if (!$count['isExact']) {
-                $count['total'] = max(count($this->restoFeatures) + (($startPage - 1) * $limit), $count['total']);
+                $count['total'] = max($count['returned'] + (($startPage - 1) * $limit), $count['total']);
             }
             $totalPage = ceil($count['total'] / $limit);
             $paging = array(
@@ -727,20 +990,20 @@ class RestoFeatureCollection
     }
 
     /**
-     * Get ATOM subtitle - construct from $this->description['properties']['title']
+     * Get ATOM subtitle
      *
      * @return string
      */
     private function getATOMSubtitle()
     {
         $subtitle = '';
-        if (isset($this->description['properties']['totalResults']) && $this->description['properties']['totalResults'] !== -1) {
-            $subtitle = $this->description['properties']['totalResults'] . ($this->description['properties']['totalResults'] > 1 ? 'results' : 'result');
+        if (isset($this->searchContext['totalResults']) && $this->searchContext['totalResults'] !== -1) {
+            $subtitle = $this->searchContext['totalResults'] . ($this->searchContext['totalResults'] > 1 ? 'results' : 'result');
         }
-        if (isset($this->description['properties']['startIndex'])) {
-            $previous = isset($this->description['properties']['links']['previous']) ? '<a href="' . RestoUtil::updateUrlFormat($this->description['properties']['links']['previous'], 'atom') . '">Previous</a>&nbsp;' : '';
-            $next = isset($this->description['properties']['links']['next']) ? '&nbsp;<a href="' . RestoUtil::updateUrlFormat($this->description['properties']['links']['next'], 'atom') . '">Next</a>' : '';
-            return $subtitle . '&nbsp;|&nbsp;' . $previous . $this->description['properties']['startIndex'] . ' - ' .  ($this->description['properties']['startIndex'] + 1) . $next;
+        if (isset($this->searchContext['startIndex'])) {
+            $previous = isset($this->links['previous']) ? '<a href="' . RestoUtil::updateUrlFormat($this->links['previous'], 'atom') . '">Previous</a>&nbsp;' : '';
+            $next = isset($this->links['next']) ? '&nbsp;<a href="' . RestoUtil::updateUrlFormat($this->links['next'], 'atom') . '">Next</a>' : '';
+            return $subtitle . '&nbsp;|&nbsp;' . $previous . $this->searchContext['startIndex'] . ' - ' .  ($this->searchContext['startIndex'] + 1) . $next;
         }
         return $subtitle;
     }
@@ -781,28 +1044,28 @@ class RestoFeatureCollection
         $offset = $this->getOffset($filters, $limit);
 
         /*
-         * Default sort key is the first element in "sortKeys" array (cf. config.php)
-         */
-        $sortKey = $this->context->dbDriver->sortKeys[0];
-
-        /*
          * Default order is DESCENDING
          */
         $sortOrder = 'DESC';
+        
+        /*
+         * Default sort key is the first element in "sortKeys" array (cf. config.php)
+         */
+        $sortKey = $filters['resto:sort'] ?? $this->context->dbDriver->sortKeys[0];
 
         /*
-         * Input sorting key
+         * Check sortKey order (i.e. minus sign prefix)
          */
-        if (isset($filters['resto:sort'])) {
+        if (substr($sortKey, 0, 1) === '-') {
+            $sortOrder = 'ASC';
+            $sortKey = substr($sortKey, 1);
+        }
 
-            // Check sort order with minus sign prefix
-            if (substr($filters['resto:sort'], 0, 1) === '-') {
-                $sortOrder = 'ASC';
-                $sortKey = substr($filters['resto:sort'], 1);
-            }
-            if (! in_array($sortKey, $this->context->dbDriver->sortKeys) ) {
-                return RestoLogUtil::httpError(400, "Invalid sorting key");
-            }
+        /*
+         * Finally check validity
+         */
+        if (! in_array($sortKey, $this->context->dbDriver->sortKeys) ) {
+            return RestoLogUtil::httpError(400, "Invalid sorting key");
         }
 
         /*

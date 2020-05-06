@@ -23,122 +23,90 @@ class LandCoverModel extends DefaultModel
 {
 
     /**
-     * Extended search filters for LandCoverModel
-     */
-    private $extendedSearchFilters = array(
-
-        'resto:cultivatedCover' => array(
-            'key' => 'cultivated',
-            'osKey' => 'cultivatedCover',
-            'operation' => 'interval',
-            'title' => 'Cultivated area expressed in percent',
-            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
-            'quantity' => array(
-                'value' => 'cultivated',
-                'unit' => '%'
-            )
-        ),
-        
-        'resto:desertCover' => array(
-            'key' => 'desert',
-            'osKey' => 'desertCover',
-            'operation' => 'interval',
-            'title' => 'Desert area expressed in percent',
-            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
-            'quantity' => array(
-                'value' => 'desert',
-                'unit' => '%'
-            )
-        ),
-        
-        'resto:floodedCover' => array(
-            'key' => 'flooded',
-            'osKey' => 'floodedCover',
-            'operation' => 'interval',
-            'title' => 'Flooded area expressed in percent',
-            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
-            'quantity' => array(
-                'value' => 'flooded',
-                'unit' => '%'
-            )
-        ),
-        
-        'resto:forestCover' => array(
-            'key' => 'forest',
-            'osKey' => 'forestCover',
-            'operation' => 'interval',
-            'title' => 'Forest area expressed in percent',
-            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
-            'quantity' => array(
-                'value' => 'forest',
-                'unit' => '%'
-            )
-        ),
-        
-        'resto:herbaceousCover' => array(
-            'key' => 'herbaceous',
-            'osKey' => 'herbaceousCover',
-            'operation' => 'interval',
-            'title' => 'Herbaceous area expressed in percent',
-            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
-            'quantity' => array(
-                'value' => 'herbaceous',
-                'unit' => '%'
-            )
-        ),
-        
-        'resto:iceCover' => array(
-            'key' => 'ice',
-            'osKey' => 'iceCover',
-            'operation' => 'interval',
-            'title' => 'Ice area expressed in percent',
-            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
-            'quantity' => array(
-                'value' => 'ice',
-                'unit' => '%'
-            )
-        ),
-        
-        'resto:urbanCover' => array(
-            'key' => 'urban',
-            'osKey' => 'urbanCover',
-            'operation' => 'interval',
-            'title' => 'Urban area expressed in percent',
-            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
-            'quantity' => array(
-                'value' => 'urban',
-                'unit' => '%'
-            )
-        ),
-        
-        'resto:waterCover' => array(
-            'key' => 'water',
-            'osKey' => 'waterCover',
-            'operation' => 'interval',
-            'title' => 'Water area expressed in percent',
-            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
-            'quantity' => array(
-                'value' => 'water',
-                'unit' => '%'
-            )
-        )
-
-    );
-
-    /**
      * Constructor
-     *
-     * @param array $params
+     * 
+     * @param array $options
      */
-    public function __construct()
+    public function __construct($options = array())
     {
 
-        parent::__construct();
-
-        $this->addSearchFilters($this->extendedSearchFilters);
+        parent::__construct($options);
 
         /*
-         * [IMPORTANT] The table resto.feature_landcover must exist
+         * Extend search filters
+         */
+        if ( isset($this->options['addons']['Tag']) && $this->options['addons']['Tag']['options']['iTag']['addSearchFilters'] ) {
+            $this->searchFilters = array_merge($this->searchFilters, array(
+
+                'resto:cultivatedCover' => array(
+                    'key' => 'cultivated',
+                    'osKey' => 'cultivatedCover',
+                    'operation' => 'interval',
+                    'title' => 'Cultivated area expressed in percent',
+                    'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$'
+                ),
+                
+                'resto:desertCover' => array(
+                    'key' => 'desert',
+                    'osKey' => 'desertCover',
+                    'operation' => 'interval',
+                    'title' => 'Desert area expressed in percent',
+                    'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$'
+                ),
+                
+                'resto:floodedCover' => array(
+                    'key' => 'flooded',
+                    'osKey' => 'floodedCover',
+                    'operation' => 'interval',
+                    'title' => 'Flooded area expressed in percent',
+                    'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$'
+                ),
+                
+                'resto:forestCover' => array(
+                    'key' => 'forest',
+                    'osKey' => 'forestCover',
+                    'operation' => 'interval',
+                    'title' => 'Forest area expressed in percent',
+                    'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$'
+                ),
+                
+                'resto:herbaceousCover' => array(
+                    'key' => 'herbaceous',
+                    'osKey' => 'herbaceousCover',
+                    'operation' => 'interval',
+                    'title' => 'Herbaceous area expressed in percent',
+                    'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$'
+                ),
+                
+                'resto:iceCover' => array(
+                    'key' => 'ice',
+                    'osKey' => 'iceCover',
+                    'operation' => 'interval',
+                    'title' => 'Ice area expressed in percent',
+                    'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$'
+                ),
+                
+                'resto:urbanCover' => array(
+                    'key' => 'urban',
+                    'osKey' => 'urbanCover',
+                    'operation' => 'interval',
+                    'title' => 'Urban area expressed in percent',
+                    'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$'
+                ),
+                
+                'resto:waterCover' => array(
+                    'key' => 'water',
+                    'osKey' => 'waterCover',
+                    'operation' => 'interval',
+                    'title' => 'Water area expressed in percent',
+                    'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$'
+                )
+        
+            ));
+        }
+
+        /*
+         * [IMPORTANT] The table $this->schema['name'].feature_landcover must exist
          * with columns 'id' and at least the columns list below
          */
         $this->tables[] = array(

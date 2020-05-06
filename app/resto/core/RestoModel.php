@@ -22,6 +22,24 @@ abstract class RestoModel
 {
 
     /*
+     * Model options
+     */
+    public $options = array();
+
+    /*
+     * STAC extensions - override in child models
+     */
+    public $stacExtensions = array();
+
+    /*
+     * STAC mapping is used to convert internal resto property names to STAC properties names
+     */
+    public $stacMapping = array(
+        // STAC 1.0.0
+        'created' => 'published'
+    );
+
+    /*
      * Facet hierarchy
      */
     public $facetCategories = array(
@@ -45,16 +63,16 @@ abstract class RestoModel
      * OpenSearch search filters
      *
      *  'key' :
-     *      RESTo model property name
+     *      *.feature column name
      *  'osKey' :
      *      OpenSearch property name in template urls
      *  'prefix' :
-     *      (for "keywords" operation only) Prefix to add to input value
+     *      (for "keywords" operation only) Prefix systematically added to input value (i.e. prefix:value)
      *  'operation' :
-     *      Search operation (keywords, intersects, distance, =, <=, >=)
+     *      Type of operation applied to the filter ("in", "keywords", "intersects", "distance", "=", "<=", ">=")
      *
      *
-     *  Below properties follow the "Paramater extension" (http://www.opensearch.org/Specifications/OpenSearch/Extensions/Parameter/1.0/Draft_2)
+     *  Below properties follow the "Parameter extension" (http://www.opensearch.org/Specifications/OpenSearch/Extensions/Parameter/1.0/Draft_2)
      *
      *  'minimum' :
      *      Minimum number of times this parameter must be included in the search request (default 0)
@@ -98,11 +116,11 @@ abstract class RestoModel
             'osKey' => 'limit',
             'minInclusive' => 1,
             'maxInclusive' => 500,
-            'title' => 'Number of results returned per page (default 50)'
+            'title' => 'The maximum number of results returned per page (default 10)'
         ),
         
         'startIndex' => array(
-            'osKey' => 'index',
+            'osKey' => 'startIndex',
             'minInclusive' => 1
         ),
         
@@ -113,30 +131,31 @@ abstract class RestoModel
         
         'language' => array(
             'osKey' => 'lang',
-            'pattern' => '^[a-z]{2}$',
-            'title' => 'Two letters language code according to ISO 639-1'
+            'title' => 'Two letters language code according to ISO 639-1',
+            'pattern' => '^[a-z]{2}$'
         ),
         
         'geo:uid' => array(
             'key' => 'id',
-            'osKey' => 'id',
-            'operation' => '=',
-            'title' => 'Feature identifier',
-            'pattern' => "^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$"
+            'osKey' => 'ids',
+            'operation' => 'in',
+            'title' => 'Array of item ids to return. All other filter parameters that further restrict the number of search results (except next and limit) are ignored',
+            'pattern' => '^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$'
         ),
         
         'geo:geometry' => array(
             'key' => 'geom',
-            'osKey' => 'geometry',
+            'osKey' => 'intersects',
             'operation' => 'intersects',
-            'title' => 'Region of Interest defined in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326)'
+            'title' => 'Region of Interest defined in GeoJSON or in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326)'
         ),
 
         'geo:box' => array(
             'key' => 'geom',
-            'osKey' => 'box',
+            'osKey' => 'bbox',
             'operation' => 'intersects',
-            'title' => 'Region of Interest defined by \'west, south, east, north\' coordinates of longitude, latitude, in decimal degrees (EPSG:4326)'
+            'title' => 'Region of Interest defined by \'west, south, east, north\' coordinates of longitude, latitude, in decimal degrees (EPSG:4326)',
+            'pattern' => '^[-]?[0-9]*\.?[0-9]+,[-]?[0-9]*\.?[0-9]+,[-]?[0-9]*\.?[0-9]+,[-]?[0-9]*\.?[0-9]+$'
         ),
         
         'geo:name' => array(
@@ -172,36 +191,20 @@ abstract class RestoModel
             'minInclusive' => 1
         ),
         
-        'time:start' => array(
-            'key' => 'startDate',
-            'osKey' => 'startDate',
-            'operation' => '>=',
-            'title' => 'Beginning of the time slice of the search query. Format should follow RFC-3339',
-            'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'
-        ),
-        
-        'time:end' => array(
-            'key' => 'startDate',
-            'osKey' => 'completionDate',
-            'operation' => '<=',
-            'title' => 'End of the time slice of the search query. Format should follow RFC-3339',
-            'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'
-        ),
-        
         'dc:date' => array(
-            'key' => 'updated',
-            'osKey' => 'updated',
-            'title' => 'Last update of the product within database',
+            'key' => 'created',
+            'osKey' => 'published',
+            'title' => 'Metadata product publication within database',
             'operation' => '>=',
             'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'
         ),
-        
+
         'resto:collection' => array(
             'key' => 'collection',
-            'osKey' => 'collection',
-            'title' => 'Collection name',
-            'pattern' => '^[A-Za-z][a-zA-Z0-9]+$',
-            'operation' => '=',
+            'osKey' => 'collections',
+            'title' => 'Comma separated list of collections name',
+            'pattern' => '^[a-zA-Z0-9\-_]+$',
+            'operation' => 'in',
             'hidden' => true,
             'options' => 'auto'
         ),
@@ -214,17 +217,24 @@ abstract class RestoModel
             'operation' => '='
         ),
         
+        /*
+         * Opposite to STAC "next" query parameter does not exist but could be named "prev"
+         */
         'resto:gt' => array(
-            'osKey' => 'gt',
+            'osKey' => 'prev',
             'title' => 'Cursor pagination - return result with sort key greater than sort value',
-            'pattern' => "^[0-9]+$",
+            'pattern' => "^[0-9\-]+$",
             'operation' => '>'
         ),
         
+        /*
+         * The default sort order is DESCENDING - so the STAC "next" query parameter is equivalent
+         * to the "resto:lt" (lower than) filter 
+         */
         'resto:lt' => array(
-            'osKey' => 'lt',
+            'osKey' => 'next',
             'title' => 'Cursor pagination - return result with sort key lower than sort value',
-            'pattern' => "^[0-9]+$",
+            'pattern' => "^[0-9\-]+$",
             'operation' => '<'
         ),
         
@@ -238,7 +248,7 @@ abstract class RestoModel
         'resto:sort' => array(
             'osKey' => 'sort',
             'pattern' => '^[a-zA-Z\-]*$',
-            'title' => 'Sort results by property (default: publication date). Sorting order is DESCENDING (ASCENDING if property is prefixed by minus sign)'
+            'title' => 'Sort results by property (startDate or created - Default is startDate). Sorting order is DESCENDING (ASCENDING if property is prefixed by minus sign)'
         ),
         
         'resto:owner' => array(
@@ -246,19 +256,6 @@ abstract class RestoModel
             'osKey' => 'owner',
             'title' => 'Owner of features',
             'operation' => '='
-        ),
-        
-        'resto:likes' => array(
-            'key' => 'likes',
-            'osKey' => 'likes',
-            'operation' => 'interval',
-            'title' => 'Number of likes for feature',
-            'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$'
-        ),
-        
-        'resto:liked' => array(
-            'osKey' => 'liked',
-            'title' => 'Return only liked feature from calling user'
         ),
         
         'resto:status' => array(
@@ -274,16 +271,39 @@ abstract class RestoModel
     /*
      * Array of table names to store "model specific" properties for feature
      * Usually only numeric properties are stored (for search) since
-     * string property are stored within metadata property of resto.feature table
+     * string property are stored within metadata property of *.feature table
      * and indexed with normalized_hashtags property of the same table
      */
     public $tables = array();
+
+    /*
+     * Name of PostgreSQL schema containing all feature related tables
+     * 
+     * [IMPORTANT] 
+     * If this value is changed in child model, then all features belonging to a collection referencing this model
+     * will be stored in a dedicated table (i.e. "$schema.feature") instead of the regular "resto.feature".
+     * 
+     * For an example of superseed see ObservationModel
+     */
+    public $schema = array(
+        'name' => 'resto',
+        'useGeometryPart' => false,
+        'storeFacets' => true
+    );
     
     /**
      * Constructor
+     * 
+     * @param array $options
      */
-    public function __construct()
+    public function __construct($options = array())
     {
+        $this->options = $options;
+
+        if ( isset($this->options['addons']['Social']) ) {
+            $this->searchFilters = array_merge($this->searchFilters, SocialAPI::$searchFilters);       
+        }
+
     }
 
     /**
@@ -308,61 +328,97 @@ abstract class RestoModel
     }
 
     /**
-     * Add filters to default search filters
-     *
-     * @param array searchFilters
-     */
-    public function addSearchFilters($searchFilters)
-    {
-        $this->searchFilters = array_merge($this->searchFilters, $searchFilters);
-    }
-
-    /**
-     * Add facet categories to default facet categories
-     *
-     * @param array facetCategories
-     */
-    public function addFacetCategories($facetCategories)
-    {
-        $this->facetCategories = array_merge($this->facetCategories, $facetCategories);
-    }
-
-    /**
-     * Store feature within {collection}.features table following the class model
+     * Store several features within {collection}.features table following the class model
      *
      * @param RestoCollection $collection
-     * @param array $data : array (MUST BE GeoJSON in abstract Model)
+     * @param array $body : HTTP body (MUST BE a GeoJSON "Feature" or "FeatureCollection" in abstract Model)
      * @param array $params
      *
      */
-    public function storeFeature($collection, $data, $params)
+    public function storeFeatures($collection, $body, $params)
     {
         
-        /*
-         * Input feature cannot have both an id and a productIdentifier
-         */
-        if (isset($data['id']) && isset($data['properties']['productIdentifier']) && $data['id'] !== $data['properties']['productIdentifier']) {
-            return RestoLogUtil::httpError(400, 'Invalid input feature - found both "id" and "properties.productIdentifier"');
+        // Convert input to resto model
+        $data = $this->inputToResto($body, $collection, $params);
+
+        if ( !isset($data) || !in_array($data['type'], array('Feature', 'FeatureCollection')) ) {
+            return RestoLogUtil::httpError(400, 'Invalid input type - only "Feature" and "FeatureCollection" are allowed');
         }
 
-        $productIdentifier = $data['id'] ?? $data['properties']['productIdentifier'] ?? null;
-        $data['properties']['productIdentifier'] = $productIdentifier;
-        $featureId = isset($productIdentifier) ? RestoUtil::toUUID($productIdentifier) : RestoUtil::toUUID(md5(microtime().rand()));
+        // Extent
+        $dates = array();
+        $bboxes = array();
 
-        /*
-         * First check if feature is already in database
-         * [Note] Feature productIdentifier is UNIQUE
-         *  
-         * (do this before getKeywords to avoid iTag process)
-         */
-        if (isset($productIdentifier) && (new FeaturesFunctions($collection->context->dbDriver))->featureExists($featureId)) {
-            RestoLogUtil::httpError(409, 'Feature ' . $featureId . ' (with productIdentifier=' . $productIdentifier . ') already in database');
+        $featuresInserted = array();
+        $featuresInError = array();
+        
+        // Feature case
+        if ( $data['type'] === 'Feature' ) {
+
+            $insert = $this->storeFeature($collection, $data, $params);
+
+            if ($insert['result'] !== false) {
+
+                $featuresInserted[] = array(
+                    'featureId' => $insert['result']['id'],
+                    'productIdentifier' => $insert['result']['productIdentifier'],
+                    'facetsStored' => $insert['result']['facetsStored']
+                );
+            
+                $dates[] = isset($insert['featureArray']['properties']) && isset($insert['featureArray']['properties']['startDate']) ? $insert['featureArray']['properties']['startDate'] : null;
+                $bboxes[] = isset($insert['featureArray']['topologyAnalysis']) && isset($insert['featureArray']['topologyAnalysis']['bbox']) ? $insert['featureArray']['topologyAnalysis']['bbox'] : null;
+
+            }
+
         }
 
-        return (new FeaturesFunctions($collection->context->dbDriver))->storeFeature(
-            $featureId,
-            $collection,
-            $this->prepareFeatureArray($collection, $data, $params)
+        // FeatureCollection case
+        else {
+
+            for ($i = 0, $ii = count($data['features']); $i<$ii; $i++)
+            {
+
+                try {
+
+                    $insert = $this->storeFeature($collection, $data['features'][$i], $params);
+                    if ($insert['result'] !== false) {
+                        $featuresInserted[] = array(
+                            'featureId' => $insert['result']['id'],
+                            'productIdentifier' => $insert['result']['productIdentifier'],
+                            'facetsStored' => $insert['result']['facetsStored']
+                        );
+                        
+                        $dates[] = isset($insert['featureArray']['properties']) && isset($insert['featureArray']['properties']['startDate']) ? $insert['featureArray']['properties']['startDate'] : null;
+                        $bboxes[] = isset($insert['featureArray']['topologyAnalysis']) && isset($insert['featureArray']['topologyAnalysis']['bbox']) ? $insert['featureArray']['topologyAnalysis']['bbox'] : null;
+
+                    }
+                
+                }
+                catch (Exception $e) {
+                    $featuresInError[] = array(
+                        'code' => $e->getCode(),
+                        'error' => $e->getMessage()
+                    );
+                    continue;
+                }
+
+            }      
+        
+        }
+        
+        /*
+         * Update collection spatio temporal extent
+         */
+        (new CollectionsFunctions($collection->context->dbDriver))->updateExtent($collection, array(
+            'dates' => $dates,
+            'bboxes' => $bboxes
+        ));
+        
+        return array(
+            'inserted' => count($featuresInserted),
+            'inError' => count($featuresInError),
+            'features' => $featuresInserted,
+            'errors' => $featuresInError
         );
 
     }
@@ -385,71 +441,9 @@ abstract class RestoModel
     }
 
     /**
-     * Set properties['resource'] object if applicable
-     *
-     *    {
-     *       href: 'http://localhost/features/id/download',     // url to the resource (i.e. download link)
-     *       type: 'application/zip',                           // mimeType of the resource
-     *       size: 12345678,                                    // size in bytes of the resource
-     *       checksum: 'MD5:1223ab45ef',                        // checksum of the resource (prefixed by the checksum type)
-     *       path: '/data/images/xxxxx.zip',                    // local path to the resource
-     *       metadata:{
-     *            href: 'http://my.image.com/xxxxxx.xml,        // url to the original metadata for the resource
-     *            type: 'application/xml'                       // mimeType of the metadata file
-     *       },
-     *       browse:{
-     *            href: 'http://localhost/features/id/browse',  // url to browse (wms) service
-     *            realhref: 'http://my.wms.server/wms',         // real wms href
-     *            title: 'My wms',                              // Title
-     *            type: 'WMS',                                  // Should be WMS
-     *            layers: ''                                    // List of layers comma separated
-     *       }
-     *    }
-     *
-     * @param array $properties : feature properties
-     * @param string $href : resto download url i.e. http://locahost/features/id/download
-     *
+     * Get auto facet fields from model
      */
-    public function generateLinksArray($properties, $href)
-    {
-        if (isset($properties['links'])) {
-            return $properties['links'];
-        }
-        return null;
-    }
-
-    /**
-     * The return value from this function will replace
-     * feature properties['quicklook'] string
-     *
-     * @param array $properties : feature properties
-     */
-    public function generateQuicklookUrl($properties)
-    {
-        if (isset($properties['quicklook'])) {
-            return $properties['quicklook'];
-        }
-        return null;
-    }
-
-    /**
-     * The return value from this function will replace
-     * feature properties['thumbnail'] string
-     *
-     * @param array $properties : feature properties
-     */
-    public function generateThumbnailUrl($properties)
-    {
-        if (isset($properties['thumbnail'])) {
-            return $properties['thumbnail'];
-        }
-        return null;
-    }
-
-    /**
-     * Get facet fields from model
-     */
-    public function getFacetFields()
+    public function getAutoFacetFields()
     {
         $facetFields = array();
         foreach (array_values($this->searchFilters) as $filter) {
@@ -476,11 +470,18 @@ abstract class RestoModel
         foreach ($query as $key => $value) {
             $filterKey = $this->getFilterName($key);
             if (isset($filterKey)) {
-                $params[$filterKey] = preg_replace('/<.*?>/', '', $value);
+                // Special case geo:geometry also accept GeoJSON => convert it to WKT
+                $params[$filterKey] = preg_replace('/<.*?>/', '', $filterKey === 'geo:geometry' ? RestoGeometryUtil::forceWKT($value) : $value);
                 $this->validateFilter($filterKey, $params[$filterKey]);
             }
         }
-        return $params;
+
+        // [STAC] If "ids" filter is set, then discard every other filters except next and limit
+        return isset($params['geo:uid']) ? array(
+            'geo:uid' => $params['geo:uid'],
+            'resto:lt' => $params['resto:lt'] ?? null,
+            'limit' => $params['limit'] ?? null
+        ) : $params;
     }
 
     /**
@@ -495,6 +496,135 @@ abstract class RestoModel
             }
         }
         return null;
+    }
+
+    /**
+     * Check if value is valid for a given filter regarding the model
+     *
+     * @param string $filterKey
+     * @param string $value
+     */
+    public function validateFilter($filterKey, $value)
+    {
+
+        /*
+         * Check pattern for string
+         */
+        if (isset($this->searchFilters[$filterKey]['pattern'])) {
+            return $this->validateFilterString($filterKey, $value);
+        }
+        /*
+         * Check pattern for number
+         */
+        elseif (isset($this->searchFilters[$filterKey]['minInclusive']) || isset($this->searchFilters[$filterKey]['maxInclusive'])) {
+            return $this->validateFilterNumber($filterKey, $value);
+        }
+
+        return true;
+        
+    }
+
+    /**
+     * Rewrite input $featureArray for output.
+     * This function can be superseeded in child Model
+     * 
+     * @param array $featureArray
+     * @param RestoCollection $collection
+     * @return array
+     */
+    public function remap($featureArray, $collection)
+    {
+        /*
+         * These properties are discarded from output
+         */
+        $discardedProperties = array(
+            'id',
+            'visibility',
+            'owner',
+            'sort_idx'
+        );
+
+        $properties = array();
+        
+        foreach (array_keys($featureArray['properties']) as $key) {
+
+            // Remove null and non public properties
+            if (! isset($featureArray['properties'][$key]) || in_array($key, $discardedProperties)) {
+                continue;
+            }
+            
+            // [STAC] Eventually follows STAC mapping for properties names 
+            $properties[$this->stacMapping[$key] ?? $key] = $featureArray['properties'][$key];
+        }
+
+        return array_merge($featureArray, array(
+            'properties' => $properties
+        ));
+
+    }
+
+    /**
+     * Convert input data to resto model
+     *
+     * @param array $body : any input data
+     * @param RestoCollection $collection
+     * @param array $params
+     *
+     */
+    protected function inputToResto($body, $collection, $params)
+    {
+        return $body;
+    }
+
+    /**
+     * Store individual feature within {collection}.features table following the class model
+     *
+     * @param RestoCollection $collection
+     * @param array $data : array (MUST BE a GeoJSON "Feature" in abstract Model)
+     * @param array $params
+     *
+     */
+    private function storeFeature($collection, $data, $params)
+    {
+        
+        /*
+         * Input feature cannot have both an id and a productIdentifier
+         */
+        if (isset($data['id']) && isset($data['properties']['productIdentifier']) && $data['id'] !== $data['properties']['productIdentifier']) {
+            return RestoLogUtil::httpError(400, 'Invalid input feature - found both "id" and "properties.productIdentifier"');
+        }
+
+        $productIdentifier = $data['id'] ?? $data['properties']['productIdentifier'] ?? null;
+        $data['properties']['productIdentifier'] = $productIdentifier;
+        $featureId = isset($productIdentifier) ? RestoUtil::toUUID($productIdentifier) : RestoUtil::toUUID(md5(microtime().rand()));
+
+        /*
+         * First check if feature is already in database
+         * [Note] Feature productIdentifier is UNIQUE
+         *  
+         * (do this before getKeywords to avoid iTag process)
+         */
+        if (isset($productIdentifier) && (new FeaturesFunctions($collection->context->dbDriver))->featureExists($featureId, $collection->model->schema['name'])) {
+            RestoLogUtil::httpError(409, 'Feature ' . $featureId . ' (with productIdentifier=' . $productIdentifier . ') already in database');
+        }
+
+        /*
+         * Compute featureArray
+         */
+        $featureArray = $this->prepareFeatureArray($collection, $data, $params);
+
+        /*
+         * Insert feature
+         */
+        return array(
+            'featureArray' => $featureArray,
+            'result' => (new FeaturesFunctions($collection->context->dbDriver))->storeFeature(
+                $featureId,
+                $collection,
+                $featureArray
+            )
+        );
+
     }
 
     /**
@@ -517,16 +647,29 @@ abstract class RestoModel
         }
 
         /*
-         * If model->inputMapping is set then remap input GeoJSON Feature file properties
-         * to match resto model
+         * Clean properties
          */
-        $properties = $this->mapInputProperties($data);
+        $properties = RestoUtil::cleanAssociativeArray($data['properties']);
         
+        /*
+         * Convert datetime to startDate / completionDate
+         */
+        if ( isset($properties['datetime']) ) {
+            $dates = explode('/', $properties['datetime']);
+            if ( isset($dates[0]) ) {
+                $properties['startDate'] = $dates[0];
+            }
+            if ( isset($dates[1]) ) {
+                $properties['completionDate'] = $dates[1];
+            }
+            unset($properties['datetime']);
+        }
+
         /*
          * Add collection to $properties to initialize facet counts on collection
          * [WARNING] if properties['collection'] is already set, it is discarded and replaced by the current collection
          */
-        $properties['collection']  = $collection->name;
+        $properties['collection']  = $collection->id;
 
         /*
          * Check geometry topology integrity
@@ -535,24 +678,44 @@ abstract class RestoModel
         if (!$topologyAnalysis['isValid']) {
             RestoLogUtil::httpError(400, $topologyAnalysis['error']);
         }
-        
+
         /*
-         * Tag add-on
-         *
-         * iTag is triggered by default unless :
-         *
-         *   - the collection is one of Tag add-on "excludedCollections" array option
-         *   - query parameter "_useItag" is set to false
-         *
-         * [WARNING] if collection is excluded BUT _useItag is set to true then iTag is used
+         * Return prepared data
          */
+        return array(
+            'topologyAnalysis' => $topologyAnalysis,
+            'properties' => array_merge($properties, array('keywords' => $this->computeKeywords($collection, $data, $properties))),
+            'assets' => $data['assets'] ?? null,
+            'links' => $data['links'] ?? null
+        );
+
+    }
+
+    /**
+     * Compute keywords using Tag add-on
+     *
+     * iTag is triggered by default unless :
+     *
+     *   - the collection is one of Tag add-on "excludedCollections" array option
+     *   - query parameter "_useItag" is set to false
+     *
+     * [WARNING] if collection is excluded BUT _useItag is set to true then iTag is used
+     * 
+     * @param RestoCollection $collection
+     * @param array $data : array (MUST BE GeoJSON in abstract Model)
+     * @param array $properties
+     */
+    private function computeKeywords($collection, $data, $properties)
+    {
+        
         $keywords = array();
+
         if (isset($collection->context->addons['Tag'])) {
             $useItag = true;
             $tagger = new Tag($collection->context, $collection->user);
             if (isset($collection->context->addons['Tag']['options']['iTag']['excludedCollections'])) {
                 for ($i = count($collection->context->addons['Tag']['options']['iTag']['excludedCollections']); $i--;) {
-                    if ($collection->name === $collection->context->addons['Tag']['options']['iTag']['excludedCollections'][$i]) {
+                    if ($collection->id === $collection->context->addons['Tag']['options']['iTag']['excludedCollections'][$i]) {
                         $useItag = false;
                         break;
                     }
@@ -569,123 +732,56 @@ abstract class RestoModel
             
         }
 
-        /*
-         * Return prepared data
-         */
-        return array(
-            'topologyAnalysis' => $topologyAnalysis,
-            'properties' => array_merge($properties, array('keywords' => $keywords)),
-            'assets' => $data['assets'] ?? null,
-            'links' => $data['links'] ?? null
-        );
+        return $keywords;
+
     }
 
     /**
-     * Remap properties array accordingly to $inputMapping array
-     *
-     *  $inputMapping array structure:
-     *
-     *          array(
-     *              'propertyNameInInputFile' => 'restoPropertyName' or array('restoPropertyName1', 'restoPropertyName2)
-     *          )
-     *
-     * @param Array $geojson
-     */
-    private function mapInputProperties($geojson)
-    {
-
-        // Output properties
-        $properties = array();
-
-        if (!isset($geojson['properties'])) {
-            $geojson['properties'] = array();
-        }
-
-        if (property_exists($this, 'inputMapping')) {
-            foreach ($this->inputMapping as $key => $arr) {
-
-                /*
-                 * key can be a path i.e. key1.key2.key3
-                 */
-                $childs = explode(Resto::MAPPING_PATH_SEPARATOR, $key);
-                if (isset($geojson[$childs[0]])) {
-                    // [IMPORTANT] Pass reference not copy
-                    $property = &$geojson[$childs[0]];
-                } else {
-                    $property =  null;
-                }
-                $propertyKey = null;
-                $isValid = true;
-
-                if (isset($property)) {
-                    for ($i = 1, $ii = count($childs); $i < $ii; $i++) {
-                        if (! isset($property[$childs[$i]])) {
-                            $isValid = false;
-                            break;
-                        }
-                        $propertyKey = $childs[$i];
-                        if ($i < $ii - 1) {
-                            // [IMPORTANT] Pass reference not copy
-                            $property = &$property[$childs[$i]];
-                        }
-                    }
-                    
-                    if ($isValid) {
-                        if (!is_array($arr)) {
-                            $arr = array($arr);
-                        }
-                        for ($i = count($arr); $i--;) {
-                            $geojson['properties'][$arr[$i]] = $property[$propertyKey];
-                        }
-                        unset($property[$propertyKey]);
-                    }
-                }
-            }
-        }
-
-        // Eventually unset all empty properties and array
-        foreach (array_keys($geojson['properties']) as $key) {
-            if (!isset($geojson['properties'][$key]) || (is_array($geojson['properties'][$key]) && count($geojson['properties'][$key]) === 0)) {
-                continue;
-            }
-            $properties[$key] = $geojson['properties'][$key];
-        }
-        
-        return $properties;
-    }
-
-    /**
-     * Check if value is valid for a given filter regarding the model
+     * Check if value is valid for a given pattern filter regarding the model
      *
      * @param string $filterKey
      * @param string $value
+     * @return boolean
      */
-    private function validateFilter($filterKey, $value)
+    private function validateFilterString($filterKey, $value)
     {
-
         /*
-         * Check pattern for string
+         * If operation = "in" then value is a comma separated list - check pattern for each element of the list
          */
-        if (isset($this->searchFilters[$filterKey]['pattern'])) {
-            if (preg_match('\'' . $this->searchFilters[$filterKey]['pattern'] . '\'', $value) !== 1) {
-                RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must follow the pattern ' . $this->searchFilters[$filterKey]['pattern']);
+        if (isset($this->searchFilters[$filterKey]['operation']) && $this->searchFilters[$filterKey]['operation'] === 'in') {
+            $elements = array_map('trim', explode(',', $value));
+            for ($i = count($elements); $i--;) {
+                if (preg_match('\'' . $this->searchFilters[$filterKey]['pattern'] . '\'', $elements[$i]) !== 1) {
+                    return RestoLogUtil::httpError(400, 'Comma separated list of "' . $this->searchFilters[$filterKey]['osKey'] . '" must follow the pattern ' . $this->searchFilters[$filterKey]['pattern']);
+                }
             }
         }
-        /*
-         * Check pattern for number
-         */
-        elseif (isset($this->searchFilters[$filterKey]['minInclusive']) || isset($this->searchFilters[$filterKey]['maxInclusive'])) {
-            if (!is_numeric($value)) {
-                RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be numeric');
-            }
-            if (isset($this->searchFilters[$filterKey]['minInclusive']) && $value < $this->searchFilters[$filterKey]['minInclusive']) {
-                RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be greater than ' . ($this->searchFilters[$filterKey]['minInclusive'] - 1));
-            }
-            if (isset($this->searchFilters[$filterKey]['maxInclusive']) && $value > $this->searchFilters[$filterKey]['maxInclusive']) {
-                RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be lower than ' . ($this->searchFilters[$filterKey]['maxInclusive'] + 1));
-            }
+        else if (preg_match('\'' . $this->searchFilters[$filterKey]['pattern'] . '\'', $value) !== 1) {
+            return RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must follow the pattern ' . $this->searchFilters[$filterKey]['pattern']);
         }
 
+        return true;
+
+    }
+
+    /**
+     * Check if value is valid for a given number filter regarding the model
+     *
+     * @param string $filterKey
+     * @param string $value
+     * @return boolean
+     */
+    private function validateFilterNumber($filterKey, $value)
+    {
+        if (!is_numeric($value)) {
+            RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be numeric');
+        }
+        if (isset($this->searchFilters[$filterKey]['minInclusive']) && $value < $this->searchFilters[$filterKey]['minInclusive']) {
+            RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be greater than ' . ($this->searchFilters[$filterKey]['minInclusive'] - 1));
+        }
+        if (isset($this->searchFilters[$filterKey]['maxInclusive']) && $value > $this->searchFilters[$filterKey]['maxInclusive']) {
+            RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be lower than ' . ($this->searchFilters[$filterKey]['maxInclusive'] + 1));
+        }
         return true;
     }
 

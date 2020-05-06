@@ -32,28 +32,102 @@ class RestoCollections
     public $user;
 
     /*
-     * Array of RestoCollection (key = collection name)
+     * Array of RestoCollection (key = collection id)
      */
-    private $collections = array();
+    public $collections = array();
+
+    /**
+     * * @OA\Schema(
+     *      schema="Extent",
+     *      description="Spatio-temporal extents of the Collection",
+     *      required={"spatial", "temporal"},
+     *      @OA\Property(
+     *          property="spatial",
+     *          type="object",
+     *          description="The spatial extents of the Collection",
+     *          @OA\JsonContent(
+     *              required={"bbox"},
+     *              @OA\Property(
+     *                  property="bbox",
+     *                  type="array",
+     *                  description="Potential spatial extent covered by the collection. The coordinate reference system of the values is WGS 84 longitude/latitude",
+     *                  @OA\Items(
+     *                      type="float"
+     *                  )
+     *              )
+     *          )
+     *      ),
+     *      @OA\Property(
+     *          property="temporal",
+     *          type="object",
+     *          description="The temporal extents of the Collection",
+     *          @OA\JsonContent(
+     *              required={"interval"},
+     *              @OA\Property(
+     *                  property="interval",
+     *                  type="array",
+     *                  description="Potential temporal extent covered by the collection. The temporal reference system is the Gregorian calendar",
+     *                  @OA\Items(
+     *                      type="string"
+     *                  )
+     *              )
+     *          )
+     *      ),
+     *      example={
+     *          "spatial": {
+     *              "bbox": {
+     *                  {
+     *                      -48.6198530870596,
+     *                      74.6749788966259,
+     *                      -44.6464244356188,
+     *                      75.6843970710939
+     *                  }
+     *              },
+     *              "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
+     *          },
+     *          "temporal": {
+     *              "interval": {
+     *                  {
+     *                      "2019-06-11T16:11:41.808000Z",
+     *                      "2019-06-11T16:11:41.808000Z"
+     *                  }
+     *              },
+     *              "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"
+     *          }
+     *      }
+     *  )
+     * 
+     */
+    private $extent = array(
+        'spatial' => array(
+            'bbox' => array(
+                null
+            ),
+            'crs' => 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'
+        ),
+        'temporal' => array(
+            'interval' => array(
+                array(
+                    null,
+                    null
+                )
+            ),
+            'trs' => 'http://www.opengis.net/def/uom/ISO-8601/0/Gregorian'
+        )
+    );
 
     /*
      * Statistics
      */
     private $statistics;
 
-    /*
-     * True to compute individual statistics per collection
-     */
-    private $fullStats = false;
-
     /**
      * Constructor
      *
      * @param RestoContext $context
      * @param RestoUser $user
-     * @param array $params
      */
-    public function __construct($context, $user, $params = array())
+    public function __construct($context, $user)
     {
 
         /*
@@ -65,9 +139,7 @@ class RestoCollections
 
         $this->context = $context;
         $this->user = $user;
-        if (isset($params['fullStats'])) {
-            $this->fullStats = $params['fullStats'];
-        }
+
         return $this;
     }
 
@@ -78,21 +150,21 @@ class RestoCollections
      */
     public function create($object)
     {
-        if (!isset($object['name'])) {
-            RestoLogUtil::httpError(400, 'Missing mandatory collection name');
+        if (!isset($object['id'])) {
+            RestoLogUtil::httpError(400, 'Missing mandatory collection id');
         }
 
         /*
-         * Check that collection does not exist based on name
+         * Check that collection does not exist based on id
          */
-        if ((new CollectionsFunctions($this->context->dbDriver))->collectionExists($object['name'])) {
-            RestoLogUtil::httpError(400, 'Collection ' . $object['name'] . ' already exist');
+        if ((new CollectionsFunctions($this->context->dbDriver))->collectionExists($object['id'])) {
+            RestoLogUtil::httpError(400, 'Collection ' . $object['id'] . ' already exist');
         }
 
         /*
          * Create collection
          */
-        $collection = new RestoCollection($object['name'], $this->context, $this->user);
+        $collection = new RestoCollection($object['id'], $this->context, $this->user);
         $collection->load($object)->store();
 
         return true;
@@ -102,11 +174,12 @@ class RestoCollections
      * Search features within collection
      *
      * @param RestoModel $model
+     * @param array $query
      * @return array (FeatureCollection)
      */
-    public function search($model)
+    public function search($model, $query)
     {
-        return (new RestoFeatureCollection($this->context, $this->user))->setCollections($this->collections)->load($model ?? new DefaultModel());
+        return (new RestoFeatureCollection($this->context, $this->user, $this->collections))->load($model ?? new DefaultModel(), null, $query);
     }
 
     /**
@@ -124,17 +197,15 @@ class RestoCollections
             $this->context->toCache($cacheKey, $collectionsDesc);
         }
 
-        foreach (array_keys($collectionsDesc) as $key) {
-            $collection = new RestoCollection($key, $this->context, $this->user);
-            $collection->model = new $collectionsDesc[$key]['model']();
-            $collection->osDescription = $collectionsDesc[$key]['osDescription'];
-            $collection->visibility = intval($collectionsDesc[$key]['visibility']);
-            $collection->owner = $collectionsDesc[$key]['owner'];
-            $collection->licenseId = $collectionsDesc[$key]['licenseId'];
-            $collection->propertiesMapping = $collectionsDesc[$key]['propertiesMapping'];
-            $this->collections[$collection->name] = $collection;
+        foreach (array_keys($collectionsDesc) as $collectionId) {
+            $collection = new RestoCollection($collectionId, $this->context, $this->user);
+            foreach ($collectionsDesc[$collectionId] as $key => $value) {
+                $collection->$key = $key === 'model' ? new $value() : $value;
+            }
+            $this->collections[$collectionId] = $collection;
+            $this->updateExtent($collection);
         }
-
+        
         return $this;
     }
 
@@ -147,7 +218,7 @@ class RestoCollections
             $cacheKey = 'getStatistics';
             $this->statistics = $this->context->fromCache($cacheKey);
             if (!isset($this->statistics)) {
-                $this->statistics = (new FacetsFunctions($this->context->dbDriver))->getStatistics(null, (new DefaultModel())->getFacetFields());
+                $this->statistics = (new FacetsFunctions($this->context->dbDriver))->getStatistics(null, (new DefaultModel())->getAutoFacetFields());
                 $this->context->toCache('getStatistics', $this->statistics);
             }
         }
@@ -155,21 +226,79 @@ class RestoCollections
     }
 
     /**
+     * Return object as an array
+     * 
+     * @return array
+     */
+    public function toArray()
+    {
+
+        $stats = $this->getStatistics();
+
+        $collections = array(
+            'stac_version' => STAC::STAC_VERSION,
+            'id' => $this->context->osDescription['ShortName'],
+            'title' => $this->context->osDescription['LongName'] ?? $this->context->osDescription['ShortName'],
+            'description' => $this->context->osDescription['Description'],
+            'keywords' => explode(' ', $this->context->osDescription['Tags']),
+            'links' => array(
+                array(
+                    'rel' => 'self',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'href' => $this->context->core['baseUrl'] . '/collections'
+                ),
+                array(
+                    'rel' => 'root',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'href' => $this->context->core['baseUrl']
+                ),
+                array(
+                    'rel' => 'items',
+                    'title' => 'All collections',
+                    'matched' => $stats['count'],
+                    'type' => RestoUtil::$contentTypes['geojson'],
+                    'href' => $this->context->core['baseUrl'] . '/search'
+                )
+            ),
+            'extent' => $this->extent,
+            'summaries' => array(
+                'resto:stats' => $stats
+            ),
+            'resto:info' => array(
+                'osDescription' => $this->context->osDescription
+            ),
+            'collections' => array()
+        );
+
+        foreach (array_keys($this->collections) as $key) {
+            $collection = $this->collections[$key]->toArray(array(
+                'stats' => isset($this->context->query['_stats']) ? filter_var($this->context->query['_stats'], FILTER_VALIDATE_BOOLEAN) : false
+            ));
+            $collections['collections'][] = $collection;
+            $collections['links'][] = array(
+                'rel' => 'child',
+                'type' => RestoUtil::$contentTypes['json'],
+                'title' => $collection['title'],
+                'description' => $collection['description'],
+                'matched' => $collections['summaries']['resto:stats']['facets']['collection'][$key] ?? 0,
+                'href' => $this->context->core['baseUrl'] . '/collections/' . $key,
+                'roles' => array('collection')
+            );
+                
+        }
+
+        return $collections;
+
+    }
+
+    /**
      * Output collections descriptions as a JSON stream
      *
      * @param boolean $pretty : true to return pretty print
      */
-    public function toJSON($pretty)
+    public function toJSON($pretty = false)
     {
-        $collections = array(
-            'osDescription' => $this->context->osDescription,
-            'statistics' => $this->getStatistics(),
-            'collections' => array()
-        );
-        foreach (array_keys($this->collections) as $key) {
-            $collections['collections'][] = $this->collections[$key]->toArray($this->fullStats);
-        }
-        return json_encode($collections, $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
+        return json_encode($this->toArray(), $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
     }
 
     /**
@@ -179,4 +308,47 @@ class RestoCollections
     {
         return new OSDD($this->context, $model ?? new DefaultModel(), $this->getStatistics(), null);
     }
+
+    /**
+     * Update collections extent using input collection extent
+     * 
+     * @param RestoCollection $collection
+     */
+    private function updateExtent($collection)
+    {
+
+        if (isset($collection->datetime['min'])) {
+            if ( ! isset($this->extent['temporal']['interval'][0][0]) || $collection->datetime['min'] < $this->extent['temporal']['interval'][0][0]) {
+                $this->extent['temporal']['interval'][0][0] = $collection->datetime['min'];
+            }
+        }
+
+        if (isset($collection->datetime['max'])) {
+            if ( ! isset($this->extent['temporal']['interval'][0][1]) || $collection->datetime['max'] > $this->extent['temporal']['interval'][0][1]) {
+                $this->extent['temporal']['interval'][0][1] = $collection->datetime['max'];
+            }
+        }
+           
+        if (isset($collection->bbox)) {
+            if ( ! isset($this->extent['spatial']['bbox'][0]) ) {
+                $this->extent['spatial']['bbox'][0] = $collection->bbox;
+            }
+            else {
+                if ( $collection->bbox[0] < $this->extent['spatial']['bbox'][0][0] ) {
+                    $this->extent['spatial']['bbox'][0][0] = $collection->bbox[0];
+                }
+                if ( $collection->bbox[1] < $this->extent['spatial']['bbox'][0][1] ) {
+                    $this->extent['spatial']['bbox'][0][1] = $collection->bbox[1];
+                }
+                if ( $collection->bbox[2] > $this->extent['spatial']['bbox'][0][2] ) {
+                    $this->extent['spatial']['bbox'][0][2] = $collection->bbox[2];
+                }
+                if ( $collection->bbox[3] > $this->extent['spatial']['bbox'][0][3] ) {
+                    $this->extent['spatial']['bbox'][0][3] = $collection->bbox[3];
+                }
+            }
+        }
+
+    }
+
 }

@@ -22,16 +22,6 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 PROJECT_NAME=resto
-
-### PostgreSQL PGDATA directory i.e. directory on host where the database files are stored
-### If set to a string and not a path, then a volume is created within docker volumes storage
-export POSTGRES_DATA=database_data
-
-### resto static content permanent directory
-export RESTO_STATIC_CONTENT=static_content
-
-export RESTO_EXPOSED_PORT=5252
-
 ################################
 
 #
@@ -52,7 +42,7 @@ function showUsage {
     echo -e ""
     echo -e "   Usage $0 <target> [options]"
     echo -e ""
-    echo -e "   Where target is either \"prod\" or \"dev\""
+    echo -e "   Where target is either \"prod\" for production, \"dev\" for development"
     echo -e ""
     echo -e "   Options:"
     echo -e ""
@@ -112,7 +102,7 @@ done
 #
 # TARGET is mandatory - should be "prod" or "dev"
 #
-if [[ "${TARGET}" != "prod" && "${TARGET}" != "dev" ]]; then
+if [[ "${TARGET}" == "" ]]; then
     showUsage
     echo -e "${RED}[ERROR] Missing target - choose between \"prod\" or \"dev\"${NC}"
     echo ""
@@ -132,7 +122,14 @@ fi
 
 export PUBLIC_ENDPOINT=$(grep ^PUBLIC_ENDPOINT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 export RESTO_EXPOSED_PORT=$(grep ^RESTO_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+export POSTGRES_DATA=$(grep ^POSTGRES_DATA= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+export RESTO_STATIC_CONTENT=$(grep ^RESTO_STATIC_CONTENT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+export DATABASE_IS_EXTERNAL=$(grep ^DATABASE_IS_EXTERNAL= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 export DATABASE_EXPOSED_PORT=$(grep ^DATABASE_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+export DATABASE_HOST=$(grep ^DATABASE_HOST= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+export DATABASE_NAME=$(grep ^DATABASE_NAME= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+export DATABASE_USER_NAME=$(grep ^DATABASE_USER_NAME= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+export DATABASE_USER_PASSWORD=$(grep ^DATABASE_USER_PASSWORD= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 
 echo -e "${YELLOW}[INFO] You're now running ${PROJECT_NAME} installation in **${TARGET}** mode${NC}"
 echo -e "[INFO] Public endpoint is ${GREEN}${PUBLIC_ENDPOINT}${NC}"
@@ -149,17 +146,43 @@ else
 fi
 
 # echo -e "[INFO] Starting ${PROJECT_NAME} docker instance"
-if [[ "${TARGET}" == "dev" ]]; then
-    ENV_FILE=${ENV_FILE} docker-compose --project-name ${PROJECT_NAME} -f docker-compose.dev.yml up -d
+# Nico Ribot: use COMPOSE_FILE env to control both dev/prod env AND db container creation:
+# optional if a remote DB is used
+if [[ "${TARGET}" == "prod" ]]; then
+    if [[ "${DATABASE_IS_EXTERNAL}" == "yes" ]]; then
+      COMPOSE_FILE=docker-compose.yml
+    else
+      COMPOSE_FILE=docker-compose-restodb.yml:docker-compose.yml
+    fi
 else
-    ENV_FILE=${ENV_FILE} docker-compose --project-name ${PROJECT_NAME} -f docker-compose.yml up -d
+    if [[ "${DATABASE_IS_EXTERNAL}" == "yes" ]]; then
+        if [[ ! -f docker-compose-nodb.${TARGET}.yml ]]; then
+            echo -e "${RED}[ERROR] The file docker-compose-nodb.${TARGET}.yml does not exist!${NC}"
+            echo ""
+            exit 1
+        fi
+        COMPOSE_FILE="docker-compose.yml:docker-compose-nodb.${TARGET}.yml"
+    else
+        if [[ ! -f docker-compose.${TARGET}.yml ]]; then
+            echo -e "${RED}[ERROR] The file docker-compose.${TARGET}.yml does not exist!${NC}"
+            echo ""
+            exit 1
+        fi
+        COMPOSE_FILE="docker-compose-restodb.yml:docker-compose.yml:docker-compose.${TARGET}.yml"
+    fi
 fi
 
-#
-# Create ADMIN_USER if no exist or update ADMIN_USER's password if it already exists
+COMPOSE_FILE=${COMPOSE_FILE} ENV_FILE=${ENV_FILE} docker-compose --project-name ${PROJECT_NAME}  up -d
+
+#PGPASSWORD=${DATABASE_USER_PASSWORD}
+if [[ "${DATABASE_IS_EXTERNAL}" == "yes" ]]; then
+    DATABASE_HOST_SEEN_FROM_DOCKERHOST=${DATABASE_HOST}
+else
+    DATABASE_HOST_SEEN_FROM_DOCKERHOST=localhost
+fi
 # Wait for database to be ready
-echo -e "[INFO] Waiting for database port localhost:${DATABASE_EXPOSED_PORT} to be ready..."
-while ! pg_isready -h localhost -p ${DATABASE_EXPOSED_PORT} 2>/dev/null
+echo -e "[INFO] Waiting for database: ${DATABASE_HOST_SEEN_FROM_DOCKERHOST}:${DATABASE_EXPOSED_PORT} to be ready..."
+while ! pg_isready -h ${DATABASE_HOST_SEEN_FROM_DOCKERHOST} -U ${DATABASE_USER_NAME} -p ${DATABASE_EXPOSED_PORT} -d ${DATABASE_NAME} 2>/dev/null
 do
     let elapsed=elapsed+1
     if [ "$elapsed" -gt 90 ] 
@@ -170,18 +193,44 @@ do
     sleep 1;
 done
 
+#
+# run database creation script if needed and db is external. if internal, restodb container will manage it
+if [[ "${DATABASE_IS_EXTERNAL}" == "yes" ]]; then
+  RESTO_EXISTS=$(PGPASSWORD=${DATABASE_USER_PASSWORD} psql -XAt -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h ${DATABASE_HOST} -p ${DATABASE_EXPOSED_PORT} -c "select count(*) from information_schema.routines where routine_name = 'st_splitdateline'")
+
+  if [[ "${RESTO_EXISTS}" == "0" ]]; then
+    # exports expected variables for the script
+    export POSTGRES_PASSWORD=${DATABASE_USER_PASSWORD:-resto}
+    export PGPASSWORD=${DATABASE_USER_PASSWORD:-resto}
+    export POSTGRES_USER=${DATABASE_USER_NAME:-resto}
+    export POSTGRES_DB=${DATABASE_NAME:-resto}
+    export POSTGRES_HOST=${DATABASE_HOST:-localhost}
+    export POSTGRES_PORT=${DATABASE_PORT:-5432}
+    echo -e "[INFO] No resto DB structure detected, creating one in db ${GREEN}${POSTGRES_DB}${NC}..."
+    $(dirname $0)/build/resto-database/installDB.sh
+  fi
+fi
+
+#
+# Create ADMIN_USER if not exist or update ADMIN_USER's password if it already exists
 $(dirname $0)/scripts/createAdminUser.sh -e ${ENV_FILE}
 
 echo -e ""
 
-# 
+#
 # Display mount point for database  
 # MacOS X is a bit tricky - https://stackoverflow.com/questions/41273514/access-docker-volume-mountpoint-with-docker-for-mac
 #
 if [[ ! "$OSTYPE" == "darwin"* ]]; then
-    MOUNT_POINT=$(docker volume inspect ${PROJECT_NAME}"_database_data"| grep Mountpoint | awk -F\" '{print $4}')
-    echo -e "[INFO] Database mount point is ${GREEN}${MOUNT_POINT}${NC}"
+  if [[ "${DATABASE_IS_EXTERNAL}" == "no" ]]; then
+      MOUNT_POINT=$(docker volume inspect ${PROJECT_NAME}"_database_data"| grep Mountpoint | awk -F\" '{print $4}')
+      echo -e "[INFO] Database mount point is ${GREEN}${MOUNT_POINT}${NC}"
+  fi
 fi
+
+# some variable cleanup
+unset PGPASSWORD
+unset POSTGRES_PASSWORD
 
 echo -e "[INFO] Application ${GREEN}${PROJECT_NAME}${NC} up and running locally in ${GREEN}${TARGET}${NC} mode at ${GREEN}http://127.0.0.1:${RESTO_EXPOSED_PORT}${NC}"
 echo ""

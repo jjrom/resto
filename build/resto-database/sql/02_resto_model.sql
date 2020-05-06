@@ -7,28 +7,16 @@
 --
 CREATE SCHEMA IF NOT EXISTS resto;
 
--- 
--- Sequence used to generate time based unique identifier (see public.timestamp_to_id() function)
---
-CREATE SEQUENCE IF NOT EXISTS resto.table_id_seq;
-
 --
 -- collections table list all resto collections
 --
 CREATE TABLE IF NOT EXISTS resto.collection (
 
-    -- Unique name for collection.
-    -- It cannot start with a digit and cannot contains special characters
-    name                TEXT PRIMARY KEY,
+    -- Unique id for collection
+    "id"                TEXT PRIMARY KEY,
 
-    -- A short descriptive one-line title for the collection
-    title               TEXT,
-
-    -- Detailed multi-line description to fully explain the collection.
-    description         TEXT,
-
-    -- Keywords
-    keywords            TEXT[],
+    -- Collection version
+    version             TEXT,
 
     -- Model used to ingest collection metadata
     model               TEXT,
@@ -39,9 +27,6 @@ CREATE TABLE IF NOT EXISTS resto.collection (
     -- A default license attached to this collection.
     -- Every feature within this collection will inherit from the collection's license
     licenseid           TEXT,
-
-    -- Mapping for "on the fly" transformation of properties values 
-    mapping             JSON,
 
     -- Visibility - group visibility (only user within this group can see collection)
     visibility          INTEGER,
@@ -59,7 +44,16 @@ CREATE TABLE IF NOT EXISTS resto.collection (
     completiondate      TIMESTAMP,
 
     -- Spatial extent of the collection
-    bbox                GEOMETRY(GEOMETRY, 4326)
+    bbox                GEOMETRY(GEOMETRY, 4326),
+
+    -- [STAC] Providers
+    providers           JSON,
+
+    -- [STAC] Additional properties
+    properties          JSON,
+
+    -- [STAC] Static links
+    links               JSON
 
 );
 
@@ -68,8 +62,8 @@ CREATE TABLE IF NOT EXISTS resto.collection (
 --
 CREATE TABLE IF NOT EXISTS resto.osdescription (
 
-    -- Reference resto.collection.name
-    collection          TEXT REFERENCES resto.collection (name) ON DELETE CASCADE, 
+    -- Reference resto.collection.id
+    collection          TEXT REFERENCES resto.collection (id) ON DELETE CASCADE, 
 
     -- OpenSearch description lang
     lang                TEXT,
@@ -105,13 +99,10 @@ CREATE TABLE IF NOT EXISTS resto.osdescription (
 --
 CREATE TABLE IF NOT EXISTS resto.feature (
 
-    -- [INDEXED] Unique identifier based on published date
-    -- "id"                BIGINT PRIMARY KEY DEFAULT public.timestamp_to_id(clock_timestamp(), 1, nextval('resto.table_id_seq')),
-
     -- [INDEXED] UUID v5 based on productidentifier
     "id"                UUID PRIMARY KEY DEFAULT public.uuid_generate_v4(),
 
-    -- [INDEXED] Reference resto.collection.name - A feature is within one and only one collection
+    -- [INDEXED] Reference resto.collection.id - A feature is within one and only one collection
     collection          TEXT NOT NULL, 
 
     -- Vendor identifier (for migration)
@@ -143,12 +134,6 @@ CREATE TABLE IF NOT EXISTS resto.feature (
 
     -- Number of comments for this feature. Used by Social add-on
     comments            INTEGER, 
-
-    -- Url to a preview for this feature
-    quicklook           TEXT,
-
-    -- Url to a thumbnails for this feature
-    thumbnail           TEXT,
 
     -- Metadata. You can put whatever you want.
     -- Field indexation is based on collection type
@@ -197,10 +182,10 @@ CREATE TABLE IF NOT EXISTS resto.feature (
     --
     links               JSON,
 
-    -- Timestamp of publication for this feature
-    published           TIMESTAMP,
+    -- Timestamp of creation for this feature metadata
+    created           TIMESTAMP,
 
-    -- Timestamp of update for this feature
+    -- Timestamp of update for this feature metadata
     updated             TIMESTAMP,
 
     -- Keywords computed by Tag add-on
@@ -215,7 +200,7 @@ CREATE TABLE IF NOT EXISTS resto.feature (
     hashtags            TEXT[],
 
     -- Original geometry as provided during feature insertion
-    -- It is set to NULL if equals to _geometry (see below) 
+    -- It is set to NULL if equals to geom (see below) 
     geometry            GEOMETRY(GEOMETRY, 4326),
     
     -- Centroid computed from geometry
@@ -224,8 +209,8 @@ CREATE TABLE IF NOT EXISTS resto.feature (
     -- Result of ST_SplitDateLine(geometry)
     -- Guarantee a valid geometry in database even if input geometry crosses -180/180 meridian of crosses North or South pole
     -- If input geometry does not cross one of this case, then input geometry is not
-    -- modified and _geometry equals geomety.
-    _geometry           GEOMETRY(GEOMETRY, 4326),
+    -- modified and geom equals geomety.
+    geom           GEOMETRY(GEOMETRY, 4326),
 
     -- [INDEXED] Hashtags
     -- 
@@ -236,8 +221,8 @@ CREATE TABLE IF NOT EXISTS resto.feature (
     -- [INDEXED] Start date unique iterator
     startdate_idx       BIGINT,
     
-    -- [INDEXED] Published date unique iterator
-    published_idx       BIGINT
+    -- [INDEXED] Created date unique iterator
+    created_idx       BIGINT
 
 );
 
@@ -271,7 +256,7 @@ CREATE TABLE IF NOT EXISTS resto.feature_landcover (
     -- [INDEXED] Reference resto.feature.id
     "id"                UUID PRIMARY KEY REFERENCES resto.feature (id) ON DELETE CASCADE,
 
-    -- Collection name
+    -- Collection id
     collection          TEXT NOT NULL, 
 
     -- Percentage of cultivated area
@@ -314,7 +299,7 @@ CREATE TABLE IF NOT EXISTS resto.feature_satellite (
     -- [INDEXED] Reference resto.feature.id
     "id"                UUID PRIMARY KEY REFERENCES resto.feature (id) ON DELETE CASCADE,
 
-    -- Collection name
+    -- Collection id
     collection          TEXT NOT NULL,
 
     -- Image resolution in meters
@@ -330,7 +315,7 @@ CREATE TABLE IF NOT EXISTS resto.feature_optical (
     -- [INDEXED] Reference resto.feature.id
     "id"                UUID PRIMARY KEY REFERENCES resto.feature (id) ON DELETE CASCADE,
 
-    -- Collection name
+    -- Collection id
     collection          TEXT NOT NULL,
     
     -- Percentage of snow in area
@@ -347,7 +332,7 @@ CREATE TABLE IF NOT EXISTS resto.feature_optical (
 CREATE TABLE IF NOT EXISTS resto.user (
 
     -- Unique identifier based on resto serial (timestamp)
-    "id"                BIGINT PRIMARY KEY DEFAULT public.timestamp_to_id(clock_timestamp(), 1, nextval('resto.table_id_seq')),
+    "id"                BIGINT PRIMARY KEY DEFAULT public.timestamp_to_id(clock_timestamp()),
 
     -- Email adress
     email               TEXT NOT NULL UNIQUE,
@@ -492,7 +477,7 @@ CREATE TABLE IF NOT EXISTS resto.right (
     -- Reference to resto.group.groupid
     groupid             BIGINT,
 
-    -- Reference resto.collection.name
+    -- Reference resto.collection.id
     collection          TEXT,
 
     -- Reference resto.feature.id
@@ -558,10 +543,10 @@ CREATE TABLE IF NOT EXISTS resto.revokedtoken (
 --
 CREATE TABLE IF NOT EXISTS resto.facet (
 
-    -- Identifier for the facet (unique in combination with collection name)
+    -- Identifier for the facet (unique in combination with collection id)
     id                  TEXT NOT NULL,
 
-    -- Collection name attached to the facet
+    -- Collection id attached to the facet
     collection          TEXT NOT NULL,
     
     -- Facet value
@@ -571,7 +556,7 @@ CREATE TABLE IF NOT EXISTS resto.facet (
     type                TEXT,
 
     -- Parent identifier (i.e. 'europe' for facet 'france')
-    pid                 TEXT,
+    pid                 TEXT NOT NULL,
 
     -- Set to 1 if facet is a terminal leaf, 0 otherwise (used for STAC)
     isleaf              INTEGER,
@@ -585,8 +570,8 @@ CREATE TABLE IF NOT EXISTS resto.facet (
     -- Creator of the facet
     creator             BIGINT,
 
-    -- The id,collection pair should be unique
-    PRIMARY KEY (id, collection)
+    -- The id, pid, collection pair should be unique
+    PRIMARY KEY (id, pid, collection)
 
 );
 

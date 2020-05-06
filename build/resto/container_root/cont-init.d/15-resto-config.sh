@@ -13,9 +13,12 @@ fi
 # Add-ons configuration
 touch /tmp/addons.template
 for config in $(ls /cfg/*.config); do
-    echo "[CONFIG] Add add-on configuration " . $config
-    cat $config | awk '{print "      ", $0}' >> /tmp/addons.template
-    echo -n "," >> /tmp/addons.template
+    nbOfLines=`wc -l ${config} | awk '{print $1}'`
+    if [[ "${nbOfLines}" != "0" ]]; then
+        echo "[CONFIG] Add add-on configuration " . $config
+        cat $config | awk '{print "      ", $0}' >> /tmp/addons.template
+        echo -n "," >> /tmp/addons.template
+    fi
 done
 
 # Replace __ADDONS__
@@ -24,11 +27,20 @@ sed -i -e '/__ADDONS__/{' -e 'r /tmp/addons.template' -e 'd' -e '}' ${CONFIG_TEM
 # From there we use environment variables passed during container startup
 mkdir -v /etc/resto
 
+# [TODO] To be removed
 # Add brackets around elements of comma separated lists
-SUPPORTED_LANGUAGES=\"$(echo $SUPPORTED_LANGUAGES | sed s/,/\",\"/g)\"
-CORS_WHITELIST=\"$(echo $CORS_WHITELIST | sed s/,/\",\"/g)\"
-SEARCH_SORTABLE_FIELDS=\"$(echo $SEARCH_SORTABLE_FIELDS | sed s/,/\",\"/g)\"
-ADDON_TAG_ITAG_TAGGERS=\"$(echo $ADDON_TAG_ITAG_TAGGERS | sed s/,/\",\"/g)\"
+#if [ ! -z "${SUPPORTED_LANGUAGES}" ]; then
+#    SUPPORTED_LANGUAGES=\"$(echo $SUPPORTED_LANGUAGES | sed s/,/\",\"/g)\"
+#fi
+#if [ ! -z "${CORS_WHITELIST}" ]; then
+#    CORS_WHITELIST=\"$(echo $CORS_WHITELIST | sed s/,/\",\"/g)\"
+#fi
+#if [ ! -z "${SEARCH_SORTABLE_FIELDS}" ]; then
+#    SEARCH_SORTABLE_FIELDS=\"$(echo $SEARCH_SORTABLE_FIELDS | sed s/,/\",\"/g)\"
+#fi
+#if [ ! -z "${ADDON_TAG_ITAG_TAGGERS}" ]; then
+#    ADDON_TAG_ITAG_TAGGERS=\"$(echo $ADDON_TAG_ITAG_TAGGERS | sed s/,/\",\"/g)\"
+#fi
 
 # Awfull trick
 eval "cat <<EOF

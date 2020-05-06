@@ -54,12 +54,32 @@ class CollectionsAPI
      *          description="List of all collection descriptions",
      *          @OA\JsonContent(
      *              @OA\Property(
-     *                  property="osDescription",
-     *                  ref="#/components/schemas/OpenSearchDescription"
+     *                  property="extent",
+     *                  type="object",
+     *                  ref="#/components/schemas/Extent"
      *              ),
      *              @OA\Property(
-     *                  property="statistics",
-     *                  ref="#/components/schemas/Statistics"
+     *                   property="resto:info",
+     *                   type="object",
+     *                   description="resto additional information",
+     *                   @OA\JsonContent(
+     *                       @OA\Property(
+     *                           property="osDescription",
+     *                           type="object",
+     *                           ref="#/components/schemas/OpenSearchDescription"
+     *                       )
+     *                   )
+     *              ),
+     *              @OA\Property(
+     *                  property="summaries",
+     *                  type="object",
+     *                  @OA\JsonContent(
+     *                      @OA\Property(
+     *                          property="resto:stats",
+     *                          type="object",
+     *                          ref="#/components/schemas/Statistics"
+     *                      )
+     *                  )
      *              ),
      *              @OA\Property(
      *                  property="collections",
@@ -70,66 +90,141 @@ class CollectionsAPI
      *                  )
      *              ),
      *              example={
-     *                  "osDescription": {
-     *                      "ShortName": "Datasources",
-     *                      "LongName": "Datasources search service",
-     *                      "Description": "Search on all datasources (i.e. S2)",
-     *                      "Tags": "snapplanet",
-     *                      "Developer": "SnapPlanet team",
-     *                      "Contact": "jrom@snapplanet.io",
-     *                      "Query": "europe 2016",
-     *                      "Attribution": "SnapPlanet. Copyright 2016, All Rights Reserved"
+     *                  "extent": {
+     *                      "spatial": {
+     *                          "bbox": {
+     *                              {
+     *                                  -180,
+     *                                  -77.28054,
+     *                                  180,
+     *                                  82.77201
+     *                              }
+     *                          },
+     *                          "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
+     *                      },
+     *                      "temporal": {
+     *                          "interval": {
+     *                              {
+     *                                  "min": "2018-09-13T05:58:08.367000Z",
+     *                                  "max": "2019-06-11T16:11:41.808000Z"
+     *                              }
+     *                          },
+     *                          "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"
+     *                      }
      *                  },
-     *                  "statistics": {
-     *                      "count": 5322692,
-     *                      "facets": {
-     *                          "collection": {
-     *                              "Example": 5074851
-     *                          },
-     *                          "continent": {
-     *                              "Africa": 671538,
-     *                              "Antarctica": 106337,
-     *                              "Asia": 747836,
-     *                              "Europe": 1992742,
-     *                              "North America": 1012027,
-     *                              "Oceania": 218789,
-     *                              "Seven seas (open ocean)": 9481,
-     *                              "South America": 313983
-     *                          },
-     *                          "instrument": {
-     *                              "HRS": 2,
-     *                              "MSI": 5322690
-     *                          },
-     *                          "platform": {
-     *                              "S2A": 3346304,
-     *                              "S2B": 1976386,
-     *                              "SPOT6": 1
-     *                          },
-     *                          "processingLevel": {
-     *                              "LEVEL1C": 5322690
-     *                          },
-     *                          "productType": {
-     *                              "PX": 2,
-     *                              "REFLECTANCE": 5322690
+     *                  "summaries": {
+     *                      "resto:stats": {
+     *                          "count": 11310,
+     *                          "facets": {
+     *                              "collection": {
+     *                                  "L8": 11307
+     *                              }
      *                          }
+     *                      }
+     *                  },
+     *                  "resto:info": {
+     *                      "osDescription": {
+     *                          "ShortName": "resto",
+     *                          "LongName": "resto search service",
+     *                          "Description": "Search on all collections",
+     *                          "Tags": "resto",
+     *                          "Developer": "J\u00e9r\u00f4me Gasperi",
+     *                          "Contact": "jerome.gasperi@gmail.com",
+     *                          "Query": "europe 2015",
+     *                          "Attribution": "Copyright 2018, All Rights Reserved"
      *                      }
      *                  },
      *                  "collections": {
      *                      {
-     *                          "name": "S2",
-     *                          "visibility": "public",
-     *                          "owner": "1919680409029837825",
-     *                          "model": "OpticalModel",
-     *                          "licenseId": "unlicensed",
-     *                          "osDescription": {
-     *                              "ShortName": "S2",
-     *                              "LongName": "Sentinel-2",
-     *                              "Description": "Sentinel-2 tiles",
-     *                              "Tags": "s2 sentinel2",
-     *                              "Developer": "Jérôme Gasperi",
-     *                              "Contact": "jerome.gasperi@gmail.com",
-     *                              "Query": "Toulouse",
-     *                              "Attribution": "Copyright 2019, All Rights Reserved"
+     *                          "id": "L8",
+     *                          "title": "Landsat-8",
+     *                          "description": "Landsat represents the world's longest continuously acquired collection of space-based moderate-resolution land remote sensing data. Four decades of imagery provides a unique resource for those who work in agriculture, geology, forestry, regional planning, education, mapping, and global change research. Landsat images are also invaluable for emergency response and disaster relief",
+     *                          "keywords": {
+     *                              "landsat",
+     *                              "level1C",
+     *                              "USGS"
+     *                          },
+     *                          "license": "proprietary",
+     *                          "extent": {
+     *                              "spatial": {
+     *                                  "bbox": {
+     *                                      {
+     *                                          -180,
+     *                                          -77.28054,
+     *                                          180,
+     *                                          82.77201
+     *                                      }
+     *                                  },
+     *                                  "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
+     *                              },
+     *                              "temporal": {
+     *                                  "interval": {
+     *                                      {
+     *                                          "2019-05-19T13:59:47.695508Z",
+     *                                          "2019-06-06T13:28:04.338517Z"
+     *                                      }
+     *                                  },
+     *                                  "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"
+     *                              }
+     *                          },
+     *                          "links": {
+     *                              {
+     *                                  "rel": "self",
+     *                                  "type": "application/json",
+     *                                  "href": "http://127.0.0.1:5252/collections.json?&_pretty=1"
+     *                              },
+     *                              {
+     *                                  "rel": "root",
+     *                                  "type": "application/json",
+     *                                  "href": "http://127.0.0.1:5252"
+     *                              }
+     *                          },
+     *                          "resto:info": {
+     *                              "model": "OpticalModel",
+     *                              "lineage": {
+     *                                  "DefaultModel",
+     *                                  "LandCoverModel",
+     *                                  "SatelliteModel",
+     *                                  "OpticalModel"
+     *                              },
+     *                              "osDescription": {
+     *                                  "ShortName": "Landsat-8",
+     *                                  "LongName": "Images Landsat-8 niveau 1C",
+     *                                  "Description": "Landsat represents the world's longest continuously acquired collection of space-based moderate-resolution land remote sensing data. Four decades of imagery provides a unique resource for those who work in agriculture, geology, forestry, regional planning, education, mapping, and global change research. Landsat images are also invaluable for emergency response and disaster relief",
+     *                                  "Tags": "landsat level1C USGS",
+     *                                  "Developer": "J\u00e9r\u00f4me Gasperi",
+     *                                  "Contact": "jrom@snapplanet.io",
+     *                                  "Query": "USA 2019",
+     *                                  "Attribution": "USGS/NASA Landsat"
+     *                              },
+     *                              "owner": "203883411255198721"
+     *                          },
+     *                          "summaries": {
+     *                              "datetime": {
+     *                                  "min": "2019-05-19T13:59:47.695508Z",
+     *                                  "max": "2019-06-06T13:28:04.338517Z"
+     *                              },
+     *                              "eo:instrument": {
+     *                                  "OLI_TIRS",
+     *                                  "TIRS"
+     *                              },
+     *                              "eo:platform": {
+     *                                  "LANDSAT_8"
+     *                              },
+     *                              "processingLevel": {
+     *                                  "LEVEL1C"
+     *                              },
+     *                              "productType": {
+     *                                  "L1GT",
+     *                                  "L1TP"
+     *                              },
+     *                              "sensorType": {
+     *                                  "OPTICAL"
+     *                              }
+     *                          },
+     *                          "stac_version": "0.8.0",
+     *                          "stac_extensions": {
+     *                              "eo"
      *                          }
      *                      }
      *                  }
@@ -141,80 +236,38 @@ class CollectionsAPI
      */
     public function getCollections($params)
     {   
-        return (new RestoCollections($this->context, $this->user, array('fullStats' => isset($params['_stats']) ? true : false)))->load();
+        return (new RestoCollections($this->context, $this->user))->load();
     }
 
     /**
      * Return collection description
      *
      *  @OA\Get(
-     *      path="/collections/{collectionName}",
+     *      path="/collections/{collectionId}",
      *      summary="Get collection",
      *      description="Returns collection description including statistics (i.e. number of products, etc.)",
      *      tags={"Collection"},
      *      @OA\Parameter(
-     *         name="collectionName",
+     *         name="collectionId",
      *         in="path",
      *         required=true,
-     *         description="Collection name",
+     *         description="Collection identifier",
      *         @OA\Schema(
      *             type="string"
+     *         )
+     *      ),
+     *      @OA\Parameter(
+     *         name="_stats",
+     *         in="query",
+     *         description="True to return full statistics in summaries property. Default is *false*",
+     *         @OA\Schema(
+     *             type="boolean"
      *         )
      *      ),
      *      @OA\Response(
      *          response="200",
      *          description="Collection description",
-     *          @OA\JsonContent(
-     *              ref="#/components/schemas/OutputCollection",
-     *              example={
-     *                  "name": "S2",
-     *                  "model": "OpticalModel",
-     *                  "licenseId": "unlicensedwithregistration",
-     *                  "osDescription": {
-     *                      "ShortName": "S2",
-     *                      "LongName": "Sentinel-2",
-     *                      "Description": "Sentinel-2 tiles",
-     *                      "Tags": "s2 sentinel2",
-     *                      "Developer": "Jérôme Gasperi",
-     *                      "Contact": "jerome.gasperi@@gmail.com",
-     *                      "Query": "Toulouse",
-     *                      "Attribution": "Copyright 2019, All Rights Reserved"
-     *                  },
-     *                  "owner": "1359450309943886849",
-     *                  "visibility": 1,
-     *                  "statistics": {
-     *                      "count": 5322724,
-     *                      "facets": {
-     *                          "continent": {
-     *                              "Africa": 671538,
-     *                              "Antarctica": 106337,
-     *                              "Asia": 747847,
-     *                              "Europe": 1992756,
-     *                              "North America": 1012027,
-     *                              "Oceania": 218789,
-     *                              "Seven seas (open ocean)": 9481,
-     *                              "South America": 313983
-     *                          },
-     *                          "instrument": {
-     *                              "HRS": 2,
-     *                              "MSI": 5322722
-     *                          },
-     *                          "platform": {
-     *                              "S2A": 3346319,
-     *                              "S2B": 1976403,
-     *                              "SPOT6": 1
-     *                          },
-     *                          "processingLevel": {
-     *                              "LEVEL1C": 5322722
-     *                          },
-     *                          "productType": {
-     *                              "PX": 2,
-     *                              "REFLECTANCE": 5322722
-     *                          }
-     *                      }
-     *                  }
-     *              }
-     *          )
+     *          @OA\JsonContent(ref="#/components/schemas/OutputCollection")
      *      ),
      *      @OA\Response(
      *          response="404",
@@ -227,7 +280,7 @@ class CollectionsAPI
      */
     public function getCollection($params)
     {
-        return (new RestoCollection($params['collectionName'], $this->context, $this->user))->load();
+        return (new RestoCollection($params['collectionId'], $this->context, $this->user))->load();
     }
 
     /**
@@ -254,13 +307,13 @@ class CollectionsAPI
      *              ),
      *              example={
      *                  "status": "success",
-     *                  "message": "Collection Example created"
+     *                  "message": "Collection S2 created"
      *              }
      *          )
      *      ),
      *      @OA\Response(
      *          response="400",
-     *          description="Missing mandatory collection name or collection already exist",
+     *          description="Missing mandatory collection id or collection already exist",
      *          @OA\JsonContent(ref="#/components/schemas/BadRequestError")
      *      ),
      *      @OA\Response(
@@ -275,93 +328,7 @@ class CollectionsAPI
      *      ),
      *      @OA\RequestBody(
      *         description="Collection description",
-     *         @OA\JsonContent(
-     *              required={"name", "model", "osDescription"},
-     *              @OA\Property(
-     *                  property="name",
-     *                  type="string",
-     *                  description="Collection name must be an alphanumeric string containing [a-zA-Z0-9] and not starting with a digit. It is used as the collection identifier"
-     *              ),
-     *              @OA\Property(
-     *                  property="visibility",
-     *                  description="Visibility of this collection. Collections with visibility 1 are visible to all users."
-     *              ),
-     *              @OA\Property(
-     *                  property="model",
-     *                  type="string",
-     *                  description="[For developper] Name of the collection model class under $SRC/include/resto/Models."
-     *              ),
-     *              @OA\Property(
-     *                  property="licenseId",
-     *                  type="string",
-     *                  description="License for this collection. *unlicensed* collection are available for all users. *unlicensedwithregistration* collection are available for all users that are registered and authenticated"
-     *              ),
-     *              @OA\Property(
-     *                  property="rights",
-     *                  type="object",
-     *                  description="Default collection rights settings",
-     *                  @OA\Property(
-     *                      property="download",
-     *                      type="enum",
-     *                      enum={0,1},
-     *                      description="Feature download rights (1 can be downloaded; 0 cannot be downloaded)"
-     *                  ),
-     *                  @OA\Property(
-     *                      property="visualize",
-     *                      type="integer",
-     *                      description="Features visualization rights (1 can be visualized; 0 cannot be visualized)"
-     *                  )
-     *              ),
-     *              @OA\Property(
-     *                  property="osDescription",
-     *                  type="object",
-     *                  required={"en"},
-     *                  @OA\Property(
-     *                      property="en",
-     *                      description="OpenSearch description in English",
-     *                      ref="#/components/schemas/OpenSearchDescription"
-     *                  ),
-     *                  @OA\Property(
-     *                      property="fr",
-     *                      description="OpenSearch description in French",
-     *                      ref="#/components/schemas/OpenSearchDescription"
-     *                  )
-     *              ),
-     *              example={
-     *                  "name": "Example",
-     *                  "model": "SatelliteModel",
-     *                  "visibility": 1,
-     *                  "licenseId": "unlicensed",
-     *                  "rights":{
-     *                      "download":0,
-     *                      "visualize":1
-     *                  },
-     *                  "osDescription": {
-     *                      "en": {
-     *                          "ShortName": "resto collection",
-     *                          "LongName": "A dummy resto collection example",
-     *                          "Description": "A dummy resto collection example",
-     *                          "Tags": "resto example",
-     *                          "Developer": "John Doe",
-     *                          "Contact": "john.doe@dev.null",
-     *                          "Query": "Toulouse",
-     *                          "Attribution": "Copyright 2019, All Rights Reserved"
-     *                      },
-     *                      "fr": {
-     *                          "ShortName": "Collection resto",
-     *                          "LongName": "Un exemple de collection resto",
-     *                          "Description": "Un exemple de collection resto",
-     *                          "Developer": "John Doe",
-     *                          "Contact": "john.doe@dev.null",
-     *                          "Query": "SPOT6",
-     *                          "Attribution": "Copyright 2019"
-     *                      }
-     *                  },
-     *                  "propertiesMapping":{
-     *
-     *                  }
-     *              }
-     *          )
+     *         @OA\JsonContent(ref="/components/schemas/InputCollection")
      *      ),
      *      security={
      *          {"basicAuth":{}, "bearerAuth":{}, "queryAuth":{}}
@@ -384,22 +351,22 @@ class CollectionsAPI
 
         (new RestoCollections($this->context, $this->user))->create($body);
         
-        return RestoLogUtil::success('Collection ' . $body['name'] . ' created');
+        return RestoLogUtil::success('Collection ' . $body['id'] . ' created');
     }
 
     /**
      * Update collection
      *
      * @OA\Put(
-     *      path="/collections/{collectionName}",
+     *      path="/collections/{collectionId}",
      *      summary="Update collection",
-     *      description="Note that *collectionName* and *model* properties cannot be updated",
+     *      description="Note that *collectionId* and *model* properties cannot be updated",
      *      tags={"Collection"},
      *      @OA\Parameter(
-     *         name="collectionName",
+     *         name="collectionId",
      *         in="path",
      *         required=true,
-     *         description="Collection name",
+     *         description="Collection identifier",
      *         @OA\Schema(
      *             type="string"
      *         )
@@ -420,13 +387,13 @@ class CollectionsAPI
      *              ),
      *              example={
      *                  "status": "success",
-     *                  "message": "Collection Example updated"
+     *                  "message": "Collection S2 updated"
      *              }
      *          )
      *      ),
      *      @OA\Response(
      *          response="400",
-     *          description="Missing mandatory collection name",
+     *          description="Missing mandatory collection id",
      *          @OA\JsonContent(ref="#/components/schemas/BadRequestError")
      *      ),
      *      @OA\Response(
@@ -446,65 +413,7 @@ class CollectionsAPI
      *      ),
      *      @OA\RequestBody(
      *         description="Collection description",
-     *         @OA\JsonContent(
-     *              @OA\Property(
-     *                  property="visibility",
-     *                  description="Visibility of this collection. Collections with visibility 1 are visible to all users."
-     *              ),
-     *              @OA\Property(
-     *                  property="licenseId",
-     *                  type="string",
-     *                  description="License for this collection. *unlicensed* collection are available for all users. *unlicensedwithregistration* collection are available for all users that are registered and authenticated"
-     *              ),
-     *              @OA\Property(
-     *                  property="rights",
-     *                  type="object",
-     *                  description="Default collection rights settings",
-     *                  @OA\Property(
-     *                      property="download",
-     *                      type="enum",
-     *                      enum={0,1},
-     *                      description="Feature download rights (1 can be downloaded; 0 cannot be downloaded)"
-     *                  ),
-     *                  @OA\Property(
-     *                      property="visualize",
-     *                      type="integer",
-     *                      description="Features visualization rights (1 can be visualized; 0 cannot be visualized)"
-     *                  )
-     *              ),
-     *              @OA\Property(
-     *                  property="osDescription",
-     *                  type="object",
-     *                  required={"en"},
-     *                  @OA\Property(
-     *                      property="en",
-     *                      description="OpenSearch description in English",
-     *                      ref="#/components/schemas/OpenSearchDescription"
-     *                  ),
-     *                  @OA\Property(
-     *                      property="fr",
-     *                      description="OpenSearch description in French",
-     *                      ref="#/components/schemas/OpenSearchDescription"
-     *                  )
-     *              ),
-     *              example={
-     *                  "osDescription": {
-     *                      "en": {
-     *                          "ShortName": "resto collection",
-     *                          "LongName": "An updated dummy resto collection example",
-     *                          "Description": "A dummy resto collection example",
-     *                          "Tags": "resto example",
-     *                          "Developer": "John Doe",
-     *                          "Contact": "john.doe@dev.null",
-     *                          "Query": "SPOT6",
-     *                          "Attribution": "Copyright 2019, All Rights Reserved"
-     *                      }
-     *                  },
-     *                  "propertiesMapping":{
-     *
-     *                  }
-     *              }
-     *          )
+     *         @OA\JsonContent(ref="/components/schemas/InputCollection")
      *      ),
      *      security={
      *          {"basicAuth":{}, "bearerAuth":{}, "queryAuth":{}}
@@ -516,7 +425,7 @@ class CollectionsAPI
      */
     public function updateCollection($params, $body)
     {
-        $collection = new RestoCollection($params['collectionName'], $this->context, $this->user);
+        $collection = new RestoCollection($params['collectionId'], $this->context, $this->user);
         $collection->load();
         
         /*
@@ -531,22 +440,22 @@ class CollectionsAPI
          */
         $collection->update($body)->store();
 
-        return RestoLogUtil::success('Collection ' . $collection->name . ' updated');
+        return RestoLogUtil::success('Collection ' . $collection->id . ' updated');
     }
 
     /**
      * Delete collection
      *
      * @OA\Delete(
-     *      path="/collections/{collectionName}",
+     *      path="/collections/{collectionId}",
      *      summary="Delete collection",
      *      description="For security reason, only empty collection can be deleted",
      *      tags={"Collection"},
      *      @OA\Parameter(
-     *         name="collectionName",
+     *         name="collectionId",
      *         in="path",
      *         required=true,
-     *         description="Collection name",
+     *         description="Collection identifier",
      *         @OA\Schema(
      *             type="string"
      *         )
@@ -567,13 +476,13 @@ class CollectionsAPI
      *              ),
      *              example={
      *                  "status": "success",
-     *                  "message": "Collection Example deleted"
+     *                  "message": "Collection S2 deleted"
      *              }
      *          )
      *      ),
      *      @OA\Response(
      *          response="400",
-     *          description="Missing mandatory collection name",
+     *          description="Missing mandatory collection id",
      *          @OA\JsonContent(ref="#/components/schemas/BadRequestError")
      *      ),
      *      @OA\Response(
@@ -601,9 +510,8 @@ class CollectionsAPI
      */
     public function deleteCollection($params)
     {
-        $collection = new RestoCollection($params['collectionName'], $this->context, $this->user);
-        $collection->load();
-
+        $collection = (new RestoCollection($params['collectionId'], $this->context, $this->user))->load();
+       
         /*
          * Only owner of a collection can delete it
          */
@@ -611,23 +519,23 @@ class CollectionsAPI
             RestoLogUtil::httpError(403);
         }
 
-        $collection->removeFromStore();
+        (new CollectionsFunctions($this->context->dbDriver))->removeCollection($collection);
 
-        return RestoLogUtil::success('Collection ' . $collection->name . ' deleted');
+        return RestoLogUtil::success('Collection ' . $collection->id . ' deleted');
     }
 
     /**
-     * Add a feature to collection
+     * Add feature(s) to collection
      *
      *  @OA\Post(
-     *      path="/collections/{collectionName}",
-     *      summary="Add feature to collection",
+     *      path="/collections/{collectionId}/items",
+     *      summary="Add feature(s) to collection",
      *      tags={"Collection"},
      *      @OA\Parameter(
-     *         name="collectionName",
+     *         name="collectionId",
      *         in="path",
      *         required=true,
-     *         description="Collection name",
+     *         description="Collection identifier",
      *         @OA\Schema(
      *             type="string"
      *         )
@@ -636,7 +544,7 @@ class CollectionsAPI
      *         name="tolerance",
      *         in="query",
      *         required=false,
-     *         description="Simplify input geometry with tolerance in degrees (use in conjunction with *maxpoints*",
+     *         description="Simplify input geometry with tolerance in degrees (use in conjunction with *maxpoints*). [IMPORTANT] Simplification only affects the internal indexed geometry used by the search engine. The original geometry is stored unmodified.",
      *         @OA\Schema(
      *             type="float"
      *         )
@@ -660,8 +568,13 @@ class CollectionsAPI
      *         )
      *      ),
      *      @OA\RequestBody(
-     *         description="Feature description",
-     *         @OA\JsonContent(ref="#/components/schemas/InputFeature")
+     *         description="Either a GeoJSON Feature or a GeoJSON FeatureCollection",
+     *         @OA\JsonContent(
+     *              oneOf={
+     *                  @OA\Schema(ref="#/components/schemas/InputFeatureCollection"),
+     *                  @OA\Schema(ref="#/components/schemas/InputFeature")    
+     *              }
+     *         )
      *      ),
      *      @OA\Response(
      *          response="200",
@@ -680,7 +593,7 @@ class CollectionsAPI
      *              @OA\Property(
      *                  property="collection",
      *                  type="string",
-     *                  description="Collection name in which feature is inserted"
+     *                  description="Collection identifier in which feature is inserted"
      *              ),
      *              @OA\Property(
      *                  property="featureId",
@@ -690,7 +603,7 @@ class CollectionsAPI
      *              example={
      *                  "status": "success",
      *                  "message": "Feature inserted",
-     *                  "collection": "Example",
+     *                  "collection": "S2",
      *                  "featureId": "c4f6ed9f-35ba-5c85-8449-e437c14ae428"
      *              }
      *          )
@@ -729,13 +642,13 @@ class CollectionsAPI
      * @param array $params
      * @param array $body
      */
-    public function insertFeature($params, $body)
+    public function insertFeatures($params, $body)
     {
 
         /*
          * Load collection
          */
-        $collection = new RestoCollection($params['collectionName'], $this->context, $this->user);
+        $collection = new RestoCollection($params['collectionId'], $this->context, $this->user);
         $collection->load();
         
         /*
@@ -744,11 +657,11 @@ class CollectionsAPI
         if (!$this->user->hasRightsTo(RestoUser::UPDATE, array('collection' => $collection))) {
             RestoLogUtil::httpError(403);
         }
-
+        
         /*
-         * Insert feature within database
+         * Insert feature(s) within database
          */
-        $result = $collection->addFeature($body, array(
+        $result = $collection->addFeatures($body, array(
             'tolerance' => isset($params['tolerance']) && is_numeric($params['tolerance']) ? (float) $params['tolerance'] : null,
             'maxpoints' => isset($params['maxpoints']) && ctype_digit($params['maxpoints']) ? (integer) $params['maxpoints'] : null
         ));
@@ -760,11 +673,6 @@ class CollectionsAPI
             return RestoLogUtil::httpError(500, 'Cannot insert feature in database');
         }
 
-        return RestoLogUtil::success('Feature inserted', array(
-            'collection' => $collection->name,
-            'featureId' => $result['id'],
-            'productIdentifier' => $result['productIdentifier'],
-            'facetsStored' => $result['facetsStored']
-        ));
+        return RestoLogUtil::success('Inserted features', $result);
     }
 }

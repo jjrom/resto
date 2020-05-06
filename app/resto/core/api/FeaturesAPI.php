@@ -36,16 +36,34 @@ class FeaturesAPI
      * Return feature
      *
      * @OA\Get(
-     *      path="/features/{featureId}.{format}",
+     *      path="/collections/{collectionId}/items/{featureId}.{format}",
      *      summary="Get feature",
      *      description="Returns feature {featureId} metadata",
      *      tags={"Feature"},
+     *      @OA\Parameter(
+     *         name="collectionId",
+     *         in="path",
+     *         required=true,
+     *         description="Collection identifier",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *      ),
+     *      @OA\Parameter(
+     *          name="featureId",
+     *          in="path",
+     *          description="Feature identifier",
+     *          required=true,
+     *          @OA\Schema(
+     *             type="string"
+     *         )
+     *      ),
      *      @OA\Parameter(
      *          name="format",
      *          in="path",
      *          description="Output format of the feature - *json* or *atom*",
      *          required=false,
-     *          @OA\Items(
+     *          @OA\Schema(
      *              type="string",
      *              enum={"json", "atom"}
      *          )
@@ -55,10 +73,10 @@ class FeaturesAPI
      *          in="query",
      *          description="Comma separated list of property fields to be returned",
      *          required=false,
-     *          @OA\Items(
+     *          @OA\Schema(
      *              type="string"
      *          ),
-     *          description="Comma separated list of property fields to be returned
+     *          description="Comma separated list of property fields to be returned. The following reserved keywords can also be used:
 * _all: Return all properties
 * _default: Return all fields except *keywords* property"
      *      ),
@@ -84,7 +102,8 @@ class FeaturesAPI
         // [IMPORTANT] Default fields output is "_default"
         $feature = new RestoFeature($this->context, $this->user, array(
             'featureId' => $params['featureId'],
-            'fields' => $this->context->query['fields'] ?? "_default"
+            'fields' => $params['fields'] ?? "_default",
+            'collection' => (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()
         ));
 
         if (!$feature->isValid()) {
@@ -95,448 +114,391 @@ class FeaturesAPI
     }
         
     /**
-     * Search for features in all collections
-     *
-     *  @OA\Get(
-     *      path="/features.{format}",
-     *      summary="Get features (search on all collections)",
-     *      description="List of filters to search features within all collections",
-     *      tags={"Feature"},
-     *      @OA\Parameter(
-     *          name="format",
-     *          in="path",
-     *          description="Output format - one of *atom* or *json*",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="model",
-     *          in="query",
-     *          description="Search features within collections belonging to *model* - e.g. *model=SatelliteModel* will search in all satellite collections",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="q",
-     *          in="query",
-     *          description="Free text search - OpenSearch {searchTerms}",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="limit",
-     *          in="query",
-     *          description="Number of results returned per page - between 1 and 500 (default 50) - OpenSearcg {count}",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="index",
-     *          in="query",
-     *          description="First result to provide - minimum 1, (default 1) - OpenSearch {startIndex}",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="page",
-     *          in="query",
-     *          description="First page to provide - minimum 1, (default 1) - OpenSearch {startPage}",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="lang",
-     *          in="query",
-     *          description="Two letters language code according to ISO 639-1 (default en) - OpenSearch {language}",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="id",
-     *          in="query",
-     *          description="Feature identifier (UUID) - OpenSearch {geo:uid}",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="geometry",
-     *          in="query",
-     *          description="Region of Interest defined in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326) - OpenSearch {geo:geometry}",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="box",
-     *          in="query",
-     *          description="Region of Interest defined by 'west, south, east, north' coordinates of longitude, latitude, in decimal degrees (EPSG:4326) - OpenSearch {geo:box}",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="name",
-     *          in="query",
-     *          description="[EXTENSION][egg] Location string e.g. Paris, France  or toponym identifier (i.e. geouid:xxxx) - OpenSearch {geo:name}",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="lon",
-     *          in="query",
-     *          description="Longitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lat - OpenSearch {geo:lon}",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="lat",
-     *          in="query",
-     *          description="Latitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lon - OpenSearch {geo:lat}",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="radius",
-     *          in="query",
-     *          description="Radius expressed in meters - should be used with geo:lon and geo:lat - OpenSearch {geo:radius}",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="startDate",
-     *          in="query",
-     *          description="Beginning of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:start}",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="completionDate",
-     *          in="query",
-     *          description="End of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:end}",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="updated",
-     *          in="query",
-     *          description="Last update of the product within database - OpenSearch {dc:date}",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="gt",
-     *          in="query",
-     *          description="Returns features with *sort* key value greater than *gt* value - use this for pagination",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="lt",
-     *          in="query",
-     *          description="Returns features with *sort* key value lower than *lt* value - use this for pagination",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="pid",
-     *          in="query",
-     *          description="Like on product identifier",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="sort",
-     *          in="query",
-     *          description="Sort results by property *id*, *startDate* or *likes* (default: id which corresponds to the publication date). Sorting order is DESCENDING (ASCENDING if property is prefixed by minus sign)",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="owner",
-     *          in="query",
-     *          description="Limit search to owner's features",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="likes",
-     *          in="query",
-     *          description="[EXTENSION][social] Limit search to number of likes (interval)",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="liked",
-     *          in="query",
-     *          description="[EXTENSION][social] Return only liked features from calling user",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="status",
-     *          in="query",
-     *          description="Feature status (unusued)",
-     *          required=false
-     *      ),
-     *      @OA\Parameter(
-     *          name="fields",
-     *          in="query",
-     *          required=false,
-     *          @OA\Items(
-     *              type="string"
-     *          ),
-     *          description="Comma separated list of property fields to be returned
-* _all: Return all properties
-* _default: Return all fields except *keywords* property"
-     *      ),
-     *      @OA\Response(
-     *          response="200",
-     *          description="Features collection",
-     *          @OA\JsonContent(ref="#/components/schemas/RestoFeatureCollection")
-     *      ),
-     *      @OA\Response(
-     *          response="400",
-     *          description="Bad request (i.e. invalid parameter)",
-     *          @OA\JsonContent(ref="#/components/schemas/BadRequestError")
-     *      ),
-     *      @OA\Response(
-     *          response="404",
-     *          description="Collection not Found",
-     *          @OA\JsonContent(ref="#/components/schemas/NotFoundError")
-     *      )
-     * )
-     *
-     * @param array params
-     */
-    public function getFeatures($params)
-    {
-
-        $model = null;
-        if (isset($params['model'])) {
-            if (! class_exists($params['model'])) {
-                return RestoLogUtil::httpError(400, 'Unknown model ' . $params['model']);
-            }
-            $model = new $params['model']();
-        }
-        
-        return (new RestoCollections($this->context, $this->user))->load()->search($model);
-    }
-
-    /**
      * Search for features in a given collections
      *
      *  @OA\Get(
-     *      path="/collections/{collectionName}/features.{format}",
+     *      path="/collections/{collectionId}/items.{format}",
      *      summary="Get features (search on a specific collection)",
-     *      description="List of filters to search features within collection {collectionName}",
+     *      description="List of filters to search features within collection {collectionId}",
      *      tags={"Feature"},
+     *      @OA\Parameter(
+     *         name="collectionId",
+     *         in="path",
+     *         required=true,
+     *         description="Collection identifier",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *      ),
      *      @OA\Parameter(
      *          name="format",
      *          in="path",
      *          description="Output format - one of *atom* or *json*",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string",
+     *              enum={"json", "atom"}
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="q",
      *          in="query",
      *          description="Free text search - OpenSearch {searchTerms}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="limit",
      *          in="query",
-     *          description="Number of results returned per page - between 1 and 500 (default 50) - OpenSearcg {count}",
-     *          required=false
+     *          description="Number of results returned per page - between 1 and 500 (default 50) - OpenSearch {count}",
+     *          required=false,
+     *          @OA\Schema(
+     *              type="integer"
+     *          )
      *      ),
      *      @OA\Parameter(
-     *          name="index",
+     *          name="startIndex",
      *          in="query",
      *          description="First result to provide - minimum 1, (default 1) - OpenSearch {startIndex}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="integer"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="page",
      *          in="query",
      *          description="First page to provide - minimum 1, (default 1) - OpenSearch {startPage}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="integer"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="lang",
      *          in="query",
-     *          description="Two letters language code according to ISO 639-1 (default en) - OpenSearch {language}",
-     *          required=false
+     *          description="Two letters language code according to ISO 639-1 (default *en*) - OpenSearch {language}",
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
-     *          name="id",
+     *          name="ids",
      *          in="query",
-     *          description="Feature identifier (UUID) - OpenSearch {geo:uid}",
-     *          required=false
+     *          description="Array of item ids to return. All other filter parameters that further restrict the number of search results (except next and limit) are ignored",
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
-     *          name="geometry",
+     *          name="intersects",
      *          in="query",
-     *          description="Region of Interest defined in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326) - OpenSearch {geo:geometry}",
-     *          required=false
+     *          description="Region of Interest defined in GeoJSON or in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326) - OpenSearch {geo:geometry}",
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
-     *          name="box",
+     *          name="bbox",
      *          in="query",
      *          description="Region of Interest defined by 'west, south, east, north' coordinates of longitude, latitude, in decimal degrees (EPSG:4326) - OpenSearch {geo:box}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string",
+     *              format="west,south,east,north"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="name",
      *          in="query",
      *          description="[EXTENSION][egg] Location string e.g. Paris, France  or toponym identifier (i.e. geouid:xxxx) - OpenSearch {geo:name}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="lon",
      *          in="query",
      *          description="Longitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lat - OpenSearch {geo:lon}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="float"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="lat",
      *          in="query",
      *          description="Latitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lon - OpenSearch {geo:lat}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="float"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="radius",
      *          in="query",
      *          description="Radius expressed in meters - should be used with geo:lon and geo:lat - OpenSearch {geo:radius}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="float"
+     *          )
      *      ),
      *      @OA\Parameter(
-     *          name="startDate",
+     *          name="datetime",
      *          in="query",
-     *          description="Beginning of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:start}",
-     *          required=false
+     *          description="Single date+time, or a range ('/' separator) of the search query. Format should follow RFC-3339 - OpenSearch {time:start}/{time:end}",
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string",
+     *              format="date-time",
+     *              pattern="^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$"
+     *          )
      *      ),
      *      @OA\Parameter(
-     *          name="completionDate",
+     *          name="start",
+     *          in="query",
+     *          description="Beginning of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:start}.",
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string",
+     *              format="date-time",
+     *              pattern="^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$"
+     *          )
+     *      ),
+     *      @OA\Parameter(
+     *          name="end",
      *          in="query",
      *          description="End of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:end}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string",
+     *              format="date-time",
+     *              pattern="^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$"
+     *          )
      *      ),
      *      @OA\Parameter(
-     *          name="updated",
+     *          name="published",
      *          in="query",
-     *          description="Last update of the product within database - OpenSearch {dc:date}",
-     *          required=false
+     *          description="Returns products with metadata publication date greater or equal than *published* - OpenSearch {dc:date}",
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string",
+     *              format="date-time",
+     *              pattern="^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$"
+     *          )
      *      ),
      *      @OA\Parameter(
-     *          name="gt",
+     *          name="prev",
      *          in="query",
-     *          description="Returns features with *sort* key value greater than *gt* value - use this for pagination",
-     *          required=false
+     *          description="Returns features with *sort* key value greater than *prev* value - use this for pagination. The value is a unique iterator computed from the *sort* key value and provided within each feature properties as *sort_idx* property",
+     *          required=false,
+     *          @OA\Schema(
+     *              type="integer"
+     *          )
      *      ),
      *      @OA\Parameter(
-     *          name="lt",
+     *          name="next",
      *          in="query",
-     *          description="Returns features with *sort* key value lower than *lt* value - use this for pagination",
-     *          required=false
+     *          description="Returns features with *sort* key value lower than *next* value - use this for pagination. The value is a unique iterator computed from the *sort* key value and provided within each feature properties as *sort_idx* property",
+     *          required=false,
+     *          @OA\Schema(
+     *              type="integer"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="pid",
      *          in="query",
      *          description="Like on product identifier",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="sort",
      *          in="query",
-     *          description="Sort results by property *id*, *startDate* or *likes* (default: id which corresponds to the publication date). Sorting order is DESCENDING (ASCENDING if property is prefixed by minus sign)",
-     *          required=false
+     *          description="Sort results by property *startDate* or *created* (default *startDate*). Sorting order is DESCENDING (ASCENDING if property is prefixed by minus sign)",
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="owner",
      *          in="query",
      *          description="Limit search to owner's features",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="integer"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="likes",
      *          in="query",
      *          description="[EXTENSION][social] Limit search to number of likes (interval)",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="liked",
      *          in="query",
      *          description="[EXTENSION][social] Return only liked features from calling user",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="boolean"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="status",
      *          in="query",
      *          description="Feature status (unusued)",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="productType",
      *          in="query",
      *          description="[MODEL][SatelliteModel] A string identifying the entry type (e.g. ER02_SAR_IM__0P, MER_RR__1P, SM_SLC__1S, GES_DISC_AIRH3STD_V005) - OpenSearch {eo:productType}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="processingLevel",
      *          in="query",
      *          description="[MODEL][SatelliteModel] A string identifying the processing level applied to the entry - OpenSearch {eo:processingLevel}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="platform",
      *          in="query",
      *          description="[MODEL][SatelliteModel] A string with the platform short name (e.g. Sentinel-1) - OpenSearch {eo:platform}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="instrument",
      *          in="query",
      *          description="[MODEL][SatelliteModel] A string identifying the instrument (e.g. MERIS, AATSR, ASAR, HRVIR. SAR) - OpenSearch {eo:instrument}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="sensorType",
      *          in="query",
      *          description="[MODEL][SatelliteModel] A string identifying the sensor type. Suggested values are: OPTICAL, RADAR, ALTIMETRIC, ATMOSPHERIC, LIMB - OpenSearch {eo:sensorType}",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="cloudCover",
      *          in="query",
      *          description="[MODEL][OpticalModel] Cloud cover expressed in percent",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="snowCover",
      *          in="query",
      *          description="[MODEL][OpticalModel] Snow cover expressed in percent",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="waterCover",
      *          in="query",
      *          description="[MODEL][LandCoverModel] Water area expressed in percent",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="urbanCover",
      *          in="query",
      *          description="[MODEL][LandCoverModel] Urban area expressed in percent",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="iceCover",
      *          in="query",
      *          description="[MODEL][LandCoverModel] Ice area expressed in percent",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="herbaceousCover",
      *          in="query",
      *          description="[MODEL][LandCoverModel] Herbaceous area expressed in percent",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="forestCover",
      *          in="query",
      *          description="[MODEL][LandCoverModel] Forest area expressed in percent",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="floodedCover",
      *          in="query",
      *          description="[MODEL][LandCoverModel] Flooded area expressed in percent",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="desertCover",
      *          in="query",
      *          description="[MODEL][LandCoverModel] Desert area expressed in percent",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Parameter(
      *          name="cultivatedCover",
      *          in="query",
      *          description="[MODEL][LandCoverModel] Cultivated area expressed in percent",
-     *          required=false
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Response(
      *          response="200",
@@ -559,228 +521,109 @@ class FeaturesAPI
      */
     public function getFeaturesInCollection($params)
     {
+        if (isset($params['collections'])) {
+            return RestoLogUtil::httpError(400, 'You cannot specify a list of collections on a single collection search');
+        }
+
         if (isset($params['model'])) {
             return RestoLogUtil::httpError(400, 'You cannot specify a collection and a model at the same time');
         }
-        return (new RestoCollection($params['collectionName'], $this->context, $this->user))->load()->search();
-    }
 
-    /**
-     * Download feature
-     *
-     *  @SWG\Get(
-     *      tags={"Feature"},
-     *      path="/features/{featureId}/download",
-     *      summary="Download feature",
-     *      description="Download feature attached resource i.e. usually the eo product as a zip file or an image file (e.g. TIF)",
-     *      produces={"application/octet-stream"},
-     *      security={
-     *          {
-     *             "localAuthentication": {"download:resource"}
-     *          }
-     *      },
-     *      @SWG\Parameter(
-     *          name="featureId",
-     *          in="path",
-     *          description="Feature identifier",
-     *          required=true,
-     *          type="string",
-     *          @SWG\Items(type="string")
-     *      ),
-     *      @SWG\Parameter(
-     *          name="_tk",
-     *          in="query",
-     *          description="Security token",
-     *          required=false,
-     *          type="string",
-     *          @SWG\Items(type="string")
-     *      ),
-     *      @SWG\Response(
-     *          response="200",
-     *          description="Resource stream"
-     *      ),
-     *      @SWG\Response(
-     *          response="404",
-     *          description="Feature not found"
-     *      ),
-     *      @SWG\Response(
-     *          response="403",
-     *          description="Forbidden"
-     *      )
-     *  )
-     *
-     * @param array params
-     */
-    public function downloadFeature($params)
-    {
-        $feature = new RestoFeature($this->context, $this->user, array(
-            'featureId' => $params['featureId']
-        ));
-
-        /*
-         * Check user download rights
-         */
-        $user = $this->checkRights('download', $this->user, $params['_tk'] ?? null, $feature->collectionName, $feature);
-
-        /*
-         * User must be validated
-         */
-        if (!$user->isValidated()) {
-            RestoLogUtil::httpError(403, 'User profile has not been validated. Please contact an administrator');
+        // [STAC] Only one of either intersects or bbox should be specified. If both are specified, a 400 Bad Request response should be returned.
+        if (isset($params['intersects']) && isset($params['bbox'])) {
+            return RestoLogUtil::httpError(400, 'Only one of either intersects or bbox should be specified');
         }
 
-        /*
-         * Additional check needs License add-on
-         */
-        if (class_exists('RestoLicense')) {
-            
-            $license = (new RestoLicense($this->context, $feature->toArray()['properties']['links']['license']['id']))->load();
-
-            /*
-            * User do not fullfill license requirements
-            */
-            if (!$license->isApplicableToUser($user)) {
-                RestoLogUtil::httpError(403, 'You do not fulfill license requirements');
-            }
-
-            /*
-            * User has to sign the license before downloading
-            */
-            if ($license->hasToBeSignedByUser($user)) {
-                return array(
-                    'ErrorMessage' => 'Forbidden',
-                    'feature' => $feature->id,
-                    'collection' => $feature->collectionName,
-                    'license' => $license->toArray(),
-                    'ErrorCode' => 3002
-                );
-            }
-
-        }
-
-        $feature->download();
-
-        // Very important to stop HTTP Header streaming
-        return null;
-    }
-
-    /**
-     * Access WMS for a given feature
-     *
-     * @SWG\Get(
-     *      tags={"Feature"},
-     *      path="/features/{featureId}/view",
-     *      summary="View full resolution product",
-     *      description="View feature attached resource (i.e. usually the eo product) in full resolution through a WMS stream",
-     *      produces={"application/octet-stream"},
-     *      security={
-     *          {
-     *             "localAuthentication": {"view:resource"}
-     *          }
-     *      },
-     *      @SWG\Parameter(
-     *          name="featureId",
-     *          in="path",
-     *          description="Feature identifier",
-     *          required=true,
-     *          type="string",
-     *          @SWG\Items(type="string")
-     *      ),
-     *      @SWG\Parameter(
-     *          name="_tk",
-     *          in="query",
-     *          description="Security token",
-     *          required=false,
-     *          type="string",
-     *          @SWG\Items(type="string")
-     *      ),
-     *      @SWG\Response(
-     *          response="200",
-     *          description="Resource stream"
-     *      ),
-     *      @SWG\Response(
-     *          response="404",
-     *          description="Feature not found"
-     *      ),
-     *      @SWG\Response(
-     *          response="403",
-     *          description="Forbidden"
-     *      )
-     * @param array $params
-     *
-     */
-    public function viewFeature($params)
-    {
-
-        $feature = new RestoFeature($this->context, $this->user, array(
-            'featureId' => $params['featureId']
-        ));
-
-        /*
-         * Check user download rights
-         */
-        $user = $this->checkRights('visualize', $this->user, $params['_tk'] ?? null, $feature->collectionName, $feature);
-
-        /*
-         * Default is to stream full resolution
-         */
-        $lowRes = false;
-
-        /*
-         * Additional check needs License add-on
-         */
-        if (class_exists('RestoLicense')) {
-
-            /*
-             * User do not fullfill license requirements
-             * Stream low resolution WMS if viewService is public
-             * Forbidden otherwise
-             */
-            $license = (new RestoLicense($this->context, $feature->toArray()['properties']['links']['license']['id']))->load();
-
-            if (!$license->isApplicableToUser($user)) {
-
-                /*
-                 * Check if viewService is public
-                 */
-                if ($license->toArray()['viewService'] !== 'public') {
-                    
-                    /*
-                     * viewService isn't public
-                     */
-                    return RestoLogUtil::httpError(403, 'You do not fulfill license requirements');
-
-                } else {
-                    
-                    /*
-                     * viewService is public, Stream low resolution WMS
-                     */
-                    $lowRes = true;
-
-                }
-            }
-
-        }
-
-        /*
-         * Stream full resolution WMS
-         */
-        (new RestoWMSUtil($this->context, $user))->streamWMS($feature, $lowRes);
-        
-        // Very important to stop HTTP Header streaming
-        return null;
+        return (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()->search($params);
     }
 
     /**
      * Update feature
+     *
+     *  @OA\Put(
+     *      path="/collections/{collectionId}/items/{featureId}",
+     *      summary="Update feature property",
+     *      description="Update feature {featureId}",
+     *      tags={"Feature"},
+     *      @OA\Parameter(
+     *         name="collectionId",
+     *         in="path",
+     *         required=true,
+     *         description="Collection identifier",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *      ),
+     *      @OA\Parameter(
+     *         name="featureId",
+     *         in="path",
+     *         required=true,
+     *         description="Feature identifier",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *      ),
+     *      @OA\Response(
+     *          response="200",
+     *          description="The feature is updated",
+     *          @OA\JsonContent(
+     *              @OA\Property(
+     *                  property="status",
+     *                  type="string",
+     *                  description="Status is *success*"
+     *              ),
+     *              @OA\Property(
+     *                  property="message",
+     *                  type="string",
+     *                  description="Message information"
+     *              ),
+     *              example={
+     *                  "status": "success",
+     *                  "message": "Update feature b9eeaf6b-9868-5418-9455-3e77cd349e21"
+     *              }
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response="400",
+     *          description="Invalide property",
+     *          @OA\JsonContent(ref="#/components/schemas/BadRequestError")
+     *      ),
+     *      @OA\Response(
+     *          response="401",
+     *          description="Unauthorized",
+     *          @OA\JsonContent(ref="#/components/schemas/UnauthorizedError")
+     *      ),
+     *      @OA\Response(
+     *          response="403",
+     *          description="Forbidden",
+     *          @OA\JsonContent(ref="#/components/schemas/ForbiddenError")
+     *      ),
+     *      @OA\Response(
+     *          response="404",
+     *          description="Feature not found",
+     *          @OA\JsonContent(ref="#/components/schemas/NotFoundError")
+     *      ),
+     *      @OA\RequestBody(
+     *         description="Feature description",
+     *         @OA\JsonContent(ref="#/components/schemas/InputFeature")
+     *      ),
+     *      security={
+     *          {"basicAuth":{}, "bearerAuth":{}, "queryAuth":{}}
+     *      }
+     * )
      *
      * @param array $params
      * @param array $body
      */
     public function updateFeature($params, $body)
     {
+
+        // Load collection
+        $collection = (new RestoCollection($params['collectionId'], $this->context, $this->user))->load();
+        
         $feature = new RestoFeature($this->context, $this->user, array(
-            'featureId' => $params['featureId']
+            'featureId' => $params['featureId'],
+            'collection' => $collection
         ));
 
         if (!$feature->isValid()) {
@@ -796,21 +639,28 @@ class FeaturesAPI
                 RestoLogUtil::httpError(403);
             }
         }
-
-        // Load collection
-        $collection = (new RestoCollection($feature->collectionName, $this->context, $this->user))->load();
-
+        
         return $collection->model->updateFeature($feature, $collection, $body);
+
     }
 
     /**
      * Update feature property
      *
      *  @OA\Put(
-     *      path="/features/{featureId}/{property}",
+     *      path="/collections/{collectionId}/items/{featureId}/{property}",
      *      summary="Update feature property",
      *      description="Update {property} for feature {featureId}",
      *      tags={"Feature"},
+     *      @OA\Parameter(
+     *         name="collectionId",
+     *         in="path",
+     *         required=true,
+     *         description="Collection identifier",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *      ),
      *      @OA\Parameter(
      *         name="featureId",
      *         in="path",
@@ -891,8 +741,10 @@ class FeaturesAPI
      */
     public function updateFeatureProperty($params, $body)
     {
+
         $feature = new RestoFeature($this->context, $this->user, array(
-            'featureId' => $params['featureId']
+            'featureId' => $params['featureId'],
+            'collection' => (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()
         ));
 
         if (!$feature->isValid()) {
@@ -912,7 +764,7 @@ class FeaturesAPI
         }
 
         // Only these properties can be updated
-        if (! in_array($params['property'], array('title', 'description', 'visibility', 'owner', 'status', 'quicklook', 'thumbnail'))) {
+        if (! in_array($params['property'], array('title', 'description', 'visibility', 'owner', 'status'))) {
             return RestoLogUtil::httpError(400, 'Invalid property "' . $params['property'] . '"');
         }
         
@@ -921,11 +773,8 @@ class FeaturesAPI
             RestoLogUtil::httpError(403);
         }
 
-        return (new FeaturesFunctions($this->context->dbDriver))->updateFeatureProperty(
-            $feature,
-            $params['property'],
-            $body['value']
-        );
+        return (new FeaturesFunctions($this->context->dbDriver))->updateFeatureProperty($feature, $params['property'], $body['value']);
+        
     }
 
     /**
@@ -933,9 +782,18 @@ class FeaturesAPI
      *
      * @OA\Delete(
      *      tags={"Feature"},
-     *      path="/features/{featureId}",
+     *      path="/collections/{collectionId}/items/{featureId}",
      *      summary="Delete feature",
      *      description="Delete feature {featureId}",
+     *      @OA\Parameter(
+     *         name="collectionId",
+     *         in="path",
+     *         required=true,
+     *         description="Collection identifier",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *      ),
      *      @OA\Parameter(
      *          name="featureId",
      *          in="path",
@@ -993,8 +851,10 @@ class FeaturesAPI
      */
     public function deleteFeature($params)
     {
+
         $feature = new RestoFeature($this->context, $this->user, array(
-            'featureId' => $params['featureId']
+            'featureId' => $params['featureId'],
+            'collection' => (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()
         ));
 
         if (!$feature->isValid()) {
@@ -1012,7 +872,7 @@ class FeaturesAPI
         }
         
         // Result contains boolean for facetsDeleted
-        $result = $feature->removeFromStore();
+        $result = (new FeaturesFunctions($this->context->dbDriver))->removeFeature($feature);
 
         return RestoLogUtil::success('Feature deleted', array(
             'featureId' => $feature->id,
@@ -1020,47 +880,4 @@ class FeaturesAPI
         ));
     }
 
-    /**
-     * Check $action rights returning user
-     *
-     * @param string $action
-     * @param RestoUser $user
-     * @param string $token
-     * @param string $collectionName
-     * @param RestoFeature $feature
-     *
-     */
-    private function checkRights($action, $user, $token, $collectionName, $feature)
-    {
-
-        /*
-         * Get token initiator - bypass user rights
-         */
-        if (!empty($token)) {
-            $userid = (new GeneralFunctions($this->context->dbDriver))->getSharedLinkInitiator(
-                $this->context->getUrl(false),
-                $token
-            );
-
-            /*
-             * Non existing Token => exit
-             */
-            if (!$userid) {
-                RestoLogUtil::httpError(401);
-            }
-
-            if ($user->profile['id'] !== $userid) {
-                $user = new RestoUser(array('id' => $userid), $this->context, true);
-            }
-        } else {
-            if ($action === 'download' && !$user->hasRightsTo(RestoUser::DOWNLOAD, array('collectionName' => $collectionName, 'featureId' => $feature->id))) {
-                RestoLogUtil::httpError(403);
-            }
-            if ($action === 'visualize' && !$user->hasRightsTo(RestoUser::VISUALIZE, array('collectionName' => $collectionName, 'featureId' => $feature->id))) {
-                RestoLogUtil::httpError(403);
-            }
-        }
-
-        return $user;
-    }
 }

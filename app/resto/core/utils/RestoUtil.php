@@ -26,12 +26,49 @@ class RestoUtil
      */
     public static $contentTypes = array(
         'atom' => 'application/atom+xml',
+        'cog' => 'image/tiff; application=geotiff; profile=cloud-optimized',
+        'csv' => 'text/csv',
+        'geojson' => 'application/geo+json',
+        'geopackage' => 'application/geopackage+sqlite3',
+        'geotiff' => 'image/tiff; application=geotiff',
+        'hdf' => 'application/x-hdf',
+        'hdf5' => 'application/x-hdf5',
         'html' => 'text/html',
+        'jpeg' => 'image/jpeg',
+        'jpeg2000' => 'image/jp2',
+        'jp2' => 'image/jp2',
         'json' => 'application/json',
-        'xml' => 'application/xml',
         'meta4' => 'application/metalink4+xml',
-        'csv' => 'text/csv'
+        'mvt' => 'application/vnd.mapbox-vector-tile',
+        'pbf' => 'application/vnd.mapbox-vector-tile',
+        'png' => 'image/png',
+        'xml' => 'application/xml',
+        'zip' => 'application/zip'
     );
+
+    /**
+     * Clean associative array i.e. remove empty or null keys
+     * 
+     * @param array $associativeArray
+     * @return array
+     */
+    public static function cleanAssociativeArray($associativeArray)
+    {
+
+        // Output
+        $cleanArray = array();
+
+        // Eventually unset all empty properties and array
+        foreach (array_keys($associativeArray) as $key) {
+            if (!isset($associativeArray[$key]) || (is_array($associativeArray[$key]) && count($associativeArray[$key]) === 0)) {
+                continue;
+            }
+            $cleanArray[$key] = $associativeArray[$key];
+        }
+        
+        return $cleanArray;
+
+    }
 
     /**
      * Extract hashtags from a string (i.e. #something or -#something)
@@ -118,7 +155,8 @@ class RestoUtil
         if (isset($exploded['query'])) {
             $existingParams = RestoUtil::queryStringToKvps($exploded['query']);
         }
-        return RestoUtil::baseUrl($exploded) . $exploded['path'] . '?' . RestoUtil::kvpsToQueryString(array_merge($existingParams, $newParams));
+        $queryString = RestoUtil::kvpsToQueryString(array_merge($existingParams, $newParams));
+        return RestoUtil::baseUrl($exploded) . $exploded['path'] . ($queryString ? '?' . $queryString : '');
     }
 
     /**

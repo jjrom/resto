@@ -76,6 +76,16 @@ class Tag extends RestoAddOn
     private function keywordsFromITag($properties, $geometry, $taggers)
     {
         
+        /*
+         * No geometry = no iTag
+         * 
+         * [TODO] Add support to null geometry in iTag instead
+         */
+        if ( ! isset($geometry) ) 
+        {
+            return array();
+        }
+
         // Geometry is mandatory - other parameters optional
         $queryParams = array(
             'geometry' => RestoGeometryUtil::geoJSONGeometryToWKT($geometry),
@@ -326,22 +336,45 @@ class Tag extends RestoAddOn
         $parentId = null;
         $keywords = array();
         for ($i = 0, $ii = count($facetCategory); $i < $ii; $i++) {
-            if (isset($properties[$facetCategory[$i]])) {
-                $keyword = array();
-                $id = $facetCategory[$i] . Resto::TAG_SEPARATOR . $properties[$facetCategory[$i]];
-                if (! $this->alreadyExists($keywords, $id)) {
-                    $keyword = array(
-                        'id' => $id,
-                        'name' => $properties[$facetCategory[$i]],
-                        'type' => $facetCategory[$i],
-                    );
-                    if (isset($parentId)) {
-                        $keyword['parentId'] = $parentId;
-                    }
-                    $parentId = $id;
-                    $keywords[] = $keyword;
+            
+            $value = $properties[$facetCategory[$i]] ?? null;
+
+            if (isset($value))
+            {
+
+                // If input property is an array then split into individuals values
+                // This is to support "instruments" for instance
+                // [IMPORTANT] Only a leaf (i.e. the last child) can be an array with more than 1 element
+                // otherwise parentId computation can be erroneous
+                if ( ! is_array($value) ) {
+                    $value = array($value);
                 }
-            } else {
+                
+                $newParentId = null;
+                for ($j = 0, $jj = count($value); $j < $jj; $j++) {
+                    $keyword = array();
+                    $id = $facetCategory[$i] . Resto::TAG_SEPARATOR . $value[$j];
+                    if (! $this->alreadyExists($keywords, $id)) {
+                        $keyword = array(
+                            'id' => $id,
+                            'name' => $value[$j],
+                            'type' => $facetCategory[$i],
+                        );
+                        if (isset($parentId)) {
+                            $keyword['parentId'] = $parentId;
+                        }
+                        $keywords[] = $keyword;
+                        $newParentId = $id;
+                    }
+
+                }
+                if ($newParentId) {
+                    $parentId = $id;
+                }
+                
+            }
+            else
+            {
                 $parentId = null;
             }
         }
@@ -356,6 +389,7 @@ class Tag extends RestoAddOn
      */
     private function getDateKeywords($properties)
     {
+        
         $model = new DefaultModel();
 
         /*
@@ -409,11 +443,13 @@ class Tag extends RestoAddOn
     private function getPopulationKeywords($populationProperty)
     {
         return array(
-            'id' => 'other:population',
-            'name' => 'Population',
-            'type' => 'other',
-            'count' => $populationProperty['count'],
-            'densityPerSquareKm' => $populationProperty['densityPerSquareKm']
+            array(
+                'id' => 'other:population',
+                'name' => 'Population',
+                'type' => 'other',
+                'count' => $populationProperty['count'],
+                'densityPerSquareKm' => $populationProperty['densityPerSquareKm']
+            )
         );
     }
 

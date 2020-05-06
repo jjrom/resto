@@ -50,6 +50,38 @@ For a local installation, you can leave it untouched. Otherwise, just make your 
 
 Note that each time you change the configuration file, you should undeploy then redeploy the service.
 
+### External Database
+resto can use an external PostgreSQL database (version 11+). 
+
+Set the config.env `DATABASE_IS_EXTERNAL` parameter to `yes` to 
+enable an external database.
+
+The following extensions must be installed on the target database:
+ * postgis
+ * postgis_topology
+ * unaccent
+ * uuid-ossp
+ * pg_trgm
+
+For instance suppose that the external database is "resto" :
+
+        DATABASE_NAME=resto
+
+        PGPASSWORD=${DATABASE_SUPERUSER_PASSWORD} createdb -X -v ON_ERROR_STOP=1 -h "${DATABASE_HOST}" -p "${DATABASE_PORT}" -U "${DATABASE_SUPERUSER_NAME}" ${DATABASE_NAME}
+
+        PGPASSWORD=${DATABASE_SUPERUSER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "${DATABASE_HOST}" -p "${DATABASE_PORT}" -U "${DATABASE_SUPERUSER_NAME}" -d "${DATABASE_NAME}" -f ./build/resto-database/sql/00_resto_extensions.sql
+
+Where DATABASE_SUPERUSER_NAME is a database user with sufficient privileges to install extensions ("postgres" user for instance)
+
+A normal PG user with `create schema` rights is necessary in order for resto to operate. To give a user `create schema` rights, run the following sql command:
+
+        grant create on database <dbname> to <dbuser>;
+
+resto tables, functions and triggers will be installed in a `resto` schema by running [scripts/installOnExternalDB.sh](https://github.com/jjrom/resto/blob/resto-stac/scripts/installOnExternalDB.sh):
+
+        cd scripts
+        ./installOnExternalDB.sh -e <config file>
+
 ### Hardware
 **[IMPORTANT]** In production mode (see below), the default configuration of the PostgreSQL server is for a 64Go RAM server. Changes this in [configuration](https://github.com/jjrom/resto/blob/master/config.env) file accordingly to your real configuration
 
