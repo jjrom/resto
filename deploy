@@ -29,7 +29,7 @@ PROJECT_NAME=resto
 #
 set -e
 err_report() {
-    echo -e "${RED}[ERROR] Error on line $1 ${NC}"
+    echo -e "${RED}[ERROR] Error on line $1 - see errors.log file ${NC}"
 }
 trap 'err_report $LINENO' ERR
 
@@ -131,6 +131,9 @@ export DATABASE_NAME=$(grep ^DATABASE_NAME= ${ENV_FILE} | awk -F= '{print $2}' |
 export DATABASE_USER_NAME=$(grep ^DATABASE_USER_NAME= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 export DATABASE_USER_PASSWORD=$(grep ^DATABASE_USER_PASSWORD= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 
+# Clean errors.log file
+rm -f errors.log
+
 echo -e "${YELLOW}[INFO] You're now running ${PROJECT_NAME} installation in **${TARGET}** mode${NC}"
 echo -e "[INFO] Public endpoint is ${GREEN}${PUBLIC_ENDPOINT}${NC}"
 
@@ -205,9 +208,9 @@ if [[ "${DATABASE_IS_EXTERNAL}" == "yes" ]]; then
     export POSTGRES_USER=${DATABASE_USER_NAME:-resto}
     export POSTGRES_DB=${DATABASE_NAME:-resto}
     export POSTGRES_HOST=${DATABASE_HOST:-localhost}
-    export POSTGRES_PORT=${DATABASE_PORT:-5432}
+    export POSTGRES_PORT=${DATABASE_EXPOSED_PORT:-5432}
     echo -e "[INFO] No resto DB structure detected, creating one in db ${GREEN}${POSTGRES_DB}${NC}..."
-    $(dirname $0)/build/resto-database/installDB.sh
+    $(dirname $0)/scripts/installOnExternalDB.sh -e "${ENV_FILE}"
   fi
 fi
 

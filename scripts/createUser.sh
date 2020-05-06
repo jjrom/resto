@@ -131,11 +131,11 @@ else
 fi
 
 if [ "${ID}" != "" ]; then
-PGPASSWORD=${DATABASE_USER_PASSWORD} psql -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h ${DATABASE_HOST} -p ${DATABASE_EXPOSED_PORT} > /dev/null << EOF
+PGPASSWORD=${DATABASE_USER_PASSWORD} psql -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h ${DATABASE_HOST} -p ${DATABASE_EXPOSED_PORT} > /dev/null 2> errors.log << EOF
 INSERT INTO resto.user (id,email,groups,firstname,password,activated,registrationdate) VALUES (${ID}, '${USERNAME}','{${GROUP}}','${USERNAME}','${HASH}', 1, now_utc());
 EOF
 else
-PGPASSWORD=${DATABASE_USER_PASSWORD} psql -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h ${DATABASE_HOST} -p ${DATABASE_EXPOSED_PORT} > /dev/null << EOF
+PGPASSWORD=${DATABASE_USER_PASSWORD} psql -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h ${DATABASE_HOST} -p ${DATABASE_EXPOSED_PORT} > /dev/null 2> errors.log << EOF
 INSERT INTO resto.user (email,groups,firstname,password,activated,registrationdate) VALUES ('${USERNAME}','{${GROUP}}','${USERNAME}','${HASH}', 1, now_utc());
 EOF
 fi

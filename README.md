@@ -73,14 +73,18 @@ For instance suppose that the external database is "resto" :
 
 Where DATABASE_SUPERUSER_NAME is a database user with sufficient privileges to install extensions ("postgres" user for instance)
 
-A normal PG user with `create schema` rights is necessary in order for resto to operate. To give a user `create schema` rights, run the following sql command:
+A normal PG user with `create schema` and `insert on spatial_ref_sys` rights is necessary in order for resto to operate. To give a user the suitable rights, run the following sql commands:
 
         grant create on database <dbname> to <dbuser>;
+        grant insert on table spatial_ref_sys to <dbuser>;
 
 resto tables, functions and triggers will be installed in a `resto` schema by running [scripts/installOnExternalDB.sh](https://github.com/jjrom/resto/blob/resto-stac/scripts/installOnExternalDB.sh):
 
-        cd scripts
-        ./installOnExternalDB.sh -e <config file>
+        ./scripts/installOnExternalDB.sh -e <config file>
+        
+Note: The `insert on spatial_ref_sys` right can be revoked once the database is installed (first deploy) by running:
+    
+    revoke insert on table spatial_ref_sys from <dbuser>; 
 
 ### Hardware
 **[IMPORTANT]** In production mode (see below), the default configuration of the PostgreSQL server is for a 64Go RAM server. Changes this in [configuration](https://github.com/jjrom/resto/blob/master/config.env) file accordingly to your real configuration
