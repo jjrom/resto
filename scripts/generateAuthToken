@@ -1,0 +1,82 @@
+#!/usr/bin/env php
+<?php
+/*
+ * Copyright (C) 2015 Jérôme Gasperi <jerome.gasperi@gmail.com>
+ *
+ * This file is subject to the terms and conditions defined in
+ * file 'LICENSE.txt', which is part of this source code package.
+ */
+require __DIR__ . '/../app/vendor/php-jwt/JWT.php';
+
+/*
+ * Acquisition date are UTC dates
+ */
+date_default_timezone_set('UTC');
+
+/*
+ * Default values
+ */
+$days = 1;
+$help = "\nGenerate a resto JSON Web Token (aka rJWT) authentication token for user\n";
+$help  .= "\n   USAGE : generateAuthToken [options] \n";
+$help .= "   OPTIONS:\n";
+$help .= "          -e [path] : config.env path (mandatory)\n";
+$help .= "          -i [bigint] : userid (mandatory)\n";
+$help .= "          -d [int] : duration of token in days (default " . $days . ")\n\n";
+$options = getopt("d:i:e:h");
+foreach ($options as $option => $value) {
+    if ($option === "d") {
+        $days = $value;
+    }
+    if ($option === "i") {
+        $userid = $value;
+    }
+    if ($option === "e") {
+        $envFile = $value;
+    }
+    if ($option === "h") {
+        echo $help;
+        exit;
+    }
+}
+
+if (!isset($userid)) {
+    echo $help;
+    exit;
+}
+if (!isset($envFile) || !file_exists($envFile)) {
+    echo $help;
+    exit;
+}
+
+$passphrase = null;
+$handle = fopen($envFile, "r");
+if ($handle) {
+    while (($line = fgets($handle)) !== false) {
+        if (strpos($line, 'JWT_PASSPHRASE') === 0) {
+            $exploded = explode('=', $line);
+            $passphrase = str_replace('"', '', rtrim($exploded[1]));
+            break;
+        }
+    }
+    fclose($handle);
+}
+
+if (!isset($passphrase)) {
+    echo "\n[ERROR] Cannot read JWT_PASSPHRASE from input env file\n\n";
+}
+
+$exp = time() + (86400 * $days);
+$splitJWT = explode('.', JWT::encode(array(
+    'sub' => $userid,
+    'iat' => time(),
+    'exp' => time() + (86400 * $days)
+), $passphrase));
+
+echo "-------------------------------------------\n";
+echo "[INFO] Successfully generate rJWT\n";
+echo "[INFO] UserId   : \033[0;32m$userid\033[0m\n";
+echo "[INFO] Validity : \033[0;32m" . date('Y-m-d\TH:i:s', $exp) . "\033[0m ($days days)\n";
+echo "-------------------------------------------\n";
+echo "\033[0;32m" . $splitJWT[1] . '.' .$splitJWT[2] . "\033[0m";
+echo "\n-------------------------------------------\n";
