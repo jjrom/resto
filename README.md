@@ -155,6 +155,15 @@ Assuming that the application name is "resto" (see deploy "-p" option)
 
         docker-compose --project-name resto logs -f
 
+### How to i build locally the docker images
+Use docker-compose:
+
+        # This will build the application server image (i.e. jjrom/resto)
+        docker-compose -f docker-compose.yml build
+
+        # This will build the database server image (i.e. jjrom/resto-database)
+        docker-compose -f docker-compose-restodb.yml build
+
 ## <a name="support"></a>Support
 resto is developped and maintained by [jeobrowser](https://mapshup.com). 
 
