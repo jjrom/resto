@@ -177,7 +177,6 @@ fi
 
 COMPOSE_FILE=${COMPOSE_FILE} ENV_FILE=${ENV_FILE} docker-compose --project-name ${PROJECT_NAME}  up -d
 
-#PGPASSWORD=${DATABASE_USER_PASSWORD}
 if [[ "${DATABASE_IS_EXTERNAL}" == "yes" ]]; then
     DATABASE_HOST_SEEN_FROM_DOCKERHOST=${DATABASE_HOST}
 else
@@ -202,13 +201,6 @@ if [[ "${DATABASE_IS_EXTERNAL}" == "yes" ]]; then
   RESTO_EXISTS=$(PGPASSWORD=${DATABASE_USER_PASSWORD} psql -XAt -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h ${DATABASE_HOST} -p ${DATABASE_EXPOSED_PORT} -c "select count(*) from information_schema.routines where routine_name = 'st_splitdateline'")
 
   if [[ "${RESTO_EXISTS}" == "0" ]]; then
-    # exports expected variables for the script
-    export POSTGRES_PASSWORD=${DATABASE_USER_PASSWORD:-resto}
-    export PGPASSWORD=${DATABASE_USER_PASSWORD:-resto}
-    export POSTGRES_USER=${DATABASE_USER_NAME:-resto}
-    export POSTGRES_DB=${DATABASE_NAME:-resto}
-    export POSTGRES_HOST=${DATABASE_HOST:-localhost}
-    export POSTGRES_PORT=${DATABASE_EXPOSED_PORT:-5432}
     echo -e "[INFO] No resto DB structure detected, creating one in db ${GREEN}${POSTGRES_DB}${NC}..."
     $(dirname $0)/scripts/installOnExternalDB.sh -e "${ENV_FILE}"
   fi
@@ -230,10 +222,6 @@ if [[ ! "$OSTYPE" == "darwin"* ]]; then
       echo -e "[INFO] Database mount point is ${GREEN}${MOUNT_POINT}${NC}"
   fi
 fi
-
-# some variable cleanup
-unset PGPASSWORD
-unset POSTGRES_PASSWORD
 
 echo -e "[INFO] Application ${GREEN}${PROJECT_NAME}${NC} up and running locally in ${GREEN}${TARGET}${NC} mode at ${GREEN}http://127.0.0.1:${RESTO_EXPOSED_PORT}${NC}"
 echo ""
