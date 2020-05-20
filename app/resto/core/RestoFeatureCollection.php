@@ -42,18 +42,8 @@
  *      @OA\Property(
  *          property="context",
  *          description="Information on search query",
- *          required={"next", "returned"},
+ *          required={"returned"},
  *          @OA\Items(
- *              @OA\Property(
- *                  property="next",
- *                  type="string",
- *                  description="The value to set for the next query parameter in order to get the next page of results"
- *              ),
- *              @OA\Property(
- *                  property="prev",
- *                  type="string",
- *                  description="The value to set for the prev query parameter in order to get the previous page of results"
- *              ),
  *              @OA\Property(
  *                  property="returned",
  *                  type="integer",
@@ -207,7 +197,6 @@
  *              }
  *          },
  *          "context": {
- *              "next": "204449069316703379",
  *              "returned": 20,
  *              "limit": 20,
  *              "matched": 11345,
