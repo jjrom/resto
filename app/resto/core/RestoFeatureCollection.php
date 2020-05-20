@@ -592,8 +592,8 @@ class RestoFeatureCollection
          * Set context
          */
         $this->searchContext = array(
-            'next' => $this->next ?? null,
-            'prev' => $this->prev ?? null,
+            /*'next' => $this->next ?? null,
+            'prev' => $this->prev ?? null,*/
             'returned' => $this->paging['count']['returned'],
             'limit' => $sorting['limit'],
             'matched' => $this->paging['count']['total'],
