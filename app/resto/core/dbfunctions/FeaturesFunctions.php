@@ -147,7 +147,14 @@ class FeaturesFunctions
          * Retrieve products from database
          * Note: totalcount is estimated except if input search contains a lon/lat filter
          */
-        $features = (new RestoFeatureUtil($context, $user, $collections))->toFeatureArrayList($this->dbDriver->fetch($this->dbDriver->query($query)));
+        try {
+            $results = $this->dbDriver->query($query);
+        }
+        catch (Exception $e) {
+            return RestoLogUtil::httpError(400, $e->getMessage());
+        }
+        
+        $features = (new RestoFeatureUtil($context, $user, $collections))->toFeatureArrayList($this->dbDriver->fetch($results));
         
         /*
          * Common where clause
