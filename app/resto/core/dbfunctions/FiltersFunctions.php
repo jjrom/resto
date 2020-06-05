@@ -454,7 +454,7 @@ class FiltersFunctions
          * -180/180 line is not crossed
          * (aka the easy part)
          */
-        if ($coords[0] < $coords[2]) {
+        if ($coords[0] <= $coords[2]) {
             $filter = $start . pg_escape_string('POLYGON((' . $coords[0] . ' ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[1] . '))') . $end;
         }
         /*

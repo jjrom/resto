@@ -153,7 +153,7 @@ Assuming that the application name is "resto" (see deploy "-p" option)
 ### How do i check the logs of the running application ?
 Assuming that the application name is "resto" (see deploy "-p" option)
 
-        docker-compose --project-name resto logs -f
+        docker-compose --project-name resto -f docker-compose.yml -f docker-compose-restodb.yml logs -f
 
 ### How to i build locally the docker images
 Use docker-compose:
