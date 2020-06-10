@@ -59,16 +59,16 @@
         "instrument": "MSI",
         "tileId": "23XMD",
         "dataTakeId": "GS2A_20190611T160901_020729_N02.07",
-        "cloudCover": 54.76,
+        "eo:cloud_cover": 54.76,
         "coverage": 93.62,
         "datastripId": "S2A_OPER_MSI_L1C_DS_MTI__20190611T193040_S20190611T160904_N02.07",
         "path": "tiles/23/X/MD/2019/6/11/0",
         "sciHubIngestion": "2019-06-11T21:06:44.314Z",
         "s3Ingestion": "2019-06-11T21:24:01.585Z",
-        "eo:sun_elevation": 52.7900601006242,
-        "eo:sun_azimuth": 199.076369728221,
-        "viewZenith": 7.67887190207369,
-        "viewAzimuth": 312.400523076109
+        "view:sun_elevation": 52.7900601006242,
+        "view:sun_azimuth": 199.076369728221,
+        "view:incidence_angle": 7.67887190207369,
+        "view:azimuth": 312.400523076109
     },
     "assets": {
         "thumbnail": {

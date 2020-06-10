@@ -33,18 +33,43 @@ class SatelliteModel extends LandCoverModel
         /*
          * Satellite model follows STAC EO Extension Specification
          */
-        $this->stacExtensions[] = 'sat';
+        array_push($this->stacExtensions, 'sat', 'view');
         
         /*
          * Extend STAC mapping
          * 
          * See - https://github.com/radiantearth/stac-spec/tree/dev/extensions/sat
+         * See - https://github.com/radiantearth/stac-spec/tree/master/extensions/view
          */
         $this->stacMapping = array_merge($this->stacMapping, array(
+
+            // Name of instrument or sensor used (e.g., MODIS, ASTER, OLI, Canon F-1).
             'instrument' => 'instruments',
-            'resolution' => 'eo:gsd',
+
+            // Ground Sample Distance at the sensor.
+            'resolution' => 'gsd',
+            
+            // The relative orbit number at the time of acquisition.
             'relativeOrbitNumber' => 'sat:relative_orbit',
-            'orbitDirection' => 'sat:orbit_state'
+
+            // The state of the orbit. Either ascending or descending for polar orbiting satellites, or geostationary for geosynchronous satellites
+            'orbitDirection' => 'sat:orbit_state',
+            
+            // The angle from the sensor between nadir (straight down) and the scene center. Measured in degrees (0-90).
+            'offNadir' => 'view:off_nadir',
+            
+            // The incidence angle is the angle between the vertical (normal) to the intercepting surface and the line of sight back to the satellite at the scene center. Measured in degrees (0-90).
+            'incidenceAngle' => 'view:incidence_angle',
+            
+            // Viewing azimuth angle. The angle measured from the sub-satellite point (point on the ground below the platform) between the scene center and true north. Measured clockwise from north in degrees (0-360).
+            'viewAzimuth' => 'view:azimuth',
+            
+            //Sun azimuth angle. From the scene center point on the ground, this is the angle between truth north and the sun. Measured clockwise in degrees (0-360).
+            'sunAzimuth' => 'view:sun_azimuth',
+            
+            //Sun elevation angle. The angle from the tangent of the scene center point to the sun. Measured from the horizon in degrees (0-90).
+            'sunElevation' => 'view:sun_elevation'
+        
         ));
 
         /*

@@ -15,7 +15,7 @@ class STAC extends RestoAddOn
     /*
      * STAC version
      */
-    const STAC_VERSION = '0.9.0';
+    const STAC_VERSION = '1.0.0-beta.1';
 
     /**
      * Add-on version
