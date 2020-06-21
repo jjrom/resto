@@ -55,6 +55,9 @@ CREATE TABLE IF NOT EXISTS resto.collection (
     -- [STAC] Static links
     links               JSON
 
+    -- [STAC] Collection assets
+    assets              JSON
+
 );
 
 --

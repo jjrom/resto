@@ -26,7 +26,7 @@
  *  @OA\Schema(
  *      schema="OutputFeature",
  *      description="Feature returned by resto",
- *      required={"type", "id", "geometry", "properties"},
+ *      required={"type", "id", "geometry", "properties", "collection", "links", "assets"},
  *      @OA\Property(
  *          property="type",
  *          type="enum",
@@ -59,14 +59,30 @@
  *          )
  *      ),
  *      @OA\Property(
+ *          property="collection",
+ *          type="string",
+ *          description="Collection identifier"
+ *      ),
+ *      @OA\Property(
+ *          property="links",
+ *          type="array",
+ *          @OA\Items(ref="#/components/schemas/Link")
+ *      ),
+ *      @OA\Property(
+ *          property="assets",
+ *          type="object",
+ *          @OA\JsonContent(
+ *              @OA\Property(
+ *                  property="thumbnail",
+ *                  type="object",
+ *                  @OA\Items(ref="#/components/schemas/Asset")
+ *              )
+ *          )
+ *      ),
+ *      @OA\Property(
  *          property="properties",
  *          type="object",
  *          description="Feature properties mainly based on *[OGC-13-026r8] OGC OpenSearch Extension for Earth Observation*. Only non null properties are returned",
- *          @OA\Property(
- *              property="collection",
- *              type="string",
- *              description="Name of the features collection"
- *          ),
  *          @OA\Property(
  *              property="title",
  *              type="string",
@@ -78,14 +94,9 @@
  *              description="A descriptipon of the feature"
  *          ),
  *          @OA\Property(
- *              property="startDate",
+ *              property="datetime",
  *              type="string",
- *              description="Start of feature life (e.g. start of acquisition for a satellite imagery) (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)"
- *          ),
- *          @OA\Property(
- *              property="completionDate",
- *              type="string",
- *              description="End of feature life (e.g. end of acquisition for a satellite imagery). Not returned if same as startDate (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)"
+ *              description="Start/end of feature life (e.g. start of acquisition for a satellite imagery) (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ/YYYY-MM-DD-THH:MM:SSZ)"
  *          ),
  *          @OA\Property(
  *              property="udpated",
@@ -147,11 +158,6 @@
  *              property="liked",
  *              type="boolean",
  *              description="True if the user that requests the feature likes it"
- *          ),
- *          @OA\Property(
- *              property="links",
- *              type="array",
- *              @OA\Items(ref="#/components/schemas/Links")
  *          )
  *      ),
  *      example={
@@ -162,42 +168,67 @@
  *              "coordinates": {
  *                  {
  *                      {
- *                          69.979462,
- *                          23.507467
+ *                          -16.34433,
+ *                          -36.136821
  *                      },
  *                      {
- *                          71.054486,
- *                          23.496997
+ *                          -16.002576,
+ *                           -36.14017
  *                      },
  *                      {
- *                          71.039531,
- *                          22.505778
+ *                          -16.003437,
+ *                          -36.207726
  *                      },
  *                      {
- *                          69.972328,
- *                          22.515759
+ *                          -16.003437,
+ *                          -36.207726
  *                      },
  *                      {
- *                          69.979462,
- *                          23.507467
+ *                         -16.073904,
+ *                          -36.193064
+ *                      },
+ *                      {
+ *                          -16.079613,
+ *                          -36.194838
+ *                      },
+ *                      {
+ *                          -16.343729,
+ *                          -36.140707
+ *                      },
+ *                      {
+ *                          -16.343453,
+ *                          -36.137129
+ *                      },
+ *                      {
+ *                          -16.34433,
+ *                          -36.136821
  *                      }
  *                  }
  *              }
  *          },
+ *          "collection": "S2",
  *          "properties": {
- *              "collection": "S2",
- *              "title": "S2:tiles/42/Q/XL/2018/9/13/0",
- *              "productIdentifier": "S2:tiles/42/Q/XL/2018/9/13/0",
- *              "startDate": "2018-09-13T05:58:08.367Z",
+ *              "datetime": "2020-06-21T11:11:28.371000Z",
+ *              "start_datetime": "2020-06-21T11:11:28.371000Z",
+ *              "end_datetime": "2020-06-21T11:11:28.371000Z",
+ *              "productIdentifier": "S2B_MSIL1C_20200621T111039_N0209_R008_T28HCE_20200621T132349",
  *              "updated": "2018-09-13T12:52:25.971969Z",
  *              "published": "2018-09-13T12:52:25.971969Z",
  *              "hashtags": {
- *                  "#s2b",
- *                  "#reflectance",
- *                  "#summer",
- *                  "#coastal"
- *              },
- *              "centroid": {
+ *                  "ocean:SouthAtlanticOcean:3358844",
+ *                   "landcover:water",
+ *                   "location:southern",
+ *                   "season:winter",
+ *                   "collection:S2",
+ *                   "productType:REFLECTANCE",
+ *                   "processingLevel:LEVEL1C",
+ *                   "platform:S2B",
+ *                   "instrument:MSI",
+ *                   "year:2020",
+ *                   "month:06",
+ *                   "day:21"
+ *               },
+ *               "centroid": {
  *                  "type": "Point",
  *                  "coordinates": {
  *                      70.513407,
@@ -206,15 +237,21 @@
  *              },
  *              "likes": 0,
  *              "comments": 0,
- *              "liked": false,
- *              "links": {
- *                  {
- *                      "rel": "self",
- *                      "type": "application/json",
- *                      "title": "GeoJSON link for b9eeaf68-5127-53e5-97ff-ddf44984ef56",
- *                      "href": "https://ds.snapplanet.io/2.0/collections/S2/items/b9eeaf68-5127-53e5-97ff-ddf44984ef56?&collectionId=S2.json&lang=en"
- *                  }
+ *              "liked": false
+ *          },
+ *          "links": {
+ *              {
+ *                  "rel": "self",
+ *                  "type": "application/geo+json",
+ *                  "href": "https://tamn.snapplanet.io/collections/S2/items/af9f811b-f6b7-5dfc-ac43-c1d200a79088"
  *              }
+ *          },
+ *          "assets": {
+ *              "thumbnail": {
+ *                   "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/28/H/CE/2020/6/21/0/preview.jpg",
+ *                   "type": "image/jpeg",
+ *                   "role": "thumbnail"
+ *               }
  *          }
  *      }
  *  )
@@ -274,14 +311,9 @@
  *              description="Original product identifier"
  *          ),
  *          @OA\Property(
- *              property="startDate",
+ *              property="datetime",
  *              type="string",
- *              description="Start of feature life (e.g. start of acquisition for a satellite imagery) (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)"
- *          ),
- *          @OA\Property(
- *              property="completionDate",
- *              type="string",
- *              description="End of feature life (e.g. end of acquisition for a satellite imagery) (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)"
+ *              description="Start/end of feature life (e.g. start of acquisition for a satellite imagery) (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ/YYYY-MM-DD-THH:MM:SSZ)"
  *          ),
  *          @OA\Property(
  *              property="status",
@@ -296,31 +328,47 @@
  *              "coordinates": {
  *                  {
  *                      {
- *                          69.979462,
- *                          23.507467
+ *                          -16.34433,
+ *                          -36.136821
  *                      },
  *                      {
- *                          71.054486,
- *                          23.496997
+ *                          -16.002576,
+ *                           -36.14017
  *                      },
  *                      {
- *                          71.039531,
- *                          22.505778
+ *                          -16.003437,
+ *                          -36.207726
  *                      },
  *                      {
- *                          69.972328,
- *                          22.515759
+ *                          -16.003437,
+ *                          -36.207726
  *                      },
  *                      {
- *                          69.979462,
- *                          23.507467
+ *                         -16.073904,
+ *                          -36.193064
+ *                      },
+ *                      {
+ *                          -16.079613,
+ *                          -36.194838
+ *                      },
+ *                      {
+ *                          -16.343729,
+ *                          -36.140707
+ *                      },
+ *                      {
+ *                          -16.343453,
+ *                          -36.137129
+ *                      },
+ *                      {
+ *                          -16.34433,
+ *                          -36.136821
  *                      }
  *                  }
  *              }
  *          },
  *          "properties": {
- *              "productIdentifier": "S2:tiles/42/Q/XL/2018/9/13/0",
- *              "startDate": "2018-09-13T05:58:08.367Z"
+ *              "productIdentifier": "S2B_MSIL1C_20200621T111039_N0209_R008_T28HCE_20200621T132349",
+ *              "datetime": "2020-06-21T11:11:28.371000Z"
  *          }
  *      }
  *  )

@@ -12,6 +12,85 @@
 class STAC extends RestoAddOn
 {
 
+    /**
+     * Links
+     *
+     * @OA\Schema(
+     *      schema="Link",
+     *      description="Link",
+     *      required={"rel", "href"},
+     *      @OA\Property(
+     *          property="rel",
+     *          type="string",
+     *          description="Relationship between the feature and the linked document/resource"
+     *      ),
+     *      @OA\Property(
+     *          property="type",
+     *          type="string",
+     *          description="Mimetype of the resource"
+     *      ),
+     *      @OA\Property(
+     *          property="title",
+     *          type="string",
+     *          description="Title of the resource"
+     *      ),
+     *      @OA\Property(
+     *          property="href",
+     *          type="string",
+     *          description="Url to the resource"
+     *      ),
+     *      example={
+     *          "rel": "self",
+     *          "type": "application/json",
+     *          "href": "http://127.0.0.1:5252/collections/S2.json?&_pretty=1"
+     *      }
+     * )
+     * 
+     * Assets
+     *
+     * @OA\Schema(
+     *      schema="Asset",
+     *      description="Asset links",
+     *      required={"rel", "href"},
+     *      @OA\Property(
+     *          property="rel",
+     *          type="string",
+     *          description="Relationship between the feature and the linked document/resource"
+     *      ),
+     *      @OA\Property(
+     *          property="type",
+     *          type="string",
+     *          description="Mimetype of the resource"
+     *      ),
+     *      @OA\Property(
+     *          property="title",
+     *          type="string",
+     *          description="Title of the resource"
+     *      ),
+     *      @OA\Property(
+     *          property="href",
+     *          type="string",
+     *          description="Url to the resource"
+     *      ),
+     *      @OA\Property(
+     *          property="roles",
+     *          type="array",
+     *          description="Asset roles",
+     *          @OA\Items(
+     *              type="string",
+     *          )
+     *      ),
+     *      example={
+     *          "href": "https://landsat-pds.s3.amazonaws.com/c1/L8/171/002/LC08_L1TP_171002_20200616_20200616_01_RT/LC08_L1TP_171002_20200616_20200616_01_RT_B1.TIF",
+     *          "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+     *          "roles":{"data"},
+     *          "eo:bands": [
+     *              0
+     *          ]
+     *      }
+     * )
+     */
+
     /*
      * STAC version
      */

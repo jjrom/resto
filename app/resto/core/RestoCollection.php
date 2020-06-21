@@ -84,7 +84,12 @@
  *      @OA\Property(
  *          property="links",
  *          type="array",
- *          @OA\Items(ref="#/components/schemas/Links")
+ *          @OA\Items(ref="#/components/schemas/Link")
+ *      ),
+ *      @OA\Property(
+ *          property="assets",
+ *          type="array",
+ *          @OA\Items(ref="#/components/schemas/Asset")
  *      ),
  *      @OA\Property(
  *          property="providers",
@@ -265,7 +270,7 @@
  *      @OA\Property(
  *          property="links",
  *          type="array",
- *          @OA\Items(ref="#/components/schemas/Links")
+ *          @OA\Items(ref="#/components/schemas/Link")
  *      ),
  *      @OA\Property(
  *          property="resto:info",
@@ -892,7 +897,7 @@ class RestoCollection
             )
         );
 
-        foreach (array_values(array('providers', 'properties')) as $key) {
+        foreach (array_values(array('providers', 'properties', 'assets')) as $key) {
             if (isset($this->$key)) {
                 $collectionArray[$key] = $this->$key;
             }

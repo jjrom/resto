@@ -865,7 +865,7 @@
                                         }, 
                                         "links": {
                                             "items": {
-                                                "$ref": "#/components/schemas/Links"
+                                                "$ref": "#/components/schemas/Link"
                                             }, 
                                             "type": "array", 
                                             "description": "Landing page conforms to OGC API Feature\n(see https://github.com/opengeospatial/ogcapi-features/blob/master/core/standard/17-069.adoc)"
@@ -2319,7 +2319,7 @@
                     }, 
                     "links": {
                         "items": {
-                            "$ref": "#/components/schemas/Links"
+                            "$ref": "#/components/schemas/Link"
                         }, 
                         "type": "array", 
                         "description": "resto collection"
@@ -2693,7 +2693,7 @@
                     }, 
                     "links": {
                         "items": {
-                            "$ref": "#/components/schemas/Links"
+                            "$ref": "#/components/schemas/Link"
                         }, 
                         "type": "array", 
                         "description": "resto collection"
@@ -3277,7 +3277,7 @@
                             }, 
                             "links": {
                                 "items": {
-                                    "$ref": "#/components/schemas/Links"
+                                    "$ref": "#/components/schemas/Link"
                                 }, 
                                 "type": "array", 
                                 "description": "RESTo Feature"
@@ -3529,7 +3529,7 @@
                     }, 
                     "links": {
                         "items": {
-                            "$ref": "#/components/schemas/Links"
+                            "$ref": "#/components/schemas/Link"
                         }, 
                         "type": "array", 
                         "description": "RESTo FeatureCollection"

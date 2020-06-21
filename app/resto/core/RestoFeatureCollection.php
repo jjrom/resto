@@ -37,7 +37,7 @@
  *      @OA\Property(
  *           property="links",
  *           type="array",
- *           @OA\Items(ref="#/components/schemas/Links")
+ *           @OA\Items(ref="#/components/schemas/Link")
  *      ),
  *      @OA\Property(
  *          property="context",
@@ -384,37 +384,6 @@ class RestoFeatureCollection
 
     /**
      * Links
-     *
-     * @OA\Schema(
-     *      schema="Links",
-     *      description="Collection facets statistics",
-     *      required={"rel", "href"},
-     *      @OA\Property(
-     *          property="rel",
-     *          type="string",
-     *          description="Relationship between the feature and the linked document/resource"
-     *      ),
-     *      @OA\Property(
-     *          property="type",
-     *          type="string",
-     *          description="Mimetype of the resource"
-     *      ),
-     *      @OA\Property(
-     *          property="title",
-     *          type="string",
-     *          description="Title of the resource"
-     *      ),
-     *      @OA\Property(
-     *          property="href",
-     *          type="string",
-     *          description="Url to the resource"
-     *      ),
-     *      example={
-     *          "rel": "self",
-     *          "type": "application/json",
-     *          "href": "http://127.0.0.1:5252/collections/S2.json?&_pretty=1"
-     *      }
-     * )
      */
     private $links = array();
 

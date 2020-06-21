@@ -166,7 +166,7 @@ class ServicesAPI
      *              @OA\Property(
      *                  property="links",
      *                  type="array",
-     *                  @OA\Items(ref="#/components/schemas/Links")
+     *                  @OA\Items(ref="#/components/schemas/Link")
      *              )   
      *          )
      *      ),

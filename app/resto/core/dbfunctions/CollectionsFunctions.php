@@ -47,6 +47,7 @@ class CollectionsFunctions
             'owner' => $rawDescription['owner'],
             'providers' => json_decode($rawDescription['providers'], true),
             'properties' => json_decode($rawDescription['properties'], true),
+            'assets' => json_decode($rawDescription['assets'], true),
             'links' => json_decode($rawDescription['links'], true),
             'datetime' => array(
                 'min' => $rawDescription['startdate'] ?? null,
@@ -70,7 +71,7 @@ class CollectionsFunctions
         // Get Opensearch description
         $osDescriptions = $this->getOSDescriptions($id);
         $collection = null;
-        $results = $this->dbDriver->pQuery('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links FROM resto.collection WHERE normalize(id)=normalize($1)', array($id));
+        $results = $this->dbDriver->pQuery('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets FROM resto.collection WHERE normalize(id)=normalize($1)', array($id));
         while ($rowDescription = pg_fetch_assoc($results)) {
             $collection = array_merge(
                 CollectionsFunctions::format($rowDescription),
@@ -95,7 +96,7 @@ class CollectionsFunctions
         // Get all Opensearch descriptions
         $osDescriptions = $this->getOSDescriptions();
         $where = isset($visibilities) && count($visibilities) > 0 ? ' WHERE visibility IN (' . join(',', $visibilities) . ')' : '';
-        $results = $this->dbDriver->query('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links FROM resto.collection ' . $where . ' ORDER BY id');
+        $results = $this->dbDriver->query('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets FROM resto.collection ' . $where . ' ORDER BY id');
         while ($rowDescription = pg_fetch_assoc($results)) {
             $collections[$rowDescription['id']] = array_merge(
                 CollectionsFunctions::format($rowDescription),
@@ -420,15 +421,16 @@ class CollectionsFunctions
                 'providers' => json_encode($collection->providers, JSON_UNESCAPED_SLASHES),
                 'properties' => json_encode($collection->properties, JSON_UNESCAPED_SLASHES),
                 'links' => json_encode($collection->links, JSON_UNESCAPED_SLASHES),
+                'assets' => json_encode($collection->assets, JSON_UNESCAPED_SLASHES),
                 'version' => $collection->version
             );
-            $this->dbDriver->pQuery('INSERT INTO resto.collection (' . join(',', array_keys($toBeSet)) . ') VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)', array_values($toBeSet));
+            $this->dbDriver->pQuery('INSERT INTO resto.collection (' . join(',', array_keys($toBeSet)) . ') VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)', array_values($toBeSet));
         }
         /*
          * Otherwise update collection fields (version, visibility, licenseid, providers and properties)
          */
         else {
-            $this->dbDriver->pQuery('UPDATE resto.collection SET model=$2, lineage=$3, licenseid=$4, visibility=$5, providers=$6, properties=$7, links=$8, version=$9 WHERE id=$1', array(
+            $this->dbDriver->pQuery('UPDATE resto.collection SET model=$2, lineage=$3, licenseid=$4, visibility=$5, providers=$6, properties=$7, links=$8, assets=$9, version=$10 WHERE id=$1', array(
                 $collection->id,
                 $collection->model->getName(),
                 '{' . join(',', $collection->model->getLineage()) . '}',
@@ -437,6 +439,7 @@ class CollectionsFunctions
                 json_encode($collection->providers, JSON_UNESCAPED_SLASHES),
                 json_encode($collection->properties, JSON_UNESCAPED_SLASHES),
                 json_encode($collection->links, JSON_UNESCAPED_SLASHES),
+                json_encode($collection->assets, JSON_UNESCAPED_SLASHES),
                 $collection->version
             ));
         }
