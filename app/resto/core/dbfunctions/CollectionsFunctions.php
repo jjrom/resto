@@ -405,7 +405,7 @@ class CollectionsFunctions
      */
     private function storeCollectionDescription($collection)
     {
-    
+        
         /*
          * Create collection
          */

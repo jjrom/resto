@@ -2627,7 +2627,7 @@
                     "registrationdate": "2016-10-08T22:50:34.187217Z"
                 }
             }, 
-            "Links": {
+            "Link": {
                 "example": {
                     "href": "http://127.0.0.1:5252/collections/S2.json?&_pretty=1", 
                     "type": "application/json", 

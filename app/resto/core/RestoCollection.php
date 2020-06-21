@@ -1020,7 +1020,7 @@ class RestoCollection
         /*
          * Set values
          */
-        foreach (array_values(array('osDescription', 'providers', 'properties', 'links', 'rights')) as $key) {
+        foreach (array_values(array('osDescription', 'providers', 'properties', 'links', 'rights', 'assets')) as $key) {
             $this->$key = $object[$key] ?? array();
         }
 
