@@ -53,10 +53,13 @@ CREATE TABLE IF NOT EXISTS resto.collection (
     properties          JSON,
 
     -- [STAC] Static links
-    links               JSON
+    links               JSON,
 
     -- [STAC] Collection assets
-    assets              JSON
+    assets              JSON,
+
+    -- [STAC] Keywords
+    keywords            TEXT[]
 
 );
 

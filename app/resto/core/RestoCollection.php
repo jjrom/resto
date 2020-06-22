@@ -92,6 +92,14 @@
  *          @OA\Items(ref="#/components/schemas/Asset")
  *      ),
  *      @OA\Property(
+ *          property="keywords",
+ *          type="array",
+ *          description="List of keywords describing the collection.",
+ *          @OA\Items(
+ *              type="string",
+ *          )
+ *      ),
+ *      @OA\Property(
  *          property="providers",
  *          type="array",
  *          description="A list of providers, which may include all organizations capturing or processing the data or the hosting provider. Providers should be listed in chronological order with the most recent provider being the last element of the list",
@@ -866,7 +874,6 @@ class RestoCollection
             'title' => $osDescription['LongName'] ?? $osDescription['ShortName'],
             'version' => $this->version ?? null,
             'description' => $osDescription['Description'],
-            'keywords' => explode(' ', $osDescription['Tags']),
             'license' => $this->licenseId,
             'extent' => $this->getExtent(),
             'links' => array_merge(
@@ -897,7 +904,7 @@ class RestoCollection
             )
         );
 
-        foreach (array_values(array('providers', 'properties', 'assets')) as $key) {
+        foreach (array_values(array('providers', 'properties', 'assets', 'keywords')) as $key) {
             if (isset($this->$key)) {
                 $collectionArray[$key] = $this->$key;
             }
@@ -1016,11 +1023,11 @@ class RestoCollection
          * License - set to 'proprietary' if not specified
          */
         $this->licenseId = $object['licenseId'] ?? 'proprietary';
-       
+        
         /*
          * Set values
          */
-        foreach (array_values(array('osDescription', 'providers', 'properties', 'links', 'rights', 'assets')) as $key) {
+        foreach (array_values(array('osDescription', 'providers', 'properties', 'links', 'rights', 'assets', 'keywords')) as $key) {
             $this->$key = $object[$key] ?? array();
         }
 
