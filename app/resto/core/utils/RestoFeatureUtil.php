@@ -110,7 +110,6 @@ class RestoFeatureUtil
         $featureArray = array(
             'type' => 'Feature',
             'id' => $rawFeatureArray['id'],
-            'bbox' => null,
             'geometry' => null,
             'properties' => array(),
             'collection' => $collection->id,
@@ -146,7 +145,9 @@ class RestoFeatureUtil
                     break;
 
                 case 'bbox4326':
-                    $featureArray['bbox'] = RestoGeometryUtil::box2dTobbox($value);
+                    if (isset($value)) {
+                        $featureArray['bbox'] = RestoGeometryUtil::box2dTobbox($value);
+                    }
                     break;
 
                 case 'keywords':
