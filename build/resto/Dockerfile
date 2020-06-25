@@ -1,4 +1,4 @@
-FROM jjrom/nginx-fpm:latest
+FROM jjrom/nginx-fpm:7.4
 LABEL maintainer="jerome.gasperi@gmail.com"
 
 ENV BUILD_DIR=./build/resto \
