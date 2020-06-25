@@ -27,6 +27,8 @@ services:
     environment: 
       ### Set to 0 in production environment to activate opcache
       - RESTO_DEBUG=0
+      ### Set to 1 in production environment to activate opcache preloading
+      - PHP_OPCACHE_ENABLE_PRELOADING=1
     healthcheck:
       test: ["CMD", "curl", "-f", "http://127.0.0.1"]
       interval: 1m
