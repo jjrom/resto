@@ -55,7 +55,7 @@ class RestoContext
         'storeFacets' => true,
 
         // True to store all user queries to database
-        'storeQuery' => true,
+        'storeQuery' => false,
 
         // Use cache
         'useCache' => false,
