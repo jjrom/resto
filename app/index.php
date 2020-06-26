@@ -21,7 +21,6 @@ spl_autoload_register ( function ($class) {
         "resto/core/",
         "resto/core/addons/",
         "resto/core/api/",
-        "resto/core/dictionaries/",
         "resto/core/dbfunctions/",
         "resto/core/models/",
         "resto/core/utils/",
