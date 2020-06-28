@@ -199,7 +199,7 @@ class FeaturesFunctions
             'value' =>  $model->schema['name'] . '.feature.id=\'' . pg_escape_string((RestoUtil::isValidUUID($featureId) ? $featureId : RestoUtil::toUUID($featureId))) . '\'',
             'isGeo' => false
         );
-        $results = $this->dbDriver->fetch($this->dbDriver->query($selectClause . ' ' . $filterFunctions->getWhereClause($filtersAndJoins, true)));
+        $results = $this->dbDriver->fetch($this->dbDriver->query($selectClause . ' ' . $filterFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => true))));
         return isset($results) && count($results) === 1 ? (new RestoFeatureUtil($context, $user, array($collection->id => $collection)))->toFeatureArray($results[0]) : null;
     }
 
