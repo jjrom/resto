@@ -1115,19 +1115,33 @@ class RestoCollection
      */
     private function getFacetFields($stats)
     {
-        $facetFields = array();
+    
         if ($stats) {
+
+            // Awfull hack for iTag special facetFields
+            $facetFields = array(
+                'location',
+                'season',
+                'landcover:cultivated',
+                'landcover:desert',
+                'landcover:flooded',
+                'landcover:forest',
+                'landcover:herbaceous',
+                'landcover:ice',
+                'landcover:urban',
+                'landcover:water'
+            );
             foreach (array_values($this->model->facetCategories) as $facetCategory) {
                 for ($i = 0, $ii = count($facetCategory); $i < $ii; $i++)
                 {
                     $facetFields[] = $facetCategory[$i];
                 }
             }
+            return $facetFields;
         }
-        else {
-            $facetFields = $this->model->getAutoFacetFields();
-        }
-        return $facetFields;
+        
+        return $this->model->getAutoFacetFields();
+
     }
     
 }

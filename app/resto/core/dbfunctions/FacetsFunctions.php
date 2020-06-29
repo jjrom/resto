@@ -313,21 +313,22 @@ class FacetsFunctions
         }
         
         while ($result = pg_fetch_assoc($results)) {
-            if (!isset($pivots[$result['type']])) {
-                $pivots[$result['type']] = array();
+            $type = strpos($result['type'], 'landcover:') === 0 ? 'landcover' : $result['type'];
+            if (!isset($pivots[$type])) {
+                $pivots[$type] = array();
             }
             $create = true;
             if (!isset($collectionId)) {
-                for ($i = count($pivots[$result['type']]); $i--;) {
-                    if ($pivots[$result['type']][$i]['value'] === $result['value']) {
-                        $pivots[$result['type']][$i]['count'] += (integer) $result['counter'];
+                for ($i = count($pivots[$type]); $i--;) {
+                    if ($pivots[$type][$i]['value'] === $result['value']) {
+                        $pivots[$type][$i]['count'] += (integer) $result['counter'];
                         $create = false;
                         break;
                     }
                 }
             }
             if ($create) {
-                $pivots[$result['type']][] = FacetsFunctions::format($result);
+                $pivots[$type][] = FacetsFunctions::format($result);
             }
         }
         
