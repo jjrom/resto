@@ -38,7 +38,8 @@ class SatelliteModel extends LandCoverModel
         /*
          * Extend STAC mapping
          * 
-         * See - https://github.com/radiantearth/stac-spec/tree/dev/extensions/sat
+         * See - https://github.com/radiantearth/stac-spec/blob/master/item-spec/common-metadata.md
+         * See - https://github.com/radiantearth/stac-spec/tree/master/extensions/sat
          * See - https://github.com/radiantearth/stac-spec/tree/master/extensions/view
          */
         $this->stacMapping = array_merge($this->stacMapping, array(
