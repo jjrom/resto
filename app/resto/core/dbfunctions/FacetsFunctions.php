@@ -181,7 +181,7 @@ class FacetsFunctions
      */
     public function getStatistics($collectionId, $facetFields)
     {
-        return $this->getCounts($this->getFacetsPivots($collectionId, $facetFields), $collectionId);
+        return $this->getFacetsPivots($collectionId, $facetFields, null);
     }
 
     /**
@@ -293,25 +293,32 @@ class FacetsFunctions
      * @param string $parentId : parent hash
      * @return array
      */
-    private function getFacetsPivots($collectionId, $fields, $parentId = 'root')
+    private function getFacetsPivots($collectionId, $fields, $parentId)
     {
         
         $pivots = array();
         
         /*
+         * Build array
+         */
+        $where = array(
+            'counter > 0'
+        );
+
+        if ( isset($collectionId) ) {
+            $where[] = 'normalize(collection)=normalize(\'' . pg_escape_string($collectionId) . '\')';
+        }
+        if (isset($fields)) {
+            $where[] = 'type IN(\'' . join('\',\'', $fields) . '\')';
+        }
+        if (isset($parentId)) {
+            $where[] = 'normalize(pid)=normalize(\'' . pg_escape_string($parentId) . '\')';
+        }
+
+        /*
          * Facets for one collection
          */
-        $query = 'SELECT id,collection,value,type,pid,counter,to_iso8601(created) as created,creator FROM resto.facet WHERE counter > 0 AND ';
-        if (isset($collectionId)) {
-            $results = $this->dbDriver->query($query . 'normalize(collection)=normalize(\'' . pg_escape_string($collectionId) . '\') AND type IN(\'' . join('\',\'', $fields) . '\') AND normalize(pid)=normalize(\'' . pg_escape_string($parentId) . '\') ORDER BY type ASC, value DESC');
-        }
-        /*
-         * Facets for all collections
-         */
-        else {
-            $results = $this->dbDriver->query($query . 'type IN(\'' . join('\',\'', $fields) . '\') AND normalize(pid)=normalize(\'' . pg_escape_string($parentId) . '\') ORDER BY type ASC, value DESC');
-        }
-        
+        $results = $this->dbDriver->query('SELECT id,collection,value,type,pid,counter,to_iso8601(created) as created,creator FROM resto.facet WHERE ' . (count($where) > 0 ? join(' AND ', $where): '') . ' ORDER BY type ASC, value DESC');        
         while ($result = pg_fetch_assoc($results)) {
             $type = strpos($result['type'], 'landcover:') === 0 ? 'landcover' : $result['type'];
             if (!isset($pivots[$type])) {
@@ -320,7 +327,7 @@ class FacetsFunctions
             $create = true;
             if (!isset($collectionId)) {
                 for ($i = count($pivots[$type]); $i--;) {
-                    if ($pivots[$type][$i]['value'] === $result['value']) {
+                    if ($pivots[$type][$i]['name'] === $result['value']) {
                         $pivots[$type][$i]['count'] += (integer) $result['counter'];
                         $create = false;
                         break;
@@ -328,7 +335,12 @@ class FacetsFunctions
                 }
             }
             if ($create) {
-                $pivots[$type][] = FacetsFunctions::format($result);
+                $pivots[$type][] = array(
+                    'id' => $result['id'],
+                    'name' => $result['value'],
+                    'parentId' => $result['pid'],
+                    'count' => (integer) $result['counter']
+                );
             }
         }
         
@@ -341,7 +353,8 @@ class FacetsFunctions
      * @param array $pivots
      * @param string $collectionId
      * @return array
-     */
+     * 
+     * [TODO] Remove not used
     private function getCounts($pivots, $collectionId)
     {
         $facets = array();
@@ -357,9 +370,7 @@ class FacetsFunctions
             }
         }
 
-        /*
-         * Total count
-         */
+        // Total count
         $count = 0;
         if (isset($facets['collection'])) {
             foreach (array_values($facets['collection']) as $collectionCount) {
@@ -376,5 +387,5 @@ class FacetsFunctions
             'facets' => $facets
         );
     }
-
+    */
 }

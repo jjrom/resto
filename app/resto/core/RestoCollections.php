@@ -233,8 +233,6 @@ class RestoCollections
     public function toArray()
     {
 
-        $stats = $this->getStatistics();
-
         $collections = array(
             'stac_version' => STAC::STAC_VERSION,
             'id' => $this->context->osDescription['ShortName'],
@@ -251,41 +249,40 @@ class RestoCollections
                     'rel' => 'root',
                     'type' => RestoUtil::$contentTypes['json'],
                     'href' => $this->context->core['baseUrl']
-                ),
-                array(
-                    'rel' => 'items',
-                    'title' => 'All collections',
-                    'matched' => $stats['count'],
-                    'type' => RestoUtil::$contentTypes['geojson'],
-                    'href' => $this->context->core['baseUrl'] . '/search'
                 )
             ),
             'extent' => $this->extent,
-            'summaries' => array(
-                'resto:stats' => $stats
-            ),
             'resto:info' => array(
                 'osDescription' => $this->context->osDescription
             ),
             'collections' => array()
         );
 
+        $totalMatched = 0;
         foreach (array_keys($this->collections) as $key) {
             $collection = $this->collections[$key]->toArray(array(
                 'stats' => isset($this->context->query['_stats']) ? filter_var($this->context->query['_stats'], FILTER_VALIDATE_BOOLEAN) : false
             ));
-            $collections['collections'][] = $collection;
             $collections['links'][] = array(
                 'rel' => 'child',
                 'type' => RestoUtil::$contentTypes['json'],
                 'title' => $collection['title'],
                 'description' => $collection['description'],
-                'matched' => $collections['summaries']['resto:stats']['facets']['collection'][$key] ?? 0,
+                'matched' => $collection['summaries']['collection'][0]['count'] ?? 0,
                 'href' => $this->context->core['baseUrl'] . '/collections/' . $key,
                 'roles' => array('collection')
             );
-                
+            $collections['collections'][] = $collection;
+            $totalMatched += $collection['summaries']['collection'][0]['count'] ?? 0;
         }
+
+        $collections['links'][] = array(
+            'rel' => 'items',
+            'title' => 'All collections',
+            'matched' => $totalMatched,
+            'type' => RestoUtil::$contentTypes['geojson'],
+            'href' => $this->context->core['baseUrl'] . '/search'
+        );
 
         return $collections;
 

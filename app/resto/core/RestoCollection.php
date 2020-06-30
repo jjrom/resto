@@ -900,27 +900,19 @@ class RestoCollection
                 'model' => $this->model->getName(),
                 'lineage' => $this->model->getLineage(),
                 'osDescription' => $this->osDescription[$this->context->lang] ?? $this->osDescription['en'],
-                'owner' => $this->owner
+                'owner' => $this->owner,
+                'visibility' => $this->visibility
             )
         );
 
-        foreach (array_values(array('providers', 'properties', 'assets', 'keywords')) as $key) {
+        foreach (array_values(array('keywords', 'providers', 'properties', 'assets')) as $key) {
             if (isset($this->$key)) {
                 $collectionArray[$key] = $this->$key;
             }
         }
 
-        if ($this->visibility !== Resto::GROUP_DEFAULT_ID) {
-            $collectionArray['visibility'] = $this->visibility;
-        }
-            
-        if (isset($options['stats'])) {
-            $collectionArray['summaries'] = $this->getSummaries($options['stats']);
-            if ($options['stats']) {
-                $collectionArray['summaries']['resto:stats'] = $this->statistics;
-            }
-        }
-
+        $collectionArray['summaries'] = $this->getSummaries($options['stats'] ?? false);
+        
         return $collectionArray;
 
     }
@@ -942,7 +934,7 @@ class RestoCollection
      */
     public function getOSDD()
     {
-        return new OSDD($this->context, $this->model, $this->getStatistics($this->model->getAutoFacetFields()), $this);
+        return new OSDD($this->context, $this->model, (new FacetsFunctions($this->context->dbDriver))->getStatistics($this->id, $this->model->getAutoFacetFields()), $this);
     }
 
     /**
@@ -1086,9 +1078,9 @@ class RestoCollection
     /**
      * Return STAC summaries
      * 
-     * @param boolean $stats
+     * @param boolean $all
      */
-    private function getSummaries($stats = false)
+    private function getSummaries($all = false)
     {
         $summaries = array(
             'datetime' => $this->datetime
@@ -1098,50 +1090,31 @@ class RestoCollection
          * Compute statistics from facets
          */
         if (!isset($this->statistics)) {
-            $this->getStatistics($this->getFacetFields($stats));
+            $this->getStatistics($all ? null : array_merge(
+                $this->model->getAutoFacetFields(),
+                array(
+                    'year',
+                    'month',
+                    'day',
+                    'season',
+                    'location',
+                    'landcover:cultivated',
+                    'landcover:desert',
+                    'landcover:flooded',
+                    'landcover:forest',
+                    'landcover:herbaceous',
+                    'landcover:ice',
+                    'landcover:urban',
+                    'landcover:water'
+                )
+            ));
         }
-        foreach ($this->statistics['facets'] as $key => $value) {
-            $summaries[$this->model->stacMapping[$key] ?? $key] = array_keys($value);
-        }
 
-        return $summaries;
-    }
-
-    /**
-     * Get facet fields for summaries
-     * 
-     * @param boolean $stats
-     * @return array 
-     */
-    private function getFacetFields($stats)
-    {
-    
-        if ($stats) {
-
-            // Awfull hack for iTag special facetFields
-            $facetFields = array(
-                'location',
-                'season',
-                'landcover:cultivated',
-                'landcover:desert',
-                'landcover:flooded',
-                'landcover:forest',
-                'landcover:herbaceous',
-                'landcover:ice',
-                'landcover:urban',
-                'landcover:water'
-            );
-            foreach (array_values($this->model->facetCategories) as $facetCategory) {
-                for ($i = 0, $ii = count($facetCategory); $i < $ii; $i++)
-                {
-                    $facetFields[] = $facetCategory[$i];
-                }
-            }
-            return $facetFields;
+        foreach ($this->statistics as $key => $value) {
+            $summaries[$this->model->stacMapping[$key] ?? $key] = $value;
         }
         
-        return $this->model->getAutoFacetFields();
-
+        return $summaries;
     }
     
 }
