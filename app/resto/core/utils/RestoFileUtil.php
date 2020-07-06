@@ -23,7 +23,7 @@ class RestoFileUtil
 
 
     /**
-     * Physcally remove upload files using multipart in body
+     * Physically remove upload files using multipart in body
      * 
      * @param {Object} $body
      */

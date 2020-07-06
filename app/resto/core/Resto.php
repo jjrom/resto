@@ -278,7 +278,7 @@ class Resto
             default:
                 return RestoLogUtil::httpError(404);
         }
-
+        
         $response = $this->router->process($method, $this->context->path, $this->context->query);
 
         return isset($response) ? $this->format($response) : null;
