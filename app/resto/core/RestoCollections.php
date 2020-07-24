@@ -284,6 +284,13 @@ class RestoCollections
             'href' => $this->context->core['baseUrl'] . '/search'
         );
 
+        /*
+         * Sort collections array alphabetically (based on collection title)
+         */
+        usort($collections['collections'], function($a, $b) {
+            return $a['title'] < $b['title'] ? -1 : 1;
+        });
+
         return $collections;
 
     }
