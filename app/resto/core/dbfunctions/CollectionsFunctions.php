@@ -48,7 +48,8 @@ class CollectionsFunctions
             'providers' => json_decode($rawDescription['providers'], true),
             'properties' => json_decode($rawDescription['properties'], true),
             'assets' => json_decode($rawDescription['assets'], true),
-            'keywords' => isset($rawDescription['keywords']) ? explode(',', substr(str_replace('"', '', $rawDescription['keywords']), 1, -1)) : array(),
+            //'keywords' => isset($rawDescription['keywords']) ? explode(',', substr(str_replace('"', '', $rawDescription['keywords']), 1, -1)) : array(),
+            'keywords' => isset($rawDescription['keywords']) ? json_decode($rawDescription['keywords'], true) : array(),
             'links' => json_decode($rawDescription['links'], true),
             'datetime' => array(
                 'min' => $rawDescription['startdate'] ?? null,
@@ -72,7 +73,7 @@ class CollectionsFunctions
         // Get Opensearch description
         $osDescriptions = $this->getOSDescriptions($id);
         $collection = null;
-        $results = $this->dbDriver->pQuery('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, keywords FROM resto.collection WHERE normalize(id)=normalize($1)', array($id));
+        $results = $this->dbDriver->pQuery('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords FROM resto.collection WHERE normalize(id)=normalize($1)', array($id));
         while ($rowDescription = pg_fetch_assoc($results)) {
             $collection = array_merge(
                 CollectionsFunctions::format($rowDescription),
@@ -97,7 +98,7 @@ class CollectionsFunctions
         // Get all Opensearch descriptions
         $osDescriptions = $this->getOSDescriptions();
         $where = isset($visibilities) && count($visibilities) > 0 ? ' WHERE visibility IN (' . join(',', $visibilities) . ')' : '';
-        $results = $this->dbDriver->query('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, keywords FROM resto.collection ' . $where . ' ORDER BY id');
+        $results = $this->dbDriver->query('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords FROM resto.collection ' . $where . ' ORDER BY id');
         while ($rowDescription = pg_fetch_assoc($results)) {
             $collections[$rowDescription['id']] = array_merge(
                 CollectionsFunctions::format($rowDescription),
@@ -408,6 +409,20 @@ class CollectionsFunctions
     {
         
         /*
+         * First generate a right keywords array
+         */
+        $keywords = null;
+        if ( !empty($collection->keywords) ) {
+
+            $keywords = array();
+            for ($i = 0, $ii = count($collection->keywords); $i < $ii; $i++) {
+                $keywords[] = '"' . $collection->keywords[$i] . '"';
+            }
+            $keywords = '{' . join(',', $keywords) . '}';
+
+        }
+
+        /*
          * Create collection
          */
         if (! $this->collectionExists($collection->id)) {
@@ -423,7 +438,7 @@ class CollectionsFunctions
                 'properties' => json_encode($collection->properties, JSON_UNESCAPED_SLASHES),
                 'links' => json_encode($collection->links, JSON_UNESCAPED_SLASHES),
                 'assets' => json_encode($collection->assets, JSON_UNESCAPED_SLASHES),
-                'keywords' => isset($collection->keywords) ? '{' . join(',', $collection->keywords) . '}' : null,
+                'keywords' => $keywords,
                 'version' => $collection->version
             );
             $this->dbDriver->pQuery('INSERT INTO resto.collection (' . join(',', array_keys($toBeSet)) . ') VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)', array_values($toBeSet));
@@ -442,7 +457,7 @@ class CollectionsFunctions
                 json_encode($collection->properties, JSON_UNESCAPED_SLASHES),
                 json_encode($collection->links, JSON_UNESCAPED_SLASHES),
                 json_encode($collection->assets, JSON_UNESCAPED_SLASHES),
-                isset($collection->keywords) ? '{' . join(',', $collection->keywords) . '}' : null,
+                $keywords,
                 $collection->version
             ));
         }
