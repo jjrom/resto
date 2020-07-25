@@ -1,0 +1,61 @@
+name: Resto Docker Image Builder
+
+env:
+  IMAGE: resto
+  NAME: jjrom
+  REPO: resto
+
+on:
+  push:
+    paths:
+      - 'resto/**'
+      - '.github/workflows/**'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'resto/**'
+      - '.github/workflows/**'
+  release:
+    types: [created, edited]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # defaults to shallow checkout
+    - uses: actions/checkout@v2
+
+    - name: Print values of all environment variables
+      run: printenv
+    
+    - name: Login to DockerHub Registry
+      run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+    
+    - name: Build the tagged Docker image
+      run: docker build . --file ./build/resto/Dockerfile --tag ${NAME}/${IMAGE}:latest
+      
+    - name: Prep and tag images (master branch or tagged release only)
+      if: ${{ startsWith(github.ref, 'refs/heads/master') || github.event_name == 'release' }}
+      run: |
+        
+        # convert a shallow repository to a complete one
+        git fetch --prune --unshallow 2> /dev/null || true
+        
+        # figure out extra tag
+        tag=$(git describe --tags)
+        
+        # Creates or updates an environment variable for any actions running next in a job.
+        echo "::set-env name=prod_tag::${tag}"
+        
+        # tag and push images
+        docker tag ${NAME}/${IMAGE}:latest ${NAME}/${IMAGE}:${tag}
+    
+    - name: Push to DockerHub (master branch or tagged release only)
+      if: ${{ startsWith(github.ref, 'refs/heads/master') || github.event_name == 'release' }}
+      run: |
+        docker push ${NAME}/${IMAGE}
+        docker push ${NAME}/${IMAGE}:${prod_tag}
+
+      
