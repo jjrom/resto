@@ -136,7 +136,7 @@ class Resto
     );
 
     // resto version
-    const VERSION = '6.0.0';
+    const VERSION = '6.0.0-rc1';
 
     /* ============================================================
      *              NEVER EVER TOUCH THESE VALUES
