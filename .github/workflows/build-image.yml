@@ -46,7 +46,7 @@ jobs:
       run: |
         
         # Get latest release tag
-        tag=$(git describe --tags --abbrev=0)
+        tag=$(git describe --tags --abbrev=0 | sed s/^v//)
         
         # Tag image
         docker tag ${NAME}/${IMAGE}:latest ${NAME}/${IMAGE}:${tag}
