@@ -141,7 +141,7 @@ class RestoFeatureUtil
                     break;
 
                 case 'links':
-                    $featureArray[$key] = array_merge(isset($value) ? json_decode($value, true) : array(), $this->getDefaultLinks($collection, $rawFeatureArray));
+                    $featureArray[$key] = $this->getLinks(isset($value) ? json_decode($value, true) : array(), $collection, $rawFeatureArray);
                     break;
 
                 case 'bbox4326':
@@ -220,16 +220,16 @@ class RestoFeatureUtil
     }
 
     /**
-     * Get default feature links i.e. self, parent and collection links
+     * Add default links (i.e. self, parent and collection links) to feature links
      * 
      * @param RestoCollection $collection
      * @param array $rawFeatureArray
      * @return array
      */
-    private function getDefaultLinks($collection, $rawFeatureArray) 
+    private function getLinks($inputLinks, $collection, $rawFeatureArray) 
     {
 
-        return array(
+        $links = array(
             array(
                 'rel' => 'self',
                 'type' => RestoUtil::$contentTypes['geojson'],
@@ -253,6 +253,15 @@ class RestoFeatureUtil
                 'href' => $this->context->core['baseUrl']
             )
         );
+
+        for ($i = count($inputLinks); $i--;) {
+            if ( !in_array($inputLinks[$i]['rel'], array('self', 'parent', 'collection', 'root')) ) {
+                $links[] = $inputLinks[$i];
+            }
+            
+        }
+
+        return $links;
 
     }
 
