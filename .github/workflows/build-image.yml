@@ -8,13 +8,8 @@ env:
 on:
   push:
     paths:
-      - 'resto/**'
-      - '.github/workflows/**'
-  pull_request:
-    branches:
-      - master
-    paths:
-      - 'resto/**'
+      - 'resto/app/**'
+      - 'resto/build/**'
       - '.github/workflows/**'
   release:
     types: [created, edited]
