@@ -8,8 +8,8 @@ env:
 on:
   push:
     paths:
-      - 'resto/app/**'
-      - 'resto/build/**'
+      - 'app/**'
+      - 'build/**'
       - '.github/workflows/**'
   release:
     types: [created, edited]
@@ -31,26 +31,30 @@ jobs:
     - name: Build the tagged Docker image
       run: docker build . --file ./build/resto/Dockerfile --tag ${NAME}/${IMAGE}:latest
       
-    - name: Prep and tag images (master branch or tagged release only)
-      if: ${{ startsWith(github.ref, 'refs/heads/master') || github.event_name == 'release' }}
-      run: |
-        
-        # convert a shallow repository to a complete one
-        git fetch --prune --unshallow 2> /dev/null || true
-        
-        # figure out extra tag
-        tag=$(git describe --tags)
-        
-        # Creates or updates an environment variable for any actions running next in a job.
-        echo "::set-env name=prod_tag::${tag}"
-        
-        # tag and push images
-        docker tag ${NAME}/${IMAGE}:latest ${NAME}/${IMAGE}:${tag}
-    
-    - name: Push to DockerHub (master branch or tagged release only)
-      if: ${{ startsWith(github.ref, 'refs/heads/master') || github.event_name == 'release' }}
-      run: |
-        docker push ${NAME}/${IMAGE}
-        docker push ${NAME}/${IMAGE}:${prod_tag}
+    - name: Unshallow repository
+      run: git fetch --prune --unshallow 2> /dev/null || true
 
+    - name: Tag master branch and push to repository
+      if: ${{ startsWith(github.ref, 'refs/heads/master') }}
+      run: |
+        
+        # Tag latest image
+        docker tag ${NAME}/${IMAGE}:latest
+
+        # Push image
+        docker push ${NAME}/${IMAGE}
+    
+    - name: Tag latest release and push to repository
+      if: ${{ github.event_name == 'release' }}
+      run: |
+        
+        # Get latest release tag
+        tag=$(git describe --tags --abbrev=0)
+        
+        # Tag image
+        docker tag ${NAME}/${IMAGE}:${tag}
+
+        # Push release
+        docker push ${NAME}/${IMAGE}:${tag}
+    
       
