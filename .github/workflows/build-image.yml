@@ -38,9 +38,6 @@ jobs:
       if: ${{ startsWith(github.ref, 'refs/heads/master') }}
       run: |
         
-        # Tag latest image
-        docker tag ${NAME}/${IMAGE}:latest
-
         # Push image
         docker push ${NAME}/${IMAGE}
     
@@ -52,7 +49,7 @@ jobs:
         tag=$(git describe --tags --abbrev=0)
         
         # Tag image
-        docker tag ${NAME}/${IMAGE}:${tag}
+        docker tag ${NAME}/${IMAGE}:latest ${NAME}/${IMAGE}:${tag}
 
         # Push release
         docker push ${NAME}/${IMAGE}:${tag}
