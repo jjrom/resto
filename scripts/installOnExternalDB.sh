@@ -1,6 +1,19 @@
 #!/bin/bash
+#
+# Copyright 2018 Jérôme Gasperi
+#
+# Licensed under the Apache License, version 2.0 (the "License");
+# You may not use this file except in compliance with the License.
+# You may obtain a copy of the License at:
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
 
-ENV_FILE=../config.env
 # Force script to exit on error
 RED='\033[0;31m'
 NC='\033[0m'
@@ -10,6 +23,10 @@ err_report() {
     echo -e "${RED}[ERROR] Error on line $1 - see errors.log file ${NC}"
 }
 trap 'err_report $LINENO' ERR
+
+# Compute absolute path
+ABS_ROOT_PATH=$(cd -P -- "$(dirname -- "$0")" && printf '%s\n' "$(pwd -P)")
+ENV_FILE=${ABS_ROOT_PATH}/../config.env
 
 #
 # Help function
@@ -78,17 +95,17 @@ DATABASE_NAME=$(grep ^DATABASE_NAME= ${ENV_FILE} | awk -F= '{print $2}' | sed 's
 DATABASE_USER_NAME=$(grep ^DATABASE_USER_NAME= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 DATABASE_USER_PASSWORD=$(grep ^DATABASE_USER_PASSWORD= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 
-PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME" -f build/resto-database/sql/01_resto_functions.sql > /dev/null 2>> errors.log
-PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME" -f build/resto-database/sql/01_tamn.sql > /dev/null 2>> errors.log
-PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME" -f build/resto-database/sql/02_resto_model.sql > /dev/null 2> errors.log
+PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME" -f ${ABS_ROOT_PATH}/../build/resto-database/sql/01_resto_functions.sql > /dev/null 2>> errors.log
+PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME" -f ${ABS_ROOT_PATH}/../build/resto-database/sql/01_tamn.sql > /dev/null 2>> errors.log
+PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME" -f ${ABS_ROOT_PATH}/../build/resto-database/sql/02_resto_model.sql > /dev/null 2> errors.log
 # [IMPORTANT] Deactivate geometry_part split - should be completely removed in next version ?
 #PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME" -f build/resto-database/sql/03_resto_triggers.sql > /dev/null 2>> errors.log
-PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME" -f build/resto-database/sql/04_resto_inserts.sql > /dev/null 2>> errors.log
-PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME" -f build/resto-database/sql/05_resto_indexes.sql > /dev/null 2>> errors.log
+PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME" -f ${ABS_ROOT_PATH}/../build/resto-database/sql/04_resto_inserts.sql > /dev/null 2>> errors.log
+PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME" -f ${ABS_ROOT_PATH}/../build/resto-database/sql/05_resto_indexes.sql > /dev/null 2>> errors.log
 
 # Addons sql files if any
-if [ -d "../build/resto-database/sql/addons" ]; then
-  for sql in $(find build/resto-database/sql/addons -name "*.sql" | sort); do
+if [ -d "${ABS_ROOT_PATH}/../build/resto-database/sql/addons" ]; then
+  for sql in $(find ${ABS_ROOT_PATH}/../build/resto-database/sql/addons -name "*.sql" | sort); do
       echo "[PROCESS] " . $sql
       PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f $sql > /dev/null 2>> errors.log
   done
