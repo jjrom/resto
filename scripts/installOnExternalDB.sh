@@ -33,7 +33,7 @@ ENV_FILE=${ABS_ROOT_PATH}/../config.env
 #
 function showUsage {
     echo -e ""
-    echo -e "Install database tables and functions for RESTo application"
+    echo -e "Install database tables and functions for resto application"
     echo -e ""
     echo -e "   Usage $0 [options]"
     echo -e ""
@@ -104,9 +104,9 @@ PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HO
 PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME" -f ${ABS_ROOT_PATH}/../build/resto-database/sql/05_resto_indexes.sql > /dev/null 2>> errors.log
 
 # Addons sql files if any
-if [ -d "${ABS_ROOT_PATH}/../build/resto-database/sql/addons" ]; then
-  for sql in $(find ${ABS_ROOT_PATH}/../build/resto-database/sql/addons -name "*.sql" | sort); do
+if [ -d "${ABS_ROOT_PATH}/../addons" ]; then
+  for sql in $(find ${ABS_ROOT_PATH}/../addons -name "*.sql" | sort); do
       echo "[PROCESS] " . $sql
-      PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f $sql > /dev/null 2>> errors.log
+      PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME" -f $sql > /dev/null 2>> errors.log
   done
 fi
