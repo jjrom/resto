@@ -218,5 +218,5 @@ if [[ ! "$OSTYPE" == "darwin"* ]]; then
   fi
 fi
 
-echo -e "[INFO] Application ${GREEN}${PROJECT_NAME}${NC} up and running locally in ${GREEN}${TARGET}${NC} mode at ${GREEN}http://127.0.0.1:${RESTO_EXPOSED_PORT}${NC}"
+echo -e "[INFO] Application ${GREEN}${PROJECT_NAME}${NC} up and running locally in ${GREEN}${TARGET}${NC} mode at ${GREEN}${PUBLIC_ENDPOINT}${NC}"
 echo ""
