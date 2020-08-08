@@ -89,6 +89,11 @@ if [ "${DATABASE_NAME}" == "" ]; then
     DATABASE_NAME=resto
 fi
 
+DATABASE_HOST=$(grep ^DATABASE_HOST= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+if [ "${DATABASE_HOST}" == "" ]; then
+    DATABASE_HOST=restodb
+fi
+
 DATABASE_IS_EXTERNAL=$(grep ^DATABASE_IS_EXTERNAL= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 
 ADMIN_USER_NAME=$(grep ^ADMIN_USER_NAME= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')

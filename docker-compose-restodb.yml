@@ -29,10 +29,10 @@ services:
       - POSTGRES_PASSWORD=${DATABASE_USER_PASSWORD:-resto}
       - POSTGRES_USER=${DATABASE_USER_NAME:-resto}
       - POSTGRES_DB=${DATABASE_NAME:-resto}
-      - POSTGRES_HOST=${DATABASE_HOST:-localhost}
+      - POSTGRES_HOST=${DATABASE_HOST:-restodb}
       - POSTGRES_PORT=${DATABASE_PORT:-5432}
     ports:
-      - ${DATABASE_EXPOSED_PORT:-5253}:5432
+      - ${DATABASE_EXPOSED_PORT:-5253}:${DATABASE_PORT:-5432}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER_NAME:-resto}"]
       interval: 1m
