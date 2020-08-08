@@ -124,7 +124,6 @@ PUBLIC_ENDPOINT=$(grep ^PUBLIC_ENDPOINT= ${ENV_FILE} | awk -F= '{print $2}' | se
 RESTO_EXPOSED_PORT=$(grep ^RESTO_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 POSTGRES_DATA=$(grep ^POSTGRES_DATA= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 RESTO_STATIC_CONTENT=$(grep ^RESTO_STATIC_CONTENT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
-DATABASE_IS_EXTERNAL=$(grep ^DATABASE_IS_EXTERNAL= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 DATABASE_EXPOSED_PORT=$(grep ^DATABASE_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 DATABASE_HOST=$(grep ^DATABASE_HOST= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
 DATABASE_NAME=$(grep ^DATABASE_NAME= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
@@ -148,40 +147,38 @@ else
     echo -e "[INFO] Using existing network ${GREEN}rnet${NC}"
 fi
 
-# echo -e "[INFO] Starting ${PROJECT_NAME} docker instance"
-# Nico Ribot: use COMPOSE_FILE env to control both dev/prod env AND db container creation:
-# optional if a remote DB is used
 if [[ "${TARGET}" == "prod" ]]; then
-    if [[ "${DATABASE_IS_EXTERNAL}" == "yes" ]]; then
-      COMPOSE_FILE=docker-compose.yml
+    if [[ "${DATABASE_HOST}" == "restodb" ]]; then
+        COMPOSE_FILE=docker-compose-restodb.yml:docker-compose.yml
     else
-      COMPOSE_FILE=docker-compose-restodb.yml:docker-compose.yml
+        COMPOSE_FILE=docker-compose.yml
     fi
 else
-    if [[ "${DATABASE_IS_EXTERNAL}" == "yes" ]]; then
-        if [[ ! -f docker-compose-nodb.${TARGET}.yml ]]; then
-            echo -e "${RED}[ERROR] The file docker-compose-nodb.${TARGET}.yml does not exist!${NC}"
-            echo ""
-            exit 1
-        fi
-        COMPOSE_FILE="docker-compose.yml:docker-compose-nodb.${TARGET}.yml"
-    else
+    if [[ "${DATABASE_HOST}" == "restodb" ]]; then
         if [[ ! -f docker-compose.${TARGET}.yml ]]; then
             echo -e "${RED}[ERROR] The file docker-compose.${TARGET}.yml does not exist!${NC}"
             echo ""
             exit 1
         fi
         COMPOSE_FILE="docker-compose-restodb.yml:docker-compose.yml:docker-compose.${TARGET}.yml"
+    else
+        if [[ ! -f docker-compose-nodb.${TARGET}.yml ]]; then
+            echo -e "${RED}[ERROR] The file docker-compose-nodb.${TARGET}.yml does not exist!${NC}"
+            echo ""
+            exit 1
+        fi
+        COMPOSE_FILE="docker-compose.yml:docker-compose-nodb.${TARGET}.yml"
     fi
 fi
 
 COMPOSE_FILE=${COMPOSE_FILE} ENV_FILE=${ENV_FILE} docker-compose --project-name ${PROJECT_NAME}  up -d
 
-if [[ "${DATABASE_IS_EXTERNAL}" == "yes" ]]; then
-    DATABASE_HOST_SEEN_FROM_DOCKERHOST=${DATABASE_HOST}
-else
+if [ "${DATABASE_HOST}" == "restodb" ] || [ "${DATABASE_HOST}" == "host.docker.internal" ]; then
     DATABASE_HOST_SEEN_FROM_DOCKERHOST=localhost
+else
+    DATABASE_HOST_SEEN_FROM_DOCKERHOST=${DATABASE_HOST}
 fi
+
 # Wait for database to be ready
 echo -e "[INFO] Waiting for database: ${DATABASE_HOST_SEEN_FROM_DOCKERHOST}:${DATABASE_EXPOSED_PORT} to be ready..."
 while ! pg_isready -h ${DATABASE_HOST_SEEN_FROM_DOCKERHOST} -U ${DATABASE_USER_NAME} -p ${DATABASE_EXPOSED_PORT} -d ${DATABASE_NAME} 2>/dev/null
@@ -195,11 +192,9 @@ do
     sleep 1;
 done
 
-#
-# run database creation script if needed and db is external. if internal, restodb container will manage it
-if [[ "${DATABASE_IS_EXTERNAL}" == "yes" ]]; then
-  RESTO_EXISTS=$(PGPASSWORD=${DATABASE_USER_PASSWORD} psql -XAt -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h ${DATABASE_HOST} -p ${DATABASE_EXPOSED_PORT} -c "select count(*) from information_schema.routines where routine_name = 'st_splitdateline'")
-
+# Run database creation script if needed for external database
+if [[ "${DATABASE_HOST}" != "restodb" ]]; then
+  RESTO_EXISTS=$(PGPASSWORD=${DATABASE_USER_PASSWORD} psql -XAt -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h ${DATABASE_HOST_SEEN_FROM_DOCKERHOST} -p ${DATABASE_EXPOSED_PORT} -c "select count(*) from information_schema.routines where routine_name = 'st_splitdateline'")
   if [[ "${RESTO_EXISTS}" == "0" ]]; then
     echo -e "[INFO] No resto DB structure detected, creating one in db ${GREEN}${POSTGRES_DB}${NC}..."
     $(dirname $0)/scripts/installOnExternalDB.sh -e "${ENV_FILE}"
@@ -217,7 +212,7 @@ echo -e ""
 # MacOS X is a bit tricky - https://stackoverflow.com/questions/41273514/access-docker-volume-mountpoint-with-docker-for-mac
 #
 if [[ ! "$OSTYPE" == "darwin"* ]]; then
-  if [[ "${DATABASE_IS_EXTERNAL}" == "no" ]]; then
+  if [[ "${DATABASE_HOST}" == "restodb" ]]; then
       MOUNT_POINT=$(docker volume inspect ${PROJECT_NAME}"_database_data"| grep Mountpoint | awk -F\" '{print $4}')
       echo -e "[INFO] Database mount point is ${GREEN}${MOUNT_POINT}${NC}"
   fi

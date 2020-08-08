@@ -86,14 +86,12 @@ fi
 
 echo "[INFO] Stopping ${GREEN}${PROJECT_NAME}${NC} docker instance"
 
-# manages list of containers to bring down
-# TODO: add ENV_FILE as a script parameter, like deploy ?
-DATABASE_IS_EXTERNAL=$(grep ^DATABASE_IS_EXTERNAL= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
-
-if [[ "${DATABASE_IS_EXTERNAL}" == "yes" ]]; then
-  COMPOSE_FILE="docker-compose.yml"
+# Stop database if in container
+DATABASE_HOST=$(grep ^DATABASE_HOST= ${ENV_FILE} | awk -F= '{print $2}' | sed 's/^"//g' | sed 's/"$//g')
+if [[ "${DATABASE_HOST}" == "restodb" ]]; then
+    COMPOSE_FILE="docker-compose-restodb.yml:docker-compose.yml"
 else
-  COMPOSE_FILE="docker-compose-restodb.yml:docker-compose.yml"
+    COMPOSE_FILE="docker-compose.yml"
 fi
 
 COMPOSE_FILE=${COMPOSE_FILE} docker-compose --project-name ${PROJECT_NAME} down

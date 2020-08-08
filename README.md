@@ -51,10 +51,7 @@ For a local installation, you can leave it untouched. Otherwise, just make your 
 Note that each time you change the configuration file, you should undeploy then redeploy the service.
 
 ### External Database
-resto can use an external PostgreSQL database (version 11+). 
-
-Set the config.env `DATABASE_IS_EXTERNAL` parameter to `yes` to 
-enable an external database.
+resto can use an external PostgreSQL database (version 11+).
 
 The following extensions must be installed on the target database:
  * postgis
