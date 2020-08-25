@@ -30,6 +30,7 @@ Here are some projects that use resto.
 * [ESA's Forestry Thematic Exploitation Platform](https://github.com/cgi-eoss/ftep)
 * [CNES Kalideos platform](https://www.kalideos.fr)
 * [CEOS Recovery Observatory](https://www.recovery-observatory.org)
+* [EO4SD Lab - Earth observation for sustainable development](https://eo4sd-lab.net)
 
 If you plan to use resto and would like to have your project added to this list, feel free to contact [support](#support)
 
