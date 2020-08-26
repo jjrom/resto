@@ -1,4 +1,4 @@
-FROM mdillon/postgis:11-alpine
+FROM postgis/postgis:11-2.5-alpine
 LABEL maintainer="jerome.gasperi@gmail.com"
 
 ENV BUILD_DIR=./build/resto-database \
