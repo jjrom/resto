@@ -1,6 +1,7 @@
 # [SECURITY] Never commit these files since they can contains productions environment info
 app/resto/addons
 tmp
+pgdata
 docker-compose.local.yml
 docker-compose-nodb.local.yml
 config-local.env

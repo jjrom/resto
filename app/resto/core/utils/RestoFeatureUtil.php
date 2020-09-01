@@ -70,7 +70,7 @@ class RestoFeatureUtil
         /*
          * Retrieve collection from database
          */
-        $collection = $this->collections[$rawFeatureArray['collection']];
+        $collection = $this->collections[$rawFeatureArray['collection']] ?? null;
         if ( !isset($collection) ) {
             $collection = (new RestoCollection($rawFeatureArray['collection'], $this->context, $this->user))->load();
             $this->collections[$rawFeatureArray['collection']] = $collection;

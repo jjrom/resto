@@ -200,7 +200,7 @@ class FeaturesFunctions
             'isGeo' => false
         );
         $results = $this->dbDriver->fetch($this->dbDriver->query($selectClause . ' ' . $filterFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => true))));
-        return isset($results) && count($results) === 1 ? (new RestoFeatureUtil($context, $user, array($collection->id => $collection)))->toFeatureArray($results[0]) : null;
+        return isset($results) && count($results) === 1 ? (new RestoFeatureUtil($context, $user, isset($collection) ? array($collection->id => $collection) : array()))->toFeatureArray($results[0]) : null;
     }
 
     /**
