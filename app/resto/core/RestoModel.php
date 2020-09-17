@@ -53,8 +53,12 @@ abstract class RestoModel
             'state'
         ),
         array(
-            'year',
-            'month',
+            'year'
+        ),
+        array(
+            'month'
+        ),
+        array(
             'day'
         )
     );
