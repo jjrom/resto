@@ -23,7 +23,7 @@ return array(
         'dbname' => '${DATABASE_NAME:-resto}',
         'host' => '${DATABASE_HOST:-restodb}',
         'port' => ${DATABASE_PORT:-5432},
-        'resultsPerPage' => ${SEARCH_RESULTS_PER_PAGE:-10},
+        'resultsPerPage' => ${SEARCH_RESULTS_PER_PAGE:-20},
         'sortKeys' => array(${SEARCH_SORTABLE_FIELDS:-'startDate','created'}),
         'user' => '${DATABASE_USER_NAME:-resto}',
         'password' => '${DATABASE_USER_PASSWORD:-resto}'
