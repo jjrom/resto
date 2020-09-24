@@ -562,7 +562,7 @@ class CollectionsAPI
      *         name="_useItag",
      *         in="query",
      *         required=false,
-     *         description="[ADDON][Tag] Set to false to not use iTag during feature insertion. By default, iTag is triggered unless the collection is within the Tag add-on *excludedCollections* array option or *_useItag* is set to false. If force to true, then iTag is triggered even if collection is one of the *excludedCollections*",
+     *         description="[ADDON][Tag] Set to false to not use iTag during feature insertion",
      *         @OA\Schema(
      *             type="boolean"
      *         )

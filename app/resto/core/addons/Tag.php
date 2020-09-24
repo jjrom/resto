@@ -42,28 +42,11 @@ class Tag extends RestoAddOn
      *
      * @param array $properties
      * @param array $geometry (GeoJSON geometry)
-     * @param array $options
+     * @param array $taggers
      */
-    public function getKeywords($properties, $geometry, $facetCategories, $options = array())
+    public function getKeywords($properties, $geometry, $facetCategories, $taggers)
     {
-        
-        if (isset($options['useItag']) && $options['useItag'] && isset($this->options['iTag'])) {
-            $taggers = $this->options['iTag']['taggers'] ?? array();
-
-            // Do not process LandCover if it is not necessary
-            if (!isset($options['computeLandCover']) || !$options['computeLandCover']) {
-                for ($i = count($taggers); $i--;) {
-                    if ($taggers[$i] === 'landcover') {
-                        unset($taggers[$i]);
-                        break;
-                    }
-                }
-            }
-            return array_merge($this->keywordsFromITag($properties, $geometry, $taggers), $this->keywordsFromProperties($properties, $facetCategories)); 
-        }
-
-        return $this->keywordsFromProperties($properties, $facetCategories);
-
+        return $taggers ? array_merge($this->keywordsFromITag($properties, $geometry, $taggers), $this->keywordsFromProperties($properties, $facetCategories)) : $this->keywordsFromProperties($properties, $facetCategories);
     }
 
     /**

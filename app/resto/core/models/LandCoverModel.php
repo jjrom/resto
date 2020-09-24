@@ -33,6 +33,11 @@ class LandCoverModel extends DefaultModel
         parent::__construct($options);
 
         /*
+         * Add LandCover tagger
+         */
+        $this->tagConfig['taggers'][] = 'LandCover';
+
+        /*
          * Extend search filters
          */
         if ( isset($this->options['addons']['Tag']) && $this->options['addons']['Tag']['options']['iTag']['addSearchFilters'] ) {

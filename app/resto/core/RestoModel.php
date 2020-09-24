@@ -294,6 +294,18 @@ abstract class RestoModel
         'useGeometryPart' => false,
         'storeFacets' => true
     );
+
+    /* 
+     * Tag add-on configuration:
+     * [IMPORTANT] strategy values:
+     *    - "merge" $tagConfig->taggers is merged with Tag add-on default taggers
+     *    - "replace" $tagConfig->taggers replace Tag add-on default taggers
+     *    - "none" Tag add-on is not used
+     */
+    public $tagConfig = array(
+        'strategy' => 'merge',
+        'taggers' => array()
+    );
     
     /**
      * Constructor
@@ -698,12 +710,7 @@ abstract class RestoModel
     /**
      * Compute keywords using Tag add-on
      *
-     * iTag is triggered by default unless :
-     *
-     *   - the collection is one of Tag add-on "excludedCollections" array option
-     *   - query parameter "_useItag" is set to false
-     *
-     * [WARNING] if collection is excluded BUT _useItag is set to true then iTag is used
+     * iTag is triggered by default unless query parameter "_useItag" is set to false or model->itagConfig strategy is set to 'none'
      * 
      * @param RestoCollection $collection
      * @param array $data : array (MUST BE GeoJSON in abstract Model)
@@ -711,32 +718,30 @@ abstract class RestoModel
      */
     private function computeKeywords($collection, $data, $properties)
     {
-        
-        $keywords = array();
 
-        if (isset($collection->context->addons['Tag'])) {
-            $useItag = true;
-            $tagger = new Tag($collection->context, $collection->user);
-            if (isset($collection->context->addons['Tag']['options']['iTag']['excludedCollections'])) {
-                for ($i = count($collection->context->addons['Tag']['options']['iTag']['excludedCollections']); $i--;) {
-                    if ($collection->id === $collection->context->addons['Tag']['options']['iTag']['excludedCollections'][$i]) {
-                        $useItag = false;
-                        break;
-                    }
-                }
-            }
-
-            /*
-             * Get
-             */
-            $keywords = $tagger->getKeywords($properties, $data['geometry'], $collection->model->facetCategories, array(
-                'useItag' => isset($collection->context->query['_useItag']) ? filter_var($collection->context->query['_useItag'], FILTER_VALIDATE_BOOLEAN) : $useItag,
-                'computeLandCover' => in_array('LandCoverModel', $collection->model->getLineage())
-            ));
-            
+        // Skip iTag
+        if ( ! isset($collection->context->addons['Tag']) ) {
+            return array();
         }
 
-        return $keywords;
+        // Default : useItag with defaultTaggers
+        $taggers = $collection->context->addons['Tag']['options']['iTag']['taggers'] ?? array();
+
+        // iTag is not use because model strategy is 'none' or explicitely _useItag is set to false
+        if ((isset($collection->context->query['_useItag']) && filter_var($collection->context->query['_useItag'], FILTER_VALIDATE_BOOLEAN) === false) || ($collection->model->tagConfig['strategy'] === 'none')) {
+            $taggers = null;
+        }
+        // Default strategy is merge
+        else {
+            if ($collection->model->tagConfig['strategy'] === 'replace') {
+                $taggers = $collection->model->tagConfig['taggers'];
+            }
+            else if ($collection->model->tagConfig['strategy'] === 'merge') {
+                $taggers = array_merge($taggers, $collection->model->tagConfig['taggers']);
+            }
+        }
+
+        return (new Tag($collection->context, $collection->user))->getKeywords($properties, $data['geometry'], $collection->model->facetCategories, $taggers);
 
     }
 
