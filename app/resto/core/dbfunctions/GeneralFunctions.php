@@ -222,7 +222,7 @@ class GeneralFunctions
         }
 
         try {
-            $result = pg_fetch_row(pg_query_params($this->dbDriver->getConnection(), 'WITH tmp AS (SELECT ' . $geoJsonParser . ' AS geom) SELECT ST_Force2D(geom), ST_Force2D(ST_SetSRID(' . $this->getSplitterFunction($params) . ', 4326)) AS _geom, ST_Force2D(ST_SetSRID(ST_Centroid(geom::geography)::geometry, 4326)) AS centroid, Box2D(ST_SetSRID(' . $this->getSplitterFunction($params) . ', 4326)) as bbox FROM tmp', array(
+            $result = pg_fetch_row(pg_query_params($this->dbDriver->getConnection(), 'WITH tmp AS (SELECT ' . $geoJsonParser . ' AS geom) SELECT ST_Force2D(geom) as geom, ST_Force2D(ST_SetSRID(' . $this->getSplitterFunction($params) . ', 4326)) AS _geom, ST_Force2D(ST_SetSRID(ST_Centroid(geom::geography)::geometry, 4326)) AS centroid, Box2D(ST_SetSRID(' . $this->getSplitterFunction($params) . ', 4326)) as bbox FROM tmp', array(
                 json_encode(array(
                     'type' => $geometry['type'],
                     'coordinates' => $geometry['coordinates']
