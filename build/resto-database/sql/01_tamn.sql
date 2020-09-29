@@ -21,7 +21,7 @@ INSERT INTO spatial_ref_sys (srid, auth_name, auth_srid, proj4text, srtext) VALU
 --   ST_DistanceToNorthPole(geom_in)
 --
 -- DESCRIPTION:
---   Returns distance in meters to South Pole - if error occurs returns 1000000001
+--   Returns distance in meters to South Pole - if error occurs returns -1
 --
 -- USAGE:
 --   SELECT ST_DistanceToNorthPole(geom_in geometry);
@@ -45,7 +45,7 @@ BEGIN
                                 text_var2 = PG_EXCEPTION_DETAIL,
                                 text_var3 = PG_EXCEPTION_HINT;
         raise WARNING 'ST_DistanceToNorthPole: exception occured: Msg: %, detail: %, hint: %', text_var1, text_var1, text_var3;
-        RETURN 1000000001;
+        RETURN -1;
 
 END
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
@@ -57,7 +57,7 @@ $$ LANGUAGE 'plpgsql' IMMUTABLE;
 --   ST_DistanceToSouthPole(geom_in)
 --
 -- DESCRIPTION:
---   Returns distance in meters to South Pole - if error occurs returns 1000000001
+--   Returns distance in meters to South Pole - if error occurs returns -1
 --
 -- USAGE:
 --   SELECT ST_DistanceToSouthPole(geom_in geometry);
@@ -81,7 +81,7 @@ BEGIN
                                 text_var2 = PG_EXCEPTION_DETAIL,
                                 text_var3 = PG_EXCEPTION_HINT;
         raise WARNING 'ST_DistanceToSouthPole: exception occured: Msg: %, detail: %, hint: %', text_var1, text_var1, text_var3;
-        RETURN 1000000001;
+        RETURN -1;
 
 END
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
@@ -286,7 +286,7 @@ BEGIN
     --
     -- [NOTE] Densify over pole to avoid issue in ST_Difference
     distance_to_north := ST_DistanceTonorthPole(geom_in);
-    IF  distance_to_north <= pole_distance THEN
+    IF  distance_to_north > -1 AND distance_to_north <= pole_distance THEN
         pole_geom := ST_Buffer(ST_Transform(ST_Segmentize(geom_in::geography, 50000)::geometry, epsg_code), 0);
     ELSE
         pole_geom := ST_Buffer(ST_Transform(geom_in, epsg_code), 0);
@@ -301,7 +301,7 @@ BEGIN
     
     -- Split polygon to avoid -180/180 crossing issue.
     -- Note: applying negative buffer ensure valid multipolygons that don't share a common edge
-    IF distance_to_north <= pole_distance THEN
+    IF distance_to_north > -1 AND distance_to_north <= pole_distance THEN
         RETURN ST_SimplifyPreserveTopology(ST_Buffer(ST_Transform(ST_Buffer(ST_Split(pole_split, pole_blade), -1), 4326), 0), 0.01);
     ELSE
         RETURN ST_Buffer(ST_Transform(ST_Buffer(ST_Split(pole_split, pole_blade), -1), 4326), 0);
@@ -375,7 +375,7 @@ BEGIN
     -- [NOTE] Densify over pole to avoid issue in ST_Difference
     --
     distance_to_south := ST_DistanceToSouthPole(geom_in);
-    IF  distance_to_south <= pole_distance THEN
+    IF  distance_to_south > -1 AND distance_to_south <= pole_distance THEN
         pole_geom := ST_Buffer(ST_Transform(ST_Segmentize(geom_in::geography, 50000)::geometry, epsg_code), 0);
     ELSE
         pole_geom := ST_Buffer(ST_Transform(geom_in, epsg_code), 0);
@@ -390,7 +390,7 @@ BEGIN
     
     -- Split polygon to avoid -180/180 crossing issue.
     -- Note: applying negative buffer ensure valid multipolygons that don't share a common edge
-    IF distance_to_south <= pole_distance THEN
+    IF distance_to_south > -1 AND distance_to_south <= pole_distance THEN
         RETURN ST_SimplifyPreserveTopology(ST_Buffer(ST_Transform(ST_Buffer(ST_Split(pole_split, pole_blade), -1), 4326), 0), 0.01);
     ELSE
         RETURN ST_Buffer(ST_Transform(ST_Buffer(ST_Split(pole_split, pole_blade), -1), 4326), 0);
@@ -561,10 +561,10 @@ BEGIN
     sp_distance := ST_DistanceToSouthPole(geom_in);
 
     -- Input geometry crosses North Pole
-    IF np_distance <= pole_distance THEN
+    IF np_distance > -1 AND np_distance <= pole_distance THEN
 
         -- Input geometry is even closer to South Pole
-        IF sp_distance < np_distance THEN
+        IF sp_distance > -1 AND sp_distance < np_distance THEN
             RETURN ST_SplitSouthPole(geom_in, radius);
         ELSE
             RETURN ST_SplitNorthPole(geom_in, radius);
@@ -573,10 +573,10 @@ BEGIN
     END IF;
 
     -- Input geometry crosses South Pole
-    IF sp_distance <= pole_distance THEN
+    IF sp_distance > -1 AND sp_distance <= pole_distance THEN
 
          -- Input geometry is even closer to North Pole
-        IF np_distance < sp_distance THEN
+        IF np_distance > -1 AND np_distance < sp_distance THEN
             RETURN ST_SplitNorthPole(geom_in, radius);
         ELSE
             RETURN ST_SplitSouthPole(geom_in, radius);
