@@ -99,7 +99,7 @@ $$ LANGUAGE 'plpgsql' IMMUTABLE;
 --   SELECT ST_IntersectsAntimeridian(geom_in geometry);
 --
 CREATE OR REPLACE FUNCTION ST_IntersectsAntimeridian(geom_in geometry)
-    RETURNS boolean AS $$
+    RETURNS INTEGER AS $$
 DECLARE
     part        RECORD;
     blade       geography := ST_SetSrid(ST_MakeLine(ARRAY[ST_MakePoint(180, -90), ST_MakePoint(180, 0), ST_MakePoint(180, 90)]), 4326)::geography;
@@ -116,11 +116,11 @@ BEGIN
             -- AntiMeridian is crossed for sure
             IF ST_IsPolygonCW(part.geom) AND abs(ST_XMax(part.geom) - ST_XMin(part.geom)) > 360 THEN
                 --RAISE NOTICE 'Polygon is CW and abs > 360';
-                RETURN TRUE;
+                RETURN 1;
             -- AntiMeridian is perhaps crossed
             ELSIF ST_Intersects(part.geom::geography, blade) THEN
                 --RAISE NOTICE 'Polygon intersects blade';
-                RETURN TRUE;
+                RETURN 1;
             END IF;
 
         END LOOP;
@@ -130,15 +130,15 @@ BEGIN
         -- AntiMeridian is crossed
         IF ST_IsPolygonCW(geom_in) AND abs(ST_XMax(geom_in) - ST_XMin(geom_in)) > 360 THEN
             --RAISE NOTICE 'Polygon is CW and abs > 360';
-            RETURN TRUE;
+            RETURN 1;
         ELSIF ST_Intersects(geom_in::geography, blade) THEN
             --RAISE NOTICE 'Polygon intersects blade';
-            RETURN TRUE;
+            RETURN 1;
         END IF;
 
     END IF;
     
-    RETURN FALSE; 
+    RETURN 0; 
 
     -- If any of above failed, revert to use original polygon
     -- This prevents ingestion error, but may potentially lead to incorrect spatial query.
@@ -147,7 +147,7 @@ BEGIN
                                 text_var2 = PG_EXCEPTION_DETAIL,
                                 text_var3 = PG_EXCEPTION_HINT;
         raise WARNING 'ST_IntersectsAntimeridian: exception occured: Msg: %, detail: %, hint: %', text_var1, text_var1, text_var3;
-        RETURN FALSE;
+        RETURN -1;
 
 END
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
@@ -438,7 +438,7 @@ BEGIN
     -- See case test id=S2A_OPER_PRD_MSIL1C_PDMC_20160720T163945_R116_V20160714T235631_20160714T235631
     -- If output geometry still crosses antimeridian - split it again
     -- This case arises if input geometry longitude is outside -180/180 bounds
-    IF ST_IntersectsAntimeridian(geom_out) THEN
+    IF ST_IntersectsAntimeridian(geom_out) <> 0 THEN
         geom_out := ST_Buffer(ST_WrapX(ST_ShiftLongitude(geom_out), 180, -360), 0);     
     END IF;
 
@@ -585,7 +585,7 @@ BEGIN
     END IF;
 
     -- Input geometry crosses -180/180 but not the poles
-    IF ST_IntersectsAntimeridian(geom_in) THEN
+    IF ST_IntersectsAntimeridian(geom_in) <> 0 THEN
         RETURN ST_SplitAntimeridian(geom_in);
     END IF;
 
