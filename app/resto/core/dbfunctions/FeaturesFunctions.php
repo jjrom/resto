@@ -757,7 +757,7 @@ class FeaturesFunctions
         }
        
         // JSON encode metadata
-        $keysAndValues['metadata'] = json_encode($keysAndValues['metadata'], JSON_UNESCAPED_SLASHES);
+        $keysAndValues['metadata'] = isset($keysAndValues['metadata']) ? json_encode($keysAndValues['metadata'], JSON_UNESCAPED_SLASHES) : null;
         
         $counter = 0;
         $output['keysAndValues'] = array_merge($protected, $keysAndValues);
