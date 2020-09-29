@@ -21,7 +21,7 @@ INSERT INTO spatial_ref_sys (srid, auth_name, auth_srid, proj4text, srtext) VALU
 --   ST_DistanceToNorthPole(geom_in)
 --
 -- DESCRIPTION:
---   Returns distance in meters to South Pole
+--   Returns distance in meters to South Pole - if error occurs returns 1000000001
 --
 -- USAGE:
 --   SELECT ST_DistanceToNorthPole(geom_in geometry);
@@ -45,7 +45,7 @@ BEGIN
                                 text_var2 = PG_EXCEPTION_DETAIL,
                                 text_var3 = PG_EXCEPTION_HINT;
         raise WARNING 'ST_DistanceToNorthPole: exception occured: Msg: %, detail: %, hint: %', text_var1, text_var1, text_var3;
-        RETURN TRUE;
+        RETURN 1000000001;
 
 END
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
@@ -57,7 +57,7 @@ $$ LANGUAGE 'plpgsql' IMMUTABLE;
 --   ST_DistanceToSouthPole(geom_in)
 --
 -- DESCRIPTION:
---   Returns distance in meters to South Pole
+--   Returns distance in meters to South Pole - if error occurs returns 1000000001
 --
 -- USAGE:
 --   SELECT ST_DistanceToSouthPole(geom_in geometry);
@@ -81,7 +81,7 @@ BEGIN
                                 text_var2 = PG_EXCEPTION_DETAIL,
                                 text_var3 = PG_EXCEPTION_HINT;
         raise WARNING 'ST_DistanceToSouthPole: exception occured: Msg: %, detail: %, hint: %', text_var1, text_var1, text_var3;
-        RETURN TRUE;
+        RETURN 1000000001;
 
 END
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
@@ -114,8 +114,8 @@ BEGIN
         FOR part IN SELECT (ST_Dump(geom_in)).geom LOOP
 
             -- AntiMeridian is crossed for sure
-            IF ST_IsPolygonCW(part.geom) AND abs(ST_XMax(part.geom) - ST_XMin(part.geom)) > 180 THEN
-                --RAISE NOTICE 'Polygon is CW and abs > 180';
+            IF ST_IsPolygonCW(part.geom) AND abs(ST_XMax(part.geom) - ST_XMin(part.geom)) > 360 THEN
+                --RAISE NOTICE 'Polygon is CW and abs > 360';
                 RETURN TRUE;
             -- AntiMeridian is perhaps crossed
             ELSIF ST_Intersects(part.geom::geography, blade) THEN
@@ -128,8 +128,8 @@ BEGIN
     ELSE
 
         -- AntiMeridian is crossed
-        IF ST_IsPolygonCW(geom_in) AND abs(ST_XMax(geom_in) - ST_XMin(geom_in)) > 180 THEN
-            --RAISE NOTICE 'Polygon is CW and abs > 180';
+        IF ST_IsPolygonCW(geom_in) AND abs(ST_XMax(geom_in) - ST_XMin(geom_in)) > 360 THEN
+            --RAISE NOTICE 'Polygon is CW and abs > 360';
             RETURN TRUE;
         ELSIF ST_Intersects(geom_in::geography, blade) THEN
             --RAISE NOTICE 'Polygon intersects blade';
@@ -147,7 +147,7 @@ BEGIN
                                 text_var2 = PG_EXCEPTION_DETAIL,
                                 text_var3 = PG_EXCEPTION_HINT;
         raise WARNING 'ST_IntersectsAntimeridian: exception occured: Msg: %, detail: %, hint: %', text_var1, text_var1, text_var3;
-        RETURN TRUE;
+        RETURN FALSE;
 
 END
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
@@ -188,7 +188,7 @@ BEGIN
                                 text_var2 = PG_EXCEPTION_DETAIL,
                                 text_var3 = PG_EXCEPTION_HINT;
         raise WARNING 'ST_IntersectsNorthPole: exception occured: Msg: %, detail: %, hint: %', text_var1, text_var1, text_var3;
-        RETURN TRUE;
+        RETURN FALSE;
 
 END
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
@@ -229,7 +229,7 @@ BEGIN
                                 text_var2 = PG_EXCEPTION_DETAIL,
                                 text_var3 = PG_EXCEPTION_HINT;
         raise WARNING 'ST_IntersectsSouthPole: exception occured: Msg: %, detail: %, hint: %', text_var1, text_var1, text_var3;
-        RETURN TRUE;
+        RETURN FALSE;
 
 END
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
@@ -603,7 +603,7 @@ BEGIN
                                 text_var2 = PG_EXCEPTION_DETAIL,
                                 text_var3 = PG_EXCEPTION_HINT;
         raise WARNING 'ST_SplitDateLine: exception occured: Msg: %, detail: %, hint: %', text_var1, text_var1, text_var3;
-        RETURN TRUE;
+        RETURN geom_in;
 
 END
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
