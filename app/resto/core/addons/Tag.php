@@ -410,14 +410,12 @@ class Tag extends RestoAddOn
             array(
                 'id' =>  'month' . Resto::TAG_SEPARATOR . $month,
                 'name' => $month,
-                'type' => 'month',
-                'parentId' => 'year' . Resto::TAG_SEPARATOR . $year
+                'type' => 'month'
             ),
             array(
                 'id' => 'day' . Resto::TAG_SEPARATOR . $day,
                 'name' => $day,
-                'type' => 'day',
-                'parentId' => 'month' . Resto::TAG_SEPARATOR . $month
+                'type' => 'day'
             )
         );
     }
