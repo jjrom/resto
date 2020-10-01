@@ -113,13 +113,41 @@ class RestoFeatureUtil
             'geometry' => null,
             'properties' => array(),
             'collection' => $collection->id,
-            'links' => array(),
+            'links' => array(
+                array(
+                    'rel' => 'self',
+                    'type' => RestoUtil::$contentTypes['geojson'],
+                    'href' => $this->context->core['baseUrl'] . '/collections/' . $collection->id . '/items/' . $rawFeatureArray['id']
+                ),
+                array(
+                    'rel' => 'parent',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'title' => $collection->id,
+                    'href' => $this->context->core['baseUrl'] . '/collections/' . $collection->id
+                ),
+                array(
+                    'rel' => 'collection',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'title' => $collection->id,
+                    'href' => $this->context->core['baseUrl'] . '/collections/' . $collection->id
+                ),
+                array(
+                    'rel' => 'root',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'href' => $this->context->core['baseUrl']
+                )
+            ),
             'assets' => array(),
             'stac_version' => STAC::STAC_VERSION,
             'stac_extensions' => $collection->model->stacExtensions
         );
 
         foreach ($rawFeatureArray as $key => $value) {
+
+            if ( !isset($value) ) {
+                continue;
+            }
+
             switch ($key) {
 
                 case 'collection':
@@ -132,22 +160,17 @@ class RestoFeatureUtil
                     $featureArray['properties']['end_datetime'] = $rawFeatureArray['completionDate'] ?? $rawFeatureArray[$key];
                     break;
 
-                case 'geometry':
-                    $featureArray[$key] = isset($value) ? json_decode($value, true) : null;
-                    break;
-
                 case 'assets':
-                    $featureArray[$key] = isset($value) ? json_decode($value, true) : array();
+                case 'geometry':
+                    $featureArray[$key] = json_decode($value, true);
                     break;
 
                 case 'links':
-                    $featureArray[$key] = $this->getLinks(isset($value) ? json_decode($value, true) : array(), $collection, $rawFeatureArray);
+                    $featureArray[$key] = array_merge($featureArray[$key], $this->getLinks(json_decode($value, true)));
                     break;
 
                 case 'bbox4326':
-                    if (isset($value)) {
-                        $featureArray['bbox'] = RestoGeometryUtil::box2dTobbox($value);
-                    }
+                    $featureArray['bbox'] = RestoGeometryUtil::box2dTobbox($value);
                     break;
 
                 case 'keywords':
@@ -159,10 +182,7 @@ class RestoFeatureUtil
                     break;
                 
                 case 'centroid':
-                    if (isset($value)) {
-                        $json = json_decode($value, true);
-                        $featureArray['properties'][$key] = $json['coordinates'];
-                    }
+                    $featureArray['properties'][$key] = json_decode($value, true)['coordinates'];
                     break;
                 
                 case 'status':
@@ -224,37 +244,10 @@ class RestoFeatureUtil
     /**
      * Add default links (i.e. self, parent and collection links) to feature links
      * 
-     * @param RestoCollection $collection
-     * @param array $rawFeatureArray
      * @return array
      */
-    private function getLinks($inputLinks, $collection, $rawFeatureArray) 
+    private function getLinks($inputLinks) 
     {
-
-        $links = array(
-            array(
-                'rel' => 'self',
-                'type' => RestoUtil::$contentTypes['geojson'],
-                'href' => $this->context->core['baseUrl'] . '/collections/' . $collection->id . '/items/' . $rawFeatureArray['id']
-            ),
-            array(
-                'rel' => 'parent',
-                'type' => RestoUtil::$contentTypes['json'],
-                'title' => $collection->id,
-                'href' => $this->context->core['baseUrl'] . '/collections/' . $collection->id
-            ),
-            array(
-                'rel' => 'collection',
-                'type' => RestoUtil::$contentTypes['json'],
-                'title' => $collection->id,
-                'href' => $this->context->core['baseUrl'] . '/collections/' . $collection->id
-            ),
-            array(
-                'rel' => 'root',
-                'type' => RestoUtil::$contentTypes['json'],
-                'href' => $this->context->core['baseUrl']
-            )
-        );
 
         for ($i = count($inputLinks); $i--;) {
             if ( !in_array($inputLinks[$i]['rel'], array('self', 'parent', 'collection', 'root')) ) {
