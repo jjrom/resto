@@ -292,7 +292,11 @@ class Tag extends RestoAddOn
      */
     private function keywordsFromProperties($properties, $facetCategories)
     {
-        $keywords = array();
+
+        /*
+         * [IMPORTANT] If input properties contains a _keywords property then use it
+         */
+        $keywords = $properties['_keywords'] ?? array();
 
         /*
          * Roll over facet categories

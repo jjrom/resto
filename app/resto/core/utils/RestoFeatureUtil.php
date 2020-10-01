@@ -159,8 +159,10 @@ class RestoFeatureUtil
                     break;
                 
                 case 'centroid':
-                    $json = json_decode($value, true);
-                    $featureArray['properties'][$key] = $json['coordinates'];
+                    if (isset($value)) {
+                        $json = json_decode($value, true);
+                        $featureArray['properties'][$key] = $json['coordinates'];
+                    }
                     break;
                 
                 case 'status':

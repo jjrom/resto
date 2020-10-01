@@ -438,7 +438,7 @@ BEGIN
     -- See case test id=S2A_OPER_PRD_MSIL1C_PDMC_20160720T163945_R116_V20160714T235631_20160714T235631
     -- If output geometry still crosses antimeridian - split it again
     -- This case arises if input geometry longitude is outside -180/180 bounds
-    IF ST_IntersectsAntimeridian(geom_out) <> 0 THEN
+    IF ST_IntersectsAntimeridian(geom_out) = 1 THEN
         geom_out := ST_Buffer(ST_WrapX(ST_ShiftLongitude(geom_out), 180, -360), 0);     
     END IF;
 
@@ -585,7 +585,7 @@ BEGIN
     END IF;
 
     -- Input geometry crosses -180/180 but not the poles
-    IF ST_IntersectsAntimeridian(geom_in) <> 0 THEN
+    IF ST_IntersectsAntimeridian(geom_in) = 1 THEN
         RETURN ST_SplitAntimeridian(geom_in);
     END IF;
 
