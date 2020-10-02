@@ -205,6 +205,7 @@ abstract class RestoModel
 
         'resto:collection' => array(
             'key' => 'collection',
+            'facetKey' => 'collection',
             'osKey' => 'collections',
             'title' => 'Comma separated list of collections name',
             'pattern' => '^[a-zA-Z0-9\-_]+$',
@@ -465,7 +466,7 @@ abstract class RestoModel
         foreach (array_values($this->searchFilters) as $filter) {
             if (isset($filter['options']) && $filter['options'] === 'auto') {
                 // [IMPORTANT] prefix has preseance over osKey
-                $facetFields[] = $filter['prefix'] ?? $filter['osKey'];
+                $facetFields[] = $filter['prefix'] ?? $filter['facetKey'] ?? $filter['osKey'];
             }
         }
         return $facetFields;
