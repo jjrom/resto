@@ -585,7 +585,7 @@ class FeaturesAPI
      *      ),
      *      @OA\Response(
      *          response="400",
-     *          description="Invalide property",
+     *          description="Invalid property",
      *          @OA\JsonContent(ref="#/components/schemas/BadRequestError")
      *      ),
      *      @OA\Response(
@@ -675,6 +675,8 @@ class FeaturesAPI
      *         in="path",
      *         required=true,
      *         description="Property to update",
+     *         type="enum",
+     *         enum={"title", "description", "visibility", "owner", "status"},
      *         @OA\Schema(
      *             type="string"
      *         )
@@ -701,7 +703,7 @@ class FeaturesAPI
      *      ),
      *      @OA\Response(
      *          response="400",
-     *          description="Invalide property",
+     *          description="Invalid property",
      *          @OA\JsonContent(ref="#/components/schemas/BadRequestError")
      *      ),
      *      @OA\Response(

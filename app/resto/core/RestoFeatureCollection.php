@@ -741,21 +741,26 @@ class RestoFeatureCollection
          */
         if ($sorting['resto:lt'] || $sorting['resto:gt']) {
 
-            if (isset($this->restoFeatures[0]))
+            if ( isset($this->restoFeatures[0]) )
             {
                 $featureArray = $this->restoFeatures[0]->toArray();
 
-                $this->prev = $featureArray['properties']['sort_idx'];
+                // No sort_idx (e.g. timeless collection)
+                if ( isset($featureArray['properties']['sort_idx']) ) {
 
-                /* 
-                 * Previous
-                 */
-                $this->links[] = $this->getLink('previous', array(
-                    'resto:lt' => null,
-                    'resto:gt' => $this->prev,
-                    'count' => $sorting['limit'])
-                );
+                    $this->prev = $featureArray['properties']['sort_idx'];
 
+                    /* 
+                    * Previous
+                    */
+                    $this->links[] = $this->getLink('previous', array(
+                        'resto:lt' => null,
+                        'resto:gt' => $this->prev,
+                        'count' => $sorting['limit'])
+                    );
+
+                }
+        
             }
 
             /*
@@ -801,16 +806,20 @@ class RestoFeatureCollection
 
             $featureArray = $this->restoFeatures[$count - 1]->toArray();
             
-            $this->next = $featureArray['properties']['sort_idx'];
+            // No sort_idx (e.g. timeless collection)
+            if (isset($featureArray['properties']['sort_idx'])) {
+                
+                $this->next = $featureArray['properties']['sort_idx'];
 
-            /*
-             * Next URL is the next search URL from the self URL
-             */
-            $this->links[] = $this->getLink('next', array(
-                'resto:gt' => null,
-                'resto:lt' => $this->next,
-                'count' => $sorting['limit'])
-            );
+                /*
+                * Next URL is the next search URL from the self URL
+                */
+                $this->links[] = $this->getLink('next', array(
+                    'resto:gt' => null,
+                    'resto:lt' => $this->next,
+                    'count' => $sorting['limit'])
+                );
+            }
 
         }
 

@@ -107,6 +107,7 @@ class RestoFeatureUtil
     private function formatRawFeatureArray($rawFeatureArray, $collection)
     {
 
+        $self = $this->context->core['baseUrl'] . '/collections/' . $collection->id . '/items/' . $rawFeatureArray['id'];
         $featureArray = array(
             'type' => 'Feature',
             'id' => $rawFeatureArray['id'],
@@ -117,7 +118,7 @@ class RestoFeatureUtil
                 array(
                     'rel' => 'self',
                     'type' => RestoUtil::$contentTypes['geojson'],
-                    'href' => $this->context->core['baseUrl'] . '/collections/' . $collection->id . '/items/' . $rawFeatureArray['id']
+                    'href' => $self
                 ),
                 array(
                     'rel' => 'parent',
@@ -141,6 +142,27 @@ class RestoFeatureUtil
             'stac_version' => STAC::STAC_VERSION,
             'stac_extensions' => $collection->model->stacExtensions
         );
+
+        /*
+         * Handle SKOS relations
+         */
+        if (isset($this->context->addons['SOSA'])) {
+            $featureArray['links'] = array_merge(
+                $featureArray['links'],
+                array(
+                    array(
+                        'rel' => 'child',
+                        'type' => RestoUtil::$contentTypes['json'],
+                        'href' => $self . '/hasSample'
+                    ),
+                    array(
+                        'rel' => 'isSampleOf',
+                        'type' => RestoUtil::$contentTypes['json'],
+                        'href' => $self . '/isSampleOf'
+                    )
+                )
+            );
+        }
 
         foreach ($rawFeatureArray as $key => $value) {
 
@@ -166,7 +188,7 @@ class RestoFeatureUtil
                     break;
 
                 case 'links':
-                    $featureArray[$key] = array_merge($featureArray[$key], $this->getLinks(json_decode($value, true)));
+                    $featureArray[$key] = array_merge($featureArray[$key], $this->getLinks(json_decode($value, true), $self));
                     break;
 
                 case 'bbox4326':
@@ -245,9 +267,12 @@ class RestoFeatureUtil
      * Add default links (i.e. self, parent and collection links) to feature links
      * 
      * @return array
+     * @return string $baseUrl
      */
-    private function getLinks($inputLinks) 
+    private function getLinks($inputLinks, $baseUrl) 
     {
+
+        $links = array();
 
         for ($i = count($inputLinks); $i--;) {
             if ( !in_array($inputLinks[$i]['rel'], array('self', 'parent', 'collection', 'root')) ) {
