@@ -255,6 +255,29 @@ CREATE TABLE IF NOT EXISTS resto.geometry_part (
 );
 
 --
+-- Relation between features
+--
+CREATE TABLE IF NOT EXISTS resto.relation (
+
+    -- Reference feature id master
+    id1                 UUID REFERENCES resto.feature (id) ON DELETE CASCADE,
+
+    -- Reference feature id slave
+    id2                 UUID REFERENCES resto.feature (id) ON DELETE CASCADE,
+
+    -- Relation type: -1 (id1 is the parent of id2 - "hasSample"), 1 (id1 is the child of id1 - "isSampleOf")
+    relation            INTEGER NOT NULL,
+
+    -- Relation type
+    type                TEXT,
+
+    -- Primary key based on unique identifier
+    PRIMARY KEY (id1, id2)
+
+);
+
+
+--
 -- Features content common to all features belonging to LandCoverModel (based on itag)
 --
 CREATE TABLE IF NOT EXISTS resto.feature_landcover (
