@@ -210,7 +210,7 @@ class FeaturesAPI
      *          required=false,
      *          @OA\Schema(
      *              type="string",
-     *              format="west,south,east,north"
+     *              format="[west,south,east,north]"
      *          )
      *      ),
      *      @OA\Parameter(

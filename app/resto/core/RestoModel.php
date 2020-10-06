@@ -158,8 +158,8 @@ abstract class RestoModel
             'key' => 'geom',
             'osKey' => 'bbox',
             'operation' => 'intersects',
-            'title' => 'Region of Interest defined by \'west, south, east, north\' coordinates of longitude, latitude, in decimal degrees (EPSG:4326)',
-            'pattern' => '^[-]?[0-9]*\.?[0-9]+,[-]?[0-9]*\.?[0-9]+,[-]?[0-9]*\.?[0-9]+,[-]?[0-9]*\.?[0-9]+$'
+            'title' => 'Region of Interest defined by \'[west, south, east, north]\' coordinates of longitude, latitude, in decimal degrees (EPSG:4326)',
+            'pattern' => '^\[[-]?[0-9]*\.?[0-9]+,[-]?[0-9]*\.?[0-9]+,[-]?[0-9]*\.?[0-9]+,[-]?[0-9]*\.?[0-9]+\]$'
         ),
         
         'geo:name' => array(

@@ -432,6 +432,13 @@ class RestoFeatureCollection
         $inputFilters = $this->model->getFiltersFromQuery($query);
         
         /*
+         * Special case for bbox - remove leading brackets
+         */
+        if (isset($inputFilters['geo:box'])) {
+            $inputFilters['geo:box'] = substr($inputFilters['geo:box'], 1, -1);
+        }
+
+        /*
          * result options
          */
         $sorting = $this->getSorting($inputFilters);
@@ -808,7 +815,7 @@ class RestoFeatureCollection
             
             // No sort_idx (e.g. timeless collection)
             if (isset($featureArray['properties']['sort_idx'])) {
-                
+
                 $this->next = $featureArray['properties']['sort_idx'];
 
                 /*
