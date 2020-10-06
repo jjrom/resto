@@ -271,6 +271,9 @@ CREATE TABLE IF NOT EXISTS resto.relation (
     -- Relation type
     type                TEXT,
 
+    -- Relation creation date
+    created             TIMESTAMP,
+
     -- Primary key based on unique identifier
     PRIMARY KEY (id1, id2)
 
