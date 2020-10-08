@@ -249,6 +249,13 @@ class RestoCollections
                     'rel' => 'root',
                     'type' => RestoUtil::$contentTypes['json'],
                     'href' => $this->context->core['baseUrl']
+                ),
+                array(
+                    'rel' => 'items',
+                    'title' => 'All collections',
+                    'matched' => 0,
+                    'type' => RestoUtil::$contentTypes['geojson'],
+                    'href' => $this->context->core['baseUrl'] . '/search'
                 )
             ),
             'extent' => $this->extent,
@@ -276,13 +283,8 @@ class RestoCollections
             $totalMatched += $collection['summaries']['collection'][0]['count'] ?? 0;
         }
 
-        $collections['links'][] = array(
-            'rel' => 'items',
-            'title' => 'All collections',
-            'matched' => $totalMatched,
-            'type' => RestoUtil::$contentTypes['geojson'],
-            'href' => $this->context->core['baseUrl'] . '/search'
-        );
+        // Update count for all collections
+        $collections['links'][2]['matched'] = $totalMatched;
 
         /*
          * Sort collections array alphabetically (based on collection title)
