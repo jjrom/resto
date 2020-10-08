@@ -67,7 +67,7 @@
  *   @OA\Info(
  *       title=API_INFO_TITLE,
  *       description=API_INFO_DESCRIPTION,
- *       version=6.0.0-rc1,
+ *       version="6.0.0-rc2",
  *       @OA\Contact(
  *           email=API_INFO_CONTACT_EMAIL
  *       )
@@ -136,7 +136,7 @@ class Resto
     );
 
     // resto version
-    const VERSION = '6.0.0-rc1';
+    const VERSION = '6.0.0-rc2';
 
     /* ============================================================
      *              NEVER EVER TOUCH THESE VALUES

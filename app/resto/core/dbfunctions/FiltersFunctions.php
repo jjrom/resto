@@ -38,24 +38,26 @@ class FiltersFunctions
         'resto:liked' // Special case for liked
     );
 
-    private $dbDriver = null;
-
     /*
      * JOINS table
      */
     private $joins = array();
 
+    private $context;
+    private $user;
+
     /**
      * Constructor
      *
-     * @param RestoDatabaseDriver $dbDriver
-     * @throws Exception
+     * @param RestoResto $context : Resto Context
+     * @param RestoUser $user : Resto user
      */
-    public function __construct($dbDriver)
+    public function __construct($context, $user)
     {
-        $this->dbDriver = $dbDriver;
+        $this->context = $context;
+        $this->user = $user;
     }
-
+    
     /**
      * Return search filters based on model and input search parameters
      *
@@ -579,7 +581,11 @@ class FiltersFunctions
      * Possible values:
      * 
      *    toto
-     *    toto|titi => means 'toto' OR 'titi'
+     *    toto|titi|tutu => means 'toto' OR 'titi' OR 'tutu'
+     *    toto! => means 'toto' and all broader concept of 'toto' (needs resto-addon-sosa add-on)
+     *    toto* => means 'toto' and all narrower concept of 'toto' (needs resto-addon-sosa add-on)
+     *    toto$ => means 'toto' and all related concept of 'toto' (needs resto-addon-sosa add-on)
+     * 
      *
      * @param string $searchTerm
      * @param array $filters
@@ -592,13 +598,30 @@ class FiltersFunctions
     {
     
         /*
-         * Everything is stored within hashtags column
-         *
-         * Structure is :
-         *
-         *      type{Resto::TAG_SEPARATOR}id or type{Resto::TAG_SEPARATOR}id1|id2|id3|.etc.
-         *
-         * In second case, '|' is understood as "OR"
+         * If resto-addon-sosa add-on exists, check for searchTerm last character:
+         *  - if ends with "!" character, then search for broader search terms
+         *  - if ends with "*" character, then search for narrower search terms
+         *  - if ends with "$" character, then search for related search terms  
+         */
+        $lastCharacter = substr($searchTerm, -1 );
+        if ( in_array($lastCharacter, array('!', '*', '$') ) && class_exists('SKOS')) {
+            $searchTerm = substr($searchTerm, 0, -1);
+            $relations = array(
+                '!' => SKOS::$SKOS_BROADER,
+                '*' => SKOS::$SKOS_NARROWER,
+                '$' => SKOS::$SKOS_RELATED
+            );
+            $relations = (new SKOS($this->context, $this->user))->retrieveRelations($searchTerm, array(
+                'relation' => $relations[$lastCharacter],
+                'asList' => true
+            ));
+            if ( count($relations) > 0 ) {
+                $searchTerm = $searchTerm . '|' . join('|', $relations);
+            }
+        }
+        
+        /*
+         * The '|' character is understood as "OR"
          */
         $ors = array();
         $values = explode('|', $searchTerm);

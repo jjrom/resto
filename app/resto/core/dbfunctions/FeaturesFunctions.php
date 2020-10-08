@@ -96,7 +96,7 @@ class FeaturesFunctions
         /*
          * Set filters
          */
-        $filtersFunctions = new FiltersFunctions($this->dbDriver);
+        $filtersFunctions = new FiltersFunctions($context, $user);
         $filtersAndJoins = $filtersFunctions->prepareFilters($user, $model, $params, $sorting['sortKey']);
         
         /*
@@ -191,7 +191,7 @@ class FeaturesFunctions
             'fields' => $fields,
             'useSocial' => isset($context->addons['Social'])
         ));
-        $filterFunctions = new FiltersFunctions($this->dbDriver);
+        $filterFunctions = new FiltersFunctions($context, $user);
         $filtersAndJoins = $filterFunctions->prepareFilters($user, $model, array(), null);
 
         // Determine if search on id or productidentifier
@@ -598,18 +598,17 @@ class FeaturesFunctions
     }
 
     /**
-     * Return array of hashtags from a text - invalid hashtag are extracted and normalized
-     * i.e. invalid characters are discarded
+     * Return array of hashtags from a text - invalid characters are discarded
      *
      * [WARNING] The leading '#' is not returned
      *
      * Example:
      *
-     *    $text = "This is a #test"
+     *    $text = "This is a #test #withA!%.badhashtag"
      *
      * returns:
      *    
-     *    array('test')
+     *    array('test', 'withAbadhashtag')
      *
      * @param string $text
      * 
