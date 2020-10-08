@@ -598,7 +598,8 @@ class FeaturesFunctions
     }
 
     /**
-     * Return array of hashtags from a text
+     * Return array of hashtags from a text - invalid hashtag are extracted and normalized
+     * i.e. invalid characters are discarded
      *
      * [WARNING] The leading '#' is not returned
      *
@@ -608,7 +609,7 @@ class FeaturesFunctions
      *
      * returns:
      *    
-     *    array('test)
+     *    array('test')
      *
      * @param string $text
      * 
@@ -623,7 +624,7 @@ class FeaturesFunctions
                 $hashtagsArray = array_count_values($matches[1]);
                 $hashtags = array();
                 foreach (array_keys($hashtagsArray) as $key) {
-                    $hashtags[] = $key;
+                    $hashtags[] = RestoUtil::cleanHashtag($key);
                 }
                 return $hashtags;
             }

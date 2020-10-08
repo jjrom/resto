@@ -74,6 +74,7 @@ class RestoUtil
      * Extract hashtags from a string (i.e. #something or -#something)
      *
      * @param string $str
+     * 
      * @return array
      */
     public static function extractHashtags($str)
@@ -83,6 +84,27 @@ class RestoUtil
             return $matches[0];
         }
         return array();
+    }
+
+    /**
+     * Clean a hashtag string i.e. disacard characters !, $, %, ^, &, *, +, ., ", { ,}, /, \
+     *
+     * Example:
+     *
+     *    $str = #bad!hasHtag$%".veryBad
+     *
+     * returns:
+     *    
+     *    #badhasHtagveryBad
+     * 
+     * @param string $str
+     * 
+     * @return string
+     */
+    public static function cleanHashtag($str)
+    {
+        $bad = array('!', '$', '%', '^', '&', '*', '+', '.', '"', '{', '}', '/', '\\');
+        return str_replace($bad, '', $str);
     }
 
     /**
