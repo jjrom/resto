@@ -553,10 +553,16 @@ class FiltersFunctions
             }
 
             /*
-             * Add prefix if needed
+             * Add prefix in front of all elements if needed
+             * See for instance [eo:instrument]
              */
             if (isset($model->searchFilters[$filterName]['prefix'])) {
-                $searchTerm = $model->searchFilters[$filterName]['prefix'] . Resto::TAG_SEPARATOR . $searchTerm;
+                $values = explode('|', $searchTerm);
+                $searchTerms = array();
+                for ($j = count($values); $j--;) {
+                    $searchTerms[] = $model->searchFilters[$filterName]['prefix'] . Resto::TAG_SEPARATOR . $values[$j];
+                }
+                $searchTerm = join('|',$searchTerms);
             }
             
             $terms = array_merge($this->processSearchTerms($searchTerm, $filters, $model, $filterName, $exclusion));
@@ -569,6 +575,11 @@ class FiltersFunctions
     }
 
     /**
+     * Process input searchTerm
+     * Possible values:
+     * 
+     *    toto
+     *    toto|titi => means 'toto' OR 'titi'
      *
      * @param string $searchTerm
      * @param array $filters
@@ -579,41 +590,26 @@ class FiltersFunctions
      */
     private function processSearchTerms($searchTerm, &$filters, $model, $filterName, $exclusion)
     {
-
-        $type = null;
-        
+    
         /*
-         * searchTerm format is "value" or "type:value"
+         * Everything is stored within hashtags column
+         *
+         * Structure is :
+         *
+         *      type{Resto::TAG_SEPARATOR}id or type{Resto::TAG_SEPARATOR}id1|id2|id3|.etc.
+         *
+         * In second case, '|' is understood as "OR"
          */
-        $splitted = explode(Resto::TAG_SEPARATOR, $searchTerm);
-        if (isset($splitted[1])) {
-            $type = $splitted[0];
-            array_shift($splitted);
-            $searchTerm = join(Resto::TAG_SEPARATOR, $splitted);
-        }
-        
-        if (isset($type)) {
-
-            /*
-             * Everything other types are stored within hashtags column
-             *
-             * Structure is :
-             *
-             *      type{Resto::TAG_SEPARATOR}id or type{Resto::TAG_SEPARATOR}id1|id2|id3|.etc.
-             *
-             * In second case, '|' is understood as "OR"
-             */
-            $ors = array();
-            $values = explode('|', $searchTerm);
-            if (count($values) > 1) {
-                for ($j = count($values); $j--;) {
-                    $ors[] = $model->schema['name'] . '.feature.' . $model->searchFilters[$filterName]['key'] . " @> normalize_array(ARRAY['" . pg_escape_string($type . Resto::TAG_SEPARATOR . $values[$j]) . "'])";
-                }
-                return array(($exclusion ? 'NOT (' : '(') . join(' OR ', $ors) . ')');
+        $ors = array();
+        $values = explode('|', $searchTerm);
+        if (count($values) > 1) {
+            for ($j = count($values); $j--;) {
+                $ors[] = $model->schema['name'] . '.feature.' . $model->searchFilters[$filterName]['key'] . " @> normalize_array(ARRAY['" . pg_escape_string($values[$j]) . "'])";
             }
+            return array(($exclusion ? 'NOT (' : '(') . join(' OR ', $ors) . ')');
         }
         
-        $filters[$exclusion ? 'without' : 'with'][] = "'" . pg_escape_string((isset($type) ? $type . Resto::TAG_SEPARATOR : '') . $searchTerm) . "'";
+        $filters[$exclusion ? 'without' : 'with'][] = "'" . pg_escape_string($searchTerm) . "'";
 
         return array();
     }
