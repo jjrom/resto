@@ -601,20 +601,17 @@ class FiltersFunctions
          * If resto-addon-sosa add-on exists, check for searchTerm last character:
          *  - if ends with "!" character, then search for broader search terms
          *  - if ends with "*" character, then search for narrower search terms
-         *  - if ends with "$" character, then search for related search terms  
+         *  - if ends with "~" character, then search for related search terms  
          */
         $lastCharacter = substr($searchTerm, -1 );
-        if ( in_array($lastCharacter, array('!', '*', '$') ) && class_exists('SKOS')) {
+        if ( in_array($lastCharacter, array('!', '*', '~') ) && class_exists('SKOS')) {
             $searchTerm = substr($searchTerm, 0, -1);
             $relations = array(
                 '!' => SKOS::$SKOS_BROADER,
                 '*' => SKOS::$SKOS_NARROWER,
-                '$' => SKOS::$SKOS_RELATED
+                '~' => SKOS::$SKOS_RELATED
             );
-            $relations = (new SKOS($this->context, $this->user))->retrieveRelations($searchTerm, array(
-                'relation' => $relations[$lastCharacter],
-                'asList' => true
-            ));
+            $relations = (new SKOS($this->context, $this->user))->retrieveRecursiveRelations($searchTerm, $relations[$lastCharacter]);
             if ( count($relations) > 0 ) {
                 $searchTerm = $searchTerm . '|' . join('|', $relations);
             }

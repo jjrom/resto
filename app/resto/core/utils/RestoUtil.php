@@ -87,7 +87,7 @@ class RestoUtil
     }
 
     /**
-     * Clean a hashtag string i.e. disacard characters !, $, %, ^, &, *, +, ., ", { ,}, /, \
+     * Clean a hashtag string i.e. disacard characters !, $, %, ^, ~, &, *, +, ., ", { ,}, /, \
      *
      * Example:
      *
@@ -103,7 +103,7 @@ class RestoUtil
      */
     public static function cleanHashtag($str)
     {
-        $bad = array('!', '$', '%', '^', '&', '*', '+', '.', '"', '{', '}', '/', '\\');
+        $bad = array('!', '$', '%', '^', '~', '&', '*', '+', '.', '"', '{', '}', '/', '\\');
         return str_replace($bad, '', $str);
     }
 

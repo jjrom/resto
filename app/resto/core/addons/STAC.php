@@ -204,7 +204,7 @@ class STAC extends RestoAddOn
 * *#cryosphere|atmosphere* will search for *cryosphere* OR *atmosphere*
 * *#cryosphere!* will search for *cryosphere* OR any *broader* concept of *cryosphere* ([EXTENSION][SKOS])
 * *#cryosphere\** will search for *cryosphere* OR any *narrower* concept of *cryosphere* ([EXTENSION][SKOS])
-* *#cryosphere$* will search for *cryosphere* OR any *related* concept of *cryosphere* ([EXTENSION][SKOS])",
+* *#cryosphere~* will search for *cryosphere* OR any *related* concept of *cryosphere* ([EXTENSION][SKOS])",
      *          required=false,
      *          @OA\Schema(
      *              type="string"
