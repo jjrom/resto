@@ -765,8 +765,8 @@ class FeaturesAPI
             }
         }
         
-        // A value is mandatory
-        if (! isset($body['value'])) {
+        // A value key is mandatory
+        if (! array_key_exists('value', $body) ) {
             return RestoLogUtil::httpError(400, 'Missing mandatory "value" property');
         }
 
