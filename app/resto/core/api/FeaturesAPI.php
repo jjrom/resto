@@ -759,7 +759,7 @@ class FeaturesAPI
         }
 
         // Only admin or owner can change feature properties
-        if ($this->user->profile['id'] !== $feature->toArray()['properties']['owner']) {
+        if (! isset($featureArray['properties']['owner']) || $featureArray['properties']['owner'] !== $this->user->profile['id']) {
             if (! $this->user->hasGroup(Resto::GROUP_ADMIN_ID)) {
                 RestoLogUtil::httpError(403);
             }
