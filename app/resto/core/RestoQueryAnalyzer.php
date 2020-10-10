@@ -104,7 +104,7 @@ class RestoQueryAnalyzer
             
             if (count($hashtags) > 0) {
                 $details['What'] = array(
-                    'searchTerms' => $hashtags
+                    'searchTerms' => $this->appendSkos($hashtags)
                 );
             }
 
@@ -137,6 +137,44 @@ class RestoQueryAnalyzer
             'inputFilters' => $inputFilters,
             'details' => $details
         );
+    }
+
+    /** 
+     * Parse input $hastags array and replace individual $hashtag with skos related
+     * hastags.
+     * 
+     * @param array $hashtags
+     * @return array  
+     */
+    private function appendSkos($hashtags)
+    {
+
+        for ($i = 0, $ii = count($hashtags); $i < $ii; $i++) {
+
+            /*
+             * If resto-addon-sosa add-on exists, check for searchTerm last character:
+             *  - if ends with "!" character, then search for broader search terms
+             *  - if ends with "*" character, then search for narrower search terms
+             *  - if ends with "~" character, then search for related search terms
+             */
+            $lastCharacter = substr($hashtags[$i], -1 );
+            if ( in_array($lastCharacter, array('!', '*', '~') ) && class_exists('SKOS')) {
+                $hashtags[$i] = substr($hashtags[$i], 0, -1);
+                $relations = array(
+                    '!' => SKOS::$SKOS_BROADER,
+                    '*' => SKOS::$SKOS_NARROWER,
+                    '~' => SKOS::$SKOS_RELATED
+                );
+                // Don't forget to trim # prefix
+                $relations = (new SKOS($this->context, $this->user))->retrieveRecursiveRelations(substr($hashtags[$i], 1), $relations[$lastCharacter]);
+                if ( count($relations) > 0 ) {
+                    $hashtags[$i] = $hashtags[$i] . '|' . join('|', $relations);
+                }
+            }
+        }
+        
+        return $hashtags;
+
     }
 
     /**

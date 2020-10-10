@@ -584,7 +584,7 @@ class FiltersFunctions
      *    toto|titi|tutu => means 'toto' OR 'titi' OR 'tutu'
      *    toto! => means 'toto' and all broader concept of 'toto' (needs resto-addon-sosa add-on)
      *    toto* => means 'toto' and all narrower concept of 'toto' (needs resto-addon-sosa add-on)
-     *    toto$ => means 'toto' and all related concept of 'toto' (needs resto-addon-sosa add-on)
+     *    toto~ => means 'toto' and all related concept of 'toto' (needs resto-addon-sosa add-on)
      * 
      *
      * @param string $searchTerm
@@ -598,35 +598,16 @@ class FiltersFunctions
     {
     
         /*
-         * If resto-addon-sosa add-on exists, check for searchTerm last character:
-         *  - if ends with "!" character, then search for broader search terms
-         *  - if ends with "*" character, then search for narrower search terms
-         *  - if ends with "~" character, then search for related search terms  
-         */
-        $lastCharacter = substr($searchTerm, -1 );
-        if ( in_array($lastCharacter, array('!', '*', '~') ) && class_exists('SKOS')) {
-            $searchTerm = substr($searchTerm, 0, -1);
-            $relations = array(
-                '!' => SKOS::$SKOS_BROADER,
-                '*' => SKOS::$SKOS_NARROWER,
-                '~' => SKOS::$SKOS_RELATED
-            );
-            $relations = (new SKOS($this->context, $this->user))->retrieveRecursiveRelations($searchTerm, $relations[$lastCharacter]);
-            if ( count($relations) > 0 ) {
-                $searchTerm = $searchTerm . '|' . join('|', $relations);
-            }
-        }
-        
-        /*
          * The '|' character is understood as "OR"
+         * For performance reason it is better to use && operator instead of multiple @> with OR
          */
-        $ors = array();
         $values = explode('|', $searchTerm);
         if (count($values) > 1) {
+            $quotedValues = array();
             for ($j = count($values); $j--;) {
-                $ors[] = $model->schema['name'] . '.feature.' . $model->searchFilters[$filterName]['key'] . " @> normalize_array(ARRAY['" . pg_escape_string($values[$j]) . "'])";
+                $quotedValues[] = '\'' . pg_escape_string($values[$j]) . '\'';
             }
-            return array(($exclusion ? 'NOT (' : '(') . join(' OR ', $ors) . ')');
+            return array(($exclusion ? 'NOT (' : '(') . $model->schema['name'] . '.feature.' . $model->searchFilters[$filterName]['key'] . ' && normalize_array(ARRAY[' . join(',', $quotedValues) . ']))');
         }
         
         $filters[$exclusion ? 'without' : 'with'][] = "'" . pg_escape_string($searchTerm) . "'";
