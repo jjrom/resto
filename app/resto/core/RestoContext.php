@@ -39,9 +39,6 @@ class RestoContext
         // Data related "planet"
         'planet' => 'earth',
 
-        // JSON Web Token duration (in seconds)
-        'tokenDuration' => 3600,
-
         // Supported API languages
         'languages' => array('en', 'fr'),
 
@@ -70,8 +67,8 @@ class RestoContext
         // Timezone for date display
         'timezone' => 'Europe/Paris',
 
-        // JSON Web Token validity duration (in seconds)
-        'tokenDuration' => 3600,
+        // JSON Web Token validity duration (in seconds) - default is 100 days
+        'tokenDuration' => 8640000,
 
         // Permanent storage directory to store/retrieve files
         'storageInfo' => array(

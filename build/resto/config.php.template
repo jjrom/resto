@@ -13,7 +13,7 @@ return array(
     'storeQuery' => ${STORE_QUERY:-false},
     'streamMethod' => '${STREAM_METHOD:-php}',
     'timezone' => '${TIMEZONE:-Europe/Paris}',
-    'tokenDuration' => ${JWT_DURATION:-3600},
+    'tokenDuration' => ${JWT_DURATION:-8640000},
     'userAutoValidation' => ${USER_AUTOVALIDATION:-true},
     'userAutoActivation' => ${USER_AUTOACTIVATION:-true},
     'useCache' => ${USE_CACHE:-false}, 
