@@ -223,8 +223,8 @@ class SecurityUtil
             return null;
         }
 
-        // Token is valid but old - check revokation
-        if ($payloadObject['exp'] - $payloadObject['iat'] > 604800) {
+        // Token is valid but older than 1000 days - check revokation
+        if ($payloadObject['exp'] - $payloadObject['iat'] > 86400000) {
             if ((new GeneralFunctions($context->dbDriver))->isTokenRevoked($token)) {
                 return null;
             }
