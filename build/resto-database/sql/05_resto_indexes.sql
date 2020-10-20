@@ -26,13 +26,14 @@ CREATE INDEX IF NOT EXISTS idx_groupid_right ON resto.right (groupid);
 
 -- [TABLE resto.group]
 CREATE UNIQUE INDEX IF NOT EXISTS idx_uname_group ON resto.group (normalize(name));
-CREATE INDEX idx_name_group ON resto.group USING GIN (normalize(name) gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_name_group ON resto.group USING GIN (normalize(name) gin_trgm_ops);
 
 -- [TABLE resto.facet]
 CREATE INDEX IF NOT EXISTS idx_id_facet ON resto.facet (normalize(id));
 CREATE INDEX IF NOT EXISTS idx_pid_facet ON resto.facet (normalize(pid));
 CREATE INDEX IF NOT EXISTS idx_type_facet ON resto.facet (type);
 CREATE INDEX IF NOT EXISTS idx_collection_facet ON resto.facet (normalize(collection));
+CREATE INDEX IF NOT EXISTS idx_value_facet ON resto.facet USING GIN (normalize(value) gin_trgm_ops);
 
 -- [TABLE resto.feature]
 CREATE INDEX IF NOT EXISTS idx_collection_feature ON resto.feature USING btree (collection);

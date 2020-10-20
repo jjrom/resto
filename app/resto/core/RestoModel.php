@@ -558,7 +558,8 @@ abstract class RestoModel
             'id',
             'visibility',
             'owner',
-            'sort_idx'
+            'sort_idx',
+            '_keywords'
         );
 
         $properties = array();
