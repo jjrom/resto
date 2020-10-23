@@ -368,7 +368,10 @@ class FiltersFunctions
 
         else if ($filterName === 'geo:geometry') {
             $tableName = $this->getGeometryTableName($model);
-            $output = ($exclusion ? 'NOT ' : '') . 'ST_intersects(' . $tableName . '.' . $model->searchFilters[$filterName]['key'] . ", ST_GeomFromText('" . pg_escape_string($requestParams[$filterName]) . "', 4326))";
+
+            // Eventually correct input GEOMETRYCOLLECTION with a ST_buffer
+            $inputGeom = strpos($requestParams[$filterName], 'GEOMETRYCOLLECTION') === 0 ?  "ST_Buffer(ST_GeomFromText('" . pg_escape_string($requestParams[$filterName]) . "', 4326), 0)" : "ST_GeomFromText('" . pg_escape_string($requestParams[$filterName]) . "', 4326)";
+            $output = ($exclusion ? 'NOT ' : '') . 'ST_intersects(' . $tableName . '.' . $model->searchFilters[$filterName]['key'] . ", " . $inputGeom . ")";
         }
 
         return array(
