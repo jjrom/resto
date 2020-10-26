@@ -433,10 +433,13 @@ class RestoFeatureCollection
         
         /*
          * Special case for bbox - remove leading brackets
-         */
+         * 
+         * [TODO] To be removed
+         *
         if (isset($inputFilters['geo:box'])) {
             $inputFilters['geo:box'] = substr($inputFilters['geo:box'], 1, -1);
         }
+        */
 
         /*
          * result options
