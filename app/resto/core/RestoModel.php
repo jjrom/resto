@@ -693,7 +693,7 @@ abstract class RestoModel
         /*
          * Check geometry topology integrity
          */
-        $topologyAnalysis = (new GeneralFunctions($collection->context->dbDriver))->getTopologyAnalysis($data['geometry'], $params);
+        $topologyAnalysis = (new GeneralFunctions($collection->context->dbDriver))->getTopologyAnalysis($data['geometry'] ?? null, $params);
         if (!$topologyAnalysis['isValid']) {
             RestoLogUtil::httpError(400, $topologyAnalysis['error']);
         }
@@ -744,7 +744,7 @@ abstract class RestoModel
             }
         }
 
-        return (new Tag($collection->context, $collection->user))->getKeywords($properties, $data['geometry'], $collection->model->facetCategories, $taggers);
+        return (new Tag($collection->context, $collection->user))->getKeywords($properties, $data['geometry'] ?? null, $collection->model->facetCategories, $taggers);
 
     }
 
