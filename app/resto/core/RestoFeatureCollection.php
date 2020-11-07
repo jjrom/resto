@@ -585,7 +585,9 @@ class RestoFeatureCollection
          * Convert resto model to search service "osKey"
          */
         $query = array(
-            'inputFilters' => $this->toOSKeys($analysis['inputFilters'])
+            'inputFilters' => $this->toOSKeys($analysis['inputFilters']),
+            'appliedFilters' => $this->toOSKeys($analysis['details']['appliedFilters']),
+            'processingTime' => $query['details']['processingTime'] = microtime(true) - $this->requestStartTime
         );
         
         /*
@@ -610,8 +612,6 @@ class RestoFeatureCollection
          */
         if (isset($this->query['_analysis']) ? filter_var($this->query['_analysis'], FILTER_VALIDATE_BOOLEAN) : false) {
             $query['details'] = $analysis['details'];
-            $query['details']['appliedFilters'] = $this->toOSKeys($analysis['details']['appliedFilters']);
-            $query['details']['processingTime'] = microtime(true) - $this->requestStartTime;
         }
 
         return $query;
