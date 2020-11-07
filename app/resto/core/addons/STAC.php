@@ -570,8 +570,8 @@ class STAC extends RestoAddOn
      *              type="string"
      *          ),
      *          description="Comma separated list of property fields to be returned. The following reserved keywords can also be used:
-* _all: Return all properties
-* _default: Return all fields except *keywords* property"
+* _all: Return all properties (This is the default)
+* _simple: Return all fields except *keywords* property"
      *      ),
      *      @OA\Response(
      *          response="200",

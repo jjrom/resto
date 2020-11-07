@@ -502,7 +502,7 @@ class RestoFeature
                 $this->user,
                 $options['featureId'],
                 $this->collection,
-                $options['fields'] ?? "_all"
+                $options['fields'] ?? null
             );
         }
         /*

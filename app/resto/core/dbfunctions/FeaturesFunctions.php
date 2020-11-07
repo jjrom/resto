@@ -130,7 +130,7 @@ class FeaturesFunctions
          */
         $query = join(' ', array(
             $this->getSelectClause($model->schema['name'], $this->featureColumns, $user, array(
-                'fields' => $context->query['fields'] ?? '_default',
+                'fields' => $context->query['fields'] ?? null,
                 'useSocial' => isset($context->addons['Social']),
                 'sortKey' => $sorting['sortKey']
             )),
@@ -835,7 +835,7 @@ class FeaturesFunctions
      */
     private function getSelectClause($schemaName, $featureColumns, $user, $options)
     {
-        $sanitized = $this->sanitizeSQLColumns($featureColumns, array_map('trim', explode(',', $options['fields'])));
+        $sanitized = $this->sanitizeSQLColumns($featureColumns, isset($options['fields']) ? array_map('trim', explode(',', $options['fields'])) : array());
 
         /*
          * Get Controller database fields
@@ -909,11 +909,11 @@ class FeaturesFunctions
         
         /*
          *  Only one field requested
-         *   -  "_default" returns all properties except keywords
+         *   -  "_simple" returns all properties except keywords
          *   -  "_all" returns all properties
          */
         if (count($fields) > 0) {
-            if ($fields[0] === '_default') {
+            if ($fields[0] === '_simple') {
                 $discarded[] = 'keywords';
             }
             // Always add mandatories field id, geometry and collection

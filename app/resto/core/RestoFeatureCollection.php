@@ -683,7 +683,7 @@ class RestoFeatureCollection
             $feature = new RestoFeature($this->context, $this->user, array(
                 'featureArray' => $featuresArray['features'][$i],
                 'collection' => $this->collections[$featuresArray['features'][$i]['collection']] ?? null,
-                'fields' => $this->query['fields'] ?? "_default"
+                'fields' => $this->query['fields'] ?? null
             ));
             if ( $feature->isValid() ) {
                 $this->restoFeatures[] = $feature;

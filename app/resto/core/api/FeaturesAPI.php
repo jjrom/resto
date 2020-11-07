@@ -77,8 +77,8 @@ class FeaturesAPI
      *              type="string"
      *          ),
      *          description="Comma separated list of property fields to be returned. The following reserved keywords can also be used:
-* _all: Return all properties
-* _default: Return all fields except *keywords* property"
+* _all: Return all properties (This is the default)
+* _simple: Return all fields except *keywords* property"
      *      ),
      *      @OA\Response(
      *          response="200",
@@ -99,10 +99,9 @@ class FeaturesAPI
     public function getFeature($params)
     {
 
-        // [IMPORTANT] Default fields output is "_default"
         $feature = new RestoFeature($this->context, $this->user, array(
             'featureId' => $params['featureId'],
-            'fields' => $params['fields'] ?? "_default",
+            'fields' => $params['fields'] ?? null,
             'collection' => (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()
         ));
 
