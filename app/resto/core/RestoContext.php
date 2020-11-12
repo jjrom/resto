@@ -320,7 +320,7 @@ class RestoContext
         /*
          * Set servicesInfos
          */
-        $this->setServicesInfos($config['serviceInfos'] ?? array());
+        $this->servicesInfos = $config['serviceInfos'] ?? array();
         
         /*
          * Initialize query array
@@ -478,23 +478,6 @@ class RestoContext
         // Correct storageInfo endpoint
         if (strpos($this->core['storageInfo']['endpoint'], 'http') !== 0 ) {
             $this->core['storageInfo']['endpoint'] = $this->core['baseUrl'] . $this->core['storageInfo']['endpoint'];
-        }
-
-    }
-
-    /**
-     * Set servicesInfos
-     *
-     * @param array $input
-     */
-    private function setServicesInfos($input)
-    {
-        if (isset($input)) {
-            foreach (array_keys($input) as $serviceName) {
-                if (isset($input[$serviceName][$this->lang])) {
-                    $this->serviceInfos[$serviceName] = $input[$serviceName][$this->lang];
-                }
-            }
         }
 
     }

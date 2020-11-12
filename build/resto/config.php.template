@@ -49,11 +49,11 @@ return array(
             'message' => array(
                 'en' => array(
                     'title' => '[resto] Activation code',
-                    'body' => 'Hi,<br>You have registered an account to resto application<br><br>To validate this account, <a href=\'{a:1}\'>click this link</a> <br><br>If it does not work, you can also copy the link below and paste it within the address bar of your Web browser<br><br>{a:1}<br><br>Regards<br><br>resto team'
+                    'body' => 'Hi,<br>You have registered an account to resto application<br><br>To validate this account, <a href=\'{:url:}\'>click this link</a> <br><br>If it does not work, you can also copy the link below and paste it within the address bar of your Web browser<br><br>{:url:}<br><br>Regards<br><br>resto team'
                 ),
                 'fr' => array(
                     'title' => '[resto] Code d\'activation',
-                    'body' => 'Bonjour,<br><br>Vous vous êtes enregistré sur l\'application resto<br><br>Pour valider votre compte, <a href=\'{a:1}\'>cliquer sur le lien</a> <br><br>Si cela ne fonctionne pas, vous pouvez aussi copier le lien ci-dessous et le coller dans la barre d\'URL de votre navigateur Web<br><br>{a:1}<br><br>Cordialement<br><br>L\'équipe resto'
+                    'body' => 'Bonjour,<br><br>Vous vous êtes enregistré sur l\'application resto<br><br>Pour valider votre compte, <a href=\'{:url:}\'>cliquer sur le lien</a> <br><br>Si cela ne fonctionne pas, vous pouvez aussi copier le lien ci-dessous et le coller dans la barre d\'URL de votre navigateur Web<br><br>{:url:}<br><br>Cordialement<br><br>L\'équipe resto'
                 )
             )
         ),
@@ -62,11 +62,11 @@ return array(
             'message' => array(
                 'en' => array(
                     'title' => '[resto] Reset password',
-                    'body' => 'Hi,<br><br>You ask to reset your password for the resto application<br><br>To reset your password, <a href=\'{a:1}\'>click this link</a> <br><br>If it does not work, you can also copy the link below and paste it within the address bar of your Web browser<br><br>{a:1}<br><br>Regards<br><br>resto team'
+                    'body' => 'Hi,<br><br>You ask to reset your password for the resto application<br><br>To reset your password, <a href=\'{:url:}\'>click this link</a> <br><br>If it does not work, you can also copy the link below and paste it within the address bar of your Web browser<br><br>{:url:}<br><br>Regards<br><br>resto team'
                 ),
                 'fr' => array(
                     'title' => '[resto] Demande de réinitialisation de mot de passe',
-                    'body' => 'Bonjour,<br><br>Vous avez demandé une réinitialisation de votre mot de passe pour l\'application resto<br><br>Pour réinitialiser ce mot de passe, veuillez <a href=\'{a:1}\'>cliquer sur ce lien</a> <br><br>Si cela ne fonctionne pas, vous pouvez aussi copier le lien ci-dessous et le coller dans la barre d\'URL de votre navigateur Web<br><br>{a:2}<br><br>Cordialement<br><br>L\'équipe resto'
+                    'body' => 'Bonjour,<br><br>Vous avez demandé une réinitialisation de votre mot de passe pour l\'application resto<br><br>Pour réinitialiser ce mot de passe, veuillez <a href=\'{:url:}\'>cliquer sur ce lien</a> <br><br>Si cela ne fonctionne pas, vous pouvez aussi copier le lien ci-dessous et le coller dans la barre d\'URL de votre navigateur Web<br><br>{:url:}<br><br>Cordialement<br><br>L\'équipe resto'
                 )
             )
         )

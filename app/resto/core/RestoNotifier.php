@@ -28,9 +28,9 @@ class RestoNotifier
     /*
      * Services information
      */
-    public $serviceInfos = array(
+    public $servicesInfos = array(
         'activateUser' => array(
-            'endpoint' => 'http://localhost/rocket/#/user/activate',
+            'endpoint' => 'http://localhost:9999/activate/{:token:}',
             'message' => array(
                 'title' => '[resto] Activation code',
                 'body' => 'Hi,<br>You have registered an account to resto application<br><br>To validate this account, <a href="{:url:}">click this link</a> <br><br>If it does not work, you can also copy the link below and paste it within the address bar of your Web browser<br><br>{:url:}<br><br>Regards<br><br>resto team'
@@ -38,7 +38,7 @@ class RestoNotifier
             )
         ),
         'resetPassword' => array(
-            'endPoint' => 'http://localhost/rocket/#/resetPassword',
+            'endpoint' => 'http://localhost:9999/resetPassword/{:token:}',
             'message' => array(
                 'title' => '[resto] Reset password',
                 'body' => 'Hi,<br><br>You ask to reset your password for the resto application<br><br>To reset your password, <a href="{:url:}">click this link</a> <br><br>If it does not work, you can also copy the link below and paste it within the address bar of your Web browser<br><br>{:url:}<br><br>Regards<br><br>resto team'
@@ -49,12 +49,31 @@ class RestoNotifier
     /**
      * Constructor
      *
+     * @param array $servicesInfos
+     * @param string $lang
      * @throws Exception
      */
-    public function __construct($serviceInfos = array())
+    public function __construct($servicesInfos, $lang)
     {
-        foreach (array_keys($serviceInfos) as $key) {
-            $this->serviceInfos[$key] = $serviceInfos[$key];
+        foreach (array_keys($servicesInfos) as $key) {
+
+            // Translation
+            if ( isset($servicesInfos[$key]['message']) ) {
+                $servicesInfos[$key]['message'] = $servicesInfos[$key]['message'][$lang] ?? $servicesInfos[$key]['message']['en'] ?? null;
+            }
+
+            if ( isset($this->servicesInfos[$key]) ) {
+                $endpoint = $this->servicesInfos[$key]['endpoint'];
+                $message = $this->servicesInfos[$key]['message'];
+                $this->servicesInfos[$key] = $servicesInfos[$key];
+                if ( !isset($this->servicesInfos[$key]['message']) ) {
+                    $this->servicesInfos[$key]['message'] = $message;
+                }
+                if ( !isset($this->servicesInfos[$key]['endpoint']) || $this->servicesInfos[$key]['endpoint'] === '' ) {
+                    $this->servicesInfos[$key]['endpoint'] = $endpoint;
+                }
+            }
+
         }
     }
 
@@ -148,16 +167,20 @@ class RestoNotifier
      */
     private function sendMailForService($serviceName, $receiver, $mailConfig, $options)
     {
+
+        $url = RestoUtil::replaceInTemplate($this->servicesInfos[$serviceName]['endpoint'], array(
+            'token' => $options['token']
+        ));
+
         return $this->sendMail(
             array(
                 'to' => $receiver,
                 'senderName' => $mailConfig['senderName'],
                 'senderEmail' => $mailConfig['senderEmail'],
-                'subject' => $this->serviceInfos[$serviceName]['message']['title'],
-                'message' => RestoUtil::replaceInTemplate($this->serviceInfos[$serviceName]['message']['body'], array(
-                    'url' => $this->serviceInfos[$serviceName]['endpoint'] . '/' . $options['token']
-                    )
-                )
+                'subject' => $this->servicesInfos[$serviceName]['message']['title'],
+                'message' => RestoUtil::replaceInTemplate($this->servicesInfos[$serviceName]['message']['body'], array(
+                    'url' => $url
+                ))
             ),
             $mailConfig['smtp']
         );

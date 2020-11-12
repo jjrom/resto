@@ -62,7 +62,7 @@ class RestoDatabaseDriver
             if (isset($config['resultsPerPage'])) {
                 $this->resultsPerPage = $config['resultsPerPage'];
             }
-            if (isset($config['sortKeys']) && is_array($config['sortKeys']) && $config['sortKeys'][0] !== '') {
+            if (isset($config['sortKeys']) && is_array($config['sortKeys']) && count($config['sortKeys']) > 0) {
                 $this->sortKeys = $config['sortKeys'];
             }
             $this->config = $config;

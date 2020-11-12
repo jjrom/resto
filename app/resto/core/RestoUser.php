@@ -426,7 +426,7 @@ class RestoUser
             RestoLogUtil::httpError(500);
         }
 
-        if (!(new RestoNotifier($this->context->serviceInfos))->sendMailForResetPassword($this->profile['email'], $this->context->core['sendmail'], array(
+        if (!(new RestoNotifier($this->context->servicesInfos, $this->context->lang))->sendMailForResetPassword($this->profile['email'], $this->context->core['sendmail'], array(
             'token' => $token
         ))) {
             RestoLogUtil::httpError(500, 'Cannot send reset link');
