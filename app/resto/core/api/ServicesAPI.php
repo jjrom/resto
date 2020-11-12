@@ -349,8 +349,8 @@ class ServicesAPI
      *  @SWG\Post(
      *      tags={"User"},
      *      path="/services/activation/send",
-     *      summary="Send reset password link",
-     *      description="Send reset password link to the user email adress",
+     *      summary="Send activation link to user",
+     *      description="Send activation link to the user email adress",
      *      operationId="resetPassword",
      *      produces={"application/json"},
      *      @SWG\Parameter(
