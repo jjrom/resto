@@ -297,28 +297,34 @@ class UsersFunctions
     }
 
     /**
-     * Check if user identified by email or id exists within database
+     * Returns user activation status from email or id exists within database
+     * Status: -1 => user does not exist
+     *          0 => user exists but not activated
+     *          1 => user exists and is activated
      *
      * @param array $params - email or id
      *
      * @return boolean
      * @throws Exception
      */
-    public function userExists($params)
+    public function userActivatedStatus($params)
     {
         $query = null;
 
         if (isset($params['email'])) {
-            $query = 'SELECT 1 FROM resto.user WHERE email=lower(\'' . pg_escape_string($params['email']) . '\')';
+            $query = 'SELECT activated FROM resto.user WHERE email=lower(\'' . pg_escape_string($params['email']) . '\')';
         } elseif (isset($params['id']) && ctype_digit($params['id'])) {
-            $query = 'SELECT 1 FROM resto.user WHERE id=' . pg_escape_string($params['id']);
+            $query = 'SELECT activated FROM resto.user WHERE id=' . pg_escape_string($params['id']);
         }
         
         if (! isset($query)) {
-            return false;
+            return -1;
         }
 
-        return !empty($this->dbDriver->fetch($this->dbDriver->query($query)));
+        $results = $this->dbDriver->fetch($this->dbDriver->query($query));
+
+        return count($results) === 1 ? (integer) $results[0]['activated'] : -1;
+        
     }
 
     /**
@@ -336,8 +342,13 @@ class UsersFunctions
             RestoLogUtil::httpError(400, 'Cannot save user profile - invalid user identifier');
         }
 
-        if ($this->userExists(array('email' => $profile['email']))) {
+        $activatedStatus = $this->userActivatedStatus(array('email' => $profile['email']));
+        if ( $activatedStatus === 1 ) {
             RestoLogUtil::httpError(409, 'Cannot save user profile - user already exist');
+        }
+
+        if ( $activatedStatus === 0 ) {
+            RestoLogUtil::httpError(412, 'Cannot save user profile - user already exist but is not activated');
         }
 
         /*

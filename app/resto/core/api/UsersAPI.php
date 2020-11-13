@@ -280,6 +280,11 @@ class UsersAPI
      *          description="User already exist",
      *          @OA\JsonContent(ref="#/components/schemas/ConflictError")
      *      ),
+     *      @OA\Response(
+     *          response="412",
+     *          description="User already exist but is not activated",
+     *          @OA\JsonContent(ref="#/components/schemas/ConflictError")
+     *      ),
      *      @OA\RequestBody(
      *         description="User information to create user account",
      *         required=true,

@@ -403,7 +403,7 @@ class RestoUser
         /*
          * Only existing local user can change there password
          */
-        if (! (new UsersFunctions($this->context->dbDriver))->userExists(array('email' => $this->profile['email']))) {
+        if ( (new UsersFunctions($this->context->dbDriver))->userActivatedStatus(array('email' => $this->profile['email'])) !== 1 ) {
             RestoLogUtil::httpError(404, 'Email not Found');
         }
 
