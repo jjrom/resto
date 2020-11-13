@@ -58,7 +58,7 @@ return array(
             )
         ),
         'resetPassword' => array(
-            'endPoint' => '${RESET_PASSWORD_ENDPOINT}',
+            'endpoint' => '${RESET_PASSWORD_ENDPOINT}',
             'message' => array(
                 'en' => array(
                     'title' => '[resto] Reset password',
