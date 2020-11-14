@@ -375,7 +375,7 @@ class UsersFunctions
             'validatedby' => isset($profile['validatedby']) ? '\'' . $profile['validatedby'] .'\'' : 'NULL',
             'validationdate' => isset($profile['validatedby']) ? 'now()' : 'NULL',
             'registrationdate' => 'now()',
-            'externalidp' => isset($profile['externalidp']) ? '\'' . pg_escape_string($profile['externalidp']) . '\'' : 'NULL'
+            'externalidp' => isset($profile['externalidp']) ? '\'' . pg_escape_string(json_encode($profile['externalidp'], JSON_UNESCAPED_SLASHES)) . '\'' : 'NULL'
         );
         foreach (array_values(array('name', 'firstname', 'lastname', 'country', 'organization', 'organizationcountry', 'flags', 'lang')) as $field) {
             if (isset($profile[$field])) {
