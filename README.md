@@ -1,18 +1,17 @@
 # resto
-
-**[WARNING] This repository is for resto v5+. For prior resto version, please check the [resto v2.x branch](https://github.com/jjrom/resto/tree/2.x)**
-
 [![Code Climate](https://codeclimate.com/github/jjrom/resto/badges/gpa.svg)](https://codeclimate.com/github/jjrom/resto)
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/jjrom/resto.svg)](http://isitmaintained.com/project/jjrom/resto "Average time to resolve an issue")
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/jjrom/resto.svg)](http://isitmaintained.com/project/jjrom/resto "Percentage of issues still open")
 
 resto is a metadata catalog and a search engine dedicated to geospatialized data. Originally, it’s main purpose it to handle Earth Observation satellite imagery but it can be used to store any kind of metadata localized in time and space.
 
-resto search API is compliant with the [CEOS OpenSearch Best Practice Document](http://ceos.org/ourwork/workinggroups/wgiss/access/opensearch/) and is mentioned in ESA's "Exploitation Platform Common Core Components" as the closest implementation of a catalogue component according to the requirements specified in ESA's ["Exploitation Platform Open Architecture"](https://tep.eo.esa.int/news/-/blogs/exploitation-platforms-open-architecture-released)
+resto search API conforms to the [SpatioTemporal Asset Catalog (STAC) specification](https://github.com/radiantearth/stac-spec) and to the [CEOS OpenSearch Best Practice Document](http://ceos.org/ourwork/workinggroups/wgiss/access/opensearch/).
+
+It is mentioned in ESA's "Exploitation Platform Common Core Components" as the closest implementation of a catalogue component according to the requirements specified in ESA's ["Exploitation Platform Open Architecture"](https://tep.eo.esa.int/news/-/blogs/exploitation-platforms-open-architecture-released)
 
 ## Online demo
 
-You an try resto capability from the online [demo](http://mapshup.com/projects/rocket/) !
+You an try resto capability from the online [demo](https://rocket.snapplanet.io)
 
 ## References
 
@@ -98,18 +97,6 @@ After reviewing your [configuration](https://github.com/jjrom/resto/blob/master/
 
         ./deploy dev
 
-#### Docker images
-On first deployment, the following images are pulled from dockerhub:
-
-* ubuntu
-* mdillon/postgis
-* php
-
-And the following images are built from local Dockerfiles:
-
-* jjrom/resto
-* jjrom/resto-database
-
 #### Docker volumes
 The following permanent docker volumes are created on first deployment:
 
@@ -139,9 +126,7 @@ Resolve the endpoint provided by the deploy script
 
         curl http://localhost:5252
 
-If evertyhing runs fine, it should display
-
-        {"status":"success","message":"Hello"}
+If evertyhing runs fine, it should display the **STAC root endpoint content** of the service
 
 ### How do i undeploy the service ?
 Assuming that the application name is "resto" (see deploy "-p" option)
