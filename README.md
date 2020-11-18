@@ -17,8 +17,9 @@ You an try resto capability from the online [demo](https://rocket.snapplanet.io)
 
 Here are some projects that use resto.
 
+* [SnapPlanet](https://snapplanet.io)
 * [CREODIAS](https://creodias.eu/eo-data-finder-api-manual)
-* [Rocket - The Earth in your pocket](http://mapshup.com/projects/rocket/#/home)
+* [Rocket - The Earth in your pocket](https://rocket.snapplanet.io)
 * [The French Sentinel Data Processing center](https://peps.cnes.fr/rocket/#/home)
 * [The French Space Agency, THEIA land data center](https://theia.cnes.fr/atdistrib/rocket/#/home)
 * [The Polish EO Data finder](http://finder.eocloud.eu/www/)
