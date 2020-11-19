@@ -4,7 +4,7 @@
             "email": "jerome.gasperi@gmail.com"
         }, 
         "description": "A metadata catalog and search engine for geospatialized data", 
-        "version": "6.0", 
+        "version": "6.0.0-rc2", 
         "title": "resto"
     }, 
     "paths": {
@@ -110,7 +110,7 @@
                         "schema": {
                             "type": "float"
                         }, 
-                        "description": "Simplify input geometry with tolerance in degrees (use in conjunction with *maxpoints*", 
+                        "description": "Simplify input geometry with tolerance in degrees (use in conjunction with *maxpoints*). [IMPORTANT] Simplification only affects the internal indexed geometry used by the search engine. The original geometry is stored unmodified.", 
                         "required": false, 
                         "name": "tolerance", 
                         "in": "query"
@@ -128,7 +128,7 @@
                         "schema": {
                             "type": "boolean"
                         }, 
-                        "description": "[ADDON][Tag] Set to false to not use iTag during feature insertion. By default, iTag is triggered unless the collection is within the Tag add-on *excludedCollections* array option or *_useItag* is set to false. If force to true, then iTag is triggered even if collection is one of the *excludedCollections*", 
+                        "description": "[ADDON][Tag] Set to false to not use iTag during feature insertion", 
                         "required": false, 
                         "name": "_useItag", 
                         "in": "query"
@@ -137,16 +137,23 @@
                 "tags": [
                     "Collection"
                 ], 
-                "summary": "Add feature to collection", 
+                "summary": "Add feature(s) to collection", 
                 "requestBody": {
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/InputFeature"
+                                "oneOf": [
+                                    {
+                                        "$ref": "#/components/schemas/InputFeatureCollection"
+                                    }, 
+                                    {
+                                        "$ref": "#/components/schemas/InputFeature"
+                                    }
+                                ]
                             }
                         }
                     }, 
-                    "description": "Feature description"
+                    "description": "Either a GeoJSON Feature or a GeoJSON FeatureCollection"
                 }, 
                 "security": [
                     {
@@ -155,7 +162,7 @@
                         "queryAuth": []
                     }
                 ], 
-                "operationId": "CollectionsAPI::insertFeature"
+                "operationId": "CollectionsAPI::insertFeatures"
             }
         }, 
         "/collections/{collectionId}/items/{featureId}/{property}": {
@@ -223,7 +230,7 @@
                                 }
                             }
                         }, 
-                        "description": "Invalide property"
+                        "description": "Invalid property"
                     }
                 }, 
                 "description": "Update {property} for feature {featureId}", 
@@ -248,6 +255,13 @@
                     }, 
                     {
                         "schema": {
+                            "enum": [
+                                "title", 
+                                "description", 
+                                "visibility", 
+                                "owner", 
+                                "status"
+                            ], 
                             "type": "string"
                         }, 
                         "description": "Property to update", 
@@ -329,11 +343,32 @@
                         "content": {
                             "application/json": {
                                 "example": {
-                                    "token": "eyJzdWIiOiIxOTE5NzMwNjAzNjE2MzcxNzMxIiwiaWF0IjoxNTQzMDcwMjg5LCJleHAiOjE1NDMwNzM4ODl9.VLi4Dr1CQsBTVjy0FjYgGcTtTu0iAHIgR_S6jfsIbdU"
+                                    "profile": {
+                                        "picture": "https://robohash.org/d0e907f8b6f4ee74cd4c38a515e2a4de?gravatar=hashed&bgset=any&size=400x400", 
+                                        "followed": false, 
+                                        "name": "jrom", 
+                                        "firstname": "J\u00e9r\u00f4me", 
+                                        "bio": "Working on new features for the next major release of SnapPlanet", 
+                                        "lastname": "Gasperi", 
+                                        "followings": 144, 
+                                        "topics": "earth,fires,geology,glaciology,volcanism", 
+                                        "followme": false, 
+                                        "followers": 185, 
+                                        "groups": [
+                                            "1"
+                                        ], 
+                                        "id": "1356771884787565573", 
+                                        "registrationdate": "2016-10-08T22:50:34.187217Z"
+                                    }, 
+                                    "token": "eyJzdWIiOiIxOTQ2NTIwMjk3MjEzNTI3MDUyIiwiaWF0IjoxNTQ2MjY2NTU3LCJleHAiOjE1NDYyNzAxNTd9.nI4q0LBqGOG0a6GCjxWvUiVA6hKndN9mJrjuT1WG1Xo"
                                 }, 
                                 "schema": {
                                     "type": "object", 
                                     "properties": {
+                                        "profile": {
+                                            "description": "User profile", 
+                                            "$ref": "#/components/schemas/UserDisplayProfile"
+                                        }, 
                                         "token": {
                                             "type": "string", 
                                             "description": "Authentication token"
@@ -425,7 +460,7 @@
                         "schema": {
                             "type": "string"
                         }, 
-                        "description": "Free text search - OpenSearch {searchTerms}", 
+                        "description": "Free text search - OpenSearch {searchTerms}. Can include hashtags i.e. text starting with *#* characters. In this case, use the following:\n* *#cryosphere* will search for *cryosphere*\n* *#cryosphere #atmosphere* will search for *cryosphere* AND *atmosphere*\n* *#cryosphere|atmosphere* will search for *cryosphere* OR *atmosphere*\n* *#cryosphere!* will search for *cryosphere* OR any *broader* concept of *cryosphere* ([EXTENSION][SKOS])\n* *#cryosphere\\** will search for *cryosphere* OR any *narrower* concept of *cryosphere* ([EXTENSION][SKOS])\n* *#cryosphere~* will search for *cryosphere* OR any *related* concept of *cryosphere* ([EXTENSION][SKOS])", 
                         "required": false, 
                         "name": "q", 
                         "in": "query"
@@ -487,7 +522,7 @@
                     {
                         "schema": {
                             "type": "string", 
-                            "format": "west,south,east,north"
+                            "format": "[west,south,east,north]"
                         }, 
                         "description": "Region of Interest defined by 'west, south, east, north' coordinates of longitude, latitude, in decimal degrees (EPSG:4326) - OpenSearch {geo:box}", 
                         "required": false, 
@@ -569,9 +604,9 @@
                             "type": "string", 
                             "format": "date-time"
                         }, 
-                        "description": "Returns products with metadata creation date greater or equal than *created* - OpenSearch {dc:date}", 
+                        "description": "Returns products with metadata publication date greater or equal than *published* - OpenSearch {dc:date}", 
                         "required": false, 
-                        "name": "created", 
+                        "name": "published", 
                         "in": "query"
                     }, 
                     {
@@ -794,10 +829,33 @@
             "get": {
                 "responses": {
                     "200": {
-                        "description": "Token validity - VALID or INVALID"
-                    }, 
-                    "400": {
-                        "description": "Bad request"
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": "success", 
+                                    "isValid": false, 
+                                    "message": "Token checked"
+                                }, 
+                                "schema": {
+                                    "type": "object", 
+                                    "properties": {
+                                        "status": {
+                                            "type": "string", 
+                                            "description": "Status is *success*"
+                                        }, 
+                                        "isValid": {
+                                            "type": "boolean", 
+                                            "description": "True if valid - False if not"
+                                        }, 
+                                        "message": {
+                                            "type": "string", 
+                                            "description": "Token checked"
+                                        }
+                                    }
+                                }
+                            }
+                        }, 
+                        "description": "Return token validity"
                     }
                 }, 
                 "parameters": [
@@ -870,6 +928,17 @@
                                             "type": "array", 
                                             "description": "Landing page conforms to OGC API Feature\n(see https://github.com/opengeospatial/ogcapi-features/blob/master/core/standard/17-069.adoc)"
                                         }, 
+                                        "id": {
+                                            "type": "string", 
+                                            "description": "Server identifier."
+                                        }, 
+                                        "capabilities": {
+                                            "items": {
+                                                "type": "string"
+                                            }, 
+                                            "type": "array", 
+                                            "description": "Array of resto-addons list. Used client side to detect resto capabilities"
+                                        }, 
                                         "title": {
                                             "type": "string", 
                                             "description": "Server title"
@@ -878,7 +947,7 @@
                                 }
                             }
                         }, 
-                        "description": "OGC API Feature conformance definition"
+                        "description": "Server landing page"
                     }, 
                     "404": {
                         "description": "Not found"
@@ -985,7 +1054,7 @@
                                 }
                             }
                         }, 
-                        "description": "Invalide property"
+                        "description": "Invalid property"
                     }
                 }, 
                 "description": "Update feature {featureId}", 
@@ -1141,11 +1210,32 @@
                         "content": {
                             "application/json": {
                                 "example": {
+                                    "profile": {
+                                        "picture": "https://robohash.org/d0e907f8b6f4ee74cd4c38a515e2a4de?gravatar=hashed&bgset=any&size=400x400", 
+                                        "followed": false, 
+                                        "name": "jrom", 
+                                        "firstname": "J\u00e9r\u00f4me", 
+                                        "bio": "Working on new features for the next major release of SnapPlanet", 
+                                        "lastname": "Gasperi", 
+                                        "followings": 144, 
+                                        "topics": "earth,fires,geology,glaciology,volcanism", 
+                                        "followme": false, 
+                                        "followers": 185, 
+                                        "groups": [
+                                            "1"
+                                        ], 
+                                        "id": "1356771884787565573", 
+                                        "registrationdate": "2016-10-08T22:50:34.187217Z"
+                                    }, 
                                     "token": "eyJzdWIiOiIxOTQ2NTIwMjk3MjEzNTI3MDUyIiwiaWF0IjoxNTQ2MjY2NTU3LCJleHAiOjE1NDYyNzAxNTd9.nI4q0LBqGOG0a6GCjxWvUiVA6hKndN9mJrjuT1WG1Xo"
                                 }, 
                                 "schema": {
                                     "type": "object", 
                                     "properties": {
+                                        "profile": {
+                                            "description": "User profile", 
+                                            "$ref": "#/components/schemas/UserDisplayProfile"
+                                        }, 
                                         "token": {
                                             "type": "string", 
                                             "description": "A rJWT token"
@@ -1538,7 +1628,7 @@
                         "schema": {
                             "type": "string"
                         }, 
-                        "description": "Comma separated list of property fields to be returned. The following reserved keywords can also be used:\n* _all: Return all properties\n* _default: Return all fields except *keywords* property", 
+                        "description": "Comma separated list of property fields to be returned. The following reserved keywords can also be used:\n* _all: Return all properties (This is the default)\n* _simple: Return all fields except *keywords* property", 
                         "required": false, 
                         "name": "fields", 
                         "in": "query"
@@ -1804,6 +1894,450 @@
                 "operationId": "CollectionsAPI::deleteCollection"
             }
         }, 
+        "/search": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RestoFeatureCollection"
+                                }
+                            }
+                        }, 
+                        "description": "Features collection"
+                    }, 
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundError"
+                                }
+                            }
+                        }, 
+                        "description": "Collection not Found"
+                    }, 
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestError"
+                                }
+                            }
+                        }, 
+                        "description": "Bad request (i.e. invalid parameter)"
+                    }
+                }, 
+                "parameters": [
+                    {
+                        "schema": {
+                            "enum": [
+                                "json", 
+                                "atom"
+                            ], 
+                            "type": "string"
+                        }, 
+                        "description": "Output format - one of *atom* or *json*", 
+                        "required": false, 
+                        "name": "format", 
+                        "in": "path"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "Search features within collections belonging to *model* - e.g. *model=SatelliteModel* will search in all satellite collections", 
+                        "required": false, 
+                        "name": "model", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "Search features within collections - comma separated list of collection identifiers", 
+                        "required": false, 
+                        "name": "collections", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "Free text search - OpenSearch {searchTerms}. Can include hashtags i.e. text starting with *#* characters. In this case, use the following:\n* *#cryosphere* will search for *cryosphere*\n* *#cryosphere #atmosphere* will search for *cryosphere* AND *atmosphere*\n* *#cryosphere|atmosphere* will search for *cryosphere* OR *atmosphere*\n* *#cryosphere!* will search for *cryosphere* OR any *broader* concept of *cryosphere* ([EXTENSION][SKOS])\n* *#cryosphere\\** will search for *cryosphere* OR any *narrower* concept of *cryosphere* ([EXTENSION][SKOS])\n* *#cryosphere~* will search for *cryosphere* OR any *related* concept of *cryosphere* ([EXTENSION][SKOS])", 
+                        "required": false, 
+                        "name": "q", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "integer"
+                        }, 
+                        "description": "Number of results returned per page - between 1 and 500 (default 50) - OpenSearch {count}", 
+                        "required": false, 
+                        "name": "limit", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "integer"
+                        }, 
+                        "description": "First result to provide - minimum 1, (default 1) - OpenSearch {startIndex}", 
+                        "required": false, 
+                        "name": "startIndex", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "integer"
+                        }, 
+                        "description": "First page to provide - minimum 1, (default 1) - OpenSearch {startPage}", 
+                        "required": false, 
+                        "name": "page", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "Two letters language code according to ISO 639-1 (default *en*) - OpenSearch {language}", 
+                        "required": false, 
+                        "name": "lang", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "Array of item ids to return. All other filter parameters that further restrict the number of search results (except next and limit) are ignored", 
+                        "required": false, 
+                        "name": "ids", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "Region of Interest defined in GeoJSON or in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326) - OpenSearch {geo:geometry}", 
+                        "required": false, 
+                        "name": "intersects", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string", 
+                            "format": "west,south,east,north"
+                        }, 
+                        "description": "Region of Interest defined by 'west, south, east, north' coordinates of longitude, latitude, in decimal degrees (EPSG:4326) - OpenSearch {geo:box}", 
+                        "required": false, 
+                        "name": "bbox", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "[EXTENSION][egg] Location string e.g. Paris, France  or toponym identifier (i.e. geouid:xxxx) - OpenSearch {geo:name}", 
+                        "required": false, 
+                        "name": "name", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "float"
+                        }, 
+                        "description": "Longitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lat - OpenSearch {geo:lon}", 
+                        "required": false, 
+                        "name": "lon", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "float"
+                        }, 
+                        "description": "Latitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lon - OpenSearch {geo:lat}", 
+                        "required": false, 
+                        "name": "lat", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "float"
+                        }, 
+                        "description": "Radius expressed in meters - should be used with geo:lon and geo:lat - OpenSearch {geo:radius}", 
+                        "required": false, 
+                        "name": "radius", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(|Z|[\\+\\-][0-9]{2}:[0-9]{2}))?$", 
+                            "type": "string", 
+                            "format": "date-time"
+                        }, 
+                        "description": "Single date+time, or a range ('/' separator) of the search query. Format should follow RFC-3339 - OpenSearch {time:start}/{time:end}", 
+                        "required": false, 
+                        "name": "datetime", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(|Z|[\\+\\-][0-9]{2}:[0-9]{2}))?$", 
+                            "type": "string", 
+                            "format": "date-time"
+                        }, 
+                        "description": "Beginning of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:start}", 
+                        "required": false, 
+                        "name": "start", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(|Z|[\\+\\-][0-9]{2}:[0-9]{2}))?$", 
+                            "type": "string", 
+                            "format": "date-time"
+                        }, 
+                        "description": "End of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:end}", 
+                        "required": false, 
+                        "name": "end", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(|Z|[\\+\\-][0-9]{2}:[0-9]{2}))?$", 
+                            "type": "string", 
+                            "format": "date-time"
+                        }, 
+                        "description": "Returns products with metadata creation date greater or equal than *created* - OpenSearch {dc:date}", 
+                        "required": false, 
+                        "name": "created", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "integer"
+                        }, 
+                        "description": "Returns features with *sort* key value greater than *prev* value - use this for pagination. The value is a unique iterator computed from the *sort* key value and provided within each feature properties as *sort_idx* property", 
+                        "required": false, 
+                        "name": "prev", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "integer"
+                        }, 
+                        "description": "Returns features with *sort* key value lower than *next* value - use this for pagination. The value is a unique iterator computed from the *sort* key value and provided within each feature properties as *sort_idx* property", 
+                        "required": false, 
+                        "name": "next", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "Like on product identifier", 
+                        "required": false, 
+                        "name": "pid", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "Sort results by property *startDate* or *created* (default *startDate*). Sorting order is DESCENDING (ASCENDING if property is prefixed by minus sign)", 
+                        "required": false, 
+                        "name": "sort", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "integer"
+                        }, 
+                        "description": "Limit search to owner's features", 
+                        "required": false, 
+                        "name": "owner", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "[EXTENSION][social] Limit search to number of likes (interval)", 
+                        "required": false, 
+                        "name": "likes", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "boolean"
+                        }, 
+                        "description": "[EXTENSION][social] Return only liked features from calling user", 
+                        "required": false, 
+                        "name": "liked", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "Feature status (unusued)", 
+                        "required": false, 
+                        "name": "status", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "[MODEL][SatelliteModel] A string identifying the entry type (e.g. ER02_SAR_IM__0P, MER_RR__1P, SM_SLC__1S, GES_DISC_AIRH3STD_V005) - OpenSearch {eo:productType}", 
+                        "required": false, 
+                        "name": "productType", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "[MODEL][SatelliteModel] A string identifying the processing level applied to the entry - OpenSearch {eo:processingLevel}", 
+                        "required": false, 
+                        "name": "processingLevel", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "[MODEL][SatelliteModel] A string with the platform short name (e.g. Sentinel-1) - OpenSearch {eo:platform}", 
+                        "required": false, 
+                        "name": "platform", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "[MODEL][SatelliteModel] A string identifying the instrument (e.g. MERIS, AATSR, ASAR, HRVIR. SAR) - OpenSearch {eo:instrument}", 
+                        "required": false, 
+                        "name": "instrument", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "[MODEL][SatelliteModel] A string identifying the sensor type. Suggested values are: OPTICAL, RADAR, ALTIMETRIC, ATMOSPHERIC, LIMB - OpenSearch {eo:sensorType}", 
+                        "required": false, 
+                        "name": "sensorType", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "[MODEL][OpticalModel] Cloud cover expressed in percent", 
+                        "required": false, 
+                        "name": "cloudCover", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "[MODEL][OpticalModel] Snow cover expressed in percent", 
+                        "required": false, 
+                        "name": "snowCover", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "[MODEL][LandCoverModel] Water area expressed in percent", 
+                        "required": false, 
+                        "name": "waterCover", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "[MODEL][LandCoverModel] Urban area expressed in percent", 
+                        "required": false, 
+                        "name": "urbanCover", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "[MODEL][LandCoverModel] Ice area expressed in percent", 
+                        "required": false, 
+                        "name": "iceCover", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "[MODEL][LandCoverModel] Herbaceous area expressed in percent", 
+                        "required": false, 
+                        "name": "herbaceousCover", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "[MODEL][LandCoverModel] Forest area expressed in percent", 
+                        "required": false, 
+                        "name": "forestCover", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "[MODEL][LandCoverModel] Flooded area expressed in percent", 
+                        "required": false, 
+                        "name": "floodedCover", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "[MODEL][LandCoverModel] Desert area expressed in percent", 
+                        "required": false, 
+                        "name": "desertCover", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "[MODEL][LandCoverModel] Cultivated area expressed in percent", 
+                        "required": false, 
+                        "name": "cultivatedCover", 
+                        "in": "query"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "Comma separated list of property fields to be returned. The following reserved keywords can also be used:\n* _all: Return all properties (This is the default)\n* _simple: Return all fields except *keywords* property", 
+                        "required": false, 
+                        "name": "fields", 
+                        "in": "query"
+                    }
+                ], 
+                "tags": [
+                    "Feature"
+                ], 
+                "description": "List of filters to search features within all collections", 
+                "summary": "STAC search endpoint", 
+                "operationId": "STAC::search"
+            }
+        }, 
         "/users/{userid}": {
             "put": {
                 "responses": {
@@ -2061,6 +2595,16 @@
                         }, 
                         "description": "User is created but not activated. An activation code is sent to user's email address."
                     }, 
+                    "412": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConflictError"
+                                }
+                            }
+                        }, 
+                        "description": "User already exist but is not activated"
+                    }, 
                     "409": {
                         "content": {
                             "application/json": {
@@ -2228,7 +2772,7 @@
     ], 
     "servers": [
         {
-            "url": "http://127.0.0.1:5252", 
+            "url": "", 
             "description": "resto localhost server"
         }
     ], 
@@ -2257,6 +2801,129 @@
             }
         }, 
         "schemas": {
+            "InputFeatureCollection": {
+                "example": {
+                    "type": "FeatureCollection", 
+                    "features": [
+                        {
+                            "assets": {
+                                "tileInfo": {
+                                    "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/tileInfo.json", 
+                                    "type": "application/json"
+                                }, 
+                                "productInfo": {
+                                    "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/productInfo.json", 
+                                    "type": "application/json"
+                                }, 
+                                "thumbnail": {
+                                    "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/preview.jpg", 
+                                    "type": "image/jpeg"
+                                }, 
+                                "metadata": {
+                                    "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/23/X/MD/2019/6/11/0/metadata.xml", 
+                                    "type": "text/xml"
+                                }
+                            }, 
+                            "links": [
+                                {
+                                    "href": "http://127.0.0.1:5252/collections/S2/items/8030a391-4002-556f-929b-d7ff9dad6705?&lang=en", 
+                                    "type": "application/json", 
+                                    "rel": "self"
+                                }, 
+                                {
+                                    "href": "http://127.0.0.1:5252/collections/S2?&lang=en", 
+                                    "type": "application/json", 
+                                    "rel": "collection", 
+                                    "title": "S2"
+                                }
+                            ], 
+                            "geometry": {
+                                "type": "Polygon", 
+                                "coordinates": [
+                                    [
+                                        [
+                                            -48.619853, 
+                                            75.657209
+                                        ], 
+                                        [
+                                            -44.646424, 
+                                            75.684397
+                                        ], 
+                                        [
+                                            -44.660672, 
+                                            75.069386
+                                        ], 
+                                        [
+                                            -44.698432, 
+                                            75.060518
+                                        ], 
+                                        [
+                                            -45.489771, 
+                                            74.830977
+                                        ], 
+                                        [
+                                            -45.857954, 
+                                            74.720238
+                                        ], 
+                                        [
+                                            -45.921685, 
+                                            74.698702
+                                        ], 
+                                        [
+                                            -48.392706, 
+                                            74.674979
+                                        ], 
+                                        [
+                                            -48.619853, 
+                                            75.657209
+                                        ]
+                                    ]
+                                ]
+                            }, 
+                            "collection": "S2", 
+                            "properties": {
+                                "startDate": "2019-06-11T16:11:41.808000Z", 
+                                "productIdentifier": "S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040", 
+                                "datetime": "2019-06-11T16:11:41Z"
+                            }, 
+                            "stac_version": "0.8.0", 
+                            "stac_extensions": [
+                                "eo"
+                            ], 
+                            "type": "Feature", 
+                            "id": "8030a391-4002-556f-929b-d7ff9dad6705", 
+                            "bbox": [
+                                -48.6198530870596, 
+                                74.6749788966259, 
+                                -44.6464244356188, 
+                                75.6843970710939
+                            ]
+                        }
+                    ]
+                }, 
+                "required": [
+                    "type", 
+                    "features"
+                ], 
+                "type": "object", 
+                "description": "Feature collection", 
+                "properties": {
+                    "type": {
+                        "enum": [
+                            "FeatureCollection"
+                        ], 
+                        "type": "enum", 
+                        "description": "Always set to *FeatureCollection*"
+                    }, 
+                    "features": {
+                        "items": {
+                            "$ref": "#/components/schemas/InputFeature"
+                        }, 
+                        "type": "array", 
+                        "description": "Array of features"
+                    }
+                }
+            }, 
             "ForbiddenError": {
                 "required": [
                     "ErrorCode", 
@@ -2356,7 +3023,7 @@
                     }, 
                     "id": {
                         "type": "string", 
-                        "description": "Collection identifier. It is an unique alphanumeric string containing [a-zA-Z0-9] and not starting with a digit."
+                        "description": "Collection identifier. It must be an unique alphanumeric string containing only [a-zA-Z0-9\\-_]."
                     }
                 }, 
                 "example": {
@@ -2627,37 +3294,6 @@
                     "registrationdate": "2016-10-08T22:50:34.187217Z"
                 }
             }, 
-            "Link": {
-                "example": {
-                    "href": "http://127.0.0.1:5252/collections/S2.json?&_pretty=1", 
-                    "type": "application/json", 
-                    "rel": "self"
-                }, 
-                "required": [
-                    "rel", 
-                    "href"
-                ], 
-                "type": "object", 
-                "description": "Collection facets statistics", 
-                "properties": {
-                    "href": {
-                        "type": "string", 
-                        "description": "Url to the resource"
-                    }, 
-                    "type": {
-                        "type": "string", 
-                        "description": "Mimetype of the resource"
-                    }, 
-                    "rel": {
-                        "type": "string", 
-                        "description": "Relationship between the feature and the linked document/resource"
-                    }, 
-                    "title": {
-                        "type": "string", 
-                        "description": "Title of the resource"
-                    }
-                }
-            }, 
             "BadRequestError": {
                 "required": [
                     "ErrorCode", 
@@ -2734,6 +3370,13 @@
                         "type": "string", 
                         "description": "License for this collection as a SPDX License identifier. Alternatively, use proprietary if the license is not on the SPDX license list or various if multiple licenses apply. In these two cases links to the license texts SHOULD be added, see the license link relation type."
                     }, 
+                    "keywords": {
+                        "items": {
+                            "type": "string"
+                        }, 
+                        "type": "array", 
+                        "description": "List of keywords describing the collection."
+                    }, 
                     "osDescription": {
                         "required": [
                             "en"
@@ -2757,7 +3400,14 @@
                     }, 
                     "id": {
                         "type": "string", 
-                        "description": "Collection identifier. It must be an unique alphanumeric string containing [a-zA-Z0-9] and not starting with a digit."
+                        "description": "Collection identifier. It must be an unique alphanumeric string containing only [a-zA-Z0-9\\-_]."
+                    }, 
+                    "assets": {
+                        "items": {
+                            "$ref": "#/components/schemas/Asset"
+                        }, 
+                        "type": "array", 
+                        "description": "resto collection"
                     }
                 }, 
                 "example": {
@@ -3029,6 +3679,80 @@
                     }
                 }
             }, 
+            "Link": {
+                "example": {
+                    "href": "http://127.0.0.1:5252/collections/S2.json?&_pretty=1", 
+                    "type": "application/json", 
+                    "rel": "self"
+                }, 
+                "required": [
+                    "rel", 
+                    "href"
+                ], 
+                "type": "object", 
+                "description": "Link", 
+                "properties": {
+                    "href": {
+                        "type": "string", 
+                        "description": "Url to the resource"
+                    }, 
+                    "type": {
+                        "type": "string", 
+                        "description": "Mimetype of the resource"
+                    }, 
+                    "rel": {
+                        "type": "string", 
+                        "description": "Relationship between the feature and the linked document/resource"
+                    }, 
+                    "title": {
+                        "type": "string", 
+                        "description": "Title of the resource"
+                    }
+                }
+            }, 
+            "Asset": {
+                "example": {
+                    "href": "https://landsat-pds.s3.amazonaws.com/c1/L8/171/002/LC08_L1TP_171002_20200616_20200616_01_RT/LC08_L1TP_171002_20200616_20200616_01_RT_B1.TIF", 
+                    "type": "image/tiff; application=geotiff; profile=cloud-optimized", 
+                    "eo:bands": [
+                        0
+                    ], 
+                    "roles": [
+                        "data"
+                    ]
+                }, 
+                "required": [
+                    "rel", 
+                    "href"
+                ], 
+                "type": "object", 
+                "description": "Asset links", 
+                "properties": {
+                    "href": {
+                        "type": "string", 
+                        "description": "Url to the resource"
+                    }, 
+                    "type": {
+                        "type": "string", 
+                        "description": "Mimetype of the resource"
+                    }, 
+                    "roles": {
+                        "items": {
+                            "type": "string"
+                        }, 
+                        "type": "array", 
+                        "description": "Asset roles"
+                    }, 
+                    "rel": {
+                        "type": "string", 
+                        "description": "Relationship between the feature and the linked document/resource"
+                    }, 
+                    "title": {
+                        "type": "string", 
+                        "description": "Title of the resource"
+                    }
+                }
+            }, 
             "Extent": {
                 "example": {
                     "temporal": {
@@ -3136,57 +3860,85 @@
             }, 
             "OutputFeature": {
                 "example": {
+                    "assets": {
+                        "thumbnail": {
+                            "role": "thumbnail", 
+                            "href": "https://roda.sentinel-hub.com/sentinel-s2-l1c/tiles/28/H/CE/2020/6/21/0/preview.jpg", 
+                            "type": "image/jpeg"
+                        }
+                    }, 
+                    "links": [
+                        {
+                            "href": "https://tamn.snapplanet.io/collections/S2/items/af9f811b-f6b7-5dfc-ac43-c1d200a79088", 
+                            "type": "application/geo+json", 
+                            "rel": "self"
+                        }
+                    ], 
                     "geometry": {
                         "type": "Polygon", 
                         "coordinates": [
                             [
                                 [
-                                    69.979462, 
-                                    23.507467
+                                    -16.34433, 
+                                    -36.136821
                                 ], 
                                 [
-                                    71.054486, 
-                                    23.496997
+                                    -16.002576, 
+                                    -36.14017
                                 ], 
                                 [
-                                    71.039531, 
-                                    22.505778
+                                    -16.003437, 
+                                    -36.207726
                                 ], 
                                 [
-                                    69.972328, 
-                                    22.515759
+                                    -16.003437, 
+                                    -36.207726
                                 ], 
                                 [
-                                    69.979462, 
-                                    23.507467
+                                    -16.073904, 
+                                    -36.193064
+                                ], 
+                                [
+                                    -16.079613, 
+                                    -36.194838
+                                ], 
+                                [
+                                    -16.343729, 
+                                    -36.140707
+                                ], 
+                                [
+                                    -16.343453, 
+                                    -36.137129
+                                ], 
+                                [
+                                    -16.34433, 
+                                    -36.136821
                                 ]
                             ]
                         ]
                     }, 
-                    "type": "Feature", 
-                    "id": "b9eeaf68-5127-53e5-97ff-ddf44984ef56", 
+                    "collection": "S2", 
                     "properties": {
-                        "startDate": "2018-09-13T05:58:08.367Z", 
+                        "start_datetime": "2020-06-21T11:11:28.371000Z", 
                         "updated": "2018-09-13T12:52:25.971969Z", 
-                        "hashtags": [
-                            "#s2b", 
-                            "#reflectance", 
-                            "#summer", 
-                            "#coastal"
-                        ], 
-                        "links": [
-                            {
-                                "href": "https://ds.snapplanet.io/2.0/collections/S2/items/b9eeaf68-5127-53e5-97ff-ddf44984ef56?&collectionId=S2.json&lang=en", 
-                                "type": "application/json", 
-                                "rel": "self", 
-                                "title": "GeoJSON link for b9eeaf68-5127-53e5-97ff-ddf44984ef56"
-                            }
-                        ], 
-                        "created": "2018-09-13T12:52:25.971969Z", 
                         "liked": false, 
-                        "title": "S2:tiles/42/Q/XL/2018/9/13/0", 
-                        "productIdentifier": "S2:tiles/42/Q/XL/2018/9/13/0", 
-                        "collection": "S2", 
+                        "hashtags": [
+                            "ocean:SouthAtlanticOcean:3358844", 
+                            "landcover:water", 
+                            "location:southern", 
+                            "season:winter", 
+                            "collection:S2", 
+                            "productType:REFLECTANCE", 
+                            "processingLevel:LEVEL1C", 
+                            "platform:S2B", 
+                            "instrument:MSI", 
+                            "year:2020", 
+                            "month:06", 
+                            "day:21"
+                        ], 
+                        "productIdentifier": "S2B_MSIL1C_20200621T111039_N0209_R008_T28HCE_20200621T132349", 
+                        "comments": 0, 
+                        "datetime": "2020-06-21T11:11:28.371000Z", 
                         "centroid": {
                             "type": "Point", 
                             "coordinates": [
@@ -3194,19 +3946,36 @@
                                 23.006623
                             ]
                         }, 
-                        "likes": 0, 
-                        "comments": 0
-                    }
+                        "end_datetime": "2020-06-21T11:11:28.371000Z", 
+                        "published": "2018-09-13T12:52:25.971969Z", 
+                        "likes": 0
+                    }, 
+                    "type": "Feature", 
+                    "id": "b9eeaf68-5127-53e5-97ff-ddf44984ef56"
                 }, 
                 "required": [
                     "type", 
                     "id", 
                     "geometry", 
-                    "properties"
+                    "properties", 
+                    "collection", 
+                    "links", 
+                    "assets"
                 ], 
                 "type": "object", 
                 "description": "Feature returned by resto", 
                 "properties": {
+                    "assets": {
+                        "type": "object", 
+                        "description": "RESTo Feature"
+                    }, 
+                    "links": {
+                        "items": {
+                            "$ref": "#/components/schemas/Link"
+                        }, 
+                        "type": "array", 
+                        "description": "RESTo Feature"
+                    }, 
                     "geometry": {
                         "required": [
                             "type", 
@@ -3237,32 +4006,29 @@
                             }
                         }
                     }, 
-                    "type": {
-                        "enum": [
-                            "Feature"
-                        ], 
-                        "type": "enum", 
-                        "description": "Always set to *feature*"
-                    }, 
-                    "id": {
+                    "collection": {
                         "type": "string", 
-                        "description": "Feature identifier"
+                        "description": "Collection identifier"
                     }, 
                     "properties": {
                         "type": "object", 
                         "description": "Feature properties mainly based on *[OGC-13-026r8] OGC OpenSearch Extension for Earth Observation*. Only non null properties are returned", 
                         "properties": {
-                            "completionDate": {
-                                "type": "string", 
-                                "description": "End of feature life (e.g. end of acquisition for a satellite imagery). Not returned if same as startDate (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)"
-                            }, 
-                            "startDate": {
-                                "type": "string", 
-                                "description": "Start of feature life (e.g. start of acquisition for a satellite imagery) (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)"
+                            "status": {
+                                "type": "integer", 
+                                "description": "[Unused]"
                             }, 
                             "liked": {
                                 "type": "boolean", 
                                 "description": "True if the user that requests the feature likes it"
+                            }, 
+                            "description": {
+                                "type": "string", 
+                                "description": "A descriptipon of the feature"
+                            }, 
+                            "title": {
+                                "type": "string", 
+                                "description": "A name given to the feature"
                             }, 
                             "hashtags": {
                                 "items": {
@@ -3271,32 +4037,13 @@
                                 "type": "array", 
                                 "description": "Array of hashtags attached to the feature"
                             }, 
-                            "description": {
-                                "type": "string", 
-                                "description": "A descriptipon of the feature"
-                            }, 
-                            "links": {
-                                "items": {
-                                    "$ref": "#/components/schemas/Link"
-                                }, 
-                                "type": "array", 
-                                "description": "RESTo Feature"
-                            }, 
-                            "title": {
-                                "type": "string", 
-                                "description": "A name given to the feature"
-                            }, 
-                            "created": {
-                                "type": "string", 
-                                "description": "The date when the feature metadata was created (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)"
-                            }, 
-                            "collection": {
-                                "type": "string", 
-                                "description": "Name of the features collection"
-                            }, 
-                            "status": {
+                            "comments": {
                                 "type": "integer", 
-                                "description": "[Unused]"
+                                "description": "Number of comments on this feature"
+                            }, 
+                            "datetime": {
+                                "type": "string", 
+                                "description": "Start/end of feature life (e.g. start of acquisition for a satellite imagery) (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ/YYYY-MM-DD-THH:MM:SSZ)"
                             }, 
                             "centroid": {
                                 "type": "object", 
@@ -3319,6 +4066,10 @@
                                 "type": "integer", 
                                 "description": "Number of likes for this feature"
                             }, 
+                            "published": {
+                                "type": "string", 
+                                "description": "The date when the feature metadata was published (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)"
+                            }, 
                             "owner": {
                                 "type": "string", 
                                 "description": "Owner of the feature i.e. user that created it"
@@ -3326,21 +4077,27 @@
                             "udpated": {
                                 "type": "string", 
                                 "description": "The date when the feature metadata was updated (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)"
-                            }, 
-                            "comments": {
-                                "type": "integer", 
-                                "description": "Number of comments on this feature"
                             }
                         }
+                    }, 
+                    "type": {
+                        "enum": [
+                            "Feature"
+                        ], 
+                        "type": "enum", 
+                        "description": "Always set to *feature*"
+                    }, 
+                    "id": {
+                        "type": "string", 
+                        "description": "Feature identifier"
                     }
                 }
             }, 
             "RestoFeatureCollection": {
                 "example": {
-                    "search:metadata": {
+                    "context": {
                         "exactCount": false, 
                         "returned": 20, 
-                        "next": "204449069316703379", 
                         "startIndex": 1, 
                         "limit": 20, 
                         "query": {
@@ -3468,12 +4225,12 @@
                     "type", 
                     "links", 
                     "features", 
-                    "search:metadata"
+                    "context"
                 ], 
                 "type": "object", 
                 "description": "Feature collection", 
                 "properties": {
-                    "search:metadata": {
+                    "context": {
                         "items": {
                             "type": "object", 
                             "properties": {
@@ -3484,10 +4241,6 @@
                                 "returned": {
                                     "type": "integer", 
                                     "description": "The count of results returned by this response. equal to the cardinality of features array"
-                                }, 
-                                "next": {
-                                    "type": "string", 
-                                    "description": "The value to set for the next query parameter in order to get the next page of results"
                                 }, 
                                 "startIndex": {
                                     "type": "integer", 
@@ -3508,7 +4261,6 @@
                             }
                         }, 
                         "required": [
-                            "next", 
                             "returned"
                         ], 
                         "description": "Information on search query"
@@ -3547,32 +4299,48 @@
                         "coordinates": [
                             [
                                 [
-                                    69.979462, 
-                                    23.507467
+                                    -16.34433, 
+                                    -36.136821
                                 ], 
                                 [
-                                    71.054486, 
-                                    23.496997
+                                    -16.002576, 
+                                    -36.14017
                                 ], 
                                 [
-                                    71.039531, 
-                                    22.505778
+                                    -16.003437, 
+                                    -36.207726
                                 ], 
                                 [
-                                    69.972328, 
-                                    22.515759
+                                    -16.003437, 
+                                    -36.207726
                                 ], 
                                 [
-                                    69.979462, 
-                                    23.507467
+                                    -16.073904, 
+                                    -36.193064
+                                ], 
+                                [
+                                    -16.079613, 
+                                    -36.194838
+                                ], 
+                                [
+                                    -16.343729, 
+                                    -36.140707
+                                ], 
+                                [
+                                    -16.343453, 
+                                    -36.137129
+                                ], 
+                                [
+                                    -16.34433, 
+                                    -36.136821
                                 ]
                             ]
                         ]
                     }, 
                     "type": "Feature", 
                     "properties": {
-                        "startDate": "2018-09-13T05:58:08.367Z", 
-                        "productIdentifier": "S2:tiles/42/Q/XL/2018/9/13/0"
+                        "productIdentifier": "S2B_MSIL1C_20200621T111039_N0209_R008_T28HCE_20200621T132349", 
+                        "datetime": "2020-06-21T11:11:28.371000Z"
                     }
                 }, 
                 "required": [
@@ -3628,29 +4396,25 @@
                         "type": "object", 
                         "description": "Feature properties mainly based on *[OGC-13-026r8] OGC OpenSearch Extension for Earth Observation*. Only non null properties are returned", 
                         "properties": {
-                            "completionDate": {
-                                "type": "string", 
-                                "description": "End of feature life (e.g. end of acquisition for a satellite imagery) (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)"
-                            }, 
                             "status": {
                                 "type": "integer", 
                                 "description": "[Unused]"
+                            }, 
+                            "productIdentifier": {
+                                "type": "string", 
+                                "description": "Original product identifier"
+                            }, 
+                            "datetime": {
+                                "type": "string", 
+                                "description": "Start/end of feature life (e.g. start of acquisition for a satellite imagery) (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ/YYYY-MM-DD-THH:MM:SSZ)"
                             }, 
                             "description": {
                                 "type": "string", 
                                 "description": "Descritipon of the feature. Each hashtag within the description is indexed to speedup search"
                             }, 
-                            "startDate": {
-                                "type": "string", 
-                                "description": "Start of feature life (e.g. start of acquisition for a satellite imagery) (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)"
-                            }, 
                             "title": {
                                 "type": "string", 
                                 "description": "A name given to the feature"
-                            }, 
-                            "productIdentifier": {
-                                "type": "string", 
-                                "description": "Original product identifier"
                             }
                         }
                     }

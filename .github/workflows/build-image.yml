@@ -9,6 +9,7 @@ on:
   push:
     paths:
       - 'app/**'
+      - 'docs/**'
       - 'build/resto/**'
       - '.github/workflows/**'
   release:

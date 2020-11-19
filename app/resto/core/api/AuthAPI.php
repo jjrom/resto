@@ -271,7 +271,7 @@ class AuthAPI
      *              ),
      *              @OA\Property(
      *                  property="profile",
-     *                  description="User profile"
+     *                  description="User profile",
      *                  ref="#/components/schemas/UserDisplayProfile"
      *              ),
      *              example={
