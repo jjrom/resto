@@ -328,7 +328,7 @@ class CollectionsAPI
      *      ),
      *      @OA\RequestBody(
      *         description="Collection description",
-     *         @OA\JsonContent(ref="/components/schemas/InputCollection")
+     *         @OA\JsonContent(ref="#/components/schemas/InputCollection")
      *      ),
      *      security={
      *          {"basicAuth":{}, "bearerAuth":{}, "queryAuth":{}}
@@ -413,7 +413,7 @@ class CollectionsAPI
      *      ),
      *      @OA\RequestBody(
      *         description="Collection description",
-     *         @OA\JsonContent(ref="/components/schemas/InputCollection")
+     *         @OA\JsonContent(ref="#/components/schemas/InputCollection")
      *      ),
      *      security={
      *          {"basicAuth":{}, "bearerAuth":{}, "queryAuth":{}}

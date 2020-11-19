@@ -45,7 +45,7 @@ class ServicesAPI
      *          name="format",
      *          in="path",
      *          description="Output format - *json* or *html*",
-     *          required=false,
+     *          required=true,
      *          @OA\Items(
      *              type="string",
      *              enum={"json", "html"}
@@ -235,7 +235,7 @@ class ServicesAPI
      *      tags={"Collection"},
      *      @OA\Parameter(
      *          name="collectionId",
-     *          in="query",
+     *          in="path",
      *          description="Collection identifier",
      *          required=true,
      *          @OA\Items(
@@ -270,7 +270,7 @@ class ServicesAPI
      *      tags={"Collection"},
      *      @OA\Parameter(
      *          name="model",
-     *          in="path",
+     *          in="query",
      *          description="Limit description to collections belonging to *model* - e.g. *model=SatelliteModel* will search in all satellite collections",
      *          required=false,
      *          @OA\Items(

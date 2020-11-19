@@ -1560,12 +1560,12 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
               <ul class="toc-list-h2">
                 
                   <li>
-                    <a href="#featuresapi--updatefeatureproperty" class="toc-h2 toc-link" data-title="FeaturesAPI::updateFeatureProperty">FeaturesAPI::updateFeatureProperty</a>
+                    <a href="#featuresapi--getfeaturesincollection" class="toc-h2 toc-link" data-title="FeaturesAPI::getFeaturesInCollection">FeaturesAPI::getFeaturesInCollection</a>
                     
                   </li>
                 
                   <li>
-                    <a href="#featuresapi--getfeaturesincollection" class="toc-h2 toc-link" data-title="FeaturesAPI::getFeaturesInCollection">FeaturesAPI::getFeaturesInCollection</a>
+                    <a href="#featuresapi--updatefeatureproperty" class="toc-h2 toc-link" data-title="FeaturesAPI::updateFeatureProperty">FeaturesAPI::updateFeatureProperty</a>
                     
                   </li>
                 
@@ -1575,12 +1575,12 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
                   </li>
                 
                   <li>
-                    <a href="#featuresapi--deletefeature" class="toc-h2 toc-link" data-title="FeaturesAPI::deleteFeature">FeaturesAPI::deleteFeature</a>
+                    <a href="#featuresapi--getfeature" class="toc-h2 toc-link" data-title="FeaturesAPI::getFeature">FeaturesAPI::getFeature</a>
                     
                   </li>
                 
                   <li>
-                    <a href="#featuresapi--getfeature" class="toc-h2 toc-link" data-title="FeaturesAPI::getFeature">FeaturesAPI::getFeature</a>
+                    <a href="#featuresapi--deletefeature" class="toc-h2 toc-link" data-title="FeaturesAPI::deleteFeature">FeaturesAPI::deleteFeature</a>
                     
                   </li>
                 
@@ -1792,7 +1792,7 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
 <p>A metadata catalog and search engine for geospatialized data</p>
 <p>Base URLs:</p>
 <ul>
-<li><a href></a></li>
+<li><a href="http://127.0.0.1:5252">http://127.0.0.1:5252</a></li>
 </ul>
 <p>Email: <a href="mailto:jerome.gasperi@gmail.com">Support</a></p>
 <h1 id="authentication">Authentication</h1>
@@ -1819,7 +1819,7 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X POST /collections/{collectionId}/items \
+curl -X POST http://127.0.0.1:5252/collections/{collectionId}/items \
   -H <span class="hljs-string">'Content-Type: application/json'</span> \
   -H <span class="hljs-string">'Accept: application/json'</span> \
   -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
@@ -2102,7 +2102,7 @@ bearerAuth & basicAuth & queryAuth
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X GET /services/osdd/{collectionId}?collectionId=string
+curl -X GET http://127.0.0.1:5252/services/osdd/{collectionId}
 
 </code></pre>
 <p><code>GET /services/osdd/{collectionId}</code></p>
@@ -2122,7 +2122,7 @@ curl -X GET /services/osdd/{collectionId}?collectionId=string
 <tbody>
 <tr>
 <td>collectionId</td>
-<td>query</td>
+<td>path</td>
 <td>string</td>
 <td>true</td>
 <td>Collection identifier</td>
@@ -2163,7 +2163,7 @@ This operation does not require authentication
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X GET /services/osdd
+curl -X GET http://127.0.0.1:5252/services/osdd
 
 </code></pre>
 <p><code>GET /services/osdd</code></p>
@@ -2183,7 +2183,7 @@ curl -X GET /services/osdd
 <tbody>
 <tr>
 <td>model</td>
-<td>path</td>
+<td>query</td>
 <td>string</td>
 <td>false</td>
 <td>Limit description to collections belonging to <em>model</em> - e.g. <em>model=SatelliteModel</em> will search in all satellite collections</td>
@@ -2224,7 +2224,7 @@ This operation does not require authentication
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X POST /collections \
+curl -X POST http://127.0.0.1:5252/collections \
   -H <span class="hljs-string">'Content-Type: application/json'</span> \
   -H <span class="hljs-string">'Accept: application/json'</span> \
   -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
@@ -2377,7 +2377,7 @@ curl -X POST /collections \
 <tr>
 <td>body</td>
 <td>body</td>
-<td><a href="#schema/components/schemas/inputcollection">/components/schemas/InputCollection</a></td>
+<td><a href="#schemainputcollection">InputCollection</a></td>
 <td>false</td>
 <td>Collection description</td>
 </tr>
@@ -2478,7 +2478,7 @@ bearerAuth & basicAuth & queryAuth
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X GET /collections \
+curl -X GET http://127.0.0.1:5252/collections \
   -H <span class="hljs-string">'Accept: application/json'</span>
 
 </code></pre>
@@ -2908,7 +2908,7 @@ This operation does not require authentication
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X PUT /collections/{collectionId} \
+curl -X PUT http://127.0.0.1:5252/collections/{collectionId} \
   -H <span class="hljs-string">'Content-Type: application/json'</span> \
   -H <span class="hljs-string">'Accept: application/json'</span> \
   -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
@@ -3069,7 +3069,7 @@ curl -X PUT /collections/{collectionId} \
 <tr>
 <td>body</td>
 <td>body</td>
-<td><a href="#schema/components/schemas/inputcollection">/components/schemas/InputCollection</a></td>
+<td><a href="#schemainputcollection">InputCollection</a></td>
 <td>false</td>
 <td>Collection description</td>
 </tr>
@@ -3176,7 +3176,7 @@ bearerAuth & basicAuth & queryAuth
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X GET /collections/{collectionId} \
+curl -X GET http://127.0.0.1:5252/collections/{collectionId} \
   -H <span class="hljs-string">'Accept: application/json'</span>
 
 </code></pre>
@@ -3434,7 +3434,7 @@ This operation does not require authentication
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X DELETE /collections/{collectionId} \
+curl -X DELETE http://127.0.0.1:5252/collections/{collectionId} \
   -H <span class="hljs-string">'Accept: application/json'</span> \
   -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
 
@@ -3560,214 +3560,17 @@ bearerAuth & basicAuth & queryAuth
 </aside>
 <h1 id="resto-feature">Feature</h1>
 <p>A feature is an application object that represents a physical entity e.g. a building, a river, a person, a coverage taken by a a satellite. Practically, a resto feature is defined by a set of metadata including a geographical location (i.e. a (Multi)Point, a (Multi)LineString or a (Multi)Polygon). A feature always belongs to one and only one collection.</p>
-<h2 id="featuresapi--updatefeatureproperty">FeaturesAPI::updateFeatureProperty</h2>
-<p><a id="opIdFeaturesAPI::updateFeatureProperty"></a></p>
-<blockquote>
-<p>Code samples</p>
-</blockquote>
-<pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X PUT /collections/{collectionId}/items/{featureId}/{property} \
-  -H <span class="hljs-string">'Content-Type: application/json'</span> \
-  -H <span class="hljs-string">'Accept: application/json'</span> \
-  -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
-
-</code></pre>
-<p><code>PUT /collections/{collectionId}/items/{featureId}/{property}</code></p>
-<p><em>Update feature property</em></p>
-<p>Update {property} for feature {featureId}</p>
-<blockquote>
-<p>Body parameter</p>
-</blockquote>
-<pre class="highlight tab tab-json"><code>{
-  <span class="hljs-attr">"value"</span>: <span class="hljs-literal">null</span>
-}
-</code></pre>
-<h3 id="featuresapi--updatefeatureproperty-parameters">Parameters</h3>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>In</th>
-<th>Type</th>
-<th>Required</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>collectionId</td>
-<td>path</td>
-<td>string</td>
-<td>true</td>
-<td>Collection identifier</td>
-</tr>
-<tr>
-<td>featureId</td>
-<td>path</td>
-<td>string</td>
-<td>true</td>
-<td>Feature identifier</td>
-</tr>
-<tr>
-<td>property</td>
-<td>path</td>
-<td>string</td>
-<td>true</td>
-<td>Property to update</td>
-</tr>
-<tr>
-<td>body</td>
-<td>body</td>
-<td>object</td>
-<td>false</td>
-<td>Property value to update</td>
-</tr>
-<tr>
-<td>» value</td>
-<td>body</td>
-<td>any</td>
-<td>false</td>
-<td>New property value</td>
-</tr>
-</tbody>
-</table>
-<h4 id="enumerated-values">Enumerated Values</h4>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Value</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>property</td>
-<td>title</td>
-</tr>
-<tr>
-<td>property</td>
-<td>description</td>
-</tr>
-<tr>
-<td>property</td>
-<td>visibility</td>
-</tr>
-<tr>
-<td>property</td>
-<td>owner</td>
-</tr>
-<tr>
-<td>property</td>
-<td>status</td>
-</tr>
-</tbody>
-</table>
-<blockquote>
-<p>Example responses</p>
-</blockquote>
-<blockquote>
-<p>200 Response</p>
-</blockquote>
-<pre class="highlight tab tab-json"><code>{
-  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
-  <span class="hljs-attr">"message"</span>: <span class="hljs-string">"Update property for feature b9eeaf6b-9868-5418-9455-3e77cd349e21"</span>
-}
-</code></pre>
-<blockquote>
-<p>400 Response</p>
-</blockquote>
-<pre class="highlight tab tab-json"><code>{
-  <span class="hljs-attr">"ErrorCode"</span>: <span class="hljs-number">400</span>,
-  <span class="hljs-attr">"ErrorMessage"</span>: <span class="hljs-string">"Bad request"</span>
-}
-</code></pre>
-<h3 id="featuresapi--updatefeatureproperty-responses">Responses</h3>
-<table>
-<thead>
-<tr>
-<th>Status</th>
-<th>Meaning</th>
-<th>Description</th>
-<th>Schema</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>200</td>
-<td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.1">OK</a></td>
-<td>The property is updated</td>
-<td>Inline</td>
-</tr>
-<tr>
-<td>400</td>
-<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.1">Bad Request</a></td>
-<td>Invalid property</td>
-<td><a href="#schemabadrequesterror">BadRequestError</a></td>
-</tr>
-<tr>
-<td>401</td>
-<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
-<td>Unauthorized</td>
-<td><a href="#schemaunauthorizederror">UnauthorizedError</a></td>
-</tr>
-<tr>
-<td>403</td>
-<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.3">Forbidden</a></td>
-<td>Forbidden</td>
-<td><a href="#schemaforbiddenerror">ForbiddenError</a></td>
-</tr>
-<tr>
-<td>404</td>
-<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.4">Not Found</a></td>
-<td>Feature not found</td>
-<td><a href="#schemanotfounderror">NotFoundError</a></td>
-</tr>
-</tbody>
-</table>
-<h3 id="featuresapi--updatefeatureproperty-responseschema">Response Schema</h3>
-<p>Status Code <strong>200</strong></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Required</th>
-<th>Restrictions</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>» status</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>Status is <em>success</em></td>
-</tr>
-<tr>
-<td>» message</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>Message information</td>
-</tr>
-</tbody>
-</table>
-<aside class="warning">
-To perform this operation, you must be authenticated by means of one of the following methods:
-bearerAuth & basicAuth & queryAuth
-</aside>
 <h2 id="featuresapi--getfeaturesincollection">FeaturesAPI::getFeaturesInCollection</h2>
 <p><a id="opIdFeaturesAPI::getFeaturesInCollection"></a></p>
 <blockquote>
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X GET /collections/{collectionId}/items.{format} \
+curl -X GET http://127.0.0.1:5252/collections/{collectionId}/items \
   -H <span class="hljs-string">'Accept: application/json'</span>
 
 </code></pre>
-<p><code>GET /collections/{collectionId}/items.{format}</code></p>
+<p><code>GET /collections/{collectionId}/items</code></p>
 <p><em>Get features (search on a specific collection)</em></p>
 <p>List of filters to search features within collection {collectionId}</p>
 <h3 id="featuresapi--getfeaturesincollection-parameters">Parameters</h3>
@@ -3788,13 +3591,6 @@ curl -X GET /collections/{collectionId}/items.{format} \
 <td>string</td>
 <td>true</td>
 <td>Collection identifier</td>
-</tr>
-<tr>
-<td>format</td>
-<td>path</td>
-<td>string</td>
-<td>false</td>
-<td>Output format - one of <em>atom</em> or <em>json</em></td>
 </tr>
 <tr>
 <td>q</td>
@@ -4081,25 +3877,6 @@ curl -X GET /collections/{collectionId}/items.{format} \
 <li><em>#cryosphere*</em> will search for <em>cryosphere</em> OR any <em>narrower</em> concept of <em>cryosphere</em> ([EXTENSION][SKOS])</li>
 <li><em>#cryosphere~</em> will search for <em>cryosphere</em> OR any <em>related</em> concept of <em>cryosphere</em> ([EXTENSION][SKOS])</li>
 </ul>
-<h4 id="enumerated-values">Enumerated Values</h4>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Value</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>format</td>
-<td>json</td>
-</tr>
-<tr>
-<td>format</td>
-<td>atom</td>
-</tr>
-</tbody>
-</table>
 <blockquote>
 <p>Example responses</p>
 </blockquote>
@@ -4268,13 +4045,210 @@ curl -X GET /collections/{collectionId}/items.{format} \
 <aside class="success">
 This operation does not require authentication
 </aside>
+<h2 id="featuresapi--updatefeatureproperty">FeaturesAPI::updateFeatureProperty</h2>
+<p><a id="opIdFeaturesAPI::updateFeatureProperty"></a></p>
+<blockquote>
+<p>Code samples</p>
+</blockquote>
+<pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
+curl -X PUT http://127.0.0.1:5252/collections/{collectionId}/items/{featureId}/{property} \
+  -H <span class="hljs-string">'Content-Type: application/json'</span> \
+  -H <span class="hljs-string">'Accept: application/json'</span> \
+  -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
+
+</code></pre>
+<p><code>PUT /collections/{collectionId}/items/{featureId}/{property}</code></p>
+<p><em>Update feature property</em></p>
+<p>Update {property} for feature {featureId}</p>
+<blockquote>
+<p>Body parameter</p>
+</blockquote>
+<pre class="highlight tab tab-json"><code>{
+  <span class="hljs-attr">"value"</span>: <span class="hljs-literal">null</span>
+}
+</code></pre>
+<h3 id="featuresapi--updatefeatureproperty-parameters">Parameters</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>In</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>collectionId</td>
+<td>path</td>
+<td>string</td>
+<td>true</td>
+<td>Collection identifier</td>
+</tr>
+<tr>
+<td>featureId</td>
+<td>path</td>
+<td>string</td>
+<td>true</td>
+<td>Feature identifier</td>
+</tr>
+<tr>
+<td>property</td>
+<td>path</td>
+<td>string</td>
+<td>true</td>
+<td>Property to update</td>
+</tr>
+<tr>
+<td>body</td>
+<td>body</td>
+<td>object</td>
+<td>false</td>
+<td>Property value to update</td>
+</tr>
+<tr>
+<td>» value</td>
+<td>body</td>
+<td>any</td>
+<td>false</td>
+<td>New property value</td>
+</tr>
+</tbody>
+</table>
+<h4 id="enumerated-values">Enumerated Values</h4>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>property</td>
+<td>title</td>
+</tr>
+<tr>
+<td>property</td>
+<td>description</td>
+</tr>
+<tr>
+<td>property</td>
+<td>visibility</td>
+</tr>
+<tr>
+<td>property</td>
+<td>owner</td>
+</tr>
+<tr>
+<td>property</td>
+<td>status</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Example responses</p>
+</blockquote>
+<blockquote>
+<p>200 Response</p>
+</blockquote>
+<pre class="highlight tab tab-json"><code>{
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"message"</span>: <span class="hljs-string">"Update property for feature b9eeaf6b-9868-5418-9455-3e77cd349e21"</span>
+}
+</code></pre>
+<blockquote>
+<p>400 Response</p>
+</blockquote>
+<pre class="highlight tab tab-json"><code>{
+  <span class="hljs-attr">"ErrorCode"</span>: <span class="hljs-number">400</span>,
+  <span class="hljs-attr">"ErrorMessage"</span>: <span class="hljs-string">"Bad request"</span>
+}
+</code></pre>
+<h3 id="featuresapi--updatefeatureproperty-responses">Responses</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+<th>Description</th>
+<th>Schema</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.1">OK</a></td>
+<td>The property is updated</td>
+<td>Inline</td>
+</tr>
+<tr>
+<td>400</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.1">Bad Request</a></td>
+<td>Invalid property</td>
+<td><a href="#schemabadrequesterror">BadRequestError</a></td>
+</tr>
+<tr>
+<td>401</td>
+<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
+<td>Unauthorized</td>
+<td><a href="#schemaunauthorizederror">UnauthorizedError</a></td>
+</tr>
+<tr>
+<td>403</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.3">Forbidden</a></td>
+<td>Forbidden</td>
+<td><a href="#schemaforbiddenerror">ForbiddenError</a></td>
+</tr>
+<tr>
+<td>404</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.4">Not Found</a></td>
+<td>Feature not found</td>
+<td><a href="#schemanotfounderror">NotFoundError</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="featuresapi--updatefeatureproperty-responseschema">Response Schema</h3>
+<p>Status Code <strong>200</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Restrictions</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>» status</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>Status is <em>success</em></td>
+</tr>
+<tr>
+<td>» message</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>Message information</td>
+</tr>
+</tbody>
+</table>
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+bearerAuth & basicAuth & queryAuth
+</aside>
 <h2 id="featuresapi--updatefeature">FeaturesAPI::updateFeature</h2>
 <p><a id="opIdFeaturesAPI::updateFeature"></a></p>
 <blockquote>
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X PUT /collections/{collectionId}/items/{featureId} \
+curl -X PUT http://127.0.0.1:5252/collections/{collectionId}/items/{featureId} \
   -H <span class="hljs-string">'Content-Type: application/json'</span> \
   -H <span class="hljs-string">'Accept: application/json'</span> \
   -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
@@ -4467,155 +4441,18 @@ curl -X PUT /collections/{collectionId}/items/{featureId} \
 To perform this operation, you must be authenticated by means of one of the following methods:
 bearerAuth & basicAuth & queryAuth
 </aside>
-<h2 id="featuresapi--deletefeature">FeaturesAPI::deleteFeature</h2>
-<p><a id="opIdFeaturesAPI::deleteFeature"></a></p>
-<blockquote>
-<p>Code samples</p>
-</blockquote>
-<pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X DELETE /collections/{collectionId}/items/{featureId} \
-  -H <span class="hljs-string">'Accept: application/json'</span> \
-  -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
-
-</code></pre>
-<p><code>DELETE /collections/{collectionId}/items/{featureId}</code></p>
-<p><em>Delete feature</em></p>
-<p>Delete feature {featureId}</p>
-<h3 id="featuresapi--deletefeature-parameters">Parameters</h3>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>In</th>
-<th>Type</th>
-<th>Required</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>collectionId</td>
-<td>path</td>
-<td>string</td>
-<td>true</td>
-<td>Collection identifier</td>
-</tr>
-<tr>
-<td>featureId</td>
-<td>path</td>
-<td>string</td>
-<td>true</td>
-<td>Feature identifier</td>
-</tr>
-</tbody>
-</table>
-<blockquote>
-<p>Example responses</p>
-</blockquote>
-<blockquote>
-<p>200 Response</p>
-</blockquote>
-<pre class="highlight tab tab-json"><code>{
-  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
-  <span class="hljs-attr">"message"</span>: <span class="hljs-string">"Feature 7e5caa78-5127-53e5-97ff-ddf44984ef56 deleted"</span>
-}
-</code></pre>
-<blockquote>
-<p>400 Response</p>
-</blockquote>
-<pre class="highlight tab tab-json"><code>{
-  <span class="hljs-attr">"ErrorCode"</span>: <span class="hljs-number">400</span>,
-  <span class="hljs-attr">"ErrorMessage"</span>: <span class="hljs-string">"Bad request"</span>
-}
-</code></pre>
-<h3 id="featuresapi--deletefeature-responses">Responses</h3>
-<table>
-<thead>
-<tr>
-<th>Status</th>
-<th>Meaning</th>
-<th>Description</th>
-<th>Schema</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>200</td>
-<td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.1">OK</a></td>
-<td>The feature is delete</td>
-<td>Inline</td>
-</tr>
-<tr>
-<td>400</td>
-<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.1">Bad Request</a></td>
-<td>Missing mandatory feature identifier</td>
-<td><a href="#schemabadrequesterror">BadRequestError</a></td>
-</tr>
-<tr>
-<td>401</td>
-<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
-<td>Unauthorized</td>
-<td><a href="#schemaunauthorizederror">UnauthorizedError</a></td>
-</tr>
-<tr>
-<td>403</td>
-<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.3">Forbidden</a></td>
-<td>Only user with <em>update</em> rights can delete a feature</td>
-<td><a href="#schemaforbiddenerror">ForbiddenError</a></td>
-</tr>
-<tr>
-<td>404</td>
-<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.4">Not Found</a></td>
-<td>Feature not found</td>
-<td><a href="#schemanotfounderror">NotFoundError</a></td>
-</tr>
-</tbody>
-</table>
-<h3 id="featuresapi--deletefeature-responseschema">Response Schema</h3>
-<p>Status Code <strong>200</strong></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Required</th>
-<th>Restrictions</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>» status</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>Status is <em>success</em></td>
-</tr>
-<tr>
-<td>» message</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>Message information</td>
-</tr>
-</tbody>
-</table>
-<aside class="warning">
-To perform this operation, you must be authenticated by means of one of the following methods:
-bearerAuth & basicAuth & queryAuth
-</aside>
 <h2 id="featuresapi--getfeature">FeaturesAPI::getFeature</h2>
 <p><a id="opIdFeaturesAPI::getFeature"></a></p>
 <blockquote>
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X GET /collections/{collectionId}/items/{featureId}.{format} \
+curl -X GET http://127.0.0.1:5252/collections/{collectionId}/items/{featureId} \
   -H <span class="hljs-string">'Accept: application/json'</span> \
   -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
 
 </code></pre>
-<p><code>GET /collections/{collectionId}/items/{featureId}.{format}</code></p>
+<p><code>GET /collections/{collectionId}/items/{featureId}</code></p>
 <p><em>Get feature</em></p>
 <p>Returns feature {featureId} metadata</p>
 <h3 id="featuresapi--getfeature-parameters">Parameters</h3>
@@ -4645,13 +4482,6 @@ curl -X GET /collections/{collectionId}/items/{featureId}.{format} \
 <td>Feature identifier</td>
 </tr>
 <tr>
-<td>format</td>
-<td>path</td>
-<td>string</td>
-<td>false</td>
-<td>Output format of the feature - <em>json</em> or <em>atom</em></td>
-</tr>
-<tr>
 <td>fields</td>
 <td>query</td>
 <td>string</td>
@@ -4666,25 +4496,6 @@ curl -X GET /collections/{collectionId}/items/{featureId}.{format} \
 <li>_all: Return all properties (This is the default)</li>
 <li>_simple: Return all fields except <em>keywords</em> property</li>
 </ul>
-<h4 id="enumerated-values">Enumerated Values</h4>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Value</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>format</td>
-<td>json</td>
-</tr>
-<tr>
-<td>format</td>
-<td>atom</td>
-</tr>
-</tbody>
-</table>
 <blockquote>
 <p>Example responses</p>
 </blockquote>
@@ -4815,13 +4626,150 @@ curl -X GET /collections/{collectionId}/items/{featureId}.{format} \
 To perform this operation, you must be authenticated by means of one of the following methods:
 bearerAuth & basicAuth & queryAuth
 </aside>
+<h2 id="featuresapi--deletefeature">FeaturesAPI::deleteFeature</h2>
+<p><a id="opIdFeaturesAPI::deleteFeature"></a></p>
+<blockquote>
+<p>Code samples</p>
+</blockquote>
+<pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
+curl -X DELETE http://127.0.0.1:5252/collections/{collectionId}/items/{featureId} \
+  -H <span class="hljs-string">'Accept: application/json'</span> \
+  -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
+
+</code></pre>
+<p><code>DELETE /collections/{collectionId}/items/{featureId}</code></p>
+<p><em>Delete feature</em></p>
+<p>Delete feature {featureId}</p>
+<h3 id="featuresapi--deletefeature-parameters">Parameters</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>In</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>collectionId</td>
+<td>path</td>
+<td>string</td>
+<td>true</td>
+<td>Collection identifier</td>
+</tr>
+<tr>
+<td>featureId</td>
+<td>path</td>
+<td>string</td>
+<td>true</td>
+<td>Feature identifier</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Example responses</p>
+</blockquote>
+<blockquote>
+<p>200 Response</p>
+</blockquote>
+<pre class="highlight tab tab-json"><code>{
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"message"</span>: <span class="hljs-string">"Feature 7e5caa78-5127-53e5-97ff-ddf44984ef56 deleted"</span>
+}
+</code></pre>
+<blockquote>
+<p>400 Response</p>
+</blockquote>
+<pre class="highlight tab tab-json"><code>{
+  <span class="hljs-attr">"ErrorCode"</span>: <span class="hljs-number">400</span>,
+  <span class="hljs-attr">"ErrorMessage"</span>: <span class="hljs-string">"Bad request"</span>
+}
+</code></pre>
+<h3 id="featuresapi--deletefeature-responses">Responses</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+<th>Description</th>
+<th>Schema</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.1">OK</a></td>
+<td>The feature is delete</td>
+<td>Inline</td>
+</tr>
+<tr>
+<td>400</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.1">Bad Request</a></td>
+<td>Missing mandatory feature identifier</td>
+<td><a href="#schemabadrequesterror">BadRequestError</a></td>
+</tr>
+<tr>
+<td>401</td>
+<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
+<td>Unauthorized</td>
+<td><a href="#schemaunauthorizederror">UnauthorizedError</a></td>
+</tr>
+<tr>
+<td>403</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.3">Forbidden</a></td>
+<td>Only user with <em>update</em> rights can delete a feature</td>
+<td><a href="#schemaforbiddenerror">ForbiddenError</a></td>
+</tr>
+<tr>
+<td>404</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.4">Not Found</a></td>
+<td>Feature not found</td>
+<td><a href="#schemanotfounderror">NotFoundError</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="featuresapi--deletefeature-responseschema">Response Schema</h3>
+<p>Status Code <strong>200</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Restrictions</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>» status</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>Status is <em>success</em></td>
+</tr>
+<tr>
+<td>» message</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>Message information</td>
+</tr>
+</tbody>
+</table>
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+bearerAuth & basicAuth & queryAuth
+</aside>
 <h2 id="stac--search">STAC::search</h2>
 <p><a id="opIdSTAC::search"></a></p>
 <blockquote>
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X GET /search \
+curl -X GET http://127.0.0.1:5252/search \
   -H <span class="hljs-string">'Accept: application/json'</span>
 
 </code></pre>
@@ -4840,13 +4788,6 @@ curl -X GET /search \
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>format</td>
-<td>path</td>
-<td>string</td>
-<td>false</td>
-<td>Output format - one of <em>atom</em> or <em>json</em></td>
-</tr>
 <tr>
 <td>model</td>
 <td>query</td>
@@ -5158,25 +5099,6 @@ curl -X GET /search \
 <li>_all: Return all properties (This is the default)</li>
 <li>_simple: Return all fields except <em>keywords</em> property</li>
 </ul>
-<h4 id="enumerated-values">Enumerated Values</h4>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Value</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>format</td>
-<td>json</td>
-</tr>
-<tr>
-<td>format</td>
-<td>atom</td>
-</tr>
-</tbody>
-</table>
 <blockquote>
 <p>Example responses</p>
 </blockquote>
@@ -5353,7 +5275,7 @@ This operation does not require authentication
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X PUT /auth/activate/{token} \
+curl -X PUT http://127.0.0.1:5252/auth/activate/{token} \
   -H <span class="hljs-string">'Accept: application/json'</span>
 
 </code></pre>
@@ -5374,7 +5296,7 @@ curl -X PUT /auth/activate/{token} \
 <tbody>
 <tr>
 <td>token</td>
-<td>query</td>
+<td>path</td>
 <td>undefined</td>
 <td>true</td>
 <td>Activation token</td>
@@ -5562,7 +5484,7 @@ This operation does not require authentication
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X GET /auth/check/{token} \
+curl -X GET http://127.0.0.1:5252/auth/check/{token} \
   -H <span class="hljs-string">'Accept: application/json'</span>
 
 </code></pre>
@@ -5583,7 +5505,7 @@ curl -X GET /auth/check/{token} \
 <tbody>
 <tr>
 <td>token</td>
-<td>query</td>
+<td>path</td>
 <td>undefined</td>
 <td>true</td>
 <td>Security token</td>
@@ -5666,7 +5588,7 @@ This operation does not require authentication
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X PUT /users/{userid} \
+curl -X PUT http://127.0.0.1:5252/users/{userid} \
   -H <span class="hljs-string">'Content-Type: application/json'</span> \
   -H <span class="hljs-string">'Accept: application/json'</span> \
   -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
@@ -5699,6 +5621,13 @@ curl -X PUT /users/{userid} \
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>userid</td>
+<td>path</td>
+<td>string</td>
+<td>true</td>
+<td>User's identifier</td>
+</tr>
 <tr>
 <td>body</td>
 <td>body</td>
@@ -5840,7 +5769,7 @@ bearerAuth & basicAuth & queryAuth
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X GET /users/{userid} \
+curl -X GET http://127.0.0.1:5252/users/{userid} \
   -H <span class="hljs-string">'Accept: application/json'</span> \
   -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
 
@@ -5933,7 +5862,7 @@ bearerAuth & basicAuth & queryAuth
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X POST /users \
+curl -X POST http://127.0.0.1:5252/users \
   -H <span class="hljs-string">'Content-Type: application/json'</span> \
   -H <span class="hljs-string">'Accept: application/json'</span>
 
@@ -6149,7 +6078,7 @@ This operation does not require authentication
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X GET /users \
+curl -X GET http://127.0.0.1:5252/users \
   -H <span class="hljs-string">'Accept: application/json'</span> \
   -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
 
@@ -6413,7 +6342,7 @@ bearerAuth & basicAuth & queryAuth
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X GET /conformance \
+curl -X GET http://127.0.0.1:5252/conformance \
   -H <span class="hljs-string">'Accept: application/json'</span>
 
 </code></pre>
@@ -6488,7 +6417,7 @@ This operation does not require authentication
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X GET /api.{format}
+curl -X GET http://127.0.0.1:5252/api.{format}
 
 </code></pre>
 <p><code>GET /api.{format}</code></p>
@@ -6510,7 +6439,7 @@ curl -X GET /api.{format}
 <td>format</td>
 <td>path</td>
 <td>string</td>
-<td>false</td>
+<td>true</td>
 <td>Output format - <em>json</em> or <em>html</em></td>
 </tr>
 </tbody>
@@ -6568,7 +6497,7 @@ This operation does not require authentication
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X GET / \
+curl -X GET http://127.0.0.1:5252/ \
   -H <span class="hljs-string">'Accept: application/json'</span>
 
 </code></pre>
@@ -6710,7 +6639,7 @@ This operation does not require authentication
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X GET /auth \
+curl -X GET http://127.0.0.1:5252/auth \
   -H <span class="hljs-string">'Accept: application/json'</span> \
   -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
 

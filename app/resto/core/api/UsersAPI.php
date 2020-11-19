@@ -402,6 +402,15 @@ class UsersAPI
      *      path="/users/{userid}",
      *      summary="Update user",
      *      tags={"User"},
+     *      @OA\Parameter(
+     *         name="userid",
+     *         in="path",
+     *         required=true,
+     *         description="User's identifier",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *      ),
      *      @OA\Response(
      *          response="200",
      *          description="User profile is updated",

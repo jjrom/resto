@@ -36,7 +36,7 @@ class FeaturesAPI
      * Return feature
      *
      * @OA\Get(
-     *      path="/collections/{collectionId}/items/{featureId}.{format}",
+     *      path="/collections/{collectionId}/items/{featureId}",
      *      summary="Get feature",
      *      description="Returns feature {featureId} metadata",
      *      tags={"Feature"},
@@ -57,16 +57,6 @@ class FeaturesAPI
      *          @OA\Schema(
      *             type="string"
      *         )
-     *      ),
-     *      @OA\Parameter(
-     *          name="format",
-     *          in="path",
-     *          description="Output format of the feature - *json* or *atom*",
-     *          required=false,
-     *          @OA\Schema(
-     *              type="string",
-     *              enum={"json", "atom"}
-     *          )
      *      ),
      *      @OA\Parameter(
      *          name="fields",
@@ -116,7 +106,7 @@ class FeaturesAPI
      * Search for features in a given collections
      *
      *  @OA\Get(
-     *      path="/collections/{collectionId}/items.{format}",
+     *      path="/collections/{collectionId}/items",
      *      summary="Get features (search on a specific collection)",
      *      description="List of filters to search features within collection {collectionId}",
      *      tags={"Feature"},
@@ -128,16 +118,6 @@ class FeaturesAPI
      *         @OA\Schema(
      *             type="string"
      *         )
-     *      ),
-     *      @OA\Parameter(
-     *          name="format",
-     *          in="path",
-     *          description="Output format - one of *atom* or *json*",
-     *          required=false,
-     *          @OA\Schema(
-     *              type="string",
-     *              enum={"json", "atom"}
-     *          )
      *      ),
      *      @OA\Parameter(
      *          name="q",

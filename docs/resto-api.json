@@ -163,243 +163,7 @@
                     }
                 ], 
                 "operationId": "CollectionsAPI::insertFeatures"
-            }
-        }, 
-        "/collections/{collectionId}/items/{featureId}/{property}": {
-            "put": {
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "example": {
-                                    "status": "success", 
-                                    "message": "Update property for feature b9eeaf6b-9868-5418-9455-3e77cd349e21"
-                                }, 
-                                "schema": {
-                                    "type": "object", 
-                                    "properties": {
-                                        "status": {
-                                            "type": "string", 
-                                            "description": "Status is *success*"
-                                        }, 
-                                        "message": {
-                                            "type": "string", 
-                                            "description": "Message information"
-                                        }
-                                    }
-                                }
-                            }
-                        }, 
-                        "description": "The property is updated"
-                    }, 
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/NotFoundError"
-                                }
-                            }
-                        }, 
-                        "description": "Feature not found"
-                    }, 
-                    "403": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ForbiddenError"
-                                }
-                            }
-                        }, 
-                        "description": "Forbidden"
-                    }, 
-                    "401": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/UnauthorizedError"
-                                }
-                            }
-                        }, 
-                        "description": "Unauthorized"
-                    }, 
-                    "400": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/BadRequestError"
-                                }
-                            }
-                        }, 
-                        "description": "Invalid property"
-                    }
-                }, 
-                "description": "Update {property} for feature {featureId}", 
-                "parameters": [
-                    {
-                        "schema": {
-                            "type": "string"
-                        }, 
-                        "description": "Collection identifier", 
-                        "required": true, 
-                        "name": "collectionId", 
-                        "in": "path"
-                    }, 
-                    {
-                        "schema": {
-                            "type": "string"
-                        }, 
-                        "description": "Feature identifier", 
-                        "required": true, 
-                        "name": "featureId", 
-                        "in": "path"
-                    }, 
-                    {
-                        "schema": {
-                            "enum": [
-                                "title", 
-                                "description", 
-                                "visibility", 
-                                "owner", 
-                                "status"
-                            ], 
-                            "type": "string"
-                        }, 
-                        "description": "Property to update", 
-                        "required": true, 
-                        "name": "property", 
-                        "in": "path"
-                    }
-                ], 
-                "tags": [
-                    "Feature"
-                ], 
-                "summary": "Update feature property", 
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "example": {
-                                "value": 1
-                            }, 
-                            "schema": {
-                                "type": "object", 
-                                "properties": {
-                                    "value": {
-                                        "description": "New property value"
-                                    }
-                                }
-                            }
-                        }
-                    }, 
-                    "description": "Property value to update"
-                }, 
-                "security": [
-                    {
-                        "bearerAuth": [], 
-                        "basicAuth": [], 
-                        "queryAuth": []
-                    }
-                ], 
-                "operationId": "FeaturesAPI::updateFeatureProperty"
-            }
-        }, 
-        "/conformance": {
-            "get": {
-                "operationId": "ServicesAPI::conformance", 
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object", 
-                                    "properties": {
-                                        "conformsTo": {
-                                            "items": {
-                                                "type": "string"
-                                            }, 
-                                            "type": "array", 
-                                            "description": "Array of conformance specification urls"
-                                        }
-                                    }
-                                }
-                            }
-                        }, 
-                        "description": "OGC API Feature conformance definition"
-                    }, 
-                    "404": {
-                        "description": "Not found"
-                    }
-                }, 
-                "summary": "Conformance page", 
-                "description": "Returns the OGC API Feature conformance description as JSON document", 
-                "tags": [
-                    "Server"
-                ]
-            }
-        }, 
-        "/auth/activate/{token}": {
-            "put": {
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "example": {
-                                    "profile": {
-                                        "picture": "https://robohash.org/d0e907f8b6f4ee74cd4c38a515e2a4de?gravatar=hashed&bgset=any&size=400x400", 
-                                        "followed": false, 
-                                        "name": "jrom", 
-                                        "firstname": "J\u00e9r\u00f4me", 
-                                        "bio": "Working on new features for the next major release of SnapPlanet", 
-                                        "lastname": "Gasperi", 
-                                        "followings": 144, 
-                                        "topics": "earth,fires,geology,glaciology,volcanism", 
-                                        "followme": false, 
-                                        "followers": 185, 
-                                        "groups": [
-                                            "1"
-                                        ], 
-                                        "id": "1356771884787565573", 
-                                        "registrationdate": "2016-10-08T22:50:34.187217Z"
-                                    }, 
-                                    "token": "eyJzdWIiOiIxOTQ2NTIwMjk3MjEzNTI3MDUyIiwiaWF0IjoxNTQ2MjY2NTU3LCJleHAiOjE1NDYyNzAxNTd9.nI4q0LBqGOG0a6GCjxWvUiVA6hKndN9mJrjuT1WG1Xo"
-                                }, 
-                                "schema": {
-                                    "type": "object", 
-                                    "properties": {
-                                        "profile": {
-                                            "description": "User profile", 
-                                            "$ref": "#/components/schemas/UserDisplayProfile"
-                                        }, 
-                                        "token": {
-                                            "type": "string", 
-                                            "description": "Authentication token"
-                                        }
-                                    }
-                                }
-                            }
-                        }, 
-                        "description": "Activation status - user activated or not"
-                    }, 
-                    "400": {
-                        "description": "Bad request"
-                    }
-                }, 
-                "parameters": [
-                    {
-                        "description": "Activation token", 
-                        "required": true, 
-                        "name": "token", 
-                        "in": "query"
-                    }
-                ], 
-                "tags": [
-                    "User"
-                ], 
-                "description": "Activate registered user", 
-                "summary": "Activate a user", 
-                "operationId": "activateUser"
-            }
-        }, 
-        "/collections/{collectionId}/items.{format}": {
+            }, 
             "get": {
                 "responses": {
                     "200": {
@@ -441,19 +205,6 @@
                         "description": "Collection identifier", 
                         "required": true, 
                         "name": "collectionId", 
-                        "in": "path"
-                    }, 
-                    {
-                        "schema": {
-                            "enum": [
-                                "json", 
-                                "atom"
-                            ], 
-                            "type": "string"
-                        }, 
-                        "description": "Output format - one of *atom* or *json*", 
-                        "required": false, 
-                        "name": "format", 
                         "in": "path"
                     }, 
                     {
@@ -825,6 +576,240 @@
                 "operationId": "FeaturesAPI::getFeaturesInCollection"
             }
         }, 
+        "/collections/{collectionId}/items/{featureId}/{property}": {
+            "put": {
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": "success", 
+                                    "message": "Update property for feature b9eeaf6b-9868-5418-9455-3e77cd349e21"
+                                }, 
+                                "schema": {
+                                    "type": "object", 
+                                    "properties": {
+                                        "status": {
+                                            "type": "string", 
+                                            "description": "Status is *success*"
+                                        }, 
+                                        "message": {
+                                            "type": "string", 
+                                            "description": "Message information"
+                                        }
+                                    }
+                                }
+                            }
+                        }, 
+                        "description": "The property is updated"
+                    }, 
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundError"
+                                }
+                            }
+                        }, 
+                        "description": "Feature not found"
+                    }, 
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenError"
+                                }
+                            }
+                        }, 
+                        "description": "Forbidden"
+                    }, 
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }, 
+                        "description": "Unauthorized"
+                    }, 
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestError"
+                                }
+                            }
+                        }, 
+                        "description": "Invalid property"
+                    }
+                }, 
+                "description": "Update {property} for feature {featureId}", 
+                "parameters": [
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "Collection identifier", 
+                        "required": true, 
+                        "name": "collectionId", 
+                        "in": "path"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "Feature identifier", 
+                        "required": true, 
+                        "name": "featureId", 
+                        "in": "path"
+                    }, 
+                    {
+                        "schema": {
+                            "enum": [
+                                "title", 
+                                "description", 
+                                "visibility", 
+                                "owner", 
+                                "status"
+                            ], 
+                            "type": "string"
+                        }, 
+                        "description": "Property to update", 
+                        "required": true, 
+                        "name": "property", 
+                        "in": "path"
+                    }
+                ], 
+                "tags": [
+                    "Feature"
+                ], 
+                "summary": "Update feature property", 
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "value": 1
+                            }, 
+                            "schema": {
+                                "type": "object", 
+                                "properties": {
+                                    "value": {
+                                        "description": "New property value"
+                                    }
+                                }
+                            }
+                        }
+                    }, 
+                    "description": "Property value to update"
+                }, 
+                "security": [
+                    {
+                        "bearerAuth": [], 
+                        "basicAuth": [], 
+                        "queryAuth": []
+                    }
+                ], 
+                "operationId": "FeaturesAPI::updateFeatureProperty"
+            }
+        }, 
+        "/conformance": {
+            "get": {
+                "operationId": "ServicesAPI::conformance", 
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object", 
+                                    "properties": {
+                                        "conformsTo": {
+                                            "items": {
+                                                "type": "string"
+                                            }, 
+                                            "type": "array", 
+                                            "description": "Array of conformance specification urls"
+                                        }
+                                    }
+                                }
+                            }
+                        }, 
+                        "description": "OGC API Feature conformance definition"
+                    }, 
+                    "404": {
+                        "description": "Not found"
+                    }
+                }, 
+                "summary": "Conformance page", 
+                "description": "Returns the OGC API Feature conformance description as JSON document", 
+                "tags": [
+                    "Server"
+                ]
+            }
+        }, 
+        "/auth/activate/{token}": {
+            "put": {
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "profile": {
+                                        "picture": "https://robohash.org/d0e907f8b6f4ee74cd4c38a515e2a4de?gravatar=hashed&bgset=any&size=400x400", 
+                                        "followed": false, 
+                                        "name": "jrom", 
+                                        "firstname": "J\u00e9r\u00f4me", 
+                                        "bio": "Working on new features for the next major release of SnapPlanet", 
+                                        "lastname": "Gasperi", 
+                                        "followings": 144, 
+                                        "topics": "earth,fires,geology,glaciology,volcanism", 
+                                        "followme": false, 
+                                        "followers": 185, 
+                                        "groups": [
+                                            "1"
+                                        ], 
+                                        "id": "1356771884787565573", 
+                                        "registrationdate": "2016-10-08T22:50:34.187217Z"
+                                    }, 
+                                    "token": "eyJzdWIiOiIxOTQ2NTIwMjk3MjEzNTI3MDUyIiwiaWF0IjoxNTQ2MjY2NTU3LCJleHAiOjE1NDYyNzAxNTd9.nI4q0LBqGOG0a6GCjxWvUiVA6hKndN9mJrjuT1WG1Xo"
+                                }, 
+                                "schema": {
+                                    "type": "object", 
+                                    "properties": {
+                                        "profile": {
+                                            "description": "User profile", 
+                                            "$ref": "#/components/schemas/UserDisplayProfile"
+                                        }, 
+                                        "token": {
+                                            "type": "string", 
+                                            "description": "Authentication token"
+                                        }
+                                    }
+                                }
+                            }
+                        }, 
+                        "description": "Activation status - user activated or not"
+                    }, 
+                    "400": {
+                        "description": "Bad request"
+                    }
+                }, 
+                "parameters": [
+                    {
+                        "description": "Activation token", 
+                        "required": true, 
+                        "name": "token", 
+                        "in": "path"
+                    }
+                ], 
+                "tags": [
+                    "User"
+                ], 
+                "description": "Activate registered user", 
+                "summary": "Activate a user", 
+                "operationId": "activateUser"
+            }
+        }, 
         "/auth/check/{token}": {
             "get": {
                 "responses": {
@@ -863,7 +848,7 @@
                         "description": "Security token", 
                         "required": true, 
                         "name": "token", 
-                        "in": "query"
+                        "in": "path"
                     }
                 ], 
                 "tags": [
@@ -894,7 +879,7 @@
                             "type": "string"
                         }, 
                         "description": "Output format - *json* or *html*", 
-                        "required": false, 
+                        "required": true, 
                         "name": "format", 
                         "in": "path"
                     }
@@ -978,7 +963,7 @@
                         "description": "Collection identifier", 
                         "required": true, 
                         "name": "collectionId", 
-                        "in": "query"
+                        "in": "path"
                     }
                 ], 
                 "tags": [
@@ -1101,6 +1086,65 @@
                 ], 
                 "operationId": "FeaturesAPI::updateFeature"
             }, 
+            "get": {
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OutputFeature"
+                                }
+                            }
+                        }, 
+                        "description": "Feature metadata"
+                    }, 
+                    "404": {
+                        "description": "Feature not found"
+                    }
+                }, 
+                "parameters": [
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "Collection identifier", 
+                        "required": true, 
+                        "name": "collectionId", 
+                        "in": "path"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "Feature identifier", 
+                        "required": true, 
+                        "name": "featureId", 
+                        "in": "path"
+                    }, 
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "Comma separated list of property fields to be returned. The following reserved keywords can also be used:\n* _all: Return all properties (This is the default)\n* _simple: Return all fields except *keywords* property", 
+                        "required": false, 
+                        "name": "fields", 
+                        "in": "query"
+                    }
+                ], 
+                "tags": [
+                    "Feature"
+                ], 
+                "description": "Returns feature {featureId} metadata", 
+                "summary": "Get feature", 
+                "security": [
+                    {
+                        "bearerAuth": [], 
+                        "basicAuth": [], 
+                        "queryAuth": []
+                    }
+                ], 
+                "operationId": "FeaturesAPI::getFeature"
+            }, 
             "delete": {
                 "responses": {
                     "200": {
@@ -1203,75 +1247,6 @@
                 "operationId": "FeaturesAPI::deleteFeature"
             }
         }, 
-        "/auth": {
-            "get": {
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "example": {
-                                    "profile": {
-                                        "picture": "https://robohash.org/d0e907f8b6f4ee74cd4c38a515e2a4de?gravatar=hashed&bgset=any&size=400x400", 
-                                        "followed": false, 
-                                        "name": "jrom", 
-                                        "firstname": "J\u00e9r\u00f4me", 
-                                        "bio": "Working on new features for the next major release of SnapPlanet", 
-                                        "lastname": "Gasperi", 
-                                        "followings": 144, 
-                                        "topics": "earth,fires,geology,glaciology,volcanism", 
-                                        "followme": false, 
-                                        "followers": 185, 
-                                        "groups": [
-                                            "1"
-                                        ], 
-                                        "id": "1356771884787565573", 
-                                        "registrationdate": "2016-10-08T22:50:34.187217Z"
-                                    }, 
-                                    "token": "eyJzdWIiOiIxOTQ2NTIwMjk3MjEzNTI3MDUyIiwiaWF0IjoxNTQ2MjY2NTU3LCJleHAiOjE1NDYyNzAxNTd9.nI4q0LBqGOG0a6GCjxWvUiVA6hKndN9mJrjuT1WG1Xo"
-                                }, 
-                                "schema": {
-                                    "type": "object", 
-                                    "properties": {
-                                        "profile": {
-                                            "description": "User profile", 
-                                            "$ref": "#/components/schemas/UserDisplayProfile"
-                                        }, 
-                                        "token": {
-                                            "type": "string", 
-                                            "description": "A rJWT token"
-                                        }
-                                    }
-                                }
-                            }
-                        }, 
-                        "description": "A fresh authentication token (aka rJWT)"
-                    }, 
-                    "401": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/UnauthorizedError"
-                                }
-                            }
-                        }, 
-                        "description": "Unauthorized"
-                    }
-                }, 
-                "tags": [
-                    "Authentication"
-                ], 
-                "description": "Get a fresh authentication token (aka rJWT).", 
-                "summary": "Get an authentication token", 
-                "security": [
-                    {
-                        "bearerAuth": [], 
-                        "basicAuth": [], 
-                        "queryAuth": []
-                    }
-                ], 
-                "operationId": "AuthAPI::getToken"
-            }
-        }, 
         "/services/osdd": {
             "get": {
                 "responses": {
@@ -1290,7 +1265,7 @@
                         "description": "Limit description to collections belonging to *model* - e.g. *model=SatelliteModel* will search in all satellite collections", 
                         "required": false, 
                         "name": "model", 
-                        "in": "path"
+                        "in": "query"
                     }
                 ], 
                 "tags": [
@@ -1367,7 +1342,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "/components/schemas/InputCollection"
+                                "$ref": "#/components/schemas/InputCollection"
                             }
                         }
                     }, 
@@ -1575,70 +1550,65 @@
                 "operationId": "CollectionsAPI::getCollections"
             }
         }, 
-        "/collections/{collectionId}/items/{featureId}.{format}": {
+        "/auth": {
             "get": {
                 "responses": {
                     "200": {
                         "content": {
                             "application/json": {
+                                "example": {
+                                    "profile": {
+                                        "picture": "https://robohash.org/d0e907f8b6f4ee74cd4c38a515e2a4de?gravatar=hashed&bgset=any&size=400x400", 
+                                        "followed": false, 
+                                        "name": "jrom", 
+                                        "firstname": "J\u00e9r\u00f4me", 
+                                        "bio": "Working on new features for the next major release of SnapPlanet", 
+                                        "lastname": "Gasperi", 
+                                        "followings": 144, 
+                                        "topics": "earth,fires,geology,glaciology,volcanism", 
+                                        "followme": false, 
+                                        "followers": 185, 
+                                        "groups": [
+                                            "1"
+                                        ], 
+                                        "id": "1356771884787565573", 
+                                        "registrationdate": "2016-10-08T22:50:34.187217Z"
+                                    }, 
+                                    "token": "eyJzdWIiOiIxOTQ2NTIwMjk3MjEzNTI3MDUyIiwiaWF0IjoxNTQ2MjY2NTU3LCJleHAiOjE1NDYyNzAxNTd9.nI4q0LBqGOG0a6GCjxWvUiVA6hKndN9mJrjuT1WG1Xo"
+                                }, 
                                 "schema": {
-                                    "$ref": "#/components/schemas/OutputFeature"
+                                    "type": "object", 
+                                    "properties": {
+                                        "profile": {
+                                            "description": "User profile", 
+                                            "$ref": "#/components/schemas/UserDisplayProfile"
+                                        }, 
+                                        "token": {
+                                            "type": "string", 
+                                            "description": "A rJWT token"
+                                        }
+                                    }
                                 }
                             }
                         }, 
-                        "description": "Feature metadata"
+                        "description": "A fresh authentication token (aka rJWT)"
                     }, 
-                    "404": {
-                        "description": "Feature not found"
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }, 
+                        "description": "Unauthorized"
                     }
                 }, 
-                "parameters": [
-                    {
-                        "schema": {
-                            "type": "string"
-                        }, 
-                        "description": "Collection identifier", 
-                        "required": true, 
-                        "name": "collectionId", 
-                        "in": "path"
-                    }, 
-                    {
-                        "schema": {
-                            "type": "string"
-                        }, 
-                        "description": "Feature identifier", 
-                        "required": true, 
-                        "name": "featureId", 
-                        "in": "path"
-                    }, 
-                    {
-                        "schema": {
-                            "enum": [
-                                "json", 
-                                "atom"
-                            ], 
-                            "type": "string"
-                        }, 
-                        "description": "Output format of the feature - *json* or *atom*", 
-                        "required": false, 
-                        "name": "format", 
-                        "in": "path"
-                    }, 
-                    {
-                        "schema": {
-                            "type": "string"
-                        }, 
-                        "description": "Comma separated list of property fields to be returned. The following reserved keywords can also be used:\n* _all: Return all properties (This is the default)\n* _simple: Return all fields except *keywords* property", 
-                        "required": false, 
-                        "name": "fields", 
-                        "in": "query"
-                    }
-                ], 
                 "tags": [
-                    "Feature"
+                    "Authentication"
                 ], 
-                "description": "Returns feature {featureId} metadata", 
-                "summary": "Get feature", 
+                "description": "Get a fresh authentication token (aka rJWT).", 
+                "summary": "Get an authentication token", 
                 "security": [
                     {
                         "bearerAuth": [], 
@@ -1646,7 +1616,7 @@
                         "queryAuth": []
                     }
                 ], 
-                "operationId": "FeaturesAPI::getFeature"
+                "operationId": "AuthAPI::getToken"
             }
         }, 
         "/collections/{collectionId}": {
@@ -1737,7 +1707,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "/components/schemas/InputCollection"
+                                "$ref": "#/components/schemas/InputCollection"
                             }
                         }
                     }, 
@@ -1929,19 +1899,6 @@
                     }
                 }, 
                 "parameters": [
-                    {
-                        "schema": {
-                            "enum": [
-                                "json", 
-                                "atom"
-                            ], 
-                            "type": "string"
-                        }, 
-                        "description": "Output format - one of *atom* or *json*", 
-                        "required": false, 
-                        "name": "format", 
-                        "in": "path"
-                    }, 
                     {
                         "schema": {
                             "type": "string"
@@ -2376,6 +2333,17 @@
                         "description": "Bad request"
                     }
                 }, 
+                "parameters": [
+                    {
+                        "schema": {
+                            "type": "string"
+                        }, 
+                        "description": "User's identifier", 
+                        "required": true, 
+                        "name": "userid", 
+                        "in": "path"
+                    }
+                ], 
                 "tags": [
                     "User"
                 ], 
@@ -2772,7 +2740,7 @@
     ], 
     "servers": [
         {
-            "url": "", 
+            "url": "http://127.0.0.1:5252", 
             "description": "resto localhost server"
         }
     ], 

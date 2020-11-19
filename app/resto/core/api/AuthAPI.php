@@ -196,7 +196,7 @@ class AuthAPI
      *      operationId="checkToken",
      *      @OA\Parameter(
      *          name="token",
-     *          in="query",
+     *          in="path",
      *          description="Security token",
      *          required=true
      *      ),
@@ -256,7 +256,7 @@ class AuthAPI
      *      tags={"User"},
      *      @OA\Parameter(
      *          name="token",
-     *          in="query",
+     *          in="path",
      *          description="Activation token",
      *          required=true
      *      ),

@@ -168,16 +168,6 @@ class STAC extends RestoAddOn
      *      description="List of filters to search features within all collections",
      *      tags={"Feature"},
      *      @OA\Parameter(
-     *          name="format",
-     *          in="path",
-     *          description="Output format - one of *atom* or *json*",
-     *          required=false,
-     *          @OA\Schema(
-     *              type="string",
-     *              enum={"json", "atom"}
-     *          )
-     *      ),
-     *      @OA\Parameter(
      *          name="model",
      *          in="query",
      *          description="Search features within collections belonging to *model* - e.g. *model=SatelliteModel* will search in all satellite collections",
