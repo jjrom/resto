@@ -60,7 +60,7 @@ $$  LANGUAGE sql IMMUTABLE;
 -- An immutable concat that works with NULL values
 -- (From https://blog.ropardo.ro/2010/05/04/extending-postgresql-a-better-concat-operator/)
 --
-CREATE OR REPLACE FUNCTION immutable_concat(text, text)
+CREATE OR REPLACE FUNCTION public.immutable_concat(text, text)
 RETURNS text AS
     'SELECT
         CASE WHEN $1 IS NULL THEN $2
@@ -74,7 +74,7 @@ LANGUAGE sql IMMUTABLE;
 -- This function will return input text
 -- in lower case, without accents and with space, and characaters ",:-`´‘’_" replaced by separator
 --
-CREATE OR REPLACE FUNCTION normalize(input text, separator text DEFAULT '') 
+CREATE OR REPLACE FUNCTION public.normalize(input text, separator text DEFAULT '') 
 RETURNS text AS $$
 BEGIN
     RETURN translate(lower(public.f_unaccent(input)), ' '',:-`´‘’_' , separator);
@@ -88,7 +88,7 @@ $$ LANGUAGE 'plpgsql' IMMUTABLE;
 -- and characaters ",:-`´‘’_" replaced by empty string
 --
 --
-CREATE OR REPLACE FUNCTION normalize_array(input text[], separator text DEFAULT '') 
+CREATE OR REPLACE FUNCTION public.normalize_array(input text[], separator text DEFAULT '') 
 RETURNS text[] AS $$
 BEGIN
     RETURN array_agg(public.normalize(value)) FROM unnest(input) value;
