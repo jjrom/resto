@@ -36,7 +36,7 @@ function showUsage {
     echo "      -e | --envfile Environnement file (see config.env example)"
     echo "      -h | --help show this help"
     echo ""
-    echo "      !!! This script requires docker and docker-compose !!!"
+    echo "      !!! This script requires docker !!!"
     echo ""
 }
 

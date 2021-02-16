@@ -94,7 +94,7 @@ else
     COMPOSE_FILE="docker-compose.yml"
 fi
 
-COMPOSE_FILE=${COMPOSE_FILE} docker-compose --project-name ${PROJECT_NAME} down
+COMPOSE_FILE=${COMPOSE_FILE} ENV_FILE=${ENV_FILE} docker-compose --project-name ${PROJECT_NAME} down
 
 echo "[INFO] Done !"
 echo ""

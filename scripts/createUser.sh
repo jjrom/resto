@@ -50,7 +50,7 @@ function showUsage {
     echo "      -i | --id Force user identifier"
     echo "      -h | --help show this help"
     echo ""
-    echo "      !!! This script requires docker and docker-compose !!!"
+    echo "      !!! This script requires docker !!!"
     echo ""
 }
 
