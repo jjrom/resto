@@ -69,39 +69,39 @@ if [ ! -f ${ENV_FILE} ]; then
 fi
 
 # Read environment from ENV_FILE
-DATABASE_EXPOSED_PORT=$(grep ^DATABASE_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -ne)
+DATABASE_EXPOSED_PORT=$(grep ^DATABASE_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 if [ "${DATABASE_EXPOSED_PORT}" == "" ]; then
     DATABASE_EXPOSED_PORT=5253
 fi
 
-DATABASE_USER_PASSWORD=$(grep ^DATABASE_USER_PASSWORD= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -ne)
+DATABASE_USER_PASSWORD=$(grep ^DATABASE_USER_PASSWORD= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 if [ "${DATABASE_USER_PASSWORD}" == "" ]; then
     DATABASE_USER_PASSWORD=resto
 fi
 
-DATABASE_USER_NAME=$(grep ^DATABASE_USER_NAME= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -ne)
+DATABASE_USER_NAME=$(grep ^DATABASE_USER_NAME= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 if [ "${DATABASE_USER_NAME}" == "" ]; then
     DATABASE_USER_NAME=resto
 fi
 
-DATABASE_NAME=$(grep ^DATABASE_NAME= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -ne)
+DATABASE_NAME=$(grep ^DATABASE_NAME= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 if [ "${DATABASE_NAME}" == "" ]; then
     DATABASE_NAME=resto
 fi
 
-DATABASE_HOST=$(grep ^DATABASE_HOST= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -ne)
+DATABASE_HOST=$(grep ^DATABASE_HOST= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 if [ "${DATABASE_HOST}" == "" ]; then
     DATABASE_HOST=restodb
 fi
 
-ADMIN_USER_NAME=$(grep ^ADMIN_USER_NAME= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -ne)
+ADMIN_USER_NAME=$(grep ^ADMIN_USER_NAME= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 if [ "${ADMIN_USER_NAME}" == "" ]; then
     ADMIN_USER_NAME=admin
 fi
 
-ADMIN_USER_ID=$(grep ^ADMIN_USER_ID= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -ne)
+ADMIN_USER_ID=$(grep ^ADMIN_USER_ID= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 
-ADMIN_USER_PASSWORD=$(grep ^ADMIN_USER_PASSWORD= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -ne)
+ADMIN_USER_PASSWORD=$(grep ^ADMIN_USER_PASSWORD= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 if [ "${ADMIN_USER_PASSWORD}" == "" ]; then
     showUsage
     echo -e "${RED}[ERROR]${NC} ADMIN_USER_PASSWORD cannot be empty (see ${ENV_FILE})"

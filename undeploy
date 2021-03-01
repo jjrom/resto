@@ -87,7 +87,7 @@ fi
 echo "[INFO] Stopping ${GREEN}${PROJECT_NAME}${NC} docker instance"
 
 # Stop database if in container
-DATABASE_HOST=$(grep ^DATABASE_HOST= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -ne)
+DATABASE_HOST=$(grep ^DATABASE_HOST= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 if [[ "${DATABASE_HOST}" == "restodb" ]]; then
     COMPOSE_FILE="docker-compose-restodb.yml:docker-compose.yml"
 else
