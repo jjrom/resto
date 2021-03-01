@@ -92,7 +92,8 @@ return array(
                     'taggers' => array(${ADDON_TAG_ITAG_TAGGERS:-'political','physical'})
                 )
             )
-        )__ADDONS__
+        ),
+        __ADDONS__
     ),
     'defaultRoutes' => array()
 );

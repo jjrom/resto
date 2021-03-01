@@ -12,28 +12,13 @@ fi
 
 # Add-ons configuration
 touch /tmp/addons.template
-nbOfConfig=$(ls /cfg/*.config | wc | awk '{print $1}')
-addComma=1
-count=1
 for config in $(ls /cfg/*.config); do
     nbOfLines=`wc -l ${config} | awk '{print $1}'`
     if [[ "${nbOfLines}" != "0" ]]; then
-    
-        # First addon - add a comma in front since there is at leat one add already present in template i.e. iTag
-        if [[ "${addComma}" == "1" ]]; then
-            echo -n ","
-            addComma=0
-        fi
-
-        # Add a comma at the end of each config unless it's the last one
         echo "[CONFIG] Add add-on configuration " . $config
-        if [[ "${nbOfConfig}" != "${count}" ]]; then
-            cat $config | awk '{print "      "$0","}' >> /tmp/addons.template
-        else
-            cat $config | awk '{print "      "$0}' >> /tmp/addons.template
-        fi
+        cat $config | awk '{print "      ", $0}' >> /tmp/addons.template
+        echo -n "," >> /tmp/addons.template
     fi
-    count=$((count + 1))
 done
 
 # Replace __ADDONS__
