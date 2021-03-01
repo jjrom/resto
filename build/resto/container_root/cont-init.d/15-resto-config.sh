@@ -11,21 +11,35 @@ if [ ! -f ${CONFIG_TEMPLATE_FILE} ]; then
 fi
 
 # Add-ons configuration
-touch /tmp/addons.template
+rm -Rf /tmp/addons.template
 for config in $(ls /cfg/*.config); do
-    nbOfLines=`wc -l ${config} | awk '{print $1}'`
-    if [[ "${nbOfLines}" != "0" ]]; then
-        echo "[CONFIG] Add add-on configuration " . $config
-        cat $config | awk '{print "      ", $0}' >> /tmp/addons.template
-        echo -n "," >> /tmp/addons.template
-    fi
+    cat $config >> /tmp/addons.template
+    echo "" >> /tmp/addons.template
 done
 
-# Replace __ADDONS__
-sed -i -e '/__ADDONS__/{' -e 'r /tmp/addons.template' -e 'd' -e '}' ${CONFIG_TEMPLATE_FILE}
+if [[ -f /tmp/addons.template ]]; then
+
+    # Add comma at the end of each starting ) except the last one
+    sed -i -e "$ ! s/^)/),/g" /tmp/addons.template
+
+    # Add terminaning ), characters if needed
+    hasAddOn=$(grep ")__ADDONS__" ${CONFIG_TEMPLATE_FILE})
+
+    if [[ "${hasAddOn}" != "" ]]; then
+        sed -i '1s/^/),\n/' /tmp/addons.template
+    fi
+    
+    # Add a trailing tab to file
+    sed -i 's/^/\t/' /tmp/addons.template
+
+    # Replace __ADDONS__
+    sed -i -e '/)__ADDONS__/{r /tmp/addons.template' -e 'd' -e '}' ${CONFIG_TEMPLATE_FILE}
+else
+    sed -i -e 's/__ADDONS__//' ${CONFIG_TEMPLATE_FILE}
+fi
 
 # From there we use environment variables passed during container startup
-mkdir -v /etc/resto
+mkdir -p /etc/resto
 
 # Add brackets around elements of comma separated lists
 if [ ! -z "${SUPPORTED_LANGUAGES}" ]; then
