@@ -236,6 +236,7 @@ class RestoCollections
         $collections = array(
             'stac_version' => STAC::STAC_VERSION,
             'id' => $this->context->osDescription['ShortName'],
+            'type' => 'Catalog',
             'title' => $this->context->osDescription['LongName'] ?? $this->context->osDescription['ShortName'],
             'description' => $this->context->osDescription['Description'],
             'keywords' => explode(' ', $this->context->osDescription['Tags']),

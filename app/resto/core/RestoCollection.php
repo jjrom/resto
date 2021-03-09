@@ -240,11 +240,17 @@
  * 
  *  @OA\Schema(
  *      schema="OutputCollection",
- *      required={"id", "title", "description", "license", "extent", "links"},
+ *      required={"id", "type", "title", "description", "license", "extent", "links"},
  *      @OA\Property(
  *          property="id",
  *          type="string",
  *          description="Collection identifier. It must be an unique alphanumeric string containing only [a-zA-Z0-9\-_]."
+ *      ),
+ *      @OA\Property(
+ *          property="type",
+ *          type="enum",
+ *          enum={"Collection"},
+ *          description="[EXTENSION][STAC] Always set to \"Collection\""
  *      ),
  *      @OA\Property(
  *          property="title",
@@ -871,6 +877,7 @@ class RestoCollection
             'stac_version' => STAC::STAC_VERSION,
             'stac_extensions' => $this->model->stacExtensions,
             'id' => $this->id,
+            'type' => 'Collection', 
             'title' => $osDescription['LongName'] ?? $osDescription['ShortName'],
             'version' => $this->version ?? null,
             'description' => $osDescription['Description'],
