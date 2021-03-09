@@ -52,8 +52,8 @@ class CollectionsFunctions
             'keywords' => isset($rawDescription['keywords']) ? json_decode($rawDescription['keywords'], true) : array(),
             'links' => json_decode($rawDescription['links'], true),
             'datetime' => array(
-                'min' => $rawDescription['startdate'] ?? null,
-                'max' => $rawDescription['completiondate'] ?? null
+                'minimum' => $rawDescription['startdate'] ?? null,
+                'maximum' => $rawDescription['completiondate'] ?? null
             ),
             'bbox' => RestoGeometryUtil::box2dTobbox($rawDescription['box2d']),
             'licenseId' => $rawDescription['licenseid']

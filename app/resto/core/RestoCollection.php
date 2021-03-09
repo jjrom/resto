@@ -518,8 +518,8 @@
  *          },
  *          "summaries": {
  *              "datetime": {
- *                  "min": "2019-06-11T16:11:41.808000Z",
- *                  "max": "2019-06-11T16:11:41.808000Z"
+ *                  "minimum": "2019-06-11T16:11:41.808000Z",
+ *                  "maximum": "2019-06-11T16:11:41.808000Z"
  *              },
  *              "eo:instrument": {
  *                  "MSI"
@@ -977,7 +977,7 @@ class RestoCollection
             'temporal' => array(
                 'interval' => array(
                     array(
-                        $this->datetime['min'], $this->datetime['max']
+                        $this->datetime['minimum'], $this->datetime['maximum']
                     )
                 ),
                 'trs' => 'http://www.opengis.net/def/uom/ISO-8601/0/Gregorian'

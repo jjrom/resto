@@ -324,15 +324,15 @@ class RestoCollections
     private function updateExtent($collection)
     {
 
-        if (isset($collection->datetime['min'])) {
-            if ( ! isset($this->extent['temporal']['interval'][0][0]) || $collection->datetime['min'] < $this->extent['temporal']['interval'][0][0]) {
-                $this->extent['temporal']['interval'][0][0] = $collection->datetime['min'];
+        if (isset($collection->datetime['minimum'])) {
+            if ( ! isset($this->extent['temporal']['interval'][0][0]) || $collection->datetime['minimum'] < $this->extent['temporal']['interval'][0][0]) {
+                $this->extent['temporal']['interval'][0][0] = $collection->datetime['minimum'];
             }
         }
 
-        if (isset($collection->datetime['max'])) {
-            if ( ! isset($this->extent['temporal']['interval'][0][1]) || $collection->datetime['max'] > $this->extent['temporal']['interval'][0][1]) {
-                $this->extent['temporal']['interval'][0][1] = $collection->datetime['max'];
+        if (isset($collection->datetime['maximum'])) {
+            if ( ! isset($this->extent['temporal']['interval'][0][1]) || $collection->datetime['maximum'] > $this->extent['temporal']['interval'][0][1]) {
+                $this->extent['temporal']['interval'][0][1] = $collection->datetime['maximum'];
             }
         }
            
