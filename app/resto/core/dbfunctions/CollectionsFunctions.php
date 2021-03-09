@@ -46,7 +46,8 @@ class CollectionsFunctions
             'visibility' => (integer) $rawDescription['visibility'],
             'owner' => $rawDescription['owner'],
             'providers' => json_decode($rawDescription['providers'], true),
-            'properties' => json_decode($rawDescription['properties'], true),
+            // [STAC][1.0.0-rc1] Previous "properties" are merged to "summaries"
+            'summaries' => json_decode($rawDescription['properties'], true),
             'assets' => json_decode($rawDescription['assets'], true),
             //'keywords' => isset($rawDescription['keywords']) ? explode(',', substr(str_replace('"', '', $rawDescription['keywords']), 1, -1)) : array(),
             'keywords' => isset($rawDescription['keywords']) ? json_decode($rawDescription['keywords'], true) : array(),
@@ -435,7 +436,8 @@ class CollectionsFunctions
                 'visibility' => $collection->visibility,
                 'owner' => $collection->owner,
                 'providers' => json_encode($collection->providers, JSON_UNESCAPED_SLASHES),
-                'properties' => json_encode($collection->properties, JSON_UNESCAPED_SLASHES),
+                // [STAC][1.0.0-rc1] Input summaries is stored as properties in database to keep schema unchanged
+                'properties' => json_encode($collection->summaries, JSON_UNESCAPED_SLASHES),
                 'links' => json_encode($collection->links, JSON_UNESCAPED_SLASHES),
                 'assets' => json_encode($collection->assets, JSON_UNESCAPED_SLASHES),
                 'keywords' => $keywords,
@@ -454,7 +456,7 @@ class CollectionsFunctions
                 $collection->licenseId,
                 $collection->visibility,
                 json_encode($collection->providers, JSON_UNESCAPED_SLASHES),
-                json_encode($collection->properties, JSON_UNESCAPED_SLASHES),
+                json_encode($collection->summaries, JSON_UNESCAPED_SLASHES),
                 json_encode($collection->links, JSON_UNESCAPED_SLASHES),
                 json_encode($collection->assets, JSON_UNESCAPED_SLASHES),
                 $keywords,

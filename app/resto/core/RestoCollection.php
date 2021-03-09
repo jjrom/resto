@@ -106,7 +106,7 @@
  *          @OA\Items(ref="#/components/schemas/Provider")
  *      ),
  *      @OA\Property(
- *          property="properties",
+ *          property="summaries",
  *          type="object",
  *          @OA\JsonContent()
  *      ),
@@ -159,7 +159,7 @@
  *                  "title": "Legal notice on the use of Copernicus Sentinel Data and Service Information"
  *              }
  *          },
- *          "properties": {
+ *          "summaries": {
  *              "eo:bands": {
  *                  {
  *                      "name": "B1",
@@ -323,11 +323,6 @@
  *          @OA\Items(ref="#/components/schemas/Provider")
  *      ),
  *      @OA\Property(
- *          property="properties",
- *          type="object",
- *          @OA\JsonContent()
- *      ),
- *      @OA\Property(
  *          property="summaries",
  *          type="object",
  *          @OA\JsonContent(
@@ -440,7 +435,23 @@
  *                  "url": "https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi"
  *              }
  *          },
- *          "properties": {
+ *          "summaries": {
+ *              "datetime": {
+ *                  "minimum": "2019-06-11T16:11:41.808000Z",
+ *                  "maximum": "2019-06-11T16:11:41.808000Z"
+ *              },
+ *              "eo:instrument": {
+ *                  "MSI"
+ *              },
+ *              "eo:platform": {
+ *                  "S2A"
+ *              },
+ *              "processingLevel": {
+ *                  "LEVEL1C"
+ *              },
+ *              "productType": {
+ *                  "REFLECTANCE"
+ *              },
  *              "eo:bands": {
  *                  {
  *                      "name": "B1",
@@ -514,24 +525,6 @@
  *                      "center_wavelength": 2.2024,
  *                      "gsd": 20
  *                  }
- *              }
- *          },
- *          "summaries": {
- *              "datetime": {
- *                  "minimum": "2019-06-11T16:11:41.808000Z",
- *                  "maximum": "2019-06-11T16:11:41.808000Z"
- *              },
- *              "eo:instrument": {
- *                  "MSI"
- *              },
- *              "eo:platform": {
- *                  "S2A"
- *              },
- *              "processingLevel": {
- *                  "LEVEL1C"
- *              },
- *              "productType": {
- *                  "REFLECTANCE"
  *              }
  *          },
  *          "stac_version": "0.8.0",
@@ -912,13 +905,19 @@ class RestoCollection
             )
         );
 
-        foreach (array_values(array('keywords', 'providers', 'properties', 'assets')) as $key) {
+        foreach (array_values(array('keywords', 'providers', 'assets')) as $key) {
             if (isset($this->$key)) {
                 $collectionArray[$key] = $key === 'providers' ? $this->$key : (object) $this->$key;
             }
         }
 
-        $collectionArray['summaries'] = $this->getSummaries($options['stats'] ?? false);
+        // Update summaries
+        if ( isset($this->summaries) ) {
+            $collectionArray['summaries'] = array_merge($this->getSummaries($options['stats'] ?? false), $this->summaries);
+        }
+        else {
+            $collectionArray['summaries'] = $this->getSummaries($options['stats'] ?? false);
+        }
         
         return $collectionArray;
 
