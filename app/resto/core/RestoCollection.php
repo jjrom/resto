@@ -106,7 +106,7 @@
  *          @OA\Items(ref="#/components/schemas/Provider")
  *      ),
  *      @OA\Property(
- *          property="properties",
+ *          property="summaries",
  *          type="object",
  *          @OA\JsonContent()
  *      ),
@@ -159,7 +159,7 @@
  *                  "title": "Legal notice on the use of Copernicus Sentinel Data and Service Information"
  *              }
  *          },
- *          "properties": {
+ *          "summaries": {
  *              "eo:bands": {
  *                  {
  *                      "name": "B1",
@@ -240,11 +240,17 @@
  * 
  *  @OA\Schema(
  *      schema="OutputCollection",
- *      required={"id", "title", "description", "license", "extent", "links"},
+ *      required={"id", "type", "title", "description", "license", "extent", "links"},
  *      @OA\Property(
  *          property="id",
  *          type="string",
  *          description="Collection identifier. It must be an unique alphanumeric string containing only [a-zA-Z0-9\-_]."
+ *      ),
+ *      @OA\Property(
+ *          property="type",
+ *          type="enum",
+ *          enum={"Collection"},
+ *          description="[EXTENSION][STAC] Always set to \"Collection\""
  *      ),
  *      @OA\Property(
  *          property="title",
@@ -315,11 +321,6 @@
  *          type="array",
  *          description="A list of providers, which may include all organizations capturing or processing the data or the hosting provider. Providers should be listed in chronological order with the most recent provider being the last element of the list",
  *          @OA\Items(ref="#/components/schemas/Provider")
- *      ),
- *      @OA\Property(
- *          property="properties",
- *          type="object",
- *          @OA\JsonContent()
  *      ),
  *      @OA\Property(
  *          property="summaries",
@@ -434,7 +435,23 @@
  *                  "url": "https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi"
  *              }
  *          },
- *          "properties": {
+ *          "summaries": {
+ *              "datetime": {
+ *                  "minimum": "2019-06-11T16:11:41.808000Z",
+ *                  "maximum": "2019-06-11T16:11:41.808000Z"
+ *              },
+ *              "eo:instrument": {
+ *                  "MSI"
+ *              },
+ *              "eo:platform": {
+ *                  "S2A"
+ *              },
+ *              "processingLevel": {
+ *                  "LEVEL1C"
+ *              },
+ *              "productType": {
+ *                  "REFLECTANCE"
+ *              },
  *              "eo:bands": {
  *                  {
  *                      "name": "B1",
@@ -508,24 +525,6 @@
  *                      "center_wavelength": 2.2024,
  *                      "gsd": 20
  *                  }
- *              }
- *          },
- *          "summaries": {
- *              "datetime": {
- *                  "min": "2019-06-11T16:11:41.808000Z",
- *                  "max": "2019-06-11T16:11:41.808000Z"
- *              },
- *              "eo:instrument": {
- *                  "MSI"
- *              },
- *              "eo:platform": {
- *                  "S2A"
- *              },
- *              "processingLevel": {
- *                  "LEVEL1C"
- *              },
- *              "productType": {
- *                  "REFLECTANCE"
  *              }
  *          },
  *          "stac_version": "0.8.0",
@@ -871,6 +870,7 @@ class RestoCollection
             'stac_version' => STAC::STAC_VERSION,
             'stac_extensions' => $this->model->stacExtensions,
             'id' => $this->id,
+            'type' => 'Collection', 
             'title' => $osDescription['LongName'] ?? $osDescription['ShortName'],
             'version' => $this->version ?? null,
             'description' => $osDescription['Description'],
@@ -905,13 +905,19 @@ class RestoCollection
             )
         );
 
-        foreach (array_values(array('keywords', 'providers', 'properties', 'assets')) as $key) {
+        foreach (array_values(array('keywords', 'providers', 'assets')) as $key) {
             if (isset($this->$key)) {
                 $collectionArray[$key] = $key === 'providers' ? $this->$key : (object) $this->$key;
             }
         }
 
-        $collectionArray['summaries'] = $this->getSummaries($options['stats'] ?? false);
+        // Update summaries
+        if ( isset($this->summaries) ) {
+            $collectionArray['summaries'] = array_merge($this->getSummaries($options['stats'] ?? false), $this->summaries);
+        }
+        else {
+            $collectionArray['summaries'] = $this->getSummaries($options['stats'] ?? false);
+        }
         
         return $collectionArray;
 
@@ -970,7 +976,7 @@ class RestoCollection
             'temporal' => array(
                 'interval' => array(
                     array(
-                        $this->datetime['min'], $this->datetime['max']
+                        $this->datetime['minimum'], $this->datetime['maximum']
                     )
                 ),
                 'trs' => 'http://www.opengis.net/def/uom/ISO-8601/0/Gregorian'

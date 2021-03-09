@@ -105,8 +105,8 @@ class CollectionsAPI
      *                      "temporal": {
      *                          "interval": {
      *                              {
-     *                                  "min": "2018-09-13T05:58:08.367000Z",
-     *                                  "max": "2019-06-11T16:11:41.808000Z"
+     *                                  "2018-09-13T05:58:08.367000Z",
+     *                                  "2019-06-11T16:11:41.808000Z"
      *                              }
      *                          },
      *                          "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"
@@ -201,8 +201,8 @@ class CollectionsAPI
      *                          },
      *                          "summaries": {
      *                              "datetime": {
-     *                                  "min": "2019-05-19T13:59:47.695508Z",
-     *                                  "max": "2019-06-06T13:28:04.338517Z"
+     *                                  "minimum": "2019-05-19T13:59:47.695508Z",
+     *                                  "maximum": "2019-06-06T13:28:04.338517Z"
      *                              },
      *                              "eo:instrument": {
      *                                  "OLI_TIRS",

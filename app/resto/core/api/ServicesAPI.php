@@ -182,6 +182,7 @@ class ServicesAPI
         return array(
             'stac_version' => STAC::STAC_VERSION,
             'id' => 'catalogs',
+            'type' => 'Catalog',
             'title' => getenv('API_INFO_TITLE'),
             'description' => getenv('API_INFO_DESCRIPTION'),
             'capabilities' => array_merge(array('resto-core'), array_map('strtolower', array_keys($this->context->addons))),

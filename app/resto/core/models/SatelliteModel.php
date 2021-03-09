@@ -33,13 +33,13 @@ class SatelliteModel extends LandCoverModel
         /*
          * Satellite model follows STAC EO Extension Specification
          */
-        array_push($this->stacExtensions, 'sat', 'view');
+        array_push($this->stacExtensions, 'https://stac-extensions.github.io/sat/v1.0.0/schema.json', 'view');
         
         /*
          * Extend STAC mapping
          * 
          * See - https://github.com/radiantearth/stac-spec/blob/master/item-spec/common-metadata.md
-         * See - https://github.com/radiantearth/stac-spec/tree/master/extensions/sat
+         * See - https://github.com/stac-extensions/sat
          * See - https://github.com/radiantearth/stac-spec/tree/master/extensions/view
          */
         $this->stacMapping = array_merge($this->stacMapping, array(
@@ -49,6 +49,9 @@ class SatelliteModel extends LandCoverModel
 
             // Ground Sample Distance at the sensor.
             'resolution' => 'gsd',
+
+            // The absolute orbit number at the time of acquisition.
+            'absoluteOrbitNumber' => 'sat:absolute_orbit',
             
             // The relative orbit number at the time of acquisition.
             'relativeOrbitNumber' => 'sat:relative_orbit',
