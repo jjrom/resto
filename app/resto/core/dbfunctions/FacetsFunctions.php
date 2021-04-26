@@ -347,45 +347,4 @@ class FacetsFunctions
         return $pivots;
     }
 
-    /**
-     * Return counts for all pivots elements
-     *
-     * @param array $pivots
-     * @param string $collectionId
-     * @return array
-     * 
-     * [TODO] Remove not used
-    private function getCounts($pivots, $collectionId)
-    {
-        $facets = array();
-        foreach ($pivots as $pivotName => $pivotValue) {
-            if (isset($pivotValue) && count($pivotValue) > 0) {
-                for ($j = count($pivotValue); $j--;) {
-                    if (isset($facets[$pivotName][$pivotValue[$j]['value']])) {
-                        $facets[$pivotName][$pivotValue[$j]['value']] += (integer) $pivotValue[$j]['count'];
-                    } else {
-                        $facets[$pivotName][$pivotValue[$j]['value']] = (integer) $pivotValue[$j]['count'];
-                    }
-                }
-            }
-        }
-
-        // Total count
-        $count = 0;
-        if (isset($facets['collection'])) {
-            foreach (array_values($facets['collection']) as $collectionCount) {
-                $count += $collectionCount;
-            }
-
-            if (isset($collectionId)) {
-                unset($facets['collection']);
-            }
-        }
-
-        return array(
-            'count' => $count,
-            'facets' => $facets
-        );
-    }
-    */
 }
