@@ -417,7 +417,7 @@ class Resto
      * If corsWhiteList is empty, then every $httpOrigin is allowed.
      * Otherwise only origin in white list are allowed
      *
-     * @param {String} $httpOrigin
+     * @param string $httpOrigin
      */
     private function corsIsAllowed($httpOrigin)
     {
