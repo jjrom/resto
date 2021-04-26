@@ -181,7 +181,7 @@ class FacetsFunctions
      */
     public function getStatistics($collectionId, $facetFields)
     {
-        return $this->getFacetsPivots($collectionId, $facetFields, null);
+        return $this->pivotsToSTACSummaries($this->getFacetsPivots($collectionId, $facetFields));
     }
 
     /**
@@ -286,14 +286,13 @@ class FacetsFunctions
     }
 
     /**
-     * Return facet pivots (SOLR4 like)
+     * Return facets pivots
      *
      * @param string $collectionId
      * @param array $fields
-     * @param string $parentId : parent hash
      * @return array
      */
-    private function getFacetsPivots($collectionId, $fields, $parentId)
+    private function getFacetsPivots($collectionId, $fields)
     {
         
         $pivots = array();
@@ -311,14 +310,12 @@ class FacetsFunctions
         if (isset($fields)) {
             $where[] = 'type IN(\'' . join('\',\'', $fields) . '\')';
         }
-        if (isset($parentId)) {
-            $where[] = 'normalize(pid)=normalize(\'' . pg_escape_string($parentId) . '\')';
-        }
 
         /*
          * Facets for one collection
          */
         $results = $this->dbDriver->query('SELECT id,collection,value,type,pid,counter,to_iso8601(created) as created,creator FROM resto.facet WHERE ' . (count($where) > 0 ? join(' AND ', $where): '') . ' ORDER BY type ASC, value DESC');        
+        
         while ($result = pg_fetch_assoc($results)) {
             $type = strpos($result['type'], 'landcover:') === 0 ? 'landcover' : $result['type'];
             if (!isset($pivots[$type])) {
@@ -327,7 +324,7 @@ class FacetsFunctions
             $create = true;
             if (!isset($collectionId)) {
                 for ($i = count($pivots[$type]); $i--;) {
-                    if ($pivots[$type][$i]['name'] === $result['value']) {
+                    if ($pivots[$type][$i]['title'] === $result['value']) {
                         $pivots[$type][$i]['count'] += (integer) $result['counter'];
                         $create = false;
                         break;
@@ -335,16 +332,48 @@ class FacetsFunctions
                 }
             }
             if ($create) {
-                $pivots[$type][] = array(
-                    'id' => $result['id'],
-                    'name' => $result['value'],
-                    'parentId' => $result['pid'],
+                $newPivot = array(
+                    'const' => substr($result['id'], strlen($type) + 1),
                     'count' => (integer) $result['counter']
+                );
+                if ($result['pid'] !== 'root') {
+                    $newPivot['parentId'] = $result['pid'];
+                }
+                if ($result['value'] !== $newPivot['const']) {
+                    $newPivot['title'] = $result['value'];
+                }
+                $pivots[$type][] = $newPivot;
+            }
+        }
+
+        return $pivots;
+
+    }
+    
+    /**
+     * Return STAC summaries
+     *
+     * @param array $fields
+     * @return array
+     */
+    private function pivotsToSTACSummaries($pivots)
+    {
+
+        $summaries = array();
+
+        foreach (array_keys($pivots) as $key) {
+            if (count($pivots[$key]) === 1) {
+                $summaries[$key] = array_merge($pivots[$key][0], array('type' => 'string'));
+            }
+            else {
+                $summaries[$key] = array(
+                    'type' => 'string',
+                    'oneOf' => $pivots[$key]
                 );
             }
         }
-        
-        return $pivots;
+
+        return $summaries;
     }
 
 }
