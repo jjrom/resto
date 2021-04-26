@@ -747,7 +747,7 @@ class RestoCollection
     /**
      * Constructor
      *
-     * @param array $id : collection id
+     * @param string $id : collection id
      * @param RestoContext $context : RESTo context
      * @param RestoUser $user : RESTo user
      */
