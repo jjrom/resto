@@ -294,11 +294,10 @@ class OSDD extends RestoXML
                             $this->endElement();
                         }
                     } elseif ($filter['options'] === 'auto') {
-                        $statistics = $this->statistics;
-                        if (isset($filter['osKey']) && isset($statistics['facets'][$filter['osKey']])) {
-                            foreach (array_keys($statistics['facets'][$filter['osKey']]) as $key) {
+                        if (isset($filter['osKey']) && isset($this->statistics[$filter['osKey']])) {
+                            for ($i = count($this->statistics[$filter['osKey']]); $i--;) {
                                 $this->startElement('parameters:Option');
-                                $this->writeAttribute('value', $key);
+                                $this->writeAttribute('value', $this->statistics[$filter['osKey']][$i]['id']);
                                 $this->endElement();
                             }
                         }
