@@ -87,7 +87,7 @@
  *              {
  *                  "stac_version": "0.8.0",
  *                  "stac_extensions": {
- *                      "eo"
+ *                      "https://stac-extensions.github.io/eo/v1.0.0/schema.json"
  *                  },
  *                  "type": "Feature",
  *                  "id": "8030a391-4002-556f-929b-d7ff9dad6705",
@@ -232,7 +232,7 @@
  *              {
  *                  "stac_version": "0.8.0",
  *                  "stac_extensions": {
- *                      "eo"
+ *                      "https://stac-extensions.github.io/eo/v1.0.0/schema.json"
  *                  },
  *                  "type": "Feature",
  *                  "id": "8030a391-4002-556f-929b-d7ff9dad6705",
