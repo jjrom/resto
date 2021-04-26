@@ -907,7 +907,7 @@ class RestoCollection
 
         foreach (array_values(array('keywords', 'providers', 'assets')) as $key) {
             if (isset($this->$key)) {
-                $collectionArray[$key] = $key === 'providers' ? $this->$key : (object) $this->$key;
+                $collectionArray[$key] = $key === 'assets' ? (object) $this->$key : $this->$key;
             }
         }
 
