@@ -234,6 +234,15 @@ class RestoFeatureUtil
             }
         }
 
+        // [STAC][1.0.0-rc.3] Add preview in rel
+        if ( isset($featureArray['assets']) && isset($featureArray['assets']['thumbnail']) ) {
+            $featureArray['links'][] = array(
+                'rel' => 'preview',
+                'type' => $featureArray['assets']['thumbnail']['type'],
+                'href' => $featureArray['assets']['thumbnail']['href']
+            );
+        }
+
         return $featureArray;
 
     }
