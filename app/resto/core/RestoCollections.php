@@ -276,12 +276,12 @@ class RestoCollections
                 'type' => RestoUtil::$contentTypes['json'],
                 'title' => $collection['title'],
                 'description' => $collection['description'],
-                'matched' => $collection['summaries']['collection'][0]['count'] ?? 0,
+                'matched' => $collection['summaries']['collection']['count'] ?? 0,
                 'href' => $this->context->core['baseUrl'] . '/collections/' . $key,
                 'roles' => array('collection')
             );
             $collections['collections'][] = $collection;
-            $totalMatched += $collection['summaries']['collection'][0]['count'] ?? 0;
+            $totalMatched += $collection['summaries']['collection']['count'] ?? 0;
         }
 
         // Update count for all collections
