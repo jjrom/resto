@@ -119,14 +119,10 @@ class ServicesAPI
     public function conformance()
     {
         return array(
-            'conformsTo' => array(
-                'http://www.opengis.net/spec/ogcapi-features-1/1.0/req/core',
-                'http://www.opengis.net/spec/ogcapi-features-1/1.0/req/oas30',
-                'http://www.opengis.net/spec/ogcapi-features-1/1.0/req/geojson'
-            )
+            'conformsTo' => $this->conformsTo()
         );
     }
-    
+
     /**
      * Landing page conforms to OGC API Feature
      * (see https://github.com/opengeospatial/ogcapi-features/blob/master/core/standard/17-069.adoc)
@@ -197,7 +193,7 @@ class ServicesAPI
                     ),
                     array(
                         'rel' => 'service-desc',
-                        'type' => RestoUtil::$contentTypes['json'],
+                        'type' => RestoUtil::$contentTypes['openapi+json'],
                         'title' => 'OpenAPI 3.0 definition endpoint',
                         'href' => $this->context->core['baseUrl'] . '/api'
                     ),
@@ -221,7 +217,8 @@ class ServicesAPI
                     )
                 ),
                 (new STAC($this->context, $this->user))->getRootLinks()
-            )
+            ),
+            'conformsTo' => $this->conformsTo()
         );
             
     }
@@ -454,6 +451,20 @@ class ServicesAPI
             }
         }
         RestoLogUtil::httpError(404);
+    }
+
+    /**
+     * Return the conformance links both for STAC and OGC API
+     */
+    private function conformsTo()
+    {
+        return array(
+            'https://api.stacspec.org/v1.0.0-beta.2/core',
+            'https://api.stacspec.org/v1.0.0-beta.2/item-search',
+            'http://www.opengis.net/spec/ogcapi-features-1/1.0/req/core',
+            'http://www.opengis.net/spec/ogcapi-features-1/1.0/req/oas30',
+            'http://www.opengis.net/spec/ogcapi-features-1/1.0/req/geojson'
+        );
     }
 
 }
