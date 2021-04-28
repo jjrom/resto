@@ -319,7 +319,9 @@ class Resto
              */
             try {
                 $this->storeQuery();
-            } catch (Exception $e) { }
+            } catch (Exception $e) { 
+                error_log('[WARNING] Cannot store query');
+            }
 
             /*
              * Close database handler
