@@ -224,7 +224,7 @@ class CollectionsAPI
      *                          },
      *                          "stac_version": "0.8.0",
      *                          "stac_extensions": {
-     *                              "eo"
+     *                              "https://stac-extensions.github.io/eo/v1.0.0/schema.json"
      *                          }
      *                      }
      *                  }

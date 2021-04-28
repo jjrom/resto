@@ -319,7 +319,9 @@ class Resto
              */
             try {
                 $this->storeQuery();
-            } catch (Exception $e) { }
+            } catch (Exception $e) { 
+                error_log('[WARNING] Cannot store query');
+            }
 
             /*
              * Close database handler
@@ -417,7 +419,7 @@ class Resto
      * If corsWhiteList is empty, then every $httpOrigin is allowed.
      * Otherwise only origin in white list are allowed
      *
-     * @param {String} $httpOrigin
+     * @param string $httpOrigin
      */
     private function corsIsAllowed($httpOrigin)
     {

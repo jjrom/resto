@@ -33,7 +33,7 @@ class OpticalModel extends SatelliteModel
         /*
          * Satellite model follows STAC EO Extension Specification
          */
-        $this->stacExtensions[] = 'eo';
+        $this->stacExtensions[] = 'https://stac-extensions.github.io/eo/v1.0.0/schema.json';
 
         /*
          * Extend STAC mapping

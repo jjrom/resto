@@ -529,7 +529,7 @@
  *          },
  *          "stac_version": "0.8.0",
  *          "stac_extensions": {
- *              "eo"
+ *              "https://stac-extensions.github.io/eo/v1.0.0/schema.json"
  *          }
  *      }
  *  )
@@ -747,7 +747,7 @@ class RestoCollection
     /**
      * Constructor
      *
-     * @param array $id : collection id
+     * @param string $id : collection id
      * @param RestoContext $context : RESTo context
      * @param RestoUser $user : RESTo user
      */
@@ -907,7 +907,7 @@ class RestoCollection
 
         foreach (array_values(array('keywords', 'providers', 'assets')) as $key) {
             if (isset($this->$key)) {
-                $collectionArray[$key] = $key === 'providers' ? $this->$key : (object) $this->$key;
+                $collectionArray[$key] = $key === 'assets' ? (object) $this->$key : $this->$key;
             }
         }
 
