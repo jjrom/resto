@@ -40,6 +40,7 @@ class RestoUtil
         'json' => 'application/json',
         'meta4' => 'application/metalink4+xml',
         'mvt' => 'application/vnd.mapbox-vector-tile',
+        'openapi+json' => 'application/vnd.oai.openapi+json;version=3.0',
         'pbf' => 'application/vnd.mapbox-vector-tile',
         'png' => 'image/png',
         'xml' => 'application/xml',
@@ -228,7 +229,7 @@ class RestoUtil
      *      YYYY-MM-DDTHH:MM:SS.sssss+HHMM
      *      YYYY-MM-DDTHH:MM:SS.sssss-HHMM
      *
-     * @param {String} $dateStr
+     * @param string $dateStr
      *
      */
     public static function isISO8601($dateStr)
@@ -305,7 +306,7 @@ class RestoUtil
     /**
      * Check if string starts like an url i.e. http:// or https:// or //:
      *
-     * @param {String} $str
+     * @param string $str
      */
     public static function isUrl($str)
     {
@@ -322,7 +323,7 @@ class RestoUtil
      * Check that input $uuid has a valid uuid syntax
      * @link http://tools.ietf.org/html/rfc4122
      *
-     * @param uuid $uuid
+     * @param string $uuid
      */
     public static function isValidUUID($uuid) {
         return preg_match('/^\{?[0-9a-f]{8}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{12}\}?$/i', $uuid) === 1;
@@ -332,7 +333,7 @@ class RestoUtil
      * Sanitize input parameter to avoid code injection
      *   - remove html tags
      *
-     * @param {String or Array} $strOrArray
+     * @param string|array $strOrArray
      */
     public static function sanitize($strOrArray)
     {   
