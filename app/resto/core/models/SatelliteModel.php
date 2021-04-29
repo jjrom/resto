@@ -131,7 +131,7 @@ class SatelliteModel extends LandCoverModel
             
             'eo:instrument' => array(
                 'key' => 'normalized_hashtags',
-                'osKey' => 'instrument',
+                'osKey' => 'instruments',
                 'prefix' => 'instrument',
                 'operation' => 'keywords',
                 'title' => 'A string identifying the instrument (e.g. MERIS, AATSR, ASAR, HRVIR. SAR)',

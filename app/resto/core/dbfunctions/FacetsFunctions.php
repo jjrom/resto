@@ -174,14 +174,14 @@ class FacetsFunctions
      *
      * Or an array of array indexed by collection id if $collectionId is null
      *
-     * @param string $collectionId
+     * @param RestoCollection $collection
      * @param array $facetFields
      *
      * @return array
      */
-    public function getStatistics($collectionId, $facetFields)
+    public function getStatistics($collection, $facetFields)
     {
-        return $this->pivotsToSTACSummaries($this->getFacetsPivots($collectionId, $facetFields));
+        return $this->pivotsToSTACSummaries($this->getFacetsPivots($collection, $facetFields));
     }
 
     /**
@@ -288,13 +288,16 @@ class FacetsFunctions
     /**
      * Return facets pivots
      *
-     * @param string $collectionId
+     * @param RestoCollection $collection
      * @param array $fields
      * @return array
      */
-    private function getFacetsPivots($collectionId, $fields)
+    private function getFacetsPivots($collection, $fields)
     {
         
+        $collectionId = isset($collection) ? $collection->id : null;
+        $model = isset($collection) ? $collection->model : new DefaultModel();
+
         $pivots = array();
         
         /*
@@ -304,10 +307,12 @@ class FacetsFunctions
             'counter > 0'
         );
 
-        if ( isset($collectionId) ) {
+        if ( isset($collectionId) )
+        {
             $where[] = 'normalize(collection)=normalize(\'' . pg_escape_string($collectionId) . '\')';
         }
-        if (isset($fields)) {
+        if (isset($fields))
+        {
             $where[] = 'type IN(\'' . join('\',\'', $fields) . '\')';
         }
 
@@ -316,8 +321,19 @@ class FacetsFunctions
          */
         $results = $this->dbDriver->query('SELECT id,collection,value,type,pid,counter,to_iso8601(created) as created,creator FROM resto.facet WHERE ' . (count($where) > 0 ? join(' AND ', $where): '') . ' ORDER BY type ASC, value DESC');        
         
-        while ($result = pg_fetch_assoc($results)) {
-            $type = strpos($result['type'], 'landcover:') === 0 ? 'landcover' : $result['type'];
+        while ($result = pg_fetch_assoc($results))
+        {
+
+            // Landcover special case
+            if (strpos($result['type'], 'landcover:') === 0)
+            {
+                $type = 'landcover';
+            }
+            // [STAC] Change the type name if needed (e.g. "instrument" => "instruments")
+            else {
+                $type = isset($model->stacMapping[$result['type']]) ? $model->stacMapping[$result['type']]['key'] : $result['type'];
+            }
+            
             if (!isset($pivots[$type])) {
                 $pivots[$type] = array();
             }

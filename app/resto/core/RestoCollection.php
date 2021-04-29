@@ -912,12 +912,7 @@ class RestoCollection
         }
 
         // Update summaries
-        if ( isset($this->summaries) ) {
-            $collectionArray['summaries'] = array_merge($this->getSummaries($options['stats'] ?? false), $this->summaries);
-        }
-        else {
-            $collectionArray['summaries'] = $this->getSummaries($options['stats'] ?? false);
-        }
+        $collectionArray['summaries'] = isset($this->summaries) ? array_merge($this->getSummaries($options['stats'] ?? false), $this->summaries) : $this->getSummaries($options['stats'] ?? false);
         
         return $collectionArray;
 
@@ -940,7 +935,7 @@ class RestoCollection
      */
     public function getOSDD()
     {
-        return new OSDD($this->context, $this->model, (new FacetsFunctions($this->context->dbDriver))->getStatistics($this->id, $this->model->getAutoFacetFields()), $this);
+        return new OSDD($this->context, $this->model, (new FacetsFunctions($this->context->dbDriver))->getStatistics($this, $this->model->getAutoFacetFields()), $this);
     }
 
     /**
@@ -954,7 +949,7 @@ class RestoCollection
             $cacheKey = 'getStatistics:' . $this->id;
             $this->statistics = $this->context->fromCache($cacheKey);
             if (!isset($this->statistics)) {
-                $this->statistics = (new FacetsFunctions($this->context->dbDriver))->getStatistics($this->id, $facetFields);
+                $this->statistics = (new FacetsFunctions($this->context->dbDriver))->getStatistics($this, $facetFields);
                 $this->context->toCache($cacheKey, $this->statistics);
             }
         }
@@ -1088,10 +1083,7 @@ class RestoCollection
      */
     private function getSummaries($all = false)
     {
-        $summaries = array(
-            'datetime' => $this->datetime
-        );
-        
+
         /*
          * Compute statistics from facets
          */
@@ -1115,12 +1107,10 @@ class RestoCollection
                 )
             ));
         }
-
-        foreach ($this->statistics as $key => $value) {
-            isset($this->model->stacMapping[$key]) ? $summaries[$this->model->stacMapping[$key]['key']] = $value : $summaries[$key] = $value;
-        }
         
-        return $summaries;
+        return array_merge(array(
+            'datetime' => $this->datetime
+        ), $this->statistics);
     }
     
 }

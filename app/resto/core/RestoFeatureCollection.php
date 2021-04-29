@@ -663,7 +663,7 @@ class RestoFeatureCollection
      */
     private function loadFeatures($params, $sorting)
     {
-
+        
         /*
          * Get features array from database
          */
