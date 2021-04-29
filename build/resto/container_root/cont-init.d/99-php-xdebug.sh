@@ -1,4 +1,5 @@
 #!/usr/bin/with-contenv bash
+echo '[PHP_VERSION] ' ${PHP_VERSION}
 
 if [[ ($RESTO_DEBUG = 1 || $RESTO_DEBUG = '1' || $RESTO_DEBUG = 'true') && ($PHP_ENABLE_XDEBUG = 1 || $PHP_ENABLE_XDEBUG = '1' || $PHP_ENABLE_XDEBUG = 'true') ]]
 then
