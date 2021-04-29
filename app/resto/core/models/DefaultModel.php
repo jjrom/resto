@@ -37,6 +37,26 @@ class DefaultModel extends RestoModel
          */
         $this->searchFilters = array_merge($this->searchFilters, array(
 
+            // 
+            'resto:day' => array(
+                'key' => 'normalized_hashtags',
+                'osKey' => 'day',
+                'prefix' => 'day',
+                'operation' => 'keywords',
+                'title' => 'Day of month in two digit (i.e. between 1 and 31)',
+                'pattern' => '^[0-3][0-9]$',
+                'options' => 'auto'
+            ),
+
+            'eo:productType' => array(
+                'key' => 'normalized_hashtags',
+                'osKey' => 'productType',
+                'prefix' => 'productType',
+                'operation' => 'keywords',
+                'title' => 'A string identifying the entry type (e.g. ER02_SAR_IM__0P, MER_RR__1P, SM_SLC__1S, GES_DISC_AIRH3STD_V005)',
+                'options' => 'auto'
+            ),
+
             // [STAC/WFS3] datetime is a mix of time:start/time:end
             'resto:datetime' => array(
                 'key' => 'startDate',
