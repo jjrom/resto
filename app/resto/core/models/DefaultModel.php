@@ -37,8 +37,30 @@ class DefaultModel extends RestoModel
          */
         $this->searchFilters = array_merge($this->searchFilters, array(
 
-            // 
-            'resto:day' => array(
+            // Year
+            'time:year' => array(
+                'key' => 'normalized_hashtags',
+                'osKey' => 'year',
+                'prefix' => 'year',
+                'operation' => 'keywords',
+                'title' => 'Year in YYYY format',
+                'pattern' => '^[0-9]{4}$',
+                'options' => 'auto'
+            ),
+
+            // Month of year
+            'time:month' => array(
+                'key' => 'normalized_hashtags',
+                'osKey' => 'month',
+                'prefix' => 'month',
+                'operation' => 'keywords',
+                'title' => 'Month of the year in two digit (i.e. between 01 and 12)',
+                'pattern' => '^[0-1][0-2]$',
+                'options' => 'auto'
+            ),
+
+            // Day of month
+            'time:day' => array(
                 'key' => 'normalized_hashtags',
                 'osKey' => 'day',
                 'prefix' => 'day',
@@ -48,12 +70,23 @@ class DefaultModel extends RestoModel
                 'options' => 'auto'
             ),
 
-            'eo:productType' => array(
+            // Season (iTag needed)
+            'resto:season' => array(
                 'key' => 'normalized_hashtags',
-                'osKey' => 'productType',
-                'prefix' => 'productType',
+                'osKey' => 'season',
+                'prefix' => 'season',
                 'operation' => 'keywords',
-                'title' => 'A string identifying the entry type (e.g. ER02_SAR_IM__0P, MER_RR__1P, SM_SLC__1S, GES_DISC_AIRH3STD_V005)',
+                'title' => 'Season name',
+                'options' => 'auto'
+            ),
+
+            // Location (iTag needed)
+            'resto:location' => array(
+                'key' => 'normalized_hashtags',
+                'osKey' => 'location',
+                'prefix' => 'location',
+                'operation' => 'keywords',
+                'title' => 'Location',
                 'options' => 'auto'
             ),
 
