@@ -590,6 +590,27 @@ abstract class RestoModel
     }
 
     /**
+     * Apply type converstion to value
+     * 
+     * @param integer|float|string|object $value
+     * @param string $type
+     * @return array|integer|float|string|object
+     */
+    public function convertTo($value, $type)
+    {
+
+        switch ($type) {
+            case 'array':
+                return array(
+                    $value
+                );
+            default:
+                return $value;
+        }
+
+    }
+
+    /**
      * Convert input data to resto model
      *
      * @param array $body : any input data
@@ -802,27 +823,6 @@ abstract class RestoModel
             RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be lower than ' . ($this->searchFilters[$filterKey]['maxInclusive'] + 1));
         }
         return true;
-    }
-
-    /**
-     * Apply type converstion to value
-     * 
-     * @param integer|float|string|object $value
-     * @param string $type
-     * @return array|integer|float|string|object
-     */
-    private function convertTo($value, $type)
-    {
-        
-        switch ($type) {
-            case 'array':
-                return array(
-                    $value
-                );
-            default:
-                return $value;
-        }
-
     }
 
 }
