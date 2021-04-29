@@ -45,34 +45,55 @@ class SatelliteModel extends LandCoverModel
         $this->stacMapping = array_merge($this->stacMapping, array(
 
             // Name of instrument or sensor used (e.g., MODIS, ASTER, OLI, Canon F-1).
-            'instrument' => 'instruments',
+            'instrument' => array(
+                'key' => 'instruments',
+                'convertTo' => 'array'
+            ),
 
             // Ground Sample Distance at the sensor.
-            'resolution' => 'gsd',
+            'resolution' => array(
+                'key' => 'gsd'
+            ),
 
             // The absolute orbit number at the time of acquisition.
-            'absoluteOrbitNumber' => 'sat:absolute_orbit',
+            'absoluteOrbitNumber' => array(
+                'key' => 'sat:absolute_orbit'
+            ),
             
             // The relative orbit number at the time of acquisition.
-            'relativeOrbitNumber' => 'sat:relative_orbit',
+            'relativeOrbitNumber' => array(
+                'key' => 'sat:relative_orbit'
+            ),
 
             // The state of the orbit. Either ascending or descending for polar orbiting satellites, or geostationary for geosynchronous satellites
-            'orbitDirection' => 'sat:orbit_state',
+            'orbitDirection' => array(
+                'key' => 'sat:orbit_state'
+            ),
             
             // The angle from the sensor between nadir (straight down) and the scene center. Measured in degrees (0-90).
-            'offNadir' => 'view:off_nadir',
+            'offNadir' => array(
+                'key' => 'view:off_nadir'
+            ),
             
             // The incidence angle is the angle between the vertical (normal) to the intercepting surface and the line of sight back to the satellite at the scene center. Measured in degrees (0-90).
-            'incidenceAngle' => 'view:incidence_angle',
+            'incidenceAngle' => array(
+                'key' => 'view:incidence_angle'
+            ),
             
             // Viewing azimuth angle. The angle measured from the sub-satellite point (point on the ground below the platform) between the scene center and true north. Measured clockwise from north in degrees (0-360).
-            'viewAzimuth' => 'view:azimuth',
+            'viewAzimuth' => array(
+                'key' => 'view:azimuth'
+            ),
             
             //Sun azimuth angle. From the scene center point on the ground, this is the angle between truth north and the sun. Measured clockwise in degrees (0-360).
-            'sunAzimuth' => 'view:sun_azimuth',
+            'sunAzimuth' => array(
+                'key' => 'view:sun_azimuth'
+            ),
             
             //Sun elevation angle. The angle from the tangent of the scene center point to the sun. Measured from the horizon in degrees (0-90).
-            'sunElevation' => 'view:sun_elevation'
+            'sunElevation' => array(
+                'key' => 'view:sun_elevation'
+            )
         
         ));
 

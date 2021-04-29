@@ -1117,7 +1117,7 @@ class RestoCollection
         }
 
         foreach ($this->statistics as $key => $value) {
-            $summaries[$this->model->stacMapping[$key] ?? $key] = $value;
+            isset($this->model->stacMapping[$key]) ? $summaries[$this->model->stacMapping[$key]['key']] = $value : $summaries[$key] = $value;
         }
         
         return $summaries;

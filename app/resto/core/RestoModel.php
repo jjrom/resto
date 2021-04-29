@@ -36,7 +36,9 @@ abstract class RestoModel
      */
     public $stacMapping = array(
         // STAC 1.0.0
-        'created' => 'published'
+        'created' => array(
+            'key' => 'published'
+        )
     );
 
     /*
@@ -573,12 +575,38 @@ abstract class RestoModel
             }
             
             // [STAC] Eventually follows STAC mapping for properties names 
-            $properties[$this->stacMapping[$key] ?? $key] = $featureArray['properties'][$key];
+            if (isset($this->stacMapping[$key])) {
+                $properties[$this->stacMapping[$key]['key']] = $this->convertTo($featureArray['properties'][$key], $this->stacMapping[$key]['convertTo'] ?? null);
+            }
+            else {
+                $properties[$key] = $featureArray['properties'][$key];
+            }
         }
 
         return array_merge($featureArray, array(
             'properties' => $properties
         ));
+
+    }
+
+    /**
+     * Apply type converstion to value
+     * 
+     * @param integer|float|string|object $value
+     * @param string $type
+     * @return array|integer|float|string|object
+     */
+    public function convertTo($value, $type)
+    {
+
+        switch ($type) {
+            case 'array':
+                return array(
+                    $value
+                );
+            default:
+                return $value;
+        }
 
     }
 
