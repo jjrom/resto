@@ -208,8 +208,8 @@ abstract class RestoModel
         
         'resto:collection' => array(
             'key' => 'collection',
-            // [TODO] Remove ? I don't remember the usage !!
-            //'facetKey' => 'collection',
+            // This is used to have "collections" converted to "collection" in summaries without having a prefix
+            'facetKey' => 'collection',
             'osKey' => 'collections',
             'title' => 'Comma separated list of collections name',
             'pattern' => '^[a-zA-Z0-9\-_]+$',
@@ -470,7 +470,6 @@ abstract class RestoModel
         foreach (array_values($this->searchFilters) as $filter) {
             if (isset($filter['options']) && $filter['options'] === 'auto') {
                 // [IMPORTANT] prefix has preseance over osKey
-                // [TODO] Remove facetKey ? I don't remember the usage !!
                 $facetFields[] = $filter['prefix'] ?? $filter['facetKey'] ?? $filter['osKey'];
             }
         }
