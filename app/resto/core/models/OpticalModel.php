@@ -43,7 +43,9 @@ class OpticalModel extends SatelliteModel
         $this->stacMapping = array_merge($this->stacMapping, array(
 
             // Estimate of cloud cover as a percentage (0-100) of the entire scene. If not available the field should not be provided.
-            'cloudCover' => 'eo:cloud_cover'
+            'cloudCover' => array(
+                'key' => 'eo:cloud_cover'
+            )
             
         ));
 
