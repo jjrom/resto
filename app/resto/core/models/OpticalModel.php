@@ -32,8 +32,10 @@ class OpticalModel extends SatelliteModel
 
         /*
          * Satellite model follows STAC EO Extension Specification
+         * 
+         * [STAC][1.0.0-rc.4] STAC extensions require at least one field to validate. Since resto cannot check this constraint all references to extensions are removed from the output
          */
-        $this->stacExtensions[] = 'https://stac-extensions.github.io/eo/v1.0.0/schema.json';
+        //$this->stacExtensions[] = 'https://stac-extensions.github.io/eo/v1.0.0/schema.json';
 
         /*
          * Extend STAC mapping

@@ -32,8 +32,10 @@ class SatelliteModel extends LandCoverModel
         
         /*
          * Satellite model follows STAC EO Extension Specification
+         *
+         * [STAC][1.0.0-rc.4] STAC extensions require at least one field to validate. Since resto cannot check this constraint all references to extensions are removed from the output
          */
-        array_push($this->stacExtensions, 'https://stac-extensions.github.io/sat/v1.0.0/schema.json', 'https://stac-extensions.github.io/view/v1.0.0/schema.json');
+        //array_push($this->stacExtensions, 'https://stac-extensions.github.io/sat/v1.0.0/schema.json', 'https://stac-extensions.github.io/view/v1.0.0/schema.json');
         
         /*
          * Extend STAC mapping
