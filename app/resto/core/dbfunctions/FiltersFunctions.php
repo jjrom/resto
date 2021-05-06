@@ -504,7 +504,7 @@ class FiltersFunctions
             if ($useDistance) {
                 $wkt = 'POINT(' . $requestParams['geo:lon'] . ' ' . $requestParams['geo:lat'] . ')';
                 return array(
-                    'value' => 'ST_dwithin(' . $tableName . '.' . $model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'' . pg_escape_string($wkt) . '\', 4326), '. $radius . ')',
+                    'value' => ($exclusion ? 'NOT ' : '') . 'ST_dwithin(' . $tableName . '.' . $model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'' . pg_escape_string($wkt) . '\', 4326), '. $radius . ')',
                     'wkt' => $wkt,
                     'isGeo' => true
                 );
