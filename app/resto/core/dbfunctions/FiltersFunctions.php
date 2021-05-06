@@ -487,10 +487,10 @@ class FiltersFunctions
     {
 
         /*
-         * WARNING ! Quick benchmark show that st_distance is 100x slower than st_intersects
-         * [TODO] - check if st_distance performance can be improved.
+         * ST_Distance does not use spatial index, but ST_DWithin yes :)
+         * (see http://blog.cleverelephant.ca/2021/05/indexes-and-queries.html)
          */
-        $useDistance = false;
+        $useDistance = true;
 
         /*
          * geo:lon and geo:lat have preseance to geo:name
@@ -504,7 +504,7 @@ class FiltersFunctions
             if ($useDistance) {
                 $wkt = 'POINT(' . $requestParams['geo:lon'] . ' ' . $requestParams['geo:lat'] . ')';
                 return array(
-                    'value' => 'ST_distance(' . $tableName . '.' . $model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'' . pg_escape_string($wkt) . '\', 4326)) < ' . $radius,
+                    'value' => 'ST_dwithin(' . $tableName . '.' . $model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'' . pg_escape_string($wkt) . '\', 4326), '. $radius . ')',
                     'wkt' => $wkt,
                     'isGeo' => true
                 );
