@@ -324,10 +324,13 @@ class FacetsFunctions
         while ($result = pg_fetch_assoc($results))
         {
 
+            $typeLen = strlen($result['type']);
+
             // Landcover special case
             if (strpos($result['type'], 'landcover:') === 0)
             {
                 $type = 'landcover';
+                $typeLen = strlen($type);
             }
             // [STAC] Change the type name if needed (e.g. "instrument" => "instruments")
             else {
@@ -349,7 +352,7 @@ class FacetsFunctions
             }
             if ($create) {
                 $newPivot = array(
-                    'const' => substr($result['id'], strlen($type) + 1),
+                    'const' => substr($result['id'], $typeLen + 1),
                     'count' => (integer) $result['counter']
                 );
                 if ($result['pid'] !== 'root') {
