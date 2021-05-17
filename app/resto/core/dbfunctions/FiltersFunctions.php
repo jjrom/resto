@@ -562,12 +562,7 @@ class FiltersFunctions
              * See for instance [eo:instrument]
              */
             if (isset($model->searchFilters[$filterName]['prefix'])) {
-                $values = explode('|', $searchTerm);
-                $searchTerms = array();
-                for ($j = count($values); $j--;) {
-                    $searchTerms[] = $model->searchFilters[$filterName]['prefix'] . Resto::TAG_SEPARATOR . $values[$j];
-                }
-                $searchTerm = join('|',$searchTerms);
+                $searchTerm = $this->addPrefix($searchTerm, $model->searchFilters[$filterName]['prefix']);
             }
             
             $terms = array_merge($this->processSearchTerms($searchTerm, $filters, $model, $filterName, $exclusion));
@@ -585,6 +580,7 @@ class FiltersFunctions
      * 
      *    toto
      *    toto|titi|tutu => means 'toto' OR 'titi' OR 'tutu'
+     *    toto,titi,tutu => means 'toto' AND 'titi' AND 'tutu'
      *    toto! => means 'toto' and all broader concept of 'toto' (needs resto-addon-sosa add-on)
      *    toto* => means 'toto' and all narrower concept of 'toto' (needs resto-addon-sosa add-on)
      *    toto~ => means 'toto' and all related concept of 'toto' (needs resto-addon-sosa add-on)
@@ -604,13 +600,24 @@ class FiltersFunctions
          * The '|' character is understood as "OR"
          * For performance reason it is better to use && operator instead of multiple @> with OR
          */
-        $values = explode('|', $searchTerm);
-        if (count($values) > 1) {
-            $quotedValues = array();
-            for ($j = count($values); $j--;) {
-                $quotedValues[] = '\'' . pg_escape_string($values[$j]) . '\'';
+        $operator = null;
+        $exploded = explode('|', $searchTerm);
+        if (count($exploded) > 1) {
+            $operator = '&&';
+        }
+        else {
+            $exploded = explode(',', $searchTerm);
+            if (count($exploded) > 1) {
+                $operator = '@>';
             }
-            return array(($exclusion ? 'NOT (' : '(') . $model->schema['name'] . '.feature.' . $model->searchFilters[$filterName]['key'] . ' && normalize_array(ARRAY[' . join(',', $quotedValues) . ']))');
+        }
+
+        if ( isset($operator) ) {
+            $quotedValues = array();
+            for ($j = count($exploded); $j--;) {
+                $quotedValues[] = '\'' . pg_escape_string(trim($exploded[$j])) . '\'';
+            }
+            return array(($exclusion ? 'NOT (' : '(') . $model->schema['name'] . '.feature.' . $model->searchFilters[$filterName]['key'] . $operator . 'normalize_array(ARRAY[' . join(',', $quotedValues) . ']))');
         }
         
         $filters[$exclusion ? 'without' : 'with'][] = "'" . pg_escape_string($searchTerm) . "'";
@@ -687,6 +694,36 @@ class FiltersFunctions
 
         return $tableName;
             
+    }
+
+    /**
+     * Add prefix to each elements of input searchTerm
+     * 
+     * @param string $searchTerm
+     * @param string $prefix
+     * @return string
+     */
+    private function addPrefix($searchTerm, $prefix) {
+
+        $searchTerms = array();
+
+        // OR case
+        $splitter = '|';
+        $exploded = explode($splitter, $searchTerm);
+        if (count($exploded) < 2) {
+            
+            // AND case
+            $splitter = ',';
+            $exploded = explode($splitter, $searchTerm);
+
+        }
+
+        for ($j = count($exploded); $j--;) {
+            $searchTerms[] = $prefix . Resto::TAG_SEPARATOR . $exploded[$j];
+        }
+        
+        return join($splitter, $searchTerms);
+
     }
 
 }
