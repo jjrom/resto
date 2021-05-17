@@ -298,6 +298,18 @@ class FacetsFunctions
         $collectionId = isset($collection) ? $collection->id : null;
         $model = isset($collection) ? $collection->model : new DefaultModel();
 
+        /*
+         * [Hack] Facet with one of these type are unprefixed
+         */
+        $unprefixed = array(
+            'hashtag',
+            // The following types are from resto-addon-sosa
+            'observedProperty',
+            'foi',
+            'sample',
+            'sensor'
+        );
+
         $pivots = array();
         
         /*
@@ -352,7 +364,7 @@ class FacetsFunctions
             }
             if ($create) {
                 $newPivot = array(
-                    'const' => substr($result['id'], $typeLen + 1),
+                    'const' => in_array($type, $unprefixed) ? $result['id'] : substr($result['id'], $typeLen + 1),
                     'count' => (integer) $result['counter']
                 );
                 if ($result['pid'] !== 'root') {

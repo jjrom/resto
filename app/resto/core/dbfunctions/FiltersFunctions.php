@@ -618,33 +618,6 @@ class FiltersFunctions
         return array();
     }
 
-    /**
-     * Prepare terms for landcover search
-     * 
-     * Search within landcover table for value greater or lower than 25%
-     *
-     * @param string $value
-     * @param string $tableName
-     * @param boolean $exclusion
-     * @return string
-     *
-    private function getLandCoverFilters($value, $tableName, $exclusion)
-    {
-        if (!isset($tableName)) {
-            return RestoLogUtil::httpError(400, 'Search on landcover not supported');
-        }
-
-        if (!in_array($value, array('cultivated', 'desert', 'flooded', 'forest','herbaceous','ice','urban','water'))) {
-            return RestoLogUtil::httpError(400, 'Invalid landcover - should be numeric value ');
-        }
-        
-        // Add to joins table
-        $this->addToJoins($tableName, 'id');
-        
-        return 'resto.' . $tableName . '.' . $value . ($exclusion ? ' < ' : ' > ') . '25)';
-
-    }
-    */
     
     /**
      * Merge filters on hashes

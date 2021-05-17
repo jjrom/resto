@@ -812,7 +812,7 @@ class FeaturesFunctions
             }
         }
         if (count($missing) > 0) {
-            RestoLogUtil::httpError(400, 'Missing mandatory filter(s) ' . join(', ', $filterName));
+            RestoLogUtil::httpError(400, 'Missing mandatory filter(s) ' . join(', ', $missing));
         }
 
         return true;
@@ -952,7 +952,7 @@ class FeaturesFunctions
      * Get a string of iterator for insertion
      *
      * @param integer $size
-     * @return string
+     * @return array
      */
     private function getCounterList($size)
     {
