@@ -55,7 +55,7 @@ class DefaultModel extends RestoModel
                 'prefix' => 'month',
                 'operation' => 'keywords',
                 'title' => 'Month of the year in two digit (i.e. between 01 and 12)',
-                'pattern' => '^[0-1][0-2]$',
+                'pattern' => '^[0-1][0-9]$',
                 'options' => 'auto'
             ),
 
