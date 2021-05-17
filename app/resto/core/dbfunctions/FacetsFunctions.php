@@ -65,7 +65,7 @@ class FacetsFunctions
      */
     public function getFacet($facetId)
     {
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id, collection, value, type, pid, to_iso8601(created) as created, creator  FROM resto.facet WHERE normalize(id)=($1) LIMIT 1', array(
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id, collection, value, type, pid, to_iso8601(created) as created, creator  FROM resto.facet WHERE normalize(id)=normalize($1) LIMIT 1', array(
             $facetId
         )));
         if (isset($results[0])) {
