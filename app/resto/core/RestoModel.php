@@ -28,16 +28,33 @@ abstract class RestoModel
 
     /*
      * STAC extensions - override in child models
+     * 
+     * [STAC 1.0.0] Desactivated due to https://github.com/stac-extensions/stac-extensions.github.io/issues/20
+     * [TODO] How to deal with this constraint ?
      */
-    public $stacExtensions = array();
+    public $stacExtensions = array(
+        //'https://stac-extensions.github.io/processing/v1.0.0/schema.json',
+    );
 
     /*
      * STAC mapping is used to convert internal resto property names to STAC properties names
      */
     public $stacMapping = array(
-        // STAC 1.0.0
-        'created' => array(
-            'key' => 'published'
+
+        /*
+         * Common metadata
+         * [TODO][WARNING] The "published" metadata is part of https://github.com/stac-extensions/timestamps so we should not replace it with "created"
+         */
+        'published' => array(
+            'key' => 'created'
+        ),
+
+        /*
+         * Processing Extension Specification
+         * (https://stac-extensions.github.io/processing/v1.0.0/schema.json)
+         */
+        'processingLevel' => array(
+            'key' => 'processing:level'
         )
     );
 
