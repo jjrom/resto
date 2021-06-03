@@ -29,7 +29,7 @@
  *      required={"type", "id", "geometry", "properties", "collection", "links", "assets"},
  *      @OA\Property(
  *          property="type",
- *          type="enum",
+ *          type="string",
  *          enum={"Feature"},
  *          description="Always set to *feature*"
  *      ),
@@ -45,7 +45,7 @@
  *          description="Geometry definition",
  *          @OA\Property(
  *              property="type",
- *              type="enum",
+ *              type="string",
  *              enum={"Point", "MultiPoint", "LineString", "MultiLineString", "Polygon", "MultiPolygon", "GeometryCollection"},
  *              description="Geometry type following GeoJSON specification"
  *          ),
@@ -53,7 +53,7 @@
  *              property="coordinates",
  *              type="array",
  *              @OA\Items(
- *                  type="float",
+ *                  type="number",
  *              ),
  *              description="Geometry vertices following GeoJSON specification"
  *          )
@@ -129,7 +129,7 @@
  *                  type="array",
  *                  description="Coordinates expressed in [longitude, latitude]",
  *                  @OA\Items(
- *                      type="float"
+ *                      type="number"
  *                  )
  *              ),
  *              description="Centroid of the feature"
@@ -262,7 +262,7 @@
  *      required={"type", "geometry", "properties"},
  *      @OA\Property(
  *          property="type",
- *          type="enum",
+ *          type="string",
  *          enum={"Feature"},
  *          description="Always set to *feature*"
  *      ),
@@ -278,7 +278,7 @@
  *          description="Geometry definition",
  *          @OA\Property(
  *              property="type",
- *              type="enum",
+ *              type="string",
  *              enum={"Point", "MultiPoint", "LineString", "MultiLineString", "Polygon", "MultiPolygon", "GeometryCollection"},
  *              description="Geometry type following GeoJSON specification"
  *          ),
@@ -286,7 +286,7 @@
  *              property="coordinates",
  *              type="array",
  *              @OA\Items(
- *                  type="float",
+ *                  type="number",
  *              ),
  *              description="Geometry vertices following GeoJSON specification"
  *          )

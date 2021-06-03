@@ -279,7 +279,7 @@ class STAC extends RestoAddOn
      *          description="Longitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lat - OpenSearch {geo:lon}",
      *          required=false,
      *          @OA\Schema(
-     *              type="float"
+     *              type="number"
      *          )
      *      ),
      *      @OA\Parameter(
@@ -288,7 +288,7 @@ class STAC extends RestoAddOn
      *          description="Latitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lon - OpenSearch {geo:lat}",
      *          required=false,
      *          @OA\Schema(
-     *              type="float"
+     *              type="number"
      *          )
      *      ),
      *      @OA\Parameter(
@@ -297,7 +297,7 @@ class STAC extends RestoAddOn
      *          description="Radius expressed in meters - should be used with geo:lon and geo:lat - OpenSearch {geo:radius}",
      *          required=false,
      *          @OA\Schema(
-     *              type="float"
+     *              type="number"
      *          )
      *      ),
      *      @OA\Parameter(

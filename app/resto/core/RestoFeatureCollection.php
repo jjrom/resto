@@ -24,7 +24,7 @@
  *      required={"type", "links", "features", "context"},
  *      @OA\Property(
  *          property="type",
- *          type="enum",
+ *          type="string",
  *          enum={"FeatureCollection"},
  *          description="Always set to *FeatureCollection*"
  *      ),
@@ -216,7 +216,7 @@
  *      required={"type", "features"},
  *      @OA\Property(
  *          property="type",
- *          type="enum",
+ *          type="string",
  *          enum={"FeatureCollection"},
  *          description="Always set to *FeatureCollection*"
  *      ),

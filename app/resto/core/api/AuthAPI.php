@@ -198,7 +198,10 @@ class AuthAPI
      *          name="token",
      *          in="path",
      *          description="Security token",
-     *          required=true
+     *          required=true,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Response(
      *          response="200",
@@ -258,7 +261,10 @@ class AuthAPI
      *          name="token",
      *          in="path",
      *          description="Activation token",
-     *          required=true
+     *          required=true,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
      *      ),
      *      @OA\Response(
      *          response="200",
