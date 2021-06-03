@@ -28,16 +28,33 @@ abstract class RestoModel
 
     /*
      * STAC extensions - override in child models
+     * 
+     * [STAC 1.0.0] Desactivated due to https://github.com/stac-extensions/stac-extensions.github.io/issues/20
+     * [TODO] How to deal with this constraint ?
      */
-    public $stacExtensions = array();
+    public $stacExtensions = array(
+        //'https://stac-extensions.github.io/processing/v1.0.0/schema.json',
+    );
 
     /*
      * STAC mapping is used to convert internal resto property names to STAC properties names
      */
     public $stacMapping = array(
-        // STAC 1.0.0
-        'created' => array(
-            'key' => 'published'
+
+        /*
+         * Common metadata
+         * [TODO][WARNING] The "published" metadata is part of https://github.com/stac-extensions/timestamps so we should not replace it with "created"
+         */
+        'published' => array(
+            'key' => 'created'
+        ),
+
+        /*
+         * Processing Extension Specification
+         * (https://stac-extensions.github.io/processing/v1.0.0/schema.json)
+         */
+        'processingLevel' => array(
+            'key' => 'processing:level'
         )
     );
 
@@ -478,16 +495,19 @@ abstract class RestoModel
 
     /**
      * Get resto filters from input query parameters
+     * 
      *  - change parameter keys to model parameter key
-     *  - remove unset parameters
      *  - remove all HTML tags from input to avoid XSS injection
      *  - check that filter value is valid regarding the model definition
+     * 
+     * [IMPORTANT]CHANGE] Each unknown filter key that does not start with '_' is converted to to hashtag with the following convention : "#<filterName>:value"
      *
      * @param array $query
      */
     public function getFiltersFromQuery($query)
     {
         $params = array();
+        $unknown = array();
         foreach ($query as $key => $value) {
             $filterKey = $this->getFilterName($key);
             if (isset($filterKey)) {
@@ -495,8 +515,16 @@ abstract class RestoModel
                 $params[$filterKey] = preg_replace('/<.*?>/', '', $filterKey === 'geo:geometry' ? RestoGeometryUtil::forceWKT($value) : $value);
                 $this->validateFilter($filterKey, $params[$filterKey]);
             }
+            else if ( $key !== 'collectionId' && substr($key, 0, 1) !== '_') {
+                $unknown[] = preg_replace('/<.*?>/', '', '#' . $key . Resto::TAG_SEPARATOR . ltrim($value, '#'));
+            }
         }
 
+        // Convert unknown input to hashtags
+        if ( count($unknown) > 0 ) {
+            $params['searchTerms'] = isset($params['searchTerms']) ? $params['searchTerms'] . ' ' . join(' ', $unknown) : join(' ', $unknown);
+        }
+        
         // [STAC] If "ids" filter is set, then discard every other filters except next and limit
         return isset($params['geo:uid']) ? array(
             'geo:uid' => $params['geo:uid'],

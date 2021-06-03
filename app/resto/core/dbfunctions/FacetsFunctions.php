@@ -352,19 +352,22 @@ class FacetsFunctions
             if (!isset($pivots[$type])) {
                 $pivots[$type] = array();
             }
+
             $create = true;
-            if (!isset($collectionId)) {
-                for ($i = count($pivots[$type]); $i--;) {
-                    if ($pivots[$type][$i]['title'] === $result['value']) {
+            $const = in_array($type, $unprefixed) ? $result['id'] : substr($result['id'], $typeLen + 1);
+            for ($i = count($pivots[$type]); $i--;) {
+                if ( isset($pivots[$type][$i]['const']) ) {
+                    if ($pivots[$type][$i]['const'] === $const) {
                         $pivots[$type][$i]['count'] += (integer) $result['counter'];
                         $create = false;
                         break;
                     }
                 }
             }
+            
             if ($create) {
                 $newPivot = array(
-                    'const' => in_array($type, $unprefixed) ? $result['id'] : substr($result['id'], $typeLen + 1),
+                    'const' => $const,
                     'count' => (integer) $result['counter']
                 );
                 if ($result['pid'] !== 'root') {
