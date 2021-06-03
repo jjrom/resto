@@ -2,6 +2,7 @@
 app/resto/addons
 tmp
 pgdata
+pgdata.old
 docker-compose.local.yml
 docker-compose-nodb.local.yml
 config-local.env

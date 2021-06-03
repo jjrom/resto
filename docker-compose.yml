@@ -12,7 +12,7 @@ networks:
       name: rnet 
 services:
   resto:
-    image: jjrom/resto:6.0.0-rc2
+    image: jjrom/resto:6.0.0
     restart: always
     build:
       context: ./
