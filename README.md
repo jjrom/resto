@@ -1,5 +1,5 @@
 # About
-[![Build]](https://github.com/jjrom/resto/actions/workflows/build-image.yml/badge.svg)
+[![Build](https://github.com/jjrom/resto/actions/workflows/build-image.yml/badge.svg)](https://github.com/jjrom/resto/actions/workflows/build-image.yml/badge.svg "Build")
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/jjrom/resto.svg)](http://isitmaintained.com/project/jjrom/resto "Average time to resolve an issue")
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/jjrom/resto.svg)](http://isitmaintained.com/project/jjrom/resto "Percentage of issues still open")
 
