@@ -514,13 +514,6 @@ class RestoUser
                 RestoLogUtil::httpError(404, 'Collection does not exist');
             }
         }
-        /*
-        if (isset($featureId)) {
-            if (! (new FeaturesFunctions($this->context->dbDriver))->featureExists($featureId)) {
-                RestoLogUtil::httpError(404, 'Feature does not exist');
-            }
-        }
-        */
         
         return array(
             'rights' => $rights,

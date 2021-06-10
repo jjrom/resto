@@ -622,8 +622,8 @@ class STAC extends RestoAddOn
         if ( !isset($model) ) {
             $schemaNames = array();
             foreach (array_keys($restoCollections->collections) as $collectionId) {
-                if ( !in_array($restoCollections->collections[$collectionId]->model->schema['name'], $schemaNames) ) {
-                    $schemaNames[] = $restoCollections->collections[$collectionId]->model->schema['name'];
+                if ( !in_array($restoCollections->collections[$collectionId]->model->dbParams['tablePrefix'], $schemaNames) ) {
+                    $schemaNames[] = $restoCollections->collections[$collectionId]-model->dbParams['tablePrefix'];
                 }   
             }
         }

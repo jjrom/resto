@@ -37,7 +37,7 @@ class RightsFunctions
     /**
      * Return rights for groups
      *
-     * @param string $groups
+     * @param array $groups
      * @param string $collectionId
      * @param string $featureId
      * @param string $target
@@ -48,14 +48,14 @@ class RightsFunctions
     public function getRightsForGroups($groups, $collectionId, $featureId, $merge = true)
     {
         $filter = $this->getFilterFromTarget($collectionId, $featureId);
-        $query = 'SELECT groupid, collection, featureid, download, visualize, createcollection as create FROM resto.right WHERE groupid IN (' . join(',', $groups) . ')' . (isset($filter) ? ' AND ' . $filter : '');
+        $query = 'SELECT groupid, collection, featureid, download, visualize, createcollection as create FROM ' . $this->dbDriver->schema . '.right WHERE groupid IN (' . join(',', $groups) . ')' . (isset($filter) ? ' AND ' . $filter : '');
         return $this->getRightsFromQuery($query, $merge);
     }
 
     /**
      * Return rights for user
      *
-     * @param string $user
+     * @param RestoUser $user
      * @param string $collectionId
      * @param string $featureId
      *
@@ -71,7 +71,7 @@ class RightsFunctions
          */
         if (isset($user->profile['id'])) {
             $filter = $this->getFilterFromTarget($collectionId, $featureId);
-            $query = 'SELECT userid, collection, featureid, download, visualize, createcollection as create FROM resto.right WHERE userid=' . pg_escape_string($user->profile['id']) . (isset($filter) ? ' AND ' . $filter : '');
+            $query = 'SELECT userid, collection, featureid, download, visualize, createcollection as create FROM ' . $this->dbDriver->schema . '.right WHERE userid=' . pg_escape_string($user->profile['id']) . (isset($filter) ? ' AND ' . $filter : '');
             $userRights = $this->getRightsFromQuery($query, false);
         }
 
@@ -139,7 +139,7 @@ class RightsFunctions
                 throw new Exception();
             }
             $filterTarget = $this->getFilterFromTarget($collectionId, $featureId);
-            $result = pg_query($this->dbDriver->getConnection(), 'DELETE from resto.right WHERE ' . (isset($filterTarget) ? ' AND ' . $filterTarget : ''));
+            $result = pg_query($this->dbDriver->getConnection(), 'DELETE from ' . $this->dbDriver->schema . '.right WHERE ' . (isset($filterTarget) ? ' AND ' . $filterTarget : ''));
             if (!$result) {
                 throw new Exception();
             }
@@ -250,7 +250,7 @@ class RightsFunctions
         );
 
         try {
-            $result = pg_query($this->dbDriver->getConnection(), 'INSERT INTO resto.right (' . join(',', array_keys($values)) . ') VALUES (' . join(',', array_values($values)) . ')');
+            $result = pg_query($this->dbDriver->getConnection(), 'INSERT INTO ' . $this->dbDriver->schema . '.right (' . join(',', array_keys($values)) . ') VALUES (' . join(',', array_values($values)) . ')');
             if (!$result) {
                 throw new Exception();
             }
@@ -294,7 +294,7 @@ class RightsFunctions
         }
 
         if (count($toBeSet) > 0) {
-            $this->dbDriver->query('UPDATE resto.right SET ' . join(',', $toBeSet) . ' WHERE ' . join(' AND ', $where));
+            $this->dbDriver->query('UPDATE ' . $this->dbDriver->schema . '.right SET ' . join(',', $toBeSet) . ' WHERE ' . join(' AND ', $where));
         }
         return true;
     }
@@ -332,7 +332,7 @@ class RightsFunctions
         // Target
         $where[] = isset($collectionId) ? 'collection=\'' . pg_escape_string($collectionId) . '\'' : 'featureid=\'' . pg_escape_string($featureId) . '\'';
 
-        $query = 'SELECT 1 from resto.right WHERE ' . join(' AND ', $where);
+        $query = 'SELECT 1 from ' . $this->dbDriver->schema . '.right WHERE ' . join(' AND ', $where);
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         return !empty($results);
     }

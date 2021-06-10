@@ -22,6 +22,11 @@ class RestoDatabaseDriver
 {
 
     /*
+     * Default schema
+     */
+    public $schema = 'resto';
+
+    /*
      * Results per page
      */
     public $resultsPerPage = 20;
@@ -40,7 +45,7 @@ class RestoDatabaseDriver
     /*
      * Database connection configuration
      */
-    public $config = array(
+    private $config = array(
         'dbname' => 'resto',
         'host' => 'restodb',
         'port' => 5432,
@@ -59,12 +64,18 @@ class RestoDatabaseDriver
 
         if (isset($config)) {
 
+            if (isset($config['schema'])) {
+                $this->schema = $config['schema'];
+            }
+
             if (isset($config['resultsPerPage'])) {
                 $this->resultsPerPage = $config['resultsPerPage'];
             }
+
             if (isset($config['sortKeys']) && is_array($config['sortKeys']) && count($config['sortKeys']) > 0) {
                 $this->sortKeys = $config['sortKeys'];
             }
+
             $this->config = $config;
         }
         else {
@@ -92,7 +103,7 @@ class RestoDatabaseDriver
                 throw new Exception();
             }
             
-            $results = pg_query($this->getConnection(), 'SELECT lower(public.f_unaccent(\'' . pg_escape_string($sentence) . '\')) as normalized');
+            $results = pg_query($dbh, 'SELECT lower(' . $dbh->schema . '.f_unaccent(\'' . pg_escape_string($sentence) . '\')) as normalized');
             if (!$results) {
                 throw new Exception();
             }

@@ -5,6 +5,8 @@
 --
 -- resto core model is sored under resto schema
 --
+-- [IMPORTANT] The schema MUST BE THE SAME that the one defined as DATABASE_SCHEMA in config.env (default is resto)
+--
 CREATE SCHEMA IF NOT EXISTS resto;
 
 --

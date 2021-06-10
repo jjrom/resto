@@ -303,16 +303,14 @@ abstract class RestoModel
     public $tables = array();
 
     /*
-     * Name of PostgreSQL schema containing all feature related tables
+     * Parameters to apply to database storage for products related to this model
      * 
-     * [IMPORTANT] 
-     * If this value is changed in child model, then all features belonging to a collection referencing this model
-     * will be stored in a dedicated table (i.e. "$schema.feature") instead of the regular "resto.feature".
-     * 
-     * For an example of superseed see ObservationModel
+     *  - tablePrefix : all features belonging to a collection referencing this model will be stored in a dedicated table [tablePrefix]__feature instead of feature"
+     *  - useGeometryPart : if true, geometry searches are processed using geometry_part table instead of feature table
+     *  - storeFacets = if true, facets are stored for model related products
      */
-    public $schema = array(
-        'name' => 'resto',
+    public $dbParams = array(
+        'tablePrefix' => '',
         'useGeometryPart' => false,
         'storeFacets' => true
     );
@@ -680,7 +678,7 @@ abstract class RestoModel
          *  
          * (do this before getKeywords to avoid iTag process)
          */
-        if (isset($productIdentifier) && (new FeaturesFunctions($collection->context->dbDriver))->featureExists($featureId, $collection->model->schema['name'])) {
+        if (isset($productIdentifier) && (new FeaturesFunctions($collection->context->dbDriver))->featureExists($featureId, $collection->context->dbDriver->schema . '.' . $collection->model->dbParams['tablePrefix'] . 'feature')) {
             RestoLogUtil::httpError(409, 'Feature ' . $featureId . ' (with productIdentifier=' . $productIdentifier . ') already in database');
         }
 

@@ -94,6 +94,11 @@ if [ "${DATABASE_HOST}" == "" ]; then
     DATABASE_HOST=restodb
 fi
 
+DATABASE_SCHEMA=$(grep ^DATABASE_SCHEMA= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
+if [ "${DATABASE_SCHEMA}" == "" ]; then
+    DATABASE_SCHEMA=resto
+fi
+
 ADMIN_USER_NAME=$(grep ^ADMIN_USER_NAME= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 if [ "${ADMIN_USER_NAME}" == "" ]; then
     ADMIN_USER_NAME=admin
@@ -120,11 +125,11 @@ fi
 
 if [ "${ADMIN_USER_ID}" != "" ]; then
 PGPASSWORD=${DATABASE_USER_PASSWORD} psql -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h ${DATABASE_HOST_SEEN_FROM_DOCKERHOST} -p ${DATABASE_EXPOSED_PORT} > /dev/null 2> errors.log << EOF
-INSERT INTO resto.user (id,email,groups,firstname,password,activated,registrationdate) VALUES (${ADMIN_USER_ID}, '${ADMIN_USER_NAME}','{0}','${ADMIN_USER_NAME}','${HASH}', 1, now_utc()) ON CONFLICT (id) DO UPDATE SET password='${HASH}';
+INSERT INTO ${DATABASE_SCHEMA}.user (id,email,groups,firstname,password,activated,registrationdate) VALUES (${ADMIN_USER_ID}, '${ADMIN_USER_NAME}','{0}','${ADMIN_USER_NAME}','${HASH}', 1, now_utc()) ON CONFLICT (id) DO UPDATE SET password='${HASH}';
 EOF
 else
 PGPASSWORD=${DATABASE_USER_PASSWORD} psql -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h ${DATABASE_HOST_SEEN_FROM_DOCKERHOST} -p ${DATABASE_EXPOSED_PORT} > /dev/null 2> errors.log << EOF
-INSERT INTO resto.user (email,groups,firstname,password,activated,registrationdate) VALUES ('${ADMIN_USER_NAME}','{0}','${ADMIN_USER_NAME}','${HASH}', 1, now_utc()) ON CONFLICT (email) DO UPDATE SET password='${HASH}';
+INSERT INTO ${DATABASE_SCHEMA}.user (email,groups,firstname,password,activated,registrationdate) VALUES ('${ADMIN_USER_NAME}','{0}','${ADMIN_USER_NAME}','${HASH}', 1, now_utc()) ON CONFLICT (email) DO UPDATE SET password='${HASH}';
 EOF
 fi
 echo -e "[INFO] User ${GREEN}${ADMIN_USER_NAME}${NC} created/updated"
