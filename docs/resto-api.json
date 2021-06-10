@@ -4,8 +4,8 @@
             "email": "jerome.gasperi@gmail.com"
         }, 
         "description": "A metadata catalog and search engine for geospatialized data", 
-        "version": "6.0.0-rc2", 
-        "title": "resto"
+        "version": "6.0.0", 
+        "title": "Welcome to resto"
     }, 
     "paths": {
         "/collections/{collectionId}/items": {
@@ -108,7 +108,7 @@
                     }, 
                     {
                         "schema": {
-                            "type": "float"
+                            "type": "number"
                         }, 
                         "description": "Simplify input geometry with tolerance in degrees (use in conjunction with *maxpoints*). [IMPORTANT] Simplification only affects the internal indexed geometry used by the search engine. The original geometry is stored unmodified.", 
                         "required": false, 
@@ -291,7 +291,7 @@
                     }, 
                     {
                         "schema": {
-                            "type": "float"
+                            "type": "number"
                         }, 
                         "description": "Longitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lat - OpenSearch {geo:lon}", 
                         "required": false, 
@@ -300,7 +300,7 @@
                     }, 
                     {
                         "schema": {
-                            "type": "float"
+                            "type": "number"
                         }, 
                         "description": "Latitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lon - OpenSearch {geo:lat}", 
                         "required": false, 
@@ -309,7 +309,7 @@
                     }, 
                     {
                         "schema": {
-                            "type": "float"
+                            "type": "number"
                         }, 
                         "description": "Radius expressed in meters - should be used with geo:lon and geo:lat - OpenSearch {geo:radius}", 
                         "required": false, 
@@ -796,6 +796,9 @@
                 }, 
                 "parameters": [
                     {
+                        "schema": {
+                            "type": "string"
+                        }, 
                         "description": "Activation token", 
                         "required": true, 
                         "name": "token", 
@@ -845,6 +848,9 @@
                 }, 
                 "parameters": [
                     {
+                        "schema": {
+                            "type": "string"
+                        }, 
                         "description": "Security token", 
                         "required": true, 
                         "name": "token", 
@@ -1402,7 +1408,7 @@
                                             }, 
                                             "stac_version": "0.8.0", 
                                             "stac_extensions": [
-                                                "eo"
+                                                "https://stac-extensions.github.io/eo/v1.0.0/schema.json"
                                             ], 
                                             "extent": {
                                                 "temporal": {
@@ -1436,8 +1442,8 @@
                                                     "LEVEL1C"
                                                 ], 
                                                 "datetime": {
-                                                    "max": "2019-06-06T13:28:04.338517Z", 
-                                                    "min": "2019-05-19T13:59:47.695508Z"
+                                                    "minimum": "2019-05-19T13:59:47.695508Z", 
+                                                    "maximum": "2019-06-06T13:28:04.338517Z"
                                                 }, 
                                                 "sensorType": [
                                                     "OPTICAL"
@@ -1471,10 +1477,10 @@
                                         "temporal": {
                                             "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian", 
                                             "interval": [
-                                                {
-                                                    "max": "2019-06-11T16:11:41.808000Z", 
-                                                    "min": "2018-09-13T05:58:08.367000Z"
-                                                }
+                                                [
+                                                    "2018-09-13T05:58:08.367000Z", 
+                                                    "2019-06-11T16:11:41.808000Z"
+                                                ]
                                             ]
                                         }, 
                                         "spatial": {
@@ -2001,7 +2007,7 @@
                     }, 
                     {
                         "schema": {
-                            "type": "float"
+                            "type": "number"
                         }, 
                         "description": "Longitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lat - OpenSearch {geo:lon}", 
                         "required": false, 
@@ -2010,7 +2016,7 @@
                     }, 
                     {
                         "schema": {
-                            "type": "float"
+                            "type": "number"
                         }, 
                         "description": "Latitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lon - OpenSearch {geo:lat}", 
                         "required": false, 
@@ -2019,7 +2025,7 @@
                     }, 
                     {
                         "schema": {
-                            "type": "float"
+                            "type": "number"
                         }, 
                         "description": "Radius expressed in meters - should be used with geo:lon and geo:lat - OpenSearch {geo:radius}", 
                         "required": false, 
@@ -2747,19 +2753,15 @@
     "components": {
         "securitySchemes": {
             "bearerAuth": {
-                "description": "Access token in HTTP header as JWT or rJWT (_resto JWT_) - this is the default", 
-                "bearerFormat": "JWT", 
-                "in": "header", 
                 "scheme": "bearer", 
                 "type": "http", 
-                "name": "bearer"
+                "description": "Access token in HTTP header as JWT or rJWT (_resto JWT_) - this is the default", 
+                "bearerFormat": "JWT"
             }, 
             "basicAuth": {
                 "scheme": "basic", 
-                "in": "header", 
                 "type": "http", 
-                "description": "Basic authentication in HTTP header - should be used first to get a valid rJWT token", 
-                "name": "basic"
+                "description": "Basic authentication in HTTP header - should be used first to get a valid rJWT token"
             }, 
             "queryAuth": {
                 "in": "query", 
@@ -2856,7 +2858,7 @@
                             }, 
                             "stac_version": "0.8.0", 
                             "stac_extensions": [
-                                "eo"
+                                "https://stac-extensions.github.io/eo/v1.0.0/schema.json"
                             ], 
                             "type": "Feature", 
                             "id": "8030a391-4002-556f-929b-d7ff9dad6705", 
@@ -2880,7 +2882,7 @@
                         "enum": [
                             "FeatureCollection"
                         ], 
-                        "type": "enum", 
+                        "type": "string", 
                         "description": "Always set to *FeatureCollection*"
                     }, 
                     "features": {
@@ -2916,6 +2918,7 @@
             "OutputCollection": {
                 "required": [
                     "id", 
+                    "type", 
                     "title", 
                     "description", 
                     "license", 
@@ -2924,10 +2927,6 @@
                 ], 
                 "type": "object", 
                 "properties": {
-                    "properties": {
-                        "type": "object", 
-                        "description": "resto collection"
-                    }, 
                     "description": {
                         "type": "string", 
                         "description": "Detailed multi-line description to fully explain the collection. CommonMark 0.28 syntax MAY be used for rich text representation."
@@ -2938,12 +2937,16 @@
                             "various", 
                             "<license id>"
                         ], 
-                        "type": "enum", 
+                        "type": "string", 
                         "description": "License for this collection as a SPDX License identifier or expression. Alternatively, use proprietary if the license is not on the SPDX license list or various if multiple licenses apply. In these two cases links to the license texts SHOULD be added, see the license link relation type."
                     }, 
                     "title": {
                         "type": "string", 
                         "description": "A short descriptive one-line title for the collection."
+                    }, 
+                    "summaries": {
+                        "type": "object", 
+                        "description": "resto collection"
                     }, 
                     "providers": {
                         "items": {
@@ -2985,9 +2988,12 @@
                         "type": "array", 
                         "description": "List of keywords describing the collection."
                     }, 
-                    "summaries": {
-                        "type": "object", 
-                        "description": "resto collection"
+                    "type": {
+                        "enum": [
+                            "Collection"
+                        ], 
+                        "type": "string", 
+                        "description": "[EXTENSION][STAC] Always set to *Collection*"
                     }, 
                     "id": {
                         "type": "string", 
@@ -2995,7 +3001,92 @@
                     }
                 }, 
                 "example": {
-                    "properties": {
+                    "description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites", 
+                    "license": "proprietary", 
+                    "title": "Sentinel-2", 
+                    "providers": [
+                        {
+                            "url": "https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi", 
+                            "name": "European Union/ESA/Copernicus", 
+                            "roles": [
+                                "producer", 
+                                "licensor"
+                            ]
+                        }
+                    ], 
+                    "links": [
+                        {
+                            "href": "http://127.0.0.1:5252/collections/S2.json?&_pretty=1", 
+                            "type": "application/json", 
+                            "rel": "self"
+                        }, 
+                        {
+                            "href": "http://127.0.0.1:5252", 
+                            "type": "application/json", 
+                            "rel": "root"
+                        }, 
+                        {
+                            "href": "https://scihub.copernicus.eu/twiki/pub/SciHubWebPortal/TermsConditions/Sentinel_Data_Terms_and_Conditions.pdf", 
+                            "rel": "license", 
+                            "title": "Legal notice on the use of Copernicus Sentinel Data and Service Information"
+                        }
+                    ], 
+                    "resto:info": {
+                        "lineage": [
+                            "DefaultModel", 
+                            "LandCoverModel", 
+                            "SatelliteModel", 
+                            "OpticalModel"
+                        ], 
+                        "osDescription": {
+                            "Attribution": "European Union/ESA/Copernicus", 
+                            "Description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites", 
+                            "Tags": "copernicus esa eu msi radiance sentinel sentinel2", 
+                            "Contact": "jrom@snapplanet.io", 
+                            "LongName": "Level 1C Sentinel-2 images", 
+                            "Query": "Toulouse", 
+                            "ShortName": "Sentinel-2", 
+                            "Developer": "J\\u00e9r\\u00f4me Gasperi"
+                        }, 
+                        "model": "OpticalModel", 
+                        "owner": "203883411255198721"
+                    }, 
+                    "stac_version": "0.8.0", 
+                    "stac_extensions": [
+                        "https://stac-extensions.github.io/eo/v1.0.0/schema.json"
+                    ], 
+                    "extent": {
+                        "temporal": {
+                            "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian", 
+                            "interval": [
+                                [
+                                    "2019-06-11T16:11:41.808000Z", 
+                                    "2019-06-11T16:11:41.808000Z"
+                                ]
+                            ]
+                        }, 
+                        "spatial": {
+                            "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84", 
+                            "bbox": [
+                                [
+                                    -48.6198530870596, 
+                                    74.6749788966259, 
+                                    -44.6464244356188, 
+                                    75.6843970710939
+                                ]
+                            ]
+                        }
+                    }, 
+                    "keywords": [
+                        "copernicus", 
+                        "esa", 
+                        "eu", 
+                        "msi", 
+                        "radiance", 
+                        "sentinel", 
+                        "sentinel2"
+                    ], 
+                    "summaries": {
                         "eo:bands": [
                             {
                                 "common_name": "coastal", 
@@ -3069,110 +3160,23 @@
                                 "name": "B12", 
                                 "gsd": 20
                             }
-                        ]
-                    }, 
-                    "description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites", 
-                    "license": "proprietary", 
-                    "title": "Sentinel-2", 
-                    "providers": [
-                        {
-                            "url": "https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi", 
-                            "name": "European Union/ESA/Copernicus", 
-                            "roles": [
-                                "producer", 
-                                "licensor"
-                            ]
-                        }
-                    ], 
-                    "links": [
-                        {
-                            "href": "http://127.0.0.1:5252/collections/S2.json?&_pretty=1", 
-                            "type": "application/json", 
-                            "rel": "self"
-                        }, 
-                        {
-                            "href": "http://127.0.0.1:5252", 
-                            "type": "application/json", 
-                            "rel": "root"
-                        }, 
-                        {
-                            "href": "https://scihub.copernicus.eu/twiki/pub/SciHubWebPortal/TermsConditions/Sentinel_Data_Terms_and_Conditions.pdf", 
-                            "rel": "license", 
-                            "title": "Legal notice on the use of Copernicus Sentinel Data and Service Information"
-                        }
-                    ], 
-                    "resto:info": {
-                        "lineage": [
-                            "DefaultModel", 
-                            "LandCoverModel", 
-                            "SatelliteModel", 
-                            "OpticalModel"
                         ], 
-                        "osDescription": {
-                            "Attribution": "European Union/ESA/Copernicus", 
-                            "Description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites", 
-                            "Tags": "copernicus esa eu msi radiance sentinel sentinel2", 
-                            "Contact": "jrom@snapplanet.io", 
-                            "LongName": "Level 1C Sentinel-2 images", 
-                            "Query": "Toulouse", 
-                            "ShortName": "Sentinel-2", 
-                            "Developer": "J\\u00e9r\\u00f4me Gasperi"
+                        "datetime": {
+                            "minimum": "2019-06-11T16:11:41.808000Z", 
+                            "maximum": "2019-06-11T16:11:41.808000Z"
                         }, 
-                        "model": "OpticalModel", 
-                        "owner": "203883411255198721"
-                    }, 
-                    "stac_version": "0.8.0", 
-                    "stac_extensions": [
-                        "eo"
-                    ], 
-                    "extent": {
-                        "temporal": {
-                            "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian", 
-                            "interval": [
-                                [
-                                    "2019-06-11T16:11:41.808000Z", 
-                                    "2019-06-11T16:11:41.808000Z"
-                                ]
-                            ]
-                        }, 
-                        "spatial": {
-                            "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84", 
-                            "bbox": [
-                                [
-                                    -48.6198530870596, 
-                                    74.6749788966259, 
-                                    -44.6464244356188, 
-                                    75.6843970710939
-                                ]
-                            ]
-                        }
-                    }, 
-                    "keywords": [
-                        "copernicus", 
-                        "esa", 
-                        "eu", 
-                        "msi", 
-                        "radiance", 
-                        "sentinel", 
-                        "sentinel2"
-                    ], 
-                    "summaries": {
-                        "eo:instrument": [
-                            "MSI"
-                        ], 
                         "eo:platform": [
                             "S2A"
-                        ], 
-                        "productType": [
-                            "REFLECTANCE"
                         ], 
                         "processingLevel": [
                             "LEVEL1C"
                         ], 
-                        "datetime": {
-                            "max": "2019-06-11T16:11:41.808000Z", 
-                            "min": "2019-06-11T16:11:41.808000Z"
-                        }
+                        "productType": [
+                            "REFLECTANCE"
+                        ], 
+                        "eo:instrument": [
+                            "MSI"
+                        ]
                     }, 
                     "id": "S2"
                 }
@@ -3311,7 +3315,7 @@
                                     0, 
                                     1
                                 ], 
-                                "type": "enum", 
+                                "type": "integer", 
                                 "description": "Feature download rights (1 can be downloaded; 0 cannot be downloaded)"
                             }, 
                             "visualize": {
@@ -3330,7 +3334,7 @@
                     "visibility": {
                         "description": "Visibility of this collection. Collections with visibility 1 are visible to all users."
                     }, 
-                    "properties": {
+                    "summaries": {
                         "type": "object", 
                         "description": "resto collection"
                     }, 
@@ -3402,7 +3406,7 @@
                         }
                     ], 
                     "visibility": 1, 
-                    "properties": {
+                    "summaries": {
                         "eo:bands": [
                             {
                                 "common_name": "coastal", 
@@ -3794,7 +3798,7 @@
                                 "processor", 
                                 "host"
                             ], 
-                            "type": "enum"
+                            "type": "string"
                         }, 
                         "type": "array", 
                         "description": "Roles of the provider."
@@ -3962,12 +3966,12 @@
                                     "MultiPolygon", 
                                     "GeometryCollection"
                                 ], 
-                                "type": "enum", 
+                                "type": "string", 
                                 "description": "Geometry type following GeoJSON specification"
                             }, 
                             "coordinates": {
                                 "items": {
-                                    "type": "float"
+                                    "type": "number"
                                 }, 
                                 "type": "array", 
                                 "description": "Geometry vertices following GeoJSON specification"
@@ -4023,7 +4027,7 @@
                                     }, 
                                     "coordinates": {
                                         "items": {
-                                            "type": "float"
+                                            "type": "number"
                                         }, 
                                         "type": "array", 
                                         "description": "Coordinates expressed in [longitude, latitude]"
@@ -4052,7 +4056,7 @@
                         "enum": [
                             "Feature"
                         ], 
-                        "type": "enum", 
+                        "type": "string", 
                         "description": "Always set to *feature*"
                     }, 
                     "id": {
@@ -4158,7 +4162,7 @@
                             }, 
                             "stac_version": "0.8.0", 
                             "stac_extensions": [
-                                "eo"
+                                "https://stac-extensions.github.io/eo/v1.0.0/schema.json"
                             ], 
                             "type": "Feature", 
                             "id": "8030a391-4002-556f-929b-d7ff9dad6705", 
@@ -4237,7 +4241,7 @@
                         "enum": [
                             "FeatureCollection"
                         ], 
-                        "type": "enum", 
+                        "type": "string", 
                         "description": "Always set to *FeatureCollection*"
                     }, 
                     "features": {
@@ -4337,12 +4341,12 @@
                                     "MultiPolygon", 
                                     "GeometryCollection"
                                 ], 
-                                "type": "enum", 
+                                "type": "string", 
                                 "description": "Geometry type following GeoJSON specification"
                             }, 
                             "coordinates": {
                                 "items": {
-                                    "type": "float"
+                                    "type": "number"
                                 }, 
                                 "type": "array", 
                                 "description": "Geometry vertices following GeoJSON specification"
@@ -4353,7 +4357,7 @@
                         "enum": [
                             "Feature"
                         ], 
-                        "type": "enum", 
+                        "type": "string", 
                         "description": "Always set to *feature*"
                     }, 
                     "id": {

@@ -56,7 +56,7 @@
  *          description="Default collection rights settings",
  *          @OA\Property(
  *              property="download",
- *              type="enum",
+ *              type="integer",
  *              enum={0,1},
  *              description="Feature download rights (1 can be downloaded; 0 cannot be downloaded)"
  *          ),
@@ -248,9 +248,9 @@
  *      ),
  *      @OA\Property(
  *          property="type",
- *          type="enum",
+ *          type="string",
  *          enum={"Collection"},
- *          description="[EXTENSION][STAC] Always set to \"Collection\""
+ *          description="[EXTENSION][STAC] Always set to *Collection*"
  *      ),
  *      @OA\Property(
  *          property="title",
@@ -272,7 +272,7 @@
  *      ),
  *      @OA\Property(
  *          property="license",
- *          type="enum",
+ *          type="string",
  *          enum={"proprietary", "various", "<license id>"},
  *          description="License for this collection as a SPDX License identifier or expression. Alternatively, use proprietary if the license is not on the SPDX license list or various if multiple licenses apply. In these two cases links to the license texts SHOULD be added, see the license link relation type."
  *      ),
@@ -328,7 +328,7 @@
  *          @OA\JsonContent(
  *              @OA\Property(
  *                  property="datetime",
- *                  type="enum",
+ *                  type="string",
  *                  enum={"public", "<group id>"},
  *                  description="Visibility of this collection. *public* collections are visible to all users. Non public collections are visible to owner and member of <group id> only"
  *              ),
@@ -722,7 +722,7 @@ class RestoCollection
      *          type="array",
      *          description="Roles of the provider.",
      *          @OA\Items(
-     *              type="enum",
+     *              type="string",
      *              enum={"licensor", "producer", "processor", "host"},
      *          )
      *      ),

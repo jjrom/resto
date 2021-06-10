@@ -65,7 +65,7 @@ class FacetsFunctions
      */
     public function getFacet($facetId)
     {
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id, collection, value, type, pid, to_iso8601(created) as created, creator  FROM resto.facet WHERE normalize(id)=normalize($1) LIMIT 1', array(
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id, collection, value, type, pid, to_iso8601(created) as created, creator  FROM ' . $this->dbDriver->schema . '.facet WHERE normalize(id)=normalize($1) LIMIT 1', array(
             $facetId
         )));
         if (isset($results[0])) {
@@ -124,8 +124,8 @@ class FacetsFunctions
             /*
              * Thread safe ingestion using upsert - guarantees that counter is correctly incremented during concurrent transactions
              */
-            $insert = 'INSERT INTO resto.facet (id, collection, value, type, pid, creator, created, counter, isleaf) SELECT $1,$2,$3,$4,$5,$6,now(),1,$7';
-            $upsert = 'UPDATE resto.facet SET counter=counter+1 WHERE normalize(id)=normalize($1) AND normalize(collection)=normalize($2)';
+            $insert = 'INSERT INTO ' . $this->dbDriver->schema . '.facet (id, collection, value, type, pid, creator, created, counter, isleaf) SELECT $1,$2,$3,$4,$5,$6,now(),1,$7';
+            $upsert = 'UPDATE ' . $this->dbDriver->schema . '.facet SET counter=counter+1 WHERE normalize(id)=normalize($1) AND normalize(collection)=normalize($2)';
             $this->dbDriver->pQuery('WITH upsert AS (' . $upsert . ' RETURNING *) ' . $insert . ' WHERE NOT EXISTS (SELECT * FROM upsert)', array(
                 $facetElement['id'],
                 $facetElement['collection'] ?? '*',
@@ -148,7 +148,7 @@ class FacetsFunctions
      */
     public function removeFacet($facetId, $collectionId)
     {
-        $this->dbDriver->pQuery('UPDATE resto.facet SET counter = GREATEST(counter - 1) WHERE normalize(id)=normalize($1) AND normalize(collection)=normalize($2)', array($facetId, $collectionId), 500, 'Cannot delete facet for ' . $collectionId);
+        $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->schema . '.facet SET counter = GREATEST(counter - 1) WHERE normalize(id)=normalize($1) AND normalize(collection)=normalize($2)', array($facetId, $collectionId), 500, 'Cannot delete facet for ' . $collectionId);
     }
 
     /**
@@ -331,7 +331,7 @@ class FacetsFunctions
         /*
          * Facets for one collection
          */
-        $results = $this->dbDriver->query('SELECT id,collection,value,type,pid,counter,to_iso8601(created) as created,creator FROM resto.facet WHERE ' . (count($where) > 0 ? join(' AND ', $where): '') . ' ORDER BY type ASC, value DESC');        
+        $results = $this->dbDriver->query('SELECT id,collection,value,type,pid,counter,to_iso8601(created) as created,creator FROM ' . $this->dbDriver->schema . '.facet WHERE ' . (count($where) > 0 ? join(' AND ', $where): '') . ' ORDER BY type ASC, value DESC');        
         
         while ($result = pg_fetch_assoc($results))
         {

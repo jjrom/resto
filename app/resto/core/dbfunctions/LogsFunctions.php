@@ -58,7 +58,7 @@ class LogsFunctions
             $where[] = QueryUtil::intervalToQuery($params['querytime'], 'querytime');
         }
 
-        $results = $this->dbDriver->query('SELECT gid, userid, method, to_iso8601(querytime) as querytime, path, query, ip FROM resto.log' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : ' ') . ' ORDER BY gid DESC LIMIT 50');
+        $results = $this->dbDriver->query('SELECT gid, userid, method, to_iso8601(querytime) as querytime, path, query, ip FROM ' . $this->dbDriver->schema . '.log' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : ' ') . ' ORDER BY gid DESC LIMIT 50');
         
         $logs = array();
         while ($row = pg_fetch_assoc($results))

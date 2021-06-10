@@ -74,7 +74,7 @@ class CollectionsFunctions
         // Get Opensearch description
         $osDescriptions = $this->getOSDescriptions($id);
         $collection = null;
-        $results = $this->dbDriver->pQuery('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords FROM resto.collection WHERE normalize(id)=normalize($1)', array($id));
+        $results = $this->dbDriver->pQuery('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords FROM ' . $this->dbDriver->schema . '.collection WHERE normalize(id)=normalize($1)', array($id));
         while ($rowDescription = pg_fetch_assoc($results)) {
             $collection = array_merge(
                 CollectionsFunctions::format($rowDescription),
@@ -99,7 +99,7 @@ class CollectionsFunctions
         // Get all Opensearch descriptions
         $osDescriptions = $this->getOSDescriptions();
         $where = isset($visibilities) && count($visibilities) > 0 ? ' WHERE visibility IN (' . join(',', $visibilities) . ')' : '';
-        $results = $this->dbDriver->query('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords FROM resto.collection ' . $where . ' ORDER BY id');
+        $results = $this->dbDriver->query('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords FROM ' . $this->dbDriver->schema . '.collection ' . $where . ' ORDER BY id');
         while ($rowDescription = pg_fetch_assoc($results)) {
             $collections[$rowDescription['id']] = array_merge(
                 CollectionsFunctions::format($rowDescription),
@@ -119,7 +119,7 @@ class CollectionsFunctions
      */
     public function collectionExists($collectionId)
     {
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id FROM resto.collection WHERE id=$1', array($collectionId)));
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id FROM ' . $this->dbDriver->schema . '.collection WHERE id=$1', array($collectionId)));
         return !empty($results);
     }
 
@@ -147,11 +147,11 @@ class CollectionsFunctions
 
             $this->dbDriver->query('BEGIN');
 
-            $this->dbDriver->pQuery('DELETE FROM resto.collection WHERE id=$1', array(
+            $this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->schema . '.collection WHERE id=$1', array(
                 $collection->id
             ));
 
-            $this->dbDriver->pQuery('DELETE FROM resto.right WHERE collection=$1', array(
+            $this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->schema . '.right WHERE collection=$1', array(
                 $collection->id
             ));
             
@@ -276,7 +276,7 @@ class CollectionsFunctions
         }
 
         try {
-            $this->dbDriver->pQuery('UPDATE resto.collection SET ' . join(',', $toBeSet) . ' WHERE id=$1', array(
+            $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->schema . '.collection SET ' . join(',', $toBeSet) . ' WHERE id=$1', array(
                 $collection->id
             ));
         } catch (Exception $e) {
@@ -375,10 +375,10 @@ class CollectionsFunctions
         $osDescriptions = array();
 
         if (isset($collectionId)) {
-            $results = $this->dbDriver->pQuery('SELECT * FROM resto.osdescription WHERE collection=$1', array($collectionId));
+            $results = $this->dbDriver->pQuery('SELECT * FROM ' . $this->dbDriver->schema . '.osdescription WHERE collection=$1', array($collectionId));
         }
         else {
-            $results = $this->dbDriver->query('SELECT * FROM resto.osdescription');
+            $results = $this->dbDriver->query('SELECT * FROM ' . $this->dbDriver->schema . '.osdescription');
         }
         
         while ($description = pg_fetch_assoc($results)) {
@@ -443,13 +443,13 @@ class CollectionsFunctions
                 'keywords' => $keywords,
                 'version' => $collection->version
             );
-            $this->dbDriver->pQuery('INSERT INTO resto.collection (' . join(',', array_keys($toBeSet)) . ') VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)', array_values($toBeSet));
+            $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->schema . '.collection (' . join(',', array_keys($toBeSet)) . ') VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)', array_values($toBeSet));
         }
         /*
          * Otherwise update collection fields (version, visibility, licenseid, providers and properties)
          */
         else {
-            $this->dbDriver->pQuery('UPDATE resto.collection SET model=$2, lineage=$3, licenseid=$4, visibility=$5, providers=$6, properties=$7, links=$8, assets=$9, keywords=$10, version=$11 WHERE id=$1', array(
+            $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->schema . '.collection SET model=$2, lineage=$3, licenseid=$4, visibility=$5, providers=$6, properties=$7, links=$8, assets=$9, keywords=$10, version=$11 WHERE id=$1', array(
                 $collection->id,
                 $collection->model->getName(),
                 '{' . join(',', $collection->model->getLineage()) . '}',
@@ -468,7 +468,7 @@ class CollectionsFunctions
          * Insert OpenSearch descriptions within osdescriptions table
          * (one description per lang)
          *
-         * CREATE TABLE resto.osdescription (
+         * CREATE TABLE [$this->dbDriver->schema].osdescription (
          *  collection          TEXT,
          *  lang                TEXT,
          *  shortname           TEXT,
@@ -481,7 +481,7 @@ class CollectionsFunctions
          *  attribution         TEXT
          * );
          */
-        $this->dbDriver->pQuery('DELETE FROM resto.osdescription WHERE collection=$1', array(
+        $this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->schema . '.osdescription WHERE collection=$1', array(
             $collection->id
         ));
 
@@ -525,7 +525,7 @@ class CollectionsFunctions
                     $osValues[] = '\'' . pg_escape_string($description[$key]) . '\'';
                 }
             }
-            $this->dbDriver->query('INSERT INTO resto.osdescription (' . join(',', $osFields) . ') VALUES(' . join(',', $osValues) . ')');
+            $this->dbDriver->query('INSERT INTO ' . $this->dbDriver->schema . '.osdescription (' . join(',', $osFields) . ') VALUES(' . join(',', $osValues) . ')');
         }
 
         return true;
@@ -540,7 +540,7 @@ class CollectionsFunctions
      */
     private function collectionIsEmpty($collection)
     {
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT count(id) as count FROM ' . $collection->model->schema['name']. '.feature WHERE collection=$1 LIMIT 1', array($collection->id)));
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT count(id) as count FROM ' . $this->dbDriver->schema . '.' . $collection->model->dbParams['tablePrefix'] . 'feature WHERE collection=$1 LIMIT 1', array($collection->id)));
         if ($results[0]['count'] === '0') {
             return true;
         }

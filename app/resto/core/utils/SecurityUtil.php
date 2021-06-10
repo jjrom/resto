@@ -41,8 +41,6 @@ class SecurityUtil
      *
      *  @OA\SecurityScheme(
      *      type="http",
-     *      in="header",
-     *      name="bearer",
      *      scheme="bearer",
      *      bearerFormat="JWT",
      *      securityScheme="bearerAuth",
@@ -51,8 +49,6 @@ class SecurityUtil
      *
      *  @OA\SecurityScheme(
      *      type="http",
-     *      in="header",
-     *      name="basic",
      *      scheme="basic",
      *      securityScheme="basicAuth",
      *      description="Basic authentication in HTTP header - should be used first to get a valid rJWT token"

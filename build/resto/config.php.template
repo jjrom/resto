@@ -21,6 +21,7 @@ return array(
     'htmlSearchEndpoint' => '${SEARCH_OPENSEARCH_HTML_ENDPOINT}',
     'database' => array(
         'dbname' => '${DATABASE_NAME:-resto}',
+        'schema' => '${DATABASE_SCHEMA:-resto}',
         'host' => '${DATABASE_HOST:-restodb}',
         'port' => ${DATABASE_PORT:-5432},
         'resultsPerPage' => ${SEARCH_RESULTS_PER_PAGE:-20},

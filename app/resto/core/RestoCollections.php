@@ -52,7 +52,7 @@ class RestoCollections
      *                  type="array",
      *                  description="Potential spatial extent covered by the collection. The coordinate reference system of the values is WGS 84 longitude/latitude",
      *                  @OA\Items(
-     *                      type="float"
+     *                      type="number"
      *                  )
      *              )
      *          )
