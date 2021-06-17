@@ -683,7 +683,7 @@ class FiltersFunctions
      */
     private function getGeometryTableName($model) {
 
-        $tablePrefix = $this->context->schema . '.' . $model->dbParams['tablePrefix'];
+        $tablePrefix = $this->context->dbDriver->schema . '.' . $model->dbParams['tablePrefix'];
        
         if ($model->dbParams['useGeometryPart']) {
             $this->joins[] = 'JOIN ' . $tablePrefix . 'geometry_part ON ' . $tablePrefix . 'feature.id=' . $tablePrefix . 'geometry_part.id';
