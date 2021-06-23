@@ -29,8 +29,15 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION resto.trigger_store_geometry_part()
+RETURNS TRIGGER AS $$
+BEGIN
+    RETURN resto.store_geometry_part(NEW.id, NEW.collection, NEW.geom);
+END
+$$ LANGUAGE plpgsql;
+
 -- 
 -- On INSERT on resto.feature THEN subdivide the input feature geometry and store it in geometry_part table
 --
 DROP TRIGGER IF EXISTS update_geometry_part ON resto.feature;
-CREATE TRIGGER update_geometry_part AFTER INSERT ON resto.feature FOR EACH ROW EXECUTE PROCEDURE resto.store_geometry_part(NEW.id, NEW.collection, NEW.geom);
+CREATE TRIGGER update_geometry_part AFTER INSERT ON resto.feature FOR EACH ROW EXECUTE PROCEDURE resto.trigger_store_geometry_part();
