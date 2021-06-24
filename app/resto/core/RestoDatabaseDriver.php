@@ -74,7 +74,7 @@ class RestoDatabaseDriver
             }
 
             if (isset($config['useGeometryPart'])) {
-                $this->useGeometryPart = filter_var($config['useGeometryPart'], FILTER_VALIDATE_BOOLEAN);
+                $this->useGeometryPart = $config['useGeometryPart'];
             }
 
             if (isset($config['resultsPerPage'])) {
