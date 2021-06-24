@@ -27,6 +27,11 @@ class RestoDatabaseDriver
     public $schema = 'resto';
 
     /*
+     * Use geometry_part joined table for geometrical intersection
+     */
+    public $useGeometryPart = false;
+
+    /*
      * Results per page
      */
     public $resultsPerPage = 20;
@@ -66,6 +71,10 @@ class RestoDatabaseDriver
 
             if (isset($config['schema'])) {
                 $this->schema = $config['schema'];
+            }
+
+            if (isset($config['useGeometryPart'])) {
+                $this->useGeometryPart = filter_var($config['useGeometryPart'], FILTER_VALIDATE_BOOLEAN);
             }
 
             if (isset($config['resultsPerPage'])) {

@@ -306,12 +306,10 @@ abstract class RestoModel
      * Parameters to apply to database storage for products related to this model
      * 
      *  - tablePrefix : all features belonging to a collection referencing this model will be stored in a dedicated table [tablePrefix]__feature instead of feature"
-     *  - useGeometryPart : if true, geometry searches are processed using geometry_part table instead of feature table
      *  - storeFacets = if true, facets are stored for model related products
      */
     public $dbParams = array(
         'tablePrefix' => '',
-        'useGeometryPart' => false,
         'storeFacets' => true
     );
 

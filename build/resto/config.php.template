@@ -26,6 +26,7 @@ return array(
         'port' => ${DATABASE_PORT:-5432},
         'resultsPerPage' => ${SEARCH_RESULTS_PER_PAGE:-20},
         'sortKeys' => array(${SEARCH_SORTABLE_FIELDS:-'startDate','created'}),
+        'useGeometryPart' => '${USE_GEOMETRY_PART:-false}',
         'user' => '${DATABASE_USER_NAME:-resto}',
         'password' => '${DATABASE_USER_PASSWORD:-resto}'
     ),
