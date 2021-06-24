@@ -676,16 +676,17 @@ class FiltersFunctions
 
     /**
      * 
-     * If $model->dbParams['useGeometryPart'] is true then geometry is indexed in schema.geometry_part joined table
+     * If $this->context->dbDriver->useGeometryPart is true then geometry is indexed in schema.geometry_part joined table
      * Otherwise is is directly retrieved from the indexed "feature_geometry" table 
      * This should be used for large geometry
+     * 
      * @param RestolModel $model
      */
     private function getGeometryTableName($model) {
 
         $tablePrefix = $this->context->dbDriver->schema . '.' . $model->dbParams['tablePrefix'];
        
-        if ($model->dbParams['useGeometryPart']) {
+        if ($this->context->dbDriver->useGeometryPart) {
             $this->joins[] = 'JOIN ' . $tablePrefix . 'geometry_part ON ' . $tablePrefix . 'feature.id=' . $tablePrefix . 'geometry_part.id';
             return $tablePrefix . 'geometry_part';
         }

@@ -40,7 +40,7 @@ A normal PG user with `create schema` and `insert on spatial_ref_sys` rights is 
         grant create on database <dbname> to <dbuser>;
         grant insert on table spatial_ref_sys to <dbuser>;
 
-resto tables, functions and triggers will be installed in a `resto` schema by running [scripts/installOnExternalDB.sh](https://github.com/jjrom/resto/blob/master/scripts/installOnExternalDB.sh):
+By default, resto tables, functions and triggers will be installed in a `resto` schema by running [scripts/installOnExternalDB.sh](https://github.com/jjrom/resto/blob/master/scripts/installOnExternalDB.sh). The default schema can be changed by setting the DATABASE_SCHEMA environment variable in config.env
 
         ./scripts/installOnExternalDB.sh -e <config file>
         
