@@ -352,13 +352,64 @@ class RestoGeometryUtil
      * Returns point array from WKT point.
      *
      * @param string $wktPoint WKT point
-     * @throws Exception
-     * @return multitype:NULL polygon array
+     * @return array
      */
     public static function WKTPointToArray($wktPoint)
     {
         $coordsAsString = explode(' ', substr($wktPoint, 6, -1));
         return array((float) $coordsAsString[0], (float) $coordsAsString[1]);
+    }
+
+    /**
+     * Returns polygon array from WKT polygon.
+     * 
+     * @param string $wktPolygon WKT polygon
+     * @throws Exception
+     * @return array
+     */
+    public static function WKTPolygonToArray($wktPolygon) {
+        
+        /*
+         * Result
+         */
+        $coordinates = array ();
+        
+        /*
+         * Patterns
+         */
+        $lon = $lat = '[-]?[0-9]{1,3}\.?[0-9]*';
+        $values = "($lon $lat)(\s*,\s*$lon $lat)*";
+        $pattern = "/^POLYGON\s*\(\s*\(\s*($values)\s*\)\s*\)$/i";
+        
+        /*
+         * Checks input parameter (WKT String)
+         */
+        if (preg_match($pattern, $wktPolygon, $matches)) {
+            
+            if (count($matches) >= 1) {
+                
+                /*
+                 * Explodes coordinates string
+                 */
+                $coordinates = explode(',', $matches[1]);
+                
+                /*
+                 * For each coordinate, stores lon/lat
+                 */
+                for($i = 0, $ii = count($coordinates); $i < $ii; $i++) {
+                    $coordinates[$i] = explode(' ', $coordinates[$i]);
+                }
+            }
+        }
+        else {
+            throw new Exception(__method__ . ': Invalid input WKT');
+        }
+
+        /*
+         * Returns result
+         */
+        return $coordinates;
+        
     }
 
     /**
