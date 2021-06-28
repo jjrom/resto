@@ -196,7 +196,7 @@ class RestoFeatureUtil
                     break;
 
                 case 'keywords':
-                    $featureArray['properties'][$key] = $this->addKeywordsHref(json_decode($value, true), $collection);
+                    $featureArray['properties']['resto:keywords'] = $this->addKeywordsHref(json_decode($value, true), $collection);
                     break;
 
                 case 'liked':

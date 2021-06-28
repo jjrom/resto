@@ -587,7 +587,8 @@ abstract class RestoModel
             'visibility',
             'owner',
             'sort_idx',
-            '_keywords'
+            '_keywords',
+            'resto:internal'
         );
 
         $properties = array();
