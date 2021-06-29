@@ -1010,7 +1010,7 @@ class RestoCollection
         /*
          * Version
          */
-        $this->version = $object['version'];
+        $this->version = $object['version'] ?? '1.0.0';
        
         /*
          * License - set to 'proprietary' if not specified
