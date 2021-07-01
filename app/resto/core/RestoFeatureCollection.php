@@ -502,6 +502,9 @@ class RestoFeatureCollection
             'stac_version' => STAC::STAC_VERSION,
             'context' => $this->searchContext,
             'links' => $this->links,
+            'timeStamp' => date('Y-m-d\TH:i:s\Z', time()),
+            'numberMatched' => $this->searchContext['matched'],
+            'numberReturned' => $this->searchContext['returned'],
             'features' => $features
         ), $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
         

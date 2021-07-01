@@ -287,8 +287,10 @@
                         "name": "bbox", 
                         "in": "query", 
                         "schema": {
-                            "type": "string", 
-                            "format": "[west,south,east,north]"
+                            "items": {
+                                "type": "string"
+                            }, 
+                            "type": "array"
                         }
                     }, 
                     {
@@ -2048,8 +2050,10 @@
                         "name": "bbox", 
                         "in": "query", 
                         "schema": {
-                            "type": "string", 
-                            "format": "west,south,east,north"
+                            "items": {
+                                "type": "string"
+                            }, 
+                            "type": "array"
                         }
                     }, 
                     {
