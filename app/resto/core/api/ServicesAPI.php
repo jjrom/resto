@@ -461,6 +461,7 @@ class ServicesAPI
         return array(
             'https://api.stacspec.org/v1.0.0-beta.2/core',
             'https://api.stacspec.org/v1.0.0-beta.2/item-search',
+            'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core',
             'http://www.opengis.net/spec/ogcapi-features-1/1.0/req/core',
             'http://www.opengis.net/spec/ogcapi-features-1/1.0/req/oas30',
             'http://www.opengis.net/spec/ogcapi-features-1/1.0/req/geojson'
