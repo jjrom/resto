@@ -58,7 +58,7 @@ class Tag extends RestoAddOn
      */
     private function keywordsFromITag($properties, $geometry, $taggers)
     {
-        
+
         /*
          * No geometry = no iTag
          * 
@@ -69,16 +69,25 @@ class Tag extends RestoAddOn
             return array();
         }
 
-        // Geometry is mandatory - other parameters optional
+        $taggerKeys = array_keys($taggers);
         $queryParams = array(
             'geometry' => RestoGeometryUtil::geoJSONGeometryToWKT($geometry),
-            'taggers' => join(',', $taggers)
+            'taggers' => join(',', $taggerKeys)
         );
 
         if (isset($properties['startDate'])) {
             $queryParams['timestamp'] = $properties['startDate'];
         }
 
+        /*
+         * Convert taggers options to query params
+         */
+        for ($i = count($taggerKeys); $i--;) {
+            foreach ($taggers[$taggerKeys[$i]] as $optionName => $optionValue) {
+                $queryParams[strtolower($taggerKeys[$i]) . '_' . $optionName] = $optionValue;
+            }
+        }
+        
         try {
             $curl = new Curly();
             $iTagFeature = json_decode($curl->get($this->options['iTag']['endpoint'] . '?' . http_build_query($queryParams)), true);
