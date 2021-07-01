@@ -287,10 +287,12 @@
                         "name": "bbox", 
                         "in": "query", 
                         "schema": {
+                            "minItems": 4, 
                             "items": {
                                 "type": "string"
                             }, 
-                            "type": "array"
+                            "type": "array", 
+                            "maxItems": 6
                         }
                     }, 
                     {
@@ -2050,10 +2052,12 @@
                         "name": "bbox", 
                         "in": "query", 
                         "schema": {
+                            "minItems": 4, 
                             "items": {
                                 "type": "string"
                             }, 
-                            "type": "array"
+                            "type": "array", 
+                            "maxItems": 6
                         }
                     }, 
                     {
