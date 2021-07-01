@@ -207,7 +207,7 @@ class FeaturesAPI
      *              minItems=4,
      *              maxItems=6,
      *              @OA\Items(
-     *                  type="string",
+     *                  type="number",
      *              )
      *          )
      *      ),
