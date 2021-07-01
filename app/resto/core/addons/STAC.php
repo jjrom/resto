@@ -271,6 +271,8 @@ class STAC extends RestoAddOn
      *          required=false,
      *          @OA\Schema(
      *              type="array",
+     *              minItems=4,
+     *              maxItems=6,
      *              @OA\Items(
      *                  type="string",
      *              )
