@@ -43,6 +43,7 @@ class UsersAPI
      *      @OA\Parameter(
      *         name="lt",
      *         in="query",
+     *         style="form",
      *         description="Return user profiles with identifier lower than *lt* - used for pagination",
      *         @OA\Schema(
      *             type="integer"
@@ -51,6 +52,7 @@ class UsersAPI
      *      @OA\Parameter(
      *         name="in",
      *         in="query",
+     *         style="form",
      *         description="List of comma separated user identifiers",
      *         @OA\Schema(
      *             type="string"
@@ -59,6 +61,7 @@ class UsersAPI
      *      @OA\Parameter(
      *         name="groupid",
      *         in="query",
+     *         style="form",
      *         description="Return user profiles belonging to group identified by *groupid* ",
      *         @OA\Schema(
      *             type="string"
@@ -67,6 +70,7 @@ class UsersAPI
      *      @OA\Parameter(
      *         name="q",
      *         in="query",
+     *         style="form",
      *         description="Filter by name, firstname or lastname",
      *         @OA\Schema(
      *             type="string"
@@ -544,6 +548,7 @@ class UsersAPI
      *      @OA\Parameter(
      *         name="querytime",
      *         in="query",
+     *         style="form",
      *         description="Filter on query time. Interval of ISO8601 date (i.e. YYYY-MM-DDTHH:MM:SSZ)",
      *         @OA\Schema(
      *             type="string"
@@ -552,6 +557,7 @@ class UsersAPI
      *      @OA\Parameter(
      *         name="lt",
      *         in="query",
+     *         style="form",
      *         description="Return logs with gid lower than *lt* - used for pagination",
      *         @OA\Schema(
      *             type="integer"

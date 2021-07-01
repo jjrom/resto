@@ -269,6 +269,7 @@ class ServicesAPI
      *      @OA\Parameter(
      *          name="model",
      *          in="query",
+     *          style="form",
      *          description="Limit description to collections belonging to *model* - e.g. *model=SatelliteModel* will search in all satellite collections",
      *          required=false,
      *          @OA\Items(
@@ -315,6 +316,7 @@ class ServicesAPI
      *      @SWG\Parameter(
      *          name="email",
      *          in="query",
+     *          style="form",
      *          description="Email",
      *          required=true,
      *          type="string",
@@ -354,6 +356,7 @@ class ServicesAPI
      *      @SWG\Parameter(
      *          name="email",
      *          in="query",
+     *          style="form",
      *          description="Email",
      *          required=true,
      *          type="string",
@@ -410,6 +413,7 @@ class ServicesAPI
      *      @SWG\Parameter(
      *          name="token",
      *          in="query",
+     *          style="form",
      *          description="Security token",
      *          required=true,
      *          type="string",
@@ -418,6 +422,7 @@ class ServicesAPI
      *      @SWG\Parameter(
      *          name="password",
      *          in="query",
+     *          style="form",
      *          description="Password",
      *          required=true,
      *          type="string",
@@ -461,6 +466,7 @@ class ServicesAPI
         return array(
             'https://api.stacspec.org/v1.0.0-beta.2/core',
             'https://api.stacspec.org/v1.0.0-beta.2/item-search',
+            'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core',
             'http://www.opengis.net/spec/ogcapi-features-1/1.0/req/core',
             'http://www.opengis.net/spec/ogcapi-features-1/1.0/req/oas30',
             'http://www.opengis.net/spec/ogcapi-features-1/1.0/req/geojson'
