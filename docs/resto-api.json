@@ -289,7 +289,7 @@
                         "schema": {
                             "minItems": 4, 
                             "items": {
-                                "type": "string"
+                                "type": "number"
                             }, 
                             "type": "array", 
                             "maxItems": 6
@@ -2054,7 +2054,7 @@
                         "schema": {
                             "minItems": 4, 
                             "items": {
-                                "type": "string"
+                                "type": "number"
                             }, 
                             "type": "array", 
                             "maxItems": 6
