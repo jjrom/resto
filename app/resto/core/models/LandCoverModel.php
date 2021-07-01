@@ -35,7 +35,7 @@ class LandCoverModel extends DefaultModel
         /*
          * Add LandCover tagger
          */
-        $this->tagConfig['taggers'][] = 'LandCover';
+        $this->tagConfig['taggers']['LandCover'] = array();
 
         /*
          * Extend search filters

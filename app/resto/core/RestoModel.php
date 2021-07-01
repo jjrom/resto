@@ -781,24 +781,53 @@ abstract class RestoModel
             return array();
         }
 
-        // Default : useItag with defaultTaggers
-        $taggers = $collection->context->addons['Tag']['options']['iTag']['taggers'] ?? array();
+        /*
+         * Default : useItag with defaultTaggers
+         * Convert array of string to associative array
+         */
+        $taggers = $this->getTaggers($collection);
+
+        return (new Tag($collection->context, $collection->user))->getKeywords($properties, $data['geometry'] ?? null, $collection->model->facetCategories, $taggers);
+
+    }
+
+    /**
+     * Return collection taggers associative array
+     * 
+     * @param RestoCollection $collection
+     * @return array
+     */
+    private function getTaggers($collection)
+    {
 
         // iTag is not use because model strategy is 'none' or explicitely _useItag is set to false
         if ((isset($collection->context->query['_useItag']) && filter_var($collection->context->query['_useItag'], FILTER_VALIDATE_BOOLEAN) === false) || ($collection->model->tagConfig['strategy'] === 'none')) {
-            $taggers = null;
+            return null;
         }
-        // Default strategy is merge
-        else {
+
+        $taggers = array();
+
+        /*
+         * Default is to convert array of string to associative array
+         */ 
+        if ($collection->context->addons['Tag']['options']['iTag']['taggers']) {
+            for ($i = 0, $ii = count($collection->context->addons['Tag']['options']['iTag']['taggers']); $i < $ii; $i++) {
+                $taggers[$collection->context->addons['Tag']['options']['iTag']['taggers'][$i]] = array();
+            }
+        }
+        
+        /*
+         * Superseed default per collection (replace or merge)
+         */
+        if (isset($collection->model->tagConfig['taggers'])) {
             if ($collection->model->tagConfig['strategy'] === 'replace') {
                 $taggers = $collection->model->tagConfig['taggers'];
-            }
-            else if ($collection->model->tagConfig['strategy'] === 'merge') {
+            } elseif ($collection->model->tagConfig['strategy'] === 'merge') {
                 $taggers = array_merge($taggers, $collection->model->tagConfig['taggers']);
             }
         }
-
-        return (new Tag($collection->context, $collection->user))->getKeywords($properties, $data['geometry'] ?? null, $collection->model->facetCategories, $taggers);
+        
+        return $taggers;
 
     }
 
