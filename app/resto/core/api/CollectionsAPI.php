@@ -43,6 +43,7 @@ class CollectionsAPI
      *      @OA\Parameter(
      *         name="_stats",
      *         in="query",
+     *         style="form",
      *         required=false,
      *         description="Set to get individual statistics for all collection",
      *         @OA\Schema(
@@ -259,6 +260,7 @@ class CollectionsAPI
      *      @OA\Parameter(
      *         name="_stats",
      *         in="query",
+     *         style="form",
      *         description="True to return full statistics in summaries property. Default is *false*",
      *         @OA\Schema(
      *             type="boolean"
@@ -543,6 +545,7 @@ class CollectionsAPI
      *      @OA\Parameter(
      *         name="tolerance",
      *         in="query",
+     *         style="form",
      *         required=false,
      *         description="Simplify input geometry with tolerance in degrees (use in conjunction with *maxpoints*). [IMPORTANT] Simplification only affects the internal indexed geometry used by the search engine. The original geometry is stored unmodified.",
      *         @OA\Schema(
@@ -552,6 +555,7 @@ class CollectionsAPI
      *      @OA\Parameter(
      *         name="maxpoints",
      *         in="query",
+     *         style="form",
      *         required=false,
      *         description="If tolerance is set, geometry simplification of input geometry is performed only if the number of geometry vertices is greater than *maxpoints*",
      *         @OA\Schema(
@@ -561,6 +565,7 @@ class CollectionsAPI
      *      @OA\Parameter(
      *         name="_useItag",
      *         in="query",
+     *         style="form",
      *         required=false,
      *         description="[ADDON][Tag] Set to false to not use iTag during feature insertion",
      *         @OA\Schema(

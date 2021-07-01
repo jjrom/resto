@@ -172,6 +172,7 @@ class STAC extends RestoAddOn
      *          in="query",
      *          description="Search features within collections belonging to *model* - e.g. *model=SatelliteModel* will search in all satellite collections",
      *          required=false,
+     *          style="form",
      *          @OA\Schema(
      *              type="string"
      *          )
@@ -179,6 +180,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="collections",
      *          in="query",
+     *          style="form",
      *          description="Search features within collections - comma separated list of collection identifiers",
      *          required=false,
      *          @OA\Schema(
@@ -188,6 +190,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="q",
      *          in="query",
+     *          style="form",
      *          description="Free text search - OpenSearch {searchTerms}. Can include hashtags i.e. text starting with *#* characters. In this case, use the following:
 * *#cryosphere* will search for *cryosphere*
 * *#cryosphere #atmosphere* will search for *cryosphere* AND *atmosphere*
@@ -203,6 +206,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="limit",
      *          in="query",
+     *          style="form",
      *          description="Number of results returned per page - between 1 and 500 (default 50) - OpenSearch {count}",
      *          required=false,
      *          @OA\Schema(
@@ -212,6 +216,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="startIndex",
      *          in="query",
+     *          style="form",
      *          description="First result to provide - minimum 1, (default 1) - OpenSearch {startIndex}",
      *          required=false,
      *          @OA\Schema(
@@ -221,6 +226,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="page",
      *          in="query",
+     *          style="form",
      *          description="First page to provide - minimum 1, (default 1) - OpenSearch {startPage}",
      *          required=false,
      *          @OA\Schema(
@@ -230,6 +236,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="lang",
      *          in="query",
+     *          style="form",
      *          description="Two letters language code according to ISO 639-1 (default *en*) - OpenSearch {language}",
      *          required=false,
      *          @OA\Schema(
@@ -239,6 +246,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="ids",
      *          in="query",
+     *          style="form",
      *          description="Array of item ids to return. All other filter parameters that further restrict the number of search results (except next and limit) are ignored",
      *          required=false,
      *          @OA\Schema(
@@ -248,6 +256,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="intersects",
      *          in="query",
+     *          style="form",
      *          description="Region of Interest defined in GeoJSON or in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326) - OpenSearch {geo:geometry}",
      *          required=false,
      *          @OA\Schema(
@@ -257,6 +266,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="bbox",
      *          in="query",
+     *          style="form",
      *          description="Region of Interest defined by 'west, south, east, north' coordinates of longitude, latitude, in decimal degrees (EPSG:4326) - OpenSearch {geo:box}",
      *          required=false,
      *          @OA\Schema(
@@ -267,6 +277,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="name",
      *          in="query",
+     *          style="form",
      *          description="[EXTENSION][egg] Location string e.g. Paris, France  or toponym identifier (i.e. geouid:xxxx) - OpenSearch {geo:name}",
      *          required=false,
      *          @OA\Schema(
@@ -276,6 +287,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="lon",
      *          in="query",
+     *          style="form",
      *          description="Longitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lat - OpenSearch {geo:lon}",
      *          required=false,
      *          @OA\Schema(
@@ -285,6 +297,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="lat",
      *          in="query",
+     *          style="form",
      *          description="Latitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lon - OpenSearch {geo:lat}",
      *          required=false,
      *          @OA\Schema(
@@ -294,6 +307,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="radius",
      *          in="query",
+     *          style="form",
      *          description="Radius expressed in meters - should be used with geo:lon and geo:lat - OpenSearch {geo:radius}",
      *          required=false,
      *          @OA\Schema(
@@ -303,6 +317,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="datetime",
      *          in="query",
+     *          style="form",
      *          description="Single date+time, or a range ('/' separator) of the search query. Format should follow RFC-3339 - OpenSearch {time:start}/{time:end}",
      *          required=false,
      *          @OA\Schema(
@@ -314,6 +329,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="start",
      *          in="query",
+     *          style="form",
      *          description="Beginning of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:start}",
      *          required=false,
      *          @OA\Schema(
@@ -325,6 +341,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="end",
      *          in="query",
+     *          style="form",
      *          description="End of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:end}",
      *          required=false,
      *          @OA\Schema(
@@ -336,6 +353,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="created",
      *          in="query",
+     *          style="form",
      *          description="Returns products with metadata creation date greater or equal than *created* - OpenSearch {dc:date}",
      *          required=false,
      *          @OA\Schema(
@@ -347,6 +365,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="prev",
      *          in="query",
+     *          style="form",
      *          description="Returns features with *sort* key value greater than *prev* value - use this for pagination. The value is a unique iterator computed from the *sort* key value and provided within each feature properties as *sort_idx* property",
      *          required=false,
      *          @OA\Schema(
@@ -356,6 +375,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="next",
      *          in="query",
+     *          style="form",
      *          description="Returns features with *sort* key value lower than *next* value - use this for pagination. The value is a unique iterator computed from the *sort* key value and provided within each feature properties as *sort_idx* property",
      *          required=false,
      *          @OA\Schema(
@@ -365,6 +385,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="pid",
      *          in="query",
+     *          style="form",
      *          description="Like on product identifier",
      *          required=false,
      *          @OA\Schema(
@@ -374,6 +395,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="sort",
      *          in="query",
+     *          style="form",
      *          description="Sort results by property *startDate* or *created* (default *startDate*). Sorting order is DESCENDING (ASCENDING if property is prefixed by minus sign)",
      *          required=false,
      *          @OA\Schema(
@@ -383,6 +405,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="owner",
      *          in="query",
+     *          style="form",
      *          description="Limit search to owner's features",
      *          required=false,
      *          @OA\Schema(
@@ -392,6 +415,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="likes",
      *          in="query",
+     *          style="form",
      *          description="[EXTENSION][social] Limit search to number of likes (interval)",
      *          required=false,
      *          @OA\Schema(
@@ -401,6 +425,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="liked",
      *          in="query",
+     *          style="form",
      *          description="[EXTENSION][social] Return only liked features from calling user",
      *          required=false,
      *          @OA\Schema(
@@ -410,6 +435,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="status",
      *          in="query",
+     *          style="form",
      *          description="Feature status (unusued)",
      *          required=false,
      *          @OA\Schema(
@@ -419,6 +445,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="productType",
      *          in="query",
+     *          style="form",
      *          description="[MODEL][SatelliteModel] A string identifying the entry type (e.g. ER02_SAR_IM__0P, MER_RR__1P, SM_SLC__1S, GES_DISC_AIRH3STD_V005) - OpenSearch {eo:productType}",
      *          required=false,
      *          @OA\Schema(
@@ -428,6 +455,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="processingLevel",
      *          in="query",
+     *          style="form",
      *          description="[MODEL][SatelliteModel] A string identifying the processing level applied to the entry - OpenSearch {eo:processingLevel}",
      *          required=false,
      *          @OA\Schema(
@@ -437,6 +465,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="platform",
      *          in="query",
+     *          style="form",
      *          description="[MODEL][SatelliteModel] A string with the platform short name (e.g. Sentinel-1) - OpenSearch {eo:platform}",
      *          required=false,
      *          @OA\Schema(
@@ -446,6 +475,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="instrument",
      *          in="query",
+     *          style="form",
      *          description="[MODEL][SatelliteModel] A string identifying the instrument (e.g. MERIS, AATSR, ASAR, HRVIR. SAR) - OpenSearch {eo:instrument}",
      *          required=false,
      *          @OA\Schema(
@@ -455,6 +485,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="sensorType",
      *          in="query",
+     *          style="form",
      *          description="[MODEL][SatelliteModel] A string identifying the sensor type. Suggested values are: OPTICAL, RADAR, ALTIMETRIC, ATMOSPHERIC, LIMB - OpenSearch {eo:sensorType}",
      *          required=false,
      *          @OA\Schema(
@@ -464,6 +495,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="cloudCover",
      *          in="query",
+     *          style="form",
      *          description="[MODEL][OpticalModel] Cloud cover expressed in percent",
      *          required=false,
      *          @OA\Schema(
@@ -473,6 +505,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="snowCover",
      *          in="query",
+     *          style="form",
      *          description="[MODEL][OpticalModel] Snow cover expressed in percent",
      *          required=false,
      *          @OA\Schema(
@@ -482,6 +515,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="waterCover",
      *          in="query",
+     *          style="form",
      *          description="[MODEL][LandCoverModel] Water area expressed in percent",
      *          required=false,
      *          @OA\Schema(
@@ -491,6 +525,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="urbanCover",
      *          in="query",
+     *          style="form",
      *          description="[MODEL][LandCoverModel] Urban area expressed in percent",
      *          required=false,
      *          @OA\Schema(
@@ -500,6 +535,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="iceCover",
      *          in="query",
+     *          style="form",
      *          description="[MODEL][LandCoverModel] Ice area expressed in percent",
      *          required=false,
      *          @OA\Schema(
@@ -509,6 +545,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="herbaceousCover",
      *          in="query",
+     *          style="form",
      *          description="[MODEL][LandCoverModel] Herbaceous area expressed in percent",
      *          required=false,
      *          @OA\Schema(
@@ -518,6 +555,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="forestCover",
      *          in="query",
+     *          style="form",
      *          description="[MODEL][LandCoverModel] Forest area expressed in percent",
      *          required=false,
      *          @OA\Schema(
@@ -527,6 +565,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="floodedCover",
      *          in="query",
+     *          style="form",
      *          description="[MODEL][LandCoverModel] Flooded area expressed in percent",
      *          required=false,
      *          @OA\Schema(
@@ -536,6 +575,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="desertCover",
      *          in="query",
+     *          style="form",
      *          description="[MODEL][LandCoverModel] Desert area expressed in percent",
      *          required=false,
      *          @OA\Schema(
@@ -545,6 +585,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="cultivatedCover",
      *          in="query",
+     *          style="form",
      *          description="[MODEL][LandCoverModel] Cultivated area expressed in percent",
      *          required=false,
      *          @OA\Schema(
@@ -554,6 +595,7 @@ class STAC extends RestoAddOn
      *      @OA\Parameter(
      *          name="fields",
      *          in="query",
+     *          style="form",
      *          description="Comma separated list of property fields to be returned",
      *          required=false,
      *          @OA\Items(
