@@ -3646,7 +3646,7 @@ curl -X GET http://127.0.0.1:5252/collections/{collectionId}/items \
 <tr>
 <td>bbox</td>
 <td>query</td>
-<td>string([west,south,east,north])</td>
+<td>array[string]</td>
 <td>false</td>
 <td>Region of Interest defined by 'west, south, east, north' coordinates of longitude, latitude, in decimal degrees (EPSG:4326) - OpenSearch {geo:box}</td>
 </tr>
@@ -4856,7 +4856,7 @@ curl -X GET http://127.0.0.1:5252/search \
 <tr>
 <td>bbox</td>
 <td>query</td>
-<td>string(west,south,east,north)</td>
+<td>array[string]</td>
 <td>false</td>
 <td>Region of Interest defined by 'west, south, east, north' coordinates of longitude, latitude, in decimal degrees (EPSG:4326) - OpenSearch {geo:box}</td>
 </tr>
