@@ -260,8 +260,10 @@ class STAC extends RestoAddOn
      *          description="Region of Interest defined by 'west, south, east, north' coordinates of longitude, latitude, in decimal degrees (EPSG:4326) - OpenSearch {geo:box}",
      *          required=false,
      *          @OA\Schema(
-     *              type="string",
-     *              format="west,south,east,north"
+     *              type="array",
+     *              @OA\Items(
+     *                  type="string",
+     *              )
      *          )
      *      ),
      *      @OA\Parameter(
