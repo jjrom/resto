@@ -20,7 +20,7 @@
  */
 class Curly
 {
-    private $curl;
+    public $handler;
 
     /**
      * Constructor
@@ -31,7 +31,7 @@ class Curly
             return RestoLogUtil::httpError(500, 'Curl extension not loaded');
         }
 
-        $this->curl = curl_init();
+        $this->handler = curl_init();
         
         // Set default
         $this->setDefault();
@@ -44,9 +44,9 @@ class Curly
      */
     public function get($url)
     {
-        curl_setopt($this->curl, CURLOPT_URL, $url);
-        curl_setopt($this->curl, CURLOPT_HTTPGET, true);
-        return curl_exec($this->curl);
+        curl_setopt($this->handler, CURLOPT_URL, $url);
+        curl_setopt($this->handler, CURLOPT_HTTPGET, true);
+        return curl_exec($this->handler);
     }
 
     /**
@@ -56,10 +56,10 @@ class Curly
      */
     public function post($url, $body)
     {
-        curl_setopt($this->curl, CURLOPT_URL, $url);
-        curl_setopt($this->curl, CURLOPT_POST, true);
-        curl_setopt($this->curl, CURLOPT_POSTFIELDS, $body);
-        return curl_exec($this->curl);
+        curl_setopt($this->handler, CURLOPT_URL, $url);
+        curl_setopt($this->handler, CURLOPT_POST, true);
+        curl_setopt($this->handler, CURLOPT_POSTFIELDS, $body);
+        return curl_exec($this->handler);
     }
 
     /**
@@ -69,7 +69,7 @@ class Curly
      */
     public function setHeaders($headers)
     {
-        curl_setopt($this->curl, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($this->handler, CURLOPT_HTTPHEADER, $headers);
     }
 
     /**
@@ -80,7 +80,7 @@ class Curly
     public function setOptions($options)
     {
         foreach ($options as $key => $value) {
-            curl_setopt($this->curl, $key, $value);
+            curl_setopt($this->handler, $key, $value);
         }
     }
 
@@ -89,8 +89,8 @@ class Curly
      */
     public function close()
     {
-        if (is_resource($this->curl)) {
-            curl_close($this->curl);
+        if (is_resource($this->handler)) {
+            curl_close($this->handler);
         }
     }
 
@@ -106,7 +106,7 @@ class Curly
             'Accept: application/json'
         ));
 
-        curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($this->handler, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($this->handler, CURLOPT_FOLLOWLOCATION, true);
     }
 }
