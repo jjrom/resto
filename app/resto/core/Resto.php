@@ -351,15 +351,13 @@ class Resto
         if (!isset($object)) {
             return RestoLogUtil::httpError(400, 'Empty object');
         }
-
+        
         $pretty = isset($this->context->query['_pretty']) ? filter_var($this->context->query['_pretty'], FILTER_VALIDATE_BOOLEAN) : false;
 
         /*
          * Case 1 - Object is an array
-         * (Only JSON is supported for arrays)
          */
         if (is_array($object)) {
-            $this->context->outputFormat = 'json';
             return json_encode($object, $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
         }
 
@@ -367,9 +365,12 @@ class Resto
          * Case 2 - Object is an object
          */
         elseif (is_object($object)) {
-            $methodName = 'to' . strtoupper($this->context->outputFormat);
+
+            // Convert json* types in to json type
+            $outputFormat = in_array($this->context->outputFormat, array('json', 'geojson', 'openapi+json')) ? 'json' : $this->context->outputFormat;
+            $methodName = 'to' . strtoupper($outputFormat);
             if (method_exists(get_class($object), $methodName)) {
-                return $this->context->outputFormat === 'json' ? $object->$methodName($pretty) : $object->$methodName();
+                return $outputFormat === 'json' ? $object->$methodName($pretty) : $object->$methodName();
             }
             return RestoLogUtil::httpError(404);
         }

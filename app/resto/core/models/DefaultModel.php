@@ -90,12 +90,15 @@ class DefaultModel extends RestoModel
                 'options' => 'auto'
             ),
 
-            // [STAC/WFS3] datetime is a mix of time:start/time:end
+            /*
+             * [STAC/WFS3] datetime is a mix of time:start/time:end
+             * [Note] Pattern is checked against / separator only, then converted into time:start and time:end pattern
+             */
             'resto:datetime' => array(
                 'key' => 'startDate',
                 'osKey' => 'datetime',
                 'title' => 'Single date+time, or a range ("/" separator) of the search query. Format should follow RFC-3339. Equivalent to OpenSearch {time:start}/{time:end}',
-                'pattern' => '^[a-zA-Z0-9\-\/\.\:]+$'
+                'pattern' => '^(\.\.)|[(a-zA-Z0-9\-\/\.\:)]+$'
             ),
 
             'time:start' => array(
@@ -103,7 +106,8 @@ class DefaultModel extends RestoModel
                 'osKey' => 'start',
                 'operation' => '>=',
                 'title' => 'Beginning of the time slice of the search query. Format should follow RFC-3339',
-                'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'
+                'pattern' => '^([0-9]+)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$|^([0-9]+)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\.[0-9]+)?(([Zz])|([\+|\-]([01][0-9]|2[0-3]):[0-5][0-9]))$'
+                /*'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'*/
             ),
             
             'time:end' => array(
@@ -111,7 +115,8 @@ class DefaultModel extends RestoModel
                 'osKey' => 'end',
                 'operation' => '<=',
                 'title' => 'End of the time slice of the search query. Format should follow RFC-3339',
-                'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'
+                'pattern' => '^([0-9]+)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$|^([0-9]+)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\.[0-9]+)?(([Zz])|([\+|\-]([01][0-9]|2[0-3]):[0-5][0-9]))$'
+                /*'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'*/
             )
 
         ));
