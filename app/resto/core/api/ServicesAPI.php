@@ -74,6 +74,7 @@ class ServicesAPI
         }
 
         if ($this->context->outputFormat === 'json') {
+            $this->context->outputFormat = 'openapi+json';
             return json_decode($content, true);
         }
         
