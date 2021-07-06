@@ -100,6 +100,11 @@ class FeaturesAPI
             RestoLogUtil::httpError(404);
         }
 
+        // Set Content-Type to GeoJSON
+        if ($this->context->outputFormat === 'json') {
+            $this->context->outputFormat = 'geojson';
+        }
+
         return $feature;
     }
         
@@ -561,6 +566,11 @@ class FeaturesAPI
         // [STAC] Only one of either intersects or bbox should be specified. If both are specified, a 400 Bad Request response should be returned.
         if (isset($params['intersects']) && isset($params['bbox'])) {
             return RestoLogUtil::httpError(400, 'Only one of either intersects or bbox should be specified');
+        }
+
+        // Set Content-Type to GeoJSON
+        if ($this->context->outputFormat === 'json') {
+            $this->context->outputFormat = 'geojson';
         }
 
         return (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()->search($params);

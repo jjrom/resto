@@ -674,6 +674,11 @@ class STAC extends RestoAddOn
             }
         }
         */
+
+        // Set Content-Type to GeoJSON
+        if ($this->context->outputFormat === 'json') {
+            $this->context->outputFormat = 'geojson';
+        }
         
         return $restoCollections->search($model, $params);
     }
