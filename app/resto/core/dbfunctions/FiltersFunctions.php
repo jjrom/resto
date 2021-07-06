@@ -236,11 +236,15 @@ class FiltersFunctions
         }
         
         /*
-         * Special case - startDate, created
+         * Special case for date - get id from timestamp
+         * 
+         * [Issue][#267] Convert ',' to '.' character for seconds fraction since its a valid RFC339 (https://datatracker.ietf.org/doc/html/rfc3339)
+         * but an invalid PostgreSQL date
          */
         if ( in_array($filterName, array('time:start', 'time:end', 'dc:date')) ) {
+
             return array(
-                'value' => $featureTableName . '.' . strtolower($model->searchFilters[$filterName]['key']) . '_idx ' . $model->searchFilters[$filterName]['operation'] . ' timestamp_to_firstid(\'' . pg_escape_string($requestParams[$filterName]) . '\')',
+                'value' => $featureTableName . '.' . strtolower($model->searchFilters[$filterName]['key']) . '_idx ' . $model->searchFilters[$filterName]['operation'] . ' timestamp_to_firstid(\'' . pg_escape_string(str_replace(',', '.', $requestParams[$filterName])) . '\')',
                 'isGeo' => false
             );
         }
