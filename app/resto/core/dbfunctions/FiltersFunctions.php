@@ -365,9 +365,14 @@ class FiltersFunctions
 
         /*
          * Default bounding box is the whole earth
+         * 
+         * Note: input 3D bbox are accepted but converted to 2D
          */
         if ($filterName === 'geo:box') {
             $coords =  explode(',', $requestParams[$filterName]);
+            if (count($coords) === 6) {
+                $coords = array($coords[0], $coords[1], $coords[3], $coords[4]);
+            }
             $output = $this->intersectFilterBBOX($model, $filterName, $coords, $exclusion);
         }
 
@@ -448,9 +453,6 @@ class FiltersFunctions
      */
     private function intersectFilterBBOX($model, $filterName, $coords, $exclusion)
     {
-        if (count($coords) !== 4) {
-            RestoLogUtil::httpError(400, 'Invalid geo:box');
-        }
 
         $tableName = $this->getGeometryTableName($model);
         
