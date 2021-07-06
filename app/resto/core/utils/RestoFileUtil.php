@@ -86,7 +86,7 @@ class RestoFileUtil
      * Return path from input $files if it is a shapefile - null otherwise
      * 
      * @param array $files
-     * @return array
+     * @return string
      */
     private static function getShapefilePath($files)
     {
