@@ -218,9 +218,10 @@ abstract class RestoModel
         'dc:date' => array(
             'key' => 'created',
             'osKey' => 'published',
-            'title' => 'Metadata product publication within database',
+            'title' => 'Metadata product publication date within database - must follow RFC3339 pattern',
             'operation' => '>=',
-            'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'
+            'pattern' => '^([0-9]+)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$|^([0-9]+)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\.[0-9]+)?(([Zz])|([\+|\-]([01][0-9]|2[0-3]):[0-5][0-9]))$'
+            /*'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'*/
         ),
         
         'resto:collection' => array(

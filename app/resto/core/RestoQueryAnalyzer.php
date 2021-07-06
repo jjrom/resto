@@ -72,7 +72,14 @@ class RestoQueryAnalyzer
             $this->splitDatetime($params['resto:datetime'], $params);
             unset($params['resto:datetime']);
         }
-          
+        
+        /*
+         * Check dates
+         */
+        if ( isset($params['time:start']) && isset($params['time:end']) && $params['time:start'] > $params['time:end'] ) {
+            RestoLogUtil::httpError(400, 'Invalid dates range - start cannot be greater than end');
+        }
+
         /*
          * Details analysis
          */
@@ -368,12 +375,12 @@ class RestoQueryAnalyzer
         $dates = explode('/', trim($datetime));
         $model = new DefaultModel();
 
-        if ($dates[0] !== '') {
+        if ( isset($dates[0]) && !in_array($dates[0], array('', '..')) ) {
             $filterKey = $model->getFilterName('start');
             $params[$filterKey] = preg_replace('/<.*?>/', '', $dates[0]);
             $model->validateFilter($filterKey, $params[$filterKey]);
         }
-        if (isset($dates[1]) && $dates[1] !== '') {
+        if ( isset($dates[1]) && !in_array($dates[1], array('', '..')) ) {
             $filterKey = $model->getFilterName('end');
             $params[$filterKey] = preg_replace('/<.*?>/', '', $dates[1]);
             $model->validateFilter($filterKey, $params[$filterKey]);
