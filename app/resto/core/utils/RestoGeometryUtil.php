@@ -397,7 +397,7 @@ class RestoGeometryUtil
                  * For each coordinate, stores lon/lat
                  */
                 for($i = 0, $ii = count($coordinates); $i < $ii; $i++) {
-                    $coordinates[$i] = explode(' ', $coordinates[$i]);
+                    $coordinates[$i] = array_map('floatval', explode(' ', $coordinates[$i]));
                 }
             }
         }
