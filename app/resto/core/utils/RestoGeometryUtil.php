@@ -275,10 +275,11 @@ class RestoGeometryUtil
      */
     public static function geoJSONGeometryToWKT($geometry)
     {
+        
         if (!isset($geometry)) {
             return null;
         }
-
+        
         $type = strtoupper($geometry['type']);
         $epsgCode = RestoGeometryUtil::geoJSONGeometryToSRID($geometry);
         $srid = $epsgCode === 4326 ? '' : 'SRID=' . $epsgCode . ';';
@@ -302,6 +303,14 @@ class RestoGeometryUtil
 
             case 'MULTIPOLYGON':
                 $wkt = $srid . $type . RestoGeometryUtil::coordinatesToString($geometry['coordinates'], 'toPolygon');
+                break;
+            
+            case 'GEOMETRYCOLLECTION':
+                $wkts = array();
+                for ($i = count($geometry['geometries']); $i--;) {
+                    $wkts[] = RestoGeometryUtil::geoJSONGeometryToWKT($geometry['geometries'][$i]);
+                }
+                $wkt = $srid . $type . '(' . join(',', $wkts). ')';
                 break;
 
             default:
@@ -335,7 +344,7 @@ class RestoGeometryUtil
      */
     public static function forceWKT($geostring)
     {
-
+    
         if (isset($geostring) && isset($geostring[0]) && $geostring[0] === '{') {
             $geostring = RestoGeometryUtil::geoJSONGeometryToWKT(json_decode($geostring, true));
         }
