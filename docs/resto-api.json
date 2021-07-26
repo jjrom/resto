@@ -222,12 +222,15 @@
                     }, 
                     {
                         "style": "form", 
-                        "description": "Number of results returned per page - between 1 and 500 (default 50) - OpenSearch {count}", 
+                        "description": "Number of results returned per page - between 1 and 500 (default 20) - OpenSearch {count}", 
                         "required": false, 
                         "name": "limit", 
                         "in": "query", 
                         "schema": {
-                            "type": "integer"
+                            "default": 20, 
+                            "minimum": 1, 
+                            "type": "integer", 
+                            "maximum": 500
                         }
                     }, 
                     {
@@ -237,6 +240,8 @@
                         "name": "startIndex", 
                         "in": "query", 
                         "schema": {
+                            "default": 1, 
+                            "minimum": 1, 
                             "type": "integer"
                         }
                     }, 
@@ -247,6 +252,8 @@
                         "name": "page", 
                         "in": "query", 
                         "schema": {
+                            "default": 1, 
+                            "minimum": 1, 
                             "type": "integer"
                         }
                     }, 
@@ -1987,12 +1994,15 @@
                     }, 
                     {
                         "style": "form", 
-                        "description": "Number of results returned per page - between 1 and 500 (default 50) - OpenSearch {count}", 
+                        "description": "Number of results returned per page - between 1 and 500 (default 20) - OpenSearch {count}", 
                         "required": false, 
                         "name": "limit", 
                         "in": "query", 
                         "schema": {
-                            "type": "integer"
+                            "default": 20, 
+                            "minimum": 1, 
+                            "type": "integer", 
+                            "maximum": 500
                         }
                     }, 
                     {
@@ -2002,6 +2012,8 @@
                         "name": "startIndex", 
                         "in": "query", 
                         "schema": {
+                            "default": 1, 
+                            "minimum": 1, 
                             "type": "integer"
                         }
                     }, 
@@ -2012,6 +2024,8 @@
                         "name": "page", 
                         "in": "query", 
                         "schema": {
+                            "default": 1, 
+                            "minimum": 1, 
                             "type": "integer"
                         }
                     }, 

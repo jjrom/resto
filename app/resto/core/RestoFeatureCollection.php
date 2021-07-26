@@ -727,7 +727,7 @@ class RestoFeatureCollection
     /**
      * Get navigation links (i.e. next, previous, first, last)
      *
-     * @param array $limit
+     * @param array $sorting
      * @param string $collectionId
      *
      * @return array
@@ -1005,9 +1005,9 @@ class RestoFeatureCollection
     {
 
         /*
-         * Number of returned results is never greater than MAXIMUM_LIMIT
+         * Number of returned results is never greater than maxInclusive
          */
-        $limit = isset($filters['count']) && is_numeric($filters['count']) ? min($filters['count'], $this->model->searchFilters['count']->maximumInclusive ?? 500) : $this->context->dbDriver->resultsPerPage;
+        $limit = isset($filters['count']) && is_numeric($filters['count']) ? min($filters['count'], $this->model->searchFilters['count']->maxInclusive ?? 500) : $this->context->dbDriver->resultsPerPage;
 
         /*
          * Compute offset based on startPage or startIndex

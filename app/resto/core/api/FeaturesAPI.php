@@ -145,10 +145,13 @@ class FeaturesAPI
      *          name="limit",
      *          in="query",
      *          style="form",
-     *          description="Number of results returned per page - between 1 and 500 (default 50) - OpenSearch {count}",
+     *          description="Number of results returned per page - between 1 and 500 (default 20) - OpenSearch {count}",
      *          required=false,
      *          @OA\Schema(
-     *              type="integer"
+     *              type="integer",
+     *              minimum=1,
+     *              maximum=500,
+     *              default=20
      *          )
      *      ),
      *      @OA\Parameter(
@@ -158,7 +161,9 @@ class FeaturesAPI
      *          description="First result to provide - minimum 1, (default 1) - OpenSearch {startIndex}",
      *          required=false,
      *          @OA\Schema(
-     *              type="integer"
+     *              type="integer",
+     *              minimum=1,
+     *              default=1
      *          )
      *      ),
      *      @OA\Parameter(
@@ -168,7 +173,9 @@ class FeaturesAPI
      *          description="First page to provide - minimum 1, (default 1) - OpenSearch {startPage}",
      *          required=false,
      *          @OA\Schema(
-     *              type="integer"
+     *              type="integer",
+     *              minimum=1,
+     *              default=1
      *          )
      *      ),
      *      @OA\Parameter(
