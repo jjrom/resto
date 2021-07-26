@@ -145,10 +145,13 @@ class FeaturesAPI
      *          name="limit",
      *          in="query",
      *          style="form",
-     *          description="Number of results returned per page - between 1 and 500 (default 50) - OpenSearch {count}",
+     *          description="Number of results returned per page - between 1 and 500 (default 20) - OpenSearch {count}",
      *          required=false,
      *          @OA\Schema(
-     *              type="integer"
+     *              type="integer",
+     *              minimum=1,
+     *              maximum=500,
+     *              default=20
      *          )
      *      ),
      *      @OA\Parameter(
@@ -158,7 +161,9 @@ class FeaturesAPI
      *          description="First result to provide - minimum 1, (default 1) - OpenSearch {startIndex}",
      *          required=false,
      *          @OA\Schema(
-     *              type="integer"
+     *              type="integer",
+     *              minimum=1,
+     *              default=1
      *          )
      *      ),
      *      @OA\Parameter(
@@ -168,7 +173,9 @@ class FeaturesAPI
      *          description="First page to provide - minimum 1, (default 1) - OpenSearch {startPage}",
      *          required=false,
      *          @OA\Schema(
-     *              type="integer"
+     *              type="integer",
+     *              minimum=1,
+     *              default=1
      *          )
      *      ),
      *      @OA\Parameter(
@@ -265,7 +272,7 @@ class FeaturesAPI
      *          @OA\Schema(
      *              type="string",
      *              format="date-time",
-     *              pattern="^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$"
+     *              pattern="^([0-9]{4})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)([\.,][0-9]+)?(([Zz])|([\+|\-]([01][0-9]|2[0-3]):[0-5][0-9]))$"
      *          )
      *      ),
      *      @OA\Parameter(
