@@ -162,7 +162,7 @@ else
         fi
         COMPOSE_FILE="docker-compose-restodb.yml:docker-compose.yml:docker-compose.${TARGET}.yml"
     else
-        echo a$DATABASE_HOST
+        echo $DATABASE_HOST
         if [[ ! -f docker-compose-nodb.${TARGET}.yml ]]; then
             echo -e "${RED}[ERROR] The file docker-compose-nodb.${TARGET}.yml does not exist!${NC}"
             echo ""
