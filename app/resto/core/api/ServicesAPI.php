@@ -465,9 +465,9 @@ class ServicesAPI
     private function conformsTo()
     {
         return array(
-            'https://api.stacspec.org/v1.0.0-beta.2/core',
-            'https://api.stacspec.org/v1.0.0-beta.2/item-search',
-            'https://api.stacspec.org/v1.0.0-beta.2/ogcapi-features',
+            'https://api.stacspec.org/v1.0.0-beta.3/core',
+            'https://api.stacspec.org/v1.0.0-beta.3/item-search',
+            'https://api.stacspec.org/v1.0.0-beta.3/ogcapi-features',
             'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core',
             'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/oas30',
             'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/html',
