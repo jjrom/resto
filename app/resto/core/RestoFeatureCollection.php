@@ -489,7 +489,6 @@ class RestoFeatureCollection
         return json_encode(array(
             'type' => 'FeatureCollection',
             'id' => $this->id,
-            'stac_version' => STAC::STAC_VERSION,
             'context' => $this->searchContext,
             'links' => $this->links,
             'timeStamp' => date('Y-m-d\TH:i:s\Z', time()),
