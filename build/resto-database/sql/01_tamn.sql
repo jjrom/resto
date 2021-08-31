@@ -1,12 +1,22 @@
 
---
--- TAMN - The AntiMeridian Nightmare
--- https:://github.com/jjrom/tamn
---
--- Copyright (C) 2018 Jerome Gasperi <jerome.gasperi@gmail.com>
--- 
--- TAMN provides a set of PostGIS based PSQL functions to deal with antimeridian crossing geometries.
--- 
+
+-- Clean old functions
+DROP FUNCTION IF EXISTS public.ST_DistanceToNorthPole(geometry);
+DROP FUNCTION IF EXISTS public.ST_DistanceToSouthPole(geometry);
+
+DROP FUNCTION IF EXISTS public.ST_SplitNorthPole(geometry, integer);
+DROP FUNCTION IF EXISTS public.ST_SplitNorthPole(geometry, integer, integer);
+DROP FUNCTION IF EXISTS public.ST_SplitNorthPole(geometry, integer, integer, integer);
+
+DROP FUNCTION IF EXISTS public.ST_SplitSouthPole(geometry, integer);
+DROP FUNCTION IF EXISTS public.ST_SplitSouthPole(geometry, integer, integer);
+DROP FUNCTION IF EXISTS public.ST_SplitSouthPole(geometry, integer, integer, integer);
+
+DROP FUNCTION IF EXISTS public.ST_SplitAntimeridian(geometry);
+DROP FUNCTION IF EXISTS public.ST_IntersectsAntimeridian(geometry);
+
+DROP FUNCTION IF EXISTS public.ST_SplitDateLine(geometry, integer);
+DROP FUNCTION IF EXISTS public.ST_SplitDateLine(geometry, integer, integer);
 
 --
 -- Insert North_Pole_Azimuthal_Equidistant and South_Pole_Azimuthal_Equidistant special projections
@@ -140,8 +150,7 @@ BEGIN
     
     RETURN 0; 
 
-    -- If any of above failed, revert to use original polygon
-    -- This prevents ingestion error, but may potentially lead to incorrect spatial query.
+    -- If any of above failed, raise error and return -1
     EXCEPTION WHEN OTHERS THEN
         GET STACKED DIAGNOSTICS text_var1 = MESSAGE_TEXT,
                                 text_var2 = PG_EXCEPTION_DETAIL,
@@ -156,89 +165,7 @@ $$ LANGUAGE 'plpgsql' IMMUTABLE;
 -- Copyright (C) 2018 Jerome Gasperi <jerome.gasperi@gmail.com>
 --
 -- SYNOPSYS:
---   ST_IntersectsNorthPole(polygon, distance)
---
--- DESCRIPTION:
---   Returns TRUE if input geometry intersects the North Pole, FALSE otherwise
---   Intersection is based on ST_Distance computation
---
--- USAGE:
---   SELECT ST_IntersectsNorthPole(geom_in geometry, distance integer default 0);
---
-CREATE OR REPLACE FUNCTION ST_IntersectsNorthPole(geom_in geometry, distance integer default 0)
-    RETURNS boolean AS $$
-DECLARE
-    north_pole  geography := ST_SetSrid(ST_MakePoint(0, 90), 4326)::geography;
-    text_var1   text := '';
-    text_var2   text := '';
-    text_var3   text := '';
-BEGIN
-
-    -- [IMPORTANT] Computation is done in geographical coordinates
-    IF ST_Distance(geom_in::geography, north_pole, true) <= distance THEN
-        RETURN TRUE;
-    END IF;    
-    
-    RETURN FALSE; 
-
-    -- If any of above failed, revert to use original polygon
-    -- This prevents ingestion error, but may potentially lead to incorrect spatial query.
-    EXCEPTION WHEN OTHERS THEN
-        GET STACKED DIAGNOSTICS text_var1 = MESSAGE_TEXT,
-                                text_var2 = PG_EXCEPTION_DETAIL,
-                                text_var3 = PG_EXCEPTION_HINT;
-        raise WARNING 'ST_IntersectsNorthPole: exception occured: Msg: %, detail: %, hint: %', text_var1, text_var1, text_var3;
-        RETURN FALSE;
-
-END
-$$ LANGUAGE 'plpgsql' IMMUTABLE;
-
---
--- Copyright (C) 2018 Jerome Gasperi <jerome.gasperi@gmail.com>
---
--- SYNOPSYS:
---   ST_IntersectsSouthPole(polygon, distance)
---
--- DESCRIPTION:
---   Returns TRUE if input geometry intersects the South Pole, FALSE otherwise
---   Intersection is based on ST_Distance computation
---
--- USAGE:
---   SELECT ST_IntersectsSouthPole(geom_in geometry, distance integer default 0);
---
-CREATE OR REPLACE FUNCTION ST_IntersectsSouthPole(geom_in geometry, distance integer default 0)
-    RETURNS boolean AS $$
-DECLARE
-    south_pole  geography := ST_SetSrid(ST_MakePoint(0, -90), 4326)::geography;
-    text_var1   text := '';
-    text_var2   text := '';
-    text_var3   text := '';
-BEGIN
-
-    -- [IMPORTANT] Computation is done in geographical coordinates
-    IF ST_Distance(geom_in::geography, south_pole, true) <= distance THEN
-        RETURN TRUE;
-    END IF;    
-    
-    RETURN FALSE; 
-
-    -- If any of above failed, revert to use original polygon
-    -- This prevents ingestion error, but may potentially lead to incorrect spatial query.
-    EXCEPTION WHEN OTHERS THEN
-        GET STACKED DIAGNOSTICS text_var1 = MESSAGE_TEXT,
-                                text_var2 = PG_EXCEPTION_DETAIL,
-                                text_var3 = PG_EXCEPTION_HINT;
-        raise WARNING 'ST_IntersectsSouthPole: exception occured: Msg: %, detail: %, hint: %', text_var1, text_var1, text_var3;
-        RETURN FALSE;
-
-END
-$$ LANGUAGE 'plpgsql' IMMUTABLE;
-
---
--- Copyright (C) 2018 Jerome Gasperi <jerome.gasperi@gmail.com>
---
--- SYNOPSYS:
---   ST_SplitSouthPole(polygon, radius)
+--   ST_SplitSouthPole(polygon, radius, pole_distance, trans_buffer)
 --
 -- DESCRIPTION:
 --   Splits input geometry that crosses the South Pole. If radius is specified, then remove a circle of radius meters around the South Pole from input geometry
@@ -248,17 +175,16 @@ $$ LANGUAGE 'plpgsql' IMMUTABLE;
 -- USAGE:
 --   SELECT ST_SplitSouthPole(geom_in geometry);
 --   or
---   SELECT ST_SplitSouthPole(geom_in geometry, radius integer);
+--   SELECT ST_SplitSouthPole(geom_in geometry, radius integer, pole_distance integer, trans_buffer);
 --
 --
-CREATE OR REPLACE FUNCTION ST_SplitSouthPole(geom_in geometry, radius integer default NULL)
+CREATE OR REPLACE FUNCTION ST_SplitSouthPole(geom_in geometry, radius integer default NULL, pole_distance integer DEFAULT 500000, trans_buffer integer DEFAULT -1)
     RETURNS geometry AS $$
 DECLARE
     pole_split          geometry;
     pole_geom           geometry;
     pole_blade          geometry;
     epsg_code           integer;
-    pole_distance       integer := 500000;
     distance_to_north   numeric;
     force_epsg3031      boolean := FALSE;
     text_var1           text := '';
@@ -287,6 +213,7 @@ BEGIN
     -- [NOTE] Densify over pole to avoid issue in ST_Difference
     distance_to_north := ST_DistanceTonorthPole(geom_in);
     IF  distance_to_north > -1 AND distance_to_north <= pole_distance THEN
+        --RAISE NOTICE 'ST_SplitSouthPole : Segmentize and simplify topology';
         pole_geom := ST_Buffer(ST_Transform(ST_Segmentize(geom_in::geography, 50000)::geometry, epsg_code), 0);
     ELSE
         pole_geom := ST_Buffer(ST_Transform(geom_in, epsg_code), 0);
@@ -302,10 +229,12 @@ BEGIN
     -- Split polygon to avoid -180/180 crossing issue.
     -- Note: applying negative buffer ensure valid multipolygons that don't share a common edge
     IF distance_to_north > -1 AND distance_to_north <= pole_distance THEN
-        RETURN ST_SimplifyPreserveTopology(ST_Buffer(ST_Transform(ST_Buffer(ST_Split(pole_split, pole_blade), -1), 4326), 0), 0.01);
+        pole_split := ST_SimplifyPreserveTopology(ST_Buffer(ST_Transform(ST_Buffer(ST_Split(pole_split, pole_blade), trans_buffer), 4326), 0), 0.01);
     ELSE
-        RETURN ST_Buffer(ST_Transform(ST_Buffer(ST_Split(pole_split, pole_blade), -1), 4326), 0);
+        pole_split := ST_Buffer(ST_Transform(ST_Buffer(ST_Split(pole_split, pole_blade), trans_buffer), 4326), 0);
     END IF;
+
+    RETURN pole_split;
 
     -- If any of above failed, revert to use original polygon
     -- This prevents ingestion error, but may potentially lead to incorrect spatial query.
@@ -324,7 +253,7 @@ $$ LANGUAGE 'plpgsql' IMMUTABLE;
 -- Copyright (C) 2018 Jerome Gasperi <jerome.gasperi@gmail.com>
 --
 -- SYNOPSYS:
---   ST_SplitNorthPole(polygon, radius integer default NULL)
+--   ST_SplitNorthPole(polygon, radius integer default NULL, pole_distance integer DEFAULT 500000, trans_buffer DEFAULT -1)
 --
 -- DESCRIPTION:
 --   Splits input geometry that crosses the North Pole. If radius is specified, then remove a circle of radius meters around the North Pole from input geometry
@@ -335,15 +264,13 @@ $$ LANGUAGE 'plpgsql' IMMUTABLE;
 -- USAGE:
 --   SELECT ST_SplitNorthPole(geom_in geometry);
 --   or
---   SELECT ST_SplitNorthPole(geom_in geometry, radius integer);
+--   SELECT ST_SplitNorthPole(geom_in geometry, radius integer, pole_distance integer, trans_buffer integer);
 --
-CREATE OR REPLACE FUNCTION ST_SplitNorthPole(geom_in geometry, radius integer default NULL)
+CREATE OR REPLACE FUNCTION ST_SplitNorthPole(geom_in geometry, radius integer default NULL, pole_distance integer DEFAULT 500000, trans_buffer integer DEFAULT -1)
     RETURNS geometry AS $$
 DECLARE
-    pole_split          geometry;
     pole_geom           geometry;
     pole_blade          geometry;
-    pole_distance       integer := 500000;
     distance_to_south   numeric;
     epsg_code           integer;
     force_epsg3413      boolean := FALSE;
@@ -351,13 +278,12 @@ DECLARE
     text_var2           text := '';
     text_var3           text := '';
 BEGIN
-    
+
     -- Latitudes are above 60 degrees => input geometry is converted to WGS 84 / Antarctic Polar Stereographic
     IF force_epsg3413 IS TRUE OR ST_Ymin(geom_in) > 60 THEN
         --RAISE NOTICE 'Using EPSG:3413 - latitudes are greater than 60 degrees';
         epsg_code := 3413;
         -- (0, 90)deg -> (-180, -89.9)deg
-        --pole_blade := ST_SetSrid(ST_MakeLine(ARRAY[ST_MakePoint(0, 0), ST_MakePoint(-9924313227.23, 9924313227.23)]), epsg_code);
         pole_blade := ST_SetSrid(ST_MakeLine(ARRAY[ST_MakePoint(-2353926.81, 2345724.36), ST_MakePoint(0, 0), ST_MakePoint(0, 0), ST_MakePoint(-2349829.16, 2349829.16)]), epsg_code);
         
     -- Latitudes are below 60 degrees =>  input geometry is converted to North Pole Azimuthal Equidistant
@@ -365,8 +291,8 @@ BEGIN
         --RAISE NOTICE 'Using EPSG:102016';
         epsg_code := 102016;
         -- (-180, 90)deg -> (0, 90)deg -> (-180, -89.9)deg
-        --pole_blade := ST_SetSrid(ST_MakeLine(ARRAY[ST_MakePoint(0, -19892237.59371344), ST_MakePoint(0, 0), ST_MakePoint(0, 19892237.59371344)]), epsg_code);
-        pole_blade := ST_SetSrid(ST_MakeLine(ARRAY[ST_MakePoint(2.4497750631170925E-9, 2.0003931458627265E7), ST_MakePoint(1.2248875315585463E-9, 1.0001965729313632E7), ST_MakePoint(0, 0), ST_MakePoint(0, 0), ST_MakePoint(0, -10001965.72931363), ST_MakePoint(0, -20003931.45862726)]), epsg_code);
+        --pole_blade := ST_SetSrid(ST_MakeLine(ARRAY[ST_MakePoint(2.4497750631170925E-9, 2.0003931458627265E7), ST_MakePoint(1.2248875315585463E-9, 1.0001965729313632E7), ST_MakePoint(0, 0), ST_MakePoint(0, 0), ST_MakePoint(0, -10001965.72931363), ST_MakePoint(0, -20003931.45862726)]), epsg_code);
+        pole_blade := ST_SetSrid(ST_MakeLine(ARRAY[ST_MakePoint(0, 20003931.458627265), ST_MakePoint(0, 10001965.729313632), ST_MakePoint(0, 0), ST_MakePoint(0, 0), ST_MakePoint(0, -10001965.72931363), ST_MakePoint(0, -20003931.45862726)]), epsg_code);
     END IF;
 
     --
@@ -376,25 +302,27 @@ BEGIN
     --
     distance_to_south := ST_DistanceToSouthPole(geom_in);
     IF  distance_to_south > -1 AND distance_to_south <= pole_distance THEN
-        pole_geom := ST_Buffer(ST_Transform(ST_Segmentize(geom_in::geography, 50000)::geometry, epsg_code), 0);
+        --RAISE NOTICE 'ST_SplitNorthPole : Segmentize';
+        pole_geom := ST_Buffer(ST_Transform(ST_Segmentize(geom_in::geography, 50000)::geometry, epsg_code), 0.0);
     ELSE
-        pole_geom := ST_Buffer(ST_Transform(geom_in, epsg_code), 0);
+        pole_geom := ST_Buffer(ST_Transform(geom_in, epsg_code), 0.0);
     END IF;
     
     -- Convert polar geometry to epsg_code and optionaly remove a radius hole centered on North Pole.
     IF radius IS NOT NULL THEN
-        pole_split:= ST_Difference(pole_geom, ST_Buffer(ST_SetSrid(ST_MakePoint(0, 0), epsg_code), radius));
-    ELSE
-        pole_split := pole_geom;
+        pole_geom:= ST_Difference(pole_geom, ST_Buffer(ST_SetSrid(ST_MakePoint(0, 0), epsg_code), radius));
     END IF;
-    
+
     -- Split polygon to avoid -180/180 crossing issue.
     -- Note: applying negative buffer ensure valid multipolygons that don't share a common edge
     IF distance_to_south > -1 AND distance_to_south <= pole_distance THEN
-        RETURN ST_SimplifyPreserveTopology(ST_Buffer(ST_Transform(ST_Buffer(ST_Split(pole_split, pole_blade), -1), 4326), 0), 0.01);
+        --RAISE NOTICE 'ST_SplitNorthPole : Simplify topology';
+        pole_geom := ST_SimplifyPreserveTopology(ST_Buffer(ST_Transform(ST_Buffer( ST_ForcePolygonCCW(ST_Split(pole_geom, pole_blade)) , trans_buffer), 4326), 0.0), 0.01);
     ELSE
-        RETURN ST_Buffer(ST_Transform(ST_Buffer(ST_Split(pole_split, pole_blade), -1), 4326), 0);
+        pole_geom := ST_Buffer(ST_Transform(ST_Buffer(ST_Split(pole_geom, pole_blade), trans_buffer), 4326), 0.0);
     END IF;
+
+    RETURN pole_geom;
 
     -- If any of above failed, revert to use original polygon
     -- This prevents ingestion error, but may potentially lead to incorrect spatial query.
@@ -457,71 +385,56 @@ END
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
 
 --
--- Copyright (C) 2019 Jerome Gasperi <jerome.gasperi@gmail.com>
+-- Copyright (C) 2021 Jerome Gasperi <jerome.gasperi@gmail.com>
 --
 -- SYNOPSYS:
---   ST_CorrectLatitude(geometry)
+--   ST_CutPoles(polygon)
 --
 -- DESCRIPTION:
---   Constraint input polygon latitude between -90 and 90 degrees
+--   Cut both poles for input polygon geometry that crosses both poles
 --
 -- USAGE:
---   SELECT ST_CorrectLatitude(geom_in geometry);
+--   SELECT ST_CutPoles(geom_in geometry);
 --
-CREATE OR REPLACE FUNCTION ST_CorrectLatitude(geom_in geometry)
-RETURNS geometry AS $$
+CREATE OR REPLACE FUNCTION ST_CutPoles(geom_in geometry)
+    RETURNS geometry AS $$
 DECLARE
-	geom_out geometry;
+    m                   geometry_dump;
+    cutted              geometry := ST_GeomFromText('GEOMETRYCOLLECTION EMPTY', 4326);
+    text_var1           text := '';
+    text_var2           text := '';
+    text_var3           text := '';
 BEGIN
 
-    -- Delta longitude is greater than 180 then return splitted geometry
-	IF (ST_YMin(geom_in) < -90 OR ST_YMax(geom_in) > 90) THEN
+    FOR m IN SELECT (ST_Dump(ST_Split(geom_in, ST_SetSrid(ST_MakeLine(ARRAY[ST_MakePoint(-180, 0), ST_MakePoint(0, 0), ST_MakePoint(180, 0)]), 4326)))).* LOOP
+        
+        -- Keep only geometries that are not only on the poles
+        IF ST_YMin(m.geom) < 60 AND ST_YMax(m.geom)  > -60 THEN
+            cutted := ST_Union(cutted, m.geom);
+        END IF;
 
-        WITH
-            tmp0 AS (
-                SELECT geom_in AS geom
-            ),
-            tmp1 AS (
-                SELECT ST_DumpPoints(geom) AS d FROM tmp0
-            ),
-            tmp2 AS (
-                SELECT (d).path[1] AS objid, (d).path[2] AS ringid, (d).path[3] AS ptid,
-                    CASE
-                        WHEN ST_Y((d).geom) < -90 THEN ST_setSRID(ST_MakePoint(ST_X((d).geom), abs(90 + ST_Y((d).geom)) - 90), 4326)
-                        WHEN ST_Y((d).geom) > 90 THEN ST_setSRID(ST_MakePoint(ST_X((d).geom), 90 - abs(ST_Y((d).geom)) + 90), 4326)
-                    ELSE (d).geom
-                END AS geom FROM tmp1
-            ),
-            tmp3 AS (
-                SELECT objid, ringid, st_makeLine(geom ORDER BY ptid) AS geom_lines FROM tmp2
-                GROUP BY objid, ringid
-            ),
-            tmp4 AS (
-                SELECT objid, array_agg(geom_lines ORDER BY ringid) as arr FROM tmp3
-                GROUP BY objid
-            ),
-            tmp5 AS (
-                SELECT objid, st_makePolygon(arr[1], array_remove(arr, arr[1])) AS geom FROM tmp4
-            ),
-            tmp6 AS (
-                SELECT ST_Collect(geom ORDER BY objid) AS gout FROM tmp5
-            )
-            SELECT gout AS geom_out FROM tmp6;
-
-        RETURN geom_out;
-
-    END IF;
+    END LOOP;
     
-    RETURN geom_in;
-	
+    RETURN cutted;
+
+    -- If any of above failed, revert to use original polygon
+    -- This prevents ingestion error, but may potentially lead to incorrect spatial query.
+    EXCEPTION WHEN OTHERS THEN
+        GET STACKED DIAGNOSTICS text_var1 = MESSAGE_TEXT,
+                                text_var2 = PG_EXCEPTION_DETAIL,
+                                text_var3 = PG_EXCEPTION_HINT;
+        raise WARNING 'ST_CutPoles: exception occured: Msg: %, detail: %, hint: %', text_var1, text_var1, text_var3;
+        RETURN geom_in;
+
 END
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
+
 
 --
 -- Copyright (C) 2018 Jerome Gasperi <jerome.gasperi@gmail.com>
 --
 -- SYNOPSYS:
---   ST_SplitDateLine(polygon, radius)
+--   ST_SplitDateLine(geom_in geometry, radius integer DEFAULT 50000, pole_distance integer DEFAULT 500000)
 --
 -- DESCRIPTION:
 --   Splits input geometry if it intersects the antimeridian longitude (i.e. -180/180) 
@@ -532,12 +445,11 @@ $$ LANGUAGE 'plpgsql' IMMUTABLE;
 --   [WARNING] Input geometry that crosses one of the pole MUST have a length in latitude strictly lower than 90 degrees
 --
 -- USAGE:
---   SELECT ST_SplitDateLine(geom_in geometry, radius integer DEFAULT 50000);
+--   SELECT ST_SplitDateLine(geom_in, radius, pole_distance);
 --
-CREATE OR REPLACE FUNCTION ST_SplitDateLine(geom_in geometry, radius integer default 50000)
+CREATE OR REPLACE FUNCTION ST_SplitDateLine(geom_in geometry, radius integer default 50000, pole_distance integer DEFAULT 500000)
     RETURNS geometry AS $$
 DECLARE
-    pole_distance   integer := 500000;
     np_distance     numeric;
     sp_distance     numeric;
     geo_type        text;
@@ -560,14 +472,22 @@ BEGIN
     np_distance := ST_DistanceToNorthPole(geom_in);
     sp_distance := ST_DistanceToSouthPole(geom_in);
 
+    -- Poles crosses twice => split geometry at the equator
+    IF np_distance = 0 AND sp_distance = 0 THEN
+        geom_in := ST_CutPoles(geom_in);
+        -- (Re)compute distances to North and South poles
+        np_distance := ST_DistanceToNorthPole(geom_in);
+        sp_distance := ST_DistanceToSouthPole(geom_in);
+    END IF;
+
     -- Input geometry crosses North Pole
     IF np_distance > -1 AND np_distance <= pole_distance THEN
 
         -- Input geometry is even closer to South Pole
         IF sp_distance > -1 AND sp_distance < np_distance THEN
-            RETURN ST_SplitSouthPole(geom_in, radius);
+            RETURN ST_SplitSouthPole(geom_in, radius, pole_distance);
         ELSE
-            RETURN ST_SplitNorthPole(geom_in, radius);
+            RETURN ST_SplitNorthPole(geom_in, radius, pole_distance);
         END IF;
 
     END IF;
@@ -577,9 +497,9 @@ BEGIN
 
          -- Input geometry is even closer to North Pole
         IF np_distance > -1 AND np_distance < sp_distance THEN
-            RETURN ST_SplitNorthPole(geom_in, radius);
+            RETURN ST_SplitNorthPole(geom_in, radius, pole_distance);
         ELSE
-            RETURN ST_SplitSouthPole(geom_in, radius);
+            RETURN ST_SplitSouthPole(geom_in, radius, pole_distance);
         END IF;
         
     END IF;
