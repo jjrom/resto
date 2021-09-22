@@ -508,7 +508,6 @@ abstract class RestoModel
         foreach ($query as $key => $value) {
             $filterKey = $this->getFilterName($key);
             if (isset($filterKey)) {
-                echo ':' . $filterKey ."\n";
                 // Special case geo:geometry also accept GeoJSON => convert it to WKT
                 $params[$filterKey] = preg_replace('/<.*?>/', '', $filterKey === 'geo:geometry' ? RestoGeometryUtil::forceWKT($value) : $value);
                 $this->validateFilter($filterKey, $params[$filterKey]);
