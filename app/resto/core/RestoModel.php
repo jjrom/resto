@@ -504,7 +504,7 @@ abstract class RestoModel
     public function getFiltersFromQuery($query)
     {
         $params = array();
-        $unknown = array();
+        $unknowns = array();
         foreach ($query as $key => $value) {
             $filterKey = $this->getFilterName($key);
             if (isset($filterKey)) {
@@ -513,13 +513,14 @@ abstract class RestoModel
                 $this->validateFilter($filterKey, $params[$filterKey]);
             }
             else if ( $key !== 'collectionId' && substr($key, 0, 1) !== '_') {
-                $unknown[] = preg_replace('/<.*?>/', '', '#' . $key . Resto::TAG_SEPARATOR . ltrim($value, '#'));
+                // Protect against XSS injection
+                $unknowns[] = '#' . $this->toHashTag($key, preg_replace('/<.*?>/', '', ltrim($value, '#')));
             }
         }
 
-        // Convert unknown input to hashtags
-        if ( count($unknown) > 0 ) {
-            $params['searchTerms'] = isset($params['searchTerms']) ? $params['searchTerms'] . ' ' . join(' ', $unknown) : join(' ', $unknown);
+        // Convert unknowns input to hashtags
+        if ( count($unknowns) > 0 ) {
+            $params['searchTerms'] = isset($params['searchTerms']) ? $params['searchTerms'] . ' ' . join(' ', $unknowns) : join(' ', $unknowns);
         }
         
         // [STAC] If "ids" filter is set, then discard every other filters except next and limit
@@ -879,6 +880,37 @@ abstract class RestoModel
             RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be lower than ' . ($this->searchFilters[$filterKey]['maxInclusive'] + 1));
         }
         return true;
+    }
+
+    /**
+     * Convert input value to hashtag with the following convention : "#<filterName>:value"
+     * 
+     * @param string $key
+     * @param string $value
+     * @return string
+     */
+    private function toHashTag($filterName, $value)
+    {   
+
+        // Special case for ',' (AND) and '|' (OR)
+        $splitter = '';
+        if (strpos($value, ',') !== false) {
+            $splitter = ',';
+            $exploded = explode(',', $value);
+        }
+        else if (strpos($value, ',') !== false) {
+            $splitter = '|';
+            $exploded = explode('|', $value);
+        }
+        else {
+            $exploded = array($value);
+        }
+        
+        for ($i = 0, $ii = count($exploded); $i < $ii; $i++) {
+            $exploded[$i] = $filterName . Resto::TAG_SEPARATOR . $exploded[$i];
+        }
+        
+        return join($splitter, $exploded);
     }
 
 }

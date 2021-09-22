@@ -950,6 +950,14 @@ class RestoCollection
             $this->statistics = $this->context->fromCache($cacheKey);
             if (!isset($this->statistics)) {
                 $this->statistics = (new FacetsFunctions($this->context->dbDriver))->getStatistics($this, $facetFields);
+
+                // Hack to add eo:cloud_cover
+                if ($this->model && $this->model->searchFilters && $this->model->searchFilters['eo:cloudCover']) {
+                    $this->statistics['eo:cloud_cover'] = array(
+                        'minimum' => 0,
+                        'maximum' => 100
+                    );
+                }
                 $this->context->toCache($cacheKey, $this->statistics);
             }
         }
