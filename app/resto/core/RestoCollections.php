@@ -181,7 +181,13 @@ class RestoCollections
      */
     public function search($model, $query)
     {
-        return (new RestoFeatureCollection($this->context, $this->user, $this->collections))->load($model ?? new DefaultModel(), null, $query);
+        
+        /*
+         * Set a global model with all searchFilters and all tables from other collection
+         */
+        $model = $model ?? $this->getFullModel();
+
+        return (new RestoFeatureCollection($this->context, $this->user, $this->collections, $model, $query))->load(null);
     }
 
     /**
@@ -358,6 +364,29 @@ class RestoCollections
             }
         }
 
+    }
+
+    /**
+     * Return an array of all available searchFilters on all collections
+     * 
+     * @return array
+     */
+    private function getFullModel()
+    {
+
+        $model = new DefaultModel();
+
+        foreach (array_keys($this->collections) as $key) {
+            $collection = $this->collections[$key];
+            if ( isset($collection->model) ) {
+                $model->searchFilters = array_merge($model->searchFilters, $collection->model->searchFilters);
+                $model->tables = array_merge($model->tables, $collection->model->tables);
+                $model->stacMapping = array_merge($model->stacMapping, $collection->model->stacMapping);
+            }
+            
+        }
+
+        return $model;
     }
 
 }

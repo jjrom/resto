@@ -842,7 +842,7 @@ class RestoCollection
      */
     public function search($query)
     {
-        return (new RestoFeatureCollection($this->context, $this->user, array($this->id => $this)))->load($this->model, $this, $query);
+        return (new RestoFeatureCollection($this->context, $this->user, array($this->id => $this), $this->model, $query))->load($this);
     }
 
     /**

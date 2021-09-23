@@ -67,9 +67,10 @@ class ServicesAPI
             $content = @file_get_contents('/docs/resto-api.' . $this->context->outputFormat);
         }
         catch (Exception $e) {
+            $content = false;
         }
 
-        if ($content === FALSE) {
+        if ($content === false) {
             return RestoLogUtil::httpError(404);
         }
 

@@ -393,44 +393,36 @@ class RestoFeatureCollection
      * @param RestoResto $context : Resto Context
      * @param RestoUser $user : Resto user
      * @param array $collections
+     * @param RestoModel $model : Base model
+     * @param array $query : Search query
      */
-    public function __construct($context, $user, $collections)
+    public function __construct($context, $user, $collections, $model, $query)
     {
         $this->context = $context;
         $this->user = $user;
         $this->collections = $collections;
+        $this->model = $model ?? new DefaultModel();
+        $this->query = $query;
     }
 
     /**
      * Load featureCollection from database
      *
-     * @param RestoModel $model
      * @param RestoCollection $collection
-     * @param Array $query
      */
-    public function load($model, $collection, $query)
+    public function load($collection)
     {
-        
+
         /*
          * Request start time
          */
         $this->requestStartTime = microtime(true);
-        
-        /*
-         * Model is mandatory - use default if not set
-         */
-        $this->model = $model;
 
         /*
-         * Query parameters to perform the search
+         * Convert query to inputFilters
          */
-        $this->query = $query;
+        $inputFilters = $this->model->getFiltersFromQuery($this->query);
 
-        /*
-         * Clean search filters
-         */
-        $inputFilters = $this->model->getFiltersFromQuery($query);
-        
         /*
          * result options
          */
@@ -536,7 +528,9 @@ class RestoFeatureCollection
     private function init($analysis, $sorting, $collectionId)
     {
 
-        // Default name for all collection
+        /*
+         * Default name for all collection
+         */
         $defaultName = $collectionId ?? '*';
 
         /*
