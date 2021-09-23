@@ -81,7 +81,6 @@ class FeaturesFunctions
      *      array(
      *          'limit',
      *          'offset'
-     *
      * @return array
      * @throws Exception
      */
@@ -98,8 +97,8 @@ class FeaturesFunctions
         /*
          * Set filters
          */
-        $filtersFunctions = new FiltersFunctions($context, $user);
-        $filtersAndJoins = $filtersFunctions->prepareFilters($user, $model, $params, $sorting['sortKey']);
+        $filtersFunctions = new FiltersFunctions($context, $user, $model);
+        $filtersAndJoins = $filtersFunctions->prepareFilters($params, $sorting['sortKey']);
         
         /*
          * Special case for liked - return only features liked by owner if set, otherwise by $user
@@ -189,21 +188,21 @@ class FeaturesFunctions
     public function getFeatureDescription($context, $user, $featureId, $collection, $fields)
     {
         $model = isset($collection) ? $collection->model : new DefaultModel();
-        $featureTableName = $this->dbDriver->schema . '.' . $model->dbParams['tablePrefix'] . 'feature';
+        $tablePrefix = $this->dbDriver->schema . '.' . $model->dbParams['tablePrefix'];
 
-        $selectClause = $this->getSelectClause($featureTableName, $this->featureColumns, $user, array(
+        $selectClause = $this->getSelectClause($tablePrefix . 'feature', $this->featureColumns, $user, array(
             'fields' => $fields,
             'useSocial' => isset($context->addons['Social'])
         ));
-        $filterFunctions = new FiltersFunctions($context, $user);
-        $filtersAndJoins = $filterFunctions->prepareFilters($user, $model, array(), null);
+        $filtersFunctions = new FiltersFunctions($context, $user, $model);
+        $filtersAndJoins = $filtersFunctions->prepareFilters(array(), null);
 
         // Determine if search on id or productidentifier
         $filtersAndJoins['filters'][] = array(
-            'value' => $featureTableName . '.id=\'' . pg_escape_string((RestoUtil::isValidUUID($featureId) ? $featureId : RestoUtil::toUUID($featureId))) . '\'',
+            'value' => $tablePrefix . 'feature.id=\'' . pg_escape_string((RestoUtil::isValidUUID($featureId) ? $featureId : RestoUtil::toUUID($featureId))) . '\'',
             'isGeo' => false
         );
-        $results = $this->dbDriver->fetch($this->dbDriver->query($selectClause . ' ' . $filterFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => true))));
+        $results = $this->dbDriver->fetch($this->dbDriver->query($selectClause . ' ' . $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => true))));
         return isset($results) && count($results) === 1 ? (new RestoFeatureUtil($context, $user, isset($collection) ? array($collection->id => $collection) : array()))->toFeatureArray($results[0]) : null;
     }
 

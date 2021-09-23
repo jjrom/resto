@@ -46,38 +46,39 @@ class FiltersFunctions
     private $context;
     private $user;
 
+    private $model;
+
     /**
      * Constructor
      *
      * @param RestoResto $context : Resto Context
      * @param RestoUser $user : Resto user
+     * @param RestoModel $model
      */
-    public function __construct($context, $user)
+    public function __construct($context, $user, $model)
     {
         $this->context = $context;
         $this->user = $user;
+        $this->model = $model;
+        $this->tablePrefix = $this->context->dbDriver->schema . '.' . $this->model->dbParams['tablePrefix'];
     }
     
     /**
      * Return search filters based on model and input search parameters
      *
-     * @param RestoUser $user
-     * @param RestoModel $model
-     * @param Array $params
+     * @param array $params
      * @param string $sortKey
-     * @return array()
+     * @return array
      */
-    public function prepareFilters($user, $model, $params, $sortKey)
+    public function prepareFilters($params, $sortKey)
     {
         $filters = array();
         $sortFilters = array();
 
-        $tablePrefix = $this->context->dbDriver->schema . '.' . $model->dbParams['tablePrefix'];
-
         /**
          * Append filter for contextual search
          */
-        $filterCS = $this->prepareFilterQueryContextualSearch($tablePrefix . 'feature', $user);
+        $filterCS = $this->prepareFilterQueryContextualSearch($this->tablePrefix . 'feature');
         if (isset($filterCS) && $filterCS !== '') {
             $filters[] = $filterCS;
         }
@@ -90,7 +91,7 @@ class FiltersFunctions
             /*
              * Process each input search filter excepted excluded filters
              */
-            foreach (array_keys($model->searchFilters) as $filterName) {
+            foreach (array_keys($this->model->searchFilters) as $filterName) {
                 if (!isset($params[$filterName]) || $params[$filterName] === '') {
                     continue;
                 }
@@ -99,21 +100,21 @@ class FiltersFunctions
                  * Sorting special case
                  */
                 if (!empty($sortKey) && ($filterName === 'resto:lt' || $filterName === 'resto:gt')) {
-                    $sortFilters[] =   $tablePrefix . 'feature.' . $sortKey . $model->searchFilters[$filterName]['operation'] . '\'' . pg_escape_string($params[$filterName]) . '\'';
+                    $sortFilters[] =   $this->tablePrefix . 'feature.' . $sortKey . $this->model->searchFilters[$filterName]['operation'] . '\'' . pg_escape_string($params[$filterName]) . '\'';
                 }
 
                 /*
                  * Followings special case
                  */
                 elseif ($filterName === 'resto:owner' && !ctype_digit($params[$filterName])) {
-                    if (isset($user->profile['id'])) {
+                    if (isset($this->user->profile['id'])) {
 
                         /*
                          * Search on followed
                          */
                         if ($params[$filterName] === 'f') {
                             $filters[] = array(
-                                'value' => $tablePrefix . 'feature.' . $model->searchFilters[$filterName]['key'] . ' IN (SELECT userid FROM ' . $this->context->dbDriver->schema . '.follower WHERE followerid=' . pg_escape_string($user->profile['id']) .  ')',
+                                'value' => $this->tablePrefix . 'feature.' . $this->model->searchFilters[$filterName]['key'] . ' IN (SELECT userid FROM ' . $this->context->dbDriver->schema . '.follower WHERE followerid=' . pg_escape_string($this->user->profile['id']) .  ')',
                                 'isGeo' => false
                             );
                         }
@@ -122,7 +123,7 @@ class FiltersFunctions
                          */
                         elseif ($params[$filterName] === 'F') {
                             $filters[] = array(
-                                'value' => '(' . $tablePrefix . 'feature.' . $model->searchFilters[$filterName]['key'] . '=' . pg_escape_string($user->profile['id']) . ' OR ' . $tablePrefix . 'feature.' . $model->searchFilters[$filterName]['key'] . ' IN (SELECT userid FROM ' . $this->context->dbDriver->schema . '.follower WHERE followerid=' . pg_escape_string($user->profile['id']) .  '))',
+                                'value' => '(' . $this->tablePrefix . 'feature.' . $this->model->searchFilters[$filterName]['key'] . '=' . pg_escape_string($this->user->profile['id']) . ' OR ' . $this->tablePrefix . 'feature.' . $this->model->searchFilters[$filterName]['key'] . ' IN (SELECT userid FROM ' . $this->context->dbDriver->schema . '.follower WHERE followerid=' . pg_escape_string($this->user->profile['id']) .  '))',
                                 'isGeo' => false
                             );
                         } else {
@@ -135,8 +136,8 @@ class FiltersFunctions
                 /*
                  * First check if filter is valid and as an associated column within database
                  */
-                elseif (!in_array($filterName, $this->excludedFilters) && $model->searchFilters[$filterName]['key']) {
-                    $filter = $this->prepareFilterQuery($model, $params, $filterName);
+                elseif (!in_array($filterName, $this->excludedFilters) && $this->model->searchFilters[$filterName]['key']) {
+                    $filter = $this->prepareFilterQuery($params, $filterName);
                     if (isset($filter) && $filter !== '') {
                         $filters[] = $filter;
                     }
@@ -193,21 +194,20 @@ class FiltersFunctions
      * the groups list from user profile
      *
      * @param string $tableName
-     * @param RestoUser $user
      * @return string
      */
-    private function prepareFilterQueryContextualSearch($tableName, $user)
+    private function prepareFilterQueryContextualSearch($tableName)
     {
 
         /*
          * Admin user has no restriction on search
          */
-        if ($user->hasGroup(Resto::GROUP_ADMIN_ID)) {
+        if ($this->user->hasGroup(Resto::GROUP_ADMIN_ID)) {
             return null;
         }
 
         return array(
-            'value' =>  $tableName . '.visibility IN (' . join(',', $user->profile['groups']) . ')',
+            'value' =>  $tableName . '.visibility IN (' . join(',', $this->user->profile['groups']) . ')',
             'isGeo' => false
         );
     }
@@ -216,17 +216,16 @@ class FiltersFunctions
      *
      * Prepare an SQL WHERE clause from input filterName
      *
-     * @param RestoModel $model (with model keys)
      * @param array $requestParams (with model keys)
      * @param string $filterName
      * @param boolean $exclusion : if true, exclude instead of include filter (WARNING ! only works for geometry)
      * @return string
      *
      */
-    private function prepareFilterQuery($model, $requestParams, $filterName, $exclusion = false)
+    private function prepareFilterQuery($requestParams, $filterName, $exclusion = false)
     {
         
-        $featureTableName = $this->context->dbDriver->schema . '.' . $model->dbParams['tablePrefix'] . 'feature';
+        $featureTableName = $this->tablePrefix . 'feature';
 
         /*
          * Special case model
@@ -244,72 +243,71 @@ class FiltersFunctions
         if ( in_array($filterName, array('time:start', 'time:end', 'dc:date')) ) {
 
             return array(
-                'value' => $featureTableName . '.' . strtolower($model->searchFilters[$filterName]['key']) . '_idx ' . $model->searchFilters[$filterName]['operation'] . ' timestamp_to_firstid(\'' . pg_escape_string(str_replace(',', '.', $requestParams[$filterName])) . '\')',
+                'value' => $featureTableName . '.' . strtolower($this->model->searchFilters[$filterName]['key']) . '_idx ' . $this->model->searchFilters[$filterName]['operation'] . ' timestamp_to_firstid(\'' . pg_escape_string(str_replace(',', '.', $requestParams[$filterName])) . '\')',
                 'isGeo' => false
             );
         }
-
+        
         /*
          * Prepare filter from operation
          */
-        switch ($model->searchFilters[$filterName]['operation']) {
+        switch ($this->model->searchFilters[$filterName]['operation']) {
 
             /*
              * in
              */
             case 'in':
-                return $this->prepareFilterQueryIn($model, $featureTableName, $filterName, $requestParams);
+                return $this->prepareFilterQueryIn($featureTableName, $filterName, $requestParams);
             /*
              * searchTerms
              */
             case 'keywords':
-                return $this->prepareFilterQueryKeywords($model, $featureTableName, $filterName, $requestParams);
+                return $this->prepareFilterQueryKeywords($featureTableName, $filterName, $requestParams);
             /*
              * Intersects i.e. geo:*
              */
             case 'intersects':
-                return $this->prepareFilterQueryIntersects($model, $filterName, $requestParams, $exclusion);
+                return $this->prepareFilterQueryIntersects($filterName, $requestParams, $exclusion);
             /*
              * Distance i.e. geo:lon, geo:lat and geo:radius
              */
             case 'distance':
-                return $this->prepareFilterQueryDistance($model, $filterName, $requestParams, $exclusion);
+                return $this->prepareFilterQueryDistance($filterName, $requestParams, $exclusion);
             /*
              * Intervals
              */
             case 'interval':
                 return array(
-                    'value' => QueryUtil::intervalToQuery($requestParams[$filterName], $this->getTableName($model, $filterName) . '.' . $model->searchFilters[$filterName]['key']),
+                    'value' => QueryUtil::intervalToQuery($requestParams[$filterName], $this->getTableName($filterName) . '.' . $this->model->searchFilters[$filterName]['key']),
                     'isGeo' => false
                 );
             /*
              * Simple case - non 'interval' operation on value or arrays
              */
             default:
-                return $this->prepareFilterQueryGeneral($model, $filterName, $requestParams);
+                return $this->prepareFilterQueryGeneral($filterName, $requestParams);
         }
     }
 
     /**
      * Prepare SQL query for operation in
      *
-     * @param RestoModel $model
      * @param string $featureTableName
      * @param string $filterName
      * @param array $requestParams
      * @return string
      */
-    private function prepareFilterQueryIn($model, $featureTableName, $filterName, $requestParams)
+    private function prepareFilterQueryIn($featureTableName, $filterName, $requestParams)
     {
         $elements = explode(',', $requestParams[$filterName]);
         if (count($elements) === 1) {
             return array(
-                'value' => $featureTableName . '.' . $model->searchFilters[$filterName]['key'] . '=\'' . pg_escape_string($requestParams[$filterName]) . '\'',
+                'value' => $featureTableName . '.' . $this->model->searchFilters[$filterName]['key'] . '=\'' . pg_escape_string($requestParams[$filterName]) . '\'',
                 'isGeo' => false
             );
         }
         return array(
-            'value' => $featureTableName . '.' . $model->searchFilters[$filterName]['key'] . ' IN (' . implode(',', array_map(function($str) { return '\'' .  pg_escape_string($str) . '\''; }, $elements) ) . ')',
+            'value' => $featureTableName . '.' . $this->model->searchFilters[$filterName]['key'] . ' IN (' . implode(',', array_map(function($str) { return '\'' .  pg_escape_string($str) . '\''; }, $elements) ) . ')',
             'isGeo' => false
         );
     }
@@ -333,18 +331,17 @@ class FiltersFunctions
      * Prepare SQL query for non 'interval' operation on value or arrays
      * If operation is '=' and last character of input value is a '%' sign then perform a like instead of an =
      *
-     * @param RestoModel $model
      * @param string $filterName
      * @param array $requestParams
      * @return string
      */
-    private function prepareFilterQueryGeneral($model, $filterName, $requestParams)
+    private function prepareFilterQueryGeneral($filterName, $requestParams)
     {
 
         /*
          * Array of values assumes a 'OR' operation
          */
-        $ors = $this->prepareORFilters($model, $filterName, $requestParams);
+        $ors = $this->prepareORFilters($filterName, $requestParams);
 
         return array(
             'value' => count($ors) > 1 ? '(' . join(' OR ', $ors) . ')' : $ors[0],
@@ -355,13 +352,12 @@ class FiltersFunctions
     /**
      * Prepare SQL query for spatial operation ST_Intersects (Input bbox or polygon)
      *
-     * @param RestoModel $model
      * @param string $filterName
      * @param array $requestParams
      * @param boolean $exclusion
      * @return string
      */
-    private function prepareFilterQueryIntersects($model, $filterName, $requestParams, $exclusion)
+    private function prepareFilterQueryIntersects($filterName, $requestParams, $exclusion)
     {
 
         $output = null;
@@ -377,15 +373,15 @@ class FiltersFunctions
             if (count($coords) === 6) {
                 $coords = array($coords[0], $coords[1], $coords[3], $coords[4]);
             }
-            $output = $this->intersectFilterBBOX($model, $filterName, $coords, $exclusion);
+            $output = $this->intersectFilterBBOX($filterName, $coords, $exclusion);
         }
 
         else if ($filterName === 'geo:geometry') {
-            $tableName = $this->getGeometryTableName($model);
+            $tableName = $this->getGeometryTableName();
 
             // Eventually correct input GEOMETRYCOLLECTION with a ST_buffer
             $inputGeom = strpos($requestParams[$filterName], 'GEOMETRYCOLLECTION') === 0 ?  "ST_Buffer(ST_GeomFromText('" . pg_escape_string($requestParams[$filterName]) . "', 4326), 0)" : "ST_GeomFromText('" . pg_escape_string($requestParams[$filterName]) . "', 4326)";
-            $output = ($exclusion ? 'NOT ' : '') . 'ST_intersects(' . $tableName . '.' . $model->searchFilters[$filterName]['key'] . ", " . $inputGeom . ")";
+            $output = ($exclusion ? 'NOT ' : '') . 'ST_intersects(' . $tableName . '.' . $this->model->searchFilters[$filterName]['key'] . ", " . $inputGeom . ")";
         }
 
         return array(
@@ -398,12 +394,11 @@ class FiltersFunctions
     /**
      * Return array for OR filters
      *
-     * @param RestoModel $model
      * @param string $filterName
      * @param array $requestParams
      * @return array
      */
-    private function prepareORFilters($model, $filterName, $requestParams)
+    private function prepareORFilters($filterName, $requestParams)
     {
 
         /*
@@ -414,7 +409,7 @@ class FiltersFunctions
         /*
          * Set operation
          */
-        $operation = $model->searchFilters[$filterName]['operation'];
+        $operation = $this->model->searchFilters[$filterName]['operation'];
 
         /*
          * Split requestParams on |
@@ -423,7 +418,7 @@ class FiltersFunctions
         $ors = array();
         for ($i = count($values); $i--;) {
             
-            $tableName = $this->getTableName($model, $filterName);
+            $tableName = $this->getTableName($filterName);
 
             /*
              * LIKE case only if at least 4 characters
@@ -432,13 +427,13 @@ class FiltersFunctions
                 if (strlen($values[$i]) < 4) {
                     RestoLogUtil::httpError(400, '% is only allowed for string with 3+ characters');
                 }
-                $ors[] = $tableName . '.' . $model->searchFilters[$filterName]['key'] . ' LIKE ' . $quote . pg_escape_string($values[$i]) . $quote;
+                $ors[] = $tableName . '.' . $this->model->searchFilters[$filterName]['key'] . ' LIKE ' . $quote . pg_escape_string($values[$i]) . $quote;
             }
             /*
              * Otherwise use operation
              */
             else {
-                $ors[] = $tableName . '.' . $model->searchFilters[$filterName]['key'] . ' ' . $operation . ' ' . $quote . pg_escape_string($values[$i]) . $quote;
+                $ors[] = $tableName . '.' . $this->model->searchFilters[$filterName]['key'] . ' ' . $operation . ' ' . $quote . pg_escape_string($values[$i]) . $quote;
             }
         }
         return $ors;
@@ -449,21 +444,20 @@ class FiltersFunctions
      *
      * Note : in case of bounding box crosses the -180/180 line, split it into two separated polygons
      *
-     * @param RestoModel $model
      * @param string $filterName
      * @param array $coords
      * @param boolean $exclusion
      * @return string
      */
-    private function intersectFilterBBOX($model, $filterName, $coords, $exclusion)
+    private function intersectFilterBBOX($filterName, $coords, $exclusion)
     {
 
-        $tableName = $this->getGeometryTableName($model);
+        $tableName = $this->getGeometryTableName();
         
         /*
          * Query build is $start . $geometry . $end
          */
-        $start = 'ST_intersects('. $tableName .  '.' . $model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'';
+        $start = 'ST_intersects('. $tableName .  '.' . $this->model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'';
         $end = '\', 4326))';
 
         /*
@@ -488,13 +482,12 @@ class FiltersFunctions
     /**
      * Prepare SQL query for spatial operation ST_Distance (Input bbox or polygon)
      *
-     * @param RestoModel $model
      * @param string $filterName
      * @param array $requestParams
      * @param boolean $exclusion
      * @return string
      */
-    private function prepareFilterQueryDistance($model, $filterName, $requestParams, $exclusion)
+    private function prepareFilterQueryDistance($filterName, $requestParams, $exclusion)
     {
 
         /*
@@ -509,20 +502,20 @@ class FiltersFunctions
          */
         if (isset($requestParams['geo:lon']) && isset($requestParams['geo:lat'])) {
 
-            $tableName = $this->getGeometryTableName($model);
+            $tableName = $this->getGeometryTableName();
 
             $radius = RestoGeometryUtil::radiusInDegrees(isset($requestParams['geo:radius']) ? floatval($requestParams['geo:radius']) : 10000, floatval($requestParams['geo:lat']));
             if ($useDistance) {
                 $wkt = 'POINT(' . $requestParams['geo:lon'] . ' ' . $requestParams['geo:lat'] . ')';
                 return array(
-                    'value' => ($exclusion ? 'NOT ' : '') . 'ST_dwithin(' . $tableName . '.' . $model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'' . pg_escape_string($wkt) . '\', 4326), '. $radius . ')',
+                    'value' => ($exclusion ? 'NOT ' : '') . 'ST_dwithin(' . $tableName . '.' . $this->model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'' . pg_escape_string($wkt) . '\', 4326), '. $radius . ')',
                     'wkt' => $wkt,
                     'isGeo' => true
                 );
             } else {
                 $wkt = RestoGeometryUtil::WKTPolygonFromLonLat(floatval($requestParams['geo:lon']), floatval($requestParams['geo:lat']), $radius);
                 return array(
-                    'value' => ($exclusion ? 'NOT ' : '') . 'ST_intersects(' . $tableName . '.' . $model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'' . pg_escape_string($wkt) . '\', 4326))',
+                    'value' => ($exclusion ? 'NOT ' : '') . 'ST_intersects(' . $tableName . '.' . $this->model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'' . pg_escape_string($wkt) . '\', 4326))',
                     'wkt' => $wkt,
                     'isGeo' => true
                 );
@@ -533,13 +526,12 @@ class FiltersFunctions
     /**
      * Prepare SQL query for keywords/hashtags - i.e. searchTerms
      *
-     * @param RestoModel $model
      * @param string $featureTableName
      * @param string $filterName
      * @param array $requestParams
      * @return string
      */
-    private function prepareFilterQueryKeywords($model, $featureTableName, $filterName, $requestParams)
+    private function prepareFilterQueryKeywords($featureTableName, $filterName, $requestParams)
     {
         $terms = array();
         $exclusion = false;
@@ -573,15 +565,15 @@ class FiltersFunctions
              * Add prefix in front of all elements if needed
              * See for instance [eo:instrument]
              */
-            if (isset($model->searchFilters[$filterName]['prefix'])) {
-                $searchTerm = $this->addPrefix($searchTerm, $model->searchFilters[$filterName]['prefix']);
+            if (isset($this->model->searchFilters[$filterName]['prefix'])) {
+                $searchTerm = $this->addPrefix($searchTerm, $this->model->searchFilters[$filterName]['prefix']);
             }
             
-            $terms = array_merge($this->processSearchTerms($searchTerm, $filters, $model, $featureTableName, $filterName, $exclusion));
+            $terms = array_merge($this->processSearchTerms($searchTerm, $filters, $featureTableName, $filterName, $exclusion));
         }
 
         return array(
-            'value' => join(' AND ', array_merge($terms, $this->mergeHashesFilters($featureTableName . '.' . $model->searchFilters[$filterName]['key'], $filters))),
+            'value' => join(' AND ', array_merge($terms, $this->mergeHashesFilters($featureTableName . '.' . $this->model->searchFilters[$filterName]['key'], $filters))),
             'isGeo' => false
         );
     }
@@ -600,13 +592,12 @@ class FiltersFunctions
      *
      * @param string $searchTerm
      * @param array $filters
-     * @param object $model
      * @param string $featureTableName
      * @param string $filterName
      * @param boolean $exclusion
      * @return array
      */
-    private function processSearchTerms($searchTerm, &$filters, $model, $featureTableName, $filterName, $exclusion)
+    private function processSearchTerms($searchTerm, &$filters, $featureTableName, $filterName, $exclusion)
     {
     
         /*
@@ -630,7 +621,7 @@ class FiltersFunctions
             for ($j = count($exploded); $j--;) {
                 $quotedValues[] = '\'' . pg_escape_string(trim($exploded[$j])) . '\'';
             }
-            return array(($exclusion ? 'NOT (' : '(') . $featureTableName . '.' . $model->searchFilters[$filterName]['key'] . $operator . 'normalize_array(ARRAY[' . join(',', $quotedValues) . ']))');
+            return array(($exclusion ? 'NOT (' : '(') . $featureTableName . '.' . $this->model->searchFilters[$filterName]['key'] . $operator . 'normalize_array(ARRAY[' . join(',', $quotedValues) . ']))');
         }
         
         $filters[$exclusion ? 'without' : 'with'][] = "'" . pg_escape_string($searchTerm) . "'";
@@ -661,23 +652,20 @@ class FiltersFunctions
     /**
      * Return a jointure if needed or untouched $query otherwise
      *
-     * @param RestoModel $model
      * @param string $filterName
      * @return string
      */
-    private function getTableName($model, $filterName)
+    private function getTableName($filterName)
     {
-       
-        $tablePrefix = $this->context->dbDriver->schema . '.' . $model->dbParams['tablePrefix'];
 
-        for ($i = count($model->tables); $i--;) {
-            if (in_array(strtolower($model->searchFilters[$filterName]['key']), $model->tables[$i]['columns'])) {
-                $this->joins[] = 'JOIN ' . $tablePrefix . $model->tables[$i]['name'] . ' ON ' . $tablePrefix . 'feature.id=' . $tablePrefix . $model->tables[$i]['name'] . '.id';
-                return $tablePrefix . $model->tables[$i]['name'];
+        for ($i = count($this->model->tables); $i--;) {
+            if (in_array(strtolower($this->model->searchFilters[$filterName]['key']), $this->model->tables[$i]['columns'])) {
+                $this->joins[] = 'JOIN ' . $this->tablePrefix . $this->model->tables[$i]['name'] . ' ON ' . $this->tablePrefix . 'feature.id=' . $this->tablePrefix . $this->model->tables[$i]['name'] . '.id';
+                return $this->tablePrefix . $this->model->tables[$i]['name'];
             }
         }
         
-        return $tablePrefix . 'feature';
+        return $this->tablePrefix . 'feature';
     }
 
     /**
@@ -686,18 +674,16 @@ class FiltersFunctions
      * Otherwise is is directly retrieved from the indexed "feature_geometry" table 
      * This should be used for large geometry
      * 
-     * @param RestolModel $model
      */
-    private function getGeometryTableName($model) {
+    private function getGeometryTableName()
+    {
 
-        $tablePrefix = $this->context->dbDriver->schema . '.' . $model->dbParams['tablePrefix'];
-       
         if ($this->context->dbDriver->useGeometryPart) {
-            $this->joins[] = 'JOIN ' . $tablePrefix . 'geometry_part ON ' . $tablePrefix . 'feature.id=' . $tablePrefix . 'geometry_part.id';
-            return $tablePrefix . 'geometry_part';
+            $this->joins[] = 'JOIN ' . $this->tablePrefix . 'geometry_part ON ' . $this->tablePrefix . 'feature.id=' . $this->tablePrefix . 'geometry_part.id';
+            return $this->tablePrefix . 'geometry_part';
         }
 
-        return $tablePrefix . 'feature';
+        return $this->tablePrefix . 'feature';
             
     }
 

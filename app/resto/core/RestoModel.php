@@ -533,6 +533,7 @@ abstract class RestoModel
 
     /**
      * Return OpenSearch filter name from OpenSearch key
+     * 
      * @param string $osKey
      */
     public function getFilterName($osKey)
