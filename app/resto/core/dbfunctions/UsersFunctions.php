@@ -360,14 +360,22 @@ class UsersFunctions
          * Detect base64 encoded picture
          */
         $picture = $this->getPicture($profile, $storageInfo);
-       
+
+        /*
+         * Every user is in the default Resto::GROUP_DEFAULT_ID
+         */
+        $groups = $profile['groups'] ?? array();
+        if ( !in_array(Resto::GROUP_DEFAULT_ID, $groups) ) {
+            $groups[] = Resto::GROUP_DEFAULT_ID;
+        }
+
         /*
          * Store everything
          */
         $toBeSet = array(
             'email' => '\'' . pg_escape_string($email) . '\'',
             'password' => '\'' . (isset($profile['password']) ? password_hash($profile['password'], PASSWORD_BCRYPT) : str_repeat('*', 60)) . '\'',
-            'groups' => '\'{' . (isset($profile['groups']) ? pg_escape_string($profile['groups']) : Resto::GROUP_DEFAULT_ID) . '}\'',
+            'groups' => '\'{' . pg_escape_string(join(',', $groups)) . '}\'',
             'topics' => isset($profile['topics']) ? '\'{' . pg_escape_string($profile['topics']) . '}\'' : 'NULL',
             'picture' => '\'' . pg_escape_string($picture) . '\'',
             'bio' => isset($profile['bio']) ? '\'' . pg_escape_string($profile['bio']) . '\'' : 'NULL',

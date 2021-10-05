@@ -8,11 +8,11 @@ networks:
   default:
     driver: bridge
   external:
-    external:
-      name: rnet 
+    external: true
+    name: rnet 
 services:
   restodb:
-    image: jjrom/resto-database:6.0.0
+    image: jjrom/resto-database:6.1.2
     restart: always
     build:
       context: ./
