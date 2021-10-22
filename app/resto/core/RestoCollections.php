@@ -160,7 +160,7 @@ class RestoCollections
          * Check that collection does not exist based on id
          */
         if ((new CollectionsFunctions($this->context->dbDriver))->collectionExists($object['id'])) {
-            RestoLogUtil::httpError(400, 'Collection ' . $object['id'] . ' already exist');
+            RestoLogUtil::httpError(409, 'Collection ' . $object['id'] . ' already exist');
         }
 
         /*
