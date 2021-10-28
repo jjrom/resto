@@ -498,9 +498,12 @@ class CollectionsFunctions
             /*
              * OpenSearch 1.1 draft 5 constraints
              * (http://www.opensearch.org/Specifications/OpenSearch/1.1)
+             * 
+             * [STAC] Remove constraints on ShortName, LongName and Description
              */
             $validProperties = array(
-                'ShortName' => 16,
+                //'ShortName' => 16,
+                'ShortName' => -1,
                 //'LongName' => 48,
                 'LongName' => -1,
                 //'Description' => 1024,

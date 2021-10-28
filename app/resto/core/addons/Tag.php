@@ -120,42 +120,44 @@ class Tag extends RestoAddOn
          */
         $keywords = array();
 
-        if (isset($iTagFeature['content']['political']) && isset($iTagFeature['content']['political']['continents'])) {
-            $keywords = array_merge($keywords, $this->getGenericKeywords($iTagFeature['content']['political']['continents'], array(
-                'defaultName' => null,
-                'parentId' => null
-            )));
-        }
-
         /*
-         * Physical data
+         * Process keywords
          */
-        if (isset($iTagFeature['content']['physical'])) {
-            $keywords = array_merge($keywords, $this->getGenericKeywords($iTagFeature['content']['physical'], array(
-                'defaultName' => null,
-                'parentId' => null
-            )));
-        }
+        foreach ( $iTagFeature['content'] as $key => $value) {
 
-        /*
-         * Landcover
-         */
-        if (isset($iTagFeature['content']['landcover'])) {
-            $keywords = array_merge($keywords, $this->getLandCoverKeywords($iTagFeature['content']['landcover']));
-        }
+            switch ($key) {
 
-        /*
-         * Population
-         */
-        if (isset($iTagFeature['content']['population'])) {
-            $keywords = array_merge($keywords, $this->getPopulationKeywords($iTagFeature['content']['population']));
-        }
+                case 'political':
+                    if ( isset($value['continents'] ) ) {
+                        $keywords = array_merge($keywords, $this->getGenericKeywords($value['continents'], array(
+                            'defaultName' => null,
+                            'parentId' => null
+                        )));
+                    }
+                    break;
 
-        /*
-         * Keywords
-         */
-        if (isset($iTagFeature['content']['keywords'])) {
-            $keywords = array_merge($keywords, $this->getAlwaysKeywords($iTagFeature['content']['keywords']));
+                case 'landcover':
+                    $keywords = array_merge($keywords, $this->getLandCoverKeywords($value));
+                    break;
+
+                case 'population':
+                    $keywords = array_merge($keywords, $this->getPopulationKeywords($value));
+                    break;
+                
+                case 'keywords':
+                    $keywords = array_merge($keywords, $this->getAlwaysKeywords($value));
+                    break;
+
+                default:
+                    if ( is_array($value) ) {
+                        $keywords = array_merge($keywords, $this->getGenericKeywords($value, array(
+                            'defaultName' => null,
+                            'parentId' => null
+                        )));
+                    }
+                    
+            }
+
         }
 
         return $keywords;

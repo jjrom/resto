@@ -25,11 +25,16 @@
  *
  *  @OA\Schema(
  *      schema="InputCollection",
- *      required={"id", "model", "osDescription"},
+ *      required={"id"},
  *      @OA\Property(
  *          property="id",
  *          type="string",
  *          description="Collection identifier. It must be an unique alphanumeric string containing only [a-zA-Z0-9\-_]."
+ *      ),
+ *      @OA\Property(
+ *          property="description",
+ *          type="string",
+ *          description="Detailed multi-line description to fully explain the Collection. CommonMark 0.29 syntax MAY be used for rich text representation."
  *      ),
  *      @OA\Property(
  *          property="version",
@@ -43,7 +48,7 @@
  *      @OA\Property(
  *          property="model",
  *          type="string",
- *          description="[For developper] Name of the collection model class under $SRC/include/resto/Models."
+ *          description="[For developper] Name of the collection model class under $SRC/include/resto/Models - Default is DefaultModel"
  *      ),
  *      @OA\Property(
  *          property="licenseId",
@@ -756,8 +761,8 @@ class RestoCollection
         if (isset($id)) {
 
             // Collection identifier is an alphanumeric string without special characters
-            if (preg_match("/^[a-zA-Z0-9\-_]+$/", $id) !== 1) {
-                RestoLogUtil::httpError(400, 'Collection identifier must be an alphanumeric string containing only [a-zA-Z0-9\-_]');
+            if (preg_match("/^[a-zA-Z0-9\-_\.]+$/", $id) !== 1) {
+                RestoLogUtil::httpError(400, 'Collection identifier must be an alphanumeric string containing only [a-zA-Z0-9\-_.]');
             }
 
             $this->id = $id;
@@ -952,7 +957,7 @@ class RestoCollection
                 $this->statistics = (new FacetsFunctions($this->context->dbDriver))->getStatistics($this, $facetFields);
 
                 // Hack to add eo:cloud_cover
-                if ($this->model && $this->model->searchFilters && $this->model->searchFilters['eo:cloudCover']) {
+                if (isset($this->model) && isset($this->model->searchFilters) && isset($this->model->searchFilters['eo:cloudCover'])) {
                     $this->statistics['eo:cloud_cover'] = array(
                         'minimum' => 0,
                         'maximum' => 100
@@ -1007,6 +1012,18 @@ class RestoCollection
          * Check mandatory properties are required
          */
         $this->checkCreationMandatoryProperties($object);
+
+        /*
+         * If OpenSearch Description object is not set, create a minimal one from $object['description']
+         */
+        if (!isset($object['osDescription']) || !is_array($object['osDescription']) || !isset($object['osDescription']['en']) || !is_array($object['osDescription']['en'])) {
+            $object['osDescription'] = array(
+                'en' => array(
+                    'ShortName' => $object['id'],
+                    'Description' => $object['description'] ?? ''
+                )
+            );
+        }
         
         /*
          * Default collection visibility is the value of Resto::GROUP_DEFAULT_ID
@@ -1052,23 +1069,16 @@ class RestoCollection
         }
 
         /*
-         * Model name must be set
+         * Set DefaultModel if not set
          */
         if (!isset($object['model'])) {
-            RestoLogUtil::httpError(400, 'Property "model" is mandatory');
+            $object['model'] = 'DefaultModel';
         }
         
         if (!class_exists($object['model']) || !is_subclass_of($object['model'], 'RestoModel')) {
             RestoLogUtil::httpError(400, 'Model "' . $object['model'] . '" is not a valid model name');
         } 
         
-        /*
-         * At least an english OpenSearch Description object is mandatory
-         */
-        if (!isset($object['osDescription']) || !is_array($object['osDescription']) || !isset($object['osDescription']['en']) || !is_array($object['osDescription']['en'])) {
-            RestoLogUtil::httpError(400, 'English OpenSearch description is mandatory');
-        }
-
         /*
          * Set collection model
          */

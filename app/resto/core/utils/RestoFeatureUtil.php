@@ -177,7 +177,10 @@ class RestoFeatureUtil
                     break;
 
                 case 'startDate':
+                    /* [STAC][1.0.0] datetime is no more a range
                     $featureArray['properties']['datetime'] = $rawFeatureArray[$key] . (isset($rawFeatureArray['completionDate']) ? '/' . $rawFeatureArray['completionDate'] : '');
+                    */
+                    $featureArray['properties']['datetime'] = $rawFeatureArray[$key];
                     $featureArray['properties']['start_datetime'] = $rawFeatureArray[$key];
                     $featureArray['properties']['end_datetime'] = $rawFeatureArray['completionDate'] ?? $rawFeatureArray[$key];
                     break;
