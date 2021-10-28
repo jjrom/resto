@@ -122,8 +122,6 @@ fi
 
 PUBLIC_ENDPOINT=$(grep ^PUBLIC_ENDPOINT= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 RESTO_EXPOSED_PORT=$(grep ^RESTO_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
-POSTGRES_DATA=$(grep ^POSTGRES_DATA= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
-RESTO_STATIC_CONTENT=$(grep ^RESTO_STATIC_CONTENT= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 DATABASE_EXPOSED_PORT=$(grep ^DATABASE_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 DATABASE_HOST=$(grep ^DATABASE_HOST= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 DATABASE_NAME=$(grep ^DATABASE_NAME= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
@@ -172,20 +170,8 @@ else
     fi
 fi
 
-RESTO_EXPOSED_PORT=$(grep ^RESTO_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
-POSTGRES_DATA=$(grep ^POSTGRES_DATA= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
-RESTO_STATIC_CONTENT=$(grep ^RESTO_STATIC_CONTENT= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
-DATABASE_EXPOSED_PORT=$(grep ^DATABASE_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
-DATABASE_HOST=$(grep ^DATABASE_HOST= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
-DATABASE_PORT=$(grep ^DATABASE_PORT= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
-DATABASE_NAME=$(grep ^DATABASE_NAME= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
-DATABASE_USER_NAME=$(grep ^DATABASE_USER_NAME= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
-DATABASE_USER_PASSWORD=$(grep ^DATABASE_USER_PASSWORD= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
-
 COMPOSE_FILE=${COMPOSE_FILE} \
 RESTO_EXPOSED_PORT=${RESTO_EXPOSED_PORT} \
-RESTO_STATIC_CONTENT=${RESTO_STATIC_CONTENT} \
-POSTGRES_DATA=${POSTGRES_DATA}
 DATABASE_EXPOSED_PORT=${DATABASE_EXPOSED_PORT} \
 DATABASE_HOST=${DATABASE_HOST} \
 DATABASE_PORT=${DATABASE_PORT} \

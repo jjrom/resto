@@ -34,4 +34,4 @@ services:
       interval: 1m
       timeout: 5s
     volumes:
-      - ${RESTO_STATIC_CONTENT:-static_content}:/var/www/static
+      - static_content:/var/www/static

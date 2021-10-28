@@ -2,8 +2,6 @@ version: '3'
 volumes:
   database_data:
     driver: local
-  static_content:
-    driver: local
 networks:
   default:
     driver: bridge
@@ -38,4 +36,4 @@ services:
       interval: 1m
       timeout: 5s
     volumes:
-      - ${POSTGRES_DATA:-database_data}:/var/lib/postgresql/data
+      - database_data:/var/lib/postgresql/data
