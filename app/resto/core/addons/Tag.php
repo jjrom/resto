@@ -72,7 +72,8 @@ class Tag extends RestoAddOn
         $taggerKeys = array_keys($taggers);
         $queryParams = array(
             'geometry' => RestoGeometryUtil::geoJSONGeometryToWKT($geometry),
-            'taggers' => join(',', $taggerKeys)
+            'taggers' => join(',', $taggerKeys),
+            'planet' => $this->context->core['planet']
         );
 
         if (isset($properties['startDate'])) {
