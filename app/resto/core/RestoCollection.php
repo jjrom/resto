@@ -1043,9 +1043,14 @@ class RestoCollection
         $this->licenseId = $object['licenseId'] ?? 'proprietary';
         
         /*
+         * Clear links
+         */
+        $this->links = $this->cleanInputLinks($object['links'] ?? array());
+
+        /*
          * Set values
          */
-        foreach (array_values(array('osDescription', 'providers', 'summaries', 'links', 'rights', 'assets', 'keywords')) as $key) {
+        foreach (array_values(array('osDescription', 'providers', 'summaries', 'rights', 'assets', 'keywords')) as $key) {
             $this->$key = $object[$key] ?? array();
         }
 
@@ -1129,6 +1134,28 @@ class RestoCollection
         return array_merge(array(
             'datetime' => $this->datetime
         ), $this->statistics);
+    }
+
+    /**
+     * Remove input links that should be computed by resto
+     * 
+     * @param array $links
+     * @return array
+     */
+    private function cleanInputLinks($links)
+    {
+        $cleanLinks = array();
+
+        for ($i = 0, $ii = count($links); $i < $ii; $i++) {
+            $rel = $links[$i]['rel'] ?? null;
+            if ($rel && in_array($rel, array('root', 'self', 'parent', 'child', 'item', 'items'))) {
+                continue;
+            }
+            $cleanLinks[] = $links[$i];
+        }
+
+        return $cleanLinks;
+        
     }
     
 }
