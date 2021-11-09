@@ -788,7 +788,7 @@ abstract class RestoModel
          * Default : useItag with defaultTaggers
          * Convert array of string to associative array
          */
-        $taggers = $this->getTaggers($collection);
+        $taggers = $this->getITagParams($collection);
 
         return (new Tag($collection->context, $collection->user))->getKeywords($properties, $data['geometry'] ?? null, $collection->model->facetCategories, $taggers);
 
@@ -800,7 +800,7 @@ abstract class RestoModel
      * @param RestoCollection $collection
      * @return array
      */
-    private function getTaggers($collection)
+    private function getITagParams($collection)
     {
 
         // iTag is not use because model strategy is 'none' or explicitely _useItag is set to false
@@ -830,7 +830,10 @@ abstract class RestoModel
             }
         }
         
-        return $taggers;
+        return array(
+            'taggers' => $taggers,
+            'planet' => $collection->getPlanet()
+        );
 
     }
 

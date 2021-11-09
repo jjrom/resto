@@ -42,11 +42,11 @@ class Tag extends RestoAddOn
      *
      * @param array $properties
      * @param array $geometry (GeoJSON geometry)
-     * @param array $taggers
+     * @param array $iTagParams
      */
-    public function getKeywords($properties, $geometry, $facetCategories, $taggers)
+    public function getKeywords($properties, $geometry, $facetCategories, $iTagParams)
     {
-        return $taggers ? array_merge($this->keywordsFromITag($properties, $geometry, $taggers), $this->keywordsFromProperties($properties, $facetCategories)) : $this->keywordsFromProperties($properties, $facetCategories);
+        return $iTagParams && $iTagParams['taggers'] ? array_merge($this->keywordsFromITag($properties, $geometry, $iTagParams), $this->keywordsFromProperties($properties, $facetCategories)) : $this->keywordsFromProperties($properties, $facetCategories);
     }
 
     /**
@@ -54,9 +54,9 @@ class Tag extends RestoAddOn
      *
      * @param array $properties
      * @param array $geometry (GeoJSON)
-     * @param array $taggers
+     * @param array $iTagParams
      */
-    private function keywordsFromITag($properties, $geometry, $taggers)
+    private function keywordsFromITag($properties, $geometry, $iTagParams)
     {
 
         /*
@@ -69,11 +69,11 @@ class Tag extends RestoAddOn
             return array();
         }
 
-        $taggerKeys = array_keys($taggers);
+        $taggerKeys = array_keys($iTagParams['taggers']);
         $queryParams = array(
             'geometry' => RestoGeometryUtil::geoJSONGeometryToWKT($geometry),
             'taggers' => join(',', $taggerKeys),
-            'planet' => $this->context->core['planet']
+            'planet' => $iTagParams['planet'] ?? $this->context->core['planet']
         );
 
         if (isset($properties['startDate'])) {
@@ -84,7 +84,7 @@ class Tag extends RestoAddOn
          * Convert taggers options to query params
          */
         for ($i = count($taggerKeys); $i--;) {
-            foreach ($taggers[$taggerKeys[$i]] as $optionName => $optionValue) {
+            foreach ($iTagParams['taggers'][$taggerKeys[$i]] as $optionName => $optionValue) {
                 $queryParams[strtolower($taggerKeys[$i]) . '_' . $optionName] = $optionValue;
             }
         }

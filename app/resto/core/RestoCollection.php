@@ -753,7 +753,7 @@ class RestoCollection
     /*
      * Properties that are not stored in properties column
      */
-    private $notStoredInProperties = array(
+    private $notInProperties = array(
         'id',
         'type',
         'title',
@@ -1029,6 +1029,18 @@ class RestoCollection
     }
 
     /**
+     * On which planet this collection applied
+     * Based on ssys:target
+     */
+    public function getPlanet()
+    {
+        if ( $this->properties && $this->properties['ssys:targets'] ) {
+            return is_array($this->properties['ssys:targets']) ? $this->properties['ssys:targets'][0] : $this->properties['ssys:targets'];
+        }
+        return $this->context->core['planet'];
+    }
+
+    /**
      * Load collection parameters from input collection description
      * (See collection file example in examples/collections/S2.json)
      *
@@ -1097,7 +1109,7 @@ class RestoCollection
          */
         $this->properties = array();
         foreach ($object as $key => $value) {
-            if ( !in_array($key, $this->notStoredInProperties) ) {
+            if ( !in_array($key, $this->notInProperties) ) {
                 $this->properties[$key] = $value;
             }
         }
