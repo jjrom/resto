@@ -46,10 +46,7 @@ class CollectionsFunctions
             'visibility' => (integer) $rawDescription['visibility'],
             'owner' => $rawDescription['owner'],
             'providers' => json_decode($rawDescription['providers'], true),
-            // [STAC][1.0.0-rc1] Previous "properties" are merged to "summaries"
-            'summaries' => json_decode($rawDescription['properties'], true),
             'assets' => json_decode($rawDescription['assets'], true),
-            //'keywords' => isset($rawDescription['keywords']) ? explode(',', substr(str_replace('"', '', $rawDescription['keywords']), 1, -1)) : array(),
             'keywords' => isset($rawDescription['keywords']) ? json_decode($rawDescription['keywords'], true) : array(),
             'links' => json_decode($rawDescription['links'], true),
             'datetime' => array(
@@ -57,7 +54,10 @@ class CollectionsFunctions
                 'maximum' => $rawDescription['completiondate'] ?? null
             ),
             'bbox' => RestoGeometryUtil::box2dTobbox($rawDescription['box2d']),
-            'licenseId' => $rawDescription['licenseid']
+            // Be carefull license column is named licenseid in table
+            'license' => $rawDescription['licenseid'],
+            // Special _properties will be discarded in toArray()
+            'properties' => json_decode($rawDescription['properties'], true)
         );
     }
 
@@ -432,12 +432,12 @@ class CollectionsFunctions
                 'created' => 'now()',
                 'model' => $collection->model->getName(),
                 'lineage' => '{' . join(',', $collection->model->getLineage()) . '}',
-                'licenseid' => $collection->licenseId,
+                // Be carefull license column is named licenseid in table
+                'licenseid' => $collection->license,
                 'visibility' => $collection->visibility,
                 'owner' => $collection->owner,
                 'providers' => json_encode($collection->providers, JSON_UNESCAPED_SLASHES),
-                // [STAC][1.0.0-rc1] Input summaries is stored as properties in database to keep schema unchanged
-                'properties' => json_encode($collection->summaries, JSON_UNESCAPED_SLASHES),
+                'properties' => json_encode($collection->properties, JSON_UNESCAPED_SLASHES),
                 'links' => json_encode($collection->links, JSON_UNESCAPED_SLASHES),
                 'assets' => json_encode($collection->assets, JSON_UNESCAPED_SLASHES),
                 'keywords' => $keywords,
@@ -453,10 +453,10 @@ class CollectionsFunctions
                 $collection->id,
                 $collection->model->getName(),
                 '{' . join(',', $collection->model->getLineage()) . '}',
-                $collection->licenseId,
+                $collection->license,
                 $collection->visibility,
                 json_encode($collection->providers, JSON_UNESCAPED_SLASHES),
-                json_encode($collection->summaries, JSON_UNESCAPED_SLASHES),
+                json_encode($collection->properties, JSON_UNESCAPED_SLASHES),
                 json_encode($collection->links, JSON_UNESCAPED_SLASHES),
                 json_encode($collection->assets, JSON_UNESCAPED_SLASHES),
                 $keywords,
