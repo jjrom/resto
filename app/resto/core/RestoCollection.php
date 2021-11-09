@@ -51,7 +51,7 @@
  *          description="[For developper] Name of the collection model class under $SRC/include/resto/Models - Default is DefaultModel"
  *      ),
  *      @OA\Property(
- *          property="licenseId",
+ *          property="license",
  *          type="string",
  *          description="License for this collection as a SPDX License identifier. Alternatively, use proprietary if the license is not on the SPDX license list or various if multiple licenses apply. In these two cases links to the license texts SHOULD be added, see the license link relation type."
  *      ),
@@ -124,7 +124,7 @@
  *              "visualize": 1
  *          },
  *          "visibility": 1,
- *          "licenseId": "proprietary",
+ *          "license": "proprietary",
  *          "osDescription": {
  *              "en": {
  *                  "ShortName": "Sentinel-2",
@@ -558,6 +558,12 @@ class RestoCollection
     public $context = null;
 
     /*
+     * All collection metadata that are not stored in a dedicated table column
+     * are stored within the properties column
+     */
+    public $properties = array();
+
+    /*
      * User
      */
     public $user = null;
@@ -623,11 +629,6 @@ class RestoCollection
      * )
      */
     public $osDescription = null;
-
-    /*
-     * Collection licenseId
-     */
-    public $licenseId = 'proprietary';
 
     /**
      * Statistics
@@ -748,6 +749,30 @@ class RestoCollection
      *      }
      *  )
      */
+
+    /*
+     * Properties that are not stored in properties column
+     */
+    private $notStoredInProperties = array(
+        'id',
+        'type',
+        'title',
+        'description',
+        'stac_version',
+        'stac_extension',
+        'extent',
+        'model',
+        'version',
+        'visibility',
+        'rights',
+        'license',
+        'links',
+        'osDescription',
+        'providers',
+        'rights',
+        'assets',
+        'keywords'
+    );
 
     /**
      * Constructor
@@ -879,7 +904,7 @@ class RestoCollection
             'title' => $osDescription['LongName'] ?? $osDescription['ShortName'],
             'version' => $this->version ?? null,
             'description' => $osDescription['Description'],
-            'license' => $this->licenseId,
+            'license' => $this->license,
             'extent' => $this->getExtent(),
             'links' => array_merge(
                 array(
@@ -916,9 +941,18 @@ class RestoCollection
             }
         }
 
-        // Update summaries
-        $collectionArray['summaries'] = isset($this->summaries) ? array_merge($this->getSummaries($options['stats'] ?? false), $this->summaries) : $this->getSummaries($options['stats'] ?? false);
+        $collectionArray['summaries'] = $this->getSummaries($options['stats'] ?? false);
         
+        // Properties
+        foreach ($this->properties as $key => $value) {
+            if ($key === 'summaries' && is_array($value)) {
+                $collectionArray['summaries'] = array_merge($collectionArray['summaries'], $value);
+            }
+            else {
+                $collectionArray[$key] = $value;
+            }
+        }
+
         return $collectionArray;
 
     }
@@ -1019,7 +1053,7 @@ class RestoCollection
         if (!isset($object['osDescription']) || !is_array($object['osDescription']) || !isset($object['osDescription']['en']) || !is_array($object['osDescription']['en'])) {
             $object['osDescription'] = array(
                 'en' => array(
-                    'ShortName' => $object['id'],
+                    'ShortName' => $object['title'] ?? $object['id'],
                     'Description' => $object['description'] ?? ''
                 )
             );
@@ -1040,7 +1074,7 @@ class RestoCollection
         /*
          * License - set to 'proprietary' if not specified
          */
-        $this->licenseId = $object['licenseId'] ?? 'proprietary';
+        $this->license = $object['license'] ?? 'proprietary';
         
         /*
          * Clear links
@@ -1050,8 +1084,17 @@ class RestoCollection
         /*
          * Set values
          */
-        foreach (array_values(array('osDescription', 'providers', 'summaries', 'rights', 'assets', 'keywords')) as $key) {
+        foreach (array_values(array('osDescription', 'providers', 'rights', 'assets', 'keywords')) as $key) {
             $this->$key = $object[$key] ?? array();
+        }
+
+        /*
+         * Store every other properties to $this->properties
+         */
+        foreach ($object as $key => $value) {
+            if ( !in_array($key, $this->notStoredInProperties) ) {
+                $this->properties[$key] = $value;
+            }
         }
 
         return $this;

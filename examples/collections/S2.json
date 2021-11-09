@@ -7,7 +7,7 @@
         "visualize": 1
     },
     "visibility": 1,
-    "licenseId": "proprietary",
+    "license": "proprietary",
     "osDescription": {
         "en": {
             "ShortName": "Sentinel-2",

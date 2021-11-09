@@ -7,7 +7,7 @@
         "visualize": 1
     },
     "visibility": 1,
-    "licenseId": "PDDL-1.0",
+    "license": "PDDL-1.0",
     "osDescription": {
         "en": {
             "ShortName": "Landsat-8",
