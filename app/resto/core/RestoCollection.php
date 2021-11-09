@@ -944,14 +944,15 @@ class RestoCollection
         $collectionArray['summaries'] = $this->getSummaries($options['stats'] ?? false);
         
         // Properties
-        foreach ($this->properties as $key => $value) {
-            if ($key === 'summaries') {
-                if ( is_array($value) ) {
-                    $collectionArray['summaries'] = array_merge($collectionArray['summaries'], $value);
+        if (is_array($this->properties)) {
+            foreach ($this->properties as $key => $value) {
+                if ($key === 'summaries') {
+                    if (is_array($value)) {
+                        $collectionArray['summaries'] = array_merge($collectionArray['summaries'], $value);
+                    }
+                } else {
+                    $collectionArray[$key] = $value;
                 }
-            }
-            else {
-                $collectionArray[$key] = $value;
             }
         }
 
