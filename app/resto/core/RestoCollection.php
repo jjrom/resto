@@ -945,8 +945,10 @@ class RestoCollection
         
         // Properties
         foreach ($this->properties as $key => $value) {
-            if ($key === 'summaries' && is_array($value)) {
-                $collectionArray['summaries'] = array_merge($collectionArray['summaries'], $value);
+            if ($key === 'summaries') {
+                if ( is_array($value) ) {
+                    $collectionArray['summaries'] = array_merge($collectionArray['summaries'], $value);
+                }
             }
             else {
                 $collectionArray[$key] = $value;
@@ -1090,7 +1092,10 @@ class RestoCollection
 
         /*
          * Store every other properties to $this->properties
+         * 
+         * [IMPORTANT] Clear properties first !
          */
+        $this->properties = array();
         foreach ($object as $key => $value) {
             if ( !in_array($key, $this->notStoredInProperties) ) {
                 $this->properties[$key] = $value;
