@@ -246,6 +246,11 @@ class RestoFeatureUtil
             );
         }
 
+        // Add planet if not already set
+        if ( ! isset($featureArray['properties']['ssys:targets']) ) {
+            $featureArray['properties']['ssys:targets'] = array($collection->getPlanet());
+        }
+
         return $featureArray;
 
     }
