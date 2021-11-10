@@ -363,7 +363,7 @@ class FeaturesFunctions
         if (!isset($feature)) {
             RestoLogUtil::httpError(404);
         }
-
+        
         // Get old feature properties
         $oldFeatureArray = $feature->toArray();
 
@@ -419,36 +419,18 @@ class FeaturesFunctions
             /*
              * Update model specific
              */
-            for ($i = count($collection->model->tables); $i--;) {
-                if ( isset($keysAndValues['modelTables'][$collection->model->tables[$i]['name']]) && ! empty($keysAndValues['modelTables'][$collection->model->tables[$i]['name']])) {
-                    $toUpdate = $this->concatArrays(
-                        array_keys($keysAndValues['modelTables'][$collection->model->tables[$i]['name']]),
-                        $this->getCounterList(count($keysAndValues['modelTables'][$collection->model->tables[$i]['name']])),
-                        '='
-                    );
-                    
-                    $this->dbDriver->pQuery(
-                        'UPDATE ' . $tablePrefix . $collection->model->tables[$i]['name'] . ' SET ' . join(',', $toUpdate) . ' WHERE id=$' . (count($toUpdate) + 1),
-                        array_merge(
-                            array_values($keysAndValues['modelTables'][$collection->model->tables[$i]['name']]),
-                            array($feature->id)
-                        )
-                    );
-                }
-                
-            }
+            $this->storeFeatureAdditionalContent($feature->id, $collection->id, $keysAndValues['modelTables']);
             
             /*
              * Commit
              */
             $this->dbDriver->query('COMMIT');
 
-            return RestoLogUtil::success('Update feature ' . $feature->id);
         } catch (Exception $e) {
             $this->dbDriver->query('ROLLBACK');
             RestoLogUtil::httpError(500, 'Cannot update feature ' . $feature->id);
         }
-
+        
         /*
          * Update facets i.e. remove old facets and add new ones
          * This is non blocking i.e. if error just indicated in the result but feature is updated
@@ -655,10 +637,16 @@ class FeaturesFunctions
                 return false;
             }
 
+            $updates = array();
+            $count = 1;
+            foreach (array_keys($columnsAndValues) as $key) {
+                $updates[] =  $key . '=' . '$' . $count;
+                $count++; 
+            }
             $columnsAndValues['id'] = $featureId;
             $columnsAndValues['collection'] = $collectionId;
-            $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->schema . '.' . $tableName . ' (' . join(',', array_keys($columnsAndValues)) . ') VALUES (' . join(',', $this->getCounterList(count($columnsAndValues))) . ')', array_values($columnsAndValues));
-        
+            $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->schema . '.' . $tableName . ' (' . join(',', array_keys($columnsAndValues)) . ') VALUES (' . join(',', $this->getCounterList(count($columnsAndValues))) . ') ON CONFLICT (id) DO UPDATE SET ' . join(',', $updates), array_values($columnsAndValues));
+    
         }
 
         return true;

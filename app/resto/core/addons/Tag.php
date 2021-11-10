@@ -42,11 +42,12 @@ class Tag extends RestoAddOn
      *
      * @param array $properties
      * @param array $geometry (GeoJSON geometry)
+     * @param RestoModel $model
      * @param array $iTagParams
      */
-    public function getKeywords($properties, $geometry, $facetCategories, $iTagParams)
+    public function getKeywords($properties, $geometry, $model, $iTagParams)
     {
-        return $iTagParams && $iTagParams['taggers'] ? array_merge($this->keywordsFromITag($properties, $geometry, $iTagParams), $this->keywordsFromProperties($properties, $facetCategories)) : $this->keywordsFromProperties($properties, $facetCategories);
+        return $iTagParams && $iTagParams['taggers'] ? array_merge($this->keywordsFromITag($properties, $geometry, $iTagParams), $this->keywordsFromProperties($properties, $model)) : $this->keywordsFromProperties($properties, $model);
     }
 
     /**
@@ -300,9 +301,9 @@ class Tag extends RestoAddOn
      * Return a RESTo keywords array from feature properties
      *
      * @param array $properties
-     * @param array $facetCategories
+     * @param RestoModel $model
      */
-    private function keywordsFromProperties($properties, $facetCategories)
+    private function keywordsFromProperties($properties, $model)
     {
 
         /*
@@ -313,14 +314,14 @@ class Tag extends RestoAddOn
         /*
          * Roll over facet categories
          */
-        foreach (array_values($facetCategories) as $facetCategory) {
-            $keywords = array_merge($keywords, $this->keywordsFromFacets($properties, $facetCategory));
+        foreach (array_values($model->facetCategories) as $facetCategory) {
+            $keywords = array_merge($keywords, $this->keywordsFromFacets($properties, $facetCategory, $model));
         }
 
         /*
          * Get date keywords
          */
-        return array_merge($keywords, $this->getDateKeywords($properties));
+        return array_merge($keywords, $this->getDateKeywords($properties, $model));
     }
 
     /**
@@ -328,15 +329,22 @@ class Tag extends RestoAddOn
      *
      * @param array $properties
      * @param array $facetCategory
+     * @param RestoModel $model
      * @return array
      */
-    private function keywordsFromFacets($properties, $facetCategory)
+    private function keywordsFromFacets($properties, $facetCategory, $model)
     {
         $parentId = null;
         $keywords = array();
         for ($i = 0, $ii = count($facetCategory); $i < $ii; $i++) {
             
+            // Get value in properties for input facetCategory
             $value = $properties[$facetCategory[$i]] ?? null;
+            
+            // If the facetCategory is not found, try the STAC alias 
+            if ( !isset($value) && isset($model->stacMapping[$facetCategory[$i]]) ) {
+                $value = $properties[$model->stacMapping[$facetCategory[$i]]['key']] ?? null;
+            }
 
             if (isset($value))
             {
@@ -352,7 +360,8 @@ class Tag extends RestoAddOn
                 $newParentId = null;
                 for ($j = 0, $jj = count($value); $j < $jj; $j++) {
                     $keyword = array();
-                    $id = $facetCategory[$i] . Resto::TAG_SEPARATOR . $value[$j];
+                    // [IMPORTANT] Discard all spaces from value
+                    $id = $facetCategory[$i] . Resto::TAG_SEPARATOR . str_replace(' ', '', $value[$j]);
                     if (! $this->alreadyExists($keywords, $id)) {
                         $keyword = array(
                             'id' => $id,
@@ -384,13 +393,12 @@ class Tag extends RestoAddOn
      * Process date keywords
      *
      * @param array $properties
+     * @param RestoModel $model
      * @return array
      */
-    private function getDateKeywords($properties)
+    private function getDateKeywords($properties, $model)
     {
         
-        $model = new DefaultModel();
-
         /*
          * startDate property is not present
          */
@@ -465,4 +473,5 @@ class Tag extends RestoAddOn
         }
         return false;
     }
+
 }

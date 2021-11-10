@@ -37,7 +37,13 @@ abstract class RestoModel
     );
 
     /*
-     * STAC mapping is used to convert internal resto property names to STAC properties names
+     * Mapping applied to input properties
+     * It is used to convert input GeoJSON properties BEFORE being inserted in database
+     */
+    public $inputMapping = array();
+
+    /*
+     * STAC mapping is used to convert output property names to STAC properties names
      */
     public $stacMapping = array(
 
@@ -463,15 +469,16 @@ abstract class RestoModel
      *
      * @param RestoFeature $feature
      * @param RestoCollection $collection
-     * @param array $data : array (MUST BE GeoJSON in abstract Model)
-     *
+     * @param array $body
+     * @param array $params
+     * 
      */
-    public function updateFeature($feature, $collection, $data)
+    public function updateFeature($feature, $collection, $body, $params)
     {
         return (new FeaturesFunctions($collection->context->dbDriver))->updateFeature(
             $feature,
             $collection,
-            $this->prepareFeatureArray($collection, $data)
+            $this->prepareFeatureArray($collection, $this->inputToResto($body, $collection, $params))
         );
     }
 
@@ -619,6 +626,40 @@ abstract class RestoModel
     }
 
     /**
+     * Remap input properties using inputMapping
+     * 
+     * @param array $properties
+     * @return array
+     */
+    public function remapInputProperties($properties)
+    {
+
+        if ( empty($this->inputMapping) ) {
+            return $properties;
+        }
+
+        $newProperties = array();
+
+        $rulesKeys = array_keys($this->inputMapping);
+        foreach ($properties as $key => $value)
+        {
+            if ( in_array($key, $rulesKeys) ) {
+                if ( $this->inputMapping[$key]['key'] === null ) {
+                    continue;
+                }
+                $newProperties[$this->inputMapping[$key]['key']] = $this->convertTo($value, $this->inputMapping[$key]['convertTo'] ?? null);
+            }
+            else {
+                $newProperties[$key] = $value;
+            }
+            
+        }
+
+        return $newProperties;
+
+    }
+
+    /**
      * Apply type converstion to value
      * 
      * @param integer|float|string|object $value
@@ -648,7 +689,10 @@ abstract class RestoModel
      *
      */
     protected function inputToResto($body, $collection, $params)
-    {
+    {   
+        if ( isset($body['properties']) ) {
+            $body['properties'] = $this->remapInputProperties($body['properties']);
+        }
         return $body;
     }
 
@@ -790,7 +834,7 @@ abstract class RestoModel
          */
         $taggers = $this->getITagParams($collection);
 
-        return (new Tag($collection->context, $collection->user))->getKeywords($properties, $data['geometry'] ?? null, $collection->model->facetCategories, $taggers);
+        return (new Tag($collection->context, $collection->user))->getKeywords($properties, $data['geometry'] ?? null, $collection->model, $taggers);
 
     }
 
