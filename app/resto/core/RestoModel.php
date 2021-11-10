@@ -637,7 +637,7 @@ abstract class RestoModel
         if ( empty($this->inputMapping) ) {
             return $properties;
         }
-        
+
         $newProperties = array();
 
         $rulesKeys = array_keys($this->inputMapping);
@@ -834,7 +834,7 @@ abstract class RestoModel
          */
         $taggers = $this->getITagParams($collection);
 
-        return (new Tag($collection->context, $collection->user))->getKeywords($properties, $data['geometry'] ?? null, $collection->model->facetCategories, $taggers);
+        return (new Tag($collection->context, $collection->user))->getKeywords($properties, $data['geometry'] ?? null, $collection->model, $taggers);
 
     }
 
