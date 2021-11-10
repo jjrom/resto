@@ -363,7 +363,7 @@ class FeaturesFunctions
         if (!isset($feature)) {
             RestoLogUtil::httpError(404);
         }
-
+        
         // Get old feature properties
         $oldFeatureArray = $feature->toArray();
 
@@ -443,12 +443,11 @@ class FeaturesFunctions
              */
             $this->dbDriver->query('COMMIT');
 
-            return RestoLogUtil::success('Update feature ' . $feature->id);
         } catch (Exception $e) {
             $this->dbDriver->query('ROLLBACK');
             RestoLogUtil::httpError(500, 'Cannot update feature ' . $feature->id);
         }
-
+        
         /*
          * Update facets i.e. remove old facets and add new ones
          * This is non blocking i.e. if error just indicated in the result but feature is updated

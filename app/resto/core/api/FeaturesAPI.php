@@ -686,7 +686,7 @@ class FeaturesAPI
             }
         }
         
-        return $collection->model->updateFeature($feature, $collection, $body);
+        return $collection->model->updateFeature($feature, $collection, $body, $params);
 
     }
 

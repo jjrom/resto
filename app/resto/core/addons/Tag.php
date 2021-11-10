@@ -352,7 +352,8 @@ class Tag extends RestoAddOn
                 $newParentId = null;
                 for ($j = 0, $jj = count($value); $j < $jj; $j++) {
                     $keyword = array();
-                    $id = $facetCategory[$i] . Resto::TAG_SEPARATOR . $value[$j];
+                    // [IMPORTANT] Discard all spaces from value
+                    $id = $facetCategory[$i] . Resto::TAG_SEPARATOR . str_replace(' ', '', $value[$j]);
                     if (! $this->alreadyExists($keywords, $id)) {
                         $keyword = array(
                             'id' => $id,
