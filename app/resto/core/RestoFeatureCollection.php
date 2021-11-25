@@ -452,7 +452,11 @@ class RestoFeatureCollection
             /*
              * [IMPORTANT] Add explicit 'resto:collection' filter if $collection is set
              */
-            $this->loadFeatures(isset($collection) ? array_merge($analysis['details']['appliedFilters'], array('resto:collection' => $collection->id)) : $analysis['details']['appliedFilters'], $sorting);
+            if ( isset($collection) ) {
+                $analysis['details']['appliedFilters'] = array_merge($analysis['details']['appliedFilters'], array('resto:collection' => $collection->id));
+            }
+            $this->loadFeatures($analysis['details']['appliedFilters'], $sorting);
+            
         }
         
         /*
@@ -572,7 +576,7 @@ class RestoFeatureCollection
          */
         $query = array(
             'inputFilters' => $this->toOSKeys($analysis['inputFilters']),
-            'appliedFilters' => $this->toOSKeys($analysis['details']['appliedFilters']),
+            'appliedFilters' => $this->toOSKeys($analysis['details']['appliedFilters'], true),
             'processingTime' => $query['details']['processingTime'] = microtime(true) - $this->requestStartTime
         );
         
@@ -976,17 +980,72 @@ class RestoFeatureCollection
      * Convert array of filter names to array of OpenSearch keys
      *
      * @param array $filterNames
+     * @param boolean $processSearchTerms
      * @return array
      */
-    private function toOSKeys($filterNames)
+    private function toOSKeys($filterNames, $processSearchTerms = false)
     {
         $arr = array();
         foreach ($filterNames as $key => $value) {
             if (isset($this->model->searchFilters[$key])) {
+
+                // Special case => convert string of hashtags to individuals 
+                if ($key === 'searchTerms' && $processSearchTerms) {
+                    $arr = array_merge($arr, $this->explodeSearchTerms($value));
+                    continue;
+                }
+
                 $arr[$this->model->searchFilters[$key]['osKey']] = $value;
             }
         }
         return $arr;
+    }
+
+    /**
+     * Explode a searchTerms string (e.g. "#location:coastal #year:2003 #instrument:PHR,NIR #thisisanormalahashtag")
+     * into an array of filters (i.e. {"location":"coastal","year":2003,"instruments":"PHR,NIR","q":"#thisisnormalhashtagh"})
+     * 
+     * @param string $str
+     */
+    private function explodeSearchTerms($str)
+    {
+
+        $hashtags = [];
+        $output = [];
+
+        /*
+         * Process each searchTerm
+         */
+        $searchTerms = RestoUtil::splitString($str); 
+        for ($i = 0, $l = count($searchTerms); $i < $l; $i++) {
+
+            $splitted = explode(Resto::TAG_SEPARATOR, $searchTerms[$i]);
+
+            // This is a regular hashtag
+            if (count($splitted) === 1) {
+                $hashtags[] = $searchTerms[$i];
+                continue;
+            }
+
+            /*
+             * Hashtags start with "#" or with "-#" (equivalent to "NOT #")
+             */
+            if (substr($splitted[0], 0, 1) === '#') {
+                $output[$this->model->getOSKeyFromPrefix(ltrim($splitted[0], '#'))] = $splitted[1]; 
+            } elseif (substr($splitted[0], 0, 2) === '-#') {
+                $output[$this->model->getOSKeyFromPrefix(ltrim($splitted[0], '-#'))] = '-' . $splitted[1]; 
+            }
+            else {
+                $hashtags[] = $searchTerms[$i];
+            }
+        }
+
+        if (count($hashtags) > 0) {
+            $output['searchTerms'] = join(' ', $hashtags);
+        }
+
+        return $output;
+
     }
 
     /**

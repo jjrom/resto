@@ -554,6 +554,21 @@ abstract class RestoModel
     }
 
     /**
+     * Return OpenSearch filter name from prefix key or input prefix otherwise
+     * 
+     * @param string $prefix
+     */
+    public function getOSKeyFromPrefix($prefix)
+    {
+        foreach (array_keys($this->searchFilters) as $filterKey) {
+            if ( isset($this->searchFilters[$filterKey]['prefix']) && $this->searchFilters[$filterKey]['prefix'] === $prefix ) {
+                return $this->searchFilters[$filterKey]['osKey'];
+            }
+        }
+        return $prefix;
+    }
+
+    /**
      * Check if value is valid for a given filter regarding the model
      *
      * @param string $filterKey
