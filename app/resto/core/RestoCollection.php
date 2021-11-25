@@ -1035,7 +1035,7 @@ class RestoCollection
      */
     public function getPlanet()
     {
-        if ( $this->properties && $this->properties['ssys:targets'] ) {
+        if ( $this->properties && isset($this->properties['ssys:targets']) ) {
             return is_array($this->properties['ssys:targets']) ? $this->properties['ssys:targets'][0] : $this->properties['ssys:targets'];
         }
         return $this->context->core['planet'];
