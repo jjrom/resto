@@ -452,7 +452,11 @@ class RestoFeatureCollection
             /*
              * [IMPORTANT] Add explicit 'resto:collection' filter if $collection is set
              */
-            $this->loadFeatures(isset($collection) ? array_merge($analysis['details']['appliedFilters'], array('resto:collection' => $collection->id)) : $analysis['details']['appliedFilters'], $sorting);
+            if ( isset($collection) ) {
+                $analysis['details']['appliedFilters'] = array_merge($analysis['details']['appliedFilters'], array('resto:collection' => $collection->id));
+            }
+            $this->loadFeatures($analysis['details']['appliedFilters'], $sorting);
+            
         }
         
         /*
