@@ -78,7 +78,7 @@ class CollectionsFunctions
         while ($rowDescription = pg_fetch_assoc($results)) {
             $collection = array_merge(
                 CollectionsFunctions::format($rowDescription),
-                array('osDescription' => $osDescriptions[$id])
+                array('osDescription' => $osDescriptions[$id] ?? array())
             );
         }
         return $collection;
@@ -103,7 +103,7 @@ class CollectionsFunctions
         while ($rowDescription = pg_fetch_assoc($results)) {
             $collections[$rowDescription['id']] = array_merge(
                 CollectionsFunctions::format($rowDescription),
-                array('osDescription' => $osDescriptions[$rowDescription['id']])
+                array('osDescription' => $osDescriptions[$rowDescription['id']] ?? array())
             );
         }
 
