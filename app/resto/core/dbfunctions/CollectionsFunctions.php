@@ -34,34 +34,6 @@ class CollectionsFunctions
     }
 
     /**
-     * Return a formated collection description
-     * 
-     * @param array $rawDescription
-     */
-    public static function format($rawDescription) {
-        return array(
-            'id' => $rawDescription['id'],
-            'version' => $rawDescription['version'] ?? null,
-            'model' => $rawDescription['model'],
-            'visibility' => (integer) $rawDescription['visibility'],
-            'owner' => $rawDescription['owner'],
-            'providers' => json_decode($rawDescription['providers'], true),
-            'assets' => json_decode($rawDescription['assets'], true),
-            'keywords' => isset($rawDescription['keywords']) ? json_decode($rawDescription['keywords'], true) : array(),
-            'links' => json_decode($rawDescription['links'], true),
-            'datetime' => array(
-                'minimum' => $rawDescription['startdate'] ?? null,
-                'maximum' => $rawDescription['completiondate'] ?? null
-            ),
-            'bbox' => RestoGeometryUtil::box2dTobbox($rawDescription['box2d']),
-            // Be carefull license column is named licenseid in table
-            'license' => $rawDescription['licenseid'],
-            // Special _properties will be discarded in toArray()
-            'properties' => json_decode($rawDescription['properties'], true)
-        );
-    }
-
-    /**
      * Get description for collection
      *
      * @param string $id
@@ -76,10 +48,7 @@ class CollectionsFunctions
         $collection = null;
         $results = $this->dbDriver->pQuery('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords FROM ' . $this->dbDriver->schema . '.collection WHERE normalize(id)=normalize($1)', array($id));
         while ($rowDescription = pg_fetch_assoc($results)) {
-            $collection = array_merge(
-                CollectionsFunctions::format($rowDescription),
-                array('osDescription' => $osDescriptions[$id] ?? array())
-            );
+            $collection = $this->format($rowDescription, $osDescriptions[$id] ?? null);
         }
         return $collection;
     }
@@ -101,12 +70,8 @@ class CollectionsFunctions
         $where = isset($visibilities) && count($visibilities) > 0 ? ' WHERE visibility IN (' . join(',', $visibilities) . ')' : '';
         $results = $this->dbDriver->query('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords FROM ' . $this->dbDriver->schema . '.collection ' . $where . ' ORDER BY id');
         while ($rowDescription = pg_fetch_assoc($results)) {
-            $collections[$rowDescription['id']] = array_merge(
-                CollectionsFunctions::format($rowDescription),
-                array('osDescription' => $osDescriptions[$rowDescription['id']] ?? array())
-            );
+            $collections[$rowDescription['id']] = $this->format($rowDescription, $osDescriptions[$rowDescription['id']] ?? null);
         }
-
         return $collections;
     }
 
@@ -548,6 +513,51 @@ class CollectionsFunctions
             return true;
         }
         return false;
+    }
+
+    /**
+     * Return a formated collection description
+     * 
+     * @param array $rawDescription
+     * @param array $osDescription
+     */
+    private function format($rawDescription, $osDescription) {
+        $collection = array(
+            'id' => $rawDescription['id'],
+            'version' => $rawDescription['version'] ?? null,
+            'model' => $rawDescription['model'],
+            'visibility' => (integer) $rawDescription['visibility'],
+            'owner' => $rawDescription['owner'],
+            'providers' => json_decode($rawDescription['providers'], true),
+            'assets' => json_decode($rawDescription['assets'], true),
+            'keywords' => isset($rawDescription['keywords']) ? json_decode($rawDescription['keywords'], true) : array(),
+            'links' => json_decode($rawDescription['links'], true),
+            'datetime' => array(
+                'minimum' => $rawDescription['startdate'] ?? null,
+                'maximum' => $rawDescription['completiondate'] ?? null
+            ),
+            'bbox' => RestoGeometryUtil::box2dTobbox($rawDescription['box2d']),
+            // Be carefull license column is named licenseid in table
+            'license' => $rawDescription['licenseid'],
+            // Special _properties will be discarded in toArray()
+            'properties' => json_decode($rawDescription['properties'], true),
+            'osDescription' => $osDescription
+        );
+
+        /*
+         * If OpenSearch Description object is not set, create a minimal one from $object['description']
+         */
+        if (!isset($osDescription) || !is_array($osDescription) || !isset($osDescription['en']) || !is_array($osDescription['en'])) {
+            $collection['osDescription'] = array(
+                'en' => array(
+                    'ShortName' => $collection['properties']['title'] ?? $collection['id'],
+                    'Description' => $collection['properties']['description'] ?? ''
+                )
+            );
+        }
+
+        return $collection;
+        
     }
 
 }
