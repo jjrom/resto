@@ -108,8 +108,24 @@ class RestoQueryAnalyzer
              * Extract hashtags (i.e. #something or -#something)
              */
             $hashtags = isset($params['searchTerms']) ? RestoUtil::extractHashtags($params['searchTerms']) : array();
-            
-            if (count($hashtags) > 0) {
+            $nbOfHashtags = count($hashtags);
+            if ($nbOfHashtags > 0) {
+
+                /*
+                 * Special gazetteer hashtags - if found, the first is converted to geouid
+                 * A gazetteer hashtag format is type:name:geouid
+                 */
+                if ( !isset($params['geo:name']) ) {
+                    for ($i = 0, $ii = $nbOfHashtags; $i < $ii; $i++) {
+                        $splitted = explode(Resto::TAG_SEPARATOR, $hashtags[$i]);
+                        if ( count($splitted) === 3 && is_numeric($splitted[2]) ) {
+                            $params['geo:name'] = 'geouid:' . $splitted[2];
+                            array_splice($hashtags, $i, 1);
+                            break;
+                        }
+                    }
+                }
+
                 $details['What'] = array(
                     'searchTerms' => $this->appendSkos($hashtags)
                 );
