@@ -566,6 +566,10 @@ class FeaturesAPI
             return RestoLogUtil::httpError(400, 'You cannot specify a list of collections on a single collection search');
         }
 
+        if (isset($params['ck'])) {
+            return RestoLogUtil::httpError(400, 'You cannot filter on collections keywords on a single collection search');
+        }
+
         if (isset($params['model'])) {
             return RestoLogUtil::httpError(400, 'You cannot specify a collection and a model at the same time');
         }

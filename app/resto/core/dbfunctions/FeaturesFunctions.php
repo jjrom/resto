@@ -99,6 +99,28 @@ class FeaturesFunctions
          */
         $filtersFunctions = new FiltersFunctions($context, $user, $model);
         $filtersAndJoins = $filtersFunctions->prepareFilters($params, $sorting['sortKey']);
+
+        /*
+         * If a resto:ckeywords was used, then automatically reduce the search on the collection
+         */
+        if ( isset($params['resto:ckeywords']) ) {
+            $collectionIds = array_keys($collections);
+            if ( count($collectionIds) === 0) {
+                return array(
+                    'links' => array(),
+                    'count' => array(
+                        'total' => 0,
+                        'isExact' => true
+                    ),
+                    'features' => array()
+                );
+            }
+            $filtersAndJoins['filters'][] = array(
+                'value' => $featureTableName . '.collection IN (' . implode(',', array_map(function($str) { return '\'' .  pg_escape_string($str) . '\''; }, $collectionIds )) . ')',
+                'isGeo' => false
+            );
+            
+        }
         
         /*
          * Special case for liked - return only features liked by owner if set, otherwise by $user

@@ -136,7 +136,7 @@ class FiltersFunctions
                 /*
                  * First check if filter is valid and as an associated column within database
                  */
-                elseif (!in_array($filterName, $this->excludedFilters) && $this->model->searchFilters[$filterName]['key']) {
+                elseif (!in_array($filterName, $this->excludedFilters) && isset($this->model->searchFilters[$filterName]['key']) ) {
                     $filter = $this->prepareFilterQuery($params, $filterName);
                     if (isset($filter) && $filter !== '') {
                         $filters[] = $filter;

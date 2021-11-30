@@ -297,7 +297,17 @@ abstract class RestoModel
             'title' => 'Feature status',
             'operation' => '=',
             'pattern' => '^[0-9]+$'
-        )
+        ),
+
+        /*
+         * Apply a filter on collections based on the resto.collection keywords column
+         * Equivalent to apply a collections filter with a list of collections
+         */
+        'resto:ckeywords' => array(
+            'osKey' => 'ck',
+            'title' => 'Stands for "collection keyword" - Limit search to collection containing the input keyword',
+            'operation' => '='
+        ),
 
     );
 
@@ -504,7 +514,7 @@ abstract class RestoModel
      *  - remove all HTML tags from input to avoid XSS injection
      *  - check that filter value is valid regarding the model definition
      * 
-     * [IMPORTANT]CHANGE] Each unknown filter key that does not start with '_' is converted to to hashtag with the following convention : "#<filterName>:value"
+     * [IMPORTANT]CHANGE] Each unknown filter key that does not start with '_' is converted to hashtag with the following convention : "#<filterName>:value"
      *
      * @param array $query
      */
@@ -529,7 +539,7 @@ abstract class RestoModel
         if ( count($unknowns) > 0 ) {
             $params['searchTerms'] = isset($params['searchTerms']) ? $params['searchTerms'] . ' ' . join(' ', $unknowns) : join(' ', $unknowns);
         }
-        
+
         // [STAC] If "ids" filter is set, then discard every other filters except next and limit
         return isset($params['geo:uid']) ? array(
             'geo:uid' => $params['geo:uid'],

@@ -4,6 +4,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_id_collection on resto.collection (normali
 CREATE INDEX IF NOT EXISTS idx_lineage_collection ON resto.collection USING GIN (lineage);
 CREATE INDEX IF NOT EXISTS idx_visibility_collection ON resto.collection (visibility);
 CREATE INDEX IF NOT EXISTS idx_created_collection ON resto.collection (created);
+CREATE INDEX IF NOT EXISTS idx_keywords_collection ON resto.collection USING GIN (keywords);
 
 -- [TABLE resto.osdescription]
 ALTER TABLE resto.osdescription DROP CONSTRAINT IF EXISTS cl_collection;
