@@ -173,7 +173,7 @@ class RestoCollections
     }
 
     /**
-     * Search features within collection
+     * Search features within collections
      *
      * @param RestoModel $model
      * @param array $query
@@ -192,16 +192,18 @@ class RestoCollections
 
     /**
      * Load all collections from RESTo database and add them to this object
+     * 
+     * @param array $params
      */
-    public function load()
+    public function load($params = array())
     {
         
-        $group = $this->user->hasGroup(Resto::GROUP_ADMIN_ID) ? null : $this->user->profile['groups'];
-        $cacheKey = 'collections' . ($group ? join(',', $group) : '');
+        $params['group'] = $this->user->hasGroup(Resto::GROUP_ADMIN_ID) ? null : $this->user->profile['groups'];
+        $cacheKey = 'collections' . ($params['group'] ? join(',', $params['group']) : '');
         
         $collectionsDesc = $this->context->fromCache($cacheKey);
         if (!isset($collectionsDesc)) {
-            $collectionsDesc = (new CollectionsFunctions($this->context->dbDriver))->getCollectionsDescriptions($group);
+            $collectionsDesc = (new CollectionsFunctions($this->context->dbDriver))->getCollectionsDescriptions($params);
             $this->context->toCache($cacheKey, $collectionsDesc);
         }
 

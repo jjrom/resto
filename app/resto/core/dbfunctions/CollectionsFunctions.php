@@ -56,19 +56,30 @@ class CollectionsFunctions
     /**
      * Get description of all collections including facets
      *
-     * @param array $visibilities
+     * @param array $params
      * @return array
      * @throws Exception
      */
-    public function getCollectionsDescriptions($visibilities = null)
+    public function getCollectionsDescriptions($params = array())
     {
         
         $collections = array();
 
         // Get all Opensearch descriptions
         $osDescriptions = $this->getOSDescriptions();
-        $where = isset($visibilities) && count($visibilities) > 0 ? ' WHERE visibility IN (' . join(',', $visibilities) . ')' : '';
-        $results = $this->dbDriver->query('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords FROM ' . $this->dbDriver->schema . '.collection ' . $where . ' ORDER BY id');
+
+        // Where clause
+        $where = array();
+        if ( isset($params['group']) && count($params['group']) > 0 ) {
+            $where[] = 'visibility IN (' . join(',', $params['group']) . ')';
+        }
+        
+        // Filter on keywords
+        if ( isset($params['ck']) ) {
+            $where[] = 'keywords @> ARRAY[\'' . pg_escape_string($params['ck']) . '\']';
+        }
+        
+        $results = $this->dbDriver->query('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords FROM ' . $this->dbDriver->schema . '.collection' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : '') . ' ORDER BY id');
         while ($rowDescription = pg_fetch_assoc($results)) {
             $collections[$rowDescription['id']] = $this->format($rowDescription, $osDescriptions[$rowDescription['id']] ?? null);
         }

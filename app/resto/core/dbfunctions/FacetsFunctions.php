@@ -331,7 +331,7 @@ class FacetsFunctions
         /*
          * Facets for one collection
          */
-        $results = $this->dbDriver->query('SELECT id,collection,value,type,pid,counter,to_iso8601(created) as created,creator FROM ' . $this->dbDriver->schema . '.facet WHERE ' . (count($where) > 0 ? join(' AND ', $where): '') . ' ORDER BY type ASC, value DESC');        
+        $results = $this->dbDriver->query('SELECT id,collection,value,type,pid,counter,to_iso8601(created) as created,creator FROM ' . $this->dbDriver->schema . '.facet' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where): '') . ' ORDER BY type ASC, value DESC');        
         
         while ($result = pg_fetch_assoc($results))
         {

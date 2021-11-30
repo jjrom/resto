@@ -50,6 +50,16 @@ class CollectionsAPI
      *             type="boolean"
      *         )
      *      ),
+     *      @OA\Parameter(
+     *         name="ck",
+     *         in="query",
+     *         style="form",
+     *         required=false,
+     *         description="Stands for "collection keyword" - limit results to collection containing the input keyword",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *      ),
      *      @OA\Response(
      *          response="200",
      *          description="List of all collection descriptions",
@@ -237,7 +247,7 @@ class CollectionsAPI
      */
     public function getCollections($params)
     {   
-        return (new RestoCollections($this->context, $this->user))->load();
+        return (new RestoCollections($this->context, $this->user))->load($params);
     }
 
     /**

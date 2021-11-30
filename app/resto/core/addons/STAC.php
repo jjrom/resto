@@ -188,6 +188,16 @@ class STAC extends RestoAddOn
      *          )
      *      ),
      *      @OA\Parameter(
+     *         name="ck",
+     *         in="query",
+     *         style="form",
+     *         required=false,
+     *         description="Stands for "collection keyword" - limit results to collection containing the input keyword",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *      ),
+     *      @OA\Parameter(
      *          name="q",
      *          in="query",
      *          style="form",
@@ -669,7 +679,7 @@ class STAC extends RestoAddOn
             }
         }
 
-        $restoCollections = (new RestoCollections($this->context, $this->user))->load();
+        $restoCollections = (new RestoCollections($this->context, $this->user))->load($params);
 
         /* [TODO] Faire un UNION sur les collections
         if ( !isset($model) ) {
