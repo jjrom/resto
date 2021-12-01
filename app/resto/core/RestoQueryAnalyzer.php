@@ -230,7 +230,7 @@ class RestoQueryAnalyzer
                     'id' => substr($locationName, 7)
                 ));
                 if (isset($location['_source'])) {
-                    $foundLocation = $location['_source'];
+                    $foundLocation = array_merge(array('_id' => $location['_id']), $location['_source']);
                     if (isset($foundLocation['hash'])) {
                         $hashToDiscard = $foundLocation['hash'];
                     }
@@ -251,7 +251,7 @@ class RestoQueryAnalyzer
                     'q' => trim(preg_replace("/(#|-#)([^ ]+)/", '', $locationName))
                 ));
                 if (isset($locations['hits']) && count($locations['hits']['hits']) > 0) {
-                    $foundLocation = $locations['hits']['hits'][0]['_source'];
+                    $foundLocation = array_merge(array('_id' => $locations['hits']['hits'][0]['_id']), $locations['hits']['hits'][0]['_source']);
                     if (isset($foundLocation['wkt'])) {
                         $params['geo:geometry'] = $foundLocation['wkt'];
                     } elseif (isset($foundLocation['coordinates'])) {
