@@ -227,7 +227,8 @@ class RestoQueryAnalyzer
             if ( strpos($locationName, 'geouid' . Resto::TAG_SEPARATOR) === 0 )
             {
                 $location = $this->gazetteer->getToponym(array(
-                    'id' => substr($locationName, 7)
+                    'id' => substr($locationName, 7),
+                    'index' => $this->context->core['planet']
                 ));
                 if (isset($location['_source'])) {
                     $foundLocation = array_merge(array('_id' => $location['_id']), $location['_source']);
@@ -248,7 +249,8 @@ class RestoQueryAnalyzer
                  * [IMPORTANT] The search is performed on a modified "searchTerms" with hashtags REMOVED
                  */
                 $locations = $this->gazetteer->search(array(
-                    'q' => trim(preg_replace("/(#|-#)([^ ]+)/", '', $locationName))
+                    'q' => trim(preg_replace("/(#|-#)([^ ]+)/", '', $locationName)),
+                    'index' => $this->context->core['planet']
                 ));
                 if (isset($locations['hits']) && count($locations['hits']['hits']) > 0) {
                     $foundLocation = array_merge(array('_id' => $locations['hits']['hits'][0]['_id']), $locations['hits']['hits'][0]['_source']);
