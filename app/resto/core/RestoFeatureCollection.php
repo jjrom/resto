@@ -584,17 +584,7 @@ class RestoFeatureCollection
          * Location found
          */
         if (count($analysis['details']['Where']) > 0) {
-            $coordinates = explode(',', $analysis['details']['Where'][0]['coordinates']);
-            $query['locationFound'] = array(
-                'name' => $analysis['details']['Where'][0]['name'],
-                'geonameid' => $analysis['details']['Where'][0]['geonameid'],
-                'geo:lon' => floatval(trim($coordinates[1])),
-                'geo:lat' => floatval(trim($coordinates[0])),
-                'country_code2' => $analysis['details']['Where'][0]['country_code2'],
-                'feature_code' => $analysis['details']['Where'][0]['feature_code'],
-                'feature_class' => $analysis['details']['Where'][0]['feature_class'],
-                'population' => $analysis['details']['Where'][0]['name']
-            );
+            $query['locationFound'] = $analysis['details']['Where'][0];
         }
 
         /*
