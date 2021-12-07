@@ -197,7 +197,7 @@ class FeaturesFunctions
             /*
              * Recompute where clause without geo information
              */
-            if ($this->context->query['_heatmapNoGeo']) {
+            if ( isset($this->context->query['_heatmapNoGeo']) && filter_var($this->context->query['_heatmapNoGeo'], FILTER_VALIDATE_BOOLEAN) ) {
                 $whereClause = $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => false));
                 $heatmapLink = (new Heatmap($context, $user))->getEndPoint($featureTableName, $whereClause, $this->getCount('FROM ' . $featureTableName . ' ' . $whereClause, $params), $wkt);
             }
