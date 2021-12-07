@@ -185,8 +185,40 @@ class FeaturesFunctions
         $whereClause = $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => true));
         $count = $this->getCount('FROM ' . $featureTableName . ' ' . $whereClause, $params);
 
+        $links = array();
+
+        /*
+         * Heatmap
+         */
+        if (isset($context->addons['Heatmap'])) {
+
+            $wkt = null;
+
+            /*
+             * Recompute where clause without geo information
+             */
+            if ($this->context->query['_heatmapNoGeo']) {
+                $whereClause = $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => false));
+                $heatmapLink = (new Heatmap($context, $user))->getEndPoint($featureTableName, $whereClause, $this->getCount('FROM ' . $featureTableName . ' ' . $whereClause, $params), $wkt);
+            }
+            else {
+                for ($i = count($filtersAndJoins['filters']); $i--;) {
+                    if ($filtersAndJoins['filters'][$i]['isGeo']) {
+                        $wkt = $filtersAndJoins['filters'][$i]['wkt'];
+                        break;
+                    }
+                }
+                $heatmapLink = (new Heatmap($context, $user))->getEndPoint($featureTableName, $whereClause, $count, $wkt);
+            }
+            
+            if ( isset($heatmapLink) ) {
+                $links[] = $heatmapLink;
+            }
+
+        }
+
         return array(
-            'links' => $this->getHeatmapLink($context, $user, $model, $whereClause, $count, $filtersAndJoins['filters']),
+            'links' => $links,
             'count' => $count,
             // Reverse features array if needed
             'features' => $sorting['realOrder'] !== $sorting['order'] ? array_reverse($features) : $features
@@ -990,39 +1022,5 @@ class FeaturesFunctions
         $precision = pow(10, strlen((string) $integer) - 2);
         return round($integer / $precision) *  $precision;
     }
-
-    /**
-     * Return heatmap link
-     * 
-     * @param 
-     */
-    private function getHeatmapLink($context, $user, $model, $whereClause, $count, $filters)
-    {
-
-        $links = array();
-
-        /*
-         * Heatmap add-on
-         */
-        if (isset($context->addons['Heatmap'])) {
-            /*$whereClauseNoGeo = $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => false));
-            $heatmapLink = (new Heatmap($context, $user))->getEndPoint($this->dbDriver->schema . '.' . $model->dbParams['tablePrefix'] . 'feature', $whereClauseNoGeo, $this->getCount('FROM ' . $this->dbDriver->schema . '.' . $model->dbParams['tablePrefix'] . 'feature ' . $whereClauseNoGeo), null);*/
-            $wkt = null;
-            for ($i = count($filters); $i--;) {
-                if ($filters[$i]['isGeo']) {
-                    $wkt = $filters[$i]['wkt'];
-                    break;
-                }
-            }
-            $heatmapLink = (new Heatmap($context, $user))->getEndPoint($this->dbDriver->schema . '.' . $model->dbParams['tablePrefix'] . 'feature', $whereClause, $count, $wkt);
-            if ( isset($heatmapLink) ) {
-                $links[] = $heatmapLink;
-            }
-        }
-
-        return $links;
-
-    }
-
 
 }
