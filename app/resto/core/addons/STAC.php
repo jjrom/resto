@@ -626,6 +626,16 @@ class STAC extends RestoAddOn
 * _all: Return all properties (This is the default)
 * _simple: Return all fields except *keywords* property"
      *      ),
+     *      @OA\Parameter(
+     *          name="_heatmapNoGeo",
+     *          in="query",
+     *          style="form",
+     *          description="[EXTENSION][Heatmap] True to compute search result heatmap without taking account geographical filter",
+     *          required=false,
+     *          @OA\Schema(
+     *              type="boolean"
+     *          )
+     *      ),
      *      @OA\Response(
      *          response="200",
      *          description="Features collection",
