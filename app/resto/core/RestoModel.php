@@ -144,7 +144,7 @@ abstract class RestoModel
         'count' => array(
             'osKey' => 'limit',
             'minInclusive' => 1,
-            'maxInclusive' => 500,
+            'maxInclusive' => 1000,
             'title' => 'The maximum number of results returned per page (default 10)'
         ),
         
