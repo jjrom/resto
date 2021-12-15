@@ -144,7 +144,7 @@ abstract class RestoModel
         'count' => array(
             'osKey' => 'limit',
             'minInclusive' => 1,
-            'maxInclusive' => 500,
+            'maxInclusive' => 1000,
             'title' => 'The maximum number of results returned per page (default 10)'
         ),
         
@@ -529,7 +529,8 @@ abstract class RestoModel
                 $params[$filterKey] = preg_replace('/<.*?>/', '', $filterKey === 'geo:geometry' ? RestoGeometryUtil::forceWKT($value) : $value);
                 $this->validateFilter($filterKey, $params[$filterKey]);
             }
-            else if ( $key !== 'collectionId' && substr($key, 0, 1) !== '_') {
+            // Do not process query params starting with '_' or in the reserved list
+            else if ( !in_array($key, array('collectionId', 'fields')) && substr($key, 0, 1) !== '_') {
                 // Protect against XSS injection
                 $unknowns[] = '#' . $this->toHashTag($key, preg_replace('/<.*?>/', '', ltrim($value, '#')));
             }
