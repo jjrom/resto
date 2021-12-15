@@ -44,7 +44,7 @@ class DefaultModel extends RestoModel
                 'prefix' => 'year',
                 'operation' => 'keywords',
                 'title' => 'Year in YYYY format',
-                'pattern' => '^[0-9]{4}$',
+                'pattern' => '^([0-9]{4})([,|]([0-9]{4}))*$',
                 'options' => 'auto'
             ),
 
@@ -55,7 +55,7 @@ class DefaultModel extends RestoModel
                 'prefix' => 'month',
                 'operation' => 'keywords',
                 'title' => 'Month of the year in two digit (i.e. between 01 and 12)',
-                'pattern' => '^[0-1][0-9]$',
+                'pattern' => '^([0-1][0-9])([,|][0-1][0-9])*$',
                 'options' => 'auto'
             ),
 
@@ -66,7 +66,7 @@ class DefaultModel extends RestoModel
                 'prefix' => 'day',
                 'operation' => 'keywords',
                 'title' => 'Day of month in two digit (i.e. between 1 and 31)',
-                'pattern' => '^[0-3][0-9]$',
+                'pattern' => '^([0-3][0-9])([,|][0-3][0-9])*$',
                 'options' => 'auto'
             ),
 
