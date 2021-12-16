@@ -192,7 +192,7 @@ class STAC extends RestoAddOn
      *         in="query",
      *         style="form",
      *         required=false,
-     *         description="Stands for "collection keyword" - limit results to collection containing the input keyword",
+     *         description="Stands for *collection keyword* - limit results to collection containing the input keyword",
      *         @OA\Schema(
      *             type="string"
      *         )
