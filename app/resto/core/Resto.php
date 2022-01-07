@@ -99,23 +99,23 @@ class Resto
         array('PUT',    '/users/{userid}', true, 'UsersAPI::updateUserProfile'),                                                            // Update :userid profile
         array('GET',    '/users/{userid}/logs', true, 'UsersAPI::getUserLogs'),                                                             // Show user logs
         array('GET',    '/users/{userid}/rights', true, 'UsersAPI::getUserRights'),                                                         // Show user rights
-        array('GET',    '/users/{userid}/rights/{collectionId}', true, 'UsersAPI::getUserRights'),                                        // Show user rights for :collectionId
-        array('GET',    '/users/{userid}/rights/{collectionId}/{featureId}', true, 'UsersAPI::getUserRights'),                            // Show user rights for :featureId
+        array('GET',    '/users/{userid}/rights/{collectionId}', true, 'UsersAPI::getUserRights'),                                          // Show user rights for :collectionId
+        array('GET',    '/users/{userid}/rights/{collectionId}/{featureId}', true, 'UsersAPI::getUserRights'),                              // Show user rights for :featureId
         
         // API for collections
         array('GET',    '/collections', false, 'CollectionsAPI::getCollections'),                                                           // List all collections
         array('POST',   '/collections', true, 'CollectionsAPI::createCollection'),                                                          // Create collection
-        array('GET',    '/collections/{collectionId}', false, 'CollectionsAPI::getCollection'),                                           // Get :collectionId description
-        array('PUT',    '/collections/{collectionId}', true, 'CollectionsAPI::updateCollection'),                                         // Update :collectionId
-        array('DELETE', '/collections/{collectionId}', true, 'CollectionsAPI::deleteCollection'),                                         // Delete :collectionId
+        array('GET',    '/collections/{collectionId}', false, 'CollectionsAPI::getCollection'),                                             // Get :collectionId description
+        array('PUT',    '/collections/{collectionId}', true, 'CollectionsAPI::updateCollection'),                                           // Update :collectionId
+        array('DELETE', '/collections/{collectionId}', true, 'CollectionsAPI::deleteCollection'),                                           // Delete :collectionId
 
         // API for features
-        array('GET',    '/collections/{collectionId}/items', false, 'FeaturesAPI::getFeaturesInCollection'),                              // Search features in :collectionId
-        array('POST',   '/collections/{collectionId}/items', array('auth' => true, 'upload' => 'files'), 'CollectionsAPI::insertFeatures'),                                     // Insert feature(s)
-        array('GET',    '/collections/{collectionId}/items/{featureId}', false, 'FeaturesAPI::getFeature'),                               // Get feature :featureId
-        array('PUT',    '/collections/{collectionId}/items/{featureId}', true, 'FeaturesAPI::updateFeature'),                             // Update feature :featureId
-        array('DELETE', '/collections/{collectionId}/items/{featureId}', true, 'FeaturesAPI::deleteFeature'),                             // Delete :featureId
-        array('PUT',    '/collections/{collectionId}/items/{featureId}/{property}', true, 'FeaturesAPI::updateFeatureProperty'),          // Update feature :featureId single property 
+        array('GET',    '/collections/{collectionId}/items', false, 'FeaturesAPI::getFeaturesInCollection'),                                // Search features in :collectionId
+        array('POST',   '/collections/{collectionId}/items', array('auth' => true, 'upload' => 'files'), 'CollectionsAPI::insertFeatures'), // Insert feature(s)
+        array('GET',    '/collections/{collectionId}/items/{featureId}', false, 'FeaturesAPI::getFeature'),                                 // Get feature :featureId
+        array('PUT',    '/collections/{collectionId}/items/{featureId}', true, 'FeaturesAPI::updateFeature'),                               // Update feature :featureId
+        array('DELETE', '/collections/{collectionId}/items/{featureId}', true, 'FeaturesAPI::deleteFeature'),                               // Delete :featureId
+        array('PUT',    '/collections/{collectionId}/items/{featureId}/{property}', true, 'FeaturesAPI::updateFeatureProperty'),            // Update feature :featureId single property 
         
         // API for authentication (token based)
         array('GET',    '/auth', true, 'AuthAPI::getToken'),                                                                                // Return a valid auth token
@@ -125,14 +125,14 @@ class Resto
 
         // API for services
         array('GET',    '/services/osdd', false, 'ServicesAPI::getOSDD'),                                                                   // Opensearch service description at collections level
-        array('GET',    '/services/osdd/{collectionId}', false, 'ServicesAPI::getOSDDForCollection'),                                     // Opensearch service description for products on {collection}
+        array('GET',    '/services/osdd/{collectionId}', false, 'ServicesAPI::getOSDDForCollection'),                                       // Opensearch service description for products on {collection}
         array('POST',   '/services/activation/send', false, 'ServicesAPI::sendActivationLink'),                                             // Send activation link
         array('POST',   '/services/password/forgot', false, 'ServicesAPI::forgotPassword'),                                                 // Send reset password link
         array('POST',   '/services/password/reset', false, 'ServicesAPI::resetPassword'),                                                   // Reset password
 
         // STAC
-        array('GET',    '/search', false, 'STAC::search')                                                                                   // STAC API   
-
+        array('GET',    '/search', false, 'STAC::search'),                                                                                  // STAC API   
+        array('GET',    '/assets/{urlInBase64}', false, 'STAC::getAsset')                                                                   // Get an asset using HTTP 301 permanent redirect
     );
 
     // resto version
@@ -467,4 +467,5 @@ class Resto
             'method' => $this->context->method
         ));
     }
+    
 }
