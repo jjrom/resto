@@ -54,6 +54,7 @@ CREATE INDEX IF NOT EXISTS idx_geom_geometry_part ON resto.geometry_part USING G
 -- [TABLE resto.log]
 CREATE INDEX IF NOT EXISTS idx_userid_log ON resto.log (userid);
 CREATE INDEX IF NOT EXISTS idx_querytime_log ON resto.log (querytime);
+CREATE INDEX IF NOT EXISTS idx_method_log ON resto.log (method);
 
 -- [TABLE resto.feature_landcover]
 CREATE INDEX IF NOT EXISTS idx_cultivated_m_landcover ON resto.feature_landcover USING btree (cultivated);

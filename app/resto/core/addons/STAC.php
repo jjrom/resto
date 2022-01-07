@@ -99,7 +99,7 @@ class STAC extends RestoAddOn
     /**
      * Add-on version
      */
-    public $version = '1.0.3';
+    public $version = '1.0.4';
 
     /**
      * Constructor
@@ -192,7 +192,7 @@ class STAC extends RestoAddOn
      *         in="query",
      *         style="form",
      *         required=false,
-     *         description="Stands for "collection keyword" - limit results to collection containing the input keyword",
+     *         description="Stands for *collection keyword* - limit results to collection containing the input keyword",
      *         @OA\Schema(
      *             type="string"
      *         )
@@ -708,6 +708,45 @@ class STAC extends RestoAddOn
         }
         
         return $restoCollections->search($model, $params);
+    }
+
+    /**
+     * Return an asset href within an HTTP 301 Redirect message
+     * This trick is used to store download external asset statistics
+     * 
+     * @param array $params
+     */
+    public function getAsset($params) {
+
+        $url = base64_decode($params['urlInBase64']);
+
+        /*
+         * Should be a valid url
+         */
+        if ( !$url || strpos($url, 'http') !== 0 )  {
+            RestoLogUtil::httpError(400, 'Invalid base64 encoded url');
+        }
+
+        /*
+         * Store download in logs
+         */
+        try {
+            (new GeneralFunctions($this->context->dbDriver))->storeQuery($this->user && $this->user->profile ? $this->user->profile['id'] : null, array(
+                'path' => $url,
+                'method' => 'GET_ASSET'
+            ));
+        } catch (Exception $e) { 
+            error_log('[WARNING] Cannot store download info in resto.log');
+        }
+
+        /*
+         * Permanent 301 redirection
+         */
+        header('HTTP/1.1 301 Moved Permanently');
+        header('Location: ' . $url);
+
+        return;
+
     }
 
     /**
