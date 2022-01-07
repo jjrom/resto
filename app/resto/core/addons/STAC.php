@@ -733,7 +733,7 @@ class STAC extends RestoAddOn
         try {
             (new GeneralFunctions($this->context->dbDriver))->storeQuery($this->user && $this->user->profile ? $this->user->profile['id'] : null, array(
                 'path' => $url,
-                'method' => $this->context->method
+                'method' => 'GET_ASSET'
             ));
         } catch (Exception $e) { 
             error_log('[WARNING] Cannot store download info in resto.log');
