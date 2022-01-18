@@ -958,6 +958,7 @@ abstract class RestoModel
 
     /**
      * Convert input value to hashtag with the following convention : "#<filterName>:value"
+     * [WARNING] Exception if filterName = 'hashtag' then "#value" is returned (i.e. discard 'hashtag' prefix)
      * 
      * @param string $key
      * @param string $value
@@ -981,7 +982,7 @@ abstract class RestoModel
         }
         
         for ($i = 0, $ii = count($exploded); $i < $ii; $i++) {
-            $exploded[$i] = $filterName . Resto::TAG_SEPARATOR . $exploded[$i];
+            $exploded[$i] = $filterName === 'hashtag' ? $exploded[$i] : $filterName . Resto::TAG_SEPARATOR . $exploded[$i];
         }
         
         return join($splitter, $exploded);

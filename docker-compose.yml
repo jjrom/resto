@@ -1,4 +1,4 @@
-version: '3'
+version: '3.5'
 volumes:
   database_data:
     driver: local

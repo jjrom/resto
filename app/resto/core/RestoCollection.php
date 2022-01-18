@@ -1187,7 +1187,8 @@ class RestoCollection
                     'landcover:herbaceous',
                     'landcover:ice',
                     'landcover:urban',
-                    'landcover:water'
+                    'landcover:water',
+                    'hashtag'
                 )
             ));
         }
