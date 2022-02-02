@@ -98,8 +98,9 @@ class FacetsFunctions
      *      )
      *
      * @param array $facets
+     * @param string $collectionId
      */
-    public function storeFacets($facets)
+    public function storeFacets($facets, $collectionId = '*')
     {
 
         // Empty facets - do nothing
@@ -128,7 +129,7 @@ class FacetsFunctions
             $upsert = 'UPDATE ' . $this->dbDriver->schema . '.facet SET counter=counter+1 WHERE normalize(id)=normalize($1) AND normalize(collection)=normalize($2)';
             $this->dbDriver->pQuery('WITH upsert AS (' . $upsert . ' RETURNING *) ' . $insert . ' WHERE NOT EXISTS (SELECT * FROM upsert)', array(
                 $facetElement['id'],
-                $facetElement['collection'] ?? '*',
+                $facetElement['collection'] ?? $collectionId,
                 $facetElement['value'],
                 $facetElement['type'],
                 $facetElement['parentId'] ?? 'root',
@@ -248,7 +249,7 @@ class FacetsFunctions
     public function removeFacetsFromHashtags($hashtags, $collectionId)
     {
         for ($i = count($hashtags); $i--;) {
-            $this->removeFacet($hashtags[$i], strpos($hashtags[$i], Resto::TAG_SEPARATOR) !== false ? $collectionId : '*');
+            $this->removeFacet($hashtags[$i], $collectionId);
         }
     }
 

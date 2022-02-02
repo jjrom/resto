@@ -10,7 +10,7 @@ networks:
     name: rnet 
 services:
   restodb:
-    image: jjrom/resto-database:6.1.2
+    image: jjrom/resto-database:latest
     restart: always
     build:
       context: ./
