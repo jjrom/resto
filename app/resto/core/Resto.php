@@ -115,7 +115,7 @@ class Resto
         array('GET',    '/collections/{collectionId}/items/{featureId}', false, 'FeaturesAPI::getFeature'),                                 // Get feature :featureId
         array('PUT',    '/collections/{collectionId}/items/{featureId}', true, 'FeaturesAPI::updateFeature'),                               // Update feature :featureId
         array('DELETE', '/collections/{collectionId}/items/{featureId}', true, 'FeaturesAPI::deleteFeature'),                               // Delete :featureId
-        array('PUT',    '/collections/{collectionId}/items/{featureId}/{property}', true, 'FeaturesAPI::updateFeatureProperty'),            // Update feature :featureId single property 
+        array('PUT',    '/collections/{collectionId}/items/{featureId}/properties/{property}', true, 'FeaturesAPI::updateFeatureProperty'), // Update feature :featureId single property 
         
         // API for authentication (token based)
         array('GET',    '/auth', true, 'AuthAPI::getToken'),                                                                                // Return a valid auth token

@@ -153,12 +153,12 @@ class RestoFeatureUtil
                     array(
                         'rel' => 'child',
                         'type' => RestoUtil::$contentTypes['json'],
-                        'href' => $self . '/hasSample'
+                        'href' => $self . '/relations/hasSample'
                     ),
                     array(
                         'rel' => 'isSampleOf',
                         'type' => RestoUtil::$contentTypes['json'],
-                        'href' => $self . '/isSampleOf'
+                        'href' => $self . '/relations/isSampleOf'
                     )
                 )
             );
