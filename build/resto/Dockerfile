@@ -1,8 +1,8 @@
-FROM jjrom/nginx-fpm:8.0
+FROM jjrom/nginx-fpm:8.1
 LABEL maintainer="jerome.gasperi@gmail.com"
 
 ENV BUILD_DIR=./build/resto \
-    PHP_VERSION=8.0 \
+    PHP_VERSION=8.1 \
     RESTO_DEBUG=1
 
 # Copy NGINX configuration
