@@ -42,8 +42,6 @@ function showUsage {
     echo -e ""
     echo -e "   Usage $0 <target> [options]"
     echo -e ""
-    echo -e "   Where target is either \"prod\" for production, \"dev\" for development"
-    echo -e ""
     echo -e "   Options:"
     echo -e ""
     echo -e "      -e | --envfile Environnement file (default is ${GREEN}config.env${NC})"
@@ -92,22 +90,8 @@ do
             echo -e ""
             exit 1
             ;;
-        *) # preserve positional arguments
-            TARGET="$1"
-            shift
-            ;;
 	esac
 done
-
-#
-# TARGET is mandatory - should be "prod" or "dev"
-#
-if [[ "${TARGET}" == "" ]]; then
-    showUsage
-    echo -e "${RED}[ERROR] Missing target - choose between \"prod\" or \"dev\"${NC}"
-    echo ""
-    exit 1
-fi
 
 #
 # The environement file is mandatory
@@ -127,6 +111,7 @@ DATABASE_HOST=$(grep ^DATABASE_HOST= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i+
 DATABASE_NAME=$(grep ^DATABASE_NAME= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 DATABASE_USER_NAME=$(grep ^DATABASE_USER_NAME= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 DATABASE_USER_PASSWORD=$(grep ^DATABASE_USER_PASSWORD= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
+COMPOSE_FILE=$(grep ^COMPOSE_FILE= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 
 # Clean errors.log file
 rm -f errors.log
@@ -145,30 +130,21 @@ else
     echo -e "[INFO] Using existing network ${GREEN}rnet${NC}"
 fi
 
-if [[ "${TARGET}" == "prod" ]]; then
-    if [[ "${DATABASE_HOST}" == "restodb" ]]; then
-        COMPOSE_FILE=docker-compose-restodb.yml:docker-compose.yml
-    else
-        COMPOSE_FILE=docker-compose.yml
-    fi
-else
-    if [[ "${DATABASE_HOST}" == "restodb" ]]; then
-        if [[ ! -f docker-compose.${TARGET}.yml ]]; then
-            echo -e "${RED}[ERROR] The file docker-compose.${TARGET}.yml does not exist!${NC}"
-            echo ""
-            exit 1
-        fi
-        COMPOSE_FILE="docker-compose-restodb.yml:docker-compose.yml:docker-compose.${TARGET}.yml"
-    else
-        echo $DATABASE_HOST
-        if [[ ! -f docker-compose-nodb.${TARGET}.yml ]]; then
-            echo -e "${RED}[ERROR] The file docker-compose-nodb.${TARGET}.yml does not exist!${NC}"
-            echo ""
-            exit 1
-        fi
-        COMPOSE_FILE="docker-compose.yml:docker-compose-nodb.${TARGET}.yml"
-    fi
+#
+# Compute compose file
+#
+DEFAULT_COMPOSE_FILE=docker-compose.yml
+if [[ "${DATABASE_HOST}" == "restodb" ]]; then
+    DEFAULT_COMPOSE_FILE=${DEFAULT_COMPOSE_FILE}":docker-compose-restodb.yml"
 fi
+
+if [[ "${COMPOSE_FILE}" != "" ]]; then
+    COMPOSE_FILE=${DEFAULT_COMPOSE_FILE}:${COMPOSE_FILE}
+else
+    COMPOSE_FILE=${DEFAULT_COMPOSE_FILE}
+fi
+
+echo -e "[INFO] Using compose files: ${GREEN}${COMPOSE_FILE}${NC}"
 
 COMPOSE_FILE=${COMPOSE_FILE} \
 RESTO_EXPOSED_PORT=${RESTO_EXPOSED_PORT} \

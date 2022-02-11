@@ -52,11 +52,11 @@ After reviewing your [configuration file](https://github.com/jjrom/resto/blob/ma
 
 (for production)
 
-        ./deploy prod
+        ./deploy
 
 (for development)
 
-        ./deploy dev
+        ./deploy -e config-dev.env
  
 The [INSTALLATION.md](https://github.com/jjrom/resto/blob/master/INSTALLATION.md) file provides additional information on the installation process.
 

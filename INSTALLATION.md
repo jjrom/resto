@@ -56,11 +56,11 @@ After reviewing your [configuration](https://github.com/jjrom/resto/blob/master/
 
 (for production)
 
-        ./deploy prod
+        ./deploy
 
 (for development)
 
-        ./deploy dev
+        ./deploy -e config-dev.env
 
 ### Docker volumes
 The following permanent docker volumes are created on first deployment:
@@ -96,12 +96,12 @@ If evertyhing runs fine, it should display the **STAC root endpoint content** of
 ## How to undeploy the service ?
 Assuming that the application name is "resto" (see deploy "-p" option)
 
-        ./undeploy resto
+        ./undeploy
 
 ## How to check the logs of the running application ?
 Assuming that the application name is "resto" (see deploy "-p" option)
 
-        docker-compose --project-name resto -f docker-compose.yml -f docker-compose-restodb.yml logs -f
+        docker-compose -f docker-compose.yml -f docker-compose-restodb.yml logs -f
 
 ## How to build the docker images locally
 Use docker-compose:
