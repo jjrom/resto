@@ -40,7 +40,7 @@ function showUsage {
     echo -e ""
     echo -e "Deploy a ${PROJECT_NAME} docker instance "
     echo -e ""
-    echo -e "   Usage $0 <target> [options]"
+    echo -e "   Usage $0 [options]"
     echo -e ""
     echo -e "   Options:"
     echo -e ""
@@ -51,7 +51,6 @@ function showUsage {
     echo -e "      !!! This script requires docker and docker-compose !!!"
     echo -e ""
 }
-TARGET=""
 while (( "$#" ));
 do
 	case "$1" in
@@ -116,7 +115,7 @@ COMPOSE_FILE=$(grep ^COMPOSE_FILE= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++)
 # Clean errors.log file
 rm -f errors.log
 
-echo -e "${YELLOW}[INFO] You're now running ${PROJECT_NAME} installation in **${TARGET}** mode${NC}"
+echo -e "${YELLOW}[INFO] You're now running ${PROJECT_NAME} installation"
 echo -e "[INFO] Public endpoint is ${GREEN}${PUBLIC_ENDPOINT}${NC}"
 
 #
