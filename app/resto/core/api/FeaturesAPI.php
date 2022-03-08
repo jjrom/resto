@@ -708,7 +708,7 @@ class FeaturesAPI
      * Update feature property
      *
      *  @OA\Put(
-     *      path="/collections/{collectionId}/items/{featureId}/{property}",
+     *      path="/collections/{collectionId}/items/{featureId}/properties/{property}",
      *      summary="Update feature property",
      *      description="Update {property} for feature {featureId}",
      *      tags={"Feature"},

@@ -202,7 +202,7 @@ class RestoContext
      */
     public function getUrl($withparams = true)
     {
-        return $this->core['baseUrl'] . $this->path . '.' . $this->outputFormat . (isset($withparams) ? '?' . RestoUtil::kvpsToQueryString($this->query) : '');
+        return $this->core['baseUrl'] . $this->path . (isset($withparams) ? '?' . RestoUtil::kvpsToQueryString($this->query) : '');
     }
 
     /**

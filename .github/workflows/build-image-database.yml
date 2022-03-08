@@ -1,4 +1,4 @@
-name: Resto Docker Image Builder
+name: resto-database image builder
 
 env:
   IMAGE: resto-database
