@@ -129,14 +129,16 @@ class RestoNotifier
                 }
                 $mail->isSMTP();                                      // Set mailer to use SMTP
                 $mail->Host = $smtp['host'];                          // Specify main and backup SMTP servers
-                if (isset($smtp['secure'])) {
+                if (isset($smtp['secure']) && $smtp['secure'] != "" && $smtp['secure'] != 'none') {
                     $mail->SMTPSecure = $smtp['secure'];              // Enable TLS encryption, `ssl` also accepted
                 }
                 $mail->Port = $smtp['port'];                          // TCP port to connect to
-                if (isset($smtp['auth'])) {
+                if (isset($smtp['auth']) && isset($smtp['auth']['user']) && $smtp['auth']['user'] != "" && $smtp['auth']['user'] != "xxx") {
                     $mail->SMTPAuth = true;                           // Enable SMTP authentication
                     $mail->Username = $smtp['auth']['user'];          // SMTP username
                     $mail->Password = $smtp['auth']['password'];      // SMTP password
+                } else {
+                    $mail->SMTPAuth = false;
                 }
             }
 
