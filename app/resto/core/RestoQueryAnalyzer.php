@@ -391,6 +391,17 @@ class RestoQueryAnalyzer
     {
        
         $dates = explode('/', trim($datetime));
+
+        /*
+         * Double-open-ended queries are not allowed in STAC API
+         */
+        if ( count($dates) > 2 ) {
+            RestoLogUtil::httpError(400, 'Invalid dates range - too many /');
+        }
+        else if ( count($dates) == 2 && in_array($dates[0], array('', '..')) && in_array($dates[1], array('', '..')) ) {
+            RestoLogUtil::httpError(400, 'Invalid dates range - double-open-ended queries are not allowed in STAC API /');
+        }
+
         $model = new DefaultModel();
 
         if ( isset($dates[0]) && !in_array($dates[0], array('', '..')) ) {
