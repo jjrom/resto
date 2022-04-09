@@ -199,7 +199,8 @@ class FeaturesFunctions
              */
             if ( isset($context->query['_heatmapNoGeo']) && filter_var($context->query['_heatmapNoGeo'], FILTER_VALIDATE_BOOLEAN) ) {
                 $whereClause = $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => false));
-                $heatmapLink = (new Heatmap($context, $user))->getEndPoint($featureTableName, $whereClause, $this->getCount('FROM ' . $featureTableName . ' ' . $whereClause, $params), $wkt);
+                // [IMPORTANT] Set empty $params in getCount() to avoid computation of real count
+                $heatmapLink = (new Heatmap($context, $user))->getEndPoint($featureTableName, $whereClause, $this->getCount('FROM ' . $featureTableName . ' ' . $whereClause), $wkt);
             }
             else {
                 for ($i = count($filtersAndJoins['filters']); $i--;) {
