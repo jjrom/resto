@@ -98,7 +98,35 @@ done
 #
 if [[ ! -f ${ENV_FILE} ]]; then
     showUsage
-    echo -e "${RED}[ERROR] The \"${ENV_FILE}\" file does not exist!${NC}"
+    echo -e "${RED}[ERROR]${NC} The \"${ENV_FILE}\" file does not exist!${NC}"
+    echo ""
+    exit 1
+fi
+
+#
+# Check mandatory tools
+#
+if ! command -v psql &> /dev/null
+then
+    echo -e "${RED}[ERROR]${NC} The required \"psql\" command was not found. Please install postgresql-client package before running this script."
+    echo ""
+    exit 1
+fi
+if ! command -v pg_isready &> /dev/null
+then
+    echo -e "${RED}[ERROR]${NC} The required \"pg_isready\" command was not found. Please install postgresql-client package before running this script"
+    echo ""
+    exit 1
+fi
+if ! command -v docker &> /dev/null
+then
+    echo -e "${RED}[ERROR]${NC} The required \"docker\" command was not found. See https://docs.docker.com/get-docker/"
+    echo ""
+    exit 1
+fi
+if ! command -v docker-compose &> /dev/null
+then
+    echo -e "${RED}[ERROR]${NC} The required \"docker-compose\" command was not found. See https://docs.docker.com/compose/install/"
     echo ""
     exit 1
 fi
