@@ -432,7 +432,7 @@ class RestoFeatureCollection
          * Query Analyzer
          */
         $analysis = (new RestoQueryAnalyzer($this->context, $this->user))->analyze($inputFilters);
-        
+
         /*
          * Completely not understood query - return an empty result without
          * launching a search on the database
