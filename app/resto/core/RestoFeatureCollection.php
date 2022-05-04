@@ -1017,13 +1017,17 @@ class RestoFeatureCollection
                 continue;
             }
 
+            // Concatenate splitted into prefix and value
+            $value = array_pop($splitted);
+            $key = join(Resto::TAG_SEPARATOR, $splitted);
+
             /*
              * Hashtags start with "#" or with "-#" (equivalent to "NOT #")
              */
-            if (substr($splitted[0], 0, 1) === '#') {
-                $output[$this->model->getOSKeyFromPrefix(ltrim($splitted[0], '#'))] = $splitted[1]; 
-            } elseif (substr($splitted[0], 0, 2) === '-#') {
-                $output[$this->model->getOSKeyFromPrefix(ltrim($splitted[0], '-#'))] = '-' . $splitted[1]; 
+            if (substr($key, 0, 1) === '#') {
+                $output[$this->model->getOSKeyFromPrefix(ltrim($key, '#'))] = $value; 
+            } elseif (substr($key, 0, 2) === '-#') {
+                $output[$this->model->getOSKeyFromPrefix(ltrim($key, '-#'))] = '-' . $value; 
             }
             else {
                 $hashtags[] = $searchTerms[$i];
