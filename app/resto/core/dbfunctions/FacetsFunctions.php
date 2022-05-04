@@ -122,17 +122,19 @@ class FacetsFunctions
                 );
             }
             
+            $parentId = $facetElement['parentId'] ?? 'root';
+
             /*
              * Thread safe ingestion using upsert - guarantees that counter is correctly incremented during concurrent transactions
              */
             $insert = 'INSERT INTO ' . $this->dbDriver->schema . '.facet (id, collection, value, type, pid, creator, created, counter, isleaf) SELECT $1,$2,$3,$4,$5,$6,now(),$7,$8';
-            $upsert = 'UPDATE ' . $this->dbDriver->schema . '.facet SET counter=' .(isset($facetElement['counter']) ? 'counter' : 'counter+1') . ' WHERE normalize(id)=normalize($1) AND normalize(collection)=normalize($2)';
+            $upsert = 'UPDATE ' . $this->dbDriver->schema . '.facet SET counter=' .(isset($facetElement['counter']) ? 'counter' : 'counter+1') . ' WHERE normalize(id)=normalize($1) AND normalize(collection)=normalize($2) AND normalize(pid)=normalize($5)';
             $this->dbDriver->pQuery('WITH upsert AS (' . $upsert . ' RETURNING *) ' . $insert . ' WHERE NOT EXISTS (SELECT * FROM upsert)', array(
                 $facetElement['id'],
                 $facetElement['collection'] ?? $collectionId,
                 $facetElement['value'],
                 $facetElement['type'],
-                $facetElement['parentId'] ?? 'root',
+                $parentId,
                 $facetElement['creator'] ?? null,
                 // If no input counter is specified - set to 1
                 isset($facetElement['counter']) ? $facetElement['counter'] : 1,
