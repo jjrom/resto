@@ -553,8 +553,8 @@ class FeaturesFunctions
     public function updateFeatureDescription($feature, $description)
     {
         // Get hashtags to remove from feature before update
-        $hashtagsToRemove = $this->extractHashtagsFromText($feature->toArray()['properties']['description']);
-        $hashtagsToAdd = $this->extractHashtagsFromText($description);
+        $hashtagsToRemove = $this->extractHashtagsFromText($feature->toArray()['properties']['description'], true);
+        $hashtagsToAdd = $this->extractHashtagsFromText($description, true);
         $hashtags = array_merge(array_diff($feature->toArray()['properties']['hashtags'], $hashtagsToRemove), $hashtagsToAdd);
         
         $model = isset($feature->collection) ? $feature->collection->model : new DefaultModel();
@@ -656,10 +656,11 @@ class FeaturesFunctions
      *    array('test', 'withAbadhashtag')
      *
      * @param string $text
+     * @param boolean $stringOnly
      * 
      * @return array
      */
-    public function extractHashtagsFromText($text)
+    public function extractHashtagsFromText($text, $stringOnly)
     {
         $matches = null;
         if (isset($text)) {
@@ -668,7 +669,22 @@ class FeaturesFunctions
                 $hashtagsArray = array_count_values($matches[1]);
                 $hashtags = array();
                 foreach (array_keys($hashtagsArray) as $key) {
-                    $hashtags[] = RestoUtil::cleanHashtag($key);
+
+                    # Detect special hashtags i.e. with prefix
+                    $exploded = explode(Resto::TAG_SEPARATOR, $key);
+                    if ( !$stringOnly && count($exploded) > 1 ) {
+                        $type = array_shift($exploded);
+                        $hashtags[] = array(
+                            'id' => $key,
+                            'value' => join(Resto::TAG_SEPARATOR, $exploded),
+                            'type' => $type,
+                            // Special case for catalog => force collection to all
+                            'collection' => $type === 'catalog' ? '*' : null
+                        );
+                    }
+                    else {
+                        $hashtags[] = RestoUtil::cleanHashtag($key);
+                    }
                 }
                 return $hashtags;
             }
@@ -771,7 +787,7 @@ class FeaturesFunctions
                 $keysAndValues['keywords'] = json_encode($propertyValue, JSON_UNESCAPED_SLASHES);
 
                 // Compute facets
-                $output['facets'] = array_merge($facetsFunctions->getFacetsFromKeywords($propertyValue, $collection->model->facetCategories, $collection->id), $this->extractHashtagsFromText($featureArray['properties']['description'] ?? '', true));
+                $output['facets'] = array_merge($facetsFunctions->getFacetsFromKeywords($propertyValue, $collection->model->facetCategories, $collection->id), $this->extractHashtagsFromText($featureArray['properties']['description'] ?? '', false));
                 
                 // Compute hashtags
                 $hashtags = $facetsFunctions->getHashtagsFromFacets($output['facets']);
