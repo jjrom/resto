@@ -116,7 +116,7 @@ class RestoRouter
         $workIndex = 0;
         $params = array();
         $validRoute = null;
-        
+
         // Look through route segments
         while ($workIndex < $nbOfRoutes) {
             $routeSegments = explode('/', $workingRoutes[$workIndex][0]);
@@ -135,7 +135,10 @@ class RestoRouter
                     $params = array(
                         'segments' => array_slice($segments, $i)
                     );
-                    break;
+                    // Break only if the method is valid - otherwise continue
+                    if ( isset($validRoute) && isset($validRoute[1][$method]) ) {
+                        break;
+                    }
                 }
 
                 // Parameter case - add an entry to params and jump to next segment
