@@ -981,11 +981,14 @@ class RestoFeatureCollection
 
                 // Special case => convert string of hashtags to individuals 
                 if ($key === 'searchTerms' && $processSearchTerms) {
-                    $arr = array_merge($arr, $this->explodeSearchTerms($value));
+                    $arr = array_merge($arr, $this->explodeSearchTerms($value, true));
                     continue;
                 }
 
-                $arr[$this->model->searchFilters[$key]['osKey']] = $value;
+                // Convert to STAC
+                $osKey = $this->model->searchFilters[$key]['osKey'];
+                $arr[isset($this->model->stacMapping[$osKey]) ? $this->model->stacMapping[$osKey]['key']: $osKey] = $value;
+
             }
         }
         return $arr;
@@ -996,13 +999,14 @@ class RestoFeatureCollection
      * into an array of filters (i.e. {"location":"coastal","year":2003,"instruments":"PHR,NIR","q":"#thisisnormalhashtagh"})
      * 
      * @param string $str
+     * @param boolean $convertToStac
      */
-    private function explodeSearchTerms($str)
+    private function explodeSearchTerms($str, $convertToStac)
     {
 
         $hashtags = [];
         $output = [];
-
+        
         /*
          * Process each searchTerm
          */
@@ -1025,9 +1029,12 @@ class RestoFeatureCollection
              * Hashtags start with "#" or with "-#" (equivalent to "NOT #")
              */
             if (substr($key, 0, 1) === '#') {
-                $output[$this->model->getOSKeyFromPrefix(ltrim($key, '#'))] = $value; 
-            } elseif (substr($key, 0, 2) === '-#') {
-                $output[$this->model->getOSKeyFromPrefix(ltrim($key, '-#'))] = '-' . $value; 
+                $osKey = $this->model->getOSKeyFromPrefix(ltrim($key, '#')); 
+                $output[isset($this->model->stacMapping[$osKey]) ? $this->model->stacMapping[$osKey]['key']: $osKey] = $value; 
+            }
+            elseif (substr($key, 0, 2) === '-#') {
+                $osKey = $this->model->getOSKeyFromPrefix(ltrim($key, '-#'));
+                $output[isset($this->model->stacMapping[$osKey]) ? $this->model->stacMapping[$osKey]['key']: $osKey] = '-' . $value; 
             }
             else {
                 $hashtags[] = $searchTerms[$i];
