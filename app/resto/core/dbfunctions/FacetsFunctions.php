@@ -138,7 +138,7 @@ class FacetsFunctions
                 $facetElement['creator'] ?? null,
                 // If no input counter is specified - set to 1
                 isset($facetElement['counter']) ? $facetElement['counter'] : 1,
-                $facetElement['isLeaf'] ? 1 : 0,
+                isset($facetElement['isLeaf']) && $facetElement['isLeaf'] ? 1 : 0,
             ), 500, 'Cannot insert facet ' . $facetElement['id']);
 
         }

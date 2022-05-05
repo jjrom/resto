@@ -573,11 +573,21 @@ class CollectionsAPI
      *         )
      *      ),
      *      @OA\Parameter(
+     *         name="_splitGeom",
+     *         in="query",
+     *         style="form",
+     *         required=false,
+     *         description="Set to false to not split geometry during feature insertion. Default is true",
+     *         @OA\Schema(
+     *             type="boolean"
+     *         )
+     *      ),
+     *      @OA\Parameter(
      *         name="_useItag",
      *         in="query",
      *         style="form",
      *         required=false,
-     *         description="[ADDON][Tag] Set to false to not use iTag during feature insertion",
+     *         description="[ADDON][Tag] Set to false to not use iTag during feature insertion. Default is true",
      *         @OA\Schema(
      *             type="boolean"
      *         )
@@ -677,6 +687,7 @@ class CollectionsAPI
          * Insert feature(s) within database
          */
         $result = $collection->addFeatures($body, array(
+            '_splitGeom' => isset($params['_splitGeom']) && filter_var($params['_splitGeom'], FILTER_VALIDATE_BOOLEAN) === false ? false : true,
             'tolerance' => isset($params['tolerance']) && is_numeric($params['tolerance']) ? (float) $params['tolerance'] : null,
             'maxpoints' => isset($params['maxpoints']) && ctype_digit($params['maxpoints']) ? (integer) $params['maxpoints'] : null
         ));
