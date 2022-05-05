@@ -266,8 +266,8 @@ class GeneralFunctions
             'HTTP_X_FORWARDED',
             'HTTP_X_FORWARDED_FOR'
         ) as $ip) {
-            if (filter_input(INPUT_SERVER, $ip, FILTER_SANITIZE_STRING) !== false && !is_null(filter_input(INPUT_SERVER, $ip, FILTER_SANITIZE_STRING))) {
-                $best = filter_input(INPUT_SERVER, $ip, FILTER_SANITIZE_STRING);
+            if (filter_input(INPUT_SERVER, $ip, FILTER_UNSAFE_RAW) !== false && !is_null(filter_input(INPUT_SERVER, $ip, FILTER_UNSAFE_RAW))) {
+                $best = filter_input(INPUT_SERVER, $ip, FILTER_UNSAFE_RAW);
             }
         }
         

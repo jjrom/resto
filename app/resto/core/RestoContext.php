@@ -166,7 +166,7 @@ class RestoContext
         /*
          * HTTP input request method is one of GET, POST, PUT or DELETE
          */
-        $this->method = strtoupper(filter_input(INPUT_SERVER, 'REQUEST_METHOD', FILTER_SANITIZE_STRING));
+        $this->method = strtoupper(filter_input(INPUT_SERVER, 'REQUEST_METHOD', FILTER_UNSAFE_RAW));
         
         /*
          * Set general configuration
@@ -176,7 +176,7 @@ class RestoContext
         /*
          * Set default lang
          */
-        $this->setLang(filter_input(INPUT_GET, 'lang', FILTER_SANITIZE_STRING));
+        $this->setLang(filter_input(INPUT_GET, 'lang', FILTER_UNSAFE_RAW));
         
         /*
          * Set osDescription
@@ -378,7 +378,7 @@ class RestoContext
      */
     private function setPath()
     {
-        $restoUrl = filter_input(INPUT_GET, '_path', FILTER_SANITIZE_STRING);
+        $restoUrl = filter_input(INPUT_GET, '_path', FILTER_UNSAFE_RAW);
         if (isset($restoUrl)) {
             $this->path = ($restoUrl !== '/' && substr($restoUrl, -1) === '/' ? substr($restoUrl, 0, strlen($restoUrl) - 1) : $restoUrl);
         }
@@ -395,7 +395,7 @@ class RestoContext
          * Extract outputFormat from HTTP_ACCEPT
          */
         if (!isset($this->outputFormat)) {
-            $httpAccept = filter_input(INPUT_SERVER, 'HTTP_ACCEPT', FILTER_SANITIZE_STRING);
+            $httpAccept = filter_input(INPUT_SERVER, 'HTTP_ACCEPT', FILTER_UNSAFE_RAW);
             $acceptedFormats = explode(',', strtolower(str_replace(' ', '', $httpAccept)));
             foreach ($acceptedFormats as $format) {
                 $weight = 1;
