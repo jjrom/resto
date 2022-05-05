@@ -488,7 +488,7 @@ abstract class RestoModel
         return (new FeaturesFunctions($collection->context->dbDriver))->updateFeature(
             $feature,
             $collection,
-            $this->prepareFeatureArray($collection, $this->inputToResto($body, $collection, $params))
+            $this->prepareFeatureArray($collection, $this->inputToResto($body, $collection, $params), $params)
         );
     }
 
