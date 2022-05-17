@@ -27,12 +27,12 @@ Here are some projects that use resto.
 * [The Polish EO Data finder](http://finder.eocloud.eu/www/)
 * [Remote Sensor Technology Center of Japan, EPIC project](http://www.geomatys.com/en/portfolio/epic.html)
 * [Sentinel Australia Regional Access](https://copernicus.nci.org.au/sara.client/#/home)
-* [Sinergise sentinel-hub OpenSearch API](http://sentinelhub-py.readthedocs.io/en/latest/opensearch.html)
 * [ESA's Food Security Thematic Exploitation Platform](https://github.com/cgi-eoss/fstep)
 * [ESA's Forestry Thematic Exploitation Platform](https://github.com/cgi-eoss/ftep)
 * [CNES Kalideos platform](https://www.kalideos.fr)
 * [CEOS Recovery Observatory](https://www.recovery-observatory.org)
 * [EO4SD Lab - Earth observation for sustainable development](https://eo4sd-lab.net)
+* [IRSTEA Thisme project - THeia and Irstea Soil MoisturE catalog](https://thisme.cines.teledetection.fr/home)
 
 If you plan to use resto and would like to have your project added to this list, feel free to contact [support](#support)
 
