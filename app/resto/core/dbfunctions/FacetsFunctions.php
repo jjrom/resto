@@ -121,12 +121,14 @@ class FacetsFunctions
                     'isLeaf' => true
                 );
             }
-            
+
             /*
              * Thread safe ingestion using upsert - guarantees that counter is correctly incremented during concurrent transactions
+             * 
+             * [IMPORTANT] UPSERT with check on parentId only if $facetElement['parentId'] is set 
              */
-            $insert = 'INSERT INTO ' . $this->dbDriver->schema . '.facet (id, collection, value, type, pid, creator, created, counter, isleaf) SELECT $1,$2,$3,$4,$5,$6,now(),1,$7';
-            $upsert = 'UPDATE ' . $this->dbDriver->schema . '.facet SET counter=counter+1 WHERE normalize(id)=normalize($1) AND normalize(collection)=normalize($2)';
+            $insert = 'INSERT INTO ' . $this->dbDriver->schema . '.facet (id, collection, value, type, pid, creator, created, counter, isleaf) SELECT $1,$2,$3,$4,$5,$6,now(),$7,$8';
+            $upsert = 'UPDATE ' . $this->dbDriver->schema . '.facet SET counter=' .(isset($facetElement['counter']) ? 'counter' : 'counter+1') . ' WHERE normalize(id)=normalize($1) AND normalize(collection)=normalize($2)' . (isset($facetElement['parentId']) ? ' AND normalize(pid)=normalize($5)' : '');
             $this->dbDriver->pQuery('WITH upsert AS (' . $upsert . ' RETURNING *) ' . $insert . ' WHERE NOT EXISTS (SELECT * FROM upsert)', array(
                 $facetElement['id'],
                 $facetElement['collection'] ?? $collectionId,
@@ -134,7 +136,9 @@ class FacetsFunctions
                 $facetElement['type'],
                 $facetElement['parentId'] ?? 'root',
                 $facetElement['creator'] ?? null,
-                $facetElement['isLeaf'] ? 1 : 0,
+                // If no input counter is specified - set to 1
+                isset($facetElement['counter']) ? $facetElement['counter'] : 1,
+                isset($facetElement['isLeaf']) && $facetElement['isLeaf'] ? 1 : 0,
             ), 500, 'Cannot insert facet ' . $facetElement['id']);
 
         }
@@ -149,7 +153,7 @@ class FacetsFunctions
      */
     public function removeFacet($facetId, $collectionId)
     {
-        $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->schema . '.facet SET counter = GREATEST(counter - 1) WHERE normalize(id)=normalize($1) AND normalize(collection)=normalize($2)', array($facetId, $collectionId), 500, 'Cannot delete facet for ' . $collectionId);
+        $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->schema . '.facet SET counter = GREATEST(0, counter - 1) WHERE normalize(id)=normalize($1) AND (normalize(collection)=normalize($2) OR normalize(collection)=\'*\')', array($facetId, $collectionId), 500, 'Cannot delete facet for ' . $collectionId);
     }
 
     /**

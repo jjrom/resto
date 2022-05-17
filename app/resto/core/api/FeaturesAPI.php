@@ -699,6 +699,9 @@ class FeaturesAPI
                 RestoLogUtil::httpError(403);
             }
         }
+
+        // Specifically set splitGeometry
+        $params['_splitGeom'] = isset($params['_splitGeom']) && filter_var($params['_splitGeom'], FILTER_VALIDATE_BOOLEAN) === false ? false : true;
         
         return $collection->model->updateFeature($feature, $collection, $body, $params);
 

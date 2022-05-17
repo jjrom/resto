@@ -432,7 +432,7 @@ class RestoFeatureCollection
          * Query Analyzer
          */
         $analysis = (new RestoQueryAnalyzer($this->context, $this->user))->analyze($inputFilters);
-        
+
         /*
          * Completely not understood query - return an empty result without
          * launching a search on the database
@@ -981,11 +981,14 @@ class RestoFeatureCollection
 
                 // Special case => convert string of hashtags to individuals 
                 if ($key === 'searchTerms' && $processSearchTerms) {
-                    $arr = array_merge($arr, $this->explodeSearchTerms($value));
+                    $arr = array_merge($arr, $this->explodeSearchTerms($value, true));
                     continue;
                 }
 
-                $arr[$this->model->searchFilters[$key]['osKey']] = $value;
+                // Convert to STAC
+                $osKey = $this->model->searchFilters[$key]['osKey'];
+                $arr[isset($this->model->stacMapping[$osKey]) ? $this->model->stacMapping[$osKey]['key']: $osKey] = $value;
+
             }
         }
         return $arr;
@@ -996,13 +999,14 @@ class RestoFeatureCollection
      * into an array of filters (i.e. {"location":"coastal","year":2003,"instruments":"PHR,NIR","q":"#thisisnormalhashtagh"})
      * 
      * @param string $str
+     * @param boolean $convertToStac
      */
-    private function explodeSearchTerms($str)
+    private function explodeSearchTerms($str, $convertToStac)
     {
 
         $hashtags = [];
         $output = [];
-
+        
         /*
          * Process each searchTerm
          */
@@ -1017,13 +1021,20 @@ class RestoFeatureCollection
                 continue;
             }
 
+            // Concatenate splitted into prefix and value
+            $value = array_pop($splitted);
+            $key = join(Resto::TAG_SEPARATOR, $splitted);
+
             /*
              * Hashtags start with "#" or with "-#" (equivalent to "NOT #")
              */
-            if (substr($splitted[0], 0, 1) === '#') {
-                $output[$this->model->getOSKeyFromPrefix(ltrim($splitted[0], '#'))] = $splitted[1]; 
-            } elseif (substr($splitted[0], 0, 2) === '-#') {
-                $output[$this->model->getOSKeyFromPrefix(ltrim($splitted[0], '-#'))] = '-' . $splitted[1]; 
+            if (substr($key, 0, 1) === '#') {
+                $osKey = $this->model->getOSKeyFromPrefix(ltrim($key, '#')); 
+                $output[isset($this->model->stacMapping[$osKey]) ? $this->model->stacMapping[$osKey]['key']: $osKey] = $value; 
+            }
+            elseif (substr($key, 0, 2) === '-#') {
+                $osKey = $this->model->getOSKeyFromPrefix(ltrim($key, '-#'));
+                $output[isset($this->model->stacMapping[$osKey]) ? $this->model->stacMapping[$osKey]['key']: $osKey] = '-' . $value; 
             }
             else {
                 $hashtags[] = $searchTerms[$i];

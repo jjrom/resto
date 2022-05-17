@@ -136,7 +136,7 @@ class Resto
     );
 
     // resto version
-    const VERSION = '6.1.5';
+    const VERSION = '6.1.7';
 
     /* ============================================================
      *              NEVER EVER TOUCH THESE VALUES
@@ -392,7 +392,7 @@ class Resto
         /*
          * Only set access to known servers
          */
-        $httpOrigin = filter_input(INPUT_SERVER, 'HTTP_ORIGIN', FILTER_SANITIZE_STRING);
+        $httpOrigin = filter_input(INPUT_SERVER, 'HTTP_ORIGIN', FILTER_UNSAFE_RAW);
         if (isset($httpOrigin) && $this->corsIsAllowed($httpOrigin)) {
             header('Access-Control-Allow-Origin: *');
             header('Access-Control-Allow-Credentials: true');
@@ -402,12 +402,12 @@ class Resto
         /*
          * Control header are received during OPTIONS requests
          */
-        $httpRequestMethod = filter_input(INPUT_SERVER, 'HTTP_ACCESS_CONTROL_REQUEST_METHOD', FILTER_SANITIZE_STRING);
+        $httpRequestMethod = filter_input(INPUT_SERVER, 'HTTP_ACCESS_CONTROL_REQUEST_METHOD', FILTER_UNSAFE_RAW);
         if (isset($httpRequestMethod)) {
             header('Access-Control-Allow-Methods: GET, POST, DELETE, PUT, OPTIONS');
         }
 
-        $httpRequestHeaders = filter_input(INPUT_SERVER, 'HTTP_ACCESS_CONTROL_REQUEST_HEADERS', FILTER_SANITIZE_STRING);
+        $httpRequestHeaders = filter_input(INPUT_SERVER, 'HTTP_ACCESS_CONTROL_REQUEST_HEADERS', FILTER_UNSAFE_RAW);
         if (isset($httpRequestHeaders)) {
             header('Access-Control-Allow-Headers: ' . $httpRequestHeaders);
         }

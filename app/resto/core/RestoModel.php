@@ -488,7 +488,7 @@ abstract class RestoModel
         return (new FeaturesFunctions($collection->context->dbDriver))->updateFeature(
             $feature,
             $collection,
-            $this->prepareFeatureArray($collection, $this->inputToResto($body, $collection, $params))
+            $this->prepareFeatureArray($collection, $this->inputToResto($body, $collection, $params), $params)
         );
     }
 
@@ -510,7 +510,7 @@ abstract class RestoModel
     /**
      * Get resto filters from input query parameters
      * 
-     *  - change parameter keys to model parameter key
+     *  - change input query keys to model parameter key including STAC conversion (i.e. input STAC query to resto model - e.g. processing:level => processingLevel)
      *  - remove all HTML tags from input to avoid XSS injection
      *  - check that filter value is valid regarding the model definition
      * 
@@ -556,6 +556,17 @@ abstract class RestoModel
      */
     public function getFilterName($osKey)
     {
+
+        /*
+         * Eventually convert STAC osKey to resto osKey
+         */
+        foreach(array_keys($this->stacMapping) as $restoKey) {
+            if ($this->stacMapping[$restoKey]['key'] === $osKey) {
+                $osKey = $restoKey;
+                break;
+            }
+        }
+        
         foreach (array_keys($this->searchFilters) as $filterKey) {
             if ($osKey === $this->searchFilters[$filterKey]['osKey']) {
                 return $filterKey;

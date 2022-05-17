@@ -222,7 +222,7 @@ class GeneralFunctions
         }
         
         try {
-            $result = pg_fetch_row(pg_query_params($this->dbDriver->getConnection(), 'WITH tmp AS (SELECT ST_Force2D(' . $geoJsonParser . ') AS geom, ST_Force2D(ST_SetSRID(' . $this->getSplitterFunction($geoJsonParser, $params) . ', 4326)) AS _geom) SELECT geom, _geom, ST_Force2D(ST_SetSRID(ST_Centroid(_geom), 4326)) AS centroid, Box2D(ST_SetSRID(_geom, 4326)) as bbox FROM tmp', array(
+            $result = pg_fetch_row(pg_query_params($this->dbDriver->getConnection(), 'WITH tmp AS (SELECT ST_Force2D(' . $geoJsonParser . ') AS geom, ST_Force2D(' . $this->getSplitterFunction($geoJsonParser, $params) . ') AS _geom) SELECT geom, _geom, ST_Force2D(ST_SetSRID(ST_Centroid(_geom), 4326)) AS centroid, Box2D(ST_SetSRID(_geom, 4326)) as bbox FROM tmp', array(
                 json_encode(array(
                     'type' => $geometry['type'],
                     'coordinates' => $geometry['coordinates']
@@ -266,8 +266,8 @@ class GeneralFunctions
             'HTTP_X_FORWARDED',
             'HTTP_X_FORWARDED_FOR'
         ) as $ip) {
-            if (filter_input(INPUT_SERVER, $ip, FILTER_SANITIZE_STRING) !== false && !is_null(filter_input(INPUT_SERVER, $ip, FILTER_SANITIZE_STRING))) {
-                $best = filter_input(INPUT_SERVER, $ip, FILTER_SANITIZE_STRING);
+            if (filter_input(INPUT_SERVER, $ip, FILTER_UNSAFE_RAW) !== false && !is_null(filter_input(INPUT_SERVER, $ip, FILTER_UNSAFE_RAW))) {
+                $best = filter_input(INPUT_SERVER, $ip, FILTER_UNSAFE_RAW);
             }
         }
         
@@ -282,11 +282,16 @@ class GeneralFunctions
      */
     private function getSplitterFunction($geom, $params) {
 
+        // Specifically no split required !
+        if ( isset($params['_splitGeom']) && !$params['_splitGeom'] ) {
+            return $geom;
+        }
+
         if (!isset($params['tolerance'])) {
-            return 'ST_SplitDateLine(' . $geom . ')';
+            return 'ST_SetSRID(ST_SplitDateLine(' . $geom . '), 4326)';
         }
         
-        return  'ST_SimplifyPreserveTopologyWhenTooBig(ST_SplitDateLine(' . $geom . '),' . $params['tolerance'] . (isset($params['maxpoints']) ? ',' . $params['maxpoints'] : '') . ')';
+        return 'ST_SetSRID(ST_SimplifyPreserveTopologyWhenTooBig(ST_SplitDateLine(' . $geom . '),' . $params['tolerance'] . (isset($params['maxpoints']) ? ',' . $params['maxpoints'] : '') . '), 4326)';
 
     }
 
