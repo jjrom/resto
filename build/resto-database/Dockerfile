@@ -1,4 +1,4 @@
-FROM postgis/postgis:13-3.1-alpine
+FROM postgis/postgis:14-master
 LABEL maintainer="jerome.gasperi@gmail.com"
 
 ENV BUILD_DIR=./build/resto-database \
@@ -6,9 +6,13 @@ ENV BUILD_DIR=./build/resto-database \
     ARCH=amd64
 
 # Add S6 supervisor (for graceful stop)
-RUN apk add --no-cache curl && \
-    curl -L -s https://github.com/just-containers/s6-overlay/releases/download/v${JUST_CONTAINERS_VERSION}/s6-overlay-${ARCH}.tar.gz | tar xvzf - -C / && \
-    apk del --no-cache curl
+RUN apt-get update \
+    && apt-get install -y curl tzdata \
+    && curl -k -L -s https://github.com/just-containers/s6-overlay/releases/download/v${JUST_CONTAINERS_VERSION}/s6-overlay-${ARCH}.tar.gz | tar xvzf - -C / && \
+    && tar -xzf s6-overlay-${ARCH}.tar.gz -C / \
+    && rm -rf s6-overlay-amd64.tar.gz \
+    && apt-get clean \
+    && rm -rf /tmp/* /var/lib/apt/lists/* /var/tmp/*
 ENTRYPOINT [ "/init" ]
 
 # Copy run.d configuration
