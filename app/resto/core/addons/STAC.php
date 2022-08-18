@@ -96,10 +96,29 @@ class STAC extends RestoAddOn
      */
     const STAC_VERSION = '1.0.0';
 
+    /*
+     * STAC namespaces
+     */
+    const CONFORMANCE_CLASSES = array(
+        'https://api.stacspec.org/v1.0.0-rc.1/core',
+        'https://api.stacspec.org/v1.0.0-rc.1/collections',
+        'https://api.stacspec.org/v1.0.0-rc.1/ogcapi-features',
+        'https://api.stacspec.org/v1.0.0-rc.1/item-search',
+        'https://api.stacspec.org/v1.0.0-rc.1/item-search#filter:basic-cql',
+        'https://api.stacspec.org/v1.0.0-rc.1/item-search#fields',
+        // Unsupported
+        //'https://api.stacspec.org/v1.0.0-rc.1/item-search#query',
+        'https://api.stacspec.org/v1.0.0-rc.1/item-search#sort',
+        'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core',
+        'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson',
+        'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/oas30',
+        'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/html'
+    );
+
     /**
      * Add-on version
      */
-    public $version = '1.0.4';
+    public $version = '1.0.5';
 
     /**
      * Constructor

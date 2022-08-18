@@ -278,8 +278,11 @@ abstract class RestoModel
             'title' => 'Equal on productIdentifier'
         ),
         
+        /*
+         * The default sort order is DESCENDING - so the STAC "next" query parameter is equivalent
+         */
         'resto:sort' => array(
-            'osKey' => 'sort',
+            'osKey' => 'sortby',
             'pattern' => '^[a-zA-Z\-]*$',
             'title' => 'Sort results by property (startDate or created - Default is startDate). Sorting order is DESCENDING (ASCENDING if property is prefixed by minus sign)'
         ),
