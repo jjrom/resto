@@ -103,6 +103,7 @@ class STAC extends RestoAddOn
         'https://api.stacspec.org/v1.0.0-rc.1/core',
         'https://api.stacspec.org/v1.0.0-rc.1/collections',
         'https://api.stacspec.org/v1.0.0-rc.1/ogcapi-features',
+        'https://api.stacspec.org/v1.0.0-rc.1/browseable',
         'https://api.stacspec.org/v1.0.0-rc.1/item-search',
         'https://api.stacspec.org/v1.0.0-rc.1/item-search#filter:basic-cql',
         'https://api.stacspec.org/v1.0.0-rc.1/item-search#fields',
