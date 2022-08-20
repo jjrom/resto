@@ -153,19 +153,19 @@ class STAC extends RestoAddOn
         );
 
         /*
-         * [TODO] Remove - resto already returns collections from rel="data" 
-         * Return all non-empty collections
-         *
+         * Duplicate rel="data"
+         */
         $collections = ((new RestoCollections($this->context, $this->user))->load())->toArray();
-        $links[] = array(
-            'rel' => 'child',
-            'title' => 'Collections',
-            'type' => RestoUtil::$contentTypes['json'],
-            'matched' =>  count($collections['collections']),
-            'href' => $this->context->core['baseUrl'] . '/collections',
-            'roles' => array('collections')
-        );
-        */
+        if (count($collections) > 0) {
+            $links[] = array(
+                'rel' => 'child',
+                'title' => 'Collections',
+                'type' => RestoUtil::$contentTypes['json'],
+                'matched' =>  count($collections['collections']),
+                'href' => $this->context->core['baseUrl'] . '/collections',
+                'roles' => array('collections')
+            );
+        }
 
         /*
          * Get additional catalogs
