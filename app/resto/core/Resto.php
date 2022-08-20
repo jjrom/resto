@@ -131,8 +131,10 @@ class Resto
         array('POST',   '/services/password/reset', false, 'ServicesAPI::resetPassword'),                                                   // Reset password
 
         // STAC
-        array('GET',    '/search', false, 'STAC::search'),                                                                                  // STAC API   
-        array('GET',    '/assets/{urlInBase64}', false, 'STAC::getAsset')                                                                   // Get an asset using HTTP 301 permanent redirect
+        array('GET',    '/children', false, 'STAC::getChildren'),                                                                           // STAC API - Children
+        array('GET',    '/search', false, 'STAC::search'),                                                                                  // STAC API - core search
+        array('GET',    '/assets/{urlInBase64}', false, 'STAC::getAsset'),                                                                  // Get an asset using HTTP 301 permanent redirect
+        array('GET'   , '/catalogs/*', false, 'STAC::getCatalogs')                                                                          // Get catalogs
     );
 
     // resto version
