@@ -100,7 +100,10 @@ class RestoContext
                     'password' => 'xxx'
                 )
             )
-        )
+        ),
+
+        // Default routes superseed RestoRouter defaultRoutes
+        'defaultRoutes' => null
 
     );
 

@@ -243,10 +243,21 @@ class STAC extends RestoAddOn
 
         $childs = array();
 
+        // Initialize router to process each children individually
+        $router = new RestoRouter($this->context, $this->user);
+
         $links = $this->stacUtil->getRootCatalogLinks();
         for ($i = 0, $ii = count($links); $i < $ii; $i++) {
             if ($links[$i]['rel'] == 'child') {
-                $childs[] = $links[$i];
+                try {
+                    $response = $router->process('GET', parse_url($links[$i]['href'])['path'], array());
+                }
+                catch (Exception $e) {
+                    continue;
+                }
+                if (isset($response)) {
+                    $childs[] = $response->toArray();
+                }
             }
         }
 
