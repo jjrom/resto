@@ -96,10 +96,13 @@ abstract class RestoModel
      *  'osKey' :
      *      OpenSearch property name in template urls
      *  'prefix' :
-     *      (for "keywords" operation only) Prefix systematically added to input value (i.e. prefix:value)
+     *      (Optional) (for "keywords" operation only) Prefix systematically added to input value (i.e. prefix:value)
      *  'operation' :
      *      Type of operation applied to the filter ("in", "keywords", "intersects", "distance", "=", "<=", ">=")
-     *
+     *  'queryable' : 
+     *      (Optional) The name of the underlying STAC/OAFeature property that is queryable (i.e. that will be displayed in the /queryables endpoint)
+     *  '$ref' :
+     *      (Optional) Displayed in relation with queryable property (see https://github.com/radiantearth/stac-api-spec/tree/master/fragments/filter#queryables)
      *
      *  Below properties follow the "Parameter extension" (http://www.opensearch.org/Specifications/OpenSearch/Extensions/Parameter/1.0/Draft_2)
      *
@@ -169,14 +172,18 @@ abstract class RestoModel
             'osKey' => 'ids',
             'operation' => 'in',
             'title' => 'Array of item ids to return. All other filter parameters that further restrict the number of search results (except next and limit) are ignored',
-            'pattern' => '^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$'
+            'pattern' => '^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$',
+            'queryable' => 'id',
+            '$ref' => 'https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/item.json#/id'
         ),
         
         'geo:geometry' => array(
             'key' => 'geom',
             'osKey' => 'intersects',
             'operation' => 'intersects',
-            'title' => 'Region of Interest defined in GeoJSON or in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326)'
+            'title' => 'Region of Interest defined in GeoJSON or in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326)',
+            'queryable' => 'geometry',
+            '$ref' => 'https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/item.json#/geometry'
         ),
 
         'geo:box' => array(
@@ -239,7 +246,9 @@ abstract class RestoModel
             'pattern' => '^[a-zA-Z0-9\-_]+$',
             'operation' => 'in',
             'hidden' => true,
-            'options' => 'auto'
+            'options' => 'auto',
+            'queryable' => 'collection',
+            '$ref' => 'https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/item.json#/collection'
         ),
 
         'resto:model' => array(
@@ -599,13 +608,20 @@ abstract class RestoModel
     public function getQueryables()
     {
     
-        // TODO - returns array from searchFilters
-        return array(
-            'id' => array(
-                'description' => 'ID',
-                '$ref' => 'https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/item.json#/id'
-            )
-        );
+        $queryables = array();
+        foreach (array_keys($this->searchFilters) as $filterKey) {
+            if (isset($this->searchFilters[$filterKey]['queryable'])) {
+                $queryable = array(
+                    'description' => $this->searchFilters[$filterKey]['title']
+                );
+                if (isset($this->searchFilters[$filterKey]['$ref'])) {
+                    $queryable['$ref'] = $this->searchFilters[$filterKey]['$ref'];
+                }
+                $queryables[$this->searchFilters[$filterKey]['queryable']] = $queryable;
+            }
+        }
+     
+        return $queryables;
     
     }
 

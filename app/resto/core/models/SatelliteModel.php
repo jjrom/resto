@@ -119,7 +119,8 @@ class SatelliteModel extends LandCoverModel
                 'prefix' => 'processingLevel',
                 'operation' => 'keywords',
                 'title' => 'A string identifying the processing level applied to the entry',
-                'options' => 'auto'
+                'options' => 'auto',
+                'queryable' => 'processing:level'
             ),
             
             'eo:platform' => array(
@@ -157,7 +158,9 @@ class SatelliteModel extends LandCoverModel
                 'osKey' => 'resolution',
                 'operation' => 'interval',
                 'title' => 'Spatial resolution expressed in meters',
-                'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$'
+                'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
+                'queryable' => 'gsd',
+                '$ref' => 'https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/instrument.json#/properties/gsd'
             ),
     
             /*

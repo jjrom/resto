@@ -1301,7 +1301,9 @@ class STAC extends RestoAddOn
                 
             }
             
-        } catch (Exception $e) {}
+        } catch (Exception $e) {
+            // Keep going
+        }
 
     }
 
