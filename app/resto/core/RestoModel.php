@@ -594,6 +594,22 @@ abstract class RestoModel
     }
 
     /**
+     * Return STAC/OAFeatures queryables
+     */
+    public function getQueryables()
+    {
+    
+        // TODO - returns array from searchFilters
+        return array(
+            'id' => array(
+                'description' => 'ID',
+                '$ref' => 'https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/item.json#/id'
+            )
+        );
+    
+    }
+
+    /**
      * Check if value is valid for a given filter regarding the model
      *
      * @param string $filterKey

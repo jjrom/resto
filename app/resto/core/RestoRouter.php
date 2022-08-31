@@ -30,7 +30,7 @@ class RestoRouter
         array('GET',    '/', false, 'ServicesAPI::hello'),                                                                                  // Landing page
         array('GET',    '/api', false, 'ServicesAPI::api'),                                                                                 // API page
         array('GET',    '/conformance', false, 'ServicesAPI::conformance'),                                                                 // Conformance page
-
+        
         // API for users
         array('GET',    '/users', true, 'UsersAPI::getUsersProfiles'),                                                                      // List users profiles
         array('POST',   '/users', false, 'UsersAPI::createUser'),                                                                           // Create user
@@ -47,6 +47,7 @@ class RestoRouter
         array('GET',    '/collections/{collectionId}', false, 'CollectionsAPI::getCollection'),                                             // Get :collectionId description
         array('PUT',    '/collections/{collectionId}', true, 'CollectionsAPI::updateCollection'),                                           // Update :collectionId
         array('DELETE', '/collections/{collectionId}', true, 'CollectionsAPI::deleteCollection'),                                           // Delete :collectionId
+        array('GET',    '/collections/{collectionId}/queryables', false, 'STAC::getQueryables'),                                            // OAFeature API - Queryables
 
         // API for features
         array('GET',    '/collections/{collectionId}/items', false, 'FeaturesAPI::getFeaturesInCollection'),                                // Search features in :collectionId
@@ -70,10 +71,11 @@ class RestoRouter
         array('POST',   '/services/password/reset', false, 'ServicesAPI::resetPassword'),                                                   // Reset password
 
         // STAC
-        array('GET',    '/children', false, 'STAC::getChildren'),                                                                           // STAC API - Children
-        array('GET',    '/search', false, 'STAC::search'),                                                                                  // STAC API - core search
         array('GET',    '/assets/{urlInBase64}', false, 'STAC::getAsset'),                                                                  // Get an asset using HTTP 301 permanent redirect
-        array('GET'   , '/catalogs/*', false, 'STAC::getCatalogs')                                                                          // Get catalogs
+        array('GET',    '/catalogs/*', false, 'STAC::getCatalogs'),                                                                         // Get catalogs
+        array('GET',    '/children', false, 'STAC::getChildren'),                                                                           // STAC API - Children
+        array('GET',    '/queryables', false, 'STAC::getQueryables'),                                                                       // STAC/OAFeature API - Queryables
+        array('GET',    '/search', false, 'STAC::search')                                                                                   // STAC API - core search
     );
 
     /*

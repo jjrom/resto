@@ -104,6 +104,7 @@ class STAC extends RestoAddOn
         'https://api.stacspec.org/v1.0.0-rc.1/collections',
         'https://api.stacspec.org/v1.0.0-rc.1/ogcapi-features',
         'https://api.stacspec.org/v1.0.0-rc.1/browseable',
+        'https://api.stacspec.org/v1.0.0-rc.1/children',
         'https://api.stacspec.org/v1.0.0-rc.1/item-search',
         'https://api.stacspec.org/v1.0.0-rc.1/item-search#filter:basic-cql',
         'https://api.stacspec.org/v1.0.0-rc.1/item-search#fields',
@@ -163,53 +164,84 @@ class STAC extends RestoAddOn
         $this->stacUtil = new STACUtil($context, $user);
 
         // Ensure valid options
-        if ( ! isset($this->options['minMatch']) || !is_int($this->options['minMatch']) ) {
-            $this->options['minMatch'] = 0;
-        }
+        $this->options['minMatch'] = isset($this->options['minMatch']) && is_int($this->options['minMatch']) ? $this->options['minMatch'] : 0;
+
     }
-    
 
     /**
-     * Get root links
+     * Return an asset href within an HTTP 301 Redirect message
+     * This trick is used to store download external asset statistics
+     * 
+     * @param array $params
      */
-    public function getRootLinks()
-    {
-        $links = array(
-            array(
-                'rel' => 'root',
-                'type' => RestoUtil::$contentTypes['json'],
-                'title' => getenv('API_INFO_TITLE'),
-                'href' => $this->context->core['baseUrl']
-            ),
-            array(
-                'rel' => 'search',
-                'type' => RestoUtil::$contentTypes['json'],
-                'title' => 'STAC search endpoint',
-                'href' => $this->context->core['baseUrl'] . '/search'
-            )
-        );
+    public function getAsset($params) {
+
+        $url = base64_decode($params['urlInBase64']);
 
         /*
-         * Duplicate rel="data"
+         * Should be a valid url
          */
-        $collections = ((new RestoCollections($this->context, $this->user))->load())->toArray();
-        if (count($collections) > 0) {
-            $links[] = array(
-                'rel' => 'child',
-                'title' => 'Collections',
-                'type' => RestoUtil::$contentTypes['json'],
-                'matched' =>  count($collections['collections']),
-                'href' => $this->context->core['baseUrl'] . '/collections',
-                'roles' => array('collections')
-            );
+        if ( !$url || strpos($url, 'http') !== 0 )  {
+            RestoLogUtil::httpError(400, 'Invalid base64 encoded url');
         }
 
         /*
-         * Get additional catalogs
+         * Store download in logs
          */
-        return array_merge($links, $this->stacUtil->getRootCatalogLinks($this->options['minMatch']));
-        
+        try {
+            (new GeneralFunctions($this->context->dbDriver))->storeQuery($this->user && $this->user->profile ? $this->user->profile['id'] : null, array(
+                'path' => $url,
+                'method' => 'GET_ASSET'
+            ));
+        } catch (Exception $e) { 
+            error_log('[WARNING] Cannot store download info in resto.log');
+        }
+
+        /*
+         * Permanent 301 redirection
+         */
+        header('HTTP/1.1 301 Moved Permanently');
+        header('Location: ' . $url);
+
+        return;
+
     }
+
+    /**
+     * Return a STAC catalog from facet
+     * 
+     *    @OA\Get(
+     *      path="/catalogs/*",
+     *      summary="Get STAC catalogs",
+     *      description="Get STAC catalogs",
+     *      tags={"STAC"},
+     *      @OA\Response(
+     *          response="200",
+     *          description="STAC catalog definition - contains links to child catalogs and/or items",
+     *          @OA\JsonContent(
+     *              ref="#/components/schemas/Catalog"
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response="404",
+     *          description="Not found"
+     *      )
+     *    )
+     */
+    public function getCatalogs($params)
+    {
+        if (!isset($params['segments'])) {
+            return RestoLogUtil::httpError(404);
+        }
+
+        $this->segments = $params['segments'];
+
+        $result = $this->load($params);
+        
+        return isset($result->featureCollection) ? $result->featureCollection : $result;
+
+    }
+
 
     /**
      * Return the list of children catalog
@@ -231,11 +263,7 @@ class STAC extends RestoAddOn
      *                  @OA\Items(ref="#/components/schemas/OutputFeature")
      *              )            
      *          )
-     *     ),
-     *     @OA\Response(
-     *          response="404",
-     *          description="Not found"
-     *      )
+     *     )
      *    )
      */
     public function getChildren($params)
@@ -280,37 +308,36 @@ class STAC extends RestoAddOn
     }
 
     /**
-     * Return a STAC catalog from facet
+     * Return the list of children catalog
+     * (see https://github.com/radiantearth/stac-api-spec/tree/main/children)
      * 
      *    @OA\Get(
-     *      path="/catalogs/*",
-     *      summary="Get STAC catalogs",
-     *      description="Get STAC catalogs",
+     *      path="/queryables",
+     *      summary="Queryables for STAC API",
+     *      description="Queryable names for the STAC API Item Search filter."",
      *      tags={"STAC"},
      *      @OA\Response(
      *          response="200",
-     *          description="STAC catalog definition - contains links to child catalogs and/or items",
+     *          description="Queryables for STAC API",
      *          @OA\JsonContent(
-     *              ref="#/components/schemas/Catalog"
-     *         )
-     *      ),
-     *      @OA\Response(
-     *          response="404",
-     *          description="Not found"
-     *      )
+     *              ref="#/components/schemas/Queryables"
+     *          )
+     *     )
      *    )
      */
-    public function getCatalogs($params)
+    public function getQueryables($params)
     {
-        if (!isset($params['segments'])) {
-            return RestoLogUtil::httpError(404);
-        }
 
-        $this->segments = $params['segments'];
-
-        $result = $this->load($params);
-        
-        return isset($result->featureCollection) ? $result->featureCollection : $result;
+        return array(
+            '$schema' => 'https://json-schema.org/draft/2019-09/schema',
+            '$id' => 'https://stac-api.example.com/queryables',
+            'type' => 'object',
+            'title' => 'Queryables for Example STAC API',
+            'description' => 'Queryable names for the example STAC API Item Search filter.',
+            // Get common queryables (/queryables) or per collection (/collections/{collectionId}/queryables)  
+            'properties' => (isset($params['collectionId']) ? ((new RestoCollection($params['collectionId'], $this->context, $this->user))->load())->model : new DefaultModel())->getQueryables(),
+            'additionalProperties' => true
+        );
 
     }
 
@@ -863,45 +890,6 @@ class STAC extends RestoAddOn
         }
         
         return $restoCollections->search($model, $params);
-    }
-
-    /**
-     * Return an asset href within an HTTP 301 Redirect message
-     * This trick is used to store download external asset statistics
-     * 
-     * @param array $params
-     */
-    public function getAsset($params) {
-
-        $url = base64_decode($params['urlInBase64']);
-
-        /*
-         * Should be a valid url
-         */
-        if ( !$url || strpos($url, 'http') !== 0 )  {
-            RestoLogUtil::httpError(400, 'Invalid base64 encoded url');
-        }
-
-        /*
-         * Store download in logs
-         */
-        try {
-            (new GeneralFunctions($this->context->dbDriver))->storeQuery($this->user && $this->user->profile ? $this->user->profile['id'] : null, array(
-                'path' => $url,
-                'method' => 'GET_ASSET'
-            ));
-        } catch (Exception $e) { 
-            error_log('[WARNING] Cannot store download info in resto.log');
-        }
-
-        /*
-         * Permanent 301 redirection
-         */
-        header('HTTP/1.1 301 Moved Permanently');
-        header('Location: ' . $url);
-
-        return;
-
     }
 
     /**
