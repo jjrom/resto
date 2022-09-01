@@ -136,8 +136,29 @@ abstract class RestoModel
      */
     public $searchFilters = array(
 
+        'filter' => array(
+            'osKey' => 'filter',
+            'operation' => 'cql2',
+            'title' => 'Filter expression expressed in Common Query Lanbguage (CQL2)',
+        ),
+
+        'filter:lang' => array(
+            'osKey' => 'filter-lang',
+            'operation' => 'cql2',
+            'title' => 'The language of the filter expression. Only *cql2-text* is accepted',
+            'pattern' => 'cql2-text'
+        ),
+
+        'filter:crs' => array(
+            'osKey' => 'filter-crs',
+            'operation' => 'cql2',
+            'title' => 'Coordinate reference system of geometries expressed in filter. Only *http://www.opengis.net/def/crs/OGC/1.3/CRS84* is accepted',
+            'pattern' => 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'
+        ),
+
         'searchTerms' => array(
             'key' => 'normalized_hashtags',
+            // [TODO] Remove type since it seems not be used anymore (TBC)
             'type' => 'array',
             'osKey' => 'q',
             'operation' => 'keywords',

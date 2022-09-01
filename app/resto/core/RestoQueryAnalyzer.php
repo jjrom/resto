@@ -72,7 +72,16 @@ class RestoQueryAnalyzer
             $this->splitDatetime($params['resto:datetime'], $params);
             unset($params['resto:datetime']);
         }
-        
+
+        /*
+         * [STAC] Support for Filter extension
+         * (see https://github.com/stac-api-extensions/filter)
+         */
+        if ( isset($params['filter']) ) {
+            //$params = array_merge($params, $this->parseFilter($params['filter']));
+            unset($params['filter']);
+        }
+
         /*
          * Check dates
          */
