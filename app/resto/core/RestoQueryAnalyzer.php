@@ -55,9 +55,10 @@ class RestoQueryAnalyzer
      * Query analyzer process searchTerms and modify query parameters accordingly
      *
      * @param array $params
+     * @param array $searchFilters
      * @return array
      */
-    public function analyze($params)
+    public function analyze($params, $searchFilters)
     {
         
         /*
@@ -148,12 +149,12 @@ class RestoQueryAnalyzer
             }
 
         }
-        
+
         /*
          * Not understood - return error
          */
         if (isset($params['searchTerms']) && empty($details['What']) && empty($details['When']) && empty($details['Where'])) {
-            $details['appliedFilters'] = $params;
+            $details['appliedFilters'] = $this->addOperation($params, $searchFilters);
             return array(
                 'inputFilters' => $inputFilters,
                 'notUnderstood' => true,
@@ -164,7 +165,7 @@ class RestoQueryAnalyzer
         /*
          * Where, When, What
          */
-        $details['appliedFilters'] = $this->setWhereFilters($details['Where'], $this->setWhenFilters($details['When'], $this->setWhatFilters($details['What'], $params)), $hashTodiscard);
+        $details['appliedFilters'] = $this->addOperation($this->setWhereFilters($details['Where'], $this->setWhenFilters($details['When'], $this->setWhatFilters($details['What'], $params)), $hashTodiscard), $searchFilters);
         return array(
             'inputFilters' => $inputFilters,
             'details' => $details
@@ -424,6 +425,25 @@ class RestoQueryAnalyzer
             $model->validateFilter($filterKey, $params[$filterKey]);
         }
 
+    }
+
+    /**
+     * Return parameters with value and operation
+     * 
+     * @param array $params
+     * @param array searchFilters
+     * @return array
+     */
+    private function addOperation($params, $searchFilters)
+    {
+        $paramsWithOperation = array();
+        foreach ($params as $key => $value) {
+            $paramsWithOperation[$key] = array(
+                'value' => $value,
+                'operation' => $searchFilters[$key]['operation'] ?? null
+            );
+        }
+        return $paramsWithOperation;
     }
 
 }

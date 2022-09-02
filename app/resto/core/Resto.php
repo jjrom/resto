@@ -137,8 +137,9 @@ class Resto
         // Initialize start of processing
         $this->startTime = microtime(true);
         
-        $test = new FilterParser();
-        
+        // [TODO] Remove
+        //$test = new FilterParser();
+
         try {
 
             /*

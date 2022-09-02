@@ -417,12 +417,12 @@ class RestoFeatureCollection
          * Request start time
          */
         $this->requestStartTime = microtime(true);
-
+        
         /*
          * Convert query to inputFilters
          */
         $inputFilters = $this->model->getFiltersFromQuery($this->query);
-
+        
         /*
          * result options
          */
@@ -431,8 +431,8 @@ class RestoFeatureCollection
         /*
          * Query Analyzer
          */
-        $analysis = (new RestoQueryAnalyzer($this->context, $this->user))->analyze($inputFilters);
-
+        $analysis = (new RestoQueryAnalyzer($this->context, $this->user))->analyze($inputFilters, $this->model->searchFilters);
+        
         /*
          * Completely not understood query - return an empty result without
          * launching a search on the database
@@ -453,7 +453,14 @@ class RestoFeatureCollection
              * [IMPORTANT] Add explicit 'resto:collection' filter if $collection is set
              */
             if ( isset($collection) ) {
-                $analysis['details']['appliedFilters'] = array_merge($analysis['details']['appliedFilters'], array('resto:collection' => $collection->id));
+                $analysis['details']['appliedFilters'] = array_merge(
+                    $analysis['details']['appliedFilters'],
+                    array('resto:collection' => array(
+                            'value' => $collection->id,
+                            'operation' => '='
+                        )
+                    )
+                );
             }
             $this->loadFeatures($analysis['details']['appliedFilters'], $sorting);
             
@@ -638,10 +645,10 @@ class RestoFeatureCollection
     /**
      * Set restoFeatures and collections array
      *
-     * @param array $params
+     * @param array $paramsWithOperation
      * @param array $sorting
      */
-    private function loadFeatures($params, $sorting)
+    private function loadFeatures($paramsWithOperation, $sorting)
     {
         
         /*
@@ -652,7 +659,7 @@ class RestoFeatureCollection
             $this->user,
             $this->model,
             $this->collections,
-            $params,
+            $paramsWithOperation,
             $sorting
         );
         
@@ -937,11 +944,14 @@ class RestoFeatureCollection
             'startIndex',
             'startPage'
         );
-        foreach ($searchFilters as $key => $value) {
+        foreach ($searchFilters as $key => $obj) {
             if (in_array($key, $exclude)) {
                 continue;
             }
-            $query[$key] = $key === 'searchTerms' ? stripslashes($value) : $value;
+            $query[$key] = $obj;
+            if ($key === 'searchTerms') {
+                $query[$key]['value'] = stripslashes($obj['value']);
+            }
         }
         ksort($query);
         return $query;
@@ -976,18 +986,18 @@ class RestoFeatureCollection
     private function toOSKeys($filterNames, $processSearchTerms = false)
     {
         $arr = array();
-        foreach ($filterNames as $key => $value) {
+        foreach ($filterNames as $key => $obj) {
             if (isset($this->model->searchFilters[$key])) {
 
                 // Special case => convert string of hashtags to individuals 
                 if ($key === 'searchTerms' && $processSearchTerms) {
-                    $arr = array_merge($arr, $this->explodeSearchTerms($value, true));
+                    $arr = array_merge($arr, $this->explodeSearchTerms($obj));
                     continue;
                 }
 
                 // Convert to STAC
                 $osKey = $this->model->searchFilters[$key]['osKey'];
-                $arr[isset($this->model->stacMapping[$osKey]) ? $this->model->stacMapping[$osKey]['key']: $osKey] = $value;
+                $arr[isset($this->model->stacMapping[$osKey]) ? $this->model->stacMapping[$osKey]['key']: $osKey] = $obj;
 
             }
         }
@@ -998,10 +1008,9 @@ class RestoFeatureCollection
      * Explode a searchTerms string (e.g. "#location:coastal #year:2003 #instrument:PHR,NIR #thisisanormalahashtag")
      * into an array of filters (i.e. {"location":"coastal","year":2003,"instruments":"PHR,NIR","q":"#thisisnormalhashtagh"})
      * 
-     * @param string $str
-     * @param boolean $convertToStac
+     * @param array $obj
      */
-    private function explodeSearchTerms($str, $convertToStac)
+    private function explodeSearchTerms($obj)
     {
 
         $hashtags = [];
@@ -1010,7 +1019,13 @@ class RestoFeatureCollection
         /*
          * Process each searchTerm
          */
-        $searchTerms = RestoUtil::splitString($str); 
+        if ( is_string($obj) ) {
+            $obj = array(
+                'value' => $obj,
+                'operation' => '='
+            );
+        }
+        $searchTerms = RestoUtil::splitString($obj['value']); 
         for ($i = 0, $l = count($searchTerms); $i < $l; $i++) {
 
             $splitted = explode(Resto::TAG_SEPARATOR, $searchTerms[$i]);
@@ -1030,11 +1045,17 @@ class RestoFeatureCollection
              */
             if (substr($key, 0, 1) === '#') {
                 $osKey = $this->model->getOSKeyFromPrefix(ltrim($key, '#')); 
-                $output[isset($this->model->stacMapping[$osKey]) ? $this->model->stacMapping[$osKey]['key']: $osKey] = $value; 
+                $output[isset($this->model->stacMapping[$osKey]) ? $this->model->stacMapping[$osKey]['key']: $osKey] = array(
+                    'value' => $value,
+                    'operation' =>  $obj['operation']
+                );
             }
             elseif (substr($key, 0, 2) === '-#') {
                 $osKey = $this->model->getOSKeyFromPrefix(ltrim($key, '-#'));
-                $output[isset($this->model->stacMapping[$osKey]) ? $this->model->stacMapping[$osKey]['key']: $osKey] = '-' . $value; 
+                $output[isset($this->model->stacMapping[$osKey]) ? $this->model->stacMapping[$osKey]['key']: $osKey] = array(
+                    'value' => '-' . $value,
+                    'operation' =>  $obj['operation']
+                );
             }
             else {
                 $hashtags[] = $searchTerms[$i];
@@ -1042,7 +1063,10 @@ class RestoFeatureCollection
         }
 
         if (count($hashtags) > 0) {
-            $output['searchTerms'] = join(' ', $hashtags);
+            $output['searchTerms'] = array(
+                'value' => join(' ', $hashtags),
+                'operation' =>  $obj['operation']
+            );
         }
 
         return $output;
