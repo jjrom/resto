@@ -66,14 +66,14 @@ class FilterParser
             
             // Token is a logical operator - keep it and move to next token
             if ( $this->isLogicalOperator($this->lexer->lookahead['type'])) {
-                echo 'Logical operator ' . $this->lexer->lookahead['value'] . ' at position ' . $this->lexer->lookahead['position'] . "\n";
+                //echo 'Logical operator ' . $this->lexer->lookahead['value'] . ' at position ' . $this->lexer->lookahead['position'] . "\n";
                 $logicalOperator = $this->lexer->lookahead['type'];
                 $this->lexer->moveNext();
             }
 
-            $param = $this->processTriplet();
+            $filter = $this->processTriplet();
 
-            print_r($param);
+            print_r($filter);
 
             // Reset logical operator and move to next token
             $logicalOperator = Lexer::T_AND;
@@ -85,13 +85,12 @@ class FilterParser
     /**
      * Process a triplet
      * 
-     * @param string $property
      * @return array
      */
     private function processTriplet()
     {
 
-        $param = array();
+        $filter = array();
 
         // First token is a property
         switch ($this->lexer->lookahead['type']) {
@@ -100,7 +99,7 @@ class FilterParser
                 return $this->intersectsExpression();
 
             case Lexer::T_STRING:
-                $param['property'] = $this->lexer->lookahead['value'];
+                $filter['property'] = $this->lexer->lookahead['value'];
                 $this->lexer->moveNext();
                 break;
     
@@ -110,14 +109,14 @@ class FilterParser
 
         }
 
-        $param['operator'] = $this->operatorExpression();
+        $filter['operator'] = $this->operatorExpression();
 
-        switch ( $param['operator'] ) {
+        switch ( $filter['operator'] ) {
 
             case Lexer::T_IN:
             case Lexer::T_NI:
                 // In and NI must be arrays
-                $param['value'] = $this->arrayExpression();
+                $filter['value'] = $this->arrayExpression();
                 break;
 
             case Lexer::T_GT:
@@ -125,17 +124,17 @@ class FilterParser
             case Lexer::T_LT:
             case Lexer::T_LTE:
                 // These can only be numbers or dates, not strings
-                $param['value'] = $this->numberOrDateExpression();
+                $filter['value'] = $this->numberOrDateExpression();
                 break;
 
             case Lexer::T_EQ:
             case Lexer::T_NE:
             default:
-                $param['value'] = $this->operandExpression();
+                $filter['value'] = $this->operandExpression();
                 break;
         }
 
-        return $param;
+        return $filter;
   
     }
 
@@ -231,11 +230,11 @@ class FilterParser
     private function intersectsExpression()
     {
     
-        $param = array();
+        $filter = array();
 
         $this->lexer->moveNext();
         $this->mustMatch(Lexer::T_OPEN_PARENTHESIS);
-        $param['property'] = $this->lexer->lookahead['value'];
+        $filter['property'] = $this->lexer->lookahead['value'];
         $this->lexer->moveNext();
         $this->mustMatch(Lexer::T_COMMA);
 
@@ -264,12 +263,12 @@ class FilterParser
 
         }
         
-        $param['operator'] = 'intersects';
-        $param['value'] = $wkt;
+        $filter['operator'] = 'intersects';
+        $filter['value'] = $wkt;
 
         $this->lexer->moveNext();
 
-        return $param;
+        return $filter;
 
     }
 
