@@ -116,6 +116,7 @@ class SatelliteModel extends LandCoverModel
             'eo:processingLevel' => array(
                 'key' => 'normalized_hashtags',
                 'osKey' => 'processingLevel',
+                'stacKey' => 'processing:level',
                 'prefix' => 'processingLevel',
                 'operation' => 'keywords',
                 'title' => 'A string identifying the processing level applied to the entry',
@@ -156,6 +157,7 @@ class SatelliteModel extends LandCoverModel
             'eo:resolution' => array(
                 'key' => 'resolution',
                 'osKey' => 'resolution',
+                'stacKey' => 'gsd',
                 'operation' => 'interval',
                 'title' => 'Spatial resolution expressed in meters',
                 'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',

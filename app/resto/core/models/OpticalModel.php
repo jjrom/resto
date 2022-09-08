@@ -59,6 +59,7 @@ class OpticalModel extends SatelliteModel
             'eo:cloudCover' => array(
                 'key' => 'cloudCover',
                 'osKey' => 'cloudCover',
+                'stacKey' => 'eo:cloud_cover',
                 'operation' => 'interval',
                 'title' => 'Cloud cover expressed in percent',
                 'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',

@@ -92,7 +92,7 @@ class FiltersFunctions
              * Process each input search filter excepted excluded filters
              */
             foreach (array_keys($this->model->searchFilters) as $filterName) {
-                if (!isset($paramsWithOperation[$filterName]) || $paramsWithOperation[$filterName]['value'] === '') {
+                if ( !isset($paramsWithOperation[$filterName]['value']) || $paramsWithOperation[$filterName]['value'] === '') {
                     continue;
                 }
 

@@ -219,6 +219,8 @@ class ATOMFeed extends RestoXML
     private function addEntryElements($feature)
     {
         
+        $explodedSelf = null;
+        
         /*
          * General links
          */

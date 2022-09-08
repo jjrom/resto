@@ -55,10 +55,10 @@ class RestoQueryAnalyzer
      * Query analyzer process searchTerms and modify query parameters accordingly
      *
      * @param array $params
-     * @param array $searchFilters
+     * @param RestoModel $model
      * @return array
      */
-    public function analyze($params, $searchFilters)
+    public function analyze($params, $model)
     {
         
         /*
@@ -72,15 +72,6 @@ class RestoQueryAnalyzer
         if (isset($params['resto:datetime'])) {
             $this->splitDatetime($params['resto:datetime'], $params);
             unset($params['resto:datetime']);
-        }
-
-        /*
-         * [STAC] Support for Filter extension
-         * (see https://github.com/stac-api-extensions/filter)
-         */
-        if ( isset($params['filter']) ) {
-            //$params = array_merge($params, $this->parseFilter($params['filter']));
-            unset($params['filter']);
         }
 
         /*
@@ -151,10 +142,10 @@ class RestoQueryAnalyzer
         }
 
         /*
-         * Not understood - return error
+         * Not understood
          */
         if (isset($params['searchTerms']) && empty($details['What']) && empty($details['When']) && empty($details['Where'])) {
-            $details['appliedFilters'] = $this->addOperation($params, $searchFilters);
+            $details['appliedFilters'] = $this->addOperation($params, $model->searchFilters);
             return array(
                 'inputFilters' => $inputFilters,
                 'notUnderstood' => true,
@@ -163,9 +154,29 @@ class RestoQueryAnalyzer
         }
 
         /*
+         * [STAC] Support for Filter extension
+         * (see https://github.com/stac-api-extensions/filter)
+         */
+        if ( isset($params['filter']) ) {
+            $filterParser = new FilterParser();
+            try {
+                $paramsFromCQL = $filterParser->parseCQL2($params['filter']);
+                print_r($paramsFromCQL); 
+            } catch (Exception $e) {
+                RestoLogUtil::httpError(400, $e->getMessage());
+            }
+            unset($params['filter']);
+            $details['appliedFilters'] = array_merge($this->addOperation($params, $model->searchFilters), $this->toAppliedFilters($paramsFromCQL, $model));
+            return array(
+                'inputFilters' => $inputFilters,
+                'details' => $details
+            );
+        }
+
+        /*
          * Where, When, What
          */
-        $details['appliedFilters'] = $this->addOperation($this->setWhereFilters($details['Where'], $this->setWhenFilters($details['When'], $this->setWhatFilters($details['What'], $params)), $hashTodiscard), $searchFilters);
+        $details['appliedFilters'] = $this->addOperation($this->setWhereFilters($details['Where'], $this->setWhenFilters($details['When'], $this->setWhatFilters($details['What'], $params)), $hashTodiscard), $model->searchFilters);
         return array(
             'inputFilters' => $inputFilters,
             'details' => $details
@@ -438,12 +449,100 @@ class RestoQueryAnalyzer
     {
         $paramsWithOperation = array();
         foreach ($params as $key => $value) {
-            $paramsWithOperation[$key] = array(
-                'value' => $value,
-                'operation' => $searchFilters[$key]['operation'] ?? null
-            );
+            // Only add operation if not already there
+            if (is_string($value) || ! isset($value['operation']) ) {
+                $paramsWithOperation[$key] = array(
+                    'value' => $value,
+                    'operation' => $searchFilters[$key]['operation'] ?? null
+                );
+            }
+            else {
+                $paramsWithOperation[$key] = $value;
+            }
+            
         }
         return $paramsWithOperation;
+    }
+
+    /**
+     * Convert params extracted from FilterParser->parseCQL2 to appliedFilters structure
+     * Concretely, this means that STAC properties are renamed to their corresponding Resto filter name
+     * Note - leading "properties." is discarded
+     * 
+     * 
+     * Input example :
+     *    Array(
+     *      Array (
+     *         [property] => properties.eo:cloud_cover
+     *         [operator] => >
+     *         [value] => 10
+     *      ),
+     *      Array (
+     *         [property] => eo:cloud_cover
+     *         [operator] => <=
+     *         [value] => 30
+     *      ),
+     *      Array (
+     *         [property] => geometry
+     *         [operator] => intersects
+     *         [value] => POINT(10 10)
+     *      ),
+     *      Array (
+     *         [property] => instruments
+     *         [operation] => =
+     *         [value] => PHR
+     *      )
+     *    )
+     * 
+     *  Output example :
+     *    Array(
+     *      'eo:cloudCover' => Array(
+     *          'value' => ]10, 30],
+     *          'operation' => 'interval'
+     *      ),
+     *      'resto:geometry' => Array(
+     *          'value' => 'POINT(10 10)'
+     *          'operation' => 'intersects'
+     *      ),
+     *      'instruments' => Array(
+     *          'value => 'PHR',
+     *          'operation => ''keywords
+     *      )
+     *    )
+     *   
+     *       
+     * @param array $paramsFromCQL
+     * @return array
+     * 
+     */
+    private function toAppliedFilters($paramsFromCQL, $model)
+    {
+
+        $appliedFilters = array();
+
+        for ($i = 0, $ii = count($paramsFromCQL); $i < $ii; $i++) {
+
+            // Remove leading 'properties.' if present
+            $stacKey = strpos($paramsFromCQL[$i]['property'], 'properties.') === 0 ? substr($paramsFromCQL[$i]['property'], 11) : $paramsFromCQL[$i]['property'];
+
+            // STAC property must be renamed to resto osKey
+            $filterName = $model->getFilterName($stacKey);
+            
+            if ( !isset($filterName) ) {
+                RestoLogUtil::httpError(400, 'Unknown property in filter - ' . $stacKey);
+            }
+
+            // Special cases where operation/value must be changed
+            
+            print_r($model->searchFilters[$filterName]);
+            $appliedFilters[$filterName] = array(
+                'value' => $paramsFromCQL[$i]['value'],
+                'operation' => $paramsFromCQL[$i]['operation']
+            );
+
+        }
+
+        return $appliedFilters;
     }
 
 }

@@ -29,20 +29,12 @@ class FilterParser
     public function __construct()
     {
         $this->lexer = new Lexer();
-
-        try {
-            $cql2 = "collection = \"landsat8_l1tp\" AND eo:cloud_cover <= 10 AND datetime >= TIMESTAMP('2021-04-08T04:39:23Z') AND S_INTERSECTS(geometry, POLYGON((43.5845 -79.5442, 43.6079 -79.4893, 43.5677 -79.4632, 43.6129 -79.3925, 43.6223 -79.3238, 43.6576 -79.3163, 43.7945 -79.1178, 43.8144 -79.1542, 43.8555 -79.1714, 43.7509 -79.6390, 43.5845 -79.5442)))";
-            echo $cql2 . "\n";
-            $this->parseCQL2($cql2);
-        } catch (Exception $e) {
-            echo $e->getMessage();
-        }
     }
 
     /**
      * Parse a CQL2 string
      * 
-     * Assuming a valid CQL2 string structure is composed of a set of triplets "property operator value"
+     * Assuming a valid CQL2 string structure is composed of a set of triplets "property operation value"
      * separated by logical operators (AND, OR, etc)
      *
      * @param string $cql2
@@ -62,24 +54,30 @@ class FilterParser
             echo '"' . $this->lexer->lookahead['value'] . '"';
             echo ' is of type ' . $this->lexer->lookahead['type'] . PHP_EOL;
             $this->lexer->moveNext();
+            continue;
             */
-            
+
             // Token is a logical operator - keep it and move to next token
-            if ( $this->isLogicalOperator($this->lexer->lookahead['type'])) {
-                //echo 'Logical operator ' . $this->lexer->lookahead['value'] . ' at position ' . $this->lexer->lookahead['position'] . "\n";
+            if ( $this->isLogicalOperator($this->lexer->lookahead['type']) ) {
                 $logicalOperator = $this->lexer->lookahead['type'];
                 $this->lexer->moveNext();
             }
 
-            $filter = $this->processTriplet();
+            // [WARNING] Logical operator OR is not supported yet
+            if ( $logicalOperator === Lexer::T_OR ) {
+                throw new Exception('Logical operator OR is not supported');
+            }
 
-            print_r($filter);
+            $params[] = $this->processTriplet();
 
             // Reset logical operator and move to next token
             $logicalOperator = Lexer::T_AND;
             $this->lexer->moveNext();
 
         }
+
+        return $params;
+
     }
 
     /**
@@ -108,14 +106,18 @@ class FilterParser
                 break;
 
         }
+       
+        $operation = $this->operationExpression();
+        switch ( $operation ) {
 
-        $filter['operator'] = $this->operatorExpression();
-
-        switch ( $filter['operator'] ) {
+            // [WARNING] These operators are not supported yet
+            case Lexer::T_NI:
+            case Lexer::T_NOT:
+                throw new Exception('Operation ' . strtoupper($this->lexer->namedOperation($operation)) . ' is not supported');
+                break;
 
             case Lexer::T_IN:
-            case Lexer::T_NI:
-                // In and NI must be arrays
+                // IN must be arrays
                 $filter['value'] = $this->arrayExpression();
                 break;
 
@@ -130,9 +132,11 @@ class FilterParser
             case Lexer::T_EQ:
             case Lexer::T_NE:
             default:
-                $filter['value'] = $this->operandExpression();
+                $filter['value'] = $this->lexer->lookahead['value'];
                 break;
         }
+
+        $filter['operation'] = $operation;
 
         return $filter;
   
@@ -151,23 +155,26 @@ class FilterParser
     }
 
     /**
-     * Get current lookahead token assuming it is an oper
+     * Get current lookahead token assuming it is an operation
      * 
      * @return integer
      */
-    private function operatorExpression()
+    private function operationExpression()
     {
 
         if ( $this->lexer->lookahead['type'] >= 300 && $this->lexer->lookahead['type'] < 400 ) {
-            $operator = $this->lexer->lookahead['type'];
+            if ( $this->lexer->namedOperation($this->lexer->lookahead['type']) === null ) {
+                throw new Exception('Unkown operation ' . $this->lexer->lookahead['value']);
+            }
+            $operation = $this->lexer->lookahead['type'];
         }
         else {
-            throw new Exception('Invalid operator');
+            throw new Exception('Invalid operation ' . $this->lexer->lookahead['value']);
         }
 
         $this->lexer->moveNext();
 
-        return $operator;
+        return $operation;
 
     }
 
@@ -263,7 +270,7 @@ class FilterParser
 
         }
         
-        $filter['operator'] = 'intersects';
+        $filter['operation'] = 'intersects';
         $filter['value'] = $wkt;
 
         $this->lexer->moveNext();
@@ -271,23 +278,6 @@ class FilterParser
         return $filter;
 
     }
-
-    /**
-     * Get current lookahead token assuming it is an oper
-     * 
-     * @return string
-     */
-    private function operandExpression()
-    {
-
-        $result = 'TODO operand';
-
-        $this->lexer->moveNext();
-
-        return $result;
-
-    }
-
 
     /**
      * Return true if the type is an operator

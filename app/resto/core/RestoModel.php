@@ -95,6 +95,9 @@ abstract class RestoModel
      *      *.feature column name
      *  'osKey' :
      *      OpenSearch property name in template urls
+     *  'stacKey' :
+     *      Search filter name equivalent in STAC
+     *      [IMPORTANT] If not set then it is assumed that stacKey is the same as osKey
      *  'prefix' :
      *      (Optional) (for "keywords" operation only) Prefix systematically added to input value (i.e. prefix:value)
      *  'operation' :
@@ -201,6 +204,7 @@ abstract class RestoModel
         'geo:geometry' => array(
             'key' => 'geom',
             'osKey' => 'intersects',
+            'stacKey' => 'geometry',
             'operation' => 'intersects',
             'title' => 'Region of Interest defined in GeoJSON or in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326)',
             'queryable' => 'geometry',
@@ -263,6 +267,7 @@ abstract class RestoModel
             // This is used to have "collections" converted to "collection" in summaries without having a prefix
             'facetKey' => 'collection',
             'osKey' => 'collections',
+            'stacKey' => 'collection',
             'title' => 'Comma separated list of collections name',
             'pattern' => '^[a-zA-Z0-9\-_]+$',
             'operation' => 'in',
@@ -583,25 +588,14 @@ abstract class RestoModel
     }
 
     /**
-     * Return OpenSearch filter name from OpenSearch key
+     * Return OpenSearch filter name from OpenSearch or STAC key
      * 
-     * @param string $osKey
+     * @param string $osOrSTACKey
      */
-    public function getFilterName($osKey)
+    public function getFilterName($osOrSTACKey)
     {
-
-        /*
-         * Eventually convert STAC osKey to resto osKey
-         */
-        foreach(array_keys($this->stacMapping) as $restoKey) {
-            if ($this->stacMapping[$restoKey]['key'] === $osKey) {
-                $osKey = $restoKey;
-                break;
-            }
-        }
-        
         foreach (array_keys($this->searchFilters) as $filterKey) {
-            if ($osKey === $this->searchFilters[$filterKey]['osKey']) {
+            if ( $osOrSTACKey === $this->searchFilters[$filterKey]['osKey'] || (isset($this->searchFilters[$filterKey]['stacKey']) && $osOrSTACKey === $this->searchFilters[$filterKey]['stacKey']) ) {
                 return $filterKey;
             }
         }

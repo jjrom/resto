@@ -431,7 +431,7 @@ class RestoFeatureCollection
         /*
          * Query Analyzer
          */
-        $analysis = (new RestoQueryAnalyzer($this->context, $this->user))->analyze($inputFilters, $this->model->searchFilters);
+        $analysis = (new RestoQueryAnalyzer($this->context, $this->user))->analyze($inputFilters, $this->model);
         
         /*
          * Completely not understood query - return an empty result without

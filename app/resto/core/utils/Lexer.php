@@ -51,6 +51,34 @@ class Lexer extends Doctrine\Common\Lexer\AbstractLexer
     // Functions that can be applied either on value or property should be >= 500
     public const T_S_INTERSECTS = 500;
 
+    public function namedOperation($value)
+    {
+        switch ($value) {
+            case self::T_NOT:
+                return 'not';   
+            case self::T_EQ:
+                return '=';
+            case self::T_NE:
+                return '<>';
+            case self::T_LT:
+                return '<';
+            case self::T_LTE:
+                return '<=';
+            case self::T_GT:
+                return '>';
+            case self::T_GTE:
+                return '>=';
+            case self::T_IN:
+                return 'in';
+            case self::T_NI:
+                return 'ni';
+            case self::T_S_INTERSECTS:
+                return 'intersects';
+            default:
+                return null;
+        }
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -61,7 +89,7 @@ class Lexer extends Doctrine\Common\Lexer\AbstractLexer
             '(?:[0-9]+)?',       // numbers
             '(?:"[^"]+")',       // Double quoted strings
             "(?:'[^']+')",       // Single quoted strings
-            '>=', '<=',           // Operators
+            '>=', '<=', '<>'     // Operators
         ];
     }
 
@@ -83,27 +111,27 @@ class Lexer extends Doctrine\Common\Lexer\AbstractLexer
     protected function getType(&$value)
     {
         $type = self::T_NONE;
-        
+
         switch (true) {
             // Recognize numeric values
             case (is_numeric($value)):
                 return self::T_NUMBER;
 
-            // Recognize quoted strings
+                // Recognize quoted strings
             case ($value[0] === '"'):
                 $value = str_replace('""', '"', substr($value, 1, strlen($value) - 2));
                 return $this->processQuotedString($value);
 
-            // Recognize quoted strings
+                // Recognize quoted strings
             case ($value[0] === '\''):
                 $value = str_replace('\'', '', substr($value, 1, strlen($value) - 2));
                 return $this->processQuotedString($value);
-            
-            // Recognize TIMESTAMP
+
+                // Recognize TIMESTAMP
             case (strpos($value, 'TIMESTAMP(') !== false):
                 return self::T_TIMESTAMP;
 
-            // Recognize identifiers, aliased or qualified names
+                // Recognize identifiers, aliased or qualified names
             case (ctype_alpha($value[0])):
                 $name = 'Lexer::T_' . strtoupper($value);
 
@@ -161,7 +189,7 @@ class Lexer extends Doctrine\Common\Lexer\AbstractLexer
 
     /**
      * Process a quoted string
-     * 
+     *
      * @param string $value
      * @return int
      */
@@ -183,6 +211,5 @@ class Lexer extends Doctrine\Common\Lexer\AbstractLexer
         }
 
         return self::T_STRING;
-
     }
 }

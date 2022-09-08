@@ -76,7 +76,7 @@ class FeaturesFunctions
      * @param RestoUser $user
      * @param RestoModel $model
      * @param array $collections
-     * @param array $params
+     * @param array $paramsWithOperation
      * @param array $sorting
      *      array(
      *          'limit',
