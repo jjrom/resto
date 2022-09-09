@@ -273,7 +273,7 @@ class FiltersFunctions
              * searchTerms
              */
             case 'keywords':
-                return $this->prepareFilterQueryKeywords($featureTableName, $filterName, RestoUtil::splitString($paramsWithOperation[$filterName]['value']));
+                return $this->prepareFilterQueryKeywords($featureTableName, $filterName, RestoUtil::splitString($paramsWithOperation[$filterName]['value']), $exclusion);
             /*
              * Intersects i.e. geo:*
              */
@@ -553,12 +553,12 @@ class FiltersFunctions
      * @param string $featureTableName
      * @param string $filterName
      * @param array $searchTerms
+     * @param boolean $exclusion
      * @return string
      */
-    private function prepareFilterQueryKeywords($featureTableName, $filterName, $searchTerms)
+    private function prepareFilterQueryKeywords($featureTableName, $filterName, $searchTerms, $exclusion = false)
     {
         $terms = array();
-        $exclusion = false;
         $filters = array(
             'with' => array(),
             'without' => array()
@@ -803,13 +803,24 @@ class FiltersFunctions
                 RestoLogUtil::httpError(400, 'Unknown property in filter - ' . $stacKey);
             }
 
-            // Special cases where operation/value must be changed
-            $paramsWithOperation[$filterName] = array(
-                'value' => $cql2Filters[$i]['value'],
-                'operation' => $cql2Filters[$i]['operation']
-            );
+            $exclusion = false;
+            // If filter model operation is 'keywords' then it must be changed !
+            if ( isset($this->model->searchFilters[$filterName]['operation']) && $this->model->searchFilters[$filterName]['operation'] === 'keywords') {
+                $paramsWithOperation[$filterName] = array(
+                    'value' => $cql2Filters[$i]['value'],
+                    'operation' => 'keywords'
+                );
+                $exclusion = $cql2Filters[$i]['operation'] === '<>';
+            }
+            else {
+                $paramsWithOperation[$filterName] = array(
+                    'value' => $cql2Filters[$i]['value'],
+                    'operation' => $cql2Filters[$i]['operation']
+                );
+            }
+            
 
-            $filters[] = $this->prepareFilterQuery($paramsWithOperation, $filterName)['value'];
+            $filters[] = $this->prepareFilterQuery($paramsWithOperation, $filterName, $exclusion)['value'];
 
         }
         

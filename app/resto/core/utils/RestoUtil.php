@@ -528,7 +528,8 @@ class RestoUtil
                 return null;
             }
 
-            return strip_tags(str_replace(chr(0), '', $str));
+            // Remove HTML tags except empty <> for "not equal" in STAC filter
+            return strip_tags(str_replace(chr(0), '', $str), '<>');
             
         }
         

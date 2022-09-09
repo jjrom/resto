@@ -848,7 +848,7 @@ class STAC extends RestoAddOn
      */
     public function search($params, $body)
     {
-
+        
         if ($this->context->method === 'POST') {
             $params = $this->jsonQueryToKVP($body);
         }

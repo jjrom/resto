@@ -564,13 +564,13 @@ abstract class RestoModel
             $filterKey = $this->getFilterName($key);
             if (isset($filterKey)) {
                 // Special case geo:geometry also accept GeoJSON => convert it to WKT
-                $params[$filterKey] = preg_replace('/<.*?>/', '', $filterKey === 'geo:geometry' ? RestoGeometryUtil::forceWKT($value) : $value);
+                $params[$filterKey] = preg_replace('/<.+?>/', '', $filterKey === 'geo:geometry' ? RestoGeometryUtil::forceWKT($value) : $value);
                 $this->validateFilter($filterKey, $params[$filterKey]);
             }
             // Do not process query params starting with '_' or in the reserved list
             else if ( !in_array($key, array('collectionId', 'fields')) && substr($key, 0, 1) !== '_') {
                 // Protect against XSS injection
-                $unknowns[] = '#' . $this->toHashTag($key, preg_replace('/<.*?>/', '', ltrim($value, '#')));
+                $unknowns[] = '#' . $this->toHashTag($key, preg_replace('/<.+?>/', '', ltrim($value, '#')));
             }
         }
 

@@ -407,12 +407,12 @@ class RestoQueryAnalyzer
 
         if ( isset($dates[0]) && !in_array($dates[0], array('', '..')) ) {
             $filterKey = $model->getFilterName('start');
-            $params[$filterKey] = preg_replace('/<.*?>/', '', $dates[0]);
+            $params[$filterKey] = preg_replace('/<.+?>/', '', $dates[0]);
             $model->validateFilter($filterKey, $params[$filterKey]);
         }
         if ( isset($dates[1]) && !in_array($dates[1], array('', '..')) ) {
             $filterKey = $model->getFilterName('end');
-            $params[$filterKey] = preg_replace('/<.*?>/', '', $dates[1]);
+            $params[$filterKey] = preg_replace('/<.+?>/', '', $dates[1]);
             $model->validateFilter($filterKey, $params[$filterKey]);
         }
 
