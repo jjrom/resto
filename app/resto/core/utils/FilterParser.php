@@ -46,7 +46,10 @@ class FilterParser
         $this->lexer->setInput($cql2);
         $this->lexer->moveNext();
 
-        $params = array();
+        $json = array();
+        
+        // Default logical operator is T_AND
+        $logicalOperator = $this->lexer->namedOperation(Lexer::T_AND);
 
         while (null !== $this->lexer->lookahead) {
 
@@ -59,24 +62,23 @@ class FilterParser
 
             // Token is a logical operator - keep it and move to next token
             if ( $this->isLogicalOperator($this->lexer->lookahead['type']) ) {
-                $logicalOperator = $this->lexer->lookahead['type'];
+                $logicalOperator = $this->lexer->namedOperation($this->lexer->lookahead['type']);
                 $this->lexer->moveNext();
             }
 
-            // [WARNING] Logical operator OR is not supported yet
-            if ( $logicalOperator === Lexer::T_OR ) {
-                throw new Exception('Logical operator OR is not supported');
+            if ( !isset($json[$logicalOperator]) ) {
+                $json[$logicalOperator] = array();
             }
 
-            $params[] = $this->processTriplet();
+            $json[$logicalOperator][] = $this->processTriplet();
 
             // Reset logical operator and move to next token
-            $logicalOperator = Lexer::T_AND;
+            $logicalOperator = $this->lexer->namedOperation(Lexer::T_AND);
             $this->lexer->moveNext();
 
         }
 
-        return $params;
+        return $json;
 
     }
 
@@ -108,35 +110,24 @@ class FilterParser
         }
        
         $operation = $this->operationExpression();
+        $filter['operation'] = $this->lexer->namedOperation($operation);
         switch ( $operation ) {
 
             // [WARNING] These operators are not supported yet
+            case Lexer::T_IN:
             case Lexer::T_NI:
             case Lexer::T_NOT:
-                throw new Exception('Operation ' . strtoupper($this->lexer->namedOperation($operation)) . ' is not supported');
+                throw new Exception('Operation ' . strtoupper($filter['operation']) . ' is not supported');
                 break;
 
-            case Lexer::T_IN:
-                // IN must be arrays
-                $filter['value'] = $this->arrayExpression();
+            case Lexer::T_IS_NULL:
+                $filter['value'] = null;
                 break;
 
-            case Lexer::T_GT:
-            case Lexer::T_GTE:
-            case Lexer::T_LT:
-            case Lexer::T_LTE:
-                // These can only be numbers or dates, not strings
-                $filter['value'] = $this->numberOrDateExpression();
-                break;
-
-            case Lexer::T_EQ:
-            case Lexer::T_NE:
             default:
-                $filter['value'] = $this->lexer->lookahead['value'];
-                break;
+                $filter['value'] = $this->numberOrDateOrDateExpression();
+                
         }
-
-        $filter['operation'] = $operation;
 
         return $filter;
   
@@ -162,7 +153,14 @@ class FilterParser
     private function operationExpression()
     {
 
-        if ( $this->lexer->lookahead['type'] >= 300 && $this->lexer->lookahead['type'] < 400 ) {
+        // Special case for IS NULL
+        if ( $this->lexer->lookahead['value'] === 'is' ) {
+            $this->lexer->moveNext();
+            if ( $this->lexer->lookahead['value'] === 'null' ) {
+                $operation = Lexer::T_IS_NULL;
+            }
+        }
+        else if ( $this->lexer->lookahead['type'] >= 300 && $this->lexer->lookahead['type'] < 400 ) {
             if ( $this->lexer->namedOperation($this->lexer->lookahead['type']) === null ) {
                 throw new Exception('Unkown operation ' . $this->lexer->lookahead['value']);
             }
@@ -199,7 +197,7 @@ class FilterParser
      * 
      * @return string
      */
-    private function numberOrDateExpression()
+    private function numberOrDateOrDateExpression()
     {
 
         switch ($this->lexer->lookahead['type']) {
@@ -215,11 +213,12 @@ class FilterParser
                 break;
 
             case Lexer::T_NUMBER:
+            case Lexer::T_STRING:
                 $result = $this->lexer->lookahead['value'];
                 break;
             
             default:
-                throw new Exception('Invalid number or date');
+                throw new Exception('Invalid number, date or string');
                 break;
         }
 
@@ -272,8 +271,6 @@ class FilterParser
         
         $filter['operation'] = 'intersects';
         $filter['value'] = $wkt;
-
-        $this->lexer->moveNext();
 
         return $filter;
 

@@ -154,26 +154,6 @@ class RestoQueryAnalyzer
         }
 
         /*
-         * [STAC] Support for Filter extension
-         * (see https://github.com/stac-api-extensions/filter)
-         */
-        if ( isset($params['filter']) ) {
-            $filterParser = new FilterParser();
-            try {
-                $paramsFromCQL = $filterParser->parseCQL2($params['filter']);
-                print_r($paramsFromCQL); 
-            } catch (Exception $e) {
-                RestoLogUtil::httpError(400, $e->getMessage());
-            }
-            unset($params['filter']);
-            $details['appliedFilters'] = array_merge($this->addOperation($params, $model->searchFilters), $this->toAppliedFilters($paramsFromCQL, $model));
-            return array(
-                'inputFilters' => $inputFilters,
-                'details' => $details
-            );
-        }
-
-        /*
          * Where, When, What
          */
         $details['appliedFilters'] = $this->addOperation($this->setWhereFilters($details['Where'], $this->setWhenFilters($details['When'], $this->setWhatFilters($details['What'], $params)), $hashTodiscard), $model->searchFilters);
@@ -462,87 +442,6 @@ class RestoQueryAnalyzer
             
         }
         return $paramsWithOperation;
-    }
-
-    /**
-     * Convert params extracted from FilterParser->parseCQL2 to appliedFilters structure
-     * Concretely, this means that STAC properties are renamed to their corresponding Resto filter name
-     * Note - leading "properties." is discarded
-     * 
-     * 
-     * Input example :
-     *    Array(
-     *      Array (
-     *         [property] => properties.eo:cloud_cover
-     *         [operator] => >
-     *         [value] => 10
-     *      ),
-     *      Array (
-     *         [property] => eo:cloud_cover
-     *         [operator] => <=
-     *         [value] => 30
-     *      ),
-     *      Array (
-     *         [property] => geometry
-     *         [operator] => intersects
-     *         [value] => POINT(10 10)
-     *      ),
-     *      Array (
-     *         [property] => instruments
-     *         [operation] => =
-     *         [value] => PHR
-     *      )
-     *    )
-     * 
-     *  Output example :
-     *    Array(
-     *      'eo:cloudCover' => Array(
-     *          'value' => ]10, 30],
-     *          'operation' => 'interval'
-     *      ),
-     *      'resto:geometry' => Array(
-     *          'value' => 'POINT(10 10)'
-     *          'operation' => 'intersects'
-     *      ),
-     *      'instruments' => Array(
-     *          'value => 'PHR',
-     *          'operation => ''keywords
-     *      )
-     *    )
-     *   
-     *       
-     * @param array $paramsFromCQL
-     * @return array
-     * 
-     */
-    private function toAppliedFilters($paramsFromCQL, $model)
-    {
-
-        $appliedFilters = array();
-
-        for ($i = 0, $ii = count($paramsFromCQL); $i < $ii; $i++) {
-
-            // Remove leading 'properties.' if present
-            $stacKey = strpos($paramsFromCQL[$i]['property'], 'properties.') === 0 ? substr($paramsFromCQL[$i]['property'], 11) : $paramsFromCQL[$i]['property'];
-
-            // STAC property must be renamed to resto osKey
-            $filterName = $model->getFilterName($stacKey);
-            
-            if ( !isset($filterName) ) {
-                RestoLogUtil::httpError(400, 'Unknown property in filter - ' . $stacKey);
-            }
-
-            // Special cases where operation/value must be changed
-            
-            print_r($model->searchFilters[$filterName]);
-            $appliedFilters[$filterName] = array(
-                'value' => $paramsFromCQL[$i]['value'],
-                'operation' => $paramsFromCQL[$i]['operation']
-            );
-
-        }
-
-        return $appliedFilters;
     }
 
 }

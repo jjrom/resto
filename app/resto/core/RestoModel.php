@@ -147,14 +147,14 @@ abstract class RestoModel
 
         'filter:lang' => array(
             'osKey' => 'filter-lang',
-            'operation' => 'cql2',
+            'operation' => '=',
             'title' => 'The language of the filter expression. Only *cql2-text* is accepted',
             'pattern' => 'cql2-text'
         ),
 
         'filter:crs' => array(
             'osKey' => 'filter-crs',
-            'operation' => 'cql2',
+            'operation' => '=',
             'title' => 'Coordinate reference system of geometries expressed in filter. Only *http://www.opengis.net/def/crs/OGC/1.3/CRS84* is accepted',
             'pattern' => 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'
         ),

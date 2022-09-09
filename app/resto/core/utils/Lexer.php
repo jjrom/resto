@@ -44,6 +44,7 @@ class Lexer extends Doctrine\Common\Lexer\AbstractLexer
     public const T_IN       = 306;
     public const T_NI       = 307;
     public const T_NOT      = 308;
+    public const T_IS_NULL  = 309;
 
     // Functions that can be applied on value only should be >= 400
     public const T_TIMESTAMP = 400;
@@ -54,8 +55,14 @@ class Lexer extends Doctrine\Common\Lexer\AbstractLexer
     public function namedOperation($value)
     {
         switch ($value) {
+            case self::T_IS_NULL:
+                return 'isNull';
+            case self::T_AND:
+                return 'and';
+            case self::T_OR:
+                return 'or';
             case self::T_NOT:
-                return 'not';   
+                return 'not';
             case self::T_EQ:
                 return '=';
             case self::T_NE:
@@ -85,11 +92,11 @@ class Lexer extends Doctrine\Common\Lexer\AbstractLexer
     protected function getCatchablePatterns()
     {
         return [
-            '[a-z0-9_.:-]*',     // Identifiers
-            '(?:[0-9]+)?',       // numbers
-            '(?:"[^"]+")',       // Double quoted strings
-            "(?:'[^']+')",       // Single quoted strings
-            '>=', '<=', '<>'     // Operators
+            '[a-z0-9_.:-]*',                // Identifiers
+            '(?:[0-9]+)?',                  // numbers
+            '(?:"[^"]+")',                  // Double quoted strings
+            "(?:'[^']+')",                  // Single quoted strings
+            '>=', '<=', '<>'                // Operators
         ];
     }
 
