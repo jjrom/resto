@@ -176,7 +176,26 @@ class ServicesAPI
      */
     public function hello()
     {
-        
+
+        $links = array();
+
+        /*
+         * [STAC] Duplicate rel="data"
+         */
+        $collections = ((new RestoCollections($this->context, $this->user))->load())->toArray();
+        if (count($collections) > 0) {
+            $links[] = array(
+                'rel' => 'child',
+                'title' => 'Collections',
+                'type' => RestoUtil::$contentTypes['json'],
+                'matched' =>  count($collections['collections']),
+                'href' => $this->context->core['baseUrl'] . '/collections',
+                'roles' => array('collections')
+            );
+        }
+
+        $minMatch = isset($this->context->addons['STAC']['options']['minMatch']) && is_int($this->context->addons['STAC']['options']['minMatch']) ? $this->context->addons['STAC']['options']['minMatch'] : 0;
+       
         return array(
             'stac_version' => STAC::STAC_VERSION,
             'id' => 'catalogs',
@@ -212,13 +231,37 @@ class ServicesAPI
                         'href' => $this->context->core['baseUrl'] . '/conformance'
                     ),
                     array(
+                        'rel' => 'children',
+                        'type' => RestoUtil::$contentTypes['json'],
+                        'title' => 'Children',
+                        'href' => $this->context->core['baseUrl'] . '/children'
+                    ),
+                    array(
+                        'rel' => 'http://www.opengis.net/def/rel/ogc/1.0/queryables',
+                        'type' => RestoUtil::$contentTypes['jsonschema'],
+                        'title' => 'Queryables',
+                        'href' => $this->context->core['baseUrl'] . '/queryables'
+                    ),
+                    array(
                         'rel' => 'data',
                         'type' => RestoUtil::$contentTypes['json'],
                         'title' => 'Collections',
                         'href' => $this->context->core['baseUrl'] . '/collections'
+                    ),
+                    array(
+                        'rel' => 'root',
+                        'type' => RestoUtil::$contentTypes['json'],
+                        'title' => getenv('API_INFO_TITLE'),
+                        'href' => $this->context->core['baseUrl']
+                    ),
+                    array(
+                        'rel' => 'search',
+                        'type' => RestoUtil::$contentTypes['json'],
+                        'title' => 'STAC search endpoint',
+                        'href' => $this->context->core['baseUrl'] . '/search'
                     )
                 ),
-                (new STAC($this->context, $this->user))->getRootLinks()
+                array_merge($links, (new STACUtil($this->context, $this->user))->getRootCatalogLinks($minMatch))
             ),
             'conformsTo' => $this->conformsTo()
         );
@@ -465,15 +508,7 @@ class ServicesAPI
      */
     private function conformsTo()
     {
-        return array(
-            'https://api.stacspec.org/v1.0.0-beta.3/core',
-            'https://api.stacspec.org/v1.0.0-beta.3/item-search',
-            'https://api.stacspec.org/v1.0.0-beta.3/ogcapi-features',
-            'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core',
-            'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/oas30',
-            'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/html',
-            'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson'
-        );
+        return STAC::CONFORMANCE_CLASSES;
     }
 
 }

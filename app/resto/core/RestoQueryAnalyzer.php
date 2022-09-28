@@ -55,9 +55,10 @@ class RestoQueryAnalyzer
      * Query analyzer process searchTerms and modify query parameters accordingly
      *
      * @param array $params
+     * @param RestoModel $model
      * @return array
      */
-    public function analyze($params)
+    public function analyze($params, $model)
     {
         
         /*
@@ -72,7 +73,7 @@ class RestoQueryAnalyzer
             $this->splitDatetime($params['resto:datetime'], $params);
             unset($params['resto:datetime']);
         }
-        
+
         /*
          * Check dates
          */
@@ -139,12 +140,12 @@ class RestoQueryAnalyzer
             }
 
         }
-        
+
         /*
-         * Not understood - return error
+         * Not understood
          */
         if (isset($params['searchTerms']) && empty($details['What']) && empty($details['When']) && empty($details['Where'])) {
-            $details['appliedFilters'] = $params;
+            $details['appliedFilters'] = $this->addOperation($params, $model->searchFilters);
             return array(
                 'inputFilters' => $inputFilters,
                 'notUnderstood' => true,
@@ -155,7 +156,7 @@ class RestoQueryAnalyzer
         /*
          * Where, When, What
          */
-        $details['appliedFilters'] = $this->setWhereFilters($details['Where'], $this->setWhenFilters($details['When'], $this->setWhatFilters($details['What'], $params)), $hashTodiscard);
+        $details['appliedFilters'] = $this->addOperation($this->setWhereFilters($details['Where'], $this->setWhenFilters($details['When'], $this->setWhatFilters($details['What'], $params)), $hashTodiscard), $model->searchFilters);
         return array(
             'inputFilters' => $inputFilters,
             'details' => $details
@@ -406,15 +407,41 @@ class RestoQueryAnalyzer
 
         if ( isset($dates[0]) && !in_array($dates[0], array('', '..')) ) {
             $filterKey = $model->getFilterName('start');
-            $params[$filterKey] = preg_replace('/<.*?>/', '', $dates[0]);
+            $params[$filterKey] = preg_replace('/<.+?>/', '', $dates[0]);
             $model->validateFilter($filterKey, $params[$filterKey]);
         }
         if ( isset($dates[1]) && !in_array($dates[1], array('', '..')) ) {
             $filterKey = $model->getFilterName('end');
-            $params[$filterKey] = preg_replace('/<.*?>/', '', $dates[1]);
+            $params[$filterKey] = preg_replace('/<.+?>/', '', $dates[1]);
             $model->validateFilter($filterKey, $params[$filterKey]);
         }
 
+    }
+
+    /**
+     * Return parameters with value and operation
+     * 
+     * @param array $params
+     * @param array searchFilters
+     * @return array
+     */
+    private function addOperation($params, $searchFilters)
+    {
+        $paramsWithOperation = array();
+        foreach ($params as $key => $value) {
+            // Only add operation if not already there
+            if (is_string($value) || ! isset($value['operation']) ) {
+                $paramsWithOperation[$key] = array(
+                    'value' => $value,
+                    'operation' => $searchFilters[$key]['operation'] ?? null
+                );
+            }
+            else {
+                $paramsWithOperation[$key] = $value;
+            }
+            
+        }
+        return $paramsWithOperation;
     }
 
 }

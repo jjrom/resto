@@ -86,6 +86,11 @@ return array(
         )
     ),
     'addons' => array(
+        'STAC' => array(
+            'options' => array(
+                'minMatch' => ${ADDON_STAC_MINMATCH:-0}
+            )
+        ),
         'Tag' => array(
             'options' => array(
                 'iTag' => array(

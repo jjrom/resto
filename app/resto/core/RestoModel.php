@@ -95,11 +95,17 @@ abstract class RestoModel
      *      *.feature column name
      *  'osKey' :
      *      OpenSearch property name in template urls
+     *  'stacKey' :
+     *      Search filter name equivalent in STAC
+     *      [IMPORTANT] If not set then it is assumed that stacKey is the same as osKey
      *  'prefix' :
-     *      (for "keywords" operation only) Prefix systematically added to input value (i.e. prefix:value)
+     *      (Optional) (for "keywords" operation only) Prefix systematically added to input value (i.e. prefix:value)
      *  'operation' :
      *      Type of operation applied to the filter ("in", "keywords", "intersects", "distance", "=", "<=", ">=")
-     *
+     *  'queryable' : 
+     *      (Optional) The name of the underlying STAC/OAFeature property that is queryable (i.e. that will be displayed in the /queryables endpoint)
+     *  '$ref' :
+     *      (Optional) Displayed in relation with queryable property (see https://github.com/radiantearth/stac-api-spec/tree/master/fragments/filter#queryables)
      *
      *  Below properties follow the "Parameter extension" (http://www.opensearch.org/Specifications/OpenSearch/Extensions/Parameter/1.0/Draft_2)
      *
@@ -133,8 +139,29 @@ abstract class RestoModel
      */
     public $searchFilters = array(
 
+        'filter' => array(
+            'osKey' => 'filter',
+            'operation' => 'cql2',
+            'title' => 'Filter expression expressed in Common Query Lanbguage (CQL2)',
+        ),
+
+        'filter:lang' => array(
+            'osKey' => 'filter-lang',
+            'operation' => '=',
+            'title' => 'The language of the filter expression. Only *cql2-text* is accepted',
+            'pattern' => 'cql2-text'
+        ),
+
+        'filter:crs' => array(
+            'osKey' => 'filter-crs',
+            'operation' => '=',
+            'title' => 'Coordinate reference system of geometries expressed in filter. Only *http://www.opengis.net/def/crs/OGC/1.3/CRS84* is accepted',
+            'pattern' => 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'
+        ),
+
         'searchTerms' => array(
             'key' => 'normalized_hashtags',
+            // [TODO] Remove type since it seems not be used anymore (TBC)
             'type' => 'array',
             'osKey' => 'q',
             'operation' => 'keywords',
@@ -144,7 +171,7 @@ abstract class RestoModel
         'count' => array(
             'osKey' => 'limit',
             'minInclusive' => 1,
-            'maxInclusive' => 1000,
+            'maxInclusive' => 500,
             'title' => 'The maximum number of results returned per page (default 10)'
         ),
         
@@ -169,14 +196,19 @@ abstract class RestoModel
             'osKey' => 'ids',
             'operation' => 'in',
             'title' => 'Array of item ids to return. All other filter parameters that further restrict the number of search results (except next and limit) are ignored',
-            'pattern' => '^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$'
+            'pattern' => '^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$',
+            'queryable' => 'id',
+            '$ref' => 'https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/item.json#/id'
         ),
         
         'geo:geometry' => array(
             'key' => 'geom',
             'osKey' => 'intersects',
+            'stacKey' => 'geometry',
             'operation' => 'intersects',
-            'title' => 'Region of Interest defined in GeoJSON or in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326)'
+            'title' => 'Region of Interest defined in GeoJSON or in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326)',
+            'queryable' => 'geometry',
+            '$ref' => 'https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/item.json#/geometry'
         ),
 
         'geo:box' => array(
@@ -235,11 +267,14 @@ abstract class RestoModel
             // This is used to have "collections" converted to "collection" in summaries without having a prefix
             'facetKey' => 'collection',
             'osKey' => 'collections',
+            'stacKey' => 'collection',
             'title' => 'Comma separated list of collections name',
             'pattern' => '^[a-zA-Z0-9\-_]+$',
             'operation' => 'in',
             'hidden' => true,
-            'options' => 'auto'
+            'options' => 'auto',
+            'queryable' => 'collection',
+            '$ref' => 'https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/item.json#/collection'
         ),
 
         'resto:model' => array(
@@ -278,8 +313,11 @@ abstract class RestoModel
             'title' => 'Equal on productIdentifier'
         ),
         
+        /*
+         * The default sort order is DESCENDING - so the STAC "next" query parameter is equivalent
+         */
         'resto:sort' => array(
-            'osKey' => 'sort',
+            'osKey' => 'sortby',
             'pattern' => '^[a-zA-Z\-]*$',
             'title' => 'Sort results by property (startDate or created - Default is startDate). Sorting order is DESCENDING (ASCENDING if property is prefixed by minus sign)'
         ),
@@ -526,13 +564,13 @@ abstract class RestoModel
             $filterKey = $this->getFilterName($key);
             if (isset($filterKey)) {
                 // Special case geo:geometry also accept GeoJSON => convert it to WKT
-                $params[$filterKey] = preg_replace('/<.*?>/', '', $filterKey === 'geo:geometry' ? RestoGeometryUtil::forceWKT($value) : $value);
+                $params[$filterKey] = preg_replace('/<.+?>/', '', $filterKey === 'geo:geometry' ? RestoGeometryUtil::forceWKT($value) : $value);
                 $this->validateFilter($filterKey, $params[$filterKey]);
             }
             // Do not process query params starting with '_' or in the reserved list
             else if ( !in_array($key, array('collectionId', 'fields')) && substr($key, 0, 1) !== '_') {
                 // Protect against XSS injection
-                $unknowns[] = '#' . $this->toHashTag($key, preg_replace('/<.*?>/', '', ltrim($value, '#')));
+                $unknowns[] = '#' . $this->toHashTag($key, preg_replace('/<.+?>/', '', ltrim($value, '#')));
             }
         }
 
@@ -550,25 +588,14 @@ abstract class RestoModel
     }
 
     /**
-     * Return OpenSearch filter name from OpenSearch key
+     * Return OpenSearch filter name from OpenSearch or STAC key
      * 
-     * @param string $osKey
+     * @param string $osOrSTACKey
      */
-    public function getFilterName($osKey)
+    public function getFilterName($osOrSTACKey)
     {
-
-        /*
-         * Eventually convert STAC osKey to resto osKey
-         */
-        foreach(array_keys($this->stacMapping) as $restoKey) {
-            if ($this->stacMapping[$restoKey]['key'] === $osKey) {
-                $osKey = $restoKey;
-                break;
-            }
-        }
-        
         foreach (array_keys($this->searchFilters) as $filterKey) {
-            if ($osKey === $this->searchFilters[$filterKey]['osKey']) {
+            if ( $osOrSTACKey === $this->searchFilters[$filterKey]['osKey'] || (isset($this->searchFilters[$filterKey]['stacKey']) && $osOrSTACKey === $this->searchFilters[$filterKey]['stacKey']) ) {
                 return $filterKey;
             }
         }
@@ -588,6 +615,29 @@ abstract class RestoModel
             }
         }
         return $prefix;
+    }
+
+    /**
+     * Return STAC/OAFeatures queryables
+     */
+    public function getQueryables()
+    {
+    
+        $queryables = array();
+        foreach (array_keys($this->searchFilters) as $filterKey) {
+            if (isset($this->searchFilters[$filterKey]['queryable'])) {
+                $queryable = array(
+                    'description' => $this->searchFilters[$filterKey]['title']
+                );
+                if (isset($this->searchFilters[$filterKey]['$ref'])) {
+                    $queryable['$ref'] = $this->searchFilters[$filterKey]['$ref'];
+                }
+                $queryables[$this->searchFilters[$filterKey]['queryable']] = $queryable;
+            }
+        }
+     
+        return $queryables;
+    
     }
 
     /**
@@ -961,7 +1011,8 @@ abstract class RestoModel
         if (isset($this->searchFilters[$filterKey]['minInclusive']) && $value < $this->searchFilters[$filterKey]['minInclusive']) {
             RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be greater than ' . ($this->searchFilters[$filterKey]['minInclusive'] - 1));
         }
-        if (isset($this->searchFilters[$filterKey]['maxInclusive']) && $value > $this->searchFilters[$filterKey]['maxInclusive']) {
+        // [STAC] Special case for count - accept value even if higher than maxInclusive
+        if ($filterKey !== 'count' && isset($this->searchFilters[$filterKey]['maxInclusive']) && $value > $this->searchFilters[$filterKey]['maxInclusive']) {
             RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be lower than ' . ($this->searchFilters[$filterKey]['maxInclusive'] + 1));
         }
         return true;

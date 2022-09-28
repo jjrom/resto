@@ -1,9 +1,18 @@
 <?php
 /*
- * Copyright (C) 2015 Jérôme Gasperi <jerome.gasperi@gmail.com>
+ * Copyright 2022 Jérôme Gasperi
  *
- * This file is subject to the terms and conditions defined in
- * file 'LICENSE.txt', which is part of this source code package.
+ * Licensed under the Apache License, version 2.0 (the "License");
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
  */
 
 /**
@@ -96,10 +105,70 @@ class STAC extends RestoAddOn
      */
     const STAC_VERSION = '1.0.0';
 
+    /*
+     * STAC namespaces
+     */
+    const CONFORMANCE_CLASSES = array(
+        'https://api.stacspec.org/v1.0.0-rc.1/core',
+        'https://api.stacspec.org/v1.0.0-rc.1/collections',
+        'https://api.stacspec.org/v1.0.0-rc.1/ogcapi-features',
+        'https://api.stacspec.org/v1.0.0-rc.1/browseable',
+        'https://api.stacspec.org/v1.0.0-rc.1/children',
+        'https://api.stacspec.org/v1.0.0-rc.1/item-search',
+        'https://api.stacspec.org/v1.0.0-rc.1/item-search#fields',
+        // Unsupported
+        //'https://api.stacspec.org/v1.0.0-rc.1/item-search#query',
+        'https://api.stacspec.org/v1.0.0-rc.1/item-search#sort',
+        'https://api.stacspec.org/v1.0.0-rc.1/item-search#filter',
+
+        'http://www.opengis.net/spec/ogcapi_common-2/1.0/conf/collections',
+
+        'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core',
+        'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson',
+        'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/oas30',
+        'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/html',
+        'http://www.opengis.net/spec/ogcapi-features-3/1.0/conf/filter',
+        'http://www.opengis.net/spec/ogcapi-features-3/1.0/conf/features-filter',
+
+        'http://www.opengis.net/spec/cql2/1.0/conf/basic-cql2',
+        'http://www.opengis.net/spec/cql2/1.0/conf/cql2-text',
+        'http://www.opengis.net/spec/cql2/1.0/conf/basic-spatial-operators'
+    );
+
     /**
      * Add-on version
      */
-    public $version = '1.0.4';
+    public $version = '1.0.5';
+
+    /*
+     * Catalog title
+     */
+    public $title;
+
+    /*
+     * Catalog description
+     */
+    public $description = 'Available catalogs';
+
+    /*
+     * Links
+     */
+    public $links = array();
+
+    /*
+     * FeatureCollection
+     */
+    public $featureCollection = null;
+
+    /*
+     * STAC Util
+     */
+    private $stacUtil = null;
+
+    /*
+     * Url segments
+     */
+    private $segments = array();
 
     /**
      * Constructor
@@ -110,52 +179,183 @@ class STAC extends RestoAddOn
     public function __construct($context, $user)
     {
         parent::__construct($context, $user);
+        $this->stacUtil = new STACUtil($context, $user);
+
+        // Ensure valid options
+        $this->options['minMatch'] = isset($this->options['minMatch']) && is_int($this->options['minMatch']) ? $this->options['minMatch'] : 0;
+
     }
 
     /**
-     * Get root links
+     * Return an asset href within an HTTP 301 Redirect message
+     * This trick is used to store download external asset statistics
+     * 
+     * @param array $params
      */
-    public function getRootLinks()
+    public function getAsset($params) {
+
+        $url = base64_decode($params['urlInBase64']);
+
+        /*
+         * Should be a valid url
+         */
+        if ( !$url || strpos($url, 'http') !== 0 )  {
+            RestoLogUtil::httpError(400, 'Invalid base64 encoded url');
+        }
+
+        /*
+         * Store download in logs
+         */
+        try {
+            (new GeneralFunctions($this->context->dbDriver))->storeQuery($this->user && $this->user->profile ? $this->user->profile['id'] : null, array(
+                'path' => $url,
+                'method' => 'GET_ASSET'
+            ));
+        } catch (Exception $e) { 
+            error_log('[WARNING] Cannot store download info in resto.log');
+        }
+
+        /*
+         * Permanent 301 redirection
+         */
+        header('HTTP/1.1 301 Moved Permanently');
+        header('Location: ' . $url);
+
+        return;
+
+    }
+
+    /**
+     * Return a STAC catalog from facet
+     * 
+     *    @OA\Get(
+     *      path="/catalogs/*",
+     *      summary="Get STAC catalogs",
+     *      description="Get STAC catalogs",
+     *      tags={"STAC"},
+     *      @OA\Response(
+     *          response="200",
+     *          description="STAC catalog definition - contains links to child catalogs and/or items",
+     *          @OA\JsonContent(
+     *              ref="#/components/schemas/Catalog"
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response="404",
+     *          description="Not found"
+     *      )
+     *    )
+     */
+    public function getCatalogs($params)
     {
-        $links = array(
-            array(
-                'rel' => 'root',
-                'type' => RestoUtil::$contentTypes['json'],
-                'title' => getenv('API_INFO_TITLE'),
-                'href' => $this->context->core['baseUrl']
-            ),
-            array(
-                'rel' => 'search',
-                'type' => RestoUtil::$contentTypes['json'],
-                'title' => 'STAC search endpoint',
-                'href' => $this->context->core['baseUrl'] . '/search'
+        if (!isset($params['segments'])) {
+            return RestoLogUtil::httpError(404);
+        }
+
+        $this->segments = $params['segments'];
+
+        $result = $this->load($params);
+        
+        return isset($result->featureCollection) ? $result->featureCollection : $result;
+
+    }
+
+
+    /**
+     * Return the list of children catalog
+     * (see https://github.com/radiantearth/stac-api-spec/tree/main/children)
+     * 
+     *    @OA\Get(
+     *      path="/children",
+     *      summary="Get root child catalogs",
+     *      description="List of children of this catalog",
+     *      tags={"STAC"},
+     *      @OA\Response(
+     *          response="200",
+     *          description="List of children of the root catalog",
+     *          @OA\JsonContent(
+     *              @OA\Property(
+     *                  property="features",
+     *                  type="array",
+     *                  description="Array of features",
+     *                  @OA\Items(ref="#/components/schemas/OutputFeature")
+     *              )            
+     *          )
+     *     )
+     *    )
+     */
+    public function getChildren($params)
+    {
+
+        $childs = array();
+
+        // Initialize router to process each children individually
+        $router = new RestoRouter($this->context, $this->user);
+
+        $links = $this->stacUtil->getRootCatalogLinks();
+        for ($i = 0, $ii = count($links); $i < $ii; $i++) {
+            if ($links[$i]['rel'] == 'child') {
+                try {
+                    $response = $router->process('GET', parse_url($links[$i]['href'])['path'], array());
+                }
+                catch (Exception $e) {
+                    continue;
+                }
+                if (isset($response)) {
+                    $childs[] = $response->toArray();
+                }
+            }
+        }
+
+        return array(
+            'children' => $childs,
+            'links' => array(
+                array(
+                    'rel' => 'self',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'href' => $this->context->core['baseUrl'] . '/children'
+                ),
+                array(
+                    'rel' => 'root',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'href' => $this->context->core['baseUrl']
+                )
             )
         );
 
-        /*
-         * [TODO] Remove - resto already returns collections from rel="data" 
-         * Return all non-empty collections
-         *
-        $collections = ((new RestoCollections($this->context, $this->user))->load())->toArray();
-        $links[] = array(
-            'rel' => 'child',
-            'title' => 'Collections',
-            'type' => RestoUtil::$contentTypes['json'],
-            'matched' =>  count($collections['collections']),
-            'href' => $this->context->core['baseUrl'] . '/collections',
-            'roles' => array('collections')
+    }
+
+    /**
+     * Return the list of children catalog
+     * (see https://github.com/radiantearth/stac-api-spec/tree/main/children)
+     * 
+     *    @OA\Get(
+     *      path="/queryables",
+     *      summary="Queryables for STAC API",
+     *      description="Queryable names for the STAC API Item Search filter."",
+     *      tags={"STAC"},
+     *      @OA\Response(
+     *          response="200",
+     *          description="Queryables for STAC API",
+     *          @OA\JsonContent(
+     *              ref="#/components/schemas/Queryables"
+     *          )
+     *     )
+     *    )
+     */
+    public function getQueryables($params)
+    {
+
+        return array(
+            '$schema' => 'https://json-schema.org/draft/2019-09/schema',
+            '$id' => 'https://stac-api.example.com/queryables',
+            'type' => 'object',
+            'title' => 'Queryables for Example STAC API',
+            'description' => 'Queryable names for the example STAC API Item Search filter.',
+            // Get common queryables (/queryables) or per collection (/collections/{collectionId}/queryables)  
+            'properties' => (isset($params['collectionId']) ? ((new RestoCollection($params['collectionId'], $this->context, $this->user))->load())->model : new DefaultModel())->getQueryables(),
+            'additionalProperties' => true
         );
-        */
-
-        /*
-         * Get additional catalogs
-         */
-        if (isset($this->context->addons['STACPlus'])) {
-            $stacCatalog = (new STACPlus($this->context, $this->user))->load();
-            return array_merge($links, $stacCatalog->links);
-        }
-
-        return $links;
 
     }
 
@@ -657,7 +857,7 @@ class STAC extends RestoAddOn
      */
     public function search($params, $body)
     {
-
+        
         if ($this->context->method === 'POST') {
             $params = $this->jsonQueryToKVP($body);
         }
@@ -711,42 +911,443 @@ class STAC extends RestoAddOn
     }
 
     /**
-     * Return an asset href within an HTTP 301 Redirect message
-     * This trick is used to store download external asset statistics
-     * 
-     * @param array $params
+     * Output catalog description as an array
+     *
      */
-    public function getAsset($params) {
+    public function toArray()
+    {
+        $nbOfSegments = count($this->segments);
+        $exploded = $nbOfSegments > 0 ? explode(':', array_slice($this->segments, -1)[0]) : array('root');
+        return array(
+            'id' => $exploded[count($exploded) > 1 ? 1 : 0],
+            'type' => 'Catalog',
+            'title' => $this->title,
+            'description' => $this->description,
+            'links' => array_merge(
+                array(
+                    array(
+                        'rel' => 'self',
+                        'type' => RestoUtil::$contentTypes['json'],
+                        'href' => $this->context->core['baseUrl'] . '/catalogs' . ($nbOfSegments > 0 ? '/' . join('/', $this->segments) : '')
+                    ),
+                    array(
+                        'rel' => 'root',
+                        'type' => RestoUtil::$contentTypes['json'],
+                        'href' => $this->context->core['baseUrl']
+                    )
+                ), 
+                $this->links ?? array()    
+            ),
+            'stac_version' => STAC::STAC_VERSION
+        );
 
-        $url = base64_decode($params['urlInBase64']);
+    }
 
+    /**
+     * Output collection description as a JSON stream
+     *
+     * @param boolean $pretty : true to return pretty print
+     */
+    public function toJSON($pretty = false)
+    {
+        return json_encode($this->toArray(), $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
+    }
+
+
+    /**
+     * Load catalog from database
+     * Return 404 if  is not found
+     *
+     * @param array $params
+     * @return This object
+     */
+    private function load($params = array())
+    {
+        
+        $nbOfSegments = count($this->segments);
+
+        // Root
+        if ( $nbOfSegments === 0 )
+        {
+            $this->link = $this->stacUtil->getRootCatalogLinks();
+        }
+
+        // View special case
+        else if ($this->segments[0] === 'views' && isset($this->context->addons['View']))
+        {
+            
+            $view = new View($this->context, $this->user);
+            
+            // Root
+            if ($nbOfSegments === 1)
+            {
+                $viewCatalog = $view->getViews(array(
+                    'format' => 'stac'
+                ));
+                $this->title = $viewCatalog['title'];
+                $this->description = $viewCatalog['description'];
+                $this->links = $viewCatalog['links'];
+            }
+            // Individual view
+            else if ($nbOfSegments === 2)
+            {
+                return $view->getView(array_merge($this->context->query, array(
+                    'viewId' => $this->segments[1],
+                    'format' => 'stac'
+                )));
+            }
+            // Individual views
+            else
+            {
+                return RestoLogUtil::httpError(404);
+            }
+
+        }
+
+        // SOSA special case
+        else if ($this->segments[0] === 'concepts' && isset($this->context->addons['SOSA']))
+        {
+
+            $skos = new SKOS($this->context, $this->user);
+            
+            // Root
+            if ($nbOfSegments === 1)
+            {
+                return $skos->getConcepts($this->context->query);
+            }
+            // Individual concept
+            else if ($nbOfSegments === 2)
+            {
+                return $skos->getConcept(array_merge($this->context->query, array(
+                    'conceptId' => $this->segments[1],
+                )));
+            }
+            // Nothing found
+            else
+            {
+                return RestoLogUtil::httpError(404);
+            }
+
+        }
+
+        // Classifications
+        else if ($this->segments[0] === 'classifications')
+        {
+            
+            // Root
+            if ($nbOfSegments === 1)
+            {
+                $this->setClassificationsLinks(null);
+            }
+
+            // Two segments (except landcover)
+            else if ($nbOfSegments === 2 && $this->segments[1] !== 'landcover')
+            {
+                $this->setClassificationsLinks($this->segments[1]);
+            }
+
+            // Otherwise compute links from facets
+            else
+            {
+                $this->setCatalogsLinksFromFacet($params);
+            }
+
+        }
+
+        // Hashtags
+        else if ($this->segments[0] === 'hashtags')
+        {
+            $this->setCatalogsLinksFromFacet($params);
+        }
+
+        // Themes
+        else if ($this->segments[0] === 'themes')
+        {
+
+            // Root
+            if ($nbOfSegments === 1)
+            {
+                $this->title = 'Themes';
+                $this->description = 'List of collection per theme';
+                $this->links = array_merge($this->links, $this->stacUtil->getThemesRootLinks());
+            }
+
+            // Two segments (except landcover)
+            else if ($nbOfSegments === 2)
+            {
+                $this->setThemesLinks();
+            }
+            
+            else {
+                return RestoLogUtil::httpError(404);
+            }
+        }
+
+        // Not found
+        else {
+            return RestoLogUtil::httpError(404);
+        }
+        
+        return $this;
+    }
+
+    /**
+     * Set links array for a given theme
+     *
+     * @return array
+     */
+    private function setThemesLinks()
+    {
+
+        $this->title = $this->segments[1];
+        $this->description = 'Collections for theme **' . $this->segments[1] . '**';
+
+        // Load collections
+        $collections = (new RestoCollections($this->context, $this->user))->load();
+        
+        $candidates = array();
+        foreach (array_values($collections->collections) as $collectionContent) {
+            if ( isset($collectionContent->keywords) ) {
+                for ($i = count($collectionContent->keywords); $i--;) {
+                    $splitted = explode(':', $collectionContent->keywords[$i]);
+                    if (count($splitted) > 1 && $splitted[0] === 'label' && $splitted[1] === $this->segments[1]) {
+                        $collectionArray = $collectionContent->toArray();
+                        $this->links[] = array(
+                            'rel' => 'child',
+                            'title' => $collectionArray['title'],
+                            'description' => $collectionArray['description'],
+                            'type' => RestoUtil::$contentTypes['json'],
+                            'href' => $this->context->core['baseUrl'] . '/collections/' . $collectionContent->id,
+                            'roles' => array(
+                                'collection'
+                            )
+                        );
+                        $candidates[] = $collectionContent->id;
+                        break;
+                    }
+                }        
+            }
+        }
+
+        // No collection matches the themes => 404
+        if (count($candidates) === 0) {
+            return RestoLogUtil::httpError(404);
+        }
+
+        // Add a STAC search on matching collections
+        $this->links[] = array(
+            'rel' => 'items',
+            'title' => $splitted[1],
+            'type' => RestoUtil::$contentTypes['json'],
+            'href' => $this->context->core['baseUrl'] . '/search?collections=' . join(',', $candidates)
+        );
+        
+    }
+
+    /**
+     * Set classifications links
+     *
+     * @param string $root
+     * @return array
+     */
+    private function setClassificationsLinks($root)
+    {
+
+        $facets = $this->stacUtil->getFacets($this->options['minMatch']);
+        $target = isset($root) && isset($facets['classifications'][$root]) ? $facets['classifications'][$root] : $facets['classifications'];
+
+        if ( isset($target) ) {
+
+            foreach (array_keys($target) as $key) {
+                $this->links[] = array(
+                    'rel' => 'child',
+                    'title' => ucfirst($key),
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'href' => $this->context->core['baseUrl'] . '/catalogs/classifications/' . (isset($root) ? $root . '/' : '') . $key
+                );
+            }
+
+        }
+       
+        // Set minimalist description
+        $this->title = isset($root) ? ucfirst($root) : 'Classifications';
+        $this->description = isset($root) ? 'Automatic classification of features on facet ' . ucfirst($root) : 'Automatic classification of features';
+    
+    }
+
+    /**
+     * Initialize child catalogs from facet
+     *
+     * @param array $params
+     * @return array
+     */
+    private function setCatalogsLinksFromFacet($params)
+    {
+        
+        $nbOfSegments = count($this->segments);
+        $leafValue = $this->segments[$nbOfSegments - 1];
+        
         /*
-         * Should be a valid url
+         * Special case for '_' leafValue => compute FeatureCollection of parents
          */
-        if ( !$url || strpos($url, 'http') !== 0 )  {
-            RestoLogUtil::httpError(400, 'Invalid base64 encoded url');
+        if ($leafValue === '_') {
+
+            // This is not possible
+            if ($nbOfSegments < 2) {
+                return RestoLogUtil::httpError(404);
+            }
+
+            return $this->setFeatureCollection($this->segments[$nbOfSegments - 2], $params);
+            
+        }
+        
+        // Default segments structure starts with 'classifications/xxxx' - so start at position 3
+        $leafPosition = 3;
+    
+        $where = 'type=$1';
+        $whereValues = array(
+            $leafValue
+        );
+        
+        // Hashtags special case
+        if ( $this->segments[0] === 'hashtags' ) {
+
+            // 'hastags' - so start at position 1
+            $leafPosition = 1;
+
+            // In database keyword is 'hashtag' not 'hashtags'
+            if ($nbOfSegments === 1) {
+                $leafValue = 'hashtag';
+                $whereValues = array(
+                    $leafValue
+                );
+            }
+            
+        }
+        
+        // Hack for landcover...
+        else if ( $this->segments[1] === 'landcover' ) {
+            
+            // 'hashtags' - so start at position 1
+            $leafPosition = 2;
+            
+            if ( $nbOfSegments === 2 ) {
+                $where = 'type LIKE $1';
+                $whereValues = array(
+                    'landcover:%'
+                );
+            }
+
+        }   
+
+        // Hack for catalog - force a hierarchy
+        else if ( $nbOfSegments >= 3 && $this->segments[2] === 'catalog' ) {
+            $where = $where . ' AND pid=$2';
+            $whereValues[] = 'root';
         }
 
         /*
-         * Store download in logs
+         * Set minimalist description based on parent
+         * The title format is generally prefix:value:option:xxx or value
          */
+        $titleParts = explode(':', $this->segments[$nbOfSegments - 1]);
+        $title = ucfirst(count($titleParts) > 1 ? $titleParts[1] : $titleParts[0]);
+        $this->title = $title;
+        $this->description = 'Search on ' . $title;
+
         try {
-            (new GeneralFunctions($this->context->dbDriver))->storeQuery($this->user && $this->user->profile ? $this->user->profile['id'] : null, array(
-                'path' => $url,
-                'method' => 'GET_ASSET'
-            ));
-        } catch (Exception $e) { 
-            error_log('[WARNING] Cannot store download info in resto.log');
+
+            // First get type or pid
+            // [TODO]  Return /search items instead of child for high number of results ?
+            // $results = $this->context->dbDriver->pQuery('SELECT id, value, isleaf, sum(counter) as matched FROM ' . $this->context->dbDriver->schema . '.facet WHERE ' . ($nbOfSegments === 1 ? 'type LIKE $1' : 'pid=$1' ) . ' GROUP BY id,value,isleaf ORDER BY matched DESC', array(
+            $results = $this->context->dbDriver->pQuery('SELECT id, value, pid, isleaf, sum(counter) as matched FROM ' . $this->context->dbDriver->schema . '.facet WHERE ' . ($nbOfSegments === $leafPosition ? $where : 'pid=$1' ) . ' GROUP BY id, value, pid, isleaf ORDER BY value ASC', $nbOfSegments === $leafPosition ? $whereValues : array($whereValues[0])); 
+
+            if (!$results) {
+                throw new Exception();
+            }
+
+            // No Results - either a wrong path or a leaf facet (except for hashtags)
+            if (pg_num_rows($results) === 0) {
+                //return $this->setItemsLinks($title, $leafValue);
+                if ($leafValue !== 'hashtag' && $nbOfSegments > 1) {
+                    return $this->setFeatureCollection($leafValue, $params);
+                }
+            }
+
+            // Add parent link
+            if ($nbOfSegments > 1) {
+                $this->links[] = array(
+                    'rel' => 'parent',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'href' => $this->context->core['baseUrl'] . '/catalogs/' . join('/', array_slice($this->segments, 0, -1))
+                );
+            }
+            
+            $searchIsSet = false;
+            while ($result = pg_fetch_assoc($results)) {
+                
+                // Add search link for first pid if not root
+                if (!$searchIsSet && $result['pid'] !== 'root') {
+                    $this->links[] = array(
+                        'rel' => 'items',
+                        'title' => $this->title,
+                        'type' => RestoUtil::$contentTypes['json'],
+                        'href' => $this->context->core['baseUrl'] . '/catalogs/' . join('/', $this->segments) . '/_'
+                    );
+                    $searchIsSet = true;
+                }
+                
+                $matched = (integer) $result['matched'];
+                if ($matched > $this->options['minMatch'])
+                {
+                    $link = array(
+                        'rel' => ((integer) $result['isleaf']) === 1 ? 'items' : 'child',
+                        'title' => $result['value'],
+                        'matched' => $matched,
+                        'type' => RestoUtil::$contentTypes['json'],
+                        'href' => $this->context->core['baseUrl'] . '/catalogs/' . join('/', $this->segments) . '/' . $result['id']
+                    );
+
+                    // Add a geouid info if present
+                    $exploded = explode(':', $result['id']);
+                    if (count($exploded) === 3 && ctype_digit($exploded[2])) {
+                        $link['geouid'] = (integer) $exploded[2];
+                    }
+                    
+                    $this->links[] = $link;
+                }
+                
+            }
+            
+        } catch (Exception $e) {
+            // Keep going
         }
 
-        /*
-         * Permanent 301 redirection
-         */
-        header('HTTP/1.1 301 Moved Permanently');
-        header('Location: ' . $url);
+    }
 
-        return;
+    /**
+     * Initialize child items
+     *
+     * @param string $hashtag
+     * @param array $params
+     * 
+     * @return array
+     */
+    private function setFeatureCollection($hashtag, $params)
+    {
+        $searchParams = array(
+            'q' => '#' . $hashtag
+        );
 
+        foreach (array_keys($params) as $key) {
+            if ($key !== 'segments') {
+                $searchParams[$key] = $params[$key];
+            }
+        }
+
+        $this->context->query['fields'] = '_all';
+
+        return $this->featureCollection = (new RestoCollections($this->context, $this->user))->load()->search(null, $searchParams);
     }
 
     /**

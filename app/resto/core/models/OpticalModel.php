@@ -59,9 +59,12 @@ class OpticalModel extends SatelliteModel
             'eo:cloudCover' => array(
                 'key' => 'cloudCover',
                 'osKey' => 'cloudCover',
+                'stacKey' => 'eo:cloud_cover',
                 'operation' => 'interval',
                 'title' => 'Cloud cover expressed in percent',
-                'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$'
+                'pattern' => '^(\[|\]|[0-9])?[0-9]+$|^[0-9]+?(\[|\])$|^(\[|\])[0-9]+,[0-9]+(\[|\])$',
+                'queryable' => 'eo:cloud_cover',
+                '$ref' => 'https://stac-extensions.github.io/eo/v1.0.0/schema.json#/properties/eo:cloud_cover'
             ),
     
             'eo:snowCover' => array(

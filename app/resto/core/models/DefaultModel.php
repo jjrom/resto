@@ -98,7 +98,9 @@ class DefaultModel extends RestoModel
                 'key' => 'startDate',
                 'osKey' => 'datetime',
                 'title' => 'Single date+time, or a range ("/" separator) of the search query. Format should follow RFC-3339. Equivalent to OpenSearch {time:start}/{time:end}',
-                'pattern' => '^(\.\.)|[(a-zA-Z0-9\-\/\.\:)]+$'
+                'pattern' => '^(\.\.)|[(a-zA-Z0-9\-\/\.\:)]+$',
+                'queryable' => 'datetime',
+                '$ref' => 'https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/datetime.json#/properties/datetime'
             ),
 
             'time:start' => array(

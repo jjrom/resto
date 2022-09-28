@@ -15,7 +15,29 @@ For a local installation, you can leave it untouched. Otherwise, just make your 
 
 Note that each time you change the configuration file, you should undeploy then redeploy the service.
 
-## External Database
+## Database
+
+### Configuration
+
+**[IMPORTANT] Read carefully if you experienced [this issue](https://github.com/jjrom/resto/issues/317#issuecomment-1258185471)**
+
+In production mode the default configuration of the PostgreSQL server is for a 64Go RAM server i.e. with the following settings :
+
+* POSTGRES_SHARED_BUFFERS=4GB
+* POSTGRES_WORK_MEM=320MB
+* POSTGRES_MAINTENANCE_WORK_MEM=1GB
+* POSTGRES_EFFECTIVE_CACHE_SIZE=12GB
+
+This parameters should be changed in the [configuration](https://github.com/jjrom/resto/blob/master/config.env) file accordingly to your real configuration
+
+In *dev* mode, theses values are superseed within the [docker-compose.dev.yml](https://github.com/jjrom/resto/blob/master/docker-compose.dev.env) file with the following values
+
+* POSTGRES_SHARED_BUFFERS=256MB
+* POSTGRES_WORK_MEM=16MB
+* POSTGRES_MAINTENANCE_WORK_MEM=12MB
+* POSTGRES_EFFECTIVE_CACHE_SIZE=750MB
+
+### External database
 resto can use an external PostgreSQL database (version 11+).
 
 The following extensions must be installed on the target database:
@@ -47,9 +69,6 @@ By default, resto tables, functions and triggers will be installed in a `resto` 
 Note: The `insert on spatial_ref_sys` right can be revoked once the database is installed (first deploy) by running:
     
     revoke insert on table spatial_ref_sys from <dbuser>; 
-
-## Hardware
-**[IMPORTANT]** In production mode (see below), the default configuration of the PostgreSQL server is for a 64Go RAM server. Changes this in [configuration](https://github.com/jjrom/resto/blob/master/config.env) file accordingly to your real configuration
 
 ## Building and deploying
 After reviewing your [configuration](https://github.com/jjrom/resto/blob/master/config.env) file, run one of following command:

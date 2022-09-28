@@ -38,6 +38,7 @@ class RestoUtil
         'jpeg2000' => 'image/jp2',
         'jp2' => 'image/jp2',
         'json' => 'application/json',
+        'jsonschema' => 'application/schema+json',
         'meta4' => 'application/metalink4+xml',
         'mvt' => 'application/vnd.mapbox-vector-tile',
         'openapi+json' => 'application/vnd.oai.openapi+json;version=3.0',
@@ -527,7 +528,8 @@ class RestoUtil
                 return null;
             }
 
-            return strip_tags(str_replace(chr(0), '', $str));
+            // Remove HTML tags except empty <> for "not equal" in STAC filter
+            return strip_tags(str_replace(chr(0), '', $str), '<>');
             
         }
         

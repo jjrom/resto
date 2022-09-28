@@ -82,61 +82,10 @@
 class Resto
 {
 
-    /*
-     * Default routes
-     */
-    private $defaultRoutes = array(
-
-        // Landing page and conformance (see WFS 3.0)
-        array('GET',    '/', false, 'ServicesAPI::hello'),                                                                                  // Landing page
-        array('GET',    '/api', false, 'ServicesAPI::api'),                                                                                 // API page
-        array('GET',    '/conformance', false, 'ServicesAPI::conformance'),                                                                 // Conformance page
-
-        // API for users
-        array('GET',    '/users', true, 'UsersAPI::getUsersProfiles'),                                                                      // List users profiles
-        array('POST',   '/users', false, 'UsersAPI::createUser'),                                                                           // Create user
-        array('GET',    '/users/{userid}', true, 'UsersAPI::getUserProfile'),                                                               // Show user profile
-        array('PUT',    '/users/{userid}', true, 'UsersAPI::updateUserProfile'),                                                            // Update :userid profile
-        array('GET',    '/users/{userid}/logs', true, 'UsersAPI::getUserLogs'),                                                             // Show user logs
-        array('GET',    '/users/{userid}/rights', true, 'UsersAPI::getUserRights'),                                                         // Show user rights
-        array('GET',    '/users/{userid}/rights/{collectionId}', true, 'UsersAPI::getUserRights'),                                          // Show user rights for :collectionId
-        array('GET',    '/users/{userid}/rights/{collectionId}/{featureId}', true, 'UsersAPI::getUserRights'),                              // Show user rights for :featureId
-        
-        // API for collections
-        array('GET',    '/collections', false, 'CollectionsAPI::getCollections'),                                                           // List all collections
-        array('POST',   '/collections', true, 'CollectionsAPI::createCollection'),                                                          // Create collection
-        array('GET',    '/collections/{collectionId}', false, 'CollectionsAPI::getCollection'),                                             // Get :collectionId description
-        array('PUT',    '/collections/{collectionId}', true, 'CollectionsAPI::updateCollection'),                                           // Update :collectionId
-        array('DELETE', '/collections/{collectionId}', true, 'CollectionsAPI::deleteCollection'),                                           // Delete :collectionId
-
-        // API for features
-        array('GET',    '/collections/{collectionId}/items', false, 'FeaturesAPI::getFeaturesInCollection'),                                // Search features in :collectionId
-        array('POST',   '/collections/{collectionId}/items', array('auth' => true, 'upload' => 'files'), 'CollectionsAPI::insertFeatures'), // Insert feature(s)
-        array('GET',    '/collections/{collectionId}/items/{featureId}', false, 'FeaturesAPI::getFeature'),                                 // Get feature :featureId
-        array('PUT',    '/collections/{collectionId}/items/{featureId}', true, 'FeaturesAPI::updateFeature'),                               // Update feature :featureId
-        array('DELETE', '/collections/{collectionId}/items/{featureId}', true, 'FeaturesAPI::deleteFeature'),                               // Delete :featureId
-        array('PUT',    '/collections/{collectionId}/items/{featureId}/properties/{property}', true, 'FeaturesAPI::updateFeatureProperty'), // Update feature :featureId single property 
-        
-        // API for authentication (token based)
-        array('GET',    '/auth', true, 'AuthAPI::getToken'),                                                                                // Return a valid auth token
-        array('GET',    '/auth/check/{token}', false, 'AuthAPI::checkToken'),                                                               // Check auth token validity
-        array('DELETE', '/auth/revoke/{token}', true, 'AuthAPI::revokeToken'),                                                              // Revoke auth token
-        array('PUT',    '/auth/activate/{token}', false, 'AuthAPI::activateUser'),                                                          // Activate owner of the token
-
-        // API for services
-        array('GET',    '/services/osdd', false, 'ServicesAPI::getOSDD'),                                                                   // Opensearch service description at collections level
-        array('GET',    '/services/osdd/{collectionId}', false, 'ServicesAPI::getOSDDForCollection'),                                       // Opensearch service description for products on {collection}
-        array('POST',   '/services/activation/send', false, 'ServicesAPI::sendActivationLink'),                                             // Send activation link
-        array('POST',   '/services/password/forgot', false, 'ServicesAPI::forgotPassword'),                                                 // Send reset password link
-        array('POST',   '/services/password/reset', false, 'ServicesAPI::resetPassword'),                                                   // Reset password
-
-        // STAC
-        array('GET',    '/search', false, 'STAC::search'),                                                                                  // STAC API   
-        array('GET',    '/assets/{urlInBase64}', false, 'STAC::getAsset')                                                                   // Get an asset using HTTP 301 permanent redirect
-    );
+    // [IMPORTANT] Starting resto 7.x, default routes are defined in RestoRouter class
 
     // resto version
-    const VERSION = '6.1.8';
+    const VERSION = '7.0.0-rc.1';
 
     /* ============================================================
      *              NEVER EVER TOUCH THESE VALUES
@@ -218,20 +167,6 @@ class Resto
              * Initialize router
              */
             $this->router = new RestoRouter($this->context, $this->user);
-
-            /*
-             * Add default routes
-             */
-            $this->router->addRoutes(isset($config['defaultRoutes']) && count($config['defaultRoutes']) > 0 ? $config['defaultRoutes'] : $this->defaultRoutes);
-
-            /*
-             * Add add-ons routes
-             */
-            foreach (array_keys($this->context->addons) as $addonName) {
-                if (isset($this->context->addons[$addonName]['routes'])) {
-                    $this->router->addRoutes($this->context->addons[$addonName]['routes']);
-                }
-            }
             
             /*
              * Process route

@@ -76,7 +76,7 @@ class FeaturesFunctions
      * @param RestoUser $user
      * @param RestoModel $model
      * @param array $collections
-     * @param array $params
+     * @param array $paramsWithOperation
      * @param array $sorting
      *      array(
      *          'limit',
@@ -84,26 +84,26 @@ class FeaturesFunctions
      * @return array
      * @throws Exception
      */
-    public function search($context, $user, $model, $collections, $params, $sorting)
+    public function search($context, $user, $model, $collections, $paramsWithOperation, $sorting)
     {
        
         /*
          * Check that mandatory filters are set
          */
-        $this->checkMandatoryFilters($model->searchFilters, $params);
+        $this->checkMandatoryFilters($model->searchFilters, $paramsWithOperation);
 
         $featureTableName = $this->dbDriver->schema . '.' . $model->dbParams['tablePrefix'] . 'feature';
-
+        
         /*
          * Set filters
          */
         $filtersFunctions = new FiltersFunctions($context, $user, $model);
-        $filtersAndJoins = $filtersFunctions->prepareFilters($params, $sorting['sortKey']);
+        $filtersAndJoins = $filtersFunctions->prepareFilters($paramsWithOperation, $sorting['sortKey']);
 
         /*
          * If a resto:ckeywords was used, then automatically reduce the search on the collection
          */
-        if ( isset($params['resto:ckeywords']) ) {
+        if ( isset($paramsWithOperation['resto:ckeywords']) ) {
             $collectionIds = array_keys($collections);
             if ( count($collectionIds) === 0) {
                 return array(
@@ -125,8 +125,8 @@ class FeaturesFunctions
         /*
          * Special case for liked - return only features liked by owner if set, otherwise by $user
          */
-        if (isset($params['resto:liked']) && isset($context->addons['Social'])) {
-            $who = $params['resto:owner'] ?? $user->profile['id'];
+        if (isset($paramsWithOperation['resto:liked']) && isset($context->addons['Social'])) {
+            $who = isset($paramsWithOperation['resto:owner']) ? $paramsWithOperation['resto:owner']['value'] : $user->profile['id'];
             if (isset($who)) {
                 $filtersAndJoins['filters'][] = array(
                     'value' => $this->dbDriver->schema . '.likes.featureid=' . $featureTableName . '.id AND ' . $this->dbDriver->schema . '.likes.userid=' . pg_escape_string($who),
@@ -183,7 +183,7 @@ class FeaturesFunctions
          * Common where clause
          */
         $whereClause = $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => true));
-        $count = $this->getCount('FROM ' . $featureTableName . ' ' . $whereClause, $params);
+        $count = $this->getCount('FROM ' . $featureTableName . ' ' . $whereClause, $paramsWithOperation);
 
         $links = array();
         
@@ -865,15 +865,15 @@ class FeaturesFunctions
      * Check that mandatory filters are set
      *
      * @param array $searchFilters
-     * @param array $params
+     * @param array $paramsWithOperation
      * @return boolean
      */
-    private function checkMandatoryFilters($searchFilters, $params)
+    private function checkMandatoryFilters($searchFilters, $paramsWithOperation)
     {
         $missing = array();
         foreach (array_keys($searchFilters) as $filterName) {
             if (isset($searchFilters[$filterName])) {
-                if (isset($searchFilters[$filterName]['minimum']) && $searchFilters[$filterName]['minimum'] === 1 && (!isset($params[$filterName]))) {
+                if (isset($searchFilters[$filterName]['minimum']) && $searchFilters[$filterName]['minimum'] === 1 && (!isset($paramsWithOperation[$filterName]))) {
                     $missing[] = $filterName;
                 }
             }
