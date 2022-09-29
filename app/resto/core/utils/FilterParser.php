@@ -92,12 +92,19 @@ class FilterParser
     {
 
         $filter = array();
+        $not = false;
+
+        // First token is either a property or NOT operator
+        if ( $this->lexer->lookahead['type'] === Lexer::T_NOT ) {
+            $not = true;
+            $this->lexer->moveNext();
+        }
 
         // First token is a property
         switch ($this->lexer->lookahead['type']) {
 
             case Lexer::T_S_INTERSECTS:
-                return $this->intersectsExpression();
+                return $this->intersectsExpression($not);
 
             case Lexer::T_STRING:
                 $filter['property'] = $this->lexer->lookahead['value'];
@@ -117,7 +124,6 @@ class FilterParser
             // [WARNING] These operators are not supported yet
             case Lexer::T_IN:
             case Lexer::T_NI:
-            case Lexer::T_NOT:
                 throw new Exception('Operation ' . strtoupper($filter['operation']) . ' is not supported');
                 break;
 
@@ -129,6 +135,8 @@ class FilterParser
                 $filter['value'] = $this->numberOrDateOrDateExpression();
                 
         }
+
+        $filter['not'] = $not;
 
         return $filter;
   
@@ -232,12 +240,15 @@ class FilterParser
     /**
      * Process intersects expression i.e. S_INTERSECTS(geometry, POLYGON((xxxx)))";
      * 
+     * @param boolean $not
      * @return string
      */
-    private function intersectsExpression()
+    private function intersectsExpression($not)
     {
     
-        $filter = array();
+        $filter = array(
+            'not' => $not
+        );
 
         $this->lexer->moveNext();
         $this->mustMatch(Lexer::T_OPEN_PARENTHESIS);

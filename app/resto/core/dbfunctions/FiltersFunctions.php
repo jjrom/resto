@@ -229,20 +229,20 @@ class FiltersFunctions
      *
      * @param array $paramsWithOperation (with model keys)
      * @param string $filterName
-     * @param boolean $exclusion : if true, exclude instead of include filter (WARNING ! only works for geometry)
      * @return string
      *
      */
-    private function prepareFilterQuery($paramsWithOperation, $filterName, $exclusion = false)
+    private function prepareFilterQuery($paramsWithOperation, $filterName)
     {
         
         $featureTableName = $this->tablePrefix . 'feature';
+        $exclusion = isset($paramsWithOperation[$filterName]['not']) && $paramsWithOperation[$filterName]['not'] ? true : false;
 
         /*
          * Special case model
          */
         if ($filterName === 'resto:model') {
-            return $this->prepareFilterQueryModel($featureTableName, $paramsWithOperation[$filterName]['value']);
+            return $this->prepareFilterQueryModel($featureTableName, $paramsWithOperation[$filterName]['value'], $exclusion);
         }
         
         /*
@@ -254,7 +254,7 @@ class FiltersFunctions
         if ( in_array($filterName, array('time:start', 'time:end', 'dc:date')) ) {
 
             return array(
-                'value' => $featureTableName . '.' . strtolower($this->model->searchFilters[$filterName]['key']) . '_idx ' . $paramsWithOperation[$filterName]['operation'] . ' timestamp_to_firstid(\'' . pg_escape_string(str_replace(',', '.', $paramsWithOperation[$filterName]['value'])) . '\')',
+                'value' =>  $this->addNot($exclusion) . $featureTableName . '.' . strtolower($this->model->searchFilters[$filterName]['key']) . '_idx ' . $paramsWithOperation[$filterName]['operation'] . ' timestamp_to_firstid(\'' . pg_escape_string(str_replace(',', '.', $paramsWithOperation[$filterName]['value'])) . '\')',
                 'isGeo' => false
             );
         }
@@ -268,7 +268,7 @@ class FiltersFunctions
              * in
              */
             case 'in':
-                return $this->prepareFilterQueryIn($featureTableName . '.' . $this->model->searchFilters[$filterName]['key'], $paramsWithOperation[$filterName]['value']);
+                return $this->prepareFilterQueryIn($featureTableName . '.' . $this->model->searchFilters[$filterName]['key'], $paramsWithOperation[$filterName]['value'], $exclusion);
             /*
              * searchTerms
              */
@@ -289,7 +289,7 @@ class FiltersFunctions
              */
             case 'interval':
                 return array(
-                    'value' => QueryUtil::intervalToQuery($paramsWithOperation[$filterName]['value'], $this->getTableName($filterName) . '.' . $this->model->searchFilters[$filterName]['key']),
+                    'value' => $this->addNot($exclusion) . QueryUtil::intervalToQuery($paramsWithOperation[$filterName]['value'], $this->getTableName($filterName) . '.' . $this->model->searchFilters[$filterName]['key']),
                     'isGeo' => false
                 );
 
@@ -298,7 +298,7 @@ class FiltersFunctions
              * Note that array of values assumes a 'OR' operation
              */
             default:        
-                $ors = $this->prepareORFilters($filterName, $paramsWithOperation[$filterName]);
+                $ors = $this->prepareORFilters($filterName, $paramsWithOperation[$filterName], $exclusion);
                 return array(
                     'value' => count($ors) > 1 ? '(' . join(' OR ', $ors) . ')' : $ors[0],
                     'isGeo' => false
@@ -340,19 +340,20 @@ class FiltersFunctions
      *
      * @param string $targetColumn
      * @param string $value
+     * @param boolean $exclusion
      * @return string
      */
-    private function prepareFilterQueryIn($targetColumn, $value)
+    private function prepareFilterQueryIn($targetColumn, $value, $exclusion)
     {
         $elements = explode(',', $value);
         if (count($elements) === 1) {
             return array(
-                'value' => $targetColumn . '=\'' . pg_escape_string($value) . '\'',
+                'value' => $this->addNot($exclusion) . $targetColumn . '=\'' . pg_escape_string($value) . '\'',
                 'isGeo' => false
             );
         }
         return array(
-            'value' => $targetColumn . ' IN (' . implode(',', array_map(function($str) { return '\'' .  pg_escape_string($str) . '\''; }, $elements) ) . ')',
+            'value' => $this->addNot($exclusion) . $targetColumn . ' IN (' . implode(',', array_map(function($str) { return '\'' .  pg_escape_string($str) . '\''; }, $elements) ) . ')',
             'isGeo' => false
         );
     }
@@ -404,7 +405,7 @@ class FiltersFunctions
 
             // Eventually correct input GEOMETRYCOLLECTION with a ST_buffer
             $inputGeom = strpos($filterValue['value'], 'GEOMETRYCOLLECTION') === 0 ?  "ST_Buffer(ST_GeomFromText('" . pg_escape_string($filterValue['value']) . "', 4326), 0)" : "ST_GeomFromText('" . pg_escape_string($filterValue['value']) . "', 4326)";
-            $output = ($exclusion ? 'NOT ' : '') . 'ST_intersects(' . $tableName . '.' . $this->model->searchFilters[$filterName]['key'] . ", " . $inputGeom . ")";
+            $output = $this->addNot($exclusion) . 'ST_intersects(' . $tableName . '.' . $this->model->searchFilters[$filterName]['key'] . ", " . $inputGeom . ")";
         }
 
         return array(
@@ -419,9 +420,10 @@ class FiltersFunctions
      *
      * @param string $filterName
      * @param array $filterValue
+     * @param boolean $exclusion
      * @return array
      */
-    private function prepareORFilters($filterName, $filterValue)
+    private function prepareORFilters($filterName, $filterValue, $exclusion)
     {
 
         /*
@@ -436,7 +438,7 @@ class FiltersFunctions
         $ors = array();
         for ($i = count($values); $i--;) {
             
-            $tableName = $this->getTableName($filterName);
+            $tableNameWitNot = $this->addNot($exclusion) . $this->getTableName($filterName);
 
             /*
              * LIKE case only if at least 4 characters
@@ -445,19 +447,19 @@ class FiltersFunctions
                 if (strlen($values[$i]) < 4) {
                     RestoLogUtil::httpError(400, '% is only allowed for string with 3+ characters');
                 }
-                $ors[] = $tableName . '.' . $this->model->searchFilters[$filterName]['key'] . ' LIKE ' . $quote . pg_escape_string($values[$i]) . $quote;
+                $ors[] = $tableNameWitNot . '.' . $this->model->searchFilters[$filterName]['key'] . ' LIKE ' . $quote . pg_escape_string($values[$i]) . $quote;
             }
             /*
              * isNull case do not use value
              */
             else if ( strtolower($filterValue['operation']) === strtolower('isNull') ) {
-                $ors[] = $tableName . '.' . $this->model->searchFilters[$filterName]['key'] . ' IS NULL';
+                $ors[] = $tableNameWitNot . '.' . $this->model->searchFilters[$filterName]['key'] . ' IS NULL';
             }
             /*
              * Otherwise use operation
              */
             else {
-                $ors[] = $tableName . '.' . $this->model->searchFilters[$filterName]['key'] . ' ' . $filterValue['operation'] . ' ' . $quote . pg_escape_string($values[$i]) . $quote;
+                $ors[] = $tableNameWitNot . '.' . $this->model->searchFilters[$filterName]['key'] . ' ' . $filterValue['operation'] . ' ' . $quote . pg_escape_string($values[$i]) . $quote;
             }
         }
         return $ors;
@@ -532,14 +534,14 @@ class FiltersFunctions
             if ($useDistance) {
                 $wkt = 'POINT(' . $paramsWithOperation['geo:lon']['value'] . ' ' . $paramsWithOperation['geo:lat']['value'] . ')';
                 return array(
-                    'value' => ($exclusion ? 'NOT ' : '') . 'ST_dwithin(' . $tableName . '.' . $this->model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'' . pg_escape_string($wkt) . '\', 4326), '. $radius . ')',
+                    'value' => $this->addNot($exclusion) . 'ST_dwithin(' . $tableName . '.' . $this->model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'' . pg_escape_string($wkt) . '\', 4326), '. $radius . ')',
                     'wkt' => $wkt,
                     'isGeo' => true
                 );
             } else {
                 $wkt = RestoGeometryUtil::WKTPolygonFromLonLat(floatval($paramsWithOperation['geo:lon']['value']), floatval($paramsWithOperation['geo:lat']['value']), $radius);
                 return array(
-                    'value' => ($exclusion ? 'NOT ' : '') . 'ST_intersects(' . $tableName . '.' . $this->model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'' . pg_escape_string($wkt) . '\', 4326))',
+                    'value' => $this->addNot($exclusion) . 'ST_intersects(' . $tableName . '.' . $this->model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'' . pg_escape_string($wkt) . '\', 4326))',
                     'wkt' => $wkt,
                     'isGeo' => true
                 );
@@ -556,7 +558,7 @@ class FiltersFunctions
      * @param boolean $exclusion
      * @return string
      */
-    private function prepareFilterQueryKeywords($featureTableName, $filterName, $searchTerms, $exclusion = false)
+    private function prepareFilterQueryKeywords($featureTableName, $filterName, $searchTerms, $exclusion)
     {
         $terms = array();
         $filters = array(
@@ -644,7 +646,7 @@ class FiltersFunctions
             for ($j = count($exploded); $j--;) {
                 $quotedValues[] = '\'' . pg_escape_string(trim($exploded[$j])) . '\'';
             }
-            return array(($exclusion ? 'NOT (' : '(') . $featureTableName . '.' . $this->model->searchFilters[$filterName]['key'] . $operator . 'normalize_array(ARRAY[' . join(',', $quotedValues) . ']))');
+            return array($this->addNot($exclusion) . '(' . $featureTableName . '.' . $this->model->searchFilters[$filterName]['key'] . $operator . 'normalize_array(ARRAY[' . join(',', $quotedValues) . ']))');
         }
         
         $filters[$exclusion ? 'without' : 'with'][] = "'" . pg_escape_string($searchTerm) . "'";
@@ -803,28 +805,34 @@ class FiltersFunctions
                 RestoLogUtil::httpError(400, 'Unknown property in filter - ' . $stacKey);
             }
 
-            $exclusion = false;
+            $paramsWithOperation[$filterName] = array(
+                'value' => $cql2Filters[$i]['value'],
+                'operation' => $cql2Filters[$i]['operation'],
+                'not' => $cql2Filters[$i]['not'] ?? false
+            );
+
             // If filter model operation is 'keywords' then it must be changed !
             if ( isset($this->model->searchFilters[$filterName]['operation']) && $this->model->searchFilters[$filterName]['operation'] === 'keywords') {
-                $paramsWithOperation[$filterName] = array(
-                    'value' => $cql2Filters[$i]['value'],
-                    'operation' => 'keywords'
-                );
-                $exclusion = $cql2Filters[$i]['operation'] === '<>';
+                $paramsWithOperation[$filterName]['operation'] = 'keywords';
+                if ($cql2Filters[$i]['operation'] === '<>') {
+                    $paramsWithOperation[$filterName]['not'] = ! $paramsWithOperation[$filterName]['not'];
+                }
+                
             }
-            else {
-                $paramsWithOperation[$filterName] = array(
-                    'value' => $cql2Filters[$i]['value'],
-                    'operation' => $cql2Filters[$i]['operation']
-                );
-            }
-            
 
-            $filters[] = $this->prepareFilterQuery($paramsWithOperation, $filterName, $exclusion)['value'];
+            $filters[] = $this->prepareFilterQuery($paramsWithOperation, $filterName)['value'];
 
         }
         
         return join(' ' . $operator . ' ', $filters);
+    }
+
+    /**
+     * Return NOT prefix if exclusion is true
+     */
+    private function addNot($exclusion)
+    {
+        return isset($exclusion) && $exclusion ? 'NOT ' : '';
     }
 
 
