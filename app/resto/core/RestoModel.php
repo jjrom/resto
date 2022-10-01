@@ -194,6 +194,7 @@ abstract class RestoModel
         'geo:uid' => array(
             'key' => 'id',
             'osKey' => 'ids',
+            'stacKey' => 'id',
             'operation' => 'in',
             'title' => 'Array of item ids to return. All other filter parameters that further restrict the number of search results (except next and limit) are ignored',
             'pattern' => '^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$',
