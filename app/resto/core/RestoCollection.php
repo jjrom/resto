@@ -922,6 +922,12 @@ class RestoCollection
                         'rel' => 'items',
                         'type' => RestoUtil::$contentTypes['geojson'],
                         'href' => $this->context->core['baseUrl'] . '/collections/' . $this->id . '/items'
+                    ),
+                    array(
+                        'rel' => 'http://www.opengis.net/def/rel/ogc/1.0/queryables',
+                        'type' => RestoUtil::$contentTypes['jsonschema'],
+                        'title' => 'Queryables',
+                        'href' => $this->context->core['baseUrl'] . '/collections/' . $this->id . '/queryables'
                     )
                 ), 
                 $this->links ?? array()    
