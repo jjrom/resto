@@ -194,6 +194,7 @@ abstract class RestoModel
         'geo:uid' => array(
             'key' => 'id',
             'osKey' => 'ids',
+            'stacKey' => 'id',
             'operation' => 'in',
             'title' => 'Array of item ids to return. All other filter parameters that further restrict the number of search results (except next and limit) are ignored',
             'pattern' => '^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$',
@@ -579,12 +580,18 @@ abstract class RestoModel
             $params['searchTerms'] = isset($params['searchTerms']) ? $params['searchTerms'] . ' ' . join(' ', $unknowns) : join(' ', $unknowns);
         }
 
-        // [STAC] If "ids" filter is set, then discard every other filters except next and limit
+        // [STAC]If "ids" filter is set, then discard every other filters except next and limit
+        /*
+         * [TODO] To be discard since STAC API 1.0.0-beta.1
         return isset($params['geo:uid']) ? array(
             'geo:uid' => $params['geo:uid'],
             'resto:lt' => $params['resto:lt'] ?? null,
             'limit' => $params['limit'] ?? null
         ) : $params;
+        */
+
+        return $params;
+
     }
 
     /**
@@ -1011,8 +1018,7 @@ abstract class RestoModel
         if (isset($this->searchFilters[$filterKey]['minInclusive']) && $value < $this->searchFilters[$filterKey]['minInclusive']) {
             RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be greater than ' . ($this->searchFilters[$filterKey]['minInclusive'] - 1));
         }
-        // [STAC] Special case for count - accept value even if higher than maxInclusive
-        if ($filterKey !== 'count' && isset($this->searchFilters[$filterKey]['maxInclusive']) && $value > $this->searchFilters[$filterKey]['maxInclusive']) {
+        if (isset($this->searchFilters[$filterKey]['maxInclusive']) && $value > $this->searchFilters[$filterKey]['maxInclusive']) {
             RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must be lower than ' . ($this->searchFilters[$filterKey]['maxInclusive'] + 1));
         }
         return true;

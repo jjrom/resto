@@ -346,9 +346,12 @@ class STAC extends RestoAddOn
     public function getQueryables($params)
     {
 
+        // [IMPORTANT] Supersede output format
+        $this->context->outputFormat = 'jsonschema';
+
         return array(
             '$schema' => 'https://json-schema.org/draft/2019-09/schema',
-            '$id' => 'https://stac-api.example.com/queryables',
+            '$id' => $this->context->core['baseUrl'] . '/queryables',
             'type' => 'object',
             'title' => 'Queryables for Example STAC API',
             'description' => 'Queryable names for the example STAC API Item Search filter.',
