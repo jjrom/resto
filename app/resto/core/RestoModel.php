@@ -580,12 +580,18 @@ abstract class RestoModel
             $params['searchTerms'] = isset($params['searchTerms']) ? $params['searchTerms'] . ' ' . join(' ', $unknowns) : join(' ', $unknowns);
         }
 
-        // [STAC] If "ids" filter is set, then discard every other filters except next and limit
+        // [STAC]If "ids" filter is set, then discard every other filters except next and limit
+        /*
+         * [TODO] To be discard since STAC API 1.0.0-beta.1
         return isset($params['geo:uid']) ? array(
             'geo:uid' => $params['geo:uid'],
             'resto:lt' => $params['resto:lt'] ?? null,
             'limit' => $params['limit'] ?? null
         ) : $params;
+        */
+
+        return $params;
+        
     }
 
     /**
