@@ -852,7 +852,7 @@ class FiltersFunctions
      */
     private function optimizeNotEqual($operation, $before, $after)
     {
-        return $operation === '<>' ? $before . '<' . $after . ' AND ' . $before . '>' . $after : $before . '<>' . $after;
+        return $operation === '<>' ? $before . '<' . $after . ' AND ' . $before . '>' . $after : $before . $operation . $after;
     }
 
 
