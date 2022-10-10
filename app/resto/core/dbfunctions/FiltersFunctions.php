@@ -101,7 +101,7 @@ class FiltersFunctions
                  * Sorting special case
                  */
                 if (!empty($sortKey) && ($filterName === 'resto:lt' || $filterName === 'resto:gt')) {
-                    $sortFilters[] =   $this->tablePrefix . 'feature.' . $sortKey . $paramsWithOperation[$filterName]['operation'] . '\'' . pg_escape_string($paramsWithOperation[$filterName]['value']) . '\'';
+                    $sortFilters[] =   $this->optimizeNotEqual($paramsWithOperation[$filterName]['operation'], $this->tablePrefix . 'feature.' . $sortKey, '\'' . pg_escape_string($paramsWithOperation[$filterName]['value']) . '\'');
                 }
 
                 /*
@@ -254,7 +254,7 @@ class FiltersFunctions
         if ( in_array($filterName, array('time:start', 'time:end', 'dc:date')) ) {
 
             return array(
-                'value' =>  $this->addNot($exclusion) . $featureTableName . '.' . strtolower($this->model->searchFilters[$filterName]['key']) . '_idx ' . $paramsWithOperation[$filterName]['operation'] . ' timestamp_to_firstid(\'' . pg_escape_string(str_replace(',', '.', $paramsWithOperation[$filterName]['value'])) . '\')',
+                'value' => $this->optimizeNotEqual($paramsWithOperation[$filterName]['operation'], $this->addNot($exclusion) . $featureTableName . '.' . strtolower($this->model->searchFilters[$filterName]['key']) . '_idx ', ' timestamp_to_firstid(\'' . pg_escape_string(str_replace(',', '.', $paramsWithOperation[$filterName]['value'])) . '\')'),
                 'isGeo' => false
             );
         }
@@ -459,7 +459,7 @@ class FiltersFunctions
              * Otherwise use operation
              */
             else {
-                $ors[] = $tableNameWitNot . '.' . $this->model->searchFilters[$filterName]['key'] . ' ' . $filterValue['operation'] . ' ' . $quote . pg_escape_string($values[$i]) . $quote;
+                $ors[] = $this->optimizeNotEqual($filterValue['operation'], $tableNameWitNot . '.' . $this->model->searchFilters[$filterName]['key'], $quote . pg_escape_string($values[$i]) . $quote);
             }
         }
         return $ors;
@@ -840,6 +840,19 @@ class FiltersFunctions
     private function addNot($exclusion)
     {
         return isset($exclusion) && $exclusion ? 'NOT ' : '';
+    }
+
+    /**
+     * Convert <> operation to < AND > to force database index usage
+     * 
+     * @param string $operation
+     * @param string $before
+     * @param string $after
+     * @return string
+     */
+    private function optimizeNotEqual($operation, $before, $after)
+    {
+        return $operation === '<>' ? $before . '<' . $after . ' AND ' . $before . '>' . $after : $before . '<>' . $after;
     }
 
 
