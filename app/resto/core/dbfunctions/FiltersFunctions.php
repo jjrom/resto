@@ -805,6 +805,13 @@ class FiltersFunctions
                 RestoLogUtil::httpError(400, 'Unknown property in filter - ' . $stacKey);
             }
 
+            /*
+             * [STAC][WFS] convert datetime to time:start
+             */
+            if ($filterName === 'resto:datetime') {
+                $filterName = 'time:start';
+            }
+
             $paramsWithOperation[$filterName] = array(
                 'value' => $cql2Filters[$i]['value'],
                 'operation' => $cql2Filters[$i]['operation'],
