@@ -235,8 +235,6 @@ class FiltersFunctions
     private function prepareFilterQuery($paramsWithOperation, $filterName)
     {
         
-        print_r($paramsWithOperation);
-        echo $filterName;
         $featureTableName = $this->tablePrefix . 'feature';
         $exclusion = isset($paramsWithOperation[$filterName]['not']) && $paramsWithOperation[$filterName]['not'] ? true : false;
 
@@ -810,7 +808,7 @@ class FiltersFunctions
             /*
              * [STAC][WFS] convert datetime to time:start
              */
-            if ($filterName = 'resto:datetime') {
+            if ($filterName === 'resto:datetime') {
                 $filterName = 'time:start';
             }
 
