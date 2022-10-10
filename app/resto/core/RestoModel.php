@@ -550,7 +550,6 @@ abstract class RestoModel
      * Get resto filters from input query parameters
      * 
      *  - change input query keys to model parameter key including STAC conversion (i.e. input STAC query to resto model - e.g. processing:level => processingLevel)
-     *  - remove all HTML tags from input to avoid XSS injection
      *  - check that filter value is valid regarding the model definition
      * 
      * [IMPORTANT]CHANGE] Each unknown filter key that does not start with '_' is converted to hashtag with the following convention : "#<filterName>:value"
@@ -565,13 +564,17 @@ abstract class RestoModel
             $filterKey = $this->getFilterName($key);
             if (isset($filterKey)) {
                 // Special case geo:geometry also accept GeoJSON => convert it to WKT
-                $params[$filterKey] = preg_replace('/<.+?>/', '', $filterKey === 'geo:geometry' ? RestoGeometryUtil::forceWKT($value) : $value);
+                /* [TODO] Remove already done in RestoUtil::sanitize
+                $params[$filterKey] = preg_replace('/<.+?>/', '', $filterKey === 'geo:geometry' ? RestoGeometryUtil::forceWKT($value) : $value); */
+                $params[$filterKey] = $filterKey === 'geo:geometry' ? RestoGeometryUtil::forceWKT($value) : $value;
                 $this->validateFilter($filterKey, $params[$filterKey]);
             }
             // Do not process query params starting with '_' or in the reserved list
             else if ( !in_array($key, array('collectionId', 'fields')) && substr($key, 0, 1) !== '_') {
-                // Protect against XSS injection
-                $unknowns[] = '#' . $this->toHashTag($key, preg_replace('/<.+?>/', '', ltrim($value, '#')));
+                /* [TODO] Remove already done in RestoUtil::sanitize
+                Protect against XSS injection
+                $unknowns[] = '#' . $this->toHashTag($key, preg_replace('/<.+?>/', '', ltrim($value, '#'))); */
+                $unknowns[] = '#' . $this->toHashTag($key, ltrim($value, '#'));
             }
         }
 

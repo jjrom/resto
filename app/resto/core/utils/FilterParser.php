@@ -53,10 +53,8 @@ class FilterParser
 
         while (null !== $this->lexer->lookahead) {
 
-            
             /*
-            echo '"' . $this->lexer->lookahead['value'] . '"';
-            echo ' is of type ' . $this->lexer->lookahead['type'] . PHP_EOL;
+            print_r($this->lexer->lookahead);
             $this->lexer->moveNext();
             continue;
             */

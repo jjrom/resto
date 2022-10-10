@@ -422,7 +422,7 @@ class RestoFeatureCollection
          * Convert query to inputFilters
          */
         $inputFilters = $this->model->getFiltersFromQuery($this->query);
-        
+         
         /*
          * result options
          */
