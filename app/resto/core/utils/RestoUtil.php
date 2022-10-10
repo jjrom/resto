@@ -528,8 +528,8 @@ class RestoUtil
                 return null;
             }
             
-            // Remove HTML tags except empty <>, <, and <= for STAC filter
-            return preg_replace('~<\S[^<>]*>~', '', str_replace(chr(0), '', $str));
+            // Remove script tags
+            return preg_replace('/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/i', '', str_replace(chr(0), '', $str));
             
         }
         
