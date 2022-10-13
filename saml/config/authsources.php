@@ -31,11 +31,11 @@ $config = [
 
         // The entity ID of this SP.
         // Can be NULL/unset, in which case an entity ID is generated based on the metadata URL.
-        'entityID' => ((getenv('SAML_SP_ENTITY_ID') != '') ? getenv('SAML_SP_ENTITY_ID') : null),
+        'entityID' => ((getenv('PUBLIC_ENDPOINT') != '') ? getenv('PUBLIC_ENDPOINT') : null),
 
         // The entity ID of the IdP this SP should contact.
         // Can be NULL/unset, in which case the user will be shown a list of available IdPs.
-        'idp' => ((getenv('SAML_IDP_METADATA_URL') != '') ? getenv('SAML_IDP_METADATA_URL') : null),
+        'idp' => 'http://host.docker.internal:8080/simplesaml/saml2/idp/metadata.php',
     
         // The URL to the discovery service.
         // Can be NULL/unset, in which case a builtin discovery service will be used.
