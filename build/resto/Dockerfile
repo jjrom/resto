@@ -4,7 +4,7 @@ LABEL maintainer="jerome.gasperi@gmail.com"
 ENV BUILD_DIR=./build/resto \
     PHP_VERSION=8.1 \
     RESTO_DEBUG=1
-    
+
 # SimpleSAMLphp
 ARG SIMPLESAMLPHP_VERSION=1.19.6
 ADD https://github.com/simplesamlphp/simplesamlphp/releases/download/v${SIMPLESAMLPHP_VERSION}/simplesamlphp-${SIMPLESAMLPHP_VERSION}.tar.gz /tmp/
@@ -14,8 +14,7 @@ RUN tar xzf /tmp/simplesamlphp-${SIMPLESAMLPHP_VERSION}.tar.gz -C /tmp && \
 COPY saml/config/config.php /var/www/simplesamlphp/config
 COPY saml/config/authsources.php /var/www/simplesamlphp/config
 COPY saml/config/saml20-idp-remote.php /var/www/simplesamlphp/metadata
-COPY saml/cert/server.crt /var/www/simplesamlphp/cert/
-COPY saml/cert/server.pem /var/www/simplesamlphp/cert/
+COPY saml/cert/* /var/www/simplesamlphp/cert/
 
 # Copy NGINX configuration
 COPY ${BUILD_DIR}/container_root/etc/nginx /etc/nginx

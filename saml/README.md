@@ -1,5 +1,16 @@
 # SAML HowTo
 
+## Generate a SAML certificate
+Generate a private key and a certificate for the Service Provider:
+
+    openssl req -newkey rsa:4096 -new -x509 -days 3652 -nodes -out ${RESTO_HOME}/saml/cert/server.crt -keyout ${RESTO_HOME}/saml/cert/server.pem
+
+The private key and the certificate must be stored in the following files:
+
+    ${RESTO_HOME}/saml/cert/server.crt
+    ${RESTO_HOME}/saml/cert/server.pem
+
+## Test the SAML authentication with local IdP
 Testing resto as Service Provider with local IdP
 
     docker run --name=testsamlidp_idp \

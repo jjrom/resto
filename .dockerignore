@@ -1,2 +1,4 @@
 tmp
 pgdata
+saml/cert/server.crt
+saml/cert/server.pem
