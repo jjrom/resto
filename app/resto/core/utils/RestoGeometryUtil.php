@@ -344,7 +344,11 @@ class RestoGeometryUtil
      */
     public static function forceWKT($geostring)
     {
-    
+
+        // Issue #329 - pystac_client GeoJSON string is within double quotes (so not valid GeoJSON)
+        // e.g. "intersects":"\"{\\\"type\\\": \\\"Polygon\\\", \\\"coordinates\\\": [[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]]}\""
+        $geostring = stripslashes(trim($geostring, '\'"'));
+
         if (isset($geostring) && isset($geostring[0]) && $geostring[0] === '{') {
             $geostring = RestoGeometryUtil::geoJSONGeometryToWKT(json_decode($geostring, true));
         }
