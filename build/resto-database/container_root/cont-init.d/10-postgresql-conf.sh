@@ -20,6 +20,12 @@ then
   sed -i "s/shared_buffers=.*/shared_buffers=${POSTGRES_SHARED_BUFFERS}/" $CONF_POSTGRESQL
 fi
 
+if [[ $POSTGRES_MAX_WORKER_PROCESSES ]]
+then
+  echo "[postgresql] setting max_worker_processes ${POSTGRES_MAX_WORKER_PROCESSES}"
+  sed -i "s/max_worker_processes=.*/max_worker_processes=${POSTGRES_MAX_WORKER_PROCESSES}/" $CONF_POSTGRESQL
+fi
+
 if [[ $POSTGRES_MAX_PARALLEL_WORKERS ]]
 then
   echo "[postgresql] setting max_parallel_workers ${POSTGRES_MAX_PARALLEL_WORKERS}"
@@ -38,10 +44,16 @@ then
   sed -i "s/work_mem=.*/work_mem=${POSTGRES_WORK_MEM}/" $CONF_POSTGRESQL
 fi
 
-if [[ $POSTGRES_WALL_BUFFERS ]]
+if [[ $POSTGRES_MAX_WAL_SIZE ]]
 then
-  echo "[postgresql] setting wal_buffers ${POSTGRES_WALL_BUFFERS}"
-  sed -i "s/wal_buffers=.*/wal_buffers=${POSTGRES_WALL_BUFFERS}/" $CONF_POSTGRESQL
+  echo "[postgresql] setting max_wal_size ${POSTGRES_MAX_WAL_SIZE}"
+  sed -i "s/max_wal_size=.*/max_wal_size=${POSTGRES_MAX_WAL_SIZE}/" $CONF_POSTGRESQL
+fi
+
+if [[ $POSTGRES_WAL_BUFFERS ]]
+then
+  echo "[postgresql] setting wal_buffers ${POSTGRES_WAL_BUFFERS}"
+  sed -i "s/wal_buffers=.*/wal_buffers=${POSTGRES_WAL_BUFFERS}/" $CONF_POSTGRESQL
 fi
 
 if [[ $POSTGRES_MAINTENANCE_WORK_MEM ]]
