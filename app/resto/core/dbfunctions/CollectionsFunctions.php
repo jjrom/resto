@@ -400,6 +400,12 @@ class CollectionsFunctions
         }
 
         /*
+         * Extract spatial and temporals extents
+         */
+        $startDate = $collection->extent['temporal']['interval'][0][0] ?? null;
+        $completionDate = $collection->extent['temporal']['interval'][0][1] ?? null;
+        
+        /*
          * Create collection
          */
         if (! $this->collectionExists($collection->id)) {
@@ -417,9 +423,18 @@ class CollectionsFunctions
                 'links' => json_encode($collection->links, JSON_UNESCAPED_SLASHES),
                 'assets' => json_encode($collection->assets, JSON_UNESCAPED_SLASHES),
                 'keywords' => $keywords,
-                'version' => $collection->version
+                'version' => $collection->version,
+                'startdate' => $startDate,
+                'completiondate' => $completionDate
             );
-            $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->schema . '.collection (' . join(',', array_keys($toBeSet)) . ') VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)', array_values($toBeSet));
+
+            // bbox is set
+            if ( isset($collection->extent['spatial']['bbox'][0]) ) {
+                $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->schema . '.collection (' . join(',', array_keys($toBeSet)) . ', bbox) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, ST_SetSRID(ST_MakeBox2D(ST_Point($16, $17), ST_Point($18, $19)), 4326) )', array_merge(array_values($toBeSet), $collection->extent['spatial']['bbox'][0]));    
+            } 
+            else {
+                $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->schema . '.collection (' . join(',', array_keys($toBeSet)) . ') VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)', array_values($toBeSet));
+            }
         }
         /*
          * Otherwise update collection fields (version, visibility, licenseid, providers and properties)
@@ -439,6 +454,23 @@ class CollectionsFunctions
                 $collection->version
             ));
         }
+
+        // OpenSearch description is stored in another table
+        $this->storeOSDescription($collection);
+        
+        return true;
+
+    }
+
+    /**
+     * Store OpenSearch collection description
+     * (This function is called within storeCollectionDescription)
+     *
+     * @param RestoCollection $collection
+     *
+     */
+    private function storeOSDescription($collection)
+    {
 
         /*
          * Insert OpenSearch descriptions within osdescriptions table
@@ -507,8 +539,6 @@ class CollectionsFunctions
             $this->dbDriver->query('INSERT INTO ' . $this->dbDriver->schema . '.osdescription (' . join(',', $osFields) . ') VALUES(' . join(',', $osValues) . ')');
         }
 
-        return true;
-
     }
 
     /**
@@ -543,11 +573,22 @@ class CollectionsFunctions
             'assets' => json_decode($rawDescription['assets'], true),
             'keywords' => isset($rawDescription['keywords']) ? json_decode($rawDescription['keywords'], true) : array(),
             'links' => json_decode($rawDescription['links'], true),
-            'datetime' => array(
-                'minimum' => $rawDescription['startdate'] ?? null,
-                'maximum' => $rawDescription['completiondate'] ?? null
+            'extent' => array(
+                'spatial' => array(
+                    'bbox' => array(
+                        RestoGeometryUtil::box2dTobbox($rawDescription['box2d'])
+                    ),
+                    'crs' => 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'
+                ),
+                'temporal' => array(
+                    'interval' => array(
+                        array(
+                            $rawDescription['startdate'] ?? null, $rawDescription['completiondate'] ?? null
+                        )
+                    ),
+                    'trs' => 'http://www.opengis.net/def/uom/ISO-8601/0/Gregorian'
+                )
             ),
-            'bbox' => RestoGeometryUtil::box2dTobbox($rawDescription['box2d']),
             // Be carefull license column is named licenseid in table
             'license' => $rawDescription['licenseid'],
             // Special _properties will be discarded in toArray()

@@ -568,6 +568,22 @@ class RestoCollection
      */
     public $user = null;
 
+    /*
+     * [STAC] Default extent 
+     */
+    private $defaultExtent = array(
+        'spatial' => array(
+            'bbox' => array(null),
+            'crs' => 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'
+        ),
+        'temporal' => array(
+            'interval' => array(
+                array(null, null)
+            ),
+            'trs' => 'http://www.opengis.net/def/uom/ISO-8601/0/Gregorian'
+        )
+    );
+
     /**
      *
      * Array of OpenSearch Description parameters per lang
@@ -905,7 +921,7 @@ class RestoCollection
             'version' => $this->version ?? null,
             'description' => $osDescription['Description'],
             'license' => $this->license,
-            'extent' => $this->getExtent(),
+            'extent' => $this->extent,
             'links' => array_merge(
                 array(
                     array(
@@ -1013,29 +1029,6 @@ class RestoCollection
     }
 
     /**
-     * Return STAC extent
-     */
-    public function getExtent()
-    {
-        return array(
-            'spatial' => array(
-                'bbox' => array(
-                    $this->bbox
-                ),
-                'crs' => 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'
-            ),
-            'temporal' => array(
-                'interval' => array(
-                    array(
-                        $this->datetime['minimum'], $this->datetime['maximum']
-                    )
-                ),
-                'trs' => 'http://www.opengis.net/def/uom/ISO-8601/0/Gregorian'
-            )
-        );
-    }
-
-    /**
      * On which planet this collection applied
      * Based on ssys:target
      */
@@ -1105,8 +1098,8 @@ class RestoCollection
         /*
          * Set values
          */
-        foreach (array_values(array('osDescription', 'providers', 'rights', 'assets', 'keywords')) as $key) {
-            $this->$key = $object[$key] ?? array();
+        foreach (array_values(array('osDescription', 'providers', 'rights', 'assets', 'keywords', 'extent')) as $key) {
+            $this->$key = $object[$key] ?? ($key === 'extent' ? $this->defaultExtent : array() );
         }
 
         /*
@@ -1120,6 +1113,7 @@ class RestoCollection
                 $this->properties[$key] = $value;
             }
         }
+
 
         return $this;
 
@@ -1200,7 +1194,10 @@ class RestoCollection
         }
         
         return array_merge(array(
-            'datetime' => $this->datetime
+            'datetime' => array(
+                'minimum' => $this->extent['temporal']['interval'][0][0],
+                'maximum' => $this->extent['temporal']['interval'][0][1]
+            )
         ), $this->statistics);
     }
 

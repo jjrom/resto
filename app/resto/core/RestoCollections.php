@@ -334,35 +334,25 @@ class RestoCollections
     private function updateExtent($collection)
     {
 
-        if (isset($collection->datetime['minimum'])) {
-            if ( ! isset($this->extent['temporal']['interval'][0][0]) || $collection->datetime['minimum'] < $this->extent['temporal']['interval'][0][0]) {
-                $this->extent['temporal']['interval'][0][0] = $collection->datetime['minimum'];
-            }
+        if ( isset($collection->extent['temporal']['interval'][0][0]) && ( ! isset($this->extent['temporal']['interval'][0][0]) || $collection->extent['temporal']['interval'][0][0] < $this->extent['temporal']['interval'][0][0] ) ) {
+            $this->extent['temporal']['interval'][0][0] = $collection->extent['temporal']['interval'][0][0];
         }
 
-        if (isset($collection->datetime['maximum'])) {
-            if ( ! isset($this->extent['temporal']['interval'][0][1]) || $collection->datetime['maximum'] > $this->extent['temporal']['interval'][0][1]) {
-                $this->extent['temporal']['interval'][0][1] = $collection->datetime['maximum'];
-            }
+        if ( isset($collection->extent['temporal']['interval'][0][1]) && ( ! isset($this->extent['temporal']['interval'][0][1]) || $collection->extent['temporal']['interval'][0][1] > $this->extent['temporal']['interval'][0][1] ) ) {
+            $this->extent['temporal']['interval'][0][1] = $collection->extent['temporal']['interval'][0][1];
         }
            
-        if (isset($collection->bbox)) {
+        if ( isset($collection->extent['spatial']['bbox'][0]) ) {
             if ( ! isset($this->extent['spatial']['bbox'][0]) ) {
-                $this->extent['spatial']['bbox'][0] = $collection->bbox;
+                $this->extent['spatial']['bbox'][0] = $collection->extent['spatial']['bbox'][0];
             }
             else {
-                if ( $collection->bbox[0] < $this->extent['spatial']['bbox'][0][0] ) {
-                    $this->extent['spatial']['bbox'][0][0] = $collection->bbox[0];
-                }
-                if ( $collection->bbox[1] < $this->extent['spatial']['bbox'][0][1] ) {
-                    $this->extent['spatial']['bbox'][0][1] = $collection->bbox[1];
-                }
-                if ( $collection->bbox[2] > $this->extent['spatial']['bbox'][0][2] ) {
-                    $this->extent['spatial']['bbox'][0][2] = $collection->bbox[2];
-                }
-                if ( $collection->bbox[3] > $this->extent['spatial']['bbox'][0][3] ) {
-                    $this->extent['spatial']['bbox'][0][3] = $collection->bbox[3];
-                }
+                $this->extent['spatial']['bbox'][0] = array(
+                    min($this->extent['spatial']['bbox'][0][0], $collection->extent['spatial']['bbox'][0][0]),
+                    min($this->extent['spatial']['bbox'][0][1], $collection->extent['spatial']['bbox'][0][1]),
+                    max($this->extent['spatial']['bbox'][0][2], $collection->extent['spatial']['bbox'][0][2]),
+                    max($this->extent['spatial']['bbox'][0][3], $collection->extent['spatial']['bbox'][0][3])
+                );
             }
         }
 
