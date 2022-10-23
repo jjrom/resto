@@ -604,9 +604,6 @@ CREATE TABLE IF NOT EXISTS resto.facet (
     -- Creator of the facet
     creator             BIGINT,
 
-    -- Additional metadata (used for STAC to store description/links properties)
-    metadata            JSON
-
     -- The id, pid, collection pair should be unique
     PRIMARY KEY (id, pid, collection)
 

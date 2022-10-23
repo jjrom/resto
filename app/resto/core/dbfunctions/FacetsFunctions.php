@@ -47,7 +47,7 @@ class FacetsFunctions
      */
     public static function format($rawFacet)
     {
-        $facet = array(
+        return array(
             'id' => $rawFacet['id'],
             'collection' => $rawFacet['collection'] ?? '*',
             'value' => $rawFacet['value'],
@@ -56,10 +56,6 @@ class FacetsFunctions
             'creator' => $rawFacet['creator'] ?? null,
             'count' => (integer) $rawFacet['counter'],
         );
-        if ( isset($rawFacet['metadata']) ) {
-            $facet['metadata'] = json_decode($rawFacet['metadata'], true);
-        }
-        return $facet;
     }
 
     /**
@@ -69,7 +65,7 @@ class FacetsFunctions
      */
     public function getFacet($facetId)
     {
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id, collection, value, type, pid, to_iso8601(created) as created, creator, metadata  FROM ' . $this->dbDriver->schema . '.facet WHERE normalize(id)=normalize($1) LIMIT 1', array(
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id, collection, value, type, pid, to_iso8601(created) as created, creator  FROM ' . $this->dbDriver->schema . '.facet WHERE normalize(id)=normalize($1) LIMIT 1', array(
             $facetId
         )));
         if (isset($results[0])) {
@@ -142,8 +138,7 @@ class FacetsFunctions
                 $facetElement['creator'] ?? null,
                 // If no input counter is specified - set to 1
                 isset($facetElement['counter']) ? $facetElement['counter'] : 1,
-                isset($facetElement['isLeaf']) && $facetElement['isLeaf'] ? 1 : 0,
-                isset($facetElement['metadata']) ? json_encode($facetElement['metadata'], JSON_UNESCAPED_SLASHES) : null
+                isset($facetElement['isLeaf']) && $facetElement['isLeaf'] ? 1 : 0
             ), 500, 'Cannot insert facet ' . $facetElement['id']);
 
         }
