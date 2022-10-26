@@ -604,6 +604,9 @@ CREATE TABLE IF NOT EXISTS resto.facet (
     -- Creator of the facet
     creator             BIGINT,
 
+    -- Description
+    description         TEXT,
+    
     -- The id, pid, collection pair should be unique
     PRIMARY KEY (id, pid, collection)
 

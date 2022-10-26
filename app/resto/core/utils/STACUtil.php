@@ -68,23 +68,17 @@ class STACUtil
         $links = array();
         $facets = $this->getFacets($minMatch);
 
-        $links[] = array(
-            'rel' => 'child',
-            'title' => 'Classifications',
-            'type' => RestoUtil::$contentTypes['json'],
-            'href' => $this->context->core['baseUrl'] . '/catalogs/classifications'
-        );
-
-        if ( isset($facets['hashtags']) )
-        {
-            $links[] = array(
-                'rel' => 'child',
-                'title' => 'Hashtags',
-                'type' => RestoUtil::$contentTypes['json'],
-                'href' => $this->context->core['baseUrl'] . '/catalogs/hashtags'
-            );
+        foreach ( array('catalogs', 'classifications', 'hashtags') as $key ) {
+            if ( isset($facets[$key]) ) {
+                $links[] = array(
+                    'rel' => 'child',
+                    'title' => ucfirst($key),
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'href' => $this->context->core['baseUrl'] . '/catalogs/' . $key
+                );
+            }
         }
-
+        
         /*
          * Themes are built from theme:xxxx collection keywords
          * Only displayed if at least one theme exists
@@ -179,6 +173,7 @@ class STACUtil
 
         $facets = array(
             'count' => 0,
+            'catalogs' => array(),
             'hashtags' => array(),
             'classifications' => array()
         );
@@ -209,8 +204,9 @@ class STACUtil
                     if ($matched > $minMatch)
                     {
 
-                        if ( $result['type'] === 'hashtag' ) {
-                            $facets['hashtags'] = $matched;
+                        // Catalog
+                        if ( $result['type'] === 'catalog' || $result['type'] === 'hashtag' ) {
+                            $facets[$result['type'] . 's'] = $matched; 
                         }
                         else {
                             $addToOther = true;
@@ -235,7 +231,7 @@ class STACUtil
             }
 
         } catch (Exception $e) {}
-
+        
         return $facets;
     
     

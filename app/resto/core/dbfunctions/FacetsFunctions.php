@@ -55,6 +55,7 @@ class FacetsFunctions
             'created' => $rawFacet['created'],
             'creator' => $rawFacet['creator'] ?? null,
             'count' => (integer) $rawFacet['counter'],
+            'description' => $rawFacet['description'] ?? null
         );
     }
 
@@ -65,7 +66,7 @@ class FacetsFunctions
      */
     public function getFacet($facetId)
     {
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id, collection, value, type, pid, to_iso8601(created) as created, creator  FROM ' . $this->dbDriver->schema . '.facet WHERE normalize(id)=normalize($1) LIMIT 1', array(
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id, collection, value, type, pid, to_iso8601(created) as created, creator, description  FROM ' . $this->dbDriver->schema . '.facet WHERE normalize(id)=normalize($1) LIMIT 1', array(
             $facetId
         )));
         if (isset($results[0])) {
@@ -127,7 +128,7 @@ class FacetsFunctions
              * 
              * [IMPORTANT] UPSERT with check on parentId only if $facetElement['parentId'] is set 
              */
-            $insert = 'INSERT INTO ' . $this->dbDriver->schema . '.facet (id, collection, value, type, pid, creator, created, counter, isleaf) SELECT $1,$2,$3,$4,$5,$6,now(),$7,$8';
+            $insert = 'INSERT INTO ' . $this->dbDriver->schema . '.facet (id, collection, value, type, pid, creator, description, created, counter, isleaf) SELECT $1,$2,$3,$4,$5,$6,$7,now(),$8,$9';
             $upsert = 'UPDATE ' . $this->dbDriver->schema . '.facet SET counter=' .(isset($facetElement['counter']) ? 'counter' : 'counter+1') . ' WHERE normalize(id)=normalize($1) AND normalize(collection)=normalize($2)' . (isset($facetElement['parentId']) ? ' AND normalize(pid)=normalize($5)' : '');
             $this->dbDriver->pQuery('WITH upsert AS (' . $upsert . ' RETURNING *) ' . $insert . ' WHERE NOT EXISTS (SELECT * FROM upsert)', array(
                 $facetElement['id'],
@@ -136,6 +137,7 @@ class FacetsFunctions
                 $facetElement['type'],
                 $facetElement['parentId'] ?? 'root',
                 $facetElement['creator'] ?? null,
+                $facetElement['description'] ?? null,
                 // If no input counter is specified - set to 1
                 isset($facetElement['counter']) ? $facetElement['counter'] : 1,
                 isset($facetElement['isLeaf']) && $facetElement['isLeaf'] ? 1 : 0
