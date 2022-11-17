@@ -586,7 +586,7 @@ CREATE TABLE IF NOT EXISTS resto.facet (
     -- Facet value
     value               TEXT,
 
-    -- Facet type (i.e. hashtag, region, state, location, etc.)
+    -- Facet type (i.e. catalog, hashtag, region, state, location, etc.)
     type                TEXT,
 
     -- Parent identifier (i.e. 'europe' for facet 'france')
@@ -604,6 +604,9 @@ CREATE TABLE IF NOT EXISTS resto.facet (
     -- Creator of the facet
     creator             BIGINT,
 
+    -- Description
+    description         TEXT,
+    
     -- The id, pid, collection pair should be unique
     PRIMARY KEY (id, pid, collection)
 

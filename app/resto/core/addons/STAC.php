@@ -878,6 +878,9 @@ class STAC extends RestoAddOn
             return RestoLogUtil::httpError(400, 'Only one of either intersects or bbox should be specified');
         }
 
+        // Set Content-Type to GeoJSON
+        $this->context->outputFormat = 'geojson';
+
         /*
          * [TODO][CHANGE THIS] Temporary solution for collection that are not in resto schema 
          *   => replace search on single collection by direct search on single collection
@@ -905,11 +908,6 @@ class STAC extends RestoAddOn
         }
         */
 
-        // Set Content-Type to GeoJSON
-        if ($this->context->outputFormat === 'json') {
-            $this->context->outputFormat = 'geojson';
-        }
-        
         return $restoCollections->search($model, $params);
     }
 
@@ -1058,7 +1056,7 @@ class STAC extends RestoAddOn
         }
 
         // Hashtags
-        else if ($this->segments[0] === 'hashtags')
+        else if ($this->segments[0] === 'hashtags' || $this->segments[0] === 'catalogs')
         {
             $this->setCatalogsLinksFromFacet($params);
         }
@@ -1213,17 +1211,23 @@ class STAC extends RestoAddOn
         );
         
         // Hashtags special case
-        if ( $this->segments[0] === 'hashtags' ) {
+        if ( $this->segments[0] === 'hashtags' || $this->segments[0] === 'catalogs' ) {
 
             // 'hastags' - so start at position 1
             $leafPosition = 1;
 
             // In database keyword is 'hashtag' not 'hashtags'
             if ($nbOfSegments === 1) {
-                $leafValue = 'hashtag';
+                $leafValue = substr($this->segments[0], 0, -1);
                 $whereValues = array(
                     $leafValue
                 );
+            }
+
+            // Hack for catalog - force a hierarchy
+            if ( $this->segments[0] === 'catalogs' ) {
+                $where = $where . ' AND pid=$2';
+                $whereValues[] = 'root';
             }
             
         }
@@ -1243,20 +1247,10 @@ class STAC extends RestoAddOn
 
         }   
 
-        // Hack for catalog - force a hierarchy
-        else if ( $nbOfSegments >= 3 && $this->segments[2] === 'catalog' ) {
-            $where = $where . ' AND pid=$2';
-            $whereValues[] = 'root';
-        }
-
         /*
-         * Set minimalist description based on parent
-         * The title format is generally prefix:value:option:xxx or value
+         * Get description from parent
          */
-        $titleParts = explode(':', $this->segments[$nbOfSegments - 1]);
-        $title = ucfirst(count($titleParts) > 1 ? $titleParts[1] : $titleParts[0]);
-        $this->title = $title;
-        $this->description = 'Search on ' . $title;
+        $this->setTitleAndDescription($this->segments[$nbOfSegments - 1]);
 
         try {
 
@@ -1269,10 +1263,10 @@ class STAC extends RestoAddOn
                 throw new Exception();
             }
 
-            // No Results - either a wrong path or a leaf facet (except for hashtags)
+            // No Results - either a wrong path or a leaf facet (except for hashtag)
             if (pg_num_rows($results) === 0) {
                 //return $this->setItemsLinks($title, $leafValue);
-                if ($leafValue !== 'hashtag' && $nbOfSegments > 1) {
+                if ( !in_array($leafValue, array('hashtag')) && $nbOfSegments > 1) {
                     return $this->setFeatureCollection($leafValue, $params);
                 }
             }
@@ -1351,6 +1345,36 @@ class STAC extends RestoAddOn
         $this->context->query['fields'] = '_all';
 
         return $this->featureCollection = (new RestoCollections($this->context, $this->user))->load()->search(null, $searchParams);
+    }
+
+    /**
+     * Get title and description from parentId 
+     * 
+     * @param string $facetId
+     */
+    private function setTitleAndDescription($facetId)
+    {
+
+        // Default
+        $titleParts = explode(':', $facetId);
+        $title = ucfirst(count($titleParts) > 1 ? $titleParts[1] : $titleParts[0]);
+        $this->title = $title;
+        $this->description = 'Search on ' . $title;
+
+        try {
+            $results = $this->context->dbDriver->pQuery('SELECT value, description FROM ' . $this->context->dbDriver->schema . '.facet WHERE normalize(id)=normalize($1)', array($facetId)); 
+            if (!$results) {
+                throw new Exception();
+            }
+            $result = pg_fetch_assoc($results);
+            if ( isset($result) ) {
+                $this->description = $result['description'] ?? $this->description;
+                $this->title = $result['value'] ?? $this->title;
+            }
+        } catch (Exception $e) {
+            // Keep going
+        }
+        
     }
 
     /**
