@@ -878,6 +878,9 @@ class STAC extends RestoAddOn
             return RestoLogUtil::httpError(400, 'Only one of either intersects or bbox should be specified');
         }
 
+        // Set Content-Type to GeoJSON
+        $this->context->outputFormat = 'geojson';
+
         /*
          * [TODO][CHANGE THIS] Temporary solution for collection that are not in resto schema 
          *   => replace search on single collection by direct search on single collection
@@ -905,11 +908,6 @@ class STAC extends RestoAddOn
         }
         */
 
-        // Set Content-Type to GeoJSON
-        if ($this->context->outputFormat === 'json') {
-            $this->context->outputFormat = 'geojson';
-        }
-        
         return $restoCollections->search($model, $params);
     }
 
