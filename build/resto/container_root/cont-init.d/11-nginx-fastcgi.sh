@@ -1,4 +1,4 @@
-#!/usr/bin/with-contenv bash
+#!/command/with-contenv bash
 
 CONF_NGINX_GLOBAL=/etc/nginx/nginx.conf
 CONF_NGINX_SITE=/etc/nginx/sites-available/default

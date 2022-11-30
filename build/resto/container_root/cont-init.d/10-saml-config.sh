@@ -1,4 +1,4 @@
-#!/usr/bin/with-contenv bash
+#!/command/with-contenv bash
 
 # if SAML_SP_ENABLE is set to true, then generate /etc/simplesaml/config.php from environment variables
 if [[ "${SAML_SP_ENABLE}" != "true" ]]; then

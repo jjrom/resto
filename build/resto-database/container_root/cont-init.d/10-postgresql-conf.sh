@@ -1,4 +1,4 @@
-#!/usr/bin/with-contenv bash
+#!/command/with-contenv bash
 
 CONF_POSTGRESQL=/etc/postgresql.conf
 

@@ -1,4 +1,4 @@
-#!/usr/bin/with-contenv bash
+#!/command/with-contenv bash
 
 if [[ $RESTO_DEBUG = 1 || $RESTO_DEBUG = '1' || $RESTO_DEBUG = 'true' ]]
 then
