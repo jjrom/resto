@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/command/with-contenv bash
 
 # Force script to exit on error
 RED='\033[0;31m'
