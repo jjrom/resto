@@ -213,7 +213,7 @@ class UsersFunctions
         )));
         
         if (count($results) === 0) {
-            RestoLogUtil::httpError(404, 'Unknown user');
+            isset($params['partial']) ? RestoLogUtil::httpError(404, 'Unknown user') : RestoLogUtil::httpError(401, 'Unauthorized - unknown user: ' . $fieldValue);
         }
 
         /*
