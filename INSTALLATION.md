@@ -62,9 +62,9 @@ A normal PG user with `create schema` and `insert on spatial_ref_sys` rights is 
         grant create on database <dbname> to <dbuser>;
         grant insert on table spatial_ref_sys to <dbuser>;
 
-By default, resto tables, functions and triggers will be installed in a `resto` schema by running [scripts/installOnExternalDB.sh](https://github.com/jjrom/resto/blob/master/scripts/installOnExternalDB.sh). The default schema can be changed by setting the DATABASE_SCHEMA environment variable in config.env
+The "commons" tables i.e. mainly user and rights are stored under the DATABASE_COMMON_SCHEMA schema. All other table i.e. collection, feature, etc. are stored within DATABASE_COMMON_SCHEMA schema.
 
-        ./scripts/installOnExternalDB.sh -e <config file>
+By default, DATABASE_COMMON_SCHEMA and DATABASE_COMMON_SCHEMA have the same value set to `resto`. So all tables, functions and triggers will be installed in the `resto` schema by running [scripts/installOnExternalDB.sh](https://github.com/jjrom/resto/blob/master/scripts/installOnExternalDB.sh). These values can be changed by setting the DATABASE_COMMON_SCHEMA and DATABASE_TARGET_SCHEMA environment variables in config.env. YOU SHOULD NOT DO THAT UNLESS YOU HAVE A VERY GOOD REASON TO DO THAT - for instance use the same resto database instance to store independants collection from different resto api instances.
         
 Note: The `insert on spatial_ref_sys` right can be revoked once the database is installed (first deploy) by running:
     

@@ -339,7 +339,7 @@ abstract class RestoModel
         ),
 
         /*
-         * Apply a filter on collections based on the resto.collection keywords column
+         * Apply a filter on collections based on the DATABASE_TARGET_SCHEMA.collection keywords column
          * Equivalent to apply a collections filter with a list of collections
          */
         'resto:ckeywords' => array(
@@ -821,7 +821,7 @@ abstract class RestoModel
          *  
          * (do this before getKeywords to avoid iTag process)
          */
-        if (isset($productIdentifier) && (new FeaturesFunctions($collection->context->dbDriver))->featureExists($featureId, $collection->context->dbDriver->schema . '.' . $collection->model->dbParams['tablePrefix'] . 'feature')) {
+        if (isset($productIdentifier) && (new FeaturesFunctions($collection->context->dbDriver))->featureExists($featureId, $collection->context->dbDriver->targetSchema . '.' . $collection->model->dbParams['tablePrefix'] . 'feature')) {
             RestoLogUtil::httpError(409, 'Feature ' . $featureId . ' (with productIdentifier=' . $productIdentifier . ') already in database');
         }
 

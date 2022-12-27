@@ -92,7 +92,7 @@ class FeaturesFunctions
          */
         $this->checkMandatoryFilters($model->searchFilters, $paramsWithOperation);
 
-        $featureTableName = $this->dbDriver->schema . '.' . $model->dbParams['tablePrefix'] . 'feature';
+        $featureTableName = $this->dbDriver->targetSchema . '.' . $model->dbParams['tablePrefix'] . 'feature';
         
         /*
          * Set filters
@@ -129,10 +129,10 @@ class FeaturesFunctions
             $who = isset($paramsWithOperation['resto:owner']) ? $paramsWithOperation['resto:owner']['value'] : $user->profile['id'];
             if (isset($who)) {
                 $filtersAndJoins['filters'][] = array(
-                    'value' => $this->dbDriver->schema . '.likes.featureid=' . $featureTableName . '.id AND ' . $this->dbDriver->schema . '.likes.userid=' . pg_escape_string($who),
+                    'value' => $this->dbDriver->commonSchema . '.likes.featureid=' . $featureTableName . '.id AND ' . $this->dbDriver->commonSchema . '.likes.userid=' . pg_escape_string($who),
                     'isGeo' => false
                 );
-                $filtersAndJoins['joins'][] = 'JOIN ' . $this->dbDriver->schema . '.likes ON ' . $featureTableName . '.id = ' . $this->dbDriver->schema . '.likes.featureid';
+                $filtersAndJoins['joins'][] = 'JOIN ' . $this->dbDriver->commonSchema . '.likes ON ' . $featureTableName . '.id = ' . $this->dbDriver->commonSchema . '.likes.featureid';
             }
         }
 
@@ -243,7 +243,7 @@ class FeaturesFunctions
     public function getFeatureDescription($context, $user, $featureId, $collection, $fields)
     {
         $model = isset($collection) ? $collection->model : new DefaultModel();
-        $tablePrefix = $this->dbDriver->schema . '.' . $model->dbParams['tablePrefix'];
+        $tablePrefix = $this->dbDriver->targetSchema . '.' . $model->dbParams['tablePrefix'];
 
         $selectClause = $this->getSelectClause($tablePrefix . 'feature', $this->featureColumns, $user, array(
             'fields' => $fields,
@@ -333,7 +333,7 @@ class FeaturesFunctions
             /*
              * Store feature - identifier is generated with public.timestamp_to_id()
              */
-            $result = pg_fetch_assoc($this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->schema . '.' . $collection->model->dbParams['tablePrefix'] . 'feature (' . join(',', array_keys($keysValues['keysAndValues'])) . ') VALUES (' . join(',', array_values($keysValues['params'])) . ') RETURNING id, productidentifier', array_values($keysValues['keysAndValues'])), 0);
+            $result = pg_fetch_assoc($this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.' . $collection->model->dbParams['tablePrefix'] . 'feature (' . join(',', array_keys($keysValues['keysAndValues'])) . ') VALUES (' . join(',', array_values($keysValues['params'])) . ') RETURNING id, productidentifier', array_values($keysValues['keysAndValues'])), 0);
             
             /*
              * Store feature content
@@ -385,7 +385,7 @@ class FeaturesFunctions
          * Remove feature
          */
         try {
-            $this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->schema . '.' . $model->dbParams['tablePrefix'] . 'feature WHERE id=$1', array($feature->id));
+            $this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.' . $model->dbParams['tablePrefix'] . 'feature WHERE id=$1', array($feature->id));
         } catch (Exception $e) {
             RestoLogUtil::httpError(500, 'Cannot delete feature ' . $feature->id);
         }
@@ -457,7 +457,7 @@ class FeaturesFunctions
             /*
              * Table prefix depends on model
              */
-            $tablePrefix = $this->dbDriver->schema . '.' . $collection->model->dbParams['tablePrefix'];
+            $tablePrefix = $this->dbDriver->targetSchema . '.' . $collection->model->dbParams['tablePrefix'];
 
             /*
              * Update description
@@ -532,7 +532,7 @@ class FeaturesFunctions
         $model = isset($feature->collection) ? $feature->collection->model : new DefaultModel();
 
         try {
-            $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->schema . '.' . $model->dbParams['tablePrefix'] . 'feature SET ' . $property . '=$1 WHERE id=$2', array(
+            $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.' . $model->dbParams['tablePrefix'] . 'feature SET ' . $property . '=$1 WHERE id=$2', array(
                 $value,
                 $feature->id
             ));
@@ -567,7 +567,7 @@ class FeaturesFunctions
             /*
              * Update description, hashtags and normalized_hashtags
              */
-            $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->schema . '.' . $model->dbParams['tablePrefix'] . 'feature SET description=$1, hashtags=$2, normalized_hashtags=normalize_array($2) WHERE id=$3', array(
+            $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.' . $model->dbParams['tablePrefix'] . 'feature SET description=$1, hashtags=$2, normalized_hashtags=normalize_array($2) WHERE id=$3', array(
                 $description,
                 '{' . join(',', $hashtags) . '}',
                 $feature->id
@@ -716,7 +716,7 @@ class FeaturesFunctions
             }
             $columnsAndValues['id'] = $featureId;
             $columnsAndValues['collection'] = $collectionId;
-            $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->schema . '.' . $tableName . ' (' . join(',', array_keys($columnsAndValues)) . ') VALUES (' . join(',', $this->getCounterList(count($columnsAndValues))) . ') ON CONFLICT (id) DO UPDATE SET ' . join(',', $updates), array_values($columnsAndValues));
+            $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.' . $tableName . ' (' . join(',', array_keys($columnsAndValues)) . ') VALUES (' . join(',', $this->getCounterList(count($columnsAndValues))) . ') ON CONFLICT (id) DO UPDATE SET ' . join(',', $updates), array_values($columnsAndValues));
     
         }
 
@@ -951,7 +951,7 @@ class FeaturesFunctions
          * Add liked query if user is set an Social add-on is available
          */
         if (isset($user->profile['id']) && $options['useSocial']) {
-            $columns[] = 'EXISTS(SELECT ' . $this->dbDriver->schema . '.likes.featureid FROM ' . $this->dbDriver->schema . '.likes WHERE ' . $this->dbDriver->schema . '.likes.featureid=' . $featureTableName . '.id AND ' . $this->dbDriver->schema . '.likes.userid=' . $user->profile['id'] . ') AS liked';
+            $columns[] = 'EXISTS(SELECT ' . $this->dbDriver->commonSchema . '.likes.featureid FROM ' . $this->dbDriver->commonSchema . '.likes WHERE ' . $this->dbDriver->commonSchema . '.likes.featureid=' . $featureTableName . '.id AND ' . $this->dbDriver->commonSchema . '.likes.userid=' . $user->profile['id'] . ') AS liked';
         }
 
         /*

@@ -92,33 +92,31 @@ fi
 DATABASE_HOST=$(grep ^DATABASE_HOST= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 DATABASE_PORT=$(grep ^DATABASE_PORT= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 DATABASE_NAME=$(grep ^DATABASE_NAME= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
-DATABASE_SCHEMA=$(grep ^DATABASE_SCHEMA= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
+DATABASE_COMMON_SCHEMA=$(grep ^DATABASE_COMMON_SCHEMA= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
+DATABASE_TARGET_SCHEMA=$(grep ^DATABASE_TARGET_SCHEMA= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 DATABASE_USER_NAME=$(grep ^DATABASE_USER_NAME= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 DATABASE_USER_PASSWORD=$(grep ^DATABASE_USER_PASSWORD= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 
 PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME" -f ${ABS_ROOT_PATH}/../build/resto-database/sql/01_resto_functions.sql
 PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME" -f ${ABS_ROOT_PATH}/../build/resto-database/sql/01_tamn.sql
 
-if [[ "${DATABASE_SCHEMA}" == "" ]]; then
-    PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME" -f ${ABS_ROOT_PATH}/../build/resto-database/sql/02_resto_model.sql
-    # [IMPORTANT] Deactivate geometry_part split - should be completely removed in next version ?
-    #PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME" -f build/resto-database/sql/03_resto_triggers.sql
-    PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME" -f ${ABS_ROOT_PATH}/../build/resto-database/sql/04_resto_inserts.sql
-    PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME" -f ${ABS_ROOT_PATH}/../build/resto-database/sql/05_resto_indexes.sql
-else
-    cat ${ABS_ROOT_PATH}/../build/resto-database/sql/02_resto_model.sql | sed "s/CREATE SCHEMA IF NOT EXISTS resto/CREATE SCHEMA IF NOT EXISTS ${DATABASE_SCHEMA}/g" | sed "s/resto\./${DATABASE_SCHEMA}\./g" | PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME"
-    cat ${ABS_ROOT_PATH}/../build/resto-database/sql/04_resto_inserts.sql | sed "s/resto\./${DATABASE_SCHEMA}\./g" | PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME"
-    cat ${ABS_ROOT_PATH}/../build/resto-database/sql/05_resto_indexes.sql | sed "s/resto\./${DATABASE_SCHEMA}\./g" | PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME"
+if [[ "${DATABASE_COMMON_SCHEMA}" == "" ]]; then
+    DATABASE_COMMON_SCHEMA=resto
 fi
+
+if [[ "${DATABASE_TARGET_SCHEMA}" == "" ]]; then
+    DATABASE_TARGET_SCHEMA=resto
+fi
+
+cat ${ABS_ROOT_PATH}/../build/resto-database/sql/02_resto_common_model.sql | sed "s/__DATABASE_COMMON_SCHEMA__\./${DATABASE_COMMON_SCHEMA}\./g" | PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME"
+cat ${ABS_ROOT_PATH}/../build/resto-database/sql/03_resto_target_model.sql | sed "s/__DATABASE_TARGET_SCHEMA__\./${DATABASE_TARGET_SCHEMA}\./g" | PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME"
+# [TODO] To be discarded ?
+#cat ${ABS_ROOT_PATH}/../build/resto-database/sql/04_resto_triggers.sql | sed "s/__DATABASE_COMMON_SCHEMA__\./${DATABASE_TARGET_SCHEMA}\./g" | PGPASSWORD=${POSTGRES_PASSWORD} psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"
 
 # Addons sql files if any
 if [ -d "${ABS_ROOT_PATH}/../addons" ]; then
     for sql in $(find ${ABS_ROOT_PATH}/../addons -name "*.sql" | sort); do
         echo "[PROCESS] " . $sql
-        if [[ "${DATABASE_SCHEMA}" == "" ]]; then
-            PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME" -f $sql
-        else
-            cat $sql | sed "s/resto\./${DATABASE_SCHEMA}\./g" | PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME"
-        fi
+        cat $sql | sed "s/__DATABASE_COMMON_SCHEMA__\./${DATABASE_COMMON_SCHEMA}\./g" | sed "s/__DATABASE_TARGET_SCHEMA__\./${DATABASE_TARGET_SCHEMA}\./g" | PGPASSWORD=${DATABASE_USER_PASSWORD} psql -X -v ON_ERROR_STOP=1 -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER_NAME" -d "$DATABASE_NAME"
     done
 fi

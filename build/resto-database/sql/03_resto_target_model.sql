@@ -1,18 +1,16 @@
 --
--- resto core model
+-- resto dedicated target model
 --
 
 --
--- resto core model is sored under resto schema
+-- Target tables are sored under {DATABASE_TARGET_SCHEMA} schema (default is resto)
 --
--- [IMPORTANT] The schema MUST BE THE SAME that the one defined as DATABASE_SCHEMA in config.env (default is resto)
---
-CREATE SCHEMA IF NOT EXISTS resto;
+CREATE SCHEMA IF NOT EXISTS __DATABASE_TARGET_SCHEMA__;
 
 --
 -- collections table list all resto collections
 --
-CREATE TABLE IF NOT EXISTS resto.collection (
+CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.collection (
 
     -- Unique id for collection
     "id"                TEXT PRIMARY KEY,
@@ -33,7 +31,7 @@ CREATE TABLE IF NOT EXISTS resto.collection (
     -- Visibility - group visibility (only user within this group can see collection)
     visibility          INTEGER,
 
-    -- Owner of the collection. References resto.user.id
+    -- Owner of the collection. References __DATABASE_COMMON_SCHEMA__.user.id
     owner               BIGINT,
 
     -- Timestamp of collection creation
@@ -68,10 +66,10 @@ CREATE TABLE IF NOT EXISTS resto.collection (
 --
 -- osdescriptions table describe all RESTo collections
 --
-CREATE TABLE IF NOT EXISTS resto.osdescription (
+CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.osdescription (
 
-    -- Reference resto.collection.id
-    collection          TEXT REFERENCES resto.collection (id) ON DELETE CASCADE, 
+    -- Reference __DATABASE_TARGET_SCHEMA__.collection.id
+    collection          TEXT REFERENCES __DATABASE_TARGET_SCHEMA__.collection (id) ON DELETE CASCADE, 
 
     -- OpenSearch description lang
     lang                TEXT,
@@ -105,12 +103,12 @@ CREATE TABLE IF NOT EXISTS resto.osdescription (
 --
 -- Features table - handle every metadata
 --
-CREATE TABLE IF NOT EXISTS resto.feature (
+CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.feature (
 
     -- [INDEXED] UUID v5 based on productidentifier
     "id"                UUID PRIMARY KEY DEFAULT public.uuid_generate_v4(),
 
-    -- [INDEXED] Reference resto.collection.id - A feature is within one and only one collection
+    -- [INDEXED] Reference __DATABASE_TARGET_SCHEMA__.collection.id - A feature is within one and only one collection
     collection          TEXT NOT NULL, 
 
     -- Vendor identifier (for migration)
@@ -131,7 +129,7 @@ CREATE TABLE IF NOT EXISTS resto.feature (
     -- [INDEXED] Visibility - only user within a group with the same name as visibility can see feature
     visibility          INTEGER,
 
-    -- [INDEXED] Owner of the feature. Reference resto.user.id
+    -- [INDEXED] Owner of the feature. Reference __DATABASE_COMMON_SCHEMA__.user.id
     owner               BIGINT,
 
     -- [INDEXED] Open value
@@ -237,10 +235,10 @@ CREATE TABLE IF NOT EXISTS resto.feature (
 --
 -- Feature geometry is splitted into smaller part and indexed
 --
-CREATE TABLE IF NOT EXISTS resto.geometry_part (
+CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.geometry_part (
 
     -- Feature identifier
-    "id"                UUID REFERENCES resto.feature (id) ON DELETE CASCADE,
+    "id"                UUID REFERENCES __DATABASE_TARGET_SCHEMA__.feature (id) ON DELETE CASCADE,
 
     -- Feature's collection
     collection          TEXT NOT NULL, 
@@ -259,13 +257,13 @@ CREATE TABLE IF NOT EXISTS resto.geometry_part (
 --
 -- Relation between features
 --
-CREATE TABLE IF NOT EXISTS resto.relation (
+CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.relation (
 
     -- Reference feature id master
-    id1                 UUID REFERENCES resto.feature (id) ON DELETE CASCADE,
+    id1                 UUID REFERENCES __DATABASE_TARGET_SCHEMA__.feature (id) ON DELETE CASCADE,
 
     -- Reference feature id slave
-    id2                 UUID REFERENCES resto.feature (id) ON DELETE CASCADE,
+    id2                 UUID REFERENCES __DATABASE_TARGET_SCHEMA__.feature (id) ON DELETE CASCADE,
 
     -- Relation type: -1 (id1 is the parent of id2 - "hasSample"), 1 (id1 is the child of id1 - "isSampleOf")
     relation            INTEGER NOT NULL,
@@ -285,10 +283,10 @@ CREATE TABLE IF NOT EXISTS resto.relation (
 --
 -- Features content common to all features belonging to LandCoverModel (based on itag)
 --
-CREATE TABLE IF NOT EXISTS resto.feature_landcover (
+CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.feature_landcover (
 
-    -- [INDEXED] Reference resto.feature.id
-    "id"                UUID PRIMARY KEY REFERENCES resto.feature (id) ON DELETE CASCADE,
+    -- [INDEXED] Reference __DATABASE_TARGET_SCHEMA__.feature.id
+    "id"                UUID PRIMARY KEY REFERENCES __DATABASE_TARGET_SCHEMA__.feature (id) ON DELETE CASCADE,
 
     -- Collection id
     collection          TEXT NOT NULL, 
@@ -328,10 +326,10 @@ CREATE TABLE IF NOT EXISTS resto.feature_landcover (
 --
 -- Features specific properties based on SatelliteModel
 --
-CREATE TABLE IF NOT EXISTS resto.feature_satellite (
+CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.feature_satellite (
 
-    -- [INDEXED] Reference resto.feature.id
-    "id"                UUID PRIMARY KEY REFERENCES resto.feature (id) ON DELETE CASCADE,
+    -- [INDEXED] Reference __DATABASE_TARGET_SCHEMA__.feature.id
+    "id"                UUID PRIMARY KEY REFERENCES __DATABASE_TARGET_SCHEMA__.feature (id) ON DELETE CASCADE,
 
     -- Collection id
     collection          TEXT NOT NULL,
@@ -344,10 +342,10 @@ CREATE TABLE IF NOT EXISTS resto.feature_satellite (
 --
 -- Features specific properties based on OpticalModel
 --
-CREATE TABLE IF NOT EXISTS resto.feature_optical (
+CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.feature_optical (
 
-    -- [INDEXED] Reference resto.feature.id
-    "id"                UUID PRIMARY KEY REFERENCES resto.feature (id) ON DELETE CASCADE,
+    -- [INDEXED] Reference __DATABASE_TARGET_SCHEMA__.feature.id
+    "id"                UUID PRIMARY KEY REFERENCES __DATABASE_TARGET_SCHEMA__.feature (id) ON DELETE CASCADE,
 
     -- Collection id
     collection          TEXT NOT NULL,
@@ -361,221 +359,9 @@ CREATE TABLE IF NOT EXISTS resto.feature_optical (
 );
 
 --
--- users table list user informations
---
-CREATE TABLE IF NOT EXISTS resto.user (
-
-    -- Unique identifier based on resto serial (timestamp)
-    "id"                BIGINT PRIMARY KEY DEFAULT public.timestamp_to_id(clock_timestamp()),
-
-    -- Email adress
-    email               TEXT NOT NULL UNIQUE,
-
-    -- By default concatenation of firstname lastname
-    name                TEXT,
-
-    -- First name
-    firstname           TEXT,
-
-    -- Last name
-    lastname            TEXT,
-
-    -- User description
-    bio                 TEXT,
-
-    -- Array of groups referenced by resto.group.id
-    groups              INTEGER[],
-
-    -- User lang
-    lang                TEXT,
-
-    -- User country
-    country             TEXT,
-
-    -- User organization
-    organization        TEXT,
-
-    -- User organization country
-    organizationcountry TEXT,
-
-    -- Comm separated list of additionnal properties
-    flags               TEXT,
-
-    -- Array of topics of interest name. Reference resto.topic.name
-    topics              TEXT[],
-
-    -- Password stored as sha1 with salt
-    password            TEXT NOT NULL,
-
-    -- Url to user's picture
-    picture             TEXT,
-
-    -- Registration timestamp of the user
-    registrationdate    TIMESTAMP,
-
-    -- Token used for password reset
-    resettoken          TEXT,
-
-    -- Timestamp until which the reset token is valid
-    resetexpire         TIMESTAMP,
-
-    -- User is activated (1) once registration is completed (i.e. email adress verified)
-    activated           INTEGER,
-
-    -- Number of followers. Used by Social add-on
-    followers           INTEGER,
-
-    -- Number of followings. Used by Social add-on
-    followings          INTEGER,
-
-    -- Who validated the user (usually admin)
-    validatedby         TEXT, 
-
-    -- Date of validation
-    validationdate      TIMESTAMP, -- Validation date
-
-    -- External Identity provider (Facebook, google, etc.)
-    externalidp         JSON, 
-
-    -- Free application settings
-    settings            JSON
-
-);
-
---
--- Followers table
---
-CREATE TABLE IF NOT EXISTS resto.follower (
-
-    -- Reference resto.user.id
-    userid              BIGINT NOT NULL REFERENCES resto.user (id) ON DELETE CASCADE,
-
-    -- Reference resto.user.id
-    followerid          BIGINT NOT NULL REFERENCES resto.user (id) ON DELETE CASCADE,
-
-    -- Timestamp of relationship creation
-    created             TIMESTAMP,
-
-    PRIMARY KEY (userid, followerid)
-
-);
-
---
--- groups table list
---
-CREATE SEQUENCE IF NOT EXISTS resto.group_id_seq START 100 INCREMENT 1;
-CREATE TABLE IF NOT EXISTS resto.group (
-
-    -- Group identifier is a serial
-    "id"                INTEGER PRIMARY KEY DEFAULT nextval('resto.group_id_seq'),
-
-    -- Name of the group
-    name                TEXT NOT NULL,
-
-    -- Description
-    description         TEXT,
-
-    -- Owner of the group
-    owner               BIGINT,
-
-    -- Timestamp of group creation
-    created             TIMESTAMP
-
-);
-
---
--- topics table
---
-CREATE TABLE IF NOT EXISTS resto.topic (
-
-    -- Topic of interest name
-    name                TEXT PRIMARY KEY,
-
-    -- Description
-    description         TEXT
-
-);
-
---
--- rights table list user rights on collection
---
-CREATE SEQUENCE IF NOT EXISTS resto.right_id_seq START 100 INCREMENT 1;
-CREATE TABLE IF NOT EXISTS resto.right (
-
-    -- Unique id
-    gid                 INTEGER PRIMARY KEY DEFAULT nextval('resto.right_id_seq'), 
-
-    -- Reference to resto.user.id
-    userid              BIGINT,
-
-    -- Reference to resto.group.groupid
-    groupid             BIGINT,
-
-    -- Reference resto.collection.id
-    collection          TEXT,
-
-    -- Reference resto.feature.id
-    featureid           UUID,
-
-    -- Has right to download = 1. Otherwise 0
-    download            INTEGER DEFAULT 0,
-
-    -- Has right to visualize = 1. Otherwise 0
-    visualize           INTEGER DEFAULT 0,
-
-    -- Has right to create a collection = 1. Otherwise 0
-    createcollection    INTEGER DEFAULT 0
-
-);
-
---
--- Shared links are temporaty links available when you know the url
---
-CREATE SEQUENCE IF NOT EXISTS resto.sharedlink_id_seq START 100 INCREMENT 1;
-CREATE TABLE IF NOT EXISTS resto.sharedlink (
-
-    -- Not used
-    gid                 INTEGER PRIMARY KEY DEFAULT nextval('resto.sharedlink_id_seq'),
-
-    -- Token
-    token               TEXT UNIQUE NOT NULL,
-
-    -- Url that can be requested with this token
-    url                 TEXT NOT NULL,
-
-    -- Validity in the future - if request time is greater than validity then 403
-    validity            TIMESTAMP,
-
-    -- Original requester of this link. Reference to resto.user.id
-    userid              BIGINT
-
-);
-
---
--- Revoked tokens table
--- On insert trigger delete entries older than 48 hours
---
-CREATE SEQUENCE IF NOT EXISTS resto.revokedtoken_id_seq START 100 INCREMENT 1;
-CREATE TABLE IF NOT EXISTS resto.revokedtoken (
-
-    -- Unique identifier (not used)
-    gid                 INTEGER PRIMARY KEY DEFAULT nextval('resto.revokedtoken_id_seq'),
-
-    -- Token either JWT or RJWT
-    token               TEXT UNIQUE NOT NULL,
-
-    -- Date of token creation
-    created             TIMESTAMP NOT NULL DEFAULT now(),
-
-    -- Usually the exp time of the token - after this date the token is no more valid and can be removed from this table
-    validuntil          TIMESTAMP
-
-);
-
---
 -- Facets table
 --
-CREATE TABLE IF NOT EXISTS resto.facet (
+CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.facet (
 
     -- Identifier for the facet (unique in combination with collection id)
     id                  TEXT NOT NULL,
@@ -612,30 +398,55 @@ CREATE TABLE IF NOT EXISTS resto.facet (
 
 );
 
---
--- Logs table stores all user requests
---
-CREATE TABLE IF NOT EXISTS resto.log (
+-- --------------------- INDEXES ---------------------------
 
-    gid                 SERIAL PRIMARY KEY,
+-- [TABLE __DATABASE_TARGET_SCHEMA__.collection]
+CREATE UNIQUE INDEX IF NOT EXISTS idx_id_collection on __DATABASE_TARGET_SCHEMA__.collection (normalize(id));
+CREATE INDEX IF NOT EXISTS idx_lineage_collection ON __DATABASE_TARGET_SCHEMA__.collection USING GIN (lineage);
+CREATE INDEX IF NOT EXISTS idx_visibility_collection ON __DATABASE_TARGET_SCHEMA__.collection (visibility);
+CREATE INDEX IF NOT EXISTS idx_created_collection ON __DATABASE_TARGET_SCHEMA__.collection (created);
+CREATE INDEX IF NOT EXISTS idx_keywords_collection ON __DATABASE_TARGET_SCHEMA__.collection USING GIN (keywords);
 
-    -- Reference resto.user id
-    userid              BIGINT,
+-- [TABLE __DATABASE_TARGET_SCHEMA__.osdescription]
+ALTER TABLE __DATABASE_TARGET_SCHEMA__.osdescription DROP CONSTRAINT IF EXISTS cl_collection;
+ALTER TABLE ONLY __DATABASE_TARGET_SCHEMA__.osdescription ADD CONSTRAINT cl_collection UNIQUE(collection, lang);
 
-    -- Http method (i.e. GET,PUT,POST,DELETE)
-    method              TEXT,
+CREATE INDEX IF NOT EXISTS idx_collection_osdescription ON __DATABASE_TARGET_SCHEMA__.osdescription (collection);
+-- CREATE INDEX IF NOT EXISTS idx_lang_osdescription ON __DATABASE_TARGET_SCHEMA__.osdescription (lang);
 
-    -- Time of query
-    querytime           TIMESTAMP,
+-- [TABLE __DATABASE_TARGET_SCHEMA__.facet]
+CREATE INDEX IF NOT EXISTS idx_id_facet ON __DATABASE_TARGET_SCHEMA__.facet (normalize(id));
+CREATE INDEX IF NOT EXISTS idx_pid_facet ON __DATABASE_TARGET_SCHEMA__.facet (normalize(pid));
+CREATE INDEX IF NOT EXISTS idx_type_facet ON __DATABASE_TARGET_SCHEMA__.facet (type);
+CREATE INDEX IF NOT EXISTS idx_collection_facet ON __DATABASE_TARGET_SCHEMA__.facet (normalize(collection));
+CREATE INDEX IF NOT EXISTS idx_value_facet ON __DATABASE_TARGET_SCHEMA__.facet USING GIN (normalize(value) gin_trgm_ops);
 
-    -- Query path
-    path                TEXT,
+-- [TABLE __DATABASE_TARGET_SCHEMA__.feature]
+CREATE INDEX IF NOT EXISTS idx_collection_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (collection);
+CREATE INDEX IF NOT EXISTS idx_startdateidx_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (startdate_idx);
+CREATE INDEX IF NOT EXISTS idx_createdidx_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (created_idx);
+CREATE INDEX IF NOT EXISTS idx_owner_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (owner) WHERE owner IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_visibility_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (visibility);
+CREATE INDEX IF NOT EXISTS idx_status_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (status);
+CREATE INDEX IF NOT EXISTS idx_centroid_feature ON __DATABASE_TARGET_SCHEMA__.feature USING GIST (centroid);
+CREATE INDEX IF NOT EXISTS idx_nhashtags_feature ON __DATABASE_TARGET_SCHEMA__.feature USING GIN (normalized_hashtags) WHERE normalized_hashtags IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_geom_feature ON __DATABASE_TARGET_SCHEMA__.feature USING GIST (geom);
 
-    -- Query params
-    query               TEXT,
+-- [TABLE __DATABASE_TARGET_SCHEMA__.geometry_part]
+CREATE INDEX IF NOT EXISTS idx_id_geometry_part ON __DATABASE_TARGET_SCHEMA__.geometry_part USING HASH (id);
+CREATE INDEX IF NOT EXISTS idx_geom_geometry_part ON __DATABASE_TARGET_SCHEMA__.geometry_part USING GIST (geom);
 
-    -- Query initiator IP address
-    ip                  TEXT
+-- [TABLE __DATABASE_TARGET_SCHEMA__.feature_landcover]
+CREATE INDEX IF NOT EXISTS idx_cultivated_m_landcover ON __DATABASE_TARGET_SCHEMA__.feature_landcover USING btree (cultivated);
+CREATE INDEX IF NOT EXISTS idx_desert_m_landcover ON __DATABASE_TARGET_SCHEMA__.feature_landcover USING btree (desert);
+CREATE INDEX IF NOT EXISTS idx_flooded_m_landcover ON __DATABASE_TARGET_SCHEMA__.feature_landcover USING btree (flooded);
+CREATE INDEX IF NOT EXISTS idx_forest_m_landcover ON __DATABASE_TARGET_SCHEMA__.feature_landcover USING btree (forest);
+CREATE INDEX IF NOT EXISTS idx_herbaceous_m_landcover ON __DATABASE_TARGET_SCHEMA__.feature_landcover USING btree (herbaceous);
+CREATE INDEX IF NOT EXISTS idx_ice_m_landcover ON __DATABASE_TARGET_SCHEMA__.feature_landcover USING btree (ice);
+CREATE INDEX IF NOT EXISTS idx_urban_m_landcover ON __DATABASE_TARGET_SCHEMA__.feature_landcover USING btree (urban);
+CREATE INDEX IF NOT EXISTS idx_water_m_landcover ON __DATABASE_TARGET_SCHEMA__.feature_landcover USING btree (water);
 
-);
+-- [TABLE __DATABASE_TARGET_SCHEMA__.feature_optical]
+CREATE INDEX IF NOT EXISTS idx_cloudcover_m_optical ON __DATABASE_TARGET_SCHEMA__.feature_optical USING btree (cloudcover);
+
 

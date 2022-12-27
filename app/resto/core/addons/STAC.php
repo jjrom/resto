@@ -1256,8 +1256,8 @@ class STAC extends RestoAddOn
 
             // First get type or pid
             // [TODO]  Return /search items instead of child for high number of results ?
-            // $results = $this->context->dbDriver->pQuery('SELECT id, value, isleaf, sum(counter) as matched FROM ' . $this->context->dbDriver->schema . '.facet WHERE ' . ($nbOfSegments === 1 ? 'type LIKE $1' : 'pid=$1' ) . ' GROUP BY id,value,isleaf ORDER BY matched DESC', array(
-            $results = $this->context->dbDriver->pQuery('SELECT id, value, pid, isleaf, sum(counter) as matched FROM ' . $this->context->dbDriver->schema . '.facet WHERE ' . ($nbOfSegments === $leafPosition ? $where : 'pid=$1' ) . ' GROUP BY id, value, pid, isleaf ORDER BY value ASC', $nbOfSegments === $leafPosition ? $whereValues : array($whereValues[0])); 
+            // $results = $this->context->dbDriver->pQuery('SELECT id, value, isleaf, sum(counter) as matched FROM ' . $this->context->dbDriver->targetSchema . '.facet WHERE ' . ($nbOfSegments === 1 ? 'type LIKE $1' : 'pid=$1' ) . ' GROUP BY id,value,isleaf ORDER BY matched DESC', array(
+            $results = $this->context->dbDriver->pQuery('SELECT id, value, pid, isleaf, sum(counter) as matched FROM ' . $this->context->dbDriver->targetSchema . '.facet WHERE ' . ($nbOfSegments === $leafPosition ? $where : 'pid=$1' ) . ' GROUP BY id, value, pid, isleaf ORDER BY value ASC', $nbOfSegments === $leafPosition ? $whereValues : array($whereValues[0])); 
 
             if (!$results) {
                 throw new Exception();
@@ -1362,7 +1362,7 @@ class STAC extends RestoAddOn
         $this->description = 'Search on ' . $title;
 
         try {
-            $results = $this->context->dbDriver->pQuery('SELECT value, description FROM ' . $this->context->dbDriver->schema . '.facet WHERE normalize(id)=normalize($1)', array($facetId)); 
+            $results = $this->context->dbDriver->pQuery('SELECT value, description FROM ' . $this->context->dbDriver->targetSchema . '.facet WHERE normalize(id)=normalize($1)', array($facetId)); 
             if (!$results) {
                 throw new Exception();
             }

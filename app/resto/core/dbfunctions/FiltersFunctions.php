@@ -60,7 +60,7 @@ class FiltersFunctions
         $this->context = $context;
         $this->user = $user;
         $this->model = $model;
-        $this->tablePrefix = $this->context->dbDriver->schema . '.' . $this->model->dbParams['tablePrefix'];
+        $this->tablePrefix = $this->context->dbDriver->targetSchema . '.' . $this->model->dbParams['tablePrefix'];
     }
     
     /**
@@ -115,7 +115,7 @@ class FiltersFunctions
                          */
                         if ($paramsWithOperation[$filterName]['value'] === 'f') {
                             $filters[] = array(
-                                'value' => $this->tablePrefix . 'feature.' . $this->model->searchFilters[$filterName]['key'] . ' IN (SELECT userid FROM ' . $this->context->dbDriver->schema . '.follower WHERE followerid=' . pg_escape_string($this->user->profile['id']) .  ')',
+                                'value' => $this->tablePrefix . 'feature.' . $this->model->searchFilters[$filterName]['key'] . ' IN (SELECT userid FROM ' . $this->context->dbDriver->commonSchema . '.follower WHERE followerid=' . pg_escape_string($this->user->profile['id']) .  ')',
                                 'isGeo' => false
                             );
                         }
@@ -124,7 +124,7 @@ class FiltersFunctions
                          */
                         elseif ($paramsWithOperation[$filterName]['value'] === 'F') {
                             $filters[] = array(
-                                'value' => '(' . $this->tablePrefix . 'feature.' . $this->model->searchFilters[$filterName]['key'] . '=' . pg_escape_string($this->user->profile['id']) . ' OR ' . $this->tablePrefix . 'feature.' . $this->model->searchFilters[$filterName]['key'] . ' IN (SELECT userid FROM ' . $this->context->dbDriver->schema . '.follower WHERE followerid=' . pg_escape_string($this->user->profile['id']) .  '))',
+                                'value' => '(' . $this->tablePrefix . 'feature.' . $this->model->searchFilters[$filterName]['key'] . '=' . pg_escape_string($this->user->profile['id']) . ' OR ' . $this->tablePrefix . 'feature.' . $this->model->searchFilters[$filterName]['key'] . ' IN (SELECT userid FROM ' . $this->context->dbDriver->commonSchema . '.follower WHERE followerid=' . pg_escape_string($this->user->profile['id']) .  '))',
                                 'isGeo' => false
                             );
                         } else {
@@ -368,7 +368,7 @@ class FiltersFunctions
     private function prepareFilterQueryModel($featureTableName, $modelName)
     {
         return array(
-            'value' => $featureTableName . '.collection IN (SELECT id FROM ' . $this->context->dbDriver->schema . '.collection WHERE lineage @> ARRAY[\'' . pg_escape_string($modelName) . '\'])',
+            'value' => $featureTableName . '.collection IN (SELECT id FROM ' . $this->context->dbDriver->targetSchema . '.collection WHERE lineage @> ARRAY[\'' . pg_escape_string($modelName) . '\'])',
             'isGeo' => false
         );
     }
@@ -695,7 +695,7 @@ class FiltersFunctions
 
     /**
      * 
-     * If $this->context->dbDriver->useGeometryPart is true then geometry is indexed in schema.geometry_part joined table
+     * If $this->context->dbDriver->useGeometryPart is true then geometry is indexed in targetSchema.geometry_part joined table
      * Otherwise is is directly retrieved from the indexed "feature_geometry" table 
      * This should be used for large geometry
      * 

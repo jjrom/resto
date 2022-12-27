@@ -520,7 +520,8 @@ class RestoUser
             'id' => $this->profile['id'],
             'groupid' => null,
             'collectionId' => $collectionId,
-            'featureId' => $featureId
+            'featureId' => $featureId,
+            'target' => $this->context->dbDriver->targetSchema
         );
     }
 
