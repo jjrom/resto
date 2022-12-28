@@ -294,7 +294,7 @@ class RestoUser
          * Compute rights if they are not already set
          */
         if (!isset($this->rights)) {
-            $this->rights = (new RightsFunctions($this->context->dbDriver))->getRightsForUser($this, null, null);
+            $this->rights = (new RightsFunctions($this->context->dbDriver))->getRightsForUser($this, $this->context->dbDriver->targetSchema, null, null);
         }
 
         /*
@@ -360,7 +360,7 @@ class RestoUser
     {
         $this->loadProfile();
         (new RightsFunctions($this->context->dbDriver))->storeOrUpdateRights($this->getRightsArray($rights, $collectionId, $featureId));
-        $this->rights = (new RightsFunctions($this->context->dbDriver))->getRightsForUser($this, null, null);
+        $this->rights = (new RightsFunctions($this->context->dbDriver))->getRightsForUser($this, $this->context->dbDriver->targetSchema, null, null);
         return true;
     }
 
@@ -376,7 +376,7 @@ class RestoUser
     {
         $this->loadProfile();
         (new RightsFunctions($this->context->dbDriver))->removeRights($this->getRightsArray($rights, $collectionId, $featureId));
-        $this->rights = (new RightsFunctions($this->context->dbDriver))->getRightsForUser($this, null, null);
+        $this->rights = (new RightsFunctions($this->context->dbDriver))->getRightsForUser($this, $this->context->dbDriver->targetSchema, null, null);
         return true;
     }
 

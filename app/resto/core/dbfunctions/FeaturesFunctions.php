@@ -129,10 +129,10 @@ class FeaturesFunctions
             $who = isset($paramsWithOperation['resto:owner']) ? $paramsWithOperation['resto:owner']['value'] : $user->profile['id'];
             if (isset($who)) {
                 $filtersAndJoins['filters'][] = array(
-                    'value' => $this->dbDriver->commonSchema . '.likes.featureid=' . $featureTableName . '.id AND ' . $this->dbDriver->commonSchema . '.likes.userid=' . pg_escape_string($who),
+                    'value' => $this->dbDriver->targetSchema . '.likes.featureid=' . $featureTableName . '.id AND ' . $this->dbDriver->targetSchema . '.likes.userid=' . pg_escape_string($who),
                     'isGeo' => false
                 );
-                $filtersAndJoins['joins'][] = 'JOIN ' . $this->dbDriver->commonSchema . '.likes ON ' . $featureTableName . '.id = ' . $this->dbDriver->commonSchema . '.likes.featureid';
+                $filtersAndJoins['joins'][] = 'JOIN ' . $this->dbDriver->targetSchema . '.likes ON ' . $featureTableName . '.id = ' . $this->dbDriver->targetSchema . '.likes.featureid';
             }
         }
 
@@ -951,7 +951,7 @@ class FeaturesFunctions
          * Add liked query if user is set an Social add-on is available
          */
         if (isset($user->profile['id']) && $options['useSocial']) {
-            $columns[] = 'EXISTS(SELECT ' . $this->dbDriver->commonSchema . '.likes.featureid FROM ' . $this->dbDriver->commonSchema . '.likes WHERE ' . $this->dbDriver->commonSchema . '.likes.featureid=' . $featureTableName . '.id AND ' . $this->dbDriver->commonSchema . '.likes.userid=' . $user->profile['id'] . ') AS liked';
+            $columns[] = 'EXISTS(SELECT ' . $this->dbDriver->targetSchema . '.likes.featureid FROM ' . $this->dbDriver->targetSchema . '.likes WHERE ' . $this->dbDriver->targetSchema . '.likes.featureid=' . $featureTableName . '.id AND ' . $this->dbDriver->targetSchema . '.likes.userid=' . $user->profile['id'] . ') AS liked';
         }
 
         /*
