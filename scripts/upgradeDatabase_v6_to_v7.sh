@@ -71,6 +71,16 @@ do
 	esac
 done
 
+#
+# Check mandatory tools
+#
+if ! command -v psql &> /dev/null
+then
+    echo -e "${RED}[ERROR]${NC} The required \"psql\" command was not found. Please install postgresql-client package before running this script."
+    echo ""
+    exit 1
+fi
+
 if [ ! -f ${ENV_FILE} ]; then
     showUsage
     echo -e "${RED}[ERROR]${NC} Missing or invalid config file!"

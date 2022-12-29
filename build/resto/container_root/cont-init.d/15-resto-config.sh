@@ -54,6 +54,13 @@ if [ ! -z "${ADDON_TAG_ITAG_TAGGERS}" ]; then
     ADDON_TAG_ITAG_TAGGERS=\'$(echo $ADDON_TAG_ITAG_TAGGERS | sed s/,/\',\'/g)\'
 fi
 
+# [IMPORTANT] Set DATABASE_PORT
+if [ "${DATABASE_HOST}" == "restodb" ]; then
+    DATABASE_PORT=5432
+else
+    DATABASE_PORT=${DATABASE_EXPOSED_PORT}
+fi
+
 # Awfull trick
 eval "cat <<EOF
 $(<${CONFIG_TEMPLATE_FILE})

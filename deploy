@@ -21,8 +21,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 CLEAN=0
-
-PROJECT_NAME=resto
+FORCE_DATABASE_INSTALLATION=0
 ################################
 
 #
@@ -39,14 +38,14 @@ trap 'err_report $LINENO' ERR
 #
 function showUsage {
     echo -e ""
-    echo -e "Deploy a ${PROJECT_NAME} docker instance "
+    echo -e "Deploy a resto docker instance "
     echo -e ""
     echo -e "   Usage $0 [options]"
     echo -e ""
     echo -e "   Options:"
     echo -e ""
     echo -e "      -e | --envfile Environnement file (default is ${GREEN}config.env${NC})"
-    echo -e "      -p | --projectName Project name (default is ${GREEN}${PROJECT_NAME}${NC})"
+    echo -e "      -F | --force Force database model installation"
     echo -e "      -C | --clean Clean all containers and volumes before deploying. ${YELLOW}USE WITH CAUTION !${NC}"
     echo -e "      -h | --help show this help"
     echo -e ""
@@ -66,18 +65,12 @@ do
             ENV_FILE="$2"
             shift 2 # past argument
             ;;
-        -p|--projectName)
-            PROJECT_NAME="$2"
-            if [[ "$2" == "" || "$2" == /- ]]; then
-                showUsage
-                echo -e "${RED}[ERROR] Missing project name${NC}"
-                echo -e ""
-                exit 1
-            fi
-            shift # past argument
-            ;;
         -C|--clean)
             CLEAN=1
+            shift # past argument
+            ;;
+        -F|--force)
+            FORCE_DATABASE_INSTALLATION=1
             shift # past argument
             ;;
         -h|--help)
@@ -149,7 +142,6 @@ COMPOSE_FILE=$(grep ^COMPOSE_FILE= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++)
 # Clean errors.log file
 rm -f errors.log
 
-echo -e "${YELLOW}[INFO] You're now running ${PROJECT_NAME} installation"
 echo -e "[INFO] Public endpoint is ${GREEN}${PUBLIC_ENDPOINT}${NC}"
 
 #
@@ -167,10 +159,6 @@ fi
 # Compute compose file
 #
 DEFAULT_COMPOSE_FILE=docker-compose.yml
-if [[ "${DATABASE_HOST}" == "restodb" ]]; then
-    DEFAULT_COMPOSE_FILE=${DEFAULT_COMPOSE_FILE}":docker-compose-restodb.yml"
-fi
-
 if [[ "${COMPOSE_FILE}" != "" ]]; then
     COMPOSE_FILE=${DEFAULT_COMPOSE_FILE}:${COMPOSE_FILE}
 else
@@ -191,7 +179,6 @@ if [[ ${CLEAN} -eq 1 ]]; then
         echo -e "[INFO] Cleaning existing resto container and volumes"
         COMPOSE_FILE=${COMPOSE_FILE} \
         RESTO_EXPOSED_PORT=${RESTO_EXPOSED_PORT} \
-        DATABASE_EXPOSED_PORT=${DATABASE_EXPOSED_PORT} \
         ENV_FILE=${ENV_FILE} \
         docker-compose down -v
     fi
@@ -201,12 +188,11 @@ COMPOSE_FILE=${COMPOSE_FILE} \
 RESTO_EXPOSED_PORT=${RESTO_EXPOSED_PORT} \
 DATABASE_EXPOSED_PORT=${DATABASE_EXPOSED_PORT} \
 DATABASE_HOST=${DATABASE_HOST} \
-DATABASE_PORT=${DATABASE_PORT} \
 DATABASE_NAME=${DATABASE_NAME} \
 DATABASE_USER_NAME=${DATABASE_USER_NAME} \
 DATABASE_USER_PASSWORD=${DATABASE_USER_PASSWORD} \
 ENV_FILE=${ENV_FILE} \
-docker-compose --project-name ${PROJECT_NAME}  up -d
+docker-compose up -d
 
 if [ "${DATABASE_HOST}" == "restodb" ] || [ "${DATABASE_HOST}" == "host.docker.internal" ]; then
     DATABASE_HOST_SEEN_FROM_DOCKERHOST=localhost
@@ -227,31 +213,23 @@ do
     sleep 1;
 done
 
-# Run database creation script if needed for external database
-if [[ "${DATABASE_HOST}" != "restodb" ]]; then
-  RESTO_EXISTS=$(PGPASSWORD=${DATABASE_USER_PASSWORD} psql -XAt -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h ${DATABASE_HOST_SEEN_FROM_DOCKERHOST} -p ${DATABASE_EXPOSED_PORT} -c "select count(*) from information_schema.routines where routine_name = 'st_splitdateline'")
-  if [[ "${RESTO_EXISTS}" == "0" ]]; then
-    echo -e "[INFO] No resto DB structure detected, creating one in db ${GREEN}${POSTGRES_DB}${NC}..."
-    $(dirname $0)/scripts/installOnExternalDB.sh -e "${ENV_FILE}"
-  fi
+# Run database creation script if needed
+DATABASE_COMMON_SCHEMA=$(grep ^DATABASE_COMMON_SCHEMA= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
+DATABASE_COMMON_SCHEMA_EXISTS=$(PGPASSWORD=${DATABASE_USER_PASSWORD} psql -XAt -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h ${DATABASE_HOST_SEEN_FROM_DOCKERHOST} -p ${DATABASE_EXPOSED_PORT} -c "SELECT count(*) FROM information_schema.schemata WHERE schema_name = '${DATABASE_COMMON_SCHEMA}';")
+DATABASE_TARGET_SCHEMA=$(grep ^DATABASE_TARGET_SCHEMA= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
+DATABASE_TARGET_SCHEMA_EXISTS=$(PGPASSWORD=${DATABASE_USER_PASSWORD} psql -XAt -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h ${DATABASE_HOST_SEEN_FROM_DOCKERHOST} -p ${DATABASE_EXPOSED_PORT} -c "SELECT count(*) FROM information_schema.schemata WHERE schema_name = '${DATABASE_TARGET_SCHEMA}';")
+if [[ "${DATABASE_COMMON_SCHEMA_EXISTS}" == "0" || "${DATABASE_TARGET_SCHEMA_EXISTS}" == "0" ]]; then
+    echo -e "${YELLOW}[WARNING] Incomplete resto model found on database ${DATABASE_HOST}${NC}"
+fi
+if [[ "${DATABASE_COMMON_SCHEMA_EXISTS}" == "0" || "${DATABASE_TARGET_SCHEMA_EXISTS}" == "0" || ${FORCE_DATABASE_INSTALLATION} -eq 1 ]]; then
+    echo -e "[INFO] Create resto database schema in ${GREEN}${DATABASE_HOST}${NC}"
+    $(dirname $0)/scripts/installDatabaseModel.sh -e "${ENV_FILE}"
 fi
 
-#
 # Create ADMIN_USER if not exist or update ADMIN_USER's password if it already exists
 $(dirname $0)/scripts/createAdminUser.sh -e ${ENV_FILE}
 
 echo -e ""
 
-#
-# Display mount point for database  
-# MacOS X is a bit tricky - https://stackoverflow.com/questions/41273514/access-docker-volume-mountpoint-with-docker-for-mac
-#
-if [[ ! "$OSTYPE" == "darwin"* ]]; then
-  if [[ "${DATABASE_HOST}" == "restodb" ]]; then
-      MOUNT_POINT=$(docker volume inspect ${PROJECT_NAME}"_database_data"| grep Mountpoint | awk -F\" '{print $4}')
-      echo -e "[INFO] Database mount point is ${GREEN}${MOUNT_POINT}${NC}"
-  fi
-fi
-
-echo -e "[INFO] Application ${GREEN}${PROJECT_NAME}${NC} up and running locally in ${GREEN}${TARGET}${NC} mode at ${GREEN}${PUBLIC_ENDPOINT}${NC}"
+echo -e "[INFO] The resto API is up and running locally in ${GREEN}${TARGET}${NC} mode at ${GREEN}${PUBLIC_ENDPOINT}${NC}"
 echo ""

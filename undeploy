@@ -15,13 +15,12 @@
 # under the License.
 
 ENV_FILE=./config.env
-PROJECT_NAME=resto
 
 function showUsage {
     echo ""
     echo "   Undeploy resto based docker instance "
     echo ""
-    echo "   Usage $0 <Project name>"
+    echo "   Usage $0"
     echo ""
     echo "      -e | --envfile Environnement file (default is ${GREEN}config.env${NC})"
     echo "      -h | --help show this help"
@@ -59,19 +58,8 @@ do
             echo -e ""
             exit 1
             ;;
-        *) # preserve positional arguments
-            PROJECT_NAME="$1"
-            shift
-            ;;
 	esac
 done
-
-if [ "${PROJECT_NAME}" == "" ]; then
-    showUsage
-    echo -e "${RED}[ERROR]${NC} Missing project name!"
-    echo ""
-    exit 0
-fi
 
 #
 # The environement file is mandatory
@@ -84,17 +72,15 @@ if [[ ! -f ${ENV_FILE} ]]; then
     exit 1
 fi
 
-echo "[INFO] Stopping ${GREEN}${PROJECT_NAME}${NC} docker instance"
+echo "[INFO] Stopping ${GREEN}resto${NC} docker instance"
 
-# Stop database if in container
-DATABASE_HOST=$(grep ^DATABASE_HOST= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
-if [[ "${DATABASE_HOST}" == "restodb" ]]; then
-    COMPOSE_FILE="docker-compose-restodb.yml:docker-compose.yml"
+DEFAULT_COMPOSE_FILE=docker-compose.yml
+if [[ "${COMPOSE_FILE}" != "" ]]; then
+    COMPOSE_FILE=${DEFAULT_COMPOSE_FILE}:${COMPOSE_FILE}
 else
-    COMPOSE_FILE="docker-compose.yml"
+    COMPOSE_FILE=${DEFAULT_COMPOSE_FILE}
 fi
-
-COMPOSE_FILE=${COMPOSE_FILE} ENV_FILE=${ENV_FILE} docker-compose --project-name ${PROJECT_NAME} down
+COMPOSE_FILE=${COMPOSE_FILE} ENV_FILE=${ENV_FILE} docker-compose down
 
 echo "[INFO] Done !"
 echo ""

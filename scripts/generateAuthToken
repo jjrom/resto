@@ -1,82 +1,108 @@
-#!/usr/bin/env php
-<?php
-/*
- * Copyright (C) 2015 Jérôme Gasperi <jerome.gasperi@gmail.com>
- *
- * This file is subject to the terms and conditions defined in
- * file 'LICENSE.txt', which is part of this source code package.
- */
-require __DIR__ . '/../app/vendor/php-jwt/JWT.php';
+#!/bin/bash
 
-/*
- * Acquisition date are UTC dates
- */
-date_default_timezone_set('UTC');
+USER_ID=100
+DAYS=100
+ABS_ROOT_PATH=$(cd -P -- "$(dirname -- "$0")" && printf '%s\n' "$(pwd -P)")
+ENV_FILE=${ABS_ROOT_PATH}/../config.env
 
-/*
- * Default values
- */
-$days = 1;
-$help = "\nGenerate a resto JSON Web Token (aka rJWT) authentication token for user\n";
-$help  .= "\n   USAGE : generateAuthToken [options] \n";
-$help .= "   OPTIONS:\n";
-$help .= "          -e [path] : config.env path (mandatory)\n";
-$help .= "          -i [bigint] : userid (mandatory)\n";
-$help .= "          -d [int] : duration of token in days (default " . $days . ")\n\n";
-$options = getopt("d:i:e:h");
-foreach ($options as $option => $value) {
-    if ($option === "d") {
-        $days = $value;
-    }
-    if ($option === "i") {
-        $userid = $value;
-    }
-    if ($option === "e") {
-        $envFile = $value;
-    }
-    if ($option === "h") {
-        echo $help;
-        exit;
-    }
+#
+# Convert relative path to absolute
+#
+function absolutePath {
+    local target="$1"
+
+    if [ "$target" == "." ]; then
+        echo "$(pwd)"
+    elif [ "$target" == ".." ]; then
+        echo "$(dirname "$(pwd)")"
+    else
+        echo "$(cd "$(dirname "$1")"; pwd)/$(basename "$1")"
+    fi
 }
 
-if (!isset($userid)) {
-    echo $help;
-    exit;
-}
-if (!isset($envFile) || !file_exists($envFile)) {
-    echo $help;
-    exit;
-}
-
-$passphrase = null;
-$handle = fopen($envFile, "r");
-if ($handle) {
-    while (($line = fgets($handle)) !== false) {
-        if (strpos($line, 'JWT_PASSPHRASE') === 0) {
-            $exploded = explode('=', $line);
-            $passphrase = str_replace('"', '', rtrim($exploded[1]));
-            break;
-        }
-    }
-    fclose($handle);
+#
+# Help function
+#
+function showUsage {
+    echo -e ""
+    echo -e "Generate a resto JSON Web Token (aka rJWT) authentication token for user"
+    echo -e ""
+    echo -e "   Usage $0 [options]"
+    echo -e ""
+    echo -e "   Options:"
+    echo -e ""
+    echo -e "      -e | --envfile Environnement file (default is ${GREEN}${ENV_FILE}${NC})"
+    echo -e "      -i | --userid User identifier (default is ${GREEN}${USER_ID}${NC})"
+    echo -e "      -d | --duration Duration of token in days (default ${GREEN}${DAYS}${NC})"
+    echo -e "      -h | --help show this help"
+    echo -e ""
+    echo -e "      !!! This script requires docker !!!"
+    echo -e ""
 }
 
-if (!isset($passphrase)) {
-    echo "\n[ERROR] Cannot read JWT_PASSPHRASE from input env file\n\n";
-}
+while (( "$#" ));
+do
+	case "$1" in
+        -e|--envfile)
+            if [[ "$2" == "" || ${2:0:1} == "-" ]]; then
+                showUsage
+                echo -e "${RED}[ERROR] Missing config file name${NC}"
+                echo -e ""
+                exit 1
+            fi
+            ENV_FILE="$2"
+            shift 2 # past argument
+            ;;
+        -i|--userid)
+            USER_ID="$2"
+            if [[ "$2" == "" || ${2:0:1} == "-" ]]; then
+                showUsage
+                echo -e "${RED}[ERROR] Missing user id${NC}"
+                echo -e ""
+                exit 1
+            fi
+            shift 2 # past argument
+            ;;
+        -d|--days)
+            DAYS="$2"
+            if [[ "$2" == "" || ${2:0:1} == "-" ]]; then
+                showUsage
+                echo -e "${RED}[ERROR] Missing days${NC}"
+                echo -e ""
+                exit 1
+            fi
+            shift 2 # past argument
+            ;;
+        -h|--help)
+            showUsage
+            shift # past argument
+            exit 0
+            ;;
+        --) # end argument parsing
+            shift
+            break
+            ;;
+        -*|--*=) # unsupported flags
+            showUsage
+            echo -e "${RED}[ERROR] Unsupported flag $1${NC}"
+            echo -e ""
+            exit 1
+            ;;
+	esac
+done
 
-$exp = time() + (86400 * $days);
-$splitJWT = explode('.', JWT::encode(array(
-    'sub' => $userid,
-    'iat' => time(),
-    'exp' => time() + (86400 * $days)
-), $passphrase));
+if ! command -v docker &> /dev/null
+then
+    echo ""
+    echo -e "${RED}[ERROR]${NC} The required \"docker\" command was not found. See https://docs.docker.com/get-docker/"
+    echo ""
+    exit 1
+fi
 
-echo "-------------------------------------------\n";
-echo "[INFO] Successfully generate rJWT\n";
-echo "[INFO] UserId   : \033[0;32m$userid\033[0m\n";
-echo "[INFO] Validity : \033[0;32m" . date('Y-m-d\TH:i:s', $exp) . "\033[0m ($days days)\n";
-echo "-------------------------------------------\n";
-echo "\033[0;32m" . $splitJWT[1] . '.' .$splitJWT[2] . "\033[0m";
-echo "\n-------------------------------------------\n";
+if [[ ! -f $(absolutePath ${ENV_FILE}) ]]; then
+    echo ""
+    echo -e "${RED}[ERROR]${NC} The file ${ENV_FILE} does not exists"
+    echo ""
+    exit 1
+fi
+docker run -it --rm -v ${ABS_ROOT_PATH}/php/generateAuthToken.php:/app/generateAuthToken.php -v $(absolutePath ${ENV_FILE}):/app/config.env php:7.2-alpine /app/generateAuthToken.php -e /app/config.env -i ${USER_ID} -d ${DAYS}

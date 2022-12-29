@@ -79,7 +79,7 @@ class RestoDatabaseDriver
             }
 
             if (isset($config['targetSchema'])) {
-                $this->commonSchema = $config['targetSchema'];
+                $this->targetSchema = $config['targetSchema'];
             }
 
             if (isset($config['useGeometryPart'])) {
