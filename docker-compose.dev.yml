@@ -8,13 +8,3 @@ services:
     volumes:
       - ./app/resto:/app/resto:ro
       - ./app/vendor:/app/vendor:ro
-  restodb:
-    environment:
-      - POSTGRES_MAX_CONNECTIONS=20
-      - POSTGRES_SHARED_BUFFERS=256MB
-      - POSTGRES_WORK_MEM=16MB
-      - POSTGRES_MAINTENANCE_WORK_MEM=12MB
-      - POSTGRES_EFFECTIVE_CACHE_SIZE=750MB
-      - POSTGRES_LOG_MIN_DURATION_STATEMENT=0
-    volumes:
-      - ./tmp:/backup

@@ -62,7 +62,7 @@ class GeneralFunctions
     public function getKeywords($language = 'en', $types = array())
     {
         $keywords = array();
-        $results = $this->dbDriver->query('SELECT name, normalize(name) as normalized, type, value, location FROM ' . $this->dbDriver->schema . '.keyword WHERE ' . 'lang IN(\'' . pg_escape_string($language) . '\', \'**\')' . (count($types) > 0 ? ' AND type IN(' . join(',', $types) . ')' : ''));
+        $results = $this->dbDriver->query('SELECT name, normalize(name) as normalized, type, value, location FROM ' . $this->dbDriver->commonSchema . '.keyword WHERE ' . 'lang IN(\'' . pg_escape_string($language) . '\', \'**\')' . (count($types) > 0 ? ' AND type IN(' . join(',', $types) . ')' : ''));
         while ($result = pg_fetch_assoc($results)) {
             if (!isset($keywords[$result['type']])) {
                 $keywords[$result['type']] = array();
@@ -95,7 +95,7 @@ class GeneralFunctions
         if (!isset($resourceUrl) || !isset($token)) {
             return false;
         }
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT userid FROM ' . $this->dbDriver->schema . '.sharedlink WHERE url=$1 AND token=$2 AND validity > now()', array($resourceUrl, $token)));
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT userid FROM ' . $this->dbDriver->commonSchema . '.sharedlink WHERE url=$1 AND token=$2 AND validity > now()', array($resourceUrl, $token)));
         return !empty($results) ? $results[0]['userid'] : false;
     }
 
@@ -115,7 +115,7 @@ class GeneralFunctions
         if (!is_int($duration)) {
             $duration = 86400;
         }
-        $results = $this->dbDriver->fetch($this->dbDriver->query('INSERT INTO ' . $this->dbDriver->schema . '.sharedlink (url, token, userid, validity) VALUES (\'' . pg_escape_string($resourceUrl) . '\',\'' . (RestoUtil::encrypt(mt_rand(0, 100000) . microtime())) . '\',' . pg_escape_string($userid) . ',now() + ' . $duration . ' * \'1 second\'::interval) RETURNING token', 500, 'Cannot share link'));
+        $results = $this->dbDriver->fetch($this->dbDriver->query('INSERT INTO ' . $this->dbDriver->commonSchema . '.sharedlink (url, token, userid, validity) VALUES (\'' . pg_escape_string($resourceUrl) . '\',\'' . (RestoUtil::encrypt(mt_rand(0, 100000) . microtime())) . '\',' . pg_escape_string($userid) . ',now() + ' . $duration . ' * \'1 second\'::interval) RETURNING token', 500, 'Cannot share link'));
         if (count($results) === 1) {
             return array(
                 'resourceUrl' => $resourceUrl,
@@ -135,7 +135,7 @@ class GeneralFunctions
      */
     public function storeQuery($userid, $query)
     {
-        return $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->schema . '.log (userid,method,path,query,ip,querytime) VALUES ($1,$2,$3,$4,$5,now())', array(
+        return $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->commonSchema . '.log (userid,method,path,query,ip,querytime) VALUES ($1,$2,$3,$4,$5,now())', array(
             $userid ?? null,
             $query['method'] ?? null,
             $query['path'] ?? null,
@@ -151,7 +151,7 @@ class GeneralFunctions
      */
     public function isTokenRevoked($token)
     {
-        return !empty($this->dbDriver->fetch($this->dbDriver->pQuery('SELECT 1 FROM ' . $this->dbDriver->schema . '.revokedtoken WHERE token=$1', array($token))));
+        return !empty($this->dbDriver->fetch($this->dbDriver->pQuery('SELECT 1 FROM ' . $this->dbDriver->commonSchema . '.revokedtoken WHERE token=$1', array($token))));
     }
 
     /**
@@ -163,7 +163,7 @@ class GeneralFunctions
     public function revokeToken($token, $validuntil)
     {
         if (isset($token) && !$this->isTokenRevoked($token)) {
-            $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->schema . '.revokedtoken (token, validuntil) VALUES($1, $2)', array(
+            $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->commonSchema . '.revokedtoken (token, validuntil) VALUES($1, $2)', array(
                 $token,
                 $validuntil ?? null
             ));

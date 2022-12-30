@@ -22,9 +22,14 @@ class RestoDatabaseDriver
 {
 
     /*
-     * Default schema
+     * Default DATABASE_COMMON_SCHEMA
      */
-    public $schema = 'resto';
+    public $commonSchema = 'resto';
+
+    /*
+     * Default DATABASE_TARGET_SCHEMA
+     */
+    public $targetSchema = 'resto';
 
     /*
      * Use geometry_part joined table for geometrical intersection
@@ -69,8 +74,12 @@ class RestoDatabaseDriver
 
         if (isset($config)) {
 
-            if (isset($config['schema'])) {
-                $this->schema = $config['schema'];
+            if (isset($config['commonSchema'])) {
+                $this->commonSchema = $config['commonSchema'];
+            }
+
+            if (isset($config['targetSchema'])) {
+                $this->targetSchema = $config['targetSchema'];
             }
 
             if (isset($config['useGeometryPart'])) {
@@ -112,7 +121,7 @@ class RestoDatabaseDriver
                 throw new Exception();
             }
             
-            $results = pg_query($dbh, 'SELECT lower(' . $dbh->schema . '.f_unaccent(\'' . pg_escape_string($sentence) . '\')) as normalized');
+            $results = pg_query($dbh, 'SELECT lower(public.f_unaccent(\'' . pg_escape_string($sentence) . '\')) as normalized');
             if (!$results) {
                 throw new Exception();
             }

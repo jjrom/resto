@@ -91,6 +91,22 @@ do
 	esac
 done
 
+#
+# Check mandatory tools
+#
+if ! command -v psql &> /dev/null
+then
+    echo -e "${RED}[ERROR]${NC} The required \"psql\" command was not found. Please install postgresql-client package before running this script."
+    echo ""
+    exit 1
+fi
+if ! command -v docker &> /dev/null
+then
+    echo -e "${RED}[ERROR]${NC} The required \"docker\" command was not found. See https://docs.docker.com/get-docker/"
+    echo ""
+    exit 1
+fi
+
 if [ ! -f ${ENV_FILE} ]; then
     showUsage
     echo -e "${RED}[ERROR]${NC} Missing or invalid config file!"
@@ -117,7 +133,7 @@ DATABASE_EXPOSED_PORT=$(grep ^DATABASE_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{for
 DATABASE_USER_PASSWORD=$(grep ^DATABASE_USER_PASSWORD= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 DATABASE_USER_NAME=$(grep ^DATABASE_USER_NAME= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 DATABASE_NAME=$(grep ^DATABASE_NAME= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
-DATABASE_SCHEMA=$(grep ^DATABASE_SCHEMA= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
+DATABASE_COMMON_SCHEMA=$(grep ^DATABASE_COMMON_SCHEMA= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 DATABASE_HOST=$(grep ^DATABASE_HOST= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 
 # Change password !!!
@@ -132,11 +148,11 @@ fi
 
 if [ "${ID}" != "" ]; then
 PGPASSWORD=${DATABASE_USER_PASSWORD} psql -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h ${DATABASE_HOST_SEEN_FROM_DOCKERHOST} -p ${DATABASE_EXPOSED_PORT} > /dev/null 2> errors.log << EOF
-INSERT INTO ${DATABASE_SCHEMA}.user (id,email,groups,firstname,password,activated,registrationdate) VALUES (${ID}, '${USERNAME}','{${GROUP}}','${USERNAME}','${HASH}', 1, now_utc());
+INSERT INTO ${DATABASE_COMMON_SCHEMA}.user (id,email,groups,firstname,password,activated,registrationdate) VALUES (${ID}, '${USERNAME}','{${GROUP}}','${USERNAME}','${HASH}', 1, now_utc());
 EOF
 else
 PGPASSWORD=${DATABASE_USER_PASSWORD} psql -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h ${DATABASE_HOST_SEEN_FROM_DOCKERHOST} -p ${DATABASE_EXPOSED_PORT} > /dev/null 2> errors.log << EOF
-INSERT INTO ${DATABASE_SCHEMA}.user (email,groups,firstname,password,activated,registrationdate) VALUES ('${USERNAME}','{${GROUP}}','${USERNAME}','${HASH}', 1, now_utc());
+INSERT INTO ${DATABASE_COMMON_SCHEMA}.user (email,groups,firstname,password,activated,registrationdate) VALUES ('${USERNAME}','{${GROUP}}','${USERNAME}','${HASH}', 1, now_utc());
 EOF
 fi
 echo -e "[INFO] User ${GREEN}${USERNAME}${NC} created"

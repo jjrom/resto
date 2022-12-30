@@ -184,7 +184,7 @@ class STACUtil
 
         try {
             
-            $results = $this->context->dbDriver->query('SELECT split_part(type, \':\', 1) as type, sum(counter) as matched FROM ' . $this->context->dbDriver->schema . '.facet WHERE pid=\'root\' GROUP BY split_part(type, \':\', 1) ORDER BY type ASC');
+            $results = $this->context->dbDriver->query('SELECT split_part(type, \':\', 1) as type, sum(counter) as matched FROM ' . $this->context->dbDriver->targetSchema . '.facet WHERE pid=\'root\' GROUP BY split_part(type, \':\', 1) ORDER BY type ASC');
             
             if (!$results) {
                 throw new Exception();

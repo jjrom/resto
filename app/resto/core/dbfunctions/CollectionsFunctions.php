@@ -46,7 +46,7 @@ class CollectionsFunctions
         // Get Opensearch description
         $osDescriptions = $this->getOSDescriptions($id);
         $collection = null;
-        $results = $this->dbDriver->pQuery('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords FROM ' . $this->dbDriver->schema . '.collection WHERE normalize(id)=normalize($1)', array($id));
+        $results = $this->dbDriver->pQuery('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords FROM ' . $this->dbDriver->targetSchema . '.collection WHERE normalize(id)=normalize($1)', array($id));
         while ($rowDescription = pg_fetch_assoc($results)) {
             $collection = $this->format($rowDescription, $osDescriptions[$id] ?? null);
         }
@@ -79,7 +79,7 @@ class CollectionsFunctions
             $where[] = 'keywords @> ARRAY[\'' . pg_escape_string($params['ck']) . '\']';
         }
         
-        $results = $this->dbDriver->query('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords FROM ' . $this->dbDriver->schema . '.collection' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : '') . ' ORDER BY id');
+        $results = $this->dbDriver->query('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords FROM ' . $this->dbDriver->targetSchema . '.collection' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : '') . ' ORDER BY id');
         while ($rowDescription = pg_fetch_assoc($results)) {
             $collections[$rowDescription['id']] = $this->format($rowDescription, $osDescriptions[$rowDescription['id']] ?? null);
         }
@@ -95,7 +95,7 @@ class CollectionsFunctions
      */
     public function collectionExists($collectionId)
     {
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id FROM ' . $this->dbDriver->schema . '.collection WHERE id=$1', array($collectionId)));
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id FROM ' . $this->dbDriver->targetSchema . '.collection WHERE id=$1', array($collectionId)));
         return !empty($results);
     }
 
@@ -123,12 +123,13 @@ class CollectionsFunctions
 
             $this->dbDriver->query('BEGIN');
 
-            $this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->schema . '.collection WHERE id=$1', array(
+            $this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.collection WHERE id=$1', array(
                 $collection->id
             ));
 
-            $this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->schema . '.right WHERE collection=$1', array(
-                $collection->id
+            $this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->commonSchema . '.right WHERE collection=$1 and target=$2', array(
+                $collection->id,
+                $this->dbDriver->targetSchema
             ));
             
             $this->dbDriver->query('COMMIT');
@@ -184,7 +185,8 @@ class CollectionsFunctions
                 'id' => null,
                 'groupid' => Resto::GROUP_DEFAULT_ID,
                 'collectionId' => $collection->id,
-                'featureId' => null
+                'featureId' => null,
+                'target' => $this->dbDriver->targetSchema
                 )
             );
            
@@ -252,7 +254,7 @@ class CollectionsFunctions
         }
 
         try {
-            $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->schema . '.collection SET ' . join(',', $toBeSet) . ' WHERE id=$1', array(
+            $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.collection SET ' . join(',', $toBeSet) . ' WHERE id=$1', array(
                 $collection->id
             ));
         } catch (Exception $e) {
@@ -351,10 +353,10 @@ class CollectionsFunctions
         $osDescriptions = array();
 
         if (isset($collectionId)) {
-            $results = $this->dbDriver->pQuery('SELECT * FROM ' . $this->dbDriver->schema . '.osdescription WHERE collection=$1', array($collectionId));
+            $results = $this->dbDriver->pQuery('SELECT * FROM ' . $this->dbDriver->targetSchema . '.osdescription WHERE collection=$1', array($collectionId));
         }
         else {
-            $results = $this->dbDriver->query('SELECT * FROM ' . $this->dbDriver->schema . '.osdescription');
+            $results = $this->dbDriver->query('SELECT * FROM ' . $this->dbDriver->targetSchema . '.osdescription');
         }
         
         while ($description = pg_fetch_assoc($results)) {
@@ -430,17 +432,17 @@ class CollectionsFunctions
 
             // bbox is set
             if ( isset($collection->extent['spatial']['bbox'][0]) ) {
-                $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->schema . '.collection (' . join(',', array_keys($toBeSet)) . ', bbox) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, ST_SetSRID(ST_MakeBox2D(ST_Point($16, $17), ST_Point($18, $19)), 4326) )', array_merge(array_values($toBeSet), $collection->extent['spatial']['bbox'][0]));    
+                $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.collection (' . join(',', array_keys($toBeSet)) . ', bbox) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, ST_SetSRID(ST_MakeBox2D(ST_Point($16, $17), ST_Point($18, $19)), 4326) )', array_merge(array_values($toBeSet), $collection->extent['spatial']['bbox'][0]));    
             } 
             else {
-                $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->schema . '.collection (' . join(',', array_keys($toBeSet)) . ') VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)', array_values($toBeSet));
+                $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.collection (' . join(',', array_keys($toBeSet)) . ') VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)', array_values($toBeSet));
             }
         }
         /*
          * Otherwise update collection fields (version, visibility, licenseid, providers and properties)
          */
         else {
-            $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->schema . '.collection SET model=$2, lineage=$3, licenseid=$4, visibility=$5, providers=$6, properties=$7, links=$8, assets=$9, keywords=$10, version=$11 WHERE id=$1', array(
+            $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.collection SET model=$2, lineage=$3, licenseid=$4, visibility=$5, providers=$6, properties=$7, links=$8, assets=$9, keywords=$10, version=$11 WHERE id=$1', array(
                 $collection->id,
                 $collection->model->getName(),
                 '{' . join(',', $collection->model->getLineage()) . '}',
@@ -476,7 +478,7 @@ class CollectionsFunctions
          * Insert OpenSearch descriptions within osdescriptions table
          * (one description per lang)
          *
-         * CREATE TABLE [$this->dbDriver->schema].osdescription (
+         * CREATE TABLE [$this->dbDriver->targetSchema].osdescription (
          *  collection          TEXT,
          *  lang                TEXT,
          *  shortname           TEXT,
@@ -489,7 +491,7 @@ class CollectionsFunctions
          *  attribution         TEXT
          * );
          */
-        $this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->schema . '.osdescription WHERE collection=$1', array(
+        $this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.osdescription WHERE collection=$1', array(
             $collection->id
         ));
 
@@ -536,7 +538,7 @@ class CollectionsFunctions
                     $osValues[] = '\'' . pg_escape_string($description[$key]) . '\'';
                 }
             }
-            $this->dbDriver->query('INSERT INTO ' . $this->dbDriver->schema . '.osdescription (' . join(',', $osFields) . ') VALUES(' . join(',', $osValues) . ')');
+            $this->dbDriver->query('INSERT INTO ' . $this->dbDriver->targetSchema . '.osdescription (' . join(',', $osFields) . ') VALUES(' . join(',', $osValues) . ')');
         }
 
     }
@@ -549,7 +551,7 @@ class CollectionsFunctions
      */
     private function collectionIsEmpty($collection)
     {
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT count(id) as count FROM ' . $this->dbDriver->schema . '.' . $collection->model->dbParams['tablePrefix'] . 'feature WHERE collection=$1 LIMIT 1', array($collection->id)));
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT count(id) as count FROM ' . $this->dbDriver->targetSchema . '.' . $collection->model->dbParams['tablePrefix'] . 'feature WHERE collection=$1 LIMIT 1', array($collection->id)));
         if ($results[0]['count'] === '0') {
             return true;
         }

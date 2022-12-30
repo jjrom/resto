@@ -187,7 +187,7 @@ class UsersFunctions
      */
     public function getUserPassword($identifier)
     {
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT password FROM ' . $this->dbDriver->schema . '.user WHERE email=$1', array($identifier)));
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT password FROM ' . $this->dbDriver->commonSchema . '.user WHERE email=$1', array($identifier)));
         return count($results) === 1 ? $results[0]['password'] : null;
     }
 
@@ -205,10 +205,10 @@ class UsersFunctions
         // Add followed and followme booleans
         $fields = 'id,email,name,firstname,lastname,bio,groups,lang,country,organization,organizationcountry,flags,topics,password,picture,to_iso8601(registrationdate),activated,followers,followings,validatedby,to_iso8601(validationdate),externalidp,settings';
         if (isset($params['from'])) {
-            $fields = $fields . ',EXISTS(SELECT followerid FROM ' . $this->dbDriver->schema . '.follower WHERE followerid=id AND userid=' . pg_escape_string($params['from']) . ') AS followme,EXISTS(SELECT followerid FROM ' . $this->dbDriver->schema . '.follower WHERE userid=id AND followerid=' . pg_escape_string($params['from']) . ') AS followed';
+            $fields = $fields . ',EXISTS(SELECT followerid FROM ' . $this->dbDriver->commonSchema . '.follower WHERE followerid=id AND userid=' . pg_escape_string($params['from']) . ') AS followme,EXISTS(SELECT followerid FROM ' . $this->dbDriver->commonSchema . '.follower WHERE userid=id AND followerid=' . pg_escape_string($params['from']) . ') AS followed';
         }
         
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT ' . $fields . ' FROM ' . $this->dbDriver->schema . '.user WHERE ' . $fieldName . '=$1', array(
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT ' . $fields . ' FROM ' . $this->dbDriver->commonSchema . '.user WHERE ' . $fieldName . '=$1', array(
             $fieldValue
         )));
         
@@ -281,10 +281,10 @@ class UsersFunctions
         // Add followed and followme booleans
         $fields = 'id,email,name,firstname,lastname,bio,groups,lang,country,organization,organizationcountry,flags,topics,password,picture,to_iso8601(registrationdate),activated,followers,followings,validatedby,to_iso8601(validationdate),externalidp,settings';
         if (isset($userid)) {
-            $fields = $fields . ',EXISTS(SELECT followerid FROM ' . $this->dbDriver->schema . '.follower WHERE followerid=id AND userid=' . pg_escape_string($userid) . ') AS followme,EXISTS(SELECT followerid FROM ' . $this->dbDriver->schema . '.follower WHERE userid=id AND followerid=' . pg_escape_string($userid) . ') AS followed';
+            $fields = $fields . ',EXISTS(SELECT followerid FROM ' . $this->dbDriver->commonSchema . '.follower WHERE followerid=id AND userid=' . pg_escape_string($userid) . ') AS followme,EXISTS(SELECT followerid FROM ' . $this->dbDriver->commonSchema . '.follower WHERE userid=id AND followerid=' . pg_escape_string($userid) . ') AS followed';
         }
         
-        $results = $this->dbDriver->query('SELECT ' . $fields . ' FROM ' . $this->dbDriver->schema . '.user WHERE ' . join(' AND ', $where) . ' ORDER BY id DESC LIMIT ' . $this->countLimit);
+        $results = $this->dbDriver->query('SELECT ' . $fields . ' FROM ' . $this->dbDriver->commonSchema . '.user WHERE ' . join(' AND ', $where) . ' ORDER BY id DESC LIMIT ' . $this->countLimit);
         
         $profiles = array();
         while ($profile = pg_fetch_assoc($results)) {
@@ -312,9 +312,9 @@ class UsersFunctions
         $query = null;
 
         if (isset($params['email'])) {
-            $query = 'SELECT activated FROM ' . $this->dbDriver->schema . '.user WHERE email=lower(\'' . pg_escape_string($params['email']) . '\')';
+            $query = 'SELECT activated FROM ' . $this->dbDriver->commonSchema . '.user WHERE email=lower(\'' . pg_escape_string($params['email']) . '\')';
         } elseif (isset($params['id']) && ctype_digit($params['id'])) {
-            $query = 'SELECT activated FROM ' . $this->dbDriver->schema . '.user WHERE id=' . pg_escape_string($params['id']);
+            $query = 'SELECT activated FROM ' . $this->dbDriver->commonSchema . '.user WHERE id=' . pg_escape_string($params['id']);
         }
         
         if (! isset($query)) {
@@ -391,7 +391,7 @@ class UsersFunctions
             }
         }
 
-        $results =  $this->dbDriver->fetch($this->dbDriver->query('INSERT INTO ' . $this->dbDriver->schema . '.user (' . join(',', array_keys($toBeSet)) . ') VALUES (' . join(',', array_values($toBeSet)) . ') RETURNING *'));
+        $results =  $this->dbDriver->fetch($this->dbDriver->query('INSERT INTO ' . $this->dbDriver->commonSchema . '.user (' . join(',', array_keys($toBeSet)) . ') VALUES (' . join(',', array_values($toBeSet)) . ') RETURNING *'));
 
         return count($results) === 1 ? UsersFunctions::formatUserProfile($results[0]) : null;
     }
@@ -412,7 +412,7 @@ class UsersFunctions
         /*
          * Reset password through token
          */
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->schema . '.user SET password=$1 WHERE resettoken=$2 AND resetexpire > now() RETURNING id', array(
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->commonSchema . '.user SET password=$1 WHERE resettoken=$2 AND resetexpire > now() RETURNING id', array(
             password_hash($params['password'], PASSWORD_BCRYPT),
             $params['token']
         )));
@@ -476,7 +476,7 @@ class UsersFunctions
 
         $results = array();
         if (count($values) > 0) {
-            $results = $this->dbDriver->fetch($this->dbDriver->query('UPDATE ' . $this->dbDriver->schema . '.user SET ' . join(',', $values) . ' WHERE email=\'' . pg_escape_string(trim(strtolower($profile['email']))) . '\' RETURNING id'));
+            $results = $this->dbDriver->fetch($this->dbDriver->query('UPDATE ' . $this->dbDriver->commonSchema . '.user SET ' . join(',', $values) . ' WHERE email=\'' . pg_escape_string(trim(strtolower($profile['email']))) . '\' RETURNING id'));
         }
 
         return count($results) === 1 ? $results[0]['id'] : null;
@@ -502,7 +502,7 @@ class UsersFunctions
             'resetexpire=(now() + \'1 hour\'::interval)'
         ];
                     
-        $results = $this->dbDriver->fetch($this->dbDriver->query('UPDATE ' . $this->dbDriver->schema . '.user SET ' . join(',', $values) . ' WHERE email=\'' . pg_escape_string(trim(strtolower($email))) . '\' RETURNING id'));
+        $results = $this->dbDriver->fetch($this->dbDriver->query('UPDATE ' . $this->dbDriver->commonSchema . '.user SET ' . join(',', $values) . ' WHERE email=\'' . pg_escape_string(trim(strtolower($email))) . '\' RETURNING id'));
         
         return count($results) === 1 ? $results[0]['id'] : null;
     }
@@ -557,7 +557,7 @@ class UsersFunctions
             ));
         }
 
-        $query = 'UPDATE ' . $this->dbDriver->schema . '.user SET ' . join(',', $toBeSet) . ' WHERE id=' . pg_escape_string($userid) . ' RETURNING id';
+        $query = 'UPDATE ' . $this->dbDriver->commonSchema . '.user SET ' . join(',', $toBeSet) . ' WHERE id=' . pg_escape_string($userid) . ' RETURNING id';
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
 
         return count($results) === 1 ? true : false;
@@ -571,7 +571,7 @@ class UsersFunctions
      */
     public function deactivateUser($userid)
     {
-        return count($this->dbDriver->fetch($this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->schema . '.user SET activated=0 WHERE id=$1 RETURNING id', array($userid)))) === 1 ? true : false;
+        return count($this->dbDriver->fetch($this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->commonSchema . '.user SET activated=0 WHERE id=$1 RETURNING id', array($userid)))) === 1 ? true : false;
     }
 
     /**
@@ -593,7 +593,7 @@ class UsersFunctions
             'validationdate=now()'
         );
 
-        $query = 'UPDATE ' . $this->dbDriver->schema . '.user SET ' . join(',', $toBeSet) . ' WHERE id=' . pg_escape_string($userid) . ' RETURNING id';
+        $query = 'UPDATE ' . $this->dbDriver->commonSchema . '.user SET ' . join(',', $toBeSet) . ' WHERE id=' . pg_escape_string($userid) . ' RETURNING id';
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
 
         return count($results) === 1 ? true : false;
@@ -612,7 +612,7 @@ class UsersFunctions
             'validationdate=NULL'
         );
 
-        return count($this->dbDriver->fetch($this->dbDriver->query('UPDATE ' . $this->dbDriver->schema . '.user SET ' . join(',', $toBeSet) . ' WHERE id=' . pg_escape_string($userid) . ' RETURNING id'))) === 1 ? true : false;
+        return count($this->dbDriver->fetch($this->dbDriver->query('UPDATE ' . $this->dbDriver->commonSchema . '.user SET ' . join(',', $toBeSet) . ' WHERE id=' . pg_escape_string($userid) . ' RETURNING id'))) === 1 ? true : false;
     }
 
     /**
@@ -676,7 +676,7 @@ class UsersFunctions
          * Update user profile
          */
         $results = count($newGroups) > 0 ? implode(',', $newGroups) : null;
-        $this->dbDriver->fetch($this->dbDriver->query('UPDATE ' . $this->dbDriver->schema . '.user SET groups=' . (isset($results) ? '\'{' . pg_escape_string($results) . '}\'' : 'NULL') . ' WHERE id=' . $userid));
+        $this->dbDriver->fetch($this->dbDriver->query('UPDATE ' . $this->dbDriver->commonSchema . '.user SET groups=' . (isset($results) ? '\'{' . pg_escape_string($results) . '}\'' : 'NULL') . ' WHERE id=' . $userid));
 
         return $results;
     }

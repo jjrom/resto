@@ -66,7 +66,7 @@ class FacetsFunctions
      */
     public function getFacet($facetId)
     {
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id, collection, value, type, pid, to_iso8601(created) as created, creator, description  FROM ' . $this->dbDriver->schema . '.facet WHERE normalize(id)=normalize($1) LIMIT 1', array(
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id, collection, value, type, pid, to_iso8601(created) as created, creator, description  FROM ' . $this->dbDriver->targetSchema . '.facet WHERE normalize(id)=normalize($1) LIMIT 1', array(
             $facetId
         )));
         if (isset($results[0])) {
@@ -128,8 +128,8 @@ class FacetsFunctions
              * 
              * [IMPORTANT] UPSERT with check on parentId only if $facetElement['parentId'] is set 
              */
-            $insert = 'INSERT INTO ' . $this->dbDriver->schema . '.facet (id, collection, value, type, pid, creator, description, created, counter, isleaf) SELECT $1,$2,$3,$4,$5,$6,$7,now(),$8,$9';
-            $upsert = 'UPDATE ' . $this->dbDriver->schema . '.facet SET counter=' .(isset($facetElement['counter']) ? 'counter' : 'counter+1') . ' WHERE normalize(id)=normalize($1) AND normalize(collection)=normalize($2)' . (isset($facetElement['parentId']) ? ' AND normalize(pid)=normalize($5)' : '');
+            $insert = 'INSERT INTO ' . $this->dbDriver->targetSchema . '.facet (id, collection, value, type, pid, creator, description, created, counter, isleaf) SELECT $1,$2,$3,$4,$5,$6,$7,now(),$8,$9';
+            $upsert = 'UPDATE ' . $this->dbDriver->targetSchema . '.facet SET counter=' .(isset($facetElement['counter']) ? 'counter' : 'counter+1') . ' WHERE normalize(id)=normalize($1) AND normalize(collection)=normalize($2)' . (isset($facetElement['parentId']) ? ' AND normalize(pid)=normalize($5)' : '');
             $this->dbDriver->pQuery('WITH upsert AS (' . $upsert . ' RETURNING *) ' . $insert . ' WHERE NOT EXISTS (SELECT * FROM upsert)', array(
                 $facetElement['id'],
                 $facetElement['collection'] ?? $collectionId,
@@ -155,7 +155,7 @@ class FacetsFunctions
      */
     public function removeFacet($facetId, $collectionId)
     {
-        $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->schema . '.facet SET counter = GREATEST(0, counter - 1) WHERE normalize(id)=normalize($1) AND (normalize(collection)=normalize($2) OR normalize(collection)=\'*\')', array($facetId, $collectionId), 500, 'Cannot delete facet for ' . $collectionId);
+        $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.facet SET counter = GREATEST(0, counter - 1) WHERE normalize(id)=normalize($1) AND (normalize(collection)=normalize($2) OR normalize(collection)=\'*\')', array($facetId, $collectionId), 500, 'Cannot delete facet for ' . $collectionId);
     }
 
     /**
@@ -338,7 +338,7 @@ class FacetsFunctions
         /*
          * Facets for one collection
          */
-        $results = $this->dbDriver->query('SELECT id,collection,value,type,pid,counter,to_iso8601(created) as created,creator FROM ' . $this->dbDriver->schema . '.facet' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where): '') . ' ORDER BY type ASC, value DESC');        
+        $results = $this->dbDriver->query('SELECT id,collection,value,type,pid,counter,to_iso8601(created) as created,creator FROM ' . $this->dbDriver->targetSchema . '.facet' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where): '') . ' ORDER BY type ASC, value DESC');        
         
         while ($result = pg_fetch_assoc($results))
         {
