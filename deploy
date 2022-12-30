@@ -214,8 +214,14 @@ echo -e ""
 echo -e "[INFO] Database is up and running on ${GREEN}${DATABASE_HOST_SEEN_FROM_DOCKERHOST}:${DATABASE_EXPOSED_PORT}${NC}"
 # Run database creation script if needed
 DATABASE_COMMON_SCHEMA=$(grep ^DATABASE_COMMON_SCHEMA= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
+if [[ "${DATABASE_COMMON_SCHEMA}" == "" ]]; then
+    DATABASE_COMMON_SCHEMA=resto
+fi
 DATABASE_COMMON_SCHEMA_EXISTS=$(PGPASSWORD=${DATABASE_USER_PASSWORD} psql -XAt -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h ${DATABASE_HOST_SEEN_FROM_DOCKERHOST} -p ${DATABASE_EXPOSED_PORT} -c "SELECT count(*) FROM information_schema.schemata WHERE schema_name = '${DATABASE_COMMON_SCHEMA}';")
 DATABASE_TARGET_SCHEMA=$(grep ^DATABASE_TARGET_SCHEMA= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
+if [[ "${DATABASE_TARGET_SCHEMA}" == "" ]]; then
+    DATABASE_TARGET_SCHEMA=resto
+fi
 DATABASE_TARGET_SCHEMA_EXISTS=$(PGPASSWORD=${DATABASE_USER_PASSWORD} psql -XAt -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h ${DATABASE_HOST_SEEN_FROM_DOCKERHOST} -p ${DATABASE_EXPOSED_PORT} -c "SELECT count(*) FROM information_schema.schemata WHERE schema_name = '${DATABASE_TARGET_SCHEMA}';")
 if [[ "${DATABASE_COMMON_SCHEMA_EXISTS}" == "0" || "${DATABASE_TARGET_SCHEMA_EXISTS}" == "0" ]]; then
     echo -e "${YELLOW}[WARNING] Incomplete resto model found on database ${DATABASE_HOST}${NC}"

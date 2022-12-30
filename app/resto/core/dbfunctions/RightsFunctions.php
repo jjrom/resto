@@ -247,7 +247,7 @@ class RightsFunctions
             'groupid' => isset($groupid) ? pg_escape_string($groupid) : 'NULL',
             'collection' => isset($collectionId) ? '\'' . pg_escape_string($collectionId) . '\'' : 'NULL',
             'featureId' => isset($featureId) ? '\'' . pg_escape_string($featureId) . '\'' : 'NULL',
-            'target' => isset($target) ? pg_escape_string($target) : 'NULL'
+            'target' => isset($target) ? '\'' . pg_escape_string($target) . '\'' : 'NULL'
         );
 
         try {

@@ -15,37 +15,45 @@ The [https://tamn.snapplanet.io] resto server provides up to date access to Land
 
 You can browse it with the [rocket web client](https://rocket.snapplanet.io)
 
-## STAC conformance
-
-resto is compliant to STAC 1.0.0 to STAC-API 1.0.0-rc.1. Check with [stac-validator](https://github.com/stac-utils/stac-api-validator) tool:
-
-        stac-api-validator \
-                --root-url https://tamn.snapplanet.io --no-post \
-                --conformance core \
-                --conformance features \
-                --conformance item-search \
-                --conformance browseable \
-                --conformance children \
-                --conformance filter \
-                --collection S2 --geometry '{"type": "Polygon", "coordinates": [[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]]}'
-
-# Quick startup
-To launch a default pre-configured resto instance, just type :
-
-    ./deploy
-
-This will build locally the jjrom/resto image and launch a resto container exposing the resto API service at **http://localhost:5252**
-
-# TL;DR
-The [INSTALLATION.md](https://github.com/jjrom/resto/blob/master/INSTALLATION.md) file provides additional information on the installation process.
-
-# Examples
+Or test the API :
 
 * Get STAC root endpoint - https://tamn.snapplanet.io/?_pretty=1
 * Get all collections - https://tamn.snapplanet.io/collections?_pretty=1
 * Search Sentinel-2 products acquired on June 1st, 2021 - https://tamn.snapplanet.io/collections/S2/items?datetime=2021-05-06T00:00:00/2021-06-01T23:59:59&_pretty=1
 * Get catalogs of products classified by continents - https://tamn.snapplanet.io/catalogs/classifications/geographical/continent?_pretty=1
 * Get catalogs of products classified by european countries - https://tamn.snapplanet.io/catalogs/classifications/geographical/continent/continent:Europe:6255148?_pretty=1
+
+# Quick startup
+
+## Deploy the service
+To launch a default pre-configured resto instance, just type :
+
+    ./deploy
+
+This will build locally the jjrom/resto image and launch a resto container exposing the resto API service at **http://localhost:5252**
+
+## Ingest a collection
+To ingest a collection using the default **ADMIN_USER_NAME** and **ADMIN_USER_PASSWORD** (see [config.env](config.env)) :
+
+        # POST a S2 dummy collection
+        curl -X POST -d@examples/collections/S2.json "http://admin:admin@localhost:5252/collections"
+
+Then get the collections list :
+
+        curl "http://localhost:5252/collections"
+
+## Ingest a feature
+To ingest a feature using the default **ADMIN_USER_NAME** and **ADMIN_USER_PASSWORD** (see [config.env](config.env)) :
+
+        # POST a dummy feature inside the S2 collection
+        curl -X POST -d@examples/features/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040.json "http://admin:admin@localhost:5252/collections/S2/items"
+
+Then get the feature :
+
+        curl "http://localhost:5252/collections/S2/items/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040"
+
+# TL;DR
+The [INSTALLATION.md](https://github.com/jjrom/resto/blob/master/INSTALLATION.md) file provides additional information on the installation process.
 
 # References
 

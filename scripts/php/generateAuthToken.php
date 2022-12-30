@@ -72,7 +72,7 @@ echo "[INFO] Successfully generate rJWT\n";
 echo "[INFO] UserId   : \033[0;32m$userid\033[0m\n";
 echo "[INFO] Validity : \033[0;32m" . date('Y-m-d\TH:i:s', $exp) . "\033[0m ($days days)\n";
 echo "-------------------------------------------\n";
-echo "\033[0;32m" . $splitJWT[1] . '.' .$splitJWT[2] . "\033[0m";
+echo "[TOKEN] \033[0;32m" . $splitJWT[1] . '.' .$splitJWT[2] . "\033[0m";
 echo "\n-------------------------------------------\n";
 
 /**

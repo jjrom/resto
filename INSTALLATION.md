@@ -72,10 +72,24 @@ The following environment variables shoud be used in development/debug context :
 * **RESTO_DEBUG** should be set to 1 to disable PHP opcache
 * **PHP_ENABLE_XDEBUG** should be set to 1 to enable Xdebug extension 
 * **POSTGRES_LOG_MIN_DURATION_STATEMENT** should be set to 0 to log all PostgreSQL requests (only available if you use the embeded "restodb" service)
+
 # FAQ
 
-## Test the service
-Resolve the endpoint provided by the deploy script
+## How to test the STAC conformance
+resto is compliant to STAC 1.0.0 to STAC-API 1.0.0-rc.1. Check with [stac-validator](https://github.com/stac-utils/stac-api-validator) tool:
+
+        stac-api-validator \
+                --root-url https://tamn.snapplanet.io --no-post \
+                --conformance core \
+                --conformance features \
+                --conformance item-search \
+                --conformance browseable \
+                --conformance children \
+                --conformance filter \
+                --collection S2 --geometry '{"type": "Polygon", "coordinates": [[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]]}'
+
+## How to get the service endpoint
+To get the default local endpoint :
 
         curl http://localhost:5252
 
