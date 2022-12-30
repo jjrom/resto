@@ -37,7 +37,7 @@ To use an external database, you should update the [config.env](config.env) acco
 * set the **COMPOSE_FILE** environment variable to *docker-compose.api.yml*
 * set all the **DATABASE_*** environment variables to match the external database configuration
 
-It is important to notice that the **DATABASE_USER_NAME** should be a PostgreSQL user with `CREATE SCHEMA`  and `INSERT ON spatial_ref_sys` rights. To give a user the suitable rights, run the following sql commands:
+It is important to notice that the **DATABASE_USER_NAME** should be a PostgreSQL user with `CREATE SCHEMA`  and `INSERT ON spatial_ref_sys` rights. To give a user the suitable rights, run the following sql commands on the target database:
 
         GRANT CREATE ON DATABASE ${DATABASE_NAME} TO ${DATABASE_USER_NAME};
         GRANT INSERT ON TABLE spatial_ref_sys TO ${DATABASE_USER_NAME};
@@ -49,14 +49,14 @@ The resto database tables are defined in two schemas :
 * The **DATABASE_TARGET_SCHEMA** schema contains all other tables i.e. collection, feature, etc.
 
 By default, the **DATABASE_COMMON_SCHEMA** and **DATABASE_TARGET_SCHEMA** have the same value set to `resto`. So all tables, functions and triggers are installed in the `resto` schema.
-These values can be changed in [config.env](config.env) but **YOU SHOULD NOT DO THAT UNLESS YOU HAVE A VERY GOOD REASON TO DO THAT** - for instance use the same resto database instance to store independants collection from different resto api instances.
+These values can be changed in [config.env](config.env) but **YOU SHOULD NOT DO THAT UNLESS YOU HAVE A VERY GOOD REASON TO DO SO** - for instance use the same resto database instance to store independants collection from different resto api instances.
         
 ## Building and deploying
-After reviewing your [configuration](config.env) file, run one the following command:
+After reviewing your [configuration](config.env) file, run the following command:
 
         ./deploy
 
-You can also specify your own configuration file (default is to use config.env) :
+You can also specify your own configuration file instead of the default [config.env](config.env)) :
 
         ./deploy -e config-dev.env
 
