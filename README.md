@@ -29,17 +29,14 @@ resto is compliant to STAC 1.0.0 to STAC-API 1.0.0-rc.1. Check with [stac-valida
                 --conformance filter \
                 --collection S2 --geometry '{"type": "Polygon", "coordinates": [[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]]}'
 
-# Installation
-After reviewing your [configuration file](https://github.com/jjrom/resto/blob/master/config.env), run one of following command:
+# Quick startup
+To launch a default pre-configured resto instance, just type :
 
-(for production)
+    ./deploy
 
-        ./deploy
+This will build locally the jjrom/resto image and launch a resto container exposing the resto API service at **http://localhost:5252**
 
-(for development)
-
-        ./deploy -e config-dev.env
- 
+# TL;DR
 The [INSTALLATION.md](https://github.com/jjrom/resto/blob/master/INSTALLATION.md) file provides additional information on the installation process.
 
 # Examples

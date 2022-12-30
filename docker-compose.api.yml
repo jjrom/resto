@@ -1,0 +1,35 @@
+version: '3.5'
+volumes:
+  static_content:
+    driver: local
+networks:
+  default:
+    driver: bridge
+  external:
+    external: true
+    name: rnet 
+services:
+  resto:
+    image: jjrom/resto:latest
+    restart: always
+    build:
+      context: ./
+      dockerfile: ./build/resto/Dockerfile
+    networks:
+      - default
+      - external
+    ports:
+      - ${RESTO_EXPOSED_PORT:-5252}:80
+    env_file:
+      - ${ENV_FILE:-config.env}
+    environment: 
+      ### Set to 0 in production environment to activate opcache
+      - RESTO_DEBUG=0
+      ### Set to 1 in production environment to activate opcache preloading
+      - PHP_OPCACHE_ENABLE_PRELOADING=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1"]
+      interval: 1m
+      timeout: 5s
+    volumes:
+      - static_content:/var/www/static

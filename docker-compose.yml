@@ -35,3 +35,33 @@ services:
       timeout: 5s
     volumes:
       - static_content:/var/www/static
+
+  restodb:
+    image: jjrom/resto-database:latest
+    restart: always
+    # Upgrade shared_memory for complex queries
+    shm_size: '2gb'
+    networks:
+      - default
+      - external
+    env_file:
+      - ${ENV_FILE:-config.env}
+    environment:
+      - POSTGRES_PASSWORD=${DATABASE_USER_PASSWORD:-resto}
+      - POSTGRES_USER=${DATABASE_USER_NAME:-resto}
+      - POSTGRES_DB=${DATABASE_NAME:-resto}
+      - POSTGRES_MAX_CONNECTIONS=20
+      - POSTGRES_SHARED_BUFFERS=256MB
+      - POSTGRES_WORK_MEM=16MB
+      - POSTGRES_MAINTENANCE_WORK_MEM=12MB
+      - POSTGRES_EFFECTIVE_CACHE_SIZE=750MB
+      # Should not be set to 0 in production mode since every requests will be stored in logs (good production value is 300) 
+      - POSTGRES_LOG_MIN_DURATION_STATEMENT=0
+    ports:
+      - ${DATABASE_EXPOSED_PORT:-5253}:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER_NAME:-resto}"]
+      interval: 1m
+      timeout: 5s
+    volumes:
+      - database_data:/var/lib/postgresql/data

@@ -155,14 +155,10 @@ else
     echo -e "[INFO] Using existing network ${GREEN}rnet${NC}"
 fi
 
-#
-# Compute compose file
-#
-DEFAULT_COMPOSE_FILE=docker-compose.yml
-if [[ "${COMPOSE_FILE}" != "" ]]; then
-    COMPOSE_FILE=${DEFAULT_COMPOSE_FILE}:${COMPOSE_FILE}
-else
-    COMPOSE_FILE=${DEFAULT_COMPOSE_FILE}
+# Set default compose file
+if [[ "${COMPOSE_FILE}" == "" ]]; then
+    COMPOSE_FILE=docker-compose.yml
+    echo -e "[WARNING] COMPOSE_FILE is not set in ${ENV_FILE} - using default ${GREEN}${COMPOSE_FILE}${NC}"
 fi
 
 echo -e "[INFO] Using compose files: ${GREEN}${COMPOSE_FILE}${NC}"
@@ -179,6 +175,7 @@ if [[ ${CLEAN} -eq 1 ]]; then
         echo -e "[INFO] Cleaning existing resto container and volumes"
         COMPOSE_FILE=${COMPOSE_FILE} \
         RESTO_EXPOSED_PORT=${RESTO_EXPOSED_PORT} \
+        DATABASE_EXPOSED_PORT=${DATABASE_EXPOSED_PORT} \
         ENV_FILE=${ENV_FILE} \
         docker-compose down -v
     fi
@@ -201,18 +198,20 @@ else
 fi
 
 # Wait for database to be ready
-echo -e "[INFO] Waiting for database: ${DATABASE_HOST_SEEN_FROM_DOCKERHOST}:${DATABASE_EXPOSED_PORT} to be ready..."
-while ! pg_isready -h ${DATABASE_HOST_SEEN_FROM_DOCKERHOST} -U ${DATABASE_USER_NAME} -p ${DATABASE_EXPOSED_PORT} -d ${DATABASE_NAME} 2>/dev/null
+echo -e "[INFO] Checking that database is running on ${DATABASE_HOST_SEEN_FROM_DOCKERHOST}:${DATABASE_EXPOSED_PORT}"
+while ! pg_isready -h ${DATABASE_HOST_SEEN_FROM_DOCKERHOST} -U ${DATABASE_USER_NAME} -p ${DATABASE_EXPOSED_PORT} -d ${DATABASE_NAME} > /dev/null 2>&1
 do
     let elapsed=elapsed+1
-    if [ "$elapsed" -gt 90 ] 
+    if [ "$elapsed" -gt 30 ]
     then
-        echo -e "${RED}[ERROR]${NC} Database startup timed out =("
+        echo -e "${RED}[ERROR]${NC} Database is not available at ${DATABASE_HOST_SEEN_FROM_DOCKERHOST}:${DATABASE_EXPOSED_PORT} - see README.md"
         exit 1
     fi  
+    echo -n "."
     sleep 1;
 done
-
+echo -e ""
+echo -e "[INFO] Database is up and running on ${GREEN}${DATABASE_HOST_SEEN_FROM_DOCKERHOST}:${DATABASE_EXPOSED_PORT}${NC}"
 # Run database creation script if needed
 DATABASE_COMMON_SCHEMA=$(grep ^DATABASE_COMMON_SCHEMA= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 DATABASE_COMMON_SCHEMA_EXISTS=$(PGPASSWORD=${DATABASE_USER_PASSWORD} psql -XAt -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h ${DATABASE_HOST_SEEN_FROM_DOCKERHOST} -p ${DATABASE_EXPOSED_PORT} -c "SELECT count(*) FROM information_schema.schemata WHERE schema_name = '${DATABASE_COMMON_SCHEMA}';")
@@ -231,5 +230,5 @@ $(dirname $0)/scripts/createAdminUser.sh -e ${ENV_FILE}
 
 echo -e ""
 
-echo -e "[INFO] The resto API is up and running locally in ${GREEN}${TARGET}${NC} mode at ${GREEN}${PUBLIC_ENDPOINT}${NC}"
+echo -e "[INFO] The resto service is up and running locally at ${GREEN}${PUBLIC_ENDPOINT}${NC}"
 echo ""
