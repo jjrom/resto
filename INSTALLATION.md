@@ -16,6 +16,8 @@ For a local installation, you can leave it untouched. Otherwise, just make your 
 Note that each time you change the configuration file, you should undeploy then redeploy the service.
 
 ## Database
+**[IMPORTANT] If you already deploy a resto v6.x database, you must upgrade the database to resto v7.x (see below)**
+
 The resto service relies on a database instance. By default, the [deploy](deploy) script uses the [docker-compose.yml](docker-compose.yml) file which deploy
 a "restodb" service based on [jjrom/resto-database](https://github.com/jjrom/resto-database) image.
 
@@ -50,6 +52,11 @@ The resto database tables are defined in two schemas :
 
 By default, the **DATABASE_COMMON_SCHEMA** and **DATABASE_TARGET_SCHEMA** have the same value set to `resto`. So all tables, functions and triggers are installed in the `resto` schema.
 These values can be changed in [config.env](config.env) but **YOU SHOULD NOT DO THAT UNLESS YOU HAVE A VERY GOOD REASON TO DO SO** - for instance use the same resto database instance to store independants collection from different resto api instances.
+
+### Upgrading existing v6.x database
+If you already deploy a resto v6.x database, you must upgrade the database to match resto v7.x database model. To do so, just type:
+
+        ./scripts/upgradeDatabase_v6_to_v7.sh
         
 ## Building and deploying
 After reviewing your [configuration](config.env) file, run the following command:
