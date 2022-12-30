@@ -53,7 +53,7 @@ Then get the feature :
         curl "http://localhost:5252/collections/S2/items/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040"
 
 # TL;DR
-The [INSTALLATION.md](https://github.com/jjrom/resto/blob/master/INSTALLATION.md) file provides additional information on the installation process.
+The [INSTALLATION.md](INSTALLATION.md) file provides additional information on the installation process.
 
 # References
 

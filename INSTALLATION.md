@@ -9,7 +9,7 @@ resto installation and deployment is based on docker-compose. It can run on any 
 * PostgreSQL client (i.e. psql)
 
 ## Configuration
-All environment variables are defined within the [config.env](https://github.com/jjrom/resto-database/blob/main/config.env) file.
+All environment variables are defined within the [config.env](config.env) file.
 
 For a local installation, you can leave it untouched. Otherwise, just make your own configuration. It's self explanatory (send me an email if not ;)
 
@@ -32,7 +32,7 @@ If you don't want to use the default embeded restodb service, you can use an ext
 * Extension **uuid-ossp** must be installed
 * Extension **pg_trgm** must be installed
 
-To use an external database, you should update the [config.env](https://github.com/jjrom/resto/blob/main/config.env) accordingly i.e. :
+To use an external database, you should update the [config.env](config.env) accordingly i.e. :
 
 * set the **COMPOSE_FILE** environment variable to *docker-compose.api.yml*
 * set all the **DATABASE_*** environment variables to match the external database configuration
@@ -49,10 +49,10 @@ The resto database tables are defined in two schemas :
 * The **DATABASE_TARGET_SCHEMA** schema contains all other tables i.e. collection, feature, etc.
 
 By default, the **DATABASE_COMMON_SCHEMA** and **DATABASE_TARGET_SCHEMA** have the same value set to `resto`. So all tables, functions and triggers are installed in the `resto` schema.
-These values can be changed in [config.env](https://github.com/jjrom/resto/blob/main/config.env) but **YOU SHOULD NOT DO THAT UNLESS YOU HAVE A VERY GOOD REASON TO DO THAT** - for instance use the same resto database instance to store independants collection from different resto api instances.
+These values can be changed in [config.env](config.env) but **YOU SHOULD NOT DO THAT UNLESS YOU HAVE A VERY GOOD REASON TO DO THAT** - for instance use the same resto database instance to store independants collection from different resto api instances.
         
 ## Building and deploying
-After reviewing your [configuration](https://github.com/jjrom/resto/blob/master/config.env) file, run one the following command:
+After reviewing your [configuration](config.env) file, run one the following command:
 
         ./deploy
 
