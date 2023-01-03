@@ -813,7 +813,12 @@ abstract class RestoModel
 
         $productIdentifier = $data['id'] ?? $data['properties']['productIdentifier'] ?? null;
         $data['properties']['productIdentifier'] = $productIdentifier;
-        $featureId = isset($productIdentifier) ? RestoUtil::toUUID($productIdentifier) : RestoUtil::toUUID(md5(microtime().rand()));
+
+        /*
+         * [WARNING] New in resto 7.x - if input id / productIdentifier is already a valid UUID use it directly
+         * Correct issue #342 to be STAC compatible
+         */
+        $featureId = isset($productIdentifier) ? (RestoUtil::isValidUUID($productIdentifier)? $productIdentifier : RestoUtil::toUUID($productIdentifier) )  : RestoUtil::toUUID(md5(microtime().rand()));
 
         /*
          * First check if feature is already in database
