@@ -406,7 +406,7 @@ class CollectionsFunctions
          */
         $startDate = $collection->extent['temporal']['interval'][0][0] ?? null;
         $completionDate = $collection->extent['temporal']['interval'][0][1] ?? null;
-        
+
         /*
          * Create collection
          */
@@ -429,12 +429,16 @@ class CollectionsFunctions
                 'startdate' => $startDate,
                 'completiondate' => $completionDate
             );
-
+            
             // bbox is set
             if ( isset($collection->extent['spatial']['bbox'][0]) ) {
+                if ( count($collection->extent['spatial']['bbox'][0]) !== 4 ) {
+                    return RestoLogUtil::httpError(400, 'Invalid input bbox');
+                }
                 $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.collection (' . join(',', array_keys($toBeSet)) . ', bbox) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, ST_SetSRID(ST_MakeBox2D(ST_Point($16, $17), ST_Point($18, $19)), 4326) )', array_merge(array_values($toBeSet), $collection->extent['spatial']['bbox'][0]));    
             } 
             else {
+                echo 'INSERT INTO ' . $this->dbDriver->targetSchema . '.collection (' . join(',', array_keys($toBeSet)) . ') VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)', array_values($toBeSet);
                 $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.collection (' . join(',', array_keys($toBeSet)) . ') VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)', array_values($toBeSet));
             }
         }

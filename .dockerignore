@@ -1,3 +1,6 @@
 saml/cert/server.crt
 saml/cert/server.pem
 resto-model
+tmp
+pgdata
+pgdata.old
