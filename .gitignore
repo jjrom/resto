@@ -11,3 +11,4 @@ errors.log
 resto-model
 .private
 .DS_Store
+.php-cs-fixer.cache
