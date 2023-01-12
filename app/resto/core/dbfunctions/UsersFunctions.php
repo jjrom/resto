@@ -44,13 +44,11 @@ class UsersFunctions
      */
     public static function formatUserProfile($rawProfile)
     {
-        
         // Empty profile
         $profile = array();
 
         foreach ($rawProfile as $key => $value) {
             switch ($key) {
-
                 // Never display these one
                 case 'password':
                 case 'resettoken':
@@ -106,12 +104,11 @@ class UsersFunctions
                     }
                     break;
 
-                // Additionnal profile info are in JSON
+                    // Additionnal profile info are in JSON
                 default:
                     if (isset($value)) {
                         $profile[$key] = json_decode($value, true);
                     }
-
             }
         }
         
@@ -125,7 +122,6 @@ class UsersFunctions
      */
     public static function formatPartialUserProfile($rawProfile)
     {
-
         // Remove leading "{" and trailing "}" for INTEGER[] (Database returns {group1,group2,etc.})
         $groups = array_map('intval', explode(",", substr($rawProfile['groups'], 1, -1)));
         
@@ -175,7 +171,6 @@ class UsersFunctions
         }
             
         return $profile;
-        
     }
 
     /**
@@ -201,7 +196,6 @@ class UsersFunctions
      */
     public function getUserProfile($fieldName, $fieldValue, $params = array())
     {
-        
         // Add followed and followme booleans
         $fields = 'id,email,name,firstname,lastname,bio,groups,lang,country,organization,organizationcountry,flags,topics,password,picture,to_iso8601(registrationdate),activated,followers,followings,validatedby,to_iso8601(validationdate),externalidp,settings';
         if (isset($params['from'])) {
@@ -220,7 +214,6 @@ class UsersFunctions
          * Check password
          */
         if (isset($params['password'])) {
-
             // External authentication
             if ($results[0]['password'] === str_repeat('*', 60)) {
                 RestoLogUtil::httpError(400, 'External user');
@@ -229,7 +222,6 @@ class UsersFunctions
             if (!password_verify($params['password'], $results[0]['password'])) {
                 RestoLogUtil::httpError(401);
             }
-            
         }
         
         /*
@@ -237,7 +229,6 @@ class UsersFunctions
          */
         $formatedProfile = isset($params['partial']) && $params['partial'] ? UsersFunctions::formatPartialUserProfile($results[0]) : UsersFunctions::formatUserProfile($results[0]);
         return isset($formatedProfile) ? $formatedProfile : RestoLogUtil::httpError(404);
-
     }
 
     /**
@@ -251,7 +242,6 @@ class UsersFunctions
      */
     public function getUsersProfiles($params, $userid)
     {
-        
         // Only returns activated profiles
         $where = array(
             'activated=1'
@@ -324,7 +314,6 @@ class UsersFunctions
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
 
         return count($results) === 1 ? (integer) $results[0]['activated'] : -1;
-        
     }
 
     /**
@@ -337,17 +326,16 @@ class UsersFunctions
      */
     public function storeUserProfile($profile, $storageInfo)
     {
-
         if (!is_array($profile) || !isset($profile['email'])) {
             RestoLogUtil::httpError(400, 'Cannot save user profile - invalid user identifier');
         }
 
         $activatedStatus = $this->userActivatedStatus(array('email' => $profile['email']));
-        if ( $activatedStatus === 1 ) {
+        if ($activatedStatus === 1) {
             RestoLogUtil::httpError(409, 'Cannot save user profile - user already exist');
         }
 
-        if ( $activatedStatus === 0 ) {
+        if ($activatedStatus === 0) {
             RestoLogUtil::httpError(412, 'Cannot save user profile - user already exist but is not activated');
         }
 
@@ -365,7 +353,7 @@ class UsersFunctions
          * Every user is in the default Resto::GROUP_DEFAULT_ID
          */
         $groups = $profile['groups'] ?? array();
-        if ( !in_array(Resto::GROUP_DEFAULT_ID, $groups) ) {
+        if (!in_array(Resto::GROUP_DEFAULT_ID, $groups)) {
             $groups[] = Resto::GROUP_DEFAULT_ID;
         }
 
@@ -417,7 +405,6 @@ class UsersFunctions
             $params['token']
         )));
         return count($results) === 1 ? $results[0]['id'] : null;
-        
     }
 
     /**
@@ -480,7 +467,6 @@ class UsersFunctions
         }
 
         return count($results) === 1 ? $results[0]['id'] : null;
-        
     }
 
     /**
@@ -583,7 +569,6 @@ class UsersFunctions
      */
     public function validateUser($userid, $validatedBy)
     {
-
         /*
          * Validate user.
          * If user is already validate, update date and validatedby.
@@ -689,7 +674,6 @@ class UsersFunctions
      */
     private function getPicture($profile, $storageInfo = null)
     {
-
         // Create picture url from email
         if (!isset($profile['picture'])) {
             return 'https://robohash.org/' . md5($profile['email']) . '?gravatar=hashed&bgset=any&size=400x400';

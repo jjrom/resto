@@ -20,47 +20,39 @@
  */
 class RestoFileUtil
 {
-
-
     /**
      * Physically remove upload files using multipart in body
-     * 
+     *
      * @param {Object} $body
      */
     public static function clearUpload($body)
     {
-        
         try {
-
-            if ( isset($body) && is_array($body['files']) ) {
+            if (isset($body) && is_array($body['files'])) {
                 for ($i = count($body['files']); $i--;) {
                     unlink($body['files'][$i]);
                 }
             }
-            if  ( isset($body['uploadDir']) ) {
+            if (isset($body['uploadDir'])) {
                 rmdir($body['uploadDir']);
             }
-
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             error_log('[WARNING] Error during clearUpload');
         }
-        
     }
  
 
     /**
      * Return type and path of input array of $files
-     * 
+     *
      * @param array $files
      * @return array
      */
     public static function whatIsIt($files)
     {
-
         $type = 'unknown';
 
-        if ( !is_array($files) || count($files) === 0 ) {
+        if (!is_array($files) || count($files) === 0) {
             return array(
                 'type' => $type,
                 'path' => null,
@@ -69,7 +61,7 @@ class RestoFileUtil
             );
         }
 
-        if ( $path = RestoFileUtil::getShapefilePath($files) ) {
+        if ($path = RestoFileUtil::getShapefilePath($files)) {
             $type = 'shp';
         }
 
@@ -79,31 +71,27 @@ class RestoFileUtil
             'isReadable' => isset($path) ? is_readable($path) : false,
             'isFile' => isset($path) ? is_file($path) : false
         );
-
     }
 
     /**
      * Return path from input $files if it is a shapefile - null otherwise
-     * 
+     *
      * @param array $files
      * @return string
      */
     private static function getShapefilePath($files)
     {
-          
         /*
          * Check shapefile is complete i.e. contains XXX.shp, XXX.dbf and XXX.shx
          */
         $path = null;
         for ($i = count($files); $i--;) {
-            if ( strtolower(substr($files[$i], -3)) === 'shp') {
+            if (strtolower(substr($files[$i], -3)) === 'shp') {
                 $path = $files[$i];
                 break;
             }
         }
         
         return  isset($path) && is_readable($path) && is_file($path) ? $path : null;
-
     }
-
 }

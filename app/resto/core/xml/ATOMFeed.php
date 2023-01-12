@@ -17,7 +17,6 @@
 
 class ATOMFeed extends RestoXML
 {
-    
     /*
      * GeoRSS Where or Simple
      */
@@ -58,7 +57,6 @@ class ATOMFeed extends RestoXML
      */
     public function addEntry($feature)
     {
-        
         /*
          * Add entry
          */
@@ -92,7 +90,6 @@ class ATOMFeed extends RestoXML
      */
     public function toString()
     {
-        
         /*
          * End feed element
          */
@@ -113,7 +110,6 @@ class ATOMFeed extends RestoXML
      */
     public function setCollectionElements($links, $searchContext, $model)
     {
-        
         /*
          * Update outputFormat links except for OSDD 'search'
          */
@@ -167,7 +163,6 @@ class ATOMFeed extends RestoXML
      */
     private function setBaseElements($title, $subtitle)
     {
-        
         /*
          *  Title
          */
@@ -218,7 +213,6 @@ class ATOMFeed extends RestoXML
      */
     private function addEntryElements($feature)
     {
-        
         $explodedSelf = null;
         
         /*
@@ -237,7 +231,7 @@ class ATOMFeed extends RestoXML
          * Base elements
          */
         $this->writeElements(array(
-            'title' => $feature['properties']['title'],
+            'title' => $feature['properties']['title'] ?? '',
             'updated' => $feature['properties']['updated'],
             // IRI is self url
             'id' => is_array($explodedSelf) ? $explodedSelf[0] : $feature['id']
@@ -340,7 +334,6 @@ class ATOMFeed extends RestoXML
         if (count($geometry) > 0) {
             $this->useGeoRSSSimple ? $this->addGeoRSSSimple($type, join(' ', $geometry)) : $this->addGeoRSSWhere($type, join(' ', $geometry));
         }
-
     }
     
     /**
@@ -434,14 +427,11 @@ class ATOMFeed extends RestoXML
      */
     private function addLinks($feature)
     {
-        
         /*
          * General links
          */
         if (is_array($feature['links'])) {
-            
             for ($i = 0, $ii = count($feature['links']); $i < $ii; $i++) {
-                
                 if ($feature['links'][$i]['rel'] === 'self') {
                     continue;
                 }
@@ -462,10 +452,8 @@ class ATOMFeed extends RestoXML
                 $this->writeAttributes($attributes);
                 
                 $this->endElement(); // link
-                
             }
         }
-        
     }
     
     /**
@@ -475,12 +463,10 @@ class ATOMFeed extends RestoXML
      */
     private function addQuicklooks($feature)
     {
-        
         /*
          * Thumbnail
          */
-        if ( isset($feature['assets']['thumbnail']) ) {
-
+        if (isset($feature['assets']['thumbnail'])) {
             /*
              * rel=icon
              */

@@ -8,22 +8,15 @@ function loadPHP($folder)
 
     $files = glob($folder . "/*");
     
-    foreach( $files as $file )
-    {
-        
-        if(is_dir($file))
-        {
+    foreach ($files as $file) {
+        if (is_dir($file)) {
             loadPHP($file);
-        } 
-        else
-        {
+        } else {
             if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
                 $phps[] = $file;
             }
         }
-
     }
-
 }
 
 loadPHP("/app/resto");

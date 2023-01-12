@@ -147,7 +147,6 @@ class UsersAPI
      */
     public function getUsersProfiles($params)
     {
-
         if (isset($params['lt']) && !ctype_digit($params['lt'])) {
             return RestoLogUtil::httpError(400, 'Invalid lt - should be numeric');
         }
@@ -165,14 +164,15 @@ class UsersAPI
             }
         }
 
-        return (new UsersFunctions($this->context->dbDriver))->getUsersProfiles(array(
+        return (new UsersFunctions($this->context->dbDriver))->getUsersProfiles(
+            array(
             'lt' => $params['lt'] ?? null,
             'groupid' => $params['groupid'] ?? null,
             'in' => $params['in'] ?? null,
             'q' => $params['q'] ?? null
-        ), !$this->user->hasGroup(Resto::GROUP_ADMIN_ID) ? $this->user->profile['id'] : null
-    );
-
+        ),
+            !$this->user->hasGroup(Resto::GROUP_ADMIN_ID) ? $this->user->profile['id'] : null
+        );
     }
 
     /**
@@ -218,7 +218,9 @@ class UsersAPI
             return $this->user->profile;
         }
         
-        return (new UsersFunctions($this->context->dbDriver))->getUserProfile('id', $params['userid'],
+        return (new UsersFunctions($this->context->dbDriver))->getUserProfile(
+            'id',
+            $params['userid'],
             array(
                 'from' => $this->user->profile['id'],
                 'partial' => true
@@ -502,10 +504,9 @@ class UsersAPI
          * For normal user (i.e. non admin), some properties cannot be modified after validation
          */
         if (! $this->user->hasGroup(Resto::GROUP_ADMIN_ID)) {
-
-           /*
-            * Already validated => avoid updating administrative properties
-            */
+            /*
+             * Already validated => avoid updating administrative properties
+             */
             if (isset($this->user->profile['validatedby'])) {
                 unset($body['activated'], $body['validatedby'], $body['validationdate'], $body['country'], $body['organization'], $body['organizationcountry'], $body['flags']);
             }
@@ -530,7 +531,7 @@ class UsersAPI
 
     /**
      * Get user searches
-     * 
+     *
      *  @OA\Get(
      *      path="/users/{userid}/history",
      *      summary="Get user's search history",
@@ -652,7 +653,6 @@ class UsersAPI
      */
     public function getUserLogs($params)
     {
-       
         /*
          * [SECURITY] User is limited to its own history logs
          */
@@ -671,7 +671,6 @@ class UsersAPI
             'querytime' => $params['querytime'] ?? null,
             'fullDisplay' => $isAdmin
         ));
-        
     }
 
     /**
@@ -688,7 +687,6 @@ class UsersAPI
         );
 
         if (isset($userInfo)) {
-
             // Auto activation no email sent
             if ($profile['activated'] === 1) {
                 return RestoLogUtil::success('User ' . $profile['email'] . ' created');

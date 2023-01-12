@@ -20,7 +20,6 @@
  */
 class RestoWMSUtil
 {
-
     /*
      * Reference to resto context
      */
@@ -52,7 +51,6 @@ class RestoWMSUtil
      */
     public function streamWMS($feature, $lowResolution = false)
     {
-        
         /*
          * Easy case - no feature or no WMS
          */
@@ -76,7 +74,6 @@ class RestoWMSUtil
      */
     private function getWMSUrl($wms, $lowResolution)
     {
-        
         /*
          * Set input query parameters to uppercase
          */
@@ -132,7 +129,6 @@ class RestoWMSUtil
      */
     private function getLowResolutionUrl($wms)
     {
-        
         /*
          * Convert full resolution WMS layer to KVP
          */

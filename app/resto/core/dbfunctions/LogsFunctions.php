@@ -34,15 +34,14 @@ class LogsFunctions
 
     /**
      * Get logs
-     * 
+     *
      * @param array $params
-     * 
+     *
      * @return array
      * @throws Exception
      */
     public function getLogs($params)
     {
-
         $where = array();
         
         // Paginate
@@ -61,8 +60,7 @@ class LogsFunctions
         $results = $this->dbDriver->query('SELECT gid, userid, method, to_iso8601(querytime) as querytime, path, query, ip FROM ' . $this->dbDriver->commonSchema . '.log' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : ' ') . ' ORDER BY gid DESC LIMIT 50');
         
         $logs = array();
-        while ($row = pg_fetch_assoc($results))
-        {
+        while ($row = pg_fetch_assoc($results)) {
             $log = array(
                 'gid' => (integer) $row['gid'],
                 'method' => $row['method'],
@@ -83,7 +81,5 @@ class LogsFunctions
             'id' => $params['userid'],
             'logs' => $logs
         );
-    
     }
-
 }

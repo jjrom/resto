@@ -17,20 +17,18 @@
 
 /**
  * resto Default Timeless Model
- * 
+ *
  * [IMPORTANT] Every model *MUST* extend DefaultModel or DefaulTimelessModel
  */
 class DefaultTimelessModel extends RestoModel
 {
-
     /**
      * Constructor
-     * 
+     *
      * @param array $options
      */
     public function __construct($options = array())
     {
         parent::__construct($options);
     }
-
 }

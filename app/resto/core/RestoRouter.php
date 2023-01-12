@@ -20,7 +20,6 @@
  */
 class RestoRouter
 {
-
     /*
      * Default routes
      */
@@ -55,7 +54,7 @@ class RestoRouter
         array('GET',    '/collections/{collectionId}/items/{featureId}', false, 'FeaturesAPI::getFeature'),                                 // Get feature :featureId
         array('PUT',    '/collections/{collectionId}/items/{featureId}', true, 'FeaturesAPI::updateFeature'),                               // Update feature :featureId
         array('DELETE', '/collections/{collectionId}/items/{featureId}', true, 'FeaturesAPI::deleteFeature'),                               // Delete :featureId
-        array('PUT',    '/collections/{collectionId}/items/{featureId}/properties/{property}', true, 'FeaturesAPI::updateFeatureProperty'), // Update feature :featureId single property 
+        array('PUT',    '/collections/{collectionId}/items/{featureId}/properties/{property}', true, 'FeaturesAPI::updateFeatureProperty'), // Update feature :featureId single property
         
         // API for authentication (token based)
         array('GET',    '/auth', true, 'AuthAPI::getToken'),                                                                                // Return a valid auth token
@@ -119,7 +118,6 @@ class RestoRouter
                 $this->addRoutes($this->context->addons[$addonName]['routes']);
             }
         }
-
     }
 
     /**
@@ -140,7 +138,6 @@ class RestoRouter
         $this->routes[$route[1]][$route[0]] = array($route[2], $route[3]);
         
         return true;
-        
     }
 
     /**
@@ -164,15 +161,15 @@ class RestoRouter
      *
      * Route structure is :
      *  array('path', 'isAuthenticated', 'className::methodName')
-     * 
+     *
      * Some path examples:
-     * 
+     *
      *      /collections/{collectionId}, myFunction::myClass
-     * 
+     *
      * Will call function myFunction($params) from class myClass with $params = array('collectionId' => // The value of collectionId in path)
-     * 
+     *
      *      /anyroute/isvalidafter/*, myFunction::myClass
-     * 
+     *
      * Will call function function myFunction($params) from class myClass with $params = array('segments' => array('a', 'b', 'c', etc.))
      * Where (a, b, c, etc.) are the values of everything after '/anyroute/isvalidafter/' splitted by '/' character
      *
@@ -195,7 +192,6 @@ class RestoRouter
 
             // Compare segments one by one to match a valid route
             for ($i = 1, $ii = count($segments); $i < $ii; $i++) {
-
                 // Segments match - keep the path and continue to match against following segments
                 if ($routeSegments[$i] === $segments[$i]) {
                     $validRoute = $workingRoutes[$workIndex];
@@ -208,7 +204,7 @@ class RestoRouter
                         'segments' => array_slice($segments, $i)
                     );
                     // Break only if the method is valid - otherwise continue
-                    if ( isset($validRoute) && isset($validRoute[1][$method]) ) {
+                    if (isset($validRoute) && isset($validRoute[1][$method])) {
                         break;
                     }
                 }
@@ -234,12 +230,11 @@ class RestoRouter
         }
         
         // No route found
-        if ( !isset($validRoute) ) {
+        if (!isset($validRoute)) {
             RestoLogUtil::httpError(404);
         }
 
         return isset($validRoute[1][$method]) ? $this->instantiateRoute($validRoute[1][$method], $method, array_merge($query, $params)) : RestoLogUtil::httpError(405);
-
     }
 
     /**
@@ -251,7 +246,6 @@ class RestoRouter
      */
     private function instantiateRoute($validRoute, $method, $params)
     {
-
         /*
          * In resto 5.x first element of route is an "authenticationIsRequired" boolean
          * In restto >=6.x first element of route can also be an array
@@ -279,7 +273,6 @@ class RestoRouter
          */
         $data = null;
         if ($method === 'POST' || $method === 'PUT') {
-            
             /*
              * File upload is allowed - upload files and populate data with file paths...
              * In this case, the target $className->$methodName is responsible of the uploaded files
@@ -291,16 +284,14 @@ class RestoRouter
              * ...or read the input body content and directly populate data with it
              */
             else {
-                $data = $this->readStream();    
+                $data = $this->readStream();
             }
-
         }
         
         return (new $className($this->context, $this->user))->$methodName(
             $params,
             $data
         );
-
     }
 
     /**
@@ -354,20 +345,16 @@ class RestoRouter
      */
     private function uploadFiles($files)
     {
-        
         $filePaths = [];
 
         // All files will be uploaded within a dedicated directory with a random name
         $uploadDirectory = $this->uploadDirectory . DIRECTORY_SEPARATOR . (substr(sha1(mt_rand(0, 100000) . microtime()), 0, 15));
 
         try {
-            
             for ($i = count($files['tmp_name']); $i--;) {
-
                 $fileToUpload = $files['tmp_name'][$i];
 
                 if (is_uploaded_file($fileToUpload)) {
-
                     if (!is_dir($uploadDirectory)) {
                         mkdir($uploadDirectory, 0777, true);
                     }
@@ -376,12 +363,8 @@ class RestoRouter
                     move_uploaded_file($fileToUpload, $fileName);
 
                     $filePaths[] = $fileName;
-
                 }
-
             }
-            
-
         } catch (Exception $e) {
             RestoLogUtil::httpError(500, 'Cannot upload file(s)');
         }
@@ -390,7 +373,5 @@ class RestoRouter
             'uploadDir' => $uploadDirectory,
             'files' => $filePaths
         );
-
     }
-
 }

@@ -20,7 +20,6 @@
  */
 class RestoQueryAnalyzer
 {
-
     /*
      * RestoContext
      */
@@ -60,7 +59,6 @@ class RestoQueryAnalyzer
      */
     public function analyze($params, $model)
     {
-        
         /*
          * Store original params
          */
@@ -77,7 +75,7 @@ class RestoQueryAnalyzer
         /*
          * Check dates
          */
-        if ( isset($params['time:start']) && isset($params['time:end']) && $params['time:start'] > $params['time:end'] ) {
+        if (isset($params['time:start']) && isset($params['time:end']) && $params['time:start'] > $params['time:end']) {
             RestoLogUtil::httpError(400, 'Invalid dates range - start cannot be greater than end');
         }
 
@@ -104,22 +102,20 @@ class RestoQueryAnalyzer
                 'q' => $params['searchTerms']
             ));
         } else {
-            
             /*
              * Extract hashtags (i.e. #something or -#something)
              */
             $hashtags = isset($params['searchTerms']) ? RestoUtil::extractHashtags($params['searchTerms']) : array();
             $nbOfHashtags = count($hashtags);
             if ($nbOfHashtags > 0) {
-
                 /*
                  * Special gazetteer hashtags - if found, the first is converted to geouid
                  * A gazetteer hashtag format is type:name:geouid
                  */
-                if ( !isset($params['geo:name']) ) {
+                if (!isset($params['geo:name'])) {
                     for ($i = 0, $ii = $nbOfHashtags; $i < $ii; $i++) {
                         $splitted = explode(Resto::TAG_SEPARATOR, $hashtags[$i]);
-                        if ( count($splitted) === 3 && is_numeric($splitted[2]) ) {
+                        if (count($splitted) === 3 && is_numeric($splitted[2])) {
                             $params['geo:name'] = 'geouid:' . $splitted[2];
                             array_splice($hashtags, $i, 1);
                             break;
@@ -138,7 +134,6 @@ class RestoQueryAnalyzer
             if (isset($this->gazetteer)) {
                 $this->extractToponym($params, $details, $hashTodiscard);
             }
-
         }
 
         /*
@@ -163,26 +158,24 @@ class RestoQueryAnalyzer
         );
     }
 
-    /** 
+    /**
      * Parse input $hastags array and replace individual $hashtag with skos related
      * hastags.
-     * 
+     *
      * @param array $hashtags
-     * @return array  
+     * @return array
      */
     private function appendSkos($hashtags)
     {
-
         for ($i = 0, $ii = count($hashtags); $i < $ii; $i++) {
-
             /*
              * If resto-addon-sosa add-on exists, check for searchTerm last character:
              *  - if ends with "!" character, then search for broader search terms
              *  - if ends with "*" character, then search for narrower search terms
              *  - if ends with "~" character, then search for related search terms
              */
-            $lastCharacter = substr($hashtags[$i], -1 );
-            if ( in_array($lastCharacter, array('!', '*', '~') ) && class_exists('SKOS')) {
+            $lastCharacter = substr($hashtags[$i], -1);
+            if (in_array($lastCharacter, array('!', '*', '~')) && class_exists('SKOS')) {
                 $hashtags[$i] = substr($hashtags[$i], 0, -1);
                 $relations = array(
                     '!' => SKOS::$SKOS_BROADER,
@@ -191,14 +184,13 @@ class RestoQueryAnalyzer
                 );
                 // Don't forget to trim # prefix
                 $relations = (new SKOS($this->context, $this->user))->retrieveRecursiveRelations(substr($hashtags[$i], 1), $relations[$lastCharacter]);
-                if ( count($relations) > 0 ) {
+                if (count($relations) > 0) {
                     $hashtags[$i] = $hashtags[$i] . '|' . join('|', $relations);
                 }
             }
         }
         
         return $hashtags;
-
     }
 
     /**
@@ -220,13 +212,11 @@ class RestoQueryAnalyzer
         /*
          * Search on toponym name
          */
-        if ( isset($locationName) && ! isset($params['geo:lon']) && ! isset($params['geo:geometry']) ) {
-            
+        if (isset($locationName) && ! isset($params['geo:lon']) && ! isset($params['geo:geometry'])) {
             /*
              * Search on toponym identifier i.e. geo:name starts with geouid
              */
-            if ( strpos($locationName, 'geouid' . Resto::TAG_SEPARATOR) === 0 )
-            {
+            if (strpos($locationName, 'geouid' . Resto::TAG_SEPARATOR) === 0) {
                 $location = $this->gazetteer->getToponym(array(
                     'id' => substr($locationName, 7),
                     'index' => $this->context->core['planet']
@@ -243,9 +233,7 @@ class RestoQueryAnalyzer
                         $params['geo:geometry'] = 'POINT(' . trim($coordinates[1]) . ' ' . trim($coordinates[0]) . ')';
                     }
                 }
-            }
-            else {
-
+            } else {
                 /*
                  * [IMPORTANT] The search is performed on a modified "searchTerms" with hashtags REMOVED
                  */
@@ -264,7 +252,6 @@ class RestoQueryAnalyzer
                     }
                 }
             }
-            
         }
 
         if (isset($foundLocation)) {
@@ -274,7 +261,6 @@ class RestoQueryAnalyzer
                 'word' => $foundLocation['name']
             ), $details['Explained']);
         }
-
     }
 
 
@@ -288,7 +274,6 @@ class RestoQueryAnalyzer
     private function setWhereFilters($where, $params, $hashTodiscard = null)
     {
         for ($i = count($where); $i--;) {
-
             /*
              * Geometry
              */
@@ -352,7 +337,6 @@ class RestoQueryAnalyzer
     private function setWhenFilters($when, $params)
     {
         foreach ($when as $key => $value) {
-
             /*
              * times is an array of time:start/time:end pairs
              * [TODO] : Currently only one pair is supported
@@ -384,43 +368,40 @@ class RestoQueryAnalyzer
 
     /**
      * Convert datetime to start/end filters
-     * 
+     *
      * @param string $datetime
      * @param array $params
      */
     private function splitDatetime($datetime, &$params)
     {
-       
         $dates = explode('/', trim($datetime));
 
         /*
          * Double-open-ended queries are not allowed in STAC API
          */
-        if ( count($dates) > 2 ) {
+        if (count($dates) > 2) {
             RestoLogUtil::httpError(400, 'Invalid dates range - too many /');
-        }
-        else if ( count($dates) == 2 && in_array($dates[0], array('', '..')) && in_array($dates[1], array('', '..')) ) {
+        } elseif (count($dates) == 2 && in_array($dates[0], array('', '..')) && in_array($dates[1], array('', '..'))) {
             RestoLogUtil::httpError(400, 'Invalid dates range - double-open-ended queries are not allowed in STAC API /');
         }
 
         $model = new DefaultModel();
 
-        if ( isset($dates[0]) && !in_array($dates[0], array('', '..')) ) {
+        if (isset($dates[0]) && !in_array($dates[0], array('', '..'))) {
             $filterKey = $model->getFilterName('start');
             $params[$filterKey] = preg_replace('/<.+?>/', '', $dates[0]);
             $model->validateFilter($filterKey, $params[$filterKey]);
         }
-        if ( isset($dates[1]) && !in_array($dates[1], array('', '..')) ) {
+        if (isset($dates[1]) && !in_array($dates[1], array('', '..'))) {
             $filterKey = $model->getFilterName('end');
             $params[$filterKey] = preg_replace('/<.+?>/', '', $dates[1]);
             $model->validateFilter($filterKey, $params[$filterKey]);
         }
-
     }
 
     /**
      * Return parameters with value and operation
-     * 
+     *
      * @param array $params
      * @param array searchFilters
      * @return array
@@ -430,18 +411,15 @@ class RestoQueryAnalyzer
         $paramsWithOperation = array();
         foreach ($params as $key => $value) {
             // Only add operation if not already there
-            if (is_string($value) || ! isset($value['operation']) ) {
+            if (is_string($value) || ! isset($value['operation'])) {
                 $paramsWithOperation[$key] = array(
                     'value' => $value,
                     'operation' => $searchFilters[$key]['operation'] ?? null
                 );
-            }
-            else {
+            } else {
                 $paramsWithOperation[$key] = $value;
             }
-            
         }
         return $paramsWithOperation;
     }
-
 }

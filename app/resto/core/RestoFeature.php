@@ -376,7 +376,6 @@
  */
 class RestoFeature
 {
-
     /*
      * Feature unique identifier
      */
@@ -461,13 +460,12 @@ class RestoFeature
      */
     public function toATOM()
     {
-
         $publicFeatureArray = $this->toPublicArray();
 
         /*
          * Initialize ATOM feed
          */
-        $atomFeed = new ATOMFeed($publicFeatureArray['id'], $publicFeatureArray['properties']['title'], 'resto feature', isset($this->collection) ? $this->collection->model : new DefaultModel());
+        $atomFeed = new ATOMFeed($publicFeatureArray['id'], $publicFeatureArray['properties']['title'] ?? null, 'resto feature', isset($this->collection) ? $this->collection->model : new DefaultModel());
 
         /*
          * Entry for feature
@@ -487,7 +485,6 @@ class RestoFeature
      */
     private function load($options)
     {
-
         /*
          * Set collection
          */
@@ -518,10 +515,8 @@ class RestoFeature
         if (empty($this->featureArray) || (isset($this->collection) && $this->collection->id !== $this->featureArray['collection'])) {
             $this->id = null;
             return;
-        } 
+        }
         
         $this->id = $this->featureArray['id'];
-        
     }
-
 }

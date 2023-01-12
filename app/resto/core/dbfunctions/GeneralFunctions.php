@@ -228,7 +228,6 @@ class GeneralFunctions
                     'coordinates' => $geometry['coordinates']
                 ), JSON_UNESCAPED_SLASHES)
             )), 0, PGSQL_ASSOC);
-
         } catch (Exception $e) {
             $error = '[GEOMETRY] ' . pg_last_error($this->dbDriver->getConnection());
         }
@@ -256,7 +255,6 @@ class GeneralFunctions
      */
     private function getIp()
     {
-
         // Try all IPs - the latest, the better
         $best = null;
         foreach (array(
@@ -276,14 +274,14 @@ class GeneralFunctions
 
     /**
      * Return Split function
-     * 
+     *
      * @param string $geom
      * @param array $params
      */
-    private function getSplitterFunction($geom, $params) {
-
+    private function getSplitterFunction($geom, $params)
+    {
         // Specifically no split required !
-        if ( isset($params['_splitGeom']) && !$params['_splitGeom'] ) {
+        if (isset($params['_splitGeom']) && !$params['_splitGeom']) {
             return $geom;
         }
 
@@ -292,7 +290,5 @@ class GeneralFunctions
         }
         
         return 'ST_SetSRID(ST_SimplifyPreserveTopologyWhenTooBig(ST_SplitDateLine(' . $geom . '),' . $params['tolerance'] . (isset($params['maxpoints']) ? ',' . $params['maxpoints'] : '') . '), 4326)';
-
     }
-
 }

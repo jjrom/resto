@@ -42,7 +42,6 @@ class CollectionsFunctions
      */
     public function getCollectionDescription($id)
     {
-        
         // Get Opensearch description
         $osDescriptions = $this->getOSDescriptions($id);
         $collection = null;
@@ -62,7 +61,6 @@ class CollectionsFunctions
      */
     public function getCollectionsDescriptions($params = array())
     {
-        
         $collections = array();
 
         // Get all Opensearch descriptions
@@ -70,12 +68,12 @@ class CollectionsFunctions
 
         // Where clause
         $where = array();
-        if ( isset($params['group']) && count($params['group']) > 0 ) {
+        if (isset($params['group']) && count($params['group']) > 0) {
             $where[] = 'visibility IN (' . join(',', $params['group']) . ')';
         }
         
         // Filter on keywords
-        if ( isset($params['ck']) ) {
+        if (isset($params['ck'])) {
             $where[] = 'keywords @> ARRAY[\'' . pg_escape_string($this->dbDriver->dbh, $params['ck']) . '\']';
         }
         
@@ -108,7 +106,6 @@ class CollectionsFunctions
      */
     public function removeCollection($collection)
     {
-
         /*
          * Never remove a non empty collection
          */
@@ -120,7 +117,6 @@ class CollectionsFunctions
          * Delete (within transaction)
          */
         try {
-
             $this->dbDriver->query('BEGIN');
 
             $this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.collection WHERE id=$1', array(
@@ -146,11 +142,9 @@ class CollectionsFunctions
              * Clear cache
              */
             (new RestoCache())->clear();
-
         } catch (Exception $e) {
             RestoLogUtil::httpError($e->getCode(), $e->getMessage());
         }
-
     }
 
     /**
@@ -164,7 +158,6 @@ class CollectionsFunctions
     public function storeCollection($collection, $rights)
     {
         try {
-
             /*
              * Start transaction
              */
@@ -180,7 +173,8 @@ class CollectionsFunctions
              *
              * [TODO] Should get userid from  input user ?
              */
-            (new RightsFunctions($this->dbDriver))->storeOrUpdateRights(array(
+            (new RightsFunctions($this->dbDriver))->storeOrUpdateRights(
+                array(
                 'right' => $rights,
                 'id' => null,
                 'groupid' => Resto::GROUP_DEFAULT_ID,
@@ -207,7 +201,6 @@ class CollectionsFunctions
              * Clear cache
              */
             (new RestoCache())->clear();
-            
         } catch (Exception $e) {
             RestoLogUtil::httpError($e->getCode(), $e->getMessage());
         }
@@ -223,8 +216,7 @@ class CollectionsFunctions
      */
     public function updateExtent($collection, $extentArrays)
     {
-
-        if ( ! isset($extentArrays) ) {
+        if (! isset($extentArrays)) {
             return false;
         }
 
@@ -234,19 +226,16 @@ class CollectionsFunctions
 
         $toBeSet = array();
 
-        if ( isset($timeExtent['startDate']) )
-        {
+        if (isset($timeExtent['startDate'])) {
             $toBeSet[] = 'startdate=least(startdate, \'' . pg_escape_string($this->dbDriver->dbh, $timeExtent['startDate']) . '\')';
         }
 
-        if ( isset($timeExtent['completionDate']) )
-        {
+        if (isset($timeExtent['completionDate'])) {
             $toBeSet[] = 'completiondate=greatest(completiondate, \'' . pg_escape_string($this->dbDriver->dbh, $timeExtent['completionDate']) . '\')';
         }
 
-        if ( isset($bbox) )
-        {
-            $toBeSet[] = 'bbox=ST_Envelope(ST_Union(coalesce(bbox,ST_GeomFromText(\'GEOMETRYCOLLECTION EMPTY\', 4326)), ST_SetSRID(ST_MakeBox2D(ST_Point(' . $bbox[0] . ',' . $bbox[1] . '), ST_Point(' . $bbox[2] . ',' . $bbox[3] . ')), 4326)))'; 
+        if (isset($bbox)) {
+            $toBeSet[] = 'bbox=ST_Envelope(ST_Union(coalesce(bbox,ST_GeomFromText(\'GEOMETRYCOLLECTION EMPTY\', 4326)), ST_SetSRID(ST_MakeBox2D(ST_Point(' . $bbox[0] . ',' . $bbox[1] . '), ST_Point(' . $bbox[2] . ',' . $bbox[3] . ')), 4326)))';
         }
 
         if (empty($toBeSet)) {
@@ -262,8 +251,7 @@ class CollectionsFunctions
         }
 
         return true;
-
-    }   
+    }
         
     /**
      * Get time extent from a list of time extent
@@ -274,8 +262,7 @@ class CollectionsFunctions
      */
     private function getTimeExtent($dates)
     {
-
-        if ( count($dates) === 0 || !isset($dates[0]) ) {
+        if (count($dates) === 0 || !isset($dates[0])) {
             return array(
                 'startDate' => null,
                 'completionDate' => null
@@ -284,16 +271,12 @@ class CollectionsFunctions
 
         $startDate = $dates[0];
         $competionDate = $dates[0];
-        for ( $i = 1, $ii = count($dates); $i < $ii; $i++) 
-        {
-            if ( isset($dates[$i]) ) 
-            {
-                if ($startDate > $dates[$i])
-                {
+        for ($i = 1, $ii = count($dates); $i < $ii; $i++) {
+            if (isset($dates[$i])) {
+                if ($startDate > $dates[$i]) {
                     $startDate = $dates[$i];
                 }
-                if ($competionDate < $dates[$i])
-                {
+                if ($competionDate < $dates[$i]) {
                     $competionDate = $dates[$i];
                 }
             }
@@ -303,7 +286,6 @@ class CollectionsFunctions
             'startDate' => $startDate,
             'completionDate' => $competionDate
         );
-
     }
 
     /**
@@ -315,8 +297,7 @@ class CollectionsFunctions
      */
     private function getSpatialExtent($bboxes)
     {
-
-        if ( count($bboxes) === 0 || !isset($bboxes[0]) ) {
+        if (count($bboxes) === 0 || !isset($bboxes[0])) {
             return null;
         }
 
@@ -324,21 +305,18 @@ class CollectionsFunctions
          * Empty geometry is allowed in GeoJSON
          */
         $bbox = $bboxes[0];
-        for ( $i = 1, $ii = count($bboxes); $i < $ii; $i++) 
-        {
-            if ( isset($bboxes[$i]) ) 
-            {
+        for ($i = 1, $ii = count($bboxes); $i < $ii; $i++) {
+            if (isset($bboxes[$i])) {
                 $bbox = array(
-                    min($bbox[0],$bboxes[$i][0]),
-                    min($bbox[1],$bboxes[$i][1]),
-                    max($bbox[2],$bboxes[$i][2]),
-                    max($bbox[3],$bboxes[$i][3]),
+                    min($bbox[0], $bboxes[$i][0]),
+                    min($bbox[1], $bboxes[$i][1]),
+                    max($bbox[2], $bboxes[$i][2]),
+                    max($bbox[3], $bboxes[$i][3]),
                 );
             }
         }
 
         return $bbox;
-
     }
 
     /**
@@ -354,8 +332,7 @@ class CollectionsFunctions
 
         if (isset($collectionId)) {
             $results = $this->dbDriver->pQuery('SELECT * FROM ' . $this->dbDriver->targetSchema . '.osdescription WHERE collection=$1', array($collectionId));
-        }
-        else {
+        } else {
             $results = $this->dbDriver->query('SELECT * FROM ' . $this->dbDriver->targetSchema . '.osdescription');
         }
         
@@ -386,19 +363,16 @@ class CollectionsFunctions
      */
     private function storeCollectionDescription($collection)
     {
-        
         /*
          * First generate a right keywords array
          */
         $keywords = null;
-        if ( !empty($collection->keywords) ) {
-
+        if (!empty($collection->keywords)) {
             $keywords = array();
             for ($i = 0, $ii = count($collection->keywords); $i < $ii; $i++) {
                 $keywords[] = '"' . $collection->keywords[$i] . '"';
             }
             $keywords = '{' . join(',', $keywords) . '}';
-
         }
 
         /*
@@ -431,13 +405,12 @@ class CollectionsFunctions
             );
             
             // bbox is set
-            if ( isset($collection->extent['spatial']['bbox'][0]) ) {
-                if ( count($collection->extent['spatial']['bbox'][0]) !== 4 ) {
+            if (isset($collection->extent['spatial']['bbox'][0])) {
+                if (count($collection->extent['spatial']['bbox'][0]) !== 4) {
                     return RestoLogUtil::httpError(400, 'Invalid input bbox');
                 }
-                $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.collection (' . join(',', array_keys($toBeSet)) . ', bbox) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, ST_SetSRID(ST_MakeBox2D(ST_Point($16, $17), ST_Point($18, $19)), 4326) )', array_merge(array_values($toBeSet), $collection->extent['spatial']['bbox'][0]));    
-            } 
-            else {
+                $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.collection (' . join(',', array_keys($toBeSet)) . ', bbox) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, ST_SetSRID(ST_MakeBox2D(ST_Point($16, $17), ST_Point($18, $19)), 4326) )', array_merge(array_values($toBeSet), $collection->extent['spatial']['bbox'][0]));
+            } else {
                 echo 'INSERT INTO ' . $this->dbDriver->targetSchema . '.collection (' . join(',', array_keys($toBeSet)) . ') VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)', array_values($toBeSet);
                 $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.collection (' . join(',', array_keys($toBeSet)) . ') VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)', array_values($toBeSet));
             }
@@ -465,7 +438,6 @@ class CollectionsFunctions
         $this->storeOSDescription($collection);
         
         return true;
-
     }
 
     /**
@@ -477,7 +449,6 @@ class CollectionsFunctions
      */
     private function storeOSDescription($collection)
     {
-
         /*
          * Insert OpenSearch descriptions within osdescriptions table
          * (one description per lang)
@@ -512,7 +483,7 @@ class CollectionsFunctions
             /*
              * OpenSearch 1.1 draft 5 constraints
              * (http://www.opensearch.org/Specifications/OpenSearch/1.1)
-             * 
+             *
              * [STAC] Remove constraints on ShortName, LongName and Description
              */
             $validProperties = array(
@@ -530,7 +501,6 @@ class CollectionsFunctions
                 'Attribution' => -1
             );
             foreach (array_keys($description) as $key) {
-
                 /*
                  * Throw exception if property is invalid
                  */
@@ -544,7 +514,6 @@ class CollectionsFunctions
             }
             $this->dbDriver->query('INSERT INTO ' . $this->dbDriver->targetSchema . '.osdescription (' . join(',', $osFields) . ') VALUES(' . join(',', $osValues) . ')');
         }
-
     }
 
     /**
@@ -564,11 +533,12 @@ class CollectionsFunctions
 
     /**
      * Return a formated collection description
-     * 
+     *
      * @param array $rawDescription
      * @param array $osDescription
      */
-    private function format($rawDescription, $osDescription) {
+    private function format($rawDescription, $osDescription)
+    {
         $collection = array(
             'id' => $rawDescription['id'],
             'version' => $rawDescription['version'] ?? null,
@@ -615,7 +585,5 @@ class CollectionsFunctions
         }
 
         return $collection;
-        
     }
-
 }

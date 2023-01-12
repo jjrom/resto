@@ -209,7 +209,7 @@
  *          "id": "20ac2fc6-daee-5621-bca4-d88c0bb19da1"
  *      }
  *  )
- * 
+ *
  *  @OA\Schema(
  *      schema="InputFeatureCollection",
  *      description="Feature collection",
@@ -326,12 +326,11 @@
  *          }
  *      }
  *  )
- * 
- * 
+ *
+ *
  */
 class RestoFeatureCollection
 {
-
     /*
      * Context
      */
@@ -412,7 +411,6 @@ class RestoFeatureCollection
      */
     public function load($collection)
     {
-
         /*
          * Request start time
          */
@@ -448,11 +446,10 @@ class RestoFeatureCollection
          * Read features from database
          */
         else {
-            
             /*
              * [IMPORTANT] Add explicit 'resto:collection' filter if $collection is set
              */
-            if ( isset($collection) ) {
+            if (isset($collection)) {
                 $analysis['details']['appliedFilters'] = array_merge(
                     $analysis['details']['appliedFilters'],
                     array('resto:collection' => array(
@@ -463,7 +460,6 @@ class RestoFeatureCollection
                 );
             }
             $this->loadFeatures($analysis['details']['appliedFilters'], $sorting);
-            
         }
         
         /*
@@ -499,7 +495,6 @@ class RestoFeatureCollection
             'numberReturned' => $this->searchContext['returned'],
             'features' => $features
         ), $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
-        
     }
 
     /**
@@ -507,7 +502,6 @@ class RestoFeatureCollection
      */
     public function toATOM()
     {
-
         /*
          * Initialize ATOM feed
          */
@@ -538,7 +532,6 @@ class RestoFeatureCollection
      */
     private function init($analysis, $sorting, $collectionId)
     {
-
         /*
          * Default name for all collection
          */
@@ -567,12 +560,11 @@ class RestoFeatureCollection
             'startIndex' => $sorting['offset'] + 1,
             'query' => $this->getSearchQuery($analysis)
         );
-
     }
 
     /**
      * Return detailed query block from query analysis
-     *  
+     *
      * @param array $analysis
      * @return array
      */
@@ -602,7 +594,6 @@ class RestoFeatureCollection
         }
 
         return $query;
-
     }
 
     /**
@@ -616,13 +607,11 @@ class RestoFeatureCollection
         $arr = array();
 
         foreach ($params as $key => $value) {
-
             /*
              * Support key tuples
              */
             if (is_array($value)) {
                 for ($i = 0, $l = count($value); $i < $l; $i++) {
-
                     if (isset($this->model->searchFilters[$key]['osKey'])) {
                         $arr[$this->model->searchFilters[$key]['osKey'] . '[]'] = $value[$i];
                     } /*else {
@@ -630,7 +619,6 @@ class RestoFeatureCollection
                     } */
                 }
             } else {
-
                 if (isset($this->model->searchFilters[$key]['osKey'])) {
                     $arr[$this->model->searchFilters[$key]['osKey']] = $value;
                 } /* else {
@@ -650,7 +638,6 @@ class RestoFeatureCollection
      */
     private function loadFeatures($paramsWithOperation, $sorting)
     {
-        
         /*
          * Get features array from database
          */
@@ -672,7 +659,7 @@ class RestoFeatureCollection
                 'collection' => $this->collections[$featuresArray['features'][$i]['collection']] ?? null,
                 'fields' => $this->query['fields'] ?? null
             ));
-            if ( $feature->isValid() ) {
+            if ($feature->isValid()) {
                 $this->restoFeatures[] = $feature;
             }
         }
@@ -685,10 +672,9 @@ class RestoFeatureCollection
         /*
          * Additional links computed during search (e.g. heatmap - see resto-addon-heatmap)
          */
-        if ( !empty($featuresArray['links']) ) {
+        if (!empty($featuresArray['links'])) {
             $this->links = array_merge($this->links, $featuresArray['links']);
         }
-        
     }
 
     /**
@@ -728,7 +714,6 @@ class RestoFeatureCollection
      */
     private function getLinks($sorting, $collectionId)
     {
-        
         /*
          * Base links are always returned
          */
@@ -738,44 +723,41 @@ class RestoFeatureCollection
          * resto:lt has preseance over startPage
          */
         if ($sorting['resto:lt'] || $sorting['resto:gt']) {
-
-            if ( isset($this->restoFeatures[0]) )
-            {
+            if (isset($this->restoFeatures[0])) {
                 $featureArray = $this->restoFeatures[0]->toArray();
 
                 // No sort_idx (e.g. timeless collection)
-                if ( isset($featureArray['properties']['sort_idx']) ) {
-
+                if (isset($featureArray['properties']['sort_idx'])) {
                     $this->prev = $featureArray['properties']['sort_idx'];
 
-                    /* 
+                    /*
                     * Previous
                     */
-                    $this->links[] = $this->getLink('previous', array(
+                    $this->links[] = $this->getLink(
+                        'previous',
+                        array(
                         'resto:lt' => null,
                         'resto:gt' => $this->prev,
                         'count' => $sorting['limit'])
                     );
-
                 }
-        
             }
 
             /*
              * First URL is the first search URL i.e. without any lt/gt
              */
-            $this->links[] = $this->getLink('first', array(
+            $this->links[] = $this->getLink(
+                'first',
+                array(
                 'resto:lt' => null,
                 'resto:gt' => null,
                 'count' => $sorting['limit'])
             );
-
         }
         /*
          * Start page cannot be lower than 1
          */
         elseif ($this->paging['startPage'] > 1) {
-
             /*
              * Previous URL is the previous URL from the self URL
              *
@@ -787,7 +769,9 @@ class RestoFeatureCollection
             /*
              * First URL is the first search URL i.e. with startPage = 1
              */
-            $this->links[] = $this->getLink('first', array(
+            $this->links[] = $this->getLink(
+                'first',
+                array(
                 'startPage' => 1,
                 'count' => $sorting['limit'])
             );
@@ -801,24 +785,23 @@ class RestoFeatureCollection
         $count = count($this->restoFeatures);
 
         if ($count >= $sorting['limit']) {
-
             $featureArray = $this->restoFeatures[$count - 1]->toArray();
             
             // No sort_idx (e.g. timeless collection)
             if (isset($featureArray['properties']['sort_idx'])) {
-
                 $this->next = $featureArray['properties']['sort_idx'];
 
                 /*
                 * Next URL is the next search URL from the self URL
                 */
-                $this->links[] = $this->getLink('next', array(
+                $this->links[] = $this->getLink(
+                    'next',
+                    array(
                     'resto:gt' => null,
                     'resto:lt' => $this->next,
                     'count' => $sorting['limit'])
                 );
             }
-
         }
 
         return $this->links;
@@ -826,7 +809,7 @@ class RestoFeatureCollection
 
     /**
      * Return base links (i.e. links always present in response)
-     * 
+     *
      * @param string $collectionId
      */
     private function getBaseLinks($collectionId)
@@ -853,7 +836,6 @@ class RestoFeatureCollection
      */
     private function getLink($rel, $params)
     {
-
         /*
          * Do not set count if equal to default limit
          */
@@ -877,7 +859,6 @@ class RestoFeatureCollection
      */
     private function getPaging($count, $limit, $offset)
     {
-
         $count['returned'] = count($this->restoFeatures);
 
         /*
@@ -988,8 +969,7 @@ class RestoFeatureCollection
         $arr = array();
         foreach ($filterNames as $key => $obj) {
             if (isset($this->model->searchFilters[$key])) {
-
-                // Special case => convert string of hashtags to individuals 
+                // Special case => convert string of hashtags to individuals
                 if ($key === 'searchTerms' && $processSearchTerms) {
                     $arr = array_merge($arr, $this->explodeSearchTerms($obj));
                     continue;
@@ -998,7 +978,6 @@ class RestoFeatureCollection
                 // Convert to STAC
                 $osKey = $this->model->searchFilters[$key]['osKey'];
                 $arr[isset($this->model->stacMapping[$osKey]) ? $this->model->stacMapping[$osKey]['key']: $osKey] = $obj;
-
             }
         }
         return $arr;
@@ -1007,27 +986,25 @@ class RestoFeatureCollection
     /**
      * Explode a searchTerms string (e.g. "#location:coastal #year:2003 #instrument:PHR,NIR #thisisanormalahashtag")
      * into an array of filters (i.e. {"location":"coastal","year":2003,"instruments":"PHR,NIR","q":"#thisisnormalhashtagh"})
-     * 
+     *
      * @param array $obj
      */
     private function explodeSearchTerms($obj)
     {
-
         $hashtags = [];
         $output = [];
         
         /*
          * Process each searchTerm
          */
-        if ( is_string($obj) ) {
+        if (is_string($obj)) {
             $obj = array(
                 'value' => $obj,
                 'operation' => '='
             );
         }
-        $searchTerms = RestoUtil::splitString($obj['value']); 
+        $searchTerms = RestoUtil::splitString($obj['value']);
         for ($i = 0, $l = count($searchTerms); $i < $l; $i++) {
-
             $splitted = explode(Resto::TAG_SEPARATOR, $searchTerms[$i]);
 
             // This is a regular hashtag
@@ -1044,20 +1021,18 @@ class RestoFeatureCollection
              * Hashtags start with "#" or with "-#" (equivalent to "NOT #")
              */
             if (substr($key, 0, 1) === '#') {
-                $osKey = $this->model->getOSKeyFromPrefix(ltrim($key, '#')); 
+                $osKey = $this->model->getOSKeyFromPrefix(ltrim($key, '#'));
                 $output[isset($this->model->stacMapping[$osKey]) ? $this->model->stacMapping[$osKey]['key']: $osKey] = array(
                     'value' => $value,
                     'operation' =>  $obj['operation']
                 );
-            }
-            elseif (substr($key, 0, 2) === '-#') {
+            } elseif (substr($key, 0, 2) === '-#') {
                 $osKey = $this->model->getOSKeyFromPrefix(ltrim($key, '-#'));
                 $output[isset($this->model->stacMapping[$osKey]) ? $this->model->stacMapping[$osKey]['key']: $osKey] = array(
                     'value' => '-' . $value,
                     'operation' =>  $obj['operation']
                 );
-            }
-            else {
+            } else {
                 $hashtags[] = $searchTerms[$i];
             }
         }
@@ -1070,7 +1045,6 @@ class RestoFeatureCollection
         }
 
         return $output;
-
     }
 
     /**
@@ -1080,7 +1054,6 @@ class RestoFeatureCollection
      */
     private function getSorting($filters)
     {
-
         /*
          * Number of returned results is never greater than maxInclusive
          */
@@ -1112,7 +1085,7 @@ class RestoFeatureCollection
         /*
          * Finally check validity
          */
-        if (! in_array($sortKey, $this->context->dbDriver->sortKeys) ) {
+        if (! in_array($sortKey, $this->context->dbDriver->sortKeys)) {
             return RestoLogUtil::httpError(400, "Invalid sorting key");
         }
 

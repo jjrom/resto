@@ -19,27 +19,25 @@
  */
 class OpticalModel extends SatelliteModel
 {
-
     /**
      * Constructor
-     * 
+     *
      * @param array $options
      */
     public function __construct($options = array())
     {
-
         parent::__construct($options);
 
         /*
          * Satellite model follows STAC EO Extension Specification
-         * 
+         *
          * [STAC][1.0.0-rc.4] STAC extensions require at least one field to validate. Since resto cannot check this constraint all references to extensions are removed from the output
          */
         //$this->stacExtensions[] = 'https://stac-extensions.github.io/eo/v1.0.0/schema.json';
 
         /*
          * Extend STAC mapping
-         * 
+         *
          * See - https://github.com/radiantearth/stac-spec/tree/dev/extensions/eo
          */
         $this->stacMapping = array_merge($this->stacMapping, array(
@@ -87,7 +85,5 @@ class OpticalModel extends SatelliteModel
                 'cloudcover'
             )
         );
-
     }
-
 }

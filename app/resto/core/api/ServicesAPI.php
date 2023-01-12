@@ -65,8 +65,7 @@ class ServicesAPI
     {
         try {
             $content = @file_get_contents('/docs/resto-api.' . $this->context->outputFormat);
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $content = false;
         }
 
@@ -165,7 +164,7 @@ class ServicesAPI
      *                  property="links",
      *                  type="array",
      *                  @OA\Items(ref="#/components/schemas/Link")
-     *              )   
+     *              )
      *          )
      *      ),
      *      @OA\Response(
@@ -176,7 +175,6 @@ class ServicesAPI
      */
     public function hello()
     {
-
         $links = array();
 
         /*
@@ -265,7 +263,6 @@ class ServicesAPI
             ),
             'conformsTo' => $this->conformsTo()
         );
-            
     }
 
     /**
@@ -510,5 +507,4 @@ class ServicesAPI
     {
         return STAC::CONFORMANCE_CLASSES;
     }
-
 }

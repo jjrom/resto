@@ -34,7 +34,6 @@
  */
 class OSDD extends RestoXML
 {
-
     /*
      * Reference to context
      */
@@ -104,7 +103,6 @@ class OSDD extends RestoXML
      */
     private function setOSDD()
     {
-        
         /*
          * Start OpsenSearchDescription
          */
@@ -199,7 +197,6 @@ class OSDD extends RestoXML
     private function setUrls()
     {
         foreach (array_values($this->contentTypes) as $format) {
-
             /*
              * Special case for HTML output
              */
@@ -237,7 +234,6 @@ class OSDD extends RestoXML
      */
     private function getUrlTemplate($format)
     {
-
         /*
          * HTML output is based on htmlSearchEndpoint
          */
@@ -295,7 +291,6 @@ class OSDD extends RestoXML
                         }
                     } elseif ($filter['options'] === 'auto') {
                         if (isset($filter['osKey']) && isset($this->statistics[$filter['osKey']])) {
-
                             /*
                              * [STAC] Summaries format is "oneOf" if several options
                              */
@@ -303,8 +298,7 @@ class OSDD extends RestoXML
                                 $this->startElement('parameters:Option');
                                 $this->writeAttribute('value', $this->statistics[$filter['osKey']]['const']);
                                 $this->endElement();
-                            }
-                            else {
+                            } else {
                                 for ($i = count($this->statistics[$filter['osKey']]['oneOf']); $i--;) {
                                     $this->startElement('parameters:Option');
                                     $this->writeAttribute('value', $this->statistics[$filter['osKey']]['oneOf'][$i]['const']);

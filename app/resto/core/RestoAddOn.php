@@ -17,7 +17,6 @@
 
 class RestoAddOn
 {
-
     /**
      * Add-on version
      */
@@ -66,5 +65,4 @@ class RestoAddOn
     {
         return isset($dbConfig) ? $this->context->dbDriver->getConnectionFromConfig($dbConfig) : $this->context->dbDriver->getConnection();
     }
-    
 }

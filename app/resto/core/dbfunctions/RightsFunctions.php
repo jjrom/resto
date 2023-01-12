@@ -103,7 +103,6 @@ class RightsFunctions
      */
     public function storeOrUpdateRights($params)
     {
-
         $rights = $params['rights'] ?? array();
         $userid = $params['id'] ?? null;
         $groupid = $params['groupid'] ?? null;
@@ -130,7 +129,6 @@ class RightsFunctions
      */
     public function removeRights($params)
     {
-
         try {
             $filterOwner = $this->getFilterFromOwner($params['id'] ?? null, $params['groupid'] ?? null);
             if (!isset($filterOwner)) {
@@ -144,7 +142,6 @@ class RightsFunctions
         } catch (Exception $e) {
             RestoLogUtil::httpError(400);
         }
-
     }
 
     /**
@@ -282,7 +279,7 @@ class RightsFunctions
 
         $where = array();
 
-        if ( isset($target) ) {
+        if (isset($target)) {
             $where[] = 'target IN (\'' . pg_escape_string($this->dbDriver->dbh, $this->dbDriver->targetSchema) . '\', \'*\')';
         }
         
@@ -334,7 +331,7 @@ class RightsFunctions
 
         $where = array();
 
-        if ( isset($target) ) {
+        if (isset($target)) {
             $where[] = 'target IN (\'' . pg_escape_string($this->dbDriver->dbh, $target) . '\', \'*\')';
         }
         
@@ -359,18 +356,17 @@ class RightsFunctions
      */
     private function getFilterFromTarget($target, $collectionId, $featureId)
     {
-        if ( !isset($collectionId) && !isset($featureId) ) {
+        if (!isset($collectionId) && !isset($featureId)) {
             return null;
         }
 
         $where = array();
-        if ( isset($target) ) {
+        if (isset($target)) {
             $where[] = 'target IN (\'' . pg_escape_string($this->dbDriver->targetSchema) . '\', \'*\')';
         }
         if (isset($collectionId)) {
             $where[] = 'collection IN (\'' . pg_escape_string($this->dbDriver->dbh, $collectionId) . '\', \'*\')';
-        }
-        elseif (isset($featureId)) {
+        } elseif (isset($featureId)) {
             $where[] = 'featureid IN (\'' . pg_escape_string($this->dbDriver->dbh, $featureId) . '\', \'*\')';
         }
         return join(' AND ', $where);

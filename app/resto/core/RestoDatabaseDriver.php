@@ -20,7 +20,6 @@
  */
 class RestoDatabaseDriver
 {
-
     /*
      * Default DATABASE_COMMON_SCHEMA
      */
@@ -71,9 +70,7 @@ class RestoDatabaseDriver
      */
     public function __construct($config)
     {
-
         if (isset($config)) {
-
             if (isset($config['commonSchema'])) {
                 $this->commonSchema = $config['commonSchema'];
             }
@@ -95,11 +92,9 @@ class RestoDatabaseDriver
             }
 
             $this->config = $config;
-        }
-        else {
+        } else {
             error_log('[WARNING] No database configuration found - use default configuration');
         }
-        
     }
 
     /**
@@ -114,7 +109,6 @@ class RestoDatabaseDriver
     public function normalize($sentence)
     {
         try {
-
             $dbh = $this->getConnection();
 
             if (!isset($sentence) || !$dbh) {
@@ -169,7 +163,6 @@ class RestoDatabaseDriver
     public function pQuery($query, $params, $errorCode = 500, $errorMessage = null)
     {
         try {
-            
             $dbh = $this->getConnection();
             if (!$dbh) {
                 throw new Exception('Cannot connect to database ' . ($this->config['dbname'] ?? '???') . '@' . ($this->config['host'] ?? '???') . ':' . ($this->config['port'] ?? '???'), 500);
@@ -181,7 +174,6 @@ class RestoDatabaseDriver
             }
             
             return $results;
-        
         } catch (Exception $e) {
             RestoLogUtil::httpError($e->getCode() ?? $errorCode, $e->getMessage() ?? $errorMessage);
         }
@@ -204,7 +196,6 @@ class RestoDatabaseDriver
      */
     public function getConnection()
     {
-
         // Connection already initialized
         if (isset($this->dbh)) {
             return $this->dbh;
@@ -222,17 +213,16 @@ class RestoDatabaseDriver
 
     /**
      * Return a connection from configuration
-     * 
+     *
      * @param array $config
      */
-    public function getConnectionFromConfig($config) {
-        
+    public function getConnectionFromConfig($config)
+    {
         if (! isset($config) || ! isset($config['dbname'])) {
             return false;
         }
         
         try {
-
             $dbInfo = array(
                 'dbname=' . $config['dbname'],
                 'user=' . $config['user'],
@@ -249,10 +239,8 @@ class RestoDatabaseDriver
             }
             
             return @pg_connect(join(' ', $dbInfo));
-            
         } catch (Exception $e) {
             return false;
         }
-       
     }
 }

@@ -21,13 +21,11 @@
 
 class SecurityUtil
 {
-
     /**
      * Constructor
      */
     public function __construct()
     {
-
     }
 
     /**
@@ -61,7 +59,7 @@ class SecurityUtil
      *      securityScheme="queryAuth",
      *      description="Access token in query as preseance over token in HTTP header"
      *  )
-     * 
+     *
      * @param RestoContext $context
      * @return RestoUser
      *
@@ -76,7 +74,7 @@ class SecurityUtil
         if (isset($context->query['_bearer'])) {
             $authRequested = true;
             $user = $this->authenticateBearer($context, $context->query['_bearer']);
-            //unset($context->query['_bearer']);
+        //unset($context->query['_bearer']);
         }
         /*
          * ...or from headers
@@ -99,12 +97,11 @@ class SecurityUtil
         }
 
         return $user;
-
     }
 
     /**
      * Get authentication info from http headers
-     * 
+     *
      * @param RestoContext $context
      * @return array
      */
@@ -162,11 +159,9 @@ class SecurityUtil
      */
     private function authenticateBearer($context, $token)
     {
-
         $user = null;
 
         try {
-
             /*
              * If issuer_id is specified in the request then assumes a third party token.
              * In this case, transform this third party token into a resto token
@@ -185,11 +180,10 @@ class SecurityUtil
                 $user = new RestoUser(array('id' => $userid), $context, false);
                 $user->token = $token;
             }
-
-        } catch (Exception $ex) {}
+        } catch (Exception $ex) {
+        }
         
         return $user;
-
     }
 
     /**
@@ -228,5 +222,4 @@ class SecurityUtil
 
         return $payloadObject['sub'];
     }
-
 }

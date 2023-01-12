@@ -34,7 +34,7 @@ class AuthAPI
 
     /**
      *  Get authentication token
-     * 
+     *
      *  @OA\Get(
      *      path="/auth",
      *      summary="Get an authentication token",
@@ -89,7 +89,6 @@ class AuthAPI
      */
     public function getToken()
     {
-        
         // Be sure that user profile is loaded
         $this->user->loadProfile();
         
@@ -102,7 +101,6 @@ class AuthAPI
             'token' => $this->context->createRJWT($this->user->profile['id']),
             'profile' => $this->user->profile
         );
-        
     }
 
     /**
@@ -166,7 +164,6 @@ class AuthAPI
      */
     public function revokeToken($params)
     {
-        
         $payload = $this->context->decodeJWT($params['token']);
         if (!isset($payload)) {
             return RestoLogUtil::httpError(400, 'Invalid or expired token');
@@ -182,7 +179,6 @@ class AuthAPI
         (new GeneralFunctions($this->context->dbDriver))->revokeToken($params['token'], date(DateTime::ISO8601, $payload['exp']));
         
         return RestoLogUtil::success('Token revoked');
-
     }
 
     /**
@@ -233,19 +229,17 @@ class AuthAPI
      */
     public function checkToken($params)
     {
-
         $payload = $this->context->decodeJWT($params['token']);
 
         if (!isset($payload) || (new GeneralFunctions($this->context->dbDriver))->isTokenRevoked($params['token'])) {
             return RestoLogUtil::success('Token checked', array(
-                'isValid' => False
+                'isValid' => false
             ));
         }
         
         return RestoLogUtil::success('Token checked', array(
-            'isValid' => True
+            'isValid' => true
         ));
-
     }
 
     /**
@@ -312,7 +306,6 @@ class AuthAPI
      */
     public function activateUser($params)
     {
-
         $payload = $this->context->decodeJWT($params['token']);
 
         if (!isset($payload) || !isset($payload['sub'])) {
@@ -329,9 +322,5 @@ class AuthAPI
             'token' => $this->context->createRJWT($user->profile['id']),
             'profile' => $user->profile
         );
-        
     }
-
-
 }
-

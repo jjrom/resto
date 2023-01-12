@@ -87,10 +87,10 @@ echo "\n-------------------------------------------\n";
  * @author   Anant Narayanan <anant@php.net>
  * @license  http://opensource.org/licenses/BSD-3-Clause 3-clause BSD
  * @link     https://github.com/firebase/php-jwt
- * 
+ *
  * Hack from Hack from version https://github.com/firebase/php-jwt/commit/bac0422822b92fe7a0ed1fc7b1b633d9efa37bae
  * (2018-01-26)
- * 
+ *
  * 2018-11-11 - Jérôme Gasperi for resto
  *   - remove namespace
  *   - replace UnexpectedValueException, UnexpectedValueException by UnexpectedValueException
@@ -98,7 +98,6 @@ echo "\n-------------------------------------------\n";
  */
 class JWT
 {
-
     /**
      * When checking nbf, iat or expiration times,
      * we want to provide some extra leeway time to
@@ -133,7 +132,7 @@ class JWT
      *                                      Supported algorithms are 'HS256', 'HS384', 'HS512' and 'RS256'
      *
      * @param boolean       checkExpiration If set to false then token expiration is not checked (added for resto)
-     *       
+     *
      * @return object The JWT's payload as a PHP object
      *
      * @throws UnexpectedValueException     Provided JWT was invalid
@@ -236,7 +235,7 @@ class JWT
         if ($keyId !== null) {
             $header['kid'] = $keyId;
         }
-        if ( isset($head) && is_array($head) ) {
+        if (isset($head) && is_array($head)) {
             $header = array_merge($head, $header);
         }
         $segments = array();

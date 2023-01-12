@@ -99,7 +99,6 @@ class Curly
      */
     private function setDefault()
     {
-
         // Default headers JSON
         $this->setHeaders(array(
             'Content-Type: application/json',

@@ -246,7 +246,7 @@ class CollectionsAPI
      *
      */
     public function getCollections($params)
-    {   
+    {
         return (new RestoCollections($this->context, $this->user))->load($params);
     }
 
@@ -353,7 +353,6 @@ class CollectionsAPI
      */
     public function createCollection($params, $body)
     {
-        
         /*
          * Only a user with 'create' rights can POST a collection
          */
@@ -597,7 +596,7 @@ class CollectionsAPI
      *         @OA\JsonContent(
      *              oneOf={
      *                  @OA\Schema(ref="#/components/schemas/InputFeatureCollection"),
-     *                  @OA\Schema(ref="#/components/schemas/InputFeature")    
+     *                  @OA\Schema(ref="#/components/schemas/InputFeature")
      *              }
      *         )
      *      ),
@@ -669,7 +668,6 @@ class CollectionsAPI
      */
     public function insertFeatures($params, $body)
     {
-
         /*
          * Load collection
          */

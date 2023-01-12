@@ -20,7 +20,6 @@
  */
 class STAC extends RestoAddOn
 {
-
     /**
      * Links
      *
@@ -54,7 +53,7 @@ class STAC extends RestoAddOn
      *          "href": "http://127.0.0.1:5252/collections/S2.json?&_pretty=1"
      *      }
      * )
-     * 
+     *
      * Assets
      *
      * @OA\Schema(
@@ -183,23 +182,22 @@ class STAC extends RestoAddOn
 
         // Ensure valid options
         $this->options['minMatch'] = isset($this->options['minMatch']) && is_int($this->options['minMatch']) ? $this->options['minMatch'] : 0;
-
     }
 
     /**
      * Return an asset href within an HTTP 301 Redirect message
      * This trick is used to store download external asset statistics
-     * 
+     *
      * @param array $params
      */
-    public function getAsset($params) {
-
+    public function getAsset($params)
+    {
         $url = base64_decode($params['urlInBase64']);
 
         /*
          * Should be a valid url
          */
-        if ( !$url || strpos($url, 'http') !== 0 )  {
+        if (!$url || strpos($url, 'http') !== 0) {
             RestoLogUtil::httpError(400, 'Invalid base64 encoded url');
         }
 
@@ -211,7 +209,7 @@ class STAC extends RestoAddOn
                 'path' => $url,
                 'method' => 'GET_ASSET'
             ));
-        } catch (Exception $e) { 
+        } catch (Exception $e) {
             error_log('[WARNING] Cannot store download info in resto.log');
         }
 
@@ -222,12 +220,11 @@ class STAC extends RestoAddOn
         header('Location: ' . $url);
 
         return;
-
     }
 
     /**
      * Return a STAC catalog from facet
-     * 
+     *
      *    @OA\Get(
      *      path="/catalogs/*",
      *      summary="Get STAC catalogs",
@@ -257,14 +254,13 @@ class STAC extends RestoAddOn
         $result = $this->load($params);
         
         return isset($result->featureCollection) ? $result->featureCollection : $result;
-
     }
 
 
     /**
      * Return the list of children catalog
      * (see https://github.com/radiantearth/stac-api-spec/tree/main/children)
-     * 
+     *
      *    @OA\Get(
      *      path="/children",
      *      summary="Get root child catalogs",
@@ -279,14 +275,13 @@ class STAC extends RestoAddOn
      *                  type="array",
      *                  description="Array of features",
      *                  @OA\Items(ref="#/components/schemas/OutputFeature")
-     *              )            
+     *              )
      *          )
      *     )
      *    )
      */
     public function getChildren($params)
     {
-
         $childs = array();
 
         // Initialize router to process each children individually
@@ -297,8 +292,7 @@ class STAC extends RestoAddOn
             if ($links[$i]['rel'] == 'child') {
                 try {
                     $response = $router->process('GET', parse_url($links[$i]['href'])['path'], array());
-                }
-                catch (Exception $e) {
+                } catch (Exception $e) {
                     continue;
                 }
                 if (isset($response)) {
@@ -322,13 +316,12 @@ class STAC extends RestoAddOn
                 )
             )
         );
-
     }
 
     /**
      * Return the list of children catalog
      * (see https://github.com/radiantearth/stac-api-spec/tree/main/children)
-     * 
+     *
      *    @OA\Get(
      *      path="/queryables",
      *      summary="Queryables for STAC API",
@@ -345,7 +338,6 @@ class STAC extends RestoAddOn
      */
     public function getQueryables($params)
     {
-
         // [IMPORTANT] Supersede output format
         $this->context->outputFormat = 'jsonschema';
 
@@ -355,11 +347,10 @@ class STAC extends RestoAddOn
             'type' => 'object',
             'title' => 'Queryables for Example STAC API',
             'description' => 'Queryable names for the example STAC API Item Search filter.',
-            // Get common queryables (/queryables) or per collection (/collections/{collectionId}/queryables)  
+            // Get common queryables (/queryables) or per collection (/collections/{collectionId}/queryables)
             'properties' => (isset($params['collectionId']) ? ((new RestoCollection($params['collectionId'], $this->context, $this->user))->load())->model : new DefaultModel())->getQueryables(),
             'additionalProperties' => true
         );
-
     }
 
     /**
@@ -860,7 +851,6 @@ class STAC extends RestoAddOn
      */
     public function search($params, $body)
     {
-        
         if ($this->context->method === 'POST') {
             $params = $this->jsonQueryToKVP($body);
         }
@@ -882,13 +872,12 @@ class STAC extends RestoAddOn
         $this->context->outputFormat = 'geojson';
 
         /*
-         * [TODO][CHANGE THIS] Temporary solution for collection that are not in resto schema 
+         * [TODO][CHANGE THIS] Temporary solution for collection that are not in resto schema
          *   => replace search on single collection by direct search on single collection
          */
-        if ( isset($params['collections']) )
-        {
+        if (isset($params['collections'])) {
             $collections = array_map('trim', explode(',', $params['collections']));
-            if  ( count($collections) === 1 ) {
+            if (count($collections) === 1) {
                 $params['collectionId'] = $params['collections'];
                 unset($params['collections']);
                 return (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()->search($params);
@@ -903,7 +892,7 @@ class STAC extends RestoAddOn
             foreach (array_keys($restoCollections->collections) as $collectionId) {
                 if ( !in_array($restoCollections->collections[$collectionId]->model->dbParams['tablePrefix'], $schemaNames) ) {
                     $schemaNames[] = $restoCollections->collections[$collectionId]-model->dbParams['tablePrefix'];
-                }   
+                }
             }
         }
         */
@@ -936,12 +925,11 @@ class STAC extends RestoAddOn
                         'type' => RestoUtil::$contentTypes['json'],
                         'href' => $this->context->core['baseUrl']
                     )
-                ), 
-                $this->links ?? array()    
+                ),
+                $this->links ?? array()
             ),
             'stac_version' => STAC::STAC_VERSION
         );
-
     }
 
     /**
@@ -964,24 +952,19 @@ class STAC extends RestoAddOn
      */
     private function load($params = array())
     {
-        
         $nbOfSegments = count($this->segments);
 
         // Root
-        if ( $nbOfSegments === 0 )
-        {
+        if ($nbOfSegments === 0) {
             $this->link = $this->stacUtil->getRootCatalogLinks();
         }
 
         // View special case
-        else if ($this->segments[0] === 'views' && isset($this->context->addons['View']))
-        {
-            
+        elseif ($this->segments[0] === 'views' && isset($this->context->addons['View'])) {
             $view = new View($this->context, $this->user);
             
             // Root
-            if ($nbOfSegments === 1)
-            {
+            if ($nbOfSegments === 1) {
                 $viewCatalog = $view->getViews(array(
                     'format' => 'stac'
                 ));
@@ -990,96 +973,74 @@ class STAC extends RestoAddOn
                 $this->links = $viewCatalog['links'];
             }
             // Individual view
-            else if ($nbOfSegments === 2)
-            {
+            elseif ($nbOfSegments === 2) {
                 return $view->getView(array_merge($this->context->query, array(
                     'viewId' => $this->segments[1],
                     'format' => 'stac'
                 )));
             }
             // Individual views
-            else
-            {
+            else {
                 return RestoLogUtil::httpError(404);
             }
-
         }
 
         // SOSA special case
-        else if ($this->segments[0] === 'concepts' && isset($this->context->addons['SOSA']))
-        {
-
+        elseif ($this->segments[0] === 'concepts' && isset($this->context->addons['SOSA'])) {
             $skos = new SKOS($this->context, $this->user);
             
             // Root
-            if ($nbOfSegments === 1)
-            {
+            if ($nbOfSegments === 1) {
                 return $skos->getConcepts($this->context->query);
             }
             // Individual concept
-            else if ($nbOfSegments === 2)
-            {
+            elseif ($nbOfSegments === 2) {
                 return $skos->getConcept(array_merge($this->context->query, array(
                     'conceptId' => $this->segments[1],
                 )));
             }
             // Nothing found
-            else
-            {
+            else {
                 return RestoLogUtil::httpError(404);
             }
-
         }
 
         // Classifications
-        else if ($this->segments[0] === 'classifications')
-        {
-            
+        elseif ($this->segments[0] === 'classifications') {
             // Root
-            if ($nbOfSegments === 1)
-            {
+            if ($nbOfSegments === 1) {
                 $this->setClassificationsLinks(null);
             }
 
             // Two segments (except landcover)
-            else if ($nbOfSegments === 2 && $this->segments[1] !== 'landcover')
-            {
+            elseif ($nbOfSegments === 2 && $this->segments[1] !== 'landcover') {
                 $this->setClassificationsLinks($this->segments[1]);
             }
 
             // Otherwise compute links from facets
-            else
-            {
+            else {
                 $this->setCatalogsLinksFromFacet($params);
             }
-
         }
 
         // Hashtags
-        else if ($this->segments[0] === 'hashtags' || $this->segments[0] === 'catalogs')
-        {
+        elseif ($this->segments[0] === 'hashtags' || $this->segments[0] === 'catalogs') {
             $this->setCatalogsLinksFromFacet($params);
         }
 
         // Themes
-        else if ($this->segments[0] === 'themes')
-        {
-
+        elseif ($this->segments[0] === 'themes') {
             // Root
-            if ($nbOfSegments === 1)
-            {
+            if ($nbOfSegments === 1) {
                 $this->title = 'Themes';
                 $this->description = 'List of collection per theme';
                 $this->links = array_merge($this->links, $this->stacUtil->getThemesRootLinks());
             }
 
             // Two segments (except landcover)
-            else if ($nbOfSegments === 2)
-            {
+            elseif ($nbOfSegments === 2) {
                 $this->setThemesLinks();
-            }
-            
-            else {
+            } else {
                 return RestoLogUtil::httpError(404);
             }
         }
@@ -1099,7 +1060,6 @@ class STAC extends RestoAddOn
      */
     private function setThemesLinks()
     {
-
         $this->title = $this->segments[1];
         $this->description = 'Collections for theme **' . $this->segments[1] . '**';
 
@@ -1108,7 +1068,7 @@ class STAC extends RestoAddOn
         
         $candidates = array();
         foreach (array_values($collections->collections) as $collectionContent) {
-            if ( isset($collectionContent->keywords) ) {
+            if (isset($collectionContent->keywords)) {
                 for ($i = count($collectionContent->keywords); $i--;) {
                     $splitted = explode(':', $collectionContent->keywords[$i]);
                     if (count($splitted) > 1 && $splitted[0] === 'label' && $splitted[1] === $this->segments[1]) {
@@ -1126,7 +1086,7 @@ class STAC extends RestoAddOn
                         $candidates[] = $collectionContent->id;
                         break;
                     }
-                }        
+                }
             }
         }
 
@@ -1142,7 +1102,6 @@ class STAC extends RestoAddOn
             'type' => RestoUtil::$contentTypes['json'],
             'href' => $this->context->core['baseUrl'] . '/search?collections=' . join(',', $candidates)
         );
-        
     }
 
     /**
@@ -1153,12 +1112,10 @@ class STAC extends RestoAddOn
      */
     private function setClassificationsLinks($root)
     {
-
         $facets = $this->stacUtil->getFacets($this->options['minMatch']);
         $target = isset($root) && isset($facets['classifications'][$root]) ? $facets['classifications'][$root] : $facets['classifications'];
 
-        if ( isset($target) ) {
-
+        if (isset($target)) {
             foreach (array_keys($target) as $key) {
                 $this->links[] = array(
                     'rel' => 'child',
@@ -1167,13 +1124,11 @@ class STAC extends RestoAddOn
                     'href' => $this->context->core['baseUrl'] . '/catalogs/classifications/' . (isset($root) ? $root . '/' : '') . $key
                 );
             }
-
         }
        
         // Set minimalist description
         $this->title = isset($root) ? ucfirst($root) : 'Classifications';
         $this->description = isset($root) ? 'Automatic classification of features on facet ' . ucfirst($root) : 'Automatic classification of features';
-    
     }
 
     /**
@@ -1184,7 +1139,6 @@ class STAC extends RestoAddOn
      */
     private function setCatalogsLinksFromFacet($params)
     {
-        
         $nbOfSegments = count($this->segments);
         $leafValue = $this->segments[$nbOfSegments - 1];
         
@@ -1192,14 +1146,12 @@ class STAC extends RestoAddOn
          * Special case for '_' leafValue => compute FeatureCollection of parents
          */
         if ($leafValue === '_') {
-
             // This is not possible
             if ($nbOfSegments < 2) {
                 return RestoLogUtil::httpError(404);
             }
 
             return $this->setFeatureCollection($this->segments[$nbOfSegments - 2], $params);
-            
         }
         
         // Default segments structure starts with 'classifications/xxxx' - so start at position 3
@@ -1211,8 +1163,7 @@ class STAC extends RestoAddOn
         );
         
         // Hashtags special case
-        if ( $this->segments[0] === 'hashtags' || $this->segments[0] === 'catalogs' ) {
-
+        if ($this->segments[0] === 'hashtags' || $this->segments[0] === 'catalogs') {
             // 'hastags' - so start at position 1
             $leafPosition = 1;
 
@@ -1225,27 +1176,24 @@ class STAC extends RestoAddOn
             }
 
             // Hack for catalog - force a hierarchy
-            if ( $this->segments[0] === 'catalogs' ) {
+            if ($this->segments[0] === 'catalogs') {
                 $where = $where . ' AND pid=$2';
                 $whereValues[] = 'root';
             }
-            
         }
         
         // Hack for landcover...
-        else if ( $this->segments[1] === 'landcover' ) {
-            
+        elseif ($this->segments[1] === 'landcover') {
             // 'hashtags' - so start at position 1
             $leafPosition = 2;
             
-            if ( $nbOfSegments === 2 ) {
+            if ($nbOfSegments === 2) {
                 $where = 'type LIKE $1';
                 $whereValues = array(
                     'landcover:%'
                 );
             }
-
-        }   
+        }
 
         /*
          * Get description from parent
@@ -1253,11 +1201,10 @@ class STAC extends RestoAddOn
         $this->setTitleAndDescription($this->segments[$nbOfSegments - 1]);
 
         try {
-
             // First get type or pid
             // [TODO]  Return /search items instead of child for high number of results ?
             // $results = $this->context->dbDriver->pQuery('SELECT id, value, isleaf, sum(counter) as matched FROM ' . $this->context->dbDriver->targetSchema . '.facet WHERE ' . ($nbOfSegments === 1 ? 'type LIKE $1' : 'pid=$1' ) . ' GROUP BY id,value,isleaf ORDER BY matched DESC', array(
-            $results = $this->context->dbDriver->pQuery('SELECT id, value, pid, isleaf, sum(counter) as matched FROM ' . $this->context->dbDriver->targetSchema . '.facet WHERE ' . ($nbOfSegments === $leafPosition ? $where : 'pid=$1' ) . ' GROUP BY id, value, pid, isleaf ORDER BY value ASC', $nbOfSegments === $leafPosition ? $whereValues : array($whereValues[0])); 
+            $results = $this->context->dbDriver->pQuery('SELECT id, value, pid, isleaf, sum(counter) as matched FROM ' . $this->context->dbDriver->targetSchema . '.facet WHERE ' . ($nbOfSegments === $leafPosition ? $where : 'pid=$1') . ' GROUP BY id, value, pid, isleaf ORDER BY value ASC', $nbOfSegments === $leafPosition ? $whereValues : array($whereValues[0]));
 
             if (!$results) {
                 throw new Exception();
@@ -1266,7 +1213,7 @@ class STAC extends RestoAddOn
             // No Results - either a wrong path or a leaf facet (except for hashtag)
             if (pg_num_rows($results) === 0) {
                 //return $this->setItemsLinks($title, $leafValue);
-                if ( !in_array($leafValue, array('hashtag')) && $nbOfSegments > 1) {
+                if (!in_array($leafValue, array('hashtag')) && $nbOfSegments > 1) {
                     return $this->setFeatureCollection($leafValue, $params);
                 }
             }
@@ -1282,7 +1229,6 @@ class STAC extends RestoAddOn
             
             $searchIsSet = false;
             while ($result = pg_fetch_assoc($results)) {
-                
                 // Add search link for first pid if not root
                 if (!$searchIsSet && $result['pid'] !== 'root') {
                     $this->links[] = array(
@@ -1295,8 +1241,7 @@ class STAC extends RestoAddOn
                 }
                 
                 $matched = (integer) $result['matched'];
-                if ($matched > $this->options['minMatch'])
-                {
+                if ($matched > $this->options['minMatch']) {
                     $link = array(
                         'rel' => ((integer) $result['isleaf']) === 1 ? 'items' : 'child',
                         'title' => $result['value'],
@@ -1313,13 +1258,10 @@ class STAC extends RestoAddOn
                     
                     $this->links[] = $link;
                 }
-                
             }
-            
         } catch (Exception $e) {
             // Keep going
         }
-
     }
 
     /**
@@ -1327,7 +1269,7 @@ class STAC extends RestoAddOn
      *
      * @param string $hashtag
      * @param array $params
-     * 
+     *
      * @return array
      */
     private function setFeatureCollection($hashtag, $params)
@@ -1348,13 +1290,12 @@ class STAC extends RestoAddOn
     }
 
     /**
-     * Get title and description from parentId 
-     * 
+     * Get title and description from parentId
+     *
      * @param string $facetId
      */
     private function setTitleAndDescription($facetId)
     {
-
         // Default
         $titleParts = explode(':', $facetId);
         $title = ucfirst(count($titleParts) > 1 ? $titleParts[1] : $titleParts[0]);
@@ -1362,30 +1303,29 @@ class STAC extends RestoAddOn
         $this->description = 'Search on ' . $title;
 
         try {
-            $results = $this->context->dbDriver->pQuery('SELECT value, description FROM ' . $this->context->dbDriver->targetSchema . '.facet WHERE normalize(id)=normalize($1)', array($facetId)); 
+            $results = $this->context->dbDriver->pQuery('SELECT value, description FROM ' . $this->context->dbDriver->targetSchema . '.facet WHERE normalize(id)=normalize($1)', array($facetId));
             if (!$results) {
                 throw new Exception();
             }
             $result = pg_fetch_assoc($results);
-            if ( isset($result) ) {
+            if (isset($result)) {
                 $this->description = $result['description'] ?? $this->description;
                 $this->title = $result['value'] ?? $this->title;
             }
         } catch (Exception $e) {
             // Keep going
         }
-        
     }
 
     /**
      * Convert JSON query to queryParam
-     * 
+     *
      * @param array $jsonQuery
      */
-    private function jsonQueryToKVP($jsonQuery) {
+    private function jsonQueryToKVP($jsonQuery)
+    {
         return array(
             'query' => 'TODO'
         );
     }
-
 }

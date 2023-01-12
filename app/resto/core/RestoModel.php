@@ -20,7 +20,6 @@
  */
 abstract class RestoModel
 {
-
     /*
      * Model options
      */
@@ -28,7 +27,7 @@ abstract class RestoModel
 
     /*
      * STAC extensions - override in child models
-     * 
+     *
      * [STAC 1.0.0] Desactivated due to https://github.com/stac-extensions/stac-extensions.github.io/issues/20
      * [TODO] How to deal with this constraint ?
      */
@@ -102,7 +101,7 @@ abstract class RestoModel
      *      (Optional) (for "keywords" operation only) Prefix systematically added to input value (i.e. prefix:value)
      *  'operation' :
      *      Type of operation applied to the filter ("in", "keywords", "intersects", "distance", "=", "<=", ">=")
-     *  'queryable' : 
+     *  'queryable' :
      *      (Optional) The name of the underlying STAC/OAFeature property that is queryable (i.e. that will be displayed in the /queryables endpoint)
      *  '$ref' :
      *      (Optional) Displayed in relation with queryable property (see https://github.com/radiantearth/stac-api-spec/tree/master/fragments/filter#queryables)
@@ -298,7 +297,7 @@ abstract class RestoModel
         
         /*
          * The default sort order is DESCENDING - so the STAC "next" query parameter is equivalent
-         * to the "resto:lt" (lower than) filter 
+         * to the "resto:lt" (lower than) filter
          */
         'resto:lt' => array(
             'osKey' => 'next',
@@ -360,7 +359,7 @@ abstract class RestoModel
 
     /*
      * Parameters to apply to database storage for products related to this model
-     * 
+     *
      *  - tablePrefix : all features belonging to a collection referencing this model will be stored in a dedicated table [tablePrefix]__feature instead of feature"
      *  - storeFacets = if true, facets are stored for model related products
      */
@@ -369,7 +368,7 @@ abstract class RestoModel
         'storeFacets' => true
     );
 
-    /* 
+    /*
      * Tag add-on configuration:
      * [IMPORTANT] strategy values:
      *    - "merge" $tagConfig->taggers is merged with Tag add-on default taggers
@@ -383,17 +382,16 @@ abstract class RestoModel
     
     /**
      * Constructor
-     * 
+     *
      * @param array $options
      */
     public function __construct($options = array())
     {
         $this->options = $options;
 
-        if ( isset($this->options['addons']['Social']) ) {
-            $this->searchFilters = array_merge($this->searchFilters, SocialAPI::$searchFilters);       
+        if (isset($this->options['addons']['Social'])) {
+            $this->searchFilters = array_merge($this->searchFilters, SocialAPI::$searchFilters);
         }
-
     }
 
     /**
@@ -413,7 +411,8 @@ abstract class RestoModel
             array_merge(
                 array_values(array_reverse(class_parents($this))),
                 array($this->getName())
-            ), 1
+            ),
+            1
         );
     }
 
@@ -427,11 +426,10 @@ abstract class RestoModel
      */
     public function storeFeatures($collection, $body, $params)
     {
-        
         // Convert input to resto model
         $data = $this->inputToResto($body, $collection, $params);
 
-        if ( !isset($data) || !in_array($data['type'], array('Feature', 'FeatureCollection')) ) {
+        if (!isset($data) || !in_array($data['type'], array('Feature', 'FeatureCollection'))) {
             return RestoLogUtil::httpError(400, 'Invalid input type - only "Feature" and "FeatureCollection" are allowed');
         }
 
@@ -443,12 +441,10 @@ abstract class RestoModel
         $featuresInError = array();
         
         // Feature case
-        if ( $data['type'] === 'Feature' ) {
-
+        if ($data['type'] === 'Feature') {
             $insert = $this->storeFeature($collection, $data, $params);
 
             if ($insert['result'] !== false) {
-
                 $featuresInserted[] = array(
                     'featureId' => $insert['result']['id'],
                     'productIdentifier' => $insert['result']['productIdentifier'],
@@ -457,19 +453,13 @@ abstract class RestoModel
             
                 $dates[] = isset($insert['featureArray']['properties']) && isset($insert['featureArray']['properties']['startDate']) ? $insert['featureArray']['properties']['startDate'] : null;
                 $bboxes[] = isset($insert['featureArray']['topologyAnalysis']) && isset($insert['featureArray']['topologyAnalysis']['bbox']) ? $insert['featureArray']['topologyAnalysis']['bbox'] : null;
-
             }
-
         }
 
         // FeatureCollection case
         else {
-
-            for ($i = 0, $ii = count($data['features']); $i<$ii; $i++)
-            {
-
+            for ($i = 0, $ii = count($data['features']); $i<$ii; $i++) {
                 try {
-
                     $insert = $this->storeFeature($collection, $data['features'][$i], $params);
                     if ($insert['result'] !== false) {
                         $featuresInserted[] = array(
@@ -480,20 +470,15 @@ abstract class RestoModel
                         
                         $dates[] = isset($insert['featureArray']['properties']) && isset($insert['featureArray']['properties']['startDate']) ? $insert['featureArray']['properties']['startDate'] : null;
                         $bboxes[] = isset($insert['featureArray']['topologyAnalysis']) && isset($insert['featureArray']['topologyAnalysis']['bbox']) ? $insert['featureArray']['topologyAnalysis']['bbox'] : null;
-
                     }
-                
-                }
-                catch (Exception $e) {
+                } catch (Exception $e) {
                     $featuresInError[] = array(
                         'code' => $e->getCode(),
                         'error' => $e->getMessage()
                     );
                     continue;
                 }
-
-            }      
-        
+            }
         }
         
         /*
@@ -510,7 +495,6 @@ abstract class RestoModel
             'features' => $featuresInserted,
             'errors' => $featuresInError
         );
-
     }
 
     /**
@@ -520,7 +504,7 @@ abstract class RestoModel
      * @param RestoCollection $collection
      * @param array $body
      * @param array $params
-     * 
+     *
      */
     public function updateFeature($feature, $collection, $body, $params)
     {
@@ -548,10 +532,10 @@ abstract class RestoModel
 
     /**
      * Get resto filters from input query parameters
-     * 
+     *
      *  - change input query keys to model parameter key including STAC conversion (i.e. input STAC query to resto model - e.g. processing:level => processingLevel)
      *  - check that filter value is valid regarding the model definition
-     * 
+     *
      * [IMPORTANT]CHANGE] Each unknown filter key that does not start with '_' is converted to hashtag with the following convention : "#<filterName>:value"
      *
      * @param array $query
@@ -570,7 +554,7 @@ abstract class RestoModel
                 $this->validateFilter($filterKey, $params[$filterKey]);
             }
             // Do not process query params starting with '_' or in the reserved list
-            else if ( !in_array($key, array('collectionId', 'fields')) && substr($key, 0, 1) !== '_') {
+            elseif (!in_array($key, array('collectionId', 'fields')) && substr($key, 0, 1) !== '_') {
                 /* [TODO] Remove already done in RestoUtil::sanitize
                 Protect against XSS injection
                 $unknowns[] = '#' . $this->toHashTag($key, preg_replace('/<.+?>/', '', ltrim($value, '#'))); */
@@ -579,7 +563,7 @@ abstract class RestoModel
         }
 
         // Convert unknowns input to hashtags
-        if ( count($unknowns) > 0 ) {
+        if (count($unknowns) > 0) {
             $params['searchTerms'] = isset($params['searchTerms']) ? $params['searchTerms'] . ' ' . join(' ', $unknowns) : join(' ', $unknowns);
         }
 
@@ -594,18 +578,17 @@ abstract class RestoModel
         */
 
         return $params;
-
     }
 
     /**
      * Return OpenSearch filter name from OpenSearch or STAC key
-     * 
+     *
      * @param string $osOrSTACKey
      */
     public function getFilterName($osOrSTACKey)
     {
         foreach (array_keys($this->searchFilters) as $filterKey) {
-            if ( $osOrSTACKey === $this->searchFilters[$filterKey]['osKey'] || (isset($this->searchFilters[$filterKey]['stacKey']) && $osOrSTACKey === $this->searchFilters[$filterKey]['stacKey']) ) {
+            if ($osOrSTACKey === $this->searchFilters[$filterKey]['osKey'] || (isset($this->searchFilters[$filterKey]['stacKey']) && $osOrSTACKey === $this->searchFilters[$filterKey]['stacKey'])) {
                 return $filterKey;
             }
         }
@@ -614,13 +597,13 @@ abstract class RestoModel
 
     /**
      * Return OpenSearch filter name from prefix key or input prefix otherwise
-     * 
+     *
      * @param string $prefix
      */
     public function getOSKeyFromPrefix($prefix)
     {
         foreach (array_keys($this->searchFilters) as $filterKey) {
-            if ( isset($this->searchFilters[$filterKey]['prefix']) && $this->searchFilters[$filterKey]['prefix'] === $prefix ) {
+            if (isset($this->searchFilters[$filterKey]['prefix']) && $this->searchFilters[$filterKey]['prefix'] === $prefix) {
                 return $this->searchFilters[$filterKey]['osKey'];
             }
         }
@@ -632,7 +615,6 @@ abstract class RestoModel
      */
     public function getQueryables()
     {
-    
         $queryables = array();
         foreach (array_keys($this->searchFilters) as $filterKey) {
             if (isset($this->searchFilters[$filterKey]['queryable'])) {
@@ -647,7 +629,6 @@ abstract class RestoModel
         }
      
         return $queryables;
-    
     }
 
     /**
@@ -658,7 +639,6 @@ abstract class RestoModel
      */
     public function validateFilter($filterKey, $value)
     {
-
         /*
          * Check pattern for string
          */
@@ -673,13 +653,12 @@ abstract class RestoModel
         }
 
         return true;
-        
     }
 
     /**
      * Rewrite input $featureArray for output.
      * This function can be superseeded in child Model
-     * 
+     *
      * @param array $featureArray
      * @param RestoCollection $collection
      * @return array
@@ -701,17 +680,15 @@ abstract class RestoModel
         $properties = array();
         
         foreach (array_keys($featureArray['properties']) as $key) {
-
             // Remove null and non public properties
             if (! isset($featureArray['properties'][$key]) || in_array($key, $discardedProperties)) {
                 continue;
             }
             
-            // [STAC] Eventually follows STAC mapping for properties names 
+            // [STAC] Eventually follows STAC mapping for properties names
             if (isset($this->stacMapping[$key])) {
                 $properties[$this->stacMapping[$key]['key']] = $this->convertTo($featureArray['properties'][$key], $this->stacMapping[$key]['convertTo'] ?? null);
-            }
-            else {
+            } else {
                 $properties[$key] = $featureArray['properties'][$key];
             }
         }
@@ -719,53 +696,46 @@ abstract class RestoModel
         return array_merge($featureArray, array(
             'properties' => $properties
         ));
-
     }
 
     /**
      * Remap input properties using inputMapping
-     * 
+     *
      * @param array $properties
      * @return array
      */
     public function remapInputProperties($properties)
     {
-
-        if ( empty($this->inputMapping) ) {
+        if (empty($this->inputMapping)) {
             return $properties;
         }
 
         $newProperties = array();
 
         $rulesKeys = array_keys($this->inputMapping);
-        foreach ($properties as $key => $value)
-        {
-            if ( in_array($key, $rulesKeys) ) {
-                if ( $this->inputMapping[$key]['key'] === null ) {
+        foreach ($properties as $key => $value) {
+            if (in_array($key, $rulesKeys)) {
+                if ($this->inputMapping[$key]['key'] === null) {
                     continue;
                 }
                 $newProperties[$this->inputMapping[$key]['key']] = $this->convertTo($value, $this->inputMapping[$key]['convertTo'] ?? null);
-            }
-            else {
+            } else {
                 $newProperties[$key] = $value;
             }
-            
         }
 
         return $newProperties;
-
     }
 
     /**
      * Apply type converstion to value
-     * 
+     *
      * @param integer|float|string|object $value
      * @param string $type
      * @return array|integer|float|string|object
      */
     public function convertTo($value, $type)
     {
-
         switch ($type) {
             case 'array':
                 return array(
@@ -774,7 +744,6 @@ abstract class RestoModel
             default:
                 return $value;
         }
-
     }
 
     /**
@@ -786,8 +755,8 @@ abstract class RestoModel
      *
      */
     protected function inputToResto($body, $collection, $params)
-    {   
-        if ( isset($body['properties']) ) {
+    {
+        if (isset($body['properties'])) {
             $body['properties'] = $this->remapInputProperties($body['properties']);
         }
         return $body;
@@ -803,7 +772,6 @@ abstract class RestoModel
      */
     private function storeFeature($collection, $data, $params)
     {
-        
         /*
          * Input feature cannot have both an id and a productIdentifier
          */
@@ -818,12 +786,12 @@ abstract class RestoModel
          * [WARNING] New in resto 7.x - if input id / productIdentifier is already a valid UUID use it directly
          * Correct issue #342 to be STAC compatible
          */
-        $featureId = isset($productIdentifier) ? (RestoUtil::isValidUUID($productIdentifier)? $productIdentifier : RestoUtil::toUUID($productIdentifier) )  : RestoUtil::toUUID(md5(microtime().rand()));
+        $featureId = isset($productIdentifier) ? (RestoUtil::isValidUUID($productIdentifier)? $productIdentifier : RestoUtil::toUUID($productIdentifier))  : RestoUtil::toUUID(md5(microtime().rand()));
 
         /*
          * First check if feature is already in database
          * [Note] Feature productIdentifier is UNIQUE
-         *  
+         *
          * (do this before getKeywords to avoid iTag process)
          */
         if (isset($productIdentifier) && (new FeaturesFunctions($collection->context->dbDriver))->featureExists($featureId, $collection->context->dbDriver->targetSchema . '.' . $collection->model->dbParams['tablePrefix'] . 'feature')) {
@@ -846,7 +814,6 @@ abstract class RestoModel
                 $featureArray
             )
         );
-
     }
 
     /**
@@ -859,7 +826,6 @@ abstract class RestoModel
      */
     private function prepareFeatureArray($collection, $data, $params = array())
     {
-
         /*
          * Assume input file or stream is a JSON Feature
          */
@@ -876,12 +842,12 @@ abstract class RestoModel
         /*
          * Convert datetime to startDate / completionDate
          */
-        if ( isset($properties['datetime']) ) {
+        if (isset($properties['datetime'])) {
             $dates = explode('/', $properties['datetime']);
-            if ( isset($dates[0]) ) {
+            if (isset($dates[0])) {
                 $properties['startDate'] = $dates[0];
             }
-            if ( isset($dates[1]) ) {
+            if (isset($dates[1])) {
                 $properties['completionDate'] = $dates[1];
             }
             unset($properties['datetime']);
@@ -910,23 +876,21 @@ abstract class RestoModel
             'assets' => $data['assets'] ?? null,
             'links' => $data['links'] ?? null
         );
-
     }
 
     /**
      * Compute keywords using Tag add-on
      *
      * iTag is triggered by default unless query parameter "_useItag" is set to false or model->itagConfig strategy is set to 'none'
-     * 
+     *
      * @param RestoCollection $collection
      * @param array $data : array (MUST BE GeoJSON in abstract Model)
      * @param array $properties
      */
     private function computeKeywords($collection, $data, $properties)
     {
-
         // Skip iTag
-        if ( ! isset($collection->context->addons['Tag']) ) {
+        if (! isset($collection->context->addons['Tag'])) {
             return array();
         }
 
@@ -937,18 +901,16 @@ abstract class RestoModel
         $taggers = $this->getITagParams($collection);
 
         return (new Tag($collection->context, $collection->user))->getKeywords($properties, $data['geometry'] ?? null, $collection->model, $taggers);
-
     }
 
     /**
      * Return collection taggers associative array
-     * 
+     *
      * @param RestoCollection $collection
      * @return array
      */
     private function getITagParams($collection)
     {
-
         // iTag is not use because model strategy is 'none' or explicitely _useItag is set to false
         if ((isset($collection->context->query['_useItag']) && filter_var($collection->context->query['_useItag'], FILTER_VALIDATE_BOOLEAN) === false) || ($collection->model->tagConfig['strategy'] === 'none')) {
             return null;
@@ -958,7 +920,7 @@ abstract class RestoModel
 
         /*
          * Default is to convert array of string to associative array
-         */ 
+         */
         if ($collection->context->addons['Tag']['options']['iTag']['taggers']) {
             for ($i = 0, $ii = count($collection->context->addons['Tag']['options']['iTag']['taggers']); $i < $ii; $i++) {
                 $taggers[$collection->context->addons['Tag']['options']['iTag']['taggers'][$i]] = array();
@@ -980,7 +942,6 @@ abstract class RestoModel
             'taggers' => $taggers,
             'planet' => $collection->getPlanet()
         );
-
     }
 
     /**
@@ -1002,13 +963,11 @@ abstract class RestoModel
                     return RestoLogUtil::httpError(400, 'Comma separated list of "' . $this->searchFilters[$filterKey]['osKey'] . '" must follow the pattern ' . $this->searchFilters[$filterKey]['pattern']);
                 }
             }
-        }
-        else if (preg_match('\'' . $this->searchFilters[$filterKey]['pattern'] . '\'', $value) !== 1) {
+        } elseif (preg_match('\'' . $this->searchFilters[$filterKey]['pattern'] . '\'', $value) !== 1) {
             return RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must follow the pattern ' . $this->searchFilters[$filterKey]['pattern']);
         }
 
         return true;
-
     }
 
     /**
@@ -1036,25 +995,22 @@ abstract class RestoModel
     /**
      * Convert input value to hashtag with the following convention : "#<filterName>:value"
      * [WARNING] Exception if filterName = 'hashtag' then "#value" is returned (i.e. discard 'hashtag' prefix)
-     * 
+     *
      * @param string $key
      * @param string $value
      * @return string
      */
     private function toHashTag($filterName, $value)
-    {   
-
+    {
         // Special case for ',' (AND) and '|' (OR)
         $splitter = '';
         if (strpos($value, ',') !== false) {
             $splitter = ',';
             $exploded = explode(',', $value);
-        }
-        else if (strpos($value, ',') !== false) {
+        } elseif (strpos($value, ',') !== false) {
             $splitter = '|';
             $exploded = explode('|', $value);
-        }
-        else {
+        } else {
             $exploded = array($value);
         }
         
@@ -1064,5 +1020,4 @@ abstract class RestoModel
         
         return join($splitter, $exploded);
     }
-
 }

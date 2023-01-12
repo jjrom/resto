@@ -20,7 +20,6 @@
  */
 class RestoLogUtil
 {
-
     /*
      * Timestamp mode
      */
@@ -102,7 +101,7 @@ class RestoLogUtil
      *          "ErrorMessage":"Forbidden"
      *      }
      *  )
-     *  
+     *
      *  @OA\Schema(
      *      schema="UnauthorizedError",
      *      required={"ErrorCode", "ErrorMessage"},
@@ -195,5 +194,4 @@ class RestoLogUtil
         echo $message . " " . (isset(RestoLogUtil::$timestamp) ? round((microtime(true) - RestoLogUtil::$timestamp) * 1000, 3) : '') . "\n";
         RestoLogUtil::$timestamp = microtime(true);
     }
-
 }
