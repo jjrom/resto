@@ -121,7 +121,7 @@ class RestoDatabaseDriver
                 throw new Exception();
             }
             
-            $results = pg_query($dbh, 'SELECT lower(public.f_unaccent(\'' . pg_escape_string($sentence) . '\')) as normalized');
+            $results = pg_query($dbh, 'SELECT lower(public.f_unaccent(\'' . pg_escape_string($dbh, $sentence) . '\')) as normalized');
             if (!$results) {
                 throw new Exception();
             }
@@ -148,7 +148,7 @@ class RestoDatabaseDriver
      * @param string $query
      * @param integer $errorCode
      * @param string $errorMessage
-     * @return Database result
+     * @return PgSql\Result result
      * @throws Exception
      */
     public function query($query, $errorCode = 500, $errorMessage = null)
@@ -163,7 +163,7 @@ class RestoDatabaseDriver
      * @param array $params
      * @param integer $errorCode
      * @param string $errorMessage
-     * @return Database result
+     * @return PgSql\Result result
      * @throws Exception
      */
     public function pQuery($query, $params, $errorCode = 500, $errorMessage = null)
@@ -190,7 +190,7 @@ class RestoDatabaseDriver
     /**
      * Convert database query result into array
      *
-     * @param DatabaseResult $results
+     * @param PgSql\Result $results
      * @return array
      */
     public function fetch($results)

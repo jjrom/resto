@@ -432,7 +432,7 @@ class RestoGeometryUtil
      * @param float $lat Lat
      * @param float $radius (in meters)
      * @throws Exception
-     * @return multitype:NULL polygon array
+     * @return string
      */
     public static function WKTPolygonFromLonLat($lon, $lat, $radius)
     {

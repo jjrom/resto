@@ -328,7 +328,7 @@ class FacetsFunctions
 
         if ( isset($collectionId) )
         {
-            $where[] = '(normalize(collection)=normalize(\'' . pg_escape_string($collectionId) . '\') OR normalize(collection)=\'*\')';
+            $where[] = '(normalize(collection)=normalize(\'' . pg_escape_string($this->dbDriver->dbh, $collectionId) . '\') OR normalize(collection)=\'*\')';
         }
         if (isset($fields))
         {

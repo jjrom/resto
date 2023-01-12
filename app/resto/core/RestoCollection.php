@@ -569,9 +569,17 @@ class RestoCollection
     public $user = null;
 
     /*
-     * [STAC] Default extent 
+     * [STAC] Collection root attributes
      */
-    private $defaultExtent = array(
+    public $visibility = Resto::GROUP_DEFAULT_ID;
+    public $version = '1.0.0';
+    public $license = 'proprietary';
+    public $links = array();
+    public $providers = array();
+    public $rights = array();
+    public $assets = array();
+    public $keywords = array();
+    public $extent = array(
         'spatial' => array(
             'bbox' => array(null),
             'crs' => 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'
@@ -583,6 +591,11 @@ class RestoCollection
             'trs' => 'http://www.opengis.net/def/uom/ISO-8601/0/Gregorian'
         )
     );
+
+    /*
+     * Collection owner
+     */
+    public $owner;
 
     /**
      *
@@ -1078,28 +1091,14 @@ class RestoCollection
          * [TODO] Allow to change visibility in collection
          */
         //$this->visibility = isset($object['visibility']) ? $object['visibility'] : Resto::GROUP_DEFAULT_ID;
-        $this->visibility = Resto::GROUP_DEFAULT_ID;
         
-        /*
-         * Version
-         */
-        $this->version = $object['version'] ?? '1.0.0';
-       
-        /*
-         * License - set to 'proprietary' if not specified
-         */
-        $this->license = $object['license'] ?? 'proprietary';
-        
-        /*
-         * Clear links
-         */
-        $this->links = $this->cleanInputLinks($object['links'] ?? array());
-
         /*
          * Set values
          */
-        foreach (array_values(array('osDescription', 'providers', 'rights', 'assets', 'keywords', 'extent')) as $key) {
-            $this->$key = $object[$key] ?? ($key === 'extent' ? $this->defaultExtent : array() );
+        foreach (array_values(array('version', 'license', 'links', 'osDescription', 'providers', 'rights', 'assets', 'keywords', 'extent')) as $key) {
+            if (isset($object[$key])) {
+                $this->$key = $key === 'links' ? $this->cleanInputLinks($object['links']) : $object[$key];
+            }
         }
 
         /*

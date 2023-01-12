@@ -47,11 +47,11 @@ class LogsFunctions
         
         // Paginate
         if (isset($params['lt'])) {
-            $where[] = 'gid < ' . pg_escape_string($params['lt']);
+            $where[] = 'gid < ' . pg_escape_string($this->dbDriver->dbh, $params['lt']);
         }
 
         if (isset($params['userid'])) {
-            $where[] = 'userid=' . pg_escape_string($params['userid']);
+            $where[] = 'userid=' . pg_escape_string($this->dbDriver->dbh, $params['userid']);
         }
         
         if (isset($params['querytime'])) {

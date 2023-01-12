@@ -62,7 +62,7 @@ class GeneralFunctions
     public function getKeywords($language = 'en', $types = array())
     {
         $keywords = array();
-        $results = $this->dbDriver->query('SELECT name, normalize(name) as normalized, type, value, location FROM ' . $this->dbDriver->commonSchema . '.keyword WHERE ' . 'lang IN(\'' . pg_escape_string($language) . '\', \'**\')' . (count($types) > 0 ? ' AND type IN(' . join(',', $types) . ')' : ''));
+        $results = $this->dbDriver->query('SELECT name, normalize(name) as normalized, type, value, location FROM ' . $this->dbDriver->commonSchema . '.keyword WHERE ' . 'lang IN(\'' . pg_escape_string($this->dbDriver->dbh, $language) . '\', \'**\')' . (count($types) > 0 ? ' AND type IN(' . join(',', $types) . ')' : ''));
         while ($result = pg_fetch_assoc($results)) {
             if (!isset($keywords[$result['type']])) {
                 $keywords[$result['type']] = array();
@@ -115,7 +115,7 @@ class GeneralFunctions
         if (!is_int($duration)) {
             $duration = 86400;
         }
-        $results = $this->dbDriver->fetch($this->dbDriver->query('INSERT INTO ' . $this->dbDriver->commonSchema . '.sharedlink (url, token, userid, validity) VALUES (\'' . pg_escape_string($resourceUrl) . '\',\'' . (RestoUtil::encrypt(mt_rand(0, 100000) . microtime())) . '\',' . pg_escape_string($userid) . ',now() + ' . $duration . ' * \'1 second\'::interval) RETURNING token', 500, 'Cannot share link'));
+        $results = $this->dbDriver->fetch($this->dbDriver->query('INSERT INTO ' . $this->dbDriver->commonSchema . '.sharedlink (url, token, userid, validity) VALUES (\'' . pg_escape_string($this->dbDriver->dbh, $resourceUrl) . '\',\'' . (RestoUtil::encrypt(mt_rand(0, 100000) . microtime())) . '\',' . pg_escape_string($this->dbDriver->dbh, $userid) . ',now() + ' . $duration . ' * \'1 second\'::interval) RETURNING token', 500, 'Cannot share link'));
         if (count($results) === 1) {
             return array(
                 'resourceUrl' => $resourceUrl,
