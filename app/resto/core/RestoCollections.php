@@ -249,7 +249,7 @@ class RestoCollections
                 array(
                     'rel' => 'self',
                     'type' => RestoUtil::$contentTypes['json'],
-                    'href' => $this->context->core['baseUrl'] . '/collections'
+                    'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_COLLECTIONS
                 ),
                 array(
                     'rel' => 'root',
@@ -261,7 +261,7 @@ class RestoCollections
                     'title' => 'All collections',
                     'matched' => 0,
                     'type' => RestoUtil::$contentTypes['geojson'],
-                    'href' => $this->context->core['baseUrl'] . '/search'
+                    'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_STAC_SEARCH
                 )
             ),
             'extent' => $this->extent,
@@ -282,7 +282,7 @@ class RestoCollections
                 'title' => $collection['title'],
                 'description' => $collection['description'],
                 'matched' => $collection['summaries']['collection']['count'] ?? 0,
-                'href' => $this->context->core['baseUrl'] . '/collections/' . $key,
+                'href' => $this->context->core['baseUrl'] . RestoUtil::replaceInTemplate(RestoRouter::ROUTE_TO_COLLECTION, array('collectionId' => $key)),
                 'roles' => array('collection')
             );
             $collections['collections'][] = $collection;

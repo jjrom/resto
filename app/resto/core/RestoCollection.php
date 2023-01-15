@@ -934,7 +934,7 @@ class RestoCollection
                     array(
                         'rel' => 'self',
                         'type' => RestoUtil::$contentTypes['json'],
-                        'href' => $this->context->core['baseUrl'] . '/collections/' . $this->id
+                        'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_COLLECTIONS . '/' . $this->id
                     ),
                     array(
                         'rel' => 'root',
@@ -944,13 +944,13 @@ class RestoCollection
                     array(
                         'rel' => 'items',
                         'type' => RestoUtil::$contentTypes['geojson'],
-                        'href' => $this->context->core['baseUrl'] . '/collections/' . $this->id . '/items'
+                        'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_COLLECTIONS . '/' . $this->id . '/items'
                     ),
                     array(
                         'rel' => 'http://www.opengis.net/def/rel/ogc/1.0/queryables',
                         'type' => RestoUtil::$contentTypes['jsonschema'],
                         'title' => 'Queryables',
-                        'href' => $this->context->core['baseUrl'] . '/collections/' . $this->id . '/queryables'
+                        'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_COLLECTIONS . '/' . $this->id . '/queryables'
                     )
                 ),
                 $this->links ?? array()

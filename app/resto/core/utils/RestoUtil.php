@@ -394,7 +394,7 @@ class RestoUtil
      *
      *  Example :
      *
-     *      replaceInTemplate('Hello. My name is {:name:}. I live in {:location:}', array('name' => 'Jérôme', 'location' => 'Toulouse'));
+     *      replaceInTemplate('Hello. My name is {name}. I live in {location}', array('name' => 'Jérôme', 'location' => 'Toulouse'));
      *
      *  Will return
      *
@@ -402,7 +402,8 @@ class RestoUtil
      *
      * [IMPORTANT]
      *
-     *      {:xxx:} value without a xxx pair defined in pairs is replace by empty string
+     *      
+     *      {xxx} value without a xxx pair defined in pairs is replace by empty string
      *      In the previous example, if 'name' => 'Jérôme' is not provided, the return sentence
      *      would be
      *
@@ -411,22 +412,32 @@ class RestoUtil
      *
      * @param string $sentence
      * @param array $pairs
+     * @param string $pattern // Default is {}, other possible value is {::}
      *
      */
-    public static function replaceInTemplate($sentence, $pairs = array())
+    public static function replaceInTemplate($sentence, $pairs, $pattern = '{}')
     {
         if (!isset($sentence)) {
             return null;
         }
 
+        switch ($pattern) {
+            case '{::}':
+                $regex = "/{\:[^\\:}]*\:}/";
+                break;
+            default:
+                $regex = "/{(.*?)}/";
+        }
+        
         /*
          * Extract pairs
          */
-        preg_match_all("/{\:[^\\:}]*\:}/", $sentence, $matches);
+        preg_match_all($regex, $sentence, $matches);
 
         $replace = array();
+        $size = strlen($pattern) / 2;
         for ($i = count($matches[0]); $i--;) {
-            $replace[$matches[0][$i]] = $pairs[substr($matches[0][$i], 2, -2)] ?? '';
+            $replace[$matches[0][$i]] = $pairs[substr($matches[0][$i], $size, -$size)] ?? '';
         }
         if (count($replace) > 0) {
             return strtr($sentence, $replace);

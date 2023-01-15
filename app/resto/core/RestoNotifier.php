@@ -166,7 +166,7 @@ class RestoNotifier
     {
         $url = RestoUtil::replaceInTemplate($this->servicesInfos[$serviceName]['endpoint'], array(
             'token' => $options['token']
-        ));
+        ), '{::}');
 
         return $this->sendMail(
             array(
@@ -176,7 +176,7 @@ class RestoNotifier
                 'subject' => $this->servicesInfos[$serviceName]['message']['title'],
                 'message' => RestoUtil::replaceInTemplate($this->servicesInfos[$serviceName]['message']['body'], array(
                     'url' => $url
-                ))
+                ), '{::}')
             ),
             $mailConfig['smtp']
         );
