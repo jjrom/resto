@@ -307,7 +307,7 @@ class STAC extends RestoAddOn
                 array(
                     'rel' => 'self',
                     'type' => RestoUtil::$contentTypes['json'],
-                    'href' => $this->context->core['baseUrl'] . '/children'
+                    'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_STAC_CHILDREN
                 ),
                 array(
                     'rel' => 'root',
@@ -343,7 +343,7 @@ class STAC extends RestoAddOn
 
         return array(
             '$schema' => 'https://json-schema.org/draft/2019-09/schema',
-            '$id' => $this->context->core['baseUrl'] . '/queryables',
+            '$id' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_STAC_QUERYABLES,
             'type' => 'object',
             'title' => 'Queryables for Example STAC API',
             'description' => 'Queryable names for the example STAC API Item Search filter.',
@@ -1078,7 +1078,7 @@ class STAC extends RestoAddOn
                             'title' => $collectionArray['title'],
                             'description' => $collectionArray['description'],
                             'type' => RestoUtil::$contentTypes['json'],
-                            'href' => $this->context->core['baseUrl'] . '/collections/' . $collectionContent->id,
+                            'href' => $this->context->core['baseUrl'] . RestoUtil::replaceInTemplate(RestoRouter::ROUTE_TO_COLLECTION, array('collectionId' => $collectionContent->id)),
                             'roles' => array(
                                 'collection'
                             )

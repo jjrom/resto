@@ -103,7 +103,10 @@ class RestoFeatureUtil
      */
     private function formatRawFeatureArray($rawFeatureArray, $collection)
     {
-        $self = $this->context->core['baseUrl'] . '/collections/' . $collection->id . '/items/' . $rawFeatureArray['id'];
+        $self = $this->context->core['baseUrl'] . RestoUtil::replaceInTemplate(RestoRouter::ROUTE_TO_FEATURE, array(
+            'collectionId' => $collection->id,
+            'featureId' => $rawFeatureArray['id']
+        ));
         $featureArray = array(
             'type' => 'Feature',
             'id' => $rawFeatureArray['id'],
@@ -120,13 +123,17 @@ class RestoFeatureUtil
                     'rel' => 'parent',
                     'type' => RestoUtil::$contentTypes['json'],
                     'title' => $collection->id,
-                    'href' => $this->context->core['baseUrl'] . '/collections/' . $collection->id
+                    'href' => $this->context->core['baseUrl'] . RestoUtil::replaceInTemplate(RestoRouter::ROUTE_TO_COLLECTION, array(
+                        'collectionId' => $collection->id
+                    ))
                 ),
                 array(
                     'rel' => 'collection',
                     'type' => RestoUtil::$contentTypes['json'],
                     'title' => $collection->id,
-                    'href' => $this->context->core['baseUrl'] . '/collections/' . $collection->id
+                    'href' => $this->context->core['baseUrl'] . RestoUtil::replaceInTemplate(RestoRouter::ROUTE_TO_COLLECTION, array(
+                        'collectionId' => $collection->id
+                    ))
                 ),
                 array(
                     'rel' => 'root',
@@ -260,10 +267,17 @@ class RestoFeatureUtil
     {
         if (isset($keywords)) {
             foreach (array_keys($keywords) as $key) {
-                $keywords[$key]['href'] = RestoUtil::updateUrl($this->context->core['baseUrl'] . '/collections/' . $collection->id . '/items', array(
-                    $collection->model->searchFilters['language']['osKey'] => $this->context->lang,
-                    $collection->model->searchFilters['searchTerms']['osKey'] => '#' . $keywords[$key]['id']
-                ));
+                $keywords[$key]['href'] = RestoUtil::updateUrl(
+                    $this->context->core['baseUrl'] . RestoUtil::replaceInTemplate(
+                        RestoRouter::ROUTE_TO_FEATURES, array(
+                            'collectionId' => $collection->id
+                        )
+                    ),
+                    array(
+                        $collection->model->searchFilters['language']['osKey'] => $this->context->lang,
+                        $collection->model->searchFilters['searchTerms']['osKey'] => '#' . $keywords[$key]['id']
+                    )
+                );
             }
         }
 

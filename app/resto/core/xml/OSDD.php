@@ -40,6 +40,11 @@ class OSDD extends RestoXML
     private $context;
 
     /*
+     * Reference to model
+     */
+    private $model;
+
+    /*
      * Reference to collection object (null if no collection)
      */
     private $collection;
@@ -241,7 +246,15 @@ class OSDD extends RestoXML
             return $this->context->core['htmlSearchEndpoint'] . '?' . $this->model->searchFilters['searchTerms']['osKey'] .'={searchTerms?}';
         }
        
-        $url = RestoUtil::restoUrl($this->context->core['baseUrl'], (isset($this->collection) ? '/collections/' . $this->collection->id . '/items' : '/search'), $format) . '?' . $this->clientId;
+        $url = RestoUtil::restoUrl(
+            $this->context->core['baseUrl'],
+            (isset($this->collection)
+                ? RestoUtil::replaceInTemplate(RestoRouter::ROUTE_TO_FEATURES, array(
+                        'collectionId' => $this->collection->id
+                    )
+                )
+                : '/search'
+            ), $format) . '?' . $this->clientId;
         
         $count = 0;
         foreach ($this->model->searchFilters as $filterName => $filter) {

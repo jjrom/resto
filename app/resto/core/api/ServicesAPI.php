@@ -187,7 +187,7 @@ class ServicesAPI
                 'title' => 'Collections',
                 'type' => RestoUtil::$contentTypes['json'],
                 'matched' =>  count($collections['collections']),
-                'href' => $this->context->core['baseUrl'] . '/collections',
+                'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_COLLECTIONS,
                 'roles' => array('collections')
             );
         }
@@ -214,37 +214,37 @@ class ServicesAPI
                         'rel' => 'service-desc',
                         'type' => RestoUtil::$contentTypes['openapi+json'],
                         'title' => 'OpenAPI 3.0 definition endpoint',
-                        'href' => $this->context->core['baseUrl'] . '/api'
+                        'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_API,
                     ),
                     array(
                         'rel' => 'service-doc',
                         'type' => RestoUtil::$contentTypes['html'],
                         'title' => 'OpenAPI 3.0 definition endpoint documentation',
-                        'href' => $this->context->core['baseUrl'] . '/api.html'
+                        'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_API . '.html'
                     ),
                     array(
                         'rel' => 'conformance',
                         'type' => RestoUtil::$contentTypes['json'],
                         'title' => 'Conformance declaration',
-                        'href' => $this->context->core['baseUrl'] . '/conformance'
+                        'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_CONFORMANCE
                     ),
                     array(
                         'rel' => 'children',
                         'type' => RestoUtil::$contentTypes['json'],
                         'title' => 'Children',
-                        'href' => $this->context->core['baseUrl'] . '/children'
+                        'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_STAC_CHILDREN
                     ),
                     array(
                         'rel' => 'http://www.opengis.net/def/rel/ogc/1.0/queryables',
                         'type' => RestoUtil::$contentTypes['jsonschema'],
                         'title' => 'Queryables',
-                        'href' => $this->context->core['baseUrl'] . '/queryables'
+                        'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_STAC_QUERYABLES
                     ),
                     array(
                         'rel' => 'data',
                         'type' => RestoUtil::$contentTypes['json'],
                         'title' => 'Collections',
-                        'href' => $this->context->core['baseUrl'] . '/collections'
+                        'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_COLLECTIONS
                     ),
                     array(
                         'rel' => 'root',
@@ -256,7 +256,7 @@ class ServicesAPI
                         'rel' => 'search',
                         'type' => RestoUtil::$contentTypes['json'],
                         'title' => 'STAC search endpoint',
-                        'href' => $this->context->core['baseUrl'] . '/search'
+                        'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_STAC_SEARCH
                     )
                 ),
                 array_merge($links, (new STACUtil($this->context, $this->user))->getRootCatalogLinks($minMatch))
