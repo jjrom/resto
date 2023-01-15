@@ -269,7 +269,8 @@ class RestoFeatureUtil
             foreach (array_keys($keywords) as $key) {
                 $keywords[$key]['href'] = RestoUtil::updateUrl(
                     $this->context->core['baseUrl'] . RestoUtil::replaceInTemplate(
-                        RestoRouter::ROUTE_TO_FEATURES, array(
+                        RestoRouter::ROUTE_TO_FEATURES,
+                        array(
                             'collectionId' => $collection->id
                         )
                     ),

@@ -248,13 +248,18 @@ class OSDD extends RestoXML
        
         $url = RestoUtil::restoUrl(
             $this->context->core['baseUrl'],
-            (isset($this->collection)
-                ? RestoUtil::replaceInTemplate(RestoRouter::ROUTE_TO_FEATURES, array(
+            (
+                isset($this->collection)
+                ? RestoUtil::replaceInTemplate(
+                    RestoRouter::ROUTE_TO_FEATURES,
+                    array(
                         'collectionId' => $this->collection->id
                     )
                 )
                 : '/search'
-            ), $format) . '?' . $this->clientId;
+            ),
+            $format
+        ) . '?' . $this->clientId;
         
         $count = 0;
         foreach ($this->model->searchFilters as $filterName => $filter) {
