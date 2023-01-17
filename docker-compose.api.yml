@@ -28,7 +28,7 @@ services:
       ### Set to 1 in production environment to activate opcache preloading
       - PHP_OPCACHE_ENABLE_PRELOADING=1
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://127.0.0.1"]
+      test: ["CMD", "curl", "-f", "http://127.0.0.1/_isLive"]
       interval: 1m
       timeout: 5s
     volumes:
