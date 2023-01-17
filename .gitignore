@@ -8,7 +8,6 @@ saml/cert/server.pem
 docker-compose.local.yml
 config-local.env
 errors.log
-resto-model
 .private
 .DS_Store
 .php-cs-fixer.cache

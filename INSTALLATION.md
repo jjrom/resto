@@ -6,7 +6,6 @@ resto installation and deployment is based on docker-compose. It can run on any 
 * bash
 * Docker engine (i.e. docker)
 * Docker compose (i.e. docker-compose)
-* PostgreSQL client (i.e. psql)
 
 ## Configuration
 All environment variables are defined within the [config.env](config.env) file.
@@ -19,7 +18,7 @@ Note that each time you change the configuration file, you should undeploy then 
 **[IMPORTANT] If you already deploy a resto v6.x database, you must upgrade the database to resto v7.x (see below)**
 
 The resto service relies on a database instance. By default, the [deploy](deploy) script uses the [docker-compose.yml](docker-compose.yml) file which deploy
-a "restodb" service based on [jjrom/resto-database](https://github.com/jjrom/resto-database) image.
+a "restodb" service based on [postgis/docker-postgis](https://github.com/postgis/docker-postgis) image.
 
 Note that the default restodb configuration provides shm_size/shared memory values that should too high for the target host.
 **If you experienced issue during installation, please check [this issue](https://github.com/jjrom/resto/issues/317#issuecomment-1258185471)**

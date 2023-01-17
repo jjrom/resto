@@ -20,8 +20,10 @@ COPY ${BUILD_DIR}/container_root/etc/php/mods-available /etc/php/${PHP_VERSION}/
 COPY ${BUILD_DIR}/container_root/cont-init.d /etc/cont-init.d
 
 # Copy source code in app directory
-RUN mkdir /app
 COPY ./app /app
+
+# Copy source code in app directory
+COPY ./resto-database-model /resto-database-model
 
 # Cache directory
 RUN mkdir -p /cache
