@@ -693,7 +693,7 @@ class FeaturesAPI
          */
         $featureArray = $feature->toArray();
         if (! isset($featureArray['properties']['owner']) || $featureArray['properties']['owner'] !== $this->user->profile['id']) {
-            if (! $this->user->hasGroup(Resto::GROUP_ADMIN_ID)) {
+            if (! $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
                 RestoLogUtil::httpError(403);
             }
         }
@@ -813,7 +813,7 @@ class FeaturesAPI
 
         // Only admin or owner can change feature properties
         if (! isset($featureArray['properties']['owner']) || $featureArray['properties']['owner'] !== $this->user->profile['id']) {
-            if (! $this->user->hasGroup(Resto::GROUP_ADMIN_ID)) {
+            if (! $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
                 RestoLogUtil::httpError(403);
             }
         }
@@ -829,7 +829,7 @@ class FeaturesAPI
         }
         
         // Only admin can change owner property
-        if ($params['property'] === 'owner' && ! $this->user->hasGroup(Resto::GROUP_ADMIN_ID)) {
+        if ($params['property'] === 'owner' && ! $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
             RestoLogUtil::httpError(403);
         }
 
@@ -924,7 +924,7 @@ class FeaturesAPI
          */
         $featureArray = $feature->toArray();
         if (!isset($featureArray['properties']['owner']) || $featureArray['properties']['owner'] !== $this->user->profile['id']) {
-            if (! $this->user->hasGroup(Resto::GROUP_ADMIN_ID)) {
+            if (! $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
                 RestoLogUtil::httpError(403);
             }
         }

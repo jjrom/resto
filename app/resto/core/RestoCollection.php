@@ -570,7 +570,7 @@ class RestoCollection
     /*
      * [STAC] Collection root attributes
      */
-    public $visibility = Resto::GROUP_DEFAULT_ID;
+    public $visibility = RestoConstants::GROUP_DEFAULT_ID;
     public $version = '1.0.0';
     public $license = 'proprietary';
     public $links = array();
@@ -1079,10 +1079,10 @@ class RestoCollection
         }
         
         /*
-         * Default collection visibility is the value of Resto::GROUP_DEFAULT_ID
+         * Default collection visibility is the value of RestoConstants::GROUP_DEFAULT_ID
          * [TODO] Allow to change visibility in collection
          */
-        //$this->visibility = isset($object['visibility']) ? $object['visibility'] : Resto::GROUP_DEFAULT_ID;
+        //$this->visibility = isset($object['visibility']) ? $object['visibility'] : RestoConstants::GROUP_DEFAULT_ID;
         
         /*
          * Set values

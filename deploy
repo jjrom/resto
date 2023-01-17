@@ -231,9 +231,6 @@ if [[ "${DATABASE_COMMON_SCHEMA_EXISTS}" == "0" || "${DATABASE_TARGET_SCHEMA_EXI
     $(dirname $0)/scripts/installDatabaseModel.sh -e "${ENV_FILE}"
 fi
 
-# Create ADMIN_USER if not exist or update ADMIN_USER's password if it already exists
-$(dirname $0)/scripts/createAdminUser.sh -e ${ENV_FILE}
-
 echo -e ""
 
 echo -e "[INFO] The resto service is up and running locally at ${GREEN}${PUBLIC_ENDPOINT}${NC}"

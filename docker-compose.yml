@@ -13,7 +13,7 @@ networks:
 services:
   resto:
     image: jjrom/resto:latest
-    restart: always
+    restart: unless-stopped
     build:
       context: ./
       dockerfile: ./build/resto/Dockerfile
@@ -38,7 +38,7 @@ services:
 
   restodb:
     image: jjrom/resto-database:latest
-    restart: always
+    restart: unless-stopped
     # Upgrade shared_memory for complex queries
     shm_size: '2gb'
     networks:

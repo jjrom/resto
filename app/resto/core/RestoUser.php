@@ -155,7 +155,7 @@ class RestoUser
         'id' => null,
         'email' => 'unregistered',
         'groups' => array(
-            Resto::GROUP_DEFAULT_ID
+            RestoConstants::GROUP_DEFAULT_ID
         ),
         'activated' => 0
     );
@@ -485,7 +485,7 @@ class RestoUser
         /*
          * Only collection owner and admin can update the collection
          */
-        if (!$this->hasGroup(Resto::GROUP_ADMIN_ID) && $collection->owner !== $this->profile['id']) {
+        if (!$this->hasGroup(RestoConstants::GROUP_ADMIN_ID) && $collection->owner !== $this->profile['id']) {
             return false;
         }
 

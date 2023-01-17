@@ -171,7 +171,7 @@ class AuthAPI
         
         // A token can be only be revoked by admin or by its owner
         if ($this->user->profile['id'] !== $payload['sub']) {
-            if (!$this->user->hasGroup(Resto::GROUP_ADMIN_ID)) {
+            if (!$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
                 return RestoLogUtil::httpError(403);
             }
         }

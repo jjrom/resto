@@ -1015,7 +1015,7 @@ abstract class RestoModel
         }
         
         for ($i = 0, $ii = count($exploded); $i < $ii; $i++) {
-            $exploded[$i] = $filterName === 'hashtag' ? $exploded[$i] : $filterName . Resto::TAG_SEPARATOR . $exploded[$i];
+            $exploded[$i] = $filterName === 'hashtag' ? $exploded[$i] : $filterName . RestoConstants::TAG_SEPARATOR . $exploded[$i];
         }
         
         return join($splitter, $exploded);

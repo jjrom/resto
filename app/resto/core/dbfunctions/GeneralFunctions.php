@@ -72,7 +72,7 @@ class GeneralFunctions
                 'value' => $result['value']
             );
             if (isset($result['location'])) {
-                list($isoa2, $bbox) = explode(Resto::TAG_SEPARATOR, $result['location']);
+                list($isoa2, $bbox) = explode(RestoConstants::TAG_SEPARATOR, $result['location']);
                 $keywords[$result['type']][$result['normalized']]['bbox'] = $bbox;
                 $keywords[$result['type']][$result['normalized']]['isoa2'] = $isoa2;
             }

@@ -114,7 +114,7 @@ class RestoQueryAnalyzer
                  */
                 if (!isset($params['geo:name'])) {
                     for ($i = 0, $ii = $nbOfHashtags; $i < $ii; $i++) {
-                        $splitted = explode(Resto::TAG_SEPARATOR, $hashtags[$i]);
+                        $splitted = explode(RestoConstants::TAG_SEPARATOR, $hashtags[$i]);
                         if (count($splitted) === 3 && is_numeric($splitted[2])) {
                             $params['geo:name'] = 'geouid:' . $splitted[2];
                             array_splice($hashtags, $i, 1);
@@ -216,7 +216,7 @@ class RestoQueryAnalyzer
             /*
              * Search on toponym identifier i.e. geo:name starts with geouid
              */
-            if (strpos($locationName, 'geouid' . Resto::TAG_SEPARATOR) === 0) {
+            if (strpos($locationName, 'geouid' . RestoConstants::TAG_SEPARATOR) === 0) {
                 $location = $this->gazetteer->getToponym(array(
                     'id' => substr($locationName, 7),
                     'index' => $this->context->core['planet']
@@ -295,7 +295,7 @@ class RestoQueryAnalyzer
                 $params['searchTerms'][] = $where[$i]['searchTerms'];
             } elseif (isset($where[$i]['geouid'])) {
                 if (!isset($hashTodiscard) || $where[$i]['hash'] !== $hashTodiscard) {
-                    $params['searchTerms'][] = 'geouid' . Resto::TAG_SEPARATOR . $where[$i]['geonameid'];
+                    $params['searchTerms'][] = 'geouid' . RestoConstants::TAG_SEPARATOR . $where[$i]['geonameid'];
                 }
             }
         }
@@ -345,7 +345,7 @@ class RestoQueryAnalyzer
             if ($key === 'times') {
                 $params = array_merge($params, $this->timesToOpenSearch($value));
             } else {
-                $params['searchTerms'][] = $key . Resto::TAG_SEPARATOR . $value;
+                $params['searchTerms'][] = $key . RestoConstants::TAG_SEPARATOR . $value;
             }
         }
         return $params;
