@@ -35,6 +35,7 @@ class RestoRouter
     const ROUTE_TO_FEATURE = RestoRouter::ROUTE_TO_FEATURES . '/{featureId}';
     const ROUTE_TO_FORGOT_PASSWORD = '/services/password/forgot';
     const ROUTE_TO_OSDD = '/services/osdd';
+    const ROUTE_TO_LIVENESS = '/_isLive';
     const ROUTE_TO_RESET_PASSWORD = '/services/password/reset';
     const ROUTE_TO_SEND_ACTIVATION_LINK = '/services/activation/send';
     const ROUTE_TO_STAC_CHILDREN = '/children';
@@ -49,8 +50,11 @@ class RestoRouter
      */
     private $defaultRoutes = array(
 
-        // Landing page and conformance (see WFS 3.0)
-        array('GET',    '/', false, 'ServicesAPI::hello'),                                                                                  // Landing page
+        // Liveness and readyness for cloud
+        array('GET',    '/', false, 'ServicesAPI::hello'),                                                                                 // Landing page
+        array('GET',    RestoRouter::ROUTE_TO_LIVENESS, false, 'StatusAPI::isLive'),                                                    // Liveness
+        
+        // Landing page and conformance (see WFS 3.0)                                                                           
         array('GET',    RestoRouter::ROUTE_TO_API, false, 'ServicesAPI::api'),                                                                                 // API page
         array('GET',    RestoRouter::ROUTE_TO_CONFORMANCE, false, 'ServicesAPI::conformance'),                                                                 // Conformance page
         
