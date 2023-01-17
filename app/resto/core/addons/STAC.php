@@ -956,7 +956,7 @@ class STAC extends RestoAddOn
 
         // Root
         if ($nbOfSegments === 0) {
-            $this->link = $this->stacUtil->getRootCatalogLinks();
+            $this->links = $this->stacUtil->getRootCatalogLinks();
         }
 
         // View special case
