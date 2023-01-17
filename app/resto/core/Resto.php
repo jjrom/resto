@@ -81,28 +81,6 @@
 
 class Resto
 {
-    // [IMPORTANT] Starting resto 7.x, default routes are defined in RestoRouter class
-
-    // resto version
-    const VERSION = '7.0.0-rc.1';
-
-    /* ============================================================
-     *              NEVER EVER TOUCH THESE VALUES
-     * ============================================================*/
-
-    // PostgreSQL max value for integer
-    const INT_MAX_VALUE = 2147483647;
-
-    // Group identifier for administrator group
-    const GROUP_ADMIN_ID = 0;
-
-    // Group identifier for default group (every user is in default group)
-    const GROUP_DEFAULT_ID = 100;
-
-    // Separator for hashtags identifiers - should be the same as iTag
-    const TAG_SEPARATOR = ':';
-
-    /* ============================================================ */
 
     /*
      * RestoContext

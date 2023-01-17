@@ -205,7 +205,7 @@ class FiltersFunctions
         /*
          * Admin user has no restriction on search
          */
-        if ($this->user->hasGroup(Resto::GROUP_ADMIN_ID)) {
+        if ($this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
             return null;
         }
 
@@ -708,7 +708,7 @@ class FiltersFunctions
         }
 
         for ($j = count($exploded); $j--;) {
-            $searchTerms[] = $prefix . Resto::TAG_SEPARATOR . $exploded[$j];
+            $searchTerms[] = $prefix . RestoConstants::TAG_SEPARATOR . $exploded[$j];
         }
         
         return join($splitter, $searchTerms);

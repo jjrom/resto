@@ -288,7 +288,7 @@ class FeaturesFunctions
             array(
                 'id' => $id,
                 'collection' => $collection->id,
-                'visibility' => Resto::GROUP_DEFAULT_ID,
+                'visibility' => RestoConstants::GROUP_DEFAULT_ID,
                 'owner' => isset($collection) && isset($collection->user) ? $collection->user->profile['id'] : null,
                 'status' => isset($featureArray['properties']) && isset($featureArray['properties']['status']) && is_int($featureArray['properties']['status']) ? $featureArray['properties']['status'] : 1,
                 'likes' => 0,
@@ -652,12 +652,12 @@ class FeaturesFunctions
                 $hashtags = array();
                 foreach (array_keys($hashtagsArray) as $key) {
                     # Detect special hashtags i.e. with prefix
-                    $exploded = explode(Resto::TAG_SEPARATOR, $key);
+                    $exploded = explode(RestoConstants::TAG_SEPARATOR, $key);
                     if (!$stringOnly && count($exploded) > 1) {
                         $type = array_shift($exploded);
                         $hashtags[] = array(
                             'id' => $key,
-                            'value' => join(Resto::TAG_SEPARATOR, $exploded),
+                            'value' => join(RestoConstants::TAG_SEPARATOR, $exploded),
                             'type' => $type,
                             // Special case for catalog => force collection to all
                             'collection' => $type === 'catalog' ? '*' : null

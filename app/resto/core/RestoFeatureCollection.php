@@ -1005,7 +1005,7 @@ class RestoFeatureCollection
         }
         $searchTerms = RestoUtil::splitString($obj['value']);
         for ($i = 0, $l = count($searchTerms); $i < $l; $i++) {
-            $splitted = explode(Resto::TAG_SEPARATOR, $searchTerms[$i]);
+            $splitted = explode(RestoConstants::TAG_SEPARATOR, $searchTerms[$i]);
 
             // This is a regular hashtag
             if (count($splitted) === 1) {
@@ -1015,7 +1015,7 @@ class RestoFeatureCollection
 
             // Concatenate splitted into prefix and value
             $value = array_pop($splitted);
-            $key = join(Resto::TAG_SEPARATOR, $splitted);
+            $key = join(RestoConstants::TAG_SEPARATOR, $splitted);
 
             /*
              * Hashtags start with "#" or with "-#" (equivalent to "NOT #")

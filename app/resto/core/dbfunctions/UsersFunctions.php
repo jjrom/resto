@@ -350,11 +350,11 @@ class UsersFunctions
         $picture = $this->getPicture($profile, $storageInfo);
 
         /*
-         * Every user is in the default Resto::GROUP_DEFAULT_ID
+         * Every user is in the default RestoConstants::GROUP_DEFAULT_ID
          */
         $groups = $profile['groups'] ?? array();
-        if (!in_array(Resto::GROUP_DEFAULT_ID, $groups)) {
-            $groups[] = Resto::GROUP_DEFAULT_ID;
+        if (!in_array(RestoConstants::GROUP_DEFAULT_ID, $groups)) {
+            $groups[] = RestoConstants::GROUP_DEFAULT_ID;
         }
 
         /*
@@ -647,10 +647,10 @@ class UsersFunctions
         }
 
         /*
-         * Remove - note that Resto::GROUP_DEFAULT_ID group cannot be removed
+         * Remove - note that RestoConstants::GROUP_DEFAULT_ID group cannot be removed
          */ else {
             foreach (array_keys($newGroups) as $key) {
-                if ($key !== Resto::GROUP_DEFAULT_ID) {
+                if ($key !== RestoConstants::GROUP_DEFAULT_ID) {
                     unset($userGroups[$key]);
                 }
             }

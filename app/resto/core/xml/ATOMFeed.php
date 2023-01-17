@@ -182,7 +182,7 @@ class ATOMFeed extends RestoXML
         $this->startElement('generator');
         $this->writeAttributes(array(
             'uri' => 'http://github.com/jjrom/resto',
-            'version' => Resto::VERSION
+            'version' => RestoConstants::VERSION
         ));
         $this->text('resto');
         $this->endElement();

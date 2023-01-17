@@ -166,7 +166,7 @@ class Tag extends RestoAddOn
     {
         $keywords = array();
         foreach (array_values($properties) as $id) {
-            list($type, $normalized) = explode(Resto::TAG_SEPARATOR, $id, 2);
+            list($type, $normalized) = explode(RestoConstants::TAG_SEPARATOR, $id, 2);
             if (!$this->alreadyExists($keywords, $id)) {
                 $keywords[] = array(
                     'id' => $id,
@@ -193,7 +193,7 @@ class Tag extends RestoAddOn
         if (isset($properties['main'])) {
             foreach (array_values($properties['main']) as $landcover) {
                 $id = $landcover['id'];
-                list($type) = explode(Resto::TAG_SEPARATOR, $landcover['id'], 1);
+                list($type) = explode(RestoConstants::TAG_SEPARATOR, $landcover['id'], 1);
                 if (!$this->alreadyExists($keywords, $id)) {
                     $keywords[] = array(
                         'id' => $id,
@@ -263,7 +263,7 @@ class Tag extends RestoAddOn
      */
     private function getGenericKeyword($property, $defaultName, $parentId)
     {
-        $exploded = explode(Resto::TAG_SEPARATOR, $property['id']);
+        $exploded = explode(RestoConstants::TAG_SEPARATOR, $property['id']);
 
         $keyword = array(
             'id' => $property['id'],
@@ -349,7 +349,7 @@ class Tag extends RestoAddOn
                 for ($j = 0, $jj = count($value); $j < $jj; $j++) {
                     $keyword = array();
                     // [IMPORTANT] Discard all spaces from value
-                    $id = $facetCategory[$i] . Resto::TAG_SEPARATOR . str_replace(' ', '', $value[$j]);
+                    $id = $facetCategory[$i] . RestoConstants::TAG_SEPARATOR . str_replace(' ', '', $value[$j]);
                     if (! $this->alreadyExists($keywords, $id)) {
                         $keyword = array(
                             'id' => $id,
@@ -406,17 +406,17 @@ class Tag extends RestoAddOn
 
         return array(
             array(
-                'id' => 'year' . Resto::TAG_SEPARATOR . $year,
+                'id' => 'year' . RestoConstants::TAG_SEPARATOR . $year,
                 'name' => $year,
                 'type' => 'year'
             ),
             array(
-                'id' =>  'month' . Resto::TAG_SEPARATOR . $month,
+                'id' =>  'month' . RestoConstants::TAG_SEPARATOR . $month,
                 'name' => $month,
                 'type' => 'month'
             ),
             array(
-                'id' => 'day' . Resto::TAG_SEPARATOR . $day,
+                'id' => 'day' . RestoConstants::TAG_SEPARATOR . $day,
                 'name' => $day,
                 'type' => 'day'
             )

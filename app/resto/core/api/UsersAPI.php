@@ -171,7 +171,7 @@ class UsersAPI
             'in' => $params['in'] ?? null,
             'q' => $params['q'] ?? null
         ),
-            !$this->user->hasGroup(Resto::GROUP_ADMIN_ID) ? $this->user->profile['id'] : null
+            !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ? $this->user->profile['id'] : null
         );
     }
 
@@ -503,7 +503,7 @@ class UsersAPI
         /*
          * For normal user (i.e. non admin), some properties cannot be modified after validation
          */
-        if (! $this->user->hasGroup(Resto::GROUP_ADMIN_ID)) {
+        if (! $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
             /*
              * Already validated => avoid updating administrative properties
              */
@@ -656,7 +656,7 @@ class UsersAPI
         /*
          * [SECURITY] User is limited to its own history logs
          */
-        $isAdmin = $this->user->hasGroup(Resto::GROUP_ADMIN_ID);
+        $isAdmin = $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID);
         if (!$isAdmin) {
             RestoUtil::checkUser($this->user, $params['userid']);
         }

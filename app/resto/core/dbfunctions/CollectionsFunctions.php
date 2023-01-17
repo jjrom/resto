@@ -177,7 +177,7 @@ class CollectionsFunctions
                 array(
                 'right' => $rights,
                 'id' => null,
-                'groupid' => Resto::GROUP_DEFAULT_ID,
+                'groupid' => RestoConstants::GROUP_DEFAULT_ID,
                 'collectionId' => $collection->id,
                 'featureId' => null,
                 'target' => $this->dbDriver->targetSchema
