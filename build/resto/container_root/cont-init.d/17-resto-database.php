@@ -26,6 +26,12 @@
     for ($i = 0, $ii = count($sqlFiles); $i < $ii; $i++) {
         $dbDriver->query(str_replace($replace, $with, file_get_contents($sqlFiles[$i])));
     }   
+
+    // Handle migrations scripts
+    $sqlFiles = glob('/resto-database-model/migrations/*.sql');
+    for ($i = 0, $ii = count($sqlFiles); $i < $ii; $i++) {
+        $dbDriver->query(str_replace($replace, $with, file_get_contents($sqlFiles[$i])));
+    }   
     
     function map($value) {
         $myFile = pathinfo($value);
