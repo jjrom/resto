@@ -1,9 +1,11 @@
 FROM jjrom/nginx-fpm:8.1-1
 LABEL maintainer="jerome.gasperi@gmail.com"
 
+# [IMPORTANT] S6_BEHAVIOUR_IF_STAGE2_FAILS set to 2 in order to restart the resto component until the database is ready
 ENV BUILD_DIR=./build/resto \
     PHP_VERSION=8.1 \
-    RESTO_DEBUG=1
+    RESTO_DEBUG=1 \
+    S6_BEHAVIOUR_IF_STAGE2_FAILS=2
 
 # Copy NGINX configuration
 COPY ${BUILD_DIR}/container_root/etc/nginx /etc/nginx
@@ -18,8 +20,10 @@ COPY ${BUILD_DIR}/container_root/etc/php/mods-available /etc/php/${PHP_VERSION}/
 COPY ${BUILD_DIR}/container_root/cont-init.d /etc/cont-init.d
 
 # Copy source code in app directory
-RUN mkdir /app
 COPY ./app /app
+
+# Copy source code in app directory
+COPY ./resto-database-model /resto-database-model
 
 # Cache directory
 RUN mkdir -p /cache

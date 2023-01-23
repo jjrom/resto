@@ -19,15 +19,13 @@
  */
 class SatelliteModel extends LandCoverModel
 {
-
     /**
      * Constructor
-     * 
+     *
      * @param array $options
      */
     public function __construct($options = array())
     {
-
         parent::__construct($options);
         
         /*
@@ -39,7 +37,7 @@ class SatelliteModel extends LandCoverModel
         
         /*
          * Extend STAC mapping
-         * 
+         *
          * See - https://github.com/radiantearth/stac-spec/blob/master/item-spec/common-metadata.md
          * See - https://github.com/stac-extensions/sat
          * See - https://github.com/radiantearth/stac-spec/tree/master/extensions/view
@@ -151,8 +149,8 @@ class SatelliteModel extends LandCoverModel
                 'options' => 'auto'
             )
             
-            /* 
-             *  
+            /*
+             *
              *
             'eo:resolution' => array(
                 'key' => 'resolution',
@@ -164,9 +162,9 @@ class SatelliteModel extends LandCoverModel
                 'queryable' => 'gsd',
                 '$ref' => 'https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/instrument.json#/properties/gsd'
             ),
-    
+
             /*
-             *  
+             *
              *
             'eo:orbitNumber' => array(
                 'key' => 'orbitNumber',
@@ -204,6 +202,5 @@ class SatelliteModel extends LandCoverModel
                 'resolution'
             )
         );
-   
     }
 }

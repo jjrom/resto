@@ -22,7 +22,6 @@ require(realpath(dirname(__FILE__)) . '/../../vendor/php-jwt/JWT.php');
  */
 class RestoContext
 {
-
     /*
      * JWT Header for HS256 encryption algorithm added to convert rJWT to regular JWT
      */
@@ -160,7 +159,6 @@ class RestoContext
      */
     public function __construct($config)
     {
-        
         /*
          * Set TimeZone
          */
@@ -195,7 +193,6 @@ class RestoContext
          * Initialize objects
          */
         $this->initialize($config);
-
     }
 
     /**
@@ -212,34 +209,35 @@ class RestoContext
      * Create a Json Web Token
      *
      * @param string $identifier
+     * @param integer $duration
      * @param json $jsonData
      * @return string
      */
-    public function createJWT($identifier, $jsonData = null)
+    public function createJWT($identifier, $duration, $jsonData = null)
     {
         $payload = array(
             'sub' => $identifier,
             'iat' => time(),
-            'exp' => time() + $this->core['tokenDuration']
+            'exp' => time() + $duration
         );
         if (isset($jsonData)) {
             $payload['data'] = $jsonData;
         }
         
         return JWT::encode($payload, $this->core['passphrase']);
-        
     }
 
     /**
      * Create a rJWT "resto Json Web Token" i.e. a JWT without the header part
      *
      * @param string $identifier
+     * @param integer $duration (in seconds)
      * @param json $jsonData
      * @return string
      */
-    public function createRJWT($identifier, $jsonData = null)
+    public function createRJWT($identifier, $duration, $jsonData = null)
     {
-        $splitJWT = explode('.', $this->createJWT($identifier, $jsonData));
+        $splitJWT = explode('.', $this->createJWT($identifier, $duration, $jsonData));
         return $splitJWT[1] . '.' .$splitJWT[2];
     }
 
@@ -255,7 +253,6 @@ class RestoContext
     public function decodeJWT($token, $acceptExpired = false)
     {
         try {
-            
             // Convert rJWT to JWT
             if (count(explode('.', $token)) == 2) {
                 $token = $this->JWTDefaultHeader . $token;
@@ -280,20 +277,22 @@ class RestoContext
 
     /**
      * Retrieve from cache
-     * 
+     *
      * @param string $key
      */
-    public function fromCache($key) {
+    public function fromCache($key)
+    {
         return $this->core['useCache'] ? (new RestoCache())->retrieve($key) : null;
     }
 
     /**
      * Store array to cache
-     * 
+     *
      * @param string $key
      * @param array $arr
      */
-    public function toCache($key, $arr) {
+    public function toCache($key, $arr)
+    {
         return $this->core['useCache'] ? (new RestoCache())->store($key, $arr) : null;
     }
 
@@ -304,7 +303,6 @@ class RestoContext
      */
     private function initialize($config)
     {
-
         /*
          * Initialize path
          */
@@ -329,7 +327,6 @@ class RestoContext
          * Initialize query array
          */
         $this->setQuery();
-        
     }
 
     /**
@@ -337,7 +334,6 @@ class RestoContext
      */
     private function setQuery()
     {
-        
         /*
          * Aggregate input parameters
          *
@@ -377,7 +373,7 @@ class RestoContext
     }
 
     /**
-     * Set REST path from the input query "_path" param set up from nginx rewrite 
+     * Set REST path from the input query "_path" param set up from nginx rewrite
      */
     private function setPath()
     {
@@ -479,10 +475,8 @@ class RestoContext
         }
 
         // Correct storageInfo endpoint
-        if (strpos($this->core['storageInfo']['endpoint'], 'http') !== 0 ) {
+        if (strpos($this->core['storageInfo']['endpoint'], 'http') !== 0) {
             $this->core['storageInfo']['endpoint'] = $this->core['baseUrl'] . $this->core['storageInfo']['endpoint'];
         }
-
     }
-
 }

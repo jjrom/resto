@@ -22,60 +22,88 @@ class RestoRouter
 {
 
     /*
+     * Resto core routes
+     */
+    const ROUTE_TO_API = '/api';
+    const ROUTE_TO_ASSETS = '/assets';
+    const ROUTE_TO_AUTH = '/auth';
+    const ROUTE_TO_CATALOGS = '/catalogs';
+    const ROUTE_TO_COLLECTIONS = '/collections';
+    const ROUTE_TO_COLLECTION = RestoRouter::ROUTE_TO_COLLECTIONS . '/{collectionId}';
+    const ROUTE_TO_CONFORMANCE = '/conformance';
+    const ROUTE_TO_FEATURES = RestoRouter::ROUTE_TO_COLLECTION . '/items';
+    const ROUTE_TO_FEATURE = RestoRouter::ROUTE_TO_FEATURES . '/{featureId}';
+    const ROUTE_TO_FORGOT_PASSWORD = '/services/password/forgot';
+    const ROUTE_TO_OSDD = '/services/osdd';
+    const ROUTE_TO_LIVENESS = '/_isLive';
+    const ROUTE_TO_RESET_PASSWORD = '/services/password/reset';
+    const ROUTE_TO_SEND_ACTIVATION_LINK = '/services/activation/send';
+    const ROUTE_TO_STAC_CHILDREN = '/children';
+    const ROUTE_TO_STAC_QUERYABLES = '/queryables';
+    const ROUTE_TO_STAC_SEARCH = '/search';
+    const ROUTE_TO_USERS = '/users';
+    const ROUTE_TO_USER = RestoRouter::ROUTE_TO_USERS . '/{userid}';
+    const ROUTE_TO_USER_RIGHTS = RestoRouter::ROUTE_TO_USERS . '/rights';
+    
+    /*
      * Default routes
      */
     private $defaultRoutes = array(
 
-        // Landing page and conformance (see WFS 3.0)
-        array('GET',    '/', false, 'ServicesAPI::hello'),                                                                                  // Landing page
-        array('GET',    '/api', false, 'ServicesAPI::api'),                                                                                 // API page
-        array('GET',    '/conformance', false, 'ServicesAPI::conformance'),                                                                 // Conformance page
+        // Liveness and readyness for cloud
+        array('GET',    '/', false, 'ServicesAPI::hello'),                                                                                 // Landing page
+        array('GET',    RestoRouter::ROUTE_TO_LIVENESS, false, 'StatusAPI::isLive'),                                                    // Liveness
+        
+        // Landing page and conformance (see WFS 3.0)                                                                           
+        array('GET',    RestoRouter::ROUTE_TO_API, false, 'ServicesAPI::api'),                                                                                 // API page
+        array('GET',    RestoRouter::ROUTE_TO_CONFORMANCE, false, 'ServicesAPI::conformance'),                                                                 // Conformance page
         
         // API for users
-        array('GET',    '/users', true, 'UsersAPI::getUsersProfiles'),                                                                      // List users profiles
-        array('POST',   '/users', false, 'UsersAPI::createUser'),                                                                           // Create user
-        array('GET',    '/users/{userid}', true, 'UsersAPI::getUserProfile'),                                                               // Show user profile
-        array('PUT',    '/users/{userid}', true, 'UsersAPI::updateUserProfile'),                                                            // Update :userid profile
-        array('GET',    '/users/{userid}/logs', true, 'UsersAPI::getUserLogs'),                                                             // Show user logs
-        array('GET',    '/users/{userid}/rights', true, 'UsersAPI::getUserRights'),                                                         // Show user rights
-        array('GET',    '/users/{userid}/rights/{collectionId}', true, 'UsersAPI::getUserRights'),                                          // Show user rights for :collectionId
-        array('GET',    '/users/{userid}/rights/{collectionId}/{featureId}', true, 'UsersAPI::getUserRights'),                              // Show user rights for :featureId
+        array('GET',    RestoRouter::ROUTE_TO_USERS, true, 'UsersAPI::getUsersProfiles'),                                                                      // List users profiles
+        array('POST',   RestoRouter::ROUTE_TO_USERS, false, 'UsersAPI::createUser'),                                                                           // Create user
+        array('GET',    RestoRouter::ROUTE_TO_USER, true, 'UsersAPI::getUserProfile'),                                                               // Show user profile
+        array('PUT',    RestoRouter::ROUTE_TO_USER, true, 'UsersAPI::updateUserProfile'),                                                            // Update :userid profile
+        array('GET',    RestoRouter::ROUTE_TO_USER . '/logs', true, 'UsersAPI::getUserLogs'),                                                             // Show user logs
+        array('GET',    RestoRouter::ROUTE_TO_USER_RIGHTS, true, 'UsersAPI::getUserRights'),                                                         // Show user rights
+        array('GET',    RestoRouter::ROUTE_TO_USER_RIGHTS . '/{collectionId}', true, 'UsersAPI::getUserRights'),                                          // Show user rights for :collectionId
+        array('GET',    RestoRouter::ROUTE_TO_USER_RIGHTS . '/{collectionId}/{featureId}', true, 'UsersAPI::getUserRights'),                              // Show user rights for :featureId
         
         // API for collections
-        array('GET',    '/collections', false, 'CollectionsAPI::getCollections'),                                                           // List all collections
-        array('POST',   '/collections', true, 'CollectionsAPI::createCollection'),                                                          // Create collection
-        array('GET',    '/collections/{collectionId}', false, 'CollectionsAPI::getCollection'),                                             // Get :collectionId description
-        array('PUT',    '/collections/{collectionId}', true, 'CollectionsAPI::updateCollection'),                                           // Update :collectionId
-        array('DELETE', '/collections/{collectionId}', true, 'CollectionsAPI::deleteCollection'),                                           // Delete :collectionId
-        array('GET',    '/collections/{collectionId}/queryables', false, 'STAC::getQueryables'),                                            // OAFeature API - Queryables
+        array('GET',    RestoRouter::ROUTE_TO_COLLECTIONS, false, 'CollectionsAPI::getCollections'),                                                           // List all collections
+        array('POST',   RestoRouter::ROUTE_TO_COLLECTIONS, true, 'CollectionsAPI::createCollection'),                                                          // Create collection
+        array('GET',    RestoRouter::ROUTE_TO_COLLECTION, false, 'CollectionsAPI::getCollection'),                                             // Get :collectionId description
+        array('PUT',    RestoRouter::ROUTE_TO_COLLECTION, true, 'CollectionsAPI::updateCollection'),                                           // Update :collectionId
+        array('DELETE', RestoRouter::ROUTE_TO_COLLECTION, true, 'CollectionsAPI::deleteCollection'),                                           // Delete :collectionId
+        array('GET',    RestoRouter::ROUTE_TO_COLLECTION . '/queryables', false, 'STAC::getQueryables'),                                            // OAFeature API - Queryables
 
         // API for features
-        array('GET',    '/collections/{collectionId}/items', false, 'FeaturesAPI::getFeaturesInCollection'),                                // Search features in :collectionId
-        array('POST',   '/collections/{collectionId}/items', array('auth' => true, 'upload' => 'files'), 'CollectionsAPI::insertFeatures'), // Insert feature(s)
-        array('GET',    '/collections/{collectionId}/items/{featureId}', false, 'FeaturesAPI::getFeature'),                                 // Get feature :featureId
-        array('PUT',    '/collections/{collectionId}/items/{featureId}', true, 'FeaturesAPI::updateFeature'),                               // Update feature :featureId
-        array('DELETE', '/collections/{collectionId}/items/{featureId}', true, 'FeaturesAPI::deleteFeature'),                               // Delete :featureId
-        array('PUT',    '/collections/{collectionId}/items/{featureId}/properties/{property}', true, 'FeaturesAPI::updateFeatureProperty'), // Update feature :featureId single property 
+        array('GET',    RestoRouter::ROUTE_TO_FEATURES, false, 'FeaturesAPI::getFeaturesInCollection'),                                // Search features in :collectionId
+        array('POST',   RestoRouter::ROUTE_TO_FEATURES, array('auth' => true, 'upload' => 'files'), 'CollectionsAPI::insertFeatures'), // Insert feature(s)
+        array('GET',    RestoRouter::ROUTE_TO_FEATURE, false, 'FeaturesAPI::getFeature'),                                 // Get feature :featureId
+        array('PUT',    RestoRouter::ROUTE_TO_FEATURE, true, 'FeaturesAPI::updateFeature'),                               // Update feature :featureId
+        array('DELETE', RestoRouter::ROUTE_TO_FEATURE, true, 'FeaturesAPI::deleteFeature'),                               // Delete :featureId
+        array('PUT',    RestoRouter::ROUTE_TO_FEATURE . '/properties/{property}', true, 'FeaturesAPI::updateFeatureProperty'), // Update feature :featureId single property
         
         // API for authentication (token based)
-        array('GET',    '/auth', true, 'AuthAPI::getToken'),                                                                                // Return a valid auth token
-        array('GET',    '/auth/check/{token}', false, 'AuthAPI::checkToken'),                                                               // Check auth token validity
-        array('DELETE', '/auth/revoke/{token}', true, 'AuthAPI::revokeToken'),                                                              // Revoke auth token
-        array('PUT',    '/auth/activate/{token}', false, 'AuthAPI::activateUser'),                                                          // Activate owner of the token
+        array('GET',    RestoRouter::ROUTE_TO_AUTH, true, 'AuthAPI::getToken'),
+        array('GET',    RestoRouter::ROUTE_TO_AUTH . '/create', true, 'AuthAPI::createToken'),                                                                                // Return a valid auth token
+        array('GET',    RestoRouter::ROUTE_TO_AUTH . '/check/{token}', false, 'AuthAPI::checkToken'),                                                               // Check auth token validity
+        array('DELETE', RestoRouter::ROUTE_TO_AUTH . '/revoke/{token}', true, 'AuthAPI::revokeToken'),                                                              // Revoke auth token
+        array('PUT',    RestoRouter::ROUTE_TO_AUTH . '/activate/{token}', false, 'AuthAPI::activateUser'),                                                          // Activate owner of the token
 
         // API for services
-        array('GET',    '/services/osdd', false, 'ServicesAPI::getOSDD'),                                                                   // Opensearch service description at collections level
-        array('GET',    '/services/osdd/{collectionId}', false, 'ServicesAPI::getOSDDForCollection'),                                       // Opensearch service description for products on {collection}
-        array('POST',   '/services/activation/send', false, 'ServicesAPI::sendActivationLink'),                                             // Send activation link
-        array('POST',   '/services/password/forgot', false, 'ServicesAPI::forgotPassword'),                                                 // Send reset password link
-        array('POST',   '/services/password/reset', false, 'ServicesAPI::resetPassword'),                                                   // Reset password
+        array('GET',    RestoRouter::ROUTE_TO_OSDD, false, 'ServicesAPI::getOSDD'),                                                                   // Opensearch service description at collections level
+        array('GET',    RestoRouter::ROUTE_TO_OSDD . '/{collectionId}', false, 'ServicesAPI::getOSDDForCollection'),                                       // Opensearch service description for products on {collection}
+        array('POST',   RestoRouter::ROUTE_TO_SEND_ACTIVATION_LINK, false, 'ServicesAPI::sendActivationLink'),                                             // Send activation link
+        array('POST',   RestoRouter::ROUTE_TO_FORGOT_PASSWORD, 'ServicesAPI::forgotPassword'),                                                 // Send reset password link
+        array('POST',   RestoRouter::ROUTE_TO_RESET_PASSWORD, false, 'ServicesAPI::resetPassword'),                                                   // Reset password
 
         // STAC
-        array('GET',    '/assets/{urlInBase64}', false, 'STAC::getAsset'),                                                                  // Get an asset using HTTP 301 permanent redirect
-        array('GET',    '/catalogs/*', false, 'STAC::getCatalogs'),                                                                         // Get catalogs
-        array('GET',    '/children', false, 'STAC::getChildren'),                                                                           // STAC API - Children
-        array('GET',    '/queryables', false, 'STAC::getQueryables'),                                                                       // STAC/OAFeature API - Queryables
-        array('GET',    '/search', false, 'STAC::search')                                                                                   // STAC API - core search
+        array('GET',    RestoRouter::ROUTE_TO_ASSETS . '/{urlInBase64}', false, 'STAC::getAsset'),                                                                  // Get an asset using HTTP 301 permanent redirect
+        array('GET',    RestoRouter::ROUTE_TO_CATALOGS . '/*', false, 'STAC::getCatalogs'),                                                                         // Get catalogs
+        array('GET',    RestoRouter::ROUTE_TO_STAC_CHILDREN, false, 'STAC::getChildren'),                                                                           // STAC API - Children
+        array('GET',    RestoRouter::ROUTE_TO_STAC_QUERYABLES, false, 'STAC::getQueryables'),                                                                       // STAC/OAFeature API - Queryables
+        array('GET',    RestoRouter::ROUTE_TO_STAC_SEARCH, false, 'STAC::search')                                                                                   // STAC API - core search
     );
 
     /*
@@ -119,7 +147,6 @@ class RestoRouter
                 $this->addRoutes($this->context->addons[$addonName]['routes']);
             }
         }
-
     }
 
     /**
@@ -140,7 +167,6 @@ class RestoRouter
         $this->routes[$route[1]][$route[0]] = array($route[2], $route[3]);
         
         return true;
-        
     }
 
     /**
@@ -164,15 +190,15 @@ class RestoRouter
      *
      * Route structure is :
      *  array('path', 'isAuthenticated', 'className::methodName')
-     * 
+     *
      * Some path examples:
-     * 
+     *
      *      /collections/{collectionId}, myFunction::myClass
-     * 
+     *
      * Will call function myFunction($params) from class myClass with $params = array('collectionId' => // The value of collectionId in path)
-     * 
+     *
      *      /anyroute/isvalidafter/*, myFunction::myClass
-     * 
+     *
      * Will call function function myFunction($params) from class myClass with $params = array('segments' => array('a', 'b', 'c', etc.))
      * Where (a, b, c, etc.) are the values of everything after '/anyroute/isvalidafter/' splitted by '/' character
      *
@@ -195,7 +221,6 @@ class RestoRouter
 
             // Compare segments one by one to match a valid route
             for ($i = 1, $ii = count($segments); $i < $ii; $i++) {
-
                 // Segments match - keep the path and continue to match against following segments
                 if ($routeSegments[$i] === $segments[$i]) {
                     $validRoute = $workingRoutes[$workIndex];
@@ -208,7 +233,7 @@ class RestoRouter
                         'segments' => array_slice($segments, $i)
                     );
                     // Break only if the method is valid - otherwise continue
-                    if ( isset($validRoute) && isset($validRoute[1][$method]) ) {
+                    if (isset($validRoute) && isset($validRoute[1][$method])) {
                         break;
                     }
                 }
@@ -234,12 +259,11 @@ class RestoRouter
         }
         
         // No route found
-        if ( !isset($validRoute) ) {
+        if (!isset($validRoute)) {
             RestoLogUtil::httpError(404);
         }
 
         return isset($validRoute[1][$method]) ? $this->instantiateRoute($validRoute[1][$method], $method, array_merge($query, $params)) : RestoLogUtil::httpError(405);
-
     }
 
     /**
@@ -251,7 +275,6 @@ class RestoRouter
      */
     private function instantiateRoute($validRoute, $method, $params)
     {
-
         /*
          * In resto 5.x first element of route is an "authenticationIsRequired" boolean
          * In restto >=6.x first element of route can also be an array
@@ -279,7 +302,6 @@ class RestoRouter
          */
         $data = null;
         if ($method === 'POST' || $method === 'PUT') {
-            
             /*
              * File upload is allowed - upload files and populate data with file paths...
              * In this case, the target $className->$methodName is responsible of the uploaded files
@@ -291,16 +313,14 @@ class RestoRouter
              * ...or read the input body content and directly populate data with it
              */
             else {
-                $data = $this->readStream();    
+                $data = $this->readStream();
             }
-
         }
         
         return (new $className($this->context, $this->user))->$methodName(
             $params,
             $data
         );
-
     }
 
     /**
@@ -354,20 +374,16 @@ class RestoRouter
      */
     private function uploadFiles($files)
     {
-        
         $filePaths = [];
 
         // All files will be uploaded within a dedicated directory with a random name
         $uploadDirectory = $this->uploadDirectory . DIRECTORY_SEPARATOR . (substr(sha1(mt_rand(0, 100000) . microtime()), 0, 15));
 
         try {
-            
             for ($i = count($files['tmp_name']); $i--;) {
-
                 $fileToUpload = $files['tmp_name'][$i];
 
                 if (is_uploaded_file($fileToUpload)) {
-
                     if (!is_dir($uploadDirectory)) {
                         mkdir($uploadDirectory, 0777, true);
                     }
@@ -376,12 +392,8 @@ class RestoRouter
                     move_uploaded_file($fileToUpload, $fileName);
 
                     $filePaths[] = $fileName;
-
                 }
-
             }
-            
-
         } catch (Exception $e) {
             RestoLogUtil::httpError(500, 'Cannot upload file(s)');
         }
@@ -390,7 +402,5 @@ class RestoRouter
             'uploadDir' => $uploadDirectory,
             'files' => $filePaths
         );
-
     }
-
 }

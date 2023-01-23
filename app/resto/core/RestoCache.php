@@ -20,7 +20,6 @@
  */
 class RestoCache
 {
-    
     /*
      * Cache directory - if not set, no cache !
      */
@@ -44,17 +43,16 @@ class RestoCache
      * @param string $key
      */
     public function clear($key = null)
-    {   
+    {
         if (isset($this->directory)) {
             if (isset($key)) {
                 $file = $this->directory . DIRECTORY_SEPARATOR . crc32($key);
                 if (is_file($file)) {
                     unlink($file);
                 }
-            }
-            else {
+            } else {
                 $files = glob($this->directory . DIRECTORY_SEPARATOR . '*');
-                foreach($files as $file) {
+                foreach ($files as $file) {
                     if (is_file($file)) {
                         unlink($file);
                     }
@@ -91,7 +89,7 @@ class RestoCache
      */
     private function isInCache($fileName)
     {
-        if ( file_exists($fileName) ) {
+        if (file_exists($fileName)) {
             return true;
         }
         return false;
@@ -104,7 +102,6 @@ class RestoCache
      */
     private function read($key)
     {
-
         $fileName = $this->directory . DIRECTORY_SEPARATOR . $key;
 
         if (!$this->isInCache($fileName)) {
@@ -130,5 +127,4 @@ class RestoCache
         fclose($handle);
         return $key;
     }
-    
 }

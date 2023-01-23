@@ -20,7 +20,6 @@
  */
 class FiltersFunctions
 {
-
     /*
      * Non search filters are excluded from search
      */
@@ -47,6 +46,8 @@ class FiltersFunctions
     private $user;
 
     private $model;
+
+    private $tablePrefix;
 
     /**
      * Constructor
@@ -86,14 +87,12 @@ class FiltersFunctions
         /*
          * Skip the following
          */
-        if ( !empty($paramsWithOperation) ) {
-            
+        if (!empty($paramsWithOperation)) {
             /*
              * Process each input search filter excepted excluded filters
              */
             foreach (array_keys($this->model->searchFilters) as $filterName) {
-
-                if ( !isset($paramsWithOperation[$filterName]['value']) || $paramsWithOperation[$filterName]['value'] === '') {
+                if (!isset($paramsWithOperation[$filterName]['value']) || $paramsWithOperation[$filterName]['value'] === '') {
                     continue;
                 }
 
@@ -101,7 +100,7 @@ class FiltersFunctions
                  * Sorting special case
                  */
                 if (!empty($sortKey) && ($filterName === 'resto:lt' || $filterName === 'resto:gt')) {
-                    $sortFilters[] =   $this->optimizeNotEqual($paramsWithOperation[$filterName]['operation'], $this->tablePrefix . 'feature.' . $sortKey, '\'' . pg_escape_string($paramsWithOperation[$filterName]['value']) . '\'');
+                    $sortFilters[] =   $this->optimizeNotEqual($paramsWithOperation[$filterName]['operation'], $this->tablePrefix . 'feature.' . $sortKey, '\'' . pg_escape_string($this->context->dbDriver->dbh, $paramsWithOperation[$filterName]['value']) . '\'');
                 }
 
                 /*
@@ -109,13 +108,12 @@ class FiltersFunctions
                  */
                 elseif ($filterName === 'resto:owner' && !ctype_digit($paramsWithOperation[$filterName]['value'])) {
                     if (isset($this->user->profile['id'])) {
-
                         /*
                          * Search on followed
                          */
                         if ($paramsWithOperation[$filterName]['value'] === 'f') {
                             $filters[] = array(
-                                'value' => $this->tablePrefix . 'feature.' . $this->model->searchFilters[$filterName]['key'] . ' IN (SELECT userid FROM ' . $this->context->dbDriver->commonSchema . '.follower WHERE followerid=' . pg_escape_string($this->user->profile['id']) .  ')',
+                                'value' => $this->tablePrefix . 'feature.' . $this->model->searchFilters[$filterName]['key'] . ' IN (SELECT userid FROM ' . $this->context->dbDriver->commonSchema . '.follower WHERE followerid=' . pg_escape_string($this->context->dbDriver->dbh, $this->user->profile['id']) .  ')',
                                 'isGeo' => false
                             );
                         }
@@ -124,7 +122,7 @@ class FiltersFunctions
                          */
                         elseif ($paramsWithOperation[$filterName]['value'] === 'F') {
                             $filters[] = array(
-                                'value' => '(' . $this->tablePrefix . 'feature.' . $this->model->searchFilters[$filterName]['key'] . '=' . pg_escape_string($this->user->profile['id']) . ' OR ' . $this->tablePrefix . 'feature.' . $this->model->searchFilters[$filterName]['key'] . ' IN (SELECT userid FROM ' . $this->context->dbDriver->commonSchema . '.follower WHERE followerid=' . pg_escape_string($this->user->profile['id']) .  '))',
+                                'value' => '(' . $this->tablePrefix . 'feature.' . $this->model->searchFilters[$filterName]['key'] . '=' . pg_escape_string($this->context->dbDriver->dbh, $this->user->profile['id']) . ' OR ' . $this->tablePrefix . 'feature.' . $this->model->searchFilters[$filterName]['key'] . ' IN (SELECT userid FROM ' . $this->context->dbDriver->commonSchema . '.follower WHERE followerid=' . pg_escape_string($this->context->dbDriver->dbh, $this->user->profile['id']) .  '))',
                                 'isGeo' => false
                             );
                         } else {
@@ -138,22 +136,18 @@ class FiltersFunctions
                 /*
                  * Process valid filter if it has an associated column within database
                  */
-                elseif ( !in_array($filterName, $this->excludedFilters) ) {
-
+                elseif (!in_array($filterName, $this->excludedFilters)) {
                     // [STAC] CQL2 filter must be processed separately
-                    if ( isset($this->model->searchFilters[$filterName]['operation']) && $this->model->searchFilters[$filterName]['operation'] === 'cql2' ) {
+                    if (isset($this->model->searchFilters[$filterName]['operation']) && $this->model->searchFilters[$filterName]['operation'] === 'cql2') {
                         $filter = $this->prepareFilterQueryCQL2($paramsWithOperation[$filterName]['value']);
-                    }
-                    else if (isset($this->model->searchFilters[$filterName]['key'])) {
+                    } elseif (isset($this->model->searchFilters[$filterName]['key'])) {
                         $filter = $this->prepareFilterQuery($paramsWithOperation, $filterName);
                     }
 
                     if (isset($filter) && $filter !== '') {
                         $filters[] = $filter;
                     }
-
                 }
-                
             }
         }
         
@@ -181,7 +175,7 @@ class FiltersFunctions
         if ($size > 0) {
             $filters = array();
             for ($i = $size; $i--;) {
-                if ( !$options['addGeo'] && $filtersAndJoins['filters'][$i]['isGeo']) {
+                if (!$options['addGeo'] && $filtersAndJoins['filters'][$i]['isGeo']) {
                     continue;
                 }
                 $filters[] = $filtersAndJoins['filters'][$i]['value'];
@@ -194,7 +188,6 @@ class FiltersFunctions
                 'WHERE',
                 join(' AND ', $mergedFilters)
             ));
-            
         }
 
         return '';
@@ -209,11 +202,10 @@ class FiltersFunctions
      */
     private function prepareFilterQueryContextualSearch($tableName)
     {
-
         /*
          * Admin user has no restriction on search
          */
-        if ($this->user->hasGroup(Resto::GROUP_ADMIN_ID)) {
+        if ($this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
             return null;
         }
 
@@ -234,7 +226,6 @@ class FiltersFunctions
      */
     private function prepareFilterQuery($paramsWithOperation, $filterName)
     {
-        
         $featureTableName = $this->tablePrefix . 'feature';
         $exclusion = isset($paramsWithOperation[$filterName]['not']) && $paramsWithOperation[$filterName]['not'] ? true : false;
 
@@ -247,14 +238,13 @@ class FiltersFunctions
         
         /*
          * Special case for date - get id from timestamp
-         * 
+         *
          * [Issue][#267] Convert ',' to '.' character for seconds fraction since its a valid RFC339 (https://datatracker.ietf.org/doc/html/rfc3339)
          * but an invalid PostgreSQL date
          */
-        if ( in_array($filterName, array('time:start', 'time:end', 'dc:date')) ) {
-
+        if (in_array($filterName, array('time:start', 'time:end', 'dc:date'))) {
             return array(
-                'value' => $this->optimizeNotEqual($paramsWithOperation[$filterName]['operation'], $this->addNot($exclusion) . $featureTableName . '.' . strtolower($this->model->searchFilters[$filterName]['key']) . '_idx ', ' timestamp_to_firstid(\'' . pg_escape_string(str_replace(',', '.', $paramsWithOperation[$filterName]['value'])) . '\')'),
+                'value' => $this->optimizeNotEqual($paramsWithOperation[$filterName]['operation'], $this->addNot($exclusion) . $featureTableName . '.' . strtolower($this->model->searchFilters[$filterName]['key']) . '_idx ', ' timestamp_to_firstid(\'' . pg_escape_string($this->context->dbDriver->dbh, str_replace(',', '.', $paramsWithOperation[$filterName]['value'])) . '\')'),
                 'isGeo' => false
             );
         }
@@ -263,41 +253,40 @@ class FiltersFunctions
          * Prepare filter from operation
          */
         switch ($paramsWithOperation[$filterName]['operation']) {
-
             /*
              * in
              */
             case 'in':
                 return $this->prepareFilterQueryIn($featureTableName . '.' . $this->model->searchFilters[$filterName]['key'], $paramsWithOperation[$filterName]['value'], $exclusion);
-            /*
-             * searchTerms
-             */
+                /*
+                 * searchTerms
+                 */
             case 'keywords':
                 return $this->prepareFilterQueryKeywords($featureTableName, $filterName, RestoUtil::splitString($paramsWithOperation[$filterName]['value']), $exclusion);
-            /*
-             * Intersects i.e. geo:*
-             */
+                /*
+                 * Intersects i.e. geo:*
+                 */
             case 'intersects':
                 return $this->prepareFilterQueryIntersects($filterName, $paramsWithOperation[$filterName], $exclusion);
-            /*
-             * Distance i.e. geo:lon, geo:lat and geo:radius
-             */
+                /*
+                 * Distance i.e. geo:lon, geo:lat and geo:radius
+                 */
             case 'distance':
                 return $this->prepareFilterQueryDistance($filterName, $paramsWithOperation, $exclusion);
-            /*
-             * Intervals
-             */
+                /*
+                 * Intervals
+                 */
             case 'interval':
                 return array(
                     'value' => $this->addNot($exclusion) . QueryUtil::intervalToQuery($paramsWithOperation[$filterName]['value'], $this->getTableName($filterName) . '.' . $this->model->searchFilters[$filterName]['key']),
                     'isGeo' => false
                 );
 
-            /*
-             * Simple case - non 'interval' operation on value or arrays
-             * Note that array of values assumes a 'OR' operation
-             */
-            default:        
+                /*
+                 * Simple case - non 'interval' operation on value or arrays
+                 * Note that array of values assumes a 'OR' operation
+                 */
+            default:
                 $ors = $this->prepareORFilters($filterName, $paramsWithOperation[$filterName], $exclusion);
                 return array(
                     'value' => count($ors) > 1 ? '(' . join(' OR ', $ors) . ')' : $ors[0],
@@ -315,7 +304,6 @@ class FiltersFunctions
      */
     private function prepareFilterQueryCQL2($cql2)
     {
-
         $filterParser = new FilterParser();
         try {
             $parsed = $filterParser->parseCQL2($cql2);
@@ -324,7 +312,7 @@ class FiltersFunctions
         }
 
         $sqls = array();
-        foreach ( $parsed as $operator => $filters ) {
+        foreach ($parsed as $operator => $filters) {
             $sqls[] = $this->cql2FiltersToSQL($filters, strtoupper($operator));
         }
 
@@ -332,7 +320,6 @@ class FiltersFunctions
             'value' => join(' OR ', $sqls),
             'isGeo' => false
         );
-
     }
 
     /**
@@ -348,12 +335,14 @@ class FiltersFunctions
         $elements = explode(',', $value);
         if (count($elements) === 1) {
             return array(
-                'value' => $this->addNot($exclusion) . $targetColumn . '=\'' . pg_escape_string($value) . '\'',
+                'value' => $this->addNot($exclusion) . $targetColumn . '=\'' . pg_escape_string($this->context->dbDrivers->dbh, $value) . '\'',
                 'isGeo' => false
             );
         }
         return array(
-            'value' => $this->addNot($exclusion) . $targetColumn . ' IN (' . implode(',', array_map(function($str) { return '\'' .  pg_escape_string($str) . '\''; }, $elements) ) . ')',
+            'value' => $this->addNot($exclusion) . $targetColumn . ' IN (' . implode(',', array_map(function ($str) {
+                return '\'' .  pg_escape_string($this->context->dbDriver->dbh, $str) . '\'';
+            }, $elements)) . ')',
             'isGeo' => false
         );
     }
@@ -368,7 +357,7 @@ class FiltersFunctions
     private function prepareFilterQueryModel($featureTableName, $modelName)
     {
         return array(
-            'value' => $featureTableName . '.collection IN (SELECT id FROM ' . $this->context->dbDriver->targetSchema . '.collection WHERE lineage @> ARRAY[\'' . pg_escape_string($modelName) . '\'])',
+            'value' => $featureTableName . '.collection IN (SELECT id FROM ' . $this->context->dbDriver->targetSchema . '.collection WHERE lineage @> ARRAY[\'' . pg_escape_string($this->context->dbDriver->dbh, $modelName) . '\'])',
             'isGeo' => false
         );
     }
@@ -383,13 +372,12 @@ class FiltersFunctions
      */
     private function prepareFilterQueryIntersects($filterName, $filterValue, $exclusion)
     {
-
         $output = null;
         $coords = null;
 
         /*
          * Default bounding box is the whole earth
-         * 
+         *
          * Note: input 3D bbox are accepted but converted to 2D
          */
         if ($filterName === 'geo:box') {
@@ -398,13 +386,11 @@ class FiltersFunctions
                 $coords = array($coords[0], $coords[1], $coords[3], $coords[4]);
             }
             $output = $this->intersectFilterBBOX($filterName, $coords, $exclusion);
-        }
-
-        else if ($filterName === 'geo:geometry') {
+        } elseif ($filterName === 'geo:geometry') {
             $tableName = $this->getGeometryTableName();
 
             // Eventually correct input GEOMETRYCOLLECTION with a ST_buffer
-            $inputGeom = strpos($filterValue['value'], 'GEOMETRYCOLLECTION') === 0 ?  "ST_Buffer(ST_GeomFromText('" . pg_escape_string($filterValue['value']) . "', 4326), 0)" : "ST_GeomFromText('" . pg_escape_string($filterValue['value']) . "', 4326)";
+            $inputGeom = strpos($filterValue['value'], 'GEOMETRYCOLLECTION') === 0 ?  "ST_Buffer(ST_GeomFromText('" . pg_escape_string($this->context->dbDriver->dbh, $filterValue['value']) . "', 4326), 0)" : "ST_GeomFromText('" . pg_escape_string($this->context->dbDriver->dbh, $filterValue['value']) . "', 4326)";
             $output = $this->addNot($exclusion) . 'ST_intersects(' . $tableName . '.' . $this->model->searchFilters[$filterName]['key'] . ", " . $inputGeom . ")";
         }
 
@@ -425,7 +411,6 @@ class FiltersFunctions
      */
     private function prepareORFilters($filterName, $filterValue, $exclusion)
     {
-
         /*
          * Set quote to "'" for non numeric filter types
          */
@@ -437,7 +422,6 @@ class FiltersFunctions
         $values = explode('|', $filterValue['value']);
         $ors = array();
         for ($i = count($values); $i--;) {
-            
             $tableNameWitNot = $this->addNot($exclusion) . $this->getTableName($filterName);
 
             /*
@@ -447,19 +431,19 @@ class FiltersFunctions
                 if (strlen($values[$i]) < 4) {
                     RestoLogUtil::httpError(400, '% is only allowed for string with 3+ characters');
                 }
-                $ors[] = $tableNameWitNot . '.' . $this->model->searchFilters[$filterName]['key'] . ' LIKE ' . $quote . pg_escape_string($values[$i]) . $quote;
+                $ors[] = $tableNameWitNot . '.' . $this->model->searchFilters[$filterName]['key'] . ' LIKE ' . $quote . pg_escape_string($this->context->dbDriver->dbh, $values[$i]) . $quote;
             }
             /*
              * isNull case do not use value
              */
-            else if ( strtolower($filterValue['operation']) === strtolower('isNull') ) {
+            elseif (strtolower($filterValue['operation']) === strtolower('isNull')) {
                 $ors[] = $tableNameWitNot . '.' . $this->model->searchFilters[$filterName]['key'] . ' IS NULL';
             }
             /*
              * Otherwise use operation
              */
             else {
-                $ors[] = $this->optimizeNotEqual($filterValue['operation'], $tableNameWitNot . '.' . $this->model->searchFilters[$filterName]['key'], $quote . pg_escape_string($values[$i]) . $quote);
+                $ors[] = $this->optimizeNotEqual($filterValue['operation'], $tableNameWitNot . '.' . $this->model->searchFilters[$filterName]['key'], $quote . pg_escape_string($this->context->dbDriver->dbh, $values[$i]) . $quote);
             }
         }
         return $ors;
@@ -477,7 +461,6 @@ class FiltersFunctions
      */
     private function intersectFilterBBOX($filterName, $coords, $exclusion)
     {
-
         $tableName = $this->getGeometryTableName();
         
         /*
@@ -491,15 +474,15 @@ class FiltersFunctions
          * (aka the easy part)
          */
         if ($coords[0] <= $coords[2]) {
-            $filter = $start . pg_escape_string('POLYGON((' . $coords[0] . ' ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[1] . '))') . $end;
+            $filter = $start . pg_escape_string($this->context->dbDriver->dbh, 'POLYGON((' . $coords[0] . ' ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[1] . '))') . $end;
         }
         /*
          * -180/180 line is crossed
          * (split in two polygons)
          */
         else {
-            $filter = '(' . $start . pg_escape_string('POLYGON((' . $coords[0] . ' ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[3] . ',180 ' . $coords[3] . ',180 ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[1] . '))') . $end;
-            $filter = $filter . ' OR ' . $start . pg_escape_string('POLYGON((-180 ' . $coords[1] . ',-180 ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[1] . ',-180 ' . $coords[1] . '))') . $end . ')';
+            $filter = '(' . $start . pg_escape_string($this->context->dbDriver->dbh, 'POLYGON((' . $coords[0] . ' ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[3] . ',180 ' . $coords[3] . ',180 ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[1] . '))') . $end;
+            $filter = $filter . ' OR ' . $start . pg_escape_string($this->context->dbDriver->dbh, 'POLYGON((-180 ' . $coords[1] . ',-180 ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[1] . ',-180 ' . $coords[1] . '))') . $end . ')';
         }
 
         return ($exclusion ? 'NOT ' : '') . $filter;
@@ -515,7 +498,6 @@ class FiltersFunctions
      */
     private function prepareFilterQueryDistance($filterName, $paramsWithOperation, $exclusion)
     {
-
         /*
          * ST_Distance does not use spatial index, but ST_DWithin yes :)
          * (see http://blog.cleverelephant.ca/2021/05/indexes-and-queries.html)
@@ -527,21 +509,20 @@ class FiltersFunctions
          * (avoid double call to Gazetteer)
          */
         if (isset($paramsWithOperation['geo:lon']) && isset($paramsWithOperation['geo:lat'])) {
-
             $tableName = $this->getGeometryTableName();
 
             $radius = RestoGeometryUtil::radiusInDegrees(isset($paramsWithOperation['geo:radius']) ? floatval($paramsWithOperation['geo:radius']['value']) : 10000, floatval($paramsWithOperation['geo:lat']['value']));
             if ($useDistance) {
                 $wkt = 'POINT(' . $paramsWithOperation['geo:lon']['value'] . ' ' . $paramsWithOperation['geo:lat']['value'] . ')';
                 return array(
-                    'value' => $this->addNot($exclusion) . 'ST_dwithin(' . $tableName . '.' . $this->model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'' . pg_escape_string($wkt) . '\', 4326), '. $radius . ')',
+                    'value' => $this->addNot($exclusion) . 'ST_dwithin(' . $tableName . '.' . $this->model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'' . pg_escape_string($this->context->dbDriver->dbh, $wkt) . '\', 4326), '. $radius . ')',
                     'wkt' => $wkt,
                     'isGeo' => true
                 );
             } else {
                 $wkt = RestoGeometryUtil::WKTPolygonFromLonLat(floatval($paramsWithOperation['geo:lon']['value']), floatval($paramsWithOperation['geo:lat']['value']), $radius);
                 return array(
-                    'value' => $this->addNot($exclusion) . 'ST_intersects(' . $tableName . '.' . $this->model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'' . pg_escape_string($wkt) . '\', 4326))',
+                    'value' => $this->addNot($exclusion) . 'ST_intersects(' . $tableName . '.' . $this->model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'' . pg_escape_string($this->context->dbDriver->dbh, $wkt) . '\', 4326))',
                     'wkt' => $wkt,
                     'isGeo' => true
                 );
@@ -572,7 +553,6 @@ class FiltersFunctions
          * Note: replace geouid: by hash: (see rocket)
          */
         for ($i = 0, $l = count($searchTerms); $i < $l; $i++) {
-
             $searchTerm = $searchTerms[$i];
 
             /*
@@ -606,14 +586,14 @@ class FiltersFunctions
     /**
      * Process input searchTerm
      * Possible values:
-     * 
+     *
      *    toto
      *    toto|titi|tutu => means 'toto' OR 'titi' OR 'tutu'
      *    toto,titi,tutu => means 'toto' AND 'titi' AND 'tutu'
      *    toto! => means 'toto' and all broader concept of 'toto' (needs resto-addon-sosa add-on)
      *    toto* => means 'toto' and all narrower concept of 'toto' (needs resto-addon-sosa add-on)
      *    toto~ => means 'toto' and all related concept of 'toto' (needs resto-addon-sosa add-on)
-     * 
+     *
      *
      * @param string $searchTerm
      * @param array $filters
@@ -624,7 +604,6 @@ class FiltersFunctions
      */
     private function processSearchTerms($searchTerm, &$filters, $featureTableName, $filterName, $exclusion)
     {
-    
         /*
          * The '|' character is understood as "OR"
          * For performance reason it is better to use && operator instead of multiple @> with OR
@@ -633,23 +612,22 @@ class FiltersFunctions
         $exploded = explode('|', $searchTerm);
         if (count($exploded) > 1) {
             $operator = '&&';
-        }
-        else {
+        } else {
             $exploded = explode(',', $searchTerm);
             if (count($exploded) > 1) {
                 $operator = '@>';
             }
         }
 
-        if ( isset($operator) ) {
+        if (isset($operator)) {
             $quotedValues = array();
             for ($j = count($exploded); $j--;) {
-                $quotedValues[] = '\'' . pg_escape_string(trim($exploded[$j])) . '\'';
+                $quotedValues[] = '\'' . pg_escape_string($this->context->dbDriver->dbh, trim($exploded[$j])) . '\'';
             }
             return array($this->addNot($exclusion) . '(' . $featureTableName . '.' . $this->model->searchFilters[$filterName]['key'] . $operator . 'normalize_array(ARRAY[' . join(',', $quotedValues) . ']))');
         }
         
-        $filters[$exclusion ? 'without' : 'with'][] = "'" . pg_escape_string($searchTerm) . "'";
+        $filters[$exclusion ? 'without' : 'with'][] = "'" . pg_escape_string($this->context->dbDriver->dbh, $searchTerm) . "'";
 
         return array();
     }
@@ -682,7 +660,6 @@ class FiltersFunctions
      */
     private function getTableName($filterName)
     {
-
         for ($i = count($this->model->tables); $i--;) {
             if (in_array(strtolower($this->model->searchFilters[$filterName]['key']), $this->model->tables[$i]['columns'])) {
                 $this->joins[] = 'JOIN ' . $this->tablePrefix . $this->model->tables[$i]['name'] . ' ON ' . $this->tablePrefix . 'feature.id=' . $this->tablePrefix . $this->model->tables[$i]['name'] . '.id';
@@ -694,61 +671,56 @@ class FiltersFunctions
     }
 
     /**
-     * 
+     *
      * If $this->context->dbDriver->useGeometryPart is true then geometry is indexed in targetSchema.geometry_part joined table
-     * Otherwise is is directly retrieved from the indexed "feature_geometry" table 
+     * Otherwise is is directly retrieved from the indexed "feature_geometry" table
      * This should be used for large geometry
-     * 
+     *
      */
     private function getGeometryTableName()
     {
-
         if ($this->context->dbDriver->useGeometryPart) {
             $this->joins[] = 'JOIN ' . $this->tablePrefix . 'geometry_part ON ' . $this->tablePrefix . 'feature.id=' . $this->tablePrefix . 'geometry_part.id';
             return $this->tablePrefix . 'geometry_part';
         }
 
         return $this->tablePrefix . 'feature';
-            
     }
 
     /**
      * Add prefix to each elements of input searchTerm
-     * 
+     *
      * @param string $searchTerm
      * @param string $prefix
      * @return string
      */
-    private function addPrefix($searchTerm, $prefix) {
-
+    private function addPrefix($searchTerm, $prefix)
+    {
         $searchTerms = array();
 
         // OR case
         $splitter = '|';
         $exploded = explode($splitter, $searchTerm);
         if (count($exploded) < 2) {
-            
             // AND case
             $splitter = ',';
             $exploded = explode($splitter, $searchTerm);
-
         }
 
         for ($j = count($exploded); $j--;) {
-            $searchTerms[] = $prefix . Resto::TAG_SEPARATOR . $exploded[$j];
+            $searchTerms[] = $prefix . RestoConstants::TAG_SEPARATOR . $exploded[$j];
         }
         
         return join($splitter, $searchTerms);
-
     }
 
     /**
      * Convert triplets extracted from FilterParser->parseCQL2 to equivalent SQL resto query
-     * 
+     *
      * Concretely, this means that STAC properties are renamed to their corresponding Resto filter name
      * Note - leading "properties." is discarded
-     * 
-     * 
+     *
+     *
      * Input example :
      *    Array(
      *      Array (
@@ -772,7 +744,7 @@ class FiltersFunctions
      *         [value] => PHR
      *      )
      *    )
-     * 
+     *
      *  Output example :
      *    Array(
      *      'resto.feature_optical.cloudCover > 10',
@@ -780,28 +752,26 @@ class FiltersFunctions
      *      'ST_Intersects(resto.feature.geom, ST_GeomFromText('POINT(10 10)', 4326))',
      *      'resto.feature.normalized_hashtags @> normalize_array(ARRAY['instrument:PHR']
      *    )
-     *   
-     *       
+     *
+     *
      * @param array $cql2Filters
      * @param string $operator (AND|OR)
      * @return array
-     * 
+     *
      */
     private function cql2FiltersToSQL($cql2Filters, $operator)
     {
-
         $filters = array();
         $paramsWithOperation = array();
 
         for ($i = 0, $ii = count($cql2Filters); $i < $ii; $i++) {
-
             // Remove leading 'properties.' if present
             $stacKey = strpos($cql2Filters[$i]['property'], 'properties.') === 0 ? substr($cql2Filters[$i]['property'], 11) : $cql2Filters[$i]['property'];
 
             // STAC property must be renamed to resto osKey
             $filterName = $this->model->getFilterName($stacKey);
             
-            if ( !isset($filterName) ) {
+            if (!isset($filterName)) {
                 RestoLogUtil::httpError(400, 'Unknown property in filter - ' . $stacKey);
             }
 
@@ -819,16 +789,14 @@ class FiltersFunctions
             );
 
             // If filter model operation is 'keywords' then it must be changed !
-            if ( isset($this->model->searchFilters[$filterName]['operation']) && $this->model->searchFilters[$filterName]['operation'] === 'keywords') {
+            if (isset($this->model->searchFilters[$filterName]['operation']) && $this->model->searchFilters[$filterName]['operation'] === 'keywords') {
                 $paramsWithOperation[$filterName]['operation'] = 'keywords';
                 if ($cql2Filters[$i]['operation'] === '<>') {
                     $paramsWithOperation[$filterName]['not'] = ! $paramsWithOperation[$filterName]['not'];
                 }
-                
             }
 
             $filters[] = $this->prepareFilterQuery($paramsWithOperation, $filterName)['value'];
-
         }
         
         return join(' ' . $operator . ' ', $filters);
@@ -844,7 +812,7 @@ class FiltersFunctions
 
     /**
      * Convert <> operation to < AND > to force database index usage
-     * 
+     *
      * @param string $operation
      * @param string $before
      * @param string $after
@@ -854,6 +822,4 @@ class FiltersFunctions
     {
         return $operation === '<>' ? $before . '<' . $after . ' AND ' . $before . '>' . $after : $before . $operation . $after;
     }
-
-
 }

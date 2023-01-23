@@ -8,3 +8,7 @@ services:
     volumes:
       - ./app/resto:/app/resto:ro
       - ./app/vendor:/app/vendor:ro
+      - ./build/resto/container_root/cont-init.d/:/etc/cont-init.d/:ro
+  restodb:
+    volumes:
+      - ./postgresql-conf/postgresql-dev.conf:/etc/postgresql.conf

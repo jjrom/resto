@@ -62,7 +62,7 @@ class GeneralFunctions
     public function getKeywords($language = 'en', $types = array())
     {
         $keywords = array();
-        $results = $this->dbDriver->query('SELECT name, normalize(name) as normalized, type, value, location FROM ' . $this->dbDriver->commonSchema . '.keyword WHERE ' . 'lang IN(\'' . pg_escape_string($language) . '\', \'**\')' . (count($types) > 0 ? ' AND type IN(' . join(',', $types) . ')' : ''));
+        $results = $this->dbDriver->query('SELECT name, normalize(name) as normalized, type, value, location FROM ' . $this->dbDriver->commonSchema . '.keyword WHERE ' . 'lang IN(\'' . pg_escape_string($this->dbDriver->dbh, $language) . '\', \'**\')' . (count($types) > 0 ? ' AND type IN(' . join(',', $types) . ')' : ''));
         while ($result = pg_fetch_assoc($results)) {
             if (!isset($keywords[$result['type']])) {
                 $keywords[$result['type']] = array();
@@ -72,7 +72,7 @@ class GeneralFunctions
                 'value' => $result['value']
             );
             if (isset($result['location'])) {
-                list($isoa2, $bbox) = explode(Resto::TAG_SEPARATOR, $result['location']);
+                list($isoa2, $bbox) = explode(RestoConstants::TAG_SEPARATOR, $result['location']);
                 $keywords[$result['type']][$result['normalized']]['bbox'] = $bbox;
                 $keywords[$result['type']][$result['normalized']]['isoa2'] = $isoa2;
             }
@@ -115,7 +115,7 @@ class GeneralFunctions
         if (!is_int($duration)) {
             $duration = 86400;
         }
-        $results = $this->dbDriver->fetch($this->dbDriver->query('INSERT INTO ' . $this->dbDriver->commonSchema . '.sharedlink (url, token, userid, validity) VALUES (\'' . pg_escape_string($resourceUrl) . '\',\'' . (RestoUtil::encrypt(mt_rand(0, 100000) . microtime())) . '\',' . pg_escape_string($userid) . ',now() + ' . $duration . ' * \'1 second\'::interval) RETURNING token', 500, 'Cannot share link'));
+        $results = $this->dbDriver->fetch($this->dbDriver->query('INSERT INTO ' . $this->dbDriver->commonSchema . '.sharedlink (url, token, userid, validity) VALUES (\'' . pg_escape_string($this->dbDriver->dbh, $resourceUrl) . '\',\'' . (RestoUtil::encrypt(mt_rand(0, 100000) . microtime())) . '\',' . pg_escape_string($this->dbDriver->dbh, $userid) . ',now() + ' . $duration . ' * \'1 second\'::interval) RETURNING token', 500, 'Cannot share link'));
         if (count($results) === 1) {
             return array(
                 'resourceUrl' => $resourceUrl,
@@ -228,7 +228,6 @@ class GeneralFunctions
                     'coordinates' => $geometry['coordinates']
                 ), JSON_UNESCAPED_SLASHES)
             )), 0, PGSQL_ASSOC);
-
         } catch (Exception $e) {
             $error = '[GEOMETRY] ' . pg_last_error($this->dbDriver->getConnection());
         }
@@ -256,7 +255,6 @@ class GeneralFunctions
      */
     private function getIp()
     {
-
         // Try all IPs - the latest, the better
         $best = null;
         foreach (array(
@@ -276,14 +274,14 @@ class GeneralFunctions
 
     /**
      * Return Split function
-     * 
+     *
      * @param string $geom
      * @param array $params
      */
-    private function getSplitterFunction($geom, $params) {
-
+    private function getSplitterFunction($geom, $params)
+    {
         // Specifically no split required !
-        if ( isset($params['_splitGeom']) && !$params['_splitGeom'] ) {
+        if (isset($params['_splitGeom']) && !$params['_splitGeom']) {
             return $geom;
         }
 
@@ -292,7 +290,5 @@ class GeneralFunctions
         }
         
         return 'ST_SetSRID(ST_SimplifyPreserveTopologyWhenTooBig(ST_SplitDateLine(' . $geom . '),' . $params['tolerance'] . (isset($params['maxpoints']) ? ',' . $params['maxpoints'] : '') . '), 4326)';
-
     }
-
 }

@@ -21,15 +21,13 @@
  */
 class LandCoverModel extends DefaultModel
 {
-
     /**
      * Constructor
-     * 
+     *
      * @param array $options
      */
     public function __construct($options = array())
     {
-
         parent::__construct($options);
 
         /*
@@ -40,7 +38,7 @@ class LandCoverModel extends DefaultModel
         /*
          * Extend search filters
          */
-        if ( isset($this->options['addons']['Tag']) && $this->options['addons']['Tag']['options']['iTag']['addSearchFilters'] ) {
+        if (isset($this->options['addons']['Tag']) && $this->options['addons']['Tag']['options']['iTag']['addSearchFilters']) {
             $this->searchFilters = array_merge($this->searchFilters, array(
 
                 'resto:cultivatedCover' => array(
@@ -130,5 +128,4 @@ class LandCoverModel extends DefaultModel
             )
         );
     }
-
 }

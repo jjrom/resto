@@ -238,11 +238,11 @@
  *                      "center_wavelength": 2.2024,
  *                      "gsd": 20
  *                  }
- *              }   
+ *              }
  *          }
  *      }
  *  )
- * 
+ *
  *  @OA\Schema(
  *      schema="OutputCollection",
  *      required={"id", "type", "title", "description", "license", "extent", "links"},
@@ -541,7 +541,6 @@
  */
 class RestoCollection
 {
-
     /*
      * Collection identifier must be unique
      */
@@ -569,9 +568,17 @@ class RestoCollection
     public $user = null;
 
     /*
-     * [STAC] Default extent 
+     * [STAC] Collection root attributes
      */
-    private $defaultExtent = array(
+    public $visibility = RestoConstants::GROUP_DEFAULT_ID;
+    public $version = '1.0.0';
+    public $license = 'proprietary';
+    public $links = array();
+    public $providers = array();
+    public $rights = array();
+    public $assets = array();
+    public $keywords = array();
+    public $extent = array(
         'spatial' => array(
             'bbox' => array(null),
             'crs' => 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'
@@ -583,6 +590,11 @@ class RestoCollection
             'trs' => 'http://www.opengis.net/def/uom/ISO-8601/0/Gregorian'
         )
     );
+
+    /*
+     * Collection owner
+     */
+    public $owner;
 
     /**
      *
@@ -800,7 +812,6 @@ class RestoCollection
     public function __construct($id, $context, $user)
     {
         if (isset($id)) {
-
             // Collection identifier is an alphanumeric string without special characters
             if (preg_match("/^[a-zA-Z0-9\-_\.]+$/", $id) !== 1) {
                 RestoLogUtil::httpError(400, 'Collection identifier must be an alphanumeric string containing only [a-zA-Z0-9\-_.]');
@@ -829,16 +840,14 @@ class RestoCollection
         $cacheKey = 'collection:' . $this->id;
         $collectionObject = $this->context->fromCache($cacheKey);
     
-        if (! isset($collectionObject)) {  
-            
+        if (! isset($collectionObject)) {
             $collectionObject = (new CollectionsFunctions($this->context->dbDriver))->getCollectionDescription($this->id);
             
-            if (! isset($collectionObject)) {  
+            if (! isset($collectionObject)) {
                 return RestoLogUtil::httpError(404);
             }
 
             $this->context->toCache($cacheKey, $collectionObject);
-
         }
         
         foreach ($collectionObject as $key => $value) {
@@ -869,7 +878,6 @@ class RestoCollection
      */
     public function update($object)
     {
-
         // It means that collection is not loaded - so cannot be updated
         if (! isset($this->model)) {
             return RestoLogUtil::httpError(400, 'Model does not exist');
@@ -905,18 +913,17 @@ class RestoCollection
     /**
      * Output collection description as an array
      *
-     * @param array $options 
+     * @param array $options
      */
     public function toArray($options = array())
     {
-        
         $osDescription = $this->osDescription[$this->context->lang] ?? $this->osDescription['en'];
 
         $collectionArray = array(
             'stac_version' => STAC::STAC_VERSION,
             'stac_extensions' => $this->model->stacExtensions,
             'id' => $this->id,
-            'type' => 'Collection', 
+            'type' => 'Collection',
             'title' => $osDescription['LongName'] ?? $osDescription['ShortName'],
             'version' => $this->version ?? null,
             'description' => $osDescription['Description'],
@@ -927,7 +934,7 @@ class RestoCollection
                     array(
                         'rel' => 'self',
                         'type' => RestoUtil::$contentTypes['json'],
-                        'href' => $this->context->core['baseUrl'] . '/collections/' . $this->id
+                        'href' => $this->context->core['baseUrl'] . RestoUtil::replaceInTemplate(RestoRouter::ROUTE_TO_COLLECTION, array('collectionId' => $this->id))
                     ),
                     array(
                         'rel' => 'root',
@@ -937,16 +944,16 @@ class RestoCollection
                     array(
                         'rel' => 'items',
                         'type' => RestoUtil::$contentTypes['geojson'],
-                        'href' => $this->context->core['baseUrl'] . '/collections/' . $this->id . '/items'
+                        'href' => $this->context->core['baseUrl'] . RestoUtil::replaceInTemplate(RestoRouter::ROUTE_TO_FEATURES, array('collectionId' => $this->id))
                     ),
                     array(
                         'rel' => 'http://www.opengis.net/def/rel/ogc/1.0/queryables',
                         'type' => RestoUtil::$contentTypes['jsonschema'],
                         'title' => 'Queryables',
-                        'href' => $this->context->core['baseUrl'] . '/collections/' . $this->id . '/queryables'
+                        'href' => $this->context->core['baseUrl'] . RestoUtil::replaceInTemplate(RestoRouter::ROUTE_TO_COLLECTION, array('collectionId' => $this->id)) . '/queryables'
                     )
-                ), 
-                $this->links ?? array()    
+                ),
+                $this->links ?? array()
             ),
             'resto:info' => array(
                 'model' => $this->model->getName(),
@@ -979,7 +986,6 @@ class RestoCollection
         }
 
         return $collectionArray;
-
     }
 
     /**
@@ -1004,7 +1010,7 @@ class RestoCollection
 
     /**
      * Return collection statistics
-     * 
+     *
      * @param array $facetFields : Facet fields
      */
     public function getStatistics($facetFields = null)
@@ -1034,7 +1040,7 @@ class RestoCollection
      */
     public function getPlanet()
     {
-        if ( $this->properties && isset($this->properties['ssys:targets']) ) {
+        if ($this->properties && isset($this->properties['ssys:targets'])) {
             return is_array($this->properties['ssys:targets']) ? $this->properties['ssys:targets'][0] : $this->properties['ssys:targets'];
         }
         return $this->context->core['planet'];
@@ -1048,7 +1054,6 @@ class RestoCollection
      */
     private function loadFromJSON($object)
     {
-
         /*
          * Check that object is a valid array
          */
@@ -1074,49 +1079,34 @@ class RestoCollection
         }
         
         /*
-         * Default collection visibility is the value of Resto::GROUP_DEFAULT_ID
+         * Default collection visibility is the value of RestoConstants::GROUP_DEFAULT_ID
          * [TODO] Allow to change visibility in collection
          */
-        //$this->visibility = isset($object['visibility']) ? $object['visibility'] : Resto::GROUP_DEFAULT_ID;
-        $this->visibility = Resto::GROUP_DEFAULT_ID;
+        //$this->visibility = isset($object['visibility']) ? $object['visibility'] : RestoConstants::GROUP_DEFAULT_ID;
         
-        /*
-         * Version
-         */
-        $this->version = $object['version'] ?? '1.0.0';
-       
-        /*
-         * License - set to 'proprietary' if not specified
-         */
-        $this->license = $object['license'] ?? 'proprietary';
-        
-        /*
-         * Clear links
-         */
-        $this->links = $this->cleanInputLinks($object['links'] ?? array());
-
         /*
          * Set values
          */
-        foreach (array_values(array('osDescription', 'providers', 'rights', 'assets', 'keywords', 'extent')) as $key) {
-            $this->$key = $object[$key] ?? ($key === 'extent' ? $this->defaultExtent : array() );
+        foreach (array_values(array('version', 'license', 'links', 'osDescription', 'providers', 'rights', 'assets', 'keywords', 'extent')) as $key) {
+            if (isset($object[$key])) {
+                $this->$key = $key === 'links' ? $this->cleanInputLinks($object['links']) : $object[$key];
+            }
         }
 
         /*
          * Store every other properties to $this->properties
-         * 
+         *
          * [IMPORTANT] Clear properties first !
          */
         $this->properties = array();
         foreach ($object as $key => $value) {
-            if ( !in_array($key, $this->notInProperties) ) {
+            if (!in_array($key, $this->notInProperties)) {
                 $this->properties[$key] = $value;
             }
         }
 
 
         return $this;
-
     }
 
     /**
@@ -1126,10 +1116,9 @@ class RestoCollection
      */
     private function checkCreationMandatoryProperties($object)
     {
-
-       /*
-        * Check that input file is for the current collection
-        */
+        /*
+         * Check that input file is for the current collection
+         */
         if (!isset($object['id']) || $this->id !== $object['id']) {
             RestoLogUtil::httpError(400, 'Property "id" and collection id differ');
         }
@@ -1143,7 +1132,7 @@ class RestoCollection
         
         if (!class_exists($object['model']) || !is_subclass_of($object['model'], 'RestoModel')) {
             RestoLogUtil::httpError(400, 'Model "' . $object['model'] . '" is not a valid model name');
-        } 
+        }
         
         /*
          * Set collection model
@@ -1157,17 +1146,15 @@ class RestoCollection
          * Collection owner is the current user
          */
         $this->owner = $this->user->profile['id'];
-
     }
 
     /**
      * Return STAC summaries
-     * 
+     *
      * @param boolean $all
      */
     private function getSummaries($all = false)
     {
-
         /*
          * Compute statistics from facets
          */
@@ -1203,7 +1190,7 @@ class RestoCollection
 
     /**
      * Remove input links that should be computed by resto
-     * 
+     *
      * @param array $links
      * @return array
      */
@@ -1220,7 +1207,5 @@ class RestoCollection
         }
 
         return $cleanLinks;
-        
     }
-    
 }

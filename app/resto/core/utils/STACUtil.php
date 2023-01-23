@@ -20,7 +20,6 @@
  */
 class STACUtil
 {
-
     /*
      * Reference to resto context
      */
@@ -59,17 +58,16 @@ class STACUtil
      * Get root links
      *
      * @param integer $minMatch
-     * 
+     *
      * @return array
      */
     public function getRootCatalogLinks($minMatch = 0)
     {
-
         $links = array();
         $facets = $this->getFacets($minMatch);
 
-        foreach ( array('catalogs', 'classifications', 'hashtags') as $key ) {
-            if ( isset($facets[$key]) ) {
+        foreach (array('catalogs', 'classifications', 'hashtags') as $key) {
+            if (isset($facets[$key])) {
                 $links[] = array(
                     'rel' => 'child',
                     'title' => ucfirst($key),
@@ -83,7 +81,7 @@ class STACUtil
          * Themes are built from theme:xxxx collection keywords
          * Only displayed if at least one theme exists
          */
-        if ( !empty($this->getThemesRootLinks()) ) {
+        if (!empty($this->getThemesRootLinks())) {
             $links[] = array(
                 'rel' => 'child',
                 'title' => 'Themes',
@@ -97,9 +95,9 @@ class STACUtil
          * Exposed views as STAC catalogs
          * Only displayed if at least one theme exists
          */
-        if ( isset($this->context->addons['View']) ) {
+        if (isset($this->context->addons['View'])) {
             $stacLink = (new View($this->context, $this->user))->getSTACRootLink();
-            if ( isset($stacLink) && $stacLink['matched'] > 0 ) {
+            if (isset($stacLink) && $stacLink['matched'] > 0) {
                 $links[] = $stacLink;
             }
         }
@@ -108,10 +106,10 @@ class STACUtil
          * SOSA concepts
          * Only displayed if at least one concept exists
          */
-        if ( isset($this->context->addons['SOSA']) ) {
+        if (isset($this->context->addons['SOSA'])) {
             $skos = new SKOS($this->context, $this->user);
             $concepts = $skos->getConcepts($this->context->query);
-            if ( count($concepts['links']) > 2) {
+            if (count($concepts['links']) > 2) {
                 $links[] = array(
                     'rel' => 'child',
                     'title' => 'Concepts',
@@ -122,17 +120,15 @@ class STACUtil
         }
 
         return $links;
-    
     }
 
     /**
      * Return Themes links
-     * 
+     *
      * @return array
      */
     public function getThemesRootLinks()
     {
-
         $links = array();
 
         // Load collections
@@ -142,7 +138,7 @@ class STACUtil
         $themes = array();
 
         foreach (array_values($collections->collections) as $collectionContent) {
-            if ( isset($collectionContent->keywords) ) {
+            if (isset($collectionContent->keywords)) {
                 for ($i = count($collectionContent->keywords); $i--;) {
                     $splitted = explode(':', $collectionContent->keywords[$i]);
                     if (count($splitted) > 1 && $splitted[0] === 'label' && !in_array($splitted[1], $themes)) {
@@ -154,23 +150,21 @@ class STACUtil
                             'href' => $this->context->core['baseUrl'] . '/catalogs/themes/' . urlencode($splitted[1])
                         );
                     }
-                }        
+                }
             }
         }
 
         return $links;
-
     }
 
     /**
      * Return facets list
-     * 
+     *
      * @param integer $minMatch
      * @return array
      */
     public function getFacets($minMatch)
     {
-
         $facets = array(
             'count' => 0,
             'catalogs' => array(),
@@ -183,36 +177,27 @@ class STACUtil
         }
 
         try {
-            
             $results = $this->context->dbDriver->query('SELECT split_part(type, \':\', 1) as type, sum(counter) as matched FROM ' . $this->context->dbDriver->targetSchema . '.facet WHERE pid=\'root\' GROUP BY split_part(type, \':\', 1) ORDER BY type ASC');
             
             if (!$results) {
                 throw new Exception();
             }
             
-            while ($result = pg_fetch_assoc($results))
-            {
+            while ($result = pg_fetch_assoc($results)) {
                 $matched = (integer) $result['matched'];
             
-                if ($result['type'] === 'collection') 
-                {
+                if ($result['type'] === 'collection') {
                     $facets['count'] =  $matched;
-                }
-                else
-                {
-    
-                    if ($matched > $minMatch)
-                    {
-
+                } else {
+                    if ($matched > $minMatch) {
                         // Catalog
-                        if ( $result['type'] === 'catalog' || $result['type'] === 'hashtag' ) {
-                            $facets[$result['type'] . 's'] = $matched; 
-                        }
-                        else {
+                        if ($result['type'] === 'catalog' || $result['type'] === 'hashtag') {
+                            $facets[$result['type'] . 's'] = $matched;
+                        } else {
                             $addToOther = true;
                             foreach ($this->classifications as $key => $value) {
                                 for ($i = count($value); $i--;) {
-                                    if ( $result['type'] === $value[$i] ) {
+                                    if ($result['type'] === $value[$i]) {
                                         $facets['classifications'][$key][$result['type']] = $matched;
                                         $addToOther = false;
                                         break;
@@ -221,20 +206,14 @@ class STACUtil
                             }
                             if ($addToOther) {
                                 $result['type'] === 'landcover' ? $facets['classifications']['landcover'] = $matched : $facets['classifications']['other'][$result['type']] = $matched;
-                            }                
+                            }
                         }
-                        
                     }
-    
                 }
-    
             }
-
-        } catch (Exception $e) {}
+        } catch (Exception $e) {
+        }
         
         return $facets;
-    
-    
     }
-
 }

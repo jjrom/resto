@@ -15,8 +15,7 @@
  * under the License.
  */
 
-spl_autoload_register ( function ($class) {
-    
+spl_autoload_register(function ($class) {
     $dirs = array(
         "resto/core/",
         "resto/core/addons/",
@@ -35,7 +34,6 @@ spl_autoload_register ( function ($class) {
             return include $src;
         }
     }
-
 });
 
 /*
@@ -51,4 +49,3 @@ if (file_exists($configFile)) {
 */
 error_log('[WARNING] Config file ' . $configFile . ' not found - using default configuration');
 return new Resto();
-

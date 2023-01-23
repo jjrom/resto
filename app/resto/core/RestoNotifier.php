@@ -24,7 +24,6 @@ require_once(realpath(dirname(__FILE__)) . '/../../vendor/PHPMailer/src/SMTP.php
  */
 class RestoNotifier
 {
-    
     /*
      * Services information
      */
@@ -56,24 +55,22 @@ class RestoNotifier
     public function __construct($servicesInfos, $lang)
     {
         foreach (array_keys($servicesInfos) as $key) {
-
             // Translation
-            if ( isset($servicesInfos[$key]['message']) ) {
+            if (isset($servicesInfos[$key]['message'])) {
                 $servicesInfos[$key]['message'] = $servicesInfos[$key]['message'][$lang] ?? $servicesInfos[$key]['message']['en'] ?? null;
             }
 
-            if ( isset($this->servicesInfos[$key]) ) {
+            if (isset($this->servicesInfos[$key])) {
                 $endpoint = $this->servicesInfos[$key]['endpoint'];
                 $message = $this->servicesInfos[$key]['message'];
                 $this->servicesInfos[$key] = $servicesInfos[$key];
-                if ( !isset($this->servicesInfos[$key]['message']) ) {
+                if (!isset($this->servicesInfos[$key]['message'])) {
                     $this->servicesInfos[$key]['message'] = $message;
                 }
-                if ( !isset($this->servicesInfos[$key]['endpoint']) || $this->servicesInfos[$key]['endpoint'] === '' ) {
+                if (!isset($this->servicesInfos[$key]['endpoint']) || $this->servicesInfos[$key]['endpoint'] === '') {
                     $this->servicesInfos[$key]['endpoint'] = $endpoint;
                 }
             }
-
         }
     }
 
@@ -169,10 +166,9 @@ class RestoNotifier
      */
     private function sendMailForService($serviceName, $receiver, $mailConfig, $options)
     {
-
         $url = RestoUtil::replaceInTemplate($this->servicesInfos[$serviceName]['endpoint'], array(
             'token' => $options['token']
-        ));
+        ), '{::}');
 
         return $this->sendMail(
             array(
@@ -182,7 +178,7 @@ class RestoNotifier
                 'subject' => $this->servicesInfos[$serviceName]['message']['title'],
                 'message' => RestoUtil::replaceInTemplate($this->servicesInfos[$serviceName]['message']['body'], array(
                     'url' => $url
-                ))
+                ), '{::}')
             ),
             $mailConfig['smtp']
         );

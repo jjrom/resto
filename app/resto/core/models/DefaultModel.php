@@ -17,15 +17,14 @@
 
 /**
  * resto Default Model
- * 
+ *
  * [IMPORTANT] Every model *MUST* extend DefaultModel
  */
 class DefaultModel extends RestoModel
 {
-
     /**
      * Constructor
-     * 
+     *
      * @param array $options
      */
     public function __construct($options = array())
@@ -123,5 +122,4 @@ class DefaultModel extends RestoModel
 
         ));
     }
-
 }

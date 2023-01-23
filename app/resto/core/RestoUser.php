@@ -155,7 +155,7 @@ class RestoUser
         'id' => null,
         'email' => 'unregistered',
         'groups' => array(
-            Resto::GROUP_DEFAULT_ID
+            RestoConstants::GROUP_DEFAULT_ID
         ),
         'activated' => 0
     );
@@ -187,11 +187,9 @@ class RestoUser
          * or if no id is provided
          */
         elseif ($autoload || !isset($profile['id'])) {
-            
             if (isset($profile['id'])) {
                 $this->profile = (new UsersFunctions($this->context->dbDriver))->getUserProfile('id', $profile['id']);
-            } 
-            else {
+            } else {
                 $this->profile = (new UsersFunctions($this->context->dbDriver))->getUserProfile('email', $profile['email'], array(
                     'password' => $profile['password'] ?? null
                 ));
@@ -257,7 +255,7 @@ class RestoUser
     public function activate()
     {
         if ((new UsersFunctions($this->context->dbDriver))->activateUser(
-                $this->profile['id'],
+            $this->profile['id'],
             $this->context->core['userAutoValidation']
         )) {
             $this->profile['activated'] = 1;
@@ -403,7 +401,7 @@ class RestoUser
         /*
          * Only existing local user can change there password
          */
-        if ( (new UsersFunctions($this->context->dbDriver))->userActivatedStatus(array('email' => $this->profile['email'])) !== 1 ) {
+        if ((new UsersFunctions($this->context->dbDriver))->userActivatedStatus(array('email' => $this->profile['email'])) !== 1) {
             RestoLogUtil::httpError(404, 'Email not Found');
         }
 
@@ -487,7 +485,7 @@ class RestoUser
         /*
          * Only collection owner and admin can update the collection
          */
-        if (!$this->hasGroup(Resto::GROUP_ADMIN_ID) && $collection->owner !== $this->profile['id']) {
+        if (!$this->hasGroup(RestoConstants::GROUP_ADMIN_ID) && $collection->owner !== $this->profile['id']) {
             return false;
         }
 
@@ -505,7 +503,6 @@ class RestoUser
      */
     private function getRightsArray($rights, $collectionId, $featureId)
     {
-
         /*
          * Check that collection/feature exists
          */
@@ -524,5 +521,4 @@ class RestoUser
             'target' => $this->context->dbDriver->targetSchema
         );
     }
-
 }

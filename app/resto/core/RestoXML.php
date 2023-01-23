@@ -17,7 +17,6 @@
 
 class RestoXML
 {
-
     /*
      * Reference to XML document
      */

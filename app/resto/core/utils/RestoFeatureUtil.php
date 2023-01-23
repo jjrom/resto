@@ -20,7 +20,6 @@
  */
 class RestoFeatureUtil
 {
-
     /*
      * Reference to resto context
      */
@@ -59,7 +58,6 @@ class RestoFeatureUtil
      */
     public function toFeatureArray($rawFeatureArray)
     {
-
         /*
          * No result - throw Not Found exception
          */
@@ -71,13 +69,12 @@ class RestoFeatureUtil
          * Retrieve collection from database
          */
         $collection = $this->collections[$rawFeatureArray['collection']] ?? null;
-        if ( !isset($collection) ) {
+        if (!isset($collection)) {
             $collection = (new RestoCollection($rawFeatureArray['collection'], $this->context, $this->user))->load();
             $this->collections[$rawFeatureArray['collection']] = $collection;
         }
 
         return $this->formatRawFeatureArray($rawFeatureArray, $collection);
-
     }
 
     /**
@@ -106,8 +103,10 @@ class RestoFeatureUtil
      */
     private function formatRawFeatureArray($rawFeatureArray, $collection)
     {
-
-        $self = $this->context->core['baseUrl'] . '/collections/' . $collection->id . '/items/' . $rawFeatureArray['id'];
+        $self = $this->context->core['baseUrl'] . RestoUtil::replaceInTemplate(RestoRouter::ROUTE_TO_FEATURE, array(
+            'collectionId' => $collection->id,
+            'featureId' => $rawFeatureArray['id']
+        ));
         $featureArray = array(
             'type' => 'Feature',
             'id' => $rawFeatureArray['id'],
@@ -124,13 +123,17 @@ class RestoFeatureUtil
                     'rel' => 'parent',
                     'type' => RestoUtil::$contentTypes['json'],
                     'title' => $collection->id,
-                    'href' => $this->context->core['baseUrl'] . '/collections/' . $collection->id
+                    'href' => $this->context->core['baseUrl'] . RestoUtil::replaceInTemplate(RestoRouter::ROUTE_TO_COLLECTION, array(
+                        'collectionId' => $collection->id
+                    ))
                 ),
                 array(
                     'rel' => 'collection',
                     'type' => RestoUtil::$contentTypes['json'],
                     'title' => $collection->id,
-                    'href' => $this->context->core['baseUrl'] . '/collections/' . $collection->id
+                    'href' => $this->context->core['baseUrl'] . RestoUtil::replaceInTemplate(RestoRouter::ROUTE_TO_COLLECTION, array(
+                        'collectionId' => $collection->id
+                    ))
                 ),
                 array(
                     'rel' => 'root',
@@ -165,13 +168,11 @@ class RestoFeatureUtil
         }
 
         foreach ($rawFeatureArray as $key => $value) {
-
-            if ( !isset($value) ) {
+            if (!isset($value)) {
                 continue;
             }
 
             switch ($key) {
-
                 case 'collection':
                 case 'completionDate':
                     break;
@@ -223,22 +224,20 @@ class RestoFeatureUtil
 
                 case 'metadata':
                     $metadata = json_decode($value, true);
-                    if (isset($metadata))
-                    {
+                    if (isset($metadata)) {
                         foreach (array_keys($metadata) as $metadataKey) {
                             $featureArray['properties'][$metadataKey] = $metadata[$metadataKey];
-                        }    
+                        }
                     }
                     break;
 
                 default:
                     $featureArray['properties'][$key] = $value;
-
             }
         }
 
         // [STAC][1.0.0-rc.3] Add preview in rel
-        if ( isset($featureArray['assets']) && isset($featureArray['assets']['thumbnail']) ) {
+        if (isset($featureArray['assets']) && isset($featureArray['assets']['thumbnail'])) {
             $featureArray['links'][] = array(
                 'rel' => 'preview',
                 'type' => $featureArray['assets']['thumbnail']['type'],
@@ -247,12 +246,11 @@ class RestoFeatureUtil
         }
 
         // Add planet if not already set
-        if ( ! isset($featureArray['properties']['ssys:targets']) || ! is_array($featureArray['properties']['ssys:targets']) ) {
+        if (! isset($featureArray['properties']['ssys:targets']) || ! is_array($featureArray['properties']['ssys:targets'])) {
             $featureArray['properties']['ssys:targets'] = array($collection->getPlanet());
         }
 
         return $featureArray;
-
     }
 
 
@@ -267,13 +265,20 @@ class RestoFeatureUtil
      */
     private function addKeywordsHref($keywords, $collection)
     {
-        
         if (isset($keywords)) {
             foreach (array_keys($keywords) as $key) {
-                $keywords[$key]['href'] = RestoUtil::updateUrl($this->context->core['baseUrl'] . '/collections/' . $collection->id . '/items', array(
-                    $collection->model->searchFilters['language']['osKey'] => $this->context->lang,
-                    $collection->model->searchFilters['searchTerms']['osKey'] => '#' . $keywords[$key]['id']
-                ));
+                $keywords[$key]['href'] = RestoUtil::updateUrl(
+                    $this->context->core['baseUrl'] . RestoUtil::replaceInTemplate(
+                        RestoRouter::ROUTE_TO_FEATURES,
+                        array(
+                            'collectionId' => $collection->id
+                        )
+                    ),
+                    array(
+                        $collection->model->searchFilters['language']['osKey'] => $this->context->lang,
+                        $collection->model->searchFilters['searchTerms']['osKey'] => '#' . $keywords[$key]['id']
+                    )
+                );
             }
         }
 
@@ -282,24 +287,20 @@ class RestoFeatureUtil
 
     /**
      * Add default links (i.e. self, parent and collection links) to feature links
-     * 
+     *
      * @return array
      * @return string $baseUrl
      */
-    private function getLinks($inputLinks, $baseUrl) 
+    private function getLinks($inputLinks, $baseUrl)
     {
-
         $links = array();
 
         for ($i = count($inputLinks); $i--;) {
-            if ( !in_array($inputLinks[$i]['rel'], array('self', 'parent', 'collection', 'root')) ) {
+            if (!in_array($inputLinks[$i]['rel'], array('self', 'parent', 'collection', 'root'))) {
                 $links[] = $inputLinks[$i];
             }
-            
         }
 
         return $links;
-
     }
-
 }

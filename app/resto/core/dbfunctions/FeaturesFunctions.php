@@ -20,7 +20,6 @@
  */
 class FeaturesFunctions
 {
-
     /**
      * List of columns from *.feature table
      * that are retrieved with SELECT
@@ -86,7 +85,6 @@ class FeaturesFunctions
      */
     public function search($context, $user, $model, $collections, $paramsWithOperation, $sorting)
     {
-       
         /*
          * Check that mandatory filters are set
          */
@@ -103,9 +101,9 @@ class FeaturesFunctions
         /*
          * If a resto:ckeywords was used, then automatically reduce the search on the collection
          */
-        if ( isset($paramsWithOperation['resto:ckeywords']) ) {
+        if (isset($paramsWithOperation['resto:ckeywords'])) {
             $collectionIds = array_keys($collections);
-            if ( count($collectionIds) === 0) {
+            if (count($collectionIds) === 0) {
                 return array(
                     'links' => array(),
                     'count' => array(
@@ -116,10 +114,11 @@ class FeaturesFunctions
                 );
             }
             $filtersAndJoins['filters'][] = array(
-                'value' => $featureTableName . '.collection IN (' . implode(',', array_map(function($str) { return '\'' .  pg_escape_string($str) . '\''; }, $collectionIds )) . ')',
+                'value' => $featureTableName . '.collection IN (' . implode(',', array_map(function ($str) {
+                    return '\'' .  pg_escape_string($this->dbDriver->dbh, $str) . '\'';
+                }, $collectionIds)) . ')',
                 'isGeo' => false
             );
-            
         }
         
         /*
@@ -129,7 +128,7 @@ class FeaturesFunctions
             $who = isset($paramsWithOperation['resto:owner']) ? $paramsWithOperation['resto:owner']['value'] : $user->profile['id'];
             if (isset($who)) {
                 $filtersAndJoins['filters'][] = array(
-                    'value' => $this->dbDriver->targetSchema . '.likes.featureid=' . $featureTableName . '.id AND ' . $this->dbDriver->targetSchema . '.likes.userid=' . pg_escape_string($who),
+                    'value' => $this->dbDriver->targetSchema . '.likes.featureid=' . $featureTableName . '.id AND ' . $this->dbDriver->targetSchema . '.likes.userid=' . pg_escape_string($this->dbDriver->dbh, $who),
                     'isGeo' => false
                 );
                 $filtersAndJoins['joins'][] = 'JOIN ' . $this->dbDriver->targetSchema . '.likes ON ' . $featureTableName . '.id = ' . $this->dbDriver->targetSchema . '.likes.featureid';
@@ -172,8 +171,7 @@ class FeaturesFunctions
          */
         try {
             $results = $this->dbDriver->query($query);
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             return RestoLogUtil::httpError(400, $e->getMessage());
         }
         
@@ -191,18 +189,16 @@ class FeaturesFunctions
          * Heatmap
          */
         if (isset($context->addons['Heatmap'])) {
-
             $wkt = null;
 
             /*
              * Recompute where clause without geo information
              */
-            if ( isset($context->query['_heatmapNoGeo']) && filter_var($context->query['_heatmapNoGeo'], FILTER_VALIDATE_BOOLEAN) ) {
+            if (isset($context->query['_heatmapNoGeo']) && filter_var($context->query['_heatmapNoGeo'], FILTER_VALIDATE_BOOLEAN)) {
                 $whereClause = $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => false));
                 // [IMPORTANT] Set empty $params in getCount() to avoid computation of real count
                 $heatmapLink = (new Heatmap($context, $user))->getEndPoint($featureTableName, $whereClause, $this->getCount('FROM ' . $featureTableName . ' ' . $whereClause), $wkt);
-            }
-            else {
+            } else {
                 for ($i = count($filtersAndJoins['filters']); $i--;) {
                     if ($filtersAndJoins['filters'][$i]['isGeo']) {
                         $wkt = $filtersAndJoins['filters'][$i]['wkt'];
@@ -212,10 +208,9 @@ class FeaturesFunctions
                 $heatmapLink = (new Heatmap($context, $user))->getEndPoint($featureTableName, $whereClause, $count, $wkt);
             }
             
-            if ( isset($heatmapLink) ) {
+            if (isset($heatmapLink)) {
                 $links[] = $heatmapLink;
             }
-
         }
 
         return array(
@@ -254,7 +249,7 @@ class FeaturesFunctions
 
         // Determine if search on id or productidentifier
         $filtersAndJoins['filters'][] = array(
-            'value' => $tablePrefix . 'feature.id=\'' . pg_escape_string((RestoUtil::isValidUUID($featureId) ? $featureId : RestoUtil::toUUID($featureId))) . '\'',
+            'value' => $tablePrefix . 'feature.id=\'' . pg_escape_string($this->dbDriver->dbh, (RestoUtil::isValidUUID($featureId) ? $featureId : RestoUtil::toUUID($featureId))) . '\'',
             'isGeo' => false
         );
         $results = $this->dbDriver->fetch($this->dbDriver->query($selectClause . ' ' . $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => true))));
@@ -293,7 +288,7 @@ class FeaturesFunctions
             array(
                 'id' => $id,
                 'collection' => $collection->id,
-                'visibility' => Resto::GROUP_DEFAULT_ID,
+                'visibility' => RestoConstants::GROUP_DEFAULT_ID,
                 'owner' => isset($collection) && isset($collection->user) ? $collection->user->profile['id'] : null,
                 'status' => isset($featureArray['properties']) && isset($featureArray['properties']['status']) && is_int($featureArray['properties']['status']) ? $featureArray['properties']['status'] : 1,
                 'likes' => 0,
@@ -313,13 +308,12 @@ class FeaturesFunctions
                 'startDate',
                 'completionDate'
             )
-       );
+        );
 
         /*
          * Generate pg_query_params $* array
          */
         try {
-            
             /*
              * Get connection
              */
@@ -344,7 +338,6 @@ class FeaturesFunctions
              * Commit everything - rollback if one of the inserts failed
              */
             pg_query($dbh, 'COMMIT');
-            
         } catch (Exception $e) {
             pg_query($dbh, 'ROLLBACK');
             RestoLogUtil::httpError(500, 'Feature ' . ($featureArray['productIdentifier'] ?? '') . ' cannot be inserted in database');
@@ -359,7 +352,7 @@ class FeaturesFunctions
                 (new FacetsFunctions($this->dbDriver))->storeFacets($keysValues['facets'], $collection->id);
             } catch (Exception $e) {
                 $facetsStored = false;
-            }   
+            }
         }
 
         return array(
@@ -367,7 +360,6 @@ class FeaturesFunctions
             'productIdentifier' => $result['productidentifier'] ?? null,
             'facetsStored' => $facetsStored
         );
-
     }
 
     /**
@@ -403,7 +395,6 @@ class FeaturesFunctions
         return array(
             'facetsDeleted' => $facetsDeleted
         );
-        
     }
 
     /**
@@ -448,7 +439,6 @@ class FeaturesFunctions
 
         
         try {
-
             /*
              * Begin transaction
              */
@@ -480,7 +470,6 @@ class FeaturesFunctions
              * Commit
              */
             $this->dbDriver->query('COMMIT');
-
         } catch (Exception $e) {
             $this->dbDriver->query('ROLLBACK');
             RestoLogUtil::httpError(500, 'Cannot update feature ' . $feature->id);
@@ -504,7 +493,6 @@ class FeaturesFunctions
         return RestoLogUtil::success('Udpate feature ' . $feature->id, array(
             'facetsUpdated' => $facetsUpdated
         ));
-
     }
 
     /**
@@ -516,7 +504,6 @@ class FeaturesFunctions
      */
     public function updateFeatureProperty($feature, $property, $value)
     {
-        
         // Special case for description
         if ($property === 'description') {
             return $this->updateFeatureDescription($feature, $value);
@@ -560,10 +547,9 @@ class FeaturesFunctions
         $model = isset($feature->collection) ? $feature->collection->model : new DefaultModel();
 
         /*
-         * Transaction 
+         * Transaction
          */
         try {
-            
             /*
              * Update description, hashtags and normalized_hashtags
              */
@@ -572,7 +558,6 @@ class FeaturesFunctions
                 '{' . join(',', $hashtags) . '}',
                 $feature->id
             ));
-
         } catch (Exception $e) {
             RestoLogUtil::httpError(500, 'Cannot update feature ' . $feature->id);
         }
@@ -585,7 +570,7 @@ class FeaturesFunctions
         try {
             $facetsFunctions = new FacetsFunctions($this->dbDriver);
             $facetsFunctions->removeFacetsFromHashtags($hashtagsToRemove, $feature->collection->id);
-            if ( $feature->context->core['storeFacets'] &&  $model->dbParams['storeFacets'] ) {
+            if ($feature->context->core['storeFacets'] &&  $model->dbParams['storeFacets']) {
                 $facetsFunctions->storeFacets($hashtagsToAdd, $feature->collection->id);
             }
         } catch (Exception $e) {
@@ -595,7 +580,6 @@ class FeaturesFunctions
         return RestoLogUtil::success('Property description updated for feature ' . $feature->id, array(
             'facetsUpdated' => $facetsUpdated
         ));
-
     }
 
     /**
@@ -606,7 +590,6 @@ class FeaturesFunctions
      */
     public function getCount($from, $filters = array())
     {
-
         /*
          * Determine if the count is estimated or real
          */
@@ -620,7 +603,7 @@ class FeaturesFunctions
          */
         $result = -1;
         if (!$realCount) {
-            $result = pg_fetch_result($this->dbDriver->query('SELECT count_estimate(\'' . pg_escape_string('SELECT * ' . $from) . '\') as count'), 0, 0);
+            $result = pg_fetch_result($this->dbDriver->query('SELECT count_estimate(\'' . pg_escape_string($this->dbDriver->dbh, 'SELECT * ' . $from) . '\') as count'), 0, 0);
         }
 
         if ($result !== false && $result < 10 * $this->dbDriver->resultsPerPage) {
@@ -628,10 +611,10 @@ class FeaturesFunctions
             $realCount = true;
         }
 
-        /* 
+        /*
          * Approximate
          */
-        if ( !$realCount && $result !== false ) {
+        if (!$realCount && $result !== false) {
             $result = $this->approximate((integer) $result);
         }
         
@@ -639,7 +622,6 @@ class FeaturesFunctions
             'total' => $result === false ? -1 : (integer) $result,
             'isExact' => $realCount
         );
-
     }
 
     /**
@@ -652,12 +634,12 @@ class FeaturesFunctions
      *    $text = "This is a #test #withA!%.badhashtag"
      *
      * returns:
-     *    
+     *
      *    array('test', 'withAbadhashtag')
      *
      * @param string $text
      * @param boolean $stringOnly
-     * 
+     *
      * @return array
      */
     public function extractHashtagsFromText($text, $stringOnly)
@@ -669,20 +651,18 @@ class FeaturesFunctions
                 $hashtagsArray = array_count_values($matches[1]);
                 $hashtags = array();
                 foreach (array_keys($hashtagsArray) as $key) {
-
                     # Detect special hashtags i.e. with prefix
-                    $exploded = explode(Resto::TAG_SEPARATOR, $key);
-                    if ( !$stringOnly && count($exploded) > 1 ) {
+                    $exploded = explode(RestoConstants::TAG_SEPARATOR, $key);
+                    if (!$stringOnly && count($exploded) > 1) {
                         $type = array_shift($exploded);
                         $hashtags[] = array(
                             'id' => $key,
-                            'value' => join(Resto::TAG_SEPARATOR, $exploded),
+                            'value' => join(RestoConstants::TAG_SEPARATOR, $exploded),
                             'type' => $type,
                             // Special case for catalog => force collection to all
                             'collection' => $type === 'catalog' ? '*' : null
                         );
-                    }
-                    else {
+                    } else {
                         $hashtags[] = RestoUtil::cleanHashtag($key);
                     }
                 }
@@ -701,9 +681,7 @@ class FeaturesFunctions
      */
     private function storeFeatureAdditionalContent($featureId, $collectionId, $tables)
     {
-
         foreach ($tables as $tableName => $columnsAndValues) {
-
             if (count($columnsAndValues) === 0) {
                 return false;
             }
@@ -712,12 +690,11 @@ class FeaturesFunctions
             $count = 1;
             foreach (array_keys($columnsAndValues) as $key) {
                 $updates[] =  $key . '=' . '$' . $count;
-                $count++; 
+                $count++;
             }
             $columnsAndValues['id'] = $featureId;
             $columnsAndValues['collection'] = $collectionId;
             $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.' . $tableName . ' (' . join(',', array_keys($columnsAndValues)) . ') VALUES (' . join(',', $this->getCounterList(count($columnsAndValues))) . ') ON CONFLICT (id) DO UPDATE SET ' . join(',', $updates), array_values($columnsAndValues));
-    
         }
 
         return true;
@@ -735,7 +712,6 @@ class FeaturesFunctions
      */
     private function featureArrayToKeysValues($collection, $featureArray, $protected, $updatabled)
     {
-
         // Initialize
         $keysAndValues = array(
             'links' => isset($featureArray['links']) ? json_encode($featureArray['links'], JSON_UNESCAPED_SLASHES) : null,
@@ -753,7 +729,6 @@ class FeaturesFunctions
          * Roll over properties
          */
         foreach ($featureArray['properties'] as $propertyName => $propertyValue) {
-
             /*
              * Do not process null values and protected values
              */
@@ -773,14 +748,12 @@ class FeaturesFunctions
                 if (strtolower($propertyName) === 'startdate') {
                     $keysAndValues['startdate_idx'] = $propertyValue;
                 }
-
             }
             
             /*
              * Keywords
              */
             elseif ($propertyName === 'keywords' && is_array($propertyValue)) {
-
                 $facetsFunctions = new FacetsFunctions($this->dbDriver);
 
                 // Initialize keywords
@@ -800,7 +773,6 @@ class FeaturesFunctions
                 if (count($collection->model->tables) > 0 && $collection->model->tables[0]['name'] == 'feature_landcover') {
                     $output['modelTables']['feature_landcover'] = $this->getITagColumnFromKeywords($propertyValue, $collection->model->tables[0]['columns']);
                 }
-               
             }
             
             /*
@@ -819,7 +791,6 @@ class FeaturesFunctions
                         break;
                     }
                 }
-                
             }
         }
        
@@ -831,11 +802,9 @@ class FeaturesFunctions
         foreach (array_keys($output['keysAndValues'] ?? array()) as $key) {
             if ($key === 'normalized_hashtags') {
                 $output['params'][] = 'normalize_array($' . ++$counter . ')';
-            }
-            else if ($key === 'created_idx' || $key === 'startdate_idx') {
+            } elseif ($key === 'created_idx' || $key === 'startdate_idx') {
                 $output['params'][] = 'public.timestamp_to_id($' . ++$counter . ')';
-            }
-            else {
+            } else {
                 $output['params'][] = '$' . ++$counter;
             }
         }
@@ -909,7 +878,6 @@ class FeaturesFunctions
          */
         $columns = array();
         foreach ($sanitized['columns'] as $key) {
-            
             /*
              * Avoid null value and excluded fields
              */
@@ -922,7 +890,6 @@ class FeaturesFunctions
              * Retrieve also BoundinBox in EPSG:4326
              */
             switch ($key) {
-
                 // [IMPORTANT] The geometry returned is geom not geometry !!!
                 case 'geometry':
                     $columns[] = 'ST_AsGeoJSON(' . $featureTableName . '.geom, 6) AS geometry';
@@ -944,7 +911,6 @@ class FeaturesFunctions
                     $columns[] = '' . $featureTableName . '.' . $key . ' AS "' . $key . '"';
                     break;
             }
-            
         }
 
         /*
@@ -962,16 +928,15 @@ class FeaturesFunctions
         }
 
         return 'SELECT ' . join(',', $columns) . ' FROM ' . $featureTableName;
-
     }
 
     /**
      * Sanitize input requested columns
-     * 
+     *
      * @param array $featureColumns
      */
-    private function sanitizeSQLColumns($featureColumns, $fields) {
-
+    private function sanitizeSQLColumns($featureColumns, $fields)
+    {
         $discarded = array();
         
         /*
@@ -985,7 +950,6 @@ class FeaturesFunctions
             }
             // Always add mandatories field id, geometry and collection
             elseif ($fields[0] !== '_all') {
-                
                 foreach ($fields as $column) {
                     if (!in_array($column, $this->featureColumns)) {
                         $discarded[] = $column;
@@ -1000,7 +964,6 @@ class FeaturesFunctions
             'discarded' => $discarded,
             'columns' => $featureColumns
         );
-
     }
 
     /**
@@ -1032,12 +995,12 @@ class FeaturesFunctions
 
     /**
      * Return approximated number
-     * 
+     *
      * @param integer $integer
      */
-    private function approximate($integer) {
+    private function approximate($integer)
+    {
         $precision = pow(10, strlen((string) $integer) - 2);
         return round($integer / $precision) *  $precision;
     }
-
 }

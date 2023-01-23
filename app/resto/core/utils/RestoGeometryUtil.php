@@ -20,8 +20,6 @@
  */
 class RestoGeometryUtil
 {
-
-
     /**
      * Check if input object is a valid GeoJSON object
      *
@@ -37,7 +35,6 @@ class RestoGeometryUtil
      */
     public static function checkGeoJSONGeometry($object)
     {
-
         $allowedGeometryTypes = array(
             'Point',
             'Polygon',
@@ -60,7 +57,6 @@ class RestoGeometryUtil
         }
         
         return true;
-
     }
 
     /**
@@ -82,7 +78,6 @@ class RestoGeometryUtil
      */
     public static function checkGeoJSONFeature($object)
     {
-
         // Default is nice
         $error = 'Invalid GeoJSON feature';
 
@@ -100,15 +95,15 @@ class RestoGeometryUtil
             );
         }
 
-        /* 
+        /*
          * Empty geometry are allowed in GeoJSON specification
-         * 
+         *
          * "The value of the geometry member SHALL be either a Geometry object as
          *  defined above or, in the case that the Feature is unlocated, a JSON null value"
-         * 
+         *
          * (See https://tools.ietf.org/html/rfc7946#section-1.4)
          */
-        if ( isset($object['geometry']) ) {
+        if (isset($object['geometry'])) {
             if (!is_array($object['geometry']) || ! RestoGeometryUtil::checkGeoJSONGeometry($object['geometry'])) {
                 return array(
                     'isValid' => false,
@@ -127,12 +122,11 @@ class RestoGeometryUtil
         return array(
             'isValid' => true
         );
-
     }
 
     /**
      * Check if input object is a valid WKT object
-     * 
+     *
      * [TODO] Does not support mutligeometries and/or (multi)geometries with holes
      * [TODO] This function does not validates the coordinates validity
      *
@@ -141,16 +135,16 @@ class RestoGeometryUtil
      */
     public static function isValidWKT($wktstring)
     {
-        if (! isset($wktstring) ) {
+        if (! isset($wktstring)) {
             return false;
         }
-        if ( substr(strtolower($wktstring), 0, 6) === 'point(' && substr($wktstring, -1) === ')') {
+        if (substr(strtolower($wktstring), 0, 6) === 'point(' && substr($wktstring, -1) === ')') {
             return true;
         }
-        if ( substr(strtolower($wktstring), 0, 9) === 'polygon((' && substr($wktstring, -2) === '))') {
+        if (substr(strtolower($wktstring), 0, 9) === 'polygon((' && substr($wktstring, -2) === '))') {
             return true;
         }
-        if ( substr(strtolower($wktstring), 0, 12) === 'linestring((' && substr($wktstring, -2) === '))') {
+        if (substr(strtolower($wktstring), 0, 12) === 'linestring((' && substr($wktstring, -2) === '))') {
             return true;
         }
         return true;
@@ -216,8 +210,7 @@ class RestoGeometryUtil
          */
         if ($lonlat[1] > 85) {
             $lonlat[1] = 85;
-        }
-        else if ($lonlat[1] < -85) {
+        } elseif ($lonlat[1] < -85) {
             $lonlat[1] = -85;
         }
 
@@ -225,12 +218,11 @@ class RestoGeometryUtil
             $lonlat[0] * 20037508.34 / 180.0,
             max(-20037508.34, min(log(tan((90.0 + $lonlat[1]) * M_PI / 360.0)) / M_PI * 20037508.34, 20037508.34))
         );
-
     }
 
     /**
      * Return a PostGIS BOX2D to a bbox array
-     * 
+     *
      * @param string $box2d
      * @return array
      */
@@ -275,7 +267,6 @@ class RestoGeometryUtil
      */
     public static function geoJSONGeometryToWKT($geometry)
     {
-        
         if (!isset($geometry)) {
             return null;
         }
@@ -315,7 +306,6 @@ class RestoGeometryUtil
 
             default:
                 $wkt = null;
-                
         }
 
         return $wkt;
@@ -332,19 +322,17 @@ class RestoGeometryUtil
             $exploded = explode(':', $geometry['crs']['properties']['name']);
             $epsgCode = $exploded[count($exploded) - 1];
             return (integer) $epsgCode;
-            
         }
         return 4326;
     }
 
     /**
      * Convert input GeoJSON string geometry into WKT or leave it untouched if already a WKT
-     * 
+     *
      * @param string $geostring
      */
     public static function forceWKT($geostring)
     {
-
         // Issue #329 - pystac_client GeoJSON string is within double quotes (so not valid GeoJSON)
         // e.g. "intersects":"\"{\\\"type\\\": \\\"Polygon\\\", \\\"coordinates\\\": [[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]]}\""
         $geostring = stripslashes(trim($geostring, '\'"'));
@@ -353,12 +341,11 @@ class RestoGeometryUtil
             $geostring = RestoGeometryUtil::geoJSONGeometryToWKT(json_decode($geostring, true));
         }
         
-        if ( !isset($geostring) || !RestoGeometryUtil::isValidWKT($geostring) ) {
+        if (!isset($geostring) || !RestoGeometryUtil::isValidWKT($geostring)) {
             return RestoLogUtil::httpError(400, 'Invalid input geometry for intersects - should be a valid GeoJSON or Well Known Text standard (WKT)');
         }
         
         return $geostring;
-
     }
 
     /**
@@ -375,17 +362,17 @@ class RestoGeometryUtil
 
     /**
      * Returns polygon array from WKT polygon.
-     * 
+     *
      * @param string $wktPolygon WKT polygon
      * @throws Exception
      * @return array
      */
-    public static function WKTPolygonToArray($wktPolygon) {
-        
+    public static function WKTPolygonToArray($wktPolygon)
+    {
         /*
          * Result
          */
-        $coordinates = array ();
+        $coordinates = array();
         
         /*
          * Patterns
@@ -398,9 +385,7 @@ class RestoGeometryUtil
          * Checks input parameter (WKT String)
          */
         if (preg_match($pattern, $wktPolygon, $matches)) {
-            
             if (count($matches) >= 1) {
-                
                 /*
                  * Explodes coordinates string
                  */
@@ -409,12 +394,11 @@ class RestoGeometryUtil
                 /*
                  * For each coordinate, stores lon/lat
                  */
-                for($i = 0, $ii = count($coordinates); $i < $ii; $i++) {
+                for ($i = 0, $ii = count($coordinates); $i < $ii; $i++) {
                     $coordinates[$i] = array_map('floatval', explode(' ', $coordinates[$i]));
                 }
             }
-        }
-        else {
+        } else {
             throw new Exception(__method__ . ': Invalid input WKT');
         }
 
@@ -422,7 +406,6 @@ class RestoGeometryUtil
          * Returns result
          */
         return $coordinates;
-        
     }
 
     /**
@@ -432,7 +415,7 @@ class RestoGeometryUtil
      * @param float $lat Lat
      * @param float $radius (in meters)
      * @throws Exception
-     * @return multitype:NULL polygon array
+     * @return string
      */
     public static function WKTPolygonFromLonLat($lon, $lat, $radius)
     {
@@ -481,5 +464,4 @@ class RestoGeometryUtil
         }
         return '(' . join(',', $output) . ')';
     }
-
 }

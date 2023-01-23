@@ -89,7 +89,6 @@ class FeaturesAPI
      */
     public function getFeature($params)
     {
-
         $feature = new RestoFeature($this->context, $this->user, array(
             'featureId' => $params['featureId'],
             'fields' => $params['fields'] ?? null,
@@ -677,7 +676,6 @@ class FeaturesAPI
      */
     public function updateFeature($params, $body)
     {
-
         // Load collection
         $collection = (new RestoCollection($params['collectionId'], $this->context, $this->user))->load();
         
@@ -695,7 +693,7 @@ class FeaturesAPI
          */
         $featureArray = $feature->toArray();
         if (! isset($featureArray['properties']['owner']) || $featureArray['properties']['owner'] !== $this->user->profile['id']) {
-            if (! $this->user->hasGroup(Resto::GROUP_ADMIN_ID)) {
+            if (! $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
                 RestoLogUtil::httpError(403);
             }
         }
@@ -704,7 +702,6 @@ class FeaturesAPI
         $params['_splitGeom'] = isset($params['_splitGeom']) && filter_var($params['_splitGeom'], FILTER_VALIDATE_BOOLEAN) === false ? false : true;
         
         return $collection->model->updateFeature($feature, $collection, $body, $params);
-
     }
 
     /**
@@ -805,7 +802,6 @@ class FeaturesAPI
      */
     public function updateFeatureProperty($params, $body)
     {
-
         $feature = new RestoFeature($this->context, $this->user, array(
             'featureId' => $params['featureId'],
             'collection' => (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()
@@ -817,13 +813,13 @@ class FeaturesAPI
 
         // Only admin or owner can change feature properties
         if (! isset($featureArray['properties']['owner']) || $featureArray['properties']['owner'] !== $this->user->profile['id']) {
-            if (! $this->user->hasGroup(Resto::GROUP_ADMIN_ID)) {
+            if (! $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
                 RestoLogUtil::httpError(403);
             }
         }
         
         // A value key is mandatory
-        if (! array_key_exists('value', $body) ) {
+        if (! array_key_exists('value', $body)) {
             return RestoLogUtil::httpError(400, 'Missing mandatory "value" property');
         }
 
@@ -833,12 +829,11 @@ class FeaturesAPI
         }
         
         // Only admin can change owner property
-        if ($params['property'] === 'owner' && ! $this->user->hasGroup(Resto::GROUP_ADMIN_ID)) {
+        if ($params['property'] === 'owner' && ! $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
             RestoLogUtil::httpError(403);
         }
 
         return (new FeaturesFunctions($this->context->dbDriver))->updateFeatureProperty($feature, $params['property'], $body['value']);
-        
     }
 
     /**
@@ -915,7 +910,6 @@ class FeaturesAPI
      */
     public function deleteFeature($params)
     {
-
         $feature = new RestoFeature($this->context, $this->user, array(
             'featureId' => $params['featureId'],
             'collection' => (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()
@@ -930,7 +924,7 @@ class FeaturesAPI
          */
         $featureArray = $feature->toArray();
         if (!isset($featureArray['properties']['owner']) || $featureArray['properties']['owner'] !== $this->user->profile['id']) {
-            if (! $this->user->hasGroup(Resto::GROUP_ADMIN_ID)) {
+            if (! $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
                 RestoLogUtil::httpError(403);
             }
         }
@@ -943,5 +937,4 @@ class FeaturesAPI
             'facetsDeleted' => $result['facetsDeleted']
         ));
     }
-
 }

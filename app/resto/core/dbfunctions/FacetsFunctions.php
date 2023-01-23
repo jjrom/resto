@@ -20,7 +20,6 @@
  */
 class FacetsFunctions
 {
-    
     /*
      * Relative an absolute coverages minimum percentage value
      */
@@ -91,11 +90,11 @@ class FacetsFunctions
      *          ),
      *          ...
      *      )
-     * 
+     *
      *  Or
      *      array(
      *          'id',
-     *          
+     *
      *      )
      *
      * @param array $facets
@@ -103,14 +102,12 @@ class FacetsFunctions
      */
     public function storeFacets($facets, $collectionId = '*')
     {
-
         // Empty facets - do nothing
         if (!isset($facets) || count($facets) === 0) {
             return;
         }
 
         foreach (array_values($facets) as $facetElement) {
-
             /*
              * Support for direct hashtag (i.e. not an array)
              */
@@ -125,8 +122,8 @@ class FacetsFunctions
 
             /*
              * Thread safe ingestion using upsert - guarantees that counter is correctly incremented during concurrent transactions
-             * 
-             * [IMPORTANT] UPSERT with check on parentId only if $facetElement['parentId'] is set 
+             *
+             * [IMPORTANT] UPSERT with check on parentId only if $facetElement['parentId'] is set
              */
             $insert = 'INSERT INTO ' . $this->dbDriver->targetSchema . '.facet (id, collection, value, type, pid, creator, description, created, counter, isleaf) SELECT $1,$2,$3,$4,$5,$6,$7,now(),$8,$9';
             $upsert = 'UPDATE ' . $this->dbDriver->targetSchema . '.facet SET counter=' .(isset($facetElement['counter']) ? 'counter' : 'counter+1') . ' WHERE normalize(id)=normalize($1) AND normalize(collection)=normalize($2)' . (isset($facetElement['parentId']) ? ' AND normalize(pid)=normalize($5)' : '');
@@ -142,9 +139,7 @@ class FacetsFunctions
                 isset($facetElement['counter']) ? $facetElement['counter'] : 1,
                 isset($facetElement['isLeaf']) && $facetElement['isLeaf'] ? 1 : 0
             ), 500, 'Cannot insert facet ' . $facetElement['id']);
-
         }
-
     }
 
     /**
@@ -201,7 +196,6 @@ class FacetsFunctions
      */
     public function getFacetsFromKeywords($keywords, $facetCategories, $collectionId, $options = array())
     {
-       
         /*
          * One facet per keyword
          */
@@ -209,7 +203,6 @@ class FacetsFunctions
         for ($i = count($keywords); $i--;) {
             $facetCategory = $this->getFacetCategory($facetCategories, $keywords[$i]['type']);
             if (isset($facetCategory)) {
-
                 /*
                  * Compute  facets if relative coverage is greater than 20 %
                  * and absolute coverage is greater than 20%
@@ -289,7 +282,6 @@ class FacetsFunctions
             'category' => $type,
             'isLeaf' => true
         );
-
     }
 
     /**
@@ -301,7 +293,6 @@ class FacetsFunctions
      */
     private function getFacetsPivots($collection, $fields)
     {
-        
         $collectionId = isset($collection) ? $collection->id : null;
         $model = isset($collection) ? $collection->model : new DefaultModel();
 
@@ -326,28 +317,23 @@ class FacetsFunctions
             'counter > 0'
         );
 
-        if ( isset($collectionId) )
-        {
-            $where[] = '(normalize(collection)=normalize(\'' . pg_escape_string($collectionId) . '\') OR normalize(collection)=\'*\')';
+        if (isset($collectionId)) {
+            $where[] = '(normalize(collection)=normalize(\'' . pg_escape_string($this->dbDriver->dbh, $collectionId) . '\') OR normalize(collection)=\'*\')';
         }
-        if (isset($fields))
-        {
+        if (isset($fields)) {
             $where[] = 'type IN(\'' . join('\',\'', $fields) . '\')';
         }
 
         /*
          * Facets for one collection
          */
-        $results = $this->dbDriver->query('SELECT id,collection,value,type,pid,counter,to_iso8601(created) as created,creator FROM ' . $this->dbDriver->targetSchema . '.facet' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where): '') . ' ORDER BY type ASC, value DESC');        
+        $results = $this->dbDriver->query('SELECT id,collection,value,type,pid,counter,to_iso8601(created) as created,creator FROM ' . $this->dbDriver->targetSchema . '.facet' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where): '') . ' ORDER BY type ASC, value DESC');
         
-        while ($result = pg_fetch_assoc($results))
-        {
-
+        while ($result = pg_fetch_assoc($results)) {
             $typeLen = strlen($result['type']);
 
             // Landcover special case
-            if (strpos($result['type'], 'landcover:') === 0)
-            {
+            if (strpos($result['type'], 'landcover:') === 0) {
                 $type = 'landcover';
                 $typeLen = strlen($type);
             }
@@ -363,7 +349,7 @@ class FacetsFunctions
             $create = true;
             $const = in_array($type, $unprefixed) ? $result['id'] : substr($result['id'], $typeLen + 1);
             for ($i = count($pivots[$type]); $i--;) {
-                if ( isset($pivots[$type][$i]['const']) ) {
+                if (isset($pivots[$type][$i]['const'])) {
                     if ($pivots[$type][$i]['const'] === $const) {
                         $pivots[$type][$i]['count'] += (integer) $result['counter'];
                         $create = false;
@@ -388,7 +374,6 @@ class FacetsFunctions
         }
 
         return $pivots;
-
     }
     
     /**
@@ -399,14 +384,12 @@ class FacetsFunctions
      */
     private function pivotsToSTACSummaries($pivots)
     {
-
         $summaries = array();
 
         foreach (array_keys($pivots) as $key) {
             if (count($pivots[$key]) === 1) {
                 $summaries[$key] = array_merge($pivots[$key][0], array('type' => 'string'));
-            }
-            else {
+            } else {
                 $summaries[$key] = array(
                     'type' => 'string',
                     'oneOf' => $pivots[$key]
@@ -416,5 +399,4 @@ class FacetsFunctions
 
         return $summaries;
     }
-
 }

@@ -20,7 +20,6 @@
  */
 class RestoUtil
 {
-
     /*
      * List of supported formats mimeTypes
      */
@@ -50,13 +49,12 @@ class RestoUtil
 
     /**
      * Clean associative array i.e. remove empty or null keys
-     * 
+     *
      * @param array $associativeArray
      * @return array
      */
     public static function cleanAssociativeArray($associativeArray)
     {
-
         // Output
         $cleanArray = array();
 
@@ -69,14 +67,13 @@ class RestoUtil
         }
         
         return $cleanArray;
-
     }
 
     /**
      * Extract hashtags from a string (i.e. #something or -#something)
      *
      * @param string $str
-     * 
+     *
      * @return array
      */
     public static function extractHashtags($str)
@@ -96,11 +93,11 @@ class RestoUtil
      *    $str = #bad!hasHtag$%".veryBad
      *
      * returns:
-     *    
+     *
      *    #badhasHtagveryBad
-     * 
+     *
      * @param string $str
-     * 
+     *
      * @return string
      */
     public static function cleanHashtag($str)
@@ -133,7 +130,6 @@ class RestoUtil
      */
     public static function toUUID($str)
     {
-
         // Get hexadecimal components of namespace (Note: use a dummy uuid)
         $nhex = str_replace(array('-', '{', '}'), '', '92708059-2077-45a3-a4f3-1eb428789cff');
 
@@ -150,19 +146,19 @@ class RestoUtil
 
         return sprintf(
             '%08s-%04s-%04x-%04x-%12s',
-                // 32 bits for "time_low"
-                substr($hash, 0, 8),
-                // 16 bits for "time_mid"
-                substr($hash, 8, 4),
-                // 16 bits for "time_hi_and_version",
-                // four most significant bits holds version number 5
-                (hexdec(substr($hash, 12, 4)) & 0x0fff) | 0x5000,
-                // 16 bits, 8 bits for "clk_seq_hi_res",
-                // 8 bits for "clk_seq_low",
-                // two most significant bits holds zero and one for variant DCE1.1
-                (hexdec(substr($hash, 16, 4)) & 0x3fff) | 0x8000,
-                // 48 bits for "node"
-                substr($hash, 20, 12)
+            // 32 bits for "time_low"
+            substr($hash, 0, 8),
+            // 16 bits for "time_mid"
+            substr($hash, 8, 4),
+            // 16 bits for "time_hi_and_version",
+            // four most significant bits holds version number 5
+            (hexdec(substr($hash, 12, 4)) & 0x0fff) | 0x5000,
+            // 16 bits, 8 bits for "clk_seq_hi_res",
+            // 8 bits for "clk_seq_low",
+            // two most significant bits holds zero and one for variant DCE1.1
+            (hexdec(substr($hash, 16, 4)) & 0x3fff) | 0x8000,
+            // 48 bits for "node"
+            substr($hash, 20, 12)
         );
     }
 
@@ -235,7 +231,6 @@ class RestoUtil
      */
     public static function isISO8601($dateStr)
     {
-
         /**
          * Construct the regex to match all ISO 8601 format date case
          * The regex is constructed as a combination of all pattern
@@ -326,7 +321,8 @@ class RestoUtil
      *
      * @param string $uuid
      */
-    public static function isValidUUID($uuid) {
+    public static function isValidUUID($uuid)
+    {
         return preg_match('/^\{?[0-9a-f]{8}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?[0-9a-f]{12}\}?$/i', $uuid) === 1;
     }
 
@@ -337,8 +333,7 @@ class RestoUtil
      * @param string|array $strOrArray
      */
     public static function sanitize($strOrArray)
-    {   
-        
+    {
         if (!isset($strOrArray)) {
             return null;
         }
@@ -399,7 +394,7 @@ class RestoUtil
      *
      *  Example :
      *
-     *      replaceInTemplate('Hello. My name is {:name:}. I live in {:location:}', array('name' => 'Jérôme', 'location' => 'Toulouse'));
+     *      replaceInTemplate('Hello. My name is {name}. I live in {location}', array('name' => 'Jérôme', 'location' => 'Toulouse'));
      *
      *  Will return
      *
@@ -407,7 +402,8 @@ class RestoUtil
      *
      * [IMPORTANT]
      *
-     *      {:xxx:} value without a xxx pair defined in pairs is replace by empty string
+     *      
+     *      {xxx} value without a xxx pair defined in pairs is replace by empty string
      *      In the previous example, if 'name' => 'Jérôme' is not provided, the return sentence
      *      would be
      *
@@ -416,22 +412,32 @@ class RestoUtil
      *
      * @param string $sentence
      * @param array $pairs
+     * @param string $pattern // Default is {}, other possible value is {::}
      *
      */
-    public static function replaceInTemplate($sentence, $pairs = array())
+    public static function replaceInTemplate($sentence, $pairs, $pattern = '{}')
     {
         if (!isset($sentence)) {
             return null;
         }
 
+        switch ($pattern) {
+            case '{::}':
+                $regex = "/{\:[^\\:}]*\:}/";
+                break;
+            default:
+                $regex = "/{(.*?)}/";
+        }
+        
         /*
          * Extract pairs
          */
-        preg_match_all("/{\:[^\\:}]*\:}/", $sentence, $matches);
+        preg_match_all($regex, $sentence, $matches);
 
         $replace = array();
+        $size = strlen($pattern) / 2;
         for ($i = count($matches[0]); $i--;) {
-            $replace[$matches[0][$i]] = $pairs[substr($matches[0][$i], 2, -2)] ?? '';
+            $replace[$matches[0][$i]] = $pairs[substr($matches[0][$i], $size, -$size)] ?? '';
         }
         if (count($replace) > 0) {
             return strtr($sentence, $replace);
@@ -515,12 +521,10 @@ class RestoUtil
      */
     private static function sanitizeString($str)
     {
-        
         /*
          * Remove html tags and NULL (i.e. \0)
          */
         if (is_string($str)) {
-
             /*
              * No Hexadecimal allowed i.e. nothing that starts with 0x
              */
@@ -530,13 +534,11 @@ class RestoUtil
             
             // Remove script tags
             return preg_replace('/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/i', '', str_replace(chr(0), '', $str));
-            
         }
         
         /*
          * Let value untouched
          */
         return $str;
-
     }
 }

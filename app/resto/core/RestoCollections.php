@@ -20,7 +20,6 @@
  */
 class RestoCollections
 {
-
     /**
      * RestoContext
      */
@@ -98,7 +97,7 @@ class RestoCollections
      *          }
      *      }
      *  )
-     * 
+     *
      */
     private $extent = array(
         'spatial' => array(
@@ -131,7 +130,6 @@ class RestoCollections
      */
     public function __construct($context, $user)
     {
-
         /*
          * Context is mandatory
          */
@@ -181,7 +179,6 @@ class RestoCollections
      */
     public function search($model, $query)
     {
-        
         /*
          * Set a global model with all searchFilters and all tables from other collection
          */
@@ -192,13 +189,12 @@ class RestoCollections
 
     /**
      * Load all collections from RESTo database and add them to this object
-     * 
+     *
      * @param array $params
      */
     public function load($params = array())
     {
-        
-        $params['group'] = $this->user->hasGroup(Resto::GROUP_ADMIN_ID) ? null : $this->user->profile['groups'];
+        $params['group'] = $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ? null : $this->user->profile['groups'];
         $cacheKey = 'collections' . ($params['group'] ? join(',', $params['group']) : '');
         
         $collectionsDesc = $this->context->fromCache($cacheKey);
@@ -237,12 +233,11 @@ class RestoCollections
 
     /**
      * Return object as an array
-     * 
+     *
      * @return array
      */
     public function toArray()
     {
-
         $collections = array(
             'stac_version' => STAC::STAC_VERSION,
             'id' => $this->context->osDescription['ShortName'],
@@ -254,7 +249,7 @@ class RestoCollections
                 array(
                     'rel' => 'self',
                     'type' => RestoUtil::$contentTypes['json'],
-                    'href' => $this->context->core['baseUrl'] . '/collections'
+                    'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_COLLECTIONS
                 ),
                 array(
                     'rel' => 'root',
@@ -266,7 +261,7 @@ class RestoCollections
                     'title' => 'All collections',
                     'matched' => 0,
                     'type' => RestoUtil::$contentTypes['geojson'],
-                    'href' => $this->context->core['baseUrl'] . '/search'
+                    'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_STAC_SEARCH
                 )
             ),
             'extent' => $this->extent,
@@ -287,7 +282,7 @@ class RestoCollections
                 'title' => $collection['title'],
                 'description' => $collection['description'],
                 'matched' => $collection['summaries']['collection']['count'] ?? 0,
-                'href' => $this->context->core['baseUrl'] . '/collections/' . $key,
+                'href' => $this->context->core['baseUrl'] . RestoUtil::replaceInTemplate(RestoRouter::ROUTE_TO_COLLECTION, array('collectionId' => $key)),
                 'roles' => array('collection')
             );
             $collections['collections'][] = $collection;
@@ -300,12 +295,11 @@ class RestoCollections
         /*
          * Sort collections array alphabetically (based on collection title)
          */
-        usort($collections['collections'], function($a, $b) {
+        usort($collections['collections'], function ($a, $b) {
             return $a['title'] < $b['title'] ? -1 : 1;
         });
 
         return $collections;
-
     }
 
     /**
@@ -328,25 +322,23 @@ class RestoCollections
 
     /**
      * Update collections extent using input collection extent
-     * 
+     *
      * @param RestoCollection $collection
      */
     private function updateExtent($collection)
     {
-
-        if ( isset($collection->extent['temporal']['interval'][0][0]) && ( ! isset($this->extent['temporal']['interval'][0][0]) || $collection->extent['temporal']['interval'][0][0] < $this->extent['temporal']['interval'][0][0] ) ) {
+        if (isset($collection->extent['temporal']['interval'][0][0]) && (! isset($this->extent['temporal']['interval'][0][0]) || $collection->extent['temporal']['interval'][0][0] < $this->extent['temporal']['interval'][0][0])) {
             $this->extent['temporal']['interval'][0][0] = $collection->extent['temporal']['interval'][0][0];
         }
 
-        if ( isset($collection->extent['temporal']['interval'][0][1]) && ( ! isset($this->extent['temporal']['interval'][0][1]) || $collection->extent['temporal']['interval'][0][1] > $this->extent['temporal']['interval'][0][1] ) ) {
+        if (isset($collection->extent['temporal']['interval'][0][1]) && (! isset($this->extent['temporal']['interval'][0][1]) || $collection->extent['temporal']['interval'][0][1] > $this->extent['temporal']['interval'][0][1])) {
             $this->extent['temporal']['interval'][0][1] = $collection->extent['temporal']['interval'][0][1];
         }
            
-        if ( isset($collection->extent['spatial']['bbox'][0]) ) {
-            if ( ! isset($this->extent['spatial']['bbox'][0]) ) {
+        if (isset($collection->extent['spatial']['bbox'][0])) {
+            if (! isset($this->extent['spatial']['bbox'][0])) {
                 $this->extent['spatial']['bbox'][0] = $collection->extent['spatial']['bbox'][0];
-            }
-            else {
+            } else {
                 $this->extent['spatial']['bbox'][0] = array(
                     min($this->extent['spatial']['bbox'][0][0], $collection->extent['spatial']['bbox'][0][0]),
                     min($this->extent['spatial']['bbox'][0][1], $collection->extent['spatial']['bbox'][0][1]),
@@ -355,30 +347,26 @@ class RestoCollections
                 );
             }
         }
-
     }
 
     /**
      * Return an array of all available searchFilters on all collections
-     * 
+     *
      * @return array
      */
     private function getFullModel()
     {
-
         $model = new DefaultModel();
 
         foreach (array_keys($this->collections) as $key) {
             $collection = $this->collections[$key];
-            if ( isset($collection->model) ) {
+            if (isset($collection->model)) {
                 $model->searchFilters = array_merge($model->searchFilters, $collection->model->searchFilters);
                 $model->tables = array_merge($model->tables, $collection->model->tables);
                 $model->stacMapping = array_merge($model->stacMapping, $collection->model->stacMapping);
             }
-            
         }
 
         return $model;
     }
-
 }

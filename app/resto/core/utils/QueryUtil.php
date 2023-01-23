@@ -20,11 +20,10 @@
  */
 class QueryUtil
 {
-
     /**
      * Prepare SQL query for intervals
      *
-     *  
+     *
      *      $str = n1 then returns value = n1
      *      $str = {n1,n2} then returns  value = n1 or value = n2
      *      $str = [n1,n2] then returns  n1 ≤ value ≤ n2
@@ -39,9 +38,8 @@ class QueryUtil
      * @param string $columnName
      * @return string
      */
-    public static function intervalToQuery($str, $columnName) 
+    public static function intervalToQuery($str, $columnName)
     {
-        
         $values = explode(',', $str);
 
         /*
@@ -54,7 +52,6 @@ class QueryUtil
          * Assume two values
          */
         return QueryUtil::processComplexInterval($columnName, $values);
-        
     }
 
     /**
@@ -66,7 +63,6 @@ class QueryUtil
      */
     private static function processSimpleInterval($columnName, $value)
     {
-
         $quote = true;
 
         /*
@@ -102,7 +98,6 @@ class QueryUtil
      */
     private static function processComplexInterval($columnName, $values)
     {
-
         $quote = true;
 
         /*
@@ -132,12 +127,12 @@ class QueryUtil
 
     /**
      * Return a escaped quoted string
-     * 
+     *
      * @param string $str
      * @param boolean $quote
      */
-    private static function quoteMe($str, $quote) {
+    private static function quoteMe($str, $quote)
+    {
         return $quote ? '\'' . pg_escape_string($str) . '\'' : pg_escape_string($str);
     }
-
 }

@@ -34,11 +34,15 @@
  */
 class OSDD extends RestoXML
 {
-
     /*
      * Reference to context
      */
     private $context;
+
+    /*
+     * Reference to model
+     */
+    private $model;
 
     /*
      * Reference to collection object (null if no collection)
@@ -104,7 +108,6 @@ class OSDD extends RestoXML
      */
     private function setOSDD()
     {
-        
         /*
          * Start OpsenSearchDescription
          */
@@ -199,7 +202,6 @@ class OSDD extends RestoXML
     private function setUrls()
     {
         foreach (array_values($this->contentTypes) as $format) {
-
             /*
              * Special case for HTML output
              */
@@ -237,7 +239,6 @@ class OSDD extends RestoXML
      */
     private function getUrlTemplate($format)
     {
-
         /*
          * HTML output is based on htmlSearchEndpoint
          */
@@ -245,7 +246,20 @@ class OSDD extends RestoXML
             return $this->context->core['htmlSearchEndpoint'] . '?' . $this->model->searchFilters['searchTerms']['osKey'] .'={searchTerms?}';
         }
        
-        $url = RestoUtil::restoUrl($this->context->core['baseUrl'], (isset($this->collection) ? '/collections/' . $this->collection->id . '/items' : '/search'), $format) . '?' . $this->clientId;
+        $url = RestoUtil::restoUrl(
+            $this->context->core['baseUrl'],
+            (
+                isset($this->collection)
+                ? RestoUtil::replaceInTemplate(
+                    RestoRouter::ROUTE_TO_FEATURES,
+                    array(
+                        'collectionId' => $this->collection->id
+                    )
+                )
+                : '/search'
+            ),
+            $format
+        ) . '?' . $this->clientId;
         
         $count = 0;
         foreach ($this->model->searchFilters as $filterName => $filter) {
@@ -295,7 +309,6 @@ class OSDD extends RestoXML
                         }
                     } elseif ($filter['options'] === 'auto') {
                         if (isset($filter['osKey']) && isset($this->statistics[$filter['osKey']])) {
-
                             /*
                              * [STAC] Summaries format is "oneOf" if several options
                              */
@@ -303,8 +316,7 @@ class OSDD extends RestoXML
                                 $this->startElement('parameters:Option');
                                 $this->writeAttribute('value', $this->statistics[$filter['osKey']]['const']);
                                 $this->endElement();
-                            }
-                            else {
+                            } else {
                                 for ($i = count($this->statistics[$filter['osKey']]['oneOf']); $i--;) {
                                     $this->startElement('parameters:Option');
                                     $this->writeAttribute('value', $this->statistics[$filter['osKey']]['oneOf'][$i]['const']);

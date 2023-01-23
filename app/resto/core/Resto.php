@@ -48,7 +48,7 @@
  *    | Query parameter    |      Type      | Description
  *    |______________________________________________________________________________________________
  *    | _pretty            |     boolean    | (For JSON output only) true to return pretty print JSON
- *    
+ *
  *
  * Returned error
  * --------------
@@ -82,29 +82,6 @@
 class Resto
 {
 
-    // [IMPORTANT] Starting resto 7.x, default routes are defined in RestoRouter class
-
-    // resto version
-    const VERSION = '7.0.0-rc.1';
-
-    /* ============================================================
-     *              NEVER EVER TOUCH THESE VALUES
-     * ============================================================*/
-
-    // PostgreSQL max value for integer
-    const INT_MAX_VALUE = 2147483647;
-
-    // Group identifier for administrator group
-    const GROUP_ADMIN_ID = 0;
-
-    // Group identifier for default group (every user is in default group)
-    const GROUP_DEFAULT_ID = 100;
-
-    // Separator for hashtags identifiers - should be the same as iTag
-    const TAG_SEPARATOR = ':';
-
-    /* ============================================================ */
-
     /*
      * RestoContext
      */
@@ -133,12 +110,10 @@ class Resto
      */
     public function __construct($config = array())
     {
-
         // Initialize start of processing
         $this->startTime = microtime(true);
         
         try {
-
             /*
              * Set global debug mode
              */
@@ -172,9 +147,7 @@ class Resto
              * Process route
              */
             $response = $this->getResponse();
-            
         } catch (Exception $e) {
-
             /*
              * Output in error - format output as JSON in the following
              */
@@ -225,7 +198,6 @@ class Resto
     private function answer($response, $responseStatus)
     {
         if (isset($response)) {
-
             /*
              * HTTP 1.1 headers
              */
@@ -254,7 +226,7 @@ class Resto
              */
             try {
                 $this->storeQuery();
-            } catch (Exception $e) { 
+            } catch (Exception $e) {
                 error_log('[WARNING] Cannot store query');
             }
 
@@ -279,7 +251,6 @@ class Resto
      */
     private function format($object)
     {
-
         /*
          * Case 0 - Object is null
          */
@@ -300,7 +271,6 @@ class Resto
          * Case 2 - Object is an object
          */
         elseif (is_object($object)) {
-
             // Convert json* types in to json type
             $outputFormat = in_array($this->context->outputFormat, array('json', 'geojson', 'openapi+json')) ? 'json' : $this->context->outputFormat;
             $methodName = 'to' . strtoupper($outputFormat);
@@ -323,7 +293,6 @@ class Resto
      */
     private function setCORSHeaders()
     {
-
         /*
          * Only set access to known servers
          */
@@ -359,7 +328,6 @@ class Resto
      */
     private function corsIsAllowed($httpOrigin)
     {
-
         /*
          * No white list => all allowed
          */
@@ -391,7 +359,6 @@ class Resto
      */
     private function storeQuery()
     {
-
         if (!$this->context->core['storeQuery'] || !isset($this->user)) {
             return false;
         }
@@ -402,5 +369,4 @@ class Resto
             'method' => $this->context->method
         ));
     }
-    
 }

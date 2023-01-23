@@ -105,18 +105,6 @@ fi
 #
 # Check mandatory tools
 #
-if ! command -v psql &> /dev/null
-then
-    echo -e "${RED}[ERROR]${NC} The required \"psql\" command was not found. Please install postgresql-client package before running this script."
-    echo ""
-    exit 1
-fi
-if ! command -v pg_isready &> /dev/null
-then
-    echo -e "${RED}[ERROR]${NC} The required \"pg_isready\" command was not found. Please install postgresql-client package before running this script"
-    echo ""
-    exit 1
-fi
 if ! command -v docker &> /dev/null
 then
     echo -e "${RED}[ERROR]${NC} The required \"docker\" command was not found. See https://docs.docker.com/get-docker/"
@@ -190,49 +178,6 @@ DATABASE_USER_NAME=${DATABASE_USER_NAME} \
 DATABASE_USER_PASSWORD=${DATABASE_USER_PASSWORD} \
 ENV_FILE=${ENV_FILE} \
 docker-compose up -d
-
-if [ "${DATABASE_HOST}" == "restodb" ] || [ "${DATABASE_HOST}" == "host.docker.internal" ]; then
-    DATABASE_HOST_SEEN_FROM_DOCKERHOST=localhost
-else
-    DATABASE_HOST_SEEN_FROM_DOCKERHOST=${DATABASE_HOST}
-fi
-
-# Wait for database to be ready
-echo -e "[INFO] Checking that database is running on ${DATABASE_HOST_SEEN_FROM_DOCKERHOST}:${DATABASE_EXPOSED_PORT}"
-while ! pg_isready -h ${DATABASE_HOST_SEEN_FROM_DOCKERHOST} -U ${DATABASE_USER_NAME} -p ${DATABASE_EXPOSED_PORT} -d ${DATABASE_NAME} > /dev/null 2>&1
-do
-    let elapsed=elapsed+1
-    if [ "$elapsed" -gt 30 ]
-    then
-        echo -e "${RED}[ERROR]${NC} Database is not available at ${DATABASE_HOST_SEEN_FROM_DOCKERHOST}:${DATABASE_EXPOSED_PORT} - see README.md"
-        exit 1
-    fi  
-    echo -n "."
-    sleep 1;
-done
-echo -e ""
-echo -e "[INFO] Database is up and running on ${GREEN}${DATABASE_HOST_SEEN_FROM_DOCKERHOST}:${DATABASE_EXPOSED_PORT}${NC}"
-# Run database creation script if needed
-DATABASE_COMMON_SCHEMA=$(grep ^DATABASE_COMMON_SCHEMA= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
-if [[ "${DATABASE_COMMON_SCHEMA}" == "" ]]; then
-    DATABASE_COMMON_SCHEMA=resto
-fi
-DATABASE_COMMON_SCHEMA_EXISTS=$(PGPASSWORD=${DATABASE_USER_PASSWORD} psql -XAt -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h ${DATABASE_HOST_SEEN_FROM_DOCKERHOST} -p ${DATABASE_EXPOSED_PORT} -c "SELECT count(*) FROM information_schema.schemata WHERE schema_name = '${DATABASE_COMMON_SCHEMA}';")
-DATABASE_TARGET_SCHEMA=$(grep ^DATABASE_TARGET_SCHEMA= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
-if [[ "${DATABASE_TARGET_SCHEMA}" == "" ]]; then
-    DATABASE_TARGET_SCHEMA=resto
-fi
-DATABASE_TARGET_SCHEMA_EXISTS=$(PGPASSWORD=${DATABASE_USER_PASSWORD} psql -XAt -d ${DATABASE_NAME} -U ${DATABASE_USER_NAME} -h ${DATABASE_HOST_SEEN_FROM_DOCKERHOST} -p ${DATABASE_EXPOSED_PORT} -c "SELECT count(*) FROM information_schema.schemata WHERE schema_name = '${DATABASE_TARGET_SCHEMA}';")
-if [[ "${DATABASE_COMMON_SCHEMA_EXISTS}" == "0" || "${DATABASE_TARGET_SCHEMA_EXISTS}" == "0" ]]; then
-    echo -e "${YELLOW}[WARNING] Incomplete resto model found on database ${DATABASE_HOST}${NC}"
-fi
-if [[ "${DATABASE_COMMON_SCHEMA_EXISTS}" == "0" || "${DATABASE_TARGET_SCHEMA_EXISTS}" == "0" || ${FORCE_DATABASE_INSTALLATION} -eq 1 ]]; then
-    echo -e "[INFO] Create resto database schema in ${GREEN}${DATABASE_HOST}${NC}"
-    $(dirname $0)/scripts/installDatabaseModel.sh -e "${ENV_FILE}"
-fi
-
-# Create ADMIN_USER if not exist or update ADMIN_USER's password if it already exists
-$(dirname $0)/scripts/createAdminUser.sh -e ${ENV_FILE}
 
 echo -e ""
 
