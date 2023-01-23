@@ -6,7 +6,7 @@
         "contact": {
             "email": "jerome.gasperi@gmail.com"
         },
-        "version": "6.0.0"
+        "version": "7.0.0-rc.1"
     },
     "servers": [
         {
@@ -14,7 +14,3010 @@
             "description": "resto localhost server"
         }
     ],
-    "paths": {},
+    "paths": {
+        "/catalogs/*": {
+            "get": {
+                "tags": [
+                    "STAC"
+                ],
+                "summary": "Get STAC catalogs",
+                "description": "Get STAC catalogs",
+                "operationId": "STAC::getCatalogs",
+                "responses": {
+                    "200": {
+                        "description": "STAC catalog definition - contains links to child catalogs and/or items",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Catalog"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
+        },
+        "/children": {
+            "get": {
+                "tags": [
+                    "STAC"
+                ],
+                "summary": "Get root child catalogs",
+                "description": "List of children of this catalog",
+                "operationId": "STAC::getChildren",
+                "responses": {
+                    "200": {
+                        "description": "List of children of the root catalog",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "features": {
+                                            "description": "Array of features",
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/OutputFeature"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/queryables": {
+            "get": {
+                "tags": [
+                    "STAC"
+                ],
+                "summary": "Queryables for STAC API",
+                "description": "Queryable names for the STAC API Item Search filter.",
+                "operationId": "STAC::getQueryables",
+                "responses": {
+                    "200": {
+                        "description": "Queryables for STAC API",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Queryables"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/search": {
+            "get": {
+                "tags": [
+                    "Feature"
+                ],
+                "summary": "STAC search endpoint",
+                "description": "List of filters to search features within all collections",
+                "operationId": "STAC::search",
+                "parameters": [
+                    {
+                        "name": "model",
+                        "in": "query",
+                        "description": "Search features within collections belonging to *model* - e.g. *model=SatelliteModel* will search in all satellite collections",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "collections",
+                        "in": "query",
+                        "description": "Search features within collections - comma separated list of collection identifiers",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "ck",
+                        "in": "query",
+                        "description": "Stands for *collection keyword* - limit results to collection containing the input keyword",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Free text search - OpenSearch {searchTerms}. Can include hashtags i.e. text starting with *#* characters. In this case, use the following:\n* *#cryosphere* will search for *cryosphere*\n* *#cryosphere #atmosphere* will search for *cryosphere* AND *atmosphere*\n* *#cryosphere|atmosphere* will search for *cryosphere* OR *atmosphere*\n* *#cryosphere!* will search for *cryosphere* OR any *broader* concept of *cryosphere* ([EXTENSION][SKOS])\n* *#cryosphere\\** will search for *cryosphere* OR any *narrower* concept of *cryosphere* ([EXTENSION][SKOS])\n* *#cryosphere~* will search for *cryosphere* OR any *related* concept of *cryosphere* ([EXTENSION][SKOS])",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Number of results returned per page - between 1 and 500 (default 20) - OpenSearch {count}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "maximum": 500,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "startIndex",
+                        "in": "query",
+                        "description": "First result to provide - minimum 1, (default 1) - OpenSearch {startIndex}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "First page to provide - minimum 1, (default 1) - OpenSearch {startPage}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "lang",
+                        "in": "query",
+                        "description": "Two letters language code according to ISO 639-1 (default *en*) - OpenSearch {language}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "ids",
+                        "in": "query",
+                        "description": "Array of item ids to return. All other filter parameters that further restrict the number of search results (except next and limit) are ignored",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "intersects",
+                        "in": "query",
+                        "description": "Region of Interest defined in GeoJSON or in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326) - OpenSearch {geo:geometry}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "bbox",
+                        "in": "query",
+                        "description": "Region of Interest defined by 'west, south, east, north' coordinates of longitude, latitude, in decimal degrees (EPSG:4326) - OpenSearch {geo:box}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "number"
+                            },
+                            "maxItems": 6,
+                            "minItems": 4
+                        }
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "[EXTENSION][egg] Location string e.g. Paris, France  or toponym identifier (i.e. geouid:xxxx) - OpenSearch {geo:name}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "lon",
+                        "in": "query",
+                        "description": "Longitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lat - OpenSearch {geo:lon}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "lat",
+                        "in": "query",
+                        "description": "Latitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lon - OpenSearch {geo:lat}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "radius",
+                        "in": "query",
+                        "description": "Radius expressed in meters - should be used with geo:lon and geo:lat - OpenSearch {geo:radius}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "datetime",
+                        "in": "query",
+                        "description": "Single date+time, or a range ('/' separator) of the search query. Format should follow RFC-3339 - OpenSearch {time:start}/{time:end}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^([0-9]{4})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\\.[0-9]+)?(([Zz])|([\\+|\\-]([01][0-9]|2[0-3]):[0-5][0-9]))$"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "in": "query",
+                        "description": "Beginning of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:start}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(|Z|[\\+\\-][0-9]{2}:[0-9]{2}))?$"
+                        }
+                    },
+                    {
+                        "name": "end",
+                        "in": "query",
+                        "description": "End of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:end}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(|Z|[\\+\\-][0-9]{2}:[0-9]{2}))?$"
+                        }
+                    },
+                    {
+                        "name": "created",
+                        "in": "query",
+                        "description": "Returns products with metadata creation date greater or equal than *created* - OpenSearch {dc:date}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(|Z|[\\+\\-][0-9]{2}:[0-9]{2}))?$"
+                        }
+                    },
+                    {
+                        "name": "prev",
+                        "in": "query",
+                        "description": "Returns features with *sort* key value greater than *prev* value - use this for pagination. The value is a unique iterator computed from the *sort* key value and provided within each feature properties as *sort_idx* property",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "next",
+                        "in": "query",
+                        "description": "Returns features with *sort* key value lower than *next* value - use this for pagination. The value is a unique iterator computed from the *sort* key value and provided within each feature properties as *sort_idx* property",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "pid",
+                        "in": "query",
+                        "description": "Like on product identifier",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "Sort results by property *startDate* or *created* (default *startDate*). Sorting order is DESCENDING (ASCENDING if property is prefixed by minus sign)",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "owner",
+                        "in": "query",
+                        "description": "Limit search to owner's features",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "likes",
+                        "in": "query",
+                        "description": "[EXTENSION][social] Limit search to number of likes (interval)",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "liked",
+                        "in": "query",
+                        "description": "[EXTENSION][social] Return only liked features from calling user",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Feature status (unusued)",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "productType",
+                        "in": "query",
+                        "description": "[MODEL][SatelliteModel] A string identifying the entry type (e.g. ER02_SAR_IM__0P, MER_RR__1P, SM_SLC__1S, GES_DISC_AIRH3STD_V005) - OpenSearch {eo:productType}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "processingLevel",
+                        "in": "query",
+                        "description": "[MODEL][SatelliteModel] A string identifying the processing level applied to the entry - OpenSearch {eo:processingLevel}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "platform",
+                        "in": "query",
+                        "description": "[MODEL][SatelliteModel] A string with the platform short name (e.g. Sentinel-1) - OpenSearch {eo:platform}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "instrument",
+                        "in": "query",
+                        "description": "[MODEL][SatelliteModel] A string identifying the instrument (e.g. MERIS, AATSR, ASAR, HRVIR. SAR) - OpenSearch {eo:instrument}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sensorType",
+                        "in": "query",
+                        "description": "[MODEL][SatelliteModel] A string identifying the sensor type. Suggested values are: OPTICAL, RADAR, ALTIMETRIC, ATMOSPHERIC, LIMB - OpenSearch {eo:sensorType}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "cloudCover",
+                        "in": "query",
+                        "description": "[MODEL][OpticalModel] Cloud cover expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "snowCover",
+                        "in": "query",
+                        "description": "[MODEL][OpticalModel] Snow cover expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "waterCover",
+                        "in": "query",
+                        "description": "[MODEL][LandCoverModel] Water area expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "urbanCover",
+                        "in": "query",
+                        "description": "[MODEL][LandCoverModel] Urban area expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "iceCover",
+                        "in": "query",
+                        "description": "[MODEL][LandCoverModel] Ice area expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "herbaceousCover",
+                        "in": "query",
+                        "description": "[MODEL][LandCoverModel] Herbaceous area expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "forestCover",
+                        "in": "query",
+                        "description": "[MODEL][LandCoverModel] Forest area expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "floodedCover",
+                        "in": "query",
+                        "description": "[MODEL][LandCoverModel] Flooded area expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "desertCover",
+                        "in": "query",
+                        "description": "[MODEL][LandCoverModel] Desert area expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "cultivatedCover",
+                        "in": "query",
+                        "description": "[MODEL][LandCoverModel] Cultivated area expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "fields",
+                        "in": "query",
+                        "description": "Comma separated list of property fields to be returned. The following reserved keywords can also be used:\n* _all: Return all properties (This is the default)\n* _simple: Return all fields except *keywords* property",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "_heatmapNoGeo",
+                        "in": "query",
+                        "description": "[EXTENSION][Heatmap] True to compute search result heatmap without taking account geographical filter",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Features collection",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RestoFeatureCollection"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request (i.e. invalid parameter)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Collection not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Get an authentication token",
+                "description": "Get a fresh authentication token (aka rJWT).",
+                "operationId": "AuthAPI::getToken",
+                "responses": {
+                    "200": {
+                        "description": "A fresh authentication token (aka rJWT)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "token": {
+                                            "description": "A rJWT token",
+                                            "type": "string"
+                                        },
+                                        "profile": {
+                                            "description": "User profile",
+                                            "$ref": "#/components/schemas/UserDisplayProfile"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "token": "eyJzdWIiOiIxOTQ2NTIwMjk3MjEzNTI3MDUyIiwiaWF0IjoxNTQ2MjY2NTU3LCJleHAiOjE1NDYyNzAxNTd9.nI4q0LBqGOG0a6GCjxWvUiVA6hKndN9mJrjuT1WG1Xo",
+                                    "profile": {
+                                        "id": "1356771884787565573",
+                                        "picture": "https://robohash.org/d0e907f8b6f4ee74cd4c38a515e2a4de?gravatar=hashed&bgset=any&size=400x400",
+                                        "groups": [
+                                            "1"
+                                        ],
+                                        "name": "jrom",
+                                        "followers": 185,
+                                        "followings": 144,
+                                        "firstname": "J\u00e9r\u00f4me",
+                                        "lastname": "Gasperi",
+                                        "bio": "Working on new features for the next major release of SnapPlanet",
+                                        "registrationdate": "2016-10-08T22:50:34.187217Z",
+                                        "topics": "earth,fires,geology,glaciology,volcanism",
+                                        "followed": false,
+                                        "followme": false
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            }
+        },
+        "/auth/check/{token}": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Check token validity",
+                "description": "Check if security token associated to user is valid. Usually security token is used to temporarely replace authentication to download/visualize ressources",
+                "operationId": "checkToken",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "path",
+                        "description": "Security token",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Return token validity",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Status is *success*",
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "description": "Token checked",
+                                            "type": "string"
+                                        },
+                                        "isValid": {
+                                            "description": "True if valid - False if not",
+                                            "type": "boolean"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": "success",
+                                    "message": "Token checked",
+                                    "isValid": false
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/activate/{token}": {
+            "put": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Activate a user",
+                "description": "Activate registered user",
+                "operationId": "activateUser",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "path",
+                        "description": "Activation token",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Activation status - user activated or not",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "token": {
+                                            "description": "Authentication token",
+                                            "type": "string"
+                                        },
+                                        "profile": {
+                                            "description": "User profile",
+                                            "$ref": "#/components/schemas/UserDisplayProfile"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "token": "eyJzdWIiOiIxOTQ2NTIwMjk3MjEzNTI3MDUyIiwiaWF0IjoxNTQ2MjY2NTU3LCJleHAiOjE1NDYyNzAxNTd9.nI4q0LBqGOG0a6GCjxWvUiVA6hKndN9mJrjuT1WG1Xo",
+                                    "profile": {
+                                        "id": "1356771884787565573",
+                                        "picture": "https://robohash.org/d0e907f8b6f4ee74cd4c38a515e2a4de?gravatar=hashed&bgset=any&size=400x400",
+                                        "groups": [
+                                            "1"
+                                        ],
+                                        "name": "jrom",
+                                        "followers": 185,
+                                        "followings": 144,
+                                        "firstname": "J\u00e9r\u00f4me",
+                                        "lastname": "Gasperi",
+                                        "bio": "Working on new features for the next major release of SnapPlanet",
+                                        "registrationdate": "2016-10-08T22:50:34.187217Z",
+                                        "topics": "earth,fires,geology,glaciology,volcanism",
+                                        "followed": false,
+                                        "followme": false
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    }
+                }
+            }
+        },
+        "/collections": {
+            "get": {
+                "tags": [
+                    "Collection"
+                ],
+                "summary": "Get collections",
+                "description": "Returns a list of all collection descriptions including statistics (i.e. number of products, etc.)",
+                "operationId": "CollectionsAPI::getCollections",
+                "parameters": [
+                    {
+                        "name": "_stats",
+                        "in": "query",
+                        "description": "Set to get individual statistics for all collection",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "ck",
+                        "in": "query",
+                        "description": "Stands for *collection keyword* - limit results to collection containing the input keyword",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of all collection descriptions",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "extent": {
+                                            "type": "object",
+                                            "$ref": "#/components/schemas/Extent"
+                                        },
+                                        "resto:info": {
+                                            "description": "resto additional information",
+                                            "type": "object"
+                                        },
+                                        "summaries": {
+                                            "description": "Return collections descriptions",
+                                            "type": "object"
+                                        },
+                                        "collections": {
+                                            "description": "List of available collections",
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/OutputCollection"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "extent": {
+                                        "spatial": {
+                                            "bbox": [
+                                                [
+                                                    -180,
+                                                    -77.28054,
+                                                    180,
+                                                    82.77201
+                                                ]
+                                            ],
+                                            "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
+                                        },
+                                        "temporal": {
+                                            "interval": [
+                                                [
+                                                    "2018-09-13T05:58:08.367000Z",
+                                                    "2019-06-11T16:11:41.808000Z"
+                                                ]
+                                            ],
+                                            "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"
+                                        }
+                                    },
+                                    "summaries": {
+                                        "resto:stats": {
+                                            "count": 11310,
+                                            "facets": {
+                                                "collection": {
+                                                    "L8": 11307
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "resto:info": {
+                                        "osDescription": {
+                                            "ShortName": "resto",
+                                            "LongName": "resto search service",
+                                            "Description": "Search on all collections",
+                                            "Tags": "resto",
+                                            "Developer": "J\\u00e9r\\u00f4me Gasperi",
+                                            "Contact": "jerome.gasperi@gmail.com",
+                                            "Query": "europe 2015",
+                                            "Attribution": "Copyright 2018, All Rights Reserved"
+                                        }
+                                    },
+                                    "collections": [
+                                        {
+                                            "id": "L8",
+                                            "title": "Landsat-8",
+                                            "description": "Landsat represents the world's longest continuously acquired collection of space-based moderate-resolution land remote sensing data. Four decades of imagery provides a unique resource for those who work in agriculture, geology, forestry, regional planning, education, mapping, and global change research. Landsat images are also invaluable for emergency response and disaster relief",
+                                            "keywords": [
+                                                "landsat",
+                                                "level1C",
+                                                "USGS"
+                                            ],
+                                            "license": "proprietary",
+                                            "extent": {
+                                                "spatial": {
+                                                    "bbox": [
+                                                        [
+                                                            -180,
+                                                            -77.28054,
+                                                            180,
+                                                            82.77201
+                                                        ]
+                                                    ],
+                                                    "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
+                                                },
+                                                "temporal": {
+                                                    "interval": [
+                                                        [
+                                                            "2019-05-19T13:59:47.695508Z",
+                                                            "2019-06-06T13:28:04.338517Z"
+                                                        ]
+                                                    ],
+                                                    "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"
+                                                }
+                                            },
+                                            "links": [
+                                                {
+                                                    "rel": "self",
+                                                    "type": "application/json",
+                                                    "href": "http://127.0.0.1:5252/collections.json?&_pretty=1"
+                                                },
+                                                {
+                                                    "rel": "root",
+                                                    "type": "application/json",
+                                                    "href": "http://127.0.0.1:5252"
+                                                }
+                                            ],
+                                            "resto:info": {
+                                                "model": "OpticalModel",
+                                                "lineage": [
+                                                    "DefaultModel",
+                                                    "LandCoverModel",
+                                                    "SatelliteModel",
+                                                    "OpticalModel"
+                                                ],
+                                                "osDescription": {
+                                                    "ShortName": "Landsat-8",
+                                                    "LongName": "Images Landsat-8 niveau 1C",
+                                                    "Description": "Landsat represents the world's longest continuously acquired collection of space-based moderate-resolution land remote sensing data. Four decades of imagery provides a unique resource for those who work in agriculture, geology, forestry, regional planning, education, mapping, and global change research. Landsat images are also invaluable for emergency response and disaster relief",
+                                                    "Tags": "landsat level1C USGS",
+                                                    "Developer": "J\\u00e9r\\u00f4me Gasperi",
+                                                    "Contact": "jrom@snapplanet.io",
+                                                    "Query": "USA 2019",
+                                                    "Attribution": "USGS/NASA Landsat"
+                                                },
+                                                "owner": "203883411255198721"
+                                            },
+                                            "summaries": {
+                                                "datetime": {
+                                                    "minimum": "2019-05-19T13:59:47.695508Z",
+                                                    "maximum": "2019-06-06T13:28:04.338517Z"
+                                                },
+                                                "eo:instrument": [
+                                                    "OLI_TIRS",
+                                                    "TIRS"
+                                                ],
+                                                "eo:platform": [
+                                                    "LANDSAT_8"
+                                                ],
+                                                "processingLevel": [
+                                                    "LEVEL1C"
+                                                ],
+                                                "productType": [
+                                                    "L1GT",
+                                                    "L1TP"
+                                                ],
+                                                "sensorType": [
+                                                    "OPTICAL"
+                                                ]
+                                            },
+                                            "stac_version": "0.8.0",
+                                            "stac_extensions": [
+                                                "https://stac-extensions.github.io/eo/v1.0.0/schema.json"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Collection"
+                ],
+                "summary": "Create collection",
+                "operationId": "CollectionsAPI::createCollection",
+                "requestBody": {
+                    "description": "Collection description",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/InputCollection"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The collection is created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Status is *success*",
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "description": "Message information",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": "success",
+                                    "message": "Collection S2 created"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Missing mandatory collection id or collection already exist",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestError"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Only user with *create* rights can create a collection",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            }
+        },
+        "/collections/{collectionId}": {
+            "get": {
+                "tags": [
+                    "Collection"
+                ],
+                "summary": "Get collection",
+                "description": "Returns collection description including statistics (i.e. number of products, etc.)",
+                "operationId": "CollectionsAPI::getCollection",
+                "parameters": [
+                    {
+                        "name": "collectionId",
+                        "in": "path",
+                        "description": "Collection identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "_stats",
+                        "in": "query",
+                        "description": "True to return full statistics in summaries property. Default is *false*",
+                        "style": "form",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Collection description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OutputCollection"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Collection not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Collection"
+                ],
+                "summary": "Update collection",
+                "description": "Note that *collectionId* and *model* properties cannot be updated",
+                "operationId": "CollectionsAPI::updateCollection",
+                "parameters": [
+                    {
+                        "name": "collectionId",
+                        "in": "path",
+                        "description": "Collection identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Collection description",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/InputCollection"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The collection is created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Status is *success*",
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "description": "Message information",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": "success",
+                                    "message": "Collection S2 updated"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Missing mandatory collection id",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestError"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Only user with *update* rights can update a collection",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Collection not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Collection"
+                ],
+                "summary": "Delete collection",
+                "description": "For security reason, only empty collection can be deleted",
+                "operationId": "CollectionsAPI::deleteCollection",
+                "parameters": [
+                    {
+                        "name": "collectionId",
+                        "in": "path",
+                        "description": "Collection identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The collection is delete",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Status is *success*",
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "description": "Message information",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": "success",
+                                    "message": "Collection S2 deleted"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Missing mandatory collection id",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestError"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Only user with *update* rights can delete a collection",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Collection not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            }
+        },
+        "/collections/{collectionId}/items": {
+            "get": {
+                "tags": [
+                    "Feature"
+                ],
+                "summary": "Get features (search on a specific collection)",
+                "description": "List of filters to search features within collection {collectionId}",
+                "operationId": "FeaturesAPI::getFeaturesInCollection",
+                "parameters": [
+                    {
+                        "name": "collectionId",
+                        "in": "path",
+                        "description": "Collection identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Free text search - OpenSearch {searchTerms}. Can include hashtags i.e. text starting with *#* characters. In this case, use the following:\n* *#cryosphere* will search for *cryosphere*\n* *#cryosphere #atmosphere* will search for *cryosphere* AND *atmosphere*\n* *#cryosphere|atmosphere* will search for *cryosphere* OR *atmosphere*\n* *#cryosphere!* will search for *cryosphere* OR any *broader* concept of *cryosphere* ([EXTENSION][SKOS])\n* *#cryosphere\\** will search for *cryosphere* OR any *narrower* concept of *cryosphere* ([EXTENSION][SKOS])\n* *#cryosphere~* will search for *cryosphere* OR any *related* concept of *cryosphere* ([EXTENSION][SKOS])",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Number of results returned per page - between 1 and 500 (default 20) - OpenSearch {count}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "maximum": 500,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "startIndex",
+                        "in": "query",
+                        "description": "First result to provide - minimum 1, (default 1) - OpenSearch {startIndex}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "First page to provide - minimum 1, (default 1) - OpenSearch {startPage}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "lang",
+                        "in": "query",
+                        "description": "Two letters language code according to ISO 639-1 (default *en*) - OpenSearch {language}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "ids",
+                        "in": "query",
+                        "description": "Array of item ids to return. All other filter parameters that further restrict the number of search results (except next and limit) are ignored",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "intersects",
+                        "in": "query",
+                        "description": "Region of Interest defined in GeoJSON or in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326) - OpenSearch {geo:geometry}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "bbox",
+                        "in": "query",
+                        "description": "Region of Interest defined by 'west, south, east, north' coordinates of longitude, latitude, in decimal degrees (EPSG:4326) - OpenSearch {geo:box}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "number"
+                            },
+                            "maxItems": 6,
+                            "minItems": 4
+                        }
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "[EXTENSION][egg] Location string e.g. Paris, France  or toponym identifier (i.e. geouid:xxxx) - OpenSearch {geo:name}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "lon",
+                        "in": "query",
+                        "description": "Longitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lat - OpenSearch {geo:lon}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "lat",
+                        "in": "query",
+                        "description": "Latitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lon - OpenSearch {geo:lat}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "radius",
+                        "in": "query",
+                        "description": "Radius expressed in meters - should be used with geo:lon and geo:lat - OpenSearch {geo:radius}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "datetime",
+                        "in": "query",
+                        "description": "Single date+time, or a range ('/' separator) of the search query. Format should follow RFC-3339 - OpenSearch {time:start}/{time:end}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^([0-9]{4})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\\.[0-9]+)?(([Zz])|([\\+|\\-]([01][0-9]|2[0-3]):[0-5][0-9]))$"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "in": "query",
+                        "description": "Beginning of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:start}.",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(|Z|[\\+\\-][0-9]{2}:[0-9]{2}))?$"
+                        }
+                    },
+                    {
+                        "name": "end",
+                        "in": "query",
+                        "description": "End of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:end}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(|Z|[\\+\\-][0-9]{2}:[0-9]{2}))?$"
+                        }
+                    },
+                    {
+                        "name": "published",
+                        "in": "query",
+                        "description": "Returns products with metadata publication date greater or equal than *published* - OpenSearch {dc:date}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(|Z|[\\+\\-][0-9]{2}:[0-9]{2}))?$"
+                        }
+                    },
+                    {
+                        "name": "prev",
+                        "in": "query",
+                        "description": "Returns features with *sort* key value greater than *prev* value - use this for pagination. The value is a unique iterator computed from the *sort* key value and provided within each feature properties as *sort_idx* property",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "next",
+                        "in": "query",
+                        "description": "Returns features with *sort* key value lower than *next* value - use this for pagination. The value is a unique iterator computed from the *sort* key value and provided within each feature properties as *sort_idx* property",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "pid",
+                        "in": "query",
+                        "description": "Like on product identifier",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "Sort results by property *startDate* or *created* (default *startDate*). Sorting order is DESCENDING (ASCENDING if property is prefixed by minus sign)",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "owner",
+                        "in": "query",
+                        "description": "Limit search to owner's features",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "likes",
+                        "in": "query",
+                        "description": "[EXTENSION][social] Limit search to number of likes (interval)",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "liked",
+                        "in": "query",
+                        "description": "[EXTENSION][social] Return only liked features from calling user",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Feature status (unusued)",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "productType",
+                        "in": "query",
+                        "description": "[MODEL][SatelliteModel] A string identifying the entry type (e.g. ER02_SAR_IM__0P, MER_RR__1P, SM_SLC__1S, GES_DISC_AIRH3STD_V005) - OpenSearch {eo:productType}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "processingLevel",
+                        "in": "query",
+                        "description": "[MODEL][SatelliteModel] A string identifying the processing level applied to the entry - OpenSearch {eo:processingLevel}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "platform",
+                        "in": "query",
+                        "description": "[MODEL][SatelliteModel] A string with the platform short name (e.g. Sentinel-1) - OpenSearch {eo:platform}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "instrument",
+                        "in": "query",
+                        "description": "[MODEL][SatelliteModel] A string identifying the instrument (e.g. MERIS, AATSR, ASAR, HRVIR. SAR) - OpenSearch {eo:instrument}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sensorType",
+                        "in": "query",
+                        "description": "[MODEL][SatelliteModel] A string identifying the sensor type. Suggested values are: OPTICAL, RADAR, ALTIMETRIC, ATMOSPHERIC, LIMB - OpenSearch {eo:sensorType}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "cloudCover",
+                        "in": "query",
+                        "description": "[MODEL][OpticalModel] Cloud cover expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "snowCover",
+                        "in": "query",
+                        "description": "[MODEL][OpticalModel] Snow cover expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "waterCover",
+                        "in": "query",
+                        "description": "[MODEL][LandCoverModel] Water area expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "urbanCover",
+                        "in": "query",
+                        "description": "[MODEL][LandCoverModel] Urban area expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "iceCover",
+                        "in": "query",
+                        "description": "[MODEL][LandCoverModel] Ice area expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "herbaceousCover",
+                        "in": "query",
+                        "description": "[MODEL][LandCoverModel] Herbaceous area expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "forestCover",
+                        "in": "query",
+                        "description": "[MODEL][LandCoverModel] Forest area expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "floodedCover",
+                        "in": "query",
+                        "description": "[MODEL][LandCoverModel] Flooded area expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "desertCover",
+                        "in": "query",
+                        "description": "[MODEL][LandCoverModel] Desert area expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "cultivatedCover",
+                        "in": "query",
+                        "description": "[MODEL][LandCoverModel] Cultivated area expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "_heatmapNoGeo",
+                        "in": "query",
+                        "description": "[EXTENSION][Heatmap] True to compute search result heatmap without taking account geographical filter",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Features collection",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RestoFeatureCollection"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request (i.e. invalid parameter)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Collection not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Collection"
+                ],
+                "summary": "Add feature(s) to collection",
+                "operationId": "CollectionsAPI::insertFeatures",
+                "parameters": [
+                    {
+                        "name": "collectionId",
+                        "in": "path",
+                        "description": "Collection identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "tolerance",
+                        "in": "query",
+                        "description": "Simplify input geometry with tolerance in degrees (use in conjunction with *maxpoints*). [IMPORTANT] Simplification only affects the internal indexed geometry used by the search engine. The original geometry is stored unmodified.",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "maxpoints",
+                        "in": "query",
+                        "description": "If tolerance is set, geometry simplification of input geometry is performed only if the number of geometry vertices is greater than *maxpoints*",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "_splitGeom",
+                        "in": "query",
+                        "description": "Set to false to not split geometry during feature insertion. Default is true",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "_useItag",
+                        "in": "query",
+                        "description": "[ADDON][Tag] Set to false to not use iTag during feature insertion. Default is true",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Either a GeoJSON Feature or a GeoJSON FeatureCollection",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "oneOf": [
+                                    {
+                                        "$ref": "#/components/schemas/InputFeatureCollection"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/InputFeature"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Feature is inserted within collection",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Status is *success*",
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "description": "Message information",
+                                            "type": "string"
+                                        },
+                                        "collection": {
+                                            "description": "Collection identifier in which feature is inserted",
+                                            "type": "string"
+                                        },
+                                        "featureId": {
+                                            "description": "Newly created feature identifier",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": "success",
+                                    "message": "Feature inserted",
+                                    "collection": "S2",
+                                    "featureId": "c4f6ed9f-35ba-5c85-8449-e437c14ae428"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid feature description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestError"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Only user with *update* rights can add feature to collection",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenError"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Feature is already present in database",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConflictError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Collection not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            }
+        },
+        "/collections/{collectionId}/items/{featureId}": {
+            "get": {
+                "tags": [
+                    "Feature"
+                ],
+                "summary": "Get feature",
+                "description": "Returns feature {featureId} metadata",
+                "operationId": "FeaturesAPI::getFeature",
+                "parameters": [
+                    {
+                        "name": "collectionId",
+                        "in": "path",
+                        "description": "Collection identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "featureId",
+                        "in": "path",
+                        "description": "Feature identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "fields",
+                        "in": "query",
+                        "description": "Comma separated list of property fields to be returned. The following reserved keywords can also be used:\n* _all: Return all properties (This is the default)\n* _simple: Return all fields except *keywords* property",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Feature metadata",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OutputFeature"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Feature not found"
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Feature"
+                ],
+                "summary": "Update feature property",
+                "description": "Update feature {featureId}",
+                "operationId": "FeaturesAPI::updateFeature",
+                "parameters": [
+                    {
+                        "name": "collectionId",
+                        "in": "path",
+                        "description": "Collection identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "featureId",
+                        "in": "path",
+                        "description": "Feature identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Feature description",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/InputFeature"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The feature is updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Status is *success*",
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "description": "Message information",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": "success",
+                                    "message": "Update feature b9eeaf6b-9868-5418-9455-3e77cd349e21"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid property",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestError"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Feature not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Feature"
+                ],
+                "summary": "Delete feature",
+                "description": "Delete feature {featureId}",
+                "operationId": "FeaturesAPI::deleteFeature",
+                "parameters": [
+                    {
+                        "name": "collectionId",
+                        "in": "path",
+                        "description": "Collection identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "featureId",
+                        "in": "path",
+                        "description": "Feature identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The feature is delete",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Status is *success*",
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "description": "Message information",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": "success",
+                                    "message": "Feature 7e5caa78-5127-53e5-97ff-ddf44984ef56 deleted"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Missing mandatory feature identifier",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestError"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Only user with *update* rights can delete a feature",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Feature not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            }
+        },
+        "/collections/{collectionId}/items/{featureId}/properties/{property}": {
+            "put": {
+                "tags": [
+                    "Feature"
+                ],
+                "summary": "Update feature property",
+                "description": "Update {property} for feature {featureId}",
+                "operationId": "FeaturesAPI::updateFeatureProperty",
+                "parameters": [
+                    {
+                        "name": "collectionId",
+                        "in": "path",
+                        "description": "Collection identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "featureId",
+                        "in": "path",
+                        "description": "Feature identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "property",
+                        "in": "path",
+                        "description": "Property to update",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "title",
+                                "description",
+                                "visibility",
+                                "owner",
+                                "status"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Property value to update",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "value": {
+                                        "description": "New property value"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "value": 1
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The property is updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Status is *success*",
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "description": "Message information",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": "success",
+                                    "message": "Update property for feature b9eeaf6b-9868-5418-9455-3e77cd349e21"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid property",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestError"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Feature not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            }
+        },
+        "/api.{format}": {
+            "get": {
+                "tags": [
+                    "Server"
+                ],
+                "summary": "OpenAPI definition",
+                "description": "Returns the server API definition as an OpenAPI 3.0 JSON document (default) or as an HTML page (if format is specified and set to *html*)",
+                "operationId": "ServicesAPI::api",
+                "parameters": [
+                    {
+                        "name": "format",
+                        "in": "path",
+                        "description": "Output format - *json* or *html*",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "json",
+                                "html"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OpenAPI 3.0 definition"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
+        },
+        "/conformance": {
+            "get": {
+                "tags": [
+                    "Server"
+                ],
+                "summary": "Conformance page",
+                "description": "Returns the OGC API Feature conformance description as JSON document",
+                "operationId": "ServicesAPI::conformance",
+                "responses": {
+                    "200": {
+                        "description": "OGC API Feature conformance definition",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "conformsTo": {
+                                            "description": "Array of conformance specification urls",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
+        },
+        "/": {
+            "get": {
+                "tags": [
+                    "Server"
+                ],
+                "summary": "Landing page",
+                "description": "Landing page for the server. Should be used by client to automatically detects endpoints to API, collections, etc.",
+                "operationId": "ServicesAPI::hello",
+                "responses": {
+                    "200": {
+                        "description": "Server landing page",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "description": "Server identifier.",
+                                            "type": "string"
+                                        },
+                                        "title": {
+                                            "description": "Server title",
+                                            "type": "string"
+                                        },
+                                        "description": {
+                                            "description": "Server description",
+                                            "type": "string"
+                                        },
+                                        "capabilities": {
+                                            "description": "Array of resto-addons list. Used client side to detect resto capabilities",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "links": {
+                                            "description": "Landing page conforms to OGC API Feature\n(see https://github.com/opengeospatial/ogcapi-features/blob/master/core/standard/17-069.adoc)",
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Link"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
+        },
+        "/services/osdd/{collectionId}": {
+            "get": {
+                "tags": [
+                    "Collection"
+                ],
+                "summary": "Get OpenSearch Description Document for a collection",
+                "description": "Returns the OpenSearch Document Description (OSDD) for the search service of collection {collectionId}",
+                "operationId": "ServicesAPI::getOSDDForCollection",
+                "parameters": [
+                    {
+                        "name": "collectionId",
+                        "in": "path",
+                        "description": "Collection identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OpenSearch Document Description (OSDD)"
+                    },
+                    "404": {
+                        "description": "Collection not found"
+                    }
+                }
+            }
+        },
+        "/services/osdd": {
+            "get": {
+                "tags": [
+                    "Collection"
+                ],
+                "summary": "Get OpenSearch Description Document for all collections",
+                "description": "Returns the OpenSearch Document Description (OSDD) for the search service on all collections",
+                "operationId": "ServicesAPI::getOSDD",
+                "parameters": [
+                    {
+                        "name": "model",
+                        "in": "query",
+                        "description": "Limit description to collections belonging to *model* - e.g. *model=SatelliteModel* will search in all satellite collections",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OpenSearch Document Description (OSDD)"
+                    },
+                    "404": {
+                        "description": "Collection not found"
+                    }
+                }
+            }
+        },
+        "/_isLive": {
+            "get": {
+                "tags": [
+                    "Status"
+                ],
+                "summary": "Liveness status",
+                "description": "Returns HTTP 200 only if the service is live i.e. it cannot yet process requests.",
+                "operationId": "StatusAPI::isLive",
+                "responses": {
+                    "200": {
+                        "description": "Service is live",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Status is *success*",
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "description": "Message information",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": "success",
+                                    "message": "Service is live"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Not available"
+                    }
+                }
+            }
+        },
+        "/users": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get users",
+                "description": "Return the list of user's profiles ordered by descending user identifier. A maximum of 50 profiles are returned per page. The *lt* parameter should be used for pagination",
+                "operationId": "UsersAPI::getUsersProfiles",
+                "parameters": [
+                    {
+                        "name": "lt",
+                        "in": "query",
+                        "description": "Return user profiles with identifier lower than *lt* - used for pagination",
+                        "style": "form",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "in",
+                        "in": "query",
+                        "description": "List of comma separated user identifiers",
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "groupid",
+                        "in": "query",
+                        "description": "Return user profiles belonging to group identified by *groupid* ",
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Filter by name, firstname or lastname",
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of users profiles",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "totalResults": {
+                                            "description": "Total number of user profiles",
+                                            "type": "integer"
+                                        },
+                                        "exactCount": {
+                                            "description": "True if totalResults is an exact count. False if estimated.",
+                                            "type": "boolean"
+                                        },
+                                        "profiles": {
+                                            "description": "Return users",
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/UserDisplayProfile"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "totalResults": 2,
+                                    "exactCount": true,
+                                    "profiles": [
+                                        {
+                                            "id": "1356771884787565573",
+                                            "picture": "https://robohash.org/d0e907f8b6f4ee74cd4c38a515e2a4de?gravatar=hashed&bgset=any&size=400x400",
+                                            "groups": [
+                                                1
+                                            ],
+                                            "name": "jrom",
+                                            "followers": 185,
+                                            "followings": 144,
+                                            "firstname": "J\u00e9r\u00f4me",
+                                            "lastname": "Gasperi",
+                                            "bio": "Working on new features for the next major release of SnapPlanet",
+                                            "registrationdate": "2016-10-08T22:50:34.187217Z",
+                                            "topics": "earth,fires,geology,glaciology,volcanism",
+                                            "followed": false,
+                                            "followme": false
+                                        },
+                                        {
+                                            "id": "1381434932013827205",
+                                            "picture": "https://graph.facebook.com/410860042635946/picture?type=large",
+                                            "groups": [
+                                                "1"
+                                            ],
+                                            "name": "Sergio",
+                                            "followers": 16,
+                                            "followings": 9,
+                                            "registrationdate": "2016-10-08T22:50:34.187217Z",
+                                            "followed": false,
+                                            "followme": false
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Create user",
+                "operationId": "UsersAPI::createUser",
+                "requestBody": {
+                    "description": "User information to create user account",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "description": "User email",
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "description": "User password - don't worry it's encrypted server side",
+                                        "type": "string"
+                                    },
+                                    "picture": {
+                                        "description": "An http(s) url to the user's avatar picture",
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "description": "User display name",
+                                        "type": "string"
+                                    },
+                                    "firstname": {
+                                        "description": "User firstname",
+                                        "type": "string"
+                                    },
+                                    "lastname": {
+                                        "description": "User lastname",
+                                        "type": "string"
+                                    },
+                                    "bio": {
+                                        "description": "User biography",
+                                        "type": "string"
+                                    },
+                                    "country": {
+                                        "description": "User country code (ISO 3166-1 alpha2 code)",
+                                        "type": "string"
+                                    },
+                                    "organization": {
+                                        "description": "Organization name",
+                                        "type": "string"
+                                    },
+                                    "flags": {
+                                        "description": "[Unused] Comma separated list of flags",
+                                        "type": "string"
+                                    },
+                                    "topics": {
+                                        "description": "Comma separated list of user's topics of interest",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "email": "john.doe@dev.null",
+                                "password": "MySuperSecretPassword",
+                                "picture": "https://robohash.org/d0e907f8b6f4ee74cd4c38a515e2a4de?gravatar=hashed&bgset=any&size=400x400",
+                                "name": "jj",
+                                "firstname": "John",
+                                "lastname": "Doe",
+                                "bio": "Just a user",
+                                "country": "FR",
+                                "organization": "My nice company",
+                                "topics": "earth,fires,geology,glaciology,volcanism"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User is created but not activated. An activation code is sent to user's email address.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Status is *success*",
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "description": "Message information",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": "success",
+                                    "message": "User john.doe@dev.null created"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestError"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "User already exist",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConflictError"
+                                }
+                            }
+                        }
+                    },
+                    "412": {
+                        "description": "User already exist but is not activated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConflictError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{userid}": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get user",
+                "operationId": "UsersAPI::getUserProfile",
+                "parameters": [
+                    {
+                        "name": "userid",
+                        "in": "path",
+                        "description": "User's identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User profile",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserDisplayProfile"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Resource not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Update user",
+                "operationId": "UsersAPI::updateUserProfile",
+                "parameters": [
+                    {
+                        "name": "userid",
+                        "in": "path",
+                        "description": "User's identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "User information to update",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "password": {
+                                        "description": "User password - don't worry it's encrypted server side",
+                                        "type": "string"
+                                    },
+                                    "picture": {
+                                        "description": "An http(s) url to the user's avatar picture",
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "description": "User display name",
+                                        "type": "string"
+                                    },
+                                    "firstname": {
+                                        "description": "User firstname",
+                                        "type": "string"
+                                    },
+                                    "lastname": {
+                                        "description": "User lastname",
+                                        "type": "string"
+                                    },
+                                    "bio": {
+                                        "description": "User biography",
+                                        "type": "string"
+                                    },
+                                    "topics": {
+                                        "description": "Comma separated list of user's topics of interest",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "picture": "https://robohash.org/d0e907f8b6f4ee74cd4c38a515e2a4de?gravatar=hashed&bgset=any&size=400x400",
+                                "bio": "I just changed my picture, bio information and topics of interest list",
+                                "topics": "earth,fires"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User profile is updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Status is *success*",
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "description": "Message information",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": "success",
+                                    "message": "Update profile for user john.doe@dev.null"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            }
+        }
+    },
     "components": {
         "schemas": {
             "InputCollection": {

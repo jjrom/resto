@@ -67,7 +67,7 @@
  *   @OA\Info(
  *       title=API_INFO_TITLE,
  *       description=API_INFO_DESCRIPTION,
- *       version="6.0.0",
+ *       version=RESTO_VERSION,
  *       @OA\Contact(
  *           email=API_INFO_CONTACT_EMAIL
  *       )

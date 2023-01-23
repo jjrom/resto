@@ -208,6 +208,12 @@ class RestoRouter
      */
     public function process($method, $path, $query)
     {
+
+        // Special case for doc generation
+        if ( $path === '/_routes' ) {
+            return $this->getRoutesList();
+        }
+
         $segments = explode('/', $path);
         $workingRoutes = $this->getWorkingRoutes(count($segments));
         $nbOfRoutes = count($workingRoutes);
@@ -264,6 +270,23 @@ class RestoRouter
         }
 
         return isset($validRoute[1][$method]) ? $this->instantiateRoute($validRoute[1][$method], $method, array_merge($query, $params)) : RestoLogUtil::httpError(405);
+    }
+
+    /**
+     * Return all routes
+     */
+    public function getRoutesList()
+    {
+        $routesList = array();
+        foreach ($this->routes as $path => $value) {
+            foreach (array_keys($value) as $method ) {
+                $routesList[] = $method . ':' . $path;
+            }
+        }
+        header('HTTP/1.1 200 OK');
+        header('Content-Type: ' . RestoUtil::$contentTypes['text']);
+        echo join("\n", $routesList);
+        return null;
     }
 
     /**
