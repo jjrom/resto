@@ -155,7 +155,7 @@ class AuthAPI
      *              ),
      *              example={
      *                  "userId": 100,
-     *                  "duration: 100,
+     *                  "duration": 100,
      *                  "valid_until": "2023-05-03T11:20:13", 
      *                  "token":"eyJzdWIiOiIxMDAiLCJpYXQiOjE2NzQ0NzI4MTMsImV4cCI6MTY4MzExMjgxM30.5fdRS1jr0fuF7HMu2oXb0sXViom39ExI2IR_FI5WK7k"
      *              }

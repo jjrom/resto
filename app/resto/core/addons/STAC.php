@@ -17,6 +17,68 @@
 
 /**
  * STAC add-on
+ * 
+ *  @OA\Tag(
+ *      name="Catalog",
+ *      description="A STAC Catalog is a collection of STAC Items"
+ *  )
+ * 
+ *  @OA\Schema(
+ *      schema="Catalog",
+ *      required={"id", "description", "links", "stac_version"},
+ *      @OA\Property(
+ *          property="id",
+ *          type="string",
+ *          description="Identifier for the catalog."
+ *      ),
+ *      @OA\Property(
+ *          property="title",
+ *          type="string",
+ *          description="A short descriptive one-line title for the catalog."
+ *      ),
+ *      @OA\Property(
+ *          property="description",
+ *          type="string",
+ *          description="Detailed multi-line description to fully explain the catalog. CommonMark 0.28 syntax MAY be used for rich text representation."
+ *      ),
+ *      @OA\Property(
+ *          property="links",
+ *          type="array",
+ *          @OA\Items(ref="#/components/schemas/Link")
+ *      ),
+ *      @OA\Property(
+ *          property="stac_version",
+ *          type="string",
+ *          description="The STAC version the catalog implements"
+ *      ),
+ *      example={
+ *          "id": "year",
+ *          "title": "Facet : year",
+ *          "description": "Catalog of items filtered by year",
+ *          "links": {
+ *              {
+ *                  "rel": "self",
+ *                  "type": "application/json",
+ *                  "href": "http://127.0.0.1:5252/collections/S2.json?&_pretty=1"
+ *              },
+ *              {
+ *                  "rel": "root",
+ *                  "type": "application/json",
+ *                  "href": "http://127.0.0.1:5252"
+ *              },
+ *              {
+ *                  "rel": "license",
+ *                  "href": "https://scihub.copernicus.eu/twiki/pub/SciHubWebPortal/TermsConditions/Sentinel_Data_Terms_and_Conditions.pdf",
+ *                  "title": "Legal notice on the use of Copernicus Sentinel Data and Service Information"
+ *              }
+ *          },
+ *          "stac_version": "0.9.0"
+ *      }
+ *  )
+ * 
+ *  @OA\Schema(
+ *      schema="Queryables"
+ *  )
  */
 class STAC extends RestoAddOn
 {
@@ -325,7 +387,7 @@ class STAC extends RestoAddOn
      *    @OA\Get(
      *      path="/queryables",
      *      summary="Queryables for STAC API",
-     *      description="Queryable names for the STAC API Item Search filter."",
+     *      description="Queryable names for the STAC API Item Search filter.",
      *      tags={"STAC"},
      *      @OA\Response(
      *          response="200",
