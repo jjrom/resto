@@ -18,10 +18,9 @@
     $config = include($configFile);
     
     $dbDriver = new RestoDatabaseDriver($config['database'] ?? null);
-    $hash = password_hash(getenv('ADMIN_USER_PASSWORD') ?? 'admin', PASSWORD_BCRYPT);
     $dbDriver->pQuery('INSERT INTO ' . $dbDriver->commonSchema . '.user (id,email,groups,firstname,password,activated,registrationdate) VALUES ($1,$2,$3,$2,$4,1,now_utc()) ON CONFLICT (id) DO UPDATE SET password=$4', array(
         100,
         getenv('ADMIN_USER_NAME') ?? 'admin',
         '{0,100}',
-        $hash
+        password_hash(getenv('ADMIN_USER_PASSWORD') ?? 'admin', PASSWORD_BCRYPT)
     ));
