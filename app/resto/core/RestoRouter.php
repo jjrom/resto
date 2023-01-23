@@ -85,7 +85,8 @@ class RestoRouter
         array('PUT',    RestoRouter::ROUTE_TO_FEATURE . '/properties/{property}', true, 'FeaturesAPI::updateFeatureProperty'), // Update feature :featureId single property
         
         // API for authentication (token based)
-        array('GET',    RestoRouter::ROUTE_TO_AUTH, true, 'AuthAPI::getToken'),                                                                                // Return a valid auth token
+        array('GET',    RestoRouter::ROUTE_TO_AUTH, true, 'AuthAPI::getToken'),
+        array('GET',    RestoRouter::ROUTE_TO_AUTH . '/create', true, 'AuthAPI::createToken'),                                                                                // Return a valid auth token
         array('GET',    RestoRouter::ROUTE_TO_AUTH . '/check/{token}', false, 'AuthAPI::checkToken'),                                                               // Check auth token validity
         array('DELETE', RestoRouter::ROUTE_TO_AUTH . '/revoke/{token}', true, 'AuthAPI::revokeToken'),                                                              // Revoke auth token
         array('PUT',    RestoRouter::ROUTE_TO_AUTH . '/activate/{token}', false, 'AuthAPI::activateUser'),                                                          // Activate owner of the token

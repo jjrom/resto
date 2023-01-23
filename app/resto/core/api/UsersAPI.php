@@ -693,7 +693,7 @@ class UsersAPI
             }
 
             if (!(new RestoNotifier($this->context->servicesInfos, $this->context->lang))->sendMailForUserActivation($profile['email'], $this->context->core['sendmail'], array(
-                'token' => $this->context->createRJWT($userInfo['id'])
+                'token' => $this->context->createRJWT($userInfo['id'], $this->context->core['tokenDuration'])
             ))) {
                 RestoLogUtil::httpError(500, 'Cannot send activation link');
             }

@@ -98,9 +98,115 @@ class AuthAPI
         }
 
         return array(
-            'token' => $this->context->createRJWT($this->user->profile['id']),
+            'token' => $this->context->createRJWT($this->user->profile['id'], $this->context->core['tokenDuration']),
             'profile' => $this->user->profile
         );
+    }
+
+    /**
+     * Create an authentication token
+     *
+     *  @OA\Get(
+     *      path="/create",
+     *      summary="Create an authentication {token}",
+     *      description="Create an authentication token (aka rJWT) for user identified by {emailOrId}",
+     *      tags={"Authentication"},
+     *      @OA\Parameter(
+     *         name="emailOrId",
+     *         in="path",
+     *         required=true,
+     *         description="User email or id",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *      ),
+     *      @OA\Parameter(
+     *         name="duration",
+     *         in="path",
+     *         required=false,
+     *         description="Duration of token in days (default is 1 day)",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *      ),
+     *      @OA\Response(
+     *          response="200",
+     *          description="The token is created",
+     *          @OA\JsonContent(
+     *              @OA\Property(
+     *                  property="userId",
+     *                  type="string",
+     *                  description="User id"
+     *              ),
+     *              @OA\Property(
+     *                  property="duration",
+     *                  type="integer",
+     *                  description="Duration of token in days"
+     *              ),
+     *              @OA\Property(
+     *                  property="valid_until",
+     *                  type="string",
+     *                  description="Token validity"
+     *              ),
+     *              @OA\Property(
+     *                  property="token",
+     *                  type="string",
+     *                  description="Generated token"
+     *              ),
+     *              example={
+     *                  "userId": 100,
+     *                  "duration: 100,
+     *                  "valid_until": "2023-05-03T11:20:13", 
+     *                  "token":"eyJzdWIiOiIxMDAiLCJpYXQiOjE2NzQ0NzI4MTMsImV4cCI6MTY4MzExMjgxM30.5fdRS1jr0fuF7HMu2oXb0sXViom39ExI2IR_FI5WK7k"
+     *              }
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response="401",
+     *          description="Unauthorized",
+     *          @OA\JsonContent(ref="#/components/schemas/UnauthorizedError")
+     *      ),
+     *      @OA\Response(
+     *          response="403",
+     *          description="Forbidden",
+     *          @OA\JsonContent(ref="#/components/schemas/ForbiddenError")
+     *      ),
+     *      security={
+     *          {"basicAuth":{}, "bearerAuth":{}, "queryAuth":{}}
+     *      }
+     * )
+     *
+     *  @param array $params
+     */
+    public function createToken($params)
+    {
+
+        // A token can be only be created by admin 
+        if ( !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+            return RestoLogUtil::httpError(403);
+        }
+        
+        if ( isset($params['duration']) && !ctype_digit($params['duration']) ) {
+            return RestoLogUtil::httpError(400, 'Parameters duration must be a valid integer in days');
+        }
+
+        if ( !isset($params['duration']) ) {
+            $params['duration'] = (integer) ($this->context->core['tokenDuration'] / 86400);
+        }
+
+        if ( !isset($params['userId']) || !ctype_digit($params['userId']) ) {
+            return RestoLogUtil::httpError(400, 'Mandatory userId is not set or not valid');
+        }
+
+        $days = isset($params['duration']) ? (integer) $params['duration'] : round($this->context->core['tokenDuration'] / 86400);
+        $seconds = 86400 * $days;
+        return array(
+            'userId' => $params['userId'],
+            'duration' => $days,
+            'valid_until' => date('Y-m-d\TH:i:s', time() + $seconds),
+            'token' => $this->context->createRJWT($params['userId'], $seconds)
+        );
+
     }
 
     /**
@@ -319,7 +425,7 @@ class AuthAPI
         }
 
         return array(
-            'token' => $this->context->createRJWT($user->profile['id']),
+            'token' => $this->context->createRJWT($user->profile['id'], $this->context->core['tokenDuration']),
             'profile' => $user->profile
         );
     }

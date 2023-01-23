@@ -209,15 +209,16 @@ class RestoContext
      * Create a Json Web Token
      *
      * @param string $identifier
+     * @param integer $duration
      * @param json $jsonData
      * @return string
      */
-    public function createJWT($identifier, $jsonData = null)
+    public function createJWT($identifier, $duration, $jsonData = null)
     {
         $payload = array(
             'sub' => $identifier,
             'iat' => time(),
-            'exp' => time() + $this->core['tokenDuration']
+            'exp' => time() + $duration
         );
         if (isset($jsonData)) {
             $payload['data'] = $jsonData;
@@ -230,12 +231,13 @@ class RestoContext
      * Create a rJWT "resto Json Web Token" i.e. a JWT without the header part
      *
      * @param string $identifier
+     * @param integer $duration (in seconds)
      * @param json $jsonData
      * @return string
      */
-    public function createRJWT($identifier, $jsonData = null)
+    public function createRJWT($identifier, $duration, $jsonData = null)
     {
-        $splitJWT = explode('.', $this->createJWT($identifier, $jsonData));
+        $splitJWT = explode('.', $this->createJWT($identifier, $duration, $jsonData));
         return $splitJWT[1] . '.' .$splitJWT[2];
     }
 
