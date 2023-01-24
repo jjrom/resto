@@ -6,9 +6,11 @@ services:
       - RESTO_DEBUG=1
       - PHP_ENABLE_XDEBUG=1
     volumes:
-      - ./app/resto:/app/resto:ro
+      - ./app/resto/core:/app/resto/core:ro
       - ./app/vendor:/app/vendor:ro
       - ./build/resto/container_root/cont-init.d/:/etc/cont-init.d/:ro
+      - /Users/jrom/Devel/cnes-valorisation-planeto/components/catalog/addons/resto-addon-pdssp/src/MarsPDSSPModel.php:/app/resto/addons/MarsPDSSPModel.php:ro
+      - /Users/jrom/Devel/dea-access/components/resto-dea/addons/resto-addon-dea/src/DEAModel.php:/app/resto/addons/DEAModel.php:ro
   restodb:
     volumes:
       - ./postgresql-conf/postgresql-dev.conf:/etc/postgresql.conf
