@@ -11,7 +11,7 @@ fi
 
 # Add-ons configuration
 rm -Rf /tmp/addons.template
-for config in $(ls /cfg/*.config); do
+for config in $(ls /app/resto/addons/*/*.config); do
     cat $config >> /tmp/addons.template
     echo "" >> /tmp/addons.template
 done
