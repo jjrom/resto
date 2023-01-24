@@ -212,6 +212,7 @@ class STACUtil
                 }
             }
         } catch (Exception $e) {
+            return $facets;
         }
         
         return $facets;

@@ -34,11 +34,12 @@ class QueryUtil
      *      $str = n1[ then returns value < n2
      *      $str = n1] then returns value ≤ n2
      *
+     * @param PgSql\Connection $dbh
      * @param string $str
      * @param string $columnName
      * @return string
      */
-    public static function intervalToQuery($str, $columnName)
+    public static function intervalToQuery($dbh, $str, $columnName)
     {
         $values = explode(',', $str);
 
@@ -46,22 +47,23 @@ class QueryUtil
          * No ',' present i.e. simple equality or non closed interval
          */
         if (count($values) === 1) {
-            return QueryUtil::processSimpleInterval($columnName, trim($values[0]));
+            return QueryUtil::processSimpleInterval($dbh, $columnName, trim($values[0]));
         }
         /*
          * Assume two values
          */
-        return QueryUtil::processComplexInterval($columnName, $values);
+        return QueryUtil::processComplexInterval($dbh, $columnName, $values);
     }
 
     /**
      * Process simple interval
      *
+     * @param PgSql\Connection $dbh
      * @param string $columnName
      * @param string $value
      * @return string
      */
-    private static function processSimpleInterval($columnName, $value)
+    private static function processSimpleInterval($dbh, $columnName, $value)
     {
         $quote = true;
 
@@ -71,7 +73,7 @@ class QueryUtil
          */
         $op1 = substr($value, 0, 1);
         if ($op1 === '[' || $op1 === ']') {
-            return $columnName . ($op1 === '[' ? ' >= ' : ' > ') . QueryUtil::quoteMe(substr($value, 1), $quote);
+            return $columnName . ($op1 === '[' ? ' >= ' : ' > ') . QueryUtil::quoteMe($dbh, substr($value, 1), $quote);
         }
 
         /*
@@ -80,23 +82,24 @@ class QueryUtil
          */
         $op2 = substr($value, -1);
         if ($op2 === '[' || $op2 === ']') {
-            return $columnName . ($op2 === ']' ? ' <= ' : ' < ') . QueryUtil::quoteMe(substr($value, 0, strlen($value) - 1), $quote);
+            return $columnName . ($op2 === ']' ? ' <= ' : ' < ') . QueryUtil::quoteMe($dbh, substr($value, 0, strlen($value) - 1), $quote);
         }
 
         /*
          * A = n1 then returns value = n1
          */
-        return $columnName . '=' . QueryUtil::quoteMe($value, $quote);
+        return $columnName . '=' . QueryUtil::quoteMe($dbh, $value, $quote);
     }
 
     /**
      * Process complex interval
      *
+     * @param PgSql\Connection $dbh
      * @param string $columnName
      * @param array $values
      * @return string
      */
-    private static function processComplexInterval($columnName, $values)
+    private static function processComplexInterval($dbh, $columnName, $values)
     {
         $quote = true;
 
@@ -110,7 +113,7 @@ class QueryUtil
          * A = {n1,n2} then returns  = n1 or = n2
          */
         if ($op1 === '{' && $op2 === '}') {
-            return '(' . $columnName . '=' . QueryUtil::quoteMe(substr($values[0], 1), $quote) . ' OR ' . $columnName . '=' . QueryUtil::quoteMe(substr($values[1], 0, strlen($values[1]) - 1), $quote) . ')';
+            return '(' . $columnName . '=' . QueryUtil::quoteMe($dbh, substr($values[0], 1), $quote) . ' OR ' . $columnName . '=' . QueryUtil::quoteMe($dbh, substr($values[1], 0, strlen($values[1]) - 1), $quote) . ')';
         }
 
         /*
@@ -121,18 +124,19 @@ class QueryUtil
          *
          */
         if (($op1 === '[' || $op1 === ']') && ($op2 === '[' || $op2 === ']')) {
-            return $columnName . ($op1 === '[' ? '>=' : '>') . QueryUtil::quoteMe(substr($values[0], 1), $quote) . ' AND ' . $columnName . ($op2 === ']' ? '<=' : '<') . QueryUtil::quoteMe(substr($values[1], 0, strlen($values[1]) - 1), $quote);
+            return $columnName . ($op1 === '[' ? '>=' : '>') . QueryUtil::quoteMe($dbh, substr($values[0], 1), $quote) . ' AND ' . $columnName . ($op2 === ']' ? '<=' : '<') . QueryUtil::quoteMe($dbh, substr($values[1], 0, strlen($values[1]) - 1), $quote);
         }
     }
 
     /**
      * Return a escaped quoted string
      *
+     * @param PgSql\Connection $dbh
      * @param string $str
      * @param boolean $quote
      */
-    private static function quoteMe($str, $quote)
+    private static function quoteMe($dbh, $str, $quote)
     {
-        return $quote ? '\'' . pg_escape_string($str) . '\'' : pg_escape_string($str);
+        return $quote ? '\'' . pg_escape_string($dbh, $str) . '\'' : pg_escape_string($dbh, $str);
     }
 }

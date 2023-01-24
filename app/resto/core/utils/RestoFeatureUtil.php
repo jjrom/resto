@@ -288,10 +288,10 @@ class RestoFeatureUtil
     /**
      * Add default links (i.e. self, parent and collection links) to feature links
      *
+     * @param array $inputLinks
      * @return array
-     * @return string $baseUrl
      */
-    private function getLinks($inputLinks, $baseUrl)
+    private function getLinks($inputLinks)
     {
         $links = array();
 

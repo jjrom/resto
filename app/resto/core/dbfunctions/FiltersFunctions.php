@@ -278,7 +278,7 @@ class FiltersFunctions
                  */
             case 'interval':
                 return array(
-                    'value' => $this->addNot($exclusion) . QueryUtil::intervalToQuery($paramsWithOperation[$filterName]['value'], $this->getTableName($filterName) . '.' . $this->model->searchFilters[$filterName]['key']),
+                    'value' => $this->addNot($exclusion) . QueryUtil::intervalToQuery($this->context->dbDriver->dbh, $paramsWithOperation[$filterName]['value'], $this->getTableName($filterName) . '.' . $this->model->searchFilters[$filterName]['key']),
                     'isGeo' => false
                 );
 
@@ -335,7 +335,7 @@ class FiltersFunctions
         $elements = explode(',', $value);
         if (count($elements) === 1) {
             return array(
-                'value' => $this->addNot($exclusion) . $targetColumn . '=\'' . pg_escape_string($this->context->dbDrivers->dbh, $value) . '\'',
+                'value' => $this->addNot($exclusion) . $targetColumn . '=\'' . pg_escape_string($this->context->dbDriver->dbh, $value) . '\'',
                 'isGeo' => false
             );
         }

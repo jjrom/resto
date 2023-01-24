@@ -43,6 +43,7 @@ class RestoUtil
         'openapi+json' => 'application/vnd.oai.openapi+json;version=3.0',
         'pbf' => 'application/vnd.mapbox-vector-tile',
         'png' => 'image/png',
+        'text' => 'text/plain',
         'xml' => 'application/xml',
         'zip' => 'application/zip'
     );
