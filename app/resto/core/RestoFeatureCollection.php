@@ -386,6 +386,9 @@ class RestoFeatureCollection
      */
     private $links = array();
 
+    private $requestStartTime;
+    private $searchContext = array();
+
     /**
      * Constructor
      *

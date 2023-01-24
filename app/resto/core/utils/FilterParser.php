@@ -172,7 +172,7 @@ class FilterParser
      * Get current lookahead token assuming it is an oper
      *
      * @return string
-     */
+     *
     private function arrayExpression()
     {
         $result = 'TODO array';
@@ -181,7 +181,8 @@ class FilterParser
 
         return $result;
     }
-
+    */
+    
     /**
      * Get current lookahead token assuming it is an oper
      *

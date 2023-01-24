@@ -102,6 +102,11 @@ class Resto
      */
     private $corsWhiteList = array();
 
+    /*
+     * Reference to router
+     */
+    private $router;
+    
     /**
      * Constructor
      *

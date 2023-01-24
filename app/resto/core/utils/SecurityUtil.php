@@ -181,6 +181,7 @@ class SecurityUtil
                 $user->token = $token;
             }
         } catch (Exception $ex) {
+            return $user;
         }
         
         return $user;

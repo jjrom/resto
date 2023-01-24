@@ -54,7 +54,7 @@ class LogsFunctions
         }
         
         if (isset($params['querytime'])) {
-            $where[] = QueryUtil::intervalToQuery($params['querytime'], 'querytime');
+            $where[] = QueryUtil::intervalToQuery($this->dbDriver->dbh, $params['querytime'], 'querytime');
         }
 
         $results = $this->dbDriver->query('SELECT gid, userid, method, to_iso8601(querytime) as querytime, path, query, ip FROM ' . $this->dbDriver->commonSchema . '.log' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : ' ') . ' ORDER BY gid DESC LIMIT 50');
