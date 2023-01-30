@@ -25,7 +25,7 @@ function showUsage {
     echo "      -e | --envfile Environnement file (default is ${GREEN}config.env${NC})"
     echo "      -h | --help show this help"
     echo ""
-    echo "      !!! This script requires docker and docker-compose !!!"
+    echo "      !!! This script requires docker !!!"
     echo ""
 }
 
@@ -80,7 +80,7 @@ if [[ "${COMPOSE_FILE}" != "" ]]; then
 else
     COMPOSE_FILE=${DEFAULT_COMPOSE_FILE}
 fi
-COMPOSE_FILE=${COMPOSE_FILE} ENV_FILE=${ENV_FILE} docker-compose down
+COMPOSE_FILE=${COMPOSE_FILE} ENV_FILE=${ENV_FILE} docker compose down
 
 echo "[INFO] Done !"
 echo ""
