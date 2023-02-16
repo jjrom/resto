@@ -5,9 +5,10 @@ pgdata.old
 app/resto/addons
 saml/cert/server.crt
 saml/cert/server.pem
-docker-compose.local.yml
-config-local.env
 errors.log
 .private
 .DS_Store
 .php-cs-fixer.cache
+# Local config and attached docker-compose
+_config*.env
+_docker-compose*.yml

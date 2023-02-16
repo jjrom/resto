@@ -61,7 +61,7 @@ class STACUtil
      *
      * @return array
      */
-    public function getRootCatalogLinks($minMatch = 0)
+    public function getRootCatalogLinks($minMatch)
     {
         $links = array();
         $facets = $this->getFacets($minMatch);
@@ -189,7 +189,7 @@ class STACUtil
                 if ($result['type'] === 'collection') {
                     $facets['count'] =  $matched;
                 } else {
-                    if ($matched > $minMatch) {
+                    if ($matched >= $minMatch) {
                         // Catalog
                         if ($result['type'] === 'catalog' || $result['type'] === 'hashtag') {
                             $facets[$result['type'] . 's'] = $matched;

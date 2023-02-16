@@ -55,5 +55,5 @@ services:
       interval: 1m
       timeout: 5s
     volumes:
-      - ./postgresql-conf/postgresql.conf:/etc/postgresql.conf
+      - ./postgresql-conf/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
       - database_data:/var/lib/postgresql/data
