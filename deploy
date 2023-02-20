@@ -49,7 +49,7 @@ function showUsage {
     echo -e "      -C | --clean Clean all containers and volumes before deploying. ${YELLOW}USE WITH CAUTION !${NC}"
     echo -e "      -h | --help show this help"
     echo -e ""
-    echo -e "      !!! This script requires docker and docker-compose !!!"
+    echo -e "      !!! This script requires docker !!!"
     echo -e ""
 }
 while (( "$#" ));
@@ -111,12 +111,6 @@ then
     echo ""
     exit 1
 fi
-if ! command -v docker-compose &> /dev/null
-then
-    echo -e "${RED}[ERROR]${NC} The required \"docker-compose\" command was not found. See https://docs.docker.com/compose/install/"
-    echo ""
-    exit 1
-fi
 
 PUBLIC_ENDPOINT=$(grep ^PUBLIC_ENDPOINT= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 RESTO_EXPOSED_PORT=$(grep ^RESTO_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
@@ -165,7 +159,7 @@ if [[ ${CLEAN} -eq 1 ]]; then
         RESTO_EXPOSED_PORT=${RESTO_EXPOSED_PORT} \
         DATABASE_EXPOSED_PORT=${DATABASE_EXPOSED_PORT} \
         ENV_FILE=${ENV_FILE} \
-        docker-compose down -v
+        docker compose down -v
     fi
 fi
 
@@ -177,7 +171,7 @@ DATABASE_NAME=${DATABASE_NAME} \
 DATABASE_USER_NAME=${DATABASE_USER_NAME} \
 DATABASE_USER_PASSWORD=${DATABASE_USER_PASSWORD} \
 ENV_FILE=${ENV_FILE} \
-docker-compose up -d
+docker compose up -d
 
 echo -e ""
 

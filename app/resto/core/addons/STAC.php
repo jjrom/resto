@@ -349,7 +349,7 @@ class STAC extends RestoAddOn
         // Initialize router to process each children individually
         $router = new RestoRouter($this->context, $this->user);
 
-        $links = $this->stacUtil->getRootCatalogLinks();
+        $links = $this->stacUtil->getRootCatalogLinks($this->options['minMatch']);
         for ($i = 0, $ii = count($links); $i < $ii; $i++) {
             if ($links[$i]['rel'] == 'child') {
                 try {
@@ -1018,7 +1018,7 @@ class STAC extends RestoAddOn
 
         // Root
         if ($nbOfSegments === 0) {
-            $this->links = $this->stacUtil->getRootCatalogLinks();
+            $this->links = $this->stacUtil->getRootCatalogLinks($this->options['minMatch']);
         }
 
         // View special case
@@ -1279,7 +1279,7 @@ class STAC extends RestoAddOn
                     return $this->setFeatureCollection($leafValue, $params);
                 }
             }
-
+            
             // Add parent link
             if ($nbOfSegments > 1) {
                 $this->links[] = array(
@@ -1303,7 +1303,7 @@ class STAC extends RestoAddOn
                 }
                 
                 $matched = (integer) $result['matched'];
-                if ($matched > $this->options['minMatch']) {
+                if ($matched >= $this->options['minMatch']) {
                     $link = array(
                         'rel' => ((integer) $result['isleaf']) === 1 ? 'items' : 'child',
                         'title' => $result['value'],

@@ -1,11 +1,10 @@
 # Installation
 
 ## Prerequesites
-resto installation and deployment is based on docker-compose. It can run on any OS as long as the following software are up and running:
+resto installation and deployment is based on docker. It can run on any OS as long as the following software are up and running:
 
 * bash
 * Docker engine (i.e. docker)
-* Docker compose (i.e. docker-compose)
 
 ## Configuration
 All environment variables are defined within the [config.env](config.env) file.
@@ -102,11 +101,11 @@ Assuming that the application name is "resto" (see deploy "-p" option)
 ## How to check the logs of the running application ?
 Assuming that the application name is "resto" (see deploy "-p" option)
 
-        docker-compose -f docker-compose.yml logs -f
+        docker compose -f docker-compose.yml logs -f
 
 ## How to build the docker images locally
 Use docker-compose:
 
         # This will build the application server image (i.e. jjrom/resto)
-        docker-compose -f docker-compose.yml build
+        docker compose -f docker-compose.yml build
 
