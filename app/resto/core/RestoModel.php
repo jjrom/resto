@@ -166,30 +166,30 @@ abstract class RestoModel
             'operation' => 'keywords',
             'title' => 'Free text search'
         ),
-        
+
         'count' => array(
             'osKey' => 'limit',
             'minInclusive' => 1,
             'maxInclusive' => 500,
             'title' => 'The maximum number of results returned per page (default 10)'
         ),
-        
+
         'startIndex' => array(
             'osKey' => 'startIndex',
             'minInclusive' => 1
         ),
-        
+
         'startPage' => array(
             'osKey' => 'page',
             'minInclusive' => 1
         ),
-        
+
         'language' => array(
             'osKey' => 'lang',
             'title' => 'Two letters language code according to ISO 639-1',
             'pattern' => '^[a-z]{2}$'
         ),
-        
+
         'geo:uid' => array(
             'key' => 'id',
             'osKey' => 'ids',
@@ -200,7 +200,7 @@ abstract class RestoModel
             'queryable' => 'id',
             '$ref' => 'https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/item.json#/id'
         ),
-        
+
         'geo:geometry' => array(
             'key' => 'geom',
             'osKey' => 'intersects',
@@ -219,14 +219,14 @@ abstract class RestoModel
             'pattern' => '^[-]?[0-9]*\.?[0-9]+,[-]?[0-9]*\.?[0-9]+,[-]?[0-9]*\.?[0-9]+,[-]?[0-9]*\.?[0-9]+$|^[-]?[0-9]*\.?[0-9]+,[-]?[0-9]*\.?[0-9]+,[-]?[0-9]*\.?[0-9]+,[-]?[0-9]*\.?[0-9],[-]?[0-9]*\.?[0-9]+,[-]?[0-9]*\.?[0-9]+$'
             /*'pattern' => '^\[[-]?[0-9]*\.?[0-9]+,[-]?[0-9]*\.?[0-9]+,[-]?[0-9]*\.?[0-9]+,[-]?[0-9]*\.?[0-9]+\]$'*/
         ),
-        
+
         'geo:name' => array(
             'key' => 'geom',
             'osKey' => 'name',
             'operation' => 'distance',
             'title' => 'Location string e.g. Paris, France or toponym identifier (i.e. geouid:xxxx)'
         ),
-        
+
         'geo:lon' => array(
             'key' => 'geom',
             'osKey' => 'lon',
@@ -235,7 +235,7 @@ abstract class RestoModel
             'minInclusive' => -180,
             'maxInclusive' => 180
         ),
-        
+
         'geo:lat' => array(
             'key' => 'geom',
             'osKey' => 'lat',
@@ -244,7 +244,7 @@ abstract class RestoModel
             'minInclusive' => -90,
             'maxInclusive' => 90
         ),
-        
+
         'geo:radius' => array(
             'key' => 'geom',
             'osKey' => 'radius',
@@ -252,7 +252,7 @@ abstract class RestoModel
             'title' => 'Expressed in meters - should be used with geo:lon and geo:lat',
             'minInclusive' => 1
         ),
-        
+
         'dc:date' => array(
             'key' => 'created',
             'osKey' => 'published',
@@ -261,7 +261,7 @@ abstract class RestoModel
             'pattern' => '^([0-9]{4})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\.[0-9]+)?(([Zz])|([\+|\-]([01][0-9]|2[0-3]):[0-5][0-9]))$'
             /*'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'*/
         ),
-        
+
         'resto:collection' => array(
             'key' => 'collection',
             // This is used to have "collections" converted to "collection" in summaries without having a prefix
@@ -284,7 +284,7 @@ abstract class RestoModel
             'pattern' => '^[A-Za-z][a-zA-Z0-9]+$',
             'operation' => '='
         ),
-        
+
         /*
          * Opposite to STAC "next" query parameter does not exist but could be named "prev"
          */
@@ -294,7 +294,7 @@ abstract class RestoModel
             'pattern' => "^[0-9\-]+$",
             'operation' => '>'
         ),
-        
+
         /*
          * The default sort order is DESCENDING - so the STAC "next" query parameter is equivalent
          * to the "resto:lt" (lower than) filter
@@ -305,14 +305,14 @@ abstract class RestoModel
             'pattern' => "^[0-9\-]+$",
             'operation' => '<'
         ),
-        
+
         'resto:pid' => array(
             'key' => 'productIdentifier',
             'osKey' => 'pid',
             'operation' => '=',
             'title' => 'Equal on productIdentifier'
         ),
-        
+
         /*
          * The default sort order is DESCENDING - so the STAC "next" query parameter is equivalent
          */
@@ -321,14 +321,14 @@ abstract class RestoModel
             'pattern' => '^[a-zA-Z\-]*$',
             'title' => 'Sort results by property (startDate or created - Default is startDate). Sorting order is DESCENDING (ASCENDING if property is prefixed by minus sign)'
         ),
-        
+
         'resto:owner' => array(
             'key' => 'owner',
             'osKey' => 'owner',
             'title' => 'Owner of features',
             'operation' => '='
         ),
-        
+
         'resto:status' => array(
             'key' => 'status',
             'osKey' => 'status',
@@ -379,7 +379,7 @@ abstract class RestoModel
         'strategy' => 'merge',
         'taggers' => array()
     );
-    
+
     /**
      * Constructor
      *
@@ -439,7 +439,7 @@ abstract class RestoModel
 
         $featuresInserted = array();
         $featuresInError = array();
-        
+
         // Feature case
         if ($data['type'] === 'Feature') {
             $insert = $this->storeFeature($collection, $data, $params);
@@ -450,7 +450,7 @@ abstract class RestoModel
                     'productIdentifier' => $insert['result']['productIdentifier'],
                     'facetsStored' => $insert['result']['facetsStored']
                 );
-            
+
                 $dates[] = isset($insert['featureArray']['properties']) && isset($insert['featureArray']['properties']['startDate']) ? $insert['featureArray']['properties']['startDate'] : null;
                 $bboxes[] = isset($insert['featureArray']['topologyAnalysis']) && isset($insert['featureArray']['topologyAnalysis']['bbox']) ? $insert['featureArray']['topologyAnalysis']['bbox'] : null;
             }
@@ -467,7 +467,7 @@ abstract class RestoModel
                             'productIdentifier' => $insert['result']['productIdentifier'],
                             'facetsStored' => $insert['result']['facetsStored']
                         );
-                        
+
                         $dates[] = isset($insert['featureArray']['properties']) && isset($insert['featureArray']['properties']['startDate']) ? $insert['featureArray']['properties']['startDate'] : null;
                         $bboxes[] = isset($insert['featureArray']['topologyAnalysis']) && isset($insert['featureArray']['topologyAnalysis']['bbox']) ? $insert['featureArray']['topologyAnalysis']['bbox'] : null;
                     }
@@ -480,7 +480,7 @@ abstract class RestoModel
                 }
             }
         }
-        
+
         /*
          * Update collection spatio temporal extent
          */
@@ -488,7 +488,7 @@ abstract class RestoModel
             'dates' => $dates,
             'bboxes' => $bboxes
         ));
-        
+
         return array(
             'inserted' => count($featuresInserted),
             'inError' => count($featuresInError),
@@ -581,6 +581,22 @@ abstract class RestoModel
     }
 
     /**
+     * Return resto internal property (i.e. OpenSearch based) from a STAC property
+     *
+     * @param string $stacProperty
+     */
+    public function getRestoPropertyFromSTAC($stacProperty)
+    {
+        foreach (array_keys($this->stacMapping) as $restoProperty) {
+            if ($this->stacMapping[$restoProperty]['key'] === $stacProperty) {
+                return $restoProperty;
+            }
+        }
+
+        return $stacProperty;
+    }
+
+    /**
      * Return OpenSearch filter name from OpenSearch or STAC key
      *
      * @param string $osOrSTACKey
@@ -627,7 +643,7 @@ abstract class RestoModel
                 $queryables[$this->searchFilters[$filterKey]['queryable']] = $queryable;
             }
         }
-     
+
         return $queryables;
     }
 
@@ -678,13 +694,13 @@ abstract class RestoModel
         );
 
         $properties = array();
-        
+
         foreach (array_keys($featureArray['properties']) as $key) {
             // Remove null and non public properties
             if (! isset($featureArray['properties'][$key]) || in_array($key, $discardedProperties)) {
                 continue;
             }
-            
+
             // [STAC] Eventually follows STAC mapping for properties names
             if (isset($this->stacMapping[$key])) {
                 $properties[$this->stacMapping[$key]['key']] = $this->convertTo($featureArray['properties'][$key], $this->stacMapping[$key]['convertTo'] ?? null);
@@ -786,7 +802,7 @@ abstract class RestoModel
          * [WARNING] New in resto 7.x - if input id / productIdentifier is already a valid UUID use it directly
          * Correct issue #342 to be STAC compatible
          */
-        $featureId = isset($productIdentifier) ? (RestoUtil::isValidUUID($productIdentifier)? $productIdentifier : RestoUtil::toUUID($productIdentifier))  : RestoUtil::toUUID(md5(microtime().rand()));
+        $featureId = isset($productIdentifier) ? (RestoUtil::isValidUUID($productIdentifier) ? $productIdentifier : RestoUtil::toUUID($productIdentifier)) : RestoUtil::toUUID(md5(microtime().rand()));
 
         /*
          * First check if feature is already in database
@@ -838,7 +854,7 @@ abstract class RestoModel
          * Clean properties
          */
         $properties = RestoUtil::cleanAssociativeArray($data['properties']);
-        
+
         /*
          * Convert datetime to startDate / completionDate
          */
@@ -926,7 +942,7 @@ abstract class RestoModel
                 $taggers[$collection->context->addons['Tag']['options']['iTag']['taggers'][$i]] = array();
             }
         }
-        
+
         /*
          * Superseed default per collection (replace or merge)
          */
@@ -937,7 +953,7 @@ abstract class RestoModel
                 $taggers = array_merge($taggers, $collection->model->tagConfig['taggers']);
             }
         }
-        
+
         return array(
             'taggers' => $taggers,
             'planet' => $collection->getPlanet()
@@ -1013,11 +1029,11 @@ abstract class RestoModel
         } else {
             $exploded = array($value);
         }
-        
+
         for ($i = 0, $ii = count($exploded); $i < $ii; $i++) {
             $exploded[$i] = $filterName === 'hashtag' ? $exploded[$i] : $filterName . RestoConstants::TAG_SEPARATOR . $exploded[$i];
         }
-        
+
         return join($splitter, $exploded);
     }
 }

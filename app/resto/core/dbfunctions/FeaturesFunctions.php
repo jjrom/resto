@@ -786,8 +786,14 @@ class FeaturesFunctions
 
                 // Model specific (do not process LandCoverModel !!)
                 for ($i = 0, $ii = count($collection->model->tables); $i < $ii; $i++) {
-                    if ($collection->model->tables[$i]['name'] !== 'feature_landcover' && in_array(strtolower($propertyName), $collection->model->tables[$i]['columns'])) {
-                        $output['modelTables'][$collection->model->tables[$i]['name']][strtolower($propertyName)] = $propertyValue;
+
+                    /* 
+                     *[IMPORTANT] Eventually convert STAC osKey to resto osKey
+                     * since internal resto use osKey (e.g. "cloudCover" instead of "eo:cloud_cover" )
+                     */
+                    $updatedPropertyName = strtolower($collection->model->getRestoPropertyFromSTAC($propertyName));
+                    if ($collection->model->tables[$i]['name'] !== 'feature_landcover' && in_array($updatedPropertyName, $collection->model->tables[$i]['columns'])) {
+                        $output['modelTables'][$collection->model->tables[$i]['name']][$updatedPropertyName] = $propertyValue;
                         break;
                     }
                 }

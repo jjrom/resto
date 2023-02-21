@@ -175,23 +175,7 @@ class ServicesAPI
      */
     public function hello()
     {
-        $links = array();
-
-        /*
-         * [STAC] Duplicate rel="data"
-         */
-        $collections = ((new RestoCollections($this->context, $this->user))->load())->toArray();
-        if (count($collections) > 0) {
-            $links[] = array(
-                'rel' => 'child',
-                'title' => 'Collections',
-                'type' => RestoUtil::$contentTypes['json'],
-                'matched' =>  count($collections['collections']),
-                'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_COLLECTIONS,
-                'roles' => array('collections')
-            );
-        }
-
+        
         $minMatch = isset($this->context->addons['STAC']['options']['minMatch']) && is_int($this->context->addons['STAC']['options']['minMatch']) ? $this->context->addons['STAC']['options']['minMatch'] : 0;
        
         return array(
@@ -259,7 +243,7 @@ class ServicesAPI
                         'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_STAC_SEARCH
                     )
                 ),
-                array_merge($links, (new STACUtil($this->context, $this->user))->getRootCatalogLinks($minMatch))
+                (new STACUtil($this->context, $this->user))->getRootCatalogLinks($minMatch)
             ),
             'conformsTo' => $this->conformsTo()
         );
