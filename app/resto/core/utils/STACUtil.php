@@ -64,6 +64,22 @@ class STACUtil
     public function getRootCatalogLinks($minMatch)
     {
         $links = array();
+
+        /*
+         * [STAC] Duplicate rel="data"
+         */
+        $collections = ((new RestoCollections($this->context, $this->user))->load())->toArray();
+        if (count($collections) > 0) {
+            $links[] = array(
+                'rel' => 'child',
+                'title' => 'Collections',
+                'type' => RestoUtil::$contentTypes['json'],
+                'matched' =>  count($collections['collections']),
+                'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_COLLECTIONS,
+                'roles' => array('collections')
+            );
+        }
+
         $facets = $this->getFacets($minMatch);
 
         foreach (array('catalogs', 'classifications', 'hashtags') as $key) {
