@@ -1305,7 +1305,7 @@ class STAC extends RestoAddOn
                 $matched = (integer) $result['matched'];
                 if ($matched >= $this->options['minMatch']) {
                     $link = array(
-                        'rel' => ((integer) $result['isleaf']) === 1 ? 'items' : 'child',
+                        'rel' => ((integer) $result['isleaf']) === 1 ? 'items' : $this->childOrItems($whereValues[0]),
                         'title' => $result['value'],
                         'matched' => $matched,
                         'type' => RestoUtil::$contentTypes['json'],
@@ -1324,6 +1324,16 @@ class STAC extends RestoAddOn
         } catch (Exception $e) {
             // Keep going
         }
+    }
+
+    /**
+     * Return 'child' if there is a result, 'items' otherwise
+     * 
+     * @param string $pid
+     */
+    private function childOrItems($pid) {
+        $results = $this->context->dbDriver->fetch($this->context->dbDriver->pQuery('SELECT id FROM ' . $this->context->dbDriver->targetSchema . '.facet WHERE pid=$1', array($pid)));
+        return empty($results) ? 'items' : 'child';
     }
 
     /**
