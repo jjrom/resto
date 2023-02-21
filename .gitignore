@@ -6,6 +6,9 @@ pgdata.old
 docker-compose.local.yml
 docker-compose-nodb.local.yml
 config-local.env
+saml
+_config-*.env
+_docker-compose*.yml
 errors.log
 .private
 .DS_Store

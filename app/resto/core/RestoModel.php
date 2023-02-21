@@ -550,6 +550,23 @@ abstract class RestoModel
     }
 
     /**
+     * Return resto internal property (i.e. OpenSearch based) from a STAC property
+     * 
+     * @param string $stacProperty
+     */
+    public function getRestoPropertyFromSTAC($stacProperty)
+    {
+
+        foreach(array_keys($this->stacMapping) as $restoProperty) {
+            if ($this->stacMapping[$restoProperty]['key'] === $stacProperty) {
+                return $restoProperty;
+            }
+        }
+        
+        return $stacProperty;
+    }
+
+    /**
      * Return OpenSearch filter name from OpenSearch key
      * 
      * @param string $osKey
@@ -560,12 +577,7 @@ abstract class RestoModel
         /*
          * Eventually convert STAC osKey to resto osKey
          */
-        foreach(array_keys($this->stacMapping) as $restoKey) {
-            if ($this->stacMapping[$restoKey]['key'] === $osKey) {
-                $osKey = $restoKey;
-                break;
-            }
-        }
+        $osKey = $this->getRestoPropertyFromSTAC($osKey);
         
         foreach (array_keys($this->searchFilters) as $filterKey) {
             if ($osKey === $this->searchFilters[$filterKey]['osKey']) {
