@@ -1305,7 +1305,7 @@ class STAC extends RestoAddOn
                 $matched = (integer) $result['matched'];
                 if ($matched >= $this->options['minMatch']) {
                     $link = array(
-                        'rel' => ((integer) $result['isleaf']) === 1 ? 'items' : $this->childOrItems($whereValues[0]),
+                        'rel' => ((integer) $result['isleaf']) === 1 ? 'items' : $this->childOrItems($result['id']),
                         'title' => $result['value'],
                         'matched' => $matched,
                         'type' => RestoUtil::$contentTypes['json'],
