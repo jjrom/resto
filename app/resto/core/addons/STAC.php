@@ -1309,7 +1309,7 @@ class STAC extends RestoAddOn
                         'title' => $result['value'],
                         'matched' => $matched,
                         'type' => RestoUtil::$contentTypes['json'],
-                        'href' => $this->context->core['baseUrl'] . '/catalogs/' . join('/', array_map('rawurlencode', $this->segments)) . '/' . $result['id']
+                        'href' => $this->context->core['baseUrl'] . '/catalogs/' . join('/', array_map('rawurlencode', $this->segments)) . '/' . rawurlencode($result['id'])
                     );
 
                     // Add a geouid info if present
