@@ -163,7 +163,7 @@ class STACUtil
                             'rel' => 'child',
                             'title' => $splitted[1],
                             'type' => RestoUtil::$contentTypes['json'],
-                            'href' => $this->context->core['baseUrl'] . '/catalogs/themes/' . urlencode($splitted[1])
+                            'href' => $this->context->core['baseUrl'] . '/catalogs/themes/' . rawurlencode($splitted[1])
                         );
                     }
                 }
