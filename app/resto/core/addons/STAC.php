@@ -980,7 +980,7 @@ class STAC extends RestoAddOn
                     array(
                         'rel' => 'self',
                         'type' => RestoUtil::$contentTypes['json'],
-                        'href' => $this->context->core['baseUrl'] . '/catalogs' . ($nbOfSegments > 0 ? '/' . join('/', $this->segments) : '')
+                        'href' => $this->context->core['baseUrl'] . '/catalogs' . ($nbOfSegments > 0 ? '/' . join('/', array_map('rawurlencode', $this->segments)) : '')
                     ),
                     array(
                         'rel' => 'root',
@@ -1183,7 +1183,7 @@ class STAC extends RestoAddOn
                     'rel' => 'child',
                     'title' => ucfirst($key),
                     'type' => RestoUtil::$contentTypes['json'],
-                    'href' => $this->context->core['baseUrl'] . '/catalogs/classifications/' . (isset($root) ? $root . '/' : '') . $key
+                    'href' => $this->context->core['baseUrl'] . '/catalogs/classifications/' . (isset($root) ? $root . '/' : '') . rawurlencode($key)
                 );
             }
         }
@@ -1285,7 +1285,7 @@ class STAC extends RestoAddOn
                 $this->links[] = array(
                     'rel' => 'parent',
                     'type' => RestoUtil::$contentTypes['json'],
-                    'href' => $this->context->core['baseUrl'] . '/catalogs/' . join('/', array_slice($this->segments, 0, -1))
+                    'href' => $this->context->core['baseUrl'] . '/catalogs/' . join('/', array_slice(array_map('rawurlencode', $this->segments), 0, -1))
                 );
             }
             
@@ -1297,7 +1297,7 @@ class STAC extends RestoAddOn
                         'rel' => 'items',
                         'title' => $this->title,
                         'type' => RestoUtil::$contentTypes['json'],
-                        'href' => $this->context->core['baseUrl'] . '/catalogs/' . join('/', $this->segments) . '/_'
+                        'href' => $this->context->core['baseUrl'] . '/catalogs/' . join('/', array_map('rawurlencode', $this->segments)) . '/_'
                     );
                     $searchIsSet = true;
                 }
@@ -1309,7 +1309,7 @@ class STAC extends RestoAddOn
                         'title' => $result['value'],
                         'matched' => $matched,
                         'type' => RestoUtil::$contentTypes['json'],
-                        'href' => $this->context->core['baseUrl'] . '/catalogs/' . join('/', $this->segments) . '/' . $result['id']
+                        'href' => $this->context->core['baseUrl'] . '/catalogs/' . join('/', array_map('rawurlencode', $this->segments)) . '/' . $result['id']
                     );
 
                     // Add a geouid info if present
@@ -1400,4 +1400,5 @@ class STAC extends RestoAddOn
             'query' => 'TODO'
         );
     }
+
 }
