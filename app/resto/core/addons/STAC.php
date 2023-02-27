@@ -184,6 +184,10 @@ class STAC extends RestoAddOn
 
         'http://www.opengis.net/spec/ogcapi_common-2/1.0/conf/collections',
 
+        'https://api.stacspec.org/v1.0.0-rc.1/ogcapi-features#fields',
+        'https://api.stacspec.org/v1.0.0-rc.1/ogcapi-features#sort',
+        'https://api.stacspec.org/v1.0.0-rc.1/ogcapi-features#filter',
+
         'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core',
         'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson',
         'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/oas30',
