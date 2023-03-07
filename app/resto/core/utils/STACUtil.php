@@ -20,6 +20,7 @@
  */
 class STACUtil
 {
+
     /*
      * Reference to resto context
      */
@@ -33,7 +34,7 @@ class STACUtil
     /*
      * Classifications
      */
-    private $classifications = array(
+    public $classifications = array(
         'geographical' => array(
             'continent', 'location', 'ocean', 'sea', 'river', 'bay', 'channel', 'fjord', 'gulf', 'inlet', 'lagoon', 'sound', 'strait'
         ),
@@ -66,6 +67,19 @@ class STACUtil
         $links = array();
 
         /*
+         * Themes are built from theme:xxxx collection keywords
+         * Only displayed if at least one theme exists
+         */
+        if (!empty($this->getThemesRootLinks())) {
+            $links[] = array(
+                'rel' => 'child',
+                'title' => 'Themes',
+                'type' => RestoUtil::$contentTypes['json'],
+                'href' => $this->context->core['baseUrl'] . '/catalogs/themes'
+            );
+        }
+
+        /*
          * [STAC] Duplicate rel="data"
          */
         $collections = ((new RestoCollections($this->context, $this->user))->load())->toArray();
@@ -81,31 +95,16 @@ class STACUtil
         }
 
         $facets = $this->getFacets($minMatch);
-
-        foreach (array('catalogs', 'classifications', 'hashtags') as $key) {
+        foreach (array('catalogs', 'facets', 'hashtags') as $key) {
             if (isset($facets[$key])) {
                 $links[] = array(
                     'rel' => 'child',
                     'title' => ucfirst($key),
                     'type' => RestoUtil::$contentTypes['json'],
-                    'href' => $this->context->core['baseUrl'] . '/catalogs/' . $key
+                    'href' => $this->context->core['baseUrl'] . '/catalogs/' . rawurlencode($key)
                 );
             }
         }
-        
-        /*
-         * Themes are built from theme:xxxx collection keywords
-         * Only displayed if at least one theme exists
-         */
-        if (!empty($this->getThemesRootLinks())) {
-            $links[] = array(
-                'rel' => 'child',
-                'title' => 'Themes',
-                'type' => RestoUtil::$contentTypes['json'],
-                'href' => $this->context->core['baseUrl'] . '/catalogs/themes'
-            );
-        }
-        
 
         /*
          * Exposed views as STAC catalogs
@@ -185,11 +184,11 @@ class STACUtil
             'count' => 0,
             'catalogs' => array(),
             'hashtags' => array(),
-            'classifications' => array()
+            'facets' => array()
         );
 
         foreach ($this->classifications as $key => $value) {
-            $facets['classifications'][$key] = array();
+            $facets['facets'][$key] = array();
         }
 
         try {
@@ -214,14 +213,14 @@ class STACUtil
                             foreach ($this->classifications as $key => $value) {
                                 for ($i = count($value); $i--;) {
                                     if ($result['type'] === $value[$i]) {
-                                        $facets['classifications'][$key][$result['type']] = $matched;
+                                        $facets['facets'][$key][$result['type']] = $matched;
                                         $addToOther = false;
                                         break;
                                     }
                                 }
                             }
                             if ($addToOther) {
-                                $result['type'] === 'landcover' ? $facets['classifications']['landcover'] = $matched : $facets['classifications']['other'][$result['type']] = $matched;
+                                $result['type'] === 'landcover' ? $facets['facets']['landcover'] = $matched : $facets['facets'][$result['type']] = $matched;
                             }
                         }
                     }
