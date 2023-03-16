@@ -203,7 +203,7 @@ class STAC extends RestoAddOn
     /**
      * Add-on version
      */
-    public $version = '1.0.5';
+    public $version = '1.0.6';
 
     /*
      * Catalog title
@@ -311,6 +311,8 @@ class STAC extends RestoAddOn
      */
     public function getCatalogs($params)
     {
+
+        // This is /catalogs
         if (!isset($params['segments'])) {
             return RestoLogUtil::httpError(404);
         }
@@ -973,9 +975,8 @@ class STAC extends RestoAddOn
     public function toArray()
     {
         $nbOfSegments = count($this->segments);
-        $exploded = $nbOfSegments > 0 ? explode(':', array_slice($this->segments, -1)[0]) : array('root');
         return array(
-            'id' => $exploded[count($exploded) > 1 ? 1 : 0],
+            'id' => $nbOfSegments > 0 ? array_slice($this->segments, -1)[0] : array('root'),
             'type' => 'Catalog',
             'title' => $this->title,
             'description' => $this->description,
@@ -1072,14 +1073,15 @@ class STAC extends RestoAddOn
         }
 
         // Classifications
-        elseif ($this->segments[0] === 'classifications') {
+        elseif ($this->segments[0] === 'facets') {
+
             // Root
             if ($nbOfSegments === 1) {
                 $this->setClassificationsLinks(null);
             }
 
-            // Two segments (except landcover)
-            elseif ($nbOfSegments === 2 && $this->segments[1] !== 'landcover') {
+            // iTag classifications 
+            elseif ($nbOfSegments === 2 && in_array($this->segments[1], array_keys($this->stacUtil->classifications)) ) {
                 $this->setClassificationsLinks($this->segments[1]);
             }
 
@@ -1144,7 +1146,7 @@ class STAC extends RestoAddOn
                             'title' => $collectionArray['title'],
                             'description' => $collectionArray['description'],
                             'type' => RestoUtil::$contentTypes['json'],
-                            'href' => $this->context->core['baseUrl'] . RestoUtil::replaceInTemplate(RestoRouter::ROUTE_TO_COLLECTION, array('collectionId' => $collectionContent->id)),
+                            'href' => $this->context->core['baseUrl'] . RestoUtil::replaceInTemplate(RestoRouter::ROUTE_TO_COLLECTION, array('collectionId' => rawurlencode($collectionContent->id))),
                             'roles' => array(
                                 'collection'
                             )
@@ -1179,21 +1181,21 @@ class STAC extends RestoAddOn
     private function setClassificationsLinks($root)
     {
         $facets = $this->stacUtil->getFacets($this->options['minMatch']);
-        $target = isset($root) && isset($facets['classifications'][$root]) ? $facets['classifications'][$root] : $facets['classifications'];
+        $target = isset($root) && isset($facets['facets'][$root]) ? $facets['facets'][$root] : $facets['facets'];
 
-        if (isset($target)) {
+        if (isset($target) && is_array($target)) {
             foreach (array_keys($target) as $key) {
                 $this->links[] = array(
                     'rel' => 'child',
                     'title' => ucfirst($key),
                     'type' => RestoUtil::$contentTypes['json'],
-                    'href' => $this->context->core['baseUrl'] . '/catalogs/classifications/' . (isset($root) ? $root . '/' : '') . rawurlencode($key)
+                    'href' => $this->context->core['baseUrl'] . '/catalogs/' . rawurlencode('facets')  . '/' . (isset($root) ? $root . '/' : '') . rawurlencode($key)
                 );
             }
         }
        
         // Set minimalist description
-        $this->title = isset($root) ? ucfirst($root) : 'Classifications';
+        $this->title = isset($root) ? ucfirst($root) : 'Facets';
         $this->description = isset($root) ? 'Automatic classification of features on facet ' . ucfirst($root) : 'Automatic classification of features';
     }
 
@@ -1220,8 +1222,8 @@ class STAC extends RestoAddOn
             return $this->setFeatureCollection($this->segments[$nbOfSegments - 2], $params);
         }
         
-        // Default segments structure starts with 'classifications/xxxx' - so start at position 3
-        $leafPosition = 3;
+        // Default segments structure starts with 'resto:classifications/xxxx' - so start at position 2
+        $leafPosition = 2;
     
         $where = 'type=$1';
         $whereValues = array(
@@ -1230,7 +1232,7 @@ class STAC extends RestoAddOn
         
         // Hashtags special case
         if ($this->segments[0] === 'hashtags' || $this->segments[0] === 'catalogs') {
-            // 'hastags' - so start at position 1
+            
             $leafPosition = 1;
 
             // In database keyword is 'hashtag' not 'hashtags'
@@ -1250,15 +1252,18 @@ class STAC extends RestoAddOn
         
         // Hack for landcover...
         elseif ($this->segments[1] === 'landcover') {
-            // 'hashtags' - so start at position 1
-            $leafPosition = 2;
-            
+          
             if ($nbOfSegments === 2) {
                 $where = 'type LIKE $1';
                 $whereValues = array(
                     'landcover:%'
                 );
             }
+        }
+
+        // Hack for landcover...
+        elseif ( in_array($this->segments[1], array_keys($this->stacUtil->classifications))) {
+            $leafPosition = 3;
         }
 
         /*

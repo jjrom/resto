@@ -60,6 +60,7 @@ The [INSTALLATION.md](INSTALLATION.md) file provides additional information on t
 Here are some projects that use resto.
 
 * [SnapPlanet](https://snapplanet.io)
+* [Copernicus Data Space Ecosystem](https://dataspace.copernicus.eu/)
 * [CREODIAS](https://creodias.eu/eo-data-finder-api-manual)
 * [Rocket - The Earth in your pocket](https://rocket.snapplanet.io)
 * [The French Sentinel Data Processing center](https://peps.cnes.fr/rocket/#/home)
