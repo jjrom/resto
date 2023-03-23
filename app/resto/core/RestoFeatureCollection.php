@@ -577,8 +577,8 @@ class RestoFeatureCollection
          * Convert resto model to search service "osKey"
          */
         $query = array(
-            'inputFilters' => $this->toOSKeys($analysis['inputFilters']),
-            'appliedFilters' => $this->toOSKeys($analysis['details']['appliedFilters'], true),
+            'inputFilters' => $this->model->toOSKeys($analysis['inputFilters']),
+            'appliedFilters' => $this->model->toOSKeys($analysis['details']['appliedFilters'], true),
             'processingTime' => $query['details']['processingTime'] = microtime(true) - $this->requestStartTime
         );
         
@@ -958,96 +958,6 @@ class RestoFeatureCollection
             return $subtitle . '&nbsp;|&nbsp;' . $previous . $this->searchContext['startIndex'] . ' - ' .  ($this->searchContext['startIndex'] + 1) . $next;
         }
         return $subtitle;
-    }
-
-    /**
-     * Convert array of filter names to array of OpenSearch keys
-     *
-     * @param array $filterNames
-     * @param boolean $processSearchTerms
-     * @return array
-     */
-    private function toOSKeys($filterNames, $processSearchTerms = false)
-    {
-        $arr = array();
-        foreach ($filterNames as $key => $obj) {
-            if (isset($this->model->searchFilters[$key])) {
-                // Special case => convert string of hashtags to individuals
-                if ($key === 'searchTerms' && $processSearchTerms) {
-                    $arr = array_merge($arr, $this->explodeSearchTerms($obj));
-                    continue;
-                }
-
-                // Convert to STAC
-                $osKey = $this->model->searchFilters[$key]['osKey'];
-                $arr[isset($this->model->stacMapping[$osKey]) ? $this->model->stacMapping[$osKey]['key']: $osKey] = $obj;
-            }
-        }
-        return $arr;
-    }
-
-    /**
-     * Explode a searchTerms string (e.g. "#location:coastal #year:2003 #instrument:PHR,NIR #thisisanormalahashtag")
-     * into an array of filters (i.e. {"location":"coastal","year":2003,"instruments":"PHR,NIR","q":"#thisisnormalhashtagh"})
-     *
-     * @param array $obj
-     */
-    private function explodeSearchTerms($obj)
-    {
-        $hashtags = [];
-        $output = [];
-        
-        /*
-         * Process each searchTerm
-         */
-        if (is_string($obj)) {
-            $obj = array(
-                'value' => $obj,
-                'operation' => '='
-            );
-        }
-        $searchTerms = RestoUtil::splitString($obj['value']);
-        for ($i = 0, $l = count($searchTerms); $i < $l; $i++) {
-            $splitted = explode(RestoConstants::TAG_SEPARATOR, $searchTerms[$i]);
-
-            // This is a regular hashtag
-            if (count($splitted) === 1) {
-                $hashtags[] = $searchTerms[$i];
-                continue;
-            }
-
-            // Concatenate splitted into prefix and value
-            $value = array_pop($splitted);
-            $key = join(RestoConstants::TAG_SEPARATOR, $splitted);
-
-            /*
-             * Hashtags start with "#" or with "-#" (equivalent to "NOT #")
-             */
-            if (substr($key, 0, 1) === '#') {
-                $osKey = $this->model->getOSKeyFromPrefix(ltrim($key, '#'));
-                $output[isset($this->model->stacMapping[$osKey]) ? $this->model->stacMapping[$osKey]['key']: $osKey] = array(
-                    'value' => $value,
-                    'operation' =>  $obj['operation']
-                );
-            } elseif (substr($key, 0, 2) === '-#') {
-                $osKey = $this->model->getOSKeyFromPrefix(ltrim($key, '-#'));
-                $output[isset($this->model->stacMapping[$osKey]) ? $this->model->stacMapping[$osKey]['key']: $osKey] = array(
-                    'value' => '-' . $value,
-                    'operation' =>  $obj['operation']
-                );
-            } else {
-                $hashtags[] = $searchTerms[$i];
-            }
-        }
-
-        if (count($hashtags) > 0) {
-            $output['searchTerms'] = array(
-                'value' => join(' ', $hashtags),
-                'operation' =>  $obj['operation']
-            );
-        }
-
-        return $output;
     }
 
     /**
