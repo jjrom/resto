@@ -114,7 +114,7 @@ fi
 
 PUBLIC_ENDPOINT=$(grep ^PUBLIC_ENDPOINT= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 RESTO_EXPOSED_PORT=$(grep ^RESTO_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
-DATABASE_EXPOSED_PORT=$(grep ^DATABASE_EXPOSED_PORT= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
+DATABASE_PORT=$(grep ^DATABASE_PORT= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 DATABASE_HOST=$(grep ^DATABASE_HOST= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 DATABASE_NAME=$(grep ^DATABASE_NAME= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
 DATABASE_USER_NAME=$(grep ^DATABASE_USER_NAME= ${ENV_FILE} | awk -F= '{for (i=2; i<=NF; i++) print $i}'| xargs echo -n)
@@ -157,7 +157,7 @@ if [[ ${CLEAN} -eq 1 ]]; then
         echo -e "[INFO] Cleaning existing resto container and volumes"
         COMPOSE_FILE=${COMPOSE_FILE} \
         RESTO_EXPOSED_PORT=${RESTO_EXPOSED_PORT} \
-        DATABASE_EXPOSED_PORT=${DATABASE_EXPOSED_PORT} \
+        DATABASE_PORT=${DATABASE_PORT} \
         ENV_FILE=${ENV_FILE} \
         docker compose down -v
     fi
@@ -165,7 +165,7 @@ fi
 
 COMPOSE_FILE=${COMPOSE_FILE} \
 RESTO_EXPOSED_PORT=${RESTO_EXPOSED_PORT} \
-DATABASE_EXPOSED_PORT=${DATABASE_EXPOSED_PORT} \
+DATABASE_PORT=${DATABASE_PORT} \
 DATABASE_HOST=${DATABASE_HOST} \
 DATABASE_NAME=${DATABASE_NAME} \
 DATABASE_USER_NAME=${DATABASE_USER_NAME} \
