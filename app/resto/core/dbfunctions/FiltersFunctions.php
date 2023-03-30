@@ -257,7 +257,7 @@ class FiltersFunctions
              * in
              */
             case 'in':
-                return $this->prepareFilterQueryIn($featureTableName . '.' . $this->model->searchFilters[$filterName]['key'], $paramsWithOperation[$filterName]['value'], $exclusion);
+                return $this->prepareFilterQueryIn($featureTableName, $filterName, $paramsWithOperation[$filterName]['value'], $exclusion);
                 /*
                  * searchTerms
                  */
@@ -325,18 +325,20 @@ class FiltersFunctions
     /**
      * Prepare SQL query for operation in
      *
-     * @param string $targetColumn
+     * @param string $featureTableName
+     * @param string $filterName
      * @param string $value
      * @param boolean $exclusion
      * @return string
      */
-    private function prepareFilterQueryIn($targetColumn, $value, $exclusion)
+    private function prepareFilterQueryIn($featureTableName, $filterName, $value, $exclusion)
     { 
+        $targetColumn = $featureTableName . '.' . $this->model->searchFilters[$filterName]['key'];
         $elements = explode(',', $value);
         if (count($elements) === 1) {
             // Special case because input id could be either the resto id (uuid) or the productIdentifier
             return array(
-                'value' => $this->addNot($exclusion) . $targetColumn . '=\'' . pg_escape_string($this->context->dbDriver->dbh, $targetColumn === 'id' && ! RestoUtil::isValidUUID($value) ? RestoUtil::toUUID($value) : $value) . '\'',
+                'value' => $this->addNot($exclusion) . $targetColumn . '=\'' . pg_escape_string($this->context->dbDriver->dbh, $filterName === 'geo:uid' && ! RestoUtil::isValidUUID($value) ? RestoUtil::toUUID($value) : $value) . '\'',
                 'isGeo' => false
             );
         }
