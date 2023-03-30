@@ -196,7 +196,7 @@ abstract class RestoModel
             'stacKey' => 'id',
             'operation' => 'in',
             'title' => 'Array of item ids to return. All other filter parameters that further restrict the number of search results (except next and limit) are ignored',
-            'pattern' => '^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$',
+            //'pattern' => '^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$',
             'queryable' => 'id',
             '$ref' => 'https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/item.json#/id'
         ),

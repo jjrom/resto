@@ -331,17 +331,19 @@ class FiltersFunctions
      * @return string
      */
     private function prepareFilterQueryIn($targetColumn, $value, $exclusion)
-    {
+    { 
         $elements = explode(',', $value);
         if (count($elements) === 1) {
+            // Special case because input id could be either the resto id (uuid) or the productIdentifier
             return array(
-                'value' => $this->addNot($exclusion) . $targetColumn . '=\'' . pg_escape_string($this->context->dbDriver->dbh, $value) . '\'',
+                'value' => $this->addNot($exclusion) . $targetColumn . '=\'' . pg_escape_string($this->context->dbDriver->dbh, $targetColumn === 'id' && ! RestoUtil::isValidUUID($value) ? RestoUtil::toUUID($value) : $value) . '\'',
                 'isGeo' => false
             );
         }
         return array(
-            'value' => $this->addNot($exclusion) . $targetColumn . ' IN (' . implode(',', array_map(function ($str) {
-                return '\'' .  pg_escape_string($this->context->dbDriver->dbh, $str) . '\'';
+            'value' => $this->addNot($exclusion) . $targetColumn . ' IN (' . implode(',', array_map(function ($str) use ($targetColumn) {
+                // Special case because input id could be either the resto id (uuid) or the productIdentifier
+                return '\'' .  pg_escape_string($this->context->dbDriver->dbh, $targetColumn === 'id' && ! RestoUtil::isValidUUID($str) ? RestoUtil::toUUID($str) : $str) . '\'';
             }, $elements)) . ')',
             'isGeo' => false
         );
