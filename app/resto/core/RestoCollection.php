@@ -813,8 +813,8 @@ class RestoCollection
     {
         if (isset($id)) {
             // Collection identifier is an alphanumeric string without special characters
-            if (preg_match("/^[a-zA-Z0-9\-_\.]+$/", $id) !== 1) {
-                RestoLogUtil::httpError(400, 'Collection identifier must be an alphanumeric string containing only [a-zA-Z0-9\-_.]');
+            if (preg_match("/^[a-zA-Z0-9\-_\.\:]+$/", $id) !== 1) {
+                RestoLogUtil::httpError(400, 'Collection identifier must be an alphanumeric string containing only [a-zA-Z0-9\-_.:]');
             }
 
             $this->id = $id;
