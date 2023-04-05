@@ -914,35 +914,12 @@ abstract class RestoModel
          */
         return array(
             'topologyAnalysis' => $topologyAnalysis,
-            'properties' => array_merge($properties, array('keywords' => $this->computeKeywords($collection, $data, $properties))),
+            'properties' => array_merge($properties, array(
+                'keywords' => (new Tag($collection->context, $collection->user))->getKeywords($properties, $data['geometry'] ?? null, $collection->model, $this->getITagParams($collection))
+            )),
             'assets' => $data['assets'] ?? null,
             'links' => $data['links'] ?? null
         );
-    }
-
-    /**
-     * Compute keywords using Tag add-on
-     *
-     * iTag is triggered by default unless query parameter "_useItag" is set to false or model->itagConfig strategy is set to 'none'
-     *
-     * @param RestoCollection $collection
-     * @param array $data : array (MUST BE GeoJSON in abstract Model)
-     * @param array $properties
-     */
-    private function computeKeywords($collection, $data, $properties)
-    {
-        // Skip iTag
-        if (! isset($collection->context->addons['Tag'])) {
-            return array();
-        }
-
-        /*
-         * Default : useItag with defaultTaggers
-         * Convert array of string to associative array
-         */
-        $taggers = $this->getITagParams($collection);
-
-        return (new Tag($collection->context, $collection->user))->getKeywords($properties, $data['geometry'] ?? null, $collection->model, $taggers);
     }
 
     /**
