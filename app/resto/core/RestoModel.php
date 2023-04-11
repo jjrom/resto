@@ -1071,8 +1071,8 @@ abstract class RestoModel
             }
 
             // Concatenate splitted into prefix and value
-            $value = array_pop($splitted);
-            $key = join(RestoConstants::TAG_SEPARATOR, $splitted);
+            $key = array_shift($splitted);
+            $value = join(RestoConstants::TAG_SEPARATOR, $splitted);
 
             /*
              * Hashtags start with "#" or with "-#" (equivalent to "NOT #")

@@ -234,7 +234,7 @@ class RestoQueryAnalyzer
                     }
                 }
             } else {
-                
+
                 /*
                  * [IMPORTANT] The search is performed on a modified "searchTerms" with hashtags REMOVED
                  */
