@@ -48,6 +48,9 @@ To ingest a feature using the default **ADMIN_USER_NAME** and **ADMIN_USER_PASSW
         # POST a dummy feature inside the S2 collection
         curl -X POST -d@examples/features/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040.json "http://admin:admin@localhost:5252/collections/S2/items"
 
+        # Update a dummy feature inside the S2 collection
+        curl -X PUT -d@examples/features/testUpdate.json "http://admin:admin@localhost:5252/collections/S2/items/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040"
+
 Then get the feature :
 
         curl "http://localhost:5252/collections/S2/items/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040"
