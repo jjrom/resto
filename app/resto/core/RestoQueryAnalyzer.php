@@ -234,23 +234,28 @@ class RestoQueryAnalyzer
                     }
                 }
             } else {
+
                 /*
                  * [IMPORTANT] The search is performed on a modified "searchTerms" with hashtags REMOVED
                  */
-                $locations = $this->gazetteer->search(array(
-                    'q' => trim(preg_replace("/(#|-#)([^ ]+)/", '', $locationName)),
-                    'index' => $this->context->core['planet']
-                ));
-                if (isset($locations['hits']) && count($locations['hits']['hits']) > 0) {
-                    $foundLocation = array_merge(array('_id' => $locations['hits']['hits'][0]['_id']), $locations['hits']['hits'][0]['_source']);
-                    if (isset($foundLocation['wkt'])) {
-                        $params['geo:geometry'] = $foundLocation['wkt'];
-                    } elseif (isset($foundLocation['coordinates'])) {
-                        $coordinates = explode(',', $foundLocation['coordinates']);
-                        $params['geo:lon'] = floatval(trim($coordinates[1]));
-                        $params['geo:lat'] = floatval(trim($coordinates[0]));
+                $locationName = trim(preg_replace("/(#|-#)([^ ]+)/", '', $locationName));
+                if ( $locationName !== '') {
+                    $locations = $this->gazetteer->search(array(
+                        'q' => $locationName,
+                        'index' => $this->context->core['planet']
+                    ));
+                    if (isset($locations['hits']) && count($locations['hits']['hits']) > 0) {
+                        $foundLocation = array_merge(array('_id' => $locations['hits']['hits'][0]['_id']), $locations['hits']['hits'][0]['_source']);
+                        if (isset($foundLocation['wkt'])) {
+                            $params['geo:geometry'] = $foundLocation['wkt'];
+                        } elseif (isset($foundLocation['coordinates'])) {
+                            $coordinates = explode(',', $foundLocation['coordinates']);
+                            $params['geo:lon'] = floatval(trim($coordinates[1]));
+                            $params['geo:lat'] = floatval(trim($coordinates[0]));
+                        }
                     }
                 }
+                
             }
         }
 
