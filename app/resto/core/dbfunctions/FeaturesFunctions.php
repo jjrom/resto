@@ -427,7 +427,10 @@ class FeaturesFunctions
                 /*'likes' => $oldFeatureArray['properties']['likes'],
                 'comments' => $oldFeatureArray['properties']['comments'],*/
                 'metadata' => array(),
-                'updated' => isset($newFeatureArray['properties']) && isset($newFeatureArray['properties']['updated']) ? $newFeatureArray['properties']['updated'] : 'now()'
+                'updated' => isset($newFeatureArray['properties']) && isset($newFeatureArray['properties']['updated']) ? $newFeatureArray['properties']['updated'] : 'now()',
+                'geometry' => $newFeatureArray['topologyAnalysis']['geometry'] ?? null,
+                'centroid' => $newFeatureArray['topologyAnalysis']['centroid'] ?? null,
+                'geom' => $newFeatureArray['topologyAnalysis']['geom'] ?? null
             ),
             array(
                 'title',
@@ -437,7 +440,6 @@ class FeaturesFunctions
             )
         );
 
-        
         try {
             /*
              * Begin transaction

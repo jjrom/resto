@@ -576,7 +576,7 @@ class CollectionsAPI
      *         in="query",
      *         style="form",
      *         required=false,
-     *         description="Set to false to not split geometry during feature insertion. Default is true",
+     *         description="Superseed the SPLIT_GEOMETRY_ON_DATELINE configuration i.e. set to true to split geometry during feature insertion - false otherwise. Default is set to SPLIT_GEOMETRY_ON_DATELINE",
      *         @OA\Schema(
      *             type="boolean"
      *         )
@@ -685,7 +685,7 @@ class CollectionsAPI
          * Insert feature(s) within database
          */
         $result = $collection->addFeatures($body, array(
-            '_splitGeom' => isset($params['_splitGeom']) && filter_var($params['_splitGeom'], FILTER_VALIDATE_BOOLEAN) === false ? false : true,
+            '_splitGeom' => isset($params['_splitGeom']) && filter_var($params['_splitGeom'], FILTER_VALIDATE_BOOLEAN) === false ? false : $this->context->core["splitGeometryOnDateLine"],
             'tolerance' => isset($params['tolerance']) && is_numeric($params['tolerance']) ? (float) $params['tolerance'] : null,
             'maxpoints' => isset($params['maxpoints']) && ctype_digit($params['maxpoints']) ? (integer) $params['maxpoints'] : null
         ));
