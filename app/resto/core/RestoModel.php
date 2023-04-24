@@ -895,11 +895,11 @@ abstract class RestoModel
             unset($properties['datetime']);
         }
         if (isset($properties['start_datetime'])) {
-            $properties['startDate'] = $dates[0];
+            $properties['startDate'] = $properties['start_datetime'];
             unset($properties['start_datetime']);
         }
         if (isset($properties['end_datetime'])) {
-            $properties['completionDate'] = $dates[0];
+            $properties['completionDate'] = $properties['end_datetime'];
             unset($properties['end_datetime']);
         }
 
