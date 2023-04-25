@@ -218,7 +218,8 @@ class FacetsFunctions
                     'parentId' => $keywords[$i]['parentId'] ?? 'root',
                     'value' => $keywords[$i]['name'] ?? null,
                     'type' => $keywords[$i]['type'],
-                    'collection' => $collectionId,
+                    // [IMPORTANT] catalog facet are always attached to all collections
+                    'collection' => $keywords[$i]['type'] === 'catalog' ? '*' : $collectionId,
                     'isLeaf' => $facetCategory['isLeaf']
                 );
             }
