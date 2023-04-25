@@ -382,27 +382,30 @@ class Tag extends RestoAddOn
      */
     private function getDateKeywords($properties, $model)
     {
+
+        $startDate = $properties[$model->searchFilters['time:start']['key']];
+
         /*
-         * startDate property is not present
+         * No startDate property or both startDate and completionDate are presents => range is not supported
          */
-        if (! isset($properties[$model->searchFilters['time:start']['key']])) {
+        if (! isset($startDate) || (isset($startDate) && isset($properties['completionDate']))) {
             return array();
         }
 
         /*
          * Year
          */
-        $year = substr($properties[$model->searchFilters['time:start']['key']], 0, 4);
+        $year = substr($startDate, 0, 4);
 
         /*
          * Month
          */
-        $month = substr($properties[$model->searchFilters['time:start']['key']], 5, 2);
+        $month = substr($startDate, 5, 2);
 
         /*
          * Day
          */
-        $day = substr($properties[$model->searchFilters['time:start']['key']], 8, 2);
+        $day = substr($startDate, 8, 2);
 
         return array(
             array(

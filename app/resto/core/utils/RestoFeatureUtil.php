@@ -174,16 +174,19 @@ class RestoFeatureUtil
 
             switch ($key) {
                 case 'collection':
+                    break;
+
                 case 'completionDate':
+                    $featureArray['properties']['end_datetime'] = $rawFeatureArray[$key];
                     break;
 
                 case 'startDate':
-                    /* [STAC][1.0.0] datetime is no more a range
-                    $featureArray['properties']['datetime'] = $rawFeatureArray[$key] . (isset($rawFeatureArray['completionDate']) ? '/' . $rawFeatureArray['completionDate'] : '');
-                    */
-                    $featureArray['properties']['datetime'] = $rawFeatureArray[$key];
-                    $featureArray['properties']['start_datetime'] = $rawFeatureArray[$key];
-                    $featureArray['properties']['end_datetime'] = $rawFeatureArray['completionDate'] ?? $rawFeatureArray[$key];
+                    if (isset($rawFeatureArray['completionDate'])) {
+                        $featureArray['properties']['start_datetime'] = $rawFeatureArray[$key];
+                    }
+                    else {
+                        $featureArray['properties']['datetime'] = $rawFeatureArray[$key];
+                    }
                     break;
 
                 case 'assets':

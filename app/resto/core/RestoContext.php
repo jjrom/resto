@@ -84,6 +84,9 @@ class RestoContext
         // True to automatically validate user on activation
         'userAutoActivation' => false,
 
+        // True to split geometries that cross the -180/180 dateline
+        'splitGeometryOnDateLine' => true,
+
         // Sendmail configuration
         'sendmail' => array(
             'senderName' => 'admin',

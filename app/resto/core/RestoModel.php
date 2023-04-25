@@ -894,6 +894,14 @@ abstract class RestoModel
             }
             unset($properties['datetime']);
         }
+        if (isset($properties['start_datetime'])) {
+            $properties['startDate'] = $properties['start_datetime'];
+            unset($properties['start_datetime']);
+        }
+        if (isset($properties['end_datetime'])) {
+            $properties['completionDate'] = $properties['end_datetime'];
+            unset($properties['end_datetime']);
+        }
 
         /*
          * Add collection to $properties to initialize facet counts on collection
