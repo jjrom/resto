@@ -185,6 +185,7 @@ class ServicesAPI
             'title' => getenv('API_INFO_TITLE'),
             'description' => getenv('API_INFO_DESCRIPTION'),
             'capabilities' => array_merge(array('resto-core'), array_map('strtolower', array_keys($this->context->addons))),
+            'resto:version' => RestoConstants::VERSION,
             'ssys:targets' => array($this->context->core['planet']),
             'links' => array_merge(
                 array(
