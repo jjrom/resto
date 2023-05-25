@@ -147,11 +147,8 @@ class SatelliteModel extends LandCoverModel
                 'operation' => 'keywords',
                 'title' => 'A string identifying the sensor type. Suggested values are: OPTICAL, RADAR, ALTIMETRIC, ATMOSPHERIC, LIMB',
                 'options' => 'auto'
-            )
+            ),
             
-            /*
-             *
-             *
             'eo:resolution' => array(
                 'key' => 'resolution',
                 'osKey' => 'resolution',
