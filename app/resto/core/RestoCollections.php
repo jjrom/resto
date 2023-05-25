@@ -147,8 +147,9 @@ class RestoCollections
      * Create a collection and store it within database
      *
      * @param array $object : collection description as json file
+     * @param string $modelName : model in which to create this collection
      */
-    public function create($object)
+    public function create($object, $modelName)
     {
         if (!isset($object['id'])) {
             RestoLogUtil::httpError(400, 'Missing mandatory collection id');
@@ -165,7 +166,7 @@ class RestoCollections
          * Create collection
          */
         $collection = new RestoCollection($object['id'], $this->context, $this->user);
-        $collection->load($object)->store();
+        $collection->load($object, $modelName)->store();
 
         return true;
     }

@@ -303,6 +303,16 @@ class CollectionsAPI
      *      path="/collections",
      *      summary="Create collection",
      *      tags={"Collection"},
+     *      @OA\Parameter(
+     *         name="model",
+     *         in="query",
+     *         description="Set the model for the collection (e.g. *OpticalModel*). This superseed the *model* property from the input collection description",
+     *         required=false,
+     *         style="form",
+     *         @OA\Schema(
+     *              type="string"
+     *         )
+     *      ),
      *      @OA\Response(
      *          response="200",
      *          description="The collection is created",
@@ -360,7 +370,7 @@ class CollectionsAPI
             RestoLogUtil::httpError(403);
         }
 
-        (new RestoCollections($this->context, $this->user))->create($body);
+        (new RestoCollections($this->context, $this->user))->create($body, $params['model'] ?? null);
         
         return RestoLogUtil::success('Collection ' . $body['id'] . ' created');
     }
