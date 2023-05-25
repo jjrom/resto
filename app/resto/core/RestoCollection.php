@@ -829,12 +829,13 @@ class RestoCollection
      * Return 404 if collection is not found
      *
      * @param array $object
-     * @return This object
+     * @param string $modelName
+     * @return object
      */
-    public function load($object = null)
+    public function load($object = null, $modelName = null)
     {
         if (isset($object)) {
-            return $this->loadFromJSON($object);
+            return $this->loadFromJSON($object, $modelName);
         }
         
         $cacheKey = 'collection:' . $this->id;
@@ -1051,8 +1052,9 @@ class RestoCollection
      * (See collection file example in examples/collections/S2.json)
      *
      * @param array $object : collection description as json file
+     * @param string $modelName
      */
-    private function loadFromJSON($object)
+    private function loadFromJSON($object, $modelName = null)
     {
         /*
          * Check that object is a valid array
@@ -1064,7 +1066,7 @@ class RestoCollection
         /*
          * Check mandatory properties are required
          */
-        $this->checkCreationMandatoryProperties($object);
+        $this->checkCreationMandatoryProperties($object, $modelName);
 
         /*
          * If OpenSearch Description object is not set, create a minimal one from $object['description']
@@ -1113,8 +1115,9 @@ class RestoCollection
      * Check mandatory properties for collection creation
      *
      * @param array $object
+     * @param string $modelName
      */
-    private function checkCreationMandatoryProperties($object)
+    private function checkCreationMandatoryProperties($object, $modelName)
     {
         /*
          * Check that input file is for the current collection
@@ -1126,9 +1129,7 @@ class RestoCollection
         /*
          * Set DefaultModel if not set
          */
-        if (!isset($object['model'])) {
-            $object['model'] = 'DefaultModel';
-        }
+        $object['model'] = isset($modelName) ? $modelName : ($object['model'] ?? 'DefaultModel');
         
         if (!class_exists($object['model']) || !is_subclass_of($object['model'], 'RestoModel')) {
             RestoLogUtil::httpError(400, 'Model "' . $object['model'] . '" is not a valid model name');
