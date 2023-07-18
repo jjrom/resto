@@ -19,7 +19,7 @@ Or test the API :
 
 * Get STAC root endpoint - https://tamn.snapplanet.io/?_pretty=1
 * Get all collections - https://tamn.snapplanet.io/collections?_pretty=1
-* Search Sentinel-2 products acquired on June 1st, 2021 - https://tamn.snapplanet.io/collections/S2/items?datetime=2021-05-06T00:00:00/2021-06-01T23:59:59&_pretty=1
+* Search Sentinel-2 products acquired on June 1st, 2021 - https://tamn.snapplanet.io/collections/S2/items?datetime=2021-05-06T00:00:00Z/2021-06-01T23:59:59Z&_pretty=1
 * Get catalogs of products classified by continents - https://tamn.snapplanet.io/catalogs/classifications/geographical/continent?_pretty=1
 * Get catalogs of products classified by european countries - https://tamn.snapplanet.io/catalogs/classifications/geographical/continent/continent:Europe:6255148?_pretty=1
 
