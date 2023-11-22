@@ -39,6 +39,7 @@ services:
   restodb:
     image: postgis/postgis:14-master
     restart: unless-stopped
+    command: ["postgres", "-c", "config_file=/etc/postgresql.conf"]
     # Upgrade shared_memory for complex queries
     shm_size: '2gb'
     networks:
@@ -53,5 +54,5 @@ services:
       interval: 1m
       timeout: 5s
     volumes:
-      - ./postgresql-conf/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
       - database_data:/var/lib/postgresql/data
+      - ./postgresql-conf/postgresql.conf:/etc/postgresql.conf

@@ -12,4 +12,4 @@ services:
       - ./build/resto/container_root/cont-init.d/:/etc/cont-init.d/:ro
   restodb:
     volumes:
-      - ./postgresql-conf/postgresql-dev.conf:/var/lib/postgresql/data/postgresql.conf
+      - ./postgresql-conf/postgresql-dev.conf:/etc/postgresql.conf

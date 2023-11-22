@@ -811,6 +811,8 @@ class RestoCollection
      */
     public function __construct($id, $context, $user)
     {
+        /*
+         * Remove collection name constraint
         if (isset($id)) {
             // Collection identifier is an alphanumeric string without special characters
             if (preg_match("/^[a-zA-Z0-9\-_\.\:]+$/", $id) !== 1) {
@@ -818,8 +820,9 @@ class RestoCollection
             }
 
             $this->id = $id;
-        }
+        }*/
 
+        $this->id = $id;
         $this->context = $context;
         $this->user = $user;
     }
