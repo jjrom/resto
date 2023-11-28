@@ -23,25 +23,24 @@ jobs:
     # defaults to shallow checkout
     - uses: actions/checkout@v2
 
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
     - name: Print values of all environment variables
       run: printenv
     
     - name: Login to DockerHub Registry
       run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
     
-    - name: Build the tagged Docker image
-      run: docker build . --file ./build/resto/Dockerfile --tag ${NAME}/${IMAGE}:latest
-      
-    - name: Unshallow repository
-      run: git fetch --prune --unshallow 2> /dev/null || true
-
-    - name: Tag master branch and push to repository
-      if: ${{ startsWith(github.ref, 'refs/heads/master') }}
+    - name: Build and Push Image
+      if: ${{ startsWith(github.ref, 'refs/heads/master') && github.event_name != 'release' }}
       run: |
+
+        docker buildx build --push --platform linux/amd64,linux/arm64 --tag ${NAME}/${IMAGE}:latest --file ./build/resto/Dockerfile .
         
-        # Push image
-        docker push ${NAME}/${IMAGE}
-    
     - name: Tag latest release and push to repository
       if: ${{ github.event_name == 'release' }}
       run: |
@@ -49,10 +48,6 @@ jobs:
         # Get latest release tag
         tag=$(git describe --tags --abbrev=0 | sed s/^v//)
         
-        # Tag image
-        docker tag ${NAME}/${IMAGE}:latest ${NAME}/${IMAGE}:${tag}
-
-        # Push release
-        docker push ${NAME}/${IMAGE}:${tag}
-    
+        docker buildx build --push --platform linux/amd64,linux/arm64 -t ${NAME}/${IMAGE}:latest -t ${NAME}/${IMAGE}:$tag --file ./build/resto/Dockerfile .
+      
       

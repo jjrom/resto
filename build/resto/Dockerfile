@@ -1,9 +1,9 @@
-FROM jjrom/nginx-fpm:8.1-1
+FROM jjrom/nginx-fpm:8.2
 LABEL maintainer="jerome.gasperi@gmail.com"
 
 # [IMPORTANT] S6_BEHAVIOUR_IF_STAGE2_FAILS set to 2 in order to restart the resto component until the database is ready
 ENV BUILD_DIR=./build/resto \
-    PHP_VERSION=8.1 \
+    PHP_VERSION=8.2 \
     RESTO_DEBUG=1 \
     S6_BEHAVIOUR_IF_STAGE2_FAILS=2
 
