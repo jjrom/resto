@@ -378,27 +378,33 @@ class UsersAPI
             }
         }
         
-        return $this->storeProfile(
-            array(
-                'email' => $body['email'],
-                'password' => $body['password'] ?? null,
-                'name'=> $body['name'] ?? trim(join(' ', array(ucfirst($body['firstname'] ?? ''), ucfirst($body['lastname'] ?? '')))),
-                'firstname' => $body['firstname'] ?? null,
-                'lastname' => $body['lastname'] ?? null,
-                // [TODO] Check lang from request
-                'lang' => 'en',
-                'bio' => $body['bio'] ?? null,
-                'picture' => $body['picture'] ?? null,
-                'country' => $body['country'] ?? null,
-                'organization' => $body['organization'] ?? null,
-                'flags' => $body['flags'] ?? null,
-                'topics' => $body['topics'] ?? null,
-                'activated' => $this->context->core['userAutoActivation'] ? 1 : 0,
-                'followers' => 0,
-                'followings' => 0
-            ),
-            $this->context->core['storageInfo']
+        $profile = array(
+            'email' => $body['email'],
+            'password' => $body['password'] ?? null,
+            'name'=> $body['name'] ?? trim(join(' ', array(ucfirst($body['firstname'] ?? ''), ucfirst($body['lastname'] ?? '')))),
+            'firstname' => $body['firstname'] ?? null,
+            'lastname' => $body['lastname'] ?? null,
+            // [TODO] Check lang from request
+            'lang' => 'en',
+            'bio' => $body['bio'] ?? null,
+            'picture' => $body['picture'] ?? null,
+            'country' => $body['country'] ?? null,
+            'organization' => $body['organization'] ?? null,
+            'flags' => $body['flags'] ?? null,
+            'topics' => $body['topics'] ?? null,
+            // User created by admin is automatically activated
+            'activated' => ($this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) || $this->context->core['userAutoActivation']) ? 1 : 0,
+            'followers' => 0,
+            'followings' => 0
         );
+
+        // Admin can set the user groups
+        if ( isset($body['groups']) && $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
+            $profile['groups'] = $body['groups'];
+        }
+
+        return $this->storeProfile($profile, $this->context->core['storageInfo']);
+
     }
 
     /**

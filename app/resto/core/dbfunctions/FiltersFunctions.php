@@ -100,7 +100,7 @@ class FiltersFunctions
                  * Sorting special case
                  */
                 if (!empty($sortKey) && ($filterName === 'resto:lt' || $filterName === 'resto:gt')) {
-                    $sortFilters[] =   $this->optimizeNotEqual($paramsWithOperation[$filterName]['operation'], $this->tablePrefix . 'feature.' . $sortKey, '\'' . pg_escape_string($this->context->dbDriver->dbh, $paramsWithOperation[$filterName]['value']) . '\'');
+                    $sortFilters[] =   $this->optimizeNotEqual($paramsWithOperation[$filterName]['operation'], $this->tablePrefix . 'feature.' . $sortKey, '\'' . pg_escape_string($this->context->dbDriver->getConnection(), $paramsWithOperation[$filterName]['value']) . '\'');
                 }
 
                 /*
@@ -113,7 +113,7 @@ class FiltersFunctions
                          */
                         if ($paramsWithOperation[$filterName]['value'] === 'f') {
                             $filters[] = array(
-                                'value' => $this->tablePrefix . 'feature.' . $this->model->searchFilters[$filterName]['key'] . ' IN (SELECT userid FROM ' . $this->context->dbDriver->commonSchema . '.follower WHERE followerid=' . pg_escape_string($this->context->dbDriver->dbh, $this->user->profile['id']) .  ')',
+                                'value' => $this->tablePrefix . 'feature.' . $this->model->searchFilters[$filterName]['key'] . ' IN (SELECT userid FROM ' . $this->context->dbDriver->commonSchema . '.follower WHERE followerid=' . pg_escape_string($this->context->dbDriver->getConnection(), $this->user->profile['id']) .  ')',
                                 'isGeo' => false
                             );
                         }
@@ -122,7 +122,7 @@ class FiltersFunctions
                          */
                         elseif ($paramsWithOperation[$filterName]['value'] === 'F') {
                             $filters[] = array(
-                                'value' => '(' . $this->tablePrefix . 'feature.' . $this->model->searchFilters[$filterName]['key'] . '=' . pg_escape_string($this->context->dbDriver->dbh, $this->user->profile['id']) . ' OR ' . $this->tablePrefix . 'feature.' . $this->model->searchFilters[$filterName]['key'] . ' IN (SELECT userid FROM ' . $this->context->dbDriver->commonSchema . '.follower WHERE followerid=' . pg_escape_string($this->context->dbDriver->dbh, $this->user->profile['id']) .  '))',
+                                'value' => '(' . $this->tablePrefix . 'feature.' . $this->model->searchFilters[$filterName]['key'] . '=' . pg_escape_string($this->context->dbDriver->getConnection(), $this->user->profile['id']) . ' OR ' . $this->tablePrefix . 'feature.' . $this->model->searchFilters[$filterName]['key'] . ' IN (SELECT userid FROM ' . $this->context->dbDriver->commonSchema . '.follower WHERE followerid=' . pg_escape_string($this->context->dbDriver->getConnection(), $this->user->profile['id']) .  '))',
                                 'isGeo' => false
                             );
                         } else {
@@ -244,7 +244,7 @@ class FiltersFunctions
          */
         if (in_array($filterName, array('time:start', 'time:end', 'dc:date'))) {
             return array(
-                'value' => $this->optimizeNotEqual($paramsWithOperation[$filterName]['operation'], $this->addNot($exclusion) . $featureTableName . '.' . strtolower($this->model->searchFilters[$filterName]['key']) . '_idx ', ' timestamp_to_firstid(\'' . pg_escape_string($this->context->dbDriver->dbh, str_replace(',', '.', $paramsWithOperation[$filterName]['value'])) . '\')'),
+                'value' => $this->optimizeNotEqual($paramsWithOperation[$filterName]['operation'], $this->addNot($exclusion) . $featureTableName . '.' . strtolower($this->model->searchFilters[$filterName]['key']) . '_idx ', ' timestamp_to_firstid(\'' . pg_escape_string($this->context->dbDriver->getConnection(), str_replace(',', '.', $paramsWithOperation[$filterName]['value'])) . '\')'),
                 'isGeo' => false
             );
         }
@@ -278,7 +278,7 @@ class FiltersFunctions
                  */
             case 'interval':
                 return array(
-                    'value' => $this->addNot($exclusion) . QueryUtil::intervalToQuery($this->context->dbDriver->dbh, $paramsWithOperation[$filterName]['value'], $this->getTableName($filterName) . '.' . $this->model->searchFilters[$filterName]['key']),
+                    'value' => $this->addNot($exclusion) . QueryUtil::intervalToQuery($this->context->dbDriver->getConnection(), $paramsWithOperation[$filterName]['value'], $this->getTableName($filterName) . '.' . $this->model->searchFilters[$filterName]['key']),
                     'isGeo' => false
                 );
 
@@ -338,14 +338,14 @@ class FiltersFunctions
         if (count($elements) === 1) {
             // Special case because input id could be either the resto id (uuid) or the productIdentifier
             return array(
-                'value' => $this->addNot($exclusion) . $targetColumn . '=\'' . pg_escape_string($this->context->dbDriver->dbh, $filterName === 'geo:uid' && ! RestoUtil::isValidUUID($value) ? RestoUtil::toUUID($value) : $value) . '\'',
+                'value' => $this->addNot($exclusion) . $targetColumn . '=\'' . pg_escape_string($this->context->dbDriver->getConnection(), $filterName === 'geo:uid' && ! RestoUtil::isValidUUID($value) ? RestoUtil::toUUID($value) : $value) . '\'',
                 'isGeo' => false
             );
         }
         return array(
             'value' => $this->addNot($exclusion) . $targetColumn . ' IN (' . implode(',', array_map(function ($str) use ($targetColumn) {
                 // Special case because input id could be either the resto id (uuid) or the productIdentifier
-                return '\'' .  pg_escape_string($this->context->dbDriver->dbh, $targetColumn === 'id' && ! RestoUtil::isValidUUID($str) ? RestoUtil::toUUID($str) : $str) . '\'';
+                return '\'' .  pg_escape_string($this->context->dbDriver->getConnection(), $targetColumn === 'id' && ! RestoUtil::isValidUUID($str) ? RestoUtil::toUUID($str) : $str) . '\'';
             }, $elements)) . ')',
             'isGeo' => false
         );
@@ -361,7 +361,7 @@ class FiltersFunctions
     private function prepareFilterQueryModel($featureTableName, $modelName)
     {
         return array(
-            'value' => $featureTableName . '.collection IN (SELECT id FROM ' . $this->context->dbDriver->targetSchema . '.collection WHERE lineage @> ARRAY[\'' . pg_escape_string($this->context->dbDriver->dbh, $modelName) . '\'])',
+            'value' => $featureTableName . '.collection IN (SELECT id FROM ' . $this->context->dbDriver->targetSchema . '.collection WHERE lineage @> ARRAY[\'' . pg_escape_string($this->context->dbDriver->getConnection(), $modelName) . '\'])',
             'isGeo' => false
         );
     }
@@ -394,7 +394,7 @@ class FiltersFunctions
             $tableName = $this->getGeometryTableName();
 
             // Eventually correct input GEOMETRYCOLLECTION with a ST_buffer
-            $inputGeom = strpos($filterValue['value'], 'GEOMETRYCOLLECTION') === 0 ?  "ST_Buffer(ST_GeomFromText('" . pg_escape_string($this->context->dbDriver->dbh, $filterValue['value']) . "', 4326), 0)" : "ST_GeomFromText('" . pg_escape_string($this->context->dbDriver->dbh, $filterValue['value']) . "', 4326)";
+            $inputGeom = strpos($filterValue['value'], 'GEOMETRYCOLLECTION') === 0 ?  "ST_Buffer(ST_GeomFromText('" . pg_escape_string($this->context->dbDriver->getConnection(), $filterValue['value']) . "', 4326), 0)" : "ST_GeomFromText('" . pg_escape_string($this->context->dbDriver->getConnection(), $filterValue['value']) . "', 4326)";
             $output = $this->addNot($exclusion) . 'ST_intersects(' . $tableName . '.' . $this->model->searchFilters[$filterName]['key'] . ", " . $inputGeom . ")";
         }
 
@@ -435,7 +435,7 @@ class FiltersFunctions
                 if (strlen($values[$i]) < 4) {
                     RestoLogUtil::httpError(400, '% is only allowed for string with 3+ characters');
                 }
-                $ors[] = $tableNameWitNot . '.' . $this->model->searchFilters[$filterName]['key'] . ' LIKE ' . $quote . pg_escape_string($this->context->dbDriver->dbh, $values[$i]) . $quote;
+                $ors[] = $tableNameWitNot . '.' . $this->model->searchFilters[$filterName]['key'] . ' LIKE ' . $quote . pg_escape_string($this->context->dbDriver->getConnection(), $values[$i]) . $quote;
             }
             /*
              * isNull case do not use value
@@ -447,7 +447,7 @@ class FiltersFunctions
              * Otherwise use operation
              */
             else {
-                $ors[] = $this->optimizeNotEqual($filterValue['operation'], $tableNameWitNot . '.' . $this->model->searchFilters[$filterName]['key'], $quote . pg_escape_string($this->context->dbDriver->dbh, $values[$i]) . $quote);
+                $ors[] = $this->optimizeNotEqual($filterValue['operation'], $tableNameWitNot . '.' . $this->model->searchFilters[$filterName]['key'], $quote . pg_escape_string($this->context->dbDriver->getConnection(), $values[$i]) . $quote);
             }
         }
         return $ors;
@@ -478,15 +478,15 @@ class FiltersFunctions
          * (aka the easy part)
          */
         if ($coords[0] <= $coords[2]) {
-            $filter = $start . pg_escape_string($this->context->dbDriver->dbh, 'POLYGON((' . $coords[0] . ' ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[1] . '))') . $end;
+            $filter = $start . pg_escape_string($this->context->dbDriver->getConnection(), 'POLYGON((' . $coords[0] . ' ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[1] . '))') . $end;
         }
         /*
          * -180/180 line is crossed
          * (split in two polygons)
          */
         else {
-            $filter = '(' . $start . pg_escape_string($this->context->dbDriver->dbh, 'POLYGON((' . $coords[0] . ' ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[3] . ',180 ' . $coords[3] . ',180 ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[1] . '))') . $end;
-            $filter = $filter . ' OR ' . $start . pg_escape_string($this->context->dbDriver->dbh, 'POLYGON((-180 ' . $coords[1] . ',-180 ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[1] . ',-180 ' . $coords[1] . '))') . $end . ')';
+            $filter = '(' . $start . pg_escape_string($this->context->dbDriver->getConnection(), 'POLYGON((' . $coords[0] . ' ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[3] . ',180 ' . $coords[3] . ',180 ' . $coords[1] . ',' . $coords[0] . ' ' . $coords[1] . '))') . $end;
+            $filter = $filter . ' OR ' . $start . pg_escape_string($this->context->dbDriver->getConnection(), 'POLYGON((-180 ' . $coords[1] . ',-180 ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[3] . ',' . $coords[2] . ' ' . $coords[1] . ',-180 ' . $coords[1] . '))') . $end . ')';
         }
 
         return ($exclusion ? 'NOT ' : '') . $filter;
@@ -519,14 +519,14 @@ class FiltersFunctions
             if ($useDistance) {
                 $wkt = 'POINT(' . $paramsWithOperation['geo:lon']['value'] . ' ' . $paramsWithOperation['geo:lat']['value'] . ')';
                 return array(
-                    'value' => $this->addNot($exclusion) . 'ST_dwithin(' . $tableName . '.' . $this->model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'' . pg_escape_string($this->context->dbDriver->dbh, $wkt) . '\', 4326), '. $radius . ')',
+                    'value' => $this->addNot($exclusion) . 'ST_dwithin(' . $tableName . '.' . $this->model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'' . pg_escape_string($this->context->dbDriver->getConnection(), $wkt) . '\', 4326), '. $radius . ')',
                     'wkt' => $wkt,
                     'isGeo' => true
                 );
             } else {
                 $wkt = RestoGeometryUtil::WKTPolygonFromLonLat(floatval($paramsWithOperation['geo:lon']['value']), floatval($paramsWithOperation['geo:lat']['value']), $radius);
                 return array(
-                    'value' => $this->addNot($exclusion) . 'ST_intersects(' . $tableName . '.' . $this->model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'' . pg_escape_string($this->context->dbDriver->dbh, $wkt) . '\', 4326))',
+                    'value' => $this->addNot($exclusion) . 'ST_intersects(' . $tableName . '.' . $this->model->searchFilters[$filterName]['key'] . ', ST_GeomFromText(\'' . pg_escape_string($this->context->dbDriver->getConnection(), $wkt) . '\', 4326))',
                     'wkt' => $wkt,
                     'isGeo' => true
                 );
@@ -626,12 +626,12 @@ class FiltersFunctions
         if (isset($operator)) {
             $quotedValues = array();
             for ($j = count($exploded); $j--;) {
-                $quotedValues[] = '\'' . pg_escape_string($this->context->dbDriver->dbh, trim($exploded[$j])) . '\'';
+                $quotedValues[] = '\'' . pg_escape_string($this->context->dbDriver->getConnection(), trim($exploded[$j])) . '\'';
             }
             return array($this->addNot($exclusion) . '(' . $featureTableName . '.' . $this->model->searchFilters[$filterName]['key'] . $operator . 'normalize_array(ARRAY[' . join(',', $quotedValues) . ']))');
         }
         
-        $filters[$exclusion ? 'without' : 'with'][] = "'" . pg_escape_string($this->context->dbDriver->dbh, $searchTerm) . "'";
+        $filters[$exclusion ? 'without' : 'with'][] = "'" . pg_escape_string($this->context->dbDriver->getConnection(), $searchTerm) . "'";
 
         return array();
     }

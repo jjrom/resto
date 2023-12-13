@@ -35,6 +35,7 @@ class RestoLogUtil
      */
     public static $codes = array(
         200 => 'OK',
+        201 => 'Created',
         206 => 'Partial Content',
         400 => 'Bad Request',
         401 => 'Unauthorized',
@@ -42,6 +43,7 @@ class RestoLogUtil
         404 => 'Not Found',
         405 => 'Method Not Allowed',
         409 => 'Conflict',
+        410 => 'Gone',
         412 => 'Precondition Failed',
         500 => 'Internal Server Error'
     );
@@ -156,6 +158,25 @@ class RestoLogUtil
      *      example={
      *          "ErrorCode":404,
      *          "ErrorMessage":"Not Found"
+     *      }
+     *  )
+     * 
+     *  @OA\Schema(
+     *      schema="GoneError",
+     *      required={"ErrorCode", "ErrorMessage"},
+     *      @OA\Property(
+     *          property="ErrorCode",
+     *          type="integer",
+     *          description="HTTP status code"
+     *      ),
+     *      @OA\Property(
+     *          property="ErrorMessage",
+     *          type="string",
+     *          description="Error message"
+     *      ),
+     *      example={
+     *          "ErrorCode":410,
+     *          "ErrorMessage":"Gone"
      *      }
      *  )
      */

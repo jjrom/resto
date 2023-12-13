@@ -145,6 +145,11 @@ class RestoContext
     public $outputFormat = 'json';
 
     /**
+     * Default response HTTP status
+     */
+    public $httpStatus = 200;
+
+    /**
      * Path
      */
     public $path = '';

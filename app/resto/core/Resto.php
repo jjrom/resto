@@ -152,6 +152,7 @@ class Resto
              * Process route
              */
             $response = $this->getResponse();
+
         } catch (Exception $e) {
             /*
              * Output in error - format output as JSON in the following
@@ -165,7 +166,7 @@ class Resto
             $response = json_encode(array('ErrorMessage' => $e->getMessage(), 'ErrorCode' => $e->getCode()), JSON_UNESCAPED_SLASHES);
         }
 
-        $this->answer($response ?? null, $responseStatus ?? 200);
+        $this->answer($response ?? null, $responseStatus ?? $this->context->httpStatus);
     }
 
     /**
