@@ -46,15 +46,15 @@ class LogsFunctions
         
         // Paginate
         if (isset($params['lt'])) {
-            $where[] = 'gid < ' . pg_escape_string($this->dbDriver->dbh, $params['lt']);
+            $where[] = 'gid < ' . pg_escape_string($this->dbDriver->getConnection(), $params['lt']);
         }
 
         if (isset($params['userid'])) {
-            $where[] = 'userid=' . pg_escape_string($this->dbDriver->dbh, $params['userid']);
+            $where[] = 'userid=' . pg_escape_string($this->dbDriver->getConnection(), $params['userid']);
         }
         
         if (isset($params['querytime'])) {
-            $where[] = QueryUtil::intervalToQuery($this->dbDriver->dbh, $params['querytime'], 'querytime');
+            $where[] = QueryUtil::intervalToQuery($this->dbDriver->getConnection(), $params['querytime'], 'querytime');
         }
 
         $results = $this->dbDriver->query('SELECT gid, userid, method, to_iso8601(querytime) as querytime, path, query, ip FROM ' . $this->dbDriver->commonSchema . '.log' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : ' ') . ' ORDER BY gid DESC LIMIT 50');

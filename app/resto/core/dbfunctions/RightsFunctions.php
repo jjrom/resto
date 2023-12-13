@@ -73,7 +73,7 @@ class RightsFunctions
          */
         if (isset($user->profile['id'])) {
             $filter = $this->getFilterFromTarget($target, $collectionId, $featureId);
-            $query = 'SELECT userid, target, collection, featureid, download, visualize, createcollection as create FROM ' . $this->dbDriver->commonSchema . '.right WHERE userid=' . pg_escape_string($this->dbDriver->dbh, $user->profile['id']) . (isset($filter) ? ' AND ' . $filter : '');
+            $query = 'SELECT userid, target, collection, featureid, download, visualize, createcollection as create FROM ' . $this->dbDriver->commonSchema . '.right WHERE userid=' . pg_escape_string($this->dbDriver->getConnection(), $user->profile['id']) . (isset($filter) ? ' AND ' . $filter : '');
             $userRights = $this->getRightsFromQuery($query, false);
         }
 
@@ -240,11 +240,11 @@ class RightsFunctions
             'visualize' => isset($rights['visualize']) ? $this->integerOrZero($rights['visualize']) : 0,
             'download' => isset($rights['download']) ? $this->integerOrZero($rights['download']) : 0,
             'createcollection' => isset($rights['create']) ? $this->integerOrZero($rights['create']) : 0,
-            'userid' => isset($userid) ? pg_escape_string($this->dbDriver->dbh, $userid) : 'NULL',
-            'groupid' => isset($groupid) ? pg_escape_string($this->dbDriver->dbh, $groupid) : 'NULL',
-            'collection' => isset($collectionId) ? '\'' . pg_escape_string($this->dbDriver->dbh, $collectionId) . '\'' : 'NULL',
-            'featureId' => isset($featureId) ? '\'' . pg_escape_string($this->dbDriver->dbh, $featureId) . '\'' : 'NULL',
-            'target' => isset($target) ? '\'' . pg_escape_string($this->dbDriver->dbh, $target) . '\'' : 'NULL'
+            'userid' => isset($userid) ? pg_escape_string($this->dbDriver->getConnection(), $userid) : 'NULL',
+            'groupid' => isset($groupid) ? pg_escape_string($this->dbDriver->getConnection(), $groupid) : 'NULL',
+            'collection' => isset($collectionId) ? '\'' . pg_escape_string($this->dbDriver->getConnection(), $collectionId) . '\'' : 'NULL',
+            'featureId' => isset($featureId) ? '\'' . pg_escape_string($this->dbDriver->getConnection(), $featureId) . '\'' : 'NULL',
+            'target' => isset($target) ? '\'' . pg_escape_string($this->dbDriver->getConnection(), $target) . '\'' : 'NULL'
         );
 
         try {
@@ -280,14 +280,14 @@ class RightsFunctions
         $where = array();
 
         if (isset($target)) {
-            $where[] = 'target IN (\'' . pg_escape_string($this->dbDriver->dbh, $this->dbDriver->targetSchema) . '\', \'*\')';
+            $where[] = 'target IN (\'' . pg_escape_string($this->dbDriver->getConnection(), $this->dbDriver->targetSchema) . '\', \'*\')';
         }
         
         // Owner
-        $where[] = isset($userid) ? 'userid=' . pg_escape_string($this->dbDriver->dbh, $userid) : 'groupid=' . pg_escape_string($this->dbDriver->dbh, $groupid);
+        $where[] = isset($userid) ? 'userid=' . pg_escape_string($this->dbDriver->getConnection(), $userid) : 'groupid=' . pg_escape_string($this->dbDriver->getConnection(), $groupid);
 
         // Target
-        $where[] = isset($collectionId) ? 'collection=\'' . pg_escape_string($this->dbDriver->dbh, $collectionId) . '\'' : 'featureid=\'' . pg_escape_string($this->dbDriver->dbh, $featureId) . '\'';
+        $where[] = isset($collectionId) ? 'collection=\'' . pg_escape_string($this->dbDriver->getConnection(), $collectionId) . '\'' : 'featureid=\'' . pg_escape_string($this->dbDriver->getConnection(), $featureId) . '\'';
 
         $toBeSet = array();
         foreach (array_values(array('visualize', 'download', 'create')) as $right) {
@@ -332,15 +332,15 @@ class RightsFunctions
         $where = array();
 
         if (isset($target)) {
-            $where[] = 'target IN (\'' . pg_escape_string($this->dbDriver->dbh, $target) . '\', \'*\')';
+            $where[] = 'target IN (\'' . pg_escape_string($this->dbDriver->getConnection(), $target) . '\', \'*\')';
         }
         
 
         // Owner
-        $where[] = isset($userid) ? 'userid=' . pg_escape_string($this->dbDriver->dbh, $userid) : 'groupid=' . pg_escape_string($this->dbDriver->dbh, $groupid);
+        $where[] = isset($userid) ? 'userid=' . pg_escape_string($this->dbDriver->getConnection(), $userid) : 'groupid=' . pg_escape_string($this->dbDriver->getConnection(), $groupid);
 
         // Target
-        $where[] = isset($collectionId) ? 'collection=\'' . pg_escape_string($this->dbDriver->dbh, $collectionId) . '\'' : 'featureid=\'' . pg_escape_string($this->dbDriver->dbh, $featureId) . '\'';
+        $where[] = isset($collectionId) ? 'collection=\'' . pg_escape_string($this->dbDriver->getConnection(), $collectionId) . '\'' : 'featureid=\'' . pg_escape_string($this->dbDriver->getConnection(), $featureId) . '\'';
 
         $query = 'SELECT 1 from ' . $this->dbDriver->commonSchema . '.right WHERE ' . join(' AND ', $where);
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
@@ -365,9 +365,9 @@ class RightsFunctions
             $where[] = 'target IN (\'' . pg_escape_string($this->dbDriver->targetSchema) . '\', \'*\')';
         }
         if (isset($collectionId)) {
-            $where[] = 'collection IN (\'' . pg_escape_string($this->dbDriver->dbh, $collectionId) . '\', \'*\')';
+            $where[] = 'collection IN (\'' . pg_escape_string($this->dbDriver->getConnection(), $collectionId) . '\', \'*\')';
         } elseif (isset($featureId)) {
-            $where[] = 'featureid IN (\'' . pg_escape_string($this->dbDriver->dbh, $featureId) . '\', \'*\')';
+            $where[] = 'featureid IN (\'' . pg_escape_string($this->dbDriver->getConnection(), $featureId) . '\', \'*\')';
         }
         return join(' AND ', $where);
     }
@@ -384,9 +384,9 @@ class RightsFunctions
             return null;
         }
         if (isset($userid)) {
-            return 'userid='. pg_escape_string($this->dbDriver->dbh, $userid);
+            return 'userid='. pg_escape_string($this->dbDriver->getConnection(), $userid);
         } elseif (isset($groupid)) {
-            return 'groupid=' . pg_escape_string($this->dbDriver->dbh, $groupid);
+            return 'groupid=' . pg_escape_string($this->dbDriver->getConnection(), $groupid);
         }
         return null;
     }

@@ -74,7 +74,7 @@ class CollectionsFunctions
         
         // Filter on keywords
         if (isset($params['ck'])) {
-            $where[] = 'keywords @> ARRAY[\'' . pg_escape_string($this->dbDriver->dbh, $params['ck']) . '\']';
+            $where[] = 'keywords @> ARRAY[\'' . pg_escape_string($this->dbDriver->getConnection(), $params['ck']) . '\']';
         }
         
         $results = $this->dbDriver->query('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords FROM ' . $this->dbDriver->targetSchema . '.collection' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : '') . ' ORDER BY id');
@@ -227,11 +227,11 @@ class CollectionsFunctions
         $toBeSet = array();
 
         if (isset($timeExtent['startDate'])) {
-            $toBeSet[] = 'startdate=least(startdate, \'' . pg_escape_string($this->dbDriver->dbh, $timeExtent['startDate']) . '\')';
+            $toBeSet[] = 'startdate=least(startdate, \'' . pg_escape_string($this->dbDriver->getConnection(), $timeExtent['startDate']) . '\')';
         }
 
         if (isset($timeExtent['completionDate'])) {
-            $toBeSet[] = 'completiondate=greatest(completiondate, \'' . pg_escape_string($this->dbDriver->dbh, $timeExtent['completionDate']) . '\')';
+            $toBeSet[] = 'completiondate=greatest(completiondate, \'' . pg_escape_string($this->dbDriver->getConnection(), $timeExtent['completionDate']) . '\')';
         }
 
         if (isset($bbox)) {
@@ -475,8 +475,8 @@ class CollectionsFunctions
                 'lang'
             );
             $osValues = array(
-                '\'' . pg_escape_string($this->dbDriver->dbh, $collection->id) . '\'',
-                '\'' . pg_escape_string($this->dbDriver->dbh, $lang) . '\''
+                '\'' . pg_escape_string($this->dbDriver->getConnection(), $collection->id) . '\'',
+                '\'' . pg_escape_string($this->dbDriver->getConnection(), $lang) . '\''
             );
 
             /*
@@ -508,7 +508,7 @@ class CollectionsFunctions
                         RestoLogUtil::httpError(400, 'OpenSearch property ' . $key . ' length is greater than ' . $validProperties[$key] . ' characters');
                     }
                     $osFields[] = strtolower($key);
-                    $osValues[] = '\'' . pg_escape_string($this->dbDriver->dbh, $description[$key]) . '\'';
+                    $osValues[] = '\'' . pg_escape_string($this->dbDriver->getConnection(), $description[$key]) . '\'';
                 }
             }
             $this->dbDriver->query('INSERT INTO ' . $this->dbDriver->targetSchema . '.osdescription (' . join(',', $osFields) . ') VALUES(' . join(',', $osValues) . ')');
