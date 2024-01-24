@@ -693,9 +693,10 @@ class UsersAPI
         );
 
         if (isset($userInfo)) {
+
             // Auto activation no email sent
             if ($profile['activated'] === 1) {
-                return RestoLogUtil::success('User ' . $profile['email'] . ' created');
+                return RestoLogUtil::success('User ' . $profile['email'] . ' created and activated (id : ' . $profile['id'] . ')');
             }
 
             if (!(new RestoNotifier($this->context->servicesInfos, $this->context->lang))->sendMailForUserActivation($profile['email'], $this->context->core['sendmail'], array(
@@ -707,6 +708,5 @@ class UsersAPI
             RestoLogUtil::httpError(500, 'Database connection error');
         }
 
-        return RestoLogUtil::success('User ' . $profile['email'] . ' created');
     }
 }
