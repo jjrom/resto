@@ -210,7 +210,7 @@ class FiltersFunctions
         }
 
         return array(
-            'value' =>  $tableName . '.visibility IN (' . join(',', $this->user->profile['groups']) . ')',
+            'value' =>  $tableName . '.visibility IN (' . join(',', $this->user->getGroupIds()) . ')',
             'isGeo' => false
         );
     }

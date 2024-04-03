@@ -18,9 +18,12 @@
     $config = include($configFile);
     
     $dbDriver = new RestoDatabaseDriver($config['database'] ?? null);
-    $dbDriver->pQuery('INSERT INTO ' . $dbDriver->commonSchema . '.user (id,email,groups,firstname,password,activated,registrationdate) VALUES ($1,$2,$3,$2,$4,1,now_utc()) ON CONFLICT (id) DO UPDATE SET password=$4', array(
+    $dbDriver->pQuery('INSERT INTO ' . $dbDriver->commonSchema . '.user (id,email,firstname,password,activated,registrationdate) VALUES ($1,$2,$2,$3,1,now_utc()) ON CONFLICT (id) DO UPDATE SET password=$3', array(
         100,
         getenv('ADMIN_USER_NAME') ?? 'admin',
-        '{0,100}',
         password_hash(getenv('ADMIN_USER_PASSWORD') ?? 'admin', PASSWORD_BCRYPT)
+    ));
+    $dbDriver->pQuery('INSERT INTO ' . $dbDriver->commonSchema . '.group_member (groupid,userid,created) VALUES ($1,$2,now_utc()) ON CONFLICT (groupid,userid) DO NOTHING', array(
+        100,
+        100
     ));

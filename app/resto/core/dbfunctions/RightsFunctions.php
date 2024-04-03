@@ -80,7 +80,7 @@ class RightsFunctions
         /*
          * Retrieve rights for user groups
          */
-        $groupsRights = $this->getRightsForGroups($user->profile['groups'], $target, $collectionId, $featureId, false);
+        $groupsRights = $this->getRightsForGroups($user->getGroupIds(), $target, $collectionId, $featureId, false);
 
         /*
          * Merge rights from user and from user's groups

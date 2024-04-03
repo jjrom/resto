@@ -34,6 +34,7 @@ class RestoRouter
     const ROUTE_TO_FEATURES = RestoRouter::ROUTE_TO_COLLECTION . '/items';
     const ROUTE_TO_FEATURE = RestoRouter::ROUTE_TO_FEATURES . '/{featureId}';
     const ROUTE_TO_FORGOT_PASSWORD = '/services/password/forgot';
+    const ROUTE_TO_GROUPS = '/groups';
     const ROUTE_TO_OSDD = '/services/osdd';
     const ROUTE_TO_LIVENESS = '/_isLive';
     const ROUTE_TO_RESET_PASSWORD = '/services/password/reset';
@@ -51,59 +52,66 @@ class RestoRouter
     private $defaultRoutes = array(
 
         // Liveness and readyness for cloud
-        array('GET',    '/', false, 'ServicesAPI::hello'),                                                                                 // Landing page
-        array('GET',    RestoRouter::ROUTE_TO_LIVENESS, false, 'StatusAPI::isLive'),                                                    // Liveness
+        array('GET',    '/', false, 'ServicesAPI::hello'),                                                                                          // Landing page
+        array('GET',    RestoRouter::ROUTE_TO_LIVENESS, false, 'StatusAPI::isLive'),                                                                // Liveness
         
         // Landing page and conformance (see WFS 3.0)                                                                           
-        array('GET',    RestoRouter::ROUTE_TO_API, false, 'ServicesAPI::api'),                                                                                 // API page
-        array('GET',    RestoRouter::ROUTE_TO_CONFORMANCE, false, 'ServicesAPI::conformance'),                                                                 // Conformance page
+        array('GET',    RestoRouter::ROUTE_TO_API, false, 'ServicesAPI::api'),                                                                      // API page
+        array('GET',    RestoRouter::ROUTE_TO_CONFORMANCE, false, 'ServicesAPI::conformance'),                                                      // Conformance page
         
         // API for users
-        array('GET',    RestoRouter::ROUTE_TO_USERS, true, 'UsersAPI::getUsersProfiles'),                                                                      // List users profiles
-        array('POST',   RestoRouter::ROUTE_TO_USERS, false, 'UsersAPI::createUser'),                                                                           // Create user
-        array('GET',    RestoRouter::ROUTE_TO_USER, true, 'UsersAPI::getUserProfile'),                                                               // Show user profile
-        array('PUT',    RestoRouter::ROUTE_TO_USER, true, 'UsersAPI::updateUserProfile'),                                                            // Update :userid profile
-        array('GET',    RestoRouter::ROUTE_TO_USER . '/logs', true, 'UsersAPI::getUserLogs'),                                                             // Show user logs
-        array('GET',    RestoRouter::ROUTE_TO_USER_RIGHTS, true, 'UsersAPI::getUserRights'),                                                         // Show user rights
-        array('GET',    RestoRouter::ROUTE_TO_USER_RIGHTS . '/{collectionId}', true, 'UsersAPI::getUserRights'),                                          // Show user rights for :collectionId
-        array('GET',    RestoRouter::ROUTE_TO_USER_RIGHTS . '/{collectionId}/{featureId}', true, 'UsersAPI::getUserRights'),                              // Show user rights for :featureId
+        array('GET',    RestoRouter::ROUTE_TO_USERS, true, 'UsersAPI::getUsersProfiles'),                                                           // List users profiles
+        array('POST',   RestoRouter::ROUTE_TO_USERS, false, 'UsersAPI::createUser'),                                                                // Create user
+        array('GET',    RestoRouter::ROUTE_TO_USER, true, 'UsersAPI::getUserProfile'),                                                              // Show user profile
+        array('PUT',    RestoRouter::ROUTE_TO_USER, true, 'UsersAPI::updateUserProfile'),                                                           // Update :userid profile
+        array('GET',    RestoRouter::ROUTE_TO_USER . '/logs', true, 'UsersAPI::getUserLogs'),                                                       // Show user logs
+        array('GET',    RestoRouter::ROUTE_TO_USER_RIGHTS, true, 'UsersAPI::getUserRights'),                                                        // Show user rights
+        array('GET',    RestoRouter::ROUTE_TO_USER_RIGHTS . '/{collectionId}', true, 'UsersAPI::getUserRights'),                                    // Show user rights for :collectionId
+        array('GET',    RestoRouter::ROUTE_TO_USER_RIGHTS . '/{collectionId}/{featureId}', true, 'UsersAPI::getUserRights'),                        // Show user rights for :featureId
         
+        // API for groups
+        array('GET'   , RestoRouter::ROUTE_TO_GROUPS, true, 'Group::getGroups'),                                                                    // List users profiles
+        array('GET'   , RestoRouter::ROUTE_TO_GROUPS . '/{id}', true, 'Group::getGroup'),                                                           // Get group
+        array('POST'  , RestoRouter::ROUTE_TO_GROUPS, true, 'Group::createGroup'),                                                                  // Create group
+        array('DELETE', RestoRouter::ROUTE_TO_GROUPS . '/{id}', true, 'Group::deleteGroup'),                                                        // Delete group
+        array('GET'   , RestoRouter::ROUTE_TO_USER . '/groups', true, 'Group::getUserGroups'),                                                      // Show user groups
+
         // API for collections
-        array('GET',    RestoRouter::ROUTE_TO_COLLECTIONS, false, 'CollectionsAPI::getCollections'),                                                           // List all collections
-        array('POST',   RestoRouter::ROUTE_TO_COLLECTIONS, true, 'CollectionsAPI::createCollection'),                                                          // Create collection
-        array('GET',    RestoRouter::ROUTE_TO_COLLECTION, false, 'CollectionsAPI::getCollection'),                                             // Get :collectionId description
-        array('PUT',    RestoRouter::ROUTE_TO_COLLECTION, true, 'CollectionsAPI::updateCollection'),                                           // Update :collectionId
-        array('DELETE', RestoRouter::ROUTE_TO_COLLECTION, true, 'CollectionsAPI::deleteCollection'),                                           // Delete :collectionId
+        array('GET',    RestoRouter::ROUTE_TO_COLLECTIONS, false, 'CollectionsAPI::getCollections'),                                                // List all collections
+        array('POST',   RestoRouter::ROUTE_TO_COLLECTIONS, true, 'CollectionsAPI::createCollection'),                                               // Create collection
+        array('GET',    RestoRouter::ROUTE_TO_COLLECTION, false, 'CollectionsAPI::getCollection'),                                                  // Get :collectionId description
+        array('PUT',    RestoRouter::ROUTE_TO_COLLECTION, true, 'CollectionsAPI::updateCollection'),                                                // Update :collectionId
+        array('DELETE', RestoRouter::ROUTE_TO_COLLECTION, true, 'CollectionsAPI::deleteCollection'),                                                // Delete :collectionId
         array('GET',    RestoRouter::ROUTE_TO_COLLECTION . '/queryables', false, 'STAC::getQueryables'),                                            // OAFeature API - Queryables
 
         // API for features
-        array('GET',    RestoRouter::ROUTE_TO_FEATURES, false, 'FeaturesAPI::getFeaturesInCollection'),                                // Search features in :collectionId
-        array('POST',   RestoRouter::ROUTE_TO_FEATURES, array('auth' => true, 'upload' => 'files'), 'CollectionsAPI::insertFeatures'), // Insert feature(s)
-        array('GET',    RestoRouter::ROUTE_TO_FEATURE, false, 'FeaturesAPI::getFeature'),                                 // Get feature :featureId
-        array('PUT',    RestoRouter::ROUTE_TO_FEATURE, true, 'FeaturesAPI::updateFeature'),                               // Update feature :featureId
-        array('DELETE', RestoRouter::ROUTE_TO_FEATURE, true, 'FeaturesAPI::deleteFeature'),                               // Delete :featureId
-        array('PUT',    RestoRouter::ROUTE_TO_FEATURE . '/properties/{property}', true, 'FeaturesAPI::updateFeatureProperty'), // Update feature :featureId single property
+        array('GET',    RestoRouter::ROUTE_TO_FEATURES, false, 'FeaturesAPI::getFeaturesInCollection'),                                             // Search features in :collectionId
+        array('POST',   RestoRouter::ROUTE_TO_FEATURES, array('auth' => true, 'upload' => 'files'), 'CollectionsAPI::insertFeatures'),              // Insert feature(s)
+        array('GET',    RestoRouter::ROUTE_TO_FEATURE, false, 'FeaturesAPI::getFeature'),                                                           // Get feature :featureId
+        array('PUT',    RestoRouter::ROUTE_TO_FEATURE, true, 'FeaturesAPI::updateFeature'),                                                         // Update feature :featureId
+        array('DELETE', RestoRouter::ROUTE_TO_FEATURE, true, 'FeaturesAPI::deleteFeature'),                                                         // Delete :featureId
+        array('PUT',    RestoRouter::ROUTE_TO_FEATURE . '/properties/{property}', true, 'FeaturesAPI::updateFeatureProperty'),                      // Update feature :featureId single property
         
         // API for authentication (token based)
         array('GET',    RestoRouter::ROUTE_TO_AUTH, true, 'AuthAPI::getToken'),
-        array('GET',    RestoRouter::ROUTE_TO_AUTH . '/create', true, 'AuthAPI::createToken'),                                                                                // Return a valid auth token
-        array('GET',    RestoRouter::ROUTE_TO_AUTH . '/check/{token}', false, 'AuthAPI::checkToken'),                                                               // Check auth token validity
-        array('DELETE', RestoRouter::ROUTE_TO_AUTH . '/revoke/{token}', true, 'AuthAPI::revokeToken'),                                                              // Revoke auth token
-        array('PUT',    RestoRouter::ROUTE_TO_AUTH . '/activate/{token}', false, 'AuthAPI::activateUser'),                                                          // Activate owner of the token
+        array('GET',    RestoRouter::ROUTE_TO_AUTH . '/create', true, 'AuthAPI::createToken'),                                                      // Return a valid auth token
+        array('GET',    RestoRouter::ROUTE_TO_AUTH . '/check/{token}', false, 'AuthAPI::checkToken'),                                               // Check auth token validity
+        array('DELETE', RestoRouter::ROUTE_TO_AUTH . '/revoke/{token}', true, 'AuthAPI::revokeToken'),                                              // Revoke auth token
+        array('PUT',    RestoRouter::ROUTE_TO_AUTH . '/activate/{token}', false, 'AuthAPI::activateUser'),                                          // Activate owner of the token
 
         // API for services
-        array('GET',    RestoRouter::ROUTE_TO_OSDD, false, 'ServicesAPI::getOSDD'),                                                                   // Opensearch service description at collections level
-        array('GET',    RestoRouter::ROUTE_TO_OSDD . '/{collectionId}', false, 'ServicesAPI::getOSDDForCollection'),                                       // Opensearch service description for products on {collection}
-        array('POST',   RestoRouter::ROUTE_TO_SEND_ACTIVATION_LINK, false, 'ServicesAPI::sendActivationLink'),                                             // Send activation link
-        array('POST',   RestoRouter::ROUTE_TO_FORGOT_PASSWORD, 'ServicesAPI::forgotPassword'),                                                 // Send reset password link
-        array('POST',   RestoRouter::ROUTE_TO_RESET_PASSWORD, false, 'ServicesAPI::resetPassword'),                                                   // Reset password
+        array('GET',    RestoRouter::ROUTE_TO_OSDD, false, 'ServicesAPI::getOSDD'),                                                                 // Opensearch service description at collections level
+        array('GET',    RestoRouter::ROUTE_TO_OSDD . '/{collectionId}', false, 'ServicesAPI::getOSDDForCollection'),                                // Opensearch service description for products on {collection}
+        array('POST',   RestoRouter::ROUTE_TO_SEND_ACTIVATION_LINK, false, 'ServicesAPI::sendActivationLink'),                                      // Send activation link
+        array('POST',   RestoRouter::ROUTE_TO_FORGOT_PASSWORD, 'ServicesAPI::forgotPassword'),                                                      // Send reset password link
+        array('POST',   RestoRouter::ROUTE_TO_RESET_PASSWORD, false, 'ServicesAPI::resetPassword'),                                                 // Reset password
 
         // STAC
-        array('GET',    RestoRouter::ROUTE_TO_ASSETS . '/{urlInBase64}', false, 'STAC::getAsset'),                                                                  // Get an asset using HTTP 301 permanent redirect
-        array('GET',    RestoRouter::ROUTE_TO_CATALOGS . '/*', false, 'STAC::getCatalogs'),                                                                         // Get catalogs
-        array('GET',    RestoRouter::ROUTE_TO_STAC_CHILDREN, false, 'STAC::getChildren'),                                                                           // STAC API - Children
-        array('GET',    RestoRouter::ROUTE_TO_STAC_QUERYABLES, false, 'STAC::getQueryables'),                                                                       // STAC/OAFeature API - Queryables
-        array('GET',    RestoRouter::ROUTE_TO_STAC_SEARCH, false, 'STAC::search')                                                                                   // STAC API - core search
+        array('GET',    RestoRouter::ROUTE_TO_ASSETS . '/{urlInBase64}', false, 'STAC::getAsset'),                                                  // Get an asset using HTTP 301 permanent redirect
+        array('GET',    RestoRouter::ROUTE_TO_CATALOGS . '/*', false, 'STAC::getCatalogs'),                                                         // Get catalogs
+        array('GET',    RestoRouter::ROUTE_TO_STAC_CHILDREN, false, 'STAC::getChildren'),                                                           // STAC API - Children
+        array('GET',    RestoRouter::ROUTE_TO_STAC_QUERYABLES, false, 'STAC::getQueryables'),                                                       // STAC/OAFeature API - Queryables
+        array('GET',    RestoRouter::ROUTE_TO_STAC_SEARCH, false, 'STAC::search')                                                                   // STAC API - core search
     );
 
     /*

@@ -195,7 +195,8 @@ class RestoCollections
      */
     public function load($params = array())
     {
-        $params['group'] = $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ? null : $this->user->profile['groups'];
+       
+        $params['group'] = $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ? null : $this->user->getGroupIds();
         $cacheKey = 'collections' . ($params['group'] ? join(',', $params['group']) : '');
         
         $collectionsDesc = $this->context->fromCache($cacheKey);
@@ -212,7 +213,7 @@ class RestoCollections
             $this->collections[$collectionId] = $collection;
             $this->updateExtent($collection);
         }
-        
+                
         return $this;
     }
 

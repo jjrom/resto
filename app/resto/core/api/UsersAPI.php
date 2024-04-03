@@ -398,11 +398,6 @@ class UsersAPI
             'followings' => 0
         );
 
-        // Admin can set the user groups
-        if ( isset($body['groups']) && $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
-            $profile['groups'] = $body['groups'];
-        }
-
         return $this->storeProfile($profile, $this->context->core['storageInfo']);
 
     }
@@ -517,10 +512,6 @@ class UsersAPI
                 unset($body['activated'], $body['validatedby'], $body['validationdate'], $body['country'], $body['organization'], $body['organizationcountry'], $body['flags']);
             }
 
-            /*
-             * These properties can only be changed by admin
-             */
-            unset($body['groups']);
         }
 
         /*

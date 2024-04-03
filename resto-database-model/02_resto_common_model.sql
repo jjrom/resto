@@ -30,9 +30,6 @@ CREATE TABLE IF NOT EXISTS __DATABASE_COMMON_SCHEMA__.user (
     -- User description
     bio                 TEXT,
 
-    -- Array of groups referenced by __DATABASE_COMMON_SCHEMA__.group.id
-    groups              INTEGER[],
-
     -- User lang
     lang                TEXT,
 
@@ -129,6 +126,24 @@ CREATE TABLE IF NOT EXISTS __DATABASE_COMMON_SCHEMA__.group (
     created             TIMESTAMP
 
 );
+
+--
+-- Group members
+--
+CREATE TABLE IF NOT EXISTS __DATABASE_COMMON_SCHEMA__.group_member (
+
+    -- Group id
+    groupid             INTEGER NOT NULL REFERENCES __DATABASE_COMMON_SCHEMA__.group (id) ON DELETE CASCADE,
+
+    -- User in the group
+    userid              BIGINT NOT NULL REFERENCES __DATABASE_COMMON_SCHEMA__.user (id) ON DELETE CASCADE,
+
+    -- When user join the group
+    created             TIMESTAMP NOT NULL DEFAULT now(),
+
+    PRIMARY KEY         (groupid, userid)
+);
+CREATE INDEX IF NOT EXISTS idx_groupid_group_member ON __DATABASE_COMMON_SCHEMA__.group_member (groupid);
 
 --
 -- topics table

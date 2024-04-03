@@ -140,6 +140,11 @@ class RestoUser
     private $rights;
 
     /*
+     * Reference to groups object
+     */
+    private $groups;
+
+    /*
      * Fallback rights if no collection is found
      */
     private $fallbackRights = array(
@@ -154,9 +159,6 @@ class RestoUser
     private $unregistered = array(
         'id' => null,
         'email' => 'unregistered',
-        'groups' => array(
-            RestoConstants::GROUP_DEFAULT_ID
-        ),
         'activated' => 0
     );
 
@@ -379,6 +381,40 @@ class RestoUser
     }
 
     /**
+     * Return the list of user groups
+     *
+     * @throws Exception
+     */
+    public function getGroups()
+    {
+        if ( !isset($this->groups) ) {
+            return (new GroupsFunctions($this->context->dbDriver))->getGroups(array('userid' => $this->profile['id']));
+        }
+        return $this->groups;
+    }   
+
+    /**
+     * Return the list of user group ids
+     *
+     * @throws Exception
+     */
+    public function getGroupIds()
+    {
+        $groups = $this->getGroups();
+
+        // Everybody is in the default RestoConstants::GROUP_DEFAULT_ID;
+        $ids = [
+            RestoConstants::GROUP_DEFAULT_ID
+        ];
+
+        for ($i = 0, $ii = count($groups); $i < $ii; $i++) {
+            $ids[] = $groups[$i]['id'];
+        }
+
+        return $ids;
+    }
+
+    /**
      * Return true if user is in $group
      *
      * @param string $group
@@ -386,8 +422,7 @@ class RestoUser
      */
     public function hasGroup($group)
     {
-        $this->loadProfile();
-        return in_array($group, $this->profile['groups']);
+        return in_array($group, $this->getGroupIds());
     }
 
     /**
@@ -438,7 +473,7 @@ class RestoUser
      */
     public function loadProfile()
     {
-        if (!$this->isComplete && isset($this->profile['id'])) {
+        if ( !$this->isComplete && isset($this->profile['id']) ) {
             $this->profile = (new UsersFunctions($this->context->dbDriver))->getUserProfile('id', $this->profile['id']);
             $this->isComplete = true;
         }

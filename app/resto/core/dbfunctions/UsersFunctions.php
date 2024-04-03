@@ -25,6 +25,8 @@ class UsersFunctions
 
     private $countLimit = 50;
 
+    private $userFields = 'id,email,name,firstname,lastname,bio,lang,country,organization,organizationcountry,flags,topics,password,picture,to_iso8601(registrationdate) as registrationdate,activated,followers,followings,validatedby,to_iso8601(validationdate) as validationdate,externalidp,settings';
+        
     /**
      * Constructor
      *
@@ -68,10 +70,6 @@ class UsersFunctions
                 case 'followers':
                 case 'followings':
                     $profile[$key] = (integer) $value;
-                    break;
-
-                case 'groups':
-                    $profile[$key] = array_map('intval', explode(",", substr($rawProfile['groups'], 1, -1)));
                     break;
 
                 case 'topics':
@@ -122,18 +120,10 @@ class UsersFunctions
      */
     public static function formatPartialUserProfile($rawProfile)
     {
-        // Remove leading "{" and trailing "}" for INTEGER[] (Database returns {group1,group2,etc.})
-        $groups = array_map('intval', explode(",", substr($rawProfile['groups'], 1, -1)));
-        
-        // [SECURITY] Never return users with only one group and group < 100
-        if (count($groups) === 1 && $groups[0] < 100) {
-            return null;
-        }
         
         $profile = array(
             'id' => $rawProfile['id'],
             'picture' => $rawProfile['picture'],
-            'groups' => $groups,
             'name' => $rawProfile['name'],
             'registrationdate' => $rawProfile['registrationdate'],
             'followers' => (integer) $rawProfile['followers'],
@@ -162,7 +152,7 @@ class UsersFunctions
                     break;
                 
                 case 'bio':
-                    $profile[$key] = $rawProfile[$value];
+                    $profile[$key] = $value;
                     break;
                 
                 default:
@@ -197,7 +187,7 @@ class UsersFunctions
     public function getUserProfile($fieldName, $fieldValue, $params = array())
     {
         // Add followed and followme booleans
-        $fields = 'id,email,name,firstname,lastname,bio,groups,lang,country,organization,organizationcountry,flags,topics,password,picture,to_iso8601(registrationdate),activated,followers,followings,validatedby,to_iso8601(validationdate),externalidp,settings';
+        $fields = $this->userFields;
         if (isset($params['from'])) {
             $fields = $fields . ',EXISTS(SELECT followerid FROM ' . $this->dbDriver->commonSchema . '.follower WHERE followerid=id AND userid=' . pg_escape_string($this->dbDriver->getConnection(), $params['from']) . ') AS followme,EXISTS(SELECT followerid FROM ' . $this->dbDriver->commonSchema . '.follower WHERE userid=id AND followerid=' . pg_escape_string($this->dbDriver->getConnection(), $params['from']) . ') AS followed';
         }
@@ -251,10 +241,6 @@ class UsersFunctions
         if (isset($params['lt'])) {
             $where[] = 'id < ' . $params['lt'];
         }
-
-        if (isset($params['groupid'])) {
-            $where[] =  'groups @> ARRAY[' . $params['groupid'] . ']';
-        }
         
         if (isset($params['in'])) {
             $where[] = 'id in (' . pg_escape_string($this->dbDriver->getConnection(), $params['in']) . ')';
@@ -269,7 +255,7 @@ class UsersFunctions
         }
 
         // Add followed and followme booleans
-        $fields = 'id,email,name,firstname,lastname,bio,groups,lang,country,organization,organizationcountry,flags,topics,password,picture,to_iso8601(registrationdate),activated,followers,followings,validatedby,to_iso8601(validationdate),externalidp,settings';
+        $fields = $this->userFields;
         if (isset($userid)) {
             $fields = $fields . ',EXISTS(SELECT followerid FROM ' . $this->dbDriver->commonSchema . '.follower WHERE followerid=id AND userid=' . pg_escape_string($this->dbDriver->getConnection(), $userid) . ') AS followme,EXISTS(SELECT followerid FROM ' . $this->dbDriver->commonSchema . '.follower WHERE userid=id AND followerid=' . pg_escape_string($this->dbDriver->getConnection(), $userid) . ') AS followed';
         }
@@ -350,20 +336,11 @@ class UsersFunctions
         $picture = $this->getPicture($profile, $storageInfo);
 
         /*
-         * Every user is in the default RestoConstants::GROUP_DEFAULT_ID
-         */
-        $groups = $profile['groups'] ?? array();
-        if (!in_array(RestoConstants::GROUP_DEFAULT_ID, $groups)) {
-            $groups[] = RestoConstants::GROUP_DEFAULT_ID;
-        }
-
-        /*
          * Store everything
          */
         $toBeSet = array(
             'email' => '\'' . pg_escape_string($this->dbDriver->getConnection(), $email) . '\'',
             'password' => '\'' . (isset($profile['password']) ? password_hash($profile['password'], PASSWORD_BCRYPT) : str_repeat('*', 60)) . '\'',
-            'groups' => '\'{' . pg_escape_string($this->dbDriver->getConnection(), join(',', $groups)) . '}\'',
             'topics' => isset($profile['topics']) ? '\'{' . pg_escape_string($this->dbDriver->getConnection(), $profile['topics']) . '}\'' : 'NULL',
             'picture' => '\'' . pg_escape_string($this->dbDriver->getConnection(), $picture) . '\'',
             'bio' => isset($profile['bio']) ? '\'' . pg_escape_string($this->dbDriver->getConnection(), $profile['bio']) . '\'' : 'NULL',
@@ -430,7 +407,7 @@ class UsersFunctions
          *   - registrationdate
          */
         $values = array();
-        foreach (array_values(array('password', 'activated', 'bio', 'name', 'firstname', 'lastname', 'groups', 'country', 'organization', 'topics', 'organizationcountry', 'flags', 'lang', 'settings', 'picture', 'externalidp')) as $field) {
+        foreach (array_values(array('password', 'activated', 'bio', 'name', 'firstname', 'lastname', 'country', 'organization', 'topics', 'organizationcountry', 'flags', 'lang', 'settings', 'picture', 'externalidp')) as $field) {
             if (isset($profile[$field])) {
                 switch ($field) {
                     case 'password':
@@ -448,7 +425,6 @@ class UsersFunctions
                             RestoLogUtil::httpError(400);
                         }
                         break;
-                    case 'groups':
                     case 'topics':
                         $values[] = $field . '=\'{' . pg_escape_string($this->dbDriver->getConnection(), $profile[$field]) . '}\'';
                         break;
@@ -491,32 +467,6 @@ class UsersFunctions
         $results = $this->dbDriver->fetch($this->dbDriver->query('UPDATE ' . $this->dbDriver->commonSchema . '.user SET ' . join(',', $values) . ' WHERE email=\'' . pg_escape_string($this->dbDriver->getConnection(), trim(strtolower($email))) . '\' RETURNING id'));
         
         return count($results) === 1 ? $results[0]['id'] : null;
-    }
-
-    /**
-     * Add groups to user $userid
-     *
-     * @param integer $userid
-     * @param string $groups
-     * @return null
-     * @throws Exception
-     */
-    public function storeUserGroups($userid, $groups)
-    {
-        return $this->storeOrRemoveUserGroups('store', $userid, $groups);
-    }
-
-    /**
-     * Remove groups for user $userid
-     *
-     * @param integer $userid
-     * @param string $groups
-     * @return null
-     * @throws Exception
-     */
-    public function removeUserGroups($userid, $groups)
-    {
-        return $this->storeOrRemoveUserGroups('remove', $userid, $groups);
     }
 
     /**
@@ -598,72 +548,6 @@ class UsersFunctions
         );
 
         return count($this->dbDriver->fetch($this->dbDriver->query('UPDATE ' . $this->dbDriver->commonSchema . '.user SET ' . join(',', $toBeSet) . ' WHERE id=' . pg_escape_string($this->dbDriver->getConnection(), $userid) . ' RETURNING id'))) === 1 ? true : false;
-    }
-
-    /**
-     * Store or remove groups for user $userid
-     *
-     * @param string $storeOrRemove
-     * @param integer $userid
-     * @param array $groups
-     * @return null
-     * @throws Exception
-     */
-    private function storeOrRemoveUserGroups($storeOrRemove, $userid, $groups)
-    {
-        if (!isset($userid)) {
-            RestoLogUtil::httpError(400, 'Cannot ' . $storeOrRemove . ' groups - invalid user identifier : ' . $userid);
-        }
-        if (empty($groups)) {
-            RestoLogUtil::httpError(400, 'Cannot ' . $storeOrRemove . ' groups - empty input groups');
-        }
-
-        $profile = $this->getUserProfile('id', $userid);
-        if (!isset($profile)) {
-            RestoLogUtil::httpError(404, 'Cannot ' . $storeOrRemove . ' groups - user profile not found for : ' . $userid);
-        }
-
-        /*
-         * Explode existing groups into an associative array
-         */
-        $userGroups = !empty($profile['groups']) ? array_flip($profile['groups']) : array();
-
-        /*
-         * Explode input groups
-         */
-        $newGroups = array();
-        $rawNewGroups = $groups;
-        for ($i = 0, $ii = count($rawNewGroups); $i < $ii; $i++) {
-            if ($rawNewGroups[$i] !== '') {
-                $newGroups[$rawNewGroups[$i]] = 1;
-            }
-        }
-
-        /*
-         * Store - merge new groups with user groups
-         */
-        if ($storeOrRemove === 'store') {
-            $newGroups = array_keys(array_merge($newGroups, $userGroups));
-        }
-
-        /*
-         * Remove - note that RestoConstants::GROUP_DEFAULT_ID group cannot be removed
-         */ else {
-            foreach (array_keys($newGroups) as $key) {
-                if ($key !== RestoConstants::GROUP_DEFAULT_ID) {
-                    unset($userGroups[$key]);
-                }
-            }
-            $newGroups = array_keys($userGroups);
-        }
-
-        /*
-         * Update user profile
-         */
-        $results = count($newGroups) > 0 ? implode(',', $newGroups) : null;
-        $this->dbDriver->fetch($this->dbDriver->query('UPDATE ' . $this->dbDriver->commonSchema . '.user SET groups=' . (isset($results) ? '\'{' . pg_escape_string($this->dbDriver->getConnection(), $results) . '}\'' : 'NULL') . ' WHERE id=' . $userid));
-
-        return $results;
     }
 
     /**
