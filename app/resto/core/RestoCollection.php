@@ -782,24 +782,23 @@ class RestoCollection
      * Properties that are not stored in properties column
      */
     private $notInProperties = array(
-        'id',
-        'type',
-        'title',
+        'assets',
         'description',
-        'stac_version',
-        'stac_extension',
         'extent',
-        'model',
-        'version',
-        'visibility',
-        'rights',
+        'id',
+        'keywords',
         'license',
         'links',
+        'model',
         'osDescription',
         'providers',
         'rights',
-        'assets',
-        'keywords'
+        'stac_extension',
+        'stac_version',
+        'title',
+        'type',
+        'version',
+        'visibility'
     );
 
     /**
