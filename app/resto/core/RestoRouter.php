@@ -103,7 +103,7 @@ class RestoRouter
         array('GET',    RestoRouter::ROUTE_TO_OSDD, false, 'ServicesAPI::getOSDD'),                                                                 // Opensearch service description at collections level
         array('GET',    RestoRouter::ROUTE_TO_OSDD . '/{collectionId}', false, 'ServicesAPI::getOSDDForCollection'),                                // Opensearch service description for products on {collection}
         array('POST',   RestoRouter::ROUTE_TO_SEND_ACTIVATION_LINK, false, 'ServicesAPI::sendActivationLink'),                                      // Send activation link
-        array('POST',   RestoRouter::ROUTE_TO_FORGOT_PASSWORD, 'ServicesAPI::forgotPassword'),                                                      // Send reset password link
+        array('POST',   RestoRouter::ROUTE_TO_FORGOT_PASSWORD, false, 'ServicesAPI::forgotPassword'),                                                      // Send reset password link
         array('POST',   RestoRouter::ROUTE_TO_RESET_PASSWORD, false, 'ServicesAPI::resetPassword'),                                                 // Reset password
 
         // STAC
