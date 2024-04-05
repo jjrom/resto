@@ -92,7 +92,7 @@ class FeaturesAPI
         $feature = new RestoFeature($this->context, $this->user, array(
             'featureId' => $params['featureId'],
             'fields' => $params['fields'] ?? null,
-            'collection' => (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()
+            'collection' => $this->context->keeper->getRestoCollection($params['collectionId'], $this->user)->load()
         ));
 
         if (!$feature->isValid()) {
@@ -593,7 +593,7 @@ class FeaturesAPI
             $this->context->outputFormat = 'geojson';
         }
 
-        return (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()->search($params);
+        return $this->context->keeper->getRestoCollection($params['collectionId'], $this->user)->load()->search($params);
     }
 
     /**
@@ -677,7 +677,7 @@ class FeaturesAPI
     public function updateFeature($params, $body)
     {
         // Load collection
-        $collection = (new RestoCollection($params['collectionId'], $this->context, $this->user))->load();
+        $collection = $this->context->keeper->getRestoCollection($params['collectionId'], $this->user)->load();
         
         $feature = new RestoFeature($this->context, $this->user, array(
             'featureId' => $params['featureId'],
@@ -804,7 +804,7 @@ class FeaturesAPI
     {
         $feature = new RestoFeature($this->context, $this->user, array(
             'featureId' => $params['featureId'],
-            'collection' => (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()
+            'collection' => $this->context->keeper->getRestoCollection($params['collectionId'], $this->user)->load()
         ));
 
         if (!$feature->isValid()) {
@@ -912,7 +912,7 @@ class FeaturesAPI
     {
         $feature = new RestoFeature($this->context, $this->user, array(
             'featureId' => $params['featureId'],
-            'collection' => (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()
+            'collection' => $this->context->keeper->getRestoCollection($params['collectionId'], $this->user)->load()
         ));
 
         if (!$feature->isValid()) {

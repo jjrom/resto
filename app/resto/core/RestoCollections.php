@@ -122,6 +122,11 @@ class RestoCollections
      */
     private $statistics;
 
+    /*
+     * Avoid multiple database calls
+     */
+    private $isLoaded = false;
+
     /**
      * Constructor
      *
@@ -165,7 +170,7 @@ class RestoCollections
         /*
          * Create collection
          */
-        $collection = new RestoCollection($object['id'], $this->context, $this->user);
+        $collection = $this->context->keeper->getRestoCollection($object['id'], $this->user);
         $collection->load($object, $modelName)->store();
 
         return true;
@@ -196,22 +201,25 @@ class RestoCollections
     public function load($params = array())
     {
        
-        $params['group'] = $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ? null : $this->user->getGroupIds();
-        $cacheKey = 'collections' . ($params['group'] ? join(',', $params['group']) : '');
-        
-        $collectionsDesc = $this->context->fromCache($cacheKey);
-        if (!isset($collectionsDesc)) {
-            $collectionsDesc = (new CollectionsFunctions($this->context->dbDriver))->getCollectionsDescriptions($params);
-            $this->context->toCache($cacheKey, $collectionsDesc);
-        }
-
-        foreach (array_keys($collectionsDesc) as $collectionId) {
-            $collection = new RestoCollection($collectionId, $this->context, $this->user);
-            foreach ($collectionsDesc[$collectionId] as $key => $value) {
-                $collection->$key = $key === 'model' ? new $value() : $value;
+        if ( !$this->isLoaded ) {
+            $params['group'] = $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ? null : $this->user->getGroupIds();
+            $cacheKey = 'collections' . ($params['group'] ? join(',', $params['group']) : '');
+            
+            $collectionsDesc = $this->context->fromCache($cacheKey);
+            if (!isset($collectionsDesc)) {
+                $collectionsDesc = (new CollectionsFunctions($this->context->dbDriver))->getCollectionsDescriptions($params);
+                $this->context->toCache($cacheKey, $collectionsDesc);
             }
-            $this->collections[$collectionId] = $collection;
-            $this->updateExtent($collection);
+
+            foreach (array_keys($collectionsDesc) as $collectionId) {
+                $collection = $this->context->keeper->getRestoCollection($collectionId, $this->user);
+                foreach ($collectionsDesc[$collectionId] as $key => $value) {
+                    $collection->$key = $key === 'model' ? new $value() : $value;
+                }
+                $this->collections[$collectionId] = $collection;
+                $this->updateExtent($collection);
+            }
+            $this->isLoaded = true;
         }
                 
         return $this;

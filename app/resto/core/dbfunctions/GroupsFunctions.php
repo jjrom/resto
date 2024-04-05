@@ -44,11 +44,6 @@ class GroupsFunctions
     {
         $where = array();
         
-        /* Show hidden groups */
-        if (!isset($params['viewAll']) || ! $params['viewAll']) {
-            $where[] = 'id NOT IN (' . join(',', array(RestoConstants::GROUP_ADMIN_ID, RestoConstants::GROUP_DEFAULT_ID)) . ')';
-        }
-        
         // Return group by id
         if (isset($params['id'])) {
             $where[] = 'id=' . pg_escape_string($params['id']);

@@ -24,6 +24,6 @@
         password_hash(getenv('ADMIN_USER_PASSWORD') ?? 'admin', PASSWORD_BCRYPT)
     ));
     $dbDriver->pQuery('INSERT INTO ' . $dbDriver->commonSchema . '.group_member (groupid,userid,created) VALUES ($1,$2,now_utc()) ON CONFLICT (groupid,userid) DO NOTHING', array(
-        100,
+        0,
         100
     ));

@@ -247,7 +247,7 @@ class CollectionsAPI
      */
     public function getCollections($params)
     {
-        return (new RestoCollections($this->context, $this->user))->load($params);
+        return $this->context->keeper->getRestoCollections($this->user)->load($params);
     }
 
     /**
@@ -292,7 +292,7 @@ class CollectionsAPI
      */
     public function getCollection($params)
     {
-        return (new RestoCollection($params['collectionId'], $this->context, $this->user))->load();
+        return $this->context->keeper->getRestoCollection($params['collectionId'], $this->user)->load();
     }
 
     /**
@@ -370,7 +370,7 @@ class CollectionsAPI
             RestoLogUtil::httpError(403);
         }
 
-        (new RestoCollections($this->context, $this->user))->create($body, $params['model'] ?? null);
+        $this->context->keeper->getRestoCollections($this->user)->create($body, $params['model'] ?? null);
         
         return RestoLogUtil::success('Collection ' . $body['id'] . ' created');
     }
@@ -446,7 +446,7 @@ class CollectionsAPI
      */
     public function updateCollection($params, $body)
     {
-        $collection = new RestoCollection($params['collectionId'], $this->context, $this->user);
+        $collection = $this->context->keeper->getRestoCollection($params['collectionId'], $this->user);
         $collection->load();
         
         /*
@@ -531,7 +531,7 @@ class CollectionsAPI
      */
     public function deleteCollection($params)
     {
-        $collection = (new RestoCollection($params['collectionId'], $this->context, $this->user))->load();
+        $collection = $this->context->keeper->getRestoCollection($params['collectionId'], $this->user)->load();
        
         /*
          * Only owner of a collection can delete it
@@ -681,7 +681,7 @@ class CollectionsAPI
         /*
          * Load collection
          */
-        $collection = new RestoCollection($params['collectionId'], $this->context, $this->user);
+        $collection = $this->context->keeper->getRestoCollection($params['collectionId'], $this->user);
         $collection->load();
         
         /*

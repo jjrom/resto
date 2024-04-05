@@ -836,28 +836,35 @@ class RestoCollection
      */
     public function load($object = null, $modelName = null)
     {
-        if (isset($object)) {
-            return $this->loadFromJSON($object, $modelName);
-        }
-        
-        $cacheKey = 'collection:' . $this->id;
-        $collectionObject = $this->context->fromCache($cacheKey);
-    
-        if (! isset($collectionObject)) {
-            $collectionObject = (new CollectionsFunctions($this->context->dbDriver))->getCollectionDescription($this->id);
+
+        if ( !$this->isLoaded ) {
+
+            $this->isLoaded = true;
+
+            if (isset($object)) {
+                return $this->loadFromJSON($object, $modelName);
+            }
             
+            $cacheKey = 'collection:' . $this->id;
+            $collectionObject = $this->context->fromCache($cacheKey);
+        
             if (! isset($collectionObject)) {
-                return RestoLogUtil::httpError(404);
+                $collectionObject = (new CollectionsFunctions($this->context->dbDriver))->getCollectionDescription($this->id);
+                
+                if (! isset($collectionObject)) {
+                    return RestoLogUtil::httpError(404);
+                }
+    
+                $this->context->toCache($cacheKey, $collectionObject);
+            }
+            
+            foreach ($collectionObject as $key => $value) {
+                $this->$key = $key === 'model' ? new $value(array(
+                    'collectionId' => $this->id,
+                    'addons' => $this->context->addons
+                )) : $value;
             }
 
-            $this->context->toCache($cacheKey, $collectionObject);
-        }
-        
-        foreach ($collectionObject as $key => $value) {
-            $this->$key = $key === 'model' ? new $value(array(
-                'collectionId' => $this->id,
-                'addons' => $this->context->addons
-            )) : $value;
         }
         
         return $this;

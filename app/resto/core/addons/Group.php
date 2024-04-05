@@ -133,8 +133,7 @@ class Group extends RestoAddOn
     {
         return array(
             'groups' => (new GroupsFunctions($this->context->dbDriver))->getGroups(array(
-                'q' => $params['q'] ?? null,
-                'viewAll' => $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)
+                'q' => $params['q'] ?? null
             ))
         );
     }

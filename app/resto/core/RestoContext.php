@@ -160,6 +160,11 @@ class RestoContext
     public $query = array();
 
     /**
+     * Keeper function
+     */
+    public $keeper;
+
+    /**
      * Constructor
      *
      * @param array $config : configuration extracted from config.php file
@@ -197,6 +202,11 @@ class RestoContext
          */
         $this->addons = $config['addons'] ?? array();
         
+        /*
+         * Initialize keeper
+         */
+        $this->keeper = new RestoKeeper($this);
+
         /*
          * Initialize objects
          */

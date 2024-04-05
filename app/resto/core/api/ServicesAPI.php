@@ -282,7 +282,7 @@ class ServicesAPI
     public function getOSDDForCollection($params)
     {
         $this->context->outputFormat = 'xml';
-        return (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()->getOSDD();
+        return $this->context->keeper->getRestoCollection($params['collectionId'],$this->user)->load()->getOSDD();
     }
 
     /**
@@ -327,7 +327,7 @@ class ServicesAPI
                 'addons' => $this->context->addons
             ));
         }
-        return (new RestoCollections($this->context, $this->user))->getOSDD($model);
+        return $this->context->keeper->getRestoCollections($this->user)->getOSDD($model);
     }
 
     /**

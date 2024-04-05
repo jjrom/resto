@@ -416,7 +416,7 @@ class STAC extends RestoAddOn
             'title' => 'Queryables for Example STAC API',
             'description' => 'Queryable names for the example STAC API Item Search filter.',
             // Get common queryables (/queryables) or per collection (/collections/{collectionId}/queryables)
-            'properties' => (isset($params['collectionId']) ? ((new RestoCollection($params['collectionId'], $this->context, $this->user))->load())->model : new DefaultModel())->getQueryables(),
+            'properties' => (isset($params['collectionId']) ? ($this->context->keeper->getRestoCollection($params['collectionId'], $this->user)->load())->model : new DefaultModel())->getQueryables(),
             'additionalProperties' => true
         );
     }
@@ -948,11 +948,11 @@ class STAC extends RestoAddOn
             if (count($collections) === 1) {
                 $params['collectionId'] = $params['collections'];
                 unset($params['collections']);
-                return (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()->search($params);
+                return $this->context->keeper->getRestoCollection($params['collectionId'], $this->user)->load()->search($params);
             }
         }
 
-        $restoCollections = (new RestoCollections($this->context, $this->user))->load($params);
+        $restoCollections = $this->context->keeper->getRestoCollections($this->user)->load($params);
 
         /* [TODO] Faire un UNION sur les collections
         if ( !isset($model) ) {
@@ -1132,7 +1132,7 @@ class STAC extends RestoAddOn
         $this->description = 'Collections for theme **' . $this->segments[1] . '**';
 
         // Load collections
-        $collections = (new RestoCollections($this->context, $this->user))->load();
+        $collections = $this->context->keeper->getRestoCollections($this->user)->load();
         
         $candidates = array();
         foreach (array_values($collections->collections) as $collectionContent) {
@@ -1367,7 +1367,7 @@ class STAC extends RestoAddOn
 
         $this->context->query['fields'] = '_all';
 
-        return $this->featureCollection = (new RestoCollections($this->context, $this->user))->load()->search(null, $searchParams);
+        return $this->featureCollection = $this->context->keeper->getRestoCollections($this->user)->load()->search(null, $searchParams);
     }
 
     /**
