@@ -21,9 +21,12 @@
  */
 class RestoKeeper
 {
+
+    private $context;
+
+    private $collectionsObject = null;
     
-    private $restoCollectionsObject = null;
-    private $restoCollectionObjects = array();
+    private $collectionObjects = array();
 
     /**
      * Constructor
@@ -44,11 +47,11 @@ class RestoKeeper
      */
     public function getRestoCollection($collectionId, $user)
     {
-        if ( !isset($this->restoCollectionObjects[$collectionId]) ) {
-            $this->restoCollectionObjects[$collectionId] = new RestoCollection($collectionId, $this->context, $user);
+        if ( !isset($this->collectionObjects[$collectionId]) ) {
+            $this->collectionObjects[$collectionId] = new RestoCollection($collectionId, $this->context, $user);
         }
         
-        return $this->restoCollectionObjects[$collectionId];
+        return $this->collectionObjects[$collectionId];
     }
 
     /**
@@ -59,10 +62,10 @@ class RestoKeeper
      */
     public function getRestoCollections($user)
     {
-        if ( !isset($this->restoCollectionsObject) ) {
-            $this->restoCollectionsObject = new RestoCollections($this->context, $user);
+        if ( !isset($this->collectionsObject) ) {
+            $this->collectionsObject = new RestoCollections($this->context, $user);
         }
-        return $this->restoCollectionsObject;
+        return $this->collectionsObject;
     }
 
 }

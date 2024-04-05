@@ -42,14 +42,33 @@ class CollectionsFunctions
      */
     public function getCollectionDescription($id)
     {
-        // Get Opensearch description
-        $osDescriptions = $this->getOSDescriptions($id);
+
+        // Eventually convert input alias to the real collection id
+        $collectionId = $this->aliasToCollectionId($id); 
+        if ( isset($collectionId) ) {
+            $id = $collectionId;
+        }
+
+        // Query with aliases
+        $query = join(' ', array(
+            'SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords, STRING_AGG(ca.alias, \', \' ORDER BY ca.alias) AS aliases',
+            'FROM ' . $this->dbDriver->targetSchema . '.collection',
+            'LEFT JOIN ' . $this->dbDriver->targetSchema . '.collection_alias ca ON id = ca.collection',
+            'WHERE public.normalize(id)=public.normalize($1)',
+            'GROUP BY id'
+        ));
+
+        $results = $this->dbDriver->pQuery($query, array($id));
+
         $collection = null;
-        $results = $this->dbDriver->pQuery('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords FROM ' . $this->dbDriver->targetSchema . '.collection WHERE normalize(id)=normalize($1)', array($id));
         while ($rowDescription = pg_fetch_assoc($results)) {
+            // Get Opensearch description
+            $osDescriptions = $this->getOSDescriptions($id);
             $collection = $this->format($rowDescription, $osDescriptions[$id] ?? null);
         }
+
         return $collection;
+
     }
 
     /**
@@ -77,7 +96,17 @@ class CollectionsFunctions
             $where[] = 'keywords @> ARRAY[\'' . pg_escape_string($this->dbDriver->getConnection(), $params['ck']) . '\']';
         }
         
-        $results = $this->dbDriver->query('SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords FROM ' . $this->dbDriver->targetSchema . '.collection' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : '') . ' ORDER BY id');
+        // Query with aliases
+        $query = join(' ', array(
+            'SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords, STRING_AGG(ca.alias, \', \' ORDER BY ca.alias) AS aliases',
+            'FROM ' . $this->dbDriver->targetSchema . '.collection',
+            'LEFT JOIN ' . $this->dbDriver->targetSchema . '.collection_alias ca ON id = ca.collection',
+            (count($where) > 0 ? 'WHERE ' . join(' AND ', $where) : ''),
+            'GROUP BY id',
+            'ORDER BY id'
+        ));
+
+        $results = $this->dbDriver->query($query);
         while ($rowDescription = pg_fetch_assoc($results)) {
             $collections[$rowDescription['id']] = $this->format($rowDescription, $osDescriptions[$rowDescription['id']] ?? null);
         }
@@ -252,7 +281,48 @@ class CollectionsFunctions
 
         return true;
     }
+
+    /**
+     * Store collection aliases
+     *
+     * @param String $collectionName
+     * @param array $aliases
+     *
+     */
+    public function updateAliases($collectionName, $aliases)
+    {
         
+        // First DELETE all existing collection aliases
+        $this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.collection_alias WHERE collection=$1', array(
+            $collectionName
+        ));
+
+        // Next INSERT one row per alias
+        for ($i = 0, $ii = count($aliases); $i < $ii; $i++) {
+            $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.collection_alias (alias, collection) VALUES($1, $2) ON CONFLICT (alias) DO NOTHING', array(
+                $aliases[$i],
+                $collectionName
+            ));
+        }
+        
+    }
+        
+    /**
+     * Return collection name from alias
+     * 
+     * @param string $alias
+     * @return string
+     */
+    public function aliasToCollectionId($alias) {
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT collection FROM ' . $this->dbDriver->targetSchema . '.collection_alias WHERE alias=$1', array(
+            $alias
+        )));
+        if ( isset($results) && count($results) === 1 ) {
+            return $results[0]['collection'];
+        }
+        return null;
+    }
+
     /**
      * Get time extent from a list of time extent
      *
@@ -433,6 +503,9 @@ class CollectionsFunctions
             ));
         }
 
+        // Store aliases
+        $this->updateAliases($collection->id, $collection->aliases ?? array());
+
         // OpenSearch description is stored in another table
         $this->storeOSDescription($collection);
         
@@ -540,6 +613,7 @@ class CollectionsFunctions
     {
         $collection = array(
             'id' => $rawDescription['id'],
+            'aliases' => $rawDescription['aliases'] ?? null,
             'version' => $rawDescription['version'] ?? null,
             'model' => $rawDescription['model'],
             'visibility' => (integer) $rawDescription['visibility'],

@@ -56,7 +56,7 @@ class GroupsFunctions
 
         // Search by name
         if (isset($params['q'])) {
-            $where[] = 'normalize(name) LIKE normalize(\'%' . pg_escape_string($params['q']) . '%\')';
+            $where[] = 'public.normalize(name) LIKE public.normalize(\'%' . pg_escape_string($params['q']) . '%\')';
         }
 
         // Return groups by userid
@@ -80,7 +80,7 @@ class GroupsFunctions
         }
 
         try {
-            $result = pg_query_params($this->dbDriver->getConnection(), 'INSERT INTO ' . $this->dbDriver->commonSchema . '.group (name, description, owner, created) VALUES ($1, $2, $3, now()) ON CONFLICT (normalize(name)) DO NOTHING RETURNING id ', array(
+            $result = pg_query_params($this->dbDriver->getConnection(), 'INSERT INTO ' . $this->dbDriver->commonSchema . '.group (name, description, owner, created) VALUES ($1, $2, $3, now()) ON CONFLICT (public.normalize(name)) DO NOTHING RETURNING id ', array(
                 $params['body']['name'],
                 $params['body']['description'] ?? null,
                 $params['id']

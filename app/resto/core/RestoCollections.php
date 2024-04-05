@@ -161,9 +161,14 @@ class RestoCollections
         }
 
         /*
-         * Check that collection does not exist based on id
+         * Check that collection does not exist i.e. id or alias not used
          */
-        if ((new CollectionsFunctions($this->context->dbDriver))->collectionExists($object['id'])) {
+        $collectionsFunctions = new CollectionsFunctions($this->context->dbDriver);
+        $collectionId = $collectionsFunctions->aliasToCollectionId($object['id']);
+        if ( isset($collectionId) ) {
+            RestoLogUtil::httpError(409, 'Collection ' . $object['id'] . ' already exist as an alias of collection ' . $collectionId);    
+        }
+        if ($collectionsFunctions->collectionExists($object['id'])) {
             RestoLogUtil::httpError(409, 'Collection ' . $object['id'] . ' already exist');
         }
 

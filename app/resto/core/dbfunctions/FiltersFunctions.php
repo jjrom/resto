@@ -628,7 +628,7 @@ class FiltersFunctions
             for ($j = count($exploded); $j--;) {
                 $quotedValues[] = '\'' . pg_escape_string($this->context->dbDriver->getConnection(), trim($exploded[$j])) . '\'';
             }
-            return array($this->addNot($exclusion) . '(' . $featureTableName . '.' . $this->model->searchFilters[$filterName]['key'] . $operator . 'normalize_array(ARRAY[' . join(',', $quotedValues) . ']))');
+            return array($this->addNot($exclusion) . '(' . $featureTableName . '.' . $this->model->searchFilters[$filterName]['key'] . $operator . 'public.normalize_array(ARRAY[' . join(',', $quotedValues) . ']))');
         }
         
         $filters[$exclusion ? 'without' : 'with'][] = "'" . pg_escape_string($this->context->dbDriver->getConnection(), $searchTerm) . "'";
@@ -648,10 +648,10 @@ class FiltersFunctions
     {
         $terms = array();
         if (count($filters['without']) > 0) {
-            $terms[] = 'NOT ' . $key . " @> normalize_array(ARRAY[" . join(',', $filters['without']) . "])";
+            $terms[] = 'NOT ' . $key . " @> public.normalize_array(ARRAY[" . join(',', $filters['without']) . "])";
         }
         if (count($filters['with']) > 0) {
-            $terms[] = $key . " @> normalize_array(ARRAY[" . join(',', $filters['with']) . "])";
+            $terms[] = $key . " @> public.normalize_array(ARRAY[" . join(',', $filters['with']) . "])";
         }
         return $terms;
     }
@@ -754,7 +754,7 @@ class FiltersFunctions
      *      'resto.feature_optical.cloudCover > 10',
      *      'resto.feature_optical.cloudCover <= 30',
      *      'ST_Intersects(resto.feature.geom, ST_GeomFromText('POINT(10 10)', 4326))',
-     *      'resto.feature.normalized_hashtags @> normalize_array(ARRAY['instrument:PHR']
+     *      'resto.feature.normalized_hashtags @> public.normalize_array(ARRAY['instrument:PHR']
      *    )
      *
      *

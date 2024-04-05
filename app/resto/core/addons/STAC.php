@@ -1384,7 +1384,7 @@ class STAC extends RestoAddOn
         $this->description = 'Search on ' . $title;
 
         try {
-            $results = $this->context->dbDriver->pQuery('SELECT value, description FROM ' . $this->context->dbDriver->targetSchema . '.facet WHERE normalize(id)=normalize($1)', array($facetId));
+            $results = $this->context->dbDriver->pQuery('SELECT value, description FROM ' . $this->context->dbDriver->targetSchema . '.facet WHERE public.normalize(id)=public.normalize($1)', array($facetId));
             if (!$results) {
                 throw new Exception();
             }

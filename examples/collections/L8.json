@@ -1,5 +1,8 @@
 {
     "id": "L8",
+    "aliases":[
+        "Landsat8"
+    ],
     "version": "1.0",
     "model": "OpticalModel",
     "rights": {

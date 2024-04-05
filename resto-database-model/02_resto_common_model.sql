@@ -294,8 +294,8 @@ CREATE INDEX IF NOT EXISTS idx_userid_right ON __DATABASE_COMMON_SCHEMA__.right 
 CREATE INDEX IF NOT EXISTS idx_groupid_right ON __DATABASE_COMMON_SCHEMA__.right (groupid);
 
 -- [TABLE __DATABASE_COMMON_SCHEMA__.group]
-CREATE UNIQUE INDEX IF NOT EXISTS idx_uname_group ON __DATABASE_COMMON_SCHEMA__.group (normalize(name));
-CREATE INDEX IF NOT EXISTS idx_name_group ON __DATABASE_COMMON_SCHEMA__.group USING GIN (normalize(name) gin_trgm_ops);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_uname_group ON __DATABASE_COMMON_SCHEMA__.group (public.normalize(name));
+CREATE INDEX IF NOT EXISTS idx_name_group ON __DATABASE_COMMON_SCHEMA__.group USING GIN (public.normalize(name) gin_trgm_ops);
 
 -- [TABLE __DATABASE_COMMON_SCHEMA__.log]
 CREATE INDEX IF NOT EXISTS idx_userid_log ON __DATABASE_COMMON_SCHEMA__.log (userid);
