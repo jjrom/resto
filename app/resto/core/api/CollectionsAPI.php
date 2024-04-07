@@ -363,9 +363,7 @@ class CollectionsAPI
      */
     public function createCollection($params, $body)
     {
-        /*
-         * Only a user with 'create' rights can POST a collection
-         */
+        
         if (!$this->user->hasRightsTo(RestoUser::CREATE_COLLECTION)) {
             RestoLogUtil::httpError(403);
         }
@@ -446,12 +444,8 @@ class CollectionsAPI
      */
     public function updateCollection($params, $body)
     {
-        $collection = $this->context->keeper->getRestoCollection($params['collectionId'], $this->user);
-        $collection->load();
+        $collection = $this->context->keeper->getRestoCollection($params['collectionId'], $this->user)->load();
         
-        /*
-         * Only owner of the collection can update it
-         */
         if (! $this->user->hasRightsTo(RestoUser::UPDATE_COLLECTION, array('collection' => $collection))) {
             RestoLogUtil::httpError(403);
         }
@@ -533,9 +527,6 @@ class CollectionsAPI
     {
         $collection = $this->context->keeper->getRestoCollection($params['collectionId'], $this->user)->load();
        
-        /*
-         * Only owner of a collection can delete it
-         */
         if (!$this->user->hasRightsTo(RestoUser::DELETE_COLLECTION, array('collection' => $collection))) {
             RestoLogUtil::httpError(403);
         }
@@ -681,8 +672,7 @@ class CollectionsAPI
         /*
          * Load collection
          */
-        $collection = $this->context->keeper->getRestoCollection($params['collectionId'], $this->user);
-        $collection->load();
+        $collection = $this->context->keeper->getRestoCollection($params['collectionId'], $this->user)->load();
         
         /*
          * Only a user with 'update' rights on collection can POST feature

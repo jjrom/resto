@@ -158,9 +158,10 @@ class RightsFunctions
             'updateCollection' => true,
             'deleteAnyCollection' => false,
             'updateAnyCollection' => false,
-            'createFeature' => false,
+            'createFeature' => true,
             'updateFeature' => true,
             'deleteFeature' => true,
+            'createAnyFeature' => false,
             'deleteAnyFeature' => false,
             'updateAnyFeature' => false,
             'downloadFeature' => false
@@ -180,7 +181,8 @@ class RightsFunctions
                 }
             }
         }
-        print_r($merged);
+
+        return $merged;
 
     }
 

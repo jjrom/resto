@@ -24,6 +24,7 @@
  */
 class RestoUser
 {
+
     const CREATE_COLLECTION = 'createCollection';
     const DELETE_COLLECTION = 'deleteCollection';
     const UPDATE_COLLECTION = 'updateCollection';
@@ -35,6 +36,7 @@ class RestoUser
     const DELETE_FEATURE = 'deleteFeature';
     const UPDATE_FEATURE = 'updateFeature';
     
+    const CREATE_ANY_FEATURE = 'createAnyFeature';
     const DELETE_ANY_FEATURE = 'deleteAnyFeature';
     const UPDATE_ANY_FEATURE = 'updateAnyFeature';
     
@@ -226,18 +228,22 @@ class RestoUser
     /**
      * User rights are :
      * 
-     *  - createCollection : create a collection
-     *  - deleteCollection : delete a collection owned by user
-     *  - updateCollection : update a collection owned by user
+     *  - createCollection      : create a collection
+     *  - deleteCollection      : delete a collection owned by user
+     *  - updateCollection      : update a collection owned by user
      *
-     *  - deleteAnyCollection : delete a collection owned by user
-     *  - updateAnyCollection : update a collection owned by user
+     *  - deleteAnyCollection   : delete any collection i.e. including not owned by user
+     *  - updateAnyCollection   : update any collection i.e. including not owned by user
      * 
-     *  - createFeature
-     *  - updateFeature
-     *  - deleteFeature
+     *  - createFeature         : create a feature in a collection owned by user
+     *  - deleteFeature         : delete a feature owned by user
+     *  - updateFeature         : update a feature owned by user
      * 
-     *  - downloadFeature
+     *  - createAnyFeature      : create a feature in any collection
+     *  - deleteAnyFeature      : delete any feature i.e. including not owned by user
+     *  - updateAnyFeature      : update any feature i.e. including not owned by user
+     *  
+     *  - downloadFeature       : download a feature [NOT USED]
      *
      * @param string $action
      * @param array $params
@@ -246,23 +252,11 @@ class RestoUser
     public function hasRightsTo($action, $params = array())
     {
 
-        $this->getRights();
-        /*
-        switch ($action) {
-            case RestoUser::CREATE_COLLECTION:
-            case RestoUser::VISUALIZE:
-                return $this->hasDownloadOrVisualizeRights($action, $params['collectionId'] ?? null, $params['featureId'] ?? null);
-            case RestoUser::CREATE:
-                return $this->hasCreateRights();
-            case RestoUser::UPDATE:
-                if (isset($params['collection'])) {
-                    return $this->hasUpdateRights($params['collection']);
-                }
-                // no break
-            default:
-                break;
-        }*/
-        return false;
+        $rights = $this->getRights();
+
+        switch ($action) {}
+
+
     }
 
     /**

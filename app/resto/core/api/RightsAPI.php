@@ -36,9 +36,10 @@ class RightsAPI
      *    "updateCollection": true,
      *    "deleteAnyCollection": false,
      *    "updateAnyCollection": false,
-     *    "createFeature": false,
+     *    "createFeature": true,
      *    "updateFeature": true,
      *    "deleteFeature": true,
+     *    "createAnyFeature": false,
      *    "deleteAnyFeature": false,
      *    "updateAnyFeature": false,
      *    "downloadFeature": false
@@ -196,9 +197,12 @@ class RightsAPI
      *                      "updateCollection": true,
      *                      "deleteAnyCollection": false,
      *                      "updateAnyCollection": false,
-     *                      "createFeature": false,
+     *                      "createFeature": true,
      *                      "updateFeature": true,
      *                      "deleteFeature": true,
+     *                      "createAnyFeature": false,
+     *                      "deleteAnyFeature": false,
+     *                      "updateAnyFeature": false,
      *                      "downloadFeature": false
      *                  }
      *              }
@@ -292,9 +296,10 @@ class RightsAPI
      *                      "updateCollection": true,
      *                      "deleteAnyCollection": false,
      *                      "updateAnyCollection": false,
-     *                      "createFeature": false,
+     *                      "createFeature": true,
      *                      "updateFeature": true,
      *                      "deleteFeature": true,
+     *                      "createAnyFeature": false,
      *                      "deleteAnyFeature": false,
      *                      "updateAnyFeature": false,
      *                      "downloadFeature": false

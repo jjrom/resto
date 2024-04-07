@@ -257,7 +257,7 @@ INSERT INTO __DATABASE_COMMON_SCHEMA__.group (id, name, description, created) VA
 
 -- [TABLE __DATABASE_COMMON_SCHEMA__.right] admin rights
 INSERT INTO __DATABASE_COMMON_SCHEMA__.right (groupid, rights)
-VALUES (0, '{"createCollection":true, "deleteAnyCollection": true, "updateAnyCollection": true, "createFeature": true, "deleteAnyFeature": true, "updateAnyFeature": true, "downloadFeature": true}') 
+VALUES (0, '{"createCollection":true, "deleteAnyCollection": true, "updateAnyCollection": true, "createAnyFeature": true, "deleteAnyFeature": true, "updateAnyFeature": true, "downloadFeature": true}') 
 ON CONFLICT(groupid) DO NOTHING;
 
 -- ------------------------- INDEXES ----------------------------
