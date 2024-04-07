@@ -24,10 +24,21 @@
  */
 class RestoUser
 {
-    const CREATE = 'create';
-    const DOWNLOAD = 'download';
-    const UPDATE = 'update';
-    const VISUALIZE = 'visualize';
+    const CREATE_COLLECTION = 'createCollection';
+    const DELETE_COLLECTION = 'deleteCollection';
+    const UPDATE_COLLECTION = 'updateCollection';
+    
+    const DELETE_ANY_COLLECTION = 'deleteAnyCollection';
+    const UPDATE_ANY_COLLECTION = 'updateAnyCollection';
+    
+    const CREATE_FEATURE = 'createFeature';
+    const DELETE_FEATURE = 'deleteFeature';
+    const UPDATE_FEATURE = 'updateFeature';
+    
+    const DELETE_ANY_FEATURE = 'deleteAnyFeature';
+    const UPDATE_ANY_FEATURE = 'updateAnyFeature';
+    
+    const DOWNLOAD_FEATURE = 'downloadFeature';
 
     /**
      * User profile
@@ -145,15 +156,6 @@ class RestoUser
     private $groups;
 
     /*
-     * Fallback rights if no collection is found
-     */
-    private $fallbackRights = array(
-        'download' => 0,
-        'visualize' => 0,
-        'create' => 0
-    );
-
-    /*
      * Unregistered profile
      */
     private $unregistered = array(
@@ -222,11 +224,20 @@ class RestoUser
     }
 
     /**
-     * Do user has rights to :
-     *   - 'download' feature,
-     *   - 'view' feature,
-     *   - 'create' collection,
-     *   - 'update' collection (i.e. add/delete feature and/or delete collection)
+     * User rights are :
+     * 
+     *  - createCollection : create a collection
+     *  - deleteCollection : delete a collection owned by user
+     *  - updateCollection : update a collection owned by user
+     *
+     *  - deleteAnyCollection : delete a collection owned by user
+     *  - updateAnyCollection : update a collection owned by user
+     * 
+     *  - createFeature
+     *  - updateFeature
+     *  - deleteFeature
+     * 
+     *  - downloadFeature
      *
      * @param string $action
      * @param array $params
@@ -234,8 +245,11 @@ class RestoUser
      */
     public function hasRightsTo($action, $params = array())
     {
+
+        $this->getRights();
+        /*
         switch ($action) {
-            case RestoUser::DOWNLOAD:
+            case RestoUser::CREATE_COLLECTION:
             case RestoUser::VISUALIZE:
                 return $this->hasDownloadOrVisualizeRights($action, $params['collectionId'] ?? null, $params['featureId'] ?? null);
             case RestoUser::CREATE:
@@ -247,7 +261,7 @@ class RestoUser
                 // no break
             default:
                 break;
-        }
+        }*/
         return false;
     }
 
@@ -282,41 +296,19 @@ class RestoUser
 
     /**
      * Returns rights
-     *
-     * @param string $collectionId
-     * @param string $featureId
      */
-    public function getRights($collectionId = null, $featureId = null)
+    public function getRights()
     {
+
         $this->loadProfile();
 
         /*
          * Compute rights if they are not already set
          */
-        if (!isset($this->rights)) {
-            $this->rights = (new RightsFunctions($this->context->dbDriver))->getRightsForUser($this, $this->context->dbDriver->targetSchema, null, null);
+        if ( !isset($this->rights) ) {
+            $this->rights = (new RightsFunctions($this->context->dbDriver))->getRightsForUser($this);
         }
 
-        /*
-         * Return specific rights for feature
-         */
-        if (isset($collectionId) && isset($featureId)) {
-            if (isset($this->rights['features'][$featureId])) {
-                return $this->rights['features'][$featureId];
-            }
-            return $this->getRights($collectionId);
-        }
-
-        /*
-         * Return specific rights for collection
-         */
-        if (isset($collectionId)) {
-            return $this->rights['collections'][$collectionId] ?? ($this->rights['collections']['*'] ?? $this->fallbackRights);
-        }
-
-        /*
-         * Return rights for all collections/features
-         */
         return $this->rights;
     }
 
@@ -346,38 +338,6 @@ class RestoUser
         return (new SocialFunctions($this->context->dbDriver))->getFollowings(array(
             'id' => $this->profile['id']
         ));
-    }
-
-    /**
-     * Set/update user rights
-     *
-     * @param array $rights
-     * @param string $collectionId
-     * @param string $featureId
-     * @throws Exception
-     */
-    public function setRights($rights, $collectionId = null, $featureId = null)
-    {
-        $this->loadProfile();
-        (new RightsFunctions($this->context->dbDriver))->storeOrUpdateRights($this->getRightsArray($rights, $collectionId, $featureId));
-        $this->rights = (new RightsFunctions($this->context->dbDriver))->getRightsForUser($this, $this->context->dbDriver->targetSchema, null, null);
-        return true;
-    }
-
-    /**
-     * Remove user rights
-     *
-     * @param array $rights
-     * @param string $collectionId
-     * @param string $featureId
-     * @throws Exception
-     */
-    public function removeRights($rights, $collectionId = null, $featureId = null)
-    {
-        $this->loadProfile();
-        (new RightsFunctions($this->context->dbDriver))->removeRights($this->getRightsArray($rights, $collectionId, $featureId));
-        $this->rights = (new RightsFunctions($this->context->dbDriver))->getRightsForUser($this, $this->context->dbDriver->targetSchema, null, null);
-        return true;
     }
 
     /**

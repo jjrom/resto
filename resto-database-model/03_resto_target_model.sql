@@ -214,8 +214,8 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.feature (
     -- List of hashtags (without prefix # !)
     --
     -- Two kind of hashtags:
-    --   * hashtags without {Resto::TAG_SEPARATOR} hashtags *provided* by user from description
-    --   * hashtags with {Resto::TAG_SEPARATOR} hashtags *computed* by Tag add-on (depend on collection)
+    --   * hashtags without {RestoConstants::TAG_SEPARATOR} hashtags *provided* by user from description
+    --   * hashtags with {RestoConstants::TAG_SEPARATOR} hashtags *computed* by Tag add-on (depend on collection)
     hashtags            TEXT[],
 
     -- Original geometry as provided during feature insertion

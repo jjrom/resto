@@ -196,22 +196,6 @@ class CollectionsFunctions
              * Create new entry in collections osdescriptions tables
              */
             $this->storeCollectionDescription($collection);
-
-            /*
-             * Store default rights for collection
-             *
-             * [TODO] Should get userid from  input user ?
-             */
-            (new RightsFunctions($this->dbDriver))->storeOrUpdateRights(
-                array(
-                'right' => $rights,
-                'id' => null,
-                'groupid' => RestoConstants::GROUP_DEFAULT_ID,
-                'collectionId' => $collection->id,
-                'featureId' => null,
-                'target' => $this->dbDriver->targetSchema
-                )
-            );
            
             /*
              * Close transaction

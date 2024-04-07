@@ -229,27 +229,6 @@ class UsersAPI
     }
 
     /**
-     *  Get user rights
-     *
-     *  [TODO] - Write API
-     */
-    public function getUserRights($params)
-    {
-        RestoUtil::checkUser($this->user, $params['userid']);
-        $result = array(
-            'id' => $this->user->profile['id']
-        );
-        if (isset($params['collectionId'])) {
-            $result['collection'] = $params['collectionId'];
-        }
-        if (isset($params['featureId'])) {
-            $result['feature'] = $params['featureId'];
-        }
-        $result['rights'] = $this->user->getRights($params['collectionId'] ?? null, $params['featureId'] ?? null);
-        return $result;
-    }
-
-    /**
      * Create user
      *
      * @OA\Post(

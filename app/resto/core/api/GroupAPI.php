@@ -18,13 +18,11 @@
 /**
  * Groups API
  */
-class Group extends RestoAddOn
+class GroupAPI
 {
 
-    /**
-     * Add-on version
-     */
-    public $version = '1.0.0';
+    private $context;
+    private $user;
 
     /**
      *
@@ -65,7 +63,8 @@ class Group extends RestoAddOn
      */
     public function __construct($context, $user)
     {
-        parent::__construct($context, $user);
+        $this->context = $context;
+        $this->user = $user;
     }
 
     /**
@@ -428,7 +427,7 @@ class Group extends RestoAddOn
      */
     private function checkGroupId($groupid)
     {
-        if (! ctype_digit($groupid) || intval($groupid) >= Resto::INT_MAX_VALUE) {
+        if (! ctype_digit($groupid) || intval($groupid) >= RestoConstants::INT_MAX_VALUE) {
             RestoLogUtil::httpError(400, 'Invalid group identifier');
         }
     }

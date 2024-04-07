@@ -173,23 +173,8 @@ CREATE TABLE IF NOT EXISTS __DATABASE_COMMON_SCHEMA__.right (
     -- Reference to __DATABASE_COMMON_SCHEMA__.group.groupid
     groupid             BIGINT,
 
-    -- Reference the schema name the collection belongs to
-    target              TEXT,
-
-    -- Reference __DATABASE_TARGET_SCHEMA__.collection.id
-    collection          TEXT,
-
-    -- Reference __DATABASE_TARGET_SCHEMA__.feature.id
-    featureid           UUID,
-
-    -- Has right to download = 1. Otherwise 0
-    download            INTEGER DEFAULT 0,
-
-    -- Has right to visualize = 1. Otherwise 0
-    visualize           INTEGER DEFAULT 0,
-
-    -- Has right to create a collection = 1. Otherwise 0
-    createcollection    INTEGER DEFAULT 0
+    -- rights
+    rights              JSON
 
 );
 
@@ -266,18 +251,14 @@ CREATE TABLE IF NOT EXISTS __DATABASE_COMMON_SCHEMA__.log (
 
 -- ------------------------- INSERT ----------------------------
 
--- [TABLE __DATABASE_COMMON_SCHEMA__.right] admin rights
-INSERT INTO __DATABASE_COMMON_SCHEMA__.right
-    (groupid, target, collection, download, visualize, createcollection)
-SELECT 0,'*','*',1,1,1
-WHERE
-    NOT EXISTS (
-        SELECT groupid, target, collection FROM __DATABASE_COMMON_SCHEMA__.right WHERE groupid = 0 AND target = '*' AND collection = '*'
-    );
-
 -- [TABLE __DATABASE_COMMON_SCHEMA__.group] default groups
 INSERT INTO __DATABASE_COMMON_SCHEMA__.group (id, name, description, created) VALUES (0, 'admin', 'Special group for admin', now()) ON CONFLICT (id) DO NOTHING;
 INSERT INTO __DATABASE_COMMON_SCHEMA__.group (id, name, description, created) VALUES (100, 'default', 'Default group', now()) ON CONFLICT (id) DO NOTHING;
+
+-- [TABLE __DATABASE_COMMON_SCHEMA__.right] admin rights
+INSERT INTO __DATABASE_COMMON_SCHEMA__.right (groupid, rights)
+VALUES (0, '{"createCollection":true, "deleteAnyCollection": true, "updateAnyCollection": true, "createFeature": true, "deleteAnyFeature": true, "updateAnyFeature": true, "downloadFeature": true}') 
+ON CONFLICT(groupid) DO NOTHING;
 
 -- ------------------------- INDEXES ----------------------------
 
@@ -290,8 +271,8 @@ CREATE INDEX IF NOT EXISTS idx_userid_follower ON __DATABASE_COMMON_SCHEMA__.fol
 CREATE INDEX IF NOT EXISTS idx_followerid_follower ON __DATABASE_COMMON_SCHEMA__.follower (followerid);
 
 -- [TABLE __DATABASE_COMMON_SCHEMA__.right]
-CREATE INDEX IF NOT EXISTS idx_userid_right ON __DATABASE_COMMON_SCHEMA__.right (userid);
-CREATE INDEX IF NOT EXISTS idx_groupid_right ON __DATABASE_COMMON_SCHEMA__.right (groupid);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_userid_right ON __DATABASE_COMMON_SCHEMA__.right (userid);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_groupid_right ON __DATABASE_COMMON_SCHEMA__.right (groupid);
 
 -- [TABLE __DATABASE_COMMON_SCHEMA__.group]
 CREATE UNIQUE INDEX IF NOT EXISTS idx_uname_group ON __DATABASE_COMMON_SCHEMA__.group (public.normalize(name));

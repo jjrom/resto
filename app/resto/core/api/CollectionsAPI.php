@@ -366,7 +366,7 @@ class CollectionsAPI
         /*
          * Only a user with 'create' rights can POST a collection
          */
-        if (!$this->user->hasRightsTo(RestoUser::CREATE)) {
+        if (!$this->user->hasRightsTo(RestoUser::CREATE_COLLECTION)) {
             RestoLogUtil::httpError(403);
         }
 
@@ -452,7 +452,7 @@ class CollectionsAPI
         /*
          * Only owner of the collection can update it
          */
-        if (! $this->user->hasRightsTo(RestoUser::UPDATE, array('collection' => $collection))) {
+        if (! $this->user->hasRightsTo(RestoUser::UPDATE_COLLECTION, array('collection' => $collection))) {
             RestoLogUtil::httpError(403);
         }
 
@@ -536,7 +536,7 @@ class CollectionsAPI
         /*
          * Only owner of a collection can delete it
          */
-        if (!$this->user->hasRightsTo(RestoUser::UPDATE, array('collection' => $collection))) {
+        if (!$this->user->hasRightsTo(RestoUser::DELETE_COLLECTION, array('collection' => $collection))) {
             RestoLogUtil::httpError(403);
         }
 
@@ -687,7 +687,7 @@ class CollectionsAPI
         /*
          * Only a user with 'update' rights on collection can POST feature
          */
-        if (!$this->user->hasRightsTo(RestoUser::UPDATE, array('collection' => $collection))) {
+        if (!$this->user->hasRightsTo(RestoUser::CREATE_FEATURE, array('collection' => $collection))) {
             RestoLogUtil::httpError(403);
         }
         

@@ -46,22 +46,22 @@ class GroupsFunctions
         
         // Return group by id
         if (isset($params['id'])) {
-            $where[] = 'id=' . pg_escape_string($params['id']);
+            $where[] = 'id=' . pg_escape_string($this->dbDriver->getConnection(), $params['id']);
         }
 
         // Return all groups in
         if (isset($params['in'])) {
-            $where[] = 'id IN (' . pg_escape_string(join(',', $params['in'])) . ')';
+            $where[] = 'id IN (' . pg_escape_string($this->dbDriver->getConnection(), join(',', $params['in'])) . ')';
         }
 
         // Search by name
         if (isset($params['q'])) {
-            $where[] = 'public.normalize(name) LIKE public.normalize(\'%' . pg_escape_string($params['q']) . '%\')';
+            $where[] = 'public.normalize(name) LIKE public.normalize(\'%' . pg_escape_string($this->dbDriver->getConnection(), $params['q']) . '%\')';
         }
 
         // Return groups by userid
         if (isset($params['userid'])) {
-            $where[] = 'id IN (SELECT DISTINCT groupid FROM ' . $this->dbDriver->commonSchema . '.group_member WHERE userid=' . pg_escape_string($params['userid']) . ')';
+            $where[] = 'id IN (SELECT DISTINCT groupid FROM ' . $this->dbDriver->commonSchema . '.group_member WHERE userid=' . pg_escape_string($this->dbDriver->getConnection(), $params['userid']) . ')';
         }
         
         return $this->formatGroups($this->dbDriver->fetch($this->dbDriver->query('SELECT id, name, description, owner, to_iso8601(created) as created FROM ' . $this->dbDriver->commonSchema . '.group' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : '') . ' ORDER BY id DESC')), $params['id'] ?? null);

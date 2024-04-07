@@ -35,359 +35,153 @@ class RightsFunctions
     }
 
     /**
-     * Return rights for groups
-     *
-     * @param array $groups
-     * @param string $target
-     * @param string $collectionId
-     * @param string $featureId
-     * @param string $target
-     *
-     * @return array
-     * @throws exception
-     */
-    public function getRightsForGroups($groups, $target, $collectionId, $featureId, $merge = true)
-    {
-        $filter = $this->getFilterFromTarget($target, $collectionId, $featureId);
-        $query = 'SELECT groupid, target, collection, featureid, download, visualize, createcollection as create FROM ' . $this->dbDriver->commonSchema . '.right WHERE groupid IN (' . join(',', $groups) . ')' . (isset($filter) ? ' AND ' . $filter : '');
-        return $this->getRightsFromQuery($query, $merge);
-    }
-
-    /**
-     * Return rights for user
+     * Return rights for user i.e. aggregation of user rights including its group rights
      *
      * @param RestoUser $user
-     * @param string $target
-     * @param string $collectionId
-     * @param string $featureId
+     * @param boolean $noGroups
      *
      * @return array
      * @throws exception
      */
-    public function getRightsForUser($user, $target, $collectionId, $featureId)
+    public function getRightsForUser($user, $noGroups = false)
     {
+
         $userRights = array();
 
         /*
          * Retrieve rights for user
          */
-        if (isset($user->profile['id'])) {
-            $filter = $this->getFilterFromTarget($target, $collectionId, $featureId);
-            $query = 'SELECT userid, target, collection, featureid, download, visualize, createcollection as create FROM ' . $this->dbDriver->commonSchema . '.right WHERE userid=' . pg_escape_string($this->dbDriver->getConnection(), $user->profile['id']) . (isset($filter) ? ' AND ' . $filter : '');
-            $userRights = $this->getRightsFromQuery($query, false);
+        if ( isset($user->profile['id']) ) {
+            $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT rights FROM ' . $this->dbDriver->commonSchema . '.right WHERE userid=$1', array(
+                $user->profile['id']
+            )));
+            if ( isset($results) && count($results) === 1 ) {
+                $userRights = json_decode($results[0]['rights'], true);
+            }
         }
-
+        
         /*
-         * Retrieve rights for user groups
+         * Merge rights from user and from user's groups unless specified
          */
-        $groupsRights = $this->getRightsForGroups($user->getGroupIds(), $target, $collectionId, $featureId, false);
+        return $noGroups ? $this->$userRights : $this->mergeRights(array_merge(array($userRights), $this->getRightsForGroups($user->getGroupIds())));
+    }
 
-        /*
-         * Merge rights from user and from user's groups
-         */
-        return $this->mergeRights(array_merge($userRights, $groupsRights));
+    /**
+     * Return rights for a given group
+     *
+     * @param string $groupId
+     *
+     * @return array
+     * @throws exception
+     */
+    public function getRightsForGroup($groupId)
+    {
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT rights FROM ' . $this->dbDriver->commonSchema . '.right WHERE groupid=$1', array(
+            $groupId
+        )));
+        return isset($results) && count($results) == 1 ? json_decode($results[0]['rights'], true) : array();
     }
 
     /**
      * Store or update rights to database
      *
-     *     array(
-     *          'visualize' => // 0 or 1
-     *          'download' => // 0 or 1
-     *          'create' => // 0 or 1
-     *     )
-     *
-     * @param array params
+     * @param string $targetCol
+     * @param string $targetValue
+     * @param array rights
      *
      * @throws Exception
      */
-    public function storeOrUpdateRights($params)
+    public function storeOrUpdateRights($targetCol, $targetValue, $rights)
     {
-        $rights = $params['rights'] ?? array();
-        $userid = $params['id'] ?? null;
-        $groupid = $params['groupid'] ?? null;
-        $collectionId = $params['collectionId'] ?? null;
-        $featureId = $params['featureId'] ?? null;
-        $target = $params['target'] ?? null;
 
-        /*
-         * Store or update
-         */
-        if ($this->rightExists($userid, $groupid, $target, $collectionId, $featureId)) {
-            return $this->updateRights($rights, $userid, $groupid, $target, $collectionId, $featureId);
-        }
+        $query = join(' ', array(
+            'INSERT INTO ' . $this->dbDriver->commonSchema . '.right (' . $targetCol . ', rights)',
+            'VALUES ($1, $2)',
+            'ON CONFLICT (' . $targetCol . ')',
+            'DO UPDATE SET rights = (SELECT json_object_agg(key, CASE WHEN json_typeof(existing) = \'object\' THEN json_set(existing, key, value::json) ELSE json_set(\'{"\' || key || \'":\' || value || \'}\'::json, key, value::json) END) AS merged_rights',
+            'FROM json_each_text(rights) AS rights_entries',
+            'JOIN json_each_text(EXCLUDED.rights) AS new_entries ON rights_entries.key = new_entries.key',
+            'RETURNING rights'
+        ));
 
-        return $this->storeRights($rights, $userid, $groupid, $target, $collectionId, $featureId);
-    }
-
-    /**
-     * Delete rights from database
-     *
-     * @param array params
-     *
-     * @throws Exception
-     */
-    public function removeRights($params)
-    {
         try {
-            $filterOwner = $this->getFilterFromOwner($params['id'] ?? null, $params['groupid'] ?? null);
-            if (!isset($filterOwner)) {
-                throw new Exception();
-            }
-            $filterTarget = $this->getFilterFromTarget($params['target'] ?? null, $params['collectionId'] ?? null, $params['featureId'] ?? null);
-            $result = pg_query($this->dbDriver->getConnection(), 'DELETE from ' . $this->dbDriver->commonSchema . '.right WHERE ' . (isset($filterTarget) ? ' AND ' . $filterTarget : ''));
-            if (!$result) {
+            $result = pg_fetch_assoc(pg_query_params($this->dbDriver->getConnection(), $query, array(
+                $targetValue,
+                $rights
+            )));
+            if ( !$result ) {
                 throw new Exception();
             }
         } catch (Exception $e) {
-            RestoLogUtil::httpError(400);
+            RestoLogUtil::httpError(500, 'Cannot set rights');
         }
+
+        return $result[0]['rights'];
+
     }
 
     /**
-     * Return rights for user/group classified by collections/features
-     * (if merge is set to true)
+     * Return rights for groups
      *
-     * @param string $query
-     * @param boolean $merge
+     * @param array $groupIds
      *
      * @return array
      * @throws exception
      */
-    private function getRightsFromQuery($query, $merge)
+    private function getRightsForGroups($groupIds)
     {
-        $results = $this->dbDriver->fetch($this->dbDriver->query($query));
-        return $merge ? $this->mergeRights($results) : $results;
-    }
-
-    /**
-     * Merge right
-     *
-     * @param array $newRight
-     * @param array $existingRight
-     */
-    private function mergeRight($newRight, $existingRight)
-    {
-        if (isset($existingRight)) {
-            return array(
-                'download' => max((integer) $newRight['download'], $existingRight['download']),
-                'visualize' => max((integer) $newRight['visualize'], $existingRight['visualize']),
-                'create' => max((integer) $newRight['create'], $existingRight['create'])
-            );
+        $groupRights = array();
+        $results = $this->dbDriver->fetch($this->dbDriver->query('SELECT rights FROM ' . $this->dbDriver->commonSchema . '.right WHERE groupid IN (' . pg_escape_string($this->dbDriver->getConnection(), join(',', $groupIds)) . ')'));
+        if ( isset($results) && count($results) >= 1 ) {
+            for ($i = count($results); $i--;) {
+                $groupRights[] = json_decode($results[$i]['rights'], true);
+            }
         }
-        return array(
-            'download' => (integer) $newRight['download'],
-            'visualize' => (integer) $newRight['visualize'],
-            'create' => (integer) $newRight['create']
-        );
+        return $groupRights;
     }
 
     /**
-     * Merge simple rights array to an associative collections/features array
+     * Merge an array of rights to an aggregate right
      *
+     * Aggregation means that at least one true gives true. False in all other cases
+     * 
      * @param array $rights
      */
     private function mergeRights($rights)
     {
+
+        // Default rights allows only to delete/update things
+        // that belongs to user
         $merged = array(
-            'collections' => array(),
-            'features' => array()
+            'createCollection' => false,
+            'deleteCollection' => true,
+            'updateCollection' => true,
+            'deleteAnyCollection' => false,
+            'updateAnyCollection' => false,
+            'createFeature' => false,
+            'updateFeature' => true,
+            'deleteFeature' => true,
+            'deleteAnyFeature' => false,
+            'updateAnyFeature' => false,
+            'downloadFeature' => false
         );
 
+        // [IMPORTANT] Assume only boolean otherwise it will be converted to anyway
         for ($i = count($rights); $i--;) {
-            if (isset($rights[$i]['collection'])) {
-                $merged['collections'][$rights[$i]['collection']] = $this->mergeRight($rights[$i], $merged['collections'][$rights[$i]['collection']] ?? null);
-            } else {
-                $merged['features'][$rights[$i]['featureid']] = $this->mergeRight($rights[$i], $merged['features'][$rights[$i]['featureid']] ?? null);
-            }
-        }
+            foreach ($rights[$i] as $key => $value) {
 
-        /*
-         * Update collections with '*' rights
-         */
-        if (isset($merged['collections']['*'])) {
-            foreach (array_keys($merged['collections']) as $collectionId) {
-                if ($collectionId !== '*') {
-                    $merged['collections'][$collectionId] = $this->mergeRight($merged['collections'][$collectionId], $merged['collections']['*']);
+                if (array_key_exists($key, $merged)) {
+                    if ( $value ) {
+                        $merged[$key] = true;
+                    }
+                }
+                else {
+                    $merged[$key] = $value ?? false;
                 }
             }
         }
-        return $merged;
+        print_r($merged);
+
     }
 
-    /**
-     * Store rights to database
-     *
-     * @param array  $rights
-     * @param string $userid
-     * @param string $groupid
-     * @param string $target
-     * @param string $collectionId
-     * @param string $featureId
-     *
-     * @throws Exception
-     */
-    private function storeRights($rights, $userid, $groupid, $target, $collectionId, $featureId)
-    {
-        if (!isset($userid) && !isset($groupid)) {
-            RestoLogUtil::httpError(400, 'Missing owner');
-        }
-        if (!isset($collectionId) && !isset($featureId)) {
-            RestoLogUtil::httpError(400, 'Missing collectionId or featureId');
-        }
-
-        $values = array(
-            'visualize' => isset($rights['visualize']) ? $this->integerOrZero($rights['visualize']) : 0,
-            'download' => isset($rights['download']) ? $this->integerOrZero($rights['download']) : 0,
-            'createcollection' => isset($rights['create']) ? $this->integerOrZero($rights['create']) : 0,
-            'userid' => isset($userid) ? pg_escape_string($this->dbDriver->getConnection(), $userid) : 'NULL',
-            'groupid' => isset($groupid) ? pg_escape_string($this->dbDriver->getConnection(), $groupid) : 'NULL',
-            'collection' => isset($collectionId) ? '\'' . pg_escape_string($this->dbDriver->getConnection(), $collectionId) . '\'' : 'NULL',
-            'featureId' => isset($featureId) ? '\'' . pg_escape_string($this->dbDriver->getConnection(), $featureId) . '\'' : 'NULL',
-            'target' => isset($target) ? '\'' . pg_escape_string($this->dbDriver->getConnection(), $target) . '\'' : 'NULL'
-        );
-
-        try {
-            $result = pg_query($this->dbDriver->getConnection(), 'INSERT INTO ' . $this->dbDriver->commonSchema . '.right (' . join(',', array_keys($values)) . ') VALUES (' . join(',', array_values($values)) . ')');
-            if (!$result) {
-                throw new Exception();
-            }
-        } catch (Exception $e) {
-            RestoLogUtil::httpError(500, 'Cannot store right');
-        }
-    }
-
-    /**
-     * Update rights to database
-     *
-     * @param string $userid
-     * @param string $groupid
-     * @param string $target
-     * @param string $collectionId
-     * @param string $featureId
-     *
-     * @throws Exception
-     */
-    private function updateRights($rights, $userid, $groupid, $target, $collectionId, $featureId)
-    {
-        if (!isset($userid) && !isset($groupid)) {
-            RestoLogUtil::httpError(400, 'Missing owner');
-        }
-        if (!isset($collectionId) && !isset($featureId)) {
-            RestoLogUtil::httpError(400, 'Missing target');
-        }
-
-        $where = array();
-
-        if (isset($target)) {
-            $where[] = 'target IN (\'' . pg_escape_string($this->dbDriver->getConnection(), $this->dbDriver->targetSchema) . '\', \'*\')';
-        }
-        
-        // Owner
-        $where[] = isset($userid) ? 'userid=' . pg_escape_string($this->dbDriver->getConnection(), $userid) : 'groupid=' . pg_escape_string($this->dbDriver->getConnection(), $groupid);
-
-        // Target
-        $where[] = isset($collectionId) ? 'collection=\'' . pg_escape_string($this->dbDriver->getConnection(), $collectionId) . '\'' : 'featureid=\'' . pg_escape_string($this->dbDriver->getConnection(), $featureId) . '\'';
-
-        $toBeSet = array();
-        foreach (array_values(array('visualize', 'download', 'create')) as $right) {
-            if (isset($rights[$right])) {
-                $toBeSet[] = ($right === 'create' ? 'createcollection' : $right) . "=" . $this->integerOrZero($rights[$right]);
-            }
-        }
-
-        if (count($toBeSet) > 0) {
-            $this->dbDriver->query('UPDATE ' . $this->dbDriver->commonSchema . '.right SET ' . join(',', $toBeSet) . ' WHERE ' . join(' AND ', $where));
-        }
-        return true;
-    }
-
-    /**
-     * Return $value or NULL
-     * @param string $value
-     */
-    private function integerOrZero($value)
-    {
-        return isset($value) && is_int($value) && ($value === 0 || $value === 1) ? $value : 0;
-    }
-
-    /**
-     * Check if right exists in database
-     *
-     * @param string $userid
-     * @param string $groupid
-     * @param string $target
-     * @param string $collectionId
-     * @param string $featureId
-     */
-    private function rightExists($userid, $groupid, $target, $collectionId, $featureId)
-    {
-        if (!isset($userid) && !isset($groupid)) {
-            return false;
-        }
-        if (!isset($collectionId) && !isset($featureId)) {
-            return false;
-        }
-
-        $where = array();
-
-        if (isset($target)) {
-            $where[] = 'target IN (\'' . pg_escape_string($this->dbDriver->getConnection(), $target) . '\', \'*\')';
-        }
-        
-
-        // Owner
-        $where[] = isset($userid) ? 'userid=' . pg_escape_string($this->dbDriver->getConnection(), $userid) : 'groupid=' . pg_escape_string($this->dbDriver->getConnection(), $groupid);
-
-        // Target
-        $where[] = isset($collectionId) ? 'collection=\'' . pg_escape_string($this->dbDriver->getConnection(), $collectionId) . '\'' : 'featureid=\'' . pg_escape_string($this->dbDriver->getConnection(), $featureId) . '\'';
-
-        $query = 'SELECT 1 from ' . $this->dbDriver->commonSchema . '.right WHERE ' . join(' AND ', $where);
-        $results = $this->dbDriver->fetch($this->dbDriver->query($query));
-        return !empty($results);
-    }
-
-    /**
-     * Return filter WHERE from target
-     *
-     * @param string $target
-     * @param string $collectionId
-     * @param string $featureId
-     */
-    private function getFilterFromTarget($target, $collectionId, $featureId)
-    {
-        if (!isset($collectionId) && !isset($featureId)) {
-            return null;
-        }
-
-        $where = array();
-        if (isset($target)) {
-            $where[] = 'target IN (\'' . pg_escape_string($this->dbDriver->targetSchema) . '\', \'*\')';
-        }
-        if (isset($collectionId)) {
-            $where[] = 'collection IN (\'' . pg_escape_string($this->dbDriver->getConnection(), $collectionId) . '\', \'*\')';
-        } elseif (isset($featureId)) {
-            $where[] = 'featureid IN (\'' . pg_escape_string($this->dbDriver->getConnection(), $featureId) . '\', \'*\')';
-        }
-        return join(' AND ', $where);
-    }
-
-    /**
-     * Return filter WHERE from owner
-     *
-     * @param string $userid
-     * @param string $groupid
-     */
-    private function getFilterFromOwner($userid, $groupid)
-    {
-        if (!isset($userid) && !isset($groupid)) {
-            return null;
-        }
-        if (isset($userid)) {
-            return 'userid='. pg_escape_string($this->dbDriver->getConnection(), $userid);
-        } elseif (isset($groupid)) {
-            return 'groupid=' . pg_escape_string($this->dbDriver->getConnection(), $groupid);
-        }
-        return null;
-    }
 }

@@ -44,7 +44,6 @@ class RestoRouter
     const ROUTE_TO_STAC_SEARCH = '/search';
     const ROUTE_TO_USERS = '/users';
     const ROUTE_TO_USER = RestoRouter::ROUTE_TO_USERS . '/{userid}';
-    const ROUTE_TO_USER_RIGHTS = RestoRouter::ROUTE_TO_USERS . '/rights';
     
     /*
      * Default routes
@@ -65,17 +64,20 @@ class RestoRouter
         array('GET',    RestoRouter::ROUTE_TO_USER, true, 'UsersAPI::getUserProfile'),                                                              // Show user profile
         array('PUT',    RestoRouter::ROUTE_TO_USER, true, 'UsersAPI::updateUserProfile'),                                                           // Update :userid profile
         array('GET',    RestoRouter::ROUTE_TO_USER . '/logs', true, 'UsersAPI::getUserLogs'),                                                       // Show user logs
-        array('GET',    RestoRouter::ROUTE_TO_USER_RIGHTS, true, 'UsersAPI::getUserRights'),                                                        // Show user rights
-        array('GET',    RestoRouter::ROUTE_TO_USER_RIGHTS . '/{collectionId}', true, 'UsersAPI::getUserRights'),                                    // Show user rights for :collectionId
-        array('GET',    RestoRouter::ROUTE_TO_USER_RIGHTS . '/{collectionId}/{featureId}', true, 'UsersAPI::getUserRights'),                        // Show user rights for :featureId
         
         // API for groups
-        array('GET'   , RestoRouter::ROUTE_TO_GROUPS, true, 'Group::getGroups'),                                                                    // List users profiles
-        array('GET'   , RestoRouter::ROUTE_TO_GROUPS . '/{id}', true, 'Group::getGroup'),                                                           // Get group
-        array('POST'  , RestoRouter::ROUTE_TO_GROUPS, true, 'Group::createGroup'),                                                                  // Create group
-        array('DELETE', RestoRouter::ROUTE_TO_GROUPS . '/{id}', true, 'Group::deleteGroup'),                                                        // Delete group
-        array('GET'   , RestoRouter::ROUTE_TO_USER . '/groups', true, 'Group::getUserGroups'),                                                      // Show user groups
+        array('GET'   , RestoRouter::ROUTE_TO_GROUPS, true, 'GroupAPI::getGroups'),                                                                 // List users profiles
+        array('GET'   , RestoRouter::ROUTE_TO_GROUPS . '/{id}', true, 'GroupAPI::getGroup'),                                                        // Get group
+        array('POST'  , RestoRouter::ROUTE_TO_GROUPS, true, 'GroupAPI::createGroup'),                                                               // Create group
+        array('DELETE', RestoRouter::ROUTE_TO_GROUPS . '/{id}', true, 'GroupAPI::deleteGroup'),                                                     // Delete group
+        array('GET'   , RestoRouter::ROUTE_TO_USER . '/groups', true, 'GroupAPI::getUserGroups'),                                                   // Show user groups
 
+        // API for rights
+        array('GET',    RestoRouter::ROUTE_TO_USER . '/rights', true, 'RightsAPI::getUserRights'),                                                   // Show user rights
+        array('GET',    RestoRouter::ROUTE_TO_GROUPS . '/{id}/rights', true, 'RightsAPI::getGroupRights'),                                           // Show group rights
+        array('POST'  , RestoRouter::ROUTE_TO_USER . '/rights', true, 'RightsAPI::setUserRights'),                                                   // Set user rights
+        array('POST'  , RestoRouter::ROUTE_TO_GROUPS . '/{id}/rights', true, 'RightsAPI::setGroupRights'),                                           // Set group rights
+        
         // API for collections
         array('GET',    RestoRouter::ROUTE_TO_COLLECTIONS, false, 'CollectionsAPI::getCollections'),                                                // List all collections
         array('POST',   RestoRouter::ROUTE_TO_COLLECTIONS, true, 'CollectionsAPI::createCollection'),                                               // Create collection
