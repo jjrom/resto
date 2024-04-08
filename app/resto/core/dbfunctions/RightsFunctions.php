@@ -95,19 +95,16 @@ class RightsFunctions
     {
 
         $query = join(' ', array(
-            'INSERT INTO ' . $this->dbDriver->commonSchema . '.right (' . $targetCol . ', rights)',
+            'INSERT INTO ' . $this->dbDriver->commonSchema . '.right as r (' . $targetCol . ', rights)',
             'VALUES ($1, $2)',
             'ON CONFLICT (' . $targetCol . ')',
-            'DO UPDATE SET rights = (SELECT json_object_agg(key, CASE WHEN json_typeof(existing) = \'object\' THEN json_set(existing, key, value::json) ELSE json_set(\'{"\' || key || \'":\' || value || \'}\'::json, key, value::json) END) AS merged_rights',
-            'FROM json_each_text(rights) AS rights_entries',
-            'JOIN json_each_text(EXCLUDED.rights) AS new_entries ON rights_entries.key = new_entries.key',
-            'RETURNING rights'
+            'DO UPDATE SET rights = COALESCE(r.rights::jsonb || $2::jsonb) RETURNING rights'
         ));
 
         try {
             $result = pg_fetch_assoc(pg_query_params($this->dbDriver->getConnection(), $query, array(
                 $targetValue,
-                $rights
+                json_encode($rights, JSON_UNESCAPED_SLASHES)
             )));
             if ( !$result ) {
                 throw new Exception();
@@ -116,7 +113,7 @@ class RightsFunctions
             RestoLogUtil::httpError(500, 'Cannot set rights');
         }
 
-        return $result[0]['rights'];
+        return json_decode($result['rights'], true);
 
     }
 

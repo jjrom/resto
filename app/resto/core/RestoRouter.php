@@ -71,6 +71,8 @@ class RestoRouter
         array('POST'  , RestoRouter::ROUTE_TO_GROUPS, true, 'GroupAPI::createGroup'),                                                               // Create group
         array('DELETE', RestoRouter::ROUTE_TO_GROUPS . '/{id}', true, 'GroupAPI::deleteGroup'),                                                     // Delete group
         array('GET'   , RestoRouter::ROUTE_TO_USER . '/groups', true, 'GroupAPI::getUserGroups'),                                                   // Show user groups
+        array('POST'  , RestoRouter::ROUTE_TO_GROUPS . '/{id}/users', true, 'GroupAPI::addUser'),                                                   // Add user to group
+        array('DELETE', RestoRouter::ROUTE_TO_GROUPS . '/{id}/users/{userid}', true, 'GroupAPI::deleteUser'),                                       // Delete user from group
 
         // API for rights
         array('GET',    RestoRouter::ROUTE_TO_USER . '/rights', true, 'RightsAPI::getUserRights'),                                                   // Show user rights

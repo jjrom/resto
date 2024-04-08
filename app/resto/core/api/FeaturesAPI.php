@@ -688,14 +688,8 @@ class FeaturesAPI
             RestoLogUtil::httpError(404);
         }
 
-        /*
-         * Only owner of a feature or admin can update it
-         */
-        $featureArray = $feature->toArray();
-        if (! isset($featureArray['properties']['owner']) || $featureArray['properties']['owner'] !== $this->user->profile['id']) {
-            if (! $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
-                RestoLogUtil::httpError(403);
-            }
+        if (!$this->user->hasRightsTo(RestoUser::UPDATE_FEATURE, array('feature' => $feature))) {
+            RestoLogUtil::httpError(403);
         }
 
         // Specifically set splitGeometry
@@ -811,11 +805,8 @@ class FeaturesAPI
             RestoLogUtil::httpError(404);
         }
 
-        // Only admin or owner can change feature properties
-        if (! isset($featureArray['properties']['owner']) || $featureArray['properties']['owner'] !== $this->user->profile['id']) {
-            if (! $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
-                RestoLogUtil::httpError(403);
-            }
+        if (!$this->user->hasRightsTo(RestoUser::UPDATE_FEATURE, array('feature' => $feature))) {
+            RestoLogUtil::httpError(403);
         }
         
         // A value key is mandatory
@@ -919,16 +910,10 @@ class FeaturesAPI
             RestoLogUtil::httpError(404);
         }
 
-        /*
-         * Only owner of a feature or admin can delete it
-         */
-        $featureArray = $feature->toArray();
-        if (!isset($featureArray['properties']['owner']) || $featureArray['properties']['owner'] !== $this->user->profile['id']) {
-            if (! $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
-                RestoLogUtil::httpError(403);
-            }
+        if (!$this->user->hasRightsTo(RestoUser::DELETE_FEATURE, array('feature' => $feature))) {
+            RestoLogUtil::httpError(403);
         }
-        
+
         // Result contains boolean for facetsDeleted
         $result = (new FeaturesFunctions($this->context->dbDriver))->removeFeature($feature);
 

@@ -152,11 +152,6 @@ class CollectionsFunctions
                 $collection->id
             ));
 
-            $this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->commonSchema . '.right WHERE collection=$1 and target=$2', array(
-                $collection->id,
-                $this->dbDriver->targetSchema
-            ));
-            
             $this->dbDriver->query('COMMIT');
 
             /*

@@ -340,6 +340,108 @@ class GroupAPI
 
     }
 
+    /**
+     *
+     * Add a user to group
+     *
+     * @OA\Post(
+     *      path="/groups/{id}/users",
+     *      summary="Add a user",
+     *      description="Add a user to a group",
+     *      tags={"Group"},
+     *      @OA\Response(
+     *          response="200",
+     *          description="User is added",
+     *          @OA\JsonContent(
+     *              @OA\Property(
+     *                  property="status",
+     *                  type="string",
+     *                  description="Status is *success*"
+     *              ),
+     *              @OA\Property(
+     *                  property="message",
+     *                  type="string",
+     *                  description="User added"
+     *              ),
+     *              example={
+     *                  "status": "success",
+     *                  "message": "User added"
+     *              }
+     *          )
+     *      ),
+     *      @OA\RequestBody(
+     *         description="User info",
+     *         required=true,
+     *         @OA\JsonContent(
+     *              required={"userid"},
+     *              @OA\Property(
+     *                  property="userid",
+     *                  type="string",
+     *                  description="User identifier"
+     *              ),
+     *              example={
+     *                  "userid": "100"
+     *              }
+     *          )
+     *      ),
+     *      security={
+     *          {"basicAuth":{}, "bearerAuth":{}, "queryAuth":{}}
+     *      }
+     * )
+     *
+     * @param array $params
+     * @param array $body
+     *
+     */
+    public function addUser($params, $body)
+    {
+
+        $group = (new GroupsFunctions($this->context->dbDriver))->getGroups(array('id' => $params['id']));
+
+        if ( !isset($body['userid']) ) {
+            RestoLogUtil::httpError(400, 'Mandatory userid property is missing in message body');
+        }
+
+        /*
+         * [SECURITY] Only user and admin can add user to group
+         */
+        $isAdmin = $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID);
+        if ( !$isAdmin ) {
+            if ( !isset($group['owner']) ) {
+                RestoLogUtil::httpError(403);
+            }
+            RestoUtil::checkUser($this->user, $group['owner']);
+        }
+
+        if ( (new GroupsFunctions($this->context->dbDriver))->addUserToGroup(array('id' => $params['id']), $body['userid']) ) {
+            return RestoLogUtil::success('User added to group');
+        }
+
+        
+    }
+
+    public function deleteUser($params)
+    {
+
+        $group = (new GroupsFunctions($this->context->dbDriver))->getGroups(array('id' => $params['id']));
+
+        /*
+         * [SECURITY] Only user and admin can delete user from group
+         */
+        $isAdmin = $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID);
+        if ( !$isAdmin ) {
+            if ( !isset($group['owner']) ) {
+                RestoLogUtil::httpError(403);
+            }
+            RestoUtil::checkUser($this->user, $group['owner']);
+        }
+
+        if ( (new GroupsFunctions($this->context->dbDriver))->removeUserFromGroup(array('id' => $params['id']), $params['userid']) ) {
+            return RestoLogUtil::success('User removed from group');
+        }
+
+
+    }
 
     /**
      *  Get user groups

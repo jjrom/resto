@@ -674,9 +674,6 @@ class CollectionsAPI
          */
         $collection = $this->context->keeper->getRestoCollection($params['collectionId'], $this->user)->load();
         
-        /*
-         * Only a user with 'update' rights on collection can POST feature
-         */
         if (!$this->user->hasRightsTo(RestoUser::CREATE_FEATURE, array('collection' => $collection))) {
             RestoLogUtil::httpError(403);
         }

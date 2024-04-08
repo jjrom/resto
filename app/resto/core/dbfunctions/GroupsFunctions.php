@@ -63,6 +63,11 @@ class GroupsFunctions
         if (isset($params['userid'])) {
             $where[] = 'id IN (SELECT DISTINCT groupid FROM ' . $this->dbDriver->commonSchema . '.group_member WHERE userid=' . pg_escape_string($this->dbDriver->getConnection(), $params['userid']) . ')';
         }
+
+        // Return groups by owner
+        if (isset($params['owner'])) {
+            $where[] = 'owner=' . pg_escape_string($this->dbDriver->getConnection(), $params['owner']);
+        }
         
         return $this->formatGroups($this->dbDriver->fetch($this->dbDriver->query('SELECT id, name, description, owner, to_iso8601(created) as created FROM ' . $this->dbDriver->commonSchema . '.group' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : '') . ' ORDER BY id DESC')), $params['id'] ?? null);
     }
@@ -140,6 +145,66 @@ class GroupsFunctions
         } catch (Exception $e) {
             RestoLogUtil::httpError(403, 'Cannot delete group');
         }
+    }
+
+    /**
+     * Add user to group
+     *
+     * @param Array $params
+     * @throws Exception
+     */
+    public function addUserToGroup($params, $userid)
+    {
+        if (! isset($params['id'])) {
+            RestoLogUtil::httpError(400, 'Missing mandatory group identifier');
+        }
+
+        try {
+
+            $result = pg_query_params($this->dbDriver->getConnection(), 'INSERT INTO ' . $this->dbDriver->commonSchema . '.group_member (groupid,userid,created) VALUES ($1,$2,now_utc()) ON CONFLICT (groupid,userid) DO NOTHING RETURNING groupid, userid', array(
+                $params['id'],
+                $userid
+            ));
+            
+            if ( !isset($result) ) {
+                throw new Exception();
+            }
+            
+        } catch (Exception $e) {
+            RestoLogUtil::httpError(400, 'Cannot add user to group');
+        }
+
+        return true;
+    }
+
+    /**
+     * Add user to group
+     *
+     * @param Array $params
+     * @throws Exception
+     */
+    public function removeUserFromGroup($params, $userid)
+    {
+        if (! isset($params['id'])) {
+            RestoLogUtil::httpError(400, 'Missing mandatory group identifier');
+        }
+
+        try {
+
+            $result = pg_query_params($this->dbDriver->getConnection(), 'DELETE FROM ' . $this->dbDriver->commonSchema . '.group_member WHERE groupid=$1 AND userid=$2', array(
+                $params['id'],
+                $userid
+            ));
+            
+            if ( !isset($result) ) {
+                throw new Exception();
+            }
+            
+        } catch (Exception $e) {
+            RestoLogUtil::httpError(400, 'Cannot remove user from group');
+        }
+
+        return true;
     }
 
     /**

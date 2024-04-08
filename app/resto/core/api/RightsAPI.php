@@ -58,11 +58,11 @@ class RightsAPI
 
     /**
      *  @OA\Get(
-     *      path="/users/{id}/rights",
+     *      path="/users/{userid}/rights",
      *      summary="Get user rights",
      *      tags={"Rights"},
      *      @OA\Parameter(
-     *         name="id",
+     *         name="userid",
      *         in="path",
      *         required=true,
      *         description="User identifier",
@@ -165,10 +165,19 @@ class RightsAPI
      * Set user rights
      *
      * @OA\Post(
-     *      path="/users/{id}/rights",
+     *      path="/users/{userid}/rights",
      *      summary="Set rights for user",
      *      description="Set rights for a given user",
      *      tags={"Rights"},
+     *      @OA\Parameter(
+     *         name="userid",
+     *         in="path",
+     *         required=true,
+     *         description="User identifier",
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *      ),
      *      @OA\Response(
      *          response="200",
      *          description="Rights is created or updated",
@@ -185,7 +194,7 @@ class RightsAPI
      *              ),
      *              @OA\Property(
      *                  property="rights",
-     *                  description="Set rights"
+     *                  description="Set rights",
      *                  @OA\JsonContent(ref="#/components/schemas/Rights")
      *              ),
      *              example={
@@ -216,14 +225,7 @@ class RightsAPI
      *      @OA\RequestBody(
      *         description="Rights to create/udpated",
      *         required=true,
-     *         @OA\JsonContent(
-     *              required={"rights"},
-     *              @OA\Property(
-     *                  property="rights",
-     *                  description="right to create/update"
-     *                  @OA\JsonContent(ref="#/components/schemas/Rights")
-     *              )
-     *          )
+     *         @OA\JsonContent(ref="#/components/schemas/Rights")
      *      ),
      *      security={
      *          {"basicAuth":{}, "bearerAuth":{}, "queryAuth":{}}
@@ -244,17 +246,15 @@ class RightsAPI
             return RestoLogUtil::httpError(403);
         }
 
-        $rights = $params['rights'] ?? array();
-        if ( !empty($rights) ) {
-            return RestoLogUtil::httpError(400, 'The rights array is not set or empty');
+        if ( empty($body) ) {
+            return RestoLogUtil::httpError(400, 'No rights to set');
         }
 
         // Get user just to be sure that it exists !
-        new RestoUser(array('id' => $params['id']), $this->context, true);
-        $rights = (new RightsFunctions($this->context->dbDriver))->storeOrUpdateRights('userid', $params['id'], $rights);
+        new RestoUser(array('id' => $params['userid']), $this->context, true);
         
         return RestoLogUtil::success('Rights set', array(
-            'rights' => $rights
+            'rights' => (new RightsFunctions($this->context->dbDriver))->storeOrUpdateRights('userid', $params['userid'], $body)
         ));
 
     }
@@ -284,7 +284,7 @@ class RightsAPI
      *              ),
      *              @OA\Property(
      *                  property="rights",
-     *                  description="Created/update rights"
+     *                  description="Created/update rights",
      *                  @OA\JsonContent(ref="#/components/schemas/Rights")
      *              ),
      *              example={
@@ -315,14 +315,7 @@ class RightsAPI
      *      @OA\RequestBody(
      *         description="Rights to create/udpated",
      *         required=true,
-     *         @OA\JsonContent(
-     *              required={"rights"},
-     *              @OA\Property(
-     *                  property="rights",
-     *                  description="right to create/update"
-     *                  @OA\JsonContent(ref="#/components/schemas/Rights")
-     *              )
-     *          )
+     *         @OA\JsonContent(ref="#/components/schemas/Rights")
      *      ),
      *      security={
      *          {"basicAuth":{}, "bearerAuth":{}, "queryAuth":{}}
@@ -342,19 +335,17 @@ class RightsAPI
             return RestoLogUtil::httpError(403);
         }
 
-        $rights = $params['rights'] ?? array();
-        if ( !empty($rights) ) {
-            return RestoLogUtil::httpError(400, 'The rights array is not set or empty');
+        if ( empty($body) ) {
+            return RestoLogUtil::httpError(400, 'No rights to set');
         }
 
         // Get group just to be sure that it exists !
         (new GroupsFunctions($this->context->dbDriver))->getGroups(array(
             'id' => $params['id']
         ));
-        $rights = (new RightsFunctions($this->context->dbDriver))->storeOrUpdateRights('groupid', $params['id'], $rights);
-        
+
         return RestoLogUtil::success('Rights set', array(
-            'rights' => $rights
+            'rights' => (new RightsFunctions($this->context->dbDriver))->storeOrUpdateRights('groupid', $params['id'], $body)
         ));
 
     }

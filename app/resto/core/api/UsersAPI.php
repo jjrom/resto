@@ -665,11 +665,11 @@ class UsersAPI
         if (isset($userInfo)) {
 
             // Auto activation no email sent
-            if ($profile['activated'] === 1) {
-                return RestoLogUtil::success('User ' . $profile['email'] . ' created and activated (id : ' . $profile['id'] . ')');
+            if ($userInfo['activated'] === 1) {
+                return RestoLogUtil::success('User ' . $userInfo['email'] . ' created and activated', array('profile' => $userInfo));
             }
 
-            if (!(new RestoNotifier($this->context->servicesInfos, $this->context->lang))->sendMailForUserActivation($profile['email'], $this->context->core['sendmail'], array(
+            if (!(new RestoNotifier($this->context->servicesInfos, $this->context->lang))->sendMailForUserActivation($userInfo['email'], $this->context->core['sendmail'], array(
                 'token' => $this->context->createRJWT($userInfo['id'], $this->context->core['tokenDuration'])
             ))) {
                 RestoLogUtil::httpError(500, 'Cannot send activation link');

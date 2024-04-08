@@ -6,7 +6,7 @@
         "contact": {
             "email": "jerome.gasperi@gmail.com"
         },
-        "version": "7.0.0"
+        "version": "8.0.0"
     },
     "servers": [
         {
@@ -994,6 +994,18 @@
                 ],
                 "summary": "Create collection",
                 "operationId": "CollectionsAPI::createCollection",
+                "parameters": [
+                    {
+                        "name": "model",
+                        "in": "query",
+                        "description": "Set the model for the collection (e.g. *OpticalModel*). This superseed the *model* property from the input collection description",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "requestBody": {
                     "description": "Collection description",
                     "content": {
@@ -1826,7 +1838,7 @@
                     {
                         "name": "_splitGeom",
                         "in": "query",
-                        "description": "Set to false to not split geometry during feature insertion. Default is true",
+                        "description": "Superseed the SPLIT_GEOMETRY_ON_DATELINE configuration i.e. set to true to split geometry during feature insertion - false otherwise. Default is set to SPLIT_GEOMETRY_ON_DATELINE",
                         "required": false,
                         "style": "form",
                         "schema": {
@@ -2353,6 +2365,775 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/NotFoundError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            }
+        },
+        "/groups": {
+            "get": {
+                "tags": [
+                    "Group"
+                ],
+                "summary": "Get groups",
+                "description": "The list is ordered by most recently created",
+                "operationId": "GroupAPI::getGroups",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Filter by group name",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of groups",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "totalResults": {
+                                            "description": "Total number of groups",
+                                            "type": "integer"
+                                        },
+                                        "results": {
+                                            "description": "Return groups",
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/OutputGroup"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "totalResults": 2,
+                                    "groups": [
+                                        {
+                                            "id": 100,
+                                            "name": "My first group",
+                                            "description": "Any user can create a group.",
+                                            "owner": "1919730603616371731"
+                                        },
+                                        {
+                                            "id": 101,
+                                            "name": "My second group",
+                                            "description": "Any user can create a group.",
+                                            "owner": "1919730603616371731"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Group"
+                ],
+                "summary": "Create group",
+                "description": "Create a group from name - the name must be unique",
+                "operationId": "GroupAPI::createGroup",
+                "requestBody": {
+                    "description": "Group description",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "description": "Unique name for the group",
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "description": "",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "name": "My first group",
+                                "description": "Any user can create a group."
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Group is created and unique identifier is returned",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Status is *success*",
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "description": "Group created",
+                                            "type": "string"
+                                        },
+                                        "id": {
+                                            "description": "Newly created group identifier",
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": "success",
+                                    "message": "Group created",
+                                    "id": 100
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "This group already exist",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            }
+        },
+        "/groups/{id}": {
+            "get": {
+                "tags": [
+                    "Group"
+                ],
+                "summary": "Get group",
+                "operationId": "GroupAPI::getGroup",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Group identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User group",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OutputGroup"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Resource not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Group"
+                ],
+                "summary": "Delete group",
+                "description": "Only administrator and owner of a group can delete it",
+                "operationId": "GroupAPI::deleteGroup",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Group identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The group is delete",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Status is *success*",
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "description": "Message information",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": "success",
+                                    "message": "Delete group 1919831313561420822"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Missing mandatory group identifier",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestError"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Group not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            }
+        },
+        "/groups/{id}/users": {
+            "post": {
+                "tags": [
+                    "Group"
+                ],
+                "summary": "Add a user",
+                "description": "Add a user to a group",
+                "operationId": "GroupAPI::addUser",
+                "requestBody": {
+                    "description": "User info",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "userid"
+                                ],
+                                "properties": {
+                                    "userid": {
+                                        "description": "User identifier",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "userid": "100"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User is added",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Status is *success*",
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "description": "User added",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": "success",
+                                    "message": "User added"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            }
+        },
+        "/users/{userid}/groups": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get user's groups",
+                "operationId": "GroupAPI::getUserGroups",
+                "parameters": [
+                    {
+                        "name": "userid",
+                        "in": "path",
+                        "description": "User's identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User groups",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "description": "User identifier",
+                                            "type": "string"
+                                        },
+                                        "groups": {
+                                            "description": "Array of user's groups",
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/OutputGroup"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "id": "1356771884787565573",
+                                    "groups": [
+                                        {
+                                            "id": "1",
+                                            "name": "Default",
+                                            "description": "Default group"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Resource not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            }
+        },
+        "/users/{userid}/rights": {
+            "get": {
+                "tags": [
+                    "Rights"
+                ],
+                "summary": "Get user rights",
+                "operationId": "RightsAPI::getUserRights",
+                "parameters": [
+                    {
+                        "name": "userid",
+                        "in": "path",
+                        "description": "User identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User rights",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Rights"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Resource not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Rights"
+                ],
+                "summary": "Set rights for user",
+                "description": "Set rights for a given user",
+                "operationId": "RightsAPI::setUserRights",
+                "parameters": [
+                    {
+                        "name": "userid",
+                        "in": "path",
+                        "description": "User identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Rights to create/udpated",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Rights"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Rights is created or updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Status is *success*",
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "description": "Rights updated",
+                                            "type": "string"
+                                        },
+                                        "rights": {
+                                            "description": "Set rights"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": "success",
+                                    "message": "Rights updated",
+                                    "rights": {
+                                        "createCollection": false,
+                                        "deleteCollection": true,
+                                        "updateCollection": true,
+                                        "deleteAnyCollection": false,
+                                        "updateAnyCollection": false,
+                                        "createFeature": true,
+                                        "updateFeature": true,
+                                        "deleteFeature": true,
+                                        "createAnyFeature": false,
+                                        "deleteAnyFeature": false,
+                                        "updateAnyFeature": false,
+                                        "downloadFeature": false
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Rights is not set",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            }
+        },
+        "/groups/{id}/rights": {
+            "get": {
+                "tags": [
+                    "Rights"
+                ],
+                "summary": "Get group rights",
+                "operationId": "RightsAPI::getGroupRights",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Group identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User group rights",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Rights"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Resource not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Rights"
+                ],
+                "summary": "Set rights for group",
+                "description": "Set rights for a given group",
+                "operationId": "RightsAPI::setGroupRights",
+                "requestBody": {
+                    "description": "Rights to create/udpated",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Rights"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Rights is created or updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Status is *success*",
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "description": "Rights updated",
+                                            "type": "string"
+                                        },
+                                        "rights": {
+                                            "description": "Created/update rights"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": "success",
+                                    "message": "Rights updated",
+                                    "rights": {
+                                        "createCollection": false,
+                                        "deleteCollection": true,
+                                        "updateCollection": true,
+                                        "deleteAnyCollection": false,
+                                        "updateAnyCollection": false,
+                                        "createFeature": true,
+                                        "updateFeature": true,
+                                        "deleteFeature": true,
+                                        "createAnyFeature": false,
+                                        "deleteAnyFeature": false,
+                                        "updateAnyFeature": false,
+                                        "downloadFeature": false
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Rights is not set",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestError"
                                 }
                             }
                         }
@@ -3033,6 +3814,13 @@
                         "description": "Detailed multi-line description to fully explain the Collection. CommonMark 0.29 syntax MAY be used for rich text representation.",
                         "type": "string"
                     },
+                    "aliases": {
+                        "description": "Alias names for this collection. Each alias must be unique and not be the same as an already existing collection name",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
                     "version": {
                         "description": "Version of the collection.",
                         "type": "string"
@@ -3276,6 +4064,13 @@
                     },
                     "keywords": {
                         "description": "List of keywords describing the collection.",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "aliases": {
+                        "description": "Alias names for this collection. Each alias must be unique and not be the same as an already existing collection name",
                         "type": "array",
                         "items": {
                             "type": "string"
@@ -4596,6 +5391,57 @@
                     ]
                 }
             },
+            "OutputGroup": {
+                "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "owner"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Unique group identifier - generated by resto during group creation",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Unique name of the group - free text",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "A description for this group",
+                        "type": "string"
+                    },
+                    "owner": {
+                        "description": "Owner of the group (i.e. user unique identifier)",
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "example": {
+                    "id": 100,
+                    "name": "My first group",
+                    "description": "Any user can create a group.",
+                    "owner": "1919730603616371731"
+                }
+            },
+            "Rights": {
+                "description": "A list of boolean rights",
+                "type": "object",
+                "example": {
+                    "createCollection": false,
+                    "deleteCollection": true,
+                    "updateCollection": true,
+                    "deleteAnyCollection": false,
+                    "updateAnyCollection": false,
+                    "createFeature": true,
+                    "updateFeature": true,
+                    "deleteFeature": true,
+                    "createAnyFeature": false,
+                    "deleteAnyFeature": false,
+                    "updateAnyFeature": false,
+                    "downloadFeature": false
+                }
+            },
             "GenericError": {
                 "required": [
                     "ErrorCode",
@@ -4716,6 +5562,27 @@
                 "example": {
                     "ErrorCode": 404,
                     "ErrorMessage": "Not Found"
+                }
+            },
+            "GoneError": {
+                "required": [
+                    "ErrorCode",
+                    "ErrorMessage"
+                ],
+                "properties": {
+                    "ErrorCode": {
+                        "description": "HTTP status code",
+                        "type": "integer"
+                    },
+                    "ErrorMessage": {
+                        "description": "Error message",
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "example": {
+                    "ErrorCode": 410,
+                    "ErrorMessage": "Gone"
                 }
             }
         },
