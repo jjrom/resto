@@ -47,6 +47,11 @@ Then get the collections list :
 
         curl "http://localhost:5252/collections"
 
+### Collection aliases
+A collection can contain an array of *aliases* (see [./examples/collections/L8.json](./examples/collections/L8.json#L3-L5) for instance). These aliases are alternate names to the collection id. Thus {collectionId} value in /collections/{collectionId}/* endpoints can use the original collection id or one of its aliases.
+
+Note that id and aliases must be unique in the database. As a consequence, you cannot create a new collection or set an alias to an existing collection that as the same value of one of the aliases of an existing collection.
+
 ## Ingest a feature
 To ingest a feature using the default **ADMIN_USER_NAME** and **ADMIN_USER_PASSWORD** (see [config.env](config.env)) :
 
@@ -60,6 +65,9 @@ Then get the feature :
 
         curl "http://localhost:5252/collections/S2/items/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040"
 
+## Users, groups and rights
+See [./USERS.md](./USERS.md)
+
 # TL;DR
 The [INSTALLATION.md](INSTALLATION.md) file provides additional information on the installation process.
 
@@ -68,7 +76,7 @@ The [INSTALLATION.md](INSTALLATION.md) file provides additional information on t
 Here are some projects that use resto.
 
 * [SnapPlanet](https://snapplanet.io)
-* [Copernicus Data Space Ecosystem](https://dataspace.copernicus.eu/)
+* [European Digital Twin of the Ocean](https://www.edito.eu)
 * [CREODIAS](https://creodias.eu/eo-data-finder-api-manual)
 * [Rocket - The Earth in your pocket](https://rocket.snapplanet.io)
 * [The French Sentinel Data Processing center](https://peps.cnes.fr/rocket/#/home)
@@ -86,12 +94,6 @@ Here are some projects that use resto.
 If you plan to use resto and would like to have your project added to this list, feel free to contact [support](#support)
 
 # <a name="support"></a>Support
-resto is developped and maintained by [jeobrowser](https://mapshup.com). 
+resto is developped and maintained by [jeobrowser](https://snapplanet.io). 
 
-For questions, support or anything related to resto feel free to contact 
-
-        jeobrowser
-        50 quai de Tounis
-        31000 Toulouse
-        Tel   : +33 6 19 59 17 35
-        email : jerome.gasperi@gmail.com
+For questions, support or anything related to resto feel free to contact *jerome[dot]gasperi[at]gmail[dot]com*

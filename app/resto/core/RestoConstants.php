@@ -20,7 +20,7 @@ class RestoConstants
     // [IMPORTANT] Starting resto 7.x, default routes are defined in RestoRouter class
 
     // resto version
-    const VERSION = '7.0.2';
+    const VERSION = '8.0.0';
 
     /* ============================================================
      *              NEVER EVER TOUCH THESE VALUES

@@ -555,7 +555,7 @@ class FeaturesFunctions
             /*
              * Update description, hashtags and normalized_hashtags
              */
-            $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.' . $model->dbParams['tablePrefix'] . 'feature SET description=$1, hashtags=$2, normalized_hashtags=normalize_array($2) WHERE id=$3', array(
+            $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.' . $model->dbParams['tablePrefix'] . 'feature SET description=$1, hashtags=$2, normalized_hashtags=public.normalize_array($2) WHERE id=$3', array(
                 $description,
                 '{' . join(',', $hashtags) . '}',
                 $feature->id
@@ -809,7 +809,7 @@ class FeaturesFunctions
         $output['keysAndValues'] = array_merge($protected, $keysAndValues);
         foreach (array_keys($output['keysAndValues'] ?? array()) as $key) {
             if ($key === 'normalized_hashtags') {
-                $output['params'][] = 'normalize_array($' . ++$counter . ')';
+                $output['params'][] = 'public.normalize_array($' . ++$counter . ')';
             } elseif ($key === 'created_idx' || $key === 'startdate_idx') {
                 $output['params'][] = 'public.timestamp_to_id($' . ++$counter . ')';
             } else {

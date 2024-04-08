@@ -70,7 +70,7 @@ class RestoFeatureUtil
          */
         $collection = $this->collections[$rawFeatureArray['collection']] ?? null;
         if (!isset($collection)) {
-            $collection = (new RestoCollection($rawFeatureArray['collection'], $this->context, $this->user))->load();
+            $collection = $this->context->keeper->getRestoCollection($rawFeatureArray['collection'], $this->user)->load();
             $this->collections[$rawFeatureArray['collection']] = $collection;
         }
 

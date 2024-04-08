@@ -62,7 +62,7 @@ class GeneralFunctions
     public function getKeywords($language = 'en', $types = array())
     {
         $keywords = array();
-        $results = $this->dbDriver->query('SELECT name, normalize(name) as normalized, type, value, location FROM ' . $this->dbDriver->commonSchema . '.keyword WHERE ' . 'lang IN(\'' . pg_escape_string($this->dbDriver->getConnection(), $language) . '\', \'**\')' . (count($types) > 0 ? ' AND type IN(' . join(',', $types) . ')' : ''));
+        $results = $this->dbDriver->query('SELECT name, public.normalize(name) as normalized, type, value, location FROM ' . $this->dbDriver->commonSchema . '.keyword WHERE ' . 'lang IN(\'' . pg_escape_string($this->dbDriver->getConnection(), $language) . '\', \'**\')' . (count($types) > 0 ? ' AND type IN(' . join(',', $types) . ')' : ''));
         while ($result = pg_fetch_assoc($results)) {
             if (!isset($keywords[$result['type']])) {
                 $keywords[$result['type']] = array();

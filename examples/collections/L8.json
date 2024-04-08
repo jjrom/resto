@@ -1,12 +1,10 @@
 {
     "id": "L8",
+    "aliases":[
+        "Landsat8"
+    ],
     "version": "1.0",
     "model": "OpticalModel",
-    "rights": {
-        "download": 1,
-        "visualize": 1
-    },
-    "visibility": 1,
     "license": "PDDL-1.0",
     "osDescription": {
         "en": {

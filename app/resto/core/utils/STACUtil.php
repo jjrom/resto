@@ -82,7 +82,7 @@ class STACUtil
         /*
          * [STAC] Duplicate rel="data"
          */
-        $collections = ((new RestoCollections($this->context, $this->user))->load())->toArray();
+        $collections = ($this->context->keeper->getRestoCollections($this->user)->load())->toArray();
         if (count($collections) > 0) {
             $links[] = array(
                 'rel' => 'child',
@@ -147,7 +147,7 @@ class STACUtil
         $links = array();
 
         // Load collections
-        $collections = (new RestoCollections($this->context, $this->user))->load();
+        $collections = $this->context->keeper->getRestoCollections($this->user)->load();
         
         // Get themes
         $themes = array();

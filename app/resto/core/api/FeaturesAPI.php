@@ -92,7 +92,7 @@ class FeaturesAPI
         $feature = new RestoFeature($this->context, $this->user, array(
             'featureId' => $params['featureId'],
             'fields' => $params['fields'] ?? null,
-            'collection' => (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()
+            'collection' => $this->context->keeper->getRestoCollection($params['collectionId'], $this->user)->load()
         ));
 
         if (!$feature->isValid()) {
@@ -593,7 +593,7 @@ class FeaturesAPI
             $this->context->outputFormat = 'geojson';
         }
 
-        return (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()->search($params);
+        return $this->context->keeper->getRestoCollection($params['collectionId'], $this->user)->load()->search($params);
     }
 
     /**
@@ -677,7 +677,7 @@ class FeaturesAPI
     public function updateFeature($params, $body)
     {
         // Load collection
-        $collection = (new RestoCollection($params['collectionId'], $this->context, $this->user))->load();
+        $collection = $this->context->keeper->getRestoCollection($params['collectionId'], $this->user)->load();
         
         $feature = new RestoFeature($this->context, $this->user, array(
             'featureId' => $params['featureId'],
@@ -688,14 +688,8 @@ class FeaturesAPI
             RestoLogUtil::httpError(404);
         }
 
-        /*
-         * Only owner of a feature or admin can update it
-         */
-        $featureArray = $feature->toArray();
-        if (! isset($featureArray['properties']['owner']) || $featureArray['properties']['owner'] !== $this->user->profile['id']) {
-            if (! $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
-                RestoLogUtil::httpError(403);
-            }
+        if (!$this->user->hasRightsTo(RestoUser::UPDATE_FEATURE, array('feature' => $feature))) {
+            RestoLogUtil::httpError(403);
         }
 
         // Specifically set splitGeometry
@@ -804,18 +798,15 @@ class FeaturesAPI
     {
         $feature = new RestoFeature($this->context, $this->user, array(
             'featureId' => $params['featureId'],
-            'collection' => (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()
+            'collection' => $this->context->keeper->getRestoCollection($params['collectionId'], $this->user)->load()
         ));
 
         if (!$feature->isValid()) {
             RestoLogUtil::httpError(404);
         }
 
-        // Only admin or owner can change feature properties
-        if (! isset($featureArray['properties']['owner']) || $featureArray['properties']['owner'] !== $this->user->profile['id']) {
-            if (! $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
-                RestoLogUtil::httpError(403);
-            }
+        if (!$this->user->hasRightsTo(RestoUser::UPDATE_FEATURE, array('feature' => $feature))) {
+            RestoLogUtil::httpError(403);
         }
         
         // A value key is mandatory
@@ -912,23 +903,17 @@ class FeaturesAPI
     {
         $feature = new RestoFeature($this->context, $this->user, array(
             'featureId' => $params['featureId'],
-            'collection' => (new RestoCollection($params['collectionId'], $this->context, $this->user))->load()
+            'collection' => $this->context->keeper->getRestoCollection($params['collectionId'], $this->user)->load()
         ));
 
         if (!$feature->isValid()) {
             RestoLogUtil::httpError(404);
         }
 
-        /*
-         * Only owner of a feature or admin can delete it
-         */
-        $featureArray = $feature->toArray();
-        if (!isset($featureArray['properties']['owner']) || $featureArray['properties']['owner'] !== $this->user->profile['id']) {
-            if (! $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
-                RestoLogUtil::httpError(403);
-            }
+        if (!$this->user->hasRightsTo(RestoUser::DELETE_FEATURE, array('feature' => $feature))) {
+            RestoLogUtil::httpError(403);
         }
-        
+
         // Result contains boolean for facetsDeleted
         $result = (new FeaturesFunctions($this->context->dbDriver))->removeFeature($feature);
 

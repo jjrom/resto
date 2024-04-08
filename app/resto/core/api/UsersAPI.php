@@ -229,27 +229,6 @@ class UsersAPI
     }
 
     /**
-     *  Get user rights
-     *
-     *  [TODO] - Write API
-     */
-    public function getUserRights($params)
-    {
-        RestoUtil::checkUser($this->user, $params['userid']);
-        $result = array(
-            'id' => $this->user->profile['id']
-        );
-        if (isset($params['collectionId'])) {
-            $result['collection'] = $params['collectionId'];
-        }
-        if (isset($params['featureId'])) {
-            $result['feature'] = $params['featureId'];
-        }
-        $result['rights'] = $this->user->getRights($params['collectionId'] ?? null, $params['featureId'] ?? null);
-        return $result;
-    }
-
-    /**
      * Create user
      *
      * @OA\Post(
@@ -398,11 +377,6 @@ class UsersAPI
             'followings' => 0
         );
 
-        // Admin can set the user groups
-        if ( isset($body['groups']) && $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
-            $profile['groups'] = $body['groups'];
-        }
-
         return $this->storeProfile($profile, $this->context->core['storageInfo']);
 
     }
@@ -517,10 +491,6 @@ class UsersAPI
                 unset($body['activated'], $body['validatedby'], $body['validationdate'], $body['country'], $body['organization'], $body['organizationcountry'], $body['flags']);
             }
 
-            /*
-             * These properties can only be changed by admin
-             */
-            unset($body['groups']);
         }
 
         /*
@@ -695,11 +665,11 @@ class UsersAPI
         if (isset($userInfo)) {
 
             // Auto activation no email sent
-            if ($profile['activated'] === 1) {
-                return RestoLogUtil::success('User ' . $profile['email'] . ' created and activated (id : ' . $profile['id'] . ')');
+            if ($userInfo['activated'] === 1) {
+                return RestoLogUtil::success('User ' . $userInfo['email'] . ' created and activated', array('profile' => $userInfo));
             }
 
-            if (!(new RestoNotifier($this->context->servicesInfos, $this->context->lang))->sendMailForUserActivation($profile['email'], $this->context->core['sendmail'], array(
+            if (!(new RestoNotifier($this->context->servicesInfos, $this->context->lang))->sendMailForUserActivation($userInfo['email'], $this->context->core['sendmail'], array(
                 'token' => $this->context->createRJWT($userInfo['id'], $this->context->core['tokenDuration'])
             ))) {
                 RestoLogUtil::httpError(500, 'Cannot send activation link');

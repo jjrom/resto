@@ -122,6 +122,11 @@ class RestoCollections
      */
     private $statistics;
 
+    /*
+     * Avoid multiple database calls
+     */
+    private $isLoaded = false;
+
     /**
      * Constructor
      *
@@ -156,16 +161,21 @@ class RestoCollections
         }
 
         /*
-         * Check that collection does not exist based on id
+         * Check that collection does not exist i.e. id or alias not used
          */
-        if ((new CollectionsFunctions($this->context->dbDriver))->collectionExists($object['id'])) {
+        $collectionsFunctions = new CollectionsFunctions($this->context->dbDriver);
+        $collectionId = $collectionsFunctions->aliasToCollectionId($object['id']);
+        if ( isset($collectionId) ) {
+            RestoLogUtil::httpError(409, 'Collection ' . $object['id'] . ' already exist as an alias of collection ' . $collectionId);    
+        }
+        if ($collectionsFunctions->collectionExists($object['id'])) {
             RestoLogUtil::httpError(409, 'Collection ' . $object['id'] . ' already exist');
         }
 
         /*
          * Create collection
          */
-        $collection = new RestoCollection($object['id'], $this->context, $this->user);
+        $collection = $this->context->keeper->getRestoCollection($object['id'], $this->user);
         $collection->load($object, $modelName)->store();
 
         return true;
@@ -195,24 +205,28 @@ class RestoCollections
      */
     public function load($params = array())
     {
-        $params['group'] = $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ? null : $this->user->profile['groups'];
-        $cacheKey = 'collections' . ($params['group'] ? join(',', $params['group']) : '');
-        
-        $collectionsDesc = $this->context->fromCache($cacheKey);
-        if (!isset($collectionsDesc)) {
-            $collectionsDesc = (new CollectionsFunctions($this->context->dbDriver))->getCollectionsDescriptions($params);
-            $this->context->toCache($cacheKey, $collectionsDesc);
-        }
-
-        foreach (array_keys($collectionsDesc) as $collectionId) {
-            $collection = new RestoCollection($collectionId, $this->context, $this->user);
-            foreach ($collectionsDesc[$collectionId] as $key => $value) {
-                $collection->$key = $key === 'model' ? new $value() : $value;
+       
+        if ( !$this->isLoaded ) {
+            $params['group'] = $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ? null : $this->user->getGroupIds();
+            $cacheKey = 'collections' . ($params['group'] ? join(',', $params['group']) : '');
+            
+            $collectionsDesc = $this->context->fromCache($cacheKey);
+            if (!isset($collectionsDesc)) {
+                $collectionsDesc = (new CollectionsFunctions($this->context->dbDriver))->getCollectionsDescriptions($params);
+                $this->context->toCache($cacheKey, $collectionsDesc);
             }
-            $this->collections[$collectionId] = $collection;
-            $this->updateExtent($collection);
+
+            foreach (array_keys($collectionsDesc) as $collectionId) {
+                $collection = $this->context->keeper->getRestoCollection($collectionId, $this->user);
+                foreach ($collectionsDesc[$collectionId] as $key => $value) {
+                    $collection->$key = $key === 'model' ? new $value() : $value;
+                }
+                $this->collections[$collectionId] = $collection;
+                $this->updateExtent($collection);
+            }
+            $this->isLoaded = true;
         }
-        
+                
         return $this;
     }
 

@@ -37,6 +37,14 @@
  *          description="Detailed multi-line description to fully explain the Collection. CommonMark 0.29 syntax MAY be used for rich text representation."
  *      ),
  *      @OA\Property(
+ *          property="aliases",
+ *          type="array",
+ *          description="Alias names for this collection. Each alias must be unique and not be the same as an already existing collection name",
+ *          @OA\Items(
+ *              type="string",
+ *          )
+ *      ),
+ *      @OA\Property(
  *          property="version",
  *          type="string",
  *          description="Version of the collection."
@@ -271,6 +279,14 @@
  *          property="keywords",
  *          type="array",
  *          description="List of keywords describing the collection.",
+ *          @OA\Items(
+ *              type="string",
+ *          )
+ *      ),
+ *      @OA\Property(
+ *          property="aliases",
+ *          type="array",
+ *          description="Alias names for this collection. Each alias must be unique and not be the same as an already existing collection name",
  *          @OA\Items(
  *              type="string",
  *          )
@@ -570,6 +586,7 @@ class RestoCollection
     /*
      * [STAC] Collection root attributes
      */
+    public $aliases = array();
     public $visibility = RestoConstants::GROUP_DEFAULT_ID;
     public $version = '1.0.0';
     public $license = 'proprietary';
@@ -782,25 +799,30 @@ class RestoCollection
      * Properties that are not stored in properties column
      */
     private $notInProperties = array(
-        'id',
-        'type',
-        'title',
+        'aliases',
+        'assets',
         'description',
-        'stac_version',
-        'stac_extension',
         'extent',
-        'model',
-        'version',
-        'visibility',
-        'rights',
+        'id',
+        'keywords',
         'license',
         'links',
+        'model',
         'osDescription',
         'providers',
         'rights',
-        'assets',
-        'keywords'
+        'stac_extension',
+        'stac_version',
+        'title',
+        'type',
+        'version',
+        'visibility'
     );
+
+    /**
+     * Avoid call to database when object is already loaded
+     */
+    private $isLoaded = false;
 
     /**
      * Constructor
@@ -811,17 +833,6 @@ class RestoCollection
      */
     public function __construct($id, $context, $user)
     {
-        /*
-         * Remove collection name constraint
-        if (isset($id)) {
-            // Collection identifier is an alphanumeric string without special characters
-            if (preg_match("/^[a-zA-Z0-9\-_\.\:]+$/", $id) !== 1) {
-                RestoLogUtil::httpError(400, 'Collection identifier must be an alphanumeric string containing only [a-zA-Z0-9\-_.:]');
-            }
-
-            $this->id = $id;
-        }*/
-
         $this->id = $id;
         $this->context = $context;
         $this->user = $user;
@@ -837,28 +848,35 @@ class RestoCollection
      */
     public function load($object = null, $modelName = null)
     {
+
         if (isset($object)) {
             return $this->loadFromJSON($object, $modelName);
         }
         
-        $cacheKey = 'collection:' . $this->id;
-        $collectionObject = $this->context->fromCache($cacheKey);
-    
-        if (! isset($collectionObject)) {
-            $collectionObject = (new CollectionsFunctions($this->context->dbDriver))->getCollectionDescription($this->id);
-            
+        if ( !$this->isLoaded ) {
+
+            $this->isLoaded = true;
+
+            $cacheKey = 'collection:' . $this->id;
+            $collectionObject = $this->context->fromCache($cacheKey);
+        
             if (! isset($collectionObject)) {
-                return RestoLogUtil::httpError(404);
+                $collectionObject = (new CollectionsFunctions($this->context->dbDriver))->getCollectionDescription($this->id);
+                
+                if (! isset($collectionObject)) {
+                    return RestoLogUtil::httpError(404);
+                }
+    
+                $this->context->toCache($cacheKey, $collectionObject);
+            }
+            
+            foreach ($collectionObject as $key => $value) {
+                $this->$key = $key === 'model' ? new $value(array(
+                    'collectionId' => $this->id,
+                    'addons' => $this->context->addons
+                )) : $value;
             }
 
-            $this->context->toCache($cacheKey, $collectionObject);
-        }
-        
-        foreach ($collectionObject as $key => $value) {
-            $this->$key = $key === 'model' ? new $value(array(
-                'collectionId' => $this->id,
-                'addons' => $this->context->addons
-            )) : $value;
         }
         
         return $this;
@@ -931,6 +949,7 @@ class RestoCollection
             'title' => $osDescription['LongName'] ?? $osDescription['ShortName'],
             'version' => $this->version ?? null,
             'description' => $osDescription['Description'],
+            'aliases' => $this->aliases ?? array(),
             'license' => $this->license,
             'extent' => $this->extent,
             'links' => array_merge(
@@ -1092,7 +1111,7 @@ class RestoCollection
         /*
          * Set values
          */
-        foreach (array_values(array('version', 'license', 'links', 'osDescription', 'providers', 'rights', 'assets', 'keywords', 'extent')) as $key) {
+        foreach (array_values(array('aliases', 'version', 'license', 'links', 'osDescription', 'providers', 'rights', 'assets', 'keywords', 'extent')) as $key) {
             if (isset($object[$key])) {
                 $this->$key = $key === 'links' ? $this->cleanInputLinks($object['links']) : $object[$key];
             }
@@ -1110,7 +1129,8 @@ class RestoCollection
             }
         }
 
-
+        $this->isLoaded = true;
+        
         return $this;
     }
 

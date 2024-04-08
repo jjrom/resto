@@ -101,6 +101,19 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.osdescription (
 );
 
 --
+-- Collection aliases
+--
+CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.collection_alias (
+
+    -- Alternate name to this collection
+    alias               TEXT PRIMARY KEY,
+
+    -- [INDEXED] Reference __DATABASE_TARGET_SCHEMA__.collection.id
+    collection          TEXT REFERENCES __DATABASE_TARGET_SCHEMA__.collection (id) ON DELETE CASCADE
+
+);
+
+--
 -- Features table - handle every metadata
 --
 CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.feature (
@@ -201,8 +214,8 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.feature (
     -- List of hashtags (without prefix # !)
     --
     -- Two kind of hashtags:
-    --   * hashtags without {Resto::TAG_SEPARATOR} hashtags *provided* by user from description
-    --   * hashtags with {Resto::TAG_SEPARATOR} hashtags *computed* by Tag add-on (depend on collection)
+    --   * hashtags without {RestoConstants::TAG_SEPARATOR} hashtags *provided* by user from description
+    --   * hashtags with {RestoConstants::TAG_SEPARATOR} hashtags *computed* by Tag add-on (depend on collection)
     hashtags            TEXT[],
 
     -- Original geometry as provided during feature insertion
@@ -401,7 +414,7 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.facet (
 -- --------------------- INDEXES ---------------------------
 
 -- [TABLE __DATABASE_TARGET_SCHEMA__.collection]
-CREATE UNIQUE INDEX IF NOT EXISTS idx_id_collection on __DATABASE_TARGET_SCHEMA__.collection (normalize(id));
+CREATE UNIQUE INDEX IF NOT EXISTS idx_id_collection on __DATABASE_TARGET_SCHEMA__.collection (public.normalize(id));
 CREATE INDEX IF NOT EXISTS idx_lineage_collection ON __DATABASE_TARGET_SCHEMA__.collection USING GIN (lineage);
 CREATE INDEX IF NOT EXISTS idx_visibility_collection ON __DATABASE_TARGET_SCHEMA__.collection (visibility);
 CREATE INDEX IF NOT EXISTS idx_created_collection ON __DATABASE_TARGET_SCHEMA__.collection (created);
@@ -415,11 +428,11 @@ CREATE INDEX IF NOT EXISTS idx_collection_osdescription ON __DATABASE_TARGET_SCH
 -- CREATE INDEX IF NOT EXISTS idx_lang_osdescription ON __DATABASE_TARGET_SCHEMA__.osdescription (lang);
 
 -- [TABLE __DATABASE_TARGET_SCHEMA__.facet]
-CREATE INDEX IF NOT EXISTS idx_id_facet ON __DATABASE_TARGET_SCHEMA__.facet (normalize(id));
-CREATE INDEX IF NOT EXISTS idx_pid_facet ON __DATABASE_TARGET_SCHEMA__.facet (normalize(pid));
+CREATE INDEX IF NOT EXISTS idx_id_facet ON __DATABASE_TARGET_SCHEMA__.facet (public.normalize(id));
+CREATE INDEX IF NOT EXISTS idx_pid_facet ON __DATABASE_TARGET_SCHEMA__.facet (public.normalize(pid));
 CREATE INDEX IF NOT EXISTS idx_type_facet ON __DATABASE_TARGET_SCHEMA__.facet (type);
-CREATE INDEX IF NOT EXISTS idx_collection_facet ON __DATABASE_TARGET_SCHEMA__.facet (normalize(collection));
-CREATE INDEX IF NOT EXISTS idx_value_facet ON __DATABASE_TARGET_SCHEMA__.facet USING GIN (normalize(value) gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_collection_facet ON __DATABASE_TARGET_SCHEMA__.facet (public.normalize(collection));
+CREATE INDEX IF NOT EXISTS idx_value_facet ON __DATABASE_TARGET_SCHEMA__.facet USING GIN (public.normalize(value) gin_trgm_ops);
 
 -- [TABLE __DATABASE_TARGET_SCHEMA__.feature]
 CREATE INDEX IF NOT EXISTS idx_collection_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (collection);
