@@ -11,7 +11,7 @@ return array(
         'endpoint' => '${STORAGE_PUBLIC_ENDPOINT:-/static}'
     ),
     'storeQuery' => ${STORE_QUERY:-false},
-    'streamMethod' => '${STREAM_METHOD:-php}',
+    'mergeRootCatalogLinks' => ${MERGE_ROOT_CATALOG_LINKS:-false},
     'timezone' => '${TIMEZONE:-Europe/Paris}',
     'tokenDuration' => ${JWT_DURATION:-8640000},
     'userAutoValidation' => ${USER_AUTOVALIDATION:-true},

@@ -6,7 +6,7 @@
         "contact": {
             "email": "jerome.gasperi@gmail.com"
         },
-        "version": "8.0.0"
+        "version": "8.0.1"
     },
     "servers": [
         {
@@ -15,6 +15,24 @@
         }
     ],
     "paths": {
+        "/assets/{urlInBase64}": {
+            "get": {
+                "tags": [
+                    "STAC"
+                ],
+                "summary": "Download asset",
+                "description": "Return the asset href within an HTTP 301 Redirect message. This allows to keep track of download of external assets in resto statistics",
+                "operationId": "STAC::getAsset",
+                "responses": {
+                    "301": {
+                        "description": "HTTP/1.1 301 Moved Permanently"
+                    },
+                    "400": {
+                        "description": "Invalid base64 encoded url"
+                    }
+                }
+            }
+        },
         "/catalogs/*": {
             "get": {
                 "tags": [

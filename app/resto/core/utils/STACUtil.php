@@ -94,29 +94,6 @@ class STACUtil
             );
         }
 
-        $facets = $this->getFacets($minMatch);
-        foreach (array('catalogs', 'facets', 'hashtags') as $key) {
-            if (isset($facets[$key])) {
-                $links[] = array(
-                    'rel' => 'child',
-                    'title' => ucfirst($key),
-                    'type' => RestoUtil::$contentTypes['json'],
-                    'href' => $this->context->core['baseUrl'] . '/catalogs/' . rawurlencode($key)
-                );
-            }
-        }
-
-        /*
-         * Exposed views as STAC catalogs
-         * Only displayed if at least one theme exists
-         */
-        if (isset($this->context->addons['View'])) {
-            $stacLink = (new View($this->context, $this->user))->getSTACRootLink();
-            if (isset($stacLink) && $stacLink['matched'] > 0) {
-                $links[] = $stacLink;
-            }
-        }
-
         /*
          * SOSA concepts
          * Only displayed if at least one concept exists
@@ -134,6 +111,57 @@ class STACUtil
             }
         }
 
+        /*
+         * Exposed views as STAC catalogs
+         * Only displayed if at least one theme exists
+         */
+        if (isset($this->context->addons['View'])) {
+            $stacLink = (new View($this->context, $this->user))->getSTACRootLink();
+            if (isset($stacLink) && $stacLink['matched'] > 0) {
+                $links[] = $stacLink;
+            }
+        }
+
+        $facets = $this->getFacets($minMatch);
+        
+        foreach (array('catalogs', 'facets') as $key) {
+            if (isset($facets[$key])) {
+                
+                // Remove the "catalogs" and "facets" childs level and directly
+                // merge there respective childs to the root endpoint
+                if ( $this->context->core['mergeRootCatalogLinks']) {
+
+                    foreach (array_keys($facets[$key]) as $childKey) {
+                        $links[] = array(
+                            'rel' => 'child',
+                            'title' => ucfirst($childKey),
+                            'type' => RestoUtil::$contentTypes['json'],
+                            'href' => $this->context->core['baseUrl'] . '/catalogs/' . rawurlencode($key) . '/' . rawurlencode($childKey)
+                        );
+                    }
+                    
+                }
+                else {
+                    $links[] = array(
+                        'rel' => 'child',
+                        'title' => ucfirst($key),
+                        'type' => RestoUtil::$contentTypes['json'],
+                        'href' => $this->context->core['baseUrl'] . '/catalogs/' . rawurlencode($key)
+                    );
+                }
+            }
+        }
+
+        // Hashtags
+        if (isset($facets['hashtags'])) {
+            $links[] = array(
+                'rel' => 'child',
+                'title' => ucfirst('hashtags'),
+                'type' => RestoUtil::$contentTypes['json'],
+                'href' => $this->context->core['baseUrl'] . '/catalogs/' . rawurlencode('hashtags')
+            );
+        }
+        
         return $links;
     }
 
@@ -232,4 +260,5 @@ class STACUtil
         
         return $facets;
     }
+
 }

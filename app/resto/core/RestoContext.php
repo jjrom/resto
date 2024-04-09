@@ -53,16 +53,13 @@ class RestoContext
         // True to store all user queries to database
         'storeQuery' => false,
 
+        // True to display "catalogs" and "facets" childs directly within the STAC root endpoint
+        // instead of having them under respectively "catalogs" and "facets" parents
+        'mergeRootCatalogLinks' => false,
+
         // Use cache
         'useCache' => false,
         
-        /* Stream method for feature download
-         *   - 'php' : stream through PHP process (slowest but works on all platforms)
-         *   - 'apache' : stream through Apache (needs the XSendfile module to be installed and configured)
-         *   - 'nginx' : stream through Nginx using the X-accel method
-         */
-        'streamMethod' => 'php',
-
         // Timezone for date display
         'timezone' => 'Europe/Paris',
 
