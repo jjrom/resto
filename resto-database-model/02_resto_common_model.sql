@@ -168,10 +168,10 @@ CREATE TABLE IF NOT EXISTS __DATABASE_COMMON_SCHEMA__.right (
     gid                 INTEGER PRIMARY KEY DEFAULT nextval('__DATABASE_COMMON_SCHEMA__.right_id_seq'), 
 
     -- Reference to __DATABASE_COMMON_SCHEMA__.user.id
-    userid              BIGINT,
+    userid              BIGINT UNIQUE,
 
     -- Reference to __DATABASE_COMMON_SCHEMA__.group.groupid
-    groupid             BIGINT,
+    groupid             BIGINT UNIQUE,
 
     -- rights
     rights              JSON
