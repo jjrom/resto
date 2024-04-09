@@ -993,7 +993,13 @@ class RestoCollection
             }
         }
 
-        $collectionArray['summaries'] = $this->getSummaries($options['stats'] ?? false);
+        /*
+         * [PERFORMANCE] Call with noSummaries from RestoCollections one facet table call per collection
+         * (very poor performance for a large number of collections)
+         */
+        if ( !isset($options['noSummaries']) ) {
+            $collectionArray['summaries'] = $this->getSummaries($options['stats'] ?? false);
+        }
         
         // Properties
         if (is_array($this->properties)) {
