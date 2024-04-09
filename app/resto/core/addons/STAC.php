@@ -200,11 +200,6 @@ class STAC extends RestoAddOn
         'http://www.opengis.net/spec/cql2/1.0/conf/basic-spatial-operators'
     );
 
-    /**
-     * Add-on version
-     */
-    public $version = '1.0.6';
-
     /*
      * Catalog title
      */
@@ -251,8 +246,24 @@ class STAC extends RestoAddOn
     }
 
     /**
+     * 
      * Return an asset href within an HTTP 301 Redirect message
-     * This trick is used to store download external asset statistics
+     * Get asset from this endpoint allows to store download external asset statistics
+     * 
+     *    @OA\Get(
+     *      path="/assets/{urlInBase64}",
+     *      summary="Download asset",
+     *      description="Return the asset href within an HTTP 301 Redirect message. This allows to keep track of download of external assets in resto statistics",
+     *      tags={"STAC"},
+     *      @OA\Response(
+     *          response="301",
+     *          description="HTTP/1.1 301 Moved Permanently"
+     *      ),
+     *      @OA\Response(
+     *          response="400",
+     *          description="Invalid base64 encoded url",
+     *      )
+     *    )
      *
      * @param array $params
      */
@@ -387,8 +398,8 @@ class STAC extends RestoAddOn
     }
 
     /**
-     * Return the list of children catalog
-     * (see https://github.com/radiantearth/stac-api-spec/tree/main/children)
+     * Return the list of queryables
+     * (see https://github.com/stac-api-extensions/filter?tab=readme-ov-file#queryables)
      *
      *    @OA\Get(
      *      path="/queryables",

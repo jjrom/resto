@@ -1496,7 +1496,7 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
 	  	<ul class="toc-list-h1">
         
           <li>
-            <a href="#welcome-to-resto" class="toc-h1 toc-link" data-title="Welcome to resto v8.0.0">Welcome to resto v8.0.0</a>
+            <a href="#welcome-to-resto" class="toc-h1 toc-link" data-title="Welcome to resto v8.0.1">Welcome to resto v8.0.1</a>
             
           </li>
         
@@ -1641,6 +1641,11 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
             <a href="#welcome-to-resto-stac" class="toc-h1 toc-link" data-title="STAC">STAC</a>
             
               <ul class="toc-list-h2">
+                
+                  <li>
+                    <a href="#stac--getasset" class="toc-h2 toc-link" data-title="STAC::getAsset">STAC::getAsset</a>
+                    
+                  </li>
                 
                   <li>
                     <a href="#stac--getcatalogs" class="toc-h2 toc-link" data-title="STAC::getCatalogs">STAC::getCatalogs</a>
@@ -1916,7 +1921,7 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
     <div class="page-wrapper">
       <div class="dark-box"></div>
       <div class="content">
-        <h1 id="welcome-to-resto">Welcome to resto v8.0.0</h1>
+        <h1 id="welcome-to-resto">Welcome to resto v8.0.1</h1>
 <blockquote>
 <p>Scroll down for code samples, example requests and responses. Select a language for code samples from the tabs above or the mobile navigation menu.</p>
 </blockquote>
@@ -6669,6 +6674,46 @@ To perform this operation, you must be authenticated by means of one of the foll
 basicAuth & bearerAuth & queryAuth
 </aside>
 <h1 id="welcome-to-resto-stac">STAC</h1>
+<h2 id="stac--getasset">STAC::getAsset</h2>
+<p><a id="opIdSTAC::getAsset"></a></p>
+<blockquote>
+<p>Code samples</p>
+</blockquote>
+<pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
+curl -X GET http://127.0.0.1:5252/assets/{urlInBase64}
+
+</code></pre>
+<p><code>GET /assets/{urlInBase64}</code></p>
+<p><em>Download asset</em></p>
+<p>Return the asset href within an HTTP 301 Redirect message. This allows to keep track of download of external assets in resto statistics</p>
+<h3 id="stac--getasset-responses">Responses</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+<th>Description</th>
+<th>Schema</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>301</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.4.2">Moved Permanently</a></td>
+<td>HTTP/1.1 301 Moved Permanently</td>
+<td>None</td>
+</tr>
+<tr>
+<td>400</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.1">Bad Request</a></td>
+<td>Invalid base64 encoded url</td>
+<td>None</td>
+</tr>
+</tbody>
+</table>
+<aside class="success">
+This operation does not require authentication
+</aside>
 <h2 id="stac--getcatalogs">STAC::getCatalogs</h2>
 <p><a id="opIdSTAC::getCatalogs"></a></p>
 <blockquote>
