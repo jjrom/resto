@@ -289,6 +289,7 @@ class RestoCollections
         $totalMatched = 0;
         foreach (array_keys($this->collections) as $key) {
             $collection = $this->collections[$key]->toArray(array(
+                'noSummaries' => true,
                 'stats' => isset($this->context->query['_stats']) ? filter_var($this->context->query['_stats'], FILTER_VALIDATE_BOOLEAN) : false
             ));
             $collections['links'][] = array(

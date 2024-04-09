@@ -386,7 +386,6 @@ class FacetsFunctions
     private function pivotsToSTACSummaries($pivots)
     {
         $summaries = array();
-
         foreach (array_keys($pivots) as $key) {
             if (count($pivots[$key]) === 1) {
                 $summaries[$key] = array_merge($pivots[$key][0], array('type' => 'string'));
