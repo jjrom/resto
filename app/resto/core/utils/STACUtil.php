@@ -127,6 +127,7 @@ class STACUtil
         foreach (array('catalogs', 'facets') as $key) {
             if (isset($facets[$key])) {
                 
+                /*
                 // Remove the "catalogs" and "facets" childs level and directly
                 // merge there respective childs to the root endpoint
                 if ( $this->context->core['mergeRootCatalogLinks']) {
@@ -141,14 +142,14 @@ class STACUtil
                     }
                     
                 }
-                else {
+                else {*/
                     $links[] = array(
                         'rel' => 'child',
                         'title' => ucfirst($key),
                         'type' => RestoUtil::$contentTypes['json'],
                         'href' => $this->context->core['baseUrl'] . '/catalogs/' . rawurlencode($key)
                     );
-                }
+                //}
             }
         }
 
