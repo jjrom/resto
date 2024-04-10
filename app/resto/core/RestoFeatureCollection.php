@@ -817,17 +817,23 @@ class RestoFeatureCollection
      */
     private function getBaseLinks($collectionId)
     {
-        $this->links[] = array(
-            'rel' => 'self',
-            'type' => RestoUtil::$contentTypes['geojson'],
-            'href' => RestoUtil::updateUrl($this->context->getUrl(false), $this->writeRequestParams($this->query))
-        );
-
-        $this->links[] = array(
-            'rel' => 'search',
-            'type' => 'application/opensearchdescription+xml',
-            'href' => $this->context->core['baseUrl'] . '/services/osdd' . (isset($collectionId) ? '/' . $collectionId : '')
-        );
+        $this->links = array_merge($this->links, array(
+            array(
+                'rel' => 'self',
+                'type' => RestoUtil::$contentTypes['geojson'],
+                'href' => RestoUtil::updateUrl($this->context->getUrl(false), $this->writeRequestParams($this->query))
+            ),
+            array(
+                'rel' => 'search',
+                'type' => 'application/opensearchdescription+xml',
+                'href' => $this->context->core['baseUrl'] . '/services/osdd' . (isset($collectionId) ? '/' . $collectionId : '')
+            ),
+            array(
+                'rel' => 'root',
+                'type' => RestoUtil::$contentTypes['json'],
+            'href' => $this->context->core['baseUrl']
+            )
+        ));
     }
 
     /**

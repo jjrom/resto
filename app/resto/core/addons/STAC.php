@@ -170,23 +170,23 @@ class STAC extends RestoAddOn
      * STAC namespaces
      */
     const CONFORMANCE_CLASSES = array(
-        'https://api.stacspec.org/v1.0.0-rc.1/core',
-        'https://api.stacspec.org/v1.0.0-rc.1/collections',
-        'https://api.stacspec.org/v1.0.0-rc.1/ogcapi-features',
-        'https://api.stacspec.org/v1.0.0-rc.1/browseable',
-        'https://api.stacspec.org/v1.0.0-rc.1/children',
-        'https://api.stacspec.org/v1.0.0-rc.1/item-search',
-        'https://api.stacspec.org/v1.0.0-rc.1/item-search#fields',
+        'https://api.stacspec.org/v1.0.0/core',
+        'https://api.stacspec.org/v1.0.0/collections',
+        'https://api.stacspec.org/v1.0.0/ogcapi-features',
+        'https://api.stacspec.org/v1.0.0-rc.3/browseable',
+        'https://api.stacspec.org/v1.0.0-rc.2/children',
+        'https://api.stacspec.org/v1.0.0/item-search',
+        'https://api.stacspec.org/v1.0.0/item-search#fields',
         // Unsupported
-        //'https://api.stacspec.org/v1.0.0-rc.1/item-search#query',
-        'https://api.stacspec.org/v1.0.0-rc.1/item-search#sort',
-        'https://api.stacspec.org/v1.0.0-rc.1/item-search#filter',
+        //'https://api.stacspec.org/v1.0.0/item-search#query',
+        'https://api.stacspec.org/v1.0.0/item-search#sort',
+        'https://api.stacspec.org/v1.0.0-rc.3/item-search#filter',
 
         'http://www.opengis.net/spec/ogcapi_common-2/1.0/conf/collections',
 
-        'https://api.stacspec.org/v1.0.0-rc.1/ogcapi-features#fields',
-        'https://api.stacspec.org/v1.0.0-rc.1/ogcapi-features#sort',
-        'https://api.stacspec.org/v1.0.0-rc.1/ogcapi-features#filter',
+        'https://api.stacspec.org/v1.0.0/ogcapi-features#fields',
+        'https://api.stacspec.org/v1.0.0/ogcapi-features#sort',
+        'https://api.stacspec.org/v1.0.0/ogcapi-features#filter',
 
         'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core',
         'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson',
