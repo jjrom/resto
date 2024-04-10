@@ -32,6 +32,13 @@ class RestoUser
     const DELETE_ANY_COLLECTION = 'deleteAnyCollection';
     const UPDATE_ANY_COLLECTION = 'updateAnyCollection';
     
+    const CREATE_CATALOG = 'createCatalog';
+    const DELETE_CATALOG = 'deleteCatalog';
+    const UPDATE_CATALOG = 'updateCatalog';
+    
+    const DELETE_ANY_CATALOG = 'deleteAnyCatalog';
+    const UPDATE_ANY_CATALOG = 'updateAnyCatalog';
+    
     const CREATE_FEATURE = 'createFeature';
     const DELETE_FEATURE = 'deleteFeature';
     const UPDATE_FEATURE = 'updateFeature';
@@ -235,6 +242,13 @@ class RestoUser
      *  - deleteAnyCollection   : delete any collection i.e. including not owned by user
      *  - updateAnyCollection   : update any collection i.e. including not owned by user
      * 
+     *  - createCatalog         : create a catalog
+     *  - deleteCatalog         : delete a catalog owned by user
+     *  - updateCatalog         : update a catalog owned by user
+     *
+     *  - deleteAnyCatalog      : delete any catalog i.e. including not owned by user
+     *  - updateAnyCatalog      : update any catalog i.e. including not owned by user
+     * 
      *  - createFeature         : create a feature in a collection owned by user
      *  - deleteFeature         : delete a feature owned by user
      *  - updateFeature         : update a feature owned by user
@@ -261,6 +275,8 @@ class RestoUser
         $withParams = array(
             RestoUser::DELETE_COLLECTION,
             RestoUser::UPDATE_COLLECTION,
+            RestoUser::DELETE_CATALOG,
+            RestoUser::UPDATE_CATALOG,
             RestoUser::CREATE_FEATURE,
             RestoUser::DELETE_FEATURE,
             RestoUser::UPDATE_FEATURE,
@@ -295,6 +311,11 @@ class RestoUser
             case RestoUser::DELETE_COLLECTION:
             case RestoUser::UPDATE_COLLECTION:
                 return $rights[$action] && isset($params['collection']) && $params['collection']->owner === $this->profile['id'];
+            
+            // Only owner of catalog can do this
+            case RestoUser::DELETE_CATALOG:
+            case RestoUser::UPDATE_CATALOG:
+                return $rights[$action] && isset($params['catalog']) && $params['catalog']->owner === $this->profile['id'];
             
             // Only owner of feature can do this
             case RestoUser::DELETE_FEATURE:

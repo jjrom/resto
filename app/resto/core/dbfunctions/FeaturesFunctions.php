@@ -349,7 +349,7 @@ class FeaturesFunctions
         $facetsStored = $collection->context->core['storeFacets'] && $collection->model->dbParams['storeFacets'];
         if ($facetsStored) {
             try {
-                (new FacetsFunctions($this->dbDriver))->storeFacets($keysValues['facets'], $collection->id);
+                (new FacetsFunctions($this->dbDriver))->storeFacets($keysValues['facets'], $collection->user->profile['id'], $collection->id);
             } catch (Exception $e) {
                 $facetsStored = false;
             }
@@ -486,7 +486,7 @@ class FeaturesFunctions
             $facetsFunctions = new FacetsFunctions($this->dbDriver);
             $facetsFunctions->removeFacetsFromHashtags($oldFeatureArray['properties']['hashtags'] ?? array(), $collection->id);
             if ($feature->context->core['storeFacets'] && $collection->model->dbParams['storeFacets']) {
-                $facetsFunctions->storeFacets($keysAndValues['facets'], $collection->id);
+                $facetsFunctions->storeFacets($keysAndValues['facets'], $collection->user->profile['id'], $collection->id);
             }
         } catch (Exception $e) {
             $facetsUpdated = false;
@@ -573,7 +573,7 @@ class FeaturesFunctions
             $facetsFunctions = new FacetsFunctions($this->dbDriver);
             $facetsFunctions->removeFacetsFromHashtags($hashtagsToRemove, $feature->collection->id);
             if ($feature->context->core['storeFacets'] &&  $model->dbParams['storeFacets']) {
-                $facetsFunctions->storeFacets($hashtagsToAdd, $feature->collection->id);
+                $facetsFunctions->storeFacets($hashtagsToAdd, $feature->user->profile['id'], $feature->collection->id);
             }
         } catch (Exception $e) {
             $facetsUpdated = false;

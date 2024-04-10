@@ -77,6 +77,21 @@ rights are defined as boolean properties within a JSON object. The default user'
                 // If true the user can update any collection whether he owns it or not
                 "updateAnyCollection": false,
                 
+                // If true the user can create a catalog
+                "createCatalog": true,
+
+                // If true the user can delete a catalog he owns
+                "deleteCatalog": true,
+
+                // If true the user can update a catalog he owns
+                "updateCatalog": true,
+
+                // If true the user can delete any catalog whether he owns it or not
+                "deleteAnyCatalog": false,
+
+                // If true the user can update any catalog whether he owns it or not
+                "updateAnyCatalog": false,
+
                 // If true the user can add a feature to a collection owns
                 "createFeature": true,
 

@@ -54,7 +54,8 @@ class FacetsFunctions
             'created' => $rawFacet['created'],
             'creator' => $rawFacet['creator'] ?? null,
             'count' => (integer) $rawFacet['counter'],
-            'description' => $rawFacet['description'] ?? null
+            'description' => $rawFacet['description'] ?? null,
+            'isLeaf' => $rawFacet['isleaf']
         );
     }
 
@@ -65,7 +66,7 @@ class FacetsFunctions
      */
     public function getFacet($facetId)
     {
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id, collection, value, type, pid, to_iso8601(created) as created, creator, description  FROM ' . $this->dbDriver->targetSchema . '.facet WHERE public.normalize(id)=public.normalize($1) LIMIT 1', array(
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id, collection, value, type, pid, to_iso8601(created) as created, creator, description, isleaf  FROM ' . $this->dbDriver->targetSchema . '.facet WHERE public.normalize(id)=public.normalize($1) LIMIT 1', array(
             $facetId
         )));
         if (isset($results[0])) {
@@ -98,9 +99,10 @@ class FacetsFunctions
      *      )
      *
      * @param array $facets
+     * @param string $userid
      * @param string $collectionId
      */
-    public function storeFacets($facets, $collectionId = '*')
+    public function storeFacets($facets, $userid, $collectionId = '*')
     {
         // Empty facets - do nothing
         if (!isset($facets) || count($facets) === 0) {
@@ -133,7 +135,7 @@ class FacetsFunctions
                 $facetElement['value'],
                 $facetElement['type'],
                 $facetElement['parentId'] ?? 'root',
-                $facetElement['creator'] ?? null,
+                $facetElement['creator'] ?? $userid,
                 $facetElement['description'] ?? null,
                 // If no input counter is specified - set to 1
                 isset($facetElement['counter']) ? $facetElement['counter'] : 1,
