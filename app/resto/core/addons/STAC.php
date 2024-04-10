@@ -1302,11 +1302,16 @@ class STAC extends RestoAddOn
             
             // Add parent link
             if ($nbOfSegments > 1) {
-                $this->links[] = array(
-                    'rel' => 'parent',
-                    'type' => RestoUtil::$contentTypes['json'],
-                    'href' => $this->context->core['baseUrl'] . '/catalogs/' . join('/', array_slice(array_map('rawurlencode', $this->segments), 0, -1))
-                );
+
+                // Parent is root in this case
+                if ( ! ($this->context->core['mergeRootCatalogLinks'] && $nbOfSegments === 2) ) {
+                    $this->links[] = array(
+                        'rel' => 'parent',
+                        'type' => RestoUtil::$contentTypes['json'],
+                        'href' => $this->context->core['baseUrl'] . '/catalogs/' . join('/', array_slice(array_map('rawurlencode', $this->segments), 0, -1))
+                    );
+                } 
+                
             }
             
             $searchIsSet = false;

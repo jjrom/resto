@@ -394,7 +394,7 @@ class RestoUser
     public function getGroups()
     {
         if ( !isset($this->groups) ) {
-            return (new GroupsFunctions($this->context->dbDriver))->getGroups(array('userid' => $this->profile['id']));
+            $this->groups = (new GroupsFunctions($this->context->dbDriver))->getGroups(array('userid' => $this->profile['id']));
         }
         return $this->groups;
     }   
@@ -414,7 +414,9 @@ class RestoUser
         ];
 
         for ($i = 0, $ii = count($groups); $i < $ii; $i++) {
-            $ids[] = $groups[$i]['id'];
+            if ( $groups[$i]['id'] !== RestoConstants::GROUP_DEFAULT_ID ) {
+                $ids[] = $groups[$i]['id'];
+            }
         }
 
         return $ids;

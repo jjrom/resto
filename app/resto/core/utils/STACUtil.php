@@ -123,33 +123,40 @@ class STACUtil
         }
 
         $facets = $this->getFacets($minMatch);
-        
+
         foreach (array('catalogs', 'facets') as $key) {
-            if (isset($facets[$key])) {
+
+            $childKeys = $facets[$key];
+            if (isset($childKeys)) {
                 
-                /*
                 // Remove the "catalogs" and "facets" childs level and directly
                 // merge there respective childs to the root endpoint
                 if ( $this->context->core['mergeRootCatalogLinks']) {
-
-                    foreach (array_keys($facets[$key]) as $childKey) {
-                        $links[] = array(
+                    if ( !is_array($childKeys) && $key === 'catalogs' ) {
+                        $childKeys = $this->getCatalogChilds();
+                    }
+                    foreach (array_keys($childKeys) as $childKey) {
+                        $link = array(
                             'rel' => 'child',
-                            'title' => ucfirst($childKey),
+                            'title' => isset($childKeys[$childKey]['title']) ? $childKeys[$childKey]['title'] : ucfirst($childKey),
                             'type' => RestoUtil::$contentTypes['json'],
                             'href' => $this->context->core['baseUrl'] . '/catalogs/' . rawurlencode($key) . '/' . rawurlencode($childKey)
                         );
+                        if ( isset($childKeys[$childKey]['count']) ) {
+                            $link['count'] = $childKeys[$childKey]['count'];
+                        }
+                        $links[] = $link;
                     }
                     
                 }
-                else {*/
+                else {
                     $links[] = array(
                         'rel' => 'child',
                         'title' => ucfirst($key),
                         'type' => RestoUtil::$contentTypes['json'],
                         'href' => $this->context->core['baseUrl'] . '/catalogs/' . rawurlencode($key)
                     );
-                //}
+                }
             }
         }
 
@@ -202,7 +209,7 @@ class STACUtil
     }
 
     /**
-     * Return facets list
+     * Return count per facet type
      *
      * @param integer $minMatch
      * @return array
@@ -238,17 +245,17 @@ class STACUtil
                         if ($result['type'] === 'catalog' || $result['type'] === 'hashtag') {
                             $facets[$result['type'] . 's'] = $matched;
                         } else {
-                            $addToOther = true;
+                            $addToFacets = true;
                             foreach ($this->classifications as $key => $value) {
                                 for ($i = count($value); $i--;) {
                                     if ($result['type'] === $value[$i]) {
                                         $facets['facets'][$key][$result['type']] = $matched;
-                                        $addToOther = false;
+                                        $addToFacets = false;
                                         break;
                                     }
                                 }
                             }
-                            if ($addToOther) {
+                            if ($addToFacets) {
                                 $result['type'] === 'landcover' ? $facets['facets']['landcover'] = $matched : $facets['facets'][$result['type']] = $matched;
                             }
                         }
@@ -260,6 +267,37 @@ class STACUtil
         }
         
         return $facets;
+    }
+
+    /**
+     * Return catalog childs key with counts
+     * 
+     * @return array
+     */
+    private function getCatalogChilds()
+    {
+        $childs = array();
+
+        try {
+
+            $results = $this->context->dbDriver->query('SELECT id, value, pid, isleaf, sum(counter) as matched FROM resto.facet WHERE type=\'catalog\' AND pid=\'root\' GROUP BY id, value, pid, isleaf ORDER BY value ASC');
+            
+            if (!$results) {
+                throw new Exception();
+            }
+            
+            while ($result = pg_fetch_assoc($results)) {
+                $matched = (integer) $result['matched'];
+                $childs[$result['id']] = array(
+                    'count' => $matched,
+                    'title' => $result['value']
+                );
+            }
+        } catch (Exception $e) {
+            //
+        }
+
+        return $childs;
     }
 
 }
