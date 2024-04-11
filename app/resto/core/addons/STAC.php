@@ -72,7 +72,7 @@
  *                  "title": "Legal notice on the use of Copernicus Sentinel Data and Service Information"
  *              }
  *          },
- *          "stac_version": "0.9.0"
+ *          "stac_version": "1.0.0"
  *      }
  *  )
  * 
@@ -1191,7 +1191,7 @@ class STAC extends RestoAddOn
      */
     private function setClassificationsLinks($root)
     {
-        $facets = $this->stacUtil->getFacets($this->options['minMatch']);
+        $facets = $this->stacUtil->getFacetsCount($this->options['minMatch']);
         $target = isset($root) && isset($facets['facets'][$root]) ? $facets['facets'][$root] : $facets['facets'];
 
         if (isset($target) && is_array($target)) {

@@ -23,7 +23,10 @@ Or test the API :
 * Get catalogs of products classified by continents - https://tamn.snapplanet.io/catalogs/classifications/geographical/continent?_pretty=1
 * Get catalogs of products classified by european countries - https://tamn.snapplanet.io/catalogs/classifications/geographical/continent/continent:Europe:6255148?_pretty=1
 
-# Quick startup
+# Installation
+
+## TL;DR
+The [INSTALLATION.md](./docs/INSTALLATION.md) file provides additional information on the installation process.
 
 ## Deploy the service
 To launch a default pre-configured resto instance, just type :
@@ -37,39 +40,11 @@ If you're using docker on Mac with apple Silicon M1 chip, be sure to **turn off 
 
 When this option is turned on, every calls to PHP preg_match function (which is used by resto) leads to a segmentation fault within php fpm and an HTTP 502 Bad Gateway error in nginx. Why ? I just don't know !
 
-## Ingest a collection
-To ingest a collection using the default **ADMIN_USER_NAME** and **ADMIN_USER_PASSWORD** (see [config.env](config.env)) :
-
-        # POST a S2 dummy collection
-        curl -X POST -d@examples/collections/S2.json "http://admin:admin@localhost:5252/collections"
-
-Then get the collections list :
-
-        curl "http://localhost:5252/collections"
-
-### Collection aliases
-A collection can contain an array of *aliases* (see [./examples/collections/L8.json](./examples/collections/L8.json#L3-L5) for instance). These aliases are alternate names to the collection id. Thus {collectionId} value in /collections/{collectionId}/* endpoints can use the original collection id or one of its aliases.
-
-Note that id and aliases must be unique in the database. As a consequence, you cannot create a new collection or set an alias to an existing collection that as the same value of one of the aliases of an existing collection.
-
-## Ingest a feature
-To ingest a feature using the default **ADMIN_USER_NAME** and **ADMIN_USER_PASSWORD** (see [config.env](config.env)) :
-
-        # POST a dummy feature inside the S2 collection
-        curl -X POST -d@examples/features/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040.json "http://admin:admin@localhost:5252/collections/S2/items"
-
-        # Update a dummy feature inside the S2 collection
-        curl -X PUT -d@examples/features/testUpdate.json "http://admin:admin@localhost:5252/collections/S2/items/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040"
-
-Then get the feature :
-
-        curl "http://localhost:5252/collections/S2/items/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040"
-
 ## Users, groups and rights
-See [./USERS.md](./USERS.md)
+See [./USERS.md](./docs/USERS.md)
 
-# TL;DR
-The [INSTALLATION.md](INSTALLATION.md) file provides additional information on the installation process.
+## Collection and catalogs
+See [.COLLECTIONS_AND_CATALOGS.md](./docs/COLLECTIONS_AND_CATALOGS.md)
 
 # References
 

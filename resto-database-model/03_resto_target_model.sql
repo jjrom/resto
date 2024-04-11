@@ -400,8 +400,8 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.facet (
     -- Facet date of creation
     created             TIMESTAMP DEFAULT now(),
 
-    -- Creator of the facet
-    creator             BIGINT,
+    -- Owner of the facet i.e. first user to create it
+    owner             BIGINT,
 
     -- Description
     description         TEXT,

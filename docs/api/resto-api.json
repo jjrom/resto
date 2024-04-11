@@ -56,6 +56,88 @@
                         "description": "Not found"
                     }
                 }
+            },
+            "post": {
+                "tags": [
+                    "STAC"
+                ],
+                "summary": "Add a STAC catalog",
+                "description": "Add a STAC catalog as a facet entry",
+                "operationId": "STACCatalog::addCatalog",
+                "requestBody": {
+                    "description": "A valid STAC Catalog",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Catalog"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The catalog is created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Status is *success*",
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "description": "Message information",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": "success",
+                                    "message": "Catalog created"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Missing one of the mandatory input property",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestError"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Only user with *createCatalog* rights can create a catalog",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
             }
         },
         "/children": {
@@ -615,6 +697,184 @@
                 }
             }
         },
+        "/catalogs/{catalogId}": {
+            "put": {
+                "tags": [
+                    "STAC"
+                ],
+                "summary": "Update catalog",
+                "description": "Update catalog as a facet entry",
+                "operationId": "STACCatalog::updateCatalog",
+                "parameters": [
+                    {
+                        "name": "calalogId",
+                        "in": "path",
+                        "description": "Catalog identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Catalog fields to be update limited to title and description",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Catalog"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Catalog is updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Status is *success*",
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "description": "Message information",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": "success",
+                                    "message": "Catalog updated"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundError"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Only user with *updateCatalog* rights can update a catalog",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "STAC"
+                ],
+                "summary": "Delete catalog",
+                "description": "Delete catalog as a facet entry - update feature keywords accordingly",
+                "operationId": "STACCatalog::removeCatalog",
+                "parameters": [
+                    {
+                        "name": "calalogId",
+                        "in": "path",
+                        "description": "Catalog identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Catalog deleted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Status is *success*",
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "description": "Message information",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": "success",
+                                    "message": "Catalog deleted",
+                                    "featuresUpdated": 345
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundError"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Only user with *deleteCatalog* rights can delete a catalog",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            }
+        },
         "/auth": {
             "get": {
                 "tags": [
@@ -652,7 +912,7 @@
                                         "name": "jrom",
                                         "followers": 185,
                                         "followings": 144,
-                                        "firstname": "J\u00e9r\u00f4me",
+                                        "firstname": "Jérôme",
                                         "lastname": "Gasperi",
                                         "bio": "Working on new features for the next major release of SnapPlanet",
                                         "registrationdate": "2016-10-08T22:50:34.187217Z",
@@ -670,6 +930,183 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            }
+        },
+        "/create": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Create an authentication {token}",
+                "description": "Create an authentication token (aka rJWT) for user identified by {emailOrId}",
+                "operationId": "AuthAPI::createToken",
+                "parameters": [
+                    {
+                        "name": "emailOrId",
+                        "in": "path",
+                        "description": "User email or id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "duration",
+                        "in": "path",
+                        "description": "Duration of token in days (default is 1 day)",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The token is created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "userId": {
+                                            "description": "User id",
+                                            "type": "string"
+                                        },
+                                        "duration": {
+                                            "description": "Duration of token in days",
+                                            "type": "integer"
+                                        },
+                                        "valid_until": {
+                                            "description": "Token validity",
+                                            "type": "string"
+                                        },
+                                        "token": {
+                                            "description": "Generated token",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "userId": 100,
+                                    "duration": 100,
+                                    "valid_until": "2023-05-03T11:20:13",
+                                    "token": "eyJzdWIiOiIxMDAiLCJpYXQiOjE2NzQ0NzI4MTMsImV4cCI6MTY4MzExMjgxM30.5fdRS1jr0fuF7HMu2oXb0sXViom39ExI2IR_FI5WK7k"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            }
+        },
+        "/auth/revoke/{token}": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Revoke an authentication {token}",
+                "description": "Revoke authication token (aka rJWT). Only administrator or owne of a token can revoke it. This service should be called when user logged out from client side.",
+                "operationId": "AuthAPI::revokeToken",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "path",
+                        "description": "JWT or rJWT",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The token is revoked",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Status is *success*",
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "description": "Message information",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": "success",
+                                    "message": "Token revoked"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid token",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestError"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenError"
                                 }
                             }
                         }
@@ -784,7 +1221,7 @@
                                         "name": "jrom",
                                         "followers": 185,
                                         "followings": 144,
-                                        "firstname": "J\u00e9r\u00f4me",
+                                        "firstname": "Jérôme",
                                         "lastname": "Gasperi",
                                         "bio": "Working on new features for the next major release of SnapPlanet",
                                         "registrationdate": "2016-10-08T22:50:34.187217Z",
@@ -994,7 +1431,7 @@
                                                     "OPTICAL"
                                                 ]
                                             },
-                                            "stac_version": "0.8.0",
+                                            "stac_version": "1.0.0",
                                             "stac_extensions": [
                                                 "https://stac-extensions.github.io/eo/v1.0.0/schema.json"
                                             ]
@@ -3468,7 +3905,7 @@
                                             "name": "jrom",
                                             "followers": 185,
                                             "followings": 144,
-                                            "firstname": "J\u00e9r\u00f4me",
+                                            "firstname": "Jérôme",
                                             "lastname": "Gasperi",
                                             "bio": "Working on new features for the next major release of SnapPlanet",
                                             "registrationdate": "2016-10-08T22:50:34.187217Z",
@@ -3815,6 +4252,145 @@
                     }
                 ]
             }
+        },
+        "/users/{userid}/history": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get user's search history",
+                "description": "Results are returned by pages with 50 results per page from most recent to oldest.",
+                "operationId": "UsersAPI::getUserLogs",
+                "parameters": [
+                    {
+                        "name": "userid",
+                        "in": "path",
+                        "description": "User's identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "querytime",
+                        "in": "query",
+                        "description": "Filter on query time. Interval of ISO8601 date (i.e. YYYY-MM-DDTHH:MM:SSZ)",
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "lt",
+                        "in": "query",
+                        "description": "Return logs with gid lower than *lt* - used for pagination",
+                        "style": "form",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User's history",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "description": "User identifier",
+                                            "type": "string"
+                                        },
+                                        "logs": {
+                                            "description": "Array of user's log history",
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "gid": {
+                                                        "description": "Log unique idendifier",
+                                                        "type": "integer"
+                                                    },
+                                                    "method": {
+                                                        "description": "Method - one of GET, POST, PUT or DELETE",
+                                                        "type": "string"
+                                                    },
+                                                    "path": {
+                                                        "description": "Path relative to the root endpoint",
+                                                        "type": "string"
+                                                    },
+                                                    "querytime": {
+                                                        "description": "Date of query (in ISO 8601)",
+                                                        "type": "string"
+                                                    },
+                                                    "query": {
+                                                        "description": "Query string",
+                                                        "type": "string"
+                                                    },
+                                                    "userid": {
+                                                        "description": "User identifier (only display to admin user)",
+                                                        "type": "string"
+                                                    },
+                                                    "ip": {
+                                                        "description": "Calling IP address (only display to admin user)",
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "id": "1356771884787565573",
+                                    "logs": [
+                                        {
+                                            "gid": 65,
+                                            "method": "GET",
+                                            "path": "/users/202707441557308418/logs",
+                                            "querytime": "2019-01-05T07:10:38.785236Z"
+                                        },
+                                        {
+                                            "gid": 39,
+                                            "method": "GET",
+                                            "path": "/users",
+                                            "querytime": "2019-01-03T22:19:28.251167Z",
+                                            "query": "&in=202707441557308418%60"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -3939,7 +4515,7 @@
                             "LongName": "Level 1C Sentinel-2 images",
                             "Description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites",
                             "Tags": "copernicus esa eu msi radiance sentinel sentinel2",
-                            "Developer": "J\u00e9r\u00f4me Gasperi",
+                            "Developer": "Jérôme Gasperi",
                             "Contact": "jrom@snapplanet.io",
                             "Query": "Toulouse",
                             "Attribution": "European Union/ESA/Copernicus"
@@ -3947,9 +4523,9 @@
                         "fr": {
                             "ShortName": "Sentinel-2",
                             "LongName": "Images Sentinel-2 Niveau 1C",
-                            "Description": "La mission SENTINEL-2 est constitu\u00e9e de deux satellites d'imagerie optique \u00e9quip\u00e9s d\u2019un imageur multispectral (MSI) en 13 bandes spectrales avec des r\u00e9solutions de 10, 20 et 60 m\u00e8tres et d'une fauch\u00e9e unique de 290 km de large. La capacit\u00e9 d'observation des deux satellites permet de surveiller l'int\u00e9gralit\u00e9 des terres \u00e9merg\u00e9es du globe tous les 5 jours",
+                            "Description": "La mission SENTINEL-2 est constituée de deux satellites d'imagerie optique équipés d’un imageur multispectral (MSI) en 13 bandes spectrales avec des résolutions de 10, 20 et 60 mètres et d'une fauchée unique de 290 km de large. La capacité d'observation des deux satellites permet de surveiller l'intégralité des terres émergées du globe tous les 5 jours",
                             "Tags": "copernicus esa eu msi radiance sentinel sentinel2",
-                            "Developer": "J\u00e9r\u00f4me Gasperi",
+                            "Developer": "Jérôme Gasperi",
                             "Contact": "jrom@snapplanet.io",
                             "Query": "Toulouse",
                             "Attribution": "European Union/ESA/Copernicus"
@@ -4317,7 +4893,7 @@
                             }
                         ]
                     },
-                    "stac_version": "0.8.0",
+                    "stac_version": "1.0.0",
                     "stac_extensions": [
                         "https://stac-extensions.github.io/eo/v1.0.0/schema.json"
                     ]
@@ -4369,7 +4945,7 @@
                     "LongName": "Sentinel-2",
                     "Description": "Sentinel-2 tiles",
                     "Tags": "s2 sentinel2",
-                    "Developer": "J\u00e9r\u00f4me Gasperi",
+                    "Developer": "Jérôme Gasperi",
                     "Contact": "jrom@snapplanet.io",
                     "Query": "Toulouse",
                     "Attribution": "SnapPlanet - Copyright 2016, All Rights Reserved"
@@ -4945,7 +5521,7 @@
                     "type": "FeatureCollection",
                     "features": [
                         {
-                            "stac_version": "0.8.0",
+                            "stac_version": "1.0.0",
                             "stac_extensions": [
                                 "https://stac-extensions.github.io/eo/v1.0.0/schema.json"
                             ],
@@ -5096,7 +5672,7 @@
                     "type": "FeatureCollection",
                     "features": [
                         {
-                            "stac_version": "0.8.0",
+                            "stac_version": "1.0.0",
                             "stac_extensions": [
                                 "https://stac-extensions.github.io/eo/v1.0.0/schema.json"
                             ],
@@ -5268,7 +5844,7 @@
                     "name": "jrom",
                     "followers": 185,
                     "followings": 144,
-                    "firstname": "J\u00e9r\u00f4me",
+                    "firstname": "Jérôme",
                     "lastname": "Gasperi",
                     "bio": "Working on new features for the next major release of SnapPlanet",
                     "registrationdate": "2016-10-08T22:50:34.187217Z",
@@ -5331,7 +5907,7 @@
                             "title": "Legal notice on the use of Copernicus Sentinel Data and Service Information"
                         }
                     ],
-                    "stac_version": "0.9.0"
+                    "stac_version": "1.0.0"
                 }
             },
             "Queryables": {},

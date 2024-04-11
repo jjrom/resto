@@ -85,7 +85,7 @@
  *          "type": "FeatureCollection",
  *          "features":{
  *              {
- *                  "stac_version": "0.8.0",
+ *                  "stac_version": "1.0.0",
  *                  "stac_extensions": {
  *                      "https://stac-extensions.github.io/eo/v1.0.0/schema.json"
  *                  },
@@ -230,7 +230,7 @@
  *          "type": "FeatureCollection",
  *          "features":{
  *              {
- *                  "stac_version": "0.8.0",
+ *                  "stac_version": "1.0.0",
  *                  "stac_extensions": {
  *                      "https://stac-extensions.github.io/eo/v1.0.0/schema.json"
  *                  },

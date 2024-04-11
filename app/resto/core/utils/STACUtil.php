@@ -122,7 +122,7 @@ class STACUtil
             }
         }
 
-        $facets = $this->getFacets($minMatch);
+        $facets = $this->getFacetsCount($minMatch);
 
         foreach (array('catalogs', 'facets') as $key) {
 
@@ -214,7 +214,7 @@ class STACUtil
      * @param integer $minMatch
      * @return array
      */
-    public function getFacets($minMatch)
+    public function getFacetsCount($minMatch)
     {
         $facets = array(
             'count' => 0,

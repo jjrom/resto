@@ -39,4 +39,4 @@ COPY ${BUILD_DIR}/config.php.template /tmp/config.php.template
 
 # Docs directory (for API)
 RUN mkdir -p /docs
-COPY ./docs /docs
+COPY ./docs/api/* /docs

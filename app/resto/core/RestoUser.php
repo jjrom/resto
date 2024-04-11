@@ -315,7 +315,7 @@ class RestoUser
             // Only owner of catalog can do this
             case RestoUser::DELETE_CATALOG:
             case RestoUser::UPDATE_CATALOG:
-                return $rights[$action] && isset($params['catalog']) && $params['catalog']->owner === $this->profile['id'];
+                return $rights[$action] && isset($params['catalog']) && $params['catalog']['owner'] === $this->profile['id'];
             
             // Only owner of feature can do this
             case RestoUser::DELETE_FEATURE:

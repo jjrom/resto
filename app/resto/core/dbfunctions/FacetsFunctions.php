@@ -52,7 +52,7 @@ class FacetsFunctions
             'value' => $rawFacet['value'],
             'parentId' => $rawFacet['pid'],
             'created' => $rawFacet['created'],
-            'creator' => $rawFacet['creator'] ?? null,
+            'owner' => $rawFacet['owner'] ?? null,
             'count' => (integer) $rawFacet['counter'],
             'description' => $rawFacet['description'] ?? null,
             'isLeaf' => $rawFacet['isleaf']
@@ -60,20 +60,32 @@ class FacetsFunctions
     }
 
     /**
-     * Get facet from $id
+     * Get facet from id and/or pid and/or collection)
      *
-     * @param string $facetId
+     * @param array params
      */
-    public function getFacet($facetId)
+    public function getFacets($params = array())
     {
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id, collection, value, type, pid, to_iso8601(created) as created, creator, description, isleaf  FROM ' . $this->dbDriver->targetSchema . '.facet WHERE public.normalize(id)=public.normalize($1) LIMIT 1', array(
-            $facetId
-        )));
-        if (isset($results[0])) {
-            return FacetsFunctions::format($results[0]);
+
+        $facets = array();
+
+        $values = array();
+        $where = array();
+        $count = 1;
+        foreach (array_keys($params) as $key ) {
+            if (in_array($key, array('id', 'pid', 'collection'))) {
+                $where[] = 'public.normalize(' . $key . ')=public.normalize($' . $count . ')';
+                $values[] = $params[$key];
+                $count++;
+            }
         }
-        
-        return null;
+
+        $results = $this->dbDriver->pQuery('SELECT id, collection, value, type, pid, to_iso8601(created) as created, owner, description, counter, isleaf  FROM ' . $this->dbDriver->targetSchema . '.facet' . ( empty($where) ? '' : ' WHERE ' . join(' AND ', $where)), $values);
+        while ($result = pg_fetch_assoc($results)) {
+            $facets[] = FacetsFunctions::format($result);
+        }
+
+        return $facets;
     }
 
     /**
@@ -127,7 +139,7 @@ class FacetsFunctions
              *
              * [IMPORTANT] UPSERT with check on parentId only if $facetElement['parentId'] is set
              */
-            $insert = 'INSERT INTO ' . $this->dbDriver->targetSchema . '.facet (id, collection, value, type, pid, creator, description, created, counter, isleaf) SELECT $1,$2,$3,$4,$5,$6,$7,now(),$8,$9';
+            $insert = 'INSERT INTO ' . $this->dbDriver->targetSchema . '.facet (id, collection, value, type, pid, owner, description, created, counter, isleaf) SELECT $1,$2,$3,$4,$5,$6,$7,now(),$8,$9';
             $upsert = 'UPDATE ' . $this->dbDriver->targetSchema . '.facet SET counter=' .(isset($facetElement['counter']) ? 'counter' : 'counter+1') . ' WHERE public.normalize(id)=public.normalize($1) AND public.normalize(collection)=public.normalize($2)' . (isset($facetElement['parentId']) ? ' AND public.normalize(pid)=public.normalize($5)' : '');
             $this->dbDriver->pQuery('WITH upsert AS (' . $upsert . ' RETURNING *) ' . $insert . ' WHERE NOT EXISTS (SELECT * FROM upsert)', array(
                 $facetElement['id'],
@@ -135,7 +147,7 @@ class FacetsFunctions
                 $facetElement['value'],
                 $facetElement['type'],
                 $facetElement['parentId'] ?? 'root',
-                $facetElement['creator'] ?? $userid,
+                $facetElement['owner'] ?? $userid,
                 $facetElement['description'] ?? null,
                 // If no input counter is specified - set to 1
                 isset($facetElement['counter']) ? $facetElement['counter'] : 1,
@@ -145,14 +157,79 @@ class FacetsFunctions
     }
 
     /**
-     * Remove facet for collection i.e. decrease by one counter
+     * Update facet 
+     * 
+     * @param array $facet
+     * @return integer // number of facets updated
+     */
+    public function updateFacet($facet)
+    {
+        
+        $values = array(
+            $facet['id']
+        );
+        
+        $canBeUpdated = array(
+            //'collection',
+            'value',
+            //'type',
+            //'parentId',
+            'owner',
+            'description',
+            //'counter',
+            //'isLeaf'
+        );
+
+        $set = array();
+        $count = 2;
+        foreach (array_keys($facet) as $key ) {
+            if (in_array($key, $canBeUpdated)) {
+                $set[] = $key . '=$' . $count;
+                $values[] = $facet[$key];
+                $count++;
+            }
+        }
+
+        if ( empty($set) ) {
+            return array(
+                'facetsUpdated' => 0
+            );
+        }
+
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.facet SET ' . join(',', $set) . ' WHERE public.normalize(id)=public.normalize($1) RETURNING id', $values, 500, 'Cannot update facet ' . $facet['id']));
+
+        return array(
+            'facetsUpdated' => count($results)
+        );
+
+    }
+
+    /**
+     * Remove facet from id - can only works if facet has no child
      *
      * @param string $facetId
-     * @param string $collectionId
      */
-    public function removeFacet($facetId, $collectionId)
+    public function removeFacet($facetId)
     {
-        $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.facet SET counter = GREATEST(0, counter - 1) WHERE public.normalize(id)=public.normalize($1) AND (public.normalize(collection)=public.normalize($2) OR public.normalize(collection)=\'*\')', array($facetId, $collectionId), 500, 'Cannot delete facet for ' . $collectionId);
+
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.facet WHERE public.normalize(id)=public.normalize($1) RETURNING id', array($facetId), 500, 'Cannot delete facet' . $facetId));
+        $facetsDeleted = count($results);
+
+        // Next remove the facet entry from all features
+        $query = join(' ', array(
+                'UPDATE ' . $this->dbDriver->targetSchema . '.feature SET',
+                'hashtags=ARRAY_REMOVE(hashtags, $1),normalized_hashtags=ARRAY_REMOVE(normalized_hashtags,public.normalize($1)),',
+                'keywords=(SELECT json_agg(e) FROM json_array_elements(keywords) AS e WHERE e->>\'id\' <> $1)',
+                'WHERE normalized_hashtags @> public.normalize_array(ARRAY[$1]) RETURNING id'
+            )
+        );
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery($query, array($facetId), 500, 'Cannot update features' . $facetId));
+        
+        return array(
+            'facetDeleted' => $facetsDeleted,
+            'featuresUpdated' => count($results)
+        );
+
     }
 
     /**
@@ -251,7 +328,7 @@ class FacetsFunctions
     public function removeFacetsFromHashtags($hashtags, $collectionId)
     {
         for ($i = count($hashtags); $i--;) {
-            $this->removeFacet($hashtags[$i], $collectionId);
+            $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.facet SET counter = GREATEST(0, counter - 1) WHERE public.normalize(id)=public.normalize($1) AND (public.normalize(collection)=public.normalize($2) OR public.normalize(collection)=\'*\')', array($hashtags[$i], $collectionId), 500, 'Cannot delete facet for ' . $collectionId);
         }
     }
 
@@ -330,7 +407,7 @@ class FacetsFunctions
         /*
          * Facets for one collection
          */
-        $results = $this->dbDriver->query('SELECT id,collection,value,type,pid,counter,to_iso8601(created) as created,creator FROM ' . $this->dbDriver->targetSchema . '.facet' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where): '') . ' ORDER BY type ASC, value DESC');
+        $results = $this->dbDriver->query('SELECT id,collection,value,type,pid,counter,to_iso8601(created) as created,owner FROM ' . $this->dbDriver->targetSchema . '.facet' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where): '') . ' ORDER BY type ASC, value DESC');
         
         while ($result = pg_fetch_assoc($results)) {
             $typeLen = strlen($result['type']);
