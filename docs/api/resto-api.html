@@ -1633,6 +1633,11 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
                     
                   </li>
                 
+                  <li>
+                    <a href="#usersapi--getuserlogs" class="toc-h2 toc-link" data-title="UsersAPI::getUserLogs">UsersAPI::getUserLogs</a>
+                    
+                  </li>
+                
               </ul>
             
           </li>
@@ -1653,12 +1658,27 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
                   </li>
                 
                   <li>
+                    <a href="#staccatalog--addcatalog" class="toc-h2 toc-link" data-title="STACCatalog::addCatalog">STACCatalog::addCatalog</a>
+                    
+                  </li>
+                
+                  <li>
                     <a href="#stac--getchildren" class="toc-h2 toc-link" data-title="STAC::getChildren">STAC::getChildren</a>
                     
                   </li>
                 
                   <li>
                     <a href="#stac--getqueryables" class="toc-h2 toc-link" data-title="STAC::getQueryables">STAC::getQueryables</a>
+                    
+                  </li>
+                
+                  <li>
+                    <a href="#staccatalog--updatecatalog" class="toc-h2 toc-link" data-title="STACCatalog::updateCatalog">STACCatalog::updateCatalog</a>
+                    
+                  </li>
+                
+                  <li>
+                    <a href="#staccatalog--removecatalog" class="toc-h2 toc-link" data-title="STACCatalog::removeCatalog">STACCatalog::removeCatalog</a>
                     
                   </li>
                 
@@ -1673,6 +1693,16 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
                 
                   <li>
                     <a href="#authapi--gettoken" class="toc-h2 toc-link" data-title="AuthAPI::getToken">AuthAPI::getToken</a>
+                    
+                  </li>
+                
+                  <li>
+                    <a href="#authapi--createtoken" class="toc-h2 toc-link" data-title="AuthAPI::createToken">AuthAPI::createToken</a>
+                    
+                  </li>
+                
+                  <li>
+                    <a href="#authapi--revoketoken" class="toc-h2 toc-link" data-title="AuthAPI::revokeToken">AuthAPI::revokeToken</a>
                     
                   </li>
                 
@@ -2129,7 +2159,7 @@ curl -X GET http://127.0.0.1:5252/collections \
           <span class="hljs-string">"OPTICAL"</span>
         ]
       },
-      <span class="hljs-attr">"stac_version"</span>: <span class="hljs-string">"0.8.0"</span>,
+      <span class="hljs-attr">"stac_version"</span>: <span class="hljs-string">"1.0.0"</span>,
       <span class="hljs-attr">"stac_extensions"</span>: [
         <span class="hljs-string">"https://stac-extensions.github.io/eo/v1.0.0/schema.json"</span>
       ]
@@ -2880,7 +2910,7 @@ curl -X GET http://127.0.0.1:5252/collections/{collectionId} \
       }
     ]
   },
-  <span class="hljs-attr">"stac_version"</span>: <span class="hljs-string">"0.8.0"</span>,
+  <span class="hljs-attr">"stac_version"</span>: <span class="hljs-string">"1.0.0"</span>,
   <span class="hljs-attr">"stac_extensions"</span>: [
     <span class="hljs-string">"https://stac-extensions.github.io/eo/v1.0.0/schema.json"</span>
   ]
@@ -3333,7 +3363,7 @@ curl -X POST http://127.0.0.1:5252/collections/{collectionId}/items \
   <span class="hljs-attr">"type"</span>: <span class="hljs-string">"FeatureCollection"</span>,
   <span class="hljs-attr">"features"</span>: [
     {
-      <span class="hljs-attr">"stac_version"</span>: <span class="hljs-string">"0.8.0"</span>,
+      <span class="hljs-attr">"stac_version"</span>: <span class="hljs-string">"1.0.0"</span>,
       <span class="hljs-attr">"stac_extensions"</span>: [
         <span class="hljs-string">"https://stac-extensions.github.io/eo/v1.0.0/schema.json"</span>
       ],
@@ -4086,7 +4116,7 @@ curl -X GET http://127.0.0.1:5252/search \
   <span class="hljs-attr">"type"</span>: <span class="hljs-string">"FeatureCollection"</span>,
   <span class="hljs-attr">"features"</span>: [
     {
-      <span class="hljs-attr">"stac_version"</span>: <span class="hljs-string">"0.8.0"</span>,
+      <span class="hljs-attr">"stac_version"</span>: <span class="hljs-string">"1.0.0"</span>,
       <span class="hljs-attr">"stac_extensions"</span>: [
         <span class="hljs-string">"https://stac-extensions.github.io/eo/v1.0.0/schema.json"</span>
       ],
@@ -4578,7 +4608,7 @@ curl -X GET http://127.0.0.1:5252/collections/{collectionId}/items \
   <span class="hljs-attr">"type"</span>: <span class="hljs-string">"FeatureCollection"</span>,
   <span class="hljs-attr">"features"</span>: [
     {
-      <span class="hljs-attr">"stac_version"</span>: <span class="hljs-string">"0.8.0"</span>,
+      <span class="hljs-attr">"stac_version"</span>: <span class="hljs-string">"1.0.0"</span>,
       <span class="hljs-attr">"stac_extensions"</span>: [
         <span class="hljs-string">"https://stac-extensions.github.io/eo/v1.0.0/schema.json"</span>
       ],
@@ -6673,6 +6703,201 @@ curl -X PUT http://127.0.0.1:5252/users/{userid} \
 To perform this operation, you must be authenticated by means of one of the following methods:
 basicAuth & bearerAuth & queryAuth
 </aside>
+<h2 id="usersapi--getuserlogs">UsersAPI::getUserLogs</h2>
+<p><a id="opIdUsersAPI::getUserLogs"></a></p>
+<blockquote>
+<p>Code samples</p>
+</blockquote>
+<pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
+curl -X GET http://127.0.0.1:5252/users/{userid}/<span class="hljs-built_in">history</span> \
+  -H <span class="hljs-string">'Accept: application/json'</span> \
+  -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
+
+</code></pre>
+<p><code>GET /users/{userid}/history</code></p>
+<p><em>Get user's search history</em></p>
+<p>Results are returned by pages with 50 results per page from most recent to oldest.</p>
+<h3 id="usersapi--getuserlogs-parameters">Parameters</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>In</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>userid</td>
+<td>path</td>
+<td>string</td>
+<td>true</td>
+<td>User's identifier</td>
+</tr>
+<tr>
+<td>querytime</td>
+<td>query</td>
+<td>string</td>
+<td>false</td>
+<td>Filter on query time. Interval of ISO8601 date (i.e. YYYY-MM-DDTHH:MM:SSZ)</td>
+</tr>
+<tr>
+<td>lt</td>
+<td>query</td>
+<td>integer</td>
+<td>false</td>
+<td>Return logs with gid lower than <em>lt</em> - used for pagination</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Example responses</p>
+</blockquote>
+<blockquote>
+<p>200 Response</p>
+</blockquote>
+<pre class="highlight tab tab-json"><code>{
+  <span class="hljs-attr">"id"</span>: <span class="hljs-string">"1356771884787565573"</span>,
+  <span class="hljs-attr">"logs"</span>: [
+    {
+      <span class="hljs-attr">"gid"</span>: <span class="hljs-number">65</span>,
+      <span class="hljs-attr">"method"</span>: <span class="hljs-string">"GET"</span>,
+      <span class="hljs-attr">"path"</span>: <span class="hljs-string">"/users/202707441557308418/logs"</span>,
+      <span class="hljs-attr">"querytime"</span>: <span class="hljs-string">"2019-01-05T07:10:38.785236Z"</span>
+    },
+    {
+      <span class="hljs-attr">"gid"</span>: <span class="hljs-number">39</span>,
+      <span class="hljs-attr">"method"</span>: <span class="hljs-string">"GET"</span>,
+      <span class="hljs-attr">"path"</span>: <span class="hljs-string">"/users"</span>,
+      <span class="hljs-attr">"querytime"</span>: <span class="hljs-string">"2019-01-03T22:19:28.251167Z"</span>,
+      <span class="hljs-attr">"query"</span>: <span class="hljs-string">"&amp;in=202707441557308418%60"</span>
+    }
+  ]
+}
+</code></pre>
+<blockquote>
+<p>401 Response</p>
+</blockquote>
+<pre class="highlight tab tab-json"><code>{
+  <span class="hljs-attr">"ErrorCode"</span>: <span class="hljs-number">401</span>,
+  <span class="hljs-attr">"ErrorMessage"</span>: <span class="hljs-string">"Unauthorized"</span>
+}
+</code></pre>
+<h3 id="usersapi--getuserlogs-responses">Responses</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+<th>Description</th>
+<th>Schema</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.1">OK</a></td>
+<td>User's history</td>
+<td>Inline</td>
+</tr>
+<tr>
+<td>401</td>
+<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
+<td>Unauthorized</td>
+<td><a href="#schemaunauthorizederror">UnauthorizedError</a></td>
+</tr>
+<tr>
+<td>403</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.3">Forbidden</a></td>
+<td>Forbidden</td>
+<td><a href="#schemaforbiddenerror">ForbiddenError</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="usersapi--getuserlogs-responseschema">Response Schema</h3>
+<p>Status Code <strong>200</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Restrictions</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>» id</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>User identifier</td>
+</tr>
+<tr>
+<td>» logs</td>
+<td>[object]</td>
+<td>false</td>
+<td>none</td>
+<td>Array of user's log history</td>
+</tr>
+<tr>
+<td>»» gid</td>
+<td>integer</td>
+<td>false</td>
+<td>none</td>
+<td>Log unique idendifier</td>
+</tr>
+<tr>
+<td>»» method</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>Method - one of GET, POST, PUT or DELETE</td>
+</tr>
+<tr>
+<td>»» path</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>Path relative to the root endpoint</td>
+</tr>
+<tr>
+<td>»» querytime</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>Date of query (in ISO 8601)</td>
+</tr>
+<tr>
+<td>»» query</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>Query string</td>
+</tr>
+<tr>
+<td>»» userid</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>User identifier (only display to admin user)</td>
+</tr>
+<tr>
+<td>»» ip</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>Calling IP address (only display to admin user)</td>
+</tr>
+</tbody>
+</table>
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+basicAuth & bearerAuth & queryAuth
+</aside>
 <h1 id="welcome-to-resto-stac">STAC</h1>
 <h2 id="stac--getasset">STAC::getAsset</h2>
 <p><a id="opIdSTAC::getAsset"></a></p>
@@ -6754,7 +6979,7 @@ curl -X GET http://127.0.0.1:5252/catalogs/* \
       <span class="hljs-attr">"title"</span>: <span class="hljs-string">"Legal notice on the use of Copernicus Sentinel Data and Service Information"</span>
     }
   ],
-  <span class="hljs-attr">"stac_version"</span>: <span class="hljs-string">"0.9.0"</span>
+  <span class="hljs-attr">"stac_version"</span>: <span class="hljs-string">"1.0.0"</span>
 }
 </code></pre>
 <h3 id="stac--getcatalogs-responses">Responses</h3>
@@ -6784,6 +7009,158 @@ curl -X GET http://127.0.0.1:5252/catalogs/* \
 </table>
 <aside class="success">
 This operation does not require authentication
+</aside>
+<h2 id="staccatalog--addcatalog">STACCatalog::addCatalog</h2>
+<p><a id="opIdSTACCatalog::addCatalog"></a></p>
+<blockquote>
+<p>Code samples</p>
+</blockquote>
+<pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
+curl -X POST http://127.0.0.1:5252/catalogs/* \
+  -H <span class="hljs-string">'Content-Type: application/json'</span> \
+  -H <span class="hljs-string">'Accept: application/json'</span> \
+  -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
+
+</code></pre>
+<p><code>POST /catalogs/*</code></p>
+<p><em>Add a STAC catalog</em></p>
+<p>Add a STAC catalog as a facet entry</p>
+<blockquote>
+<p>Body parameter</p>
+</blockquote>
+<pre class="highlight tab tab-json"><code>{
+  <span class="hljs-attr">"id"</span>: <span class="hljs-string">"year"</span>,
+  <span class="hljs-attr">"title"</span>: <span class="hljs-string">"Facet : year"</span>,
+  <span class="hljs-attr">"description"</span>: <span class="hljs-string">"Catalog of items filtered by year"</span>,
+  <span class="hljs-attr">"links"</span>: [
+    {
+      <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"self"</span>,
+      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"application/json"</span>,
+      <span class="hljs-attr">"href"</span>: <span class="hljs-string">"http://127.0.0.1:5252/collections/S2.json?&amp;_pretty=1"</span>
+    },
+    {
+      <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"root"</span>,
+      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"application/json"</span>,
+      <span class="hljs-attr">"href"</span>: <span class="hljs-string">"http://127.0.0.1:5252"</span>
+    },
+    {
+      <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"license"</span>,
+      <span class="hljs-attr">"href"</span>: <span class="hljs-string">"https://scihub.copernicus.eu/twiki/pub/SciHubWebPortal/TermsConditions/Sentinel_Data_Terms_and_Conditions.pdf"</span>,
+      <span class="hljs-attr">"title"</span>: <span class="hljs-string">"Legal notice on the use of Copernicus Sentinel Data and Service Information"</span>
+    }
+  ],
+  <span class="hljs-attr">"stac_version"</span>: <span class="hljs-string">"1.0.0"</span>
+}
+</code></pre>
+<h3 id="staccatalog--addcatalog-parameters">Parameters</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>In</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>body</td>
+<td>body</td>
+<td><a href="#schemacatalog">Catalog</a></td>
+<td>true</td>
+<td>A valid STAC Catalog</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Example responses</p>
+</blockquote>
+<blockquote>
+<p>200 Response</p>
+</blockquote>
+<pre class="highlight tab tab-json"><code>{
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"message"</span>: <span class="hljs-string">"Catalog created"</span>
+}
+</code></pre>
+<blockquote>
+<p>400 Response</p>
+</blockquote>
+<pre class="highlight tab tab-json"><code>{
+  <span class="hljs-attr">"ErrorCode"</span>: <span class="hljs-number">400</span>,
+  <span class="hljs-attr">"ErrorMessage"</span>: <span class="hljs-string">"Bad request"</span>
+}
+</code></pre>
+<h3 id="staccatalog--addcatalog-responses">Responses</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+<th>Description</th>
+<th>Schema</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.1">OK</a></td>
+<td>The catalog is created</td>
+<td>Inline</td>
+</tr>
+<tr>
+<td>400</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.1">Bad Request</a></td>
+<td>Missing one of the mandatory input property</td>
+<td><a href="#schemabadrequesterror">BadRequestError</a></td>
+</tr>
+<tr>
+<td>401</td>
+<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
+<td>Unauthorized</td>
+<td><a href="#schemaunauthorizederror">UnauthorizedError</a></td>
+</tr>
+<tr>
+<td>403</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.3">Forbidden</a></td>
+<td>Only user with <em>createCatalog</em> rights can create a catalog</td>
+<td><a href="#schemaforbiddenerror">ForbiddenError</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="staccatalog--addcatalog-responseschema">Response Schema</h3>
+<p>Status Code <strong>200</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Restrictions</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>» status</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>Status is <em>success</em></td>
+</tr>
+<tr>
+<td>» message</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>Message information</td>
+</tr>
+</tbody>
+</table>
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+basicAuth & bearerAuth & queryAuth
 </aside>
 <h2 id="stac--getchildren">STAC::getChildren</h2>
 <p><a id="opIdSTAC::getChildren"></a></p>
@@ -7222,6 +7599,290 @@ curl -X GET http://127.0.0.1:5252/queryables \
 <aside class="success">
 This operation does not require authentication
 </aside>
+<h2 id="staccatalog--updatecatalog">STACCatalog::updateCatalog</h2>
+<p><a id="opIdSTACCatalog::updateCatalog"></a></p>
+<blockquote>
+<p>Code samples</p>
+</blockquote>
+<pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
+curl -X PUT http://127.0.0.1:5252/catalogs/{catalogId} \
+  -H <span class="hljs-string">'Content-Type: application/json'</span> \
+  -H <span class="hljs-string">'Accept: application/json'</span> \
+  -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
+
+</code></pre>
+<p><code>PUT /catalogs/{catalogId}</code></p>
+<p><em>Update catalog</em></p>
+<p>Update catalog as a facet entry</p>
+<blockquote>
+<p>Body parameter</p>
+</blockquote>
+<pre class="highlight tab tab-json"><code>{
+  <span class="hljs-attr">"id"</span>: <span class="hljs-string">"year"</span>,
+  <span class="hljs-attr">"title"</span>: <span class="hljs-string">"Facet : year"</span>,
+  <span class="hljs-attr">"description"</span>: <span class="hljs-string">"Catalog of items filtered by year"</span>,
+  <span class="hljs-attr">"links"</span>: [
+    {
+      <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"self"</span>,
+      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"application/json"</span>,
+      <span class="hljs-attr">"href"</span>: <span class="hljs-string">"http://127.0.0.1:5252/collections/S2.json?&amp;_pretty=1"</span>
+    },
+    {
+      <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"root"</span>,
+      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"application/json"</span>,
+      <span class="hljs-attr">"href"</span>: <span class="hljs-string">"http://127.0.0.1:5252"</span>
+    },
+    {
+      <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"license"</span>,
+      <span class="hljs-attr">"href"</span>: <span class="hljs-string">"https://scihub.copernicus.eu/twiki/pub/SciHubWebPortal/TermsConditions/Sentinel_Data_Terms_and_Conditions.pdf"</span>,
+      <span class="hljs-attr">"title"</span>: <span class="hljs-string">"Legal notice on the use of Copernicus Sentinel Data and Service Information"</span>
+    }
+  ],
+  <span class="hljs-attr">"stac_version"</span>: <span class="hljs-string">"1.0.0"</span>
+}
+</code></pre>
+<h3 id="staccatalog--updatecatalog-parameters">Parameters</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>In</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>calalogId</td>
+<td>path</td>
+<td>string</td>
+<td>true</td>
+<td>Catalog identifier</td>
+</tr>
+<tr>
+<td>body</td>
+<td>body</td>
+<td><a href="#schemacatalog">Catalog</a></td>
+<td>true</td>
+<td>Catalog fields to be update limited to title and description</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Example responses</p>
+</blockquote>
+<blockquote>
+<p>200 Response</p>
+</blockquote>
+<pre class="highlight tab tab-json"><code>{
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"message"</span>: <span class="hljs-string">"Catalog updated"</span>
+}
+</code></pre>
+<blockquote>
+<p>401 Response</p>
+</blockquote>
+<pre class="highlight tab tab-json"><code>{
+  <span class="hljs-attr">"ErrorCode"</span>: <span class="hljs-number">401</span>,
+  <span class="hljs-attr">"ErrorMessage"</span>: <span class="hljs-string">"Unauthorized"</span>
+}
+</code></pre>
+<h3 id="staccatalog--updatecatalog-responses">Responses</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+<th>Description</th>
+<th>Schema</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.1">OK</a></td>
+<td>Catalog is updated</td>
+<td>Inline</td>
+</tr>
+<tr>
+<td>401</td>
+<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
+<td>Unauthorized</td>
+<td><a href="#schemaunauthorizederror">UnauthorizedError</a></td>
+</tr>
+<tr>
+<td>403</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.3">Forbidden</a></td>
+<td>Only user with <em>updateCatalog</em> rights can update a catalog</td>
+<td><a href="#schemaforbiddenerror">ForbiddenError</a></td>
+</tr>
+<tr>
+<td>404</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.4">Not Found</a></td>
+<td>Not found</td>
+<td><a href="#schemanotfounderror">NotFoundError</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="staccatalog--updatecatalog-responseschema">Response Schema</h3>
+<p>Status Code <strong>200</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Restrictions</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>» status</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>Status is <em>success</em></td>
+</tr>
+<tr>
+<td>» message</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>Message information</td>
+</tr>
+</tbody>
+</table>
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+basicAuth & bearerAuth & queryAuth
+</aside>
+<h2 id="staccatalog--removecatalog">STACCatalog::removeCatalog</h2>
+<p><a id="opIdSTACCatalog::removeCatalog"></a></p>
+<blockquote>
+<p>Code samples</p>
+</blockquote>
+<pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
+curl -X DELETE http://127.0.0.1:5252/catalogs/{catalogId} \
+  -H <span class="hljs-string">'Accept: application/json'</span> \
+  -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
+
+</code></pre>
+<p><code>DELETE /catalogs/{catalogId}</code></p>
+<p><em>Delete catalog</em></p>
+<p>Delete catalog as a facet entry - update feature keywords accordingly</p>
+<h3 id="staccatalog--removecatalog-parameters">Parameters</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>In</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>calalogId</td>
+<td>path</td>
+<td>string</td>
+<td>true</td>
+<td>Catalog identifier</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Example responses</p>
+</blockquote>
+<blockquote>
+<p>200 Response</p>
+</blockquote>
+<pre class="highlight tab tab-json"><code>{
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"message"</span>: <span class="hljs-string">"Catalog deleted"</span>,
+  <span class="hljs-attr">"featuresUpdated"</span>: <span class="hljs-number">345</span>
+}
+</code></pre>
+<blockquote>
+<p>401 Response</p>
+</blockquote>
+<pre class="highlight tab tab-json"><code>{
+  <span class="hljs-attr">"ErrorCode"</span>: <span class="hljs-number">401</span>,
+  <span class="hljs-attr">"ErrorMessage"</span>: <span class="hljs-string">"Unauthorized"</span>
+}
+</code></pre>
+<h3 id="staccatalog--removecatalog-responses">Responses</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+<th>Description</th>
+<th>Schema</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.1">OK</a></td>
+<td>Catalog deleted</td>
+<td>Inline</td>
+</tr>
+<tr>
+<td>401</td>
+<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
+<td>Unauthorized</td>
+<td><a href="#schemaunauthorizederror">UnauthorizedError</a></td>
+</tr>
+<tr>
+<td>403</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.3">Forbidden</a></td>
+<td>Only user with <em>deleteCatalog</em> rights can delete a catalog</td>
+<td><a href="#schemaforbiddenerror">ForbiddenError</a></td>
+</tr>
+<tr>
+<td>404</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.4">Not Found</a></td>
+<td>Not found</td>
+<td><a href="#schemanotfounderror">NotFoundError</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="staccatalog--removecatalog-responseschema">Response Schema</h3>
+<p>Status Code <strong>200</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Restrictions</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>» status</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>Status is <em>success</em></td>
+</tr>
+<tr>
+<td>» message</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>Message information</td>
+</tr>
+</tbody>
+</table>
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+basicAuth & bearerAuth & queryAuth
+</aside>
 <h1 id="welcome-to-resto-authentication">Authentication</h1>
 <h2 id="authapi--gettoken">AuthAPI::getToken</h2>
 <p><a id="opIdAuthAPI::getToken"></a></p>
@@ -7414,6 +8075,271 @@ curl -X GET http://127.0.0.1:5252/auth \
 <td>false</td>
 <td>none</td>
 <td>True if user follows requesting user</td>
+</tr>
+</tbody>
+</table>
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+basicAuth & bearerAuth & queryAuth
+</aside>
+<h2 id="authapi--createtoken">AuthAPI::createToken</h2>
+<p><a id="opIdAuthAPI::createToken"></a></p>
+<blockquote>
+<p>Code samples</p>
+</blockquote>
+<pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
+curl -X GET http://127.0.0.1:5252/create \
+  -H <span class="hljs-string">'Accept: application/json'</span> \
+  -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
+
+</code></pre>
+<p><code>GET /create</code></p>
+<p><em>Create an authentication {token}</em></p>
+<p>Create an authentication token (aka rJWT) for user identified by {emailOrId}</p>
+<h3 id="authapi--createtoken-parameters">Parameters</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>In</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>emailOrId</td>
+<td>path</td>
+<td>string</td>
+<td>true</td>
+<td>User email or id</td>
+</tr>
+<tr>
+<td>duration</td>
+<td>path</td>
+<td>string</td>
+<td>false</td>
+<td>Duration of token in days (default is 1 day)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Example responses</p>
+</blockquote>
+<blockquote>
+<p>200 Response</p>
+</blockquote>
+<pre class="highlight tab tab-json"><code>{
+  <span class="hljs-attr">"userId"</span>: <span class="hljs-number">100</span>,
+  <span class="hljs-attr">"duration"</span>: <span class="hljs-number">100</span>,
+  <span class="hljs-attr">"valid_until"</span>: <span class="hljs-string">"2023-05-03T11:20:13"</span>,
+  <span class="hljs-attr">"token"</span>: <span class="hljs-string">"eyJzdWIiOiIxMDAiLCJpYXQiOjE2NzQ0NzI4MTMsImV4cCI6MTY4MzExMjgxM30.5fdRS1jr0fuF7HMu2oXb0sXViom39ExI2IR_FI5WK7k"</span>
+}
+</code></pre>
+<blockquote>
+<p>401 Response</p>
+</blockquote>
+<pre class="highlight tab tab-json"><code>{
+  <span class="hljs-attr">"ErrorCode"</span>: <span class="hljs-number">401</span>,
+  <span class="hljs-attr">"ErrorMessage"</span>: <span class="hljs-string">"Unauthorized"</span>
+}
+</code></pre>
+<h3 id="authapi--createtoken-responses">Responses</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+<th>Description</th>
+<th>Schema</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.1">OK</a></td>
+<td>The token is created</td>
+<td>Inline</td>
+</tr>
+<tr>
+<td>401</td>
+<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
+<td>Unauthorized</td>
+<td><a href="#schemaunauthorizederror">UnauthorizedError</a></td>
+</tr>
+<tr>
+<td>403</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.3">Forbidden</a></td>
+<td>Forbidden</td>
+<td><a href="#schemaforbiddenerror">ForbiddenError</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="authapi--createtoken-responseschema">Response Schema</h3>
+<p>Status Code <strong>200</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Restrictions</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>» userId</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>User id</td>
+</tr>
+<tr>
+<td>» duration</td>
+<td>integer</td>
+<td>false</td>
+<td>none</td>
+<td>Duration of token in days</td>
+</tr>
+<tr>
+<td>» valid_until</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>Token validity</td>
+</tr>
+<tr>
+<td>» token</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>Generated token</td>
+</tr>
+</tbody>
+</table>
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+basicAuth & bearerAuth & queryAuth
+</aside>
+<h2 id="authapi--revoketoken">AuthAPI::revokeToken</h2>
+<p><a id="opIdAuthAPI::revokeToken"></a></p>
+<blockquote>
+<p>Code samples</p>
+</blockquote>
+<pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
+curl -X GET http://127.0.0.1:5252/auth/revoke/{token} \
+  -H <span class="hljs-string">'Accept: application/json'</span> \
+  -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
+
+</code></pre>
+<p><code>GET /auth/revoke/{token}</code></p>
+<p><em>Revoke an authentication {token}</em></p>
+<p>Revoke authication token (aka rJWT). Only administrator or owne of a token can revoke it. This service should be called when user logged out from client side.</p>
+<h3 id="authapi--revoketoken-parameters">Parameters</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>In</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>token</td>
+<td>path</td>
+<td>string</td>
+<td>true</td>
+<td>JWT or rJWT</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Example responses</p>
+</blockquote>
+<blockquote>
+<p>200 Response</p>
+</blockquote>
+<pre class="highlight tab tab-json"><code>{
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"message"</span>: <span class="hljs-string">"Token revoked"</span>
+}
+</code></pre>
+<blockquote>
+<p>400 Response</p>
+</blockquote>
+<pre class="highlight tab tab-json"><code>{
+  <span class="hljs-attr">"ErrorCode"</span>: <span class="hljs-number">400</span>,
+  <span class="hljs-attr">"ErrorMessage"</span>: <span class="hljs-string">"Bad request"</span>
+}
+</code></pre>
+<h3 id="authapi--revoketoken-responses">Responses</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+<th>Description</th>
+<th>Schema</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.1">OK</a></td>
+<td>The token is revoked</td>
+<td>Inline</td>
+</tr>
+<tr>
+<td>400</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.1">Bad Request</a></td>
+<td>Invalid token</td>
+<td><a href="#schemabadrequesterror">BadRequestError</a></td>
+</tr>
+<tr>
+<td>401</td>
+<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
+<td>Unauthorized</td>
+<td><a href="#schemaunauthorizederror">UnauthorizedError</a></td>
+</tr>
+<tr>
+<td>403</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.3">Forbidden</a></td>
+<td>Forbidden</td>
+<td><a href="#schemaforbiddenerror">ForbiddenError</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="authapi--revoketoken-responseschema">Response Schema</h3>
+<p>Status Code <strong>200</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Restrictions</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>» status</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>Status is <em>success</em></td>
+</tr>
+<tr>
+<td>» message</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>Message information</td>
 </tr>
 </tbody>
 </table>
@@ -9393,7 +10319,7 @@ This operation does not require authentication
       }
     ]
   },
-  <span class="hljs-attr">"stac_version"</span>: <span class="hljs-string">"0.8.0"</span>,
+  <span class="hljs-attr">"stac_version"</span>: <span class="hljs-string">"1.0.0"</span>,
   <span class="hljs-attr">"stac_extensions"</span>: [
     <span class="hljs-string">"https://stac-extensions.github.io/eo/v1.0.0/schema.json"</span>
   ]
@@ -10312,7 +11238,7 @@ This operation does not require authentication
   <span class="hljs-attr">"type"</span>: <span class="hljs-string">"FeatureCollection"</span>,
   <span class="hljs-attr">"features"</span>: [
     {
-      <span class="hljs-attr">"stac_version"</span>: <span class="hljs-string">"0.8.0"</span>,
+      <span class="hljs-attr">"stac_version"</span>: <span class="hljs-string">"1.0.0"</span>,
       <span class="hljs-attr">"stac_extensions"</span>: [
         <span class="hljs-string">"https://stac-extensions.github.io/eo/v1.0.0/schema.json"</span>
       ],
@@ -10550,7 +11476,7 @@ This operation does not require authentication
   <span class="hljs-attr">"type"</span>: <span class="hljs-string">"FeatureCollection"</span>,
   <span class="hljs-attr">"features"</span>: [
     {
-      <span class="hljs-attr">"stac_version"</span>: <span class="hljs-string">"0.8.0"</span>,
+      <span class="hljs-attr">"stac_version"</span>: <span class="hljs-string">"1.0.0"</span>,
       <span class="hljs-attr">"stac_extensions"</span>: [
         <span class="hljs-string">"https://stac-extensions.github.io/eo/v1.0.0/schema.json"</span>
       ],
@@ -10840,7 +11766,7 @@ This operation does not require authentication
       <span class="hljs-attr">"title"</span>: <span class="hljs-string">"Legal notice on the use of Copernicus Sentinel Data and Service Information"</span>
     }
   ],
-  <span class="hljs-attr">"stac_version"</span>: <span class="hljs-string">"0.9.0"</span>
+  <span class="hljs-attr">"stac_version"</span>: <span class="hljs-string">"1.0.0"</span>
 }
 
 </code></pre>

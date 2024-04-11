@@ -1,0 +1,7 @@
+{
+    "id": "dummyCatalog",
+    "title": "Dummy Catalog",
+    "description":"There is nothing to say on this catalog",
+    "stac_version":"1.0.0",
+    "links":{}
+}

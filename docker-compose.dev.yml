@@ -6,6 +6,7 @@ services:
       - RESTO_DEBUG=1
       - PHP_ENABLE_XDEBUG=1
     volumes:
+      - ./docs/api:/docs
       - ./app/index.php:/app/index.php:ro
       - ./app/resto/core:/app/resto/core:ro
       - ./app/vendor:/app/vendor:ro
