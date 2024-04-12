@@ -1496,7 +1496,7 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
 	  	<ul class="toc-list-h1">
         
           <li>
-            <a href="#welcome-to-resto" class="toc-h1 toc-link" data-title="Welcome to resto v8.0.1">Welcome to resto v8.0.1</a>
+            <a href="#welcome-to-resto" class="toc-h1 toc-link" data-title="Welcome to resto v8.0.7">Welcome to resto v8.0.7</a>
             
           </li>
         
@@ -1951,7 +1951,7 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
     <div class="page-wrapper">
       <div class="dark-box"></div>
       <div class="content">
-        <h1 id="welcome-to-resto">Welcome to resto v8.0.1</h1>
+        <h1 id="welcome-to-resto">Welcome to resto v8.0.7</h1>
 <blockquote>
 <p>Scroll down for code samples, example requests and responses. Select a language for code samples from the tabs above or the mobile navigation menu.</p>
 </blockquote>
@@ -6911,6 +6911,27 @@ curl -X GET http://127.0.0.1:5252/assets/{urlInBase64}
 <p><code>GET /assets/{urlInBase64}</code></p>
 <p><em>Download asset</em></p>
 <p>Return the asset href within an HTTP 301 Redirect message. This allows to keep track of download of external assets in resto statistics</p>
+<h3 id="stac--getasset-parameters">Parameters</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>In</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>urlInBase64</td>
+<td>path</td>
+<td>string</td>
+<td>true</td>
+<td>Asset url encoded in Base64</td>
+</tr>
+</tbody>
+</table>
 <h3 id="stac--getasset-responses">Responses</h3>
 <table>
 <thead>
@@ -7575,7 +7596,15 @@ curl -X GET http://127.0.0.1:5252/queryables \
 <blockquote>
 <p>200 Response</p>
 </blockquote>
-<pre class="highlight tab tab-json"><code><span class="hljs-literal">null</span>
+<pre class="highlight tab tab-json"><code>{
+  <span class="hljs-attr">"$schema"</span>: <span class="hljs-string">"string"</span>,
+  <span class="hljs-attr">"$id"</span>: <span class="hljs-string">"string"</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>,
+  <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
+  <span class="hljs-attr">"description"</span>: <span class="hljs-string">"string"</span>,
+  <span class="hljs-attr">"properties"</span>: {},
+  <span class="hljs-attr">"additionalProperties"</span>: <span class="hljs-literal">true</span>
+}
 </code></pre>
 <h3 id="stac--getqueryables-responses">Responses</h3>
 <table>
@@ -8088,7 +8117,7 @@ basicAuth & bearerAuth & queryAuth
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X GET http://127.0.0.1:5252/create \
+curl -X GET http://127.0.0.1:5252/create?emailOrId=string \
   -H <span class="hljs-string">'Accept: application/json'</span> \
   -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
 
@@ -8110,14 +8139,14 @@ curl -X GET http://127.0.0.1:5252/create \
 <tbody>
 <tr>
 <td>emailOrId</td>
-<td>path</td>
+<td>query</td>
 <td>string</td>
 <td>true</td>
 <td>User email or id</td>
 </tr>
 <tr>
 <td>duration</td>
-<td>path</td>
+<td>query</td>
 <td>string</td>
 <td>false</td>
 <td>Duration of token in days (default is 1 day)</td>
@@ -8891,6 +8920,13 @@ curl -X POST http://127.0.0.1:5252/groups/{id}/users \
 </thead>
 <tbody>
 <tr>
+<td>id</td>
+<td>path</td>
+<td>integer</td>
+<td>true</td>
+<td>Group identifier</td>
+</tr>
+<tr>
 <td>body</td>
 <td>body</td>
 <td>object</td>
@@ -9366,6 +9402,13 @@ curl -X POST http://127.0.0.1:5252/groups/{id}/rights \
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>id</td>
+<td>path</td>
+<td>integer</td>
+<td>true</td>
+<td>Group identifier</td>
+</tr>
 <tr>
 <td>body</td>
 <td>body</td>
@@ -11821,11 +11864,80 @@ This operation does not require authentication
 </table>
 <h2 id="tocsqueryables">Queryables</h2>
 <p><a id="schemaqueryables"></a></p>
-<pre class="highlight tab tab-json"><code><span class="hljs-literal">null</span>
+<pre class="highlight tab tab-json"><code>{
+  <span class="hljs-attr">"$schema"</span>: <span class="hljs-string">"string"</span>,
+  <span class="hljs-attr">"$id"</span>: <span class="hljs-string">"string"</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>,
+  <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
+  <span class="hljs-attr">"description"</span>: <span class="hljs-string">"string"</span>,
+  <span class="hljs-attr">"properties"</span>: {},
+  <span class="hljs-attr">"additionalProperties"</span>: <span class="hljs-literal">true</span>
+}
 
 </code></pre>
 <h3 id="properties">Properties</h3>
-<p><em>None</em></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Restrictions</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>$schema</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>STAC add-on</td>
+</tr>
+<tr>
+<td>$id</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>STAC add-on</td>
+</tr>
+<tr>
+<td>type</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>STAC add-on</td>
+</tr>
+<tr>
+<td>title</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>STAC add-on</td>
+</tr>
+<tr>
+<td>description</td>
+<td>string</td>
+<td>false</td>
+<td>none</td>
+<td>STAC add-on</td>
+</tr>
+<tr>
+<td>properties</td>
+<td>object</td>
+<td>false</td>
+<td>none</td>
+<td>STAC add-on</td>
+</tr>
+<tr>
+<td>additionalProperties</td>
+<td>boolean</td>
+<td>false</td>
+<td>none</td>
+<td>STAC add-on</td>
+</tr>
+</tbody>
+</table>
 <h2 id="tocslink">Link</h2>
 <p><a id="schemalink"></a></p>
 <pre class="highlight tab tab-json"><code>{

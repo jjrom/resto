@@ -6,7 +6,7 @@
         "contact": {
             "email": "jerome.gasperi@gmail.com"
         },
-        "version": "8.0.1"
+        "version": "8.0.7"
     },
     "servers": [
         {
@@ -23,6 +23,17 @@
                 "summary": "Download asset",
                 "description": "Return the asset href within an HTTP 301 Redirect message. This allows to keep track of download of external assets in resto statistics",
                 "operationId": "STAC::getAsset",
+                "parameters": [
+                    {
+                        "name": "urlInBase64",
+                        "in": "path",
+                        "description": "Asset url encoded in Base64",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "301": {
                         "description": "HTTP/1.1 301 Moved Permanently"
@@ -955,7 +966,7 @@
                 "parameters": [
                     {
                         "name": "emailOrId",
-                        "in": "path",
+                        "in": "query",
                         "description": "User email or id",
                         "required": true,
                         "schema": {
@@ -964,7 +975,7 @@
                     },
                     {
                         "name": "duration",
-                        "in": "path",
+                        "in": "query",
                         "description": "Duration of token in days (default is 1 day)",
                         "required": false,
                         "schema": {
@@ -3156,6 +3167,17 @@
                 "summary": "Add a user",
                 "description": "Add a user to a group",
                 "operationId": "GroupAPI::addUser",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Group identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "requestBody": {
                     "description": "User info",
                     "required": true,
@@ -3530,6 +3552,17 @@
                 "summary": "Set rights for group",
                 "description": "Set rights for a given group",
                 "operationId": "RightsAPI::setGroupRights",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Group identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "requestBody": {
                     "description": "Rights to create/udpated",
                     "required": true,
@@ -5910,7 +5943,39 @@
                     "stac_version": "1.0.0"
                 }
             },
-            "Queryables": {},
+            "Queryables": {
+                "properties": {
+                    "$schema": {
+                        "description": "STAC add-on",
+                        "type": "string"
+                    },
+                    "$id": {
+                        "description": "STAC add-on",
+                        "type": "string"
+                    },
+                    "type": {
+                        "description": "STAC add-on",
+                        "type": "string"
+                    },
+                    "title": {
+                        "description": "STAC add-on",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "STAC add-on",
+                        "type": "string"
+                    },
+                    "properties": {
+                        "description": "STAC add-on",
+                        "type": "object"
+                    },
+                    "additionalProperties": {
+                        "description": "STAC add-on",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
             "Link": {
                 "description": "Link",
                 "required": [
