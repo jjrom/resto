@@ -707,7 +707,7 @@
                 "operationId": "STACCatalog::updateCatalog",
                 "parameters": [
                     {
-                        "name": "calalogId",
+                        "name": "catalogId",
                         "in": "path",
                         "description": "Catalog identifier",
                         "required": true,
@@ -800,7 +800,7 @@
                 "operationId": "STACCatalog::removeCatalog",
                 "parameters": [
                     {
-                        "name": "calalogId",
+                        "name": "catalogId",
                         "in": "path",
                         "description": "Catalog identifier",
                         "required": true,

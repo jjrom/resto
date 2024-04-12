@@ -138,7 +138,7 @@ class STACCatalog extends RestoAddOn
      *      description="Update catalog as a facet entry",
      *      tags={"STAC"},
      *      @OA\Parameter(
-     *         name="calalogId",
+     *         name="catalogId",
      *         in="path",
      *         required=true,
      *         description="Catalog identifier",
@@ -236,7 +236,7 @@ class STACCatalog extends RestoAddOn
      *      description="Delete catalog as a facet entry - update feature keywords accordingly",
      *      tags={"STAC"},
      *      @OA\Parameter(
-     *         name="calalogId",
+     *         name="catalogId",
      *         in="path",
      *         required=true,
      *         description="Catalog identifier",

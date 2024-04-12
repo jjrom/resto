@@ -77,7 +77,36 @@
  *  )
  * 
  *  @OA\Schema(
- *      schema="Queryables"
+ *      schema="Queryables",
+ *      @OA\Property(
+ *          property="$schema",
+ *          type="string"
+ *      ),
+ *      @OA\Property(
+ *          property="$id",
+ *          type="string"
+ *      ),
+ *      @OA\Property(
+ *          property="type",
+ *          type="string"
+ *      ),
+ *      @OA\Property(
+ *          property="title",
+ *          type="string"
+ *      ),
+ *      @OA\Property(
+ *          property="description",
+ *          type="string"
+ *      ),
+ *      @OA\Property(
+ *          property="properties",
+ *          type="object",
+ *          @OA\JsonContent()
+ *      ),
+ *      @OA\Property(
+ *          property="additionalProperties",
+ *          type="boolean"
+ *      )
  *  )
  */
 class STAC extends RestoAddOn
@@ -255,6 +284,15 @@ class STAC extends RestoAddOn
      *      summary="Download asset",
      *      description="Return the asset href within an HTTP 301 Redirect message. This allows to keep track of download of external assets in resto statistics",
      *      tags={"STAC"},
+     *      @OA\Parameter(
+     *         name="urlInBase64",
+     *         in="path",
+     *         required=true,
+     *         description="Asset url encoded in Base64",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *      ),
      *      @OA\Response(
      *          response="301",
      *          description="HTTP/1.1 301 Moved Permanently"
@@ -1178,8 +1216,9 @@ class STAC extends RestoAddOn
         $this->links[] = array(
             'rel' => 'items',
             'title' => $splitted[1],
-            'type' => RestoUtil::$contentTypes['json'],
-            'href' => $this->context->core['baseUrl'] . '/search?collections=' . join(',', $candidates)
+            'type' => RestoUtil::$contentTypes['geojson'],
+            'href' => $this->context->core['baseUrl'] . '/search?collections=' . join(',', $candidates),
+            'method' => 'GET'
         );
     }
 

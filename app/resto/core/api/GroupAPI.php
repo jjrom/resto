@@ -349,6 +349,15 @@ class GroupAPI
      *      summary="Add a user",
      *      description="Add a user to a group",
      *      tags={"Group"},
+     *      @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Group identifier",
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *      ),
      *      @OA\Response(
      *          response="200",
      *          description="User is added",

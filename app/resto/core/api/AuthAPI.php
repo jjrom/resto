@@ -113,7 +113,7 @@ class AuthAPI
      *      tags={"Authentication"},
      *      @OA\Parameter(
      *         name="emailOrId",
-     *         in="path",
+     *         in="query",
      *         required=true,
      *         description="User email or id",
      *         @OA\Schema(
@@ -122,7 +122,7 @@ class AuthAPI
      *      ),
      *      @OA\Parameter(
      *         name="duration",
-     *         in="path",
+     *         in="query",
      *         required=false,
      *         description="Duration of token in days (default is 1 day)",
      *         @OA\Schema(

@@ -268,6 +268,15 @@ class RightsAPI
      *      summary="Set rights for group",
      *      description="Set rights for a given group",
      *      tags={"Rights"},
+     *      @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Group identifier",
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *      ),
      *      @OA\Response(
      *          response="200",
      *          description="Rights is created or updated",

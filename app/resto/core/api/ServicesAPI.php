@@ -23,6 +23,9 @@ class ServicesAPI
     private $context;
     private $user;
 
+    private $title = 'STAC endpoint';
+    private $description = 'This is a STAC endpoint powered by http://github.com/jjrom/resto';
+
     /**
      * Constructor
      */
@@ -30,6 +33,8 @@ class ServicesAPI
     {
         $this->context = $context;
         $this->user = $user;
+        $this->title = getenv('API_INFO_TITLE') ?? $this->title;
+        $this->description = getenv('API_INFO_DESCRIPTION') ?? $this->description;
     }
 
     /**
@@ -182,8 +187,8 @@ class ServicesAPI
             'stac_version' => STAC::STAC_VERSION,
             'id' => 'catalogs',
             'type' => 'Catalog',
-            'title' => getenv('API_INFO_TITLE'),
-            'description' => getenv('API_INFO_DESCRIPTION'),
+            'title' => $this->title,
+            'description' => $this->description,
             'capabilities' => array_merge(array('resto-core'), array_map('strtolower', array_keys($this->context->addons))),
             'resto:version' => RestoConstants::VERSION,
             'ssys:targets' => array($this->context->core['planet']),
@@ -192,7 +197,7 @@ class ServicesAPI
                     array(
                         'rel' => 'self',
                         'type' => RestoUtil::$contentTypes['json'],
-                        'title' => getenv('API_INFO_TITLE'),
+                        'title' => $this->title,
                         'href' => $this->context->core['baseUrl']
                     ),
                     array(
@@ -239,9 +244,10 @@ class ServicesAPI
                     ),
                     array(
                         'rel' => 'search',
-                        'type' => RestoUtil::$contentTypes['json'],
+                        'type' => RestoUtil::$contentTypes['geojson'],
                         'title' => 'STAC search endpoint',
-                        'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_STAC_SEARCH
+                        'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_STAC_SEARCH,
+                        'method' => 'GET'
                     )
                 ),
                 (new STACUtil($this->context, $this->user))->getRootCatalogLinks($minMatch)
