@@ -20,6 +20,29 @@
  */
 class FacetsFunctions
 {
+
+    /*
+     * These are types created by iTag 
+     * Not returned from getSummaries unless explicitely requested
+     * to avoid large summaries array
+     */
+    const TOPONYM_TYPES = array(
+        'bay',
+        'channel',
+        'continent',
+        'country',
+        'fjord',
+        'gulf',
+        'inlet',
+        'lagoon',
+        'ocean',
+        'region',
+        'river',
+        'sea',
+        'sound',
+        'state',
+        'strait'    
+    );
     /*
      * Relative an absolute coverages minimum percentage value
      */
@@ -233,36 +256,155 @@ class FacetsFunctions
     }
 
     /**
-     * Return facets elements from a type for a given collection
+     * Return STAC Summaries from facets elements from a type for a given collection
      *
-     * Returned array structure if collectionId is set
+     * Returned array of array indexed by collection id
      *
      *      array(
-     *          'type#' => array(
-     *              'value1' => count1,
-     *              'value2' => count2,
-     *              'parent' => array(
-     *                  'value3' => count3,
-     *                  ...
-     *              )
-     *              ...
+     *          'collection1' => array(
+     *                 'type#' => array(
+     *                     'value1' => count1,
+     *                     'value2' => count2,
+     *                     'parent' => array(
+     *                         'value3' => count3,
+     *                         ...
+     *                     )
+     *                     ...
+     *                 ),
+     *                 'type2' => array(
+     *                     ...
+     *                 ),
+     *                 ...
      *          ),
-     *          'type2' => array(
-     *              ...
-     *          ),
-     *          ...
+     *          'collection2' => array(
+     *                 'type#' => array(
+     *                     'value1' => count1,
+     *                     'value2' => count2,
+     *                     'parent' => array(
+     *                         'value3' => count3,
+     *                         ...
+     *                     )
+     *                     ...
+     *                 ),
+     *                 'type2' => array(
+     *                     ...
+     *                 ),
+     *                 ...
+     *          )
      *      )
-     *
-     * Or an array of array indexed by collection id if $collectionId is null
-     *
-     * @param RestoCollection $collection
-     * @param array $facetFields
-     *
+     * 
+     * @param array $types
+     * @param string $collectionId
+     * 
      * @return array
      */
-    public function getStatistics($collection, $facetFields)
+    public function getSummaries($types, $collectionId)
     {
-        return $this->pivotsToSTACSummaries($this->getFacetsPivots($collection, $facetFields));
+        
+        $summaries = array();
+
+        /*
+         * [Hack] Facet with one of these type are unprefixed
+         */
+        $unprefixed = array(
+            'hashtag',
+            // The following types are from resto-addon-sosa
+            'observedProperty',
+            'foi',
+            'sample',
+            'sensor'
+        );
+
+        $pivots = array();
+        
+        /*
+         * Build array
+         */
+        $where = array(
+            'counter > 0'
+        );
+
+        if ( isset($collectionId) ) {
+            $where[] = 'public.normalize(collection)=public.normalize(\'' . pg_escape_string($this->dbDriver->getConnection(), $collectionId) . '\')';
+        }
+
+        if ( !empty($types) ) {
+            $where[] = 'type IN(\'' . join('\',\'', $types) . '\')';
+        }
+        else {
+            $where[] = 'type NOT IN (\'' . join('\',\'', FacetsFunctions::TOPONYM_TYPES) . '\')';
+        }
+
+        /*
+         * Retrieve facets stored by collectionId
+         */
+        $results = $this->dbDriver->query('SELECT id,collection,value,type,pid,counter,to_iso8601(created) as created,owner FROM ' . $this->dbDriver->targetSchema . '.facet' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where): ''));
+        
+        while ($result = pg_fetch_assoc($results)) {
+
+            if ( !isset($pivots[$result['collection']]) ) {
+                $pivots[$result['collection']] = array();
+            }
+            $typeLen = strlen($result['type']);
+
+            // Landcover special case
+            if (strpos($result['type'], 'landcover:') === 0) {
+                $type = 'landcover';
+                $typeLen = strlen($type);
+            }
+            else {
+                $type = $result['type'];
+            }
+            
+            if (!isset($pivots[$result['collection']][$type])) {
+                $pivots[$result['collection']][$type] = array();
+            }
+
+            $create = true;
+            $const = in_array($type, $unprefixed) ? $result['id'] : substr($result['id'], $typeLen + 1);
+            for ($i = count($pivots[$result['collection']][$type]); $i--;) {
+                if (isset($pivots[$result['collection']][$type][$i]['const'])) {
+                    if ($pivots[$result['collection']][$type][$i]['const'] === $const) {
+                        $pivots[$result['collection']][$type][$i]['count'] += (integer) $result['counter'];
+                        $create = false;
+                        break;
+                    }
+                }
+            }
+            
+            if ($create) {
+                $newPivot = array(
+                    'const' => $const,
+                    'count' => (integer) $result['counter']
+                );
+                if ($result['pid'] !== 'root') {
+                    $newPivot['parentId'] = $result['pid'];
+                }
+                if ($result['value'] !== $newPivot['const']) {
+                    $newPivot['title'] = $result['value'];
+                }
+                $pivots[$result['collection']][$type][] = $newPivot;
+            }
+        }
+
+        foreach (array_keys($pivots) as $collectionId) {
+            if ( !isset($summaries[$collectionId]) ) {
+                $summaries[$collectionId] = array();
+            }
+            foreach (array_keys($pivots[$collectionId]) as $key) {
+                if (count($pivots[$collectionId][$key]) === 1) {
+                    $summaries[$collectionId][$key] = array_merge($pivots[$collectionId][$key][0], array('type' => 'string'));
+                } else {
+                    $summaries[$collectionId][$key] = array(
+                        'type' => 'string',
+                        'oneOf' => $pivots[$collectionId][$key]
+                    );
+                }
+            }
+        }
+
+        return $summaries;
+        
     }
 
     /**
@@ -364,118 +506,4 @@ class FacetsFunctions
         );
     }
 
-    /**
-     * Return facets pivots
-     *
-     * @param RestoCollection $collection
-     * @param array $fields
-     * @return array
-     */
-    private function getFacetsPivots($collection, $fields)
-    {
-        $collectionId = isset($collection) ? $collection->id : null;
-        $model = isset($collection) ? $collection->model : new DefaultModel();
-
-        /*
-         * [Hack] Facet with one of these type are unprefixed
-         */
-        $unprefixed = array(
-            'hashtag',
-            // The following types are from resto-addon-sosa
-            'observedProperty',
-            'foi',
-            'sample',
-            'sensor'
-        );
-
-        $pivots = array();
-        
-        /*
-         * Build array
-         */
-        $where = array(
-            'counter > 0'
-        );
-
-        if (isset($collectionId)) {
-            $where[] = '(public.normalize(collection)=public.normalize(\'' . pg_escape_string($this->dbDriver->getConnection(), $collectionId) . '\') OR public.normalize(collection)=\'*\')';
-        }
-        if (isset($fields)) {
-            $where[] = 'type IN(\'' . join('\',\'', $fields) . '\')';
-        }
-
-        /*
-         * Facets for one collection
-         */
-        $results = $this->dbDriver->query('SELECT id,collection,value,type,pid,counter,to_iso8601(created) as created,owner FROM ' . $this->dbDriver->targetSchema . '.facet' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where): '') . ' ORDER BY type ASC, value DESC');
-        
-        while ($result = pg_fetch_assoc($results)) {
-            $typeLen = strlen($result['type']);
-
-            // Landcover special case
-            if (strpos($result['type'], 'landcover:') === 0) {
-                $type = 'landcover';
-                $typeLen = strlen($type);
-            }
-            // [STAC] Change the type name if needed (e.g. "instrument" => "instruments")
-            else {
-                $type = isset($model->stacMapping[$result['type']]) ? $model->stacMapping[$result['type']]['key'] : $result['type'];
-            }
-            
-            if (!isset($pivots[$type])) {
-                $pivots[$type] = array();
-            }
-
-            $create = true;
-            $const = in_array($type, $unprefixed) ? $result['id'] : substr($result['id'], $typeLen + 1);
-            for ($i = count($pivots[$type]); $i--;) {
-                if (isset($pivots[$type][$i]['const'])) {
-                    if ($pivots[$type][$i]['const'] === $const) {
-                        $pivots[$type][$i]['count'] += (integer) $result['counter'];
-                        $create = false;
-                        break;
-                    }
-                }
-            }
-            
-            if ($create) {
-                $newPivot = array(
-                    'const' => $const,
-                    'count' => (integer) $result['counter']
-                );
-                if ($result['pid'] !== 'root') {
-                    $newPivot['parentId'] = $result['pid'];
-                }
-                if ($result['value'] !== $newPivot['const']) {
-                    $newPivot['title'] = $result['value'];
-                }
-                $pivots[$type][] = $newPivot;
-            }
-        }
-
-        return $pivots;
-    }
-    
-    /**
-     * Return STAC summaries
-     *
-     * @param array $fields
-     * @return array
-     */
-    private function pivotsToSTACSummaries($pivots)
-    {
-        $summaries = array();
-        foreach (array_keys($pivots) as $key) {
-            if (count($pivots[$key]) === 1) {
-                $summaries[$key] = array_merge($pivots[$key][0], array('type' => 'string'));
-            } else {
-                $summaries[$key] = array(
-                    'type' => 'string',
-                    'oneOf' => $pivots[$key]
-                );
-            }
-        }
-
-        return $summaries;
-    }
 }

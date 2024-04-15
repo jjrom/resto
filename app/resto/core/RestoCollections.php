@@ -118,9 +118,9 @@ class RestoCollections
     );
 
     /*
-     * Statistics
+     * Summaries
      */
-    private $statistics;
+    private $summaries;
 
     /*
      * Avoid multiple database calls
@@ -207,15 +207,10 @@ class RestoCollections
     {
        
         if ( !$this->isLoaded ) {
-            $params['group'] = $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ? null : $this->user->getGroupIds();
-            $cacheKey = 'collections' . ($params['group'] ? join(',', $params['group']) : '');
             
-            $collectionsDesc = $this->context->fromCache($cacheKey);
-            if (!isset($collectionsDesc)) {
-                $collectionsDesc = (new CollectionsFunctions($this->context->dbDriver))->getCollectionsDescriptions($params);
-                $this->context->toCache($cacheKey, $collectionsDesc);
-            }
-
+            $params['group'] = $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ? null : $this->user->getGroupIds();
+            $collectionsDesc = (new CollectionsFunctions($this->context->dbDriver))->getCollectionsDescriptions($params);
+            
             foreach (array_keys($collectionsDesc) as $collectionId) {
                 $collection = $this->context->keeper->getRestoCollection($collectionId, $this->user);
                 foreach ($collectionsDesc[$collectionId] as $key => $value) {
@@ -228,22 +223,6 @@ class RestoCollections
         }
                 
         return $this;
-    }
-
-    /**
-     * Return collections statistics
-     */
-    public function getStatistics()
-    {
-        if (!isset($this->statistics)) {
-            $cacheKey = 'getStatistics';
-            $this->statistics = $this->context->fromCache($cacheKey);
-            if (!isset($this->statistics)) {
-                $this->statistics = (new FacetsFunctions($this->context->dbDriver))->getStatistics(null, (new DefaultModel())->getAutoFacetFields());
-                $this->context->toCache('getStatistics', $this->statistics);
-            }
-        }
-        return $this->statistics;
     }
 
     /**
@@ -287,11 +266,16 @@ class RestoCollections
         );
 
         $totalMatched = 0;
+
+        // Compute global summaries
+        $this->getSummaries();
+
         foreach (array_keys($this->collections) as $key) {
-            $collection = $this->collections[$key]->toArray(array(
-                'noSummaries' => true,
-                'stats' => isset($this->context->query['_stats']) ? filter_var($this->context->query['_stats'], FILTER_VALIDATE_BOOLEAN) : false
-            ));
+
+            // Store collection summaries
+            $this->collections[$key]->setSummaries($this->summaries[$this->collections[$key]->id] ?? array());
+
+            $collection = $this->collections[$key]->toArray();
             $collections['links'][] = array(
                 'rel' => 'child',
                 'type' => RestoUtil::$contentTypes['json'],
@@ -314,7 +298,7 @@ class RestoCollections
         usort($collections['collections'], function ($a, $b) {
             return $a['title'] < $b['title'] ? -1 : 1;
         });
-
+        
         return $collections;
     }
 
@@ -333,7 +317,19 @@ class RestoCollections
      */
     public function getOSDD($model)
     {
-        return new OSDD($this->context, $model ?? new DefaultModel(), $this->getStatistics(), null);
+        $model = $model ?? new DefaultModel();
+        return new OSDD($this->context, $model, $this->filterSummaries($this->getSummaries(), $model->getAutoFacetFields()), null);
+    }
+
+    /**
+     * Return STAC summaries
+     */
+    public function getSummaries()
+    {
+        if ( !isset($this->summaries) ) {
+            $this->summaries = (new FacetsFunctions($this->context->dbDriver))->getSummaries(null, null);
+        }
+        return $this->summaries;
     }
 
     /**
@@ -385,4 +381,53 @@ class RestoCollections
 
         return $model;
     }
+
+    
+    /**
+     * Return an array of summaries containing only $types
+     * from an array of collection summaries
+     *
+     * @param array $summaries
+     * @param array $types
+     *
+     * @return array
+     */
+    private function filterSummaries($summaries, $types)
+    {
+        $filteredSummaries = array();
+        
+        foreach (array_values($summaries) as $summary) {
+            foreach (array_keys($summary) as $key) {
+                if ( in_array($key, $types) ) {
+                    if ( !isset($filteredSummaries[$key]) ) {
+                        $filteredSummaries[$key] = $summary[$key];
+                    }
+                    else if ( isset($summary[$key]['count']) ) {
+                        $filteredSummaries[$key]['count'] = ($filteredSummaries[$key]['count'] ?? 0) + $summary[$key]['count'];
+                    }
+                    else if ( isset($summary[$key]['oneOf']) && $filteredSummaries[$key]['oneOf'] ) {
+                        for ($i = 0, $ii = count($summary[$key]['oneOf']); $i < $ii; $i++) {
+                            $isNew = true;
+                            foreach (array_keys($filteredSummaries[$key]['oneOf']) as $consts) {
+                                if ( $filteredSummaries[$key]['oneOf'][$consts]['const'] === $summary[$key]['oneOf'][$i]['const'] ) {
+                                    $isNew = false;
+                                    $filteredSummaries[$key]['oneOf'][$consts]['count'] = ($filteredSummaries[$key]['oneOf'][$consts]['count'] ?? 0) + $summary[$key]['oneOf'][$i]['count']; 
+                                    break;
+                                }
+                            }
+                            if ($isNew) {
+                                $filteredSummaries[$key]['oneOf'][] = $summary[$key]['oneOf'][$i];
+                            }
+                        }
+                        usort($filteredSummaries[$key]['oneOf'], function ($a, $b) {
+                            return $a['const'] > $b['const'] ? -1 : 1;
+                        });
+                    }
+                }
+            }
+        }
+
+        return $filteredSummaries;
+    }
+
 }

@@ -41,16 +41,6 @@ class CollectionsAPI
      *      description="Returns a list of all collection descriptions including statistics (i.e. number of products, etc.)",
      *      tags={"Collection"},
      *      @OA\Parameter(
-     *         name="_stats",
-     *         in="query",
-     *         style="form",
-     *         required=false,
-     *         description="Set to get individual statistics for all collection",
-     *         @OA\Schema(
-     *             type="boolean"
-     *         )
-     *      ),
-     *      @OA\Parameter(
      *         name="ck",
      *         in="query",
      *         style="form",
@@ -265,15 +255,6 @@ class CollectionsAPI
      *         description="Collection identifier",
      *         @OA\Schema(
      *             type="string"
-     *         )
-     *      ),
-     *      @OA\Parameter(
-     *         name="_stats",
-     *         in="query",
-     *         style="form",
-     *         description="True to return full statistics in summaries property. Default is *false*",
-     *         @OA\Schema(
-     *             type="boolean"
      *         )
      *      ),
      *      @OA\Response(

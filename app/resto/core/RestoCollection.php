@@ -751,7 +751,7 @@ class RestoCollection
      *      }
      * )
      */
-    private $statistics = null;
+    private $summaries = null;
     
     /**
      * @OA\Schema(
@@ -854,22 +854,12 @@ class RestoCollection
         }
         
         if ( !$this->isLoaded ) {
-
             $this->isLoaded = true;
-
-            $cacheKey = 'collection:' . $this->id;
-            $collectionObject = $this->context->fromCache($cacheKey);
-        
+            $collectionObject = (new CollectionsFunctions($this->context->dbDriver))->getCollectionDescription($this->id);
             if (! isset($collectionObject)) {
-                $collectionObject = (new CollectionsFunctions($this->context->dbDriver))->getCollectionDescription($this->id);
-                
-                if (! isset($collectionObject)) {
-                    return RestoLogUtil::httpError(404);
-                }
-    
-                $this->context->toCache($cacheKey, $collectionObject);
+                return RestoLogUtil::httpError(404);
             }
-            
+    
             foreach ($collectionObject as $key => $value) {
                 $this->$key = $key === 'model' ? new $value(array(
                     'collectionId' => $this->id,
@@ -933,12 +923,55 @@ class RestoCollection
     }
 
     /**
-     * Output collection description as an array
-     *
-     * @param array $options
+     * Return STAC summaries
      */
-    public function toArray($options = array())
+    public function getSummaries()
     {
+        if ( !isset($this->summaries) ) {
+            $summaries = (new FacetsFunctions($this->context->dbDriver))->getSummaries(null, $this->id);
+            if ( isset($summaries[$this->id]) ) {
+                $this->setSummaries($summaries[$this->id]);
+            }
+            else $this->summaries = array();
+        }
+        return $this->summaries;
+    }
+
+    /**
+     * Set summaries eventually map summary id with STAC naming
+     */
+    public function setSummaries($summaries)
+    {
+
+        // Datetime is not stored in facet
+        $this->summaries = array(
+            'datetime' => array(
+                'minimum' => $this->extent['temporal']['interval'][0][0],
+                'maximum' => $this->extent['temporal']['interval'][0][1]
+            )
+        );
+
+        // [STAC] Change the key name if needed (e.g. "instrument" => "instruments")
+        foreach(array_keys($summaries) as $key) {
+            $this->summaries[isset($this->model->stacMapping[$key]) ? $this->model->stacMapping[$key]['key'] : $key] = $summaries[$key];
+        }
+
+        // Hack to add eo:cloud_cover
+        if (isset($this->model) && isset($this->model->searchFilters) && isset($this->model->searchFilters['eo:cloudCover'])) {
+            $this->summaries['eo:cloud_cover'] = array(
+                'minimum' => 0,
+                'maximum' => 100
+            );
+        }
+        
+    }
+
+    /**
+     * Output collection description as an array
+     */
+    public function toArray()
+    {
+
         $osDescription = $this->osDescription[$this->context->lang] ?? $this->osDescription['en'];
 
         $collectionArray = array(
@@ -992,15 +1025,9 @@ class RestoCollection
                 $collectionArray[$key] = $key === 'assets' ? (object) $this->$key : $this->$key;
             }
         }
-
-        /*
-         * [PERFORMANCE] Call with noSummaries from RestoCollections one facet table call per collection
-         * (very poor performance for a large number of collections)
-         */
-        if ( !isset($options['noSummaries']) ) {
-            $collectionArray['summaries'] = $this->getSummaries($options['stats'] ?? false);
-        }
         
+        $collectionArray['summaries'] = $this->getSummaries();
+
         // Properties
         if (is_array($this->properties)) {
             foreach ($this->properties as $key => $value) {
@@ -1024,9 +1051,7 @@ class RestoCollection
      */
     public function toJSON($pretty = false)
     {
-        return json_encode($this->toArray(array(
-            'stats' => isset($this->context->query['_stats']) ? filter_var($this->context->query['_stats'], FILTER_VALIDATE_BOOLEAN) : false
-        )), $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
+        return json_encode($this->toArray(), $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
     }
 
     /**
@@ -1034,33 +1059,7 @@ class RestoCollection
      */
     public function getOSDD()
     {
-        return new OSDD($this->context, $this->model, (new FacetsFunctions($this->context->dbDriver))->getStatistics($this, $this->model->getAutoFacetFields()), $this);
-    }
-
-    /**
-     * Return collection statistics
-     *
-     * @param array $facetFields : Facet fields
-     */
-    public function getStatistics($facetFields = null)
-    {
-        if (!isset($this->statistics)) {
-            $cacheKey = 'getStatistics:' . $this->id;
-            $this->statistics = $this->context->fromCache($cacheKey);
-            if (!isset($this->statistics)) {
-                $this->statistics = (new FacetsFunctions($this->context->dbDriver))->getStatistics($this, $facetFields);
-
-                // Hack to add eo:cloud_cover
-                if (isset($this->model) && isset($this->model->searchFilters) && isset($this->model->searchFilters['eo:cloudCover'])) {
-                    $this->statistics['eo:cloud_cover'] = array(
-                        'minimum' => 0,
-                        'maximum' => 100
-                    );
-                }
-                $this->context->toCache($cacheKey, $this->statistics);
-            }
-        }
-        return $this->statistics;
+        return new OSDD($this->context, $this->model, $this->getSummaries(), $this);
     }
 
     /**
@@ -1176,46 +1175,6 @@ class RestoCollection
          * Collection owner is the current user
          */
         $this->owner = $this->user->profile['id'];
-    }
-
-    /**
-     * Return STAC summaries
-     *
-     * @param boolean $all
-     */
-    private function getSummaries($all = false)
-    {
-        /*
-         * Compute statistics from facets
-         */
-        if (!isset($this->statistics)) {
-            $this->getStatistics($all ? null : array_merge(
-                $this->model->getAutoFacetFields(),
-                array(
-                    'year',
-                    'month',
-                    'day',
-                    'season',
-                    'location',
-                    'landcover:cultivated',
-                    'landcover:desert',
-                    'landcover:flooded',
-                    'landcover:forest',
-                    'landcover:herbaceous',
-                    'landcover:ice',
-                    'landcover:urban',
-                    'landcover:water',
-                    'hashtag'
-                )
-            ));
-        }
-        
-        return array_merge(array(
-            'datetime' => array(
-                'minimum' => $this->extent['temporal']['interval'][0][0],
-                'maximum' => $this->extent['temporal']['interval'][0][1]
-            )
-        ), $this->statistics);
     }
 
     /**
