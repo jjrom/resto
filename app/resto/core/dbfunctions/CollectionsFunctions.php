@@ -162,10 +162,6 @@ class CollectionsFunctions
                 throw new Exception(500, 'Cannot delete collection ' . $collection->id);
             }
 
-            /*
-             * Clear cache
-             */
-            (new RestoCache())->clear();
         } catch (Exception $e) {
             RestoLogUtil::httpError($e->getCode(), $e->getMessage());
         }
@@ -205,10 +201,6 @@ class CollectionsFunctions
                 throw new Exception(500, 'Missing collection');
             }
 
-            /*
-             * Clear cache
-             */
-            (new RestoCache())->clear();
         } catch (Exception $e) {
             RestoLogUtil::httpError($e->getCode(), $e->getMessage());
         }
