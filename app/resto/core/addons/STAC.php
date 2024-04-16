@@ -1433,7 +1433,7 @@ class STAC extends RestoAddOn
     private function setTitleAndDescription($facetId)
     {
         // Default
-        $titleParts = explode(':', $facetId);
+        $titleParts = explode(RestoConstants::TAG_SEPARATOR, $facetId);
         $title = ucfirst(count($titleParts) > 1 ? $titleParts[1] : $titleParts[0]);
         $this->title = $title;
         $this->description = 'Search on ' . $title;
