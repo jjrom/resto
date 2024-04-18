@@ -831,7 +831,7 @@ class RestoFeatureCollection
             array(
                 'rel' => 'root',
                 'type' => RestoUtil::$contentTypes['json'],
-            'href' => $this->context->core['baseUrl']
+                'href' => $this->context->core['baseUrl']
             )
         ));
     }

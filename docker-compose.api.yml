@@ -1,4 +1,3 @@
-version: '3.5'
 volumes:
   static_content:
     driver: local
