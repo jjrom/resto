@@ -1433,7 +1433,7 @@ class STAC extends RestoAddOn
     private function setTitleAndDescription($facetId)
     {
         // Default
-        $titleParts = explode(':', $facetId);
+        $titleParts = explode(RestoConstants::TAG_SEPARATOR, $facetId);
         $title = ucfirst(count($titleParts) > 1 ? $titleParts[1] : $titleParts[0]);
         $this->title = $title;
         $this->description = 'Search on ' . $title;
@@ -1455,14 +1455,52 @@ class STAC extends RestoAddOn
 
     /**
      * Convert JSON query to queryParam
+     * 
+     * Very basic - not supporting CQL2 JSON only key/values
      *
      * @param array $jsonQuery
      */
     private function jsonQueryToKVP($jsonQuery)
     {
-        return array(
-            'query' => 'TODO'
-        );
+
+        $params = array();
+
+        /*
+         * Input collections should be an array of collection id strings
+         */
+        if ( isset($jsonQuery['collections']) ) {
+            if ( is_array($jsonQuery['collections']) ) {
+                return RestoLogUtil::httpError(400, 'Invalid collections parameter. Should be an array strings');
+            }
+            $params['collections'] = join(',', $jsonQuery['bbox']);
+        }
+
+        /*
+         * Input bbox should be an array of 4 floats
+         */
+        if ( isset($jsonQuery['bbox']) ) {
+            if ( is_array($jsonQuery['bbox']) || count($jsonQuery['bbox']) !== 4 ) {
+                return RestoLogUtil::httpError(400, 'Invalid bbox parameter. Should be an array of 4 coordinates');
+            }
+            $params['bbox'] = join(',', $jsonQuery['bbox']);
+        }
+
+        /*
+         * Input intersects should be a GeoJSON geometry object
+         */
+        if ( isset($jsonQuery['intersects']) ) {
+            if ( !isset($jsonQuery['intersects']['type']) || !isset($jsonQuery['intersects']['coordinates']) ) {
+                return RestoLogUtil::httpError(400, 'Invalid intersects. Should be a GeoJSON geometry object');
+            }
+            $params['intersects'] = RestoGeometryUtil::geoJSONGeometryToWKT($jsonQuery['intersects']);
+        }
+        
+        if ( isset($jsonQuery['datetime']) ) {
+            $params['datetime'] = $jsonQuery['datetime'];
+        }
+
+        return $params;
+
     }
 
 }

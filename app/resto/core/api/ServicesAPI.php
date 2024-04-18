@@ -245,9 +245,16 @@ class ServicesAPI
                     array(
                         'rel' => 'search',
                         'type' => RestoUtil::$contentTypes['geojson'],
-                        'title' => 'STAC search endpoint',
+                        'title' => 'STAC search endpoint (GET)',
                         'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_STAC_SEARCH,
                         'method' => 'GET'
+                    ),
+                    array(
+                        'rel' => 'search',
+                        'type' => RestoUtil::$contentTypes['geojson'],
+                        'title' => 'STAC search endpoint (POST)',
+                        'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_STAC_SEARCH,
+                        'method' => 'POST'
                     )
                 ),
                 (new STACUtil($this->context, $this->user))->getRootCatalogLinks($minMatch)
