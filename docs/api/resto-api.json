@@ -6,7 +6,7 @@
         "contact": {
             "email": "jerome.gasperi@gmail.com"
         },
-        "version": "8.0.7"
+        "version": "8.0.9"
     },
     "servers": [
         {
@@ -1260,16 +1260,6 @@
                 "operationId": "CollectionsAPI::getCollections",
                 "parameters": [
                     {
-                        "name": "_stats",
-                        "in": "query",
-                        "description": "Set to get individual statistics for all collection",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "boolean"
-                        }
-                    },
-                    {
                         "name": "ck",
                         "in": "query",
                         "description": "Stands for *collection keyword* - limit results to collection containing the input keyword",
@@ -1563,15 +1553,6 @@
                         "required": true,
                         "schema": {
                             "type": "string"
-                        }
-                    },
-                    {
-                        "name": "_stats",
-                        "in": "query",
-                        "description": "True to return full statistics in summaries property. Default is *false*",
-                        "style": "form",
-                        "schema": {
-                            "type": "boolean"
                         }
                     }
                 ],
@@ -4430,11 +4411,16 @@
         "schemas": {
             "InputCollection": {
                 "required": [
-                    "id"
+                    "id",
+                    "description"
                 ],
                 "properties": {
                     "id": {
                         "description": "Collection identifier. It must be an unique alphanumeric string containing only [a-zA-Z0-9\\-_].",
+                        "type": "string"
+                    },
+                    "title": {
+                        "description": "A short descriptive one-line title for the Collection.",
                         "type": "string"
                     },
                     "description": {
@@ -4525,6 +4511,10 @@
                         "items": {
                             "$ref": "#/components/schemas/Provider"
                         }
+                    },
+                    "properties": {
+                        "description": "resto collection",
+                        "type": "object"
                     },
                     "summaries": {
                         "description": "resto collection",
@@ -4733,6 +4723,10 @@
                         "items": {
                             "$ref": "#/components/schemas/Provider"
                         }
+                    },
+                    "properties": {
+                        "description": "Free properties object",
+                        "type": "object"
                     },
                     "summaries": {
                         "description": "resto collection",

@@ -1496,7 +1496,7 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
 	  	<ul class="toc-list-h1">
         
           <li>
-            <a href="#welcome-to-resto" class="toc-h1 toc-link" data-title="Welcome to resto v8.0.7">Welcome to resto v8.0.7</a>
+            <a href="#welcome-to-resto" class="toc-h1 toc-link" data-title="Welcome to resto v8.0.9">Welcome to resto v8.0.9</a>
             
           </li>
         
@@ -1951,7 +1951,7 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
     <div class="page-wrapper">
       <div class="dark-box"></div>
       <div class="content">
-        <h1 id="welcome-to-resto">Welcome to resto v8.0.7</h1>
+        <h1 id="welcome-to-resto">Welcome to resto v8.0.9</h1>
 <blockquote>
 <p>Scroll down for code samples, example requests and responses. Select a language for code samples from the tabs above or the mobile navigation menu.</p>
 </blockquote>
@@ -2004,13 +2004,6 @@ curl -X GET http://127.0.0.1:5252/collections \
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>_stats</td>
-<td>query</td>
-<td>boolean</td>
-<td>false</td>
-<td>Set to get individual statistics for all collection</td>
-</tr>
 <tr>
 <td>ck</td>
 <td>query</td>
@@ -2375,6 +2368,13 @@ curl -X GET http://127.0.0.1:5252/collections \
 <td>Homepage on which the provider describes the dataset and publishes contact information.</td>
 </tr>
 <tr>
+<td>»» properties</td>
+<td>object</td>
+<td>false</td>
+<td>none</td>
+<td>Free properties object</td>
+</tr>
+<tr>
 <td>»» summaries</td>
 <td>object</td>
 <td>false</td>
@@ -2719,13 +2719,6 @@ curl -X GET http://127.0.0.1:5252/collections/{collectionId} \
 <td>string</td>
 <td>true</td>
 <td>Collection identifier</td>
-</tr>
-<tr>
-<td>_stats</td>
-<td>query</td>
-<td>boolean</td>
-<td>false</td>
-<td>True to return full statistics in summaries property. Default is <em>false</em></td>
 </tr>
 </tbody>
 </table>
@@ -10046,9 +10039,16 @@ This operation does not require authentication
 <td>Collection identifier. It must be an unique alphanumeric string containing only [a-zA-Z0-9-_].</td>
 </tr>
 <tr>
-<td>description</td>
+<td>title</td>
 <td>string</td>
 <td>false</td>
+<td>none</td>
+<td>A short descriptive one-line title for the Collection.</td>
+</tr>
+<tr>
+<td>description</td>
+<td>string</td>
+<td>true</td>
 <td>none</td>
 <td>Detailed multi-line description to fully explain the Collection. CommonMark 0.29 syntax MAY be used for rich text representation.</td>
 </tr>
@@ -10156,6 +10156,13 @@ This operation does not require authentication
 <td>false</td>
 <td>none</td>
 <td>A list of providers, which may include all organizations capturing or processing the data or the hosting provider. Providers should be listed in chronological order with the most recent provider being the last element of the list</td>
+</tr>
+<tr>
+<td>properties</td>
+<td>object</td>
+<td>false</td>
+<td>none</td>
+<td>resto collection</td>
 </tr>
 <tr>
 <td>summaries</td>
@@ -10457,6 +10464,13 @@ This operation does not require authentication
 <td>false</td>
 <td>none</td>
 <td>A list of providers, which may include all organizations capturing or processing the data or the hosting provider. Providers should be listed in chronological order with the most recent provider being the last element of the list</td>
+</tr>
+<tr>
+<td>properties</td>
+<td>object</td>
+<td>false</td>
+<td>none</td>
+<td>Free properties object</td>
 </tr>
 <tr>
 <td>summaries</td>
