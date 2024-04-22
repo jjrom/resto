@@ -584,7 +584,7 @@ class CollectionsFunctions
     {
         $collection = array(
             'id' => $rawDescription['id'],
-            'aliases' => $rawDescription['aliases'] ?? null,
+            'aliases' => isset($rawDescription['aliases']) ? json_decode($rawDescription['aliases'], true) : array(),
             'version' => $rawDescription['version'] ?? null,
             'model' => $rawDescription['model'],
             'visibility' => (integer) $rawDescription['visibility'],

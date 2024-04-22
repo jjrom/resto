@@ -36,7 +36,7 @@ services:
       - static_content:/var/www/static
 
   restodb:
-    image: postgis/postgis:14-master
+    image: postgis/postgis:16-master
     restart: unless-stopped
     command: ["postgres", "-c", "config_file=/etc/postgresql.conf"]
     # Upgrade shared_memory for complex queries

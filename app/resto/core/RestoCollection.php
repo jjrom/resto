@@ -25,11 +25,16 @@
  *
  *  @OA\Schema(
  *      schema="InputCollection",
- *      required={"id"},
+ *      required={"id", "description"},
  *      @OA\Property(
  *          property="id",
  *          type="string",
  *          description="Collection identifier. It must be an unique alphanumeric string containing only [a-zA-Z0-9\-_]."
+ *      ),
+ *      @OA\Property(
+ *          property="title",
+ *          type="string",
+ *          description="A short descriptive one-line title for the Collection."
  *      ),
  *      @OA\Property(
  *          property="description",
@@ -117,6 +122,11 @@
  *          type="array",
  *          description="A list of providers, which may include all organizations capturing or processing the data or the hosting provider. Providers should be listed in chronological order with the most recent provider being the last element of the list",
  *          @OA\Items(ref="#/components/schemas/Provider")
+ *      ),
+ *      @OA\Property(
+ *          property="properties",
+ *          type="object",
+ *          @OA\JsonContent()
  *      ),
  *      @OA\Property(
  *          property="summaries",
@@ -342,6 +352,12 @@
  *          type="array",
  *          description="A list of providers, which may include all organizations capturing or processing the data or the hosting provider. Providers should be listed in chronological order with the most recent provider being the last element of the list",
  *          @OA\Items(ref="#/components/schemas/Provider")
+ *      ),
+ *      @OA\Property(
+ *          property="properties",
+ *          type="object",
+ *          description="Free properties object",
+ *          @OA\JsonContent()
  *      ),
  *      @OA\Property(
  *          property="summaries",
