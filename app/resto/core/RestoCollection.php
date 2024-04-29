@@ -959,13 +959,15 @@ class RestoCollection
     public function setSummaries($summaries)
     {
 
+        $this->summaries = array();
+
         // Datetime is not stored in facet
-        $this->summaries = array(
-            'datetime' => array(
+        if ( isset($this->extent['temporal']['interval'][0][0]) && isset($this->extent['temporal']['interval'][0][1]) ) {
+            $this->summaries['datetime'] = array(
                 'minimum' => $this->extent['temporal']['interval'][0][0],
                 'maximum' => $this->extent['temporal']['interval'][0][1]
-            )
-        );
+            );
+        }
 
         // [STAC] Change the key name if needed (e.g. "instrument" => "instruments")
         foreach(array_keys($summaries) as $key) {

@@ -1469,8 +1469,8 @@ class STAC extends RestoAddOn
          * Input collections should be an array of collection id strings
          */
         if ( isset($jsonQuery['collections']) ) {
-            if ( is_array($jsonQuery['collections']) ) {
-                return RestoLogUtil::httpError(400, 'Invalid collections parameter. Should be an array strings');
+            if ( !is_array($jsonQuery['collections']) ) {
+                return RestoLogUtil::httpError(400, 'Invalid collections parameter. Should be an array of strings');
             }
             $params['collections'] = join(',', $jsonQuery['bbox']);
         }
