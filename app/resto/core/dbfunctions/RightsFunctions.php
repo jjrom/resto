@@ -131,9 +131,12 @@ class RightsFunctions
         $results = $this->dbDriver->fetch($this->dbDriver->query('SELECT rights FROM ' . $this->dbDriver->commonSchema . '.right WHERE groupid IN (' . pg_escape_string($this->dbDriver->getConnection(), join(',', $groupIds)) . ')'));
         if ( isset($results) && count($results) >= 1 ) {
             for ($i = count($results); $i--;) {
-                $groupRights[] = json_decode($results[$i]['rights'], true);
+                if ( isset($results[$i]['rights']) ) {
+                    $groupRights[] = json_decode($results[$i]['rights'], true);
+                }
             }
         }
+        
         return $groupRights;
     }
 
