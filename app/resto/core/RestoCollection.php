@@ -1044,19 +1044,24 @@ class RestoCollection
             }
         }
         
-        $collectionArray['summaries'] = $this->getSummaries();
+        $summaries = $this->getSummaries();
 
         // Properties
         if (is_array($this->properties)) {
             foreach ($this->properties as $key => $value) {
                 if ($key === 'summaries') {
                     if (is_array($value)) {
-                        $collectionArray['summaries'] = array_merge($collectionArray['summaries'], $value);
+                        $summaries = array_merge($summaries, $value);
                     }
                 } else {
                     $collectionArray[$key] = $value;
                 }
             }
+        }
+
+        // Force summaries to be an object not an array during json_encode
+        if ( !empty($summaries) ) {
+            $collectionArray['summaries'] = $summaries;
         }
 
         return $collectionArray;
