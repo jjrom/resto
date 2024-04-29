@@ -571,8 +571,11 @@ class FeaturesAPI
      */
     public function getFeaturesInCollection($params)
     {
+
+        // This should return HTTP 400 but we discard it instead otherwise it brokes pystac requests
         if (isset($params['collections'])) {
-            return RestoLogUtil::httpError(400, 'You cannot specify a list of collections on a single collection search');
+            unset($params['collections'])
+            //return RestoLogUtil::httpError(400, 'You cannot specify a list of collections on a single collection search');
         }
 
         if (isset($params['ck'])) {
