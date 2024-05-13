@@ -368,12 +368,12 @@ class STACCatalog extends RestoAddOn
             $catalog['id'] = substr($catalog['id'], strlen($this->prefix));
         }
 
-        $parentId = isset($parentId) ? (str_starts_with($parentId, $this->prefix) ? $parentId : $this->prefix . $parentId) : null;
+        $parentId = isset($parentId) ? (str_starts_with($parentId, $this->prefix) ? $parentId : $this->prefix . $parentId) : 'root';
 
         /*
          * Catalog already exist
          */
-        if ( $this->catalogExists($this->prefix . $catalog['id'], $parentId ?? 'root', '*') ) {
+        if ( $this->catalogExists($this->prefix . $catalog['id'], $parentId, '*') ) {
             return RestoLogUtil::httpError(409, 'Catalog ' . $catalog['id'] . ' already exist');
         }
 
