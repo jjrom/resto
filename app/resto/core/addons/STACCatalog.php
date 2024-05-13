@@ -133,7 +133,7 @@ class STACCatalog extends RestoAddOn
      * Update catalog as a facet entry
      * 
      *    @OA\Put(
-     *      path="/catalogs/{catalogId}",
+     *      path="/catalogs/catalogs/{catalogId}",
      *      summary="Update catalog",
      *      description="Update catalog as a facet entry",
      *      tags={"STAC"},
@@ -231,7 +231,7 @@ class STACCatalog extends RestoAddOn
      * Delete catalog as a facet entry
      * 
      *    @OA\Delete(
-     *      path="/catalogs/{catalogId}",
+     *      path="/catalogs/catalogs/{catalogId}",
      *      summary="Delete catalog",
      *      description="Delete catalog as a facet entry - update feature keywords accordingly",
      *      tags={"STAC"},
@@ -368,12 +368,12 @@ class STACCatalog extends RestoAddOn
             $catalog['id'] = substr($catalog['id'], strlen($this->prefix));
         }
 
-        $parentId = isset($parentId) ? (str_starts_with($parentId, $this->prefix) ? $parentId : $this->prefix . $parentId) : null;
+        $parentId = isset($parentId) ? (str_starts_with($parentId, $this->prefix) ? $parentId : $this->prefix . $parentId) : 'root';
 
         /*
          * Catalog already exist
          */
-        if ( $this->catalogExists($this->prefix . $catalog['id'], $parentId ?? 'root', '*') ) {
+        if ( $this->catalogExists($this->prefix . $catalog['id'], $parentId, '*') ) {
             return RestoLogUtil::httpError(409, 'Catalog ' . $catalog['id'] . ' already exist');
         }
 
