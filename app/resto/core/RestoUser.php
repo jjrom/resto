@@ -324,7 +324,7 @@ class RestoUser
                     return false;     
                 }
                 $featureArray = $params['feature']->toArray();
-                return $rights[$action] && isset($featureArray['properties']['owner']) && $featureArray['properties']['owner'] !== $this->profile['id'];
+                return $rights[$action] && isset($featureArray['properties']['owner']) && $featureArray['properties']['owner'] === $this->profile['id'];
                     
             default:
                 return $rights[$action] ?? false;
