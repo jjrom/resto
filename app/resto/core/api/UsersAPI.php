@@ -176,6 +176,33 @@ class UsersAPI
     }
 
     /**
+     *  Get my profile
+     *
+     *  @OA\Get(
+     *      path="/user",
+     *      summary="Get my profile",
+     *      tags={"User"},
+     *      @OA\Response(
+     *          response="200",
+     *          description="User profile",
+     *          @OA\JsonContent(ref="#/components/schemas/UserDisplayProfile")
+     *      ),
+     *      @OA\Response(
+     *          response="401",
+     *          description="Unauthorized",
+     *          @OA\JsonContent(ref="#/components/schemas/UnauthorizedError")
+     *      ),
+     *      security={
+     *          {"basicAuth":{}, "bearerAuth":{}, "queryAuth":{}}
+     *      }
+     *  )
+     */
+    public function getMyProfile() {
+        $this->user->loadProfile();
+        return $this->user->profile;
+    }
+
+    /**
      *  Get user profile
      *
      *  @OA\Get(
@@ -213,9 +240,9 @@ class UsersAPI
      */
     public function getUserProfile($params)
     {
+
         if ($this->user->profile['id'] === $params['userid']) {
-            $this->user->loadProfile();
-            return $this->user->profile;
+            return $this->getMyProfile();
         }
         
         return (new UsersFunctions($this->context->dbDriver))->getUserProfile(
