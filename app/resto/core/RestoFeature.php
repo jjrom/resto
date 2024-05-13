@@ -147,7 +147,7 @@
  *          @OA\Property(
  *              property="owner",
  *              type="string",
- *              description="Owner of the feature i.e. user that created it"
+ *              description="Owner of the feature (i.e. resto user identifier as bigint)"
  *          ),
  *          @OA\Property(
  *              property="status",

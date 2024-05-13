@@ -377,9 +377,13 @@ class FeaturesFunctions
          * Remove feature
          */
         try {
-            $this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.' . $model->dbParams['tablePrefix'] . 'feature WHERE id=$1', array($feature->id));
+            $result = pg_fetch_assoc($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.' . $model->dbParams['tablePrefix'] . 'feature WHERE id=$1 RETURNING id', array($feature->id)));
+            if (empty($result)) {
+                return RestoLogUtil::httpError(404);
+            }
+
         } catch (Exception $e) {
-            RestoLogUtil::httpError(500, 'Cannot delete feature ' . $feature->id);
+            return RestoLogUtil::httpError(500, 'Cannot delete feature ' . $feature->id);
         }
         
         /*
