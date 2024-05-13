@@ -373,8 +373,8 @@ class STACCatalog extends RestoAddOn
         /*
          * Catalog already exist
          */
-        if ( $this->catalogExists($this->prefix . $catalog['id'], $parentId, '*') ) {
-            RestoLogUtil::httpError(409, 'Catalog ' . $catalog['id'] . ' already exist');
+        if ( $this->catalogExists($this->prefix . $catalog['id'], $parentId ?? 'root', '*') ) {
+            return RestoLogUtil::httpError(409, 'Catalog ' . $catalog['id'] . ' already exist');
         }
 
         try {
