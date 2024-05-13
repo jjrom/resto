@@ -326,12 +326,12 @@ class STACCatalog extends RestoAddOn
     {
 
         // Facet primary key is (is, pid, collection)    
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id FROM ' . $this->dbDriver->targetSchema . '.facet WHERE id=$1 AND pid=$2 AND collection=$3', array(
+        $results = $this->context->dbDriver->fetch($this->context->dbDriver->pQuery('SELECT id FROM ' . $this->context->dbDriver->targetSchema . '.facet WHERE id=$1 AND pid=$2 AND collection=$3', array(
             $catalogId,
             $parentId,
             $collectionId
         )));
-        
+
         return !empty($results);
     }
 
