@@ -46,8 +46,8 @@ class GroupAPI
      *  ),
      *  @OA\Property(
      *      property="owner",
-     *      type="string",
-     *      description="Owner of the group (i.e. user unique identifier)"
+     *      type="integer",
+     *      description="Owner of the group (i.e. resto user identifier as bigint)"
      *  ),
      *  example={
      *      "id": 100,

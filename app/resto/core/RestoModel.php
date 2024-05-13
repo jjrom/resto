@@ -687,7 +687,7 @@ abstract class RestoModel
         $discardedProperties = array(
             'id',
             'visibility',
-            'owner',
+            //'owner',
             'sort_idx',
             '_keywords',
             'resto:internal'

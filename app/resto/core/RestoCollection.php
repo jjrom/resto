@@ -343,7 +343,7 @@
  *              @OA\Property(
  *                  property="owner",
  *                  type="string",
- *                  description="Collection owner (i.e. user identifier)"
+ *                  description="Collection owner (i.e. resto user identifier as bigint)"
  *              )
  *          )
  *      ),

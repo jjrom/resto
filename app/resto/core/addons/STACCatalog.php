@@ -316,6 +316,26 @@ class STACCatalog extends RestoAddOn
     }
 
     /**
+     * Check if catalog exists
+     *
+     * @param string $catalogId
+     * @return boolean
+     * @throws Exception
+     */
+    private function catalogExists($catalogId, $parentId, $collectionId)
+    {
+
+        // Facet primary key is (is, pid, collection)    
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id FROM ' . $this->dbDriver->targetSchema . '.facet WHERE id=$1 AND pid=$2 AND collection=$3', array(
+            $catalogId,
+            $parentId,
+            $collectionId
+        )));
+        
+        return !empty($results);
+    }
+
+    /**
      * 
      * Store catalog as facet
      * 
@@ -348,12 +368,21 @@ class STACCatalog extends RestoAddOn
             $catalog['id'] = substr($catalog['id'], strlen($this->prefix));
         }
 
+        $parentId = isset($parentId) ? (str_starts_with($parentId, $this->prefix) ? $parentId : $this->prefix . $parentId) : null;
+
+        /*
+         * Catalog already exist
+         */
+        if ( $this->catalogExists($this->prefix . $catalog['id'], $parentId, '*') ) {
+            RestoLogUtil::httpError(409, 'Catalog ' . $catalog['id'] . ' already exist');
+        }
+
         try {
             (new FacetsFunctions($this->context->dbDriver))->storeFacets(array(
                 array(
                     'id' => $this->prefix . $catalog['id'],
                     // Prefix parentId with $prefix if needed
-                    'parentId' => isset($parentId) ? (str_starts_with($parentId, $this->prefix) ? $parentId : $this->prefix . $parentId) : null,
+                    'parentId' => $parentId,
                     'value' => $catalog['title'] ?? $catalog['id'],
                     'type' => substr($this->prefix, 0, -1),
                     'description' => $catalog['description'],
