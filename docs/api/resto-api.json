@@ -6,7 +6,7 @@
         "contact": {
             "email": "jerome.gasperi@gmail.com"
         },
-        "version": "8.0.9"
+        "version": "8.0.10"
     },
     "servers": [
         {
@@ -466,7 +466,7 @@
                     {
                         "name": "owner",
                         "in": "query",
-                        "description": "Limit search to owner's features",
+                        "description": "Limit search to owner's features (i.e. resto user identifier as bigint)",
                         "required": false,
                         "style": "form",
                         "schema": {
@@ -708,7 +708,7 @@
                 }
             }
         },
-        "/catalogs/{catalogId}": {
+        "/catalogs/catalogs/{catalogId}": {
             "put": {
                 "tags": [
                     "STAC"
@@ -2015,7 +2015,7 @@
                     {
                         "name": "owner",
                         "in": "query",
-                        "description": "Limit search to owner's features",
+                        "description": "Limit search to owner's features (i.e. resto user identifier as bigint)",
                         "required": false,
                         "style": "form",
                         "schema": {
@@ -4101,6 +4101,44 @@
                 }
             }
         },
+        "/user": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get my profile",
+                "operationId": "UsersAPI::getMyProfile",
+                "responses": {
+                    "200": {
+                        "description": "User profile",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserDisplayProfile"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            }
+        },
         "/users/{userid}": {
             "get": {
                 "tags": [
@@ -5234,7 +5272,7 @@
                                 "type": "integer"
                             },
                             "owner": {
-                                "description": "Owner of the feature i.e. user that created it",
+                                "description": "Owner of the feature (i.e. resto user identifier as bigint)",
                                 "type": "string"
                             },
                             "status": {
@@ -6065,8 +6103,8 @@
                         "type": "string"
                     },
                     "owner": {
-                        "description": "Owner of the group (i.e. user unique identifier)",
-                        "type": "string"
+                        "description": "Owner of the group (i.e. resto user identifier as bigint)",
+                        "type": "integer"
                     }
                 },
                 "type": "object",

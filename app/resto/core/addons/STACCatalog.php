@@ -133,7 +133,7 @@ class STACCatalog extends RestoAddOn
      * Update catalog as a facet entry
      * 
      *    @OA\Put(
-     *      path="/catalogs/{catalogId}",
+     *      path="/catalogs/catalogs/{catalogId}",
      *      summary="Update catalog",
      *      description="Update catalog as a facet entry",
      *      tags={"STAC"},
@@ -231,7 +231,7 @@ class STACCatalog extends RestoAddOn
      * Delete catalog as a facet entry
      * 
      *    @OA\Delete(
-     *      path="/catalogs/{catalogId}",
+     *      path="/catalogs/catalogs/{catalogId}",
      *      summary="Delete catalog",
      *      description="Delete catalog as a facet entry - update feature keywords accordingly",
      *      tags={"STAC"},
