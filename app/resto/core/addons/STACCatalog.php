@@ -121,11 +121,10 @@ class STACCatalog extends RestoAddOn
         if ( !isset($body['links']) ) {
             $body['links'] = array();
         }
-        if ( !is_array($body['links']) ) {
-            return RestoLogUtil::httpError(400, 'Invalid links array');
-        }
 
-        return $this->storeCatalogAsFacet($body, $params['pid'] ?? null);
+        $this->getChilds($body['links']);
+        
+        return $this->storeCatalogAsFacet($body, $params['pid'] ?? null, $childs);
 
     }
 
@@ -325,14 +324,20 @@ class STACCatalog extends RestoAddOn
     private function catalogExists($catalogId, $parentId, $collectionId)
     {
 
-        // Facet primary key is (is, pid, collection)    
-        $results = $this->context->dbDriver->fetch($this->context->dbDriver->pQuery('SELECT id FROM ' . $this->context->dbDriver->targetSchema . '.facet WHERE id=$1 AND pid=$2 AND collection=$3', array(
-            $catalogId,
-            $parentId,
-            $collectionId
-        )));
-
-        return !empty($results);
+        $params = array();
+        if ( isset($catalogId) ) {
+            $params['id'] = $catalogId;
+        }
+        if ( isset($parentId) ) {
+            $params['pid'] = $parentId;
+        }
+        if ( isset($collectionId) ) {
+            $params['collection'] = $collectionId;
+        }
+        $facets = (new FacetsFunctions($this->context->dbDriver))->getFacets(array('id' => $facetId));
+        
+        return !empty($facets);
+        
     }
 
     /**
@@ -341,25 +346,19 @@ class STACCatalog extends RestoAddOn
      * 
      * @param array $catalog
      * @param string $parentId
+     * @param array $childs
      * @return array
      * 
      */
-    private function storeCatalogAsFacet($catalog, $parentId)
+    private function storeCatalogAsFacet($catalog, $parentId, $childs)
     {
 
         if ( !isset($parentId) ) {
             $parentId = $this->parentIdFromLinks($catalog['links'] ?? array());
         }
 
-        $isLeaf = true;
-
         // Catalog is a leaf if it has no child
-        for ($i = 0, $ii = count($catalog['links']); $i < $ii; $i++) {
-            if (isset($catalog['links'][$i]['rel']) && $catalog['links'][$i]['rel'] === 'child') {
-                $isLeaf = false;
-                break;
-            }
-        }
+        $isLeaf = empty($childs) ? true : false;
         
         /*
          * Remove "catalog:" prefix from id
@@ -368,8 +367,6 @@ class STACCatalog extends RestoAddOn
             $catalog['id'] = substr($catalog['id'], strlen($this->prefix));
         }
 
-        $parentId = isset($parentId) ? (str_starts_with($parentId, $this->prefix) ? $parentId : $this->prefix . $parentId) : 'root';
-
         /*
          * Catalog already exist
          */
@@ -377,11 +374,17 @@ class STACCatalog extends RestoAddOn
             return RestoLogUtil::httpError(409, 'Catalog ' . $catalog['id'] . ' already exist');
         }
 
+        /*
+         * Store catalog and update its child pid
+         */
         try {
+
+            $this->context->dbDriver->query('BEGIN');
+
+            // 1. Store catalog
             (new FacetsFunctions($this->context->dbDriver))->storeFacets(array(
                 array(
                     'id' => $this->prefix . $catalog['id'],
-                    // Prefix parentId with $prefix if needed
                     'parentId' => $parentId,
                     'value' => $catalog['title'] ?? $catalog['id'],
                     'type' => substr($this->prefix, 0, -1),
@@ -390,11 +393,60 @@ class STACCatalog extends RestoAddOn
                     'counter' => 0
                 )
             ), $this->user->profile['id']);
+
+            // 2. Update childs pid to point to the catalog
+            for ($i = count($childs); $i--;) {
+                $this->context->dbDriver->pQuery('UPDATE ' . $this->context->dbDriver->targetSchema . '.facet SET pid=$2 WHERE public.normalize(id)=public.normalize($1) RETURNING id', array(
+                    $childs[$i]['id'],
+                    $this->prefix . $catalog['id']
+                ));
+            }
+
+            $this->context->dbDriver->query('COMMIT');
+
+        } catch (Exception $e) {
+            $this->context->dbDriver->query('ROLLBACK');
+            RestoLogUtil::httpError(500, $e->getMessage());
+        }
+
+        try {
+           
         } catch (Exception $e) {
             return RestoLogUtil::httpError(500, 'Cannot insert catalog ' . $catalog['id']);
         } 
 
-        return RestoLogUtil::success('Catalog ' . $catalog['id'] . ' created' . (isset($parentId) ? ' with parent ' . $parentId : ''));
+        return RestoLogUtil::success('Catalog ' . $catalog['id'] . ' created with parent ' . $parentId, array(
+            'id' => $catalog['id'],
+            'parentId' => $parentId,
+            'childs' => $childs
+        ));
+
+    }
+
+    /**
+     * Resolve a link
+     * 
+     * @param array $link
+     * @return string
+     */
+    private function resolveLink($link)
+    {
+
+        // [IMPORTANT] Can only process http(s) urls not local file
+        if ( strpos(strtolower($link['href']), 'http') !== 0 ) {
+            return RestoLogUtil::httpError(400, 'Link href must be an url i.e. start with http(s)');
+        }
+
+        try {
+            $curl = new Curly();
+            $resolved = json_decode($curl->get($link['href']), true);
+            $curl->close();
+        } catch (Exception $e) {
+            $curl->close();
+            return RestoLogUtil::httpError(400, 'Invalid link with href ' . $link['href']);
+        }
+
+        return $resolved;
 
     }
 
@@ -407,40 +459,83 @@ class STACCatalog extends RestoAddOn
     private function parentIdFromLinks($links)
     {
 
-        $parentId = null;
-
         // Retrieve parent if any
         for ($i = 0, $ii = count($links); $i < $ii; $i++ ) {
-
             if ( isset($links[$i]['rel']) && $links[$i]['rel'] === 'parent' ) {
-
-                // [IMPORTANT] Can only process http(s) urls not local file
-                if ( strpos(strtolower($links[$i]['href']), 'http') !== 0 ) {
-                    return RestoLogUtil::httpError(400, 'Parent href must be an url i.e. start with http(s). Correct or use additionnal parentId query params otherwise');
+                $parent = $this->resolveLink($links[$i]);
+                if ( !isset($parent) || !isset($parent['id']) || !isset($parent['type']) ) {
+                    return RestoLogUtil::httpError(400, 'Invalid parent link with href ' . $links[$i]['href']);
                 }
-
-                try {
-                    $curl = new Curly();
-                    $parent = json_decode($curl->get($links[$i]['href']), true);
-                    $curl->close();
-                } catch (Exception $e) {
-                    $curl->close();
-                    return RestoLogUtil::httpError(400, 'Cannot process catalog parent with href ' - $links[$i]['href']);
-                }
-
-                /*
-                 * Return empty result
-                 */
-                if (isset($parent) && isset($parent['id'])) {
-                    $parentId = $parent['id'];
-                }
-
-                break;
-
+                return str_starts_with($parent['id'], $parent['type'] . ':') ? $parent['id'] : $parent['type'] . ':' . $parent['id'];
             }
         }
 
-        return $parentId;
+        return 'root';
+
+    }
+
+    /**
+     * Check that :
+     *  - links is an array
+     *  - rel="child" links all exists in database
+     *  - links does not contains rel="item" or rel="items" 
+     */
+    private function getChilds($links)
+    {
+
+        $childs = array();
+
+        if ( !is_array($links) ) {
+            return RestoLogUtil::httpError(400, 'Invalid links array');
+        }
+
+        for ($i = count($links); $i--;) {
+            
+            if ($links[$i]['rel']) {
+
+                if ( in_array($links[$i]['rel'], array('item', 'items')) ) {
+                    return RestoLogUtil::httpError(400, 'Links array should not contains rel type "item" or "items"');
+                }
+    
+                if ( $links[$i]['rel'] === 'child' ) {
+
+                    $resolved = $this->resolveLink($links[$i]);
+                    
+                    if ( ! isset($resolved) || ! isset($resolved['id']) ) {
+                        return RestoLogUtil::httpError(400, 'Invalid link with href ' . $link['href']);
+                    }
+
+                    if ( ! isset($resolved['type']) || !in_array($resolved['type'], array('catalog', 'collection')) ) {
+                        return RestoLogUtil::httpError(400, 'Invalid type in link with href ' . $link['href']);
+                    }
+
+                    if ( $resolved['type'] === 'catalog' ) {
+                        $catalogId = str_starts_with($resolved['id'], $this->prefix) ? $resolved['id'] : $this->prefix . $resolved['id'];
+                        if ( !$this->catalogExists($catalogId) ) {
+                            return RestoLogUtil::httpError(404, 'Child catalog ' . $catalogId . ' not found');    
+                        }
+                        $childs[] = array(
+                            'id' => $catalogId,
+                            'type' => $resolved['type'],
+                        );
+                    }
+                    else if ( $resolved['type'] === 'collection' ) {
+                        $collectionsFunctions = new CollectionsFunctions($this->context->dbDriver);
+                        if ( !$collectionsFunctions->collectionExists($collectionsFunctions->aliasToCollectionId($resolved['id'])) ) {
+                            return RestoLogUtil::httpError(404, 'Child collection ' . $resolved['id'] . ' not found');    
+                        }
+                        $childs[] = array(
+                            'id' => $resolved['id'],
+                            'type' => $resolved['type'],
+                        );
+                    }
+                }
+    
+            }
+            
+        }
+        
+        return $childs;
 
     }
 
