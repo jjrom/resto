@@ -159,7 +159,7 @@ class CollectionsFunctions
              */
             if ($this->collectionExists($collection->id)) {
                 $this->dbDriver->query('ROLLBACK');
-                throw new Exception(500, 'Cannot delete collection ' . $collection->id);
+                throw new Exception('Cannot delete collection ' . $collection->id, 500);
             }
 
         } catch (Exception $e) {
@@ -198,7 +198,7 @@ class CollectionsFunctions
              */
             if (! $this->collectionExists($collection->id)) {
                 $this->dbDriver->query('ROLLBACK');
-                throw new Exception(500, 'Missing collection');
+                throw new Exception('Missing collection', 500);
             }
 
         } catch (Exception $e) {
