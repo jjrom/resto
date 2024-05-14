@@ -162,7 +162,7 @@ class FacetsFunctions
              *
              * [IMPORTANT] UPSERT with check on parentId only if $facetElement['parentId'] is set
              */
-            $insert = 'INSERT INTO ' . $this->dbDriver->targetSchema . '.facet (id, collection, value, type, pid, owner, description, created, counter, isleaf) SELECT $1,$2,$3,$4,$5,$6,$7,now(),$8,$9';
+            $insert = 'INSERT INTO ' . $this->dbDriver->targetSchema . '.facet (id, collection, value, type, pid, owner, description, created, counter, isleaf) SELECT public.normalize($1),$2,$3,$4,public.normalize($5),$6,$7,now(),$8,$9';
             $upsert = 'UPDATE ' . $this->dbDriver->targetSchema . '.facet SET counter=' .(isset($facetElement['counter']) ? 'counter' : 'counter+1') . ' WHERE public.normalize(id)=public.normalize($1) AND public.normalize(collection)=public.normalize($2)' . (isset($facetElement['parentId']) ? ' AND public.normalize(pid)=public.normalize($5)' : '');
             $this->dbDriver->pQuery('WITH upsert AS (' . $upsert . ' RETURNING *) ' . $insert . ' WHERE NOT EXISTS (SELECT * FROM upsert)', array(
                 $facetElement['id'],
