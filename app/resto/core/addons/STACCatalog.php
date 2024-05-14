@@ -122,9 +122,7 @@ class STACCatalog extends RestoAddOn
             $body['links'] = array();
         }
 
-        $this->getChilds($body['links']);
-        
-        return $this->storeCatalogAsFacet($body, $params['pid'] ?? null, $childs);
+        return $this->storeCatalogAsFacet($body, $params['pid'] ?? null, $this->getChilds($body['links']));
 
     }
 
@@ -334,7 +332,7 @@ class STACCatalog extends RestoAddOn
         if ( isset($collectionId) ) {
             $params['collection'] = $collectionId;
         }
-        $facets = (new FacetsFunctions($this->context->dbDriver))->getFacets(array('id' => $facetId));
+        $facets = (new FacetsFunctions($this->context->dbDriver))->getFacets($params);
         
         return !empty($facets);
         
@@ -440,10 +438,13 @@ class STACCatalog extends RestoAddOn
         try {
             $curl = new Curly();
             $resolved = json_decode($curl->get($link['href']), true);
+            if ( isset($resolved['ErrorCode']) ) {
+                throw new Exception();
+            }
             $curl->close();
         } catch (Exception $e) {
             $curl->close();
-            return RestoLogUtil::httpError(400, 'Invalid link with href ' . $link['href']);
+            return null;
         }
 
         return $resolved;
@@ -463,8 +464,9 @@ class STACCatalog extends RestoAddOn
         for ($i = 0, $ii = count($links); $i < $ii; $i++ ) {
             if ( isset($links[$i]['rel']) && $links[$i]['rel'] === 'parent' ) {
                 $parent = $this->resolveLink($links[$i]);
+                // To avoid egg and chicken issue, if the parent is not valid, we force a 'root' parent
                 if ( !isset($parent) || !isset($parent['id']) || !isset($parent['type']) ) {
-                    return RestoLogUtil::httpError(400, 'Invalid parent link with href ' . $links[$i]['href']);
+                    break;
                 }
                 return str_starts_with($parent['id'], $parent['type'] . ':') ? $parent['id'] : $parent['type'] . ':' . $parent['id'];
             }
@@ -501,17 +503,21 @@ class STACCatalog extends RestoAddOn
 
                     $resolved = $this->resolveLink($links[$i]);
                     
-                    if ( ! isset($resolved) || ! isset($resolved['id']) ) {
-                        return RestoLogUtil::httpError(400, 'Invalid link with href ' . $link['href']);
+                    if ( ! isset($resolved) ) {
+                        return RestoLogUtil::httpError(400, 'Child with href ' . $links[$i]['href'] . ' does not exist in database');
                     }
 
-                    if ( ! isset($resolved['type']) || !in_array($resolved['type'], array('catalog', 'collection')) ) {
-                        return RestoLogUtil::httpError(400, 'Invalid type in link with href ' . $link['href']);
+                    if ( ! isset($resolved['id']) ) {
+                        return RestoLogUtil::httpError(400, 'Link with href ' . $links[$i]['href'] . ' is missing mandatory id');
+                    }
+                    
+                    if ( ! isset($resolved['type']) || !in_array($resolved['type'], array('Catalog', 'Collection')) ) {
+                        return RestoLogUtil::httpError(400, 'Link with href ' . $links[$i]['href'] . ' has an invalid type');
                     }
 
-                    if ( $resolved['type'] === 'catalog' ) {
+                    if ( $resolved['type'] === 'Catalog' ) {
                         $catalogId = str_starts_with($resolved['id'], $this->prefix) ? $resolved['id'] : $this->prefix . $resolved['id'];
-                        if ( !$this->catalogExists($catalogId) ) {
+                        if ( !$this->catalogExists($catalogId, null, null) ) {
                             return RestoLogUtil::httpError(404, 'Child catalog ' . $catalogId . ' not found');    
                         }
                         $childs[] = array(
@@ -519,7 +525,7 @@ class STACCatalog extends RestoAddOn
                             'type' => $resolved['type'],
                         );
                     }
-                    else if ( $resolved['type'] === 'collection' ) {
+                    else if ( $resolved['type'] === 'Collection' ) {
                         $collectionsFunctions = new CollectionsFunctions($this->context->dbDriver);
                         if ( !$collectionsFunctions->collectionExists($collectionsFunctions->aliasToCollectionId($resolved['id'])) ) {
                             return RestoLogUtil::httpError(404, 'Child collection ' . $resolved['id'] . ' not found');    

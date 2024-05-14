@@ -1140,7 +1140,7 @@ class STAC extends RestoAddOn
             }
         }
 
-        // Hashtags
+        // Hashtags or catalogs
         elseif ($this->segments[0] === 'hashtags' || $this->segments[0] === 'catalogs') {
             $this->setCatalogsLinksFromFacet($params);
         }
@@ -1275,11 +1275,9 @@ class STAC extends RestoAddOn
         // Default segments structure starts with 'resto:classifications/xxxx' - so start at position 2
         $leafPosition = 2;
     
-        $where = 'type=$1';
-        $whereValues = array(
-            $leafValue
-        );
-        
+        $where = array();
+        $whereValues = array();
+
         // Hashtags special case
         if ($this->segments[0] === 'hashtags' || $this->segments[0] === 'catalogs') {
             
@@ -1288,26 +1286,25 @@ class STAC extends RestoAddOn
             // In database keyword is 'hashtag' not 'hashtags'
             if ($nbOfSegments === 1) {
                 $leafValue = substr($this->segments[0], 0, -1);
-                $whereValues = array(
-                    $leafValue
-                );
+                $whereValues[] = $leafValue;
+                $where[] = 'type=$' . count($whereValues);
             }
 
-            // Hack for catalog - force a hierarchy
-            if ($this->segments[0] === 'catalogs') {
-                $where = $where . ' AND pid=$2';
-                $whereValues[] = 'root';
-            }
+        }
+
+        
+        // Hack for catalog - force a hierarchy
+        if ($this->segments[0] === 'catalogs') {
+            $whereValues[] = 'root';
+            $where[] = 'public.normalize(pid)=public.normalize($' . count($whereValues). ')';
         }
         
         // Hack for landcover...
         elseif ($this->segments[1] === 'landcover') {
           
             if ($nbOfSegments === 2) {
-                $where = 'type LIKE $1';
-                $whereValues = array(
-                    'landcover:%'
-                );
+                $whereValues[] = 'landcover:%';
+                $where[] = 'type LIKE $' . count($whereValues);
             }
         }
 
@@ -1325,16 +1322,23 @@ class STAC extends RestoAddOn
             // First get type or pid
             // [TODO]  Return /search items instead of child for high number of results ?
             // $results = $this->context->dbDriver->pQuery('SELECT id, value, isleaf, sum(counter) as matched FROM ' . $this->context->dbDriver->targetSchema . '.facet WHERE ' . ($nbOfSegments === 1 ? 'type LIKE $1' : 'pid=$1' ) . ' GROUP BY id,value,isleaf ORDER BY matched DESC', array(
-            $results = $this->context->dbDriver->pQuery('SELECT id, value, pid, isleaf, sum(counter) as matched FROM ' . $this->context->dbDriver->targetSchema . '.facet WHERE ' . ($nbOfSegments === $leafPosition ? $where : 'pid=$1') . ' GROUP BY id, value, pid, isleaf ORDER BY value ASC', $nbOfSegments === $leafPosition ? $whereValues : array($whereValues[0]));
+            //$results = $this->context->dbDriver->pQuery('SELECT id, value, pid, isleaf, sum(counter) as matched FROM ' . $this->context->dbDriver->targetSchema . '.facet WHERE ' . ($nbOfSegments === $leafPosition ? $where : 'public.normalize(pid)=public.normalize($1)') . ' GROUP BY id, value, pid, isleaf ORDER BY value ASC', $nbOfSegments === $leafPosition ? $whereValues : array($whereValues[0]));
+            $results = $this->context->dbDriver->pQuery('SELECT id, value, pid, isleaf, sum(counter) as matched FROM ' . $this->context->dbDriver->targetSchema . '.facet' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : '') . ' GROUP BY id, value, pid, isleaf ORDER BY value ASC', $whereValues);
 
             if (!$results) {
-                throw new Exception();
+                throw new Exception('Error', 500);
             }
 
             // No Results - either a wrong path or a leaf facet (except for hashtag)
             if (pg_num_rows($results) === 0) {
+
+                // Catalog does not exist
+                if ($this->segments[0] === 'catalogs') {
+                    throw new Exception('Not Found', 404);
+                }
+
                 //return $this->setItemsLinks($title, $leafValue);
-                if (!in_array($leafValue, array('hashtag')) && $nbOfSegments > 1) {
+                if ( !in_array($leafValue, array('hashtag')) && $nbOfSegments > 1 ) {
                     return $this->setFeatureCollection($leafValue, $params);
                 }
             }
@@ -1386,7 +1390,7 @@ class STAC extends RestoAddOn
                 }
             }
         } catch (Exception $e) {
-            // Keep going
+            RestoLogUtil::httpError($e->getCode(), $e->getMessage());
         }
     }
 

@@ -47,6 +47,17 @@ Then get the feature :
         # Create a catalog - user with the "createCatalog" right can create a catalog 
         curl -X POST -d@examples/catalogs/dummyCatalog.json "http://admin:admin@localhost:5252/catalogs"
 
+### Create a catalog with childs
+
+        # This will raise an error because catalog' childs does not exist. They must be created first
+        curl -X POST -d@examples/catalogs/dummyCatalogWithChilds.json "http://admin:admin@localhost:5252/catalogs"
+
+        # Good way : ingest childs then parent
+        curl -X POST -d@examples/catalogs/dummyCatalogChild1.json "http://admin:admin@localhost:5252/catalogs"
+        curl -X POST -d@examples/catalogs/dummyCatalogChild2.json "http://admin:admin@localhost:5252/catalogs"
+        curl -X POST -d@examples/catalogs/dummyCatalogWithChilds.json "http://admin:admin@localhost:5252/catalogs"
+
+
 ### Update a catalog
 Only "title", "description" and "owner" properties can be updated
 

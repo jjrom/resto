@@ -1,0 +1,17 @@
+{
+    "id": "dummyCatalogWithChilds",
+    "title": "Dummy Catalog with childs",
+    "type": "Catalog",
+    "description":"This catalog has childs - the must exist in the database before adding it otherwise it will raise an error",
+    "stac_version":"1.0.0",
+    "links":[
+        {
+            "rel":"child",
+            "href":"http://host.docker.internal:5252/catalogs/catalogs/catalog:dummyCatalogChild1"
+        },
+        {
+            "rel":"child",
+            "href":"http://host.docker.internal:5252/catalogs/catalogs/catalog:dummyCatalogChild2"
+        }
+    ]
+}

@@ -228,7 +228,7 @@ class STACUtil
         }
 
         try {
-            $results = $this->context->dbDriver->query('SELECT split_part(type, \':\', 1) as type, sum(counter) as matched FROM ' . $this->context->dbDriver->targetSchema . '.facet WHERE pid=\'root\' GROUP BY split_part(type, \':\', 1) ORDER BY type ASC');
+            $results = $this->context->dbDriver->query('SELECT split_part(type, \':\', 1) as type, sum(counter) as matched FROM ' . $this->context->dbDriver->targetSchema . '.facet WHERE public.normalize(pid)=\'root\' GROUP BY split_part(type, \':\', 1) ORDER BY type ASC');
             
             if (!$results) {
                 throw new Exception();
@@ -280,7 +280,7 @@ class STACUtil
 
         try {
 
-            $results = $this->context->dbDriver->query('SELECT id, value, pid, isleaf, sum(counter) as matched FROM resto.facet WHERE type=\'catalog\' AND pid=\'root\' GROUP BY id, value, pid, isleaf ORDER BY value ASC');
+            $results = $this->context->dbDriver->query('SELECT id, value, pid, isleaf, sum(counter) as matched FROM resto.facet WHERE type=\'catalog\' AND public.normalize(pid)=\'root\' GROUP BY id, value, pid, isleaf ORDER BY value ASC');
             
             if (!$results) {
                 throw new Exception();
