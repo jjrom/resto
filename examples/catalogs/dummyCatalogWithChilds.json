@@ -12,6 +12,10 @@
         {
             "rel":"child",
             "href":"http://host.docker.internal:5252/catalogs/catalogs/catalog:dummyCatalogChild2"
+        },
+        {
+            "rel":"child",
+            "href":"http://host.docker.internal:5252/collections/S2"
         }
     ]
 }
