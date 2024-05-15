@@ -241,6 +241,14 @@ class STACCatalog extends RestoAddOn
      *             type="string"
      *         )
      *      ),
+     *      @OA\Parameter(
+     *         name="force",
+     *         in="query",
+     *         description="Force catalog removal even if this catalog has child. In this case, catalogs childs are attached to the remove catalog parent",
+     *         @OA\Schema(
+     *             type="boolean"
+     *         )
+     *      ),
      *      @OA\Response(
      *          response="200",
      *          description="Catalog deleted",
@@ -305,7 +313,13 @@ class STACCatalog extends RestoAddOn
         // If catalog has childs it cannot be removed
         $childs = (new FacetsFunctions($this->context->dbDriver))->getFacets(array('pid' => $facetId));
         if ( !empty($childs) ) {
-            return RestoLogUtil::httpError(400, 'The catalog cannot be deleted because it has ' . count($childs) . ' childs');
+            if (isset($params['force']) && filter_var($params['force'], FILTER_VALIDATE_BOOLEAN) === true) {
+                return RestoLogUtil::httpError(400, 'TODO - force removal of non empty catalog is not implemented');
+            }
+            else {
+                return RestoLogUtil::httpError(400, 'The catalog cannot be deleted because it has ' . count($childs) . ' childs');
+            }
+            
         }
         
         return RestoLogUtil::success('Catalog deleted', (new FacetsFunctions($this->context->dbDriver))->removeFacet($facetId));
@@ -394,10 +408,24 @@ class STACCatalog extends RestoAddOn
 
             // 2. Update childs pid to point to the catalog
             for ($i = count($childs); $i--;) {
-                $this->context->dbDriver->pQuery('UPDATE ' . $this->context->dbDriver->targetSchema . '.facet SET pid=$2 WHERE public.normalize(id)=public.normalize($1) RETURNING id', array(
-                    $childs[$i]['id'],
-                    $this->prefix . $catalog['id']
-                ));
+                if ($childs[$i]['type'] === 'collection') {
+                    (new FacetsFunctions($this->context->dbDriver))->storeFacets(array(
+                        array(
+                            'id' => $childs[$i]['id'],
+                            'parentId' => $this->prefix . $catalog['id'],
+                            'value' => $childs[$i]['title'],
+                            'type' => 'collection',
+                            'isLeaf' => $childs[$i]['isLeaf'],
+                            'counter' => 0
+                        )
+                    ), $this->user->profile['id']);    
+                }
+                else {
+                    $this->context->dbDriver->pQuery('UPDATE ' . $this->context->dbDriver->targetSchema . '.facet SET pid=$2 WHERE public.normalize(id)=public.normalize($1) RETURNING id', array(
+                        $childs[$i]['id'],
+                        $this->prefix . $catalog['id']
+                    ));
+                }
             }
 
             $this->context->dbDriver->query('COMMIT');
@@ -522,18 +550,23 @@ class STACCatalog extends RestoAddOn
                         }
                         $childs[] = array(
                             'id' => $catalogId,
-                            'type' => $resolved['type'],
+                            'type' => 'catalog',
                         );
                     }
                     else if ( $resolved['type'] === 'Collection' ) {
                         $collectionsFunctions = new CollectionsFunctions($this->context->dbDriver);
-                        if ( !$collectionsFunctions->collectionExists($resolved['id']) || !$collectionsFunctions->collectionExists($collectionsFunctions->aliasToCollectionId($resolved['id'])) ) {
+                        if ( $collectionsFunctions->collectionExists($resolved['id']) || $collectionsFunctions->collectionExists($collectionsFunctions->aliasToCollectionId($resolved['id'])) ) {
+                            $childs[] = array(
+                                'id' => 'collection:' . $resolved['id'],
+                                'title' => $resolved['id'],
+                                'isLeaf' => 1,
+                                'type' => 'collection',
+                            );
+                        }
+                        else {
                             return RestoLogUtil::httpError(404, 'Child collection ' . $resolved['id'] . ' not found');    
                         }
-                        $childs[] = array(
-                            'id' => $resolved['id'],
-                            'type' => $resolved['type'],
-                        );
+                        
                     }
                 }
     
