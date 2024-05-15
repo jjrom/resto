@@ -311,6 +311,22 @@ class FeaturesFunctions
         );
 
         /*
+         * Eventually a catalog can be created as facet during feature ingestion.
+         * Check that user can create catalog
+         */
+        $facetsStored = $collection->context->core['storeFacets'] && $collection->model->dbParams['storeFacets'];
+        if ($facetsStored) {
+            foreach (array_values($keysAndValues['facets']) as $facetElement) {
+                if (isset($facetElement['type']) && $facetElement['type'] === 'catalog') {
+                    if ( !$collection->user->hasRightsTo(RestoUser::CREATE_CATALOG) ) {
+                        return RestoLogUtil::httpError(403, 'Feature ingestion leads to creation of catalog ' . $facetElement['id'] . ' but you don\'t have right to create catalogs');
+                    }
+                    break;
+                }
+            }
+        }
+        
+        /*
          * Generate pg_query_params $* array
          */
         try {
@@ -346,7 +362,6 @@ class FeaturesFunctions
         /*
          * Store facets outside of the transaction because error should not block feature ingestion
          */
-        $facetsStored = $collection->context->core['storeFacets'] && $collection->model->dbParams['storeFacets'];
         if ($facetsStored) {
             try {
                 (new FacetsFunctions($this->dbDriver))->storeFacets($keysValues['facets'], $collection->user->profile['id'], $collection->id);
@@ -444,6 +459,22 @@ class FeaturesFunctions
             )
         );
 
+        /*
+         * Eventually a catalog can be created as facet during feature ingestion.
+         * Check that user can create catalog
+         */
+        $facetsStored = $feature->context->core['storeFacets'] && $collection->model->dbParams['storeFacets'];
+        if ($facetsStored) {
+            foreach (array_values($keysAndValues['facets']) as $facetElement) {
+                if (isset($facetElement['type']) && $facetElement['type'] === 'catalog') {
+                    if ( !$collection->user->hasRightsTo(RestoUser::CREATE_CATALOG) ) {
+                        return RestoLogUtil::httpError(403, 'Feature update leads to creation of catalog ' . $facetElement['id'] . ' but you don\'t have right to create catalogs');
+                    }
+                    break;
+                }
+            }
+        }
+
         try {
             /*
              * Begin transaction
@@ -489,7 +520,7 @@ class FeaturesFunctions
         try {
             $facetsFunctions = new FacetsFunctions($this->dbDriver);
             $facetsFunctions->removeFacetsFromHashtags($oldFeatureArray['properties']['hashtags'] ?? array(), $collection->id);
-            if ($feature->context->core['storeFacets'] && $collection->model->dbParams['storeFacets']) {
+            if ($facetsStored) {
                 $facetsFunctions->storeFacets($keysAndValues['facets'], $collection->user->profile['id'], $collection->id);
             }
         } catch (Exception $e) {
