@@ -527,7 +527,7 @@ class STACCatalog extends RestoAddOn
                     }
                     else if ( $resolved['type'] === 'Collection' ) {
                         $collectionsFunctions = new CollectionsFunctions($this->context->dbDriver);
-                        if ( !$collectionsFunctions->collectionExists($collectionsFunctions->aliasToCollectionId($resolved['id'])) ) {
+                        if ( !$collectionsFunctions->collectionExists($resolved['id']) || !$collectionsFunctions->collectionExists($collectionsFunctions->aliasToCollectionId($resolved['id'])) ) {
                             return RestoLogUtil::httpError(404, 'Child collection ' . $resolved['id'] . ' not found');    
                         }
                         $childs[] = array(
