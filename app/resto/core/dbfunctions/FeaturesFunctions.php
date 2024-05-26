@@ -316,7 +316,7 @@ class FeaturesFunctions
          */
         $facetsStored = $collection->context->core['storeFacets'] && $collection->model->dbParams['storeFacets'];
         if ($facetsStored) {
-            foreach (array_values($keysAndValues['facets']) as $facetElement) {
+            foreach (array_values($keysValues['facets']) as $facetElement) {
                 if (isset($facetElement['type']) && $facetElement['type'] === 'catalog') {
                     if ( !$collection->user->hasRightsTo(RestoUser::CREATE_CATALOG) ) {
                         return RestoLogUtil::httpError(403, 'Feature ingestion leads to creation of catalog ' . $facetElement['id'] . ' but you don\'t have right to create catalogs');
