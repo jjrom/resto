@@ -147,7 +147,7 @@ class ATOMFeed extends RestoXML
             'xmlns:gml' => 'http://www.opengis.net/gml',
             'xmlns:geo' => 'http://a9.com/-/opensearch/extensions/geo/1.0/',
             'xmlns:eo' => 'http://a9.com/-/opensearch/extensions/eo/1.0/',
-            'xmlns:metalink' => 'urn:ietf:params:xml:ns:metalink',
+            'xmlns:metalink' => 'http://www.metalinker.org/',
             'xmlns:xlink' => 'http://www.w3.org/1999/xlink',
             'xmlns:media' => 'http://search.yahoo.com/mrss/',
             'xmlns:resto' => 'http://snapplanet.io/resto'
