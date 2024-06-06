@@ -300,7 +300,7 @@ class FeaturesFunctions
                 'geometry' => $featureArray['topologyAnalysis']['geometry'] ?? null,
                 'centroid' => $featureArray['topologyAnalysis']['centroid'] ?? null,
                 'geom' => $featureArray['topologyAnalysis']['geom'] ?? null
-                ),
+            ),
             array(
                 'productIdentifier',
                 'title',
@@ -309,20 +309,17 @@ class FeaturesFunctions
                 'completionDate'
             )
         );
-
+        
         /*
-         * Eventually a catalog can be created as facet during feature ingestion.
+         * Eventually an 'isExternal' catalog can be created during feature ingestion.
          * Check that user can create catalog
          */
-        $facetsStored = $collection->context->core['storeFacets'] && $collection->model->dbParams['storeFacets'];
-        if ($facetsStored) {
-            foreach (array_values($keysValues['facets']) as $facetElement) {
-                if (isset($facetElement['type']) && $facetElement['type'] === 'catalog') {
-                    if ( !$collection->user->hasRightsTo(RestoUser::CREATE_CATALOG) ) {
-                        return RestoLogUtil::httpError(403, 'Feature ingestion leads to creation of catalog ' . $facetElement['id'] . ' but you don\'t have right to create catalogs');
-                    }
-                    break;
+        foreach (array_values($keysValues['catalogs']) as $catalog) {
+            if (isset($catalog['isExternal']) && $catalog['isExternal']) {
+                if ( !$collection->user->hasRightsTo(RestoUser::CREATE_CATALOG) ) {
+                    return RestoLogUtil::httpError(403, 'Feature ingestion leads to creation of catalog ' . $catalog['id'] . ' but you don\'t have right to create catalogs');
                 }
+                break;
             }
         }
         
@@ -354,26 +351,26 @@ class FeaturesFunctions
              * Commit everything - rollback if one of the inserts failed
              */
             pg_query($dbh, 'COMMIT');
+
         } catch (Exception $e) {
             pg_query($dbh, 'ROLLBACK');
             RestoLogUtil::httpError(500, 'Feature ' . ($featureArray['productIdentifier'] ?? '') . ' cannot be inserted in database');
         }
 
         /*
-         * Store facets outside of the transaction because error should not block feature ingestion
+         * Store catalogs outside of the transaction because error should not block feature ingestion
          */
-        if ($facetsStored) {
-            try {
-                (new FacetsFunctions($this->dbDriver))->storeFacets($keysValues['facets'], $collection->user->profile['id'], $collection->id);
-            } catch (Exception $e) {
-                $facetsStored = false;
-            }
+        $catalogsStored = true;
+        try {
+            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysValues['catalogs'], $collection->user->profile['id'], $collection->id);
+        } catch (Exception $e) {
+            $catalogsStored = false;
         }
-
+        
         return array(
             'id' => $result['id'],
             'productIdentifier' => $result['productidentifier'] ?? null,
-            'facetsStored' => $facetsStored
+            'catalogsStored' => $catalogsStored
         );
     }
 
@@ -576,6 +573,9 @@ class FeaturesFunctions
      */
     public function updateFeatureDescription($feature, $description)
     {
+
+        return 'TODO';
+
         // Get hashtags to remove from feature before update
         $hashtagsToRemove = $this->extractHashtagsFromText($feature->toArray()['properties']['description'], true);
         $hashtagsToAdd = $this->extractHashtagsFromText($description, true);
@@ -662,54 +662,6 @@ class FeaturesFunctions
     }
 
     /**
-     * Return array of hashtags from a text - invalid characters are discarded
-     *
-     * [WARNING] The leading '#' is not returned
-     *
-     * Example:
-     *
-     *    $text = "This is a #test #withA!%.badhashtag"
-     *
-     * returns:
-     *
-     *    array('test', 'withAbadhashtag')
-     *
-     * @param string $text
-     * @param boolean $stringOnly
-     *
-     * @return array
-     */
-    public function extractHashtagsFromText($text, $stringOnly)
-    {
-        $matches = null;
-        if (isset($text)) {
-            preg_match_all("/#([^ ]+)/u", $text, $matches);
-            if ($matches) {
-                $hashtagsArray = array_count_values($matches[1]);
-                $hashtags = array();
-                foreach (array_keys($hashtagsArray) as $key) {
-                    # Detect special hashtags i.e. with prefix
-                    $exploded = explode(RestoConstants::TAG_SEPARATOR, $key);
-                    if (!$stringOnly && count($exploded) > 1) {
-                        $type = array_shift($exploded);
-                        $hashtags[] = array(
-                            'id' => $key,
-                            'value' => join(RestoConstants::TAG_SEPARATOR, $exploded),
-                            'type' => $type,
-                            // Special case for catalog => force collection to all
-                            'collection' => $type === 'catalog' ? '*' : null
-                        );
-                    } else {
-                        $hashtags[] = RestoUtil::cleanHashtag($key);
-                    }
-                }
-                return $hashtags;
-            }
-        }
-        return array();
-    }
-
-    /**
      * Store feature additional content
      *
      * @param string $featureId
@@ -758,14 +710,15 @@ class FeaturesFunctions
         $output = array(
             'keysAndValues' => array(),
             'params' => array(),
-            'facets' => null,
-            'modelTables' => array()
+            'modelTables' => array(),
+            'catalogs' => $featureArray['catalogs']
         );
 
         /*
          * Roll over properties
          */
         foreach ($featureArray['properties'] as $propertyName => $propertyValue) {
+
             /*
              * Do not process null values and protected values
              */
@@ -788,35 +741,11 @@ class FeaturesFunctions
             }
             
             /*
-             * Keywords
-             */
-            elseif ($propertyName === 'keywords' && is_array($propertyValue)) {
-                $facetsFunctions = new FacetsFunctions($this->dbDriver);
-
-                // Initialize keywords
-                $keysAndValues['keywords'] = json_encode($propertyValue, JSON_UNESCAPED_SLASHES);
-
-                // Compute facets
-                $output['facets'] = array_merge($facetsFunctions->getFacetsFromKeywords($propertyValue, $collection->model->facetCategories, $collection->id), $this->extractHashtagsFromText($featureArray['properties']['description'] ?? '', false));
-                
-                // Compute hashtags
-                $hashtags = $facetsFunctions->getHashtagsFromFacets($output['facets']);
-                if (count($hashtags) > 0) {
-                    $keysAndValues['hashtags'] = '{' . join(',', $hashtags) . '}';
-                    $keysAndValues['normalized_hashtags'] = $keysAndValues['hashtags'];
-                }
-                
-                // Special content for LandCoverModel (i.e. itag keys)
-                if (count($collection->model->tables) > 0 && $collection->model->tables[0]['name'] == 'feature_landcover') {
-                    $output['modelTables']['feature_landcover'] = $this->getITagColumnFromKeywords($propertyValue, $collection->model->tables[0]['columns']);
-                }
-            }
-            
-            /*
              * Directly add to metadata
              */
             else {
-                if (!isset($keysAndValues['metadata'])) {
+
+                if ( !isset($keysAndValues['metadata']) ) {
                     $keysAndValues['metadata'] = array();
                 }
                 $keysAndValues['metadata'][$propertyName] = $propertyValue;
@@ -837,9 +766,45 @@ class FeaturesFunctions
             }
         }
        
+        /*
+         * Catalogs
+         */
+        $hashtags = array();
+        for ($i = count($output['catalogs']); $i--;) {
+
+            // Append additionnal properties
+            if ( isset($output['catalogs'][$i]['properties']) ) {
+                if ( !isset($keysAndValues['metadata']) ) {
+                    $keysAndValues['metadata'] = array();
+                }
+                $keysAndValues['metadata'] = array_merge($keysAndValues['metadata'], $output['catalogs'][$i]['properties']);
+            }
+            
+            // Special content for LandCoverModel (i.e. itag keys)
+            for ($j = 0, $jj = count($collection->model->tables); $j < $jj; $j++) {
+                if ($collection->model->tables[$j]['name'] == 'feature_landcover') {
+                    $columns = $this->getITagColumnFromCatalogs($output['catalogs'][$i], $collection->model->tables[$j]['columns']);
+                    if ( !empty($columns) ) {
+                        $output['modelTables']['feature_landcover'] = $columns;
+                    }
+                    break;
+                }
+            }
+           
+            if ( isset($output['catalogs'][$i]['hashtag']) ) {
+                $hashtags[] = $output['catalogs'][$i]['hashtag'];
+            }
+            
+        }
+
+        if ( !empty($hashtags) ) {
+            $keysAndValues['hashtags'] = '{' . join(',', $hashtags) . '}';
+            $keysAndValues['normalized_hashtags'] = $keysAndValues['hashtags'];
+        }
+        
         // JSON encode metadata
         $keysAndValues['metadata'] = isset($keysAndValues['metadata']) ? json_encode($keysAndValues['metadata'], JSON_UNESCAPED_SLASHES) : null;
-        
+
         $counter = 0;
         $output['keysAndValues'] = array_merge($protected, $keysAndValues);
         foreach (array_keys($output['keysAndValues'] ?? array()) as $key) {
@@ -856,18 +821,18 @@ class FeaturesFunctions
     }
 
     /**
-     * Get database DefaultModel columns from input keywords
+     * Get iTag column name from input catalogs
      *
-     * @param array $keywords
+     * @param array $catalogs
      * @param array $tableColumns
      * @return array
      */
-    private function getITagColumnFromKeywords($keywords, $tableColumns)
+    private function getITagColumnFromCatalogs($catalogs, $tableColumns)
     {
         $columns = array();
-        foreach (array_values($keywords) as $keyword) {
-            if (in_array(strtolower($keyword['name']), $tableColumns)) {
-                $columns[strtolower($keyword['name'])] = $keyword['value'];
+        for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
+            if (isset($catalogs[$i]['title']) && in_array(strtolower($catalogs[$i]['title']), $tableColumns)) {
+                $columns[strtolower($catalogs[$i]['title'])] = $catalogs[$i]['properties']['pcover'];
             }
         }
         return $columns;

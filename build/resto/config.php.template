@@ -93,7 +93,7 @@ return array(
                 'minMatch' => ${ADDON_STAC_MINMATCH:-0}
             )
         ),
-        'Tag' => array(
+        'Cataloger' => array(
             'options' => array(
                 'iTag' => array(
                     'endpoint' => '${ADDON_TAG_ITAG_ENDPOINT}',

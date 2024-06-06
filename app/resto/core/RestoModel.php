@@ -361,11 +361,9 @@ abstract class RestoModel
      * Parameters to apply to database storage for products related to this model
      *
      *  - tablePrefix : all features belonging to a collection referencing this model will be stored in a dedicated table [tablePrefix]__feature instead of feature"
-     *  - storeFacets = if true, facets are stored for model related products
      */
     public $dbParams = array(
-        'tablePrefix' => '',
-        'storeFacets' => true
+        'tablePrefix' => ''
     );
 
     /*
@@ -443,12 +441,11 @@ abstract class RestoModel
         // Feature case
         if ($data['type'] === 'Feature') {
             $insert = $this->storeFeature($collection, $data, $params);
-
-            if ($insert['result'] !== false) {
+            if ( isset($insert['result']) ) {
                 $featuresInserted[] = array(
                     'featureId' => $insert['result']['id'],
                     'productIdentifier' => $insert['result']['productIdentifier'],
-                    'facetsStored' => $insert['result']['facetsStored']
+                    'catalogsStored' => $insert['result']['catalogsStored']
                 );
 
                 $dates[] = isset($insert['featureArray']['properties']) && isset($insert['featureArray']['properties']['startDate']) ? $insert['featureArray']['properties']['startDate'] : null;
@@ -465,7 +462,7 @@ abstract class RestoModel
                         $featuresInserted[] = array(
                             'featureId' => $insert['result']['id'],
                             'productIdentifier' => $insert['result']['productIdentifier'],
-                            'facetsStored' => $insert['result']['facetsStored']
+                            'catalogsStored' => $insert['result']['catalogsStored']
                         );
 
                         $dates[] = isset($insert['featureArray']['properties']) && isset($insert['featureArray']['properties']['startDate']) ? $insert['featureArray']['properties']['startDate'] : null;
@@ -917,16 +914,22 @@ abstract class RestoModel
             RestoLogUtil::httpError(400, $topologyAnalysis['error']);
         }
 
+        // Compute catalogs associated with this feature
+        // Eventually remove input _catalogs from properties
+        $catalogs = (new Cataloger($collection->context, $collection->user))->getCatalogs($properties, $data['geometry'] ?? null, $collection, $this->getITagParams($collection));
+        if (isset($properties['resto:catalogs'])) {
+            unset($properties['resto:catalogs']);
+        }
+        
         /*
          * Return prepared data
          */
         return array(
             'topologyAnalysis' => $topologyAnalysis,
-            'properties' => array_merge($properties, array(
-                'keywords' => (new Tag($collection->context, $collection->user))->getKeywords($properties, $data['geometry'] ?? null, $collection->model, $this->getITagParams($collection))
-            )),
+            'properties' => $properties,
             'assets' => $data['assets'] ?? null,
-            'links' => $data['links'] ?? null
+            'links' => $data['links'] ?? null,
+            'catalogs' => $catalogs
         );
     }
 
@@ -948,9 +951,9 @@ abstract class RestoModel
         /*
          * Default is to convert array of string to associative array
          */
-        if ($collection->context->addons['Tag']['options']['iTag']['taggers']) {
-            for ($i = 0, $ii = count($collection->context->addons['Tag']['options']['iTag']['taggers']); $i < $ii; $i++) {
-                $taggers[$collection->context->addons['Tag']['options']['iTag']['taggers'][$i]] = array();
+        if ($collection->context->addons['Cataloger']['options']['iTag']['taggers']) {
+            for ($i = 0, $ii = count($collection->context->addons['Cataloger']['options']['iTag']['taggers']); $i < $ii; $i++) {
+                $taggers[$collection->context->addons['Cataloger']['options']['iTag']['taggers'][$i]] = array();
             }
         }
 

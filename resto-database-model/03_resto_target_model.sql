@@ -411,6 +411,67 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.facet (
 
 );
 
+--
+-- Catalog table
+--
+CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog (
+
+    --
+    -- The id must be a path starting with '/' (e.g. '/geographical/Europe/France/Haute-Garonne/Toulouse)
+    -- Note: only the last part is displayed in JSON output (e.g. Toulouse)
+    --
+    id                  TEXT PRIMARY KEY,
+    
+    -- A short descriptive one-line title for the Catalog.
+    title               TEXT,
+
+    -- Detailed multi-line description to fully explain the Catalog. CommonMark 0.29 syntax MAY be used for rich text representation.
+    description         TEXT,
+
+    -- Number of levels for this catalog
+    level              INTEGER,
+
+    -- Number of items within this catalog
+    counter             INTEGER,
+
+    -- Number of items within this catalog (total and per collection)
+    counters            JSON,
+
+    -- Owner of the catalog (i.e. the one who creates it)
+    owner               BIGINT,
+
+    -- Catalog date of creation
+    created             TIMESTAMP DEFAULT now(),
+
+    -- A list of references to other documents.
+    links               JSON,
+
+    -- Visibility - group visibility (only user within this group can see collection)
+    visibility          INTEGER,
+
+    -- resto type 
+    rtype               TEXT,
+
+    -- Hashtag to find features within this catalog
+    hashtag             TEXT
+
+);
+
+--
+-- Feature/Catalog association 
+--
+CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.feature_catalog (
+
+    -- Reference __DATABASE_TARGET_SCHEMA__.feature.id
+    featureid          UUID NOT NULL REFERENCES __DATABASE_TARGET_SCHEMA__.feature (id) ON DELETE CASCADE,
+
+    -- Reference __DATABASE_TARGET_SCHEMA__.catalog.id
+    catalogid          TEXT NOT NULL REFERENCES __DATABASE_TARGET_SCHEMA__.catalog (id) ON DELETE CASCADE,
+
+    PRIMARY KEY (featureid, catalogid)
+   
+);
+
 -- --------------------- INDEXES ---------------------------
 
 -- [TABLE __DATABASE_TARGET_SCHEMA__.collection]
@@ -433,6 +494,10 @@ CREATE INDEX IF NOT EXISTS idx_pid_facet ON __DATABASE_TARGET_SCHEMA__.facet (pu
 CREATE INDEX IF NOT EXISTS idx_type_facet ON __DATABASE_TARGET_SCHEMA__.facet (type);
 CREATE INDEX IF NOT EXISTS idx_collection_facet ON __DATABASE_TARGET_SCHEMA__.facet (public.normalize(collection));
 CREATE INDEX IF NOT EXISTS idx_value_facet ON __DATABASE_TARGET_SCHEMA__.facet USING GIN (public.normalize(value) gin_trgm_ops);
+
+-- [TABLE __DATABASE_TARGET_SCHEMA__.catalog]
+CREATE INDEX IF NOT EXISTS idx_id_catalog ON __DATABASE_TARGET_SCHEMA__.catalog (public.normalize(id));
+CREATE INDEX IF NOT EXISTS idx_description_catalog ON __DATABASE_TARGET_SCHEMA__.catalog USING GIN (public.normalize(description) gin_trgm_ops);
 
 -- [TABLE __DATABASE_TARGET_SCHEMA__.feature]
 CREATE INDEX IF NOT EXISTS idx_collection_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (collection);

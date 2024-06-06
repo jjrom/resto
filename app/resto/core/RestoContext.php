@@ -47,9 +47,6 @@ class RestoContext
         // Shared links validity duration (in seconds)
         'sharedLinkDuration' => 86400,
 
-        // True to store count statistics for each POST,PUT,DELETE on features
-        'storeFacets' => true,
-
         // True to store all user queries to database
         'storeQuery' => false,
 
