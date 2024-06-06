@@ -227,13 +227,41 @@ class CatalogsFunctions
     }
 
     /**
+     * Increment input catalogs count
+     *
+     * @param array $catalogs
+     * @param string $collectionId
+     * @param integer $increment
+     */
+    public function updateCatalogsCounters($catalogs, $collectionId, $increment)
+    {
+
+        $catalogIds = [];
+        for ($i = count($catalogs); $i--;) {
+            $catalogIds[] = $catalogs[$i]['id'];
+        } 
+
+        $query = join(' ', array(
+            'UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters,' . $increment . ',' . (isset($collectionId) ? '\'' . $collectionId . '\'': 'NULL') . ')',
+            'FROM ' . $this->dbDriver->targetSchema . '.catalog',
+            'WHERE id IN (\'' . join('\',\'', $catalogIds) . '\') RETURNING id'
+        ));
+
+        $results = $this->dbDriver->fetch($this->dbDriver->query($query));
+        
+        return count($results);
+
+    }
+
+
+    /**
      * Increment all catalogs relied to feature
      *
      * @param string $featureId
      * @param string $collectionId
      * @param integer $increment
      */
-    public function updateCatalogsCounts($featureId, $collectionId, $increment)
+    public function updateFeatureCatalogsCounters($featureId, $collectionId, $increment)
     {
 
         $query = join(' ', array(
@@ -351,7 +379,7 @@ class CatalogsFunctions
         $pivots = array();
         
         $catalogs = $this->getCatalogs(array(
-            'where' => !empty($types) ? 'rtype IN(\'' . join('\',\'', $types) . '\')' : 'rtype NOT IN (\'' . join('\',\'', CatalogsFunctions::TOPONYM_TYPES) . '\')'
+            'where' => !empty($types) ? 'rtype IN (\'' . join('\',\'', $types) . '\')' : 'rtype NOT IN (\'' . join('\',\'', CatalogsFunctions::TOPONYM_TYPES) . '\')'
         ));
         
         $counter = 0;

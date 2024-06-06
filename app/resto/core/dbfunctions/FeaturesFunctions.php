@@ -396,7 +396,7 @@ class FeaturesFunctions
             /*
              * Update statistics counter for featureId - i.e. remove 1 per catalogs containing this feature 
              */
-            $catalogsUpdated = (new CatalogsFunctions($this->dbDriver))->updateCatalogsCounts($feature->id, $feature->collection->id, -1);
+            $catalogsUpdated = (new CatalogsFunctions($this->dbDriver))->updateFeatureCatalogsCounters($feature->id, $feature->collection->id, -1);
         
             /*
              * Next remove
@@ -504,13 +504,13 @@ class FeaturesFunctions
              */
             if ( !empty($diffCatalogs['removed']) ) {
                 // [IMPORTANT] First run updateCatalogCounts !!
-                (new CatalogsFunctions($this->dbDriver))->updateCatalogsCounts($feature->id, $feature->collection->id, -1);
+                (new CatalogsFunctions($this->dbDriver))->updateCatalogsCounters($diffCatalogs['removed'], $feature->collection->id, -1);
                 $this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE featureid=$1', array(
                     $feature->id
                 ));
             }
             if ( !empty($diffCatalogs['added']) ) {
-                (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->user->profile['id'], $collection->id, $feature->id);
+                (new CatalogsFunctions($this->dbDriver))->storeCatalogs($diffCatalogs['added'], $collection->user->profile['id'], $collection->id, $feature->id);
             }
 
             /*
@@ -571,19 +571,19 @@ class FeaturesFunctions
     public function updateFeatureDescription($feature, $description)
     {
 
-        return 'TODO';
-
-        // Get hashtags to remove from feature before update
-        $hashtagsToRemove = $this->extractHashtagsFromText($feature->toArray()['properties']['description'], true);
-        $hashtagsToAdd = $this->extractHashtagsFromText($description, true);
-        $hashtags = array_merge(array_diff($feature->toArray()['properties']['hashtags'], $hashtagsToRemove), $hashtagsToAdd);
+        return RestoLogUtil::httpError(400, 'TODO - update feature description not yet implemented');
         
-        $model = isset($feature->collection) ? $feature->collection->model : new DefaultModel();
-
+        $cataloger = new Cataloger($feature->collection->context, $feature->collection->user);
+        $catalogsFunctions = new CatalogsFunctions($this->dbDriver);
+        
+        // Get diff for catalogs
+        $diffCatalogs = $catalogsFunctions->diff($cataloger->catalogsFromText($feature->toArray()['properties']['description']), $cataloger->catalogsFromText($description));
+        
         /*
          * Transaction
          */
         try {
+            
             /*
              * Update description, hashtags and normalized_hashtags
              */
@@ -592,27 +592,27 @@ class FeaturesFunctions
                 '{' . join(',', $hashtags) . '}',
                 $feature->id
             ));
+
+            /*
+             * Remove/add catalogs
+             */
+            if ( !empty($diffCatalogs['removed']) ) {
+                // [IMPORTANT] First run updateCatalogsCounters !!
+                (new CatalogsFunctions($this->dbDriver))->updateCatalogsCounters($diffCatalogs['removed'], $feature->collection->id, -1);
+                $this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE featureid=$1', array(
+                    $feature->id
+                ));
+            }
+            if ( !empty($diffCatalogs['added']) ) {
+                (new CatalogsFunctions($this->dbDriver))->storeCatalogs($diffCatalogs['added'], $feature->collection->user->profile['id'], $feature->collection->id, $feature->id);
+            }
+
         } catch (Exception $e) {
             RestoLogUtil::httpError(500, 'Cannot update feature ' . $feature->id);
         }
 
-        /*
-         * Update facets i.e. remove old facets and add new ones
-         * This is non blocking i.e. if error just indicated in the result but feature is updated
-         */
-        $facetsUpdated = true;
-        try {
-            $facetsFunctions = new FacetsFunctions($this->dbDriver);
-            $facetsFunctions->removeFacetsFromHashtags($hashtagsToRemove, $feature->collection->id);
-            if ($feature->context->core['storeFacets'] &&  $model->dbParams['storeFacets']) {
-                $facetsFunctions->storeFacets($hashtagsToAdd, $feature->user->profile['id'], $feature->collection->id);
-            }
-        } catch (Exception $e) {
-            $facetsUpdated = false;
-        }
-
         return RestoLogUtil::success('Property description updated for feature ' . $feature->id, array(
-            'facetsUpdated' => $facetsUpdated
+            'id' => $feature->id
         ));
     }
 
