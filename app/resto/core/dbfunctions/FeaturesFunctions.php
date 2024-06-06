@@ -348,6 +348,11 @@ class FeaturesFunctions
             $this->storeFeatureAdditionalContent($result['id'], $collection->id, $keysValues['modelTables']);
 
             /*
+             * Store catalogs
+             */
+            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysValues['catalogs'], $collection->user->profile['id'], $collection->id, $result['id']);
+        
+            /*
              * Commit everything - rollback if one of the inserts failed
              */
             pg_query($dbh, 'COMMIT');
@@ -357,21 +362,11 @@ class FeaturesFunctions
             RestoLogUtil::httpError(500, 'Feature ' . ($featureArray['productIdentifier'] ?? '') . ' cannot be inserted in database');
         }
 
-        /*
-         * Store catalogs outside of the transaction because error should not block feature ingestion
-         */
-        $catalogsStored = true;
-        try {
-            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysValues['catalogs'], $collection->user->profile['id'], $collection->id);
-        } catch (Exception $e) {
-            $catalogsStored = false;
-        }
-        
         return array(
             'id' => $result['id'],
-            'productIdentifier' => $result['productidentifier'] ?? null,
-            'catalogsStored' => $catalogsStored
+            'productIdentifier' => $result['productidentifier'] ?? null
         );
+
     }
 
     /**
@@ -389,27 +384,42 @@ class FeaturesFunctions
          * Remove feature
          */
         try {
+            /*
+             * Get connection
+             */
+            $dbh = $this->dbDriver->getConnection();
+
+            /*
+             * Start transaction
+             */
+            pg_query($dbh, 'BEGIN');
+            
+            /*
+             * Update statistics counter for featureId - i.e. remove 1 per catalogs containing this feature 
+             */
+            $catalogsUpdated = (new CatalogsFunctions($this->dbDriver))->updateCountsForFeature($feature->id, $feature->collection->id, -1);
+        
+            /*
+             * Next remove
+             */
             $result = pg_fetch_assoc($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.' . $model->dbParams['tablePrefix'] . 'feature WHERE id=$1 RETURNING id', array($feature->id)));
-            if (empty($result)) {
-                return RestoLogUtil::httpError(404);
-            }
+            
+            /*
+             * Commit everything - rollback if one of the inserts failed
+             */
+            pg_query($dbh, 'COMMIT');
 
         } catch (Exception $e) {
-            return RestoLogUtil::httpError(500, 'Cannot delete feature ' . $feature->id);
+            pg_query($dbh, 'ROLLBACK');
+            RestoLogUtil::httpError(500, 'Feature ' . ($featureArray['productIdentifier'] ?? $feature->id) . ' cannot be removed from database');
+        }
+
+        if (empty($result)) {
+            return RestoLogUtil::httpError(404);
         }
         
-        /*
-         * Remove facets - error is non blocking
-         */
-        $facetsDeleted = true;
-        try {
-            (new FacetsFunctions($this->dbDriver))->removeFacetsFromHashtags($featureArray['properties']['hashtags'] ?? array(), $featureArray['collection']);
-        } catch (Exception $e) {
-            $facetsDeleted = false;
-        }
-
         return array(
-            'facetsDeleted' => $facetsDeleted
+            'catalogsUpdated' => $catalogsUpdated
         );
     }
 

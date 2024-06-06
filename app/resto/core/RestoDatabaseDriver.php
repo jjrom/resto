@@ -183,7 +183,7 @@ class RestoDatabaseDriver
      * Convert database query result into array
      *
      * @param PgSql\Result $results
-     * @return array
+     * @return Array
      */
     public function fetch($results)
     {

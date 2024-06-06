@@ -460,13 +460,16 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog (
 --
 -- Feature/Catalog association 
 --
-CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.feature_catalog (
+CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog_feature (
 
     -- Reference __DATABASE_TARGET_SCHEMA__.feature.id
     featureid          UUID NOT NULL REFERENCES __DATABASE_TARGET_SCHEMA__.feature (id) ON DELETE CASCADE,
 
     -- Reference __DATABASE_TARGET_SCHEMA__.catalog.id
     catalogid          TEXT NOT NULL REFERENCES __DATABASE_TARGET_SCHEMA__.catalog (id) ON DELETE CASCADE,
+
+    -- Search hashtag
+    hashtag            TEXT,
 
     PRIMARY KEY (featureid, catalogid)
    
@@ -498,6 +501,9 @@ CREATE INDEX IF NOT EXISTS idx_value_facet ON __DATABASE_TARGET_SCHEMA__.facet U
 -- [TABLE __DATABASE_TARGET_SCHEMA__.catalog]
 CREATE INDEX IF NOT EXISTS idx_id_catalog ON __DATABASE_TARGET_SCHEMA__.catalog (public.normalize(id));
 CREATE INDEX IF NOT EXISTS idx_description_catalog ON __DATABASE_TARGET_SCHEMA__.catalog USING GIN (public.normalize(description) gin_trgm_ops);
+
+-- [TABLE __DATABASE_TARGET_SCHEMA__.hashtag]
+CREATE INDEX IF NOT EXISTS idx_hashtag_catalog_feature ON __DATABASE_TARGET_SCHEMA__.catalog_feature (public.normalize(hashtag));
 
 -- [TABLE __DATABASE_TARGET_SCHEMA__.feature]
 CREATE INDEX IF NOT EXISTS idx_collection_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (collection);

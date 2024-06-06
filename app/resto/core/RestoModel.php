@@ -444,8 +444,7 @@ abstract class RestoModel
             if ( isset($insert['result']) ) {
                 $featuresInserted[] = array(
                     'featureId' => $insert['result']['id'],
-                    'productIdentifier' => $insert['result']['productIdentifier'],
-                    'catalogsStored' => $insert['result']['catalogsStored']
+                    'productIdentifier' => $insert['result']['productIdentifier']
                 );
 
                 $dates[] = isset($insert['featureArray']['properties']) && isset($insert['featureArray']['properties']['startDate']) ? $insert['featureArray']['properties']['startDate'] : null;
@@ -461,8 +460,7 @@ abstract class RestoModel
                     if ($insert['result'] !== false) {
                         $featuresInserted[] = array(
                             'featureId' => $insert['result']['id'],
-                            'productIdentifier' => $insert['result']['productIdentifier'],
-                            'catalogsStored' => $insert['result']['catalogsStored']
+                            'productIdentifier' => $insert['result']['productIdentifier']
                         );
 
                         $dates[] = isset($insert['featureArray']['properties']) && isset($insert['featureArray']['properties']['startDate']) ? $insert['featureArray']['properties']['startDate'] : null;

@@ -130,8 +130,9 @@ class CatalogsFunctions
      * @param array $catalogs
      * @param string $userid
      * @param string $collectionId
+     * @param string $featureId
      */
-    public function storeCatalogs($catalogs, $userid, $collectionId)
+    public function storeCatalogs($catalogs, $userid, $collectionId, $featureId)
     {
         // Empty facets - do nothing
         if (!isset($catalogs) || count($catalogs) === 0) {
@@ -169,6 +170,16 @@ class CatalogsFunctions
                 $catalog['rtype'] ?? null,
                 $catalog['hashtag'] ?? null
             ), 500, 'Cannot insert catalog ' . $catalog['id']);
+
+            // Feature is set => fill catalog_feature table
+            if ( isset($featureId) && isset($catalog['hashtag']) ) {
+                $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog_feature (featureid, catalogid, hashtag) VALUES ($1,$2,$3) ON CONFLICT (featureid, catalogid) DO NOTHING', array(
+                    $featureId,
+                    $catalog['id'],
+                    $catalog['hashtag']
+                ), 500, 'Cannot catalog_feature association ' . $catalog['id'] . '/' . $featureId);
+            }
+
         }
     }
 
@@ -214,6 +225,29 @@ class CatalogsFunctions
         );
 
     }
+
+    /**
+     * Increment all catalogs relied to feature
+     *
+     * @param string $featureId
+     * @param string $collectionId
+     * @param integer $increment
+     */
+    public function updateCountsForFeature($featureId, $collectionId, $increment)
+    {
+
+        $query = join(' ', array(
+            'UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(c.counters,' . $increment . ',' . (isset($collectionId) ? '\'' . $collectionId . '\'': 'NULL') . ')',
+            'FROM ' . $this->dbDriver->targetSchema . '.catalog c,' . $this->dbDriver->targetSchema . '.catalog_feature cf',
+            'WHERE c.id = cf.catalogid AND cf.featureid=\'' . pg_escape_string($this->dbDriver->getConnection(), $featureId) . '\' RETURNING c.id'
+        ));
+
+        $results = $this->dbDriver->fetch($this->dbDriver->query($query));
+        
+        return count($results);
+
+    }
+
 
     /**
      * Remove catalog from id - can only works if catalog has no child
