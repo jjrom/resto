@@ -358,15 +358,6 @@ abstract class RestoModel
     public $tables = array();
 
     /*
-     * Parameters to apply to database storage for products related to this model
-     *
-     *  - tablePrefix : all features belonging to a collection referencing this model will be stored in a dedicated table [tablePrefix]__feature instead of feature"
-     */
-    public $dbParams = array(
-        'tablePrefix' => ''
-    );
-
-    /*
      * Tag add-on configuration:
      * [IMPORTANT] strategy values:
      *    - "merge" $tagConfig->taggers is merged with Tag add-on default taggers
@@ -831,7 +822,7 @@ abstract class RestoModel
          *
          * (do this before getKeywords to avoid iTag process)
          */
-        if (isset($productIdentifier) && (new FeaturesFunctions($collection->context->dbDriver))->featureExists($featureId, $collection->context->dbDriver->targetSchema . '.' . $collection->model->dbParams['tablePrefix'] . 'feature')) {
+        if (isset($productIdentifier) && (new FeaturesFunctions($collection->context->dbDriver))->featureExists($featureId, $collection->context->dbDriver->targetSchema . '.feature')) {
             RestoLogUtil::httpError(409, 'Feature ' . $featureId . ' (with productIdentifier=' . $productIdentifier . ') already in database');
         }
 

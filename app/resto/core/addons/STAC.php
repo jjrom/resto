@@ -1003,17 +1003,6 @@ class STAC extends RestoAddOn
 
         $restoCollections = $this->context->keeper->getRestoCollections($this->user)->load($params);
 
-        /* [TODO] Faire un UNION sur les collections
-        if ( !isset($model) ) {
-            $schemaNames = array();
-            foreach (array_keys($restoCollections->collections) as $collectionId) {
-                if ( !in_array($restoCollections->collections[$collectionId]->model->dbParams['tablePrefix'], $schemaNames) ) {
-                    $schemaNames[] = $restoCollections->collections[$collectionId]-model->dbParams['tablePrefix'];
-                }
-            }
-        }
-        */
-
         return $restoCollections->search($model, $params);
     }
 

@@ -362,7 +362,7 @@ BEGIN
     total := (counters->>'total')::INTEGER;
     
     -- Increment the total by the value
-    total := total + increment;
+    total := GREATEST(0, total + increment);
 
     -- Initialize the updated collections as the original collections
     updated_collections := counters->'collections';
@@ -376,7 +376,7 @@ BEGIN
         LOOP
             IF collection_key = collection_id THEN
                 -- Increment the collection value by the input value
-                collection_value := collection_value + increment;
+                collection_value := GREATEST(0, collection_value + increment);
                 -- Update the collections JSONB with the new value
                 updated_collections := jsonb_set(updated_collections, ARRAY[collection_key], to_jsonb(collection_value));
                 collection_exists := TRUE;

@@ -56,7 +56,7 @@
         "productType": "REFLECTANCE",
         "processingLevel": "LEVEL1C",
         "platform": "S2A",
-        "instrument": "MSI",
+        "instrument": "MSI_CHANGED",
         "tileId": "23XMD",
         "dataTakeId": "GS2A_20190611T160901_020729_N02.07",
         "eo:cloud_cover": 54.76,

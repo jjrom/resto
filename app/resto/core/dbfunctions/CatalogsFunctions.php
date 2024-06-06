@@ -161,7 +161,7 @@ class CatalogsFunctions
                 $catalog['id'],
                 $catalog['title'] ?? $catalog['id'],
                 $catalog['description'] ?? null,
-                $this->getLevel($catalog['id']),
+                isset($catalog['id']) ? count(explode('/', $catalog['id'])) : 0,
                 // If no input counter is specified - set to 1
                 json_encode($counters, JSON_UNESCAPED_SLASHES),
                 $catalog['owner'] ?? $userid,
@@ -233,7 +233,7 @@ class CatalogsFunctions
      * @param string $collectionId
      * @param integer $increment
      */
-    public function updateCountsForFeature($featureId, $collectionId, $increment)
+    public function updateCatalogsCounts($featureId, $collectionId, $increment)
     {
 
         $query = join(' ', array(
@@ -248,6 +248,29 @@ class CatalogsFunctions
 
     }
 
+    /**
+     * Get feature catalogs
+     *
+     * @param string $featureId
+     * @return array
+     */
+    public function getFeatureCatalogs($featureId)
+    {
+
+        $catalogs = [];
+
+        $query = 'SELECT c.id, c.title, c.description, c.level, c.counters, c.owner, c.links, c.visibility, c.rtype, c.hashtag, to_iso8601(c.created) as created FROM ' . $this->dbDriver->targetSchema . '.catalog c, ' . $this->dbDriver->targetSchema . '.catalog_feature cf WHERE c.id = cf.catalogid AND cf.featureid=$1 ORDER BY id ASC';
+        $results = $this->dbDriver->pQuery($query, array(
+            $featureId
+        ));
+
+        while ($result = pg_fetch_assoc($results)) {
+            $catalogs[] = CatalogsFunctions::format($result);
+        }
+
+        return $catalogs;
+
+    }
 
     /**
      * Remove catalog from id - can only works if catalog has no child
@@ -411,31 +434,62 @@ class CatalogsFunctions
     }
 
     /**
-     * Remove feature facets from database
-     *
-     * @param array $hashtags
-     * @param string $collectionId
-     */
-    public function removeFacetsFromHashtags($hashtags, $collectionId)
-    {
-        for ($i = count($hashtags); $i--;) {
-            $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.facet SET counter = GREATEST(0, counter - 1) WHERE public.normalize(id)=public.normalize($1) AND (public.normalize(collection)=public.normalize($2) OR public.normalize(collection)=\'*\')', array($hashtags[$i], $collectionId), 500, 'Cannot delete facet for ' . $collectionId);
-        }
-    }
-
-    /**
-     * Return the number of levels (i.e. number of /) from a catalog id.
-     * For instance 'continents/America/USA/NewYork' has a level of 4
+     * Return a diff between $oldCatalogs array and $newCatalogs array
      * 
-     * @param string $id
-     * @return integer
+     * @param Array $oldCatalogs
+     * @param Array $newCatalogs
      */
-    private function getLevel($id)
+    public function diff($oldCatalogs, $newCatalogs)
     {
-        if ( !isset($id) ) {
-            return 0;
+        $output = array(
+            'added' => array(),
+            'removed' => array()
+        );
+
+        for ($i = count($newCatalogs); $i--;) {
+
+            // Catalogs without hashtag are discarded because they are not stored within
+            // catalog_feature table
+            if ( !isset($newCatalogs[$i]['hashtag']) ) {
+                continue;
+            }
+
+            $isNew = true;
+            for ($j = count($oldCatalogs); $j--;) {
+                // Catalog exist => do nothing
+                if ($oldCatalogs[$j]['id'] === $newCatalogs[$i]['id']) {
+                    $isNew = false;
+                    break;
+                }
+            }
+            if ($isNew) {
+                $output['added'][] = $newCatalogs[$i];
+            }
         }
-        return count(explode('/', $id));
+
+        for ($i = count($oldCatalogs); $i--;) {
+
+            // Catalogs without hashtag are discarded because they are not stored within
+            // catalog_feature table
+            if ( !isset($oldCatalogs[$i]['hashtag']) ) {
+                continue;
+            }
+
+            $isRemoved = true;
+            for ($j = count($newCatalogs); $j--;) {
+                // Catalog exist => do nothing
+                if ($oldCatalogs[$i]['id'] === $newCatalogs[$j]['id']) {
+                    $isRemoved = false;
+                    break;
+                }
+            }
+            if ($isRemoved) {
+                $output['removed'][] = $oldCatalogs[$i];
+            }
+        }
+
+        return $output;
+
     }
 
 }

@@ -90,7 +90,7 @@ class FeaturesFunctions
          */
         $this->checkMandatoryFilters($model->searchFilters, $paramsWithOperation);
 
-        $featureTableName = $this->dbDriver->targetSchema . '.' . $model->dbParams['tablePrefix'] . 'feature';
+        $featureTableName = $this->dbDriver->targetSchema . '.feature';
         
         /*
          * Set filters
@@ -238,9 +238,8 @@ class FeaturesFunctions
     public function getFeatureDescription($context, $user, $featureId, $collection, $fields)
     {
         $model = isset($collection) ? $collection->model : new DefaultModel();
-        $tablePrefix = $this->dbDriver->targetSchema . '.' . $model->dbParams['tablePrefix'];
 
-        $selectClause = $this->getSelectClause($tablePrefix . 'feature', $this->featureColumns, $user, array(
+        $selectClause = $this->getSelectClause($this->dbDriver->targetSchema . '.feature', $this->featureColumns, $user, array(
             'fields' => $fields,
             'useSocial' => isset($context->addons['Social'])
         ));
@@ -249,7 +248,7 @@ class FeaturesFunctions
 
         // Determine if search on id or productidentifier
         $filtersAndJoins['filters'][] = array(
-            'value' => $tablePrefix . 'feature.id=\'' . pg_escape_string($this->dbDriver->getConnection(), (RestoUtil::isValidUUID($featureId) ? $featureId : RestoUtil::toUUID($featureId))) . '\'',
+            'value' => $this->dbDriver->targetSchema . '.feature.id=\'' . pg_escape_string($this->dbDriver->getConnection(), (RestoUtil::isValidUUID($featureId) ? $featureId : RestoUtil::toUUID($featureId))) . '\'',
             'isGeo' => false
         );
         $results = $this->dbDriver->fetch($this->dbDriver->query($selectClause . ' ' . $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => true))));
@@ -282,7 +281,7 @@ class FeaturesFunctions
      */
     public function storeFeature($id, $collection, $featureArray)
     {
-        $keysValues = $this->featureArrayToKeysValues(
+        $keysAndValues = $this->featureArrayToKeysValues(
             $collection,
             $featureArray,
             array(
@@ -314,7 +313,7 @@ class FeaturesFunctions
          * Eventually an 'isExternal' catalog can be created during feature ingestion.
          * Check that user can create catalog
          */
-        foreach (array_values($keysValues['catalogs']) as $catalog) {
+        foreach (array_values($keysAndValues['catalogs']) as $catalog) {
             if (isset($catalog['isExternal']) && $catalog['isExternal']) {
                 if ( !$collection->user->hasRightsTo(RestoUser::CREATE_CATALOG) ) {
                     return RestoLogUtil::httpError(403, 'Feature ingestion leads to creation of catalog ' . $catalog['id'] . ' but you don\'t have right to create catalogs');
@@ -340,17 +339,17 @@ class FeaturesFunctions
             /*
              * Store feature - identifier is generated with public.timestamp_to_id()
              */
-            $result = pg_fetch_assoc($this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.' . $collection->model->dbParams['tablePrefix'] . 'feature (' . join(',', array_keys($keysValues['keysAndValues'])) . ') VALUES (' . join(',', array_values($keysValues['params'])) . ') RETURNING id, productidentifier', array_values($keysValues['keysAndValues'])), 0);
+            $result = pg_fetch_assoc($this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.feature (' . join(',', array_keys($keysAndValues['keysAndValues'])) . ') VALUES (' . join(',', array_values($keysAndValues['params'])) . ') RETURNING id, productidentifier', array_values($keysAndValues['keysAndValues'])), 0);
             
             /*
              * Store feature content
              */
-            $this->storeFeatureAdditionalContent($result['id'], $collection->id, $keysValues['modelTables']);
+            $this->storeFeatureAdditionalContent($result['id'], $collection->id, $keysAndValues['modelTables']);
 
             /*
              * Store catalogs
              */
-            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysValues['catalogs'], $collection->user->profile['id'], $collection->id, $result['id']);
+            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->user->profile['id'], $collection->id, $result['id']);
         
             /*
              * Commit everything - rollback if one of the inserts failed
@@ -397,12 +396,12 @@ class FeaturesFunctions
             /*
              * Update statistics counter for featureId - i.e. remove 1 per catalogs containing this feature 
              */
-            $catalogsUpdated = (new CatalogsFunctions($this->dbDriver))->updateCountsForFeature($feature->id, $feature->collection->id, -1);
+            $catalogsUpdated = (new CatalogsFunctions($this->dbDriver))->updateCatalogsCounts($feature->id, $feature->collection->id, -1);
         
             /*
              * Next remove
              */
-            $result = pg_fetch_assoc($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.' . $model->dbParams['tablePrefix'] . 'feature WHERE id=$1 RETURNING id', array($feature->id)));
+            $result = pg_fetch_assoc($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.feature WHERE id=$1 RETURNING id', array($feature->id)));
             
             /*
              * Commit everything - rollback if one of the inserts failed
@@ -439,19 +438,12 @@ class FeaturesFunctions
         // Get old feature properties
         $oldFeatureArray = $feature->toArray();
 
-        // Compute new keysValues
+        // Compute new keysAndValues
         $keysAndValues = $this->featureArrayToKeysValues(
             $collection,
             $newFeatureArray,
             array(
-                /*'id' => $oldFeatureArray['id'],
-                'productIdentifier' => $oldFeatureArray['properties']['productIdentifier'],
-                'collection' => $oldFeatureArray['collection'],
-                'visibility' => $oldFeatureArray['properties']['visibility'],
-                'owner' => $oldFeatureArray['properties']['owner'],*/
                 'status' => isset($newFeatureArray['properties']) && isset($newFeatureArray['properties']['status']) && is_int($newFeatureArray['properties']['status']) ? $newFeatureArray['properties']['status'] : $oldFeatureArray['properties']['status'],
-                /*'likes' => $oldFeatureArray['properties']['likes'],
-                'comments' => $oldFeatureArray['properties']['comments'],*/
                 'metadata' => array(),
                 'updated' => isset($newFeatureArray['properties']) && isset($newFeatureArray['properties']['updated']) ? $newFeatureArray['properties']['updated'] : 'now()',
                 'geometry' => $newFeatureArray['topologyAnalysis']['geometry'] ?? null,
@@ -467,20 +459,22 @@ class FeaturesFunctions
         );
 
         /*
-         * Eventually a catalog can be created as facet during feature ingestion.
+         * Eventually an 'isExternal' catalog can be created during feature ingestion.
          * Check that user can create catalog
          */
-        $facetsStored = $feature->context->core['storeFacets'] && $collection->model->dbParams['storeFacets'];
-        if ($facetsStored) {
-            foreach (array_values($keysAndValues['facets']) as $facetElement) {
-                if (isset($facetElement['type']) && $facetElement['type'] === 'catalog') {
-                    if ( !$collection->user->hasRightsTo(RestoUser::CREATE_CATALOG) ) {
-                        return RestoLogUtil::httpError(403, 'Feature update leads to creation of catalog ' . $facetElement['id'] . ' but you don\'t have right to create catalogs');
-                    }
-                    break;
+        foreach (array_values($keysAndValues['catalogs']) as $catalog) {
+            if (isset($catalog['isExternal']) && $catalog['isExternal']) {
+                if ( !$collection->user->hasRightsTo(RestoUser::CREATE_CATALOG) ) {
+                    return RestoLogUtil::httpError(403, 'Feature update leads to creation of catalog ' . $catalog['id'] . ' but you don\'t have right to create catalogs');
                 }
+                break;
             }
         }
+
+        $catalogsFunctions = new CatalogsFunctions($this->dbDriver);
+
+        // Get diff for catalogs
+        $diffCatalogs = $catalogsFunctions->diff($catalogsFunctions->getFeatureCatalogs($feature->id), $keysAndValues['catalogs']);
 
         try {
             /*
@@ -489,16 +483,11 @@ class FeaturesFunctions
             $this->dbDriver->query('BEGIN');
 
             /*
-             * Table prefix depends on model
-             */
-            $tablePrefix = $this->dbDriver->targetSchema . '.' . $collection->model->dbParams['tablePrefix'];
-
-            /*
              * Update description
              */
             $toUpdate = $this->concatArrays(array_keys($keysAndValues['keysAndValues']), $keysAndValues['params'], '=');
             $this->dbDriver->pQuery(
-                'UPDATE ' . $tablePrefix . 'feature SET ' . join(',', $toUpdate) . ' WHERE id=$' . (count($toUpdate) + 1),
+                'UPDATE ' . $this->dbDriver->targetSchema . '.feature SET ' . join(',', $toUpdate) . ' WHERE id=$' . (count($toUpdate) + 1),
                 array_merge(
                     array_values($keysAndValues['keysAndValues']),
                     array($feature->id)
@@ -511,31 +500,31 @@ class FeaturesFunctions
             $this->storeFeatureAdditionalContent($feature->id, $collection->id, $keysAndValues['modelTables']);
             
             /*
+             * Remove/add catalogs
+             */
+            if ( !empty($diffCatalogs['removed']) ) {
+                // [IMPORTANT] First run updateCatalogCounts !!
+                (new CatalogsFunctions($this->dbDriver))->updateCatalogsCounts($feature->id, $feature->collection->id, -1);
+                $this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE featureid=$1', array(
+                    $feature->id
+                ));
+            }
+            if ( !empty($diffCatalogs['added']) ) {
+                (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->user->profile['id'], $collection->id, $feature->id);
+            }
+
+            /*
              * Commit
              */
             $this->dbDriver->query('COMMIT');
+
         } catch (Exception $e) {
             $this->dbDriver->query('ROLLBACK');
             RestoLogUtil::httpError(500, 'Cannot update feature ' . $feature->id);
         }
         
-        /*
-         * Update facets i.e. remove old facets and add new ones
-         * This is non blocking i.e. if error just indicated in the result but feature is updated
-         */
-        $facetsUpdated = true;
-        try {
-            $facetsFunctions = new FacetsFunctions($this->dbDriver);
-            $facetsFunctions->removeFacetsFromHashtags($oldFeatureArray['properties']['hashtags'] ?? array(), $collection->id);
-            if ($facetsStored) {
-                $facetsFunctions->storeFacets($keysAndValues['facets'], $collection->user->profile['id'], $collection->id);
-            }
-        } catch (Exception $e) {
-            $facetsUpdated = false;
-        }
-        
         return RestoLogUtil::success('Udpate feature ' . $feature->id, array(
-            'facetsUpdated' => $facetsUpdated
+            'id' => $feature->id
         ));
     }
 
@@ -560,10 +549,8 @@ class FeaturesFunctions
             }
         }
 
-        $model = isset($feature->collection) ? $feature->collection->model : new DefaultModel();
-
         try {
-            $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.' . $model->dbParams['tablePrefix'] . 'feature SET ' . $property . '=$1 WHERE id=$2', array(
+            $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.feature SET ' . $property . '=$1 WHERE id=$2', array(
                 $value,
                 $feature->id
             ));
@@ -600,7 +587,7 @@ class FeaturesFunctions
             /*
              * Update description, hashtags and normalized_hashtags
              */
-            $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.' . $model->dbParams['tablePrefix'] . 'feature SET description=$1, hashtags=$2, normalized_hashtags=public.normalize_array($2) WHERE id=$3', array(
+            $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.feature SET description=$1, hashtags=$2, normalized_hashtags=public.normalize_array($2) WHERE id=$3', array(
                 $description,
                 '{' . join(',', $hashtags) . '}',
                 $feature->id
