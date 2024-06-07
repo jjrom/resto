@@ -471,6 +471,9 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog_feature (
     -- Search hashtag
     hashtag            TEXT,
 
+    -- Feature collection
+    collection         TEXT,
+
     PRIMARY KEY (featureid, catalogid)
    
 );

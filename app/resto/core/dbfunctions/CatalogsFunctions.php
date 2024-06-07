@@ -97,7 +97,7 @@ class CatalogsFunctions
         if ( isset($params['where'])) {
             $where[] = $params['where'];
         }
-        
+
         if ( isset($params['id']) ) {
             $values[] = $params['id'];
             $_where = 'public.normalize(id) = public.normalize($' . count($values) . ')';
@@ -118,12 +118,52 @@ class CatalogsFunctions
             $where[] = 'level=$' . count($values);
         }
         
-        $results = $this->dbDriver->pQuery('SELECT id, title, description, level, counters, owner, links, visibility, rtype, hashtag, to_iso8601(created) as created FROM ' . $this->dbDriver->targetSchema . '.catalog' . ( empty($where) ? '' : ' WHERE ' . join(' AND ', $where) . ' ORDER BY id ASC'), $values);
-        while ($result = pg_fetch_assoc($results)) {
-            $catalogs[] = CatalogsFunctions::format($result);
+        try {
+            $results = $this->dbDriver->pQuery('SELECT id, title, description, level, counters, owner, links, visibility, rtype, hashtag, to_iso8601(created) as created FROM ' . $this->dbDriver->targetSchema . '.catalog' . ( empty($where) ? '' : ' WHERE ' . join(' AND ', $where) . ' ORDER BY id ASC'), $values);
+            while ($result = pg_fetch_assoc($results)) {
+                $catalogs[] = CatalogsFunctions::format($result);
+            }
+        }  catch (Exception $e) {
+            RestoLogUtil::httpError(500, $e->getMessage());
         }
 
         return $catalogs;
+    }
+
+    /**
+     * Get catalog items as STAC links
+     *
+     * @param string $catalogId
+     * @param string $baseUrl
+     * @return array
+     */
+    public function getCatalogItems($catalogId, $baseUrl) 
+    {
+
+        $items = [];
+
+        /*
+         * Delete (within transaction)
+         */
+        try {
+            $results = $this->dbDriver->pQuery('SELECT featureid, collection FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE catalogid=$1', array(
+                $catalogId
+            ));    
+        } catch (Exception $e) {
+            RestoLogUtil::httpError(500, $e->getMessage());
+        }
+
+        while ($result = pg_fetch_assoc($results)) {
+            $items[] = array(
+                'rel' => 'item',
+                'id' => $result['featureid'],
+                'type' => RestoUtil::$contentTypes['geojson'],
+                'href' => $baseUrl . '/collections/' . $result['collection'] . '/items/' . $result['featureid']
+            );
+        }
+
+        return $items;
+
     }
 
     /**
@@ -138,7 +178,7 @@ class CatalogsFunctions
      */
     public function storeCatalogs($catalogs, $userid, $collectionId, $featureId)
     {
-        // Empty facets - do nothing
+        // Empty catalogs - do nothing
         if (!isset($catalogs) || count($catalogs) === 0) {
             return;
         }
@@ -177,10 +217,11 @@ class CatalogsFunctions
 
             // Feature is set => fill catalog_feature table
             if ( isset($featureId) && isset($catalog['hashtag']) ) {
-                $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog_feature (featureid, catalogid, hashtag) VALUES ($1,$2,$3) ON CONFLICT (featureid, catalogid) DO NOTHING', array(
+                $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog_feature (featureid, catalogid, hashtag, collection) VALUES ($1,$2,$3,$4) ON CONFLICT (featureid, catalogid) DO NOTHING', array(
                     $featureId,
                     $catalog['id'],
-                    $catalog['hashtag']
+                    $catalog['hashtag'],
+                    $collectionId
                 ), 500, 'Cannot catalog_feature association ' . $catalog['id'] . '/' . $featureId);
             }
 
