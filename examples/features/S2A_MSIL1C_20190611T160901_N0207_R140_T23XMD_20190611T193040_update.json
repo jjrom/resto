@@ -124,6 +124,10 @@
             "roles": [
                 "metadata"
             ]
+        },
+        "wmts_test" : {
+            "href": "https://wmts.marine.copernicus.eu/teroWmts/GLOBAL_ANALYSISFORECAST_PHY_001_024/cmems_mod_glo_phy-thetao_anfc_0.083deg_P1D-m_202211",
+            "type": "OGC:WMTS"
         }
     }
 }

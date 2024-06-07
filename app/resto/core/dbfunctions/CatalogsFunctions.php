@@ -288,7 +288,6 @@ class CatalogsFunctions
 
         $query = join(' ', array(
             'UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters,' . $increment . ',' . (isset($collectionId) ? '\'' . $collectionId . '\'': 'NULL') . ')',
-            'FROM ' . $this->dbDriver->targetSchema . '.catalog',
             'WHERE id IN (\'' . join('\',\'', $catalogIds) . '\') RETURNING id'
         ));
 
