@@ -93,25 +93,29 @@ class CatalogsFunctions
         $values = array();
         $params = isset($params) ? $params : array();
 
-        if ( isset($params['id']) ) {
-            if ($withChilds) {
-                $values[] = $params['id'] . '%';
-                $where[] = 'public.normalize(id) LIKE public.normalize(' . count($values) . ')';
-                
-            }
-            else {
-                $values[] = $params['id'];
-                $where[] = 'public.normalize(id) = public.normalize(' . count($values) . ')';
-            }
-        }
-        if ( isset($params['description']) ) {
-            $values[] = '%' . $params['description'] . '%';
-            $where[] = 'public.normalize(description) LIKE public.normalize(' . count($values) . ')';
-        }
-        
         // Direct where clause
         if ( isset($params['where'])) {
             $where[] = $params['where'];
+        }
+        
+        if ( isset($params['id']) ) {
+            $values[] = $params['id'];
+            $_where = 'public.normalize(id) = public.normalize($' . count($values) . ')';
+            if ( $withChilds ) {
+                $values[] = $params['id'] . '/%';
+                $_where = '(' . $_where . ' OR public.normalize(id) LIKE public.normalize($' . count($values) . '))';
+            }
+            $where[] = $_where;
+        }
+
+        if ( isset($params['description']) ) {
+            $values[] = '%' . $params['description'] . '%';
+            $where[] = 'public.normalize(description) LIKE public.normalize($' . count($values) . ')';
+        }
+
+        if ( isset($params['level']) ) {
+            $values[] = $params['level'];
+            $where[] = 'level=$' . count($values);
         }
         
         $results = $this->dbDriver->pQuery('SELECT id, title, description, level, counters, owner, links, visibility, rtype, hashtag, to_iso8601(created) as created FROM ' . $this->dbDriver->targetSchema . '.catalog' . ( empty($where) ? '' : ' WHERE ' . join(' AND ', $where) . ' ORDER BY id ASC'), $values);

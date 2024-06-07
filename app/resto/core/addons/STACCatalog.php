@@ -27,6 +27,8 @@ class STACCatalog extends RestoAddOn
      */
     private $prefix = 'catalog:';
 
+    private catalogsFunctions;
+
     /**
      * Constructor
      *
@@ -36,6 +38,7 @@ class STACCatalog extends RestoAddOn
     public function __construct($context, $user)
     {
         parent::__construct($context, $user);
+        $this->catalogsFunctions = new CatalogsFunctions($this->context->dbDriver);
     }
 
     /**
@@ -330,26 +333,13 @@ class STACCatalog extends RestoAddOn
      * Check if catalog exists
      *
      * @param string $catalogId
-     * @return boolean
      * @throws Exception
      */
-    private function catalogExists($catalogId, $parentId, $collectionId)
+    private function catalogExists($catalogId)
     {
-
-        $params = array();
-        if ( isset($catalogId) ) {
-            $params['id'] = $catalogId;
-        }
-        if ( isset($parentId) ) {
-            $params['pid'] = $parentId;
-        }
-        if ( isset($collectionId) ) {
-            $params['collection'] = $collectionId;
-        }
-        $facets = (new FacetsFunctions($this->context->dbDriver))->getFacets($params);
-        
-        return !empty($facets);
-        
+        return !empty($this->catalogsFunctions->getCatalogs(array(
+            'id' => $catalogId
+        )));   
     }
 
     /**

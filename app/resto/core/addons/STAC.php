@@ -230,16 +230,6 @@ class STAC extends RestoAddOn
     );
 
     /*
-     * Catalog title
-     */
-    public $title;
-
-    /*
-     * Catalog description
-     */
-    public $description = 'Available catalogs';
-
-    /*
      * Links
      */
     public $links = array();
@@ -248,11 +238,6 @@ class STAC extends RestoAddOn
      * FeatureCollection
      */
     public $featureCollection = null;
-
-    /*
-     * STAC Util
-     */
-    private $stacUtil = null;
 
     /*
      * Url segments
@@ -268,10 +253,49 @@ class STAC extends RestoAddOn
     public function __construct($context, $user)
     {
         parent::__construct($context, $user);
-        $this->stacUtil = new STACUtil($context, $user);
-
-        // Ensure valid options
         $this->options['minMatch'] = isset($this->options['minMatch']) && is_int($this->options['minMatch']) ? $this->options['minMatch'] : 0;
+    }
+
+    /**
+     * Return a STAC catalog
+     *
+     *    @OA\Get(
+     *      path="/catalogs/*",
+     *      summary="Get STAC catalogs",
+     *      description="Get STAC catalogs",
+     *      tags={"STAC"},
+     *      @OA\Response(
+     *          response="200",
+     *          description="STAC catalog definition - contains links to child catalogs and/or items",
+     *          @OA\JsonContent(
+     *              ref="#/components/schemas/Catalog"
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response="404",
+     *          description="Not found"
+     *      )
+     *    )
+     */
+    public function getCatalogs($params)
+    {
+        // This is /catalogs
+        if ( !isset($params['segments']) ) {
+            return array(
+                'stac_version' => STAC::STAC_VERSION,
+                'id' => 'catalogs',
+                'type' => 'Catalog',
+                'title' => 'Catalogs',
+                'description' => 'List of available catalogs',
+                'links' => array_merge(
+                    $this->getBaseLinks(),
+                    $this->getRootCatalogLinks($this->options['minMatch'])
+                )
+            );
+        }
+
+        // This is /catalogs/*
+        return  $this->processPath($params['segments'], $params);
     }
 
     /**
@@ -336,43 +360,6 @@ class STAC extends RestoAddOn
 
         return;
     }
-
-    /**
-     * Return a STAC catalog from facet
-     *
-     *    @OA\Get(
-     *      path="/catalogs/*",
-     *      summary="Get STAC catalogs",
-     *      description="Get STAC catalogs",
-     *      tags={"STAC"},
-     *      @OA\Response(
-     *          response="200",
-     *          description="STAC catalog definition - contains links to child catalogs and/or items",
-     *          @OA\JsonContent(
-     *              ref="#/components/schemas/Catalog"
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response="404",
-     *          description="Not found"
-     *      )
-     *    )
-     */
-    public function getCatalogs($params)
-    {
-
-        // This is /catalogs
-        if (!isset($params['segments'])) {
-            return RestoLogUtil::httpError(404);
-        }
-
-        $this->segments = $params['segments'];
-
-        $result = $this->load($params);
-        
-        return isset($result->featureCollection) ? $result->featureCollection : $result;
-    }
-
 
     /**
      * Return the list of children catalog
@@ -1047,35 +1034,49 @@ class STAC extends RestoAddOn
         return json_encode($this->toArray(), $pretty ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : JSON_UNESCAPED_SLASHES);
     }
 
-
     /**
-     * Load catalog from database
-     * Return 404 if  is not found
+     * Return STAC catalog from path
      *
+     * @param array $segments
      * @param array $params
      * @return This object
      */
-    private function load($params = array())
+    private function processPath($segments, $params = array())
     {
-        $nbOfSegments = count($this->segments);
-
-        // Root
-        if ($nbOfSegments === 0) {
-            $this->links = $this->stacUtil->getRootCatalogLinks($this->options['minMatch']);
+    
+        /*
+         * Addons special case - not handle within resto.catalog table
+         */
+        $resultFromAddons = $this->processAddons($segments, $params);
+        if ( isset($resultFromAddons) ) {
+            return $resultFromAddons;
         }
+        
+        // The path is the catalog identifier
+        $catalogId = join('/', $segments);
 
-        // View special case
-        elseif ($this->segments[0] === 'views' && isset($this->context->addons['View'])) {
+        
+        return;
+
+    }
+
+    /**
+     * 
+     */
+    private function processAddons($segments, $params)
+    {
+
+        $nbOfSegments = count($segments);
+        
+        if ($this->segments[0] === 'views' && isset($this->context->addons['View'])) {
+
             $view = new View($this->context, $this->user);
             
             // Root
             if ($nbOfSegments === 1) {
-                $viewCatalog = $view->getViews(array(
+                return $view->getViews(array(
                     'format' => 'stac'
                 ));
-                $this->title = $viewCatalog['title'];
-                $this->description = $viewCatalog['description'];
-                $this->links = $viewCatalog['links'];
             }
             // Individual view
             elseif ($nbOfSegments === 2) {
@@ -1084,14 +1085,13 @@ class STAC extends RestoAddOn
                     'format' => 'stac'
                 )));
             }
-            // Individual views
             else {
                 return RestoLogUtil::httpError(404);
             }
         }
 
         // SOSA special case
-        elseif ($this->segments[0] === 'concepts' && isset($this->context->addons['SOSA'])) {
+        else if ($this->segments[0] === 'concepts' && isset($this->context->addons['SOSA'])) {
             $skos = new SKOS($this->context, $this->user);
             
             // Root
@@ -1104,61 +1104,13 @@ class STAC extends RestoAddOn
                     'conceptId' => $this->segments[1],
                 )));
             }
-            // Nothing found
             else {
                 return RestoLogUtil::httpError(404);
             }
         }
 
-        // Classifications
-        elseif ($this->segments[0] === 'facets') {
-
-            // Root
-            if ($nbOfSegments === 1) {
-                $this->setClassificationsLinks(null);
-            }
-
-            // iTag classifications 
-            elseif ($nbOfSegments === 2 && in_array($this->segments[1], array_keys($this->stacUtil->classifications)) ) {
-                $this->setClassificationsLinks($this->segments[1]);
-            }
-
-            // Otherwise compute links from facets
-            else {
-                $this->setCatalogsLinksFromFacet($params);
-            }
-        }
-
-        // Hashtags or catalogs
-        elseif ($this->segments[0] === 'hashtags' || $this->segments[0] === 'catalogs') {
-            $this->setCatalogsLinksFromFacet($params);
-        }
-
-        // Themes
-        elseif ($this->segments[0] === 'themes') {
-            // Root
-            if ($nbOfSegments === 1) {
-                $this->title = 'Themes';
-                $this->description = 'List of collection per theme';
-                $this->links = array_merge($this->links, $this->stacUtil->getThemesRootLinks());
-            }
-
-            // Two segments (except landcover)
-            elseif ($nbOfSegments === 2) {
-                $this->setThemesLinks();
-            } else {
-                return RestoLogUtil::httpError(404);
-            }
-        }
-
-        // Not found
-        else {
-            return RestoLogUtil::httpError(404);
-        }
-        
-        return $this;
+        return null;
     }
-
     /**
      * Set links array for a given theme
      *
@@ -1239,13 +1191,14 @@ class STAC extends RestoAddOn
     }
 
     /**
-     * Initialize child catalogs from facet
+     * Build catalog 
      *
      * @param array $params
      * @return array
      */
-    private function setCatalogsLinksFromFacet($params)
+    private function buildCatalog($params)
     {
+
         $nbOfSegments = count($this->segments);
         $leafValue = $this->segments[$nbOfSegments - 1];
         
@@ -1253,6 +1206,7 @@ class STAC extends RestoAddOn
          * Special case for '_' leafValue => compute FeatureCollection of parents
          */
         if ($leafValue === '_') {
+
             // This is not possible
             if ($nbOfSegments < 2) {
                 return RestoLogUtil::httpError(404);
@@ -1494,6 +1448,88 @@ class STAC extends RestoAddOn
 
         return $params;
 
+    }
+
+    /**
+     * Return self/root/parent links
+     * 
+     * @param array segments
+     */
+    private function getBaseLinks($segments = array())
+    {
+        
+        array_unshift($segments, 'catalogs');
+
+        $links = array(
+            array(
+                'rel' => 'self',
+                'type' => RestoUtil::$contentTypes['json'],
+                'href' => $this->context->core['baseUrl'] . '/' . join('/', array_map('rawurlencode', $segments))
+            ),
+            array(
+                'rel' => 'root',
+                'type' => RestoUtil::$contentTypes['json'],
+                'href' => $this->context->core['baseUrl']
+            )
+        );
+
+        array_pop($segments);
+        $links[] = array(
+            'rel' => 'parent',
+            'type' => RestoUtil::$contentTypes['json'],
+            'href' => $this->context->core['baseUrl'] . (count($segments) > 0 ? '/' . join('/', array_map('rawurlencode', $segments)) : '')
+        );
+        
+        return $links;
+
+    }
+
+    /**
+     * Get root links
+     *
+     * @return array
+     */
+    private function getRootCatalogLinks()
+    {
+        $links = array();
+
+        /*
+         * Exposed views as STAC catalogs
+         * Only displayed if at least one theme exists
+         */
+        if (isset($this->context->addons['View'])) {
+            $stacLink = (new View($this->context, $this->user))->getSTACRootLink();
+            if (isset($stacLink) && $stacLink['matched'] > 0) {
+                $links[] = $stacLink;
+            }
+        }
+
+        // Get first level catalog
+        $catalogs = (new CatalogsFunctions($this->context->dbDriver))->getCatalogs(array(
+            'level' => 1
+        ));
+
+        for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
+
+            // Returns only catalogs with count >= minMath
+            if ($catalogs[$i]['counters']['total'] >= $this->options['minMatch']) {
+                $link = array(
+                    'rel' => 'child',
+                    'title' => $catalogs[$i]['title'],
+                    'description' => $catalogs[$i]['description'] ?? '',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'href' => $this->context->core['baseUrl'] . '/catalogs/' . rawurlencode($catalogs[$i]['id']),
+                    'matched' => $catalogs[$i]['counters']['total']
+                );
+                if ($catalogs[$i]['id'] === 'collections') {
+                    $link['roles'] = array('collections');
+                }
+                $links[] = $link;
+            }
+            
+        }
+        
+        return $links;
     }
 
 }

@@ -113,6 +113,7 @@ class RestoRouter
 
         // STAC
         array('GET',    RestoRouter::ROUTE_TO_ASSETS . '/{urlInBase64}', false, 'STAC::getAsset'),                                      // Get an asset using HTTP 301 permanent redirect
+        array('GET',    RestoRouter::ROUTE_TO_CATALOGS, false, 'STAC::getCatalogs'),
         array('GET',    RestoRouter::ROUTE_TO_CATALOGS . '/*', false, 'STAC::getCatalogs'),                                             // Get catalogs
         array('GET',    RestoRouter::ROUTE_TO_STAC_CHILDREN, false, 'STAC::getChildren'),                                               // STAC API - Children
         array('GET',    RestoRouter::ROUTE_TO_STAC_QUERYABLES, false, 'STAC::getQueryables'),                                           // STAC/OAFeature API - Queryables

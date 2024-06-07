@@ -501,6 +501,7 @@ CREATE INDEX IF NOT EXISTS idx_value_facet ON __DATABASE_TARGET_SCHEMA__.facet U
 -- [TABLE __DATABASE_TARGET_SCHEMA__.catalog]
 CREATE INDEX IF NOT EXISTS idx_id_catalog ON __DATABASE_TARGET_SCHEMA__.catalog (public.normalize(id));
 CREATE INDEX IF NOT EXISTS idx_description_catalog ON __DATABASE_TARGET_SCHEMA__.catalog USING GIN (public.normalize(description) gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_level_catalog ON __DATABASE_TARGET_SCHEMA__.catalog USING btree (level);
 
 -- [TABLE __DATABASE_TARGET_SCHEMA__.hashtag]
 CREATE INDEX IF NOT EXISTS idx_hashtag_catalog_feature ON __DATABASE_TARGET_SCHEMA__.catalog_feature (public.normalize(hashtag));
