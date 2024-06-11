@@ -38,7 +38,10 @@ class RestoAddOn
     protected $options;
 
     /*
-     * If set, options array is initialize from "$optionsFrom" add-on
+     * By default addon options is set from the addon name.
+     * If optionsFrom is set, then options array is set from the addon named "$optionsFrom" instead
+     * 
+     * For an example, see https://github.com/jjrom/resto-addon-snapplanet)
      */
     protected $optionsFrom = null;
 

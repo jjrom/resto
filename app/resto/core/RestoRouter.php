@@ -113,16 +113,15 @@ class RestoRouter
 
         // STAC
         array('GET',    RestoRouter::ROUTE_TO_ASSETS . '/{urlInBase64}', false, 'STAC::getAsset'),                                      // Get an asset using HTTP 301 permanent redirect
+        array('GET',    RestoRouter::ROUTE_TO_CATALOGS, false, 'STAC::getCatalogs'),
         array('GET',    RestoRouter::ROUTE_TO_CATALOGS . '/*', false, 'STAC::getCatalogs'),                                             // Get catalogs
         array('GET',    RestoRouter::ROUTE_TO_STAC_CHILDREN, false, 'STAC::getChildren'),                                               // STAC API - Children
         array('GET',    RestoRouter::ROUTE_TO_STAC_QUERYABLES, false, 'STAC::getQueryables'),                                           // STAC/OAFeature API - Queryables
         array('GET',    RestoRouter::ROUTE_TO_STAC_SEARCH, false, 'STAC::search'),                                                      // STAC API - core search (GET)
         array('POST',   RestoRouter::ROUTE_TO_STAC_SEARCH, false, 'STAC::search'),                                                      // STAC API - core search (POST)
-    
-        // STAC Catalog
-        array('POST',   RestoRouter::ROUTE_TO_CATALOGS , true , 'STACCatalog::addCatalog'),                                             // STAC - Add a catalog
-        array('PUT' ,   RestoRouter::ROUTE_TO_CATALOGS . '/*', true , 'STACCatalog::updateCatalog'),                                    // STAC - Update a catalog
-        array('DELETE', RestoRouter::ROUTE_TO_CATALOGS . '/*', true , 'STACCatalog::removeCatalog')                                     // STAC - Remove a catalog
+        array('POST',   RestoRouter::ROUTE_TO_CATALOGS , true , 'STAC::addCatalog'),                                                    // STAC - Add a catalog
+        array('PUT' ,   RestoRouter::ROUTE_TO_CATALOGS . '/*', true , 'STAC::updateCatalog'),                                           // STAC - Update a catalog
+        array('DELETE', RestoRouter::ROUTE_TO_CATALOGS . '/*', true , 'STAC::removeCatalog')                                            // STAC - Remove a catalog
     );
 
     /*

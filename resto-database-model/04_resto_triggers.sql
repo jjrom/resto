@@ -59,8 +59,7 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
--- 
--- On INSERT on __DATABASE_TARGET_SCHEMA__.feature THEN subdivide the input feature geometry and store it in geometry_part table
+--
+-- [IMPORTANT] The update_geometry_part trigger is added during container startup if USE_GEOMETRY_PART is True in config
 --
 DROP TRIGGER IF EXISTS update_geometry_part ON __DATABASE_TARGET_SCHEMA__.feature;
-CREATE TRIGGER update_geometry_part AFTER INSERT ON __DATABASE_TARGET_SCHEMA__.feature FOR EACH ROW EXECUTE PROCEDURE __DATABASE_TARGET_SCHEMA__.trigger_store_geometry_part();

@@ -503,6 +503,14 @@ class RestoUtil
     }
 
     /**
+     * Convert a $href url with host.docker.internal address to baseUrl
+     */
+    public static function localhostToDockerhost($url)
+    {
+        return str_replace(array('//127.0.0.1', '//localhost'), '//host.docker.internal', $url);
+    }
+
+    /**
      * Construct base url from parse_url fragments
      *
      * @param array $exploded

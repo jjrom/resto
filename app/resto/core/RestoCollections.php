@@ -327,7 +327,7 @@ class RestoCollections
     public function getSummaries()
     {
         if ( !isset($this->summaries) ) {
-            $this->summaries = (new FacetsFunctions($this->context->dbDriver))->getSummaries(null, null);
+            $this->summaries = (new CatalogsFunctions($this->context->dbDriver))->getSummaries(null, null);
         }
         return $this->summaries;
     }

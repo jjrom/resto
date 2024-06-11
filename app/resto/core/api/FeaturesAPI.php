@@ -922,7 +922,7 @@ class FeaturesAPI
 
         return RestoLogUtil::success('Feature deleted', array(
             'featureId' => $feature->id,
-            'facetsDeleted' => $result['facetsDeleted']
+            'catalogsUpdated' => $result['catalogsUpdated']
         ));
     }
 }
