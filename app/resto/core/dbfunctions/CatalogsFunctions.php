@@ -331,7 +331,7 @@ class CatalogsFunctions
         $set = array();
         foreach (array_keys($catalog) as $key ) {
             if (in_array($key, $canBeUpdated)) {
-                $values[] = $catalog[$key];
+                $values[] = $key === 'links' ? json_encode($catalog[$key], JSON_UNESCAPED_SLASHES) : $catalog[$key];
                 $set[] = $key . '=$' . count($values);
             }
         }
@@ -341,7 +341,8 @@ class CatalogsFunctions
                 'catalogsUpdated' => 0
             );
         }
-
+        print_r($set);
+        print_r($values);
         $results = $this->dbDriver->fetch($this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET ' . join(',', $set) . ' WHERE public.normalize(id)=public.normalize($1) RETURNING id', $values, 500, 'Cannot update facet ' . $catalog['id']));
 
         return array(

@@ -21,10 +21,6 @@
 class STACCatalog extends RestoAddOn
 {
 
-    /**
-     * Catalog prefix is systematically added internally
-     * to catalog identifier
-     */
     private $prefix = 'catalog:';
 
     private $catalogsFunctions;
@@ -140,7 +136,7 @@ class STACCatalog extends RestoAddOn
      * Update catalog
      * 
      *    @OA\Put(
-     *      path="/catalogs/{catalogId}",
+     *      path="/catalogs/*",
      *      summary="Update catalog",
      *      description="Update catalog",
      *      tags={"STAC"},
@@ -204,34 +200,29 @@ class STACCatalog extends RestoAddOn
     public function updateCatalog($params, $body)
     {
 
-        $facetId = $params['segments'][count($params['segments']) - 1 ];
-        $facets = (new FacetsFunctions($this->context->dbDriver))->getFacets(array('id' => $facetId));
+        // Get catalogs and childs
+        $catalogs = $this->catalogsFunctions->getCatalogs(array(
+            'id' => join('/', $params['segments'])
+        ), true);
         
-        if ( empty($facets) ) {
-            return RestoLogUtil::httpError(404);
+        if ( count($catalogs) === 0 ){
+            RestoLogUtil::httpError(404);
         }
 
-        // If user has not the right to update ALL facets then 403
-        for ($i = count($facets); $i--;) {
-            if ( !$this->user->hasRightsTo(RestoUser::UPDATE_CATALOG, array('catalog' => $facets[$i])) ) {
-                return RestoLogUtil::httpError(403);
-            }
-        }
 
-        // Only title and description can be updated
-        $newFacet = array(
-            'id' => $facetId
-        );
+        // If user has not the right to update catalog then 403
+        if ( !$this->user->hasRightsTo(RestoUser::UPDATE_CATALOG, array('catalog' => $catalogs[0])) ) {
+            return RestoLogUtil::httpError(403);
+        }
 
         $updatable = array('title', 'description', 'owner');
         for ($i = count($updatable); $i--;) {
             if ( isset($body[$updatable[$i]]) ) {
-                $newFacet[$updatable[$i] === 'title' ? 'value' : $updatable[$i]] = $body[$updatable[$i]];
+                $catalogs[0][$updatable[$i]] = $body[$updatable[$i]];
             }    
         }
-
-        return RestoLogUtil::success('Catalog updated', (new FacetsFunctions($this->context->dbDriver))->updateFacet($newFacet));
         
+        return RestoLogUtil::success('Catalog updated', $this->catalogsFunctions->updateCatalog($catalogs[0]));
     }
 
     /**

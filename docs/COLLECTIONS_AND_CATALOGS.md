@@ -62,7 +62,7 @@ Then get the feature :
 Only "title", "description" and "owner" properties can be updated
 
         # Update a catalog - user with the "updateCatalog" right can update a catalog he owns
-        curl -X PUT -d@examples/catalogs/dummyCatalog_update.json "http://admin:admin@localhost:5252/catalogs/catalogs/catalog:dummyCatalog"
+        curl -X PUT -d@examples/catalogs/dummyCatalog_update.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog"
 
 ### Delete a catalog
 
