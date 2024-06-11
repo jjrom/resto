@@ -27,7 +27,7 @@ class STACCatalog extends RestoAddOn
      */
     private $prefix = 'catalog:';
 
-    private catalogsFunctions;
+    private $catalogsFunctions;
 
     /**
      * Constructor
@@ -42,18 +42,13 @@ class STACCatalog extends RestoAddOn
     }
 
     /**
-     * Add a catalog as a facet entry
+     * Add a catalog
      * 
      *    @OA\Post(
      *      path="/catalogs/*",
      *      summary="Add a STAC catalog",
-     *      description="Add a STAC catalog as a facet entry",
+     *      description="Add a STAC catalog",
      *      tags={"STAC"},
-     *      @OA\Property(
-     *          property="pid",
-     *          type="string",
-     *          description="Catalog parent id. Must be provided if input catalog has a rel=parent in links referencing a local path in href instead of an absolute url. In the latter case, the parent identifier is retrieved automatically by resolving the url."
-     *      ),
      *      @OA\RequestBody(
      *          description="A valid STAC Catalog",
      *          required=true,
@@ -125,17 +120,29 @@ class STACCatalog extends RestoAddOn
             $body['links'] = array();
         }
 
-        return $this->storeCatalogAsFacet($body, $params['pid'] ?? null, $this->getChilds($body['links']));
+        /*
+         * Convert input catalog to resto:catalog
+         * i.e. add rtype and hashtag properties and convert id to a path
+         */
+        $body['rtype'] = 'catalog';
+        $body['hashtag'] = 'catalog' . RestoConstants::TAG_SEPARATOR . $body['id'];
+        $body['id'] = $this->getIdPath($body);
+
+        if ($this->catalogsFunctions->getCatalog($catalogId) !== null) {
+            RestoLogUtil::httpError(409, 'Catalog ' . end(explode('/', $body['id'])) . ' already exists');
+        }
+
+        return $this->catalogFunctions->storeCatalog($body, $this->user->profile['id'], null, null);
 
     }
 
     /**
-     * Update catalog as a facet entry
+     * Update catalog
      * 
      *    @OA\Put(
-     *      path="/catalogs/catalogs/{catalogId}",
+     *      path="/catalogs/{catalogId}",
      *      summary="Update catalog",
-     *      description="Update catalog as a facet entry",
+     *      description="Update catalog",
      *      tags={"STAC"},
      *      @OA\Parameter(
      *         name="catalogId",
@@ -328,244 +335,34 @@ class STACCatalog extends RestoAddOn
         return RestoLogUtil::success('Catalog deleted', (new FacetsFunctions($this->context->dbDriver))->removeFacet($facetId));
         
     }
-
+    
     /**
-     * Check if catalog exists
-     *
-     * @param string $catalogId
-     * @throws Exception
-     */
-    private function catalogExists($catalogId)
-    {
-        return !empty($this->catalogsFunctions->getCatalogs(array(
-            'id' => $catalogId
-        )));   
-    }
-
-    /**
-     * 
-     * Store catalog as facet
+     * Return path identifier from input catlaog
      * 
      * @param array $catalog
-     * @param string $parentId
-     * @param array $childs
-     * @return array
-     * 
-     */
-    private function storeCatalogAsFacet($catalog, $parentId, $childs)
-    {
-
-        if ( !isset($parentId) ) {
-            $parentId = $this->parentIdFromLinks($catalog['links'] ?? array());
-        }
-
-        // Catalog is a leaf if it has no child
-        $isLeaf = empty($childs) ? true : false;
-        
-        /*
-         * Remove "catalog:" prefix from id
-         */
-        if ( str_starts_with($catalog['id'], $this->prefix) ) {
-            $catalog['id'] = substr($catalog['id'], strlen($this->prefix));
-        }
-
-        /*
-         * Catalog already exist
-         */
-        if ( $this->catalogExists($this->prefix . $catalog['id'], $parentId, '*') ) {
-            return RestoLogUtil::httpError(409, 'Catalog ' . $catalog['id'] . ' already exist');
-        }
-
-        /*
-         * Store catalog and update its child pid
-         */
-        try {
-
-            $this->context->dbDriver->query('BEGIN');
-
-            // 1. Store catalog
-            (new FacetsFunctions($this->context->dbDriver))->storeFacets(array(
-                array(
-                    'id' => $this->prefix . $catalog['id'],
-                    'parentId' => $parentId,
-                    'value' => $catalog['title'] ?? $catalog['id'],
-                    'type' => substr($this->prefix, 0, -1),
-                    'description' => $catalog['description'],
-                    'isLeaf' => $isLeaf,
-                    'counter' => 0
-                )
-            ), $this->user->profile['id']);
-
-            // 2. Update childs pid to point to the catalog
-            for ($i = count($childs); $i--;) {
-                if ($childs[$i]['type'] === 'collection') {
-                    (new FacetsFunctions($this->context->dbDriver))->storeFacets(array(
-                        array(
-                            'id' => $childs[$i]['id'],
-                            'parentId' => $this->prefix . $catalog['id'],
-                            'value' => $childs[$i]['title'],
-                            'type' => 'collection',
-                            'isLeaf' => $childs[$i]['isLeaf'],
-                            'counter' => 0
-                        )
-                    ), $this->user->profile['id']);    
-                }
-                else {
-                    $this->context->dbDriver->pQuery('UPDATE ' . $this->context->dbDriver->targetSchema . '.facet SET pid=$2 WHERE public.normalize(id)=public.normalize($1) RETURNING id', array(
-                        $childs[$i]['id'],
-                        $this->prefix . $catalog['id']
-                    ));
-                }
-            }
-
-            $this->context->dbDriver->query('COMMIT');
-
-        } catch (Exception $e) {
-            $this->context->dbDriver->query('ROLLBACK');
-            RestoLogUtil::httpError(500, $e->getMessage());
-        }
-
-        try {
-           
-        } catch (Exception $e) {
-            return RestoLogUtil::httpError(500, 'Cannot insert catalog ' . $catalog['id']);
-        } 
-
-        return RestoLogUtil::success('Catalog ' . $catalog['id'] . ' created with parent ' . $parentId, array(
-            'id' => $catalog['id'],
-            'parentId' => $parentId,
-            'childs' => $childs
-        ));
-
-    }
-
-    /**
-     * Resolve a link
-     * 
-     * @param array $link
      * @return string
      */
-    private function resolveLink($link)
+    private function getIdPath($catalog)
     {
 
-        // [IMPORTANT] Can only process http(s) urls not local file
-        if ( strpos(strtolower($link['href']), 'http') !== 0 ) {
-            return RestoLogUtil::httpError(400, 'Link href must be an url i.e. start with http(s)');
-        }
-
-        try {
-            $curl = new Curly();
-            $resolved = json_decode($curl->get($link['href']), true);
-            if ( isset($resolved['ErrorCode']) ) {
-                throw new Exception();
-            }
-            $curl->close();
-        } catch (Exception $e) {
-            $curl->close();
-            return null;
-        }
-
-        return $resolved;
-
-    }
-
-    /**
-     * Return parent identifier from an array links
-     * 
-     * @param array $links
-     * @return string
-     */
-    private function parentIdFromLinks($links)
-    {
+        $parentId = '';
 
         // Retrieve parent if any
-        for ($i = 0, $ii = count($links); $i < $ii; $i++ ) {
-            if ( isset($links[$i]['rel']) && $links[$i]['rel'] === 'parent' ) {
-                $parent = $this->resolveLink($links[$i]);
-                // To avoid egg and chicken issue, if the parent is not valid, we force a 'root' parent
-                if ( !isset($parent) || !isset($parent['id']) || !isset($parent['type']) ) {
-                    break;
+        for ($i = 0, $ii = count($catalog['links']); $i < $ii; $i++ ) {
+            if ( isset($catalog['links'][$i]['rel']) &&$catalog['links'][$i]['rel'] === 'parent' ) {
+                $theoricalUrl = $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS; 
+                $exploded = explode($theoricalUrl, $catalog['links'][$i]['href']);
+                if (count($exploded) !== 2) {
+                    return RestoLogUtil::httpError(400, 'Parent link is set but it\'s url is invalid - should starts with ' . $theoricalUrl);
                 }
-                return str_starts_with($parent['id'], $parent['type'] . ':') ? $parent['id'] : $parent['type'] . ':' . $parent['id'];
+                $parentId = str_starts_with($exploded[1], '/') ? substr($exploded[1], 1) : $exploded[1];
+                break;
             }
         }
 
-        return 'root';
+        return ($parentId === '' ? '' : $parentId . '/') . $catalog['id'];
 
     }
 
-    /**
-     * Check that :
-     *  - links is an array
-     *  - rel="child" links all exists in database
-     *  - links does not contains rel="item" or rel="items" 
-     */
-    private function getChilds($links)
-    {
-
-        $childs = array();
-
-        if ( !is_array($links) ) {
-            return RestoLogUtil::httpError(400, 'Invalid links array');
-        }
-
-        for ($i = count($links); $i--;) {
-            
-            if ($links[$i]['rel']) {
-
-                if ( in_array($links[$i]['rel'], array('item', 'items')) ) {
-                    return RestoLogUtil::httpError(400, 'Links array should not contains rel type "item" or "items"');
-                }
-    
-                if ( $links[$i]['rel'] === 'child' ) {
-
-                    $resolved = $this->resolveLink($links[$i]);
-                    
-                    if ( ! isset($resolved) ) {
-                        return RestoLogUtil::httpError(400, 'Child with href ' . $links[$i]['href'] . ' does not exist in database');
-                    }
-
-                    if ( ! isset($resolved['id']) ) {
-                        return RestoLogUtil::httpError(400, 'Link with href ' . $links[$i]['href'] . ' is missing mandatory id');
-                    }
-                    
-                    if ( ! isset($resolved['type']) || !in_array($resolved['type'], array('Catalog', 'Collection')) ) {
-                        return RestoLogUtil::httpError(400, 'Link with href ' . $links[$i]['href'] . ' has an invalid type');
-                    }
-
-                    if ( $resolved['type'] === 'Catalog' ) {
-                        $catalogId = str_starts_with($resolved['id'], $this->prefix) ? $resolved['id'] : $this->prefix . $resolved['id'];
-                        if ( !$this->catalogExists($catalogId, null, null) ) {
-                            return RestoLogUtil::httpError(404, 'Child catalog ' . $catalogId . ' not found');    
-                        }
-                        $childs[] = array(
-                            'id' => $catalogId,
-                            'type' => 'catalog',
-                        );
-                    }
-                    else if ( $resolved['type'] === 'Collection' ) {
-                        $collectionsFunctions = new CollectionsFunctions($this->context->dbDriver);
-                        if ( $collectionsFunctions->collectionExists($resolved['id']) || $collectionsFunctions->collectionExists($collectionsFunctions->aliasToCollectionId($resolved['id'])) ) {
-                            $childs[] = array(
-                                'id' => 'collection:' . $resolved['id'],
-                                'title' => $resolved['id'],
-                                'isLeaf' => 1,
-                                'type' => 'collection',
-                            );
-                        }
-                        else {
-                            return RestoLogUtil::httpError(404, 'Child collection ' . $resolved['id'] . ' not found');    
-                        }
-                        
-                    }
-                }
-    
-            }
-            
-        }
-        
-        return $childs;
-
-    }
 
 }

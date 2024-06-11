@@ -80,9 +80,29 @@ class CatalogsFunctions
     }
 
     /**
+     * Get catalog
+     *
+     * @param string $id
+     */
+    public function getCatalog($catalogId)
+    {
+    
+        $catalogs = $this->getCatalogs(array(
+            'id' => $catalogId
+        ));
+
+        if ( isset($catalogs) && count($catalogs) === 1) {
+            return $catalogs[0];
+        }
+
+        return null;
+
+    }
+
+    /**
      * Get catalogs (and eventually all its childs if id is set)
      *
-     * @param array $params
+     * @param string $params
      * @param boolean $withChilds
      */
     public function getCatalogs($params, $withChilds = false)
@@ -167,19 +187,19 @@ class CatalogsFunctions
     }
 
     /**
-     * Store catalogs within database
+     * Store catalog within database
      *
      * !! THIS FUNCTION IS THREAD SAFE !!
      *
-     * @param array $catalogs
+     * @param array $catalog
      * @param string $userid
      * @param string $collectionId
      * @param string $featureId
      */
-    public function storeCatalogs($catalogs, $userid, $collectionId, $featureId)
+    public function storeCatalog($catalog, $userid, $collectionId, $featureId)
     {
-        // Empty catalogs - do nothing
-        if (!isset($catalogs) || count($catalogs) === 0) {
+        // Empty catalog - do nothing
+        if (!isset($catalog)) {
             return;
         }
 
@@ -192,9 +212,11 @@ class CatalogsFunctions
             $counters['collections'][$collectionId] = 1;
         }
 
-        for ($i = count($catalogs); $i--;) {
-            
-            $catalog = $catalogs[$i];
+        $cleanLinks = $this->getCleanLinks($catalog, $userid);
+
+        try {
+
+            $this->dbDriver->query('BEGIN');
 
             /*
              * Thread safe ingestion using upsert - guarantees that counter is correctly incremented during concurrent transactions
@@ -209,7 +231,7 @@ class CatalogsFunctions
                 // If no input counter is specified - set to 1
                 json_encode($counters, JSON_UNESCAPED_SLASHES),
                 $catalog['owner'] ?? $userid,
-                isset($catalog['links']) ? json_encode($catalog['links'], JSON_UNESCAPED_SLASHES) : null,
+                json_encode($cleanLinks['links'], JSON_UNESCAPED_SLASHES),
                 RestoConstants::GROUP_DEFAULT_ID,
                 $catalog['rtype'] ?? null,
                 $catalog['hashtag'] ?? null
@@ -224,8 +246,57 @@ class CatalogsFunctions
                     $collectionId
                 ), 500, 'Cannot catalog_feature association ' . $catalog['id'] . '/' . $featureId);
             }
+            
+            /*
+             * Now the tricky part - change catalogs level
+             */
+            for ($i = 0, $ii = count($cleanLinks['toUpdate']); $i < $ii; $i++) {
+                $toUpdateLink = $cleanLinks['toUpdate'][$i];
+                $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET id=$2, level=level + 1 WHERE id=$1', array(
+                    $toUpdateLink['id'],
+                    $catalog['id'] . '/' . $toUpdateLink['id']
+                ), 500, 'Cannot update child link ' . $toUpdateLink['id']);
+                $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.catalog_feature SET catalogid=$2 WHERE catalogid=$1', array(
+                    $toUpdateLink['id'],
+                    $catalog['id'] . '/' . $toUpdateLink['id']
+                ), 500, 'Cannot update catalog feature association for child link ' . $toUpdateLink['id']);
+            }
+            
+            $this->dbDriver->query('COMMIT');
 
+        } catch (Exception $e) {
+            $this->dbDriver->query('ROLLBACK');
+            RestoLogUtil::httpError(500, $e->getMessage());
         }
+
+        return $catalog;
+
+    }
+
+
+    /**
+     * Store catalogs within database
+     *
+     * !! THIS FUNCTION IS THREAD SAFE !!
+     *
+     * @param array $catalogs
+     * @param string $userid
+     * @param string $collectionId
+     * @param string $featureId
+     */
+    public function storeCatalogs($catalogs, $userid, $collectionId, $featureId)
+    {
+        // Empty catalogs - do nothing
+        if (!isset($catalogs) || count($catalogs) === 0) {
+            return array();
+        }
+
+        for ($i = count($catalogs); $i--;) {
+            $this->storeCatalog($catalog, $userid, $collectionId, $featureId);
+        }
+
+        return $catalogs;
+
     }
 
     /**
@@ -560,6 +631,69 @@ class CatalogsFunctions
             }
         }
 
+        return $output;
+
+    }
+
+    /**
+     * Return a "cleaned" list of catalog links.
+     * Cleaned list means :
+     *  - discard root, parent and self links
+     *  - move first level child links that belong to user to update array
+     *  - keep non first level child links
+     * 
+     * @param array $catalog
+     * @return array
+     */
+    private function getCleanLinks($catalog, $userid) {
+
+        $output = array(
+            'links' => array(),
+            'toUpdate' => array()
+        );
+
+        if ( !isset($catalog['links']) ) {
+            return $output;
+        }
+
+        for ($i = 0, $ii = count($catalog['links']); $i < $ii; $i++) {
+            $link = $catalog['links'][$i];
+            if ( !isset($link['rel']) || in_array($link['rel'], array('root', 'parent', 'self')) ) {
+                continue;
+            }
+            
+            if ( in_array($link['rel'], array('item', 'items')) ) {
+                return RestoLogUtil::httpError(400, 'Catalog cannot contains item or items rel');
+            }
+
+            if ( $link['rel'] === 'child') {
+                if ( !isset($link['href']) ) {
+                    return RestoLogUtil::httpError(400, 'One link child has an empty href');    
+                }
+                if (str_starts_with($link['href'], $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_COLLECTIONS )) {
+                    $output['links'][] = $link;
+                    continue;
+                }
+                $exploded = explode($this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS . '/', $link['href']);
+                if ( count($explode) !== 2) {
+                    return RestoLogUtil::httpError(400, 'One link child has a external href i.e. not starting with ' . $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS);    
+                }
+                $childCatalog = $this->getCatalog($catalog['id']);
+                if ( $childCatalog === null ) {
+                    return RestoLogUtil::httpError(400, 'Catalog child ' . $link['href'] . ' does not exist in database');    
+                }
+                
+                if ($childCatalog['level'] === 1 && $childCatalog['owner'] === $userid) {
+                    $output['toUpdate'][] = $link;
+                }
+                else {
+                    $output['links'][] = $link;
+                }
+                
+            }
+
+        }
+        
         return $output;
 
     }
