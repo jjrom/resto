@@ -129,11 +129,10 @@ class STACCatalog extends RestoAddOn
         $body['id'] = $this->getIdPath($body);
 
         if ($this->catalogsFunctions->getCatalog($body['id']) !== null) {
-            
             RestoLogUtil::httpError(409, 'Catalog ' . $body['id'] . ' already exists');
         }
         $baseUrl = $this->context->core['baseUrl'];
-        return $this->catalogsFunctions->storeCatalog($body, $this->user->profile['id'], $baseUrl, null, null);
+        return RestoLogUtil::success('Catalog added', $this->catalogsFunctions->storeCatalog($body, $this->user->profile['id'], $baseUrl, null, null));
 
     }
 
@@ -236,12 +235,12 @@ class STACCatalog extends RestoAddOn
     }
 
     /**
-     * Delete catalog as a facet entry
+     * Delete catalog
      * 
      *    @OA\Delete(
-     *      path="/catalogs/catalogs/{catalogId}",
+     *      path="/catalogs/*",
      *      summary="Delete catalog",
-     *      description="Delete catalog as a facet entry - update feature keywords accordingly",
+     *      description="Delete catalog",
      *      tags={"STAC"},
      *      @OA\Parameter(
      *         name="catalogId",
@@ -307,34 +306,32 @@ class STACCatalog extends RestoAddOn
     public function removeCatalog($params)
     {
 
-        $facetId = $params['segments'][count($params['segments']) - 1 ];
-        $facets = (new FacetsFunctions($this->context->dbDriver))->getFacets(array('id' => $facetId));
+        // Get catalogs and childs
+        $catalogs = $this->catalogsFunctions->getCatalogs(array(
+            'id' => join('/', $params['segments'])
+        ), true);
         
-        if ( empty($facets) ) {
-            return RestoLogUtil::httpError(404);
+        if ( count($catalogs) === 0 ){
+            RestoLogUtil::httpError(404);
         }
 
-        // If user has not the right to delete ALL facets then 403
-        for ($i = count($facets); $i--;) {
-            if ( !$this->user->hasRightsTo(RestoUser::DELETE_CATALOG, array('catalog' => $facets[$i])) ) {
-                return RestoLogUtil::httpError(403);
-            }
+        // If user has not the right to delete catalog then 403
+        if ( !$this->user->hasRightsTo(RestoUser::DELETE_CATALOG, array('catalog' => $catalogs[0])) ) {
+            return RestoLogUtil::httpError(403);
         }
-
+        
         // If catalog has childs it cannot be removed
-        $childs = (new FacetsFunctions($this->context->dbDriver))->getFacets(array('pid' => $facetId));
-        if ( !empty($childs) ) {
+        for ($i = 1, $ii = count($catalogs); $i < $ii; $i--) {
             if (isset($params['force']) && filter_var($params['force'], FILTER_VALIDATE_BOOLEAN) === true) {
                 return RestoLogUtil::httpError(400, 'TODO - force removal of non empty catalog is not implemented');
             }
             else {
-                return RestoLogUtil::httpError(400, 'The catalog cannot be deleted because it has ' . count($childs) . ' childs');
-            }
-            
+                return RestoLogUtil::httpError(400, 'The catalog cannot be deleted because it has ' . (count($catalogs) - 1) . ' childs');
+            }    
         }
         
-        return RestoLogUtil::success('Catalog deleted', (new FacetsFunctions($this->context->dbDriver))->removeFacet($facetId));
-        
+        return RestoLogUtil::success('Catalog deleted', $this->catalogsFunctions->removeCatalog($catalogs[0]['id']));
+
     }
     
     /**

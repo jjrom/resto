@@ -67,4 +67,4 @@ Only "title", "description" and "owner" properties can be updated
 ### Delete a catalog
 
         # Delete a catalog - user with the "deleteCatalog" right can delete a catalog he owns
-        curl -X DELETE "http://admin:admin@localhost:5252/catalogs/catalogs/catalog:dummyCatalog"
+        curl -X DELETE "http://admin:admin@localhost:5252/catalogs/dummyCatalog"
