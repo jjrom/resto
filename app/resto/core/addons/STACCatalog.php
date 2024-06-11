@@ -128,11 +128,12 @@ class STACCatalog extends RestoAddOn
         $body['hashtag'] = 'catalog' . RestoConstants::TAG_SEPARATOR . $body['id'];
         $body['id'] = $this->getIdPath($body);
 
-        if ($this->catalogsFunctions->getCatalog($catalogId) !== null) {
-            RestoLogUtil::httpError(409, 'Catalog ' . end(explode('/', $body['id'])) . ' already exists');
+        if ($this->catalogsFunctions->getCatalog($body['id']) !== null) {
+            
+            RestoLogUtil::httpError(409, 'Catalog ' . $body['id'] . ' already exists');
         }
-
-        return $this->catalogFunctions->storeCatalog($body, $this->user->profile['id'], null, null);
+        $baseUrl = $this->context->core['baseUrl'];
+        return $this->catalogsFunctions->storeCatalog($body, $this->user->profile['id'], $baseUrl, null, null);
 
     }
 

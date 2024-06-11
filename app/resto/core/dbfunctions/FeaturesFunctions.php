@@ -349,7 +349,7 @@ class FeaturesFunctions
             /*
              * Store catalogs
              */
-            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->user->profile['id'], $collection->id, $result['id']);
+            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->user->profile['id'], $collection, $result['id']);
         
             /*
              * Commit everything - rollback if one of the inserts failed
@@ -510,7 +510,7 @@ class FeaturesFunctions
                 ));
             }
             if ( !empty($diffCatalogs['added']) ) {
-                (new CatalogsFunctions($this->dbDriver))->storeCatalogs($diffCatalogs['added'], $collection->user->profile['id'], $collection->id, $feature->id);
+                (new CatalogsFunctions($this->dbDriver))->storeCatalogs($diffCatalogs['added'], $collection->user->profile['id'], $collection, $feature->id);
             }
 
             /*
@@ -604,7 +604,7 @@ class FeaturesFunctions
                 ));
             }
             if ( !empty($diffCatalogs['added']) ) {
-                (new CatalogsFunctions($this->dbDriver))->storeCatalogs($diffCatalogs['added'], $feature->collection->user->profile['id'], $feature->collection->id, $feature->id);
+                (new CatalogsFunctions($this->dbDriver))->storeCatalogs($diffCatalogs['added'], $feature->collection->user->profile['id'], $feature->collection, $feature->id);
             }
 
         } catch (Exception $e) {
