@@ -72,7 +72,7 @@ class CollectionsFunctions
     }
 
     /**
-     * Get description of all collections including facets
+     * Get description of all collections
      *
      * @param array $params
      * @return array

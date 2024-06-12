@@ -696,7 +696,7 @@ class RestoCollection
      *
      * @OA\Schema(
      *      schema="Statistics",
-     *      description="Collection facets statistics",
+     *      description="Collection statistics",
      *      required={"count", "facets"},
      *      @OA\Property(
      *          property="count",
