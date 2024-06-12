@@ -142,7 +142,7 @@ class RestoFeatureUtil
                 )
             ),
             'assets' => array(),
-            'stac_version' => STAC::STAC_VERSION,
+            'stac_version' => STACAPI::STAC_VERSION,
             'stac_extensions' => $collection->model->stacExtensions
         );
 

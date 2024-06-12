@@ -87,7 +87,7 @@ class RestoRouter
         array('GET',    RestoRouter::ROUTE_TO_COLLECTION, false, 'CollectionsAPI::getCollection'),                                      // Get :collectionId description
         array('PUT',    RestoRouter::ROUTE_TO_COLLECTION, true, 'CollectionsAPI::updateCollection'),                                    // Update :collectionId
         array('DELETE', RestoRouter::ROUTE_TO_COLLECTION, true, 'CollectionsAPI::deleteCollection'),                                    // Delete :collectionId
-        array('GET',    RestoRouter::ROUTE_TO_COLLECTION . '/queryables', false, 'STAC::getQueryables'),                                // OAFeature API - Queryables
+        array('GET',    RestoRouter::ROUTE_TO_COLLECTION . '/queryables', false, 'STACAPI::getQueryables'),                                // OAFeature API - Queryables
 
         // API for features
         array('GET',    RestoRouter::ROUTE_TO_FEATURES, false, 'FeaturesAPI::getFeaturesInCollection'),                                 // Search features in :collectionId
@@ -112,16 +112,16 @@ class RestoRouter
         array('POST',   RestoRouter::ROUTE_TO_RESET_PASSWORD, false, 'ServicesAPI::resetPassword'),                                     // Reset password
 
         // STAC
-        array('GET',    RestoRouter::ROUTE_TO_ASSETS . '/{urlInBase64}', false, 'STAC::getAsset'),                                      // Get an asset using HTTP 301 permanent redirect
-        array('GET',    RestoRouter::ROUTE_TO_CATALOGS, false, 'STAC::getCatalogs'),
-        array('GET',    RestoRouter::ROUTE_TO_CATALOGS . '/*', false, 'STAC::getCatalogs'),                                             // Get catalogs
-        array('GET',    RestoRouter::ROUTE_TO_STAC_CHILDREN, false, 'STAC::getChildren'),                                               // STAC API - Children
-        array('GET',    RestoRouter::ROUTE_TO_STAC_QUERYABLES, false, 'STAC::getQueryables'),                                           // STAC/OAFeature API - Queryables
-        array('GET',    RestoRouter::ROUTE_TO_STAC_SEARCH, false, 'STAC::search'),                                                      // STAC API - core search (GET)
-        array('POST',   RestoRouter::ROUTE_TO_STAC_SEARCH, false, 'STAC::search'),                                                      // STAC API - core search (POST)
-        array('POST',   RestoRouter::ROUTE_TO_CATALOGS , true , 'STAC::addCatalog'),                                                    // STAC - Add a catalog
-        array('PUT' ,   RestoRouter::ROUTE_TO_CATALOGS . '/*', true , 'STAC::updateCatalog'),                                           // STAC - Update a catalog
-        array('DELETE', RestoRouter::ROUTE_TO_CATALOGS . '/*', true , 'STAC::removeCatalog')                                            // STAC - Remove a catalog
+        array('GET',    RestoRouter::ROUTE_TO_ASSETS . '/{urlInBase64}', false, 'STACAPI::getAsset'),                                      // Get an asset using HTTP 301 permanent redirect
+        array('GET',    RestoRouter::ROUTE_TO_CATALOGS, false, 'STACAPI::getCatalogs'),
+        array('GET',    RestoRouter::ROUTE_TO_CATALOGS . '/*', false, 'STACAPI::getCatalogs'),                                             // Get catalogs
+        array('GET',    RestoRouter::ROUTE_TO_STAC_CHILDREN, false, 'STACAPI::getChildren'),                                               // STAC API - Children
+        array('GET',    RestoRouter::ROUTE_TO_STAC_QUERYABLES, false, 'STACAPI::getQueryables'),                                           // STAC/OAFeature API - Queryables
+        array('GET',    RestoRouter::ROUTE_TO_STAC_SEARCH, false, 'STACAPI::search'),                                                      // STAC API - core search (GET)
+        array('POST',   RestoRouter::ROUTE_TO_STAC_SEARCH, false, 'STACAPI::search'),                                                      // STAC API - core search (POST)
+        array('POST',   RestoRouter::ROUTE_TO_CATALOGS , true , 'STACAPI::addCatalog'),                                                    // STAC - Add a catalog
+        array('PUT' ,   RestoRouter::ROUTE_TO_CATALOGS . '/*', true , 'STACAPI::updateCatalog'),                                           // STAC - Update a catalog
+        array('DELETE', RestoRouter::ROUTE_TO_CATALOGS . '/*', true , 'STACAPI::removeCatalog')                                            // STAC - Remove a catalog
     );
 
     /*

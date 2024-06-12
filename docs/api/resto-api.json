@@ -22,7 +22,7 @@
                 ],
                 "summary": "Download asset",
                 "description": "Return the asset href within an HTTP 301 Redirect message. This allows to keep track of download of external assets in resto statistics",
-                "operationId": "STAC::getAsset",
+                "operationId": "STACAPI::getAsset",
                 "parameters": [
                     {
                         "name": "urlInBase64",
@@ -51,7 +51,7 @@
                 ],
                 "summary": "Get STAC catalogs",
                 "description": "Get STAC catalogs",
-                "operationId": "STAC::getCatalogs",
+                "operationId": "STACAPI::getCatalogs",
                 "responses": {
                     "200": {
                         "description": "STAC catalog definition - contains links to child catalogs and/or items",
@@ -158,7 +158,7 @@
                 ],
                 "summary": "Get root child catalogs",
                 "description": "List of children of this catalog",
-                "operationId": "STAC::getChildren",
+                "operationId": "STACAPI::getChildren",
                 "responses": {
                     "200": {
                         "description": "List of children of the root catalog",
@@ -189,7 +189,7 @@
                 ],
                 "summary": "Queryables for STAC API",
                 "description": "Queryable names for the STAC API Item Search filter.",
-                "operationId": "STAC::getQueryables",
+                "operationId": "STACAPI::getQueryables",
                 "responses": {
                     "200": {
                         "description": "Queryables for STAC API",
@@ -211,7 +211,7 @@
                 ],
                 "summary": "STAC search endpoint",
                 "description": "List of filters to search features within all collections",
-                "operationId": "STAC::search",
+                "operationId": "STACAPI::search",
                 "parameters": [
                     {
                         "name": "model",

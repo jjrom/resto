@@ -1560,7 +1560,7 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
               <ul class="toc-list-h2">
                 
                   <li>
-                    <a href="#stac--search" class="toc-h2 toc-link" data-title="STAC::search">STAC::search</a>
+                    <a href="#stac--search" class="toc-h2 toc-link" data-title="STACAPI::search">STACAPI::search</a>
                     
                   </li>
                 
@@ -1653,12 +1653,12 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
               <ul class="toc-list-h2">
                 
                   <li>
-                    <a href="#stac--getasset" class="toc-h2 toc-link" data-title="STAC::getAsset">STAC::getAsset</a>
+                    <a href="#stac--getasset" class="toc-h2 toc-link" data-title="STACAPI::getAsset">STACAPI::getAsset</a>
                     
                   </li>
                 
                   <li>
-                    <a href="#stac--getcatalogs" class="toc-h2 toc-link" data-title="STAC::getCatalogs">STAC::getCatalogs</a>
+                    <a href="#stac--getcatalogs" class="toc-h2 toc-link" data-title="STACAPI::getCatalogs">STACAPI::getCatalogs</a>
                     
                   </li>
                 
@@ -1668,12 +1668,12 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
                   </li>
                 
                   <li>
-                    <a href="#stac--getchildren" class="toc-h2 toc-link" data-title="STAC::getChildren">STAC::getChildren</a>
+                    <a href="#stac--getchildren" class="toc-h2 toc-link" data-title="STACAPI::getChildren">STACAPI::getChildren</a>
                     
                   </li>
                 
                   <li>
-                    <a href="#stac--getqueryables" class="toc-h2 toc-link" data-title="STAC::getQueryables">STAC::getQueryables</a>
+                    <a href="#stac--getqueryables" class="toc-h2 toc-link" data-title="STACAPI::getQueryables">STACAPI::getQueryables</a>
                     
                   </li>
                 
@@ -3754,8 +3754,8 @@ This operation does not require authentication
 </aside>
 <h1 id="welcome-to-resto-feature">Feature</h1>
 <p>A feature is an application object that represents a physical entity e.g. a building, a river, a person, a coverage taken by a a satellite. Practically, a resto feature is defined by a set of metadata including a geographical location (i.e. a (Multi)Point, a (Multi)LineString or a (Multi)Polygon). A feature always belongs to one and only one collection.</p>
-<h2 id="stac--search">STAC::search</h2>
-<p><a id="opIdSTAC::search"></a></p>
+<h2 id="stac--search">STACAPI::search</h2>
+<p><a id="opIdSTACAPI::search"></a></p>
 <blockquote>
 <p>Code samples</p>
 </blockquote>
@@ -6963,8 +6963,8 @@ To perform this operation, you must be authenticated by means of one of the foll
 basicAuth & bearerAuth & queryAuth
 </aside>
 <h1 id="welcome-to-resto-stac">STAC</h1>
-<h2 id="stac--getasset">STAC::getAsset</h2>
-<p><a id="opIdSTAC::getAsset"></a></p>
+<h2 id="stac--getasset">STACAPI::getAsset</h2>
+<p><a id="opIdSTACAPI::getAsset"></a></p>
 <blockquote>
 <p>Code samples</p>
 </blockquote>
@@ -7024,8 +7024,8 @@ curl -X GET http://127.0.0.1:5252/assets/{urlInBase64}
 <aside class="success">
 This operation does not require authentication
 </aside>
-<h2 id="stac--getcatalogs">STAC::getCatalogs</h2>
-<p><a id="opIdSTAC::getCatalogs"></a></p>
+<h2 id="stac--getcatalogs">STACAPI::getCatalogs</h2>
+<p><a id="opIdSTACAPI::getCatalogs"></a></p>
 <blockquote>
 <p>Code samples</p>
 </blockquote>
@@ -7247,8 +7247,8 @@ curl -X POST http://127.0.0.1:5252/catalogs/* \
 To perform this operation, you must be authenticated by means of one of the following methods:
 basicAuth & bearerAuth & queryAuth
 </aside>
-<h2 id="stac--getchildren">STAC::getChildren</h2>
-<p><a id="opIdSTAC::getChildren"></a></p>
+<h2 id="stac--getchildren">STACAPI::getChildren</h2>
+<p><a id="opIdSTACAPI::getChildren"></a></p>
 <blockquote>
 <p>Code samples</p>
 </blockquote>
@@ -7641,8 +7641,8 @@ curl -X GET http://127.0.0.1:5252/children \
 <aside class="success">
 This operation does not require authentication
 </aside>
-<h2 id="stac--getqueryables">STAC::getQueryables</h2>
-<p><a id="opIdSTAC::getQueryables"></a></p>
+<h2 id="stac--getqueryables">STACAPI::getQueryables</h2>
+<p><a id="opIdSTACAPI::getQueryables"></a></p>
 <blockquote>
 <p>Code samples</p>
 </blockquote>

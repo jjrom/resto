@@ -993,7 +993,7 @@ class RestoCollection
         $osDescription = $this->osDescription[$this->context->lang] ?? $this->osDescription['en'];
 
         $collectionArray = array(
-            'stac_version' => STAC::STAC_VERSION,
+            'stac_version' => STACAPI::STAC_VERSION,
             'stac_extensions' => $this->model->stacExtensions,
             'id' => $this->id,
             'type' => 'Collection',

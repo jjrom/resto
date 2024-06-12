@@ -182,7 +182,7 @@ class ServicesAPI
     {
         
         return array(
-            'stac_version' => STAC::STAC_VERSION,
+            'stac_version' => STACAPI::STAC_VERSION,
             'id' => 'root',
             'type' => 'Catalog',
             'title' => $this->title,
@@ -511,6 +511,6 @@ class ServicesAPI
      */
     private function conformsTo()
     {
-        return STAC::CONFORMANCE_CLASSES;
+        return STACAPI::CONFORMANCE_CLASSES;
     }
 }
