@@ -6,7 +6,7 @@
         "contact": {
             "email": "jerome.gasperi@gmail.com"
         },
-        "version": "8.0.10"
+        "version": "9.0.0-RC2"
     },
     "servers": [
         {
@@ -15,877 +15,6 @@
         }
     ],
     "paths": {
-        "/assets/{urlInBase64}": {
-            "get": {
-                "tags": [
-                    "STAC"
-                ],
-                "summary": "Download asset",
-                "description": "Return the asset href within an HTTP 301 Redirect message. This allows to keep track of download of external assets in resto statistics",
-                "operationId": "STACAPI::getAsset",
-                "parameters": [
-                    {
-                        "name": "urlInBase64",
-                        "in": "path",
-                        "description": "Asset url encoded in Base64",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "301": {
-                        "description": "HTTP/1.1 301 Moved Permanently"
-                    },
-                    "400": {
-                        "description": "Invalid base64 encoded url"
-                    }
-                }
-            }
-        },
-        "/catalogs/*": {
-            "get": {
-                "tags": [
-                    "STAC"
-                ],
-                "summary": "Get STAC catalogs",
-                "description": "Get STAC catalogs",
-                "operationId": "STACAPI::getCatalogs",
-                "responses": {
-                    "200": {
-                        "description": "STAC catalog definition - contains links to child catalogs and/or items",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Catalog"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not found"
-                    }
-                }
-            },
-            "post": {
-                "tags": [
-                    "STAC"
-                ],
-                "summary": "Add a STAC catalog",
-                "description": "Add a STAC catalog as a facet entry",
-                "operationId": "STACCatalog::addCatalog",
-                "requestBody": {
-                    "description": "A valid STAC Catalog",
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/Catalog"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "The catalog is created",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "description": "Status is *success*",
-                                            "type": "string"
-                                        },
-                                        "message": {
-                                            "description": "Message information",
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                },
-                                "example": {
-                                    "status": "success",
-                                    "message": "Catalog created"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Missing one of the mandatory input property",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/BadRequestError"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/UnauthorizedError"
-                                }
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Only user with *createCatalog* rights can create a catalog",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ForbiddenError"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "basicAuth": [],
-                        "bearerAuth": [],
-                        "queryAuth": []
-                    }
-                ]
-            }
-        },
-        "/children": {
-            "get": {
-                "tags": [
-                    "STAC"
-                ],
-                "summary": "Get root child catalogs",
-                "description": "List of children of this catalog",
-                "operationId": "STACAPI::getChildren",
-                "responses": {
-                    "200": {
-                        "description": "List of children of the root catalog",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "features": {
-                                            "description": "Array of features",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/OutputFeature"
-                                            }
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/queryables": {
-            "get": {
-                "tags": [
-                    "STAC"
-                ],
-                "summary": "Queryables for STAC API",
-                "description": "Queryable names for the STAC API Item Search filter.",
-                "operationId": "STACAPI::getQueryables",
-                "responses": {
-                    "200": {
-                        "description": "Queryables for STAC API",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Queryables"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/search": {
-            "get": {
-                "tags": [
-                    "Feature"
-                ],
-                "summary": "STAC search endpoint",
-                "description": "List of filters to search features within all collections",
-                "operationId": "STACAPI::search",
-                "parameters": [
-                    {
-                        "name": "model",
-                        "in": "query",
-                        "description": "Search features within collections belonging to *model* - e.g. *model=SatelliteModel* will search in all satellite collections",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "collections",
-                        "in": "query",
-                        "description": "Search features within collections - comma separated list of collection identifiers",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "ck",
-                        "in": "query",
-                        "description": "Stands for *collection keyword* - limit results to collection containing the input keyword",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "q",
-                        "in": "query",
-                        "description": "Free text search - OpenSearch {searchTerms}. Can include hashtags i.e. text starting with *#* characters. In this case, use the following:\n* *#cryosphere* will search for *cryosphere*\n* *#cryosphere #atmosphere* will search for *cryosphere* AND *atmosphere*\n* *#cryosphere|atmosphere* will search for *cryosphere* OR *atmosphere*\n* *#cryosphere!* will search for *cryosphere* OR any *broader* concept of *cryosphere* ([EXTENSION][SKOS])\n* *#cryosphere\\** will search for *cryosphere* OR any *narrower* concept of *cryosphere* ([EXTENSION][SKOS])\n* *#cryosphere~* will search for *cryosphere* OR any *related* concept of *cryosphere* ([EXTENSION][SKOS])",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "limit",
-                        "in": "query",
-                        "description": "Number of results returned per page - between 1 and 500 (default 20) - OpenSearch {count}",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "integer",
-                            "default": 20,
-                            "maximum": 500,
-                            "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "startIndex",
-                        "in": "query",
-                        "description": "First result to provide - minimum 1, (default 1) - OpenSearch {startIndex}",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "integer",
-                            "default": 1,
-                            "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "description": "First page to provide - minimum 1, (default 1) - OpenSearch {startPage}",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "integer",
-                            "default": 1,
-                            "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "lang",
-                        "in": "query",
-                        "description": "Two letters language code according to ISO 639-1 (default *en*) - OpenSearch {language}",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "ids",
-                        "in": "query",
-                        "description": "Array of item ids to return. All other filter parameters that further restrict the number of search results (except next and limit) are ignored",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "intersects",
-                        "in": "query",
-                        "description": "Region of Interest defined in GeoJSON or in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326) - OpenSearch {geo:geometry}",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "bbox",
-                        "in": "query",
-                        "description": "Region of Interest defined by 'west, south, east, north' coordinates of longitude, latitude, in decimal degrees (EPSG:4326) - OpenSearch {geo:box}",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "number"
-                            },
-                            "maxItems": 6,
-                            "minItems": 4
-                        }
-                    },
-                    {
-                        "name": "name",
-                        "in": "query",
-                        "description": "[EXTENSION][egg] Location string e.g. Paris, France  or toponym identifier (i.e. geouid:xxxx) - OpenSearch {geo:name}",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "lon",
-                        "in": "query",
-                        "description": "Longitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lat - OpenSearch {geo:lon}",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "number"
-                        }
-                    },
-                    {
-                        "name": "lat",
-                        "in": "query",
-                        "description": "Latitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lon - OpenSearch {geo:lat}",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "number"
-                        }
-                    },
-                    {
-                        "name": "radius",
-                        "in": "query",
-                        "description": "Radius expressed in meters - should be used with geo:lon and geo:lat - OpenSearch {geo:radius}",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "number"
-                        }
-                    },
-                    {
-                        "name": "datetime",
-                        "in": "query",
-                        "description": "Single date+time, or a range ('/' separator) of the search query. Format should follow RFC-3339 - OpenSearch {time:start}/{time:end}",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string",
-                            "format": "date-time",
-                            "pattern": "^([0-9]{4})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\\.[0-9]+)?(([Zz])|([\\+|\\-]([01][0-9]|2[0-3]):[0-5][0-9]))$"
-                        }
-                    },
-                    {
-                        "name": "start",
-                        "in": "query",
-                        "description": "Beginning of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:start}",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string",
-                            "format": "date-time",
-                            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(|Z|[\\+\\-][0-9]{2}:[0-9]{2}))?$"
-                        }
-                    },
-                    {
-                        "name": "end",
-                        "in": "query",
-                        "description": "End of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:end}",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string",
-                            "format": "date-time",
-                            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(|Z|[\\+\\-][0-9]{2}:[0-9]{2}))?$"
-                        }
-                    },
-                    {
-                        "name": "created",
-                        "in": "query",
-                        "description": "Returns products with metadata creation date greater or equal than *created* - OpenSearch {dc:date}",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string",
-                            "format": "date-time",
-                            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(|Z|[\\+\\-][0-9]{2}:[0-9]{2}))?$"
-                        }
-                    },
-                    {
-                        "name": "prev",
-                        "in": "query",
-                        "description": "Returns features with *sort* key value greater than *prev* value - use this for pagination. The value is a unique iterator computed from the *sort* key value and provided within each feature properties as *sort_idx* property",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "next",
-                        "in": "query",
-                        "description": "Returns features with *sort* key value lower than *next* value - use this for pagination. The value is a unique iterator computed from the *sort* key value and provided within each feature properties as *sort_idx* property",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "pid",
-                        "in": "query",
-                        "description": "Like on product identifier",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "sort",
-                        "in": "query",
-                        "description": "Sort results by property *startDate* or *created* (default *startDate*). Sorting order is DESCENDING (ASCENDING if property is prefixed by minus sign)",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "owner",
-                        "in": "query",
-                        "description": "Limit search to owner's features (i.e. resto user identifier as bigint)",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "likes",
-                        "in": "query",
-                        "description": "[EXTENSION][social] Limit search to number of likes (interval)",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "liked",
-                        "in": "query",
-                        "description": "[EXTENSION][social] Return only liked features from calling user",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "boolean"
-                        }
-                    },
-                    {
-                        "name": "status",
-                        "in": "query",
-                        "description": "Feature status (unusued)",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "productType",
-                        "in": "query",
-                        "description": "[MODEL][SatelliteModel] A string identifying the entry type (e.g. ER02_SAR_IM__0P, MER_RR__1P, SM_SLC__1S, GES_DISC_AIRH3STD_V005) - OpenSearch {eo:productType}",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "processingLevel",
-                        "in": "query",
-                        "description": "[MODEL][SatelliteModel] A string identifying the processing level applied to the entry - OpenSearch {eo:processingLevel}",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "platform",
-                        "in": "query",
-                        "description": "[MODEL][SatelliteModel] A string with the platform short name (e.g. Sentinel-1) - OpenSearch {eo:platform}",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "instrument",
-                        "in": "query",
-                        "description": "[MODEL][SatelliteModel] A string identifying the instrument (e.g. MERIS, AATSR, ASAR, HRVIR. SAR) - OpenSearch {eo:instrument}",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "sensorType",
-                        "in": "query",
-                        "description": "[MODEL][SatelliteModel] A string identifying the sensor type. Suggested values are: OPTICAL, RADAR, ALTIMETRIC, ATMOSPHERIC, LIMB - OpenSearch {eo:sensorType}",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "cloudCover",
-                        "in": "query",
-                        "description": "[MODEL][OpticalModel] Cloud cover expressed in percent",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "snowCover",
-                        "in": "query",
-                        "description": "[MODEL][OpticalModel] Snow cover expressed in percent",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "waterCover",
-                        "in": "query",
-                        "description": "[MODEL][LandCoverModel] Water area expressed in percent",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "urbanCover",
-                        "in": "query",
-                        "description": "[MODEL][LandCoverModel] Urban area expressed in percent",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "iceCover",
-                        "in": "query",
-                        "description": "[MODEL][LandCoverModel] Ice area expressed in percent",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "herbaceousCover",
-                        "in": "query",
-                        "description": "[MODEL][LandCoverModel] Herbaceous area expressed in percent",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "forestCover",
-                        "in": "query",
-                        "description": "[MODEL][LandCoverModel] Forest area expressed in percent",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "floodedCover",
-                        "in": "query",
-                        "description": "[MODEL][LandCoverModel] Flooded area expressed in percent",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "desertCover",
-                        "in": "query",
-                        "description": "[MODEL][LandCoverModel] Desert area expressed in percent",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "cultivatedCover",
-                        "in": "query",
-                        "description": "[MODEL][LandCoverModel] Cultivated area expressed in percent",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "fields",
-                        "in": "query",
-                        "description": "Comma separated list of property fields to be returned. The following reserved keywords can also be used:\n* _all: Return all properties (This is the default)\n* _simple: Return all fields except *keywords* property",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "_heatmapNoGeo",
-                        "in": "query",
-                        "description": "[EXTENSION][Heatmap] True to compute search result heatmap without taking account geographical filter",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "boolean"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Features collection",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/RestoFeatureCollection"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request (i.e. invalid parameter)",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/BadRequestError"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Collection not Found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/NotFoundError"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/catalogs/catalogs/{catalogId}": {
-            "put": {
-                "tags": [
-                    "STAC"
-                ],
-                "summary": "Update catalog",
-                "description": "Update catalog as a facet entry",
-                "operationId": "STACCatalog::updateCatalog",
-                "parameters": [
-                    {
-                        "name": "catalogId",
-                        "in": "path",
-                        "description": "Catalog identifier",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "description": "Catalog fields to be update limited to title and description",
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/Catalog"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Catalog is updated",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "description": "Status is *success*",
-                                            "type": "string"
-                                        },
-                                        "message": {
-                                            "description": "Message information",
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                },
-                                "example": {
-                                    "status": "success",
-                                    "message": "Catalog updated"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/NotFoundError"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/UnauthorizedError"
-                                }
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Only user with *updateCatalog* rights can update a catalog",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ForbiddenError"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "basicAuth": [],
-                        "bearerAuth": [],
-                        "queryAuth": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "STAC"
-                ],
-                "summary": "Delete catalog",
-                "description": "Delete catalog as a facet entry - update feature keywords accordingly",
-                "operationId": "STACCatalog::removeCatalog",
-                "parameters": [
-                    {
-                        "name": "catalogId",
-                        "in": "path",
-                        "description": "Catalog identifier",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Catalog deleted",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "description": "Status is *success*",
-                                            "type": "string"
-                                        },
-                                        "message": {
-                                            "description": "Message information",
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                },
-                                "example": {
-                                    "status": "success",
-                                    "message": "Catalog deleted",
-                                    "featuresUpdated": 345
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/NotFoundError"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/UnauthorizedError"
-                                }
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Only user with *deleteCatalog* rights can delete a catalog",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ForbiddenError"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "basicAuth": [],
-                        "bearerAuth": [],
-                        "queryAuth": []
-                    }
-                ]
-            }
-        },
         "/auth": {
             "get": {
                 "tags": [
@@ -1285,10 +414,6 @@
                                             "description": "resto additional information",
                                             "type": "object"
                                         },
-                                        "summaries": {
-                                            "description": "Return collections descriptions",
-                                            "type": "object"
-                                        },
                                         "collections": {
                                             "description": "List of available collections",
                                             "type": "array",
@@ -1320,16 +445,6 @@
                                                 ]
                                             ],
                                             "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"
-                                        }
-                                    },
-                                    "summaries": {
-                                        "resto:stats": {
-                                            "count": 11310,
-                                            "facets": {
-                                                "collection": {
-                                                    "L8": 11307
-                                                }
-                                            }
                                         }
                                     },
                                     "resto:info": {
@@ -3617,6 +2732,883 @@
                 ]
             }
         },
+        "/catalogs/*": {
+            "get": {
+                "tags": [
+                    "STAC"
+                ],
+                "summary": "Get STAC catalogs",
+                "description": "Get STAC catalogs",
+                "operationId": "STACAPI::getCatalogs",
+                "responses": {
+                    "200": {
+                        "description": "STAC catalog definition - contains links to child catalogs and/or items",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Catalog"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "STAC"
+                ],
+                "summary": "Update catalog",
+                "description": "Update catalog",
+                "operationId": "STACAPI::updateCatalog",
+                "parameters": [
+                    {
+                        "name": "catalogId",
+                        "in": "path",
+                        "description": "Catalog identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Catalog fields to be update limited to title and description",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Catalog"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Catalog is updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Status is *success*",
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "description": "Message information",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": "success",
+                                    "message": "Catalog updated"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundError"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Only user with *updateCatalog* rights can update a catalog",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "STAC"
+                ],
+                "summary": "Add a STAC catalog",
+                "description": "Add a STAC catalog",
+                "operationId": "STACAPI::addCatalog",
+                "requestBody": {
+                    "description": "A valid STAC Catalog",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Catalog"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The catalog is created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Status is *success*",
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "description": "Message information",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": "success",
+                                    "message": "Catalog created"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Missing one of the mandatory input property",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestError"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Only user with *createCatalog* rights can create a catalog",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "STAC"
+                ],
+                "summary": "Delete catalog",
+                "description": "Delete catalog",
+                "operationId": "STACAPI::removeCatalog",
+                "parameters": [
+                    {
+                        "name": "catalogId",
+                        "in": "path",
+                        "description": "Catalog identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "force",
+                        "in": "query",
+                        "description": "Force catalog removal even if this catalog has child. In this case, catalogs childs are attached to the remove catalog parent",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Catalog deleted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "description": "Status is *success*",
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "description": "Message information",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": "success",
+                                    "message": "Catalog deleted",
+                                    "featuresUpdated": 345
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundError"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Only user with *deleteCatalog* rights can delete a catalog",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "basicAuth": [],
+                        "bearerAuth": [],
+                        "queryAuth": []
+                    }
+                ]
+            }
+        },
+        "/assets/{urlInBase64}": {
+            "get": {
+                "tags": [
+                    "STAC"
+                ],
+                "summary": "Download asset",
+                "description": "Return the asset href within an HTTP 301 Redirect message. This allows to keep track of download of external assets in resto statistics",
+                "operationId": "STACAPI::getAsset",
+                "parameters": [
+                    {
+                        "name": "urlInBase64",
+                        "in": "path",
+                        "description": "Asset url encoded in Base64",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "301": {
+                        "description": "HTTP/1.1 301 Moved Permanently"
+                    },
+                    "400": {
+                        "description": "Invalid base64 encoded url"
+                    }
+                }
+            }
+        },
+        "/children": {
+            "get": {
+                "tags": [
+                    "STAC"
+                ],
+                "summary": "Get root child catalogs",
+                "description": "List of children of this catalog",
+                "operationId": "STACAPI::getChildren",
+                "responses": {
+                    "200": {
+                        "description": "List of children of the root catalog",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "features": {
+                                            "description": "Array of features",
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/OutputFeature"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/queryables": {
+            "get": {
+                "tags": [
+                    "STAC"
+                ],
+                "summary": "Queryables for STAC API",
+                "description": "Queryable names for the STAC API Item Search filter.",
+                "operationId": "STACAPI::getQueryables",
+                "responses": {
+                    "200": {
+                        "description": "Queryables for STAC API",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Queryables"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/search": {
+            "get": {
+                "tags": [
+                    "Feature"
+                ],
+                "summary": "STAC search endpoint",
+                "description": "List of filters to search features within all collections",
+                "operationId": "STACAPI::search",
+                "parameters": [
+                    {
+                        "name": "model",
+                        "in": "query",
+                        "description": "Search features within collections belonging to *model* - e.g. *model=SatelliteModel* will search in all satellite collections",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "collections",
+                        "in": "query",
+                        "description": "Search features within collections - comma separated list of collection identifiers",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "ck",
+                        "in": "query",
+                        "description": "Stands for *collection keyword* - limit results to collection containing the input keyword",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Free text search - OpenSearch {searchTerms}. Can include hashtags i.e. text starting with *#* characters. In this case, use the following:\n* *#cryosphere* will search for *cryosphere*\n* *#cryosphere #atmosphere* will search for *cryosphere* AND *atmosphere*\n* *#cryosphere|atmosphere* will search for *cryosphere* OR *atmosphere*\n* *#cryosphere!* will search for *cryosphere* OR any *broader* concept of *cryosphere* ([EXTENSION][SKOS])\n* *#cryosphere\\** will search for *cryosphere* OR any *narrower* concept of *cryosphere* ([EXTENSION][SKOS])\n* *#cryosphere~* will search for *cryosphere* OR any *related* concept of *cryosphere* ([EXTENSION][SKOS])",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Number of results returned per page - between 1 and 500 (default 20) - OpenSearch {count}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "maximum": 500,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "startIndex",
+                        "in": "query",
+                        "description": "First result to provide - minimum 1, (default 1) - OpenSearch {startIndex}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "First page to provide - minimum 1, (default 1) - OpenSearch {startPage}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "lang",
+                        "in": "query",
+                        "description": "Two letters language code according to ISO 639-1 (default *en*) - OpenSearch {language}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "ids",
+                        "in": "query",
+                        "description": "Array of item ids to return. All other filter parameters that further restrict the number of search results (except next and limit) are ignored",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "intersects",
+                        "in": "query",
+                        "description": "Region of Interest defined in GeoJSON or in Well Known Text standard (WKT) with coordinates in decimal degrees (EPSG:4326) - OpenSearch {geo:geometry}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "bbox",
+                        "in": "query",
+                        "description": "Region of Interest defined by 'west, south, east, north' coordinates of longitude, latitude, in decimal degrees (EPSG:4326) - OpenSearch {geo:box}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "number"
+                            },
+                            "maxItems": 6,
+                            "minItems": 4
+                        }
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "[EXTENSION][egg] Location string e.g. Paris, France  or toponym identifier (i.e. geouid:xxxx) - OpenSearch {geo:name}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "lon",
+                        "in": "query",
+                        "description": "Longitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lat - OpenSearch {geo:lon}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "lat",
+                        "in": "query",
+                        "description": "Latitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lon - OpenSearch {geo:lat}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "radius",
+                        "in": "query",
+                        "description": "Radius expressed in meters - should be used with geo:lon and geo:lat - OpenSearch {geo:radius}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "datetime",
+                        "in": "query",
+                        "description": "Single date+time, or a range ('/' separator) of the search query. Format should follow RFC-3339 - OpenSearch {time:start}/{time:end}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^([0-9]{4})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\\.[0-9]+)?(([Zz])|([\\+|\\-]([01][0-9]|2[0-3]):[0-5][0-9]))$"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "in": "query",
+                        "description": "Beginning of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:start}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(|Z|[\\+\\-][0-9]{2}:[0-9]{2}))?$"
+                        }
+                    },
+                    {
+                        "name": "end",
+                        "in": "query",
+                        "description": "End of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:end}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(|Z|[\\+\\-][0-9]{2}:[0-9]{2}))?$"
+                        }
+                    },
+                    {
+                        "name": "created",
+                        "in": "query",
+                        "description": "Returns products with metadata creation date greater or equal than *created* - OpenSearch {dc:date}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(|Z|[\\+\\-][0-9]{2}:[0-9]{2}))?$"
+                        }
+                    },
+                    {
+                        "name": "prev",
+                        "in": "query",
+                        "description": "Returns features with *sort* key value greater than *prev* value - use this for pagination. The value is a unique iterator computed from the *sort* key value and provided within each feature properties as *sort_idx* property",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "next",
+                        "in": "query",
+                        "description": "Returns features with *sort* key value lower than *next* value - use this for pagination. The value is a unique iterator computed from the *sort* key value and provided within each feature properties as *sort_idx* property",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "pid",
+                        "in": "query",
+                        "description": "Like on product identifier",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "Sort results by property *startDate* or *created* (default *startDate*). Sorting order is DESCENDING (ASCENDING if property is prefixed by minus sign)",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "owner",
+                        "in": "query",
+                        "description": "Limit search to owner's features (i.e. resto user identifier as bigint)",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "likes",
+                        "in": "query",
+                        "description": "[EXTENSION][social] Limit search to number of likes (interval)",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "liked",
+                        "in": "query",
+                        "description": "[EXTENSION][social] Return only liked features from calling user",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Feature status (unusued)",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "productType",
+                        "in": "query",
+                        "description": "[MODEL][SatelliteModel] A string identifying the entry type (e.g. ER02_SAR_IM__0P, MER_RR__1P, SM_SLC__1S, GES_DISC_AIRH3STD_V005) - OpenSearch {eo:productType}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "processingLevel",
+                        "in": "query",
+                        "description": "[MODEL][SatelliteModel] A string identifying the processing level applied to the entry - OpenSearch {eo:processingLevel}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "platform",
+                        "in": "query",
+                        "description": "[MODEL][SatelliteModel] A string with the platform short name (e.g. Sentinel-1) - OpenSearch {eo:platform}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "instrument",
+                        "in": "query",
+                        "description": "[MODEL][SatelliteModel] A string identifying the instrument (e.g. MERIS, AATSR, ASAR, HRVIR. SAR) - OpenSearch {eo:instrument}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sensorType",
+                        "in": "query",
+                        "description": "[MODEL][SatelliteModel] A string identifying the sensor type. Suggested values are: OPTICAL, RADAR, ALTIMETRIC, ATMOSPHERIC, LIMB - OpenSearch {eo:sensorType}",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "cloudCover",
+                        "in": "query",
+                        "description": "[MODEL][OpticalModel] Cloud cover expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "snowCover",
+                        "in": "query",
+                        "description": "[MODEL][OpticalModel] Snow cover expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "waterCover",
+                        "in": "query",
+                        "description": "[MODEL][LandCoverModel] Water area expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "urbanCover",
+                        "in": "query",
+                        "description": "[MODEL][LandCoverModel] Urban area expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "iceCover",
+                        "in": "query",
+                        "description": "[MODEL][LandCoverModel] Ice area expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "herbaceousCover",
+                        "in": "query",
+                        "description": "[MODEL][LandCoverModel] Herbaceous area expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "forestCover",
+                        "in": "query",
+                        "description": "[MODEL][LandCoverModel] Forest area expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "floodedCover",
+                        "in": "query",
+                        "description": "[MODEL][LandCoverModel] Flooded area expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "desertCover",
+                        "in": "query",
+                        "description": "[MODEL][LandCoverModel] Desert area expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "cultivatedCover",
+                        "in": "query",
+                        "description": "[MODEL][LandCoverModel] Cultivated area expressed in percent",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "fields",
+                        "in": "query",
+                        "description": "Comma separated list of property fields to be returned. The following reserved keywords can also be used:\n* _all: Return all properties (This is the default)\n* _simple: Return all fields except *keywords* property",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "_heatmapNoGeo",
+                        "in": "query",
+                        "description": "[EXTENSION][Heatmap] True to compute search result heatmap without taking account geographical filter",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Features collection",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RestoFeatureCollection"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request (i.e. invalid parameter)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Collection not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api.{format}": {
             "get": {
                 "tags": [
@@ -5016,54 +5008,6 @@
                     "Attribution": "SnapPlanet - Copyright 2016, All Rights Reserved"
                 }
             },
-            "Statistics": {
-                "description": "Collection facets statistics",
-                "required": [
-                    "count",
-                    "facets"
-                ],
-                "properties": {
-                    "count": {
-                        "description": "Total number of features in the collection",
-                        "type": "integer"
-                    },
-                    "facets": {
-                        "description": "Statistics per facets"
-                    }
-                },
-                "type": "object",
-                "example": {
-                    "count": 5322724,
-                    "facets": {
-                        "continent": {
-                            "Africa": 671538,
-                            "Antarctica": 106337,
-                            "Asia": 747847,
-                            "Europe": 1992756,
-                            "North America": 1012027,
-                            "Oceania": 218789,
-                            "Seven seas (open ocean)": 9481,
-                            "South America": 313983
-                        },
-                        "instrument": {
-                            "HRS": 2,
-                            "MSI": 5322722
-                        },
-                        "platform": {
-                            "S2A": 3346319,
-                            "S2B": 1976403,
-                            "SPOT6": 1
-                        },
-                        "processingLevel": {
-                            "LEVEL1C": 5322722
-                        },
-                        "productType": {
-                            "PX": 2,
-                            "REFLECTANCE": 5322722
-                        }
-                    }
-                }
-            },
             "Provider": {
                 "description": "A provider is any of the organizations that captured or processed the content of the collection and therefore influenced the data offered by this collection",
                 "required": [
@@ -5918,6 +5862,57 @@
                     "followme": false
                 }
             },
+            "OutputGroup": {
+                "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "owner"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Unique group identifier - generated by resto during group creation",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Unique name of the group - free text",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "A description for this group",
+                        "type": "string"
+                    },
+                    "owner": {
+                        "description": "Owner of the group (i.e. resto user identifier as bigint)",
+                        "type": "integer"
+                    }
+                },
+                "type": "object",
+                "example": {
+                    "id": 100,
+                    "name": "My first group",
+                    "description": "Any user can create a group.",
+                    "owner": "1919730603616371731"
+                }
+            },
+            "Rights": {
+                "description": "A list of boolean rights",
+                "type": "object",
+                "example": {
+                    "createCollection": false,
+                    "deleteCollection": true,
+                    "updateCollection": true,
+                    "deleteAnyCollection": false,
+                    "updateAnyCollection": false,
+                    "createFeature": true,
+                    "updateFeature": true,
+                    "deleteFeature": true,
+                    "createAnyFeature": false,
+                    "deleteAnyFeature": false,
+                    "updateAnyFeature": false,
+                    "downloadFeature": false
+                }
+            },
             "Catalog": {
                 "required": [
                     "id",
@@ -6080,57 +6075,6 @@
                     "eo:bands": [
                         0
                     ]
-                }
-            },
-            "OutputGroup": {
-                "required": [
-                    "id",
-                    "name",
-                    "description",
-                    "owner"
-                ],
-                "properties": {
-                    "id": {
-                        "description": "Unique group identifier - generated by resto during group creation",
-                        "type": "integer"
-                    },
-                    "name": {
-                        "description": "Unique name of the group - free text",
-                        "type": "string"
-                    },
-                    "description": {
-                        "description": "A description for this group",
-                        "type": "string"
-                    },
-                    "owner": {
-                        "description": "Owner of the group (i.e. resto user identifier as bigint)",
-                        "type": "integer"
-                    }
-                },
-                "type": "object",
-                "example": {
-                    "id": 100,
-                    "name": "My first group",
-                    "description": "Any user can create a group.",
-                    "owner": "1919730603616371731"
-                }
-            },
-            "Rights": {
-                "description": "A list of boolean rights",
-                "type": "object",
-                "example": {
-                    "createCollection": false,
-                    "deleteCollection": true,
-                    "updateCollection": true,
-                    "deleteAnyCollection": false,
-                    "updateAnyCollection": false,
-                    "createFeature": true,
-                    "updateFeature": true,
-                    "deleteFeature": true,
-                    "createAnyFeature": false,
-                    "deleteAnyFeature": false,
-                    "updateAnyFeature": false,
-                    "downloadFeature": false
                 }
             },
             "GenericError": {
