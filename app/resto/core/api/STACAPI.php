@@ -1337,7 +1337,7 @@ class STACAPI
             'type' => 'Catalog',
             'links' => array_merge(
                 $this->getBaseLinks($segments),
-                $parentAndChilds['childs']
+                ( !empty($parentAndChilds['parent']['links']) ? array_merge($parentAndChilds['childs'], $parentAndChilds['parent']['links']) : $parentAndChilds['childs'] )
             )
         );
 
