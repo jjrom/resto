@@ -109,7 +109,7 @@
  *      )
  *  )
  */
-class STAC extends RestoAddOn
+class STACAPI
 {
     /**
      * Links
@@ -234,6 +234,9 @@ class STAC extends RestoAddOn
      */
     private $catalogsFunctions;
 
+    private $context;
+    private $user;
+    
     /**
      * Constructor
      *
@@ -242,8 +245,8 @@ class STAC extends RestoAddOn
      */
     public function __construct($context, $user)
     {
-        parent::__construct($context, $user);
-        $this->options['minMatch'] = isset($this->options['minMatch']) && is_int($this->options['minMatch']) ? $this->options['minMatch'] : 0;
+        $this->context = $context;
+        $this->user = $user;
         $this->catalogsFunctions = new CatalogsFunctions($this->context->dbDriver);
     }
 
@@ -273,14 +276,14 @@ class STAC extends RestoAddOn
         // This is /catalogs
         if ( !isset($params['segments']) ) {
             return array(
-                'stac_version' => STAC::STAC_VERSION,
+                'stac_version' => STACAPI::STAC_VERSION,
                 'id' => 'catalogs',
                 'type' => 'Catalog',
                 'title' => 'Catalogs',
                 'description' => 'List of available catalogs',
                 'links' => array_merge(
                     $this->getBaseLinks(),
-                    $this->getRootCatalogLinks($this->options['minMatch'])
+                    $this->getRootCatalogLinks($this->context->core['catalogMinMatch'])
                 )
             );
         }
@@ -356,7 +359,7 @@ class STAC extends RestoAddOn
          * Check mandatory properties
          */
         /*if ( isset($body['stac_version']) ) {
-            return RestoLogUtil::httpError(400, 'Missing mandatory catalog stac_version - should be set to ' . STAC::STAC_VERSION );
+            return RestoLogUtil::httpError(400, 'Missing mandatory catalog stac_version - should be set to ' . STACAPI::STAC_VERSION );
         }*/
         if ( !isset($body['id']) ) {
             return RestoLogUtil::httpError(400, 'Missing mandatory catalog id');
@@ -671,7 +674,7 @@ class STAC extends RestoAddOn
         // Initialize router to process each children individually
         $router = new RestoRouter($this->context, $this->user);
 
-        $links = $this->getRootCatalogLinks($this->options['minMatch']);
+        $links = $this->getRootCatalogLinks($this->context->core['catalogMinMatch']);
         for ($i = 0, $ii = count($links); $i < $ii; $i++) {
             if ($links[$i]['rel'] == 'child') {
                 try {
@@ -1327,7 +1330,7 @@ class STAC extends RestoAddOn
         // The path is the catalog identifier
         $parentAndChilds = $this->getParentAndChilds(join('/', $segments));
         return array(
-            'stac_version' => STAC::STAC_VERSION,
+            'stac_version' => STACAPI::STAC_VERSION,
             'id' => $segments[count($segments) -1 ],
             'title' => $parentAndChilds['parent']['title'] ?? '',
             'description' => $parentAndChilds['parent']['description'] ?? '',
@@ -1563,7 +1566,7 @@ class STAC extends RestoAddOn
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
 
             // Returns only catalogs with count >= minMath
-            if ($catalogs[$i]['counters']['total'] >= $this->options['minMatch']) {
+            if ($catalogs[$i]['counters']['total'] >= $this->context->core['catalogMinMatch']) {
                 $link = array(
                     'rel' => 'child',
                     'title' => $catalogs[$i]['title'],

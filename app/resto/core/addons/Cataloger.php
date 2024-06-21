@@ -420,7 +420,7 @@ class Cataloger extends RestoAddOn
          */
         $model = isset($collection) ? $collection->model : new DefaultModel();
         foreach (array_values($model->facetCategories) as $facetCategory) {
-            $catalogs = array_merge($catalogs, $this->catalogsFromFacets($properties, $facetCategory, $model));
+            $catalogs = array_merge($catalogs, $this->catalogsFromFacetCategory($properties, $facetCategory, $model));
         }
         
         /*
@@ -438,14 +438,14 @@ class Cataloger extends RestoAddOn
     }
 
     /**
-     * Process catalogs for facets
+     * Process catalogs from facet category
      *
      * @param array $properties
      * @param array $facetCategory
      * @param RestoModel $model
      * @return array
      */
-    private function catalogsFromFacets($properties, $facetCategory, $model)
+    private function catalogsFromFacetCategory($properties, $facetCategory, $model)
     {
         $parentId = null;
         $catalogs = array();

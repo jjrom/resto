@@ -72,17 +72,6 @@ class CollectionsAPI
      *                   )
      *              ),
      *              @OA\Property(
-     *                  property="summaries",
-     *                  type="object",
-     *                  @OA\JsonContent(
-     *                      @OA\Property(
-     *                          property="resto:stats",
-     *                          type="object",
-     *                          ref="#/components/schemas/Statistics"
-     *                      )
-     *                  )
-     *              ),
-     *              @OA\Property(
      *                  property="collections",
      *                  description="List of available collections",
      *                  type="array",
@@ -111,16 +100,6 @@ class CollectionsAPI
      *                              }
      *                          },
      *                          "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"
-     *                      }
-     *                  },
-     *                  "summaries": {
-     *                      "resto:stats": {
-     *                          "count": 11310,
-     *                          "facets": {
-     *                              "collection": {
-     *                                  "L8": 11307
-     *                              }
-     *                          }
      *                      }
      *                  },
      *                  "resto:info": {

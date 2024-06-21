@@ -692,80 +692,7 @@ class RestoCollection
     public $osDescription = null;
 
     /**
-     * Statistics
-     *
-     * @OA\Schema(
-     *      schema="Statistics",
-     *      description="Collection facets statistics",
-     *      required={"count", "facets"},
-     *      @OA\Property(
-     *          property="count",
-     *          type="integer",
-     *          description="Total number of features in the collection"
-     *      ),
-     *      @OA\Property(
-     *          property="facets",
-     *          description="Statistics per facets",
-     *          @OA\JsonContent(
-     *              @OA\Property(
-     *                  property="continent",
-     *                  type="array",
-     *                  description="Number of features in the collection per continent"
-     *              ),
-     *              @OA\Property(
-     *                  property="instrument",
-     *                  type="array",
-     *                  description="Number of features in the collection per instrument"
-     *              ),
-     *              @OA\Property(
-     *                  property="platform",
-     *                  type="array",
-     *                  description="Number of features in the collection per platform"
-     *              ),
-     *              @OA\Property(
-     *                  property="processingLevel",
-     *                  type="array",
-     *                  description="Number of features in the collection per processing level"
-     *              ),
-     *              @OA\Property(
-     *                  property="productType",
-     *                  type="array",
-     *                  description="Number of features in the collection per product Type"
-     *              )
-     *          )
-     *      ),
-     *      example={
-     *          "count": 5322724,
-     *          "facets": {
-     *              "continent": {
-     *                  "Africa": 671538,
-     *                  "Antarctica": 106337,
-     *                  "Asia": 747847,
-     *                  "Europe": 1992756,
-     *                  "North America": 1012027,
-     *                  "Oceania": 218789,
-     *                  "Seven seas (open ocean)": 9481,
-     *                  "South America": 313983
-     *              },
-     *              "instrument": {
-     *                  "HRS": 2,
-     *                  "MSI": 5322722
-     *              },
-     *              "platform": {
-     *                  "S2A": 3346319,
-     *                  "S2B": 1976403,
-     *                  "SPOT6": 1
-     *              },
-     *              "processingLevel": {
-     *                  "LEVEL1C": 5322722
-     *              },
-     *              "productType": {
-     *                  "PX": 2,
-     *                  "REFLECTANCE": 5322722
-     *              }
-     *          }
-     *      }
-     * )
+     * Summaries
      */
     private $summaries = null;
     
@@ -993,7 +920,7 @@ class RestoCollection
         $osDescription = $this->osDescription[$this->context->lang] ?? $this->osDescription['en'];
 
         $collectionArray = array(
-            'stac_version' => STAC::STAC_VERSION,
+            'stac_version' => STACAPI::STAC_VERSION,
             'stac_extensions' => $this->model->stacExtensions,
             'id' => $this->id,
             'type' => 'Collection',

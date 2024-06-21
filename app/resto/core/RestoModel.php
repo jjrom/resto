@@ -134,7 +134,7 @@ abstract class RestoModel
      *              ...
      *          )
      *      2. 'auto'
-     *         In this case will be computed from facets table
+     *         In this case will be computed from catalog table
      */
     public $searchFilters = array(
 
