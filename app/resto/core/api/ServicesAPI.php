@@ -241,7 +241,7 @@ class ServicesAPI
                     'roles' => array('collections')
                 ),
                 array(
-                    'rel' => 'catalogs',
+                    'rel' => 'child',
                     'type' => RestoUtil::$contentTypes['json'],
                     'title' => 'Catalogs',
                     'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS
