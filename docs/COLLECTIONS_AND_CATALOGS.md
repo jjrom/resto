@@ -40,6 +40,8 @@ Then get the feature :
 
 *Note: Any user with the "createFeature" right can insert a feature to a collection he owns ([see rights](./USERS.md))*
 
+        curl -X POST -d@examples/features/dummySargasse.json "http://admin:admin@localhost:5252/collections/S2/items"
+
 ## Catalogs
 
 ### Create a catalog
