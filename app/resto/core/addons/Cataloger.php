@@ -206,6 +206,15 @@ class Cataloger extends RestoAddOn
                     }
                     break;
 
+                case 'physical':
+                    $catalogs[] = array(
+                        'id' => 'physical',
+                        'title' => 'Physical',
+                        'description' => 'Automatic physical classification processed by [iTag](https://github.com/jjrom/itag)'
+                    );
+                    $catalogs = array_merge($catalogs, $this->getCatalogsFromPhysical($value, 'physical'));
+                    break;
+
                 case 'landcover':
                     $catalogs[] = array(
                         'id' => 'landcover',
@@ -315,6 +324,37 @@ class Cataloger extends RestoAddOn
     }
 
     /**
+     * Get physical catalogs
+     *
+     * @param array $physicals
+     * @param string $parentId
+     */
+    private function getCatalogsFromPhysical($physicals, $parentId)
+    {
+        $catalogs = array();
+
+        /*
+         * Main landcover
+         */
+        for ($i = 0, $ii=count($physicals); $i < $ii; $i++) {
+            $exploded = explode(RestoConstants::TAG_SEPARATOR, $physicals[$i]['id']);
+            $type = $exploded[0];
+            $id = $parentId . '/' . $type . 's';
+            if ( !$this->alreadyExists($catalogs, $type) ) {
+                $catalogs[] = array(
+                    'id' => $id,
+                    'title' => ucfirst($type) . 's',
+                    'description' => 'Automatic ' . $type .  ' classification processed by [iTag](https://github.com/jjrom/itag)',
+                    'rtype' => $type
+                );
+            }
+            $catalogs[] = $this->getCatalogFromGeneric($physicals[$i], $id);
+        }
+
+        return $catalogs;
+    }
+
+    /**
      * Get generic keywords
      *
      * @param array $properties
@@ -365,6 +405,7 @@ class Cataloger extends RestoAddOn
         $catalog = array(
             'id' => (isset($parentId) ? $parentId : '') . '/' . $exploded[1],
             'title' => $property['name'] ?? $exploded[1],
+            'description' => 'Catalog of features for ' . ($property['name'] ?? $exploded[1]),
             'rtype' => $exploded[0],
             'hashtag' => $property['id']
         );

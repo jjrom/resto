@@ -282,11 +282,10 @@ class CatalogsFunctions
      *
      * @param array $catalogs
      * @param string $userid
-     * @param string $baseUrl
      * @param RestoCollection $collection
      * @param string $featureId
      */
-    public function storeCatalogs($catalogs, $userid, $baseUrl, $collection, $featureId)
+    public function storeCatalogs($catalogs, $userid, $collection, $featureId)
     {
         // Empty catalogs - do nothing
         if (!isset($catalogs) || count($catalogs) === 0) {
@@ -300,7 +299,7 @@ class CatalogsFunctions
             $baseUrl = $collection->context->core['baseUrl'];
         }
         for ($i = count($catalogs); $i--;) {
-            $this->storeCatalog($catalog, $userid, $baseUrl, $collectionId, $featureId);
+            $this->storeCatalog($catalogs[$i], $userid, $baseUrl, $collectionId, $featureId);
         }
 
         return $catalogs;
