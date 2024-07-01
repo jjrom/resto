@@ -431,9 +431,6 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog (
     -- Number of levels for this catalog
     level              INTEGER,
 
-    -- Number of items within this catalog
-    counter             INTEGER,
-
     -- Number of items within this catalog (total and per collection)
     counters            JSON,
 
