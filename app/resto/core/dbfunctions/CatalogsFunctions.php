@@ -671,15 +671,11 @@ class CatalogsFunctions
                 continue;
             }
             
-            if ( in_array($link['rel'], array('item', 'items')) ) {
-                return RestoLogUtil::httpError(400, 'Catalog cannot contains item or items rel');
-            }
-
-            if ( $link['rel'] === 'child') {
+            if ( in_array($link['rel'], array('child', 'item', 'items')) ) {
                 if ( !isset($link['href']) ) {
                     return RestoLogUtil::httpError(400, 'One link child has an empty href');    
                 }
-                if (str_starts_with($link['href'], $baseUrl . RestoRouter::ROUTE_TO_COLLECTIONS )) {
+                if (in_array($link['rel'], array('item', 'items')) || str_starts_with($link['href'], $baseUrl . RestoRouter::ROUTE_TO_COLLECTIONS )) {
                     $output['links'][] = $link;
                     continue;
                 }

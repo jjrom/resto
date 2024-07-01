@@ -470,7 +470,7 @@ class STACAPI
             return RestoLogUtil::httpError(403);
         }
 
-        $updatable = array('title', 'description', 'owner');
+        $updatable = array('title', 'description', 'owner', 'links');
         for ($i = count($updatable); $i--;) {
             if ( isset($body[$updatable[$i]]) ) {
                 $catalogs[0][$updatable[$i]] = $body[$updatable[$i]];
