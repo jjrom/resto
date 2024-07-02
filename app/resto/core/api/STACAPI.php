@@ -1331,7 +1331,7 @@ class STACAPI
         $parentAndChilds = $this->getParentAndChilds(join('/', $segments));
         return array(
             'stac_version' => STACAPI::STAC_VERSION,
-            'id' => $segments[count($segments) -1 ],
+            'id' => join('/', $segments),
             'title' => $parentAndChilds['parent']['title'] ?? '',
             'description' => $parentAndChilds['parent']['description'] ?? '',
             'type' => 'Catalog',
