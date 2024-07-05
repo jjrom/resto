@@ -689,7 +689,7 @@ class CatalogsFunctions
                 }
                 
                 if ($childCatalog['level'] === 1 && $childCatalog['owner'] === $userid) {
-                    $output['updateCatalogs'][] = $childCatalog;
+                    array_push($output['updateCatalogs'], ...$this->getCatalogs(array('id' => $childCatalog['id']), true));
                 }
                 else {
                     $output['links'][] = $link;
