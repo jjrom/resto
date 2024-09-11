@@ -917,12 +917,11 @@ class FeaturesAPI
             RestoLogUtil::httpError(403);
         }
 
-        // Result contains boolean for facetsDeleted
         $result = (new FeaturesFunctions($this->context->dbDriver))->removeFeature($feature);
 
         return RestoLogUtil::success('Feature deleted', array(
             'featureId' => $feature->id,
-            'facetsDeleted' => $result['facetsDeleted']
+            'catalogsUpdated' => $result['catalogsUpdated']
         ));
     }
 }

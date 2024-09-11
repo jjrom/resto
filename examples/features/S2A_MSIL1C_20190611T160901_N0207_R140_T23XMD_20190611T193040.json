@@ -51,6 +51,7 @@
         ]
     },
     "properties": {
+        "description": "This is to show that description can contains hashtags #example1 #example2. Hashtags are extracted and converted into catalogs.",
         "authority": "ESA",
         "startDate": "2019-06-11T16:11:41.808Z",
         "productType": "REFLECTANCE",
@@ -68,7 +69,14 @@
         "view:sun_elevation": 52.7900601006242,
         "view:sun_azimuth": 199.076369728221,
         "view:incidence_angle": 7.67887190207369,
-        "view:azimuth": 312.400523076109
+        "view:azimuth": 312.400523076109,
+        "resto:catalogs":[
+            {
+                "id":"S2TestCatalog",
+                "title":"S2TestCatalog",
+                "description":"This is a test catalog defined within a feature - during feature ingestion, this catalog should be created within resto and the feature associated to it"
+            }
+        ]
     },
     "assets": {
         "thumbnail": {

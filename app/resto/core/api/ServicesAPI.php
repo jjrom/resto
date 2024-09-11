@@ -181,83 +181,91 @@ class ServicesAPI
     public function hello()
     {
         
-        $minMatch = isset($this->context->addons['STAC']['options']['minMatch']) && is_int($this->context->addons['STAC']['options']['minMatch']) ? $this->context->addons['STAC']['options']['minMatch'] : 0;
-       
         return array(
-            'stac_version' => STAC::STAC_VERSION,
-            'id' => 'catalogs',
+            'stac_version' => STACAPI::STAC_VERSION,
+            'id' => 'root',
             'type' => 'Catalog',
             'title' => $this->title,
             'description' => $this->description,
             'capabilities' => array_merge(array('resto-core'), array_map('strtolower', array_keys($this->context->addons))),
             'resto:version' => RestoConstants::VERSION,
             'ssys:targets' => array($this->context->core['planet']),
-            'links' => array_merge(
+            'links' => array(
                 array(
-                    array(
-                        'rel' => 'self',
-                        'type' => RestoUtil::$contentTypes['json'],
-                        'title' => $this->title,
-                        'href' => $this->context->core['baseUrl']
-                    ),
-                    array(
-                        'rel' => 'service-desc',
-                        'type' => RestoUtil::$contentTypes['openapi+json'],
-                        'title' => 'OpenAPI 3.0 definition endpoint',
-                        'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_API,
-                    ),
-                    array(
-                        'rel' => 'service-doc',
-                        'type' => RestoUtil::$contentTypes['html'],
-                        'title' => 'OpenAPI 3.0 definition endpoint documentation',
-                        'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_API . '.html'
-                    ),
-                    array(
-                        'rel' => 'conformance',
-                        'type' => RestoUtil::$contentTypes['json'],
-                        'title' => 'Conformance declaration',
-                        'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_CONFORMANCE
-                    ),
-                    array(
-                        'rel' => 'children',
-                        'type' => RestoUtil::$contentTypes['json'],
-                        'title' => 'Children',
-                        'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_STAC_CHILDREN
-                    ),
-                    array(
-                        'rel' => 'http://www.opengis.net/def/rel/ogc/1.0/queryables',
-                        'type' => RestoUtil::$contentTypes['jsonschema'],
-                        'title' => 'Queryables',
-                        'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_STAC_QUERYABLES
-                    ),
-                    array(
-                        'rel' => 'data',
-                        'type' => RestoUtil::$contentTypes['json'],
-                        'title' => 'Collections',
-                        'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_COLLECTIONS
-                    ),
-                    array(
-                        'rel' => 'root',
-                        'type' => RestoUtil::$contentTypes['json'],
-                        'title' => getenv('API_INFO_TITLE'),
-                        'href' => $this->context->core['baseUrl']
-                    ),
-                    array(
-                        'rel' => 'search',
-                        'type' => RestoUtil::$contentTypes['geojson'],
-                        'title' => 'STAC search endpoint (GET)',
-                        'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_STAC_SEARCH,
-                        'method' => 'GET'
-                    ),
-                    array(
-                        'rel' => 'search',
-                        'type' => RestoUtil::$contentTypes['geojson'],
-                        'title' => 'STAC search endpoint (POST)',
-                        'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_STAC_SEARCH,
-                        'method' => 'POST'
-                    )
+                    'rel' => 'self',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'title' => $this->title,
+                    'href' => $this->context->core['baseUrl']
                 ),
-                (new STACUtil($this->context, $this->user))->getRootCatalogLinks($minMatch)
+                array(
+                    'rel' => 'service-desc',
+                    'type' => RestoUtil::$contentTypes['openapi+json'],
+                    'title' => 'OpenAPI 3.0 definition endpoint',
+                    'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_API,
+                ),
+                array(
+                    'rel' => 'service-doc',
+                    'type' => RestoUtil::$contentTypes['html'],
+                    'title' => 'OpenAPI 3.0 definition endpoint documentation',
+                    'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_API . '.html'
+                ),
+                array(
+                    'rel' => 'conformance',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'title' => 'Conformance declaration',
+                    'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_CONFORMANCE
+                ),
+                array(
+                    'rel' => 'children',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'title' => 'Children',
+                    'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_STAC_CHILDREN
+                ),
+                array(
+                    'rel' => 'http://www.opengis.net/def/rel/ogc/1.0/queryables',
+                    'type' => RestoUtil::$contentTypes['jsonschema'],
+                    'title' => 'Queryables',
+                    'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_STAC_QUERYABLES
+                ),
+                array(
+                    'rel' => 'data',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'title' => 'Collections',
+                    'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_COLLECTIONS
+                ),
+                array(
+                    'rel' => 'child',
+                    'title' => 'Collections',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_COLLECTIONS,
+                    'roles' => array('collections')
+                ),
+                array(
+                    'rel' => 'child',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'title' => 'Catalogs',
+                    'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS
+                ),
+                array(
+                    'rel' => 'root',
+                    'type' => RestoUtil::$contentTypes['json'],
+                    'title' => getenv('API_INFO_TITLE'),
+                    'href' => $this->context->core['baseUrl']
+                ),
+                array(
+                    'rel' => 'search',
+                    'type' => RestoUtil::$contentTypes['geojson'],
+                    'title' => 'STAC search endpoint (GET)',
+                    'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_STAC_SEARCH,
+                    'method' => 'GET'
+                ),
+                array(
+                    'rel' => 'search',
+                    'type' => RestoUtil::$contentTypes['geojson'],
+                    'title' => 'STAC search endpoint (POST)',
+                    'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_STAC_SEARCH,
+                    'method' => 'POST'
+                )   
             ),
             'conformsTo' => $this->conformsTo()
         );
@@ -503,6 +511,6 @@ class ServicesAPI
      */
     private function conformsTo()
     {
-        return STAC::CONFORMANCE_CLASSES;
+        return STACAPI::CONFORMANCE_CLASSES;
     }
 }

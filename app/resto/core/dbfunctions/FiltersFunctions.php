@@ -47,8 +47,6 @@ class FiltersFunctions
 
     private $model;
 
-    private $tablePrefix;
-
     /**
      * Constructor
      *
@@ -61,7 +59,6 @@ class FiltersFunctions
         $this->context = $context;
         $this->user = $user;
         $this->model = $model;
-        $this->tablePrefix = $this->context->dbDriver->targetSchema . '.' . $this->model->dbParams['tablePrefix'];
     }
     
     /**
@@ -79,7 +76,7 @@ class FiltersFunctions
         /**
          * Append filter for contextual search
          */
-        $filterCS = $this->prepareFilterQueryContextualSearch($this->tablePrefix . 'feature');
+        $filterCS = $this->prepareFilterQueryContextualSearch($this->context->dbDriver->targetSchema . '.feature');
         if (isset($filterCS) && $filterCS !== '') {
             $filters[] = $filterCS;
         }
@@ -100,7 +97,7 @@ class FiltersFunctions
                  * Sorting special case
                  */
                 if (!empty($sortKey) && ($filterName === 'resto:lt' || $filterName === 'resto:gt')) {
-                    $sortFilters[] =   $this->optimizeNotEqual($paramsWithOperation[$filterName]['operation'], $this->tablePrefix . 'feature.' . $sortKey, '\'' . pg_escape_string($this->context->dbDriver->getConnection(), $paramsWithOperation[$filterName]['value']) . '\'');
+                    $sortFilters[] = $this->optimizeNotEqual($paramsWithOperation[$filterName]['operation'], $this->context->dbDriver->targetSchema . '.feature.' . $sortKey, '\'' . pg_escape_string($this->context->dbDriver->getConnection(), $paramsWithOperation[$filterName]['value']) . '\'');
                 }
 
                 /*
@@ -113,7 +110,7 @@ class FiltersFunctions
                          */
                         if ($paramsWithOperation[$filterName]['value'] === 'f') {
                             $filters[] = array(
-                                'value' => $this->tablePrefix . 'feature.' . $this->model->searchFilters[$filterName]['key'] . ' IN (SELECT userid FROM ' . $this->context->dbDriver->commonSchema . '.follower WHERE followerid=' . pg_escape_string($this->context->dbDriver->getConnection(), $this->user->profile['id']) .  ')',
+                                'value' => $this->context->dbDriver->targetSchema . '.feature.' . $this->model->searchFilters[$filterName]['key'] . ' IN (SELECT userid FROM ' . $this->context->dbDriver->commonSchema . '.follower WHERE followerid=' . pg_escape_string($this->context->dbDriver->getConnection(), $this->user->profile['id']) .  ')',
                                 'isGeo' => false
                             );
                         }
@@ -122,7 +119,7 @@ class FiltersFunctions
                          */
                         elseif ($paramsWithOperation[$filterName]['value'] === 'F') {
                             $filters[] = array(
-                                'value' => '(' . $this->tablePrefix . 'feature.' . $this->model->searchFilters[$filterName]['key'] . '=' . pg_escape_string($this->context->dbDriver->getConnection(), $this->user->profile['id']) . ' OR ' . $this->tablePrefix . 'feature.' . $this->model->searchFilters[$filterName]['key'] . ' IN (SELECT userid FROM ' . $this->context->dbDriver->commonSchema . '.follower WHERE followerid=' . pg_escape_string($this->context->dbDriver->getConnection(), $this->user->profile['id']) .  '))',
+                                'value' => '(' . $this->context->dbDriver->targetSchema . '.feature.' . $this->model->searchFilters[$filterName]['key'] . '=' . pg_escape_string($this->context->dbDriver->getConnection(), $this->user->profile['id']) . ' OR ' . $this->context->dbDriver->targetSchema . '.feature.' . $this->model->searchFilters[$filterName]['key'] . ' IN (SELECT userid FROM ' . $this->context->dbDriver->commonSchema . '.follower WHERE followerid=' . pg_escape_string($this->context->dbDriver->getConnection(), $this->user->profile['id']) .  '))',
                                 'isGeo' => false
                             );
                         } else {
@@ -226,7 +223,7 @@ class FiltersFunctions
      */
     private function prepareFilterQuery($paramsWithOperation, $filterName)
     {
-        $featureTableName = $this->tablePrefix . 'feature';
+        $featureTableName = $this->context->dbDriver->targetSchema . '.feature';
         $exclusion = isset($paramsWithOperation[$filterName]['not']) && $paramsWithOperation[$filterName]['not'] ? true : false;
 
         /*
@@ -666,12 +663,12 @@ class FiltersFunctions
     {
         for ($i = count($this->model->tables); $i--;) {
             if (in_array(strtolower($this->model->searchFilters[$filterName]['key']), $this->model->tables[$i]['columns'])) {
-                $this->joins[] = 'JOIN ' . $this->tablePrefix . $this->model->tables[$i]['name'] . ' ON ' . $this->tablePrefix . 'feature.id=' . $this->tablePrefix . $this->model->tables[$i]['name'] . '.id';
-                return $this->tablePrefix . $this->model->tables[$i]['name'];
+                $this->joins[] = 'JOIN ' . $this->context->dbDriver->targetSchema . '.' . $this->model->tables[$i]['name'] . ' ON ' . $this->context->dbDriver->targetSchema . '.feature.id=' .$this->context->dbDriver->targetSchema . '.' . $this->model->tables[$i]['name'] . '.id';
+                return $this->context->dbDriver->targetSchema . '.' . $this->model->tables[$i]['name'];
             }
         }
         
-        return $this->tablePrefix . 'feature';
+        return $this->context->dbDriver->targetSchema . '.feature';
     }
 
     /**
@@ -684,11 +681,11 @@ class FiltersFunctions
     private function getGeometryTableName()
     {
         if ($this->context->dbDriver->useGeometryPart) {
-            $this->joins[] = 'JOIN ' . $this->tablePrefix . 'geometry_part ON ' . $this->tablePrefix . 'feature.id=' . $this->tablePrefix . 'geometry_part.id';
-            return $this->tablePrefix . 'geometry_part';
+            $this->joins[] = 'JOIN ' . $this->context->dbDriver->targetSchema . '.geometry_part ON ' . $this->context->dbDriver->targetSchema . '.feature.id=' . $this->context->dbDriver->targetSchema . '.geometry_part.id';
+            return $this->context->dbDriver->targetSchema . '.geometry_part';
         }
 
-        return $this->tablePrefix . 'feature';
+        return $this->context->dbDriver->targetSchema . '.feature';
     }
 
     /**

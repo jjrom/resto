@@ -72,7 +72,7 @@ class CollectionsFunctions
     }
 
     /**
-     * Get description of all collections including facets
+     * Get description of all collections
      *
      * @param array $params
      * @return array
@@ -567,7 +567,7 @@ class CollectionsFunctions
      */
     private function collectionIsEmpty($collection)
     {
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT count(id) as count FROM ' . $this->dbDriver->targetSchema . '.' . $collection->model->dbParams['tablePrefix'] . 'feature WHERE collection=$1 LIMIT 1', array($collection->id)));
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT count(id) as count FROM ' . $this->dbDriver->targetSchema . '.feature WHERE collection=$1 LIMIT 1', array($collection->id)));
         if ($results[0]['count'] === '0') {
             return true;
         }

@@ -11,7 +11,7 @@ return array(
         'endpoint' => '${STORAGE_PUBLIC_ENDPOINT:-/static}'
     ),
     'storeQuery' => ${STORE_QUERY:-false},
-    'mergeRootCatalogLinks' => ${MERGE_ROOT_CATALOG_LINKS:-false},
+    'catalogMinMatch' => ${CATALOG_MINMATCH:-0},
     'timezone' => '${TIMEZONE:-Europe/Paris}',
     'tokenDuration' => ${JWT_DURATION:-8640000},
     'userAutoValidation' => ${USER_AUTOVALIDATION:-true},
@@ -88,12 +88,7 @@ return array(
         )
     ),
     'addons' => array(
-        'STAC' => array(
-            'options' => array(
-                'minMatch' => ${ADDON_STAC_MINMATCH:-0}
-            )
-        ),
-        'Tag' => array(
+        'Cataloger' => array(
             'options' => array(
                 'iTag' => array(
                     'endpoint' => '${ADDON_TAG_ITAG_ENDPOINT}',

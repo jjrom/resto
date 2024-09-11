@@ -7,15 +7,15 @@
     "links":[
         {
             "rel":"child",
-            "href":"http://host.docker.internal:5252/catalogs/catalogs/catalog:dummyCatalogChild1"
+            "href":"http://127.0.0.1:5252/catalogs/dummyCatalogChild1"
         },
         {
             "rel":"child",
-            "href":"http://host.docker.internal:5252/catalogs/catalogs/catalog:dummyCatalogChild2"
+            "href":"http://127.0.0.1:5252/catalogs/dummyCatalogChild2"
         },
         {
             "rel":"child",
-            "href":"http://host.docker.internal:5252/collections/S2"
+            "href":"http://127.0.0.1:5252/collections/S2"
         }
     ]
 }
