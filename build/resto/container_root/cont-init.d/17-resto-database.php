@@ -25,7 +25,12 @@
     $sqlFiles = glob('/resto-database-model/*.sql');
     for ($i = 0, $ii = count($sqlFiles); $i < $ii; $i++) {
         $dbDriver->query(str_replace($replace, $with, file_get_contents($sqlFiles[$i])));
-    }   
+    }
+
+    // Create trigger for geometry_part
+    if ( isset($config['database']['useGeometryPart']) && $config['database']['useGeometryPart'] ) {
+        $dbDriver->query(str_replace($replace, $with, 'CREATE TRIGGER update_geometry_part AFTER INSERT ON __DATABASE_TARGET_SCHEMA__.feature FOR EACH ROW EXECUTE PROCEDURE __DATABASE_TARGET_SCHEMA__.trigger_store_geometry_part();'));
+    }
 
     // Handle migrations scripts
     $sqlFiles = glob('/resto-database-model/migrations/*.sql');

@@ -56,7 +56,7 @@
         "productType": "REFLECTANCE",
         "processingLevel": "LEVEL1C",
         "platform": "S2A",
-        "instrument": "MSI",
+        "instrument": "MSI_CHANGED",
         "tileId": "23XMD",
         "dataTakeId": "GS2A_20190611T160901_020729_N02.07",
         "eo:cloud_cover": 54.76,
@@ -124,6 +124,10 @@
             "roles": [
                 "metadata"
             ]
+        },
+        "wmts_test" : {
+            "href": "https://wmts.marine.copernicus.eu/teroWmts/GLOBAL_ANALYSISFORECAST_PHY_001_024/cmems_mod_glo_phy-thetao_anfc_0.083deg_P1D-m_202211",
+            "type": "OGC:WMTS"
         }
     }
 }

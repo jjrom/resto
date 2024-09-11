@@ -32,13 +32,15 @@ To ingest a feature using the default **ADMIN_USER_NAME** and **ADMIN_USER_PASSW
         curl -X POST -d@examples/features/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040.json "http://admin:admin@localhost:5252/collections/S2/items"
 
         # Update a dummy feature inside the S2 collection
-        curl -X PUT -d@examples/features/testUpdate.json "http://admin:admin@localhost:5252/collections/S2/items/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040"
+        curl -X PUT -d@examples/features/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040_update.json "http://admin:admin@localhost:5252/collections/S2/items/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040"
 
 Then get the feature :
 
         curl "http://localhost:5252/collections/S2/items/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040"
 
 *Note: Any user with the "createFeature" right can insert a feature to a collection he owns ([see rights](./USERS.md))*
+
+        curl -X POST -d@examples/features/dummySargasse.json "http://admin:admin@localhost:5252/collections/S2/items"
 
 ## Catalogs
 
@@ -62,9 +64,9 @@ Then get the feature :
 Only "title", "description" and "owner" properties can be updated
 
         # Update a catalog - user with the "updateCatalog" right can update a catalog he owns
-        curl -X PUT -d@examples/catalogs/dummyCatalog_update.json "http://admin:admin@localhost:5252/catalogs/catalogs/catalog:dummyCatalog"
+        curl -X PUT -d@examples/catalogs/dummyCatalog_update.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog"
 
 ### Delete a catalog
 
         # Delete a catalog - user with the "deleteCatalog" right can delete a catalog he owns
-        curl -X DELETE "http://admin:admin@localhost:5252/catalogs/catalogs/catalog:dummyCatalog"
+        curl -X DELETE "http://admin:admin@localhost:5252/catalogs/dummyCatalog"

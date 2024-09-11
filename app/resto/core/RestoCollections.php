@@ -233,7 +233,7 @@ class RestoCollections
     public function toArray()
     {
         $collections = array(
-            'stac_version' => STAC::STAC_VERSION,
+            'stac_version' => STACAPI::STAC_VERSION,
             'id' => $this->context->osDescription['ShortName'],
             'type' => 'Catalog',
             'title' => $this->context->osDescription['LongName'] ?? $this->context->osDescription['ShortName'],
@@ -327,7 +327,7 @@ class RestoCollections
     public function getSummaries()
     {
         if ( !isset($this->summaries) ) {
-            $this->summaries = (new FacetsFunctions($this->context->dbDriver))->getSummaries(null, null);
+            $this->summaries = (new CatalogsFunctions($this->context->dbDriver))->getSummaries(null, null);
         }
         return $this->summaries;
     }

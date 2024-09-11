@@ -47,15 +47,11 @@ class RestoContext
         // Shared links validity duration (in seconds)
         'sharedLinkDuration' => 86400,
 
-        // True to store count statistics for each POST,PUT,DELETE on features
-        'storeFacets' => true,
-
         // True to store all user queries to database
         'storeQuery' => false,
 
-        // True to display "catalogs" and "facets" childs directly within the STAC root endpoint
-        // instead of having them under respectively "catalogs" and "facets" parents
-        'mergeRootCatalogLinks' => false,
+        // Display catalog that have at least 'catalogMinMatch' object
+        'catalogMinMatch' => 0,
 
         // Use cache
         'useCache' => false,

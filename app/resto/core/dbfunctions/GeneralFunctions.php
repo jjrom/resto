@@ -51,38 +51,6 @@ class GeneralFunctions
     }
 
     /**
-     *
-     * Return keywords from database
-     *
-     * @param string $language : ISO A2 language code
-     *
-     * @return array
-     * @throws Exception
-     */
-    public function getKeywords($language = 'en', $types = array())
-    {
-        $keywords = array();
-        $results = $this->dbDriver->query('SELECT name, public.normalize(name) as normalized, type, value, location FROM ' . $this->dbDriver->commonSchema . '.keyword WHERE ' . 'lang IN(\'' . pg_escape_string($this->dbDriver->getConnection(), $language) . '\', \'**\')' . (count($types) > 0 ? ' AND type IN(' . join(',', $types) . ')' : ''));
-        while ($result = pg_fetch_assoc($results)) {
-            if (!isset($keywords[$result['type']])) {
-                $keywords[$result['type']] = array();
-            }
-            $keywords[$result['type']][$result['normalized']] = array(
-                'name' => $result['name'],
-                'value' => $result['value']
-            );
-            if (isset($result['location'])) {
-                list($isoa2, $bbox) = explode(RestoConstants::TAG_SEPARATOR, $result['location']);
-                $keywords[$result['type']][$result['normalized']]['bbox'] = $bbox;
-                $keywords[$result['type']][$result['normalized']]['isoa2'] = $isoa2;
-            }
-        }
-
-        return array('keywords' => $keywords);
-    }
-
-
-    /**
      * Returns shared link initiator email if resource is shared (checked with proof)
      * Returns false otherwise
      *
