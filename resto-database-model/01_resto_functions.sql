@@ -74,6 +74,7 @@ LANGUAGE sql IMMUTABLE;
 -- This function will return input text
 -- in lower case, without accents and with space, and characaters ",:-`´‘’_" replaced by separator
 --
+DROP FUNCTION IF EXISTS public.normalize(TEXT);
 CREATE OR REPLACE FUNCTION public.normalize(input text, separator text DEFAULT '') 
 RETURNS text AS $$
 BEGIN

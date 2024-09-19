@@ -215,6 +215,12 @@ class RestoCollections
                 $collection = $this->context->keeper->getRestoCollection($collectionId, $this->user);
                 foreach ($collectionsDesc[$collectionId] as $key => $value) {
                     $collection->$key = $key === 'model' ? new $value() : $value;
+                    if ($key === 'model') {
+                        $collection->$key = class_exists($value) ? new $value() : new DefaultModel(); 
+                    }
+                    else {
+                        $collection->$key = $value;
+                    }
                 }
                 $this->collections[$collectionId] = $collection;
                 $this->updateExtent($collection);

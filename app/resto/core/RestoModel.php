@@ -379,7 +379,7 @@ abstract class RestoModel
         $this->options = $options;
 
         if (isset($this->options['addons']['Social'])) {
-            $this->searchFilters = array_merge($this->searchFilters, SocialAPI::$searchFilters);
+            $this->searchFilters = array_merge($this->searchFilters, Social::$searchFilters);
         }
     }
 
