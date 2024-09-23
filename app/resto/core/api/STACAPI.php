@@ -683,7 +683,7 @@ class STACAPI
                     continue;
                 }
                 if (isset($response)) {
-                    $childs[] = $response->toArray();
+                    $childs[] = $response;
                 }
             }
         }
