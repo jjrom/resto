@@ -112,7 +112,7 @@ class RestoQueryAnalyzer
                  * Special gazetteer hashtags - if found, the first is converted to geouid
                  * A gazetteer hashtag format is type:name:geouid
                  */
-                if (!isset($params['geo:name'])) {
+                if (!isset($params['geo:name']) && isset($this->gazetteer) ) {
                     for ($i = 0, $ii = $nbOfHashtags; $i < $ii; $i++) {
                         $splitted = explode(RestoConstants::TAG_SEPARATOR, $hashtags[$i]);
                         if (count($splitted) === 3 && is_numeric($splitted[2])) {

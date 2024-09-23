@@ -30,6 +30,7 @@ class RestoUtil
         'geojson' => 'application/geo+json',
         'geopackage' => 'application/geopackage+sqlite3',
         'geotiff' => 'image/tiff; application=geotiff',
+        'gif' => 'image/gif',
         'hdf' => 'application/x-hdf',
         'hdf5' => 'application/x-hdf5',
         'html' => 'text/html',
