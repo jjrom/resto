@@ -242,7 +242,7 @@ class RestoCollections
             'stac_version' => STACAPI::STAC_VERSION,
             'id' => $this->context->osDescription['ShortName'],
             'type' => 'Catalog',
-            'title' => $this->context->osDescription['LongName'] ?? $this->context->osDescription['ShortName'],
+            'title' => 'Collections',
             'description' => $this->context->osDescription['Description'],
             'keywords' => explode(' ', $this->context->osDescription['Tags']),
             'links' => array(
