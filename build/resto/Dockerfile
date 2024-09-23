@@ -1,4 +1,4 @@
-FROM jjrom/nginx-fpm:8.3
+FROM jjrom/nginx-fpm:8.3-1
 LABEL maintainer="jerome.gasperi@gmail.com"
 
 # [IMPORTANT] S6_BEHAVIOUR_IF_STAGE2_FAILS set to 2 in order to restart the resto component until the database is ready
