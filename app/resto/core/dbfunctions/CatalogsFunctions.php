@@ -498,68 +498,57 @@ class CatalogsFunctions
         
         $summaries = array();
 
-        $pivots = array();
-        
         $catalogs = $this->getCatalogs(array(
             'where' => !empty($types) ? 'rtype IN (\'' . join('\',\'', $types) . '\')' : 'rtype NOT IN (\'' . join('\',\'', CatalogsFunctions::TOPONYM_TYPES) . '\')'
         ));
         
         $counter = 0;
+
+        // First create collection pivots
+        $pivots = array();
+        for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
+            if ( $catalogs[$i]['rtype'] !== 'collection' ) {
+                continue;
+            }
+            $exploded = explode('/', $catalogs[$i]['id']);
+            $_collectionId = array_pop($exploded);
+            if ( !isset($pivots[$_collectionId]) ) {
+                $pivots[$_collectionId] = array();
+            }
+        }
+
+        // Populate with summaries i.e. other rtype
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
          
-            // Discard level 1 catalog and empty one
-            if ( $catalogs[$i]['level'] === 1 || !isset($catalogs[$i]['counters']) || $catalogs[$i]['counters']['total'] === 0 ) {
+            if ( $catalogs[$i]['rtype'] === 'collection' ) {
                 continue;
             }
 
-            // Collection is set => get only catalogs with collectionId counter > 0
-            // Otherwise get only catalogs with total counter > 0
-            if ( isset($collectionId) ) {
-                if ( !isset($catalogs[$i]['counters']['collections'][$collectionId]) || $catalogs[$i]['counters']['collections'][$collectionId] === 0 ) {
-                    continue;
-                }
-                $counter = $catalogs[$i]['counters']['collections'][$collectionId];
-            }
-            else {
-                $collectionId = '*';
-                $counter = $catalogs[$i]['counters']['total'];
-            }
-
-            if ( !isset($pivots[$collectionId]) ) {
-                $pivots[$collectionId] = array();
-            }
-            
             $type = $catalogs[$i]['rtype'];
-            
-            if (!isset($pivots[$collectionId][$type])) {
-                $pivots[$collectionId][$type] = array();
-            }
 
-            $create = true;
-            
-            // Constant is the last part of the id url
-            $exploded = explode('/', $catalogs[$i]['id']);
-            $const = array_pop($exploded);
-            for ($j = count($pivots[$collectionId][$type]); $j--;) {
-                if (isset($pivots[$collectionId][$type][$j]['const'])) {
-                    if ($pivots[$collectionId][$type][$j]['const'] === $const) {
-                        $pivots[$collectionId][$type][$j]['count'] += $counter;
-                        $create = false;
-                        break;
+            if ( isset($catalogs[$i]['counters']['collections']) ) {
+                foreach (array_keys($catalogs[$i]['counters']['collections']) as $_collectionId) {
+
+                    if ( !isset($pivots[$_collectionId][$type]) ) {
+                        $pivots[$_collectionId][$type] = array();
                     }
+
+                    // Constant is the last part of the id url
+                    $exploded = explode('/', $catalogs[$i]['id']);
+                    $const = array_pop($exploded);
+
+                    $newPivot = array(
+                        'const' => $const,
+                        'count' => $catalogs[$i]['counters']['collections'][$_collectionId]
+                    );
+
+                    if ($catalogs[$i]['title'] !== $newPivot['const']) {
+                        $newPivot['title'] = $catalogs[$i]['title'];
+                    }
+
+                    $pivots[$_collectionId][$type][] = $newPivot;
+
                 }
-            }
-            
-            if ($create) {
-                $newPivot = array(
-                    'const' => $const,
-                    'count' => $counter
-                );
-                
-                if ($catalogs[$i]['title'] !== $newPivot['const']) {
-                    $newPivot['title'] = $catalogs[$i]['title'];
-                }
-                $pivots[$collectionId][$type][] = $newPivot;
             }
         }
 
