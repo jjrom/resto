@@ -871,11 +871,13 @@ class RestoCollection
     public function getSummaries()
     {
         if ( !isset($this->summaries) ) {
-            $summaries = (new CatalogsFunctions($this->context->dbDriver))->getSummaries(null, $this->id);
+            $summaries = (new CatalogsFunctions($this->context->dbDriver))->getSummaries(null);
             if ( isset($summaries[$this->id]) ) {
                 $this->setSummaries($summaries[$this->id]);
             }
-            else $this->summaries = array();
+            else {
+                $this->summaries = array();
+            }
         }
         return $this->summaries;
     }

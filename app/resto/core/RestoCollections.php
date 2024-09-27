@@ -242,7 +242,7 @@ class RestoCollections
             'stac_version' => STACAPI::STAC_VERSION,
             'id' => $this->context->osDescription['ShortName'],
             'type' => 'Catalog',
-            'title' => $this->context->osDescription['LongName'] ?? $this->context->osDescription['ShortName'],
+            'title' => 'Collections',
             'description' => $this->context->osDescription['Description'],
             'keywords' => explode(' ', $this->context->osDescription['Tags']),
             'links' => array(
@@ -282,12 +282,19 @@ class RestoCollections
             $this->collections[$key]->setSummaries($this->summaries[$this->collections[$key]->id] ?? array());
 
             $collection = $this->collections[$key]->toArray();
+
+            $matched = $collection['summaries']['collection']['count'] ?? 0;
+
+            if ($matched < $this->context->core['collectionMinMatch']) {
+                continue;
+            }
+
             $collections['links'][] = array(
                 'rel' => 'child',
                 'type' => RestoUtil::$contentTypes['json'],
                 'title' => $collection['title'],
                 'description' => $collection['description'],
-                'matched' => $collection['summaries']['collection']['count'] ?? 0,
+                'matched' => $matched,
                 'href' => $this->context->core['baseUrl'] . RestoUtil::replaceInTemplate(RestoRouter::ROUTE_TO_COLLECTION, array('collectionId' => $key)),
                 'roles' => array('collection')
             );
@@ -333,7 +340,7 @@ class RestoCollections
     public function getSummaries()
     {
         if ( !isset($this->summaries) ) {
-            $this->summaries = (new CatalogsFunctions($this->context->dbDriver))->getSummaries(null, null);
+            $this->summaries = (new CatalogsFunctions($this->context->dbDriver))->getSummaries(null);
         }
         return $this->summaries;
     }

@@ -683,7 +683,7 @@ class STACAPI
                     continue;
                 }
                 if (isset($response)) {
-                    $childs[] = $response->toArray();
+                    $childs[] = $response;
                 }
             }
         }
@@ -1565,8 +1565,12 @@ class STACAPI
 
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
 
-            // Returns only catalogs with count >= minMath
+            // Returns only catalogs with count >= minMatch
             if ($catalogs[$i]['counters']['total'] >= $this->context->core['catalogMinMatch']) {
+                if ($catalogs[$i]['id'] === 'collections') {
+                    //$link['roles'] = array('collections');
+                    continue;
+                }
                 $link = array(
                     'rel' => 'child',
                     'title' => $catalogs[$i]['title'],
@@ -1575,9 +1579,6 @@ class STACAPI
                     'href' => $this->context->core['baseUrl'] . '/catalogs/' . rawurlencode($catalogs[$i]['id']),
                     'matched' => $catalogs[$i]['counters']['total']
                 );
-                if ($catalogs[$i]['id'] === 'collections') {
-                    $link['roles'] = array('collections');
-                }
                 $links[] = $link;
             }
             

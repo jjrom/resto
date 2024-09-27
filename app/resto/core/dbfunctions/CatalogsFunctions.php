@@ -341,7 +341,7 @@ class CatalogsFunctions
             );
         }
         
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET ' . join(',', $set) . ' WHERE public.normalize(id)=public.normalize($1) RETURNING id', $values, 500, 'Cannot update facet ' . $catalog['id']));
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET ' . join(',', $set) . ' WHERE public.normalize(id)=public.normalize($1) RETURNING id', $values, 500, 'Cannot update catalog ' . $catalog['id']));
 
         return array(
             'catalogsUpdated' => count($results)
@@ -489,80 +489,77 @@ class CatalogsFunctions
      *      )
      * 
      * @param array $types
-     * @param string $collectionId
      * 
      * @return array
      */
-    public function getSummaries($types, $collectionId)
+    public function getSummaries($types)
     {
         
         $summaries = array();
 
-        $pivots = array();
-        
         $catalogs = $this->getCatalogs(array(
             'where' => !empty($types) ? 'rtype IN (\'' . join('\',\'', $types) . '\')' : 'rtype NOT IN (\'' . join('\',\'', CatalogsFunctions::TOPONYM_TYPES) . '\')'
         ));
         
         $counter = 0;
+
+        // First create collection pivots
+        $pivots = array();
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
-         
-            // Discard level 1 catalog and empty one
-            if ( $catalogs[$i]['level'] === 1 || !isset($catalogs[$i]['counters']) || $catalogs[$i]['counters']['total'] === 0 ) {
+
+            // Process only collection
+            if ( $catalogs[$i]['rtype'] !== 'collection' ) {
                 continue;
             }
-
-            // Collection is set => get only catalogs with collectionId counter > 0
-            // Otherwise get only catalogs with total counter > 0
-            if ( isset($collectionId) ) {
-                if ( !isset($catalogs[$i]['counters']['collections'][$collectionId]) || $catalogs[$i]['counters']['collections'][$collectionId] === 0 ) {
-                    continue;
-                }
-                $counter = $catalogs[$i]['counters']['collections'][$collectionId];
-            }
-            else {
-                $collectionId = '*';
-                $counter = $catalogs[$i]['counters']['total'];
-            }
-
-            if ( !isset($pivots[$collectionId]) ) {
-                $pivots[$collectionId] = array();
-            }
-            
-            $type = $catalogs[$i]['rtype'];
-            
-            if (!isset($pivots[$collectionId][$type])) {
-                $pivots[$collectionId][$type] = array();
-            }
-
-            $create = true;
-            
-            // Constant is the last part of the id url
             $exploded = explode('/', $catalogs[$i]['id']);
-            $const = array_pop($exploded);
-            for ($j = count($pivots[$collectionId][$type]); $j--;) {
-                if (isset($pivots[$collectionId][$type][$j]['const'])) {
-                    if ($pivots[$collectionId][$type][$j]['const'] === $const) {
-                        $pivots[$collectionId][$type][$j]['count'] += $counter;
-                        $create = false;
-                        break;
-                    }
-                }
-            }
-            
-            if ($create) {
-                $newPivot = array(
-                    'const' => $const,
-                    'count' => $counter
+            $_collectionId = array_pop($exploded);
+            if ( !isset($pivots[$_collectionId]) ) {
+                $pivots[$_collectionId] = array(
+                    'collection' => array(
+                        array(
+                            'const' => $_collectionId,
+                            'count' => $catalogs[$i]['counters']['collections'][$_collectionId]
+                        )
+                    )
                 );
-                
-                if ($catalogs[$i]['title'] !== $newPivot['const']) {
-                    $newPivot['title'] = $catalogs[$i]['title'];
-                }
-                $pivots[$collectionId][$type][] = $newPivot;
             }
         }
 
+        // Populate with summaries i.e. other rtype
+        for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
+         
+            if ( $catalogs[$i]['rtype'] === 'collection' ) {
+                continue;
+            }
+
+            $type = $catalogs[$i]['rtype'];
+
+            if ( isset($catalogs[$i]['counters']['collections']) ) {
+                foreach (array_keys($catalogs[$i]['counters']['collections']) as $_collectionId) {
+
+                    if ( !isset($pivots[$_collectionId][$type]) ) {
+                        $pivots[$_collectionId][$type] = array();
+                    }
+
+                    // Constant is the last part of the id url
+                    $exploded = explode('/', $catalogs[$i]['id']);
+                    $const = array_pop($exploded);
+
+                    $newPivot = array(
+                        'const' => $const,
+                        'count' => $catalogs[$i]['counters']['collections'][$_collectionId]
+                    );
+
+                    if ($catalogs[$i]['title'] !== $newPivot['const']) {
+                        $newPivot['title'] = $catalogs[$i]['title'];
+                    }
+
+                    $pivots[$_collectionId][$type][] = $newPivot;
+
+                }
+            }
+        }
+        
         foreach (array_keys($pivots) as $_collectionId) {
             if ( !isset($summaries[$_collectionId]) ) {
                 $summaries[$_collectionId] = array();
@@ -689,7 +686,7 @@ class CatalogsFunctions
                 }
                 
                 if ($childCatalog['level'] === 1 && $childCatalog['owner'] === $userid) {
-                    $output['updateCatalogs'][] = $childCatalog;
+                    array_push($output['updateCatalogs'], ...$this->getCatalogs(array('id' => $childCatalog['id']), true));
                 }
                 else {
                     $output['links'][] = $link;

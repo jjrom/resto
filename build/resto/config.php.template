@@ -12,6 +12,7 @@ return array(
     ),
     'storeQuery' => ${STORE_QUERY:-false},
     'catalogMinMatch' => ${CATALOG_MINMATCH:-0},
+    'collectionMinMatch' => ${COLLECTION_MINMATCH:-0},
     'timezone' => '${TIMEZONE:-Europe/Paris}',
     'tokenDuration' => ${JWT_DURATION:-8640000},
     'userAutoValidation' => ${USER_AUTOVALIDATION:-true},
