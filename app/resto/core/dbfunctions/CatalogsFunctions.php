@@ -513,7 +513,12 @@ class CatalogsFunctions
             $exploded = explode('/', $catalogs[$i]['id']);
             $_collectionId = array_pop($exploded);
             if ( !isset($pivots[$_collectionId]) ) {
-                $pivots[$_collectionId] = array();
+                $pivots[$_collectionId] = array(
+                    'collection' => array(
+                        'const' => $_collectionId,
+                        'count' => $catalogs[$i]['counters']['collections'][$_collectionId]
+                    )
+                );
             }
         }
 
