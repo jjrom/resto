@@ -341,7 +341,7 @@ class CatalogsFunctions
             );
         }
         
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET ' . join(',', $set) . ' WHERE public.normalize(id)=public.normalize($1) RETURNING id', $values, 500, 'Cannot update facet ' . $catalog['id']));
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET ' . join(',', $set) . ' WHERE public.normalize(id)=public.normalize($1) RETURNING id', $values, 500, 'Cannot update catalog ' . $catalog['id']));
 
         return array(
             'catalogsUpdated' => count($results)
