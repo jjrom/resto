@@ -489,11 +489,10 @@ class CatalogsFunctions
      *      )
      * 
      * @param array $types
-     * @param string $collectionId
      * 
      * @return array
      */
-    public function getSummaries($types, $collectionId)
+    public function getSummaries($types)
     {
         
         $summaries = array();
@@ -507,6 +506,8 @@ class CatalogsFunctions
         // First create collection pivots
         $pivots = array();
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
+
+            // Process only collection
             if ( $catalogs[$i]['rtype'] !== 'collection' ) {
                 continue;
             }
