@@ -516,8 +516,10 @@ class CatalogsFunctions
             if ( !isset($pivots[$_collectionId]) ) {
                 $pivots[$_collectionId] = array(
                     'collection' => array(
-                        'const' => $_collectionId,
-                        'count' => $catalogs[$i]['counters']['collections'][$_collectionId]
+                        array(
+                            'const' => $_collectionId,
+                            'count' => $catalogs[$i]['counters']['collections'][$_collectionId]
+                        )
                     )
                 );
             }
@@ -557,7 +559,7 @@ class CatalogsFunctions
                 }
             }
         }
-
+        
         foreach (array_keys($pivots) as $_collectionId) {
             if ( !isset($summaries[$_collectionId]) ) {
                 $summaries[$_collectionId] = array();
