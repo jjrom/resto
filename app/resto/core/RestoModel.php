@@ -64,7 +64,7 @@ abstract class RestoModel
     );
 
     /*
-     * Facet hierarchy
+     * Auto cataloging hierarchy
      */
     public $facetCategories = array(
         array(

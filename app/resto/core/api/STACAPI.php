@@ -283,7 +283,7 @@ class STACAPI
                 'description' => 'List of available catalogs',
                 'links' => array_merge(
                     $this->getBaseLinks(),
-                    $this->getRootCatalogLinks($this->context->core['catalogMinMatch'])
+                    $this->getRootCatalogLinks($params)
                 )
             );
         }
@@ -674,7 +674,7 @@ class STACAPI
         // Initialize router to process each children individually
         $router = new RestoRouter($this->context, $this->user);
 
-        $links = $this->getRootCatalogLinks($this->context->core['catalogMinMatch']);
+        $links = $this->getRootCatalogLinks($params);
         for ($i = 0, $ii = count($links); $i < $ii; $i++) {
             if ($links[$i]['rel'] == 'child') {
                 try {
@@ -1306,7 +1306,8 @@ class STACAPI
 
             array_pop($segments);
             $catalogs = $this->catalogsFunctions->getCatalogs(array(
-                'id' => join('/', $segments)
+                'id' => join('/', $segments),
+                'q' => $params['q'] ?? null
             ));
     
             if ( empty($catalogs) || !$catalogs[0]['hashtag'] ) {
@@ -1328,7 +1329,7 @@ class STACAPI
         }
         
         // The path is the catalog identifier
-        $parentAndChilds = $this->getParentAndChilds(join('/', $segments));
+        $parentAndChilds = $this->getParentAndChilds(join('/', $segments), $params);
         return array(
             'stac_version' => STACAPI::STAC_VERSION,
             'id' => $segments[count($segments) -1 ],
@@ -1453,18 +1454,19 @@ class STACAPI
      * Return catalog childs 
      * 
      * @param string $catalogId
+     * @param array $params Search parameters
      * @return array
      */
-    private function getParentAndChilds($catalogId)
+    private function getParentAndChilds($catalogId, $params)
     {
-
         // Get catalogs - first one is $catalogId, other its childs
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
-            'id' => $catalogId
+            'id' => $catalogId,
+            'q' => $params['q'] ?? null
         ), true);
 
         $parentAndChilds = array(
-            'parent' => $catalogs[0],
+            'parent' => $catalogs[0] ?? null,
             'childs' => array()
         );
 
@@ -1541,9 +1543,10 @@ class STACAPI
     /**
      * Get root links
      *
+     * @param $params // Additional filtering parameters for catalog search on description and title
      * @return array
      */
-    private function getRootCatalogLinks()
+    private function getRootCatalogLinks($params)
     {
         $links = array();
 
@@ -1557,10 +1560,11 @@ class STACAPI
                 $links[] = $stacLink;
             }
         }
-
+        
         // Get first level catalog
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
-            'level' => 1
+            'level' => 1,
+            'q' => $params['q'] ?? null
         ));
 
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
@@ -1576,6 +1580,7 @@ class STACAPI
                     'title' => $catalogs[$i]['title'],
                     'description' => $catalogs[$i]['description'] ?? '',
                     'type' => RestoUtil::$contentTypes['json'],
+                    'resto:type' => $catalogs[$i]['rtype'],
                     'href' => $this->context->core['baseUrl'] . '/catalogs/' . rawurlencode($catalogs[$i]['id']),
                     'matched' => $catalogs[$i]['counters']['total']
                 );

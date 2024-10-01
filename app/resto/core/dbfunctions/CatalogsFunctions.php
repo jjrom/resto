@@ -128,12 +128,13 @@ class CatalogsFunctions
             $where[] = $_where;
         }
 
-        if ( isset($params['description']) ) {
-            $values[] = '%' . $params['description'] . '%';
-            $where[] = 'public.normalize(description) LIKE public.normalize($' . count($values) . ')';
+        // Filter on description / title
+        if ( isset($params['q']) ) {
+            $values[] = '%' . $params['q'] . '%';
+            $where[] = '(public.normalize(description) ILIKE public.normalize($' . count($values) . ') OR public.normalize(hashtag) ILIKE public.normalize($' . count($values) . ') )';
         }
-
-        if ( isset($params['level']) ) {
+        // [IMPORTANT] Discard level if q is set
+        else if ( isset($params['level']) ) {
             $values[] = $params['level'];
             $where[] = 'level=$' . count($values);
         }
