@@ -528,7 +528,7 @@ class Cataloger extends RestoAddOn
                         $catalogs[] = array(
                             'id' => $id,
                             'title' => $value[$j],
-                            'description' => 'Catalog of features for ' . $facetCategory[$i] . '' . $value[$j],
+                            'description' => 'Catalog of features for ' . $facetCategory[$i] . ' ' . $value[$j],
                             'rtype' => $facetCategory[$i],
                             'hashtag' => $facetCategory[$i] . RestoConstants::TAG_SEPARATOR . $value[$j]
                         );
