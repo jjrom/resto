@@ -106,8 +106,9 @@ class RightsAPI
             RestoUtil::checkUser($this->user, $params['userid']);
         }
 
+        $user = new RestoUser(array('id' => $params['userid']), $this->context, true);
         return array(
-            'rights' => $this->user->getRights()
+            'rights' => $user->getRights()
         );
 
     }

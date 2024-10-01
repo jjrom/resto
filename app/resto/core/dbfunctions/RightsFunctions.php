@@ -47,7 +47,7 @@ class RightsFunctions
     {
 
         $userRights = array();
-
+        print_r($user->profile);
         /*
          * Retrieve rights for user
          */
