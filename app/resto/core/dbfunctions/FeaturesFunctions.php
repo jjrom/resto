@@ -151,6 +151,7 @@ class FeaturesFunctions
          * Prepare query
          */
         $query = join(' ', array(
+            join(' ', $filtersAndJoins['withs']),
             $this->getSelectClause($featureTableName, $this->featureColumns, $user, array(
                 'fields' => $context->query['fields'] ?? null,
                 'useSocial' => isset($context->addons['Social']),
@@ -181,7 +182,7 @@ class FeaturesFunctions
          * Common where clause
          */
         $whereClause = $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => true));
-        $count = $this->getCount('FROM ' . $featureTableName . ' ' . $whereClause, $paramsWithOperation);
+        $count = $this->getCount('FROM ' . $featureTableName . ' ' . $whereClause, join(' ', $filtersAndJoins['withs']), $paramsWithOperation);
 
         $links = array();
         
@@ -197,7 +198,7 @@ class FeaturesFunctions
             if (isset($context->query['_heatmapNoGeo']) && filter_var($context->query['_heatmapNoGeo'], FILTER_VALIDATE_BOOLEAN)) {
                 $whereClause = $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => false));
                 // [IMPORTANT] Set empty $params in getCount() to avoid computation of real count
-                $heatmapLink = (new Heatmap($context, $user))->getEndPoint($featureTableName, $whereClause, $this->getCount('FROM ' . $featureTableName . ' ' . $whereClause), $wkt);
+                $heatmapLink = (new Heatmap($context, $user))->getEndPoint($featureTableName, $whereClause, $this->getCount('FROM ' . $featureTableName . ' ' . $whereClause, join(' ', $filtersAndJoins['withs']),), $wkt);
             } else {
                 for ($i = count($filtersAndJoins['filters']); $i--;) {
                     if ($filtersAndJoins['filters'][$i]['isGeo']) {
@@ -620,9 +621,10 @@ class FeaturesFunctions
      * Return exact count or estimate count from query
      *
      * @param String $from
+     * @param String $with
      * @param Boolean $filters
      */
-    public function getCount($from, $filters = array())
+    public function getCount($from, $with, $filters = array())
     {
         /*
          * Determine if the count is estimated or real
@@ -637,11 +639,11 @@ class FeaturesFunctions
          */
         $result = -1;
         if (!$realCount) {
-            $result = pg_fetch_result($this->dbDriver->query('SELECT count_estimate(\'' . pg_escape_string($this->dbDriver->getConnection(), 'SELECT * ' . $from) . '\') as count'), 0, 0);
+            $result = pg_fetch_result($this->dbDriver->query(' SELECT count_estimate(\'' . pg_escape_string($this->dbDriver->getConnection(), $with . ' SELECT * ' . $from) . '\') as count'), 0, 0);
         }
 
         if ($result !== false && $result < 10 * $this->dbDriver->resultsPerPage) {
-            $result = pg_fetch_result($this->dbDriver->query('SELECT count(*) as count ' . $from), 0, 0);
+            $result = pg_fetch_result($this->dbDriver->query($with . ' SELECT count(*) as count ' . $from), 0, 0);
             $realCount = true;
         }
 

@@ -97,6 +97,19 @@ END
 $$ LANGUAGE 'plpgsql' IMMUTABLE;
 
 --
+-- Immutable array_to_string
+-- 
+-- This function provide an IMMUTABLE array_to_string so can be used in GIN gin_trgm_ops index
+--
+--
+CREATE OR REPLACE FUNCTION public.immutable_array_to_string(arr TEXT[], delimiter TEXT)
+RETURNS TEXT AS $$
+BEGIN
+    RETURN array_to_string(arr, delimiter);
+END;
+$$ LANGUAGE 'plpgsql' IMMUTABLE;
+
+--
 -- Create function count_estimate to speed up table count
 -- (see https://wiki.postgresql.org/wiki/Count_estimate)
 --

@@ -512,6 +512,14 @@ class RestoUtil
     }
 
     /**
+     * Convert a unix path (i.e. this/is/my/home ) to LTREE path (i.e. this.is.my.home)
+     */
+    public static function path2ltree($path)
+    {
+        return strtolower(str_replace('/', '.', str_replace('.', '_', $path)));
+    }
+    
+    /**
      * Construct base url from parse_url fragments
      *
      * @param array $exploded

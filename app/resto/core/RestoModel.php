@@ -99,6 +99,8 @@ abstract class RestoModel
      *      [IMPORTANT] If not set then it is assumed that stacKey is the same as osKey
      *  'prefix' :
      *      (Optional) (for "keywords" operation only) Prefix systematically added to input value (i.e. prefix:value)
+     *  'pathPrefix' :
+     *      (Optional) (for "keywords" operation only) Path prefix for LTREE search in catalog_feature table. If not set will be *.)
      *  'operation' :
      *      Type of operation applied to the filter ("in", "keywords", "intersects", "distance", "=", "<=", ">=")
      *  'queryable' :

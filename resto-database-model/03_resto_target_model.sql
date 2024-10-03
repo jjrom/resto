@@ -422,16 +422,13 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog_feature (
     -- Reference __DATABASE_TARGET_SCHEMA__.feature.id
     featureid          UUID NOT NULL REFERENCES __DATABASE_TARGET_SCHEMA__.feature (id) ON DELETE CASCADE,
 
-    -- Reference __DATABASE_TARGET_SCHEMA__.catalog.id
-    catalogid          TEXT NOT NULL REFERENCES __DATABASE_TARGET_SCHEMA__.catalog (id) ON DELETE CASCADE,
-
-    -- Search hashtag
-    hashtag            TEXT,
+    -- Leaf catalog path with . instead of / as delimiter
+    path               LTREE,
 
     -- Feature collection
     collection         TEXT,
 
-    PRIMARY KEY (featureid, catalogid)
+    PRIMARY KEY (featureid, path)
    
 );
 
@@ -452,13 +449,13 @@ CREATE INDEX IF NOT EXISTS idx_collection_osdescription ON __DATABASE_TARGET_SCH
 -- CREATE INDEX IF NOT EXISTS idx_lang_osdescription ON __DATABASE_TARGET_SCHEMA__.osdescription (lang);
 
 -- [TABLE __DATABASE_TARGET_SCHEMA__.catalog]
-CREATE INDEX IF NOT EXISTS idx_id_catalog ON __DATABASE_TARGET_SCHEMA__.catalog (public.normalize(id));
+CREATE INDEX IF NOT EXISTS idx_id_catalog ON __DATABASE_TARGET_SCHEMA__.catalog (lower(id));
 CREATE INDEX IF NOT EXISTS idx_description_catalog ON __DATABASE_TARGET_SCHEMA__.catalog USING GIN (public.normalize(description) gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_hashtag_catalog ON __DATABASE_TARGET_SCHEMA__.catalog USING GIN (public.normalize(hashtag) gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_level_catalog ON __DATABASE_TARGET_SCHEMA__.catalog USING btree (level);
 
 -- [TABLE __DATABASE_TARGET_SCHEMA__.hashtag]
-CREATE INDEX IF NOT EXISTS idx_hashtag_catalog_feature ON __DATABASE_TARGET_SCHEMA__.catalog_feature (public.normalize(hashtag));
+CREATE INDEX IF NOT EXISTS idx_path_catalog_feature ON __DATABASE_TARGET_SCHEMA__.catalog_feature USING GIST (path);
 
 -- [TABLE __DATABASE_TARGET_SCHEMA__.feature]
 CREATE INDEX IF NOT EXISTS idx_collection_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (collection);

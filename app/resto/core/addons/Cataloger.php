@@ -207,21 +207,27 @@ class Cataloger extends RestoAddOn
                     break;
 
                 case 'physical':
-                    $catalogs[] = array(
-                        'id' => 'physical',
-                        'title' => 'Physical',
-                        'description' => 'Automatic physical classification processed by [iTag](https://github.com/jjrom/itag)'
-                    );
-                    $catalogs = array_merge($catalogs, $this->getCatalogsFromPhysical($value, 'physical'));
+                    $physical =  $this->getCatalogsFromPhysical($value, 'physical');
+                    if (count($physical) > 0) {
+                        $catalogs[] = array(
+                            'id' => 'physical',
+                            'title' => 'Physical',
+                            'description' => 'Automatic physical classification processed by [iTag](https://github.com/jjrom/itag)'
+                        );
+                        $catalogs = array_merge($catalogs, $physical);
+                    }
                     break;
 
                 case 'landcover':
-                    $catalogs[] = array(
-                        'id' => 'landcover',
-                        'title' => 'Landcover classification',
-                        'description' => 'Automatic landcover classification processed by [iTag](https://github.com/jjrom/itag)'
-                    );
-                    $catalogs = array_merge($catalogs, $this->getCatalogsFromLandCover($value, 'landcover'));
+                    $landcover = $this->getCatalogsFromLandCover($value, 'landcover');
+                    if (count($landcover) > 0) {
+                        $catalogs[] = array(
+                            'id' => 'landcover',
+                            'title' => 'Landcover classification',
+                            'description' => 'Automatic landcover classification processed by [iTag](https://github.com/jjrom/itag)'
+                        );
+                        $catalogs = array_merge($catalogs, $landcover);
+                    }
                     break;
 
                 case 'population':
