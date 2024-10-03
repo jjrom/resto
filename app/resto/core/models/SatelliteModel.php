@@ -103,7 +103,6 @@ class SatelliteModel extends LandCoverModel
         $this->searchFilters = array_merge($this->searchFilters, array(
         
             'eo:productType' => array(
-                'key' => 'normalized_hashtags',
                 'osKey' => 'productType',
                 'prefix' => 'productType',
                 'pathPrefix' => 'producttypes.',
@@ -113,7 +112,6 @@ class SatelliteModel extends LandCoverModel
             ),
             
             'eo:processingLevel' => array(
-                'key' => 'normalized_hashtags',
                 'osKey' => 'processingLevel',
                 'stacKey' => 'processing:level',
                 'prefix' => 'processingLevel',
@@ -125,7 +123,6 @@ class SatelliteModel extends LandCoverModel
             ),
             
             'eo:platform' => array(
-                'key' => 'normalized_hashtags',
                 'osKey' => 'platform',
                 'prefix' => 'platform',
                 'pathPrefix' => 'platforms.',
@@ -135,7 +132,6 @@ class SatelliteModel extends LandCoverModel
             ),
             
             'eo:instrument' => array(
-                'key' => 'normalized_hashtags',
                 'osKey' => 'instruments',
                 'prefix' => 'instrument',
                 'pathPrefix' => 'instruments.',
@@ -145,7 +141,6 @@ class SatelliteModel extends LandCoverModel
             ),
             
             'eo:sensorType' => array(
-                'key' => 'normalized_hashtags',
                 'osKey' => 'sensorType',
                 'prefix' => 'sensorType',
                 'pathPrefix' => 'sensortypes.',

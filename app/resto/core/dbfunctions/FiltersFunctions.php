@@ -777,8 +777,7 @@ class FiltersFunctions
      *    Array(
      *      'resto.feature_optical.cloudCover > 10',
      *      'resto.feature_optical.cloudCover <= 30',
-     *      'ST_Intersects(resto.feature.geom, ST_GeomFromText('POINT(10 10)', 4326))',
-     *      'resto.feature.normalized_hashtags @> public.normalize_array(ARRAY['instrument:PHR']
+     *      'ST_Intersects(resto.feature.geom, ST_GeomFromText('POINT(10 10)', 4326))'
      *    )
      *
      *

@@ -38,7 +38,6 @@ class DefaultModel extends RestoModel
 
             // Year
             'time:year' => array(
-                'key' => 'normalized_hashtags',
                 'osKey' => 'year',
                 'prefix' => 'year',
                 'pathPrefix' => 'years.',
@@ -50,7 +49,6 @@ class DefaultModel extends RestoModel
 
             // Month of year
             'time:month' => array(
-                'key' => 'normalized_hashtags',
                 'osKey' => 'month',
                 'prefix' => 'month',
                 'pathPrefix' => 'years.*.',
@@ -62,7 +60,6 @@ class DefaultModel extends RestoModel
 
             // Day of month
             'time:day' => array(
-                'key' => 'normalized_hashtags',
                 'osKey' => 'day',
                 'prefix' => 'day',
                 'pathPrefix' => 'years.*.*.',
@@ -74,7 +71,6 @@ class DefaultModel extends RestoModel
 
             // Season (iTag needed)
             'resto:season' => array(
-                'key' => 'normalized_hashtags',
                 'osKey' => 'season',
                 'prefix' => 'season',
                 'pathPrefix' => 'seasons.',
@@ -85,7 +81,6 @@ class DefaultModel extends RestoModel
 
             // Location (iTag needed)
             'resto:location' => array(
-                'key' => 'normalized_hashtags',
                 'osKey' => 'location',
                 'prefix' => 'location',
                 'pathPrefix' => 'locations.',

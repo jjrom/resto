@@ -293,9 +293,9 @@ class CatalogsFunctions
                     $updateCatalogs['id'],
                     $catalog['id'] . '/' . $updateCatalogs['id']
                 ), 500, 'Cannot update child link ' . $updateCatalogs['id']);
-                $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.catalog_feature SET catalogid=$2 WHERE catalogid=$1', array(
-                    $updateCatalogs['id'],
-                    $catalog['id'] . '/' . $updateCatalogs['id']
+                $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.catalog_feature SET path=$2 WHERE path=$1', array(
+                    RestoUtil::path2ltree($updateCatalogs['id']),
+                    RestoUtil::path2ltree($catalog['id'] . '/' . $updateCatalogs['id'])
                 ), 500, 'Cannot update catalog feature association for child link ' . $updateCatalogs['id']);
             }
             
@@ -443,10 +443,10 @@ class CatalogsFunctions
      */
     public function getFeatureCatalogs($featureId)
     {
-
+        
         $catalogs = [];
 
-        $query = 'SELECT c.id, c.title, c.description, c.level, c.counters, c.owner, c.links, c.visibility, c.rtype, c.hashtag, to_iso8601(c.created) as created FROM ' . $this->dbDriver->targetSchema . '.catalog c, ' . $this->dbDriver->targetSchema . '.catalog_feature cf WHERE c.id = cf.catalogid AND cf.featureid=$1 ORDER BY id ASC';
+        $query = 'SELECT c.id, c.title, c.description, c.level, c.counters, c.owner, c.links, c.visibility, c.rtype, c.hashtag, to_iso8601(c.created) as created FROM ' . $this->dbDriver->targetSchema . '.catalog c, ' . $this->dbDriver->targetSchema . '.catalog_feature cf WHERE lower(c.id) = lower(cf.path AND cf.featureid=$1 ORDER BY c.id ASC';
         $results = $this->dbDriver->pQuery($query, array(
             $featureId
         ));
@@ -467,23 +467,21 @@ class CatalogsFunctions
     public function removeCatalog($catalogId)
     {
 
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE lower(id)=lower($1) RETURNING id', array($catalogId), 500, 'Cannot delete catalog' . $catalogId));
-        $catalogsDeleted = count($results);
+        try {
 
-        // Next remove the catalog entry from all features
-        $query = join(' ', array(
-                'UPDATE ' . $this->dbDriver->targetSchema . '.feature SET',
-                'hashtags=ARRAY_REMOVE(hashtags, $1),normalized_hashtags=ARRAY_REMOVE(normalized_hashtags,public.normalize($1)),',
-                'keywords=(SELECT json_agg(e) FROM json_array_elements(keywords) AS e WHERE e->>\'id\' <> $1)',
-                'WHERE normalized_hashtags @> public.normalize_array(ARRAY[$1]) RETURNING id'
-            )
-        );
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery($query, array($catalogId), 500, 'Cannot update features' . $catalogId));
+            $this->dbDriver->query('BEGIN');
+
+            $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE lower(id)=lower($1) RETURNING id', array($catalogId), 500, 'Cannot delete catalog' . $catalogId));
+            $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path=$1' , array(RestoUtil::path2ltree($catalogId)), 500, 'Cannot update features' . $catalogId));
         
-        return array(
-            'catalogDeleted' => $catalogsDeleted,
-            'featuresUpdated' => count($results)
-        );
+            $this->dbDriver->query('COMMIT');
+
+        } catch (Exception $e) {
+            $this->dbDriver->query('ROLLBACK');
+            RestoLogUtil::httpError(500, $e->getMessage());
+        }
+        
+        return array();
 
     }
 
@@ -615,65 +613,6 @@ class CatalogsFunctions
 
         return $summaries;
         
-    }
-
-    /**
-     * Return a diff between $oldCatalogs array and $newCatalogs array
-     * 
-     * @param Array $oldCatalogs
-     * @param Array $newCatalogs
-     */
-    public function diff($oldCatalogs, $newCatalogs)
-    {
-        $output = array(
-            'added' => array(),
-            'removed' => array()
-        );
-
-        for ($i = count($newCatalogs); $i--;) {
-
-            // Catalogs without hashtag are discarded because they are not stored within
-            // catalog_feature table
-            if ( !isset($newCatalogs[$i]['hashtag']) ) {
-                continue;
-            }
-
-            $isNew = true;
-            for ($j = count($oldCatalogs); $j--;) {
-                // Catalog exist => do nothing
-                if ($oldCatalogs[$j]['id'] === $newCatalogs[$i]['id']) {
-                    $isNew = false;
-                    break;
-                }
-            }
-            if ($isNew) {
-                $output['added'][] = $newCatalogs[$i];
-            }
-        }
-
-        for ($i = count($oldCatalogs); $i--;) {
-
-            // Catalogs without hashtag are discarded because they are not stored within
-            // catalog_feature table
-            if ( !isset($oldCatalogs[$i]['hashtag']) ) {
-                continue;
-            }
-
-            $isRemoved = true;
-            for ($j = count($newCatalogs); $j--;) {
-                // Catalog exist => do nothing
-                if ($oldCatalogs[$i]['id'] === $newCatalogs[$j]['id']) {
-                    $isRemoved = false;
-                    break;
-                }
-            }
-            if ($isRemoved) {
-                $output['removed'][] = $oldCatalogs[$i];
-            }
-        }
-
-        return $output;
-
     }
 
     /**

@@ -65,7 +65,7 @@ class Cataloger extends RestoAddOn
     }
 
     /**
-     * Extract hashtags from a text and return catalogs - invalid characters are discarded
+     * Extract hashtags from a text and return a catalogs list - invalid characters are discarded
      *
      * [WARNING] The leading '#' is not returned
      *

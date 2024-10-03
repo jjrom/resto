@@ -210,14 +210,6 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.feature (
     -- Keywords computed by Tag add-on
     keywords            JSON,
 
-    -- 
-    -- List of hashtags (without prefix # !)
-    --
-    -- Two kind of hashtags:
-    --   * hashtags without {RestoConstants::TAG_SEPARATOR} hashtags *provided* by user from description
-    --   * hashtags with {RestoConstants::TAG_SEPARATOR} hashtags *computed* by Tag add-on (depend on collection)
-    hashtags            TEXT[],
-
     -- Original geometry as provided during feature insertion
     -- It is set to NULL if equals to geom (see below) 
     geometry            GEOMETRY(GEOMETRY, 4326),
@@ -230,12 +222,6 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.feature (
     -- If input geometry does not cross one of this case, then input geometry is not
     -- modified and geom equals geomety.
     geom           GEOMETRY(GEOMETRY, 4326),
-
-    -- [INDEXED] Hashtags
-    -- 
-    -- List of normalized hashtags (without prefix # !)
-    --
-    normalized_hashtags TEXT[],
 
     -- [INDEXED] Start date unique iterator
     startdate_idx       BIGINT,
@@ -465,7 +451,6 @@ CREATE INDEX IF NOT EXISTS idx_owner_feature ON __DATABASE_TARGET_SCHEMA__.featu
 CREATE INDEX IF NOT EXISTS idx_visibility_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (visibility);
 CREATE INDEX IF NOT EXISTS idx_status_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (status);
 CREATE INDEX IF NOT EXISTS idx_centroid_feature ON __DATABASE_TARGET_SCHEMA__.feature USING GIST (centroid);
-CREATE INDEX IF NOT EXISTS idx_nhashtags_feature ON __DATABASE_TARGET_SCHEMA__.feature USING GIN (normalized_hashtags) WHERE normalized_hashtags IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_geom_feature ON __DATABASE_TARGET_SCHEMA__.feature USING GIST (geom);
 
 -- [TABLE __DATABASE_TARGET_SCHEMA__.geometry_part]
