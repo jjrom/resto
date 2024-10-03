@@ -270,15 +270,17 @@ class CatalogsFunctions
                 // Convert catalogId to LTREE path - first replace dot with underscore
                 $path = RestoUtil::path2ltree($catalog['id']);
                 
-                $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.catalog_feature SET featureid=$1, path=$2, collection=$3 WHERE featureid=$1 AND path @> $2::ltree AND nlevel(path) < nlevel($2::ltree)', array(
+                $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.catalog_feature SET featureid=$1, path=$2, catalogid=$3, collection=$4 WHERE featureid=$1 AND path @> $2::ltree AND nlevel(path) < nlevel($2::ltree)', array(
                     $featureId,
                     $path,
+                    $catalog['id'],
                     $collectionId
                 ), 500, 'Cannot catalog_feature association ' . $catalog['id'] . '/' . $featureId);
                 
-                $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog_feature (featureid, path, collection) SELECT $1, $2::ltree, $3 WHERE NOT EXISTS (SELECT 1 FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE featureid = $1 AND (path <@ $2::ltree OR path @> $2::ltree))', array(
+                $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog_feature (featureid, path, catalogid, collection) SELECT $1, $2::ltree, $3, $4 WHERE NOT EXISTS (SELECT 1 FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE featureid = $1 AND (path <@ $2::ltree OR path @> $2::ltree))', array(
                     $featureId,
                     $path,
+                    $catalog['id'],
                     $collectionId
                 ), 500, 'Cannot catalog_feature association ' . $catalog['id'] . '/' . $featureId);
               

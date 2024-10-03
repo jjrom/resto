@@ -40,7 +40,7 @@ class FeaturesFunctions
         'links',
         'updated',
         'created',
-        'keywords',
+        'catalogs',
         'likes',
         'comments',
         'owner',
@@ -856,6 +856,9 @@ class FeaturesFunctions
                     $columns[] = 'to_iso8601(' . $featureTableName . '.' . $key . ') AS "' . $key . '"';
                     break;
 
+                case 'catalogs':
+                    $columns[] = '(SELECT array_to_json(array_agg(catalogid)) FROM resto.catalog_feature WHERE featureid=resto.feature.id GROUP BY featureid) as catalogs';
+                    break;
                 default:
                     $columns[] = '' . $featureTableName . '.' . $key . ' AS "' . $key . '"';
                     break;
@@ -890,12 +893,12 @@ class FeaturesFunctions
         
         /*
          *  Only one field requested
-         *   -  "_simple" returns all properties except keywords
+         *   -  "_simple" returns all properties except catalogs
          *   -  "_all" returns all properties
          */
         if (count($fields) > 0) {
             if ($fields[0] === '_simple') {
-                $discarded[] = 'keywords';
+                $discarded[] = 'catalogs';
             }
             // Always add mandatories field id, geometry and collection
             elseif ($fields[0] !== '_all') {

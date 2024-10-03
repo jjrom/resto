@@ -207,9 +207,6 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.feature (
     -- Timestamp of update for this feature metadata
     updated             TIMESTAMP,
 
-    -- Keywords computed by Tag add-on
-    keywords            JSON,
-
     -- Original geometry as provided during feature insertion
     -- It is set to NULL if equals to geom (see below) 
     geometry            GEOMETRY(GEOMETRY, 4326),
@@ -406,13 +403,16 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog (
 CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog_feature (
 
     -- Reference __DATABASE_TARGET_SCHEMA__.feature.id
-    featureid          UUID NOT NULL REFERENCES __DATABASE_TARGET_SCHEMA__.feature (id) ON DELETE CASCADE,
+    featureid               UUID NOT NULL REFERENCES __DATABASE_TARGET_SCHEMA__.feature (id) ON DELETE CASCADE,
 
     -- Leaf catalog path with . instead of / as delimiter
-    path               LTREE,
+    path                    LTREE,
+
+    -- This is a duplicate from catalog id without constraint to avoid JOIN
+    catalogid               TEXT,
 
     -- Feature collection
-    collection         TEXT,
+    collection              TEXT,
 
     PRIMARY KEY (featureid, path)
    
