@@ -95,10 +95,11 @@ class FiltersFunctions
              * Process each input search filter excepted excluded filters
              */
             foreach (array_keys($this->model->searchFilters) as $filterName) {
+
                 if (!isset($paramsWithOperation[$filterName]['value']) || $paramsWithOperation[$filterName]['value'] === '') {
                     continue;
                 }
-
+               
                 /*
                  * Sorting special case
                  */
@@ -143,7 +144,8 @@ class FiltersFunctions
                     // [STAC] CQL2 filter must be processed separately
                     if (isset($this->model->searchFilters[$filterName]['operation']) && $this->model->searchFilters[$filterName]['operation'] === 'cql2') {
                         $filter = $this->prepareFilterQueryCQL2($paramsWithOperation[$filterName]['value']);
-                    } elseif (isset($this->model->searchFilters[$filterName]['key'])) {
+                    //} elseif (isset($this->model->searchFilters[$filterName]['key'])) {
+                    } else {
                         $filter = $this->prepareFilterQuery($paramsWithOperation, $filterName);
                     }
 

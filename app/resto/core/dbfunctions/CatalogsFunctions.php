@@ -253,7 +253,7 @@ class CatalogsFunctions
              * 
              * We should ingest 
              * 
-             *   1. Non first level catalog (so "years", "hashtags" and "collections" are discared
+             *   1. Non first level catalog (so "years", "hashtags" and "collections" are discared EXCEPT true catalog one !!
              * 
              * 
              *   2. Only the childest catalog so in the previous example only
@@ -265,7 +265,7 @@ class CatalogsFunctions
              */
             $catalogLevel = count(explode('/', $catalog['id']));
 
-            if ( $catalogLevel > 1 && isset($featureId) ) {
+            if ( isset($featureId) && ($catalogLevel > 1 || $catalog['rtype'] === 'catalog')  ) {
 
                 // Convert catalogId to LTREE path - first replace dot with underscore
                 $path = RestoUtil::path2ltree($catalog['id']);
