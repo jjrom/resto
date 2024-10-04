@@ -490,8 +490,8 @@ class STACAPI
                 $catalogs[0][$updatable[$i]] = $body[$updatable[$i]];
             }    
         }
-        
-        return RestoLogUtil::success('Catalog updated', $this->catalogsFunctions->updateCatalog($catalogs[0]));
+
+        return $this->catalogsFunctions->updateCatalog($catalogs[0], $this->user->profile['id'], $this->context->core['baseUrl']) ? RestoLogUtil::success('Catalog updated') : RestoLogUtil::error('Cannot update catalog');
     }
 
     /**

@@ -197,8 +197,9 @@ class CatalogsFunctions
      * @param string $baseUrl
      * @param string $collectionId
      * @param string $featureId
+     * @param boolean $inTransaction
      */
-    public function storeCatalog($catalog, $userid, $baseUrl, $collectionId, $featureId)
+    public function storeCatalog($catalog, $userid, $baseUrl, $collectionId, $featureId, $inTransaction = true)
     {
         // Empty catalog - do nothing
         if (!isset($catalog)) {
@@ -218,7 +219,9 @@ class CatalogsFunctions
 
         try {
 
-            $this->dbDriver->query('BEGIN');
+            if ( $inTransaction ) {
+                $this->dbDriver->query('BEGIN');
+            }
 
             /*
              * Thread safe ingestion using upsert - guarantees that counter is correctly incremented during concurrent transactions
@@ -293,10 +296,15 @@ class CatalogsFunctions
                 ), 500, 'Cannot update catalog feature association for child link ' . $updateCatalogs['id']);
             }
             
-            $this->dbDriver->query('COMMIT');
+            if ( $inTransaction ) {
+                $this->dbDriver->query('COMMIT');
+            }
+            
 
         } catch (Exception $e) {
-            $this->dbDriver->query('ROLLBACK');
+            if ( $inTransaction ) {
+                $this->dbDriver->query('ROLLBACK');
+            }
             RestoLogUtil::httpError(500, $e->getMessage());
         }
 
@@ -339,11 +347,17 @@ class CatalogsFunctions
      * Update catalog 
      * 
      * @param array $catalog
-     * @return integer // number of catalogs updated
+     * @param string $userid
+     * @param string $baseUrl
+     * @return boolean
      */
-    public function updateCatalog($catalog)
+    public function updateCatalog($catalog, $userid, $baseUrl)
     {
         
+        if ( !isset($catalog['id']) ) {
+            return false;
+        }
+
         $values = array(
             $catalog['id']
         );
@@ -357,6 +371,9 @@ class CatalogsFunctions
         );
 
         $set = array();
+        $cleanLinks = $this->getCleanLinks($catalog, $userid, $baseUrl);
+        $catalog['links'] = $cleanLinks['links'];
+
         foreach (array_keys($catalog) as $key ) {
             if (in_array($key, $canBeUpdated)) {
                 $values[] = $key === 'links' ? json_encode($catalog[$key], JSON_UNESCAPED_SLASHES) : $catalog[$key];
@@ -364,18 +381,49 @@ class CatalogsFunctions
             }
         }
 
+        // Nothing to update
         if ( empty($set) ) {
-            return array(
-                'catalogsUpdated' => 0
-            );
+            return false;
+        }
+
+        try {
+            
+            $this->dbDriver->query('BEGIN');
+
+            /*
+             * Delete all catalog childs BUT NOT HIMSELF
+             */
+            $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE lower(id) LIKE lower($1) RETURNING id', array(
+                $catalog['id'] . '/%'
+            ), 500, 'Cannot delete catalog ' . $catalog['id']));
+            $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path ~ $1 AND path <> $2' , array(
+                RestoUtil::path2ltree($catalog['id']) . '.*',
+                RestoUtil::path2ltree($catalog['id'])
+            ), 500, 'Cannot delete catalog_feature association for catalog ' . $catalog['id']));
+        
+            /*
+             * Then update catalog
+             */
+            $this->dbDriver->fetch($this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET ' . join(',', $set) . ' WHERE lower(id)=lower($1) RETURNING id', $values, 500, 'Cannot update catalog ' . $catalog['id']));
+
+            // Convert catalog['id'] to LTREE path - first replace dot with underscore
+            $path = RestoUtil::path2ltree($catalog['id']);
+
+            /*
+             * Add an entry in catalog_feature for each interalItems
+             */
+            for ($i = 0, $ii = count($cleanLinks['internalItems']); $i < $ii; $i++) {
+                $this->insertIntoCatalogFeature($cleanLinks['internalItems'][$i]['id'], $path, $catalog['id'], $cleanLinks['internalItems'][$i]['collection']);
+            }
+            
+            $this->dbDriver->query('COMMIT');
+            
+        } catch (Exception $e) {
+            $this->dbDriver->query('ROLLBACK');
+            RestoLogUtil::httpError(500, $e->getMessage());
         }
         
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET ' . join(',', $set) . ' WHERE lower(id)=lower($1) RETURNING id', $values, 500, 'Cannot update catalog ' . $catalog['id']));
-
-        return array(
-            'catalogsUpdated' => count($results)
-        );
-
+        return true;
     }
 
     /**
@@ -458,21 +506,28 @@ class CatalogsFunctions
      * [WARNING] This also will remove all child catalogs 
      *
      * @param string $catalogId
+     * @param boolean $inTransation
      */
-    public function removeCatalog($catalogId)
+    public function removeCatalog($catalogId, $inTransaction = true)
     {
 
         try {
 
-            $this->dbDriver->query('BEGIN');
+            if ( $inTransaction ) {
+                $this->dbDriver->query('BEGIN');
+            }
 
             $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE lower(id) LIKE lower($1) RETURNING id', array($catalogId . '%'), 500, 'Cannot delete catalog ' . $catalogId));
             $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path ~ $1' , array(RestoUtil::path2ltree($catalogId) . '.*'), 500, 'Cannot delete catalog_feature association for catalog ' . $catalogId));
         
-            $this->dbDriver->query('COMMIT');
+            if ( $inTransaction) {
+                $this->dbDriver->query('COMMIT');
+            }
 
         } catch (Exception $e) {
-            $this->dbDriver->query('ROLLBACK');
+            if ( $inTransaction) {
+                $this->dbDriver->query('ROLLBACK');
+            }
             RestoLogUtil::httpError(500, $e->getMessage());
         }
         
