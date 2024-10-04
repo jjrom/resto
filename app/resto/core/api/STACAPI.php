@@ -372,12 +372,26 @@ class STACAPI
         }
 
         /*
+         * Check that parent catalogs exists
+         */
+        $parentId = null;
+        if ( isset($params['segments']) ) {
+            for ($i = 0, $ii = count($params['segments']); $i < $ii; $i++) {
+                $parentId = isset($parentId) ? $parentId . '/' . $params['segments'][$i] : $params['segments'][$i];
+                if ($this->catalogsFunctions->getCatalog($parentId) === null) {
+                    return RestoLogUtil::httpError(400, 'Parent catalog ' . $parentId . ' does not exist.');
+                }
+            }
+        }
+        
+
+        /*
          * Convert input catalog to resto:catalog
          * i.e. add rtype and hashtag properties and convert id to a path
          */
         $body['rtype'] = 'catalog';
         $body['hashtag'] = 'catalog' . RestoConstants::TAG_SEPARATOR . $body['id'];
-        $body['id'] = $this->getIdPath($body);
+        $body['id'] = $this->getIdPath($body, $parentId);
 
         if ($this->catalogsFunctions->getCatalog($body['id']) !== null) {
             RestoLogUtil::httpError(409, 'Catalog ' . $body['id'] . ' already exists');
@@ -497,14 +511,6 @@ class STACAPI
      *             type="string"
      *         )
      *      ),
-     *      @OA\Parameter(
-     *         name="force",
-     *         in="query",
-     *         description="Force catalog removal even if this catalog has child. In this case, catalogs childs are attached to the remove catalog parent",
-     *         @OA\Schema(
-     *             type="boolean"
-     *         )
-     *      ),
      *      @OA\Response(
      *          response="200",
      *          description="Catalog deleted",
@@ -564,16 +570,6 @@ class STACAPI
         // If user has not the right to delete catalog then 403
         if ( !$this->user->hasRightsTo(RestoUser::DELETE_CATALOG, array('catalog' => $catalogs[0])) ) {
             return RestoLogUtil::httpError(403);
-        }
-        
-        // If catalog has childs it cannot be removed
-        for ($i = 1, $ii = count($catalogs); $i < $ii; $i--) {
-            if (isset($params['force']) && filter_var($params['force'], FILTER_VALIDATE_BOOLEAN) === true) {
-                return RestoLogUtil::httpError(400, 'TODO - force removal of non empty catalog is not implemented');
-            }
-            else {
-                return RestoLogUtil::httpError(400, 'The catalog cannot be deleted because it has ' . (count($catalogs) - 1) . ' childs');
-            }    
         }
         
         return RestoLogUtil::success('Catalog deleted', $this->catalogsFunctions->removeCatalog($catalogs[0]['id']));
@@ -1593,30 +1589,40 @@ class STACAPI
     }
 
     /**
-     * Return path identifier from input catlaog
+     * Return path identifier from input catalog
      * 
      * @param array $catalog
+     * @param string $parentId
      * @return string
      */
-    private function getIdPath($catalog)
+    private function getIdPath($catalog, $parentId)
     {
 
-        $parentId = '';
+        $parentIdInBody = '';
+        $hasParentInBody = false;
 
         // Retrieve parent if any
         for ($i = 0, $ii = count($catalog['links']); $i < $ii; $i++ ) {
             if ( isset($catalog['links'][$i]['rel']) &&$catalog['links'][$i]['rel'] === 'parent' ) {
+                $hasParentInBody = true;
                 $theoricalUrl = $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS; 
                 $exploded = explode($theoricalUrl, $catalog['links'][$i]['href']);
                 if (count($exploded) !== 2) {
                     return RestoLogUtil::httpError(400, 'Parent link is set but it\'s url is invalid - should starts with ' . $theoricalUrl);
                 }
-                $parentId = str_starts_with($exploded[1], '/') ? substr($exploded[1], 1) : $exploded[1];
+                $parentIdInBody = str_starts_with($exploded[1], '/') ? substr($exploded[1], 1) : $exploded[1];
                 break;
             }
         }
 
-        return ($parentId === '' ? '' : $parentId . '/') . $catalog['id'];
+        if ( $hasParentInBody ) {
+            if ( isset($parentId) && $parentId !== $parentIdInBody ) {
+                return RestoLogUtil::httpError(400, 'The rel=parent catalog differs from the path ' . $parentId);
+            }
+            return $parentIdInBody . '/' . $catalog['id'];
+        }
+
+        return isset($parentId) ? $parentId . '/' . $catalog['id'] : $catalog['id'];
 
     }    
 

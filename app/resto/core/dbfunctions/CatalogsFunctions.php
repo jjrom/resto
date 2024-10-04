@@ -453,7 +453,9 @@ class CatalogsFunctions
     }
 
     /**
-     * Remove catalog from id - can only works if catalog has no child
+     * Remove catalog from id 
+     * 
+     * [WARNING] This also will remove all child catalogs 
      *
      * @param string $catalogId
      */
@@ -464,8 +466,8 @@ class CatalogsFunctions
 
             $this->dbDriver->query('BEGIN');
 
-            $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE lower(id)=lower($1) RETURNING id', array($catalogId), 500, 'Cannot delete catalog' . $catalogId));
-            $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path=$1' , array(RestoUtil::path2ltree($catalogId)), 500, 'Cannot update features' . $catalogId));
+            $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE lower(id) LIKE lower($1) RETURNING id', array($catalogId . '%'), 500, 'Cannot delete catalog ' . $catalogId));
+            $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path ~ $1' , array(RestoUtil::path2ltree($catalogId) . '.*'), 500, 'Cannot delete catalog_feature association for catalog ' . $catalogId));
         
             $this->dbDriver->query('COMMIT');
 

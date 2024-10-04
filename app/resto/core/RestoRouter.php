@@ -120,6 +120,7 @@ class RestoRouter
         array('GET',    RestoRouter::ROUTE_TO_STAC_SEARCH, false, 'STACAPI::search'),                                                      // STAC API - core search (GET)
         array('POST',   RestoRouter::ROUTE_TO_STAC_SEARCH, false, 'STACAPI::search'),                                                      // STAC API - core search (POST)
         array('POST',   RestoRouter::ROUTE_TO_CATALOGS , true , 'STACAPI::addCatalog'),                                                    // STAC - Add a catalog
+        array('POST',   RestoRouter::ROUTE_TO_CATALOGS . '/*', true , 'STACAPI::addCatalog'),                                              // STAC - Add a catalog at a given level
         array('PUT' ,   RestoRouter::ROUTE_TO_CATALOGS . '/*', true , 'STACAPI::updateCatalog'),                                           // STAC - Update a catalog
         array('DELETE', RestoRouter::ROUTE_TO_CATALOGS . '/*', true , 'STACAPI::removeCatalog')                                            // STAC - Remove a catalog
     );
