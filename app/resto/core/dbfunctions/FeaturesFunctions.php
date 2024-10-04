@@ -857,7 +857,7 @@ class FeaturesFunctions
                     break;
 
                 case 'catalogs':
-                    $columns[] = '(SELECT array_to_json(array_agg(catalogid)) FROM resto.catalog_feature WHERE featureid=resto.feature.id GROUP BY featureid) as catalogs';
+                    $columns[] = '(SELECT array_to_json(array_agg(catalogid)) FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE featureid=' . $this->dbDriver->targetSchema . '.feature.id GROUP BY featureid) as catalogs';
                     break;
                 default:
                     $columns[] = '' . $featureTableName . '.' . $key . ' AS "' . $key . '"';

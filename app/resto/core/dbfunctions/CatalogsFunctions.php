@@ -464,9 +464,9 @@ class CatalogsFunctions
     {
 
         $query = join(' ', array(
-            'WITH path_hierarchy AS (SELECT distinct featureid, subpath(path, 0, generate_series(1, nlevel(path))) AS p FROM resto.catalog_feature',
+            'WITH path_hierarchy AS (SELECT distinct featureid, subpath(path, 0, generate_series(1, nlevel(path))) AS p FROM ' . $this->dbDriver->targetSchema . '.catalog_feature',
             'WHERE featureid = \'' . pg_escape_string($this->dbDriver->getConnection(), $featureId) . '\')',
-            'UPDATE resto.catalog SET counters=public.increment_counters(counters,' . $increment . ',' . (isset($collectionId) ? '\'' . $collectionId . '\'': 'NULL') . ')',
+            'UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters,' . $increment . ',' . (isset($collectionId) ? '\'' . $collectionId . '\'': 'NULL') . ')',
             'WHERE lower(id) IN (SELECT LOWER(REPLACE(REPLACE(path_hierarchy.p::text, \'_\', \'.\'), \'.\', \'/\')) FROM path_hierarchy)'
         ));
 
