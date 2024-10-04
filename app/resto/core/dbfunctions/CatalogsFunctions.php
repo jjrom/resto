@@ -676,9 +676,10 @@ class CatalogsFunctions
                     }
 
                     $exploded = explode('/', substr($link['href'], strlen($baseUrl . RestoRouter::ROUTE_TO_COLLECTIONS) + 1));
-                    if (count($exploded) === 2) {
+                    // A item endpoint is /collections/{collectionId}/items/{featureId}
+                    if (count($exploded) === 3) {
                         $output['internalItems'][] = array(
-                            'id' => RestoUtil::isValidUUID($exploded[1]) ? $exploded[1] : RestoUtil::toUUID($exploded[1]),
+                            'id' => RestoUtil::isValidUUID($exploded[2]) ? $exploded[2] : RestoUtil::toUUID($exploded[2]),
                             'href' => $link['href'],
                             'collection' => $exploded[0]
                         );

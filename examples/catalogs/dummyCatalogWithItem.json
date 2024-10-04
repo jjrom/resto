@@ -7,8 +7,13 @@
     "links":[
         {
             "rel":"item",
-            "href":"http://127.0.0.1:5252/collections/S2/DummySargasse",
+            "href":"http://127.0.0.1:5252/collections/S2/items/DummySargasse",
             "title":"Catalog can also have item"
+        },
+        {
+            "rel":"item",
+            "href":"https://example.org/collections/S2/items/AnExternalItem",
+            "title":"External item are just referenced"
         }
     ]
 }
