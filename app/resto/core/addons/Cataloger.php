@@ -65,7 +65,7 @@ class Cataloger extends RestoAddOn
     }
 
     /**
-     * Extract hashtags from a text and return catalogs - invalid characters are discarded
+     * Extract hashtags from a text and return a catalogs list - invalid characters are discarded
      *
      * [WARNING] The leading '#' is not returned
      *
@@ -207,21 +207,27 @@ class Cataloger extends RestoAddOn
                     break;
 
                 case 'physical':
-                    $catalogs[] = array(
-                        'id' => 'physical',
-                        'title' => 'Physical',
-                        'description' => 'Automatic physical classification processed by [iTag](https://github.com/jjrom/itag)'
-                    );
-                    $catalogs = array_merge($catalogs, $this->getCatalogsFromPhysical($value, 'physical'));
+                    $physical =  $this->getCatalogsFromPhysical($value, 'physical');
+                    if (count($physical) > 0) {
+                        $catalogs[] = array(
+                            'id' => 'physical',
+                            'title' => 'Physical',
+                            'description' => 'Automatic physical classification processed by [iTag](https://github.com/jjrom/itag)'
+                        );
+                        $catalogs = array_merge($catalogs, $physical);
+                    }
                     break;
 
                 case 'landcover':
-                    $catalogs[] = array(
-                        'id' => 'landcover',
-                        'title' => 'Landcover classification',
-                        'description' => 'Automatic landcover classification processed by [iTag](https://github.com/jjrom/itag)'
-                    );
-                    $catalogs = array_merge($catalogs, $this->getCatalogsFromLandCover($value, 'landcover'));
+                    $landcover = $this->getCatalogsFromLandCover($value, 'landcover');
+                    if (count($landcover) > 0) {
+                        $catalogs[] = array(
+                            'id' => 'landcover',
+                            'title' => 'Landcover classification',
+                            'description' => 'Automatic landcover classification processed by [iTag](https://github.com/jjrom/itag)'
+                        );
+                        $catalogs = array_merge($catalogs, $landcover);
+                    }
                     break;
 
                 case 'population':
@@ -528,7 +534,7 @@ class Cataloger extends RestoAddOn
                         $catalogs[] = array(
                             'id' => $id,
                             'title' => $value[$j],
-                            'description' => 'Catalog of features for ' . $facetCategory[$i] . '' . $value[$j],
+                            'description' => 'Catalog of features for ' . $facetCategory[$i] . ' ' . $value[$j],
                             'rtype' => $facetCategory[$i],
                             'hashtag' => $facetCategory[$i] . RestoConstants::TAG_SEPARATOR . $value[$j]
                         );

@@ -42,6 +42,12 @@ class FiltersFunctions
      */
     private $joins = array();
 
+    /*
+     * WITH
+     */
+    private $withs = array();
+    private $terms = array();
+
     private $context;
     private $user;
 
@@ -89,10 +95,11 @@ class FiltersFunctions
              * Process each input search filter excepted excluded filters
              */
             foreach (array_keys($this->model->searchFilters) as $filterName) {
+
                 if (!isset($paramsWithOperation[$filterName]['value']) || $paramsWithOperation[$filterName]['value'] === '') {
                     continue;
                 }
-
+               
                 /*
                  * Sorting special case
                  */
@@ -137,7 +144,8 @@ class FiltersFunctions
                     // [STAC] CQL2 filter must be processed separately
                     if (isset($this->model->searchFilters[$filterName]['operation']) && $this->model->searchFilters[$filterName]['operation'] === 'cql2') {
                         $filter = $this->prepareFilterQueryCQL2($paramsWithOperation[$filterName]['value']);
-                    } elseif (isset($this->model->searchFilters[$filterName]['key'])) {
+                    //} elseif (isset($this->model->searchFilters[$filterName]['key'])) {
+                    } else {
                         $filter = $this->prepareFilterQuery($paramsWithOperation, $filterName);
                     }
 
@@ -148,10 +156,43 @@ class FiltersFunctions
             }
         }
         
+        // searchTerms specialcase - everything processed at the end
+        if (count($this->terms) > 0) {
+       
+            $flatTerms = array();
+            for ($i = 0, $ii = count($this->terms); $i < $ii; $i++) {
+                if (is_array($this->terms[$i])) {
+                    for ($j = 0, $jj = count($this->terms[$i]); $j < $jj; $j++) {
+                        $flatTerms[] = $this->terms[$i][$j];
+                    }
+                }
+                else {
+                    $flatTerms[] = $this->terms[$i];
+                }
+            }
+    
+            $catalogFeatureTableName = $this->context->dbDriver->targetSchema . '.catalog_feature';
+            if (count($flatTerms) == 1) {
+                
+                $this->joins[] = 'JOIN ' . $catalogFeatureTableName . ' ON ' . $this->context->dbDriver->targetSchema . '.feature.id=' . $catalogFeatureTableName . '.featureId';
+                $filters[] = array(
+                    'value' => join(' AND ', array_merge($flatTerms)),
+                    'isGeo' => false
+                );
+
+            }
+
+            // Nightmarish one - use WITH and having count
+            $this->joins[] = 'JOIN matched_paths mp ON ' . $this->context->dbDriver->targetSchema . '.feature.id=mp.featureId';
+            $this->withs[] = 'WITH matched_paths AS ( SELECT featureid FROM ' . $catalogFeatureTableName . ' WHERE ' . join(' OR ', array_merge($flatTerms)) . ' GROUP BY featureid HAVING COUNT(DISTINCT ' . $catalogFeatureTableName . '.path) >= ' . count($flatTerms) . ')';
+            
+        }
+
         return array(
             'filters' => $filters,
             'sortFilters' => $sortFilters,
-            'joins' => $this->joins
+            'joins' => $this->joins,
+            'withs' => $this->withs
         );
     }
 
@@ -168,8 +209,8 @@ class FiltersFunctions
     public function getWhereClause($filtersAndJoins, $options = array())
     {
         $size = count($filtersAndJoins['filters']);
-
-        if ($size > 0) {
+        
+        //if ($size > 0) {
             $filters = array();
             for ($i = $size; $i--;) {
                 if (!$options['addGeo'] && $filtersAndJoins['filters'][$i]['isGeo']) {
@@ -185,7 +226,7 @@ class FiltersFunctions
                 'WHERE',
                 join(' AND ', $mergedFilters)
             ));
-        }
+        //}
 
         return '';
     }
@@ -255,34 +296,35 @@ class FiltersFunctions
              */
             case 'in':
                 return $this->prepareFilterQueryIn($featureTableName, $filterName, $paramsWithOperation[$filterName]['value'], $exclusion);
-                /*
-                 * searchTerms
-                 */
+            /*
+             * searchTerms
+             * Special case - return null and everyhting is processed globally at the end
+             */
             case 'keywords':
-                return $this->prepareFilterQueryKeywords($featureTableName, $filterName, RestoUtil::splitString($paramsWithOperation[$filterName]['value']), $exclusion);
-                /*
-                 * Intersects i.e. geo:*
-                 */
+                return $this->prepareFilterQueryKeywords($this->context->dbDriver->targetSchema . '.catalog_feature', $filterName, RestoUtil::splitString($paramsWithOperation[$filterName]['value']), $exclusion);
+             /*
+              * Intersects i.e. geo:*
+              */
             case 'intersects':
                 return $this->prepareFilterQueryIntersects($filterName, $paramsWithOperation[$filterName], $exclusion);
-                /*
-                 * Distance i.e. geo:lon, geo:lat and geo:radius
-                 */
+             /*
+              * Distance i.e. geo:lon, geo:lat and geo:radius
+              */
             case 'distance':
                 return $this->prepareFilterQueryDistance($filterName, $paramsWithOperation, $exclusion);
-                /*
-                 * Intervals
-                 */
+             /*
+              * Intervals
+              */
             case 'interval':
                 return array(
                     'value' => $this->addNot($exclusion) . QueryUtil::intervalToQuery($this->context->dbDriver->getConnection(), $paramsWithOperation[$filterName]['value'], $this->getTableName($filterName) . '.' . $this->model->searchFilters[$filterName]['key']),
                     'isGeo' => false
                 );
 
-                /*
-                 * Simple case - non 'interval' operation on value or arrays
-                 * Note that array of values assumes a 'OR' operation
-                 */
+             /*
+              * Simple case - non 'interval' operation on value or arrays
+              * Note that array of values assumes a 'OR' operation
+              */
             default:
                 $ors = $this->prepareORFilters($filterName, $paramsWithOperation[$filterName], $exclusion);
                 return array(
@@ -532,17 +574,19 @@ class FiltersFunctions
     }
 
     /**
-     * Prepare SQL query for keywords/hashtags - i.e. searchTerms
-     *
-     * @param string $featureTableName
+     * Prepare SQL query for keywords - i.e. searchTerms
+     * 
+     * [NEW][2024-10-03] Now based on catalog search
+     * 
+     * @param string $catalogFeatureTableName
      * @param string $filterName
      * @param array $searchTerms
      * @param boolean $exclusion
      * @return string
      */
-    private function prepareFilterQueryKeywords($featureTableName, $filterName, $searchTerms, $exclusion)
+    private function prepareFilterQueryKeywords($catalogFeatureTableName, $filterName, $searchTerms, $exclusion)
     {
-        $terms = array();
+
         $filters = array(
             'with' => array(),
             'without' => array()
@@ -554,7 +598,8 @@ class FiltersFunctions
          * Note: replace geouid: by hash: (see rocket)
          */
         for ($i = 0, $l = count($searchTerms); $i < $l; $i++) {
-            $searchTerm = $searchTerms[$i];
+
+            $searchTerm = strtolower($searchTerms[$i]);
 
             /*
              * Hashtags start with "#" or with "-#" (equivalent to "NOT #")
@@ -571,17 +616,18 @@ class FiltersFunctions
              * Add prefix in front of all elements if needed
              * See for instance [eo:instrument]
              */
-            if (isset($this->model->searchFilters[$filterName]['prefix'])) {
-                $searchTerm = $this->addPrefix($searchTerm, $this->model->searchFilters[$filterName]['prefix']);
+            if (isset($this->model->searchFilters[$filterName]['pathPrefix'])) {
+                $searchTerm = $this->addPathPrefix($searchTerm, $this->model->searchFilters[$filterName]['pathPrefix']);
+            }
+            else {
+                $searchTerm = '*.' . $searchTerm;
             }
             
-            $terms = array_merge($this->processSearchTerms($searchTerm, $filters, $featureTableName, $filterName, $exclusion));
+            $this->terms[] = array_merge($this->processSearchTerms($searchTerm, $filters, $catalogFeatureTableName, $filterName, $exclusion));
         }
 
-        return array(
-            'value' => join(' AND ', array_merge($terms, $this->mergeHashesFilters($featureTableName . '.' . $this->model->searchFilters[$filterName]['key'], $filters))),
-            'isGeo' => false
-        );
+        return null;
+
     }
 
     /**
@@ -598,59 +644,42 @@ class FiltersFunctions
      *
      * @param string $searchTerm
      * @param array $filters
-     * @param string $featureTableName
+     * @param string $catalogFeatureTableName
      * @param string $filterName
      * @param boolean $exclusion
      * @return array
      */
-    private function processSearchTerms($searchTerm, &$filters, $featureTableName, $filterName, $exclusion)
+    private function processSearchTerms($searchTerm, &$filters, $catalogFeatureTableName, $filterName, $exclusion)
     {
+
         /*
          * The '|' character is understood as "OR"
-         * For performance reason it is better to use && operator instead of multiple @> with OR
          */
-        $operator = null;
+        $isOr = false;
         $exploded = explode('|', $searchTerm);
         if (count($exploded) > 1) {
-            $operator = '&&';
-        } else {
+            $isOr = true;
+        }
+        else {
             $exploded = explode(',', $searchTerm);
-            if (count($exploded) > 1) {
-                $operator = '@>';
-            }
         }
 
-        if (isset($operator)) {
-            $quotedValues = array();
-            for ($j = count($exploded); $j--;) {
-                $quotedValues[] = '\'' . pg_escape_string($this->context->dbDriver->getConnection(), trim($exploded[$j])) . '\'';
-            }
-            return array($this->addNot($exclusion) . '(' . $featureTableName . '.' . $this->model->searchFilters[$filterName]['key'] . $operator . 'public.normalize_array(ARRAY[' . join(',', $quotedValues) . ']))');
+        $where = array();
+        for ($j = count($exploded); $j--;) {
+            $where[] = $catalogFeatureTableName . '.path ~ ' . '\'' . pg_escape_string($this->context->dbDriver->getConnection(), trim($exploded[$j] . '.*')) . '\'';
         }
         
-        $filters[$exclusion ? 'without' : 'with'][] = "'" . pg_escape_string($this->context->dbDriver->getConnection(), $searchTerm) . "'";
-
-        return array();
-    }
-
-    
-    /**
-     * Merge filters on hashes
-     *
-     * @param string $key
-     * @param array $filters
-     * @return array
-     */
-    private function mergeHashesFilters($key, $filters)
-    {
+        if ($isOr) {
+            return array($this->addNot($exclusion) . '(' .  join(' OR ', $where). ')');
+        }
+        
         $terms = array();
-        if (count($filters['without']) > 0) {
-            $terms[] = 'NOT ' . $key . " @> public.normalize_array(ARRAY[" . join(',', $filters['without']) . "])";
+        for ($i = 0, $ii = count($where); $i < $ii; $i++) {
+            $terms[] = $this->addNot($exclusion) .  $where[$i];
         }
-        if (count($filters['with']) > 0) {
-            $terms[] = $key . " @> public.normalize_array(ARRAY[" . join(',', $filters['with']) . "])";
-        }
+        
         return $terms;
+
     }
 
     /**
@@ -695,7 +724,7 @@ class FiltersFunctions
      * @param string $prefix
      * @return string
      */
-    private function addPrefix($searchTerm, $prefix)
+    private function addPathPrefix($searchTerm, $prefix)
     {
         $searchTerms = array();
 
@@ -709,7 +738,7 @@ class FiltersFunctions
         }
 
         for ($j = count($exploded); $j--;) {
-            $searchTerms[] = $prefix . RestoConstants::TAG_SEPARATOR . $exploded[$j];
+            $searchTerms[] = $prefix . $exploded[$j];
         }
         
         return join($splitter, $searchTerms);
@@ -750,8 +779,7 @@ class FiltersFunctions
      *    Array(
      *      'resto.feature_optical.cloudCover > 10',
      *      'resto.feature_optical.cloudCover <= 30',
-     *      'ST_Intersects(resto.feature.geom, ST_GeomFromText('POINT(10 10)', 4326))',
-     *      'resto.feature.normalized_hashtags @> public.normalize_array(ARRAY['instrument:PHR']
+     *      'ST_Intersects(resto.feature.geom, ST_GeomFromText('POINT(10 10)', 4326))'
      *    )
      *
      *

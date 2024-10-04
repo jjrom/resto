@@ -1,0 +1,14 @@
+{
+    "id": "dummyCatalogWithItem",
+    "title": "Dummy Catalog",
+    "type": "Catalog",
+    "description":"This is an update - we remove the external item and push an new dummyCatalogWithItemChild under it",
+    "stac_version":"1.0.0",
+    "links":[
+        {
+            "rel":"item",
+            "href":"http://127.0.0.1:5252/collections/S2/items/DummySargasse",
+            "title":"Catalog can also have item"
+        }
+    ]
+}

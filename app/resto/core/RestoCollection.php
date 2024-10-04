@@ -890,7 +890,6 @@ class RestoCollection
 
         $this->summaries = array();
 
-        // Datetime is not stored in facet
         if ( isset($this->extent['temporal']['interval'][0][0]) && isset($this->extent['temporal']['interval'][0][1]) ) {
             $this->summaries['datetime'] = array(
                 'minimum' => $this->extent['temporal']['interval'][0][0],

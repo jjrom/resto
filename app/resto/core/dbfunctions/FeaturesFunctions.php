@@ -40,9 +40,7 @@ class FeaturesFunctions
         'links',
         'updated',
         'created',
-        'keywords',
-        'hashtags',
-        //'normalized_hashtags',
+        'catalogs',
         'likes',
         'comments',
         'owner',
@@ -151,6 +149,7 @@ class FeaturesFunctions
          * Prepare query
          */
         $query = join(' ', array(
+            join(' ', $filtersAndJoins['withs']),
             $this->getSelectClause($featureTableName, $this->featureColumns, $user, array(
                 'fields' => $context->query['fields'] ?? null,
                 'useSocial' => isset($context->addons['Social']),
@@ -181,7 +180,7 @@ class FeaturesFunctions
          * Common where clause
          */
         $whereClause = $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => true));
-        $count = $this->getCount('FROM ' . $featureTableName . ' ' . $whereClause, $paramsWithOperation);
+        $count = $this->getCount('FROM ' . $featureTableName . ' ' . $whereClause, join(' ', $filtersAndJoins['withs']), $paramsWithOperation);
 
         $links = array();
         
@@ -197,7 +196,7 @@ class FeaturesFunctions
             if (isset($context->query['_heatmapNoGeo']) && filter_var($context->query['_heatmapNoGeo'], FILTER_VALIDATE_BOOLEAN)) {
                 $whereClause = $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => false));
                 // [IMPORTANT] Set empty $params in getCount() to avoid computation of real count
-                $heatmapLink = (new Heatmap($context, $user))->getEndPoint($featureTableName, $whereClause, $this->getCount('FROM ' . $featureTableName . ' ' . $whereClause), $wkt);
+                $heatmapLink = (new Heatmap($context, $user))->getEndPoint($featureTableName, $whereClause, $this->getCount('FROM ' . $featureTableName . ' ' . $whereClause, join(' ', $filtersAndJoins['withs']),), $wkt);
             } else {
                 for ($i = count($filtersAndJoins['filters']); $i--;) {
                     if ($filtersAndJoins['filters'][$i]['isGeo']) {
@@ -471,11 +470,6 @@ class FeaturesFunctions
             }
         }
 
-        $catalogsFunctions = new CatalogsFunctions($this->dbDriver);
-
-        // Get diff for catalogs
-        $diffCatalogs = $catalogsFunctions->diff($catalogsFunctions->getFeatureCatalogs($feature->id), $keysAndValues['catalogs']);
-
         try {
             /*
              * Begin transaction
@@ -500,19 +494,21 @@ class FeaturesFunctions
             $this->storeFeatureAdditionalContent($feature->id, $collection->id, $keysAndValues['modelTables']);
             
             /*
-             * Remove/add catalogs
+             * Remove then add catalogs
+             * 
+             *  1. First update resto.catalog counters
+             *  2. Then delete resto.catalog_feature rows
+             *  3. Then add resto.catalog_feature rows
              */
-            if ( !empty($diffCatalogs['removed']) ) {
-                // [IMPORTANT] First run updateCatalogCounts !!
-                (new CatalogsFunctions($this->dbDriver))->updateCatalogsCounters($diffCatalogs['removed'], $feature->collection->id, -1);
-                $this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE featureid=$1', array(
+            (new CatalogsFunctions($this->dbDriver))->updateFeatureCatalogsCounters($feature->id, $collection->id, -1);
+            
+            $this->dbDriver->pQuery(
+                'DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE featureid=$1', array(
                     $feature->id
-                ));
-            }
-            if ( !empty($diffCatalogs['added']) ) {
-                (new CatalogsFunctions($this->dbDriver))->storeCatalogs($diffCatalogs['added'], $collection->user->profile['id'], $collection, $feature->id);
-            }
-
+                )
+            );
+            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->user->profile['id'], $collection, $feature->id);
+        
             /*
              * Commit
              */
@@ -573,56 +569,16 @@ class FeaturesFunctions
 
         return RestoLogUtil::httpError(400, 'TODO - update feature description not yet implemented');
         
-        $cataloger = new Cataloger($feature->collection->context, $feature->collection->user);
-        $catalogsFunctions = new CatalogsFunctions($this->dbDriver);
-        
-        // Get diff for catalogs
-        $diffCatalogs = $catalogsFunctions->diff($cataloger->catalogsFromText($feature->toArray()['properties']['description']), $cataloger->catalogsFromText($description));
-        
-        /*
-         * Transaction
-         */
-        try {
-            
-            /*
-             * Update description, hashtags and normalized_hashtags
-             */
-            $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.feature SET description=$1, hashtags=$2, normalized_hashtags=public.normalize_array($2) WHERE id=$3', array(
-                $description,
-                '{' . join(',', $hashtags) . '}',
-                $feature->id
-            ));
-
-            /*
-             * Remove/add catalogs
-             */
-            if ( !empty($diffCatalogs['removed']) ) {
-                // [IMPORTANT] First run updateCatalogsCounters !!
-                (new CatalogsFunctions($this->dbDriver))->updateCatalogsCounters($diffCatalogs['removed'], $feature->collection->id, -1);
-                $this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE featureid=$1', array(
-                    $feature->id
-                ));
-            }
-            if ( !empty($diffCatalogs['added']) ) {
-                (new CatalogsFunctions($this->dbDriver))->storeCatalogs($diffCatalogs['added'], $feature->collection->user->profile['id'], $feature->collection, $feature->id);
-            }
-
-        } catch (Exception $e) {
-            RestoLogUtil::httpError(500, 'Cannot update feature ' . $feature->id);
-        }
-
-        return RestoLogUtil::success('Property description updated for feature ' . $feature->id, array(
-            'id' => $feature->id
-        ));
     }
 
     /**
      * Return exact count or estimate count from query
      *
      * @param String $from
+     * @param String $with
      * @param Boolean $filters
      */
-    public function getCount($from, $filters = array())
+    public function getCount($from, $with, $filters = array())
     {
         /*
          * Determine if the count is estimated or real
@@ -637,11 +593,11 @@ class FeaturesFunctions
          */
         $result = -1;
         if (!$realCount) {
-            $result = pg_fetch_result($this->dbDriver->query('SELECT count_estimate(\'' . pg_escape_string($this->dbDriver->getConnection(), 'SELECT * ' . $from) . '\') as count'), 0, 0);
+            $result = pg_fetch_result($this->dbDriver->query(' SELECT count_estimate(\'' . pg_escape_string($this->dbDriver->getConnection(), $with . ' SELECT * ' . $from) . '\') as count'), 0, 0);
         }
 
         if ($result !== false && $result < 10 * $this->dbDriver->resultsPerPage) {
-            $result = pg_fetch_result($this->dbDriver->query('SELECT count(*) as count ' . $from), 0, 0);
+            $result = pg_fetch_result($this->dbDriver->query($with . ' SELECT count(*) as count ' . $from), 0, 0);
             $realCount = true;
         }
 
@@ -766,7 +722,6 @@ class FeaturesFunctions
         /*
          * Catalogs
          */
-        $hashtags = array();
         for ($i = count($output['catalogs']); $i--;) {
 
             // Append additionnal properties
@@ -788,15 +743,6 @@ class FeaturesFunctions
                 }
             }
            
-            if ( isset($output['catalogs'][$i]['hashtag']) ) {
-                $hashtags[] = $output['catalogs'][$i]['hashtag'];
-            }
-            
-        }
-
-        if ( !empty($hashtags) ) {
-            $keysAndValues['hashtags'] = '{' . join(',', $hashtags) . '}';
-            $keysAndValues['normalized_hashtags'] = $keysAndValues['hashtags'];
         }
         
         // JSON encode metadata
@@ -805,9 +751,7 @@ class FeaturesFunctions
         $counter = 0;
         $output['keysAndValues'] = array_merge($protected, $keysAndValues);
         foreach (array_keys($output['keysAndValues'] ?? array()) as $key) {
-            if ($key === 'normalized_hashtags') {
-                $output['params'][] = 'public.normalize_array($' . ++$counter . ')';
-            } elseif ($key === 'created_idx' || $key === 'startdate_idx') {
+            if ($key === 'created_idx' || $key === 'startdate_idx') {
                 $output['params'][] = 'public.timestamp_to_id($' . ++$counter . ')';
             } else {
                 $output['params'][] = '$' . ++$counter;
@@ -912,6 +856,9 @@ class FeaturesFunctions
                     $columns[] = 'to_iso8601(' . $featureTableName . '.' . $key . ') AS "' . $key . '"';
                     break;
 
+                case 'catalogs':
+                    $columns[] = '(SELECT array_to_json(array_agg(catalogid)) FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE featureid=' . $this->dbDriver->targetSchema . '.feature.id GROUP BY featureid) as catalogs';
+                    break;
                 default:
                     $columns[] = '' . $featureTableName . '.' . $key . ' AS "' . $key . '"';
                     break;
@@ -946,12 +893,12 @@ class FeaturesFunctions
         
         /*
          *  Only one field requested
-         *   -  "_simple" returns all properties except keywords
+         *   -  "_simple" returns all properties except catalogs
          *   -  "_all" returns all properties
          */
         if (count($fields) > 0) {
             if ($fields[0] === '_simple') {
-                $discarded[] = 'keywords';
+                $discarded[] = 'catalogs';
             }
             // Always add mandatories field id, geometry and collection
             elseif ($fields[0] !== '_all') {

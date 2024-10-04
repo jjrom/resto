@@ -207,17 +207,6 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.feature (
     -- Timestamp of update for this feature metadata
     updated             TIMESTAMP,
 
-    -- Keywords computed by Tag add-on
-    keywords            JSON,
-
-    -- 
-    -- List of hashtags (without prefix # !)
-    --
-    -- Two kind of hashtags:
-    --   * hashtags without {RestoConstants::TAG_SEPARATOR} hashtags *provided* by user from description
-    --   * hashtags with {RestoConstants::TAG_SEPARATOR} hashtags *computed* by Tag add-on (depend on collection)
-    hashtags            TEXT[],
-
     -- Original geometry as provided during feature insertion
     -- It is set to NULL if equals to geom (see below) 
     geometry            GEOMETRY(GEOMETRY, 4326),
@@ -230,12 +219,6 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.feature (
     -- If input geometry does not cross one of this case, then input geometry is not
     -- modified and geom equals geomety.
     geom           GEOMETRY(GEOMETRY, 4326),
-
-    -- [INDEXED] Hashtags
-    -- 
-    -- List of normalized hashtags (without prefix # !)
-    --
-    normalized_hashtags TEXT[],
 
     -- [INDEXED] Start date unique iterator
     startdate_idx       BIGINT,
@@ -372,46 +355,6 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.feature_optical (
 );
 
 --
--- Facets table
---
-CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.facet (
-
-    -- Identifier for the facet (unique in combination with collection id)
-    id                  TEXT NOT NULL,
-
-    -- Collection id attached to the facet
-    collection          TEXT NOT NULL,
-    
-    -- Facet value
-    value               TEXT,
-
-    -- Facet type (i.e. catalog, hashtag, region, state, location, etc.)
-    type                TEXT,
-
-    -- Parent identifier (i.e. 'europe' for facet 'france')
-    pid                 TEXT NOT NULL,
-
-    -- Set to 1 if facet is a terminal leaf, 0 otherwise (used for STAC)
-    isleaf              INTEGER,
-
-    -- Number of appearance of this facet within the collection
-    counter             INTEGER,
-
-    -- Facet date of creation
-    created             TIMESTAMP DEFAULT now(),
-
-    -- Owner of the facet i.e. first user to create it
-    owner             BIGINT,
-
-    -- Description
-    description         TEXT,
-    
-    -- The id, pid, collection pair should be unique
-    PRIMARY KEY (id, pid, collection)
-
-);
-
---
 -- Catalog table
 --
 CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog (
@@ -460,18 +403,18 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog (
 CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog_feature (
 
     -- Reference __DATABASE_TARGET_SCHEMA__.feature.id
-    featureid          UUID NOT NULL REFERENCES __DATABASE_TARGET_SCHEMA__.feature (id) ON DELETE CASCADE,
+    featureid               UUID NOT NULL REFERENCES __DATABASE_TARGET_SCHEMA__.feature (id) ON DELETE CASCADE,
 
-    -- Reference __DATABASE_TARGET_SCHEMA__.catalog.id
-    catalogid          TEXT NOT NULL REFERENCES __DATABASE_TARGET_SCHEMA__.catalog (id) ON DELETE CASCADE,
+    -- Leaf catalog path with . instead of / as delimiter
+    path                    LTREE,
 
-    -- Search hashtag
-    hashtag            TEXT,
+    -- This is a duplicate from catalog id without constraint to avoid JOIN
+    catalogid               TEXT,
 
     -- Feature collection
-    collection         TEXT,
+    collection              TEXT,
 
-    PRIMARY KEY (featureid, catalogid)
+    PRIMARY KEY (featureid, path)
    
 );
 
@@ -491,20 +434,14 @@ ALTER TABLE ONLY __DATABASE_TARGET_SCHEMA__.osdescription ADD CONSTRAINT cl_coll
 CREATE INDEX IF NOT EXISTS idx_collection_osdescription ON __DATABASE_TARGET_SCHEMA__.osdescription (collection);
 -- CREATE INDEX IF NOT EXISTS idx_lang_osdescription ON __DATABASE_TARGET_SCHEMA__.osdescription (lang);
 
--- [TABLE __DATABASE_TARGET_SCHEMA__.facet]
-CREATE INDEX IF NOT EXISTS idx_id_facet ON __DATABASE_TARGET_SCHEMA__.facet (public.normalize(id));
-CREATE INDEX IF NOT EXISTS idx_pid_facet ON __DATABASE_TARGET_SCHEMA__.facet (public.normalize(pid));
-CREATE INDEX IF NOT EXISTS idx_type_facet ON __DATABASE_TARGET_SCHEMA__.facet (type);
-CREATE INDEX IF NOT EXISTS idx_collection_facet ON __DATABASE_TARGET_SCHEMA__.facet (public.normalize(collection));
-CREATE INDEX IF NOT EXISTS idx_value_facet ON __DATABASE_TARGET_SCHEMA__.facet USING GIN (public.normalize(value) gin_trgm_ops);
-
 -- [TABLE __DATABASE_TARGET_SCHEMA__.catalog]
-CREATE INDEX IF NOT EXISTS idx_id_catalog ON __DATABASE_TARGET_SCHEMA__.catalog (public.normalize(id));
+CREATE INDEX IF NOT EXISTS idx_id_catalog ON __DATABASE_TARGET_SCHEMA__.catalog (lower(id));
 CREATE INDEX IF NOT EXISTS idx_description_catalog ON __DATABASE_TARGET_SCHEMA__.catalog USING GIN (public.normalize(description) gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_hashtag_catalog ON __DATABASE_TARGET_SCHEMA__.catalog USING GIN (public.normalize(hashtag) gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_level_catalog ON __DATABASE_TARGET_SCHEMA__.catalog USING btree (level);
 
 -- [TABLE __DATABASE_TARGET_SCHEMA__.hashtag]
-CREATE INDEX IF NOT EXISTS idx_hashtag_catalog_feature ON __DATABASE_TARGET_SCHEMA__.catalog_feature (public.normalize(hashtag));
+CREATE INDEX IF NOT EXISTS idx_path_catalog_feature ON __DATABASE_TARGET_SCHEMA__.catalog_feature USING GIST (path);
 
 -- [TABLE __DATABASE_TARGET_SCHEMA__.feature]
 CREATE INDEX IF NOT EXISTS idx_collection_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (collection);
@@ -514,7 +451,6 @@ CREATE INDEX IF NOT EXISTS idx_owner_feature ON __DATABASE_TARGET_SCHEMA__.featu
 CREATE INDEX IF NOT EXISTS idx_visibility_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (visibility);
 CREATE INDEX IF NOT EXISTS idx_status_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (status);
 CREATE INDEX IF NOT EXISTS idx_centroid_feature ON __DATABASE_TARGET_SCHEMA__.feature USING GIST (centroid);
-CREATE INDEX IF NOT EXISTS idx_nhashtags_feature ON __DATABASE_TARGET_SCHEMA__.feature USING GIN (normalized_hashtags) WHERE normalized_hashtags IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_geom_feature ON __DATABASE_TARGET_SCHEMA__.feature USING GIST (geom);
 
 -- [TABLE __DATABASE_TARGET_SCHEMA__.geometry_part]

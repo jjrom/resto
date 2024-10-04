@@ -202,8 +202,8 @@ class RestoFeatureUtil
                     $featureArray['bbox'] = RestoGeometryUtil::box2dTobbox($value);
                     break;
 
-                case 'keywords':
-                    $featureArray['properties']['resto:keywords'] = $this->addKeywordsHref(json_decode($value, true), $collection);
+                case 'catalogs':
+                    $featureArray['properties']['resto:catalogs'] = json_decode($value, true);
                     break;
 
                 case 'liked':
@@ -279,7 +279,7 @@ class RestoFeatureUtil
                     ),
                     array(
                         $collection->model->searchFilters['language']['osKey'] => $this->context->lang,
-                        $collection->model->searchFilters['searchTerms']['osKey'] => '#' . $keywords[$key]['id']
+                        
                     )
                 );
             }

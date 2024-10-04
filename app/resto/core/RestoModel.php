@@ -64,7 +64,7 @@ abstract class RestoModel
     );
 
     /*
-     * Facet hierarchy
+     * Auto cataloging hierarchy
      */
     public $facetCategories = array(
         array(
@@ -99,6 +99,8 @@ abstract class RestoModel
      *      [IMPORTANT] If not set then it is assumed that stacKey is the same as osKey
      *  'prefix' :
      *      (Optional) (for "keywords" operation only) Prefix systematically added to input value (i.e. prefix:value)
+     *  'pathPrefix' :
+     *      (Optional) (for "keywords" operation only) Path prefix for LTREE search in catalog_feature table. If not set will be *.)
      *  'operation' :
      *      Type of operation applied to the filter ("in", "keywords", "intersects", "distance", "=", "<=", ">=")
      *  'queryable' :
@@ -159,7 +161,6 @@ abstract class RestoModel
         ),
 
         'searchTerms' => array(
-            'key' => 'normalized_hashtags',
             // [TODO] Remove type since it seems not be used anymore (TBC)
             'type' => 'array',
             'osKey' => 'q',
@@ -353,7 +354,7 @@ abstract class RestoModel
      * Array of table names to store "model specific" properties for feature
      * Usually only numeric properties are stored (for search) since
      * string property are stored within metadata property of *.feature table
-     * and indexed with normalized_hashtags property of the same table
+     * and indexed within the catalog_feature table
      */
     public $tables = array();
 
@@ -548,7 +549,7 @@ abstract class RestoModel
             }
         }
 
-        // Convert unknowns input to hashtags
+        // Convert unknowns input to searchTerms
         if (count($unknowns) > 0) {
             $params['searchTerms'] = isset($params['searchTerms']) ? $params['searchTerms'] . ' ' . join(' ', $unknowns) : join(' ', $unknowns);
         }
@@ -760,7 +761,7 @@ abstract class RestoModel
         $arr = array();
         foreach ($filterNames as $key => $obj) {
             if (isset($this->searchFilters[$key])) {
-                // Special case => convert string of hashtags to individuals
+                // Special case => explode searchTerms string
                 if ($key === 'searchTerms' && $processSearchTerms) {
                     $arr = array_merge($arr, $this->explodeSearchTerms($obj));
                     continue;
@@ -1048,7 +1049,7 @@ abstract class RestoModel
      */
     private function explodeSearchTerms($obj)
     {
-        $hashtags = [];
+        $searchFilters = [];
         $output = [];
         
         /*
@@ -1066,7 +1067,7 @@ abstract class RestoModel
 
             // This is a regular hashtag
             if (count($splitted) === 1) {
-                $hashtags[] = $searchTerms[$i];
+                $searchFilters[] = $searchTerms[$i];
                 continue;
             }
 
@@ -1090,13 +1091,13 @@ abstract class RestoModel
                     'operation' =>  $obj['operation']
                 );
             } else {
-                $hashtags[] = $searchTerms[$i];
+                $searchFilters[] = $searchTerms[$i];
             }
         }
 
-        if (count($hashtags) > 0) {
+        if (count($searchFilters) > 0) {
             $output['searchTerms'] = array(
-                'value' => join(' ', $hashtags),
+                'value' => join(' ', $searchFilters),
                 'operation' =>  $obj['operation']
             );
         }

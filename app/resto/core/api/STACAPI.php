@@ -283,7 +283,7 @@ class STACAPI
                 'description' => 'List of available catalogs',
                 'links' => array_merge(
                     $this->getBaseLinks(),
-                    $this->getRootCatalogLinks($this->context->core['catalogMinMatch'])
+                    $this->getRootCatalogLinks($params)
                 )
             );
         }
@@ -372,12 +372,26 @@ class STACAPI
         }
 
         /*
+         * Check that parent catalogs exists
+         */
+        $parentId = null;
+        if ( isset($params['segments']) ) {
+            for ($i = 0, $ii = count($params['segments']); $i < $ii; $i++) {
+                $parentId = isset($parentId) ? $parentId . '/' . $params['segments'][$i] : $params['segments'][$i];
+                if ($this->catalogsFunctions->getCatalog($parentId) === null) {
+                    return RestoLogUtil::httpError(400, 'Parent catalog ' . $parentId . ' does not exist.');
+                }
+            }
+        }
+        
+
+        /*
          * Convert input catalog to resto:catalog
          * i.e. add rtype and hashtag properties and convert id to a path
          */
         $body['rtype'] = 'catalog';
         $body['hashtag'] = 'catalog' . RestoConstants::TAG_SEPARATOR . $body['id'];
-        $body['id'] = $this->getIdPath($body);
+        $body['id'] = $this->getIdPath($body, $parentId);
 
         if ($this->catalogsFunctions->getCatalog($body['id']) !== null) {
             RestoLogUtil::httpError(409, 'Catalog ' . $body['id'] . ' already exists');
@@ -476,8 +490,8 @@ class STACAPI
                 $catalogs[0][$updatable[$i]] = $body[$updatable[$i]];
             }    
         }
-        
-        return RestoLogUtil::success('Catalog updated', $this->catalogsFunctions->updateCatalog($catalogs[0]));
+
+        return $this->catalogsFunctions->updateCatalog($catalogs[0], $this->user->profile['id'], $this->context->core['baseUrl']) ? RestoLogUtil::success('Catalog updated') : RestoLogUtil::error('Cannot update catalog');
     }
 
     /**
@@ -495,14 +509,6 @@ class STACAPI
      *         description="Catalog identifier",
      *         @OA\Schema(
      *             type="string"
-     *         )
-     *      ),
-     *      @OA\Parameter(
-     *         name="force",
-     *         in="query",
-     *         description="Force catalog removal even if this catalog has child. In this case, catalogs childs are attached to the remove catalog parent",
-     *         @OA\Schema(
-     *             type="boolean"
      *         )
      *      ),
      *      @OA\Response(
@@ -564,16 +570,6 @@ class STACAPI
         // If user has not the right to delete catalog then 403
         if ( !$this->user->hasRightsTo(RestoUser::DELETE_CATALOG, array('catalog' => $catalogs[0])) ) {
             return RestoLogUtil::httpError(403);
-        }
-        
-        // If catalog has childs it cannot be removed
-        for ($i = 1, $ii = count($catalogs); $i < $ii; $i--) {
-            if (isset($params['force']) && filter_var($params['force'], FILTER_VALIDATE_BOOLEAN) === true) {
-                return RestoLogUtil::httpError(400, 'TODO - force removal of non empty catalog is not implemented');
-            }
-            else {
-                return RestoLogUtil::httpError(400, 'The catalog cannot be deleted because it has ' . (count($catalogs) - 1) . ' childs');
-            }    
         }
         
         return RestoLogUtil::success('Catalog deleted', $this->catalogsFunctions->removeCatalog($catalogs[0]['id']));
@@ -674,7 +670,7 @@ class STACAPI
         // Initialize router to process each children individually
         $router = new RestoRouter($this->context, $this->user);
 
-        $links = $this->getRootCatalogLinks($this->context->core['catalogMinMatch']);
+        $links = $this->getRootCatalogLinks($params);
         for ($i = 0, $ii = count($links); $i < $ii; $i++) {
             if ($links[$i]['rel'] == 'child') {
                 try {
@@ -1306,7 +1302,8 @@ class STACAPI
 
             array_pop($segments);
             $catalogs = $this->catalogsFunctions->getCatalogs(array(
-                'id' => join('/', $segments)
+                'id' => join('/', $segments),
+                'q' => $params['q'] ?? null
             ));
     
             if ( empty($catalogs) || !$catalogs[0]['hashtag'] ) {
@@ -1328,7 +1325,7 @@ class STACAPI
         }
         
         // The path is the catalog identifier
-        $parentAndChilds = $this->getParentAndChilds(join('/', $segments));
+        $parentAndChilds = $this->getParentAndChilds(join('/', $segments), $params);
         return array(
             'stac_version' => STACAPI::STAC_VERSION,
             'id' => $segments[count($segments) -1 ],
@@ -1453,18 +1450,19 @@ class STACAPI
      * Return catalog childs 
      * 
      * @param string $catalogId
+     * @param array $params Search parameters
      * @return array
      */
-    private function getParentAndChilds($catalogId)
+    private function getParentAndChilds($catalogId, $params)
     {
-
         // Get catalogs - first one is $catalogId, other its childs
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
-            'id' => $catalogId
+            'id' => $catalogId,
+            'q' => $params['q'] ?? null
         ), true);
 
         $parentAndChilds = array(
-            'parent' => $catalogs[0],
+            'parent' => $catalogs[0] ?? null,
             'childs' => array()
         );
 
@@ -1541,9 +1539,10 @@ class STACAPI
     /**
      * Get root links
      *
+     * @param $params // Additional filtering parameters for catalog search on description and title
      * @return array
      */
-    private function getRootCatalogLinks()
+    private function getRootCatalogLinks($params)
     {
         $links = array();
 
@@ -1557,10 +1556,11 @@ class STACAPI
                 $links[] = $stacLink;
             }
         }
-
+        
         // Get first level catalog
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
-            'level' => 1
+            'level' => 1,
+            'q' => $params['q'] ?? null
         ));
 
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
@@ -1576,6 +1576,7 @@ class STACAPI
                     'title' => $catalogs[$i]['title'],
                     'description' => $catalogs[$i]['description'] ?? '',
                     'type' => RestoUtil::$contentTypes['json'],
+                    'resto:type' => $catalogs[$i]['rtype'],
                     'href' => $this->context->core['baseUrl'] . '/catalogs/' . rawurlencode($catalogs[$i]['id']),
                     'matched' => $catalogs[$i]['counters']['total']
                 );
@@ -1588,30 +1589,40 @@ class STACAPI
     }
 
     /**
-     * Return path identifier from input catlaog
+     * Return path identifier from input catalog
      * 
      * @param array $catalog
+     * @param string $parentId
      * @return string
      */
-    private function getIdPath($catalog)
+    private function getIdPath($catalog, $parentId)
     {
 
-        $parentId = '';
+        $parentIdInBody = '';
+        $hasParentInBody = false;
 
         // Retrieve parent if any
         for ($i = 0, $ii = count($catalog['links']); $i < $ii; $i++ ) {
             if ( isset($catalog['links'][$i]['rel']) &&$catalog['links'][$i]['rel'] === 'parent' ) {
+                $hasParentInBody = true;
                 $theoricalUrl = $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS; 
                 $exploded = explode($theoricalUrl, $catalog['links'][$i]['href']);
                 if (count($exploded) !== 2) {
                     return RestoLogUtil::httpError(400, 'Parent link is set but it\'s url is invalid - should starts with ' . $theoricalUrl);
                 }
-                $parentId = str_starts_with($exploded[1], '/') ? substr($exploded[1], 1) : $exploded[1];
+                $parentIdInBody = str_starts_with($exploded[1], '/') ? substr($exploded[1], 1) : $exploded[1];
                 break;
             }
         }
 
-        return ($parentId === '' ? '' : $parentId . '/') . $catalog['id'];
+        if ( $hasParentInBody ) {
+            if ( isset($parentId) && $parentId !== $parentIdInBody ) {
+                return RestoLogUtil::httpError(400, 'The rel=parent catalog differs from the path ' . $parentId);
+            }
+            return $parentIdInBody . '/' . $catalog['id'];
+        }
+
+        return isset($parentId) ? $parentId . '/' . $catalog['id'] : $catalog['id'];
 
     }    
 

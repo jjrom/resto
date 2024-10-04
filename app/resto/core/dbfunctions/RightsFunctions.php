@@ -47,7 +47,7 @@ class RightsFunctions
     {
 
         $userRights = array();
-
+        
         /*
          * Retrieve rights for user
          */
