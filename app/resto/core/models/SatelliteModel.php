@@ -103,19 +103,19 @@ class SatelliteModel extends LandCoverModel
         $this->searchFilters = array_merge($this->searchFilters, array(
         
             'eo:productType' => array(
-                'key' => 'normalized_hashtags',
                 'osKey' => 'productType',
                 'prefix' => 'productType',
+                'pathPrefix' => 'producttypes.',
                 'operation' => 'keywords',
                 'title' => 'A string identifying the entry type (e.g. ER02_SAR_IM__0P, MER_RR__1P, SM_SLC__1S, GES_DISC_AIRH3STD_V005)',
                 'options' => 'auto'
             ),
             
             'eo:processingLevel' => array(
-                'key' => 'normalized_hashtags',
                 'osKey' => 'processingLevel',
                 'stacKey' => 'processing:level',
                 'prefix' => 'processingLevel',
+                'pathPrefix' => 'processinglevels.',
                 'operation' => 'keywords',
                 'title' => 'A string identifying the processing level applied to the entry',
                 'options' => 'auto',
@@ -123,27 +123,27 @@ class SatelliteModel extends LandCoverModel
             ),
             
             'eo:platform' => array(
-                'key' => 'normalized_hashtags',
                 'osKey' => 'platform',
                 'prefix' => 'platform',
+                'pathPrefix' => 'platforms.',
                 'operation' => 'keywords',
                 'title' => 'A string with the platform short name (e.g. Sentinel-1)',
                 'options' => 'auto'
             ),
             
             'eo:instrument' => array(
-                'key' => 'normalized_hashtags',
                 'osKey' => 'instruments',
                 'prefix' => 'instrument',
+                'pathPrefix' => 'instruments.',
                 'operation' => 'keywords',
                 'title' => 'A string identifying the instrument (e.g. MERIS, AATSR, ASAR, HRVIR. SAR)',
                 'options' => 'auto'
             ),
             
             'eo:sensorType' => array(
-                'key' => 'normalized_hashtags',
                 'osKey' => 'sensorType',
                 'prefix' => 'sensorType',
+                'pathPrefix' => 'sensortypes.',
                 'operation' => 'keywords',
                 'title' => 'A string identifying the sensor type. Suggested values are: OPTICAL, RADAR, ALTIMETRIC, ATMOSPHERIC, LIMB',
                 'options' => 'auto'

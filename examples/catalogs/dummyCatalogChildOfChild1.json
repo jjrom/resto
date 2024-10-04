@@ -1,0 +1,8 @@
+{
+    "id": "dummyCatalogChildOfChild1",
+    "title": "Dummy Catalog child of child1",
+    "type": "Catalog",
+    "description":"This catalog is a child of child1",
+    "stac_version":"1.0.0",
+    "links":[]
+}

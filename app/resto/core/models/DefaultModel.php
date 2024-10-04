@@ -38,9 +38,9 @@ class DefaultModel extends RestoModel
 
             // Year
             'time:year' => array(
-                'key' => 'normalized_hashtags',
                 'osKey' => 'year',
                 'prefix' => 'year',
+                'pathPrefix' => 'years.',
                 'operation' => 'keywords',
                 'title' => 'Year in YYYY format',
                 'pattern' => '^([0-9]{4})([,|]([0-9]{4}))*$',
@@ -49,9 +49,9 @@ class DefaultModel extends RestoModel
 
             // Month of year
             'time:month' => array(
-                'key' => 'normalized_hashtags',
                 'osKey' => 'month',
                 'prefix' => 'month',
+                'pathPrefix' => 'years.*.',
                 'operation' => 'keywords',
                 'title' => 'Month of the year in two digit (i.e. between 01 and 12)',
                 'pattern' => '^([0-1][0-9])([,|][0-1][0-9])*$',
@@ -60,9 +60,9 @@ class DefaultModel extends RestoModel
 
             // Day of month
             'time:day' => array(
-                'key' => 'normalized_hashtags',
                 'osKey' => 'day',
                 'prefix' => 'day',
+                'pathPrefix' => 'years.*.*.',
                 'operation' => 'keywords',
                 'title' => 'Day of month in two digit (i.e. between 1 and 31)',
                 'pattern' => '^([0-3][0-9])([,|][0-3][0-9])*$',
@@ -71,9 +71,9 @@ class DefaultModel extends RestoModel
 
             // Season (iTag needed)
             'resto:season' => array(
-                'key' => 'normalized_hashtags',
                 'osKey' => 'season',
                 'prefix' => 'season',
+                'pathPrefix' => 'seasons.',
                 'operation' => 'keywords',
                 'title' => 'Season name',
                 'options' => 'auto'
@@ -81,9 +81,9 @@ class DefaultModel extends RestoModel
 
             // Location (iTag needed)
             'resto:location' => array(
-                'key' => 'normalized_hashtags',
                 'osKey' => 'location',
                 'prefix' => 'location',
+                'pathPrefix' => 'locations.',
                 'operation' => 'keywords',
                 'title' => 'Location',
                 'options' => 'auto'

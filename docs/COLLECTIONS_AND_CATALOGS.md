@@ -49,22 +49,34 @@ Then get the feature :
         # Create a catalog - user with the "createCatalog" right can create a catalog 
         curl -X POST -d@examples/catalogs/dummyCatalog.json "http://admin:admin@localhost:5252/catalogs"
 
-### Create a catalog with childs
+### Create a catalog with existing childs
 
         # This will raise an error because catalog' childs does not exist. They must be created first
         curl -X POST -d@examples/catalogs/dummyCatalogWithChilds.json "http://admin:admin@localhost:5252/catalogs"
 
-        # Good way : ingest childs then parent
+        # Good way: ingest childs then parent
         curl -X POST -d@examples/catalogs/dummyCatalogChild1.json "http://admin:admin@localhost:5252/catalogs"
         curl -X POST -d@examples/catalogs/dummyCatalogChild2.json "http://admin:admin@localhost:5252/catalogs"
         curl -X POST -d@examples/catalogs/dummyCatalogWithChilds.json "http://admin:admin@localhost:5252/catalogs"
 
+### Create a catalog under an existing catalog
+
+        # The catalog dummyCatalogChild1 is posted under /catalogs/dummyCatalog
+        curl -X POST -d@examples/catalogs/dummyCatalogChild1.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog"
+
+### Create a catalog with item
+
+        # The catalog dummyCatalogWithItem is posted under /catalogs/dummyCatalog/dummyCatalogChild1
+        # It references :
+        #   * a local item that is added to catalog_feature table
+        #   * an external item that is kept as referenced within the links column in catalog table
+        curl -X POST -d@examples/catalogs/dummyCatalogWithItem.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog/dummyCatalogChild1"
 
 ### Update a catalog
-Only "title", "description" and "owner" properties can be updated
 
         # Update a catalog - user with the "updateCatalog" right can update a catalog he owns
-        curl -X PUT -d@examples/catalogs/dummyCatalog_update.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog"
+
+        curl -X PUT -d@examples/catalogs/dummyCatalogWithItem_update.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog/dummyCatalogChild1"
 
 ### Delete a catalog
 

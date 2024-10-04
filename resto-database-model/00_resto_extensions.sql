@@ -19,6 +19,11 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" SCHEMA public;
 --
 CREATE EXTENSION IF NOT EXISTS pg_trgm SCHEMA public;
 
+--
+-- LTREE extension to support for path search
+--
+CREATE EXTENSION IF NOT EXISTS ltree;
+
 -- 
 -- PostGIS extension to support geometrical searches
 --
