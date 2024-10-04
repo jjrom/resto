@@ -59,6 +59,9 @@ Then get the feature :
         curl -X POST -d@examples/catalogs/dummyCatalogChild2.json "http://admin:admin@localhost:5252/catalogs"
         curl -X POST -d@examples/catalogs/dummyCatalogWithChilds.json "http://admin:admin@localhost:5252/catalogs"
 
+### Create a catalog with childs and items
+
+        curl -X POST -d@examples/catalogs/dummyCatalogWithChildsAndItem.json "http://admin:admin@localhost:5252/catalogs"
 
 ### Update a catalog
 Only "title", "description" and "owner" properties can be updated

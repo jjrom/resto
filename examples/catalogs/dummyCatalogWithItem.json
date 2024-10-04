@@ -1,0 +1,14 @@
+{
+    "id": "dummyCatalogWithItem",
+    "title": "Dummy Catalog",
+    "type": "Catalog",
+    "description":"There is nothing to say on this catalog",
+    "stac_version":"1.0.0",
+    "links":[
+        {
+            "rel":"item",
+            "href":"http://127.0.0.1:5252/collections/S2/DummySargasse",
+            "title":"Catalog can also have item"
+        }
+    ]
+}

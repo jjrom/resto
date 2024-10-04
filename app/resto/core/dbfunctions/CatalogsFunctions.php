@@ -264,28 +264,20 @@ class CatalogsFunctions
              * 
              */
             $catalogLevel = count(explode('/', $catalog['id']));
-
+            // Convert catalogId to LTREE path - first replace dot with underscore
+            $path = RestoUtil::path2ltree($catalog['id']);
+                
             if ( isset($featureId) && ($catalogLevel > 1 || $catalog['rtype'] === 'catalog')  ) {
-
-                // Convert catalogId to LTREE path - first replace dot with underscore
-                $path = RestoUtil::path2ltree($catalog['id']);
-                
-                $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.catalog_feature SET featureid=$1, path=$2, catalogid=$3, collection=$4 WHERE featureid=$1 AND path @> $2::ltree AND nlevel(path) < nlevel($2::ltree)', array(
-                    $featureId,
-                    $path,
-                    $catalog['id'],
-                    $collectionId
-                ), 500, 'Cannot catalog_feature association ' . $catalog['id'] . '/' . $featureId);
-                
-                $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog_feature (featureid, path, catalogid, collection) SELECT $1, $2::ltree, $3, $4 WHERE NOT EXISTS (SELECT 1 FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE featureid = $1 AND (path <@ $2::ltree OR path @> $2::ltree))', array(
-                    $featureId,
-                    $path,
-                    $catalog['id'],
-                    $collectionId
-                ), 500, 'Cannot catalog_feature association ' . $catalog['id'] . '/' . $featureId);
-              
+                $this->insertIntoCatalogFeature($featureId, $path, $catalog['id'], $collectionId);
             }
-            
+
+            /*
+             * Add an entry in catalog_feature for each interalItems
+             */
+            for ($i = 0, $ii = count($cleanLinks['internalItems']); $i < $ii; $i++) {
+                $this->insertIntoCatalogFeature($cleanLinks['internalItems'][$i]['id'], $path, $catalog['id'], $cleanLinks['internalItems'][$i]['collection']);
+            }
+
             /*
              * Now the tricky part - change catalogs level
              */
@@ -311,7 +303,6 @@ class CatalogsFunctions
         return $catalog;
 
     }
-
 
     /**
      * Store catalogs within database
@@ -618,6 +609,27 @@ class CatalogsFunctions
     }
 
     /**
+     * Create catalog -> featureId association
+     */
+    private function insertIntoCatalogFeature($featureId, $path, $catalogId, $collectionId) {
+
+        $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.catalog_feature SET featureid=$1, path=$2, catalogid=$3, collection=$4 WHERE featureid=$1 AND path @> $2::ltree AND nlevel(path) < nlevel($2::ltree)', array(
+            $featureId,
+            $path,
+            $catalogId,
+            $collectionId
+        ), 500, 'Cannot create association for ' . $featureId . ' intp catalog ' . $catalogId);
+        
+        $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog_feature (featureid, path, catalogid, collection) SELECT $1, $2::ltree, $3, $4 WHERE NOT EXISTS (SELECT 1 FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE featureid = $1 AND (path <@ $2::ltree OR path @> $2::ltree))', array(
+            $featureId,
+            $path,
+            $catalogId,
+            $collectionId
+        ), 500, 'Cannot create association for ' . $featureId . ' intp catalog ' . $catalogId);
+      
+    }
+
+    /**
      * Return a "cleaned" list of catalog links.
      * Cleaned list means :
      *  - discard root, parent and self links
@@ -633,7 +645,8 @@ class CatalogsFunctions
 
         $output = array(
             'links' => array(),
-            'updateCatalogs' => array()
+            'updateCatalogs' => array(),
+            'internalItems' => array()
         );
 
         if ( !isset($catalog['links']) ) {
@@ -647,17 +660,47 @@ class CatalogsFunctions
             }
             
             if ( in_array($link['rel'], array('child', 'item', 'items')) ) {
+                
                 if ( !isset($link['href']) ) {
                     return RestoLogUtil::httpError(400, 'One link child has an empty href');    
                 }
-                if (in_array($link['rel'], array('item', 'items')) || str_starts_with($link['href'], $baseUrl . RestoRouter::ROUTE_TO_COLLECTIONS )) {
-                    $output['links'][] = $link;
-                    continue;
+                
+                /*
+                 * [IMPORTANT] Only put EXTERNAL item/items to links array. Local one are processed later on
+                 */
+                if ( in_array($link['rel'], array('item', 'items')) ) {
+                    
+                    if ( !str_starts_with($link['href'], $baseUrl . RestoRouter::ROUTE_TO_COLLECTIONS ) ) {
+                        $output['links'][] = $link;
+                        continue;
+                    }
+
+                    $exploded = explode('/', substr($link['href'], strlen($baseUrl . RestoRouter::ROUTE_TO_COLLECTIONS) + 1));
+                    if (count($exploded) === 2) {
+                        $output['internalItems'][] = array(
+                            'id' => RestoUtil::isValidUUID($exploded[1]) ? $exploded[1] : RestoUtil::toUUID($exploded[1]),
+                            'href' => $link['href'],
+                            'collection' => $exploded[0]
+                        );
+                        continue;
+                    }
+
                 }
+
+                /*
+                 * [TODO] Local collection -should not be in links but should appears in catalog 
+                 *  under /catalogs/catalogThatIsIngested/{collectionId} so we can keep trace of this in item ??
+                 */
+                if ( $link['rel'] === 'child' && str_starts_with($link['href'], $baseUrl . RestoRouter::ROUTE_TO_COLLECTIONS )) {
+                    $output['links'][] = $link;
+                    continue;   
+                }
+                
                 $exploded = explode($baseUrl . RestoRouter::ROUTE_TO_CATALOGS . '/', $link['href']);
                 if ( count($exploded) !== 2) {
                     return RestoLogUtil::httpError(400, 'One link child has an external href i.e. not starting with ' . $baseUrl . RestoRouter::ROUTE_TO_CATALOGS);    
                 }
+
                 $childCatalog = $this->getCatalog($exploded[1]);
                 if ( $childCatalog === null ) {
                     return RestoLogUtil::httpError(400, 'Catalog child ' . $link['href'] . ' does not exist in database');    
