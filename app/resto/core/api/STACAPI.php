@@ -1305,13 +1305,13 @@ class STACAPI
                 'id' => join('/', $segments),
                 'q' => $params['q'] ?? null
             ));
-    
-            if ( empty($catalogs) || !$catalogs[0]['hashtag'] ) {
+
+            if ( empty($catalogs) ) {
                 return RestoLogUtil::httpError(404);
             }
             
             $searchParams = array(
-                'q' => '#' . $catalogs[0]['hashtag']
+                'q' => '#' . RestoUtil::path2ltree($catalogs[0]['id'])
             );
     
             foreach (array_keys($params) as $key) {
@@ -1474,26 +1474,40 @@ class STACAPI
 
             // Parent has an hashtag thus can have a rel="items" child to directly search for its contents
             if ( isset($parentAndChilds['parent']['hashtag']) ) {
-                $parentAndChilds['childs'][] = array(
+                $element = array(
                     'rel' => 'items',
-                    'title' => $parentAndChilds['parent']['title'],
                     'type' => RestoUtil::$contentTypes['geojson'],
                     'href' => $this->context->core['baseUrl'] . '/catalogs/' .  join('/', array_map('rawurlencode', explode('/', $parentAndChilds['parent']['id']))) . '/_',
                     'matched' => $parentAndChilds['parent']['counters']['total']
                 );
+                if ( isset($parentAndChilds['parent']['title']) ) {
+                    $element['title'] = $parentAndChilds['parent']['title'];
+                }
+                if ( isset($catalogs[$i]['rtype']) ) {
+                    $element['resto:type'] = $catalogs[$i]['rtype'];
+                }
+                $parentAndChilds['childs'][] = $element;
             }
 
             // Childs are 1 level above their parent catalog level
             for ($i = 1, $ii = count($catalogs); $i < $ii; $i++) {
                 if ($catalogs[$i]['level'] === $parentAndChilds['parent']['level'] + 1) {
-                    $parentAndChilds['childs'][] = array(
+                    $element = array(
                         'rel' => 'child',
-                        'title' => $catalogs[$i]['title'],
-                        'description' => $catalogs[$i]['description'] ?? '',
                         'type' => RestoUtil::$contentTypes['json'],
                         'href' => $this->context->core['baseUrl'] . '/catalogs/' .  join('/', array_map('rawurlencode', explode('/', $catalogs[$i]['id']))),
                         'matched' => $catalogs[$i]['counters']['total']
                     );
+                    if ( isset($catalogs[$i]['title']) ) {
+                        $element['title'] = $catalogs[$i]['title'];
+                    }
+                    if ( isset($catalogs[$i]['description']) ) {
+                        $element['description'] = $catalogs[$i]['description'];
+                    }
+                    if ( isset($catalogs[$i]['rtype']) ) {
+                        $element['resto:type'] = $catalogs[$i]['rtype'];
+                    }
+                    $parentAndChilds['childs'][] = $element;
                 }
             }
         }
@@ -1567,19 +1581,26 @@ class STACAPI
 
             // Returns only catalogs with count >= minMatch
             if ($catalogs[$i]['counters']['total'] >= $this->context->core['catalogMinMatch']) {
+
                 if ($catalogs[$i]['id'] === 'collections') {
-                    //$link['roles'] = array('collections');
                     continue;
                 }
+
                 $link = array(
                     'rel' => 'child',
-                    'title' => $catalogs[$i]['title'],
-                    'description' => $catalogs[$i]['description'] ?? '',
                     'type' => RestoUtil::$contentTypes['json'],
-                    'resto:type' => $catalogs[$i]['rtype'],
                     'href' => $this->context->core['baseUrl'] . '/catalogs/' . rawurlencode($catalogs[$i]['id']),
-                    'matched' => $catalogs[$i]['counters']['total']
+                    'matched' => $catalogs[$i]['counters']['total'] ?? 0
                 );
+                if ( isset($catalogs[$i]['title']) ) {
+                    $link['title'] = $catalogs[$i]['title'];
+                }
+                if ( isset($catalogs[$i]['description']) ) {
+                    $link['description'] = $catalogs[$i]['description'];
+                }
+                if ( isset($catalogs[$i]['rtype']) ) {
+                    $link['resto:type'] = $catalogs[$i]['rtype'];
+                }
                 $links[] = $link;
             }
             

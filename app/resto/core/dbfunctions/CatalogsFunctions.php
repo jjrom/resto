@@ -256,21 +256,22 @@ class CatalogsFunctions
              * 
              * We should ingest 
              * 
-             *   1. Non first level catalog (so "years", "hashtags" and "collections" are discared EXCEPT true catalog one !!
+             *   1. Non first level catalog (so "years", "hashtags", etc. are discared EXCEPT true catalog one !!
              * 
+             *   2. Non rtype = "collection". Since each item mandatory attached to a collection, adding entry to catalog_feature
+             *      will basically add one entry per feature
              * 
-             *   2. Only the childest catalog so in the previous example only
+             *   3. Only the childest catalog so in the previous example only
              * 
              *      years/2024/06/21
              *      hashtags/hastagfromdescrption
-             *      collections/S2
              * 
              */
             $catalogLevel = count(explode('/', $catalog['id']));
             // Convert catalogId to LTREE path - first replace dot with underscore
             $path = RestoUtil::path2ltree($catalog['id']);
                 
-            if ( isset($featureId) && ($catalogLevel > 1 || $catalog['rtype'] === 'catalog')  ) {
+            if ( isset($featureId) && $catalog['rtype'] !== 'collection' && ($catalogLevel > 1 || $catalog['rtype'] === 'catalog')  ) {
                 $this->insertIntoCatalogFeature($featureId, $path, $catalog['id'], $collectionId);
             }
 
