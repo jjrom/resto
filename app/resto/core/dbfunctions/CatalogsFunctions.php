@@ -427,33 +427,6 @@ class CatalogsFunctions
     }
 
     /**
-     * Increment input catalogs count
-     *
-     * @param array $catalogs
-     * @param string $collectionId
-     * @param integer $increment
-     */
-    public function updateCatalogsCounters($catalogs, $collectionId, $increment)
-    {
-
-        $catalogIds = [];
-        for ($i = count($catalogs); $i--;) {
-            $catalogIds[] = $catalogs[$i]['id'];
-        } 
-
-        $query = join(' ', array(
-            'UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters,' . $increment . ',' . (isset($collectionId) ? '\'' . $collectionId . '\'': 'NULL') . ')',
-            'WHERE lower(id) IN (\'' . strtolower(join('\',\'', $catalogIds)) . '\') RETURNING id'
-        ));
-
-        $results = $this->dbDriver->fetch($this->dbDriver->query($query));
-        
-        return count($results);
-
-    }
-
-
-    /**
      * Increment all catalogs relied to feature
      *
      * @param string $featureId
