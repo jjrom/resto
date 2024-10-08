@@ -74,8 +74,7 @@ class CatalogsFunctions
             'owner' => $rawCatalog['owner'] ?? null,
             'visibility' => (integer) $rawCatalog['visibility'],
             'created' => $rawCatalog['created'],
-            'rtype' => $rawCatalog['rtype'] ?? null,
-            'hashtag' => $rawCatalog['hashtag'] ?? null
+            'rtype' => $rawCatalog['rtype'] ?? null
         );
     }
 
@@ -132,7 +131,7 @@ class CatalogsFunctions
         // Filter on description / title
         if ( isset($params['q']) ) {
             $values[] = '%' . $params['q'] . '%';
-            $where[] = '(public.normalize(description) ILIKE public.normalize($' . count($values) . ') OR public.normalize(hashtag) ILIKE public.normalize($' . count($values) . ') )';
+            $where[] = '(public.normalize(description) ILIKE public.normalize($' . count($values) . ') OR lower(id) LIKE lower($' . count($values) . ') )';
         }
         // [IMPORTANT] Discard level if q is set
         else if ( isset($params['level']) ) {
@@ -141,7 +140,7 @@ class CatalogsFunctions
         }
         
         try {
-            $results = $this->dbDriver->pQuery('SELECT id, title, description, level, counters, owner, links, visibility, rtype, hashtag, to_iso8601(created) as created FROM ' . $this->dbDriver->targetSchema . '.catalog' . ( empty($where) ? '' : ' WHERE ' . join(' AND ', $where) . ' ORDER BY id ASC'), $values);
+            $results = $this->dbDriver->pQuery('SELECT id, title, description, level, counters, owner, links, visibility, rtype, to_iso8601(created) as created FROM ' . $this->dbDriver->targetSchema . '.catalog' . ( empty($where) ? '' : ' WHERE ' . join(' AND ', $where) . ' ORDER BY id ASC'), $values);
             while ($result = pg_fetch_assoc($results)) {
 
                 /*
@@ -234,7 +233,7 @@ class CatalogsFunctions
             /*
              * Thread safe ingestion using upsert - guarantees that counter is correctly incremented during concurrent transactions
              */
-            $insert = 'INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog (id, title, description, level, counters, owner, links, visibility, rtype, hashtag, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,now()';
+            $insert = 'INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog (id, title, description, level, counters, owner, links, visibility, rtype, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,now()';
             $upsert = 'UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters, 1, ' . (isset($collectionId) ? '\'' . $collectionId . '\'' : 'NULL') . ') WHERE lower(id)=lower($1)';
             $this->dbDriver->pQuery('WITH upsert AS (' . $upsert . ' RETURNING *) ' . $insert . ' WHERE NOT EXISTS (SELECT * FROM upsert)', array(
                 $catalog['id'],
@@ -246,8 +245,7 @@ class CatalogsFunctions
                 $catalog['owner'] ?? $userid,
                 json_encode($cleanLinks['links'], JSON_UNESCAPED_SLASHES),
                 RestoConstants::GROUP_DEFAULT_ID,
-                $catalog['rtype'] ?? null,
-                $catalog['hashtag'] ?? null
+                $catalog['rtype'] ?? null
             ), 500, 'Cannot insert catalog ' . $catalog['id']);
 
             /*
@@ -469,7 +467,7 @@ class CatalogsFunctions
         
         $catalogs = [];
 
-        $query = 'SELECT c.id, c.title, c.description, c.level, c.counters, c.owner, c.links, c.visibility, c.rtype, c.hashtag, to_iso8601(c.created) as created FROM ' . $this->dbDriver->targetSchema . '.catalog c, ' . $this->dbDriver->targetSchema . '.catalog_feature cf WHERE lower(c.id) = lower(cf.path AND cf.featureid=$1 ORDER BY c.id ASC';
+        $query = 'SELECT c.id, c.title, c.description, c.level, c.counters, c.owner, c.links, c.visibility, c.rtype, to_iso8601(c.created) as created FROM ' . $this->dbDriver->targetSchema . '.catalog c, ' . $this->dbDriver->targetSchema . '.catalog_feature cf WHERE lower(c.id) = lower(cf.path AND cf.featureid=$1 ORDER BY c.id ASC';
         $results = $this->dbDriver->pQuery($query, array(
             $featureId
         ));
@@ -824,7 +822,7 @@ class CatalogsFunctions
 
         $catalog['counters'] = json_encode($counters, JSON_UNESCAPED_SLASHES);
         $catalog['links'] = json_encode($originalLinks, JSON_UNESCAPED_SLASHES);
-        
+
         return $catalog;
 
     }

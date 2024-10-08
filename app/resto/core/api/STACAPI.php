@@ -387,10 +387,9 @@ class STACAPI
 
         /*
          * Convert input catalog to resto:catalog
-         * i.e. add rtype and hashtag properties and convert id to a path
+         * i.e. add rtype property and convert id to a path
          */
         $body['rtype'] = 'catalog';
-        $body['hashtag'] = 'catalog' . RestoConstants::TAG_SEPARATOR . $body['id'];
         $body['id'] = $this->getIdPath($body, $parentId);
 
         if ($this->catalogsFunctions->getCatalog($body['id'], $this->context->core['baseUrl']) !== null) {
@@ -1311,7 +1310,7 @@ class STACAPI
             }
             
             $searchParams = array(
-                'q' => '#' . RestoUtil::path2ltree($catalogs[0]['id'])
+                'q' => RestoUtil::path2ltree($catalogs[0]['id'])
             );
     
             foreach (array_keys($params) as $key) {
@@ -1473,7 +1472,7 @@ class STACAPI
         else {
 
             // Parent has an hashtag thus can have a rel="items" child to directly search for its contents
-            if ( isset($parentAndChilds['parent']['hashtag']) ) {
+            if ( $parentAndChilds['parent']['level'] > 1 ) {
                 $element = array(
                     'rel' => 'items',
                     'type' => RestoUtil::$contentTypes['geojson'],

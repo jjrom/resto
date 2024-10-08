@@ -111,8 +111,7 @@ class Cataloger extends RestoAddOn
                         'id' => 'hashtags/' . $key,
                         'title' => $key,
                         'description' => 'Catalog of features containing hashtag #' . $key,
-                        'rtype' => 'hashtag',
-                        'hashtag' => $key
+                        'rtype' => 'hashtag'
                     );
                 }
                 return $catalogs;
@@ -284,8 +283,7 @@ class Cataloger extends RestoAddOn
                     'id' => $id,
                     'title' => ucfirst($exploded[1]),
                     'description' => 'Catalogs of features per ' . $exploded[0] . ' ' . $exploded[1],
-                    'rtype' => $exploded[0],
-                    'hashtag' => $exploded[0] . RestoConstants::TAG_SEPARATOR . $exploded[1]
+                    'rtype' => $exploded[0]
                 );
             }
         }
@@ -314,7 +312,6 @@ class Cataloger extends RestoAddOn
                         'id' => $id,
                         'title' => $landcover['name'],
                         'rtype' => $exploded[0],
-                        'hashtag' => $landcover['id'],
                         'properties' => array(
                             'itag' . RestoConstants::TAG_SEPARATOR . $landcover['id']  => array(
                                 'area' => $landcover['area'],
@@ -412,8 +409,7 @@ class Cataloger extends RestoAddOn
             'id' => (isset($parentId) ? $parentId : '') . '/' . $exploded[1],
             'title' => $property['name'] ?? $exploded[1],
             'description' => 'Catalog of features for ' . ($property['name'] ?? $exploded[1]),
-            'rtype' => $exploded[0],
-            'hashtag' => $property['id']
+            'rtype' => $exploded[0]
         );
 
         $properties = array();
@@ -459,7 +455,6 @@ class Cataloger extends RestoAddOn
             $exploded = explode('/', $catalogs[$i]['id']);
             $catalogs[$i]['isExternal'] = true;
             $catalogs[$i]['rtype'] = 'catalog';
-            $catalogs[$i]['hashtag'] = 'catalog' . RestoConstants::TAG_SEPARATOR . array_pop($exploded);
         }
         
         /*
@@ -471,7 +466,7 @@ class Cataloger extends RestoAddOn
         }
         
         /*
-         * Compute hashtags catalogs from description
+         * Compute catalogs from description
          */
         $hashtags = $this->catalogsFromText($properties['description'] ?? '');
         if ( !empty($hashtags) ) {
@@ -535,8 +530,7 @@ class Cataloger extends RestoAddOn
                             'id' => $id,
                             'title' => $value[$j],
                             'description' => 'Catalog of features for ' . $facetCategory[$i] . ' ' . $value[$j],
-                            'rtype' => $facetCategory[$i],
-                            'hashtag' => $facetCategory[$i] . RestoConstants::TAG_SEPARATOR . $value[$j]
+                            'rtype' => $facetCategory[$i]
                         );
                         $newParentId = $id;
                     }
@@ -594,20 +588,17 @@ class Cataloger extends RestoAddOn
             array(
                 'id' => 'years/' . $year,
                 'title' => $year,
-                'rtype' => 'year',
-                'hashtag' => 'year' . RestoConstants::TAG_SEPARATOR . $year
+                'rtype' => 'year'
             ),
             array(
                 'id' =>  'years/' . $year . '/' . $month,
                 'title' => $month,
-                'rtype' => 'month',
-                'hashtag' => 'month' . RestoConstants::TAG_SEPARATOR . $month
+                'rtype' => 'month'
             ),
             array(
                 'id' =>  'years/' . $year . '/' . $month . '/' . $day,
                 'title' => $day,
-                'rtype' => 'day',
-                'hashtag' => 'day' . RestoConstants::TAG_SEPARATOR . $day
+                'rtype' => 'day'
             )
         );
     }

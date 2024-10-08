@@ -602,15 +602,9 @@ class FiltersFunctions
             $searchTerm = strtolower($searchTerms[$i]);
 
             /*
-             * Hashtags start with "#" or with "-#" (equivalent to "NOT #")
+             * Start "-" means NOT
              */
-            if (substr($searchTerm, 0, 1) === '#') {
-                $searchTerm = ltrim($searchTerm, '#');
-                $exclusion = false;
-            } elseif (substr($searchTerm, 0, 2) === '-#') {
-                $exclusion = true;
-                $searchTerm = ltrim($searchTerm, '-#');
-            }
+            $exclusion = substr($searchTerm, 0, 1) === '-' ? true : false;
 
             /*
              * Add prefix in front of all elements if needed

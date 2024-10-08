@@ -20,7 +20,7 @@ class RestoConstants
     // [IMPORTANT] Starting resto 7.x, default routes are defined in RestoRouter class
 
     // resto version
-    const VERSION = '9.0.0-RC8';
+    const VERSION = '9.0.0-RC9';
 
     /* ============================================================
      *              NEVER EVER TOUCH THESE VALUES
@@ -37,6 +37,9 @@ class RestoConstants
 
     // Separator for hashtags identifiers - should be the same as iTag
     const TAG_SEPARATOR = ':';
+
+    // Separator for hashtags identifiers - should be the same as iTag
+    const CONCEPT_SEPARATOR = '::';
 
     /* ============================================================ */
 

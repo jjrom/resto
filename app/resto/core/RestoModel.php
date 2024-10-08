@@ -523,7 +523,7 @@ abstract class RestoModel
      *  - change input query keys to model parameter key including STAC conversion (i.e. input STAC query to resto model - e.g. processing:level => processingLevel)
      *  - check that filter value is valid regarding the model definition
      *
-     * [IMPORTANT]CHANGE] Each unknown filter key that does not start with '_' is converted to hashtag with the following convention : "#<filterName>:value"
+     * [IMPORTANT] Each unknown filter key that does not start with '_' is converted to catalog path
      *
      * @param array $query
      */
@@ -535,17 +535,12 @@ abstract class RestoModel
             $filterKey = $this->getFilterName($key);
             if (isset($filterKey)) {
                 // Special case geo:geometry also accept GeoJSON => convert it to WKT
-                /* [TODO] Remove already done in RestoUtil::sanitize
-                $params[$filterKey] = preg_replace('/<.+?>/', '', $filterKey === 'geo:geometry' ? RestoGeometryUtil::forceWKT($value) : $value); */
                 $params[$filterKey] = $filterKey === 'geo:geometry' ? RestoGeometryUtil::forceWKT($value) : $value;
                 $this->validateFilter($filterKey, $params[$filterKey]);
             }
             // Do not process query params starting with '_' or in the reserved list
             elseif (!in_array($key, array('collectionId', 'fields')) && substr($key, 0, 1) !== '_') {
-                /* [TODO] Remove already done in RestoUtil::sanitize
-                Protect against XSS injection
-                $unknowns[] = '#' . $this->toHashTag($key, preg_replace('/<.+?>/', '', ltrim($value, '#'))); */
-                $unknowns[] = '#' . $this->toHashTag($key, ltrim($value, '#'));
+                $unknowns[] = $this->toCatalogPath($key, $value);
             }
         }
 
@@ -553,17 +548,7 @@ abstract class RestoModel
         if (count($unknowns) > 0) {
             $params['searchTerms'] = isset($params['searchTerms']) ? $params['searchTerms'] . ' ' . join(' ', $unknowns) : join(' ', $unknowns);
         }
-
-        // [STAC]If "ids" filter is set, then discard every other filters except next and limit
-        /*
-         * [TODO] To be discard since STAC API 1.0.0-beta.1
-        return isset($params['geo:uid']) ? array(
-            'geo:uid' => $params['geo:uid'],
-            'resto:lt' => $params['resto:lt'] ?? null,
-            'limit' => $params['limit'] ?? null
-        ) : $params;
-        */
-
+        
         return $params;
     }
 
@@ -773,6 +758,35 @@ abstract class RestoModel
             }
         }
         return $arr;
+    }
+
+    /**
+     * Convert input value to catalog path with the following convention : put key to plural (suffix with s) dot value
+     * 
+     * For instance, continent=Southamerica will be converted to #continents.southamerica          
+     * @param string $key
+     * @param string $value
+     * @return string
+     */
+    public function toCatalogPath($filterName, $value)
+    {
+        // Special case for ',' (AND) and '|' (OR)
+        $splitter = '';
+        if (strpos($value, ',') !== false) {
+            $splitter = ',';
+            $exploded = explode(',', $value);
+        } elseif (strpos($value, ',') !== false) {
+            $splitter = '|';
+            $exploded = explode('|', $value);
+        } else {
+            $exploded = array($value);
+        }
+
+        for ($i = 0, $ii = count($exploded); $i < $ii; $i++) {
+            $exploded[$i] = $filterName . 's.' . $exploded[$i];
+        }
+
+        return join($splitter, $exploded);
     }
 
     /**
@@ -1013,37 +1027,8 @@ abstract class RestoModel
     }
 
     /**
-     * Convert input value to hashtag with the following convention : "#<filterName>:value"
-     * [WARNING] Exception if filterName = 'hashtag' then "#value" is returned (i.e. discard 'hashtag' prefix)
-     *
-     * @param string $key
-     * @param string $value
-     * @return string
-     */
-    private function toHashTag($filterName, $value)
-    {
-        // Special case for ',' (AND) and '|' (OR)
-        $splitter = '';
-        if (strpos($value, ',') !== false) {
-            $splitter = ',';
-            $exploded = explode(',', $value);
-        } elseif (strpos($value, ',') !== false) {
-            $splitter = '|';
-            $exploded = explode('|', $value);
-        } else {
-            $exploded = array($value);
-        }
-
-        for ($i = 0, $ii = count($exploded); $i < $ii; $i++) {
-            $exploded[$i] = $filterName === 'hashtag' ? $exploded[$i] : $filterName . RestoConstants::TAG_SEPARATOR . $exploded[$i];
-        }
-
-        return join($splitter, $exploded);
-    }
-
-    /**
-     * Explode a searchTerms string (e.g. "#location:coastal #year:2003 #instrument:PHR,NIR #thisisanormalahashtag")
-     * into an array of filters (i.e. {"location":"coastal","year":2003,"instruments":"PHR,NIR","q":"#thisisnormalhashtagh"})
+     * Explode a searchTerms string (e.g. "location::coastal year::2003 instrument::PHR,NIR thisisanormalahashtag")
+     * into an array of filters (i.e. {"location":"coastal","year":2003,"instrument":"PHR,NIR","q":"thisisnormalhashtagh"})
      *
      * @param array $obj
      */
@@ -1063,9 +1048,9 @@ abstract class RestoModel
         }
         $searchTerms = RestoUtil::splitString($obj['value']);
         for ($i = 0, $l = count($searchTerms); $i < $l; $i++) {
-            $splitted = explode(RestoConstants::TAG_SEPARATOR, $searchTerms[$i]);
+            $splitted = explode(RestoConstants::CONCEPT_SEPARATOR, $searchTerms[$i]);
 
-            // This is a regular hashtag
+            // This is a regular searchTerm
             if (count($splitted) === 1) {
                 $searchFilters[] = $searchTerms[$i];
                 continue;
@@ -1073,26 +1058,16 @@ abstract class RestoModel
 
             // Concatenate splitted into prefix and value
             $key = array_shift($splitted);
-            $value = join(RestoConstants::TAG_SEPARATOR, $splitted);
+            $value = join(RestoConstants::CONCEPT_SEPARATOR, $splitted);
 
             /*
-             * Hashtags start with "#" or with "-#" (equivalent to "NOT #")
+             * Start with - (equivalent to "NOT ")
              */
-            if (substr($key, 0, 1) === '#') {
-                $osKey = $this->getOSKeyFromPrefix(ltrim($key, '#'));
-                $output[isset($this->stacMapping[$osKey]) ? $this->stacMapping[$osKey]['key']: $osKey] = array(
-                    'value' => $value,
-                    'operation' =>  $obj['operation']
-                );
-            } elseif (substr($key, 0, 2) === '-#') {
-                $osKey = $this->getOSKeyFromPrefix(ltrim($key, '-#'));
-                $output[isset($this->stacMapping[$osKey]) ? $this->stacMapping[$osKey]['key']: $osKey] = array(
-                    'value' => '-' . $value,
-                    'operation' =>  $obj['operation']
-                );
-            } else {
-                $searchFilters[] = $searchTerms[$i];
-            }
+            $osKey = $this->getOSKeyFromPrefix(substr($key, 0, 1) === '-' ? ltrim($key, '-') : $key);
+            $output[isset($this->stacMapping[$osKey]) ? $this->stacMapping[$osKey]['key']: $osKey] = array(
+                'value' => $value,
+                'operation' =>  $obj['operation']
+            );
         }
 
         if (count($searchFilters) > 0) {

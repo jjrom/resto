@@ -221,10 +221,6 @@ class RestoFeatureUtil
                     $featureArray['properties'][$key] = (integer) $value;
                     break;
 
-                case 'hashtags':
-                    $featureArray['properties'][$key] = explode(',', substr($value, 1, -1));
-                    break;
-
                 case 'metadata':
                     $metadata = json_decode($value, true);
                     if (isset($metadata)) {
