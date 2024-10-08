@@ -172,6 +172,7 @@ class FiltersFunctions
             }
     
             $catalogFeatureTableName = $this->context->dbDriver->targetSchema . '.catalog_feature';
+            /*
             if (count($flatTerms) == 1) {
                 
                 $this->joins[] = 'JOIN ' . $catalogFeatureTableName . ' ON ' . $this->context->dbDriver->targetSchema . '.feature.id=' . $catalogFeatureTableName . '.featureId';
@@ -180,7 +181,7 @@ class FiltersFunctions
                     'isGeo' => false
                 );
 
-            }
+            }*/
 
             // Nightmarish one - use WITH and having count
             $this->joins[] = 'JOIN matched_paths mp ON ' . $this->context->dbDriver->targetSchema . '.feature.id=mp.featureId';
