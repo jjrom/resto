@@ -1,0 +1,13 @@
+{
+    "id": "snapsCatalog",
+    "title": "Snaps catalog contains the snaps collection",
+    "type": "Catalog",
+    "description":"Create a catalog with a collection that already has items should update counts",
+    "stac_version":"1.0.0",
+    "links":[
+        {
+            "rel":"child",
+            "href":"http://127.0.0.1:5252/collections/snaps"
+        }
+    ]
+}

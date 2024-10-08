@@ -378,7 +378,7 @@ class STACAPI
         if ( isset($params['segments']) ) {
             for ($i = 0, $ii = count($params['segments']); $i < $ii; $i++) {
                 $parentId = isset($parentId) ? $parentId . '/' . $params['segments'][$i] : $params['segments'][$i];
-                if ($this->catalogsFunctions->getCatalog($parentId) === null) {
+                if ($this->catalogsFunctions->getCatalog($parentId, $this->context->core['baseUrl']) === null) {
                     return RestoLogUtil::httpError(400, 'Parent catalog ' . $parentId . ' does not exist.');
                 }
             }
@@ -393,7 +393,7 @@ class STACAPI
         $body['hashtag'] = 'catalog' . RestoConstants::TAG_SEPARATOR . $body['id'];
         $body['id'] = $this->getIdPath($body, $parentId);
 
-        if ($this->catalogsFunctions->getCatalog($body['id']) !== null) {
+        if ($this->catalogsFunctions->getCatalog($body['id'], $this->context->core['baseUrl']) !== null) {
             RestoLogUtil::httpError(409, 'Catalog ' . $body['id'] . ' already exists');
         }
         $baseUrl = $this->context->core['baseUrl'];
@@ -472,7 +472,7 @@ class STACAPI
         // Get catalogs and childs
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
             'id' => join('/', $params['segments'])
-        ), true);
+        ), $this->context->core['baseUrl'], true);
         
         if ( count($catalogs) === 0 ){
             RestoLogUtil::httpError(404);
@@ -561,7 +561,7 @@ class STACAPI
         // Get catalogs and childs
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
             'id' => join('/', $params['segments'])
-        ), true);
+        ), $this->context->core['baseUrl'], true);
         
         if ( count($catalogs) === 0 ){
             RestoLogUtil::httpError(404);
@@ -1304,7 +1304,7 @@ class STACAPI
             $catalogs = $this->catalogsFunctions->getCatalogs(array(
                 'id' => join('/', $segments),
                 'q' => $params['q'] ?? null
-            ));
+            ), $this->context->core['baseUrl'], false);
 
             if ( empty($catalogs) ) {
                 return RestoLogUtil::httpError(404);
@@ -1459,7 +1459,7 @@ class STACAPI
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
             'id' => $catalogId,
             'q' => $params['q'] ?? null
-        ), true);
+        ), $this->context->core['baseUrl'], true);
 
         $parentAndChilds = array(
             'parent' => $catalogs[0] ?? null,
@@ -1575,7 +1575,7 @@ class STACAPI
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
             'level' => 1,
             'q' => $params['q'] ?? null
-        ));
+        ), $this->context->core['baseUrl'], false);
 
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
 
