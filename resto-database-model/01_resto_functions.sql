@@ -317,65 +317,6 @@ BEGIN
     total := (counters->>'total')::INTEGER;
     
     -- Increment the total by the value
-    total := total + increment;
-
-    -- Initialize the updated collections as the original collections
-    updated_collections := counters->'collections';
-
-    -- Loop through the collections array and update the collection_id value
-    FOR collection_key, collection_value IN 
-        SELECT collection_key, collection_value
-        FROM json_each_text(counters->'collections')
-    LOOP
-        IF collection_key = collection_id THEN
-            -- Increment the collection value by the input value
-            collection_value := collection_value + increment;
-            -- Update the collections JSONB with the new value
-            updated_collections := jsonb_set(updated_collections, ARRAY[collection_key], to_jsonb(collection_value));
-            collection_exists := TRUE;
-        END IF;
-    END LOOP;
-
-    -- If the collection_id does not exist, add it with the input value
-    IF NOT collection_exists THEN
-        updated_collections := jsonb_set(updated_collections, ARRAY[collection_id], to_jsonb(increment));
-    END IF;
-
-    -- Update the JSON object with the new total and collections
-    updated_counters := jsonb_set(counters::jsonb, '{total}', to_jsonb(total));
-    updated_counters := jsonb_set(updated_counters, '{collections}', updated_collections);
-
-    -- Example operation: Print the updated JSON object for debugging
-    RAISE NOTICE 'Updated JSON: %', updated_counters::TEXT;
-
-    -- Return the updated JSON object
-    RETURN updated_counters::JSON;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION public.increment_counters(
-    counters JSON,
-    increment INTEGER,
-    collection_id TEXT
-)
-RETURNS JSON AS $$
-DECLARE
-    -- Variable to store the total property from JSON
-    total INTEGER;
-    -- Variable to store individual keys and values from the collections array
-    collection_key TEXT;
-    collection_value INTEGER;
-    -- Variable to store the updated collections array
-    updated_collections JSONB;
-    -- Variable to store the updated JSON object
-    updated_counters JSONB;
-    -- Boolean to check if collection_id exists
-    collection_exists BOOLEAN := FALSE;
-BEGIN
-    -- Extract the total property from the JSON object
-    total := (counters->>'total')::INTEGER;
-    
-    -- Increment the total by the value
     total := GREATEST(0, total + increment);
 
     -- Initialize the updated collections as the original collections
@@ -411,3 +352,5 @@ BEGIN
     RETURN updated_counters::JSON;
 END;
 $$ LANGUAGE plpgsql;
+
+

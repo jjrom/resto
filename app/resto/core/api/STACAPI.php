@@ -378,7 +378,7 @@ class STACAPI
         if ( isset($params['segments']) ) {
             for ($i = 0, $ii = count($params['segments']); $i < $ii; $i++) {
                 $parentId = isset($parentId) ? $parentId . '/' . $params['segments'][$i] : $params['segments'][$i];
-                if ($this->catalogsFunctions->getCatalog($parentId) === null) {
+                if ($this->catalogsFunctions->getCatalog($parentId, $this->context->core['baseUrl']) === null) {
                     return RestoLogUtil::httpError(400, 'Parent catalog ' . $parentId . ' does not exist.');
                 }
             }
@@ -393,7 +393,7 @@ class STACAPI
         $body['hashtag'] = 'catalog' . RestoConstants::TAG_SEPARATOR . $body['id'];
         $body['id'] = $this->getIdPath($body, $parentId);
 
-        if ($this->catalogsFunctions->getCatalog($body['id']) !== null) {
+        if ($this->catalogsFunctions->getCatalog($body['id'], $this->context->core['baseUrl']) !== null) {
             RestoLogUtil::httpError(409, 'Catalog ' . $body['id'] . ' already exists');
         }
         $baseUrl = $this->context->core['baseUrl'];
@@ -472,7 +472,7 @@ class STACAPI
         // Get catalogs and childs
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
             'id' => join('/', $params['segments'])
-        ), true);
+        ), $this->context->core['baseUrl'], true);
         
         if ( count($catalogs) === 0 ){
             RestoLogUtil::httpError(404);
@@ -561,7 +561,7 @@ class STACAPI
         // Get catalogs and childs
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
             'id' => join('/', $params['segments'])
-        ), true);
+        ), $this->context->core['baseUrl'], true);
         
         if ( count($catalogs) === 0 ){
             RestoLogUtil::httpError(404);
@@ -1304,14 +1304,14 @@ class STACAPI
             $catalogs = $this->catalogsFunctions->getCatalogs(array(
                 'id' => join('/', $segments),
                 'q' => $params['q'] ?? null
-            ));
-    
-            if ( empty($catalogs) || !$catalogs[0]['hashtag'] ) {
+            ), $this->context->core['baseUrl'], false);
+
+            if ( empty($catalogs) ) {
                 return RestoLogUtil::httpError(404);
             }
             
             $searchParams = array(
-                'q' => '#' . $catalogs[0]['hashtag']
+                'q' => '#' . RestoUtil::path2ltree($catalogs[0]['id'])
             );
     
             foreach (array_keys($params) as $key) {
@@ -1459,7 +1459,7 @@ class STACAPI
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
             'id' => $catalogId,
             'q' => $params['q'] ?? null
-        ), true);
+        ), $this->context->core['baseUrl'], true);
 
         $parentAndChilds = array(
             'parent' => $catalogs[0] ?? null,
@@ -1474,26 +1474,40 @@ class STACAPI
 
             // Parent has an hashtag thus can have a rel="items" child to directly search for its contents
             if ( isset($parentAndChilds['parent']['hashtag']) ) {
-                $parentAndChilds['childs'][] = array(
+                $element = array(
                     'rel' => 'items',
-                    'title' => $parentAndChilds['parent']['title'],
                     'type' => RestoUtil::$contentTypes['geojson'],
                     'href' => $this->context->core['baseUrl'] . '/catalogs/' .  join('/', array_map('rawurlencode', explode('/', $parentAndChilds['parent']['id']))) . '/_',
                     'matched' => $parentAndChilds['parent']['counters']['total']
                 );
+                if ( isset($parentAndChilds['parent']['title']) ) {
+                    $element['title'] = $parentAndChilds['parent']['title'];
+                }
+                if ( isset($catalogs[$i]['rtype']) ) {
+                    $element['resto:type'] = $catalogs[$i]['rtype'];
+                }
+                $parentAndChilds['childs'][] = $element;
             }
 
             // Childs are 1 level above their parent catalog level
             for ($i = 1, $ii = count($catalogs); $i < $ii; $i++) {
                 if ($catalogs[$i]['level'] === $parentAndChilds['parent']['level'] + 1) {
-                    $parentAndChilds['childs'][] = array(
+                    $element = array(
                         'rel' => 'child',
-                        'title' => $catalogs[$i]['title'],
-                        'description' => $catalogs[$i]['description'] ?? '',
                         'type' => RestoUtil::$contentTypes['json'],
                         'href' => $this->context->core['baseUrl'] . '/catalogs/' .  join('/', array_map('rawurlencode', explode('/', $catalogs[$i]['id']))),
                         'matched' => $catalogs[$i]['counters']['total']
                     );
+                    if ( isset($catalogs[$i]['title']) ) {
+                        $element['title'] = $catalogs[$i]['title'];
+                    }
+                    if ( isset($catalogs[$i]['description']) ) {
+                        $element['description'] = $catalogs[$i]['description'];
+                    }
+                    if ( isset($catalogs[$i]['rtype']) ) {
+                        $element['resto:type'] = $catalogs[$i]['rtype'];
+                    }
+                    $parentAndChilds['childs'][] = $element;
                 }
             }
         }
@@ -1561,25 +1575,32 @@ class STACAPI
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
             'level' => 1,
             'q' => $params['q'] ?? null
-        ));
+        ), $this->context->core['baseUrl'], false);
 
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
 
             // Returns only catalogs with count >= minMatch
             if ($catalogs[$i]['counters']['total'] >= $this->context->core['catalogMinMatch']) {
+
                 if ($catalogs[$i]['id'] === 'collections') {
-                    //$link['roles'] = array('collections');
                     continue;
                 }
+
                 $link = array(
                     'rel' => 'child',
-                    'title' => $catalogs[$i]['title'],
-                    'description' => $catalogs[$i]['description'] ?? '',
                     'type' => RestoUtil::$contentTypes['json'],
-                    'resto:type' => $catalogs[$i]['rtype'],
                     'href' => $this->context->core['baseUrl'] . '/catalogs/' . rawurlencode($catalogs[$i]['id']),
-                    'matched' => $catalogs[$i]['counters']['total']
+                    'matched' => $catalogs[$i]['counters']['total'] ?? 0
                 );
+                if ( isset($catalogs[$i]['title']) ) {
+                    $link['title'] = $catalogs[$i]['title'];
+                }
+                if ( isset($catalogs[$i]['description']) ) {
+                    $link['description'] = $catalogs[$i]['description'];
+                }
+                if ( isset($catalogs[$i]['rtype']) ) {
+                    $link['resto:type'] = $catalogs[$i]['rtype'];
+                }
                 $links[] = $link;
             }
             
