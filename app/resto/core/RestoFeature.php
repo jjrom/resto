@@ -109,12 +109,12 @@
  *              description="The date when the feature metadata was published (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)"
  *          ),
  *          @OA\Property(
- *              property="hashtags",
+ *              property="resto:catalogs",
  *              type="array",
  *              @OA\Items(
  *                  type="string"
  *              ),
- *              description="Array of hashtags attached to the feature"
+ *              description="Array of catalogs attached to the feature"
  *          ),
  *          @OA\Property(
  *              property="centroid",
@@ -214,19 +214,18 @@
  *              "productIdentifier": "S2B_MSIL1C_20200621T111039_N0209_R008_T28HCE_20200621T132349",
  *              "updated": "2018-09-13T12:52:25.971969Z",
  *              "published": "2018-09-13T12:52:25.971969Z",
- *              "hashtags": {
- *                  "ocean:SouthAtlanticOcean:3358844",
- *                   "landcover:water",
- *                   "location:southern",
- *                   "season:winter",
- *                   "collection:S2",
- *                   "productType:REFLECTANCE",
- *                   "processingLevel:LEVEL1C",
- *                   "platform:S2B",
- *                   "instrument:MSI",
- *                   "year:2020",
- *                   "month:06",
- *                   "day:21"
+ *              "resto:catalogs": {
+ *                   "ocean/SouthAtlanticOcean",
+ *                   "landcover/water",
+ *                   "location/southern",
+ *                   "season/winter",
+ *                   "productTypes/REFLECTANCE",
+ *                   "processingLevelsLEVEL1C",
+ *                   "platforms/S2B",
+ *                   "instruments/MSI",
+ *                   "years/2020",
+ *                   "months/06",
+ *                   "days/21"
  *               },
  *               "centroid": {
  *                  "type": "Point",

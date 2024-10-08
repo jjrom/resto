@@ -6,7 +6,7 @@
         "contact": {
             "email": "jerome.gasperi@gmail.com"
         },
-        "version": "9.0.0-RC2"
+        "version": "9.0.0-RC9"
     },
     "servers": [
         {
@@ -2947,14 +2947,6 @@
                         "schema": {
                             "type": "string"
                         }
-                    },
-                    {
-                        "name": "force",
-                        "in": "query",
-                        "description": "Force catalog removal even if this catalog has child. In this case, catalogs childs are attached to the remove catalog parent",
-                        "schema": {
-                            "type": "boolean"
-                        }
                     }
                 ],
                 "responses": {
@@ -3147,7 +3139,17 @@
                     {
                         "name": "q",
                         "in": "query",
-                        "description": "Free text search - OpenSearch {searchTerms}. Can include hashtags i.e. text starting with *#* characters. In this case, use the following:\n* *#cryosphere* will search for *cryosphere*\n* *#cryosphere #atmosphere* will search for *cryosphere* AND *atmosphere*\n* *#cryosphere|atmosphere* will search for *cryosphere* OR *atmosphere*\n* *#cryosphere!* will search for *cryosphere* OR any *broader* concept of *cryosphere* ([EXTENSION][SKOS])\n* *#cryosphere\\** will search for *cryosphere* OR any *narrower* concept of *cryosphere* ([EXTENSION][SKOS])\n* *#cryosphere~* will search for *cryosphere* OR any *related* concept of *cryosphere* ([EXTENSION][SKOS])",
+                        "description": "Free text search - OpenSearch {searchTerms}. Example:\n* *cryosphere* will search for *cryosphere*\n* *cryosphere atmosphere* will search for *cryosphere* AND *atmosphere*\n* *cryosphere|atmosphere* will search for *cryosphere* OR *atmosphere*\n* *cryosphere!* will search for *cryosphere* OR any *broader* concept of *cryosphere* ([EXTENSION][SKOS])\n* *cryosphere\\** will search for *cryosphere* OR any *narrower* concept of *cryosphere* ([EXTENSION][SKOS])\n* *cryosphere~* will search for *cryosphere* OR any *related* concept of *cryosphere* ([EXTENSION][SKOS])",
+                        "required": false,
+                        "style": "form",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "description",
+                        "in": "query",
+                        "description": "Keyword search on feature description field",
                         "required": false,
                         "style": "form",
                         "schema": {
@@ -5183,8 +5185,8 @@
                                 "description": "The date when the feature metadata was published (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)",
                                 "type": "string"
                             },
-                            "hashtags": {
-                                "description": "Array of hashtags attached to the feature",
+                            "resto:catalogs": {
+                                "description": "Array of catalogs attached to the feature",
                                 "type": "array",
                                 "items": {
                                     "type": "string"
@@ -5286,19 +5288,18 @@
                         "productIdentifier": "S2B_MSIL1C_20200621T111039_N0209_R008_T28HCE_20200621T132349",
                         "updated": "2018-09-13T12:52:25.971969Z",
                         "published": "2018-09-13T12:52:25.971969Z",
-                        "hashtags": [
-                            "ocean:SouthAtlanticOcean:3358844",
-                            "landcover:water",
-                            "location:southern",
-                            "season:winter",
-                            "collection:S2",
-                            "productType:REFLECTANCE",
-                            "processingLevel:LEVEL1C",
-                            "platform:S2B",
-                            "instrument:MSI",
-                            "year:2020",
-                            "month:06",
-                            "day:21"
+                        "resto:catalogs": [
+                            "ocean/SouthAtlanticOcean",
+                            "landcover/water",
+                            "location/southern",
+                            "season/winter",
+                            "productTypes/REFLECTANCE",
+                            "processingLevelsLEVEL1C",
+                            "platforms/S2B",
+                            "instruments/MSI",
+                            "years/2020",
+                            "months/06",
+                            "days/21"
                         ],
                         "centroid": {
                             "type": "Point",

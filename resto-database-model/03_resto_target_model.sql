@@ -390,10 +390,7 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog (
     visibility          INTEGER,
 
     -- resto type 
-    rtype               TEXT,
-
-    -- Hashtag to find features within this catalog
-    hashtag             TEXT
+    rtype               TEXT
 
 );
 
@@ -432,15 +429,13 @@ ALTER TABLE __DATABASE_TARGET_SCHEMA__.osdescription DROP CONSTRAINT IF EXISTS c
 ALTER TABLE ONLY __DATABASE_TARGET_SCHEMA__.osdescription ADD CONSTRAINT cl_collection UNIQUE(collection, lang);
 
 CREATE INDEX IF NOT EXISTS idx_collection_osdescription ON __DATABASE_TARGET_SCHEMA__.osdescription (collection);
--- CREATE INDEX IF NOT EXISTS idx_lang_osdescription ON __DATABASE_TARGET_SCHEMA__.osdescription (lang);
 
 -- [TABLE __DATABASE_TARGET_SCHEMA__.catalog]
 CREATE INDEX IF NOT EXISTS idx_id_catalog ON __DATABASE_TARGET_SCHEMA__.catalog (lower(id));
 CREATE INDEX IF NOT EXISTS idx_description_catalog ON __DATABASE_TARGET_SCHEMA__.catalog USING GIN (public.normalize(description) gin_trgm_ops);
-CREATE INDEX IF NOT EXISTS idx_hashtag_catalog ON __DATABASE_TARGET_SCHEMA__.catalog USING GIN (public.normalize(hashtag) gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_level_catalog ON __DATABASE_TARGET_SCHEMA__.catalog USING btree (level);
 
--- [TABLE __DATABASE_TARGET_SCHEMA__.hashtag]
+-- [TABLE __DATABASE_TARGET_SCHEMA__.catalog_feature]
 CREATE INDEX IF NOT EXISTS idx_path_catalog_feature ON __DATABASE_TARGET_SCHEMA__.catalog_feature USING GIST (path);
 
 -- [TABLE __DATABASE_TARGET_SCHEMA__.feature]
@@ -452,6 +447,7 @@ CREATE INDEX IF NOT EXISTS idx_visibility_feature ON __DATABASE_TARGET_SCHEMA__.
 CREATE INDEX IF NOT EXISTS idx_status_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (status);
 CREATE INDEX IF NOT EXISTS idx_centroid_feature ON __DATABASE_TARGET_SCHEMA__.feature USING GIST (centroid);
 CREATE INDEX IF NOT EXISTS idx_geom_feature ON __DATABASE_TARGET_SCHEMA__.feature USING GIST (geom);
+CREATE INDEX IF NOT EXISTS idx_description_feature ON __DATABASE_TARGET_SCHEMA__.feature USING GIN (public.normalize(description) gin_trgm_ops);
 
 -- [TABLE __DATABASE_TARGET_SCHEMA__.geometry_part]
 CREATE INDEX IF NOT EXISTS idx_id_geometry_part ON __DATABASE_TARGET_SCHEMA__.geometry_part USING HASH (id);

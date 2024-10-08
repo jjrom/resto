@@ -96,45 +96,49 @@ class RestoQueryAnalyzer
         /*
          * Query Analyzer on searchTerms
          */
-        if (isset($params['searchTerms']) && isset($this->context->addons['NLP'])) {
-            $nlp = new NLP($this->context, $this->user);
-            $details = $nlp->process(array(
-                'q' => $params['searchTerms']
-            ));
-        } else {
-            /*
-             * Extract hashtags (i.e. #something or -#something)
-             */
-            $hashtags = isset($params['searchTerms']) ? RestoUtil::extractHashtags($params['searchTerms']) : array();
-            $nbOfHashtags = count($hashtags);
-            if ($nbOfHashtags > 0) {
-                /*
-                 * Special gazetteer hashtags - if found, the first is converted to geouid
-                 * A gazetteer hashtag format is type:name:geouid
+        $cleanSearchTerms = array();
+
+        if ( isset($params['searchTerms']) ) {
+
+            $searchTerms = explode(' ', $params['searchTerms']);
+            for ($i = 0, $ii = count($searchTerms); $i < $ii; $i++) {
+                $keyValue = explode(RestoConstants::CONCEPT_SEPARATOR, $searchTerms[$i]);
+                if (count($keyValue) === 1) {
+                    $cleanSearchTerms[] = $keyValue[0];
+                    continue;
+                }
+                /**
+                 * Special case for toponym search
                  */
-                if (!isset($params['geo:name']) && isset($this->gazetteer) ) {
-                    for ($i = 0, $ii = $nbOfHashtags; $i < $ii; $i++) {
-                        $splitted = explode(RestoConstants::TAG_SEPARATOR, $hashtags[$i]);
-                        if (count($splitted) === 3 && is_numeric($splitted[2])) {
-                            $params['geo:name'] = 'geouid:' . $splitted[2];
-                            array_splice($hashtags, $i, 1);
-                            break;
+                if ($keyValue[0] === $model->searchFilters['geo:name']['osKey'] && !isset($params['geo:name']) && isset($this->gazetteer)) {
+                    $params['geo:name'] = $keyValue[1];
+                    $this->extractToponym($params, $details, $hashTodiscard);
+                }
+                else {
+                    $cleanFilter = $model->getFiltersFromQuery(array(
+                        $keyValue[0] => $keyValue[1]
+                    ));
+                    if ( isset($cleanFilter) ) {
+                        foreach (array_keys($cleanFilter) as $key) {
+                            if ($key === 'searchTerms') {
+                                $cleanSearchTerms[] = $cleanFilter[$key];
+                            }
+                            else {
+                                $params[$key] = $cleanFilter[$key];
+                            }
+                            
                         }
                     }
+                    
                 }
-
-                $details['What'] = array(
-                    'searchTerms' => $this->appendSkos($hashtags)
-                );
+                
             }
 
-            /*
-             * Extract toponym
-             */
-            if (isset($this->gazetteer)) {
-                $this->extractToponym($params, $details, $hashTodiscard);
-            }
         }
+
+        $details['What'] = array(
+            'searchTerms' => $this->appendSkos($cleanSearchTerms)
+        );
 
         /*
          * Not understood
@@ -156,41 +160,42 @@ class RestoQueryAnalyzer
             'inputFilters' => $inputFilters,
             'details' => $details
         );
+
     }
 
     /**
-     * Parse input $hastags array and replace individual $hashtag with skos related
-     * hastags.
+     * Parse input searchTerms array and replace individual searchTerm with skos related
+     * searchTerm.
      *
-     * @param array $hashtags
+     * @param array $searchTerms
      * @return array
      */
-    private function appendSkos($hashtags)
+    private function appendSkos($searchTerms)
     {
-        for ($i = 0, $ii = count($hashtags); $i < $ii; $i++) {
+        for ($i = 0, $ii = count($searchTerms); $i < $ii; $i++) {
             /*
              * If resto-addon-sosa add-on exists, check for searchTerm last character:
              *  - if ends with "!" character, then search for broader search terms
              *  - if ends with "*" character, then search for narrower search terms
              *  - if ends with "~" character, then search for related search terms
              */
-            $lastCharacter = substr($hashtags[$i], -1);
+            $lastCharacter = substr($searchTerms[$i], -1);
             if (in_array($lastCharacter, array('!', '*', '~')) && class_exists('SKOS')) {
-                $hashtags[$i] = substr($hashtags[$i], 0, -1);
+                $searchTerms[$i] = substr($searchTerms[$i], 0, -1);
                 $relations = array(
                     '!' => SKOS::$SKOS_BROADER,
                     '*' => SKOS::$SKOS_NARROWER,
                     '~' => SKOS::$SKOS_RELATED
                 );
                 // Don't forget to trim # prefix
-                $relations = (new SKOS($this->context, $this->user))->retrieveRecursiveRelations(substr($hashtags[$i], 1), $relations[$lastCharacter]);
+                $relations = (new SKOS($this->context, $this->user))->retrieveRecursiveRelations(substr($searchTerms[$i], 1), $relations[$lastCharacter]);
                 if (count($relations) > 0) {
-                    $hashtags[$i] = $hashtags[$i] . '|' . join('|', $relations);
+                    $searchTerms[$i] = $searchTerms[$i] . '|' . join('|', $relations);
                 }
             }
         }
         
-        return $hashtags;
+        return $searchTerms;
     }
 
     /**
@@ -205,20 +210,17 @@ class RestoQueryAnalyzer
         $foundLocation = null;
 
         /*
-         * Order is "name" over "searchTerms"
-         */
-        $locationName = $params['geo:name'] ?? $params['searchTerms'] ?? null;
-       
-        /*
          * Search on toponym name
          */
-        if (isset($locationName) && ! isset($params['geo:lon']) && ! isset($params['geo:geometry'])) {
+        if (isset($params['geo:name']) && ! isset($params['geo:lon']) && ! isset($params['geo:geometry'])) {
+
+            
             /*
              * Search on toponym identifier i.e. geo:name starts with geouid
              */
-            if (strpos($locationName, 'geouid' . RestoConstants::TAG_SEPARATOR) === 0) {
+            if (strpos($params['geo:name'], 'geouid:') === 0) {
                 $location = $this->gazetteer->getToponym(array(
-                    'id' => substr($locationName, 7),
+                    'id' => substr($params['geo:name'], strlen('geouid:')),
                     'index' => $this->context->core['planet']
                 ));
                 if (isset($location['_source'])) {
@@ -233,30 +235,24 @@ class RestoQueryAnalyzer
                         $params['geo:geometry'] = 'POINT(' . trim($coordinates[1]) . ' ' . trim($coordinates[0]) . ')';
                     }
                 }
-            } else {
-
-                /*
-                 * [IMPORTANT] The search is performed on a modified "searchTerms" with hashtags REMOVED
-                 */
-                $locationName = trim(preg_replace("/(#|-#)([^ ]+)/", '', $locationName));
-                if ( $locationName !== '') {
-                    $locations = $this->gazetteer->search(array(
-                        'q' => $locationName,
-                        'index' => $this->context->core['planet']
-                    ));
-                    if (isset($locations['hits']) && count($locations['hits']['hits']) > 0) {
-                        $foundLocation = array_merge(array('_id' => $locations['hits']['hits'][0]['_id']), $locations['hits']['hits'][0]['_source']);
-                        if (isset($foundLocation['wkt'])) {
-                            $params['geo:geometry'] = $foundLocation['wkt'];
-                        } elseif (isset($foundLocation['coordinates'])) {
-                            $coordinates = explode(',', $foundLocation['coordinates']);
-                            $params['geo:lon'] = floatval(trim($coordinates[1]));
-                            $params['geo:lat'] = floatval(trim($coordinates[0]));
-                        }
+            }
+            else {
+                $locations = $this->gazetteer->search(array(
+                    'q' => $params['geo:name'],
+                    'index' => $this->context->core['planet']
+                ));
+                if (isset($locations['hits']) && count($locations['hits']['hits']) > 0) {
+                    $foundLocation = array_merge(array('_id' => $locations['hits']['hits'][0]['_id']), $locations['hits']['hits'][0]['_source']);
+                    if (isset($foundLocation['wkt'])) {
+                        $params['geo:geometry'] = $foundLocation['wkt'];
+                    } elseif (isset($foundLocation['coordinates'])) {
+                        $coordinates = explode(',', $foundLocation['coordinates']);
+                        $params['geo:lon'] = floatval(trim($coordinates[1]));
+                        $params['geo:lat'] = floatval(trim($coordinates[0]));
                     }
                 }
-                
             }
+        
         }
 
         if (isset($foundLocation)) {
@@ -300,7 +296,7 @@ class RestoQueryAnalyzer
                 $params['searchTerms'][] = $where[$i]['searchTerms'];
             } elseif (isset($where[$i]['geouid'])) {
                 if (!isset($hashTodiscard) || $where[$i]['hash'] !== $hashTodiscard) {
-                    $params['searchTerms'][] = 'geouid' . RestoConstants::TAG_SEPARATOR . $where[$i]['geonameid'];
+                    $params['searchTerms'][] = 'geouid:' . $where[$i]['geonameid'];
                 }
             }
         }
