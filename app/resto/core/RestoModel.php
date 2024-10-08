@@ -161,11 +161,16 @@ abstract class RestoModel
         ),
 
         'searchTerms' => array(
-            // [TODO] Remove type since it seems not be used anymore (TBC)
-            'type' => 'array',
             'osKey' => 'q',
             'operation' => 'keywords',
             'title' => 'Free text search'
+        ),
+
+        'description' => array(
+            'key' => 'description',
+            'osKey' => 'description',
+            'operation' => 'description',
+            'title' => 'Free text search on feature description field'
         ),
 
         'count' => array(

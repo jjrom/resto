@@ -1496,7 +1496,7 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
 	  	<ul class="toc-list-h1">
         
           <li>
-            <a href="#welcome-to-resto" class="toc-h1 toc-link" data-title="Welcome to resto v9.0.0-RC2">Welcome to resto v9.0.0-RC2</a>
+            <a href="#welcome-to-resto" class="toc-h1 toc-link" data-title="Welcome to resto v9.0.0-RC9">Welcome to resto v9.0.0-RC9</a>
             
           </li>
         
@@ -1951,7 +1951,7 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
     <div class="page-wrapper">
       <div class="dark-box"></div>
       <div class="content">
-        <h1 id="welcome-to-resto">Welcome to resto v9.0.0-RC2</h1>
+        <h1 id="welcome-to-resto">Welcome to resto v9.0.0-RC9</h1>
 <blockquote>
 <p>Scroll down for code samples, example requests and responses. Select a language for code samples from the tabs above or the mobile navigation menu.</p>
 </blockquote>
@@ -4339,19 +4339,18 @@ curl -X GET http://127.0.0.1:5252/collections/{collectionId}/items/{featureId} \
     <span class="hljs-attr">"productIdentifier"</span>: <span class="hljs-string">"S2B_MSIL1C_20200621T111039_N0209_R008_T28HCE_20200621T132349"</span>,
     <span class="hljs-attr">"updated"</span>: <span class="hljs-string">"2018-09-13T12:52:25.971969Z"</span>,
     <span class="hljs-attr">"published"</span>: <span class="hljs-string">"2018-09-13T12:52:25.971969Z"</span>,
-    <span class="hljs-attr">"hashtags"</span>: [
-      <span class="hljs-string">"ocean:SouthAtlanticOcean:3358844"</span>,
-      <span class="hljs-string">"landcover:water"</span>,
-      <span class="hljs-string">"location:southern"</span>,
-      <span class="hljs-string">"season:winter"</span>,
-      <span class="hljs-string">"collection:S2"</span>,
-      <span class="hljs-string">"productType:REFLECTANCE"</span>,
-      <span class="hljs-string">"processingLevel:LEVEL1C"</span>,
-      <span class="hljs-string">"platform:S2B"</span>,
-      <span class="hljs-string">"instrument:MSI"</span>,
-      <span class="hljs-string">"year:2020"</span>,
-      <span class="hljs-string">"month:06"</span>,
-      <span class="hljs-string">"day:21"</span>
+    <span class="hljs-attr">"resto:catalogs"</span>: [
+      <span class="hljs-string">"ocean/SouthAtlanticOcean"</span>,
+      <span class="hljs-string">"landcover/water"</span>,
+      <span class="hljs-string">"location/southern"</span>,
+      <span class="hljs-string">"season/winter"</span>,
+      <span class="hljs-string">"productTypes/REFLECTANCE"</span>,
+      <span class="hljs-string">"processingLevelsLEVEL1C"</span>,
+      <span class="hljs-string">"platforms/S2B"</span>,
+      <span class="hljs-string">"instruments/MSI"</span>,
+      <span class="hljs-string">"years/2020"</span>,
+      <span class="hljs-string">"months/06"</span>,
+      <span class="hljs-string">"days/21"</span>
     ],
     <span class="hljs-attr">"centroid"</span>: {
       <span class="hljs-attr">"type"</span>: <span class="hljs-string">"Point"</span>,
@@ -4993,7 +4992,14 @@ curl -X GET http://127.0.0.1:5252/search \
 <td>query</td>
 <td>string</td>
 <td>false</td>
-<td>Free text search - OpenSearch {searchTerms}. Can include hashtags i.e. text starting with <em>#</em> characters. In this case, use the following:</td>
+<td>Free text search - OpenSearch {searchTerms}. Example:</td>
+</tr>
+<tr>
+<td>description</td>
+<td>query</td>
+<td>string</td>
+<td>false</td>
+<td>Keyword search on feature description field</td>
 </tr>
 <tr>
 <td>limit</td>
@@ -5278,14 +5284,14 @@ curl -X GET http://127.0.0.1:5252/search \
 </tbody>
 </table>
 <h4 id="detailed-descriptions">Detailed descriptions</h4>
-<p><strong>q</strong>: Free text search - OpenSearch {searchTerms}. Can include hashtags i.e. text starting with <em>#</em> characters. In this case, use the following:</p>
+<p><strong>q</strong>: Free text search - OpenSearch {searchTerms}. Example:</p>
 <ul>
-<li><em>#cryosphere</em> will search for <em>cryosphere</em></li>
-<li><em>#cryosphere #atmosphere</em> will search for <em>cryosphere</em> AND <em>atmosphere</em></li>
-<li><em>#cryosphere|atmosphere</em> will search for <em>cryosphere</em> OR <em>atmosphere</em></li>
-<li><em>#cryosphere!</em> will search for <em>cryosphere</em> OR any <em>broader</em> concept of <em>cryosphere</em> ([EXTENSION][SKOS])</li>
-<li><em>#cryosphere*</em> will search for <em>cryosphere</em> OR any <em>narrower</em> concept of <em>cryosphere</em> ([EXTENSION][SKOS])</li>
-<li><em>#cryosphere~</em> will search for <em>cryosphere</em> OR any <em>related</em> concept of <em>cryosphere</em> ([EXTENSION][SKOS])</li>
+<li><em>cryosphere</em> will search for <em>cryosphere</em></li>
+<li><em>cryosphere atmosphere</em> will search for <em>cryosphere</em> AND <em>atmosphere</em></li>
+<li><em>cryosphere|atmosphere</em> will search for <em>cryosphere</em> OR <em>atmosphere</em></li>
+<li><em>cryosphere!</em> will search for <em>cryosphere</em> OR any <em>broader</em> concept of <em>cryosphere</em> ([EXTENSION][SKOS])</li>
+<li><em>cryosphere*</em> will search for <em>cryosphere</em> OR any <em>narrower</em> concept of <em>cryosphere</em> ([EXTENSION][SKOS])</li>
+<li><em>cryosphere~</em> will search for <em>cryosphere</em> OR any <em>related</em> concept of <em>cryosphere</em> ([EXTENSION][SKOS])</li>
 </ul>
 <p><strong>fields</strong>: Comma separated list of property fields to be returned. The following reserved keywords can also be used:</p>
 <ul>
@@ -8960,13 +8966,6 @@ curl -X DELETE http://127.0.0.1:5252/catalogs/* \
 <td>true</td>
 <td>Catalog identifier</td>
 </tr>
-<tr>
-<td>force</td>
-<td>query</td>
-<td>boolean</td>
-<td>false</td>
-<td>Force catalog removal even if this catalog has child. In this case, catalogs childs are attached to the remove catalog parent</td>
-</tr>
 </tbody>
 </table>
 <blockquote>
@@ -9195,19 +9194,18 @@ curl -X GET http://127.0.0.1:5252/children \
         <span class="hljs-attr">"productIdentifier"</span>: <span class="hljs-string">"S2B_MSIL1C_20200621T111039_N0209_R008_T28HCE_20200621T132349"</span>,
         <span class="hljs-attr">"updated"</span>: <span class="hljs-string">"2018-09-13T12:52:25.971969Z"</span>,
         <span class="hljs-attr">"published"</span>: <span class="hljs-string">"2018-09-13T12:52:25.971969Z"</span>,
-        <span class="hljs-attr">"hashtags"</span>: [
-          <span class="hljs-string">"ocean:SouthAtlanticOcean:3358844"</span>,
-          <span class="hljs-string">"landcover:water"</span>,
-          <span class="hljs-string">"location:southern"</span>,
-          <span class="hljs-string">"season:winter"</span>,
-          <span class="hljs-string">"collection:S2"</span>,
-          <span class="hljs-string">"productType:REFLECTANCE"</span>,
-          <span class="hljs-string">"processingLevel:LEVEL1C"</span>,
-          <span class="hljs-string">"platform:S2B"</span>,
-          <span class="hljs-string">"instrument:MSI"</span>,
-          <span class="hljs-string">"year:2020"</span>,
-          <span class="hljs-string">"month:06"</span>,
-          <span class="hljs-string">"day:21"</span>
+        <span class="hljs-attr">"resto:catalogs"</span>: [
+          <span class="hljs-string">"ocean/SouthAtlanticOcean"</span>,
+          <span class="hljs-string">"landcover/water"</span>,
+          <span class="hljs-string">"location/southern"</span>,
+          <span class="hljs-string">"season/winter"</span>,
+          <span class="hljs-string">"productTypes/REFLECTANCE"</span>,
+          <span class="hljs-string">"processingLevelsLEVEL1C"</span>,
+          <span class="hljs-string">"platforms/S2B"</span>,
+          <span class="hljs-string">"instruments/MSI"</span>,
+          <span class="hljs-string">"years/2020"</span>,
+          <span class="hljs-string">"months/06"</span>,
+          <span class="hljs-string">"days/21"</span>
         ],
         <span class="hljs-attr">"centroid"</span>: {
           <span class="hljs-attr">"type"</span>: <span class="hljs-string">"Point"</span>,
@@ -9404,11 +9402,11 @@ curl -X GET http://127.0.0.1:5252/children \
 <td>The date when the feature metadata was published (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)</td>
 </tr>
 <tr>
-<td>»»» hashtags</td>
+<td>»»» resto:catalogs</td>
 <td>[string]</td>
 <td>false</td>
 <td>none</td>
-<td>Array of hashtags attached to the feature</td>
+<td>Array of catalogs attached to the feature</td>
 </tr>
 <tr>
 <td>»»» centroid</td>
@@ -10831,19 +10829,18 @@ This operation does not require authentication
     <span class="hljs-attr">"productIdentifier"</span>: <span class="hljs-string">"S2B_MSIL1C_20200621T111039_N0209_R008_T28HCE_20200621T132349"</span>,
     <span class="hljs-attr">"updated"</span>: <span class="hljs-string">"2018-09-13T12:52:25.971969Z"</span>,
     <span class="hljs-attr">"published"</span>: <span class="hljs-string">"2018-09-13T12:52:25.971969Z"</span>,
-    <span class="hljs-attr">"hashtags"</span>: [
-      <span class="hljs-string">"ocean:SouthAtlanticOcean:3358844"</span>,
-      <span class="hljs-string">"landcover:water"</span>,
-      <span class="hljs-string">"location:southern"</span>,
-      <span class="hljs-string">"season:winter"</span>,
-      <span class="hljs-string">"collection:S2"</span>,
-      <span class="hljs-string">"productType:REFLECTANCE"</span>,
-      <span class="hljs-string">"processingLevel:LEVEL1C"</span>,
-      <span class="hljs-string">"platform:S2B"</span>,
-      <span class="hljs-string">"instrument:MSI"</span>,
-      <span class="hljs-string">"year:2020"</span>,
-      <span class="hljs-string">"month:06"</span>,
-      <span class="hljs-string">"day:21"</span>
+    <span class="hljs-attr">"resto:catalogs"</span>: [
+      <span class="hljs-string">"ocean/SouthAtlanticOcean"</span>,
+      <span class="hljs-string">"landcover/water"</span>,
+      <span class="hljs-string">"location/southern"</span>,
+      <span class="hljs-string">"season/winter"</span>,
+      <span class="hljs-string">"productTypes/REFLECTANCE"</span>,
+      <span class="hljs-string">"processingLevelsLEVEL1C"</span>,
+      <span class="hljs-string">"platforms/S2B"</span>,
+      <span class="hljs-string">"instruments/MSI"</span>,
+      <span class="hljs-string">"years/2020"</span>,
+      <span class="hljs-string">"months/06"</span>,
+      <span class="hljs-string">"days/21"</span>
     ],
     <span class="hljs-attr">"centroid"</span>: {
       <span class="hljs-attr">"type"</span>: <span class="hljs-string">"Point"</span>,
@@ -10985,11 +10982,11 @@ This operation does not require authentication
 <td>The date when the feature metadata was published (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)</td>
 </tr>
 <tr>
-<td>» hashtags</td>
+<td>» resto:catalogs</td>
 <td>[string]</td>
 <td>false</td>
 <td>none</td>
-<td>Array of hashtags attached to the feature</td>
+<td>Array of catalogs attached to the feature</td>
 </tr>
 <tr>
 <td>» centroid</td>

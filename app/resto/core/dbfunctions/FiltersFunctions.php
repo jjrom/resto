@@ -302,9 +302,16 @@ class FiltersFunctions
              */
             case 'keywords':
                 return $this->prepareFilterQueryKeywords($this->context->dbDriver->targetSchema . '.catalog_feature', $filterName, RestoUtil::splitString($paramsWithOperation[$filterName]['value']), $exclusion);
-             /*
-              * Intersects i.e. geo:*
-              */
+             
+            /*
+             * Search on feature description field
+             */
+            case 'description':
+                return $this->prepareFilterQueryDescription($featureTableName, $filterName, $paramsWithOperation[$filterName]['value']);
+             
+            /*
+             * Intersects i.e. geo:*
+             */
             case 'intersects':
                 return $this->prepareFilterQueryIntersects($filterName, $paramsWithOperation[$filterName], $exclusion);
              /*
@@ -389,6 +396,29 @@ class FiltersFunctions
             'isGeo' => false
         );
     }
+
+    /**
+     * Prepare SQL query for description field
+     *
+     * @param string $featureTableName
+     * @param string $filterName
+     * @param string $value
+     * @return string
+     */
+    private function prepareFilterQueryDescription($featureTableName, $filterName, $value)
+    {
+        $exclusion = false;
+        $targetColumn = $featureTableName . '.' . $this->model->searchFilters[$filterName]['key'];
+        if (substr($value, 0, 1) === '-') {
+            $exclusion = true;
+            $value = ltrim($value, '-');
+        }
+        return array(
+            'value' => $this->addNot($exclusion) . $targetColumn . ' ILIKE \'%' . pg_escape_string($this->context->dbDriver->getConnection(), $value) . '%\'',
+            'isGeo' => false
+        );
+    }
+
 
     /**
      * Prepare SQL query for model

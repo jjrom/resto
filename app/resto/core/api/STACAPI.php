@@ -777,13 +777,23 @@ class STACAPI
      *          name="q",
      *          in="query",
      *          style="form",
-     *          description="Free text search - OpenSearch {searchTerms}. Can include hashtags i.e. text starting with *#* characters. In this case, use the following:
-* *#cryosphere* will search for *cryosphere*
-* *#cryosphere #atmosphere* will search for *cryosphere* AND *atmosphere*
-* *#cryosphere|atmosphere* will search for *cryosphere* OR *atmosphere*
-* *#cryosphere!* will search for *cryosphere* OR any *broader* concept of *cryosphere* ([EXTENSION][SKOS])
-* *#cryosphere\** will search for *cryosphere* OR any *narrower* concept of *cryosphere* ([EXTENSION][SKOS])
-* *#cryosphere~* will search for *cryosphere* OR any *related* concept of *cryosphere* ([EXTENSION][SKOS])",
+     *          description="Free text search - OpenSearch {searchTerms}. Example:
+* *cryosphere* will search for *cryosphere*
+* *cryosphere atmosphere* will search for *cryosphere* AND *atmosphere*
+* *cryosphere|atmosphere* will search for *cryosphere* OR *atmosphere*
+* *cryosphere!* will search for *cryosphere* OR any *broader* concept of *cryosphere* ([EXTENSION][SKOS])
+* *cryosphere\** will search for *cryosphere* OR any *narrower* concept of *cryosphere* ([EXTENSION][SKOS])
+* *cryosphere~* will search for *cryosphere* OR any *related* concept of *cryosphere* ([EXTENSION][SKOS])",
+     *          required=false,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
+     *      ),
+     *      @OA\Parameter(
+     *          name="description",
+     *          in="query",
+     *          style="form",
+     *          description="Keyword search on feature description field",
      *          required=false,
      *          @OA\Schema(
      *              type="string"
