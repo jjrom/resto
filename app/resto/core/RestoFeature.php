@@ -507,7 +507,7 @@ class RestoFeature
         else {
             $this->featureArray = $options['featureArray'];
         }
-
+        
         /*
          * Empty feature or feature is not in input collection
          */
