@@ -36,7 +36,7 @@ class RestoConstants
     const GROUP_DEFAULT_ID = 100;
 
     // Separator for hashtags identifiers - should be the same as iTag
-    const TAG_SEPARATOR = ':';
+    const ITAG_SEPARATOR = ':';
 
     // Separator for hashtags identifiers - should be the same as iTag
     const CONCEPT_SEPARATOR = '::';

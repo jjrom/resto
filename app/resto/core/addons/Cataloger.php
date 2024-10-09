@@ -268,7 +268,7 @@ class Cataloger extends RestoAddOn
         $catalogs = array();
 
         foreach (array_values($properties) as $typeAndId) {
-            $exploded = explode(RestoConstants::TAG_SEPARATOR, $typeAndId);
+            $exploded = explode(RestoConstants::ITAG_SEPARATOR, $typeAndId);
             $parentId = substr($exploded[0], -1) === 's' ? $exploded[0] : $exploded[0] . 's';
             if (!$this->alreadyExists($catalogs, $parentId)) {
                 $catalogs[] = array(
@@ -305,7 +305,7 @@ class Cataloger extends RestoAddOn
          */
         if (isset($properties['main'])) {
             foreach (array_values($properties['main']) as $landcover) {
-                $exploded = explode(RestoConstants::TAG_SEPARATOR, $landcover['id']);
+                $exploded = explode(RestoConstants::ITAG_SEPARATOR, $landcover['id']);
                 $id = $parentId . '/' . $exploded[1];
                 if ( !$this->alreadyExists($catalogs, $id) ) {
                     $catalogs[] = array(
@@ -313,7 +313,7 @@ class Cataloger extends RestoAddOn
                         'title' => $landcover['name'],
                         'rtype' => $exploded[0],
                         'properties' => array(
-                            'itag' . RestoConstants::TAG_SEPARATOR . $landcover['id']  => array(
+                            'itag' . RestoConstants::ITAG_SEPARATOR . $landcover['id']  => array(
                                 'area' => $landcover['area'],
                                 'pcover' => $landcover['pcover']
                             )
@@ -340,7 +340,7 @@ class Cataloger extends RestoAddOn
          * Main landcover
          */
         for ($i = 0, $ii=count($physicals); $i < $ii; $i++) {
-            $exploded = explode(RestoConstants::TAG_SEPARATOR, $physicals[$i]['id']);
+            $exploded = explode(RestoConstants::ITAG_SEPARATOR, $physicals[$i]['id']);
             $type = $exploded[0];
             $id = $parentId . '/' . $type . 's';
             if ( !$this->alreadyExists($catalogs, $type) ) {
@@ -403,7 +403,7 @@ class Cataloger extends RestoAddOn
      */
     private function getCatalogFromGeneric($property, $parentId)
     {
-        $exploded = explode(RestoConstants::TAG_SEPARATOR, $property['id']);
+        $exploded = explode(RestoConstants::ITAG_SEPARATOR, $property['id']);
 
         $catalog = array(
             'id' => (isset($parentId) ? $parentId : '') . '/' . $exploded[1],
@@ -430,7 +430,7 @@ class Cataloger extends RestoAddOn
 
         if ( !empty($properties) ) {
             $catalog['properties'] = array(
-                'itag' . RestoConstants::TAG_SEPARATOR . $property['id'] => $properties
+                'itag' . RestoConstants::ITAG_SEPARATOR . $property['id'] => $properties
             );
         }
         

@@ -346,7 +346,7 @@ class RestoQueryAnalyzer
             if ($key === 'times') {
                 $params = array_merge($params, $this->timesToOpenSearch($value));
             } else {
-                $params['searchTerms'][] = $key . RestoConstants::TAG_SEPARATOR . $value;
+                $params['searchTerms'][] = $key . RestoConstants::ITAG_SEPARATOR . $value;
             }
         }
         return $params;
