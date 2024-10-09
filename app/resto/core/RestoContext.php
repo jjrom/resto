@@ -58,6 +58,9 @@ class RestoContext
 
         // Use cache
         'useCache' => false,
+
+        // Display JSON-LD metadata in catalogs/collections/items
+        'useJSONLD' => false,
         
         // Timezone for date display
         'timezone' => 'Europe/Paris',

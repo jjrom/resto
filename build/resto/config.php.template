@@ -19,6 +19,7 @@ return array(
     'userAutoActivation' => ${USER_AUTOACTIVATION:-true},
     'splitGeometryOnDateLine' => ${SPLIT_GEOMETRY_ON_DATELINE:-true},
     'useCache' => ${USE_CACHE:-false}, 
+    'useJSONLD' => ${USE_JSONLD:-false},
     'corsWhiteList' => array(${CORS_WHITELIST}),
     'htmlSearchEndpoint' => '${SEARCH_OPENSEARCH_HTML_ENDPOINT}',
     'database' => array(

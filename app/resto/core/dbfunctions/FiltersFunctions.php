@@ -641,12 +641,15 @@ class FiltersFunctions
          */
         for ($i = 0, $l = count($searchTerms); $i < $l; $i++) {
 
-            $searchTerm = strtolower($searchTerms[$i]);
+            $searchTerm = $this->cleanSearchTerm(strtolower($searchTerms[$i]));
 
             /*
              * Start "-" means NOT
              */
-            $exclusion = substr($searchTerm, 0, 1) === '-' ? true : false;
+            if (substr($searchTerm, 0, 1) === '-') {
+                $exclusion = true;
+                $searchTerm = ltrim($searchTerm, '-');
+            }
 
             /*
              * Add prefix in front of all elements if needed
@@ -886,5 +889,15 @@ class FiltersFunctions
     private function optimizeNotEqual($operation, $before, $after)
     {
         return $operation === '<>' ? $before . '<' . $after . ' AND ' . $before . '>' . $after : $before . $operation . $after;
+    }
+
+    /**
+     * Remove invalid character from $searchTerm
+     * 
+     * @param string $searchTerm
+     */
+    private function cleanSearchTerm($searchTerm)
+    {
+        return str_replace(array('#', '%'), '', $searchTerm);
     }
 }

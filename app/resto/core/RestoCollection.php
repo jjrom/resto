@@ -992,7 +992,8 @@ class RestoCollection
             $collectionArray['summaries'] = $summaries;
         }
 
-        return $collectionArray;
+        return $this->context->core['useJSONLD'] ? JSONLDUtil::addDataCatalogMetadata($collectionArray) : $collectionArray;
+        
     }
 
     /**

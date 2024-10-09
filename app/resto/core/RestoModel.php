@@ -686,9 +686,18 @@ abstract class RestoModel
             }
         }
 
-        return array_merge($featureArray, array(
+        $featureArray = array_merge($featureArray, array(
             'properties' => $properties
         ));
+
+        /*
+         * JSON-LD additionnal metadata
+         */
+        if ( isset($collection) && $collection->context->core['useJSONLD']) {
+            $featureArray = JSONLDUtil::addDatasetsMetadata($featureArray);
+        }
+
+        return $featureArray;
     }
 
     /**

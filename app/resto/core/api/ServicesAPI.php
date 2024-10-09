@@ -181,7 +181,7 @@ class ServicesAPI
     public function hello()
     {
         
-        return array(
+        $hello = array(
             'stac_version' => STACAPI::STAC_VERSION,
             'id' => 'root',
             'type' => 'Catalog',
@@ -269,6 +269,8 @@ class ServicesAPI
             ),
             'conformsTo' => $this->conformsTo()
         );
+
+        return $this->context->core['useJSONLD'] ? JSONLDUtil::addDataCatalogMetadata($hello) : $hello;
     }
 
     /**
