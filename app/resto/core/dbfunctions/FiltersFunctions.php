@@ -172,18 +172,29 @@ class FiltersFunctions
             }
     
             $catalogFeatureTableName = $this->context->dbDriver->targetSchema . '.catalog_feature';
+           
             /*
-            if (count($flatTerms) == 1) {
-                
-                $this->joins[] = 'JOIN ' . $catalogFeatureTableName . ' ON ' . $this->context->dbDriver->targetSchema . '.feature.id=' . $catalogFeatureTableName . '.featureId';
-                $filters[] = array(
-                    'value' => join(' AND ', array_merge($flatTerms)),
-                    'isGeo' => false
-                );
-
-            }*/
-
-            // Nightmarish one - use WITH and having count
+             * Query to check for the existence of multiple specific paths.
+             * This is achieved using a combination of JOIN operations or GROUP BY to count the matching paths for each featureid.
+             * 
+             * Using HAVING and GROUP BY : the idea is to group by featureid and ensure that the count of matched paths for each
+             * featureid equals the number of paths you are searching for.
+             * 
+             * Example to search for 'years.2023' and 'platforms.s2a'
+             * 
+             *      SELECT featureid
+             *      FROM resto.catalog_feature
+             *      WHERE path IN (text2ltree('years.2023'), text2ltree('platforms.s2a'))
+             *      GROUP BY featureid
+             *      HAVING COUNT(DISTINCT path) = 2;  -- Replace 2 with the number of paths you're checking
+             * 
+             * Explanation : 
+             * 
+             *      WHERE path IN (...): checks if the path is one of the specified paths.
+             *      GROUP BY featureid: groups the results by featureid, so we can count how many paths match for each featureid
+             *      HAVING COUNT(DISTINCT path) = X: ensures that the number of distinct paths for each featureid matches the number
+             *      of paths we're looking for. Replace X with the number of paths we're querying for (e.g., 2 in the example).
+             */
             $this->joins[] = 'JOIN matched_paths mp ON ' . $this->context->dbDriver->targetSchema . '.feature.id=mp.featureId';
             $this->withs[] = 'WITH matched_paths AS ( SELECT featureid FROM ' . $catalogFeatureTableName . ' WHERE ' . join(' OR ', array_merge($flatTerms)) . ' GROUP BY featureid HAVING COUNT(DISTINCT ' . $catalogFeatureTableName . '.path) >= ' . count($flatTerms) . ')';
             
