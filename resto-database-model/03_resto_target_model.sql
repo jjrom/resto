@@ -390,7 +390,10 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog (
     visibility          INTEGER,
 
     -- resto type 
-    rtype               TEXT
+    rtype               TEXT,
+
+    -- Free object to store info
+    properties          JSON
 
 );
 

@@ -727,8 +727,7 @@ class CatalogsFunctions
                 }
 
                 /*
-                 * [TODO] Local collection -should not be in links but should appears in catalog 
-                 *  under /catalogs/catalogThatIsIngested/{collectionId} so we can keep trace of this in item ??
+                 * Store local collection within links
                  */
                 if ( $link['rel'] === 'child' && str_starts_with($link['href'], $baseUrl . RestoRouter::ROUTE_TO_COLLECTIONS )) {
                     $output['links'][] = $link;
