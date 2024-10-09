@@ -271,6 +271,10 @@ class RestoCollections
             'collections' => array()
         );
 
+        if ($this->context->core['useJSONLD']) {
+            $collections = JSONLDUtil::addDataCatalogMetadata($collections);
+        }
+
         $totalMatched = 0;
 
         // Compute global summaries
