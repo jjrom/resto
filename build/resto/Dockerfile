@@ -7,6 +7,8 @@ ENV BUILD_DIR=./build/resto \
     RESTO_DEBUG=1 \
     S6_BEHAVIOUR_IF_STAGE2_FAILS=2
 
+# [TODO] Should be directly removed from jjrom/nginx-fpm 
+# Avoid "PHP Warning: GEOSGeometry::__toString()" error at startup
 RUN apt-get remove -y php-geos
 
 # Copy NGINX configuration
