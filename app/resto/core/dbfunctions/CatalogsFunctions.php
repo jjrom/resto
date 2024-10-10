@@ -276,7 +276,11 @@ class CatalogsFunctions
             $catalogLevel = count(explode('/', $catalog['id']));
             // Convert catalogId to LTREE path - first replace dot with underscore
             $path = RestoUtil::path2ltree($catalog['id']);
-                
+            
+            if ( !isset($catalog['rtype']) ) {
+                $catalog['rtype'] = null;
+            }
+            
             if ( isset($featureId) && $catalog['rtype'] !== 'collection' && ($catalogLevel > 1 || $catalog['rtype'] === 'catalog')  ) {
                 $this->insertIntoCatalogFeature($featureId, $path, $catalog['id'], $collectionId);
             }
