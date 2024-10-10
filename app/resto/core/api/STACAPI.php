@@ -275,7 +275,7 @@ class STACAPI
     {
         // This is /catalogs
         if ( !isset($params['segments']) ) {
-            return array(
+            $catalog = array(
                 'stac_version' => STACAPI::STAC_VERSION,
                 'id' => 'catalogs',
                 'type' => 'Catalog',
@@ -286,6 +286,7 @@ class STACAPI
                     $this->getRootCatalogLinks($params)
                 )
             );
+            return $this->context->core['useJSONLD'] ? JSONLDUtil::addDataCatalogMetadata($catalog) : $catalog;
         }
 
         // This is /catalogs/*
@@ -1335,7 +1336,7 @@ class STACAPI
         
         // The path is the catalog identifier
         $parentAndChilds = $this->getParentAndChilds(join('/', $segments), $params);
-        return array(
+        $catalog = array(
             'stac_version' => STACAPI::STAC_VERSION,
             'id' => $segments[count($segments) -1 ],
             'title' => $parentAndChilds['parent']['title'] ?? '',
@@ -1347,6 +1348,7 @@ class STACAPI
             )
         );
 
+        return $this->context->core['useJSONLD'] ? JSONLDUtil::addDataCatalogMetadata($catalog) : $catalog;
     }
 
     /**
