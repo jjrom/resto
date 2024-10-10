@@ -203,15 +203,20 @@ class CatalogsFunctions
      * @param string $baseUrl
      * @param string $collectionId
      * @param string $featureId
-     * @param boolean $inTransaction
+     * @param boolean $inTransaction // True means that already in a begin/commit block
      */
-    public function storeCatalog($catalog, $userid, $baseUrl, $collectionId, $featureId, $inTransaction = true)
+    public function storeCatalog($catalog, $userid, $baseUrl, $collectionId, $featureId, $inTransaction)
     {
         // Empty catalog - do nothing
         if (!isset($catalog)) {
             return;
         }
 
+        // [IMPORTANT] Catalog identifier should never have a trailing /
+        if ( substr($catalog['id'], -1) === '/' ) {
+            $catalog['id'] = rtrim($catalog['id'], '/');
+        }
+        
         $defaultCount = isset($featureId) ? 1 : 0;
         $counters = array(
             'total' => $defaultCount,
@@ -226,7 +231,7 @@ class CatalogsFunctions
 
         try {
 
-            if ( $inTransaction ) {
+            if ( !$inTransaction ) {
                 $this->dbDriver->query('BEGIN');
             }
 
@@ -276,7 +281,11 @@ class CatalogsFunctions
             $catalogLevel = count(explode('/', $catalog['id']));
             // Convert catalogId to LTREE path - first replace dot with underscore
             $path = RestoUtil::path2ltree($catalog['id']);
-                
+            
+            if ( !isset($catalog['rtype']) ) {
+                $catalog['rtype'] = null;
+            }
+
             if ( isset($featureId) && $catalog['rtype'] !== 'collection' && ($catalogLevel > 1 || $catalog['rtype'] === 'catalog')  ) {
                 $this->insertIntoCatalogFeature($featureId, $path, $catalog['id'], $collectionId);
             }
@@ -303,13 +312,13 @@ class CatalogsFunctions
                 ), 500, 'Cannot update catalog feature association for child link ' . $updateCatalogs['id']);
             }
             
-            if ( $inTransaction ) {
+            if ( !$inTransaction ) {
                 $this->dbDriver->query('COMMIT');
             }
             
 
         } catch (Exception $e) {
-            if ( $inTransaction ) {
+            if ( !$inTransaction ) {
                 $this->dbDriver->query('ROLLBACK');
             }
             RestoLogUtil::httpError(500, $e->getMessage());
@@ -329,7 +338,7 @@ class CatalogsFunctions
      * @param RestoCollection $collection
      * @param string $featureId
      */
-    public function storeCatalogs($catalogs, $userid, $collection, $featureId)
+    public function storeCatalogs($catalogs, $userid, $collection, $featureId, $inTransaction)
     {
         // Empty catalogs - do nothing
         if (!isset($catalogs) || count($catalogs) === 0) {
@@ -343,7 +352,7 @@ class CatalogsFunctions
             $baseUrl = $collection->context->core['baseUrl'];
         }
         for ($i = count($catalogs); $i--;) {
-            $this->storeCatalog($catalogs[$i], $userid, $baseUrl, $collectionId, $featureId);
+            $this->storeCatalog($catalogs[$i], $userid, $baseUrl, $collectionId, $featureId, $inTransaction);
         }
 
         return $catalogs;

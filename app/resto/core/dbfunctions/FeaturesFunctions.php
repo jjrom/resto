@@ -348,7 +348,7 @@ class FeaturesFunctions
             /*
              * Store catalogs
              */
-            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->user->profile['id'], $collection, $result['id']);
+            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->user->profile['id'], $collection, $result['id'], true);
         
             /*
              * Commit everything - rollback if one of the inserts failed
@@ -357,7 +357,7 @@ class FeaturesFunctions
 
         } catch (Exception $e) {
             pg_query($dbh, 'ROLLBACK');
-            RestoLogUtil::httpError(500, 'Feature ' . ($featureArray['productIdentifier'] ?? '') . ' cannot be inserted in database');
+            RestoLogUtil::httpError(500, 'Feature ' . ($featureArray['properties']['productIdentifier'] ?? '') . ' cannot be inserted in database');
         }
 
         return array(
@@ -507,7 +507,7 @@ class FeaturesFunctions
                     $feature->id
                 )
             );
-            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->user->profile['id'], $collection, $feature->id);
+            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->user->profile['id'], $collection, $feature->id, true);
         
             /*
              * Commit

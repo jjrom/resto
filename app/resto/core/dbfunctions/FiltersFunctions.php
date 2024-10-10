@@ -651,17 +651,6 @@ class FiltersFunctions
                 $searchTerm = ltrim($searchTerm, '-');
             }
 
-            /*
-             * Add prefix in front of all elements if needed
-             * See for instance [eo:instrument]
-             */
-            if (isset($this->model->searchFilters[$filterName]['pathPrefix'])) {
-                $searchTerm = $this->addPathPrefix($searchTerm, $this->model->searchFilters[$filterName]['pathPrefix']);
-            }
-            else {
-                $searchTerm = '*.' . $searchTerm;
-            }
-            
             $this->terms[] = array_merge($this->processSearchTerms($searchTerm, $filters, $catalogFeatureTableName, $filterName, $exclusion));
         }
 
@@ -705,7 +694,21 @@ class FiltersFunctions
 
         $where = array();
         for ($j = count($exploded); $j--;) {
-            $where[] = $catalogFeatureTableName . '.path ~ ' . '\'' . pg_escape_string($this->context->dbDriver->getConnection(), trim($exploded[$j] . '.*')) . '\'';
+
+            $ltreePath = RestoUtil::path2ltree($exploded[$j]);
+
+            /*
+             * Add prefix in front of all elements if needed
+             * See for instance [eo:instrument]
+             */
+            if (isset($this->model->searchFilters[$filterName]['pathPrefix'])) {
+                $ltreePath = $this->addPathPrefix($ltreePath, $this->model->searchFilters[$filterName]['pathPrefix']);
+            }
+            else {
+                $ltreePath = '*.' . $ltreePath;
+            }
+            
+            $where[] = $catalogFeatureTableName . '.path ~ ' . '\'' . pg_escape_string($this->context->dbDriver->getConnection(), trim($ltreePath . '.*')) . '\'';
         }
         
         if ($isOr) {
