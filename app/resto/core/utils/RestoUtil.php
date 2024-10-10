@@ -513,10 +513,12 @@ class RestoUtil
 
     /**
      * Convert a unix path (i.e. this/is/my/home ) to LTREE path (i.e. this.is.my.home)
+     * 
+     * [IMPORTANT] LTREE path can only contains A-Za-z0-9_- characters so replace any other characters with _
      */
     public static function path2ltree($path)
     {
-        return strtolower(str_replace('/', '.', str_replace('.', '_', $path)));
+        return strtolower(str_replace('/', '.', preg_replace('/[^A-Za-z0-9_\- \/]/', '_', $path)));
     }
     
     /**
