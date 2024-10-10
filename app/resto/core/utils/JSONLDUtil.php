@@ -80,7 +80,7 @@ class JSONLDUtil
 
         if ( isset($catalog['extent'])) {
             
-            if ( isset($catalog['extent']['spatial']['bbox']) ) {
+            if ( isset($catalog['extent']['spatial']['bbox']) && is_array($catalog['extent']['spatial']['bbox']) ) {
                 $jsonld['spatialCoverage'] = array(
                     '@type' => 'Place',
                     'geo' => array(
@@ -90,7 +90,7 @@ class JSONLDUtil
                 );
             }
             
-            if ( isset($catalog['extent']['temporal']['interval']) ) {
+            if ( isset($catalog['extent']['temporal']['interval']) && is_array($catalog['extent']['temporal']['interval']) ) {
                 $jsonld['temporalCoverage'] = join('/', array($catalog['extent']['temporal']['interval'][0][0] ?? '..', $catalog['extent']['temporal']['interval'][0][1] ?? '..'));
             }
 
@@ -154,7 +154,7 @@ class JSONLDUtil
 
         $jsonld = JSONLDUtil::getCommonMetadata($item, $url);
 
-        if ( isset($item['bbox'])) {
+        if ( isset($item['bbox']) && is_array($item['bbox'])) {
            $jsonld['spatialCoverage'] = array(
                 '@type' => 'Place',
                 'geo' => array(
@@ -164,11 +164,6 @@ class JSONLDUtil
             );
         }
     
-            
-        if ( isset($catalog['extent']['temporal']['interval']) ) {
-            $jsonld['temporalCoverage'] = join('/', array($catalog['extent']['temporal']['interval'][0][0] ?? '..', $catalog['extent']['temporal']['interval'][0][1] ?? '..'));
-        }
-
         if ( isset($item['properties']['start_datetime']) ) {
             $jsonld['temporalCoverage'] = join('/', array($item['properties']['start_datetime'] ?? '..', $item['properties']['end_datetime'] ?? '..'));
         }
