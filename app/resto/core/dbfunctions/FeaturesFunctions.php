@@ -395,7 +395,7 @@ class FeaturesFunctions
             /*
              * Update statistics counter for featureId - i.e. remove 1 per catalogs containing this feature 
              */
-            $catalogsUpdated = (new CatalogsFunctions($this->dbDriver))->updateFeatureCatalogsCounters($feature->id, $feature->collection->id, -1);
+            $catalogsUpdated = (new CatalogsFunctions($this->dbDriver))->updateFeatureCatalogsCounters($feature->id, -1);
         
             /*
              * Next remove
@@ -500,7 +500,7 @@ class FeaturesFunctions
              *  2. Then delete resto.catalog_feature rows
              *  3. Then add resto.catalog_feature rows
              */
-            (new CatalogsFunctions($this->dbDriver))->updateFeatureCatalogsCounters($feature->id, $collection->id, -1);
+            (new CatalogsFunctions($this->dbDriver))->updateFeatureCatalogsCounters($feature->id, -1);
             
             $this->dbDriver->pQuery(
                 'DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE featureid=$1', array(

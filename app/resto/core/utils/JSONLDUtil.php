@@ -80,7 +80,7 @@ class JSONLDUtil
 
         if ( isset($catalog['extent'])) {
             
-            if ( isset($catalog['extent']['spatial']['bbox']) && is_array($catalog['extent']['spatial']['bbox']) ) {
+            if ( isset($catalog['extent']['spatial']['bbox']) && is_array($catalog['extent']['spatial']['bbox']) && is_array($catalog['extent']['spatial']['bbox'][0]) ) {
                 $jsonld['spatialCoverage'] = array(
                     '@type' => 'Place',
                     'geo' => array(
@@ -90,7 +90,7 @@ class JSONLDUtil
                 );
             }
             
-            if ( isset($catalog['extent']['temporal']['interval']) && is_array($catalog['extent']['temporal']['interval']) ) {
+            if ( isset($catalog['extent']['temporal']['interval']) && is_array($catalog['extent']['temporal']['interval']) && is_array($catalog['extent']['temporal']['interval'][0]) ) {
                 $jsonld['temporalCoverage'] = join('/', array($catalog['extent']['temporal']['interval'][0][0] ?? '..', $catalog['extent']['temporal']['interval'][0][1] ?? '..'));
             }
 

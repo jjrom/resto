@@ -1321,7 +1321,7 @@ class STACAPI
             }
             
             $searchParams = array(
-                'q' => RestoUtil::path2ltree($catalogs[0]['id'])
+                'q' => $catalogs[0]['id']
             );
     
             foreach (array_keys($params) as $key) {

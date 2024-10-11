@@ -246,7 +246,7 @@ class CatalogsFunctions
                 $catalog['description'] ?? null,
                 isset($catalog['id']) ? count(explode('/', $catalog['id'])) : 0,
                 // If no input counter is specified - set to 1
-                json_encode($counters, JSON_UNESCAPED_SLASHES),
+                str_replace('[]', '{}', json_encode($counters, JSON_UNESCAPED_SLASHES)),
                 $catalog['owner'] ?? $userid,
                 json_encode($cleanLinks['links'], JSON_UNESCAPED_SLASHES),
                 RestoConstants::GROUP_DEFAULT_ID,
@@ -426,8 +426,10 @@ class CatalogsFunctions
             $path = RestoUtil::path2ltree($catalog['id']);
 
             /*
-             * Add an entry in catalog_feature for each interalItems
+             * Add an entry in catalog_feature for each interalItems but first remove all items !
              */
+            $this->removeCatalogFeatures($catalog['id']);
+
             for ($i = 0, $ii = count($cleanLinks['internalItems']); $i < $ii; $i++) {
                 $this->insertIntoCatalogFeature($cleanLinks['internalItems'][$i]['id'], $path, $catalog['id'], $cleanLinks['internalItems'][$i]['collection']);
             }
@@ -443,20 +445,19 @@ class CatalogsFunctions
     }
 
     /**
-     * Increment all catalogs relied to feature
+     * Increment catalog counters
      *
      * @param string $featureId
-     * @param string $collectionId
      * @param integer $increment
      */
-    public function updateFeatureCatalogsCounters($featureId, $collectionId, $increment)
+    public function updateFeatureCatalogsCounters($featureId, $increment)
     {
 
         $query = join(' ', array(
-            'WITH path_hierarchy AS (SELECT distinct featureid, subpath(path, 0, generate_series(1, nlevel(path))) AS p FROM ' . $this->dbDriver->targetSchema . '.catalog_feature',
+            'WITH path_hierarchy AS (SELECT collection, catalogid FROM ' . $this->dbDriver->targetSchema . '.catalog_feature',
             'WHERE featureid = \'' . pg_escape_string($this->dbDriver->getConnection(), $featureId) . '\')',
-            'UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters,' . $increment . ',' . (isset($collectionId) ? '\'' . $collectionId . '\'': 'NULL') . ')',
-            'WHERE lower(id) IN (SELECT LOWER(REPLACE(REPLACE(path_hierarchy.p::text, \'_\', \'.\'), \'.\', \'/\')) FROM path_hierarchy)'
+            'UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters,' . $increment . ', (SELECT path_hierarchy.collection FROM path_hierarchy LIMIT 1))',
+            'WHERE lower(id) IN (SELECT LOWER(path_hierarchy.catalogid) FROM path_hierarchy)'
         ));
 
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
@@ -522,6 +523,19 @@ class CatalogsFunctions
         
         return array();
 
+    }
+
+    /**
+     * Remove features from a catalog i.e. unassociate feature from a catalog
+     * 
+     * [WARNING] This DOES NOT REMOVE FEATURE IN TABLE feature
+     *
+     * @param string $catalogId
+     */
+    private function removeCatalogFeatures($catalogId)
+    {
+        $this->dbDriver->query('UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=\'{"total":0, "collections":{}}\' WHERE lower(id) = lower(\'' . pg_escape_string($this->dbDriver->getConnection(), $catalogId) . '\')');
+        $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path = $1' , array(RestoUtil::path2ltree($catalogId)), 500, 'Cannot delete catalog_feature association for catalog ' . $catalogId));   
     }
 
     /**
@@ -665,15 +679,17 @@ class CatalogsFunctions
             $path,
             $catalogId,
             $collectionId
-        ), 500, 'Cannot create association for ' . $featureId . ' intp catalog ' . $catalogId);
+        ), 500, 'Cannot create association for ' . $featureId . ' in catalog ' . $catalogId);
         
         $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog_feature (featureid, path, catalogid, collection) SELECT $1, $2::ltree, $3, $4 WHERE NOT EXISTS (SELECT 1 FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE featureid = $1 AND (path <@ $2::ltree OR path @> $2::ltree))', array(
             $featureId,
             $path,
             $catalogId,
             $collectionId
-        ), 500, 'Cannot create association for ' . $featureId . ' intp catalog ' . $catalogId);
+        ), 500, 'Cannot create association for ' . $featureId . ' in catalog ' . $catalogId);
       
+        $this->updateFeatureCatalogsCounters($featureId, 1);
+       
     }
 
     /**
@@ -781,12 +797,17 @@ class CatalogsFunctions
         $originalLinks = json_decode($catalog['links'], true);
 
         $collections = array();
-
+        
         $results = $this->dbDriver->pQuery('SELECT id, counters, links FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE lower(id) = lower($1) OR lower(id) LIKE lower($2) ORDER BY id ASC', array(
             $catalog['id'],
             $catalog['id'] . '/%'
         ));
         while ($result = pg_fetch_assoc($results)) {
+
+            if ($catalog['id'] !== $result['id']) {
+                $catalogCounters = json_decode($result['counters'], true);
+                $counters['total'] = $counters['total'] + $catalogCounters['total'];
+            }
             
             // Process collection
             if ( isset($result['links']) ) {
@@ -808,14 +829,14 @@ class CatalogsFunctions
                 'collections/' . $collectionId
             ));
             while ($result = pg_fetch_assoc($results)) {
-                $collectionCounter = json_decode($result['counters'], true);
-                $counters['total'] = $counters['total'] + $collectionCounter['total'];
-                $counters['collections'][$collectionId] = $collectionCounter['total'];
+                $collectionCounters = json_decode($result['counters'], true);
+                $counters['total'] = $counters['total'] + $collectionCounters['total'];
+                $counters['collections'][$collectionId] = $collectionCounters['total'];
                 for ($i = 0, $ii = count($originalLinks); $i < $ii; $i++) {
                     if ($originalLinks[$i]['rel'] === 'child') {
                         $exploded = explode('/', substr($originalLinks[$i]['href'], strlen($baseUrl . RestoRouter::ROUTE_TO_COLLECTIONS) + 1));
                         if (count($exploded) === 1 && $exploded[0] === $collectionId) {
-                            $originalLinks[$i]['matched'] = $collectionCounter['total'];
+                            $originalLinks[$i]['matched'] = $collectionCounters['total'];
                             if ( isset($result['title']) ) {
                                 $originalLinks[$i]['title'] = $result['title'];
                             }   
