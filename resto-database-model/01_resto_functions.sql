@@ -303,45 +303,38 @@ RETURNS JSON AS $$
 DECLARE
     -- Variable to store the total property from JSON
     total INTEGER;
-    -- Variable to store individual keys and values from the collections array
-    collection_key TEXT;
-    collection_value INTEGER;
     -- Variable to store the updated collections array
     updated_collections JSONB;
     -- Variable to store the updated JSON object
     updated_counters JSONB;
-    -- Boolean to check if collection_id exists
-    collection_exists BOOLEAN := FALSE;
+    -- Variable to store current value of the specific collection
+    collection_value INTEGER;
 BEGIN
     -- Extract the total property from the JSON object
     total := (counters->>'total')::INTEGER;
     
-    -- Increment the total by the value
+    -- Increment the total by the input value
     total := GREATEST(0, total + increment);
 
     -- Initialize the updated collections as the original collections
     updated_collections := counters->'collections';
 
-    -- Check if collection_id is NULL
-    IF collection_id IS NOT NULL THEN
-        -- Loop through the collections array and update the collection_id value
-        FOR collection_key, collection_value IN 
-            SELECT key, value::INTEGER
-            FROM json_each_text(counters->'collections')
-        LOOP
-            IF collection_key = collection_id THEN
-                -- Increment the collection value by the input value
-                collection_value := GREATEST(0, collection_value + increment);
-                -- Update the collections JSONB with the new value
-                updated_collections := jsonb_set(updated_collections, ARRAY[collection_key], to_jsonb(collection_value));
-                collection_exists := TRUE;
-            END IF;
-        END LOOP;
+    -- Be sure to have collections:{} and not collections:[]
+    IF jsonb_typeof(updated_collections) = 'array' THEN     
+        updated_collections := '{}';
+    END IF;
 
-        -- If the collection_id does not exist, add it with the input value
-        IF NOT collection_exists THEN
-            updated_collections := jsonb_set(updated_collections, ARRAY[collection_id], to_jsonb(increment));
-        END IF;
+    -- Check if collection_id is NOT NULL and update the specific collection
+    IF collection_id IS NOT NULL THEN
+        -- Get the current value of the collection_id or default to 0 if it doesn't exist
+        collection_value := COALESCE((counters->'collections'->>collection_id)::INTEGER, 0);
+        
+        -- Increment the collection value
+        collection_value := GREATEST(0, collection_value + increment);
+        
+        -- Update the collections JSONB with the new value or insert a new one
+        updated_collections := jsonb_set(updated_collections, ARRAY[collection_id], to_jsonb(collection_value));
+                
     END IF;
 
     -- Update the JSON object with the new total and collections

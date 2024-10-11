@@ -246,7 +246,7 @@ class CatalogsFunctions
                 $catalog['description'] ?? null,
                 isset($catalog['id']) ? count(explode('/', $catalog['id'])) : 0,
                 // If no input counter is specified - set to 1
-                json_encode($counters, JSON_UNESCAPED_SLASHES),
+                str_replace('[]', '{}', json_encode($counters, JSON_UNESCAPED_SLASHES)),
                 $catalog['owner'] ?? $userid,
                 json_encode($cleanLinks['links'], JSON_UNESCAPED_SLASHES),
                 RestoConstants::GROUP_DEFAULT_ID,
@@ -426,8 +426,10 @@ class CatalogsFunctions
             $path = RestoUtil::path2ltree($catalog['id']);
 
             /*
-             * Add an entry in catalog_feature for each interalItems
+             * Add an entry in catalog_feature for each interalItems but first remove all items !
              */
+            $this->removeCatalogFeatures($catalog['id']);
+
             for ($i = 0, $ii = count($cleanLinks['internalItems']); $i < $ii; $i++) {
                 $this->insertIntoCatalogFeature($cleanLinks['internalItems'][$i]['id'], $path, $catalog['id'], $cleanLinks['internalItems'][$i]['collection']);
             }
@@ -453,10 +455,11 @@ class CatalogsFunctions
     {
 
         $query = join(' ', array(
-            'WITH path_hierarchy AS (SELECT distinct featureid, subpath(path, 0, generate_series(1, nlevel(path))) AS p FROM ' . $this->dbDriver->targetSchema . '.catalog_feature',
+            'WITH path_hierarchy AS (SELECT distinct featureid, collection, catalogid, subpath(path, 0, generate_series(1, nlevel(path))) AS p FROM ' . $this->dbDriver->targetSchema . '.catalog_feature',
             'WHERE featureid = \'' . pg_escape_string($this->dbDriver->getConnection(), $featureId) . '\')',
             'UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters,' . $increment . ',' . (isset($collectionId) ? '\'' . $collectionId . '\'': 'NULL') . ')',
-            'WHERE lower(id) IN (SELECT LOWER(REPLACE(REPLACE(path_hierarchy.p::text, \'_\', \'.\'), \'.\', \'/\')) FROM path_hierarchy)'
+        //    'WHERE lower(id) IN (SELECT LOWER(REPLACE(REPLACE(path_hierarchy.p::text, \'_\', \'.\'), \'.\', \'/\')) FROM path_hierarchy)'
+            'WHERE lower(id) IN (SELECT LOWER(path_hierarchy.catalogid) FROM path_hierarchy)'
         ));
 
         $results = $this->dbDriver->fetch($this->dbDriver->query($query));
@@ -522,6 +525,28 @@ class CatalogsFunctions
         
         return array();
 
+    }
+
+    /**
+     * Remove features from a catalog i.e. unassociate feature from a catalog
+     * 
+     * [WARNING] This DOES NOT REMOVE FEATURE IN TABLE feature
+     *
+     * @param string $catalogId
+     */
+    private function removeCatalogFeatures($catalogId)
+    {
+
+        $query = join(' ', array(
+            'WITH path_hierarchy AS (SELECT distinct featureid, collection, catalogid, subpath(path, 0, generate_series(1, nlevel(path))) AS p FROM ' . $this->dbDriver->targetSchema . '.catalog_feature',
+            'WHERE path = \'' . pg_escape_string($this->dbDriver->getConnection(), RestoUtil::path2ltree($catalogId)) . '\')',
+            'UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters, -13, (SELECT path_hierarchy.collection FROM path_hierarchy LIMIT 1))',
+            'WHERE lower(id) IN (SELECT LOWER(path_hierarchy.catalogid) FROM path_hierarchy)'
+        ));
+        $this->dbDriver->query($query);
+
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path ~ $1 RETURNING featureid, collection' , array(RestoUtil::path2ltree($catalogId) . '.*'), 500, 'Cannot delete catalog_feature association for catalog ' . $catalogId));
+        
     }
 
     /**
@@ -665,15 +690,17 @@ class CatalogsFunctions
             $path,
             $catalogId,
             $collectionId
-        ), 500, 'Cannot create association for ' . $featureId . ' intp catalog ' . $catalogId);
+        ), 500, 'Cannot create association for ' . $featureId . ' in catalog ' . $catalogId);
         
         $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog_feature (featureid, path, catalogid, collection) SELECT $1, $2::ltree, $3, $4 WHERE NOT EXISTS (SELECT 1 FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE featureid = $1 AND (path <@ $2::ltree OR path @> $2::ltree))', array(
             $featureId,
             $path,
             $catalogId,
             $collectionId
-        ), 500, 'Cannot create association for ' . $featureId . ' intp catalog ' . $catalogId);
+        ), 500, 'Cannot create association for ' . $featureId . ' in catalog ' . $catalogId);
       
+        $this->updateFeatureCatalogsCounters($featureId, $collectionId, 1);
+       
     }
 
     /**
