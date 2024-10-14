@@ -1495,9 +1495,6 @@ class STACAPI
                 if ( isset($parentAndChilds['parent']['title']) ) {
                     $element['title'] = $parentAndChilds['parent']['title'];
                 }
-                if ( isset($catalogs[$i]['rtype']) ) {
-                    $element['resto:type'] = $catalogs[$i]['rtype'];
-                }
                 $parentAndChilds['childs'][] = $element;
             }
 
