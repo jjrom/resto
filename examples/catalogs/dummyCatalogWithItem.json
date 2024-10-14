@@ -1,6 +1,6 @@
 {
     "id": "dummyCatalogWithItem",
-    "title": "Dummy Catalog",
+    "title": "Dummy Catalog with item",
     "type": "Catalog",
     "description":"There is nothing to say on this catalog",
     "stac_version":"1.0.0",

@@ -256,17 +256,30 @@ class FeaturesFunctions
 
     /**
      * Check if feature identified by $featureId exists
+     * If collectionId is set then returns true only if feature exists and within the collection
      *
      * @param string $featureId - feature UUID
      * @param string $featureTableName
+     * @param string 
      * @return boolean
      * @throws Exception
      */
-    public function featureExists($featureId, $featureTableName)
+    public function featureExists($featureId, $featureTableName, $collectionId = null)
     {
-        return !empty($this->dbDriver->fetch($this->dbDriver->pQuery('SELECT 1 FROM ' . $featureTableName . ' WHERE id=($1)', array(
+
+        $params = array(
             $featureId
-        ))));
+        );
+        $where = array(
+            'id=$1'
+        );
+
+        if ( isset($collectionId) ) {
+            $params[] = $collectionId;
+            $where[] = 'collection=$2';
+        }
+
+        return !empty($this->dbDriver->fetch($this->dbDriver->pQuery('SELECT 1 FROM ' . $featureTableName . ' WHERE ' . join(' AND ', $where), $params)));
     }
 
     /**
@@ -348,7 +361,7 @@ class FeaturesFunctions
             /*
              * Store catalogs
              */
-            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->user->profile['id'], $collection, $result['id'], true);
+            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->context->core['baseUrl'], $collection->user->profile['id'], $collection, $result['id'], false);
         
             /*
              * Commit everything - rollback if one of the inserts failed
@@ -507,7 +520,7 @@ class FeaturesFunctions
                     $feature->id
                 )
             );
-            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->user->profile['id'], $collection, $feature->id, true);
+            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->context->core['baseUrl'], $collection->user->profile['id'], $collection, $feature->id, false);
         
             /*
              * Commit

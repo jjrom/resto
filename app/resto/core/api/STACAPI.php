@@ -392,12 +392,13 @@ class STACAPI
          */
         $body['rtype'] = 'catalog';
         $body['id'] = $this->getIdPath($body, $parentId);
+        $baseUrl = $this->context->core['baseUrl'];
 
-        if ($this->catalogsFunctions->getCatalog($body['id'], $this->context->core['baseUrl']) !== null) {
+        if ($this->catalogsFunctions->getCatalog($body['id'], $baseUrl) !== null) {
             RestoLogUtil::httpError(409, 'Catalog ' . $body['id'] . ' already exists');
         }
-        $baseUrl = $this->context->core['baseUrl'];
-        return RestoLogUtil::success('Catalog added', $this->catalogsFunctions->storeCatalog($body, $this->user->profile['id'], $baseUrl, null, null, false));
+
+        return RestoLogUtil::success('Catalog added', $this->catalogsFunctions->storeCatalogs(array($body), $baseUrl, $this->user->profile['id'], null, null, true));
 
     }
 
