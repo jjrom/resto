@@ -695,7 +695,7 @@ class CatalogsFunctions
      * @return array
      */
     private function getCleanLinks($catalog, $userid, $baseUrl) {
-
+        
         $output = array(
             'links' => array(),
             'updateCatalogs' => array(),
@@ -715,9 +715,9 @@ class CatalogsFunctions
             if ( in_array($link['rel'], array('child', 'item', 'items')) ) {
                 
                 if ( !isset($link['href']) ) {
-                    return RestoLogUtil::httpError(400, 'One link child has an empty href');    
+                    return RestoLogUtil::httpError(400, 'One link has an empty href');    
                 }
-                
+            
                 /*
                  * [IMPORTANT] Only put EXTERNAL item/items to links array. Local one are processed later on
                  */
@@ -748,12 +748,27 @@ class CatalogsFunctions
 
                 }
 
-                /*
-                 * Store local collection within links
-                 */
-                if ( $link['rel'] === 'child' && str_starts_with($link['href'], $baseUrl . RestoRouter::ROUTE_TO_COLLECTIONS )) {
-                    $output['links'][] = $link;
-                    continue;   
+                
+                if ( $link['rel'] === 'child') {
+
+                    /*
+                     * Avoid cycling (i.e. catalog self referencing one of its parent)
+                     */
+                    if (str_starts_with($link['href'], $baseUrl . RestoRouter::ROUTE_TO_CATALOGS )) {
+                        $exploded = explode('/', substr($link['href'], strlen($baseUrl . RestoRouter::ROUTE_TO_CATALOGS) + 1));
+                        if ( count($exploded) <= count(explode('/', $catalog['id'])) ) {
+                            return RestoLogUtil::httpError(400, 'Child ' . $link['href'] . ' is invalid because it references a parent resource');
+                        }
+                    }
+
+                    /*
+                     * Store local collection within links
+                     */
+                    if (str_starts_with($link['href'], $baseUrl . RestoRouter::ROUTE_TO_COLLECTIONS )) {
+                        $output['links'][] = $link;
+                        continue;   
+                    }
+
                 }
                 
                 $exploded = explode($baseUrl . RestoRouter::ROUTE_TO_CATALOGS . '/', $link['href']);

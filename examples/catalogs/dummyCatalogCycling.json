@@ -1,0 +1,13 @@
+{
+    "id": "dummyCatalogCycling",
+    "title": "Dummy Catalog cycling",
+    "type": "Catalog",
+    "description":"There is nothing to say on this catalog",
+    "stac_version":"1.0.0",
+    "links":[
+        {
+            "rel":"child",
+            "href":"http://127.0.0.1:5252/catalogs/dummyCatalog/dummyCatalogChild1"
+        }
+    ]
+}

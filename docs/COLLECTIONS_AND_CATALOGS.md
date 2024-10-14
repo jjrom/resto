@@ -64,6 +64,12 @@ Then get the feature :
         # The catalog dummyCatalogChild1 is posted under /catalogs/dummyCatalog
         curl -X POST -d@examples/catalogs/dummyCatalogChild1.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog"
 
+## Create a catalog under an existing catalog that cycle on itself
+
+        # The catalog dummyCatalogCycling is posted under /catalogs/dummyCatalogChild1 but reference one of this
+        # parent as a child which is forbiden
+        curl -X POST -d@examples/catalogs/dummyCatalogCycling.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog/dummyCatalogChild1"
+
 ### Create a catalog with item
 
         # The catalog dummyCatalogWithItem is posted under /catalogs/dummyCatalog/dummyCatalogChild1
