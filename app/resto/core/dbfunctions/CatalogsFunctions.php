@@ -739,7 +739,7 @@ class CatalogsFunctions
                         $output['internalItems'][] = $internalItem;
 
                         // Check for link existence !
-                        if ( !(new FeaturesFunctions($this->dbDriver))->featureExists($internalItem['id'], $this->dbDriver->targetSchema . '.feature', $internalItem['collection']) ) {
+                        if ( !(new FeaturesFunctions($this->dbDriver))->featureExists($internalItem['id'], $this->dbDriver->targetSchema . '.feature') ) {
                             return RestoLogUtil::httpError(400, 'Feature ' . $internalItem['href'] . ' does not exist. Ingest it first !');
                         }
             
