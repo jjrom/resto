@@ -2,12 +2,12 @@
     "id": "dummyCatalogWithItem",
     "title": "Dummy Catalog",
     "type": "Catalog",
-    "description":"This is an update - we remove the external item and push an new dummyCatalogWithItemChild under it",
+    "description":"This is an update - we remove the external item. Note that we changed the collection name from the item but it's an alias so no change !",
     "stac_version":"1.0.0",
     "links":[
         {
             "rel":"item",
-            "href":"http://127.0.0.1:5252/collections/S2/items/DummySargasse",
+            "href":"http://127.0.0.1:5252/collections/DummyCollectionAlias/items/DummySargasse",
             "title":"Catalog can also have item"
         }
     ]

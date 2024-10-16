@@ -1,0 +1,30 @@
+{
+    "id": "DummyCollection",
+    "aliases":[
+        "DummyCollectionAlias"
+    ],
+    "version": "1.0",
+    "model": "OpticalModel",
+    "license": "PDDL-1.0",
+    "osDescription": {
+        "en": {
+            "ShortName": "DummyCollection",
+            "LongName": "DummyCollection with alias",
+            "Description": "This is a Dummy Collection with an alias",
+            "Tags": "dummy",
+            "Developer": "Jérôme Gasperi",
+            "Contact": "jrom@snapplanet.io",
+            "Query": "dummy",
+            "Attribution": "USGS/NASA Landsat"
+        }
+    },
+    "providers": [
+        {
+            "name": "jeobrowser",
+            "roles": [
+                "processor"
+            ],
+            "url": "https://github.com/jjrom/resto"
+        }
+    ]
+}

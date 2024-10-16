@@ -361,7 +361,7 @@ class FeaturesFunctions
             /*
              * Store catalogs
              */
-            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->context->core['baseUrl'], $collection->user->profile['id'], $collection, $result['id'], false);
+            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->context, $collection->user->profile['id'], $collection, $result['id'], false);
         
             /*
              * Commit everything - rollback if one of the inserts failed
@@ -520,7 +520,7 @@ class FeaturesFunctions
                     $feature->id
                 )
             );
-            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->context->core['baseUrl'], $collection->user->profile['id'], $collection, $feature->id, false);
+            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->context, $collection->user->profile['id'], $collection, $feature->id, false);
         
             /*
              * Commit
