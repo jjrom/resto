@@ -290,7 +290,7 @@ class STACAPI
         }
 
         // This is /catalogs/*
-        return  $this->processPath($params['segments'], $params);
+        return $this->processPath($params['segments'], $params);
     }
 
      /**
@@ -392,13 +392,12 @@ class STACAPI
          */
         $body['rtype'] = 'catalog';
         $body['id'] = $this->getIdPath($body, $parentId);
-        $baseUrl = $this->context->core['baseUrl'];
-
-        if ($this->catalogsFunctions->getCatalog($body['id'], $baseUrl) !== null) {
+        
+        if ($this->catalogsFunctions->getCatalog($body['id'], $this->context->core['baseUrl']) !== null) {
             RestoLogUtil::httpError(409, 'Catalog ' . $body['id'] . ' already exists');
         }
 
-        return RestoLogUtil::success('Catalog added', $this->catalogsFunctions->storeCatalogs(array($body), $baseUrl, $this->user->profile['id'], null, null, true));
+        return RestoLogUtil::success('Catalog added', $this->catalogsFunctions->storeCatalogs(array($body), $this->context, $this->user->profile['id'], null, null, true));
 
     }
 
@@ -492,7 +491,7 @@ class STACAPI
             }    
         }
 
-        return $this->catalogsFunctions->updateCatalog($catalogs[0], $this->user->profile['id'], $this->context->core['baseUrl']) ? RestoLogUtil::success('Catalog updated') : RestoLogUtil::error('Cannot update catalog');
+        return $this->catalogsFunctions->updateCatalog($catalogs[0], $this->user->profile['id'], $this->context) ? RestoLogUtil::success('Catalog updated') : RestoLogUtil::error('Cannot update catalog');
     }
 
     /**
@@ -1337,6 +1336,11 @@ class STACAPI
         
         // The path is the catalog identifier
         $parentAndChilds = $this->getParentAndChilds(join('/', $segments), $params);
+
+        if ( !isset($parentAndChilds) ) {
+            return RestoLogUtil::httpError(404);
+        }
+
         $catalog = array(
             'stac_version' => STACAPI::STAC_VERSION,
             'id' => $segments[count($segments) -1 ],
@@ -1472,6 +1476,10 @@ class STACAPI
             'id' => $catalogId,
             'q' => $params['q'] ?? null
         ), $this->context->core['baseUrl'], true);
+        
+        if ( empty($catalogs) ) {
+            return null;
+        }
 
         $parentAndChilds = array(
             'parent' => $catalogs[0] ?? null,

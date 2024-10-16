@@ -1,0 +1,21 @@
+{
+    "id": "dummyCatalogWithChilds",
+    "title": "Dummy Catalog with childs",
+    "type": "Catalog",
+    "description":"This catalog has childs - this is invalid because they must exist before and a child cannot exist before its parent",
+    "stac_version":"1.0.0",
+    "links":[
+        {
+            "rel":"child",
+            "href":"http://127.0.0.1:5252/catalogs/dummyCatalogWithChilds/dummyCatalogChild1"
+        },
+        {
+            "rel":"child",
+            "href":"http://127.0.0.1:5252/catalogs/dummyCatalogWithChilds/dummyCatalogChild2"
+        },
+        {
+            "rel":"child",
+            "href":"http://127.0.0.1:5252/collections/DummyCollection"
+        }
+    ]
+}

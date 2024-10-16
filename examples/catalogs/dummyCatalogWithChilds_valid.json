@@ -1,0 +1,8 @@
+{
+    "id": "dummyCatalogWithChilds",
+    "title": "Dummy Catalog with childs",
+    "type": "Catalog",
+    "description":"This catalog has no childs - they will be added later on",
+    "stac_version":"1.0.0",
+    "links":[]
+}

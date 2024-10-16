@@ -40,34 +40,35 @@ Then get the feature :
 
 *Note: Any user with the "createFeature" right can insert a feature to a collection he owns ([see rights](./USERS.md))*
 
-        curl -X POST -d@examples/features/dummySargasse.json "http://admin:admin@localhost:5252/collections/S2/items"
-
 ## Catalogs
+
+### Create a dummy collection
+
+        # Create a dummy collection
+        curl -X POST -d@examples/collections/DummyCollection.json "http://admin:admin@localhost:5252/collections"
 
 ### Create a catalog
 
         # Create a catalog - user with the "createCatalog" right can create a catalog 
         curl -X POST -d@examples/catalogs/dummyCatalog.json "http://admin:admin@localhost:5252/catalogs"
 
-### Create a catalog with existing childs
-
-        # This will raise an error because catalog' childs does not exist. They must be created first
-        curl -X POST -d@examples/catalogs/dummyCatalogWithChilds.json "http://admin:admin@localhost:5252/catalogs"
-
-        # Good way: ingest childs then parent
-        curl -X POST -d@examples/catalogs/dummyCatalogChild1.json "http://admin:admin@localhost:5252/catalogs"
-        curl -X POST -d@examples/catalogs/dummyCatalogChild2.json "http://admin:admin@localhost:5252/catalogs"
-        curl -X POST -d@examples/catalogs/dummyCatalogWithChilds.json "http://admin:admin@localhost:5252/catalogs"
-
 ### Create a catalog under an existing catalog
 
-        # The catalog dummyCatalogChild1 is posted under /catalogs/dummyCatalog
-        curl -X POST -d@examples/catalogs/dummyCatalogChild1.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog"
+**[IMPORTANT]** You cannot create a catalog with childs in links because a child cannot exist before its parent. The good way
+is to create an empty catalog then add its childs through the POST API
+        # This will raise an error because the catalog references childs that do not exist.
+        curl -X POST -d@examples/catalogs/dummyCatalogWithChilds_invalid.json "http://admin:admin@localhost:5252/catalogs"
 
+        # Good way: ingest parent without childs then add childs under parent
+        curl -X POST -d@examples/catalogs/dummyCatalogWithChilds_valid.json "http://admin:admin@localhost:5252/catalogs"
+        curl -X POST -d@examples/catalogs/dummyCatalogChild1.json "http://admin:admin@localhost:5252/catalogs/dummyCatalogWithChilds"
+        curl -X POST -d@examples/catalogs/dummyCatalogChild2.json "http://admin:admin@localhost:5252/catalogs/dummyCatalogWithChilds"
+      
 ## Create a catalog under an existing catalog that cycle on itself
 
         # The catalog dummyCatalogCycling is posted under /catalogs/dummyCatalogChild1 but reference one of this
         # parent as a child which is forbiden
+        curl -X POST -d@examples/catalogs/dummyCatalogChild1.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog"
         curl -X POST -d@examples/catalogs/dummyCatalogCycling.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog/dummyCatalogChild1"
 
 ### Create a catalog with item
@@ -76,6 +77,10 @@ Then get the feature :
         # It references :
         #   * a local item that is added to catalog_feature table
         #   * an external item that is kept as referenced within the links column in catalog table
+
+        # First POST the item because it should exist before referencing it within the catalog
+        curl -X POST -d@examples/features/dummySargasse.json "http://admin:admin@localhost:5252/collections/DummyCollection/items"
+
         curl -X POST -d@examples/catalogs/dummyCatalogWithItem.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog/dummyCatalogChild1"
 
 ### Update a catalog
