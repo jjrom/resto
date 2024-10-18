@@ -142,19 +142,17 @@ class CatalogsFunctions
         try {
             $results = $this->dbDriver->pQuery('SELECT id, title, description, level, counters, owner, links, visibility, rtype, to_iso8601(created) as created FROM ' . $this->dbDriver->targetSchema . '.catalog' . ( empty($where) ? '' : ' WHERE ' . join(' AND ', $where) . ' ORDER BY id ASC'), $values);
             while ($result = pg_fetch_assoc($results)) {
-
-                /*
-                 * Recursively add child collection counters to catalog counters
-                 */
-                $result = $this->onTheFlyUpdateCountersWithCollection($result, $baseUrl);
-
                 $catalogs[] = CatalogsFunctions::format($result);
             }
         }  catch (Exception $e) {
             RestoLogUtil::httpError(500, $e->getMessage());
         }
 
-        return $catalogs;
+        /*
+         * Recursively add child collection counters to catalog counters
+         */
+        return $this->onTheFlyUpdateCountersWithCollection($catalogs, $params['id'] ?? null, $baseUrl);
+    
     }
 
     /**
@@ -591,7 +589,7 @@ class CatalogsFunctions
                     'collection' => array(
                         array(
                             'const' => $_collectionId,
-                            'count' => $catalogs[$i]['counters']['collections'][$_collectionId]
+                            'count' => $catalogs[$i]['counters']['collections'][$_collectionId] ?? 0
                         )
                     )
                 );
@@ -789,72 +787,91 @@ class CatalogsFunctions
      * Return an update links array and counters object by adding child collection counters
      * to the input catalog
      * 
-     * @param Object $catalog
+     * @param array $catalogs
+     * @param string $catalogId
+     * @param string $baseUrl
      */
-    private function onTheFlyUpdateCountersWithCollection($catalog, $baseUrl)
+    private function onTheFlyUpdateCountersWithCollection($catalogs, $catalogId, $baseUrl)
     {
 
-        $counters = json_decode($catalog['counters'], true);
-        $originalLinks = json_decode($catalog['links'], true);
-
         $collections = array();
-        
-        $results = $this->dbDriver->pQuery('SELECT id, counters, links FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE lower(id) = lower($1) OR lower(id) LIKE lower($2) ORDER BY id ASC', array(
-            $catalog['id'],
-            $catalog['id'] . '/%'
-        ));
-        while ($result = pg_fetch_assoc($results)) {
 
-            if ($catalog['id'] !== $result['id']) {
-                $catalogCounters = json_decode($result['counters'], true);
-                $counters['total'] = $counters['total'] + $catalogCounters['total'];
+        // First get collections counts
+        try {
+            $results = $this->dbDriver->query('SELECT id, counters, title, description FROM ' . $this->dbDriver->targetSchema . '.catalog  WHERE lower(id) LIKE lower(\'collections/%\')');
+            while ($result = pg_fetch_assoc($results)) {
+                $collections[$result['id']] = array(
+                    'counters' => json_decode($result['counters'], true),
+                    'title' => $result['title'] ?? null,
+                    'description' => $result['description'] ?? null,
+                    
+                );
             }
+        }  catch (Exception $e) {
+            RestoLogUtil::httpError(500, $e->getMessage());
+        }
+
+        $catalogsUpdated = array();
+        for ($i = 0, $ii = count($catalogs); $i < $ii; $i++)
+        {   
+            $catalogsUpdated[] = $this->computeCountersSum($catalogs[$i], $catalogs, $collections);
+        }
+        
+        return $catalogsUpdated;
+    }
+
+    /** 
+     * Calculate the total counter for a given path and its children
+     * 
+     * @param array $parentCatalog
+     * @param array $catalogs
+     * @param array $collections
+     */
+    private function computeCountersSum($parentCatalog, $catalogs, $collections) {
+
+        $parentCatalogId = $parentCatalog['id'] . '/';
+
+        // Iterate over all catalog entries
+        foreach ($catalogs as $catalog) {
             
+            // Check if the catalog's path starts with the parent path
+            if ( !str_starts_with($catalog['id'], $parentCatalogId) ) {
+                continue;
+            }
+
+            $parentCatalog['counters']['total'] = $parentCatalog['counters']['total'] + $catalog['counters']['total'];
+
             // Process collection
-            if ( isset($result['links']) ) {
-                $links = json_decode($result['links'], true);
-                for ($i = 0, $ii = count($links); $i < $ii; $i++) {
-                    if ($links[$i]['rel'] === 'child') {
-                        $exploded = explode('/', substr($links[$i]['href'], strlen($baseUrl . RestoRouter::ROUTE_TO_COLLECTIONS) + 1));
-                        if (count($exploded) === 1) {
-                            $collections[$exploded[0]] = $links[$i]['href'];
+            if ( isset($catalog['links']) ) {
+                for ($i = 0, $ii = count($catalog['links']); $i < $ii; $i++) {
+                    if ($catalog['links'][$i]['rel'] === 'child') {
+                        $exploded = explode('/', substr($catalog['links'][$i]['href'], strlen($baseUrl . RestoRouter::ROUTE_TO_COLLECTIONS) + 1));
+                        if ( count($exploded) === 1 && isset($collections[$exploded[0]]) ) {
+                            $total = $total + $collections[$exploded[0]]['counters']['total'];
+                            $parentCatalog['counters']['collections'][$exploded[0]] = $collections[$exploded[0]]['counters']['total'];
+
+                            for ($j = 0, $jj = count($parentCatalog['links']); $j < $jj; $j++) {
+                                if ($parentCatalog['links'][$j]['rel'] === 'child') {
+                                    $exploded2 = explode('/', substr($parentCatalog['links'][$j]['href'], strlen($baseUrl . RestoRouter::ROUTE_TO_COLLECTIONS) + 1));
+                                    if (count($exploded2) === 1 && $exploded2[0] === $exploded[0]) {
+                                        $parentCatalog['links'][$j]['matched'] = $collectionCounters[$exploded[0]];
+                                        if ( isset($collections[$exploded[0]]['title']) ) {
+                                            $parentCatalog['links'][$i]['title'] = $collections[$exploded[0]]['title'];
+                                        }   
+                                        if ( isset($collections[$exploded[0]]['description']) ) {
+                                            $parentCatalog['links'][$i]['description'] = $collections[$exploded[0]]['description'];
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 } 
             }
+
         }
 
-        // Now process links
-        foreach (array_keys($collections) as $collectionId) {
-            $results = $this->dbDriver->pQuery('SELECT title, description, counters FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE lower(id) = lower($1) ORDER BY id ASC', array(
-                'collections/' . $collectionId
-            ));
-            while ($result = pg_fetch_assoc($results)) {
-                $collectionCounters = json_decode($result['counters'], true);
-                $counters['total'] = $counters['total'] + $collectionCounters['total'];
-                $counters['collections'][$collectionId] = $collectionCounters['total'];
-                for ($i = 0, $ii = count($originalLinks); $i < $ii; $i++) {
-                    if ($originalLinks[$i]['rel'] === 'child') {
-                        $exploded = explode('/', substr($originalLinks[$i]['href'], strlen($baseUrl . RestoRouter::ROUTE_TO_COLLECTIONS) + 1));
-                        if (count($exploded) === 1 && $exploded[0] === $collectionId) {
-                            $originalLinks[$i]['matched'] = $collectionCounters['total'];
-                            if ( isset($result['title']) ) {
-                                $originalLinks[$i]['title'] = $result['title'];
-                            }   
-                            if ( isset($result['description']) ) {
-                                $originalLinks[$i]['description'] = $result['description'];
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        $catalog['counters'] = json_encode($counters, JSON_UNESCAPED_SLASHES);
-        $catalog['links'] = json_encode($originalLinks, JSON_UNESCAPED_SLASHES);
-
-        return $catalog;
-
+        return $parentCatalog;
     }
 
 }
