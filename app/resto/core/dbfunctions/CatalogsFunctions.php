@@ -228,7 +228,7 @@ class CatalogsFunctions
     
             // Update all counters at the same time for a given featureId
             if ( isset($featureId) ) {
-                $this->updateFeatureCatalogsCounters($featureId, 1);
+                $this->updateFeatureCatalogsCounters($featureId, $collectionId, 1);
             }
 
             if ( $addBeginCommit) {
@@ -329,21 +329,28 @@ class CatalogsFunctions
      * Increment catalog counters
      *
      * @param string $featureId
+     * @param string $collectionId
      * @param integer $increment
      */
-    public function updateFeatureCatalogsCounters($featureId, $increment)
+    public function updateFeatureCatalogsCounters($featureId, $collectionId, $increment)
     {
 
+        // Increment by increment all catalog counters for featureId
         $query = join(' ', array(
             'WITH path_hierarchy AS (SELECT collection, catalogid FROM ' . $this->dbDriver->targetSchema . '.catalog_feature',
             'WHERE featureid = \'' . pg_escape_string($this->dbDriver->getConnection(), $featureId) . '\')',
             'UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters,' . $increment . ', (SELECT path_hierarchy.collection FROM path_hierarchy LIMIT 1))',
             'WHERE lower(id) IN (SELECT LOWER(path_hierarchy.catalogid) FROM path_hierarchy)'
         ));
+        $nbOfResults = count($this->dbDriver->fetch($this->dbDriver->query($query)));
 
-        $results = $this->dbDriver->fetch($this->dbDriver->query($query));
+        // And don't forget the collection !
+        if ( isset($collectionId) ) {
+            $this->dbDriver->query('UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters,' . $increment . ',\'' . $collectionId . '\') WHERE lower(id) = lower(\'collections/' . $collectionId . '\')');   
+            $nbOfResults++;
+        }
         
-        return count($results);
+        return $nbOfResults;
 
     }
 
