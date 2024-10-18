@@ -12,3 +12,4 @@ errors.log
 # Local config and attached docker-compose
 _config*.env
 _docker-compose*.yml
+backup/*
