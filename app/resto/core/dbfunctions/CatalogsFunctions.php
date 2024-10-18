@@ -151,7 +151,7 @@ class CatalogsFunctions
         /*
          * Recursively add child collection counters to catalog counters
          */
-        return $this->onTheFlyUpdateCountersWithCollection($catalogs, $params['id'] ?? null, $baseUrl);
+        return $this->onTheFlyUpdateCountersWithCollection($catalogs, $baseUrl);
     
     }
 
@@ -589,7 +589,7 @@ class CatalogsFunctions
                     'collection' => array(
                         array(
                             'const' => $_collectionId,
-                            'count' => $catalogs[$i]['counters']['collections'][$_collectionId] ?? 0
+                            'count' => $catalogs[$i]['counters']['total'] ?? 0
                         )
                     )
                 );
@@ -788,10 +788,9 @@ class CatalogsFunctions
      * to the input catalog
      * 
      * @param array $catalogs
-     * @param string $catalogId
      * @param string $baseUrl
      */
-    private function onTheFlyUpdateCountersWithCollection($catalogs, $catalogId, $baseUrl)
+    private function onTheFlyUpdateCountersWithCollection($catalogs, $baseUrl)
     {
 
         $collections = array();
@@ -814,7 +813,7 @@ class CatalogsFunctions
         $catalogsUpdated = array();
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++)
         {   
-            $catalogsUpdated[] = $this->computeCountersSum($catalogs[$i], $catalogs, $collections);
+            $catalogsUpdated[] = $this->computeCountersSum($catalogs[$i], $catalogs, $collections, $baseUrl);
         }
         
         return $catalogsUpdated;
@@ -827,12 +826,14 @@ class CatalogsFunctions
      * @param array $catalogs
      * @param array $collections
      */
-    private function computeCountersSum($parentCatalog, $catalogs, $collections) {
+    private function computeCountersSum($parentCatalog, $catalogs, $collections, $baseUrl) {
 
         $parentCatalogId = $parentCatalog['id'] . '/';
 
         // Iterate over all catalog entries
-        foreach ($catalogs as $catalog) {
+        for ($k = 0, $kk = count($catalogs); $k < $kk; $k++) {
+            
+            $catalog = $catalogs[$k];
             
             // Check if the catalog's path starts with the parent path
             if ( !str_starts_with($catalog['id'], $parentCatalogId) ) {
@@ -854,7 +855,7 @@ class CatalogsFunctions
                                 if ($parentCatalog['links'][$j]['rel'] === 'child') {
                                     $exploded2 = explode('/', substr($parentCatalog['links'][$j]['href'], strlen($baseUrl . RestoRouter::ROUTE_TO_COLLECTIONS) + 1));
                                     if (count($exploded2) === 1 && $exploded2[0] === $exploded[0]) {
-                                        $parentCatalog['links'][$j]['matched'] = $collectionCounters[$exploded[0]];
+                                        $parentCatalog['links'][$j]['matched'] = $parentCatalog['counters']['collections'][$exploded[0]];
                                         if ( isset($collections[$exploded[0]]['title']) ) {
                                             $parentCatalog['links'][$i]['title'] = $collections[$exploded[0]]['title'];
                                         }   

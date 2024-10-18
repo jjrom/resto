@@ -1594,6 +1594,17 @@ class STACAPI
             'q' => $params['q'] ?? null
         ), $this->context->core['baseUrl'], false);
 
+        // Then compute subcatalogs for counts
+        for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
+            $subCatalogs = $this->catalogsFunctions->getCatalogs(array(
+                'id' => $catalogs[$i]['id']
+            ), $this->context->core['baseUrl'], true);
+            for ($j = 0, $jj = count($subCatalogs); $j < $jj; $j++) {
+                if ($subCatalogs[$j]['id'] === $catalogs[$i]['id']) {
+                    $catalogs[$i] = $subCatalogs[$j];
+                }
+            }
+        }
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
 
             // Returns only catalogs with count >= minMatch
