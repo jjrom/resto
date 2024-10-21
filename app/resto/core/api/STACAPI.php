@@ -1510,6 +1510,7 @@ class STACAPI
             for ($i = 1, $ii = count($catalogs); $i < $ii; $i++) {
                 if ($catalogs[$i]['level'] === $parentAndChilds['parent']['level'] + 1) {
                     $element = array(
+                        'id' => $catalogs[$i]['id'],
                         'rel' => 'child',
                         'type' => RestoUtil::$contentTypes['json'],
                         'href' => $this->context->core['baseUrl'] . '/catalogs/' .  join('/', array_map('rawurlencode', explode('/', $catalogs[$i]['id']))),
@@ -1615,6 +1616,7 @@ class STACAPI
                 }
 
                 $link = array(
+                    'id' => $catalogs[$i]['id'],
                     'rel' => 'child',
                     'type' => RestoUtil::$contentTypes['json'],
                     'href' => $this->context->core['baseUrl'] . '/catalogs/' . rawurlencode($catalogs[$i]['id']),
