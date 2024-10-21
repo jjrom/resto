@@ -513,7 +513,7 @@ class FeaturesFunctions
              *  2. Then delete resto.catalog_feature rows
              *  3. Then add resto.catalog_feature rows
              */
-            (new CatalogsFunctions($this->dbDriver))->updateFeatureCatalogsCounters($feature->id, $feature->collectio->id, -1);
+            (new CatalogsFunctions($this->dbDriver))->updateFeatureCatalogsCounters($feature->id, $feature->collection->id, -1);
             
             $this->dbDriver->pQuery(
                 'DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE featureid=$1', array(
