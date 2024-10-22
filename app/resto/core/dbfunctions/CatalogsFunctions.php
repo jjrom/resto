@@ -262,7 +262,7 @@ class CatalogsFunctions
         $values = array(
             $catalog['id']
         );
-        
+
         $canBeUpdated = array(
             'title',
             'owner',
@@ -273,7 +273,10 @@ class CatalogsFunctions
 
         $set = array();
         $cleanLinks = $this->getCleanLinks($catalog, $userid, $context);
-        $catalog['links'] = $cleanLinks['links'];
+        
+        if ( array_key_exists('links', $cleanLinks) ) {
+            $catalog['links'] = $cleanLinks['links'];
+        }
 
         foreach (array_keys($catalog) as $key ) {
             if (in_array($key, $canBeUpdated)) {
@@ -292,16 +295,38 @@ class CatalogsFunctions
             $this->dbDriver->query('BEGIN');
 
             /*
-             * Delete all catalog childs BUT NOT HIMSELF
+             * Delete catalog childs BUT NOT HIMSELF and the one in childIds
              */
-            $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE lower(id) LIKE lower($1) RETURNING id', array(
-                $catalog['id'] . '/%'
-            ), 500, 'Cannot delete catalog ' . $catalog['id']));
-            $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path ~ $1 AND path <> $2' , array(
-                RestoUtil::path2ltree($catalog['id']) . '.*',
-                RestoUtil::path2ltree($catalog['id'])
-            ), 500, 'Cannot delete catalog_feature association for catalog ' . $catalog['id']));
-        
+            if ( array_key_exists('links', $cleanLinks) ) {
+
+                // No childIds => easy !
+                if ( empty($cleanLinks['childIds']) ) {
+                    $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE lower(id) LIKE lower($1) RETURNING id', array(
+                        $catalog['id'] . '/%'
+                    ), 500, 'Cannot update catalog ' . $catalog['id']));
+                    $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path ~ $1 AND path <> $2' , array(
+                        RestoUtil::path2ltree($catalog['id']) . '.*',
+                        RestoUtil::path2ltree($catalog['id'])
+                    ), 500, 'Cannot update catalog_feature association for catalog ' . $catalog['id']));
+                }
+                else {
+                    $lowerIds = array();
+                    $paths = array('\'' . RestoUtil::path2ltree($catalog['id']) . '\'');
+                    for ($i = 0, $ii = count($cleanLinks['childIds']); $i < $ii; $i++) {
+                        $lowerIds[] = 'lower(\'' . pg_escape_string($this->dbDriver->getConnection(), $cleanLinks['childIds'][$i]) . '\')';
+                        $paths[] = '\'' . RestoUtil::path2ltree($cleanLinks['childIds'][$i]) . '\'';
+                    }
+                    $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE lower(id) LIKE lower($1) AND lower(id) NOT IN (' . join(',', $lowerIds) . ') RETURNING id', array(
+                        $catalog['id'] . '/%'
+                    ), 500, 'Cannot update catalog ' . $catalog['id']));
+                    $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path ~ $1 AND path NOT IN (' . join(',', $paths) . ')' , array(
+                        RestoUtil::path2ltree($catalog['id']) . '.*'
+                    ), 500, 'Cannot update catalog_feature association for catalog ' . $catalog['id']));
+                    
+                }
+            
+            }
+            
             /*
              * Then update catalog
              */
@@ -310,9 +335,11 @@ class CatalogsFunctions
             /*
              * Add an entry in catalog_feature for each interalItems but first remove all items !
              */
-            $this->removeCatalogFeatures($catalog['id']);
-            $this->addInternalItems($cleanLinks['internalItems'], $catalog['id']);
-            
+            if ( array_key_exists('links', $cleanLinks) ) {
+                $this->removeCatalogFeatures($catalog['id']);
+                $this->addInternalItems($cleanLinks['internalItems'], $catalog['id']);
+            }
+
             $this->dbDriver->query('COMMIT');
             
         } catch (Exception $e) {
@@ -688,13 +715,20 @@ class CatalogsFunctions
         
         $output = array(
             'links' => array(),
+            'childIds' => array(),
             'internalItems' => array()
         );
 
-        if ( !isset($catalog['links']) ) {
-            return $output;
+        if ( !array_key_exists('links', $catalog) ) {
+            return array(
+                'internalitems' => array()
+            );
         };
 
+        if ( empty($catalog['links']) ) {
+            return $output;
+        };
+        
         for ($i = 0, $ii = count($catalog['links']); $i < $ii; $i++) {
             $link = $catalog['links'][$i];
             if ( !isset($link['rel']) || in_array($link['rel'], array('root', 'parent', 'self')) ) {
@@ -747,9 +781,14 @@ class CatalogsFunctions
                      * Avoid cycling (i.e. catalog self referencing one of its parent)
                      */
                     if (str_starts_with($link['href'], $context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS )) {
-                        $exploded = explode('/', substr($link['href'], strlen($context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS) + 1));
+                        $childId = substr($link['href'], strlen($context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS) + 1);
+                        $exploded = explode('/', $childId);
                         if ( count($exploded) <= count(explode('/', $catalog['id'])) ) {
                             return RestoLogUtil::httpError(400, 'Child ' . $link['href'] . ' is invalid because it references a parent resource');
+                        }
+                        // Keep track of child ids for delete before update
+                        else {
+                            $output['childIds'][] = $childId;
                         }
                     }
 
@@ -772,9 +811,7 @@ class CatalogsFunctions
                 if ( $childCatalog === null ) {
                     return RestoLogUtil::httpError(400, 'Catalog child ' . $link['href'] . ' does not exist');    
                 }
-                
-                $output['links'][] = $link;
-                
+
             }
 
         }

@@ -1,0 +1,13 @@
+{
+    "id": "dummyCatalog",
+    "title": "Dummy Catalog",
+    "type": "Catalog",
+    "description":"This is an update of dummyCatalog with one link removed",
+    "stac_version":"1.0.0",
+    "links":[
+        {
+            "rel":"child",
+            "href":"http://127.0.0.1:5252/catalogs/dummyCatalog/dummyCatalogChild1"
+        }
+    ]
+}
