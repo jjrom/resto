@@ -92,4 +92,10 @@ is to create an empty catalog then add its childs through the POST API
 ### Delete a catalog
 
         # Delete a catalog - user with the "deleteCatalog" right can delete a catalog he owns
+         
+        # This will return an HTTP error because the catalog contains child and removing it would remove childs
         curl -X DELETE "http://admin:admin@localhost:5252/catalogs/dummyCatalog"
+
+        # Use _force flag to force deletion
+        curl -X DELETE "http://admin:admin@localhost:5252/catalogs/dummyCatalog?_force=1"
+

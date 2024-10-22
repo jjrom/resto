@@ -579,13 +579,19 @@ class STACAPI
             'id' => join('/', $params['segments'])
         ), $this->context->core['baseUrl'], true);
         
-        if ( count($catalogs) === 0 ){
+        $count = count($catalogs);
+        if ( $count === 0 ){
             RestoLogUtil::httpError(404);
         }
 
         // If user has not the right to delete catalog then 403
         if ( !$this->user->hasRightsTo(RestoUser::DELETE_CATALOG, array('catalog' => $catalogs[0])) ) {
             return RestoLogUtil::httpError(403);
+        }
+
+        // If catalogs has child, do not remove it unless _force option is set to true
+        if ( $count > 1 && !filter_var($params['_force'] ?? false, FILTER_VALIDATE_BOOLEAN) ){
+            return RestoLogUtil::httpError(400, 'The catalog contains ' . ($count - 1) . ' child(s) and cannot be deleted. Set **_force** query parameter to true to force deletion anyway');
         }
         
         return RestoLogUtil::success('Catalog deleted', $this->catalogsFunctions->removeCatalog($catalogs[0]['id']));
