@@ -258,6 +258,22 @@ class STACAPI
      *      summary="Get STAC catalogs",
      *      description="Get STAC catalogs",
      *      tags={"STAC"},
+     *      @OA\Parameter(
+     *         name="q",
+     *         in="query",
+     *         description="Filter on catalog id and description",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *      ),
+     *      @OA\Parameter(
+     *         name="_nocount",
+     *         in="query",
+     *         description="Set to 1 to not count number of items below catalogs. Speed up *a lot* the query so should be used when using this for suggest (see rocket catalog search for instance)",
+     *         @OA\Schema(
+     *             type="boolean"
+     *         )
+     *      ),
      *      @OA\Response(
      *          response="200",
      *          description="STAC catalog definition - contains links to child catalogs and/or items",
@@ -1313,7 +1329,8 @@ class STACAPI
             array_pop($segments);
             $catalogs = $this->catalogsFunctions->getCatalogs(array(
                 'id' => join('/', $segments),
-                'q' => $params['q'] ?? null
+                'q' => $params['q'] ?? null,
+                'noCount' => isset($params['_nocount']) ? filter_var($params['_nocount'], FILTER_VALIDATE_BOOLEAN) : false
             ), $this->context->core['baseUrl'], false);
 
             if ( empty($catalogs) ) {
@@ -1474,7 +1491,8 @@ class STACAPI
         // Get catalogs - first one is $catalogId, other its childs
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
             'id' => $catalogId,
-            'q' => $params['q'] ?? null
+            'q' => $params['q'] ?? null,
+            'noCount' => isset($params['_nocount']) ? filter_var($params['_nocount'], FILTER_VALIDATE_BOOLEAN) : false
         ), $this->context->core['baseUrl'], true);
         
         if ( empty($catalogs) ) {
@@ -1497,9 +1515,11 @@ class STACAPI
                 $element = array(
                     'rel' => 'items',
                     'type' => RestoUtil::$contentTypes['geojson'],
-                    'href' => $this->context->core['baseUrl'] . '/catalogs/' .  join('/', array_map('rawurlencode', explode('/', $parentAndChilds['parent']['id']))) . '/_',
-                    'matched' => $parentAndChilds['parent']['counters']['total']
+                    'href' => $this->context->core['baseUrl'] . '/catalogs/' .  join('/', array_map('rawurlencode', explode('/', $parentAndChilds['parent']['id']))) . '/_'
                 );
+                if ( $parentAndChilds['parent']['counters']['total'] > 0 ) {
+                    $element['matched'] = $parentAndChilds['parent']['counters']['total'];
+                }
                 if ( isset($parentAndChilds['parent']['title']) ) {
                     $element['title'] = $parentAndChilds['parent']['title'];
                 }
@@ -1510,11 +1530,14 @@ class STACAPI
             for ($i = 1, $ii = count($catalogs); $i < $ii; $i++) {
                 if ($catalogs[$i]['level'] === $parentAndChilds['parent']['level'] + 1) {
                     $element = array(
+                        'id' => $catalogs[$i]['id'],
                         'rel' => 'child',
                         'type' => RestoUtil::$contentTypes['json'],
-                        'href' => $this->context->core['baseUrl'] . '/catalogs/' .  join('/', array_map('rawurlencode', explode('/', $catalogs[$i]['id']))),
-                        'matched' => $catalogs[$i]['counters']['total']
+                        'href' => $this->context->core['baseUrl'] . '/catalogs/' .  join('/', array_map('rawurlencode', explode('/', $catalogs[$i]['id'])))
                     );
+                    if (  $catalogs[$i]['counters']['total'] > 0 ) {
+                        $element['matched'] = $catalogs[$i]['counters']['total'];
+                    }
                     if ( isset($catalogs[$i]['title']) ) {
                         $element['title'] = $catalogs[$i]['title'];
                     }
@@ -1587,50 +1610,55 @@ class STACAPI
                 $links[] = $stacLink;
             }
         }
-        
+
         // Get first level catalog
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
             'level' => 1,
-            'q' => $params['q'] ?? null
+            'q' => $params['q'] ?? null,
+            'noCount' => isset($params['_nocount']) ? filter_var($params['_nocount'], FILTER_VALIDATE_BOOLEAN) : false
         ), $this->context->core['baseUrl'], false);
-
-        // Then compute subcatalogs for counts
-        for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
-            $subCatalogs = $this->catalogsFunctions->getCatalogs(array(
-                'id' => $catalogs[$i]['id']
-            ), $this->context->core['baseUrl'], true);
-            for ($j = 0, $jj = count($subCatalogs); $j < $jj; $j++) {
-                if ($subCatalogs[$j]['id'] === $catalogs[$i]['id']) {
-                    $catalogs[$i] = $subCatalogs[$j];
+        
+        /*
+         * [TODO] Remove to slow - Then compute subcatalogs for counts
+        if (filter_var($params['_nocount'] ?? false, FILTER_VALIDATE_BOOLEAN) === false) {
+            for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
+                $subCatalogs = $this->catalogsFunctions->getCatalogs(array(
+                    'id' => $catalogs[$i]['id']
+                ), $this->context->core['baseUrl'], true);
+                for ($j = 0, $jj = count($subCatalogs); $j < $jj; $j++) {
+                    if ($subCatalogs[$j]['id'] === $catalogs[$i]['id']) {
+                        $catalogs[$i] = $subCatalogs[$j];
+                    }
                 }
             }
         }
+        */
+
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
 
-            // Returns only catalogs with count >= minMatch
-            if ($catalogs[$i]['counters']['total'] >= $this->context->core['catalogMinMatch']) {
-
-                if ($catalogs[$i]['id'] === 'collections') {
-                    continue;
-                }
-
-                $link = array(
-                    'rel' => 'child',
-                    'type' => RestoUtil::$contentTypes['json'],
-                    'href' => $this->context->core['baseUrl'] . '/catalogs/' . rawurlencode($catalogs[$i]['id']),
-                    'matched' => $catalogs[$i]['counters']['total'] ?? 0
-                );
-                if ( isset($catalogs[$i]['title']) ) {
-                    $link['title'] = $catalogs[$i]['title'];
-                }
-                if ( isset($catalogs[$i]['description']) ) {
-                    $link['description'] = $catalogs[$i]['description'];
-                }
-                if ( isset($catalogs[$i]['rtype']) ) {
-                    $link['resto:type'] = $catalogs[$i]['rtype'];
-                }
-                $links[] = $link;
+            if ($catalogs[$i]['id'] === 'collections') {
+                continue;
             }
+
+            $link = array(
+                'id' => $catalogs[$i]['id'],
+                'rel' => 'child',
+                'type' => RestoUtil::$contentTypes['json'],
+                'href' => $this->context->core['baseUrl'] . '/catalogs/' . rawurlencode($catalogs[$i]['id'])
+            );
+            if ( $catalogs[$i]['counters']['total'] > 0 ) {
+                $link['matched'] = $catalogs[$i]['counters']['total'];
+            }
+            if ( isset($catalogs[$i]['title']) ) {
+                $link['title'] = $catalogs[$i]['title'];
+            }
+            if ( isset($catalogs[$i]['description']) ) {
+                $link['description'] = $catalogs[$i]['description'];
+            }
+            if ( isset($catalogs[$i]['rtype']) ) {
+                $link['resto:type'] = $catalogs[$i]['rtype'];
+            }
+            $links[] = $link;
             
         }
         

@@ -895,12 +895,12 @@ class FiltersFunctions
     }
 
     /**
-     * Remove invalid character from $searchTerm
+     * Replace invalid character from $searchTerm
      * 
      * @param string $searchTerm
      */
     private function cleanSearchTerm($searchTerm)
     {
-        return str_replace(array('#', '%'), '', $searchTerm);
+        return str_replace(array('#', '%'), '_', $searchTerm);
     }
 }

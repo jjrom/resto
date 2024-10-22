@@ -292,22 +292,28 @@ class RestoCollections
                 continue;
             }
 
-            $collections['links'][] = array(
+            $link = array(
                 'rel' => 'child',
                 'type' => RestoUtil::$contentTypes['json'],
                 'title' => $collection['title'],
                 'description' => $collection['description'],
-                'matched' => $matched,
                 'href' => $this->context->core['baseUrl'] . RestoUtil::replaceInTemplate(RestoRouter::ROUTE_TO_COLLECTION, array('collectionId' => $key)),
                 'roles' => array('collection')
             );
+            if ( $matche > 0 ) {
+                $link['matched'] = $matched;
+            }
+            $collections['links'][] = $link;
+            
             $collections['collections'][] = $collection;
             $totalMatched += $collection['summaries']['collection']['count'] ?? 0;
         }
 
         // Update count for all collections
-        $collections['links'][2]['matched'] = $totalMatched;
-
+        if ( $totalMatched > 0 ) {
+            $collections['links'][2]['matched'] = $totalMatched;
+        } 
+        
         /*
          * Sort collections array alphabetically (based on collection title)
          */

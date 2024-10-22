@@ -50,9 +50,6 @@ class RestoContext
         // True to store all user queries to database
         'storeQuery' => false,
 
-        // Display catalog that have at least 'catalogMinMatch' object
-        'catalogMinMatch' => 0,
-
         // Display collection that have at least 'collectionMinMatch' object
         'collectionMinMatch' => 0,
 
