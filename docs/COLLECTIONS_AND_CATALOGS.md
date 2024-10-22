@@ -69,6 +69,7 @@ is to create an empty catalog then add its childs through the POST API
         # The catalog dummyCatalogCycling is posted under /catalogs/dummyCatalogChild1 but reference one of this
         # parent as a child which is forbiden
         curl -X POST -d@examples/catalogs/dummyCatalogChild1.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog"
+        curl -X POST -d@examples/catalogs/dummyCatalogChildOfChild1.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog/dummyCatalogChild1"
         curl -X POST -d@examples/catalogs/dummyCatalogCycling.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog/dummyCatalogChild1"
 
 ### Create a catalog with item
@@ -89,7 +90,25 @@ is to create an empty catalog then add its childs through the POST API
 
         curl -X PUT -d@examples/catalogs/dummyCatalogWithItem_update.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog/dummyCatalogChild1"
 
+### Update a catalog that has already childs
+
+        # First post 2 catalogs under dummyCatalog 
+        curl -X POST -d@examples/catalogs/dummyCatalogChild1.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog"
+        curl -X POST -d@examples/catalogs/dummyCatalogChild2.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog"
+        
+        # Update dummyCatalog removing one catalog in the links will return an HTTP error because it would remove existing child
+        curl -X PUT -d@examples/catalogs/dummyCatalog_update.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog"
+        
+        # Use _force flag to force links update
+
+        
+
 ### Delete a catalog
 
         # Delete a catalog - user with the "deleteCatalog" right can delete a catalog he owns
+        # This will return an HTTP error because the catalog contains child and removing it would remove childs
         curl -X DELETE "http://admin:admin@localhost:5252/catalogs/dummyCatalog"
+
+        # Use _force flag to force deletion
+        curl -X DELETE "http://admin:admin@localhost:5252/catalogs/dummyCatalog?_force=1"
+

@@ -487,20 +487,52 @@ class STACAPI
 
         // Get catalogs and childs
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
-            'id' => join('/', $params['segments'])
+            'id' => join('/', $params['segments']),
+            'noCount' => true
         ), $this->context->core['baseUrl'], true);
         
         if ( count($catalogs) === 0 ){
             RestoLogUtil::httpError(404);
         }
 
-
         // If user has not the right to update catalog then 403
         if ( !$this->user->hasRightsTo(RestoUser::UPDATE_CATALOG, array('catalog' => $catalogs[0])) ) {
             return RestoLogUtil::httpError(403);
         }
+        
+        // Update is not forced so we should check that input links array don't remove existing childs
+        // [IMPORTANT] if no links object is in the body then only other properties are updated and existing links are not destroyed
+        if ( array_key_exists('links', $body) && !filter_var($params['_force'] ?? false, FILTER_VALIDATE_BOOLEAN) ) {
+            $levelUp = array();
+            for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
+                if ($catalogs[$i]['level'] !== $catalogs[0]['level'] + 1) {
+                    continue;
+                }
+                $levelUp[$catalogs[$i]['id']] = false;
+                for ($j = 0, $jj = count($body['links']); $j < $jj; $j++) {
+                    if ( !str_starts_with($body['links'][$j]['href'], $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS ) ) {
+                        continue;
+                    }
+                    if ($catalogs[$i]['id'] === substr($body['links'][$j]['href'], strlen($this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS) + 1)) {
+                        $levelUp[$catalogs[$i]['id']] = true;
+                        break;
+                    }
+                }
+            }
+            $removed = 0;
+            foreach (array_keys($levelUp) as $key) {
+                if ( $levelUp[$key] === false ) {
+                    $removed++;
+                }
+            }
 
-        $updatable = array('title', 'description', 'owner', 'links');
+            if ($removed > 0) {
+                return RestoLogUtil::httpError(400, 'The catalog update would remove ' . $removed . ' existing child(s). Set **_force** query parameter to true to force update anyway');
+            }
+        }
+
+        
+        $updatable = array('title', 'description', 'owner', 'links', 'visibility');
         for ($i = count($updatable); $i--;) {
             if ( isset($body[$updatable[$i]]) ) {
                 $catalogs[0][$updatable[$i]] = $body[$updatable[$i]];
@@ -576,16 +608,23 @@ class STACAPI
 
         // Get catalogs and childs
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
-            'id' => join('/', $params['segments'])
+            'id' => join('/', $params['segments']),
+            'noCount' => true
         ), $this->context->core['baseUrl'], true);
         
-        if ( count($catalogs) === 0 ){
+        $count = count($catalogs);
+        if ( $count === 0 ){
             RestoLogUtil::httpError(404);
         }
 
         // If user has not the right to delete catalog then 403
         if ( !$this->user->hasRightsTo(RestoUser::DELETE_CATALOG, array('catalog' => $catalogs[0])) ) {
             return RestoLogUtil::httpError(403);
+        }
+
+        // If catalogs has child, do not remove it unless _force option is set to true
+        if ( $count > 1 && !filter_var($params['_force'] ?? false, FILTER_VALIDATE_BOOLEAN) ){
+            return RestoLogUtil::httpError(400, 'The catalog contains ' . ($count - 1) . ' child(s) and cannot be deleted. Set **_force** query parameter to true to force deletion anyway');
         }
         
         return RestoLogUtil::success('Catalog deleted', $this->catalogsFunctions->removeCatalog($catalogs[0]['id']));

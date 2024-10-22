@@ -4,5 +4,11 @@
     "title": "Dummy Catalog child 2",
     "description":"I'm a child of dummyCatalog",
     "stac_version":"1.0.0",
-    "links":[]
+    "links":[
+        {
+            "rel":"item",
+            "href":"http://127.0.0.1:5252/collections/DummyCollection/items/DummySargasse",
+            "title":"Catalog can also have item"
+        }
+    ]
 }
