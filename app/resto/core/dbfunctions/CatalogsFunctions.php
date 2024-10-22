@@ -151,7 +151,7 @@ class CatalogsFunctions
         /*
          * Recursively add child collection counters to catalog counters
          */
-        return $this->onTheFlyUpdateCountersWithCollection($catalogs, $baseUrl);
+        return !empty($params['noCount']) ? $catalogs : $this->onTheFlyUpdateCountersWithCollection($catalogs, $baseUrl);
     
     }
 
