@@ -421,7 +421,6 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog_feature (
 -- --------------------- INDEXES ---------------------------
 
 -- [TABLE __DATABASE_TARGET_SCHEMA__.collection]
-CREATE UNIQUE INDEX IF NOT EXISTS idx_id_collection on __DATABASE_TARGET_SCHEMA__.collection (public.normalize(id));
 CREATE INDEX IF NOT EXISTS idx_lineage_collection ON __DATABASE_TARGET_SCHEMA__.collection USING GIN (lineage);
 CREATE INDEX IF NOT EXISTS idx_visibility_collection ON __DATABASE_TARGET_SCHEMA__.collection (visibility);
 CREATE INDEX IF NOT EXISTS idx_created_collection ON __DATABASE_TARGET_SCHEMA__.collection (created);
