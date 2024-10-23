@@ -337,7 +337,7 @@ class CatalogsFunctions
              */
             if ( array_key_exists('links', $cleanLinks) ) {
                 $this->removeCatalogFeatures($catalog['id']);
-                $this->addInternalItems($cleanLinks['internalItems'], $catalog['id']);
+                $this->addInternalItems($cleanLinks['internalItems'] ?? array(), $catalog['id']);
             }
 
             $this->dbDriver->query('COMMIT');
@@ -514,7 +514,7 @@ class CatalogsFunctions
         /*
          * Add an entry in catalog_feature for each interalItems
          */
-        $this->addInternalItems($cleanLinks['internalItems'], $catalog['id']);
+        $this->addInternalItems($cleanLinks['internalItems'] ?? array(), $catalog['id']);
         
         return $catalog;
 
@@ -727,7 +727,7 @@ class CatalogsFunctions
 
         if ( !array_key_exists('links', $catalog) ) {
             return array(
-                'internalitems' => array()
+                'internalItems' => array()
             );
         };
 
