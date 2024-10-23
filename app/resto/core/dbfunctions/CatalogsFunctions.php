@@ -472,7 +472,7 @@ class CatalogsFunctions
             $insert = '(id, title, description, level, counters, owner, visibility, rtype, links, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,now()';
         }
 
-        $insert = 'INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog (id, title, description, level, counters, owner, links, visibility, rtype, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,now() ON CONFLICT (id) DO NOTHING';
+        $insert = 'INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog ' . $insert . ' ON CONFLICT (id) DO NOTHING';
         $this->dbDriver->pQuery($insert, $values, 500, 'Cannot insert catalog ' . $catalog['id']);
 
         /*
