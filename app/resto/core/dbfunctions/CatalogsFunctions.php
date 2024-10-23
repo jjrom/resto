@@ -452,8 +452,8 @@ class CatalogsFunctions
        
         $cleanLinks = $this->getCleanLinks($catalog, $userid, $context);
 
-        $insert = 'INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog (id, title, description, level, counters, owner, links, visibility, rtype, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,now() ON CONFLICT (id) DO NOTHING';
-        $this->dbDriver->pQuery($insert, array(
+        $insert = '(id, title, description, level, counters, owner, visibility, rtype, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,now()';
+        $values = array(
             $catalog['id'],
             $catalog['title'] ?? $catalog['id'],
             $catalog['description'] ?? null,
@@ -464,10 +464,16 @@ class CatalogsFunctions
                 'collections' => array()
             ), JSON_UNESCAPED_SLASHES)),
             $catalog['owner'] ?? $userid,
-            json_encode($cleanLinks['links'], JSON_UNESCAPED_SLASHES),
             RestoConstants::GROUP_DEFAULT_ID,
             $catalog['rtype'] ?? null
-        ), 500, 'Cannot insert catalog ' . $catalog['id']);
+        );
+        if ( isset($cleanLinks['links']) ) {
+            $values[] = json_encode($cleanLinks['links'] ?? array(), JSON_UNESCAPED_SLASHES);
+            $insert = '(id, title, description, level, counters, owner, visibility, rtype, links, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,now()';
+        }
+
+        $insert = 'INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog (id, title, description, level, counters, owner, links, visibility, rtype, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,now() ON CONFLICT (id) DO NOTHING';
+        $this->dbDriver->pQuery($insert, $values, 500, 'Cannot insert catalog ' . $catalog['id']);
 
         /*
          * Catalog id are like this
