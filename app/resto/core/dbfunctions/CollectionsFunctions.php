@@ -54,7 +54,7 @@ class CollectionsFunctions
             'SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords, STRING_AGG(ca.alias, \', \' ORDER BY ca.alias) AS aliases',
             'FROM ' . $this->dbDriver->targetSchema . '.collection',
             'LEFT JOIN ' . $this->dbDriver->targetSchema . '.collection_alias ca ON id = ca.collection',
-            'WHERE public.normalize(id)=public.normalize($1)',
+            'WHERE id=$1',
             'GROUP BY id'
         ));
 

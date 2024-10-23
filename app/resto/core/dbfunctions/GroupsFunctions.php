@@ -85,7 +85,7 @@ class GroupsFunctions
         }
 
         try {
-            $result = pg_query_params($this->dbDriver->getConnection(), 'INSERT INTO ' . $this->dbDriver->commonSchema . '.group (name, description, owner, created) VALUES ($1, $2, $3, now()) ON CONFLICT (public.normalize(name)) DO NOTHING RETURNING id ', array(
+            $result = pg_query_params($this->dbDriver->getConnection(), 'INSERT INTO ' . $this->dbDriver->commonSchema . '.group (name, description, owner, created) VALUES ($1, $2, $3, now()) ON CONFLICT name DO NOTHING RETURNING id ', array(
                 $params['body']['name'],
                 $params['body']['description'] ?? null,
                 $params['id']

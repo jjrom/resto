@@ -98,35 +98,6 @@ class RestoDatabaseDriver
     }
 
     /**
-     * Return $sentence in lowercase, without accent and with "'" character
-     * replaced by a space
-     *
-     * This function is superseed in RestoDabaseDriver_PostgreSQL and use
-     * the inner function lower(unaccent($sentence)) defined in installDB.sh
-     *
-     * @param string $sentence
-     */
-    public function normalize($sentence)
-    {
-        try {
-            $dbh = $this->getConnection();
-
-            if (!isset($sentence) || !$dbh) {
-                throw new Exception();
-            }
-            
-            $results = pg_query($dbh, 'SELECT lower(public.f_unaccent(\'' . pg_escape_string($dbh, $sentence) . '\')) as normalized');
-            if (!$results) {
-                throw new Exception();
-            }
-            $result = pg_fetch_assoc($results);
-            return str_replace('\'', ' ', $result['normalized']);
-        } catch (Exception $e) {
-            return $sentence ?? '';
-        }
-    }
-
-    /**
      * Close database handler
      */
     public function closeDbh()
