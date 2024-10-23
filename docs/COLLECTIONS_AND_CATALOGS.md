@@ -100,8 +100,11 @@ is to create an empty catalog then add its childs through the POST API
         curl -X PUT -d@examples/catalogs/dummyCatalog_update.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog"
         
         # Use _force flag to force links update
+        curl -X PUT -d@examples/catalogs/dummyCatalog_update.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog?_force=1"
 
-        
+### Update a catalog changing everything except links
+
+        # If the links property is not set, then existing links will not be affected
 
 ### Delete a catalog
 
