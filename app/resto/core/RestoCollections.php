@@ -300,7 +300,7 @@ class RestoCollections
                 'href' => $this->context->core['baseUrl'] . RestoUtil::replaceInTemplate(RestoRouter::ROUTE_TO_COLLECTION, array('collectionId' => $key)),
                 'roles' => array('collection')
             );
-            if ( $matche > 0 ) {
+            if ( $matched > 0 ) {
                 $link['matched'] = $matched;
             }
             $collections['links'][] = $link;
