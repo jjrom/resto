@@ -100,6 +100,12 @@ class RestoContext
             )
         ),
 
+        // Service OpenAPI description url
+        'openAPIUrl' => '',
+
+        // Service HTML description url
+        'documentationUrl' => '',
+
         // Default routes superseed RestoRouter defaultRoutes
         'defaultRoutes' => null
 

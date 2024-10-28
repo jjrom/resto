@@ -17,6 +17,8 @@ return array(
     'userAutoValidation' => ${USER_AUTOVALIDATION:-true},
     'userAutoActivation' => ${USER_AUTOACTIVATION:-true},
     'splitGeometryOnDateLine' => ${SPLIT_GEOMETRY_ON_DATELINE:-true},
+    'openAPIUrl' => '${OPENAPI_URL}',
+    'documentationUrl' => '${DOCUMENTATION_URL}',
     'useCache' => ${USE_CACHE:-false}, 
     'useJSONLD' => ${USE_JSONLD:-false},
     'corsWhiteList' => array(${CORS_WHITELIST}),
