@@ -433,7 +433,6 @@ ALTER TABLE ONLY __DATABASE_TARGET_SCHEMA__.osdescription ADD CONSTRAINT cl_coll
 CREATE INDEX IF NOT EXISTS idx_collection_osdescription ON __DATABASE_TARGET_SCHEMA__.osdescription (collection);
 
 -- [TABLE __DATABASE_TARGET_SCHEMA__.catalog]
-CREATE INDEX IF NOT EXISTS idx_id_catalog ON __DATABASE_TARGET_SCHEMA__.catalog (lower(id));
 CREATE INDEX IF NOT EXISTS idx_description_catalog ON __DATABASE_TARGET_SCHEMA__.catalog USING GIN (public.normalize(description) gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_level_catalog ON __DATABASE_TARGET_SCHEMA__.catalog USING btree (level);
 

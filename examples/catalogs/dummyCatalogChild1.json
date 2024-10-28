@@ -4,11 +4,16 @@
     "title": "Dummy Catalog child 1",
     "description":"I'm a child of dummyCatalog",
     "stac_version":"1.0.0",
-    "links":[
+    "additionalProperty1":1,
+    "additionalProperty2":{
+        "toto":"tutu",
+        "titi":3.14
+    },
+    "resto:links":[
         {
-            "rel":"item",
-            "href":"http://127.0.0.1:5252/collections/DummyCollection/items/DummySargasse",
-            "title":"Catalog can also have item"
+            "rel":"preview",
+            "href": "https://static.eos.com/wp-content/uploads/2020/10/sentinel_2_01.jpg",
+            "type": "image/jpeg"
         }
     ]
 }

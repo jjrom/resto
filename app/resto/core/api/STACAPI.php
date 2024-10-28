@@ -488,7 +488,8 @@ class STACAPI
         // Get catalogs and childs
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
             'id' => join('/', $params['segments']),
-            'noCount' => true
+            'noCount' => true,
+            'noProperties' => true
         ), $this->context->core['baseUrl'], true);
         
         if ( count($catalogs) === 0 ){
@@ -531,12 +532,11 @@ class STACAPI
             }
         }
 
-        
-        $updatable = array('title', 'description', 'owner', 'links', 'visibility');
-        for ($i = count($updatable); $i--;) {
-            if ( isset($body[$updatable[$i]]) ) {
-                $catalogs[0][$updatable[$i]] = $body[$updatable[$i]];
-            }    
+        // Add body additional properties
+        foreach (array_keys($body) as $key ) {
+            if ( !in_array($key, CatalogsFunctions::CATALOG_PROPERTIES) ){
+                $catalogs[0][$key] = $body[$key];
+            }
         }
 
         return $this->catalogsFunctions->updateCatalog($catalogs[0], $this->user->profile['id'], $this->context) ? RestoLogUtil::success('Catalog updated') : RestoLogUtil::error('Cannot update catalog');
@@ -1409,6 +1409,13 @@ class STACAPI
             )
         );
 
+        // Add additional metadata
+        foreach (array_keys($parentAndChilds['parent']) as $key ) {
+            if ( !in_array($key, CatalogsFunctions::CATALOG_PROPERTIES) ){
+                $catalog[$key] = $parentAndChilds['parent'][$key];
+            }
+        }
+        
         return $this->context->core['useJSONLD'] ? JSONLDUtil::addDataCatalogMetadata($catalog) : $catalog;
     }
 
