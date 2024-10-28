@@ -201,13 +201,13 @@ class ServicesAPI
                     'rel' => 'service-desc',
                     'type' => RestoUtil::$contentTypes['openapi+json'],
                     'title' => 'OpenAPI 3.0 definition endpoint',
-                    'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_API,
+                    'href' => !empty($this->context->core['openAPIUrl']) ? $this->context->core['openAPIUrl'] : $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_API,
                 ),
                 array(
                     'rel' => 'service-doc',
                     'type' => RestoUtil::$contentTypes['html'],
                     'title' => 'OpenAPI 3.0 definition endpoint documentation',
-                    'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_API . '.html'
+                    'href' => !empty($this->context->core['documentationUrl']) ? $this->context->core['documentationUrl'] : $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_API . '.html'
                 ),
                 array(
                     'rel' => 'conformance',

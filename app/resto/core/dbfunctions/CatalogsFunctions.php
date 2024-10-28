@@ -44,6 +44,13 @@ class CatalogsFunctions
         'strait'    
     );
     
+    /*
+     * These are STAC/resto default properties in catalog
+     */
+    const CATALOG_PROPERTIES = array(
+        'id', 'title', 'description', 'type', 'owner', 'visibility', 'rtype', 'stac_version', 'stac_extension', 'links', 'level', 'counters', 'created'
+    );
+
     private $dbDriver = null;
 
     /**
@@ -61,10 +68,12 @@ class CatalogsFunctions
      * Format catalog for output
      *
      * @param array $rawCatalog
+     * @param boolean $noProperties
      */
-    public static function format($rawCatalog)
+    public static function format($rawCatalog, $noProperties)
     {
-        return array(
+
+        $catalog = array(
             'id' => $rawCatalog['id'],
             'title' => $rawCatalog['title'],
             'description' => $rawCatalog['description'],
@@ -76,6 +85,22 @@ class CatalogsFunctions
             'created' => $rawCatalog['created'],
             'rtype' => $rawCatalog['rtype'] ?? null
         );
+
+        if ( $noProperties ) {
+            return $catalog;
+        }
+
+        $properties = isset($rawCatalog['properties']) ? json_decode($rawCatalog['properties'], true) : array();
+        foreach (array_keys($properties) as $key) {
+            if ($key === 'resto:links' && is_array($properties['resto:links'])) {
+                $catalog['links']= array_merge($catalog['links'], $properties['resto:links']);
+                continue;
+            }
+            $catalog[$key] = $properties[$key];
+        }
+        
+        return $catalog;
+    
     }
 
     /**
@@ -120,10 +145,10 @@ class CatalogsFunctions
 
         if ( isset($params['id']) ) {
             $values[] = $params['id'];
-            $_where = 'lower(id) = lower($' . count($values) . ')';
+            $_where = 'id=$' . count($values);
             if ( $withChilds ) {
                 $values[] = $params['id'] . '/%';
-                $_where = '(' . $_where . ' OR lower(id) LIKE lower($' . count($values) . '))';
+                $_where = '(' . $_where . ' OR id LIKE $' . count($values) . ')';
             }
             $where[] = $_where;
         }
@@ -131,7 +156,7 @@ class CatalogsFunctions
         // Filter on description / title
         if ( isset($params['q']) ) {
             $values[] = '%' . $params['q'] . '%';
-            $where[] = '(public.normalize(description) ILIKE public.normalize($' . count($values) . ') OR lower(id) LIKE lower($' . count($values) . ') )';
+            $where[] = '(public.normalize(description) ILIKE public.normalize($' . count($values) . ') OR id ILIKE $' . count($values) . ')';
         }
         // [IMPORTANT] Discard level if q is set
         else if ( isset($params['level']) ) {
@@ -140,9 +165,9 @@ class CatalogsFunctions
         }
         
         try {
-            $results = $this->dbDriver->pQuery('SELECT id, title, description, level, counters, owner, links, visibility, rtype, to_iso8601(created) as created FROM ' . $this->dbDriver->targetSchema . '.catalog' . ( empty($where) ? '' : ' WHERE ' . join(' AND ', $where) . ' ORDER BY id ASC'), $values);
+            $results = $this->dbDriver->pQuery('SELECT id, title, description, level, counters, owner, links, visibility, rtype, properties, to_iso8601(created) as created FROM ' . $this->dbDriver->targetSchema . '.catalog' . ( empty($where) ? '' : ' WHERE ' . join(' AND ', $where) . ' ORDER BY id ASC'), $values);
             while ($result = pg_fetch_assoc($results)) {
-                $catalogs[] = CatalogsFunctions::format($result);
+                $catalogs[] = CatalogsFunctions::format($result, $params['noProperties'] ?? false);
             }
         }  catch (Exception $e) {
             RestoLogUtil::httpError(500, $e->getMessage());
@@ -262,7 +287,7 @@ class CatalogsFunctions
         $values = array(
             $catalog['id']
         );
-
+        $updatable = array('title', 'description', 'owner', 'links', 'visibility'); 
         $canBeUpdated = array(
             'title',
             'owner',
@@ -278,13 +303,27 @@ class CatalogsFunctions
             $catalog['links'] = $cleanLinks['links'];
         }
 
+        $properties = null;
         foreach (array_keys($catalog) as $key ) {
             if (in_array($key, $canBeUpdated)) {
                 $values[] = $key === 'links' ? json_encode($catalog[$key], JSON_UNESCAPED_SLASHES) : $catalog[$key];
                 $set[] = $key . '=$' . count($values);
             }
+            // Other properties goes to properties
+            else if ( !in_array($key, array('id', 'stac_version')) ){
+                if ( !isset($properties) ) {
+                    $properties = array();
+                }
+                $properties[$key] = $catalog[$key];
+            }
         }
 
+        // Additional properties
+        if ( isset($properties) ) {
+            $values['properties'] = json_encode($properties, JSON_UNESCAPED_SLASHES);
+            $set[] = 'properties=$' . count($values);
+        }
+        
         // Nothing to update
         if ( empty($set) ) {
             return false;
@@ -301,7 +340,7 @@ class CatalogsFunctions
 
                 // No childIds => easy !
                 if ( empty($cleanLinks['childIds']) ) {
-                    $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE lower(id) LIKE lower($1) RETURNING id', array(
+                    $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE id LIKE $1 RETURNING id', array(
                         $catalog['id'] . '/%'
                     ), 500, 'Cannot update catalog ' . $catalog['id']));
                     $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path ~ $1 AND path <> $2' , array(
@@ -310,13 +349,13 @@ class CatalogsFunctions
                     ), 500, 'Cannot update catalog_feature association for catalog ' . $catalog['id']));
                 }
                 else {
-                    $lowerIds = array();
+                    $ids = array();
                     $paths = array('\'' . RestoUtil::path2ltree($catalog['id']) . '\'');
                     for ($i = 0, $ii = count($cleanLinks['childIds']); $i < $ii; $i++) {
-                        $lowerIds[] = 'lower(\'' . pg_escape_string($this->dbDriver->getConnection(), $cleanLinks['childIds'][$i]) . '\')';
+                        $ids[] = '\'' . pg_escape_string($this->dbDriver->getConnection(), $cleanLinks['childIds'][$i]) . '\'';
                         $paths[] = '\'' . RestoUtil::path2ltree($cleanLinks['childIds'][$i]) . '\'';
                     }
-                    $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE lower(id) LIKE lower($1) AND lower(id) NOT IN (' . join(',', $lowerIds) . ') RETURNING id', array(
+                    $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE id LIKE $1 AND id NOT IN (' . join(',', $ids) . ') RETURNING id', array(
                         $catalog['id'] . '/%'
                     ), 500, 'Cannot update catalog ' . $catalog['id']));
                     $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path ~ $1 AND path NOT IN (' . join(',', $paths) . ')' , array(
@@ -330,7 +369,7 @@ class CatalogsFunctions
             /*
              * Then update catalog
              */
-            $this->dbDriver->fetch($this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET ' . join(',', $set) . ' WHERE lower(id)=lower($1) RETURNING id', $values, 500, 'Cannot update catalog ' . $catalog['id']));
+            $this->dbDriver->fetch($this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET ' . join(',', $set) . ' WHERE id=$1 RETURNING id', $values, 500, 'Cannot update catalog ' . $catalog['id']));
 
             /*
              * Add an entry in catalog_feature for each interalItems but first remove all items !
@@ -365,13 +404,13 @@ class CatalogsFunctions
             'WITH path_hierarchy AS (SELECT collection, catalogid FROM ' . $this->dbDriver->targetSchema . '.catalog_feature',
             'WHERE featureid = \'' . pg_escape_string($this->dbDriver->getConnection(), $featureId) . '\')',
             'UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters,' . $increment . ', (SELECT path_hierarchy.collection FROM path_hierarchy LIMIT 1))',
-            'WHERE lower(id) IN (SELECT LOWER(path_hierarchy.catalogid) FROM path_hierarchy)'
+            'WHERE id IN (SELECT path_hierarchy.catalogid FROM path_hierarchy)'
         ));
         $nbOfResults = count($this->dbDriver->fetch($this->dbDriver->query($query)));
 
         // And don't forget the collection !
         if ( isset($collectionId) ) {
-            $this->dbDriver->query('UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters,' . $increment . ',\'' . $collectionId . '\') WHERE lower(id) = lower(\'collections/' . $collectionId . '\')');   
+            $this->dbDriver->query('UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters,' . $increment . ',\'' . $collectionId . '\') WHERE id = \'collections/' . $collectionId . '\'');   
             $nbOfResults++;
         }
         
@@ -396,7 +435,7 @@ class CatalogsFunctions
         ));
 
         while ($result = pg_fetch_assoc($results)) {
-            $catalogs[] = CatalogsFunctions::format($result);
+            $catalogs[] = CatalogsFunctions::format($result, false);
         }
 
         return $catalogs;
@@ -415,7 +454,7 @@ class CatalogsFunctions
 
         try {
             $this->dbDriver->query('BEGIN');
-            $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE lower(id) LIKE lower($1) RETURNING id', array($catalogId . '%'), 500, 'Cannot delete catalog ' . $catalogId));
+            $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE id LIKE $1 RETURNING id', array($catalogId . '%'), 500, 'Cannot delete catalog ' . $catalogId));
             $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path ~ $1' , array(RestoUtil::path2ltree($catalogId) . '.*'), 500, 'Cannot delete catalog_feature association for catalog ' . $catalogId));
             $this->dbDriver->query('COMMIT');
         } catch (Exception $e) {
@@ -452,7 +491,17 @@ class CatalogsFunctions
        
         $cleanLinks = $this->getCleanLinks($catalog, $userid, $context);
 
-        $insert = '(id, title, description, level, counters, owner, visibility, rtype, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,now()';
+        $properties = null;
+        foreach (array_keys($catalog) as $key ) {
+            if ( !in_array($key, CatalogsFunctions::CATALOG_PROPERTIES) ){
+                if ( !isset($properties) ) {
+                    $properties = array();
+                }
+                $properties[$key] = $catalog[$key];
+            }
+        }
+
+        $insert = '(id, title, description, level, counters, owner, visibility, rtype, properties, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,now()';
         $values = array(
             $catalog['id'],
             $catalog['title'] ?? $catalog['id'],
@@ -465,11 +514,12 @@ class CatalogsFunctions
             ), JSON_UNESCAPED_SLASHES)),
             $catalog['owner'] ?? $userid,
             RestoConstants::GROUP_DEFAULT_ID,
-            $catalog['rtype'] ?? null
+            $catalog['rtype'] ?? null,
+            isset($properties) ? json_encode($properties, JSON_UNESCAPED_SLASHES) : null
         );
         if ( isset($cleanLinks['links']) ) {
             $values[] = json_encode($cleanLinks['links'] ?? array(), JSON_UNESCAPED_SLASHES);
-            $insert = '(id, title, description, level, counters, owner, visibility, rtype, links, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,now()';
+            $insert = '(id, title, description, level, counters, owner, visibility, rtype, properties, links, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,now()';
         }
 
         $insert = 'INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog ' . $insert . ' ON CONFLICT (id) DO NOTHING';
@@ -534,7 +584,7 @@ class CatalogsFunctions
 
         for ($i = 0, $ii = count($items); $i < $ii; $i++) {
             $this->insertIntoCatalogFeature($items[$i]['id'], $path, $catalogId, $items[$i]['collection']);
-            $query = 'UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters,1,\'' . pg_escape_string($this->dbDriver->getConnection(), $items[$i]['collection']) . '\') WHERE lower(id) = lower(\'' . pg_escape_string($this->dbDriver->getConnection(), $catalogId) . '\')';
+            $query = 'UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters,1,\'' . pg_escape_string($this->dbDriver->getConnection(), $items[$i]['collection']) . '\') WHERE id = \'' . pg_escape_string($this->dbDriver->getConnection(), $catalogId) . '\'';
             $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         }
         
@@ -549,7 +599,7 @@ class CatalogsFunctions
      */
     private function removeCatalogFeatures($catalogId)
     {
-        $this->dbDriver->query('UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=\'{"total":0, "collections":{}}\' WHERE lower(id) = lower(\'' . pg_escape_string($this->dbDriver->getConnection(), $catalogId) . '\')');
+        $this->dbDriver->query('UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=\'{"total":0, "collections":{}}\' WHERE id = \'' . pg_escape_string($this->dbDriver->getConnection(), $catalogId) . '\'');
         $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path = $1' , array(RestoUtil::path2ltree($catalogId)), 500, 'Cannot delete catalog_feature association for catalog ' . $catalogId));   
     }
 
@@ -840,7 +890,7 @@ class CatalogsFunctions
 
         // First get collections counts
         try {
-            $results = $this->dbDriver->query('SELECT id, counters, title, description FROM ' . $this->dbDriver->targetSchema . '.catalog  WHERE lower(id) LIKE lower(\'collections/%\')');
+            $results = $this->dbDriver->query('SELECT id, counters, title, description FROM ' . $this->dbDriver->targetSchema . '.catalog  WHERE id LIKE \'collections/%\'');
             while ($result = pg_fetch_assoc($results)) {
                 $collections[$result['id']] = array(
                     'counters' => json_decode($result['counters'], true),
