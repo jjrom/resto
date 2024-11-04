@@ -270,6 +270,56 @@ class CatalogsFunctions
     }
 
     /**
+     * Store collection under catalog 
+     * 
+     * @param array $catalog
+     * @param string $userid
+     * @param RestoContext $context
+     * @return boolean
+     */
+    public function storeCollectionUnderCatalog($catalogId, $collectionId, $userid, $context)
+    {
+
+        $link = array(
+            'rel' => 'child',
+            'href' => $context->core['baseUrl'] . RestoRouter::ROUTE_TO_COLLECTIONS . '/' . $collectionId
+        );
+
+        try {
+
+            $links = array();
+            $results = $this->dbDriver->pQuery('SELECT links FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE id=$1', array(
+                $catalogId
+            ));
+            while ($result = pg_fetch_assoc($results)) {
+                $links = json_decode($result['links'], true) ?? array();
+                break;
+            }
+            // Check duplicate
+            $addLink = true;
+            for ($i = 0, $ii = count($links); $i < $ii; $i++) {
+                if ($links[$i]['href'] === $link['href']) {
+                    $addLink = false;
+                    break;
+                }
+            }
+            if ($addLink) {
+                $links[] = $link;
+            }
+            $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET links=$2 WHERE id=$1 RETURNING id', array(
+                $catalogId,
+                json_encode($links, JSON_UNESCAPED_SLASHES)
+            ));
+            
+        } catch (Exception $e) {
+            $this->dbDriver->query('ROLLBACK');
+            RestoLogUtil::httpError($e->getCode() ?? 500, $e->getMessage());
+        }
+
+        return true;
+    }
+
+    /**
      * Update catalog 
      * 
      * @param array $catalog
@@ -491,6 +541,8 @@ class CatalogsFunctions
        
         $cleanLinks = $this->getCleanLinks($catalog, $userid, $context);
 
+        print_r($cleanLinks);
+        return;
         $properties = null;
         foreach (array_keys($catalog) as $key ) {
             if ( !in_array($key, CatalogsFunctions::CATALOG_PROPERTIES) ){

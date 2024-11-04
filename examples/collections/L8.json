@@ -1,5 +1,6 @@
 {
     "id": "L8",
+    "type": "Collection",
     "aliases":[
         "Landsat8"
     ],

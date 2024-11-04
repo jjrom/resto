@@ -375,13 +375,13 @@ class STACAPI
         /*
          * Check mandatory properties
          */
-        /*if ( isset($body['stac_version']) ) {
-            return RestoLogUtil::httpError(400, 'Missing mandatory catalog stac_version - should be set to ' . STACAPI::STAC_VERSION );
-        }*/
         if ( !isset($body['id']) ) {
             return RestoLogUtil::httpError(400, 'Missing mandatory catalog id');
         }
-        if ( !isset($body['description']) ) {
+        if ( !isset($body['type']) || !in_array($body['type'], array('Catalog', 'Collection')) ) {
+            return RestoLogUtil::httpError(400, 'Missing mandatory type - must be set to *Catalog* or *Collection*');
+        }
+        if ( !isset($body['description']) && $body['type'] === 'Catalog' ) {
             return RestoLogUtil::httpError(400, 'Missing mandatory description');
         }
         if ( !isset($body['links']) ) {
@@ -401,7 +401,16 @@ class STACAPI
             }
         }
         
-
+        /*
+         * [IMPORTANT] Special case - post a collection under a catalog is in fact an update of 'links' property of this catalog
+         */
+        if ( $body['type'] === 'Collection' ) {
+            if ( !(new CollectionsFunctions($this->context->dbDriver))->collectionExists($body['id']) ) {
+                return RestoLogUtil::httpError(400, 'Collection ' . $body['id'] . ' does not exist. Should be added first before pushing under a catalog');
+            }
+            return $this->catalogsFunctions->storeCollectionUnderCatalog($parentId, $body['id'], $this->user->profile['id'], $this->context) ? RestoLogUtil::success('Collection added under catalog ' . $parentId) : RestoLogUtil::error('Cannot add collection under catalog ' . $parentId);
+        }
+        
         /*
          * Convert input catalog to resto:catalog
          * i.e. add rtype property and convert id to a path
@@ -409,6 +418,10 @@ class STACAPI
         $body['rtype'] = 'catalog';
         $body['id'] = $this->getIdPath($body, $parentId);
         
+        if ( str_starts_with($body['id'], 'collections') ) {
+            RestoLogUtil::httpError(400, 'A catalog path cannot starts with *collections* as it is a reserved keyword');
+        }
+
         if ($this->catalogsFunctions->getCatalog($body['id'], $this->context->core['baseUrl']) !== null) {
             RestoLogUtil::httpError(409, 'Catalog ' . $body['id'] . ' already exists');
         }
@@ -503,7 +516,7 @@ class STACAPI
         
         // Update is not forced so we should check that input links array don't remove existing childs
         // [IMPORTANT] if no links object is in the body then only other properties are updated and existing links are not destroyed
-        if ( array_key_exists('links', $body) && !filter_var($params['_force'] ?? false, FILTER_VALIDATE_BOOLEAN) ) {
+        if ( array_key_exists('links', $body) ) {
             $levelUp = array();
             for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
                 if ($catalogs[$i]['level'] !== $catalogs[0]['level'] + 1) {
@@ -527,9 +540,13 @@ class STACAPI
                 }
             }
 
-            if ($removed > 0) {
+            if ($removed > 0 && !filter_var($params['_force'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
                 return RestoLogUtil::httpError(400, 'The catalog update would remove ' . $removed . ' existing child(s). Set **_force** query parameter to true to force update anyway');
             }
+
+            // [IMPORTANT] Replace collection input links with updated
+            $catalogs[0]['links'] =  $body['links'];
+            
         }
 
         // Add body additional properties
@@ -1561,7 +1578,7 @@ class STACAPI
                 $element = array(
                     'rel' => 'items',
                     'type' => RestoUtil::$contentTypes['geojson'],
-                    'href' => $this->context->core['baseUrl'] . '/catalogs/' .  join('/', array_map('rawurlencode', explode('/', $parentAndChilds['parent']['id']))) . '/_'
+                    'href' => $this->context->core['baseUrl'] . ( str_starts_with($catalogs[$i]['id'], 'collections/') ? '/' : '/catalogs/') .  join('/', array_map('rawurlencode', explode('/', $parentAndChilds['parent']['id']))) . '/_'
                 );
                 if ( $parentAndChilds['parent']['counters']['total'] > 0 ) {
                     $element['matched'] = $parentAndChilds['parent']['counters']['total'];
@@ -1579,7 +1596,7 @@ class STACAPI
                         'id' => $catalogs[$i]['id'],
                         'rel' => 'child',
                         'type' => RestoUtil::$contentTypes['json'],
-                        'href' => $this->context->core['baseUrl'] . '/catalogs/' .  join('/', array_map('rawurlencode', explode('/', $catalogs[$i]['id'])))
+                        'href' => $this->context->core['baseUrl'] . ( str_starts_with($catalogs[$i]['id'], 'collections/') ? '/' : '/catalogs/') .  join('/', array_map('rawurlencode', explode('/', $catalogs[$i]['id'])))
                     );
                     if (  $catalogs[$i]['counters']['total'] > 0 ) {
                         $element['matched'] = $catalogs[$i]['counters']['total'];
@@ -1690,7 +1707,7 @@ class STACAPI
                 'id' => $catalogs[$i]['id'],
                 'rel' => 'child',
                 'type' => RestoUtil::$contentTypes['json'],
-                'href' => $this->context->core['baseUrl'] . '/catalogs/' . rawurlencode($catalogs[$i]['id'])
+                'href' => $this->context->core['baseUrl'] . ( str_starts_with($catalogs[$i]['id'], 'collections/') ? '/' : '/catalogs/') . rawurlencode($catalogs[$i]['id'])
             );
             if ( $catalogs[$i]['counters']['total'] > 0 ) {
                 $link['matched'] = $catalogs[$i]['counters']['total'];

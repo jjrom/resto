@@ -1,0 +1,8 @@
+{
+    "id": "collections",
+    "title": "Invalid catalog",
+    "type": "Catalog",
+    "description":"A catalog path cannot start with *collections*",
+    "stac_version":"1.0.0",
+    "links":[]
+}
