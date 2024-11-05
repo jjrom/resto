@@ -1107,6 +1107,13 @@ class RestoCollection
         }
 
         /*
+         * Type is mandatory and must be set to 'Collection'
+         */
+        if ( !isset($object['type']) || $object['type'] !== 'Collection') {
+            RestoLogUtil::httpError(400, 'Property "type" is mandatory and must be set to *Collection*');
+        }
+         
+        /*
          * Set DefaultModel if not set
          */
         $object['model'] = isset($modelName) ? $modelName : ($object['model'] ?? 'DefaultModel');

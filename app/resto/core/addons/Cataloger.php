@@ -95,29 +95,31 @@ class Cataloger extends RestoAddOn
     public function catalogsFromText($text)
     {
         $matches = null;
+        $catalogs = array();
         if (isset($text)) {
             preg_match_all("/#([^ ]+)/u", RestoUtil::cleanHashtag($text), $matches);
             if ($matches) {
                 $hashtagsArray = array_count_values($matches[1]);
-                $catalogs = array(
-                    array(
-                        'id' => 'hashtags',
-                        'title' => 'hashtags',
-                        'description' => 'Catalog of features per hashtags'
-                    )
-                );
-                foreach (array_keys($hashtagsArray) as $key) {                  
-                    $catalogs[] = array(
-                        'id' => 'hashtags/' . $key,
-                        'title' => $key,
-                        'description' => 'Catalog of features containing hashtag #' . $key,
-                        'rtype' => 'hashtag'
+                if (count($hashtagsArray) > 0) {
+                    $catalogs = array(
+                        array(
+                            'id' => 'hashtags',
+                            'title' => 'hashtags',
+                            'description' => 'Catalog of features per hashtags'
+                        )
                     );
+                    foreach (array_keys($hashtagsArray) as $key) {                  
+                        $catalogs[] = array(
+                            'id' => 'hashtags/' . $key,
+                            'title' => $key,
+                            'description' => 'Catalog of features containing hashtag #' . $key,
+                            'rtype' => 'hashtag'
+                        );
+                    }
                 }
-                return $catalogs;
             }
         }
-        return array();
+        return $catalogs;
     }
 
     /**
@@ -468,7 +470,7 @@ class Cataloger extends RestoAddOn
         /*
          * Compute catalogs from description
          */
-        $hashtags = $this->catalogsFromText($properties['description'] ?? '');
+        $hashtags = $this->catalogsFromText($properties['description'] ?? null);
         if ( !empty($hashtags) ) {
             $catalogs = array_merge($catalogs, $hashtags);
         }

@@ -42,17 +42,22 @@ Then get the feature :
 
 ## Catalogs
 
-### Create a dummy collection
+### Add a dummy collection
 
         # Create a dummy collection
         curl -X POST -d@examples/collections/DummyCollection.json "http://admin:admin@localhost:5252/collections"
 
-### Create a catalog
+### Add a catalog
 
         # Create a catalog - user with the "createCatalog" right can create a catalog 
         curl -X POST -d@examples/catalogs/dummyCatalog.json "http://admin:admin@localhost:5252/catalogs"
 
-### Create a catalog under an existing catalog
+### Invalid catalog
+
+        # A catalog at the root level cannot be named "collections" because it is a reserved catalog name
+        curl -X POST -d@examples/catalogs/invalidCatalogInRoot.json "http://admin:admin@localhost:5252/catalogs"
+
+### Add a catalog under an existing catalog
 
 **[IMPORTANT]** You cannot create a catalog with childs in links because a child cannot exist before its parent. The good way
 is to create an empty catalog then add its childs through the POST API
@@ -63,8 +68,12 @@ is to create an empty catalog then add its childs through the POST API
         curl -X POST -d@examples/catalogs/dummyCatalogWithChilds_valid.json "http://admin:admin@localhost:5252/catalogs"
         curl -X POST -d@examples/catalogs/dummyCatalogChild1.json "http://admin:admin@localhost:5252/catalogs/dummyCatalogWithChilds"
         curl -X POST -d@examples/catalogs/dummyCatalogChild2.json "http://admin:admin@localhost:5252/catalogs/dummyCatalogWithChilds"
-      
-## Create a catalog under an existing catalog that cycle on itself
+
+#### Add a collection under an existing catalog
+
+        curl -X POST -d@examples/collections/DummyCollection.json "http://admin:admin@localhost:5252/catalogs/dummyCatalogWithChilds"
+
+## Add a catalog under an existing catalog that cycle on itself
 
         # The catalog dummyCatalogCycling is posted under /catalogs/dummyCatalogChild1 but reference one of this
         # parent as a child which is forbiden
@@ -72,7 +81,7 @@ is to create an empty catalog then add its childs through the POST API
         curl -X POST -d@examples/catalogs/dummyCatalogChildOfChild1.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog/dummyCatalogChild1"
         curl -X POST -d@examples/catalogs/dummyCatalogCycling.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog/dummyCatalogChild1"
 
-### Create a catalog with item
+### Add a catalog with item
 
         # The catalog dummyCatalogWithItem is posted under /catalogs/dummyCatalog/dummyCatalogChild1
         # It references :

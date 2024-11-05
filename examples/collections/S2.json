@@ -1,5 +1,6 @@
 {
     "id": "S2",
+    "type": "Collection",
     "version": "1.0",
     "model": "OpticalModel",
     "license": "proprietary",
