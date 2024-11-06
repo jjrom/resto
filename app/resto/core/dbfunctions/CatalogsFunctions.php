@@ -541,8 +541,6 @@ class CatalogsFunctions
        
         $cleanLinks = $this->getCleanLinks($catalog, $userid, $context);
 
-        print_r($cleanLinks);
-        return;
         $properties = null;
         foreach (array_keys($catalog) as $key ) {
             if ( !in_array($key, CatalogsFunctions::CATALOG_PROPERTIES) ){
