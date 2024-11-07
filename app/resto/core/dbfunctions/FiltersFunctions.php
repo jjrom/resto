@@ -629,6 +629,8 @@ class FiltersFunctions
     private function prepareFilterQueryKeywords($catalogFeatureTableName, $filterName, $searchTerms, $exclusion)
     {
 
+        $collectionIds = array();
+
         $filters = array(
             'with' => array(),
             'without' => array()
@@ -651,7 +653,15 @@ class FiltersFunctions
                 $searchTerm = ltrim($searchTerm, '-');
             }
 
-            $this->terms[] = array_merge($this->processSearchTerms($searchTerm, $filters, $catalogFeatureTableName, $filterName, $exclusion));
+            $_collectionIds = $this->processSearchTerms($searchTerm, $filters, $catalogFeatureTableName, $filterName, $exclusion);
+            if ( isset($_collectionIds) ) {
+                $collectionIds = array_merge($collectionIds, $_collectionIds);
+            }
+            
+        }
+
+        if ( !empty($collectionIds) ) {
+            return $this->prepareFilterQueryIn($this->context->dbDriver->targetSchema . '.feature', 'resto:collection', join(',', $collectionIds), $exclusion);
         }
 
         return null;
@@ -695,6 +705,14 @@ class FiltersFunctions
         $where = array();
         for ($j = count($exploded); $j--;) {
 
+            /*
+             * First check if there is collections beneath this eventual catalog
+             */
+            $collections = $this->getCollectionsInCatalog($exploded[$j]);
+            if ( !empty($collections) ) {
+                return $collections;
+            }
+
             $ltreePath = RestoUtil::path2ltree($exploded[$j]);
 
             /*
@@ -720,7 +738,11 @@ class FiltersFunctions
             $terms[] = $this->addNot($exclusion) .  $where[$i];
         }
         
-        return $terms;
+        if ( !empty($terms) ) {
+            $this->terms[] = $terms;
+        }
+
+        return null;
 
     }
 
@@ -902,5 +924,42 @@ class FiltersFunctions
     private function cleanSearchTerm($searchTerm)
     {
         return str_replace(array('#', '%'), '_', $searchTerm);
+    }
+
+    /**
+     * Return a list of child collections from a catalog part name
+     * 
+     * @param string $catalogPartName
+     */
+    private function getCollectionsInCatalog($catalogPartName)
+    {
+        $collectionIds = array();
+        try {
+            $results = $this->context->dbDriver->query('SELECT id,rtype,counters,links FROM ' . $this->context->dbDriver->targetSchema . '.catalog WHERE id ILIKE \'%' . pg_escape_string($this->context->dbDriver->getConnection(), $catalogPartName) . '%\'');
+            while ($result = pg_fetch_assoc($results)) {
+                if ($result['rtype'] === 'collection') {
+                    $collectionId = str_replace('collections/', '', $result['id']); 
+                    if ( !in_array($collectionId, $collectionIds) ) {
+                        $collectionIds[] = $collectionId;
+                    }
+                }
+                else if ( isset($result['links']) ) {
+                    $links = json_decode($result['links'], true) ?? array();
+                    for ($i = 0, $ii = count($links); $i < $ii; $i++) {
+                        if ( isset($links[$i]['rel']) && $links[$i]['rel'] === 'child' && str_starts_with($links[$i]['href'], $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_COLLECTIONS ) ) {
+                            $collectionId = explode('/', substr($links[$i]['href'], strlen($this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_COLLECTIONS) + 1))[0];
+                            if ( !in_array($collectionId, $collectionIds) ) {
+                                $collectionIds[] = $collectionId;
+                            }
+                        }
+                    }
+                }
+            }
+        }  catch (Exception $e) {
+            RestoLogUtil::httpError(500, $e->getMessage());
+        }
+
+        return $collectionIds;
+
     }
 }
