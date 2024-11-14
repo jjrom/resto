@@ -26,6 +26,34 @@ class STACUtil
                 'Collection'
             )
         ),
+        'aerial-photo' => array(
+            'id' => 'https://stac.linz.govt.nz/_STAC_VERSION_/aerial-photo/schema.json',
+            'scope' => array(
+                'Item',
+                'Collection'
+            )
+        ),
+        'alternate' => array(
+            'id' => 'https://stac-extensions.github.io/alternate-assets/v1.2.0/schema.json',
+            'scope' => array(
+                'Item',
+                'Collection'
+            )
+        ),
+        'anon' => array(
+            'id' => 'https://stac-extensions.github.io/anonymized-location/v1.0.0/schema.json',
+            'scope' => array(
+                'Item',
+                'Collection'
+            )
+        ),
+        'archive' => array(
+            'id' => 'https://stac-extensions.github.io/archive/v1.0.0/schema.json',
+            'scope' => array(
+                'Item',
+                'Collection'
+            ),
+        ),
         'altm' => array(
             'id' => 'https://stac-extensions.github.io/altimetry/v0.1.0/schema.json',
             'scope' => array(
@@ -35,37 +63,125 @@ class STACUtil
         'auth' => array(
             'id' => 'https://stac-extensions.github.io/authentication/v1.1.0/schema.json',
             'scope' => array(
-                'Item', 'Catalog', 'Collection', 'Item', 'Asset', 'links'
+                'Item',
+                'Catalog',
+                'Collection',
+                'Item',
+                'Asset',
+                'links'
+            )
+        ),
+        'camera' => array(
+            'id' => 'https://stac.linz.govt.nz/_STAC_VERSION_/camera/schema.json',
+            'scope' => array(
+                'Item',
+                'Collection'
+            )
+        ),
+        'ceosard' => array(
+            'id' => 'https://stac-extensions.github.io/ceos-ard/v0.2.0/schema.json',
+            'scope' => array(
+                'Item',
+                'Collection'
             )
         ),
         'cf' => array(
             'id' => 'https://stac-extensions.github.io/cf/v0.2.0/schema.json',
             'scope' => array(
-                'Item', 'Collection'
+                'Item',
+                'Collection'
+            )
+        ),
+        'classification' => array(
+            'id' => 'https://stac-extensions.github.io/classification/v2.0.0/schema.json',
+            'scope' => array(
+                'Item',
+                'Collection'
+            )
+        ),
+        'composite' => array(
+            'id' => 'https://stac-extensions.github.io/composite/v1.0.0/schema.json',
+            'scope' => array(
+                'Item'
+            )
+        ),
+        'cmip6' => array(
+            'id' => 'https://stac-extensions.github.io/cmip6/v1.0.0/schema.json',
+            'scope' => array(
+                'Item'
             )
         ),
         'cube' => array(
             'id' => 'https://stac-extensions.github.io/datacube/v2.2.0/schema.json',
             'scope' => array(
-                'Item', 'Collection'
+                'Item',
+                'Collection'
             )
         ),
+        'disaster' => array(
+            'id' => 'https://terradue.github.io/stac-extensions-disaster/v1.1.0/schema.json',
+            'scope' => array(
+                'Item',
+                'Collection'
+            )
+        ),
+        'eq' => array(
+            'id' => 'https://stac-extensions.github.io/earthquake/v1.0.0/schema.json',
+            'scope' => array(
+                'Item',
+                'Collection'
+            )
+        ),
+
         'eo' => array(
             'id' => 'https://stac-extensions.github.io/eo/v2.0.0/schema.json',
             'scope' => array(
-                'Item', 'Collection'
+                'Item',
+                'Collection'
+            )
+        ),
+        'example' => array(
+            'id' => 'https://stac-extensions.github.io/example-links/v0.0.1/schema.json',
+            'scope' => array(
+                'Item',
+                'Catalog',
+                'Collection'
             )
         ),
         'file' => array(
             'id' => 'https://stac-extensions.github.io/file/v2.1.0/schema.json',
             'scope' => array(
-                'Item', 'Catalog', 'Collection'
+                'Item',
+                'Catalog',
+                'Collection'
+            )
+        ),
+        'film' => array(
+            'id' => 'https://stac.linz.govt.nz/_STAC_VERSION_/film/schema.json',
+            'scope' => array(
+                'Item',
+                'Collection'
             )
         ),
         'forecast' => array(
             'id' => 'https://stac-extensions.github.io/forecast/v0.1.0/schema.json',
             'scope' => array(
-                'Item', 'Collection'
+                'Item',
+                'Collection'
+            )
+        ),
+        'fws_nwi' => array(
+            'id' => 'https://stac-extensions.github.io/usfws-nwi/v1.0.0/schema.json',
+            'scope' => array(
+                'Item',
+                'Collection'
+            )
+        ),
+        'goes' => array(
+            'id' => 'https://stac-extensions.github.io/goes/v1.0.0/schema.json',
+            'scope' => array(
+                'Item',
+                'Collection'
             )
         ),
         'grid' => array(
@@ -74,10 +190,24 @@ class STACUtil
                 'Item'
             )
         ),
+        'hsi' => array(
+            'id' => 'https://stac-extensions.github.io/hsi/v1.0.0/schema.json',
+            'scope' => array(
+                'Item',
+                'Collection'
+            )
+        ),
+        'insar' => array(
+            'id' => 'https://stac-extensions.github.io/insar/v1.0.0/schema.json',
+            'scope' => array(
+                'Item'
+            )
+        ),
         'label' => array(
             'id' => 'https://stac-extensions.github.io/label/v1.0.1/schema.json',
             'scope' => array(
-                'Item', 'Collection'
+                'Item',
+                'Collection'
             )
         ),
         'landsat' => array(
@@ -89,19 +219,26 @@ class STACUtil
         'ml-aoi' => array(
             'id' => 'https://stac-extensions.github.io/ml-aoi/v0.2.0/schema.json',
             'scope' => array(
-                'Item', 'Collection', 'Asset', 'Links'
+                'Item',
+                'Collection',
+                'Asset',
+                'Links'
             )
         ),
         'ml-model' => array(
             'id' => 'https://stac-extensions.github.io/ml-model/v1.0.0/schema.json',
             'scope' => array(
-                'Item', 'Collection'
+                'Item',
+                'Collection'
             )
         ),
         'mlm' => array(
             'id' => 'https://crim-ca.github.io/mlm-extension/v1.2.0/schema.json',
             'scope' => array(
-                'Item', 'Collection', 'Asset', 'Links'
+                'Item',
+                'Collection',
+                'Asset',
+                'Links'
             )
         ),
         'mgrs' => array(
@@ -110,46 +247,109 @@ class STACUtil
                 'Item'
             )
         ),
+        'noaa_mrms_qpe' => array(
+            'id' => 'https://stac-extensions.github.io/noaa-mrms-qpe/v1.0.0/schema.json',
+            'scope' => array(
+                'Item',
+                'Collection'
+            )
+        ),
         'order' => array(
             'id' => 'https://stac-extensions.github.io/order/v1.1.0/schema.json',
             'scope' => array(
-                'Item', 'Collection'
+                'Item',
+                'Collection'
+            )
+        ),
+        'osc' => array(
+            'id' => 'https://stac-extensions.github.io/osc/v1.0.0-rc.3/schema.json',
+            'scope' => array(
+                'Item',
+                'Catalog',
+                'Collection'
+            )
+        ),
+        'pers' => array(
+            'id' => 'https://stac-extensions.github.io/perspective-imagery/v1.0.0/schema.json',
+            'scope' => array(
+                'Item',
+                'Collection'
             )
         ),
         'pc' => array(
             'id' => 'https://stac-extensions.github.io/pointcloud/v1.0.0/schema.json',
             'scope' => array(
-                'Item', 'Collection'
+                'Item',
+                'Collection'
             )
         ),
         'processing' => array(
             'id' => 'https://stac-extensions.github.io/processing/v1.2.0/schema.json',
             'scope' => array(
-                'Item', 'Collection'
+                'Item',
+                'Collection'
+            )
+        ),
+        'product' => array(
+            'id' => 'https://stac-extensions.github.io/product/v0.1.0/schema.json',
+            'scope' => array(
+                'Item',
+                'Collection'
             )
         ),
         'proj' => array(
             'id' => 'https://stac-extensions.github.io/projection/v2.0.0/schema.json',
             'scope' => array(
-                'Item', 'Collection'
+                'Item',
+                'Collection'
+            )
+        ),
+        'quality' => array(
+            'id' => 'https://stac.linz.govt.nz/_STAC_VERSION_/quality/schema.json',
+            'scope' => array(
+                'Collection'
             )
         ),
         'raster' => array(
             'id' => 'https://stac-extensions.github.io/raster/v2.0.0/schema.json',
             'scope' => array(
-                'Item', 'Collection'
+                'Item',
+                'Collection'
+            )
+        ),
+        'render' => array(
+            'id' => 'https://stac-extensions.github.io/render/v1.0.0/schema.json',
+            'scope' => array(
+                'Item',
+                'Collection'
+            )
+        ),
+        'scan' => array(
+            'id' => 'https://stac.linz.govt.nz/_STAC_VERSION_/scanning/schema.json',
+            'scope' => array(
+                'Item',
+                'Collection'
+            )
+        ),
+        'sci' => array(
+            'id' => 'https://stac-extensions.github.io/scientific/v1.0.0/schema.json',
+            'scope' => array(
+                'Item',
+                'Collection'
             )
         ),
         'sar' => array(
             'id' => 'https://stac-extensions.github.io/sar/v1.0.0/schema.json',
             'scope' => array(
-                'Item', 'Collection'
+                'Item',
+                'Collection'
             )
         ),
         'sat' => array(
             'id' => 'https://stac-extensions.github.io/sat/v1.0.0/schema.json',
             'scope' => array(
-                'Item', 'Collection'
+                'Item',
+                'Collection'
             )
         ),
         's1' => array(
@@ -173,37 +373,74 @@ class STACUtil
         'ssys' => array(
             'id' => 'https://stac-extensions.github.io/ssys/v1.1.0/schema.json',
             'scope' => array(
-                'Item', 'Catalog', 'Collection'
+                'Item',
+                'Catalog',
+                'Collection'
             )
         ),
         'stats' => array(
             'id' => 'https://stac-extensions.github.io/stats/v0.2.0/schema.json',
             'scope' => array(
-                'Catalog', 'Collection'
+                'Catalog',
+                'Collection'
+            )
+        ),
+        'stereo-imagery' => array(
+            'id' => 'https://stac-extensions.github.io/stereo-imagery/v1.0.0/schema.json',
+            'scope' => array(
+                'Item',
+                'Collection',
+                'Catalog'
             )
         ),
         'storage' => array(
             'id' => 'https://stac-extensions.github.io/storage/v1.0.0/schema.json',
             'scope' => array(
-                'Item', 'Collection'
+                'Item',
+                'Collection'
+            )
+        ),
+        'table' => array(
+            'id' => 'https://stac-extensions.github.io/table/v1.2.0/schema.json',
+            'scope' => array(
+                'Item',
+                'Collection'
             )
         ),
         'tiles' => array(
             'id' => 'https://stac-extensions.github.io/tiled-assets/v1.0.0/schema.json',
             'scope' => array(
-                'Item', 'Catalog', 'Collection'
+                'Item',
+                'Catalog',
+                'Collection'
+            )
+        ),
+        'tdml' => array(
+            'id' => 'https://stac-extensions.github.io/trainingdml-ai/v1.0.0/schema.json',
+            'scope' => array(
+                'Item',
+                'Collection'
             )
         ),
         'video' => array(
             'id' => 'https://stac-extensions.github.io/video/v1.0.0/schema.json',
             'scope' => array(
-                'Item', 'Collection'
+                'Item',
+                'Collection'
             )
         ),
         'view' => array(
             'id' => 'https://stac-extensions.github.io/view/v1.0.0/schema.json',
             'scope' => array(
-                'Item', 'Collection'
+                'Item',
+                'Collection'
+            )
+        ),
+        'vrt' => array(
+            'id' => 'https://stac-extensions.github.io/virtual-assets/v1.0.0/schema.json',
+            'scope' => array(
+                'Item',
+                'Collection'
             )
         ),
         'xarray' => array(
