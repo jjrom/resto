@@ -671,6 +671,11 @@ abstract class RestoModel
         );
 
         $properties = array();
+        
+        /*
+         * Initialiaze stac_extensions array
+         */
+        $stac_extensions = $featureArray['stac_extensions'] ?? [];
 
         foreach (array_keys($featureArray['properties']) as $key) {
             // Remove null and non public properties
@@ -684,9 +689,39 @@ abstract class RestoModel
             } else {
                 $properties[$key] = $featureArray['properties'][$key];
             }
+
+            // [STAC] Detect extensions in properties
+            $explodes = explode(':', $key);
+            if (count($explodes) > 1) {
+                foreach (STACUtil::$extensions as $extensionPrefix => $extensionValue) {
+                    if ( $extensionPrefix ===  $explodes[0] && !in_array($extensionValue['id'], $stac_extensions)) {
+                        $stac_extensions[] = $extensionValue['id'];
+                        break;
+                    }
+                }
+            }
+    
         }
 
+        // [STAC] Detect extensions in links
+        if ( isset($featureArray['links']) ) {
+            for ($i = count($featureArray['links']); $i--; ) {
+                foreach (array_keys($featureArray['links'][$i]) as $key) {
+                    $explodes = explode(':', $key);
+                    if (count($explodes) > 1) {
+                        foreach (STACUtil::$extensions as $extensionPrefix => $extensionValue) {
+                            if ( $extensionPrefix ===  $explodes[0] && !in_array($extensionValue['id'], $stac_extensions)) {
+                                $stac_extensions[] = $extensionValue['id'];
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
         $featureArray = array_merge($featureArray, array(
+            'stac_extensions' => $stac_extensions,
             'properties' => $properties
         ));
 
