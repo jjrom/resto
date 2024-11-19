@@ -551,7 +551,7 @@ class STACAPI
 
         // Add body additional properties
         foreach (array_keys($body) as $key ) {
-            if ( !in_array($key, CatalogsFunctions::CATALOG_PROPERTIES) ){
+            if ( in_array($key, CatalogsFunctions::CATALOG_PROPERTIES) ){
                 $catalogs[0][$key] = $body[$key];
             }
         }
@@ -1578,7 +1578,7 @@ class STACAPI
                 $element = array(
                     'rel' => 'items',
                     'type' => RestoUtil::$contentTypes['geojson'],
-                    'href' => $this->context->core['baseUrl'] . ( str_starts_with($catalogs[$i]['id'], 'collections/') ? '/' : '/catalogs/') .  join('/', array_map('rawurlencode', explode('/', $parentAndChilds['parent']['id']))) . '/_'
+                    'href' => $this->context->core['baseUrl'] . ( str_starts_with($catalogId, 'collections/') ? '/' : '/catalogs/') .  join('/', array_map('rawurlencode', explode('/', $parentAndChilds['parent']['id']))) . '/_'
                 );
                 if ( $parentAndChilds['parent']['counters']['total'] > 0 ) {
                     $element['matched'] = $parentAndChilds['parent']['counters']['total'];

@@ -126,7 +126,7 @@ class CatalogsFunctions
     /**
      * Get catalogs (and eventually all its childs if id is set)
      *
-     * @param string $params
+     * @param array $params
      * @param string $baseUrl
      * @param boolean $withChilds
      */
@@ -337,7 +337,6 @@ class CatalogsFunctions
         $values = array(
             $catalog['id']
         );
-        $updatable = array('title', 'description', 'owner', 'links', 'visibility'); 
         $canBeUpdated = array(
             'title',
             'owner',
@@ -567,7 +566,7 @@ class CatalogsFunctions
             $catalog['rtype'] ?? null,
             isset($properties) ? json_encode($properties, JSON_UNESCAPED_SLASHES) : null
         );
-        if ( isset($cleanLinks['links']) ) {
+        if ( array_key_exists('links', $cleanLinks) ) {
             $values[] = json_encode($cleanLinks['links'] ?? array(), JSON_UNESCAPED_SLASHES);
             $insert = '(id, title, description, level, counters, owner, visibility, rtype, properties, links, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,now()';
         }
@@ -814,13 +813,12 @@ class CatalogsFunctions
      * 
      * @param array $catalog
      * @param string userid
-     * @param string $context
+     * @param RestoContext $context
      * @return array
      */
     private function getCleanLinks($catalog, $userid, $context) {
         
         $output = array(
-            'links' => array(),
             'childIds' => array(),
             'internalItems' => array()
         );
@@ -835,6 +833,8 @@ class CatalogsFunctions
             return $output;
         };
         
+        $output['links'] = array();
+
         for ($i = 0, $ii = count($catalog['links']); $i < $ii; $i++) {
             $link = $catalog['links'][$i];
             if ( !isset($link['rel']) || in_array($link['rel'], array('root', 'parent', 'self')) ) {
