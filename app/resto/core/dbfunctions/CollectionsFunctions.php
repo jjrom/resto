@@ -130,10 +130,10 @@ class CollectionsFunctions
      * Remove collection from RESTo database
      *
      * @param RestoCollection $collection
-     * @return array
+     * @param string $baseUrl
      * @throws Exception
      */
-    public function removeCollection($collection)
+    public function removeCollection($collection, $baseUrl)
     {
         /*
          * Never remove a non empty collection
@@ -146,8 +146,14 @@ class CollectionsFunctions
          * Delete (within transaction)
          */
         try {
+
             $this->dbDriver->query('BEGIN');
 
+            /*
+             * First remove collection referenced within catalogs
+             */
+            $this->removeCollectionFromCatalogs($baseUrl . RestoRouter::ROUTE_TO_COLLECTIONS . '/' . $collection->id);
+            
             $this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.collection WHERE id=$1', array(
                 $collection->id
             ));
@@ -629,5 +635,56 @@ class CollectionsFunctions
         }
 
         return $collection;
+    }
+
+    /**
+     * 
+     * Remove all collectionUrl entries in catalog links property
+     * 
+     * @param string $collectionurl
+     * @return void
+     */
+    private function removeCollectionFromCatalogs($collectionurl)
+    {
+        
+        $this->dbDriver->query("WITH tmp AS (
+            WITH target_links as (
+                SELECT id, links
+                FROM " . $this->dbDriver->targetSchema . ".catalog
+                WHERE EXISTS (
+                    SELECT 1
+                    FROM json_array_elements(links) AS link
+                    WHERE link->>'href' = '" . $collectionurl . "'
+                )
+            ),
+            expanded_links AS (
+                SELECT
+                    id,
+                    json_array_elements(links) AS link
+                FROM target_links
+                WHERE json_typeof(links) = 'array'
+            ),
+            filtered_links AS (
+                SELECT
+                    id,
+                    json_agg(link) AS new_links
+                FROM expanded_links
+                WHERE link->>'href' != '" . $collectionurl . "' -- Exclude the link with the specific ID
+                GROUP BY id
+            )
+            SELECT " . $this->dbDriver->targetSchema . ".catalog.id, f.new_links AS modified_links
+            FROM " . $this->dbDriver->targetSchema . ".catalog
+            LEFT JOIN filtered_links f ON " . $this->dbDriver->targetSchema . ".catalog.id = f.id
+        )
+        UPDATE " . $this->dbDriver->targetSchema . ".catalog
+        SET links = tmp.modified_links
+        FROM tmp
+        WHERE " . $this->dbDriver->targetSchema . ".catalog.id = tmp.id
+        AND EXISTS (
+            SELECT 1
+            FROM json_array_elements(links) AS link
+            WHERE link->>'href' = '" . $collectionurl .  "'
+        );");
+
     }
 }

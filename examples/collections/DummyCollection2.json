@@ -1,0 +1,27 @@
+{
+    "id": "DummyCollection2",
+    "type": "Collection",
+    "version": "1.0",
+    "license": "PDDL-1.0",
+    "osDescription": {
+        "en": {
+            "ShortName": "DummyCollection2",
+            "LongName": "DummyCollection2",
+            "Description": "This is a Dummy Collection2",
+            "Tags": "dummy",
+            "Developer": "Jérôme Gasperi",
+            "Contact": "jrom@snapplanet.io",
+            "Query": "dummy",
+            "Attribution": "USGS/NASA Landsat"
+        }
+    },
+    "providers": [
+        {
+            "name": "jeobrowser",
+            "roles": [
+                "processor"
+            ],
+            "url": "https://github.com/jjrom/resto"
+        }
+    ]
+}
