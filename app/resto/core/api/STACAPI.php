@@ -405,8 +405,10 @@ class STACAPI
          * [IMPORTANT] Special case - post a collection under a catalog is in fact an update of 'links' property of this catalog
          */
         if ( $body['type'] === 'Collection' ) {
+
+            // Collection does not exist - created first
             if ( !(new CollectionsFunctions($this->context->dbDriver))->collectionExists($body['id']) ) {
-                return RestoLogUtil::httpError(400, 'Collection ' . $body['id'] . ' does not exist. Should be added first before pushing under a catalog');
+                $this->context->keeper->getRestoCollections($this->user)->create($body, $params['model'] ?? null);
             }
             return $this->catalogsFunctions->storeCollectionUnderCatalog($parentId, $body['id'], $this->user->profile['id'], $this->context) ? RestoLogUtil::success('Collection added under catalog ' . $parentId) : RestoLogUtil::error('Cannot add collection under catalog ' . $parentId);
         }

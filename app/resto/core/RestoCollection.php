@@ -1114,9 +1114,14 @@ class RestoCollection
         }
          
         /*
-         * Set DefaultModel if not set
+         * Set DefaultModel if not set - preseance to input $modelName
          */
-        $object['model'] = isset($modelName) ? $modelName : ($object['model'] ?? 'DefaultModel');
+        if ( isset($modelName) ) {
+            $object['model'] = $modelName;
+        }
+        if ( !isset($object['model']) ) {
+            $object['model'] = $this->context->core['defaultModel'];
+        }
         
         if (!class_exists($object['model']) || !is_subclass_of($object['model'], 'RestoModel')) {
             RestoLogUtil::httpError(400, 'Model "' . $object['model'] . '" is not a valid model name');
