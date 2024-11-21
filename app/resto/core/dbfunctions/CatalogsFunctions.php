@@ -282,6 +282,7 @@ class CatalogsFunctions
 
         $link = array(
             'rel' => 'child',
+            'type' => RestoUtil::$contentTypes['json'],
             'href' => $context->core['baseUrl'] . RestoRouter::ROUTE_TO_COLLECTIONS . '/' . $collectionId
         );
 
