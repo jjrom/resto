@@ -1,0 +1,29 @@
+{
+    "id": "dummyCatalogWithItems",
+    "title": "Dummy Catalog with items",
+    "type": "Catalog",
+    "description":"This is to test POST then PUT",
+    "stac_version":"1.0.0",
+    "links":[
+        {
+            "rel":"item",
+            "href":"http://127.0.0.1:5252/collections/DummyCollection/items/Dummy1",
+            "title":"Catalog can also have item"
+        },
+        {
+            "rel":"item",
+            "href":"http://127.0.0.1:5252/collections/DummyCollection/items/Dummy2",
+            "title":"Catalog can also have item"
+        },
+        {
+            "rel":"item",
+            "href":"http://127.0.0.1:5252/collections/DummyCollection/items/Dummy3",
+            "title":"Catalog can also have item"
+        },
+        {
+            "rel":"item",
+            "href":"http://127.0.0.1:5252/collections/DummyCollection/items/Dummy4",
+            "title":"Catalog can also have item"
+        }
+    ]
+}

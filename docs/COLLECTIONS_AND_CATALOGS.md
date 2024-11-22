@@ -124,3 +124,23 @@ is to create an empty catalog then add its childs through the POST API
         # Use _force flag to force deletion
         curl -X DELETE "http://admin:admin@localhost:5252/catalogs/dummyCatalog?_force=1"
 
+## Debug
+
+        # Create a dummy collection
+        curl -X POST -d@examples/collections/DummyCollection.json "http://admin:admin@localhost:5252/collections"
+
+        # Add 4 dummy items
+        curl -X POST -d@examples/features/dummy1.json "http://admin:admin@localhost:5252/collections/DummyCollection/items"
+        curl -X POST -d@examples/features/dummy2.json "http://admin:admin@localhost:5252/collections/DummyCollection/items"
+        curl -X POST -d@examples/features/dummy3.json "http://admin:admin@localhost:5252/collections/DummyCollection/items"
+        curl -X POST -d@examples/features/dummy4.json "http://admin:admin@localhost:5252/collections/DummyCollection/items"
+
+        # POST a dummyCatalogWithItems catalog referencing 2 dummy items
+        curl -X POST -d@examples/catalogs/dummyCatalogWith2Items.json "http://admin:admin@localhost:5252/catalogs"
+
+        # PUT the catalog by referencing 4 dummy items
+        curl -X PUT -d@examples/catalogs/dummyCatalogWith4Items.json "http://admin:admin@localhost:5252/catalogs"
+
+
+
+        
