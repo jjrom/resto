@@ -518,7 +518,7 @@ class STACAPI
         
         // Update is not forced so we should check that input links array don't remove existing childs
         // [IMPORTANT] if no links object is in the body then only other properties are updated and existing links are not destroyed
-        if ( array_key_exists('links', $body) ) {
+        if ( array_key_exists('links', $body) && isset($body['links']) ) {
             $levelUp = array();
             for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
                 if ($catalogs[$i]['level'] !== $catalogs[0]['level'] + 1) {
@@ -552,7 +552,7 @@ class STACAPI
         else {
             unset($catalogs[0]['links']);
         }
-        
+
         // Add body additional properties
         foreach (array_keys($body) as $key ) {
             if ( in_array($key, CatalogsFunctions::CATALOG_PROPERTIES) ){
