@@ -518,7 +518,7 @@ class STACAPI
         
         // Update is not forced so we should check that input links array don't remove existing childs
         // [IMPORTANT] if no links object is in the body then only other properties are updated and existing links are not destroyed
-        if ( array_key_exists('links', $body) ) {
+        if ( array_key_exists('links', $body) && isset($body['links']) ) {
             $levelUp = array();
             for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
                 if ($catalogs[$i]['level'] !== $catalogs[0]['level'] + 1) {
@@ -546,9 +546,11 @@ class STACAPI
                 return RestoLogUtil::httpError(400, 'The catalog update would remove ' . $removed . ' existing child(s). Set **_force** query parameter to true to force update anyway');
             }
 
-            // [IMPORTANT] Replace collection input links with updated
+             // [IMPORTANT] Replace collection input links with updated
             $catalogs[0]['links'] =  $body['links'];
-            
+        }
+        else {
+            unset($catalogs[0]['links']);
         }
 
         // Add body additional properties

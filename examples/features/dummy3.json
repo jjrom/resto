@@ -1,0 +1,31 @@
+{
+    "id": "Dummy3",
+    "type": "Feature",
+    "properties": {
+        "datetime": "2024-06-21T16:27:00Z",
+        "description": "Dummy3"
+    },
+    "geometry": {
+        "coordinates": [
+        [
+            [
+                -64.8,
+                32.3
+            ],
+            [
+                -65.5,
+                18.3
+            ],
+            [
+                -80.3,
+                25.2
+            ],
+            [
+                -64.8,
+                32.3
+            ]
+        ]
+        ],
+        "type": "Polygon"
+    }
+}
