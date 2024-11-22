@@ -825,16 +825,14 @@ class CatalogsFunctions
         );
 
         if ( !array_key_exists('links', $catalog) ) {
-            return array(
-                'internalItems' => array()
-            );
+            return $output;
         };
+
+        $output['links'] = array();
 
         if ( empty($catalog['links']) ) {
             return $output;
         };
-        
-        $output['links'] = array();
 
         for ($i = 0, $ii = count($catalog['links']); $i < $ii; $i++) {
             $link = $catalog['links'][$i];

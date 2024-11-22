@@ -546,11 +546,13 @@ class STACAPI
                 return RestoLogUtil::httpError(400, 'The catalog update would remove ' . $removed . ' existing child(s). Set **_force** query parameter to true to force update anyway');
             }
 
-            // [IMPORTANT] Replace collection input links with updated
+             // [IMPORTANT] Replace collection input links with updated
             $catalogs[0]['links'] =  $body['links'];
-            
         }
-
+        else {
+            unset($catalogs[0]['links']);
+        }
+        
         // Add body additional properties
         foreach (array_keys($body) as $key ) {
             if ( in_array($key, CatalogsFunctions::CATALOG_PROPERTIES) ){

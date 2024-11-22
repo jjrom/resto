@@ -1,0 +1,7 @@
+{
+    "id": "dummyCatalogWithItems",
+    "title": "Dummy Catalog with items",
+    "type": "Catalog",
+    "description":"This is to test POST then PUT with update",
+    "stac_version":"1.0.0"
+}
