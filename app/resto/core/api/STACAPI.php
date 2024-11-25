@@ -506,7 +506,7 @@ class STACAPI
             'noCount' => true,
             'noProperties' => true
         ), $this->context->core['baseUrl'], true);
-        
+
         if ( count($catalogs) === 0 ){
             RestoLogUtil::httpError(404);
         }
@@ -546,21 +546,12 @@ class STACAPI
                 return RestoLogUtil::httpError(400, 'The catalog update would remove ' . $removed . ' existing child(s). Set **_force** query parameter to true to force update anyway');
             }
 
-             // [IMPORTANT] Replace collection input links with updated
-            $catalogs[0]['links'] =  $body['links'];
-        }
-        else {
-            unset($catalogs[0]['links']);
         }
 
-        // Add body additional properties
-        foreach (array_keys($body) as $key ) {
-            if ( in_array($key, CatalogsFunctions::CATALOG_PROPERTIES) ){
-                $catalogs[0][$key] = $body[$key];
-            }
-        }
-
-        return $this->catalogsFunctions->updateCatalog($catalogs[0], $this->user->profile['id'], $this->context) ? RestoLogUtil::success('Catalog updated') : RestoLogUtil::error('Cannot update catalog');
+        // [TODO] not sure it's needed
+        $body['id'] = $catalogs[0]['id'];
+        
+        return $this->catalogsFunctions->updateCatalog($body, $this->user->profile['id'], $this->context) ? RestoLogUtil::success('Catalog updated') : RestoLogUtil::error('Cannot update catalog');
     }
 
     /**
