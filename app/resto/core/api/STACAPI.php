@@ -395,7 +395,7 @@ class STACAPI
         if ( isset($params['segments']) ) {
             for ($i = 0, $ii = count($params['segments']); $i < $ii; $i++) {
                 $parentId = isset($parentId) ? $parentId . '/' . $params['segments'][$i] : $params['segments'][$i];
-                if ($this->catalogsFunctions->getCatalog($parentId, $this->context->core['baseUrl']) === null) {
+                if ($this->catalogsFunctions->getCatalog($parentId) === null) {
                     return RestoLogUtil::httpError(400, 'Parent catalog ' . $parentId . ' does not exist.');
                 }
             }
@@ -410,21 +410,19 @@ class STACAPI
             if ( !(new CollectionsFunctions($this->context->dbDriver))->collectionExists($body['id']) ) {
                 $this->context->keeper->getRestoCollections($this->user)->create($body, $params['model'] ?? null);
             }
-            return $this->catalogsFunctions->storeCollectionUnderCatalog($parentId, $body['id'], $this->user->profile['id'], $this->context) ? RestoLogUtil::success('Collection added under catalog ' . $parentId) : RestoLogUtil::error('Cannot add collection under catalog ' . $parentId);
         }
         
         /*
          * Convert input catalog to resto:catalog
          * i.e. add rtype property and convert id to a path
          */
-        $body['rtype'] = 'catalog';
         $body['id'] = $this->getIdPath($body, $parentId);
         
         if ( str_starts_with($body['id'], 'collections') ) {
             RestoLogUtil::httpError(400, 'A catalog path cannot starts with *collections* as it is a reserved keyword');
         }
 
-        if ($this->catalogsFunctions->getCatalog($body['id'], $this->context->core['baseUrl']) !== null) {
+        if ($this->catalogsFunctions->getCatalog($body['id']) !== null) {
             RestoLogUtil::httpError(409, 'Catalog ' . $body['id'] . ' already exists');
         }
 
@@ -505,10 +503,15 @@ class STACAPI
             'id' => join('/', $params['segments']),
             'noCount' => true,
             'noProperties' => true
-        ), $this->context->core['baseUrl'], true);
+        ), true);
 
         if ( count($catalogs) === 0 ){
             RestoLogUtil::httpError(404);
+        }
+
+        // If catalog is a collection it cannot be updated this way
+        if ( isset($catalogs[0]['rtype']) && $catalogs[0]['rtype'] === 'collection' ) {
+            return RestoLogUtil::httpError(400, 'This catalog is a collection. Collection should be updated using /collections endoint');
         }
 
         // If user has not the right to update catalog then 403
@@ -622,7 +625,7 @@ class STACAPI
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
             'id' => join('/', $params['segments']),
             'noCount' => true
-        ), $this->context->core['baseUrl'], true);
+        ), true);
         
         $count = count($catalogs);
         if ( $count === 0 ){
@@ -1382,8 +1385,8 @@ class STACAPI
                 'id' => join('/', $segments),
                 'q' => $params['q'] ?? null,
                 'noCount' => isset($params['_nocount']) ? filter_var($params['_nocount'], FILTER_VALIDATE_BOOLEAN) : false
-            ), $this->context->core['baseUrl'], false);
-
+            ), false);
+            
             if ( empty($catalogs) ) {
                 return RestoLogUtil::httpError(404);
             }
@@ -1551,7 +1554,7 @@ class STACAPI
             'id' => $catalogId,
             'q' => $params['q'] ?? null,
             'noCount' => isset($params['_nocount']) ? filter_var($params['_nocount'], FILTER_VALIDATE_BOOLEAN) : false
-        ), $this->context->core['baseUrl'], true);
+        ), true);
         
         if ( empty($catalogs) ) {
             return null;
@@ -1562,9 +1565,23 @@ class STACAPI
             'childs' => array()
         );
 
-        // Parent has no catalog childs, so its childs are item
+        // Parent has no catalog childs, so its childs are item or items if if's a collection
         if ( count($catalogs) === 1 ) {
-            $parentAndChilds['childs'] = $this->catalogsFunctions->getCatalogItems($parentAndChilds['parent']['id'], $this->context->core['baseUrl']);
+
+            if ( $catalogs[0]['rtype'] === 'collection' ) {
+                $items = array(
+                    'rel' => 'items',
+                    'type' => RestoUtil::$contentTypes['geojson'],
+                    'href' => $this->context->core['baseUrl'] . '/collections/' . substr($parentAndChilds['parent']['id'], strrpos($parentAndChilds['parent']['id'], '/') + 1) . '/items'
+                );
+                if ( isset($parentAndChilds['parent']['counters']) && $parentAndChilds['parent']['counters']['total'] > 0) {
+                    $items['matched'] = $parentAndChilds['parent']['counters']['total'];
+                }
+                $parentAndChilds['childs'][] =$items;
+            }
+            else {
+                $parentAndChilds['childs'] = $this->catalogsFunctions->getCatalogItems($parentAndChilds['parent']['id'], $this->context->core['baseUrl']);
+            }
         }
         else {
 
@@ -1674,24 +1691,8 @@ class STACAPI
             'level' => 1,
             'q' => $params['q'] ?? null,
             'noCount' => isset($params['_nocount']) ? filter_var($params['_nocount'], FILTER_VALIDATE_BOOLEAN) : false
-        ), $this->context->core['baseUrl'], false);
+        ), false);
         
-        /*
-         * [TODO] Remove to slow - Then compute subcatalogs for counts
-        if (filter_var($params['_nocount'] ?? false, FILTER_VALIDATE_BOOLEAN) === false) {
-            for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
-                $subCatalogs = $this->catalogsFunctions->getCatalogs(array(
-                    'id' => $catalogs[$i]['id']
-                ), $this->context->core['baseUrl'], true);
-                for ($j = 0, $jj = count($subCatalogs); $j < $jj; $j++) {
-                    if ($subCatalogs[$j]['id'] === $catalogs[$i]['id']) {
-                        $catalogs[$i] = $subCatalogs[$j];
-                    }
-                }
-            }
-        }
-        */
-
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
 
             if ($catalogs[$i]['id'] === 'collections') {

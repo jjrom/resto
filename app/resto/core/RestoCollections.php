@@ -349,7 +349,7 @@ class RestoCollections
     public function getSummaries()
     {
         if ( !isset($this->summaries) ) {
-            $this->summaries = (new CatalogsFunctions($this->context->dbDriver))->getSummaries(null, $this->context->core['baseUrl']);
+            $this->summaries = (new CatalogsFunctions($this->context->dbDriver))->getSummaries(null);
         }
         return $this->summaries;
     }

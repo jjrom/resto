@@ -56,7 +56,7 @@ class FiltersFunctions
     /**
      * Constructor
      *
-     * @param RestoResto $context : Resto Context
+     * @param RestoContext $context : Resto Context
      * @param RestoUser $user : Resto user
      * @param RestoModel $model
      */
