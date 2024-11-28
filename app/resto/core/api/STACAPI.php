@@ -1394,7 +1394,7 @@ class STACAPI
             $searchParams = array(
                 'q' => $catalogs[0]['id']
             );
-    
+
             foreach (array_keys($params) as $key) {
                 if ($key !== 'segments') {
                     $searchParams[$key] = $params[$key];
@@ -1420,7 +1420,7 @@ class STACAPI
             'type' => 'Catalog',
             'links' => array_merge(
                 $this->getBaseLinks($segments),
-                ( !empty($parentAndChilds['parent']['links']) ? array_merge($parentAndChilds['childs'], $parentAndChilds['parent']['links']) : $parentAndChilds['childs'] )
+                !empty($parentAndChilds['parent']['links']) ? array_merge($parentAndChilds['childs'], $parentAndChilds['parent']['links']) : $parentAndChilds['childs']
             )
         );
 
@@ -1605,7 +1605,6 @@ class STACAPI
             for ($i = 1, $ii = count($catalogs); $i < $ii; $i++) {
                 if ($catalogs[$i]['level'] === $parentAndChilds['parent']['level'] + 1) {
                     $element = array(
-                        'id' => $catalogs[$i]['id'],
                         'rel' => 'child',
                         'type' => RestoUtil::$contentTypes['json'],
                         'href' => $this->context->core['baseUrl'] . ( str_starts_with($catalogs[$i]['id'], 'collections/') ? '/' : '/catalogs/') .  join('/', array_map('rawurlencode', explode('/', $catalogs[$i]['id'])))
@@ -1618,9 +1617,6 @@ class STACAPI
                     }
                     if ( isset($catalogs[$i]['description']) ) {
                         $element['description'] = $catalogs[$i]['description'];
-                    }
-                    if ( isset($catalogs[$i]['rtype']) ) {
-                        $element['resto:type'] = $catalogs[$i]['rtype'];
                     }
                     $parentAndChilds['childs'][] = $element;
                 }

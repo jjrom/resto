@@ -83,7 +83,7 @@ is to create an empty catalog then add its childs through the POST API
 
 ### Add a catalog with item
 
-        # The catalog dummyCatalogWithItem is posted under /catalogs/dummyCatalog/dummyCatalogChild1
+        # The catalog dummyCatalogWithItem is posted under /catalogs/dummyCatalogWithChilds/dummyCatalogChild1
         # It references :
         #   * a local item that is added to catalog_feature table
         #   * an external item that is kept as referenced within the links column in catalog table
@@ -91,13 +91,13 @@ is to create an empty catalog then add its childs through the POST API
         # First POST the item because it should exist before referencing it within the catalog
         curl -X POST -d@examples/features/dummySargasse.json "http://admin:admin@localhost:5252/collections/DummyCollection/items"
 
-        curl -X POST -d@examples/catalogs/dummyCatalogWithItem.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog/dummyCatalogChild1"
+        curl -X POST -d@examples/catalogs/dummyCatalogWithItem.json "http://admin:admin@localhost:5252/catalogs/dummyCatalogWithChilds/dummyCatalogChild1"
 
 ### Update a catalog
 
         # Update a catalog - user with the "updateCatalog" right can update a catalog he owns
 
-        curl -X PUT -d@examples/catalogs/dummyCatalogWithItem_update.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog/dummyCatalogChild1"
+        curl -X PUT -d@examples/catalogs/dummyCatalogWithItem_update.json "http://admin:admin@localhost:5252/catalogs/dummyCatalogWithChilds/dummyCatalogChild1"
 
 ### Update a catalog that has already childs
 

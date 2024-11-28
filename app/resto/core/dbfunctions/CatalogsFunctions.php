@@ -939,7 +939,7 @@ class CatalogsFunctions
      */
     private function onTheFlyUpdateCountersWithCollection($catalogs)
     {
-
+        
         $collectionsList = [];
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++){
             if ($catalogs[$i]['rtype'] === 'collection') {
