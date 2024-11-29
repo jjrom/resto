@@ -102,7 +102,7 @@ class RightsFunctions
         ));
 
         try {
-            $result = pg_fetch_assoc(pg_query_params($this->dbDriver->getConnection(), $query, array(
+            $result = pg_fetch_assoc($this->dbDriver->query_params($query, array(
                 $targetValue,
                 json_encode($rights, JSON_UNESCAPED_SLASHES)
             )));
@@ -128,7 +128,7 @@ class RightsFunctions
     private function getRightsForGroups($groupIds)
     {
         $groupRights = array();
-        $results = $this->dbDriver->fetch($this->dbDriver->query('SELECT rights FROM ' . $this->dbDriver->commonSchema . '.right WHERE groupid IN (' . pg_escape_string($this->dbDriver->getConnection(), join(',', $groupIds)) . ')'));
+        $results = $this->dbDriver->fetch($this->dbDriver->query('SELECT rights FROM ' . $this->dbDriver->commonSchema . '.right WHERE groupid IN (' . $this->dbDriver->escape_string( join(',', $groupIds)) . ')'));
         if ( isset($results) && count($results) >= 1 ) {
             for ($i = count($results); $i--;) {
                 if ( isset($results[$i]['rights']) ) {

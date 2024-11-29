@@ -401,7 +401,7 @@ class CatalogsFunctions
                     $ids = array();
                     $paths = array('\'' . RestoUtil::path2ltree($catalog['id']) . '\'');
                     for ($i = 0, $ii = count($cleanLinks['childIds']); $i < $ii; $i++) {
-                        $ids[] = '\'' . pg_escape_string($this->dbDriver->getConnection(), $cleanLinks['childIds'][$i]) . '\'';
+                        $ids[] = '\'' . $this->dbDriver->escape_string( $cleanLinks['childIds'][$i]) . '\'';
                         $paths[] = '\'' . RestoUtil::path2ltree($cleanLinks['childIds'][$i]) . '\'';
                     }
                     $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE id LIKE $1 AND id NOT IN (' . join(',', $ids) . ') RETURNING id', array(
@@ -451,7 +451,7 @@ class CatalogsFunctions
         // Increment by increment all catalog counters for featureId
         $query = join(' ', array(
             'WITH path_hierarchy AS (SELECT collection, catalogid FROM ' . $this->dbDriver->targetSchema . '.catalog_feature',
-            'WHERE featureid = \'' . pg_escape_string($this->dbDriver->getConnection(), $featureId) . '\')',
+            'WHERE featureid = \'' . $this->dbDriver->escape_string( $featureId) . '\')',
             'UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters,' . $increment . ', (SELECT path_hierarchy.collection FROM path_hierarchy LIMIT 1))',
             'WHERE id IN (SELECT path_hierarchy.catalogid FROM path_hierarchy)'
         ));
@@ -648,7 +648,7 @@ class CatalogsFunctions
 
         for ($i = 0, $ii = count($items); $i < $ii; $i++) {
             $this->insertIntoCatalogFeature($items[$i]['id'], $path, $catalogId, $items[$i]['collection']);
-            $query = 'UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters,1,\'' . pg_escape_string($this->dbDriver->getConnection(), $items[$i]['collection']) . '\') WHERE id = \'' . pg_escape_string($this->dbDriver->getConnection(), $catalogId) . '\'';
+            $query = 'UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters,1,\'' . $this->dbDriver->escape_string( $items[$i]['collection']) . '\') WHERE id = \'' . $this->dbDriver->escape_string( $catalogId) . '\'';
             $results = $this->dbDriver->fetch($this->dbDriver->query($query));
         }
         
@@ -663,7 +663,7 @@ class CatalogsFunctions
      */
     private function removeCatalogFeatures($catalogId)
     {
-        $this->dbDriver->query('UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=\'{"total":0, "collections":{}}\' WHERE id = \'' . pg_escape_string($this->dbDriver->getConnection(), $catalogId) . '\'');
+        $this->dbDriver->query('UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=\'{"total":0, "collections":{}}\' WHERE id = \'' . $this->dbDriver->escape_string( $catalogId) . '\'');
         $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path = $1' , array(RestoUtil::path2ltree($catalogId)), 500, 'Cannot delete catalog_feature association for catalog ' . $catalogId));   
     }
 

@@ -113,7 +113,7 @@ class FeaturesFunctions
             }
             $filtersAndJoins['filters'][] = array(
                 'value' => $featureTableName . '.collection IN (' . implode(',', array_map(function ($str) {
-                    return '\'' .  pg_escape_string($this->dbDriver->getConnection(), $str) . '\'';
+                    return '\'' .  $this->dbDriver->escape_string( $str) . '\'';
                 }, $collectionIds)) . ')',
                 'isGeo' => false
             );
@@ -126,7 +126,7 @@ class FeaturesFunctions
             $who = isset($paramsWithOperation['resto:owner']) ? $paramsWithOperation['resto:owner']['value'] : $user->profile['id'];
             if (isset($who)) {
                 $filtersAndJoins['filters'][] = array(
-                    'value' => $this->dbDriver->targetSchema . '.likes.featureid=' . $featureTableName . '.id AND ' . $this->dbDriver->targetSchema . '.likes.userid=' . pg_escape_string($this->dbDriver->getConnection(), $who),
+                    'value' => $this->dbDriver->targetSchema . '.likes.featureid=' . $featureTableName . '.id AND ' . $this->dbDriver->targetSchema . '.likes.userid=' . $this->dbDriver->escape_string( $who),
                     'isGeo' => false
                 );
                 $filtersAndJoins['joins'][] = 'JOIN ' . $this->dbDriver->targetSchema . '.likes ON ' . $featureTableName . '.id = ' . $this->dbDriver->targetSchema . '.likes.featureid';
@@ -247,7 +247,7 @@ class FeaturesFunctions
 
         // Determine if search on id or productidentifier
         $filtersAndJoins['filters'][] = array(
-            'value' => $this->dbDriver->targetSchema . '.feature.id=\'' . pg_escape_string($this->dbDriver->getConnection(), (RestoUtil::isValidUUID($featureId) ? $featureId : RestoUtil::toUUID($featureId))) . '\'',
+            'value' => $this->dbDriver->targetSchema . '.feature.id=\'' . $this->dbDriver->escape_string( (RestoUtil::isValidUUID($featureId) ? $featureId : RestoUtil::toUUID($featureId))) . '\'',
             'isGeo' => false
         );
         $results = $this->dbDriver->fetch($this->dbDriver->query($selectClause . ' ' . $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => true))));
@@ -606,7 +606,7 @@ class FeaturesFunctions
          */
         $result = -1;
         if (!$realCount) {
-            $result = pg_fetch_result($this->dbDriver->query(' SELECT count_estimate(\'' . pg_escape_string($this->dbDriver->getConnection(), $with . ' SELECT * ' . $from) . '\') as count'), 0, 0);
+            $result = pg_fetch_result($this->dbDriver->query(' SELECT count_estimate(\'' . $this->dbDriver->escape_string( $with . ' SELECT * ' . $from) . '\') as count'), 0, 0);
         }
 
         if ($result !== false && $result < 10 * $this->dbDriver->resultsPerPage) {

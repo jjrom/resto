@@ -131,12 +131,12 @@ class QueryUtil
     /**
      * Return a escaped quoted string
      *
-     * @param PgSql\Connection $dbh
+     * @param RestoDatabaseDriver $dbh
      * @param string $str
      * @param boolean $quote
      */
     private static function quoteMe($dbh, $str, $quote)
     {
-        return $quote ? '\'' . pg_escape_string($dbh, $str) . '\'' : pg_escape_string($dbh, $str);
+        return $quote ? '\'' . $dbh->escape_string($str) . '\'' : $dbh->escape_string($dbh, $str);
     }
 }

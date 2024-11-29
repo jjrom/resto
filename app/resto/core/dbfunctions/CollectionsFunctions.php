@@ -87,7 +87,7 @@ class CollectionsFunctions
         
         // Filter on keywords
         if (isset($params['ck'])) {
-            $where[] = 'keywords @> ARRAY[\'' . pg_escape_string($this->dbDriver->getConnection(), $params['ck']) . '\']';
+            $where[] = 'keywords @> ARRAY[\'' . $this->dbDriver->escape_string( $params['ck']) . '\']';
         }
         
         // Query with aliases
@@ -301,11 +301,11 @@ class CollectionsFunctions
         $toBeSet = array();
 
         if (isset($timeExtent['startDate'])) {
-            $toBeSet[] = 'startdate=least(startdate, \'' . pg_escape_string($this->dbDriver->getConnection(), $timeExtent['startDate']) . '\')';
+            $toBeSet[] = 'startdate=least(startdate, \'' . $this->dbDriver->escape_string( $timeExtent['startDate']) . '\')';
         }
 
         if (isset($timeExtent['completionDate'])) {
-            $toBeSet[] = 'completiondate=greatest(completiondate, \'' . pg_escape_string($this->dbDriver->getConnection(), $timeExtent['completionDate']) . '\')';
+            $toBeSet[] = 'completiondate=greatest(completiondate, \'' . $this->dbDriver->escape_string( $timeExtent['completionDate']) . '\')';
         }
 
         if (isset($bbox)) {

@@ -135,9 +135,6 @@ class RestoDatabaseDriver
     {
         try {
             $dbh = $this->getConnection();
-            if (!$dbh) {
-                throw new Exception('Cannot connect to database ' . ($this->config['dbname'] ?? '???') . '@' . ($this->config['host'] ?? '???') . ':' . ($this->config['port'] ?? '???'), 500);
-            }
             
             $results = isset($params) ? pg_query_params($dbh, $query, $params) : pg_query($dbh, $query);
             if (!$results) {
@@ -163,12 +160,45 @@ class RestoDatabaseDriver
     }
 
     /**
+     * Wrapper of pg_escape_string
+     *
+     * @param string $str
+     * @return string
+     */
+    public function escape_string($str)
+    {
+        try {
+            return pg_escape_string($this->getConnection(), $str);
+        }
+        catch (Exception $e) {
+            RestoLogUtil::httpError($e->getCode(), $e->getMessage());
+        }
+    }
+
+    /**
+     * Wrapper of pg_query_params
+     *
+     * @param string $str
+     * @param array $params
+     * @return PgSql\Result|false
+     */
+    public function query_params($str, $params)
+    {
+        try {
+            return pg_query_params($this->getConnection(), $str, $params);
+        }
+        catch (Exception $e) {
+            RestoLogUtil::httpError($e->getCode(), $e->getMessage());
+        }
+    }
+
+    /**
      * Return PostgreSQL database handler
      */
     public function getConnection()
     {
         // Connection already initialized
-        if ( empty($this->dbh) )  {
+        if ( !empty($this->dbh) )  {
             return $this->dbh;
         }
         
@@ -176,7 +206,7 @@ class RestoDatabaseDriver
         $this->dbh = $this->getConnectionFromConfig($this->config);
         
         if ( empty($this->dbh)  ) {
-            RestoLogUtil::httpError(500, 'Cannot connect to database ' . ($this->config['dbname'] ?? '???') . '@' . ($this->config['host'] ?? '???') . ':' . ($this->config['port'] ?? '???'));
+            throw new Exception('Cannot connect to database ' . ($this->config['dbname'] ?? '???') . '@' . ($this->config['host'] ?? '???') . ':' . ($this->config['port'] ?? '???'), 500);
         }
        
         return $this->dbh;
