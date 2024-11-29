@@ -168,14 +168,14 @@ class RestoDatabaseDriver
     public function getConnection()
     {
         // Connection already initialized
-        if (isset($this->dbh)) {
+        if ( empty($this->dbh) )  {
             return $this->dbh;
         }
         
         // Get connection
         $this->dbh = $this->getConnectionFromConfig($this->config);
         
-        if (!$this->dbh) {
+        if ( empty($this->dbh)  ) {
             RestoLogUtil::httpError(500, 'Cannot connect to database ' . ($this->config['dbname'] ?? '???') . '@' . ($this->config['host'] ?? '???') . ':' . ($this->config['port'] ?? '???'));
         }
        
