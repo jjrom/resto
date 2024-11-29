@@ -33,8 +33,8 @@ class ServicesAPI
     {
         $this->context = $context;
         $this->user = $user;
-        $this->title = getenv('API_INFO_TITLE') ?? $this->title;
-        $this->description = getenv('API_INFO_DESCRIPTION') ?? $this->description;
+        $this->title = getenv('STAC_ROOT_TITLE') ?? $this->title;
+        $this->description = getenv('STAC_ROOT_DESCRIPTION') ?? $this->description;
     }
 
     /**
@@ -75,7 +75,7 @@ class ServicesAPI
         }
 
         if ($content === false) {
-            return RestoLogUtil::httpError(404);
+            RestoLogUtil::httpError(404);
         }
 
         if ($this->context->outputFormat === 'json') {
@@ -249,7 +249,7 @@ class ServicesAPI
                 array(
                     'rel' => 'root',
                     'type' => RestoUtil::$contentTypes['json'],
-                    'title' => getenv('API_INFO_TITLE'),
+                    'title' => $this->title,
                     'href' => $this->context->core['baseUrl']
                 ),
                 array(
@@ -271,86 +271,6 @@ class ServicesAPI
         );
 
         return $this->context->core['useJSONLD'] ? JSONLDUtil::addDataCatalogMetadata($hello) : $hello;
-    }
-
-    /**
-     * Return OpenSearchDescription document
-     *
-     *    @OA\Get(
-     *      path="/services/osdd/{collectionId}",
-     *      summary="Get OpenSearch Description Document for a collection",
-     *      description="Returns the OpenSearch Document Description (OSDD) for the search service of collection {collectionId}",
-     *      tags={"Collection"},
-     *      @OA\Parameter(
-     *          name="collectionId",
-     *          in="path",
-     *          description="Collection identifier",
-     *          required=true,
-     *          @OA\Items(
-     *              type="string"
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response="200",
-     *          description="OpenSearch Document Description (OSDD)"
-     *      ),
-     *      @OA\Response(
-     *          response="404",
-     *          description="Collection not found"
-     *      )
-     *    )
-     *
-     * @param array params
-     */
-    public function getOSDDForCollection($params)
-    {
-        $this->context->outputFormat = 'xml';
-        return $this->context->keeper->getRestoCollection($params['collectionId'],$this->user)->load()->getOSDD();
-    }
-
-    /**
-     * Return OpenSearchDescription document
-     *
-     *    @OA\Get(
-     *      path="/services/osdd",
-     *      summary="Get OpenSearch Description Document for all collections",
-     *      description="Returns the OpenSearch Document Description (OSDD) for the search service on all collections",
-     *      tags={"Collection"},
-     *      @OA\Parameter(
-     *          name="model",
-     *          in="query",
-     *          style="form",
-     *          description="Limit description to collections belonging to *model* - e.g. *model=SatelliteModel* will search in all satellite collections",
-     *          required=false,
-     *          @OA\Items(
-     *              type="string"
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response="200",
-     *          description="OpenSearch Document Description (OSDD)"
-     *      ),
-     *      @OA\Response(
-     *          response="404",
-     *          description="Collection not found"
-     *      )
-     *    )
-     *
-     * @param array params
-     */
-    public function getOSDD($params)
-    {
-        $this->context->outputFormat = 'xml';
-        $model = null;
-        if (isset($params['model'])) {
-            if (! class_exists($params['model'])) {
-                return RestoLogUtil::httpError(400, 'Unknown model ' . $params['model']);
-            }
-            $model = new $params['model'](array(
-                'addons' => $this->context->addons
-            ));
-        }
-        return $this->context->keeper->getRestoCollections($this->user)->getOSDD($model);
     }
 
     /**

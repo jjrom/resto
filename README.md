@@ -5,7 +5,7 @@
 
 resto is a metadata catalog and a search engine dedicated to geospatialized data. Originally, it’s main purpose it to handle Earth Observation satellite imagery but it can be used to store any kind of metadata localized in time and space.
 
-resto search API conforms to the [SpatioTemporal Asset Catalog (STAC) specification v1.0.0](https://github.com/radiantearth/stac-spec) and to the [CEOS OpenSearch Best Practice Document](http://ceos.org/ourwork/workinggroups/wgiss/access/opensearch/).
+resto search API conforms to the [SpatioTemporal Asset Catalog (STAC) specification v1.0.0](https://github.com/radiantearth/stac-spec)
 
 It is mentioned in ESA's "Exploitation Platform Common Core Components" as the closest implementation of a catalogue component according to the requirements specified in ESA's ["Exploitation Platform Open Architecture"](https://tep.eo.esa.int/news/-/blogs/exploitation-platforms-open-architecture-released)
 

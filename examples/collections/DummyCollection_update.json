@@ -1,8 +1,8 @@
 {
     "id": "DummyCollection",
     "type": "Collection",
-    "title": "DummyCollection with alias",
-    "description":"This is a Dummy Collection with an alias",
+    "title": "DummyCollection with an updated title",
+    "description":"This is a Dummy Collection with an updated title",
     "aliases":[
         "DummyCollectionAlias"
     ],

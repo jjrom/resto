@@ -171,7 +171,7 @@ class FeaturesFunctions
         try {
             $results = $this->dbDriver->query($query);
         } catch (Exception $e) {
-            return RestoLogUtil::httpError(400, $e->getMessage());
+            RestoLogUtil::httpError(400, $e->getMessage());
         }
         
         $features = (new RestoFeatureUtil($context, $user, $collections))->toFeatureArrayList($this->dbDriver->fetch($results));
@@ -328,7 +328,7 @@ class FeaturesFunctions
         foreach (array_values($keysAndValues['catalogs']) as $catalog) {
             if (isset($catalog['isExternal']) && $catalog['isExternal']) {
                 if ( !$collection->user->hasRightsTo(RestoUser::CREATE_CATALOG) ) {
-                    return RestoLogUtil::httpError(403, 'Feature ingestion leads to creation of catalog ' . $catalog['id'] . ' but you don\'t have right to create catalogs');
+                    RestoLogUtil::httpError(403, 'Feature ingestion leads to creation of catalog ' . $catalog['id'] . ' but you don\'t have right to create catalogs');
                 }
                 break;
             }
@@ -408,7 +408,7 @@ class FeaturesFunctions
             /*
              * Update statistics counter for featureId - i.e. remove 1 per catalogs containing this feature 
              */
-            $catalogsUpdated = (new CatalogsFunctions($this->dbDriver))->updateFeatureCatalogsCounters($feature->id, $feature->collectio->id, -1);
+            $catalogsUpdated = (new CatalogsFunctions($this->dbDriver))->updateFeatureCatalogsCounters($feature->id, $feature->collection->id, -1);
         
             /*
              * Next remove
@@ -426,7 +426,7 @@ class FeaturesFunctions
         }
 
         if (empty($result)) {
-            return RestoLogUtil::httpError(404);
+            RestoLogUtil::httpError(404);
         }
         
         return array(
@@ -477,7 +477,7 @@ class FeaturesFunctions
         foreach (array_values($keysAndValues['catalogs']) as $catalog) {
             if (isset($catalog['isExternal']) && $catalog['isExternal']) {
                 if ( !$collection->user->hasRightsTo(RestoUser::CREATE_CATALOG) ) {
-                    return RestoLogUtil::httpError(403, 'Feature update leads to creation of catalog ' . $catalog['id'] . ' but you don\'t have right to create catalogs');
+                    RestoLogUtil::httpError(403, 'Feature update leads to creation of catalog ' . $catalog['id'] . ' but you don\'t have right to create catalogs');
                 }
                 break;
             }
@@ -580,7 +580,7 @@ class FeaturesFunctions
     public function updateFeatureDescription($feature, $description)
     {
 
-        return RestoLogUtil::httpError(400, 'TODO - update feature description not yet implemented');
+        RestoLogUtil::httpError(400, 'TODO - update feature description not yet implemented');
         
     }
 

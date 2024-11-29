@@ -148,18 +148,18 @@ class UsersAPI
     public function getUsersProfiles($params)
     {
         if (isset($params['lt']) && !ctype_digit($params['lt'])) {
-            return RestoLogUtil::httpError(400, 'Invalid lt - should be numeric');
+            RestoLogUtil::httpError(400, 'Invalid lt - should be numeric');
         }
 
         if (isset($params['groupid']) && !ctype_digit($params['groupid'])) {
-            return RestoLogUtil::httpError(400, 'Invalid groupid');
+            RestoLogUtil::httpError(400, 'Invalid groupid');
         }
 
         if (isset($params['in'])) {
             $exploded = explode(',', $params['in']);
             for ($i = count($exploded);$i--;) {
                 if (!ctype_digit(trim($exploded[$i]))) {
-                    return RestoLogUtil::httpError(400, 'Invalid in');
+                    RestoLogUtil::httpError(400, 'Invalid in');
                 }
             }
         }
@@ -665,7 +665,7 @@ class UsersAPI
         }
 
         if (isset($params['lt']) && !ctype_digit($params['lt'])) {
-            return RestoLogUtil::httpError(400, 'Invalid lt - should be numeric');
+            RestoLogUtil::httpError(400, 'Invalid lt - should be numeric');
         }
         
         return (new LogsFunctions($this->context->dbDriver))->getLogs(array(

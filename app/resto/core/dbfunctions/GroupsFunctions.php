@@ -218,7 +218,7 @@ class GroupsFunctions
 
         // 404 if no empty results when id is specified
         if (! isset($results) || (isset($groupId) && count($results) === 0)) {
-            return RestoLogUtil::httpError(404);
+            RestoLogUtil::httpError(404);
         }
 
         $length = isset($groupId) ? 1 : count($results);

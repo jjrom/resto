@@ -111,7 +111,7 @@ class ATOMFeed extends RestoXML
     public function setCollectionElements($links, $searchContext, $model)
     {
         /*
-         * Update outputFormat links except for OSDD 'search'
+         * Update outputFormat links
          */
         $this->setCollectionLinks($links);
         
@@ -499,19 +499,10 @@ class ATOMFeed extends RestoXML
             for ($i = 0, $l = count($links); $i < $l; $i++) {
                 $this->startElement('link');
                 $this->writeAttributes(array(
-                    'rel' => $links[$i]['rel']
+                    'rel' => $links[$i]['rel'],
+                    'type' => RestoUtil::$contentTypes['atom'],
+                    'href' => RestoUtil::updateUrlFormat($links[$i]['href'], 'atom')
                 ));
-                if ($links[$i]['type'] === 'application/opensearchdescription+xml') {
-                    $this->writeAttributes(array(
-                        'type' => $links[$i]['type'],
-                        'href' => $links[$i]['href']
-                    ));
-                } else {
-                    $this->writeAttributes(array(
-                        'type' => RestoUtil::$contentTypes['atom'],
-                        'href' => RestoUtil::updateUrlFormat($links[$i]['href'], 'atom')
-                    ));
-                }
                 $this->endElement(); // link
             }
         }

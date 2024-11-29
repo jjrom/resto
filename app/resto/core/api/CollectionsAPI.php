@@ -52,24 +52,12 @@ class CollectionsAPI
      *      ),
      *      @OA\Response(
      *          response="200",
-     *          description="List of all collection descriptions",
+     *          description="List of all collections",
      *          @OA\JsonContent(
      *              @OA\Property(
      *                  property="extent",
      *                  type="object",
      *                  ref="#/components/schemas/Extent"
-     *              ),
-     *              @OA\Property(
-     *                   property="resto:info",
-     *                   type="object",
-     *                   description="resto additional information",
-     *                   @OA\JsonContent(
-     *                       @OA\Property(
-     *                           property="osDescription",
-     *                           type="object",
-     *                           ref="#/components/schemas/OpenSearchDescription"
-     *                       )
-     *                   )
      *              ),
      *              @OA\Property(
      *                  property="collections",
@@ -100,18 +88,6 @@ class CollectionsAPI
      *                              }
      *                          },
      *                          "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"
-     *                      }
-     *                  },
-     *                  "resto:info": {
-     *                      "osDescription": {
-     *                          "ShortName": "resto",
-     *                          "LongName": "resto search service",
-     *                          "Description": "Search on all collections",
-     *                          "Tags": "resto",
-     *                          "Developer": "J\u00e9r\u00f4me Gasperi",
-     *                          "Contact": "jerome.gasperi@gmail.com",
-     *                          "Query": "europe 2015",
-     *                          "Attribution": "Copyright 2018, All Rights Reserved"
      *                      }
      *                  },
      *                  "collections": {
@@ -167,16 +143,6 @@ class CollectionsAPI
      *                                  "SatelliteModel",
      *                                  "OpticalModel"
      *                              },
-     *                              "osDescription": {
-     *                                  "ShortName": "Landsat-8",
-     *                                  "LongName": "Images Landsat-8 niveau 1C",
-     *                                  "Description": "Landsat represents the world's longest continuously acquired collection of space-based moderate-resolution land remote sensing data. Four decades of imagery provides a unique resource for those who work in agriculture, geology, forestry, regional planning, education, mapping, and global change research. Landsat images are also invaluable for emergency response and disaster relief",
-     *                                  "Tags": "landsat level1C USGS",
-     *                                  "Developer": "J\u00e9r\u00f4me Gasperi",
-     *                                  "Contact": "jrom@snapplanet.io",
-     *                                  "Query": "USA 2019",
-     *                                  "Attribution": "USGS/NASA Landsat"
-     *                              },
      *                              "owner": "203883411255198721"
      *                          },
      *                          "summaries": {
@@ -225,7 +191,7 @@ class CollectionsAPI
      *  @OA\Get(
      *      path="/collections/{collectionId}",
      *      summary="Get collection",
-     *      description="Returns collection description including statistics (i.e. number of products, etc.)",
+     *      description="Returns collection including statistics (i.e. number of products, etc.)",
      *      tags={"Collection"},
      *      @OA\Parameter(
      *         name="collectionId",
@@ -238,7 +204,7 @@ class CollectionsAPI
      *      ),
      *      @OA\Response(
      *          response="200",
-     *          description="Collection description",
+     *          description="Collection",
      *          @OA\JsonContent(ref="#/components/schemas/OutputCollection")
      *      ),
      *      @OA\Response(
@@ -651,7 +617,7 @@ class CollectionsAPI
          * This should not happen
          */
         if ($result === false) {
-            return RestoLogUtil::httpError(500, 'Cannot insert feature in database');
+            RestoLogUtil::httpError(500, 'Cannot insert feature in database');
         }
 
         return RestoLogUtil::success('Inserted features', $result);

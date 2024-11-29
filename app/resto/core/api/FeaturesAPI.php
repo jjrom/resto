@@ -575,20 +575,20 @@ class FeaturesAPI
         // This should return HTTP 400 but we discard it instead otherwise it brokes pystac requests
         if (isset($params['collections'])) {
             unset($params['collections']);
-            //return RestoLogUtil::httpError(400, 'You cannot specify a list of collections on a single collection search');
+            //RestoLogUtil::httpError(400, 'You cannot specify a list of collections on a single collection search');
         }
 
         if (isset($params['ck'])) {
-            return RestoLogUtil::httpError(400, 'You cannot filter on collections keywords on a single collection search');
+            RestoLogUtil::httpError(400, 'You cannot filter on collections keywords on a single collection search');
         }
 
         if (isset($params['model'])) {
-            return RestoLogUtil::httpError(400, 'You cannot specify a collection and a model at the same time');
+            RestoLogUtil::httpError(400, 'You cannot specify a collection and a model at the same time');
         }
 
         // [STAC] Only one of either intersects or bbox should be specified. If both are specified, a 400 Bad Request response should be returned.
         if (isset($params['intersects']) && isset($params['bbox'])) {
-            return RestoLogUtil::httpError(400, 'Only one of either intersects or bbox should be specified');
+            RestoLogUtil::httpError(400, 'Only one of either intersects or bbox should be specified');
         }
 
         // Set Content-Type to GeoJSON
@@ -814,12 +814,12 @@ class FeaturesAPI
         
         // A value key is mandatory
         if (! array_key_exists('value', $body)) {
-            return RestoLogUtil::httpError(400, 'Missing mandatory "value" property');
+            RestoLogUtil::httpError(400, 'Missing mandatory "value" property');
         }
 
         // Only these properties can be updated
         if (! in_array($params['property'], array('title', 'description', 'visibility', 'owner', 'status'))) {
-            return RestoLogUtil::httpError(400, 'Invalid property "' . $params['property'] . '"');
+            RestoLogUtil::httpError(400, 'Invalid property "' . $params['property'] . '"');
         }
         
         // Only admin can change owner property

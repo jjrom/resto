@@ -13,17 +13,25 @@ Eventually, it can contain an array of *aliases* (see [./examples/collections/L8
 
 Note that id and aliases must be unique in the database. As a consequence, you cannot create a new collection or set an alias to an existing collection that as the same value of one of the aliases of an existing collection.
 
-### Ingest a collection
-To ingest a collection using the default **ADMIN_USER_NAME** and **ADMIN_USER_PASSWORD** (see [config.env](config.env)) :
+### Add a collection
+To add a collection using the default **ADMIN_USER_NAME** and **ADMIN_USER_PASSWORD** (see [config.env](config.env)) :
 
-        # POST a S2 dummy collection
-        curl -X POST -d@examples/collections/S2.json "http://admin:admin@localhost:5252/collections"
+        # POST a dummy collection
+        curl -X POST -d@examples/collections/DummyCollection.json "http://admin:admin@localhost:5252/collections"
 
 Then get the collections list :
 
         curl "http://localhost:5252/collections"
 
 *Note: Any user with the "createCollection" right can create a collection ([see rights](./USERS.md))*
+
+### Update a collection
+To update a collection
+
+        # UPDATE dummy collection
+        curl -X PUT -d@examples/collections/DummyCollection_update.json "http://admin:admin@localhost:5252/collections/DummyCollection"
+
+Then get the collections list :
 
 ### Ingest an item (aka feature)
 To ingest a feature using the default **ADMIN_USER_NAME** and **ADMIN_USER_PASSWORD** (see [config.env](config.env)) :
@@ -41,11 +49,6 @@ Then get the feature :
 *Note: Any user with the "createFeature" right can insert a feature to a collection he owns ([see rights](./USERS.md))*
 
 ## Catalogs
-
-### Add a dummy collection
-
-        # Create a dummy collection
-        curl -X POST -d@examples/collections/DummyCollection.json "http://admin:admin@localhost:5252/collections"
 
 ### Add a catalog
 

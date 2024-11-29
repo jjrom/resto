@@ -1,20 +1,14 @@
 {
     "id": "DummyCollection2",
     "type": "Collection",
+    "title": "DummyCollection2",
+    "description": "This is a Dummy Collection2",
     "version": "1.0",
     "license": "PDDL-1.0",
-    "osDescription": {
-        "en": {
-            "ShortName": "DummyCollection2",
-            "LongName": "DummyCollection2",
-            "Description": "This is a Dummy Collection2",
-            "Tags": "dummy",
-            "Developer": "Jérôme Gasperi",
-            "Contact": "jrom@snapplanet.io",
-            "Query": "dummy",
-            "Attribution": "USGS/NASA Landsat"
-        }
-    },
+    "keywords": [
+        "dummy",
+        "keywords"
+    ],
     "providers": [
         {
             "name": "jeobrowser",

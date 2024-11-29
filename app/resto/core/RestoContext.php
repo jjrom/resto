@@ -130,11 +130,6 @@ class RestoContext
     public $method = 'GET';
 
     /**
-     * Default osDescription
-     */
-    public $osDescription = array();
-
-    /**
      * Default servicesInfos
      */
     public $servicesInfos = array();
@@ -196,11 +191,6 @@ class RestoContext
          * Set default lang
          */
         $this->setLang(filter_input(INPUT_GET, 'lang', FILTER_UNSAFE_RAW));
-        
-        /*
-         * Set osDescription
-         */
-        $this->setOsDescription($config);
         
         /*
          * Initialize addons
@@ -470,18 +460,6 @@ class RestoContext
             $lang = 'en';
         }
         $this->lang = $lang;
-    }
-
-    /**
-     * Set osDescription
-     *
-     * @param array $config
-     */
-    private function setOsDescription($config)
-    {
-        if (isset($config['osDescriptions'])) {
-            $this->osDescription = $config['osDescriptions'][$this->lang] ?? $config['osDescriptions']['en'];
-        }
     }
 
     /**

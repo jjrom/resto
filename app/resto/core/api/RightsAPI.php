@@ -244,11 +244,11 @@ class RightsAPI
          * [SECURITY] Only admin can set user rights
          */
         if ( !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
-            return RestoLogUtil::httpError(403);
+            RestoLogUtil::httpError(403);
         }
 
         if ( empty($body) ) {
-            return RestoLogUtil::httpError(400, 'No rights to set');
+            RestoLogUtil::httpError(400, 'No rights to set');
         }
 
         // Get user just to be sure that it exists !
@@ -342,11 +342,11 @@ class RightsAPI
          * [SECURITY] Only admin can set group rights
          */
         if ( !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
-            return RestoLogUtil::httpError(403);
+            RestoLogUtil::httpError(403);
         }
 
         if ( empty($body) ) {
-            return RestoLogUtil::httpError(400, 'No rights to set');
+            RestoLogUtil::httpError(400, 'No rights to set');
         }
 
         // Get group just to be sure that it exists !

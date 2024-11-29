@@ -94,7 +94,7 @@ class AuthAPI
         
         // User not activated
         if ($this->user->profile['activated'] !== 1) {
-            return RestoLogUtil::httpError(412, 'User not activated');
+            RestoLogUtil::httpError(412, 'User not activated');
         }
 
         return array(
@@ -183,11 +183,11 @@ class AuthAPI
 
         // A token can be only be created by admin 
         if ( !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
-            return RestoLogUtil::httpError(403);
+            RestoLogUtil::httpError(403);
         }
         
         if ( isset($params['duration']) && !ctype_digit($params['duration']) ) {
-            return RestoLogUtil::httpError(400, 'Parameters duration must be a valid integer in days');
+            RestoLogUtil::httpError(400, 'Parameters duration must be a valid integer in days');
         }
 
         if ( !isset($params['duration']) ) {
@@ -195,7 +195,7 @@ class AuthAPI
         }
 
         if ( !isset($params['userId']) || !ctype_digit($params['userId']) ) {
-            return RestoLogUtil::httpError(400, 'Mandatory userId is not set or not valid');
+            RestoLogUtil::httpError(400, 'Mandatory userId is not set or not valid');
         }
 
         $days = isset($params['duration']) ? (integer) $params['duration'] : round($this->context->core['tokenDuration'] / 86400);
@@ -272,13 +272,13 @@ class AuthAPI
     {
         $payload = $this->context->decodeJWT($params['token']);
         if (!isset($payload)) {
-            return RestoLogUtil::httpError(400, 'Invalid or expired token');
+            RestoLogUtil::httpError(400, 'Invalid or expired token');
         }
         
         // A token can be only be revoked by admin or by its owner
         if ($this->user->profile['id'] !== $payload['sub']) {
             if (!$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
-                return RestoLogUtil::httpError(403);
+                RestoLogUtil::httpError(403);
             }
         }
 
@@ -415,13 +415,13 @@ class AuthAPI
         $payload = $this->context->decodeJWT($params['token']);
 
         if (!isset($payload) || !isset($payload['sub'])) {
-            return RestoLogUtil::httpError(400, 'Invalid or expired token');
+            RestoLogUtil::httpError(400, 'Invalid or expired token');
         }
 
         $user = new RestoUser(array('id' => $payload['sub']), $this->context, true);
 
         if (!isset($user->profile['id']) || !$user->activate()) {
-            return RestoLogUtil::httpError(500, 'User not activated');
+            RestoLogUtil::httpError(500, 'User not activated');
         }
 
         return array(

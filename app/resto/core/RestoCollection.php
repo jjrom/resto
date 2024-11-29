@@ -85,21 +85,6 @@
  *          )
  *      ),
  *      @OA\Property(
- *          property="osDescription",
- *          type="object",
- *          required={"en"},
- *          @OA\Property(
- *              property="en",
- *              description="OpenSearch description in English",
- *              ref="#/components/schemas/OpenSearchDescription"
- *          ),
- *          @OA\Property(
- *              property="fr",
- *              description="OpenSearch description in French",
- *              ref="#/components/schemas/OpenSearchDescription"
- *          )
- *      ),
- *      @OA\Property(
  *          property="links",
  *          type="array",
  *          @OA\Items(ref="#/components/schemas/Link")
@@ -135,6 +120,9 @@
  *      ),
  *      example={
  *          "id": "S2",
+ *          "type": "Collection",
+ *          "title": "Level 1C Sentinel-2 images",
+ *          "description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites",
  *          "version": "1.0",
  *          "model": "OpticalModel",
  *          "rights": {
@@ -143,28 +131,6 @@
  *          },
  *          "visibility": 1,
  *          "license": "proprietary",
- *          "osDescription": {
- *              "en": {
- *                  "ShortName": "Sentinel-2",
- *                  "LongName": "Level 1C Sentinel-2 images",
- *                  "Description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites",
- *                  "Tags": "copernicus esa eu msi radiance sentinel sentinel2",
- *                  "Developer": "Jérôme Gasperi",
- *                  "Contact": "jrom@snapplanet.io",
- *                  "Query": "Toulouse",
- *                  "Attribution": "European Union/ESA/Copernicus"
- *              },
- *              "fr": {
- *                  "ShortName": "Sentinel-2",
- *                  "LongName": "Images Sentinel-2 Niveau 1C",
- *                  "Description": "La mission SENTINEL-2 est constituée de deux satellites d'imagerie optique équipés d’un imageur multispectral (MSI) en 13 bandes spectrales avec des résolutions de 10, 20 et 60 mètres et d'une fauchée unique de 290 km de large. La capacité d'observation des deux satellites permet de surveiller l'intégralité des terres émergées du globe tous les 5 jours",
- *                  "Tags": "copernicus esa eu msi radiance sentinel sentinel2",
- *                  "Developer": "Jérôme Gasperi",
- *                  "Contact": "jrom@snapplanet.io",
- *                  "Query": "Toulouse",
- *                  "Attribution": "European Union/ESA/Copernicus"
- *              }
- *          },
  *          "providers": {
  *              {
  *                  "name": "European Union/ESA/Copernicus",
@@ -263,7 +229,7 @@
  *
  *  @OA\Schema(
  *      schema="OutputCollection",
- *      required={"id", "type", "title", "description", "license", "extent", "links"},
+ *      required={"id", "type", "description", "license", "extent", "links"},
  *      @OA\Property(
  *          property="id",
  *          type="string",
@@ -334,11 +300,6 @@
  *                  @OA\Items(
  *                      type="string",
  *                  )
- *              ),
- *              @OA\Property(
- *                  property="osDescription",
- *                  type="object",
- *                  ref="#/components/schemas/OpenSearchDescription"
  *              ),
  *              @OA\Property(
  *                  property="owner",
@@ -449,16 +410,6 @@
  *                  "LandCoverModel",
  *                  "SatelliteModel",
  *                  "OpticalModel"
- *              },
- *              "osDescription": {
- *                  "ShortName": "Sentinel-2",
- *                  "LongName": "Level 1C Sentinel-2 images",
- *                  "Description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites",
- *                  "Tags": "copernicus esa eu msi radiance sentinel sentinel2",
- *                  "Developer": "J\u00e9r\u00f4me Gasperi",
- *                  "Contact": "jrom@snapplanet.io",
- *                  "Query": "Toulouse",
- *                  "Attribution": "European Union/ESA/Copernicus"
  *              },
  *              "owner": "203883411255198721"
  *          },
@@ -579,6 +530,16 @@ class RestoCollection
     public $id =  null;
 
     /*
+     * Collection title
+     */
+    public $title =  null;
+
+    /*
+     * Collection description
+     */
+    public $description =  null;
+
+    /*
      * Data model for this collection
      */
     public $model = null;
@@ -605,7 +566,7 @@ class RestoCollection
     public $aliases = array();
     public $visibility = RestoConstants::GROUP_DEFAULT_ID;
     public $version = '1.0.0';
-    public $license = 'proprietary';
+    public $license = 'other';
     public $links = array();
     public $providers = array();
     public $rights = array();
@@ -628,68 +589,6 @@ class RestoCollection
      * Collection owner
      */
     public $owner;
-
-    /**
-     *
-     * Array of OpenSearch Description parameters per lang
-     *
-     * @OA\Schema(
-     *      schema="OpenSearchDescription",
-     *      description="OpenSearch description of the search engine attached to the collection",
-     *      required={"ShortName", "Description"},
-     *      @OA\Property(
-     *          property="ShortName",
-     *          type="string",
-     *          description="Contains a brief human-readable title that identifies the search engine"
-     *      ),
-     *      @OA\Property(
-     *          property="LongName",
-     *          type="string",
-     *          description="Contains an extended human-readable title that identifies this search engine"
-     *      ),
-     *      @OA\Property(
-     *          property="Description",
-     *          type="string",
-     *          description="Contains a human-readable text description of the collection search engine"
-     *      ),
-     *      @OA\Property(
-     *          property="Tags",
-     *          type="string",
-     *          description="Contains a set of words that are used as keywords to identify and categorize this search content. Tags must be a single word and are delimited by the space character"
-     *      ),
-     *      @OA\Property(
-     *          property="Developer",
-     *          type="string",
-     *          description="Contains the human-readable name or identifier of the creator or maintainer of the description document"
-     *      ),
-     *      @OA\Property(
-     *          property="Contact",
-     *          type="string",
-     *          description="Contains an email address at which the maintainer of the description document can be reached"
-     *      ),
-     *      @OA\Property(
-     *          property="Query",
-     *          type="string",
-     *          description="Defines a search query that can be performed by search clients. Please see the OpenSearch Query element specification for more information"
-     *      ),
-     *      @OA\Property(
-     *          property="Attribution",
-     *          type="string",
-     *          description="Contains a list of all sources or entities that should be credited for the content contained in the search feed"
-     *      ),
-     *      example={
-     *          "ShortName": "S2",
-     *          "LongName": "Sentinel-2",
-     *          "Description": "Sentinel-2 tiles",
-     *          "Tags": "s2 sentinel2",
-     *          "Developer": "Jérôme Gasperi",
-     *          "Contact": "jrom@snapplanet.io",
-     *          "Query": "Toulouse",
-     *          "Attribution": "SnapPlanet - Copyright 2016, All Rights Reserved"
-     *      }
-     * )
-     */
-    public $osDescription = null;
 
     /**
      * Summaries
@@ -751,7 +650,6 @@ class RestoCollection
         'license',
         'links',
         'model',
-        'osDescription',
         'providers',
         'rights',
         'stac_extension',
@@ -798,9 +696,9 @@ class RestoCollection
         
         if ( !$this->isLoaded ) {
             $this->isLoaded = true;
-            $collectionObject = (new CollectionsFunctions($this->context->dbDriver))->getCollectionDescription($this->id);
+            $collectionObject = (new CollectionsFunctions($this->context->dbDriver))->getCollection($this->id);
             if (! isset($collectionObject)) {
-                return RestoLogUtil::httpError(404);
+                RestoLogUtil::httpError(404);
             }
     
             foreach ($collectionObject as $key => $value) {
@@ -829,13 +727,13 @@ class RestoCollection
      * Update collection - collection must be load first !
      *
      * @param array $object
-     * @return This object
+     * @return RestoCollection
      */
     public function update($object)
     {
         // It means that collection is not loaded - so cannot be updated
         if (! isset($this->model)) {
-            return RestoLogUtil::httpError(400, 'Model does not exist');
+            RestoLogUtil::httpError(400, 'Model does not exist');
         }
 
         $this->loadFromJSON($object);
@@ -847,7 +745,7 @@ class RestoCollection
      * Search features within collection
      *
      * @param array $query
-     * @return array (FeatureCollection)
+     * @return RestoFeatureCollection
      */
     public function search($query)
     {
@@ -918,16 +816,14 @@ class RestoCollection
     public function toArray()
     {
 
-        $osDescription = $this->osDescription[$this->context->lang] ?? $this->osDescription['en'];
-
         $collectionArray = array(
             'stac_version' => STACAPI::STAC_VERSION,
             'stac_extensions' => $this->model->stacExtensions,
             'id' => $this->id,
             'type' => 'Collection',
-            'title' => $osDescription['LongName'] ?? $osDescription['ShortName'],
+            'title' => $this->title,
+            'description' => $this->description,
             'version' => $this->version ?? null,
-            'description' => $osDescription['Description'],
             'aliases' => $this->aliases ?? array(),
             'license' => $this->license,
             'extent' => $this->extent,
@@ -960,7 +856,6 @@ class RestoCollection
             'resto:info' => array(
                 'model' => $this->model->getName(),
                 'lineage' => $this->model->getLineage(),
-                'osDescription' => $this->osDescription[$this->context->lang] ?? $this->osDescription['en'],
                 'owner' => $this->owner,
                 'visibility' => $this->visibility
             )
@@ -1007,14 +902,6 @@ class RestoCollection
     }
 
     /**
-     * Output collection description as an XML OpenSearch document
-     */
-    public function getOSDD()
-    {
-        return new OSDD($this->context, $this->model, $this->getSummaries(), $this);
-    }
-
-    /**
      * On which planet this collection applied
      * Based on ssys:target
      */
@@ -1046,18 +933,6 @@ class RestoCollection
          * Check mandatory properties are required
          */
         $this->checkCreationMandatoryProperties($object, $modelName);
-
-        /*
-         * If OpenSearch Description object is not set, create a minimal one from $object['description']
-         */
-        if (!isset($object['osDescription']) || !is_array($object['osDescription']) || !isset($object['osDescription']['en']) || !is_array($object['osDescription']['en'])) {
-            $object['osDescription'] = array(
-                'en' => array(
-                    'ShortName' => $object['title'] ?? $object['id'],
-                    'Description' => $object['description'] ?? ''
-                )
-            );
-        }
         
         /*
          * Default collection visibility is the value of RestoConstants::GROUP_DEFAULT_ID
@@ -1068,7 +943,7 @@ class RestoCollection
         /*
          * Set values
          */
-        foreach (array_values(array('aliases', 'version', 'license', 'links', 'osDescription', 'providers', 'rights', 'assets', 'keywords', 'extent')) as $key) {
+        foreach (array_values(array('title', 'description', 'aliases', 'version', 'license', 'links', 'providers', 'rights', 'assets', 'keywords', 'extent')) as $key) {
             if (isset($object[$key])) {
                 $this->$key = $key === 'links' ? $this->cleanInputLinks($object['links']) : $object[$key];
             }
@@ -1112,6 +987,13 @@ class RestoCollection
         if ( !isset($object['type']) || $object['type'] !== 'Collection') {
             RestoLogUtil::httpError(400, 'Property "type" is mandatory and must be set to *Collection*');
         }
+
+        /*
+         * description is mandatory
+         */
+        if ( !isset($object['description']) ) {
+            RestoLogUtil::httpError(400, 'Property "description" is mandatory');
+        }
          
         /*
          * Set DefaultModel if not set - preseance to input $modelName
@@ -1126,7 +1008,7 @@ class RestoCollection
         if (!class_exists($object['model']) || !is_subclass_of($object['model'], 'RestoModel')) {
             RestoLogUtil::httpError(400, 'Model "' . $object['model'] . '" is not a valid model name');
         }
-        
+
         /*
          * Set collection model
          */

@@ -425,7 +425,7 @@ abstract class RestoModel
         $data = $this->inputToResto($body, $collection, $params);
 
         if (!isset($data) || !in_array($data['type'], array('Feature', 'FeatureCollection'))) {
-            return RestoLogUtil::httpError(400, 'Invalid input type - only "Feature" and "FeatureCollection" are allowed');
+            RestoLogUtil::httpError(400, 'Invalid input type - only "Feature" and "FeatureCollection" are allowed');
         }
 
         // Extent
@@ -868,7 +868,7 @@ abstract class RestoModel
          * Input feature cannot have both an id and a productIdentifier
          */
         if (isset($data['id']) && isset($data['properties']['productIdentifier']) && $data['id'] !== $data['properties']['productIdentifier']) {
-            return RestoLogUtil::httpError(400, 'Invalid input feature - found both "id" and "properties.productIdentifier"');
+            RestoLogUtil::httpError(400, 'Invalid input feature - found both "id" and "properties.productIdentifier"');
         }
 
         $productIdentifier = $data['id'] ?? $data['properties']['productIdentifier'] ?? null;
@@ -887,7 +887,7 @@ abstract class RestoModel
          * (do this before getKeywords to avoid iTag process)
          */
         if (isset($productIdentifier) && (new FeaturesFunctions($collection->context->dbDriver))->featureExists($featureId, $collection->context->dbDriver->targetSchema . '.feature')) {
-            return RestoLogUtil::httpError(409, 'Feature ' . $featureId . ' (with productIdentifier=' . $productIdentifier . ') already in database');
+            RestoLogUtil::httpError(409, 'Feature ' . $featureId . ' (with productIdentifier=' . $productIdentifier . ') already in database');
         }
 
         /*
@@ -1043,11 +1043,11 @@ abstract class RestoModel
             $elements = array_map('trim', explode(',', $value));
             for ($i = count($elements); $i--;) {
                 if (preg_match('\'' . $this->searchFilters[$filterKey]['pattern'] . '\'', $elements[$i]) !== 1) {
-                    return RestoLogUtil::httpError(400, 'Comma separated list of "' . $this->searchFilters[$filterKey]['osKey'] . '" must follow the pattern ' . $this->searchFilters[$filterKey]['pattern']);
+                    RestoLogUtil::httpError(400, 'Comma separated list of "' . $this->searchFilters[$filterKey]['osKey'] . '" must follow the pattern ' . $this->searchFilters[$filterKey]['pattern']);
                 }
             }
         } elseif (preg_match('\'' . $this->searchFilters[$filterKey]['pattern'] . '\'', $value) !== 1) {
-            return RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must follow the pattern ' . $this->searchFilters[$filterKey]['pattern']);
+            RestoLogUtil::httpError(400, 'Value for "' . $this->searchFilters[$filterKey]['osKey'] . '" must follow the pattern ' . $this->searchFilters[$filterKey]['pattern']);
         }
 
         return true;

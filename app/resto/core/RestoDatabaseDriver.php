@@ -154,7 +154,7 @@ class RestoDatabaseDriver
      * Convert database query result into array
      *
      * @param PgSql\Result $results
-     * @return Array
+     * @return array
      */
     public function fetch($results)
     {
@@ -176,7 +176,7 @@ class RestoDatabaseDriver
         $this->dbh = $this->getConnectionFromConfig($this->config);
         
         if (!$this->dbh) {
-            return RestoLogUtil::httpError(500, 'Cannot connect to database ' . ($this->config['dbname'] ?? '???') . '@' . ($this->config['host'] ?? '???') . ':' . ($this->config['port'] ?? '???'));
+            RestoLogUtil::httpError(500, 'Cannot connect to database ' . ($this->config['dbname'] ?? '???') . '@' . ($this->config['host'] ?? '???') . ':' . ($this->config['port'] ?? '???'));
         }
        
         return $this->dbh;

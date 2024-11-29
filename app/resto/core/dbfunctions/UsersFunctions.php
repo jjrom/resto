@@ -249,7 +249,7 @@ class UsersFunctions
         // Search on firstname if length > 3
         if (isset($params['q'])) {
             if (strlen($params['q']) < 3 || strpos($params['q'], '%') !== false) {
-                return RestoLogUtil::httpError(400);
+                RestoLogUtil::httpError(400);
             }
             $where[] = 'name ILIKE \'%' . pg_escape_string($this->dbDriver->getConnection(), $params['q']). '%\'';
         }
@@ -581,6 +581,6 @@ class UsersFunctions
             }
         }
 
-        return RestoLogUtil::httpError(400, 'Invalid picture');
+        RestoLogUtil::httpError(400, 'Invalid picture');
     }
 }

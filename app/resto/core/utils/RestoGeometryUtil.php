@@ -342,7 +342,7 @@ class RestoGeometryUtil
         }
         
         if (!isset($geostring) || !RestoGeometryUtil::isValidWKT($geostring)) {
-            return RestoLogUtil::httpError(400, 'Invalid input geometry for intersects - should be a valid GeoJSON or Well Known Text standard (WKT)');
+            RestoLogUtil::httpError(400, 'Invalid input geometry for intersects - should be a valid GeoJSON or Well Known Text standard (WKT)');
         }
         
         return $geostring;
