@@ -108,12 +108,12 @@ class CatalogsFunctions
      *
      * @param string $id
      */
-    public function getCatalog($catalogId, $baseUrl)
+    public function getCatalog($catalogId)
     {
     
         $catalogs = $this->getCatalogs(array(
             'id' => $catalogId
-        ), $baseUrl, false);
+        ), false);
 
         if ( isset($catalogs) && count($catalogs) === 1) {
             return $catalogs[0];
@@ -127,12 +127,11 @@ class CatalogsFunctions
      * Get catalogs (and eventually all its childs if id is set)
      *
      * @param array $params
-     * @param string $baseUrl
      * @param boolean $withChilds
      */
-    public function getCatalogs($params, $baseUrl, $withChilds)
+    public function getCatalogs($params, $withChilds)
     {
-
+        
         $catalogs = array();
         $where = array();
         $values = array();
@@ -176,7 +175,7 @@ class CatalogsFunctions
         /*
          * Recursively add child collection counters to catalog counters
          */
-        return !empty($params['noCount']) ? $catalogs : $this->onTheFlyUpdateCountersWithCollection($catalogs, $baseUrl);
+        return !empty($params['noCount']) ? $catalogs : $this->onTheFlyUpdateCountersWithCollection($catalogs);
     
     }
 
@@ -347,7 +346,7 @@ class CatalogsFunctions
         );
 
         $set = array();
-        $cleanLinks = $this->getCleanLinks($catalog, $userid, $context);
+        $cleanLinks = $this->getCleanLinks($catalog, $context);
         
         if ( array_key_exists('links', $cleanLinks) ) {
             $catalog['links'] = $cleanLinks['links'];
@@ -539,22 +538,32 @@ class CatalogsFunctions
             $catalog['id'] = rtrim($catalog['id'], '/');
         }
        
-        $cleanLinks = $this->getCleanLinks($catalog, $userid, $context);
-
+        $cleanLinks = $this->getCleanLinks($catalog, $context);
+       
+        // For collection, do not store properties since it's a duplication of properties within collection table
         $properties = null;
-        foreach (array_keys($catalog) as $key ) {
-            if ( !in_array($key, CatalogsFunctions::CATALOG_PROPERTIES) ){
-                if ( !isset($properties) ) {
-                    $properties = array();
+        if ( isset($catalog['type']) && $catalog['type'] === 'Collection' ) {
+            $catalog = array_merge($catalog, [
+                'title' => null,
+                'description' => null,
+                'rtype' => 'collection'
+            ]);
+        }
+        else {
+            foreach (array_keys($catalog) as $key ) {
+                if ( !in_array($key, CatalogsFunctions::CATALOG_PROPERTIES) ){
+                    if ( !isset($properties) ) {
+                        $properties = array();
+                    }
+                    $properties[$key] = $catalog[$key];
                 }
-                $properties[$key] = $catalog[$key];
             }
         }
-
+        
         $insert = '(id, title, description, level, counters, owner, visibility, rtype, properties, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,now()';
         $values = array(
             $catalog['id'],
-            $catalog['title'] ?? $catalog['id'],
+            $catalog['title'] ?? null,
             $catalog['description'] ?? null,
             isset($catalog['id']) ? count(explode('/', $catalog['id'])) : 0,
             // If no input counter is specified - set to 1
@@ -692,18 +701,17 @@ class CatalogsFunctions
      *      )
      * 
      * @param array $types
-     * @param string $baseUrl
      * 
      * @return array
      */
-    public function getSummaries($types, $baseUrl)
+    public function getSummaries($types)
     {
         
         $summaries = array();
 
         $catalogs = $this->getCatalogs(array(
             'where' => !empty($types) ? 'rtype IN (\'' . join('\',\'', $types) . '\')' : 'rtype NOT IN (\'' . join('\',\'', CatalogsFunctions::TOPONYM_TYPES) . '\')'
-        ), $baseUrl, false);
+        ), false);
         
         $counter = 0;
 
@@ -813,12 +821,11 @@ class CatalogsFunctions
      *  - keep non first level child links
      * 
      * @param array $catalog
-     * @param string userid
      * @param RestoContext $context
      * @return array
      */
-    private function getCleanLinks($catalog, $userid, $context) {
-        
+    private function getCleanLinks($catalog, $context) {
+
         $output = array(
             'childIds' => array(),
             'internalItems' => array()
@@ -901,7 +908,6 @@ class CatalogsFunctions
                      * Store local collection within links
                      */
                     if (str_starts_with($link['href'], $context->core['baseUrl'] . RestoRouter::ROUTE_TO_COLLECTIONS )) {
-                        $output['links'][] = $link;
                         continue;   
                     }
 
@@ -912,7 +918,7 @@ class CatalogsFunctions
                     return RestoLogUtil::httpError(400, 'One link child has an external href i.e. not starting with ' . $context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS);    
                 }
 
-                $childCatalog = $this->getCatalog($exploded[1], $context->core['baseUrl']);
+                $childCatalog = $this->getCatalog($exploded[1]);
                 if ( $childCatalog === null ) {
                     return RestoLogUtil::httpError(400, 'Catalog child ' . $link['href'] . ' does not exist');    
                 }
@@ -930,32 +936,42 @@ class CatalogsFunctions
      * to the input catalog
      * 
      * @param array $catalogs
-     * @param string $baseUrl
      */
-    private function onTheFlyUpdateCountersWithCollection($catalogs, $baseUrl)
+    private function onTheFlyUpdateCountersWithCollection($catalogs)
     {
-
-        $collections = array();
-
-        // First get collections counts
-        try {
-            $results = $this->dbDriver->query('SELECT id, counters, title, description FROM ' . $this->dbDriver->targetSchema . '.catalog  WHERE id LIKE \'collections/%\'');
-            while ($result = pg_fetch_assoc($results)) {
-                $collections[$result['id']] = array(
-                    'counters' => json_decode($result['counters'], true),
-                    'title' => $result['title'] ?? null,
-                    'description' => $result['description'] ?? null,
-                    
-                );
+        
+        $collectionsList = [];
+        for ($i = 0, $ii = count($catalogs); $i < $ii; $i++){
+            if ($catalogs[$i]['rtype'] === 'collection') {
+                $collectionsList[] = '\'collections/' . substr($catalogs[$i]['id'], strrpos($catalogs[$i]['id'], '/') + 1) . '\'';
             }
-        }  catch (Exception $e) {
-            RestoLogUtil::httpError(500, $e->getMessage());
         }
 
+        // First get collections counts
+        if ( !empty($collectionsList) ) {
+            try {
+                $results = $this->dbDriver->query('SELECT id, counters, title, description FROM ' . $this->dbDriver->targetSchema . '.catalog  WHERE id IN (' . join(',', $collectionsList) .  ')');
+                while ($result = pg_fetch_assoc($results)) {
+                    for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
+                        if ($catalogs[$i]['rtype'] === 'collection' && $result['id'] === 'collections/' . substr($catalogs[$i]['id'], strrpos($catalogs[$i]['id'], '/') + 1)) {
+                            $catalogs[$i] = array_merge($catalogs[$i], [
+                                'counters' => json_decode($result['counters'], true),
+                                'title' => $result['title'] ?? null,
+                                'description' => $result['description'] ?? null
+                            ]);
+                            break;
+                        }
+                    }
+                }
+            }  catch (Exception $e) {
+                RestoLogUtil::httpError(500, $e->getMessage());
+            }
+        }
+        
         $catalogsUpdated = array();
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++)
         {   
-            $catalogsUpdated[] = $this->computeCountersSum($catalogs[$i], $catalogs, $collections, $baseUrl);
+            $catalogsUpdated[] = $this->computeCountersSum($catalogs[$i], $catalogs);
         }
         
         return $catalogsUpdated;
@@ -965,10 +981,8 @@ class CatalogsFunctions
      * Calculate the total counter for a given path and its children
      * 
      * @param array $parentCatalog
-     * @param array $catalogs
-     * @param array $collections
      */
-    private function computeCountersSum($parentCatalog, $catalogs, $collections, $baseUrl) {
+    private function computeCountersSum($parentCatalog, $catalogs) {
 
         $parentCatalogId = $parentCatalog['id'] . '/';
 
@@ -983,34 +997,6 @@ class CatalogsFunctions
             }
 
             $parentCatalog['counters']['total'] = $parentCatalog['counters']['total'] + $catalog['counters']['total'];
-
-            // Process collection
-            if ( isset($catalog['links']) ) {
-                for ($i = 0, $ii = count($catalog['links']); $i < $ii; $i++) {
-                    if ($catalog['links'][$i]['rel'] === 'child') {
-                        $exploded = explode('/', substr($catalog['links'][$i]['href'], strlen($baseUrl . RestoRouter::ROUTE_TO_COLLECTIONS) + 1));
-                        if ( count($exploded) === 1 && isset($collections[$exploded[0]]) ) {
-                            $total = $total + $collections[$exploded[0]]['counters']['total'];
-                            $parentCatalog['counters']['collections'][$exploded[0]] = $collections[$exploded[0]]['counters']['total'];
-
-                            for ($j = 0, $jj = count($parentCatalog['links']); $j < $jj; $j++) {
-                                if ($parentCatalog['links'][$j]['rel'] === 'child') {
-                                    $exploded2 = explode('/', substr($parentCatalog['links'][$j]['href'], strlen($baseUrl . RestoRouter::ROUTE_TO_COLLECTIONS) + 1));
-                                    if (count($exploded2) === 1 && $exploded2[0] === $exploded[0]) {
-                                        $parentCatalog['links'][$j]['matched'] = $parentCatalog['counters']['collections'][$exploded[0]];
-                                        if ( isset($collections[$exploded[0]]['title']) ) {
-                                            $parentCatalog['links'][$i]['title'] = $collections[$exploded[0]]['title'];
-                                        }   
-                                        if ( isset($collections[$exploded[0]]['description']) ) {
-                                            $parentCatalog['links'][$i]['description'] = $collections[$exploded[0]]['description'];
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } 
-            }
 
         }
 
