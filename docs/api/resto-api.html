@@ -1496,7 +1496,7 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
 	  	<ul class="toc-list-h1">
         
           <li>
-            <a href="#welcome-to-resto" class="toc-h1 toc-link" data-title="Welcome to resto v9.0.0-RC9">Welcome to resto v9.0.0-RC9</a>
+            <a href="#welcome-to-resto" class="toc-h1 toc-link" data-title="Welcome to resto v9.1.0">Welcome to resto v9.1.0</a>
             
           </li>
         
@@ -1537,16 +1537,6 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
                 
                   <li>
                     <a href="#collectionsapi--insertfeatures" class="toc-h2 toc-link" data-title="CollectionsAPI::insertFeatures">CollectionsAPI::insertFeatures</a>
-                    
-                  </li>
-                
-                  <li>
-                    <a href="#servicesapi--getosddforcollection" class="toc-h2 toc-link" data-title="ServicesAPI::getOSDDForCollection">ServicesAPI::getOSDDForCollection</a>
-                    
-                  </li>
-                
-                  <li>
-                    <a href="#servicesapi--getosdd" class="toc-h2 toc-link" data-title="ServicesAPI::getOSDD">ServicesAPI::getOSDD</a>
                     
                   </li>
                 
@@ -1832,11 +1822,6 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
                   </li>
                 
                   <li>
-                    <a href="#tocsopensearchdescription" class="toc-h2 toc-link" data-title="OpenSearchDescription">OpenSearchDescription</a>
-                    
-                  </li>
-                
-                  <li>
                     <a href="#tocsprovider" class="toc-h2 toc-link" data-title="Provider">Provider</a>
                     
                   </li>
@@ -1951,7 +1936,7 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
     <div class="page-wrapper">
       <div class="dark-box"></div>
       <div class="content">
-        <h1 id="welcome-to-resto">Welcome to resto v9.0.0-RC9</h1>
+        <h1 id="welcome-to-resto">Welcome to resto v9.1.0</h1>
 <blockquote>
 <p>Scroll down for code samples, example requests and responses. Select a language for code samples from the tabs above or the mobile navigation menu.</p>
 </blockquote>
@@ -1960,7 +1945,6 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
 <ul>
 <li><a href="http://127.0.0.1:5252">http://127.0.0.1:5252</a></li>
 </ul>
-<p>Email: <a href="mailto:jerome.gasperi@gmail.com">Support</a></p>
 <h1 id="authentication">Authentication</h1>
 <ul>
 <li>
@@ -2042,18 +2026,6 @@ curl -X GET http://127.0.0.1:5252/collections \
       <span class="hljs-attr">"trs"</span>: <span class="hljs-string">"http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"</span>
     }
   },
-  <span class="hljs-attr">"resto:info"</span>: {
-    <span class="hljs-attr">"osDescription"</span>: {
-      <span class="hljs-attr">"ShortName"</span>: <span class="hljs-string">"resto"</span>,
-      <span class="hljs-attr">"LongName"</span>: <span class="hljs-string">"resto search service"</span>,
-      <span class="hljs-attr">"Description"</span>: <span class="hljs-string">"Search on all collections"</span>,
-      <span class="hljs-attr">"Tags"</span>: <span class="hljs-string">"resto"</span>,
-      <span class="hljs-attr">"Developer"</span>: <span class="hljs-string">"J\\u00e9r\\u00f4me Gasperi"</span>,
-      <span class="hljs-attr">"Contact"</span>: <span class="hljs-string">"jerome.gasperi@gmail.com"</span>,
-      <span class="hljs-attr">"Query"</span>: <span class="hljs-string">"europe 2015"</span>,
-      <span class="hljs-attr">"Attribution"</span>: <span class="hljs-string">"Copyright 2018, All Rights Reserved"</span>
-    }
-  },
   <span class="hljs-attr">"collections"</span>: [
     {
       <span class="hljs-attr">"id"</span>: <span class="hljs-string">"L8"</span>,
@@ -2107,16 +2079,6 @@ curl -X GET http://127.0.0.1:5252/collections \
           <span class="hljs-string">"SatelliteModel"</span>,
           <span class="hljs-string">"OpticalModel"</span>
         ],
-        <span class="hljs-attr">"osDescription"</span>: {
-          <span class="hljs-attr">"ShortName"</span>: <span class="hljs-string">"Landsat-8"</span>,
-          <span class="hljs-attr">"LongName"</span>: <span class="hljs-string">"Images Landsat-8 niveau 1C"</span>,
-          <span class="hljs-attr">"Description"</span>: <span class="hljs-string">"Landsat represents the world's longest continuously acquired collection of space-based moderate-resolution land remote sensing data. Four decades of imagery provides a unique resource for those who work in agriculture, geology, forestry, regional planning, education, mapping, and global change research. Landsat images are also invaluable for emergency response and disaster relief"</span>,
-          <span class="hljs-attr">"Tags"</span>: <span class="hljs-string">"landsat level1C USGS"</span>,
-          <span class="hljs-attr">"Developer"</span>: <span class="hljs-string">"J\\u00e9r\\u00f4me Gasperi"</span>,
-          <span class="hljs-attr">"Contact"</span>: <span class="hljs-string">"jrom@snapplanet.io"</span>,
-          <span class="hljs-attr">"Query"</span>: <span class="hljs-string">"USA 2019"</span>,
-          <span class="hljs-attr">"Attribution"</span>: <span class="hljs-string">"USGS/NASA Landsat"</span>
-        },
         <span class="hljs-attr">"owner"</span>: <span class="hljs-string">"203883411255198721"</span>
       },
       <span class="hljs-attr">"summaries"</span>: {
@@ -2164,7 +2126,7 @@ curl -X GET http://127.0.0.1:5252/collections \
 <tr>
 <td>200</td>
 <td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.1">OK</a></td>
-<td>List of all collection descriptions</td>
+<td>List of all collections</td>
 <td>Inline</td>
 </tr>
 </tbody>
@@ -2204,13 +2166,6 @@ curl -X GET http://127.0.0.1:5252/collections \
 <td>The temporal extents of the Collection</td>
 </tr>
 <tr>
-<td>» resto:info</td>
-<td>object</td>
-<td>false</td>
-<td>none</td>
-<td>resto additional information</td>
-</tr>
-<tr>
 <td>» collections</td>
 <td>[<a href="#schemaoutputcollection">OutputCollection</a>]</td>
 <td>false</td>
@@ -2234,7 +2189,7 @@ curl -X GET http://127.0.0.1:5252/collections \
 <tr>
 <td>»» title</td>
 <td>string</td>
-<td>true</td>
+<td>false</td>
 <td>none</td>
 <td>A short descriptive one-line title for the collection.</td>
 </tr>
@@ -2429,6 +2384,9 @@ curl -X POST http://127.0.0.1:5252/collections \
 </blockquote>
 <pre class="highlight tab tab-json"><code>{
   <span class="hljs-attr">"id"</span>: <span class="hljs-string">"S2"</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"Collection"</span>,
+  <span class="hljs-attr">"title"</span>: <span class="hljs-string">"Level 1C Sentinel-2 images"</span>,
+  <span class="hljs-attr">"description"</span>: <span class="hljs-string">"The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites"</span>,
   <span class="hljs-attr">"version"</span>: <span class="hljs-string">"1.0"</span>,
   <span class="hljs-attr">"model"</span>: <span class="hljs-string">"OpticalModel"</span>,
   <span class="hljs-attr">"rights"</span>: {
@@ -2437,28 +2395,6 @@ curl -X POST http://127.0.0.1:5252/collections \
   },
   <span class="hljs-attr">"visibility"</span>: <span class="hljs-number">1</span>,
   <span class="hljs-attr">"license"</span>: <span class="hljs-string">"proprietary"</span>,
-  <span class="hljs-attr">"osDescription"</span>: {
-    <span class="hljs-attr">"en"</span>: {
-      <span class="hljs-attr">"ShortName"</span>: <span class="hljs-string">"Sentinel-2"</span>,
-      <span class="hljs-attr">"LongName"</span>: <span class="hljs-string">"Level 1C Sentinel-2 images"</span>,
-      <span class="hljs-attr">"Description"</span>: <span class="hljs-string">"The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites"</span>,
-      <span class="hljs-attr">"Tags"</span>: <span class="hljs-string">"copernicus esa eu msi radiance sentinel sentinel2"</span>,
-      <span class="hljs-attr">"Developer"</span>: <span class="hljs-string">"Jérôme Gasperi"</span>,
-      <span class="hljs-attr">"Contact"</span>: <span class="hljs-string">"jrom@snapplanet.io"</span>,
-      <span class="hljs-attr">"Query"</span>: <span class="hljs-string">"Toulouse"</span>,
-      <span class="hljs-attr">"Attribution"</span>: <span class="hljs-string">"European Union/ESA/Copernicus"</span>
-    },
-    <span class="hljs-attr">"fr"</span>: {
-      <span class="hljs-attr">"ShortName"</span>: <span class="hljs-string">"Sentinel-2"</span>,
-      <span class="hljs-attr">"LongName"</span>: <span class="hljs-string">"Images Sentinel-2 Niveau 1C"</span>,
-      <span class="hljs-attr">"Description"</span>: <span class="hljs-string">"La mission SENTINEL-2 est constituée de deux satellites d'imagerie optique équipés d’un imageur multispectral (MSI) en 13 bandes spectrales avec des résolutions de 10, 20 et 60 mètres et d'une fauchée unique de 290 km de large. La capacité d'observation des deux satellites permet de surveiller l'intégralité des terres émergées du globe tous les 5 jours"</span>,
-      <span class="hljs-attr">"Tags"</span>: <span class="hljs-string">"copernicus esa eu msi radiance sentinel sentinel2"</span>,
-      <span class="hljs-attr">"Developer"</span>: <span class="hljs-string">"Jérôme Gasperi"</span>,
-      <span class="hljs-attr">"Contact"</span>: <span class="hljs-string">"jrom@snapplanet.io"</span>,
-      <span class="hljs-attr">"Query"</span>: <span class="hljs-string">"Toulouse"</span>,
-      <span class="hljs-attr">"Attribution"</span>: <span class="hljs-string">"European Union/ESA/Copernicus"</span>
-    }
-  },
   <span class="hljs-attr">"providers"</span>: [
     {
       <span class="hljs-attr">"name"</span>: <span class="hljs-string">"European Union/ESA/Copernicus"</span>,
@@ -2683,7 +2619,7 @@ curl -X GET http://127.0.0.1:5252/collections/{collectionId} \
 </code></pre>
 <p><code>GET /collections/{collectionId}</code></p>
 <p><em>Get collection</em></p>
-<p>Returns collection description including statistics (i.e. number of products, etc.)</p>
+<p>Returns collection including statistics (i.e. number of products, etc.)</p>
 <h3 id="collectionsapi--getcollection-parameters">Parameters</h3>
 <table>
 <thead>
@@ -2772,16 +2708,6 @@ curl -X GET http://127.0.0.1:5252/collections/{collectionId} \
       <span class="hljs-string">"SatelliteModel"</span>,
       <span class="hljs-string">"OpticalModel"</span>
     ],
-    <span class="hljs-attr">"osDescription"</span>: {
-      <span class="hljs-attr">"ShortName"</span>: <span class="hljs-string">"Sentinel-2"</span>,
-      <span class="hljs-attr">"LongName"</span>: <span class="hljs-string">"Level 1C Sentinel-2 images"</span>,
-      <span class="hljs-attr">"Description"</span>: <span class="hljs-string">"The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites"</span>,
-      <span class="hljs-attr">"Tags"</span>: <span class="hljs-string">"copernicus esa eu msi radiance sentinel sentinel2"</span>,
-      <span class="hljs-attr">"Developer"</span>: <span class="hljs-string">"J\\u00e9r\\u00f4me Gasperi"</span>,
-      <span class="hljs-attr">"Contact"</span>: <span class="hljs-string">"jrom@snapplanet.io"</span>,
-      <span class="hljs-attr">"Query"</span>: <span class="hljs-string">"Toulouse"</span>,
-      <span class="hljs-attr">"Attribution"</span>: <span class="hljs-string">"European Union/ESA/Copernicus"</span>
-    },
     <span class="hljs-attr">"owner"</span>: <span class="hljs-string">"203883411255198721"</span>
   },
   <span class="hljs-attr">"providers"</span>: [
@@ -2906,7 +2832,7 @@ curl -X GET http://127.0.0.1:5252/collections/{collectionId} \
 <tr>
 <td>200</td>
 <td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.1">OK</a></td>
-<td>Collection description</td>
+<td>Collection</td>
 <td><a href="#schemaoutputcollection">OutputCollection</a></td>
 </tr>
 <tr>
@@ -2940,6 +2866,9 @@ curl -X PUT http://127.0.0.1:5252/collections/{collectionId} \
 </blockquote>
 <pre class="highlight tab tab-json"><code>{
   <span class="hljs-attr">"id"</span>: <span class="hljs-string">"S2"</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"Collection"</span>,
+  <span class="hljs-attr">"title"</span>: <span class="hljs-string">"Level 1C Sentinel-2 images"</span>,
+  <span class="hljs-attr">"description"</span>: <span class="hljs-string">"The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites"</span>,
   <span class="hljs-attr">"version"</span>: <span class="hljs-string">"1.0"</span>,
   <span class="hljs-attr">"model"</span>: <span class="hljs-string">"OpticalModel"</span>,
   <span class="hljs-attr">"rights"</span>: {
@@ -2948,28 +2877,6 @@ curl -X PUT http://127.0.0.1:5252/collections/{collectionId} \
   },
   <span class="hljs-attr">"visibility"</span>: <span class="hljs-number">1</span>,
   <span class="hljs-attr">"license"</span>: <span class="hljs-string">"proprietary"</span>,
-  <span class="hljs-attr">"osDescription"</span>: {
-    <span class="hljs-attr">"en"</span>: {
-      <span class="hljs-attr">"ShortName"</span>: <span class="hljs-string">"Sentinel-2"</span>,
-      <span class="hljs-attr">"LongName"</span>: <span class="hljs-string">"Level 1C Sentinel-2 images"</span>,
-      <span class="hljs-attr">"Description"</span>: <span class="hljs-string">"The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites"</span>,
-      <span class="hljs-attr">"Tags"</span>: <span class="hljs-string">"copernicus esa eu msi radiance sentinel sentinel2"</span>,
-      <span class="hljs-attr">"Developer"</span>: <span class="hljs-string">"Jérôme Gasperi"</span>,
-      <span class="hljs-attr">"Contact"</span>: <span class="hljs-string">"jrom@snapplanet.io"</span>,
-      <span class="hljs-attr">"Query"</span>: <span class="hljs-string">"Toulouse"</span>,
-      <span class="hljs-attr">"Attribution"</span>: <span class="hljs-string">"European Union/ESA/Copernicus"</span>
-    },
-    <span class="hljs-attr">"fr"</span>: {
-      <span class="hljs-attr">"ShortName"</span>: <span class="hljs-string">"Sentinel-2"</span>,
-      <span class="hljs-attr">"LongName"</span>: <span class="hljs-string">"Images Sentinel-2 Niveau 1C"</span>,
-      <span class="hljs-attr">"Description"</span>: <span class="hljs-string">"La mission SENTINEL-2 est constituée de deux satellites d'imagerie optique équipés d’un imageur multispectral (MSI) en 13 bandes spectrales avec des résolutions de 10, 20 et 60 mètres et d'une fauchée unique de 290 km de large. La capacité d'observation des deux satellites permet de surveiller l'intégralité des terres émergées du globe tous les 5 jours"</span>,
-      <span class="hljs-attr">"Tags"</span>: <span class="hljs-string">"copernicus esa eu msi radiance sentinel sentinel2"</span>,
-      <span class="hljs-attr">"Developer"</span>: <span class="hljs-string">"Jérôme Gasperi"</span>,
-      <span class="hljs-attr">"Contact"</span>: <span class="hljs-string">"jrom@snapplanet.io"</span>,
-      <span class="hljs-attr">"Query"</span>: <span class="hljs-string">"Toulouse"</span>,
-      <span class="hljs-attr">"Attribution"</span>: <span class="hljs-string">"European Union/ESA/Copernicus"</span>
-    }
-  },
   <span class="hljs-attr">"providers"</span>: [
     {
       <span class="hljs-attr">"name"</span>: <span class="hljs-string">"European Union/ESA/Copernicus"</span>,
@@ -3608,128 +3515,6 @@ curl -X POST http://127.0.0.1:5252/collections/{collectionId}/items \
 To perform this operation, you must be authenticated by means of one of the following methods:
 basicAuth & bearerAuth & queryAuth
 </aside>
-<h2 id="servicesapi--getosddforcollection">ServicesAPI::getOSDDForCollection</h2>
-<p><a id="opIdServicesAPI::getOSDDForCollection"></a></p>
-<blockquote>
-<p>Code samples</p>
-</blockquote>
-<pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X GET http://127.0.0.1:5252/services/osdd/{collectionId}
-
-</code></pre>
-<p><code>GET /services/osdd/{collectionId}</code></p>
-<p><em>Get OpenSearch Description Document for a collection</em></p>
-<p>Returns the OpenSearch Document Description (OSDD) for the search service of collection {collectionId}</p>
-<h3 id="servicesapi--getosddforcollection-parameters">Parameters</h3>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>In</th>
-<th>Type</th>
-<th>Required</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>collectionId</td>
-<td>path</td>
-<td>string</td>
-<td>true</td>
-<td>Collection identifier</td>
-</tr>
-</tbody>
-</table>
-<h3 id="servicesapi--getosddforcollection-responses">Responses</h3>
-<table>
-<thead>
-<tr>
-<th>Status</th>
-<th>Meaning</th>
-<th>Description</th>
-<th>Schema</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>200</td>
-<td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.1">OK</a></td>
-<td>OpenSearch Document Description (OSDD)</td>
-<td>None</td>
-</tr>
-<tr>
-<td>404</td>
-<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.4">Not Found</a></td>
-<td>Collection not found</td>
-<td>None</td>
-</tr>
-</tbody>
-</table>
-<aside class="success">
-This operation does not require authentication
-</aside>
-<h2 id="servicesapi--getosdd">ServicesAPI::getOSDD</h2>
-<p><a id="opIdServicesAPI::getOSDD"></a></p>
-<blockquote>
-<p>Code samples</p>
-</blockquote>
-<pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X GET http://127.0.0.1:5252/services/osdd
-
-</code></pre>
-<p><code>GET /services/osdd</code></p>
-<p><em>Get OpenSearch Description Document for all collections</em></p>
-<p>Returns the OpenSearch Document Description (OSDD) for the search service on all collections</p>
-<h3 id="servicesapi--getosdd-parameters">Parameters</h3>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>In</th>
-<th>Type</th>
-<th>Required</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>model</td>
-<td>query</td>
-<td>string</td>
-<td>false</td>
-<td>Limit description to collections belonging to <em>model</em> - e.g. <em>model=SatelliteModel</em> will search in all satellite collections</td>
-</tr>
-</tbody>
-</table>
-<h3 id="servicesapi--getosdd-responses">Responses</h3>
-<table>
-<thead>
-<tr>
-<th>Status</th>
-<th>Meaning</th>
-<th>Description</th>
-<th>Schema</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>200</td>
-<td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.1">OK</a></td>
-<td>OpenSearch Document Description (OSDD)</td>
-<td>None</td>
-</tr>
-<tr>
-<td>404</td>
-<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.4">Not Found</a></td>
-<td>Collection not found</td>
-<td>None</td>
-</tr>
-</tbody>
-</table>
-<aside class="success">
-This operation does not require authentication
-</aside>
 <h1 id="welcome-to-resto-feature">Feature</h1>
 <p>A feature is an application object that represents a physical entity e.g. a building, a river, a person, a coverage taken by a a satellite. Practically, a resto feature is defined by a set of metadata including a geographical location (i.e. a (Multi)Point, a (Multi)LineString or a (Multi)Polygon). A feature always belongs to one and only one collection.</p>
 <h2 id="featuresapi--getfeaturesincollection">FeaturesAPI::getFeaturesInCollection</h2>
@@ -4165,11 +3950,6 @@ curl -X GET http://127.0.0.1:5252/collections/{collectionId}/items \
       <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"self"</span>,
       <span class="hljs-attr">"type"</span>: <span class="hljs-string">"application/json"</span>,
       <span class="hljs-attr">"href"</span>: <span class="hljs-string">"http://127.0.0.1:5252/stac/search.json?"</span>
-    },
-    {
-      <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"search"</span>,
-      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"application/opensearchdescription+xml"</span>,
-      <span class="hljs-attr">"href"</span>: <span class="hljs-string">"http://127.0.0.1:5252/services/osdd"</span>
     },
     {
       <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"next"</span>,
@@ -5407,11 +5187,6 @@ curl -X GET http://127.0.0.1:5252/search \
       <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"self"</span>,
       <span class="hljs-attr">"type"</span>: <span class="hljs-string">"application/json"</span>,
       <span class="hljs-attr">"href"</span>: <span class="hljs-string">"http://127.0.0.1:5252/stac/search.json?"</span>
-    },
-    {
-      <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"search"</span>,
-      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"application/opensearchdescription+xml"</span>,
-      <span class="hljs-attr">"href"</span>: <span class="hljs-string">"http://127.0.0.1:5252/services/osdd"</span>
     },
     {
       <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"next"</span>,
@@ -8564,6 +8339,34 @@ curl -X GET http://127.0.0.1:5252/catalogs/* \
 <p><code>GET /catalogs/*</code></p>
 <p><em>Get STAC catalogs</em></p>
 <p>Get STAC catalogs</p>
+<h3 id="stacapi--getcatalogs-parameters">Parameters</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>In</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>q</td>
+<td>query</td>
+<td>string</td>
+<td>false</td>
+<td>Filter on catalog id and description</td>
+</tr>
+<tr>
+<td>_nocount</td>
+<td>query</td>
+<td>boolean</td>
+<td>false</td>
+<td>Set to 1 to not count number of items below catalogs. Speed up <em>a lot</em> the query so should be used when using this for suggest (see rocket catalog search for instance)</td>
+</tr>
+</tbody>
+</table>
 <blockquote>
 <p>Example responses</p>
 </blockquote>
@@ -9947,6 +9750,9 @@ This operation does not require authentication
 <p><a id="schemainputcollection"></a></p>
 <pre class="highlight tab tab-json"><code>{
   <span class="hljs-attr">"id"</span>: <span class="hljs-string">"S2"</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"Collection"</span>,
+  <span class="hljs-attr">"title"</span>: <span class="hljs-string">"Level 1C Sentinel-2 images"</span>,
+  <span class="hljs-attr">"description"</span>: <span class="hljs-string">"The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites"</span>,
   <span class="hljs-attr">"version"</span>: <span class="hljs-string">"1.0"</span>,
   <span class="hljs-attr">"model"</span>: <span class="hljs-string">"OpticalModel"</span>,
   <span class="hljs-attr">"rights"</span>: {
@@ -9955,28 +9761,6 @@ This operation does not require authentication
   },
   <span class="hljs-attr">"visibility"</span>: <span class="hljs-number">1</span>,
   <span class="hljs-attr">"license"</span>: <span class="hljs-string">"proprietary"</span>,
-  <span class="hljs-attr">"osDescription"</span>: {
-    <span class="hljs-attr">"en"</span>: {
-      <span class="hljs-attr">"ShortName"</span>: <span class="hljs-string">"Sentinel-2"</span>,
-      <span class="hljs-attr">"LongName"</span>: <span class="hljs-string">"Level 1C Sentinel-2 images"</span>,
-      <span class="hljs-attr">"Description"</span>: <span class="hljs-string">"The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites"</span>,
-      <span class="hljs-attr">"Tags"</span>: <span class="hljs-string">"copernicus esa eu msi radiance sentinel sentinel2"</span>,
-      <span class="hljs-attr">"Developer"</span>: <span class="hljs-string">"Jérôme Gasperi"</span>,
-      <span class="hljs-attr">"Contact"</span>: <span class="hljs-string">"jrom@snapplanet.io"</span>,
-      <span class="hljs-attr">"Query"</span>: <span class="hljs-string">"Toulouse"</span>,
-      <span class="hljs-attr">"Attribution"</span>: <span class="hljs-string">"European Union/ESA/Copernicus"</span>
-    },
-    <span class="hljs-attr">"fr"</span>: {
-      <span class="hljs-attr">"ShortName"</span>: <span class="hljs-string">"Sentinel-2"</span>,
-      <span class="hljs-attr">"LongName"</span>: <span class="hljs-string">"Images Sentinel-2 Niveau 1C"</span>,
-      <span class="hljs-attr">"Description"</span>: <span class="hljs-string">"La mission SENTINEL-2 est constituée de deux satellites d'imagerie optique équipés d’un imageur multispectral (MSI) en 13 bandes spectrales avec des résolutions de 10, 20 et 60 mètres et d'une fauchée unique de 290 km de large. La capacité d'observation des deux satellites permet de surveiller l'intégralité des terres émergées du globe tous les 5 jours"</span>,
-      <span class="hljs-attr">"Tags"</span>: <span class="hljs-string">"copernicus esa eu msi radiance sentinel sentinel2"</span>,
-      <span class="hljs-attr">"Developer"</span>: <span class="hljs-string">"Jérôme Gasperi"</span>,
-      <span class="hljs-attr">"Contact"</span>: <span class="hljs-string">"jrom@snapplanet.io"</span>,
-      <span class="hljs-attr">"Query"</span>: <span class="hljs-string">"Toulouse"</span>,
-      <span class="hljs-attr">"Attribution"</span>: <span class="hljs-string">"European Union/ESA/Copernicus"</span>
-    }
-  },
   <span class="hljs-attr">"providers"</span>: [
     {
       <span class="hljs-attr">"name"</span>: <span class="hljs-string">"European Union/ESA/Copernicus"</span>,
@@ -10163,27 +9947,6 @@ This operation does not require authentication
 <td>Features visualization rights (1 can be visualized; 0 cannot be visualized)</td>
 </tr>
 <tr>
-<td>osDescription</td>
-<td>object</td>
-<td>false</td>
-<td>none</td>
-<td>resto collection</td>
-</tr>
-<tr>
-<td>» en</td>
-<td><a href="#schemaopensearchdescription">OpenSearchDescription</a></td>
-<td>true</td>
-<td>none</td>
-<td>OpenSearch description in English</td>
-</tr>
-<tr>
-<td>» fr</td>
-<td><a href="#schemaopensearchdescription">OpenSearchDescription</a></td>
-<td>false</td>
-<td>none</td>
-<td>OpenSearch description in French</td>
-</tr>
-<tr>
 <td>links</td>
 <td>[<a href="#schemalink">Link</a>]</td>
 <td>false</td>
@@ -10309,16 +10072,6 @@ This operation does not require authentication
       <span class="hljs-string">"SatelliteModel"</span>,
       <span class="hljs-string">"OpticalModel"</span>
     ],
-    <span class="hljs-attr">"osDescription"</span>: {
-      <span class="hljs-attr">"ShortName"</span>: <span class="hljs-string">"Sentinel-2"</span>,
-      <span class="hljs-attr">"LongName"</span>: <span class="hljs-string">"Level 1C Sentinel-2 images"</span>,
-      <span class="hljs-attr">"Description"</span>: <span class="hljs-string">"The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites"</span>,
-      <span class="hljs-attr">"Tags"</span>: <span class="hljs-string">"copernicus esa eu msi radiance sentinel sentinel2"</span>,
-      <span class="hljs-attr">"Developer"</span>: <span class="hljs-string">"J\\u00e9r\\u00f4me Gasperi"</span>,
-      <span class="hljs-attr">"Contact"</span>: <span class="hljs-string">"jrom@snapplanet.io"</span>,
-      <span class="hljs-attr">"Query"</span>: <span class="hljs-string">"Toulouse"</span>,
-      <span class="hljs-attr">"Attribution"</span>: <span class="hljs-string">"European Union/ESA/Copernicus"</span>
-    },
     <span class="hljs-attr">"owner"</span>: <span class="hljs-string">"203883411255198721"</span>
   },
   <span class="hljs-attr">"providers"</span>: [
@@ -10459,7 +10212,7 @@ This operation does not require authentication
 <tr>
 <td>title</td>
 <td>string</td>
-<td>true</td>
+<td>false</td>
 <td>none</td>
 <td>A short descriptive one-line title for the collection.</td>
 </tr>
@@ -10573,91 +10326,6 @@ This operation does not require authentication
 <tr>
 <td>license</td>
 <td></td>
-</tr>
-</tbody>
-</table>
-<h2 id="tocsopensearchdescription">OpenSearchDescription</h2>
-<p><a id="schemaopensearchdescription"></a></p>
-<pre class="highlight tab tab-json"><code>{
-  <span class="hljs-attr">"ShortName"</span>: <span class="hljs-string">"S2"</span>,
-  <span class="hljs-attr">"LongName"</span>: <span class="hljs-string">"Sentinel-2"</span>,
-  <span class="hljs-attr">"Description"</span>: <span class="hljs-string">"Sentinel-2 tiles"</span>,
-  <span class="hljs-attr">"Tags"</span>: <span class="hljs-string">"s2 sentinel2"</span>,
-  <span class="hljs-attr">"Developer"</span>: <span class="hljs-string">"Jérôme Gasperi"</span>,
-  <span class="hljs-attr">"Contact"</span>: <span class="hljs-string">"jrom@snapplanet.io"</span>,
-  <span class="hljs-attr">"Query"</span>: <span class="hljs-string">"Toulouse"</span>,
-  <span class="hljs-attr">"Attribution"</span>: <span class="hljs-string">"SnapPlanet - Copyright 2016, All Rights Reserved"</span>
-}
-
-</code></pre>
-<p><em>OpenSearch description of the search engine attached to the collection</em></p>
-<h3 id="properties">Properties</h3>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Required</th>
-<th>Restrictions</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>ShortName</td>
-<td>string</td>
-<td>true</td>
-<td>none</td>
-<td>Contains a brief human-readable title that identifies the search engine</td>
-</tr>
-<tr>
-<td>LongName</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>Contains an extended human-readable title that identifies this search engine</td>
-</tr>
-<tr>
-<td>Description</td>
-<td>string</td>
-<td>true</td>
-<td>none</td>
-<td>Contains a human-readable text description of the collection search engine</td>
-</tr>
-<tr>
-<td>Tags</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>Contains a set of words that are used as keywords to identify and categorize this search content. Tags must be a single word and are delimited by the space character</td>
-</tr>
-<tr>
-<td>Developer</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>Contains the human-readable name or identifier of the creator or maintainer of the description document</td>
-</tr>
-<tr>
-<td>Contact</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>Contains an email address at which the maintainer of the description document can be reached</td>
-</tr>
-<tr>
-<td>Query</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>Defines a search query that can be performed by search clients. Please see the OpenSearch Query element specification for more information</td>
-</tr>
-<tr>
-<td>Attribution</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>Contains a list of all sources or entities that should be credited for the content contained in the search feed</td>
 </tr>
 </tbody>
 </table>
@@ -11383,11 +11051,6 @@ This operation does not require authentication
       <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"self"</span>,
       <span class="hljs-attr">"type"</span>: <span class="hljs-string">"application/json"</span>,
       <span class="hljs-attr">"href"</span>: <span class="hljs-string">"http://127.0.0.1:5252/stac/search.json?"</span>
-    },
-    {
-      <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"search"</span>,
-      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"application/opensearchdescription+xml"</span>,
-      <span class="hljs-attr">"href"</span>: <span class="hljs-string">"http://127.0.0.1:5252/services/osdd"</span>
     },
     {
       <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"next"</span>,
