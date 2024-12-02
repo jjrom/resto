@@ -35,6 +35,14 @@ To launch a default pre-configured resto instance, just type :
 
 This will build locally the jjrom/resto image and launch a resto container exposing the resto API service at **http://localhost:5252**
 
+To launch a default develop resto instance (i.e. with RESTO_DEBUG set to true and all database logs), just type :
+
+    ./deploy -e config-dev.env
+
+To launch a default develop resto instance using a connection pooling, just type :
+
+    ./deploy -e config-dev-pgbouncer.env
+
 ### [IMPORTANT] Docker on Mac M1
 If you're using docker on Mac with apple Silicon M1 chip, be sure to **turn off "Use Rosetta for x86/amd64 emulation on Apple Silicon"** in Docker Desktop > Settings > General.
 
