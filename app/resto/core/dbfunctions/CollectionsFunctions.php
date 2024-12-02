@@ -34,13 +34,13 @@ class CollectionsFunctions
     }
 
     /**
-     * Get description for collection
+     * Get collection
      *
      * @param string $id
      * @return array
      * @throws Exception
      */
-    public function getCollectionDescription($id)
+    public function getCollection($id)
     {
 
         // Eventually convert input alias to the real collection id
@@ -51,7 +51,7 @@ class CollectionsFunctions
 
         // Query with aliases
         $query = join(' ', array(
-            'SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords, STRING_AGG(ca.alias, \', \' ORDER BY ca.alias) AS aliases',
+            'SELECT id, title, description, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords, STRING_AGG(ca.alias, \', \' ORDER BY ca.alias) AS aliases',
             'FROM ' . $this->dbDriver->targetSchema . '.collection',
             'LEFT JOIN ' . $this->dbDriver->targetSchema . '.collection_alias ca ON id = ca.collection',
             'WHERE id=$1',
@@ -59,12 +59,9 @@ class CollectionsFunctions
         ));
 
         $results = $this->dbDriver->pQuery($query, array($id));
-
         $collection = null;
-        while ($rowDescription = pg_fetch_assoc($results)) {
-            // Get Opensearch description
-            $osDescriptions = $this->getOSDescriptions($id);
-            $collection = $this->format($rowDescription, $osDescriptions[$id] ?? null);
+        while ($rawCollection = pg_fetch_assoc($results)) {
+            $collection = $this->format($rawCollection);
         }
 
         return $collection;
@@ -72,18 +69,15 @@ class CollectionsFunctions
     }
 
     /**
-     * Get description of all collections
+     * Get all collections
      *
      * @param array $params
      * @return array
      * @throws Exception
      */
-    public function getCollectionsDescriptions($params = array())
+    public function getCollections($params = array())
     {
         $collections = array();
-
-        // Get all Opensearch descriptions
-        $osDescriptions = $this->getOSDescriptions();
 
         // Where clause
         $where = array();
@@ -93,12 +87,12 @@ class CollectionsFunctions
         
         // Filter on keywords
         if (isset($params['ck'])) {
-            $where[] = 'keywords @> ARRAY[\'' . pg_escape_string($this->dbDriver->getConnection(), $params['ck']) . '\']';
+            $where[] = 'keywords @> ARRAY[\'' . $this->dbDriver->escape_string( $params['ck']) . '\']';
         }
         
         // Query with aliases
         $query = join(' ', array(
-            'SELECT id, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords, STRING_AGG(ca.alias, \', \' ORDER BY ca.alias) AS aliases',
+            'SELECT id, title, description, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords, STRING_AGG(ca.alias, \', \' ORDER BY ca.alias) AS aliases',
             'FROM ' . $this->dbDriver->targetSchema . '.collection',
             'LEFT JOIN ' . $this->dbDriver->targetSchema . '.collection_alias ca ON id = ca.collection',
             (count($where) > 0 ? 'WHERE ' . join(' AND ', $where) : ''),
@@ -107,8 +101,8 @@ class CollectionsFunctions
         ));
 
         $results = $this->dbDriver->query($query);
-        while ($rowDescription = pg_fetch_assoc($results)) {
-            $collections[$rowDescription['id']] = $this->format($rowDescription, $osDescriptions[$rowDescription['id']] ?? null);
+        while ($rawCollection = pg_fetch_assoc($results)) {
+            $collections[$rawCollection['id']] = $this->format($rawCollection);
         }
         return $collections;
     }
@@ -177,23 +171,97 @@ class CollectionsFunctions
      * Save collection to database
      *
      * @param RestoCollection $collection
-     * @param Array $rights
+     * @param array $rights
      *
      * @throws Exception
      */
     public function storeCollection($collection, $rights)
     {
+
+        /*
+         * First generate a right keywords array
+         */
+        $keywords = null;
+        if (!empty($collection->keywords)) {
+            $keywords = array();
+            for ($i = 0, $ii = count($collection->keywords); $i < $ii; $i++) {
+                $keywords[] = '"' . $collection->keywords[$i] . '"';
+            }
+            $keywords = '{' . join(',', $keywords) . '}';
+        }
+
+        /*
+         * Extract spatial and temporals extents
+         */
+        $startDate = $collection->extent['temporal']['interval'][0][0] ?? null;
+        $completionDate = $collection->extent['temporal']['interval'][0][1] ?? null;
+
         try {
+
             /*
              * Start transaction
              */
             $this->dbDriver->query('BEGIN');
 
             /*
-             * Create new entry in collections osdescriptions tables
+             * Create collection
              */
-            $this->storeCollectionDescription($collection);
-           
+            if (! $this->collectionExists($collection->id)) {
+                $toBeSet = array(
+                    'id' => $collection->id,
+                    'title' => $collection->title,
+                    'description' => $collection->description,
+                    'created' => 'now()',
+                    'model' => $collection->model->getName(),
+                    'lineage' => '{' . join(',', $collection->model->getLineage()) . '}',
+                    // Be carefull license column is named licenseid in table
+                    'licenseid' => $collection->license,
+                    'visibility' => $collection->visibility,
+                    'owner' => $collection->owner,
+                    'providers' => json_encode($collection->providers, JSON_UNESCAPED_SLASHES),
+                    'properties' => json_encode($collection->properties, JSON_UNESCAPED_SLASHES),
+                    'links' => json_encode($collection->links, JSON_UNESCAPED_SLASHES),
+                    'assets' => json_encode($collection->assets, JSON_UNESCAPED_SLASHES),
+                    'keywords' => $keywords,
+                    'version' => $collection->version,
+                    'startdate' => $startDate,
+                    'completiondate' => $completionDate
+                );
+                
+                // bbox is set
+                if (isset($collection->extent['spatial']['bbox'][0])) {
+                    if (count($collection->extent['spatial']['bbox'][0]) !== 4) {
+                        RestoLogUtil::httpError(400, 'Invalid input bbox');
+                    }
+                    $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.collection (' . join(',', array_keys($toBeSet)) . ', bbox) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, ST_SetSRID(ST_MakeBox2D(ST_Point($18, $19), ST_Point($20, $21)), 4326) )', array_merge(array_values($toBeSet), $collection->extent['spatial']['bbox'][0]));
+                } else {
+                    $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.collection (' . join(',', array_keys($toBeSet)) . ') VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)', array_values($toBeSet));
+                }
+            }
+            /*
+             * Otherwise update collection fields
+             */
+            else {
+                $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.collection SET model=$2, lineage=$3, licenseid=$4, visibility=$5, providers=$6, properties=$7, links=$8, assets=$9, keywords=$10, version=$11, title=$12, description=$13 WHERE id=$1', array(
+                    $collection->id,
+                    $collection->model->getName(),
+                    '{' . join(',', $collection->model->getLineage()) . '}',
+                    $collection->license,
+                    $collection->visibility,
+                    json_encode($collection->providers, JSON_UNESCAPED_SLASHES),
+                    json_encode($collection->properties, JSON_UNESCAPED_SLASHES),
+                    json_encode($collection->links, JSON_UNESCAPED_SLASHES),
+                    json_encode($collection->assets, JSON_UNESCAPED_SLASHES),
+                    $keywords,
+                    $collection->version,
+                    $collection->title,
+                    $collection->description
+                ));
+            }
+
+            // Store aliases
+            $this->updateAliases($collection->id, $collection->aliases ?? array());
+
             /*
              * Close transaction
              */
@@ -217,7 +285,7 @@ class CollectionsFunctions
      *
      * @param RestoCollection $collection
      * @param array $extentArrays - array of "dates" and "bboxes" arrays
-     * @return array
+     * @return boolean
      * @throws Exception
      */
     public function updateExtent($collection, $extentArrays)
@@ -233,11 +301,11 @@ class CollectionsFunctions
         $toBeSet = array();
 
         if (isset($timeExtent['startDate'])) {
-            $toBeSet[] = 'startdate=least(startdate, \'' . pg_escape_string($this->dbDriver->getConnection(), $timeExtent['startDate']) . '\')';
+            $toBeSet[] = 'startdate=least(startdate, \'' . $this->dbDriver->escape_string( $timeExtent['startDate']) . '\')';
         }
 
         if (isset($timeExtent['completionDate'])) {
-            $toBeSet[] = 'completiondate=greatest(completiondate, \'' . pg_escape_string($this->dbDriver->getConnection(), $timeExtent['completionDate']) . '\')';
+            $toBeSet[] = 'completiondate=greatest(completiondate, \'' . $this->dbDriver->escape_string( $timeExtent['completionDate']) . '\')';
         }
 
         if (isset($bbox)) {
@@ -262,7 +330,7 @@ class CollectionsFunctions
     /**
      * Store collection aliases
      *
-     * @param String $collectionName
+     * @param string $collectionName
      * @param array $aliases
      *
      */
@@ -339,7 +407,7 @@ class CollectionsFunctions
      * Get bounding box of bounding boxes
      *
      * @param array $bboxes - array of bbox
-     * @return array
+     * @return array|null
      * @throws Exception
      */
     private function getSpatialExtent($bboxes)
@@ -367,205 +435,6 @@ class CollectionsFunctions
     }
 
     /**
-     * Get OpenSearch description array for input collection
-     *
-     * @param string $collectionId
-     * @return array
-     * @throws Exception
-     */
-    private function getOSDescriptions($collectionId = null)
-    {
-        $osDescriptions = array();
-
-        if (isset($collectionId)) {
-            $results = $this->dbDriver->pQuery('SELECT * FROM ' . $this->dbDriver->targetSchema . '.osdescription WHERE collection=$1', array($collectionId));
-        } else {
-            $results = $this->dbDriver->query('SELECT * FROM ' . $this->dbDriver->targetSchema . '.osdescription');
-        }
-        
-        while ($description = pg_fetch_assoc($results)) {
-            if (!isset($osDescriptions[$description['collection']])) {
-                $osDescriptions[$description['collection']]['collection'] = array();
-            }
-            $osDescriptions[$description['collection']][$description['lang']] = array(
-                'ShortName' => $description['shortname'],
-                'LongName' => $description['longname'],
-                'Description' => $description['description'],
-                'Tags' => $description['tags'],
-                'Developer' => $description['developer'],
-                'Contact' => $description['contact'],
-                'Query' => $description['query'],
-                'Attribution' => $description['attribution']
-            );
-        }
-
-        return $osDescriptions;
-    }
-
-    /**
-     * Store Collection description
-     *
-     * @param RestoCollection $collection
-     *
-     */
-    private function storeCollectionDescription($collection)
-    {
-        /*
-         * First generate a right keywords array
-         */
-        $keywords = null;
-        if (!empty($collection->keywords)) {
-            $keywords = array();
-            for ($i = 0, $ii = count($collection->keywords); $i < $ii; $i++) {
-                $keywords[] = '"' . $collection->keywords[$i] . '"';
-            }
-            $keywords = '{' . join(',', $keywords) . '}';
-        }
-
-        /*
-         * Extract spatial and temporals extents
-         */
-        $startDate = $collection->extent['temporal']['interval'][0][0] ?? null;
-        $completionDate = $collection->extent['temporal']['interval'][0][1] ?? null;
-
-        /*
-         * Create collection
-         */
-        if (! $this->collectionExists($collection->id)) {
-            $toBeSet = array(
-                'id' => $collection->id,
-                'created' => 'now()',
-                'model' => $collection->model->getName(),
-                'lineage' => '{' . join(',', $collection->model->getLineage()) . '}',
-                // Be carefull license column is named licenseid in table
-                'licenseid' => $collection->license,
-                'visibility' => $collection->visibility,
-                'owner' => $collection->owner,
-                'providers' => json_encode($collection->providers, JSON_UNESCAPED_SLASHES),
-                'properties' => json_encode($collection->properties, JSON_UNESCAPED_SLASHES),
-                'links' => json_encode($collection->links, JSON_UNESCAPED_SLASHES),
-                'assets' => json_encode($collection->assets, JSON_UNESCAPED_SLASHES),
-                'keywords' => $keywords,
-                'version' => $collection->version,
-                'startdate' => $startDate,
-                'completiondate' => $completionDate
-            );
-            
-            // bbox is set
-            if (isset($collection->extent['spatial']['bbox'][0])) {
-                if (count($collection->extent['spatial']['bbox'][0]) !== 4) {
-                    return RestoLogUtil::httpError(400, 'Invalid input bbox');
-                }
-                $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.collection (' . join(',', array_keys($toBeSet)) . ', bbox) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, ST_SetSRID(ST_MakeBox2D(ST_Point($16, $17), ST_Point($18, $19)), 4326) )', array_merge(array_values($toBeSet), $collection->extent['spatial']['bbox'][0]));
-            } else {
-                $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.collection (' . join(',', array_keys($toBeSet)) . ') VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)', array_values($toBeSet));
-            }
-        }
-        /*
-         * Otherwise update collection fields (version, visibility, licenseid, providers and properties)
-         */
-        else {
-            $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.collection SET model=$2, lineage=$3, licenseid=$4, visibility=$5, providers=$6, properties=$7, links=$8, assets=$9, keywords=$10, version=$11 WHERE id=$1', array(
-                $collection->id,
-                $collection->model->getName(),
-                '{' . join(',', $collection->model->getLineage()) . '}',
-                $collection->license,
-                $collection->visibility,
-                json_encode($collection->providers, JSON_UNESCAPED_SLASHES),
-                json_encode($collection->properties, JSON_UNESCAPED_SLASHES),
-                json_encode($collection->links, JSON_UNESCAPED_SLASHES),
-                json_encode($collection->assets, JSON_UNESCAPED_SLASHES),
-                $keywords,
-                $collection->version
-            ));
-        }
-
-        // Store aliases
-        $this->updateAliases($collection->id, $collection->aliases ?? array());
-
-        // OpenSearch description is stored in another table
-        $this->storeOSDescription($collection);
-        
-        return true;
-    }
-
-    /**
-     * Store OpenSearch collection description
-     * (This function is called within storeCollectionDescription)
-     *
-     * @param RestoCollection $collection
-     *
-     */
-    private function storeOSDescription($collection)
-    {
-        /*
-         * Insert OpenSearch descriptions within osdescriptions table
-         * (one description per lang)
-         *
-         * CREATE TABLE [$this->dbDriver->targetSchema].osdescription (
-         *  collection          TEXT,
-         *  lang                TEXT,
-         *  shortname           TEXT,
-         *  longname            TEXT,
-         *  description         TEXT,
-         *  tags                TEXT,
-         *  developer           TEXT,
-         *  contact             TEXT,
-         *  query               TEXT,
-         *  attribution         TEXT
-         * );
-         */
-        $this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.osdescription WHERE collection=$1', array(
-            $collection->id
-        ));
-
-        foreach ($collection->osDescription as $lang => $description) {
-            $osFields = array(
-                'collection',
-                'lang'
-            );
-            $osValues = array(
-                '\'' . pg_escape_string($this->dbDriver->getConnection(), $collection->id) . '\'',
-                '\'' . pg_escape_string($this->dbDriver->getConnection(), $lang) . '\''
-            );
-
-            /*
-             * OpenSearch 1.1 draft 5 constraints
-             * (http://www.opensearch.org/Specifications/OpenSearch/1.1)
-             *
-             * [STAC] Remove constraints on ShortName, LongName and Description
-             */
-            $validProperties = array(
-                //'ShortName' => 16,
-                'ShortName' => -1,
-                //'LongName' => 48,
-                'LongName' => -1,
-                //'Description' => 1024,
-                'Description' => -1,
-                'Tags' => 256,
-                'Developer' => 64,
-                'Contact' => -1,
-                'Query' => -1,
-                //'Attribution' => 256
-                'Attribution' => -1
-            );
-            foreach (array_keys($description) as $key) {
-                /*
-                 * Throw exception if property is invalid
-                 */
-                if (isset($validProperties[$key])) {
-                    if ($validProperties[$key] !== -1 && strlen($description[$key]) > $validProperties[$key]) {
-                        RestoLogUtil::httpError(400, 'OpenSearch property ' . $key . ' length is greater than ' . $validProperties[$key] . ' characters');
-                    }
-                    $osFields[] = strtolower($key);
-                    $osValues[] = '\'' . pg_escape_string($this->dbDriver->getConnection(), $description[$key]) . '\'';
-                }
-            }
-            $this->dbDriver->query('INSERT INTO ' . $this->dbDriver->targetSchema . '.osdescription (' . join(',', $osFields) . ') VALUES(' . join(',', $osValues) . ')');
-        }
-    }
-
-    /**
      * Return true if collection is empty, false otherwise
      *
      * @param RestoCollection $collection
@@ -583,56 +452,44 @@ class CollectionsFunctions
     /**
      * Return a formated collection description
      *
-     * @param array $rawDescription
-     * @param array $osDescription
+     * @param array $rawCollection
      */
-    private function format($rawDescription, $osDescription)
+    private function format($rawCollection)
     {
         $collection = array(
-            'id' => $rawDescription['id'],
-            'aliases' => isset($rawDescription['aliases']) ? json_decode($rawDescription['aliases'], true) : array(),
-            'version' => $rawDescription['version'] ?? null,
-            'model' => $rawDescription['model'],
-            'visibility' => (integer) $rawDescription['visibility'],
-            'owner' => $rawDescription['owner'],
-            'providers' => json_decode($rawDescription['providers'], true),
-            'assets' => json_decode($rawDescription['assets'], true),
-            'keywords' => isset($rawDescription['keywords']) ? json_decode($rawDescription['keywords'], true) : array(),
-            'links' => json_decode($rawDescription['links'], true),
+            'id' => $rawCollection['id'],
+            'title' => $rawCollection['title'],
+            'description' => $rawCollection['description'],
+            'aliases' => isset($rawCollection['aliases']) ? json_decode($rawCollection['aliases'], true) : array(),
+            'version' => $rawCollection['version'] ?? null,
+            'model' => $rawCollection['model'],
+            'visibility' => (integer) $rawCollection['visibility'],
+            'owner' => $rawCollection['owner'],
+            'providers' => json_decode($rawCollection['providers'], true),
+            'assets' => json_decode($rawCollection['assets'], true),
+            'keywords' => isset($rawCollection['keywords']) ? json_decode($rawCollection['keywords'], true) : array(),
+            'links' => json_decode($rawCollection['links'], true),
             'extent' => array(
                 'spatial' => array(
                     'bbox' => array(
-                        RestoGeometryUtil::box2dTobbox($rawDescription['box2d'])
+                        RestoGeometryUtil::box2dTobbox($rawCollection['box2d'])
                     ),
                     'crs' => 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'
                 ),
                 'temporal' => array(
                     'interval' => array(
                         array(
-                            $rawDescription['startdate'] ?? null, $rawDescription['completiondate'] ?? null
+                            $rawCollection['startdate'] ?? null, $rawCollection['completiondate'] ?? null
                         )
                     ),
                     'trs' => 'http://www.opengis.net/def/uom/ISO-8601/0/Gregorian'
                 )
             ),
             // Be carefull license column is named licenseid in table
-            'license' => $rawDescription['licenseid'],
+            'license' => $rawCollection['licenseid'],
             // Special _properties will be discarded in toArray()
-            'properties' => json_decode($rawDescription['properties'], true),
-            'osDescription' => $osDescription
+            'properties' => json_decode($rawCollection['properties'], true)
         );
-
-        /*
-         * If OpenSearch Description object is not set, create a minimal one from $object['description']
-         */
-        if (!isset($osDescription) || !is_array($osDescription) || !isset($osDescription['en']) || !is_array($osDescription['en'])) {
-            $collection['osDescription'] = array(
-                'en' => array(
-                    'ShortName' => $collection['properties']['title'] ?? $collection['id'],
-                    'Description' => $collection['properties']['description'] ?? ''
-                )
-            );
-        }
 
         return $collection;
     }

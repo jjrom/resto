@@ -15,6 +15,12 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.collection (
     -- Unique id for collection
     "id"                TEXT PRIMARY KEY,
 
+    -- [STAC] Title
+    title               TEXT,
+
+    -- [STAC] Description
+    description         TEXT,
+
     -- Collection version
     version             TEXT,
 
@@ -60,43 +66,6 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.collection (
 
     -- [STAC] Keywords
     keywords            TEXT[]
-
-);
-
---
--- osdescriptions table describe all RESTo collections
---
-CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.osdescription (
-
-    -- Reference __DATABASE_TARGET_SCHEMA__.collection.id
-    collection          TEXT REFERENCES __DATABASE_TARGET_SCHEMA__.collection (id) ON DELETE CASCADE, 
-
-    -- OpenSearch description lang
-    lang                TEXT,
-
-    -- Contains a brief human-readable title that identifies this search engine.
-    shortname           TEXT,
-    
-    -- Contains an extended human-readable title that identifies this search engine.
-    longname            TEXT,
-    
-    -- Contains a human-readable text description of the search engine.
-    description         TEXT,
-
-    -- Contains a set of words that are used as keywords to identify and categorize this search content. Tags must be a single word and are delimited by the space character
-    tags                TEXT,
-
-    -- Contains the human-readable name or identifier of the creator or maintainer of the description document.
-    Developer           TEXT,
-
-    -- Contains an email address at which the maintainer of the description document can be reached.
-    contact             TEXT,
-    
-    -- Defines a search query that can be performed by search clients. Please see the OpenSearch Query element specification for more information.
-    query               TEXT,
-    
-    -- Contains a list of all sources or entities that should be credited for the content contained in the search feed
-    attribution         TEXT
 
 );
 
@@ -425,12 +394,6 @@ CREATE INDEX IF NOT EXISTS idx_lineage_collection ON __DATABASE_TARGET_SCHEMA__.
 CREATE INDEX IF NOT EXISTS idx_visibility_collection ON __DATABASE_TARGET_SCHEMA__.collection (visibility);
 CREATE INDEX IF NOT EXISTS idx_created_collection ON __DATABASE_TARGET_SCHEMA__.collection (created);
 CREATE INDEX IF NOT EXISTS idx_keywords_collection ON __DATABASE_TARGET_SCHEMA__.collection USING GIN (keywords);
-
--- [TABLE __DATABASE_TARGET_SCHEMA__.osdescription]
-ALTER TABLE __DATABASE_TARGET_SCHEMA__.osdescription DROP CONSTRAINT IF EXISTS cl_collection;
-ALTER TABLE ONLY __DATABASE_TARGET_SCHEMA__.osdescription ADD CONSTRAINT cl_collection UNIQUE(collection, lang);
-
-CREATE INDEX IF NOT EXISTS idx_collection_osdescription ON __DATABASE_TARGET_SCHEMA__.osdescription (collection);
 
 -- [TABLE __DATABASE_TARGET_SCHEMA__.catalog]
 CREATE INDEX IF NOT EXISTS idx_description_catalog ON __DATABASE_TARGET_SCHEMA__.catalog USING GIN (public.normalize(description) gin_trgm_ops);

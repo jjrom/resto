@@ -113,7 +113,7 @@ class FeaturesFunctions
             }
             $filtersAndJoins['filters'][] = array(
                 'value' => $featureTableName . '.collection IN (' . implode(',', array_map(function ($str) {
-                    return '\'' .  pg_escape_string($this->dbDriver->getConnection(), $str) . '\'';
+                    return '\'' .  $this->dbDriver->escape_string( $str) . '\'';
                 }, $collectionIds)) . ')',
                 'isGeo' => false
             );
@@ -126,7 +126,7 @@ class FeaturesFunctions
             $who = isset($paramsWithOperation['resto:owner']) ? $paramsWithOperation['resto:owner']['value'] : $user->profile['id'];
             if (isset($who)) {
                 $filtersAndJoins['filters'][] = array(
-                    'value' => $this->dbDriver->targetSchema . '.likes.featureid=' . $featureTableName . '.id AND ' . $this->dbDriver->targetSchema . '.likes.userid=' . pg_escape_string($this->dbDriver->getConnection(), $who),
+                    'value' => $this->dbDriver->targetSchema . '.likes.featureid=' . $featureTableName . '.id AND ' . $this->dbDriver->targetSchema . '.likes.userid=' . $this->dbDriver->escape_string( $who),
                     'isGeo' => false
                 );
                 $filtersAndJoins['joins'][] = 'JOIN ' . $this->dbDriver->targetSchema . '.likes ON ' . $featureTableName . '.id = ' . $this->dbDriver->targetSchema . '.likes.featureid';
@@ -171,7 +171,7 @@ class FeaturesFunctions
         try {
             $results = $this->dbDriver->query($query);
         } catch (Exception $e) {
-            return RestoLogUtil::httpError(400, $e->getMessage());
+            RestoLogUtil::httpError(400, $e->getMessage());
         }
         
         $features = (new RestoFeatureUtil($context, $user, $collections))->toFeatureArrayList($this->dbDriver->fetch($results));
@@ -247,7 +247,7 @@ class FeaturesFunctions
 
         // Determine if search on id or productidentifier
         $filtersAndJoins['filters'][] = array(
-            'value' => $this->dbDriver->targetSchema . '.feature.id=\'' . pg_escape_string($this->dbDriver->getConnection(), (RestoUtil::isValidUUID($featureId) ? $featureId : RestoUtil::toUUID($featureId))) . '\'',
+            'value' => $this->dbDriver->targetSchema . '.feature.id=\'' . $this->dbDriver->escape_string( (RestoUtil::isValidUUID($featureId) ? $featureId : RestoUtil::toUUID($featureId))) . '\'',
             'isGeo' => false
         );
         $results = $this->dbDriver->fetch($this->dbDriver->query($selectClause . ' ' . $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => true))));
@@ -328,7 +328,7 @@ class FeaturesFunctions
         foreach (array_values($keysAndValues['catalogs']) as $catalog) {
             if (isset($catalog['isExternal']) && $catalog['isExternal']) {
                 if ( !$collection->user->hasRightsTo(RestoUser::CREATE_CATALOG) ) {
-                    return RestoLogUtil::httpError(403, 'Feature ingestion leads to creation of catalog ' . $catalog['id'] . ' but you don\'t have right to create catalogs');
+                    RestoLogUtil::httpError(403, 'Feature ingestion leads to creation of catalog ' . $catalog['id'] . ' but you don\'t have right to create catalogs');
                 }
                 break;
             }
@@ -408,7 +408,7 @@ class FeaturesFunctions
             /*
              * Update statistics counter for featureId - i.e. remove 1 per catalogs containing this feature 
              */
-            $catalogsUpdated = (new CatalogsFunctions($this->dbDriver))->updateFeatureCatalogsCounters($feature->id, $feature->collectio->id, -1);
+            $catalogsUpdated = (new CatalogsFunctions($this->dbDriver))->updateFeatureCatalogsCounters($feature->id, $feature->collection->id, -1);
         
             /*
              * Next remove
@@ -426,7 +426,7 @@ class FeaturesFunctions
         }
 
         if (empty($result)) {
-            return RestoLogUtil::httpError(404);
+            RestoLogUtil::httpError(404);
         }
         
         return array(
@@ -477,7 +477,7 @@ class FeaturesFunctions
         foreach (array_values($keysAndValues['catalogs']) as $catalog) {
             if (isset($catalog['isExternal']) && $catalog['isExternal']) {
                 if ( !$collection->user->hasRightsTo(RestoUser::CREATE_CATALOG) ) {
-                    return RestoLogUtil::httpError(403, 'Feature update leads to creation of catalog ' . $catalog['id'] . ' but you don\'t have right to create catalogs');
+                    RestoLogUtil::httpError(403, 'Feature update leads to creation of catalog ' . $catalog['id'] . ' but you don\'t have right to create catalogs');
                 }
                 break;
             }
@@ -580,7 +580,7 @@ class FeaturesFunctions
     public function updateFeatureDescription($feature, $description)
     {
 
-        return RestoLogUtil::httpError(400, 'TODO - update feature description not yet implemented');
+        RestoLogUtil::httpError(400, 'TODO - update feature description not yet implemented');
         
     }
 
@@ -606,7 +606,7 @@ class FeaturesFunctions
          */
         $result = -1;
         if (!$realCount) {
-            $result = pg_fetch_result($this->dbDriver->query(' SELECT count_estimate(\'' . pg_escape_string($this->dbDriver->getConnection(), $with . ' SELECT * ' . $from) . '\') as count'), 0, 0);
+            $result = pg_fetch_result($this->dbDriver->query(' SELECT count_estimate(\'' . $this->dbDriver->escape_string( $with . ' SELECT * ' . $from) . '\') as count'), 0, 0);
         }
 
         if ($result !== false && $result < 10 * $this->dbDriver->resultsPerPage) {

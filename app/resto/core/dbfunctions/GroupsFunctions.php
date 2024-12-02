@@ -46,27 +46,27 @@ class GroupsFunctions
         
         // Return group by id
         if (isset($params['id'])) {
-            $where[] = 'id=' . pg_escape_string($this->dbDriver->getConnection(), $params['id']);
+            $where[] = 'id=' . $this->dbDriver->escape_string( $params['id']);
         }
 
         // Return all groups in
         if (isset($params['in'])) {
-            $where[] = 'id IN (' . pg_escape_string($this->dbDriver->getConnection(), join(',', $params['in'])) . ')';
+            $where[] = 'id IN (' . $this->dbDriver->escape_string( join(',', $params['in'])) . ')';
         }
 
         // Search by name
         if (isset($params['q'])) {
-            $where[] = 'public.normalize(name) LIKE public.normalize(\'%' . pg_escape_string($this->dbDriver->getConnection(), $params['q']) . '%\')';
+            $where[] = 'public.normalize(name) LIKE public.normalize(\'%' . $this->dbDriver->escape_string( $params['q']) . '%\')';
         }
 
         // Return groups by userid
         if (isset($params['userid'])) {
-            $where[] = 'id IN (SELECT DISTINCT groupid FROM ' . $this->dbDriver->commonSchema . '.group_member WHERE userid=' . pg_escape_string($this->dbDriver->getConnection(), $params['userid']) . ')';
+            $where[] = 'id IN (SELECT DISTINCT groupid FROM ' . $this->dbDriver->commonSchema . '.group_member WHERE userid=' . $this->dbDriver->escape_string( $params['userid']) . ')';
         }
 
         // Return groups by owner
         if (isset($params['owner'])) {
-            $where[] = 'owner=' . pg_escape_string($this->dbDriver->getConnection(), $params['owner']);
+            $where[] = 'owner=' . $this->dbDriver->escape_string( $params['owner']);
         }
         
         return $this->formatGroups($this->dbDriver->fetch($this->dbDriver->query('SELECT id, name, description, owner, to_iso8601(created) as created FROM ' . $this->dbDriver->commonSchema . '.group' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : '') . ' ORDER BY id DESC')), $params['id'] ?? null);
@@ -85,7 +85,7 @@ class GroupsFunctions
         }
 
         try {
-            $result = pg_query_params($this->dbDriver->getConnection(), 'INSERT INTO ' . $this->dbDriver->commonSchema . '.group (name, description, owner, created) VALUES ($1, $2, $3, now()) ON CONFLICT name DO NOTHING RETURNING id ', array(
+            $result = $this->dbDriver->query_params('INSERT INTO ' . $this->dbDriver->commonSchema . '.group (name, description, owner, created) VALUES ($1, $2, $3, now()) ON CONFLICT name DO NOTHING RETURNING id ', array(
                 $params['body']['name'],
                 $params['body']['description'] ?? null,
                 $params['id']
@@ -125,12 +125,12 @@ class GroupsFunctions
 
         try {
             if (isset($params['owner'])) {
-                $result = pg_query_params($this->dbDriver->getConnection(), 'DELETE FROM ' . $this->dbDriver->commonSchema . '.group WHERE id=($1) AND owner=($2)', array(
+                $result = $this->dbDriver->query_params('DELETE FROM ' . $this->dbDriver->commonSchema . '.group WHERE id=($1) AND owner=($2)', array(
                     $params['id'],
                     $params['owner']
                 ));
             } else {
-                $result = pg_query_params($this->dbDriver->getConnection(), 'DELETE FROM ' . $this->dbDriver->commonSchema . '.group WHERE id=($1)', array(
+                $result = $this->dbDriver->query_params('DELETE FROM ' . $this->dbDriver->commonSchema . '.group WHERE id=($1)', array(
                     $params['id']
                 ));
             }
@@ -161,7 +161,7 @@ class GroupsFunctions
 
         try {
 
-            $result = pg_query_params($this->dbDriver->getConnection(), 'INSERT INTO ' . $this->dbDriver->commonSchema . '.group_member (groupid,userid,created) VALUES ($1,$2,now_utc()) ON CONFLICT (groupid,userid) DO NOTHING RETURNING groupid, userid', array(
+            $result = $this->dbDriver->query_params('INSERT INTO ' . $this->dbDriver->commonSchema . '.group_member (groupid,userid,created) VALUES ($1,$2,now_utc()) ON CONFLICT (groupid,userid) DO NOTHING RETURNING groupid, userid', array(
                 $params['id'],
                 $userid
             ));
@@ -191,7 +191,7 @@ class GroupsFunctions
 
         try {
 
-            $result = pg_query_params($this->dbDriver->getConnection(), 'DELETE FROM ' . $this->dbDriver->commonSchema . '.group_member WHERE groupid=$1 AND userid=$2', array(
+            $result = $this->dbDriver->query_params('DELETE FROM ' . $this->dbDriver->commonSchema . '.group_member WHERE groupid=$1 AND userid=$2', array(
                 $params['id'],
                 $userid
             ));
@@ -218,7 +218,7 @@ class GroupsFunctions
 
         // 404 if no empty results when id is specified
         if (! isset($results) || (isset($groupId) && count($results) === 0)) {
-            return RestoLogUtil::httpError(404);
+            RestoLogUtil::httpError(404);
         }
 
         $length = isset($groupId) ? 1 : count($results);

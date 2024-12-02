@@ -144,8 +144,6 @@ class RestoCollections
 
         $this->context = $context;
         $this->user = $user;
-
-        return $this;
     }
 
     /**
@@ -186,14 +184,14 @@ class RestoCollections
      *
      * @param RestoModel $model
      * @param array $query
-     * @return array (FeatureCollection)
+     * @return RestoFeatureCollection
      */
     public function search($model, $query)
     {
         /*
          * Set a global model with all searchFilters and all tables from other collection
          */
-        $model = $model ?? $this->getFullModel();
+        $model ??= $this->getFullModel();
 
         return (new RestoFeatureCollection($this->context, $this->user, $this->collections, $model, $query))->load(null);
     }
@@ -209,7 +207,7 @@ class RestoCollections
         if ( !$this->isLoaded ) {
             
             $params['group'] = $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ? null : $this->user->getGroupIds();
-            $collectionsDesc = (new CollectionsFunctions($this->context->dbDriver))->getCollectionsDescriptions($params);
+            $collectionsDesc = (new CollectionsFunctions($this->context->dbDriver))->getCollections($params);
             
             foreach (array_keys($collectionsDesc) as $collectionId) {
                 $collection = $this->context->keeper->getRestoCollection($collectionId, $this->user);
@@ -240,11 +238,10 @@ class RestoCollections
     {
         $collections = array(
             'stac_version' => STACAPI::STAC_VERSION,
-            'id' => $this->context->osDescription['ShortName'],
+            'id' => 'collections',
             'type' => 'Catalog',
             'title' => 'Collections',
-            'description' => $this->context->osDescription['Description'],
-            'keywords' => explode(' ', $this->context->osDescription['Tags']),
+            'description' => 'All collections',
             'links' => array(
                 array(
                     'rel' => 'self',
@@ -264,9 +261,6 @@ class RestoCollections
                 )
             ),
             'extent' => $this->extent,
-            'resto:info' => array(
-                'osDescription' => $this->context->osDescription
-            ),
             'collections' => array()
         );
 
@@ -335,15 +329,6 @@ class RestoCollections
     }
 
     /**
-     * Output collections description as an XML OpenSearch document
-     */
-    public function getOSDD($model)
-    {
-        $model = $model ?? new DefaultModel();
-        return new OSDD($this->context, $model, $this->filterSummaries($this->getSummaries(), $model->getAutoFacetFields()), null);
-    }
-
-    /**
      * Return STAC summaries
      */
     public function getSummaries()
@@ -386,7 +371,7 @@ class RestoCollections
     /**
      * Return an array of all available searchFilters on all collections
      *
-     * @return array
+     * @return RestoModel
      */
     private function getFullModel()
     {

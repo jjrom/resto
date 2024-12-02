@@ -369,20 +369,20 @@ class STACAPI
     {
         
         if (!$this->user->hasRightsTo(RestoUser::CREATE_CATALOG)) {
-            return RestoLogUtil::httpError(403);
+            RestoLogUtil::httpError(403);
         }
 
         /*
          * Check mandatory properties
          */
         if ( !isset($body['id']) ) {
-            return RestoLogUtil::httpError(400, 'Missing mandatory catalog id');
+            RestoLogUtil::httpError(400, 'Missing mandatory catalog id');
         }
         if ( !isset($body['type']) || !in_array($body['type'], array('Catalog', 'Collection')) ) {
-            return RestoLogUtil::httpError(400, 'Missing mandatory type - must be set to *Catalog* or *Collection*');
+            RestoLogUtil::httpError(400, 'Missing mandatory type - must be set to *Catalog* or *Collection*');
         }
         if ( !isset($body['description']) && $body['type'] === 'Catalog' ) {
-            return RestoLogUtil::httpError(400, 'Missing mandatory description');
+            RestoLogUtil::httpError(400, 'Missing mandatory description');
         }
         if ( !isset($body['links']) ) {
             $body['links'] = array();
@@ -396,7 +396,7 @@ class STACAPI
             for ($i = 0, $ii = count($params['segments']); $i < $ii; $i++) {
                 $parentId = isset($parentId) ? $parentId . '/' . $params['segments'][$i] : $params['segments'][$i];
                 if ($this->catalogsFunctions->getCatalog($parentId) === null) {
-                    return RestoLogUtil::httpError(400, 'Parent catalog ' . $parentId . ' does not exist.');
+                    RestoLogUtil::httpError(400, 'Parent catalog ' . $parentId . ' does not exist.');
                 }
             }
         }
@@ -511,12 +511,12 @@ class STACAPI
 
         // If catalog is a collection it cannot be updated this way
         if ( isset($catalogs[0]['rtype']) && $catalogs[0]['rtype'] === 'collection' ) {
-            return RestoLogUtil::httpError(400, 'This catalog is a collection. Collection should be updated using /collections endoint');
+            RestoLogUtil::httpError(400, 'This catalog is a collection. Collection should be updated using /collections endoint');
         }
 
         // If user has not the right to update catalog then 403
         if ( !$this->user->hasRightsTo(RestoUser::UPDATE_CATALOG, array('catalog' => $catalogs[0])) ) {
-            return RestoLogUtil::httpError(403);
+            RestoLogUtil::httpError(403);
         }
         
         // Update is not forced so we should check that input links array don't remove existing childs
@@ -546,7 +546,7 @@ class STACAPI
             }
 
             if ($removed > 0 && !filter_var($params['_force'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
-                return RestoLogUtil::httpError(400, 'The catalog update would remove ' . $removed . ' existing child(s). Set **_force** query parameter to true to force update anyway');
+                RestoLogUtil::httpError(400, 'The catalog update would remove ' . $removed . ' existing child(s). Set **_force** query parameter to true to force update anyway');
             }
 
         }
@@ -634,12 +634,12 @@ class STACAPI
 
         // If user has not the right to delete catalog then 403
         if ( !$this->user->hasRightsTo(RestoUser::DELETE_CATALOG, array('catalog' => $catalogs[0])) ) {
-            return RestoLogUtil::httpError(403);
+            RestoLogUtil::httpError(403);
         }
 
         // If catalogs has child, do not remove it unless _force option is set to true
         if ( $count > 1 && !filter_var($params['_force'] ?? false, FILTER_VALIDATE_BOOLEAN) ){
-            return RestoLogUtil::httpError(400, 'The catalog contains ' . ($count - 1) . ' child(s) and cannot be deleted. Set **_force** query parameter to true to force deletion anyway');
+            RestoLogUtil::httpError(400, 'The catalog contains ' . ($count - 1) . ' child(s) and cannot be deleted. Set **_force** query parameter to true to force deletion anyway');
         }
         
         return RestoLogUtil::success('Catalog deleted', $this->catalogsFunctions->removeCatalog($catalogs[0]['id']));
@@ -1321,14 +1321,14 @@ class STACAPI
         $model = null;
         if (isset($params['model'])) {
             if (! class_exists($params['model'])) {
-                return RestoLogUtil::httpError(400, 'Unknown model ' . $params['model']);
+                RestoLogUtil::httpError(400, 'Unknown model ' . $params['model']);
             }
             $model = new $params['model']();
         }
         
         // [STAC] Only one of either intersects or bbox should be specified. If both are specified, a 400 Bad Request response should be returned.
         if (isset($params['intersects']) && isset($params['bbox'])) {
-            return RestoLogUtil::httpError(400, 'Only one of either intersects or bbox should be specified');
+            RestoLogUtil::httpError(400, 'Only one of either intersects or bbox should be specified');
         }
 
         // Set Content-Type to GeoJSON
@@ -1377,7 +1377,7 @@ class STACAPI
 
             // This is not possible
             if (count($segments) < 2) {
-                return RestoLogUtil::httpError(404);
+                RestoLogUtil::httpError(404);
             }
 
             array_pop($segments);
@@ -1388,7 +1388,7 @@ class STACAPI
             ), false);
             
             if ( empty($catalogs) ) {
-                return RestoLogUtil::httpError(404);
+                RestoLogUtil::httpError(404);
             }
             
             $searchParams = array(
@@ -1409,7 +1409,7 @@ class STACAPI
         $parentAndChilds = $this->getParentAndChilds(join('/', $segments), $params);
 
         if ( !isset($parentAndChilds) ) {
-            return RestoLogUtil::httpError(404);
+            RestoLogUtil::httpError(404);
         }
 
         $catalog = array(
@@ -1464,7 +1464,7 @@ class STACAPI
                 )));
             }
             else {
-                return RestoLogUtil::httpError(404);
+                RestoLogUtil::httpError(404);
             }
         }
 
@@ -1483,7 +1483,7 @@ class STACAPI
                 )));
             }
             else {
-                return RestoLogUtil::httpError(404);
+                RestoLogUtil::httpError(404);
             }
         }
 
@@ -1507,7 +1507,7 @@ class STACAPI
          */
         if ( isset($jsonQuery['collections']) ) {
             if ( !is_array($jsonQuery['collections']) ) {
-                return RestoLogUtil::httpError(400, 'Invalid collections parameter. Should be an array of strings');
+                RestoLogUtil::httpError(400, 'Invalid collections parameter. Should be an array of strings');
             }
             $params['collections'] = join(',', $jsonQuery['collections']);
         }
@@ -1517,7 +1517,7 @@ class STACAPI
          */
         if ( isset($jsonQuery['bbox']) ) {
             if ( is_array($jsonQuery['bbox']) || count($jsonQuery['bbox']) !== 4 ) {
-                return RestoLogUtil::httpError(400, 'Invalid bbox parameter. Should be an array of 4 coordinates');
+                RestoLogUtil::httpError(400, 'Invalid bbox parameter. Should be an array of 4 coordinates');
             }
             $params['bbox'] = join(',', $jsonQuery['bbox']);
         }
@@ -1527,7 +1527,7 @@ class STACAPI
          */
         if ( isset($jsonQuery['intersects']) ) {
             if ( !isset($jsonQuery['intersects']['type']) || !isset($jsonQuery['intersects']['coordinates']) ) {
-                return RestoLogUtil::httpError(400, 'Invalid intersects. Should be a GeoJSON geometry object');
+                RestoLogUtil::httpError(400, 'Invalid intersects. Should be a GeoJSON geometry object');
             }
             $params['intersects'] = RestoGeometryUtil::geoJSONGeometryToWKT($jsonQuery['intersects']);
         }
@@ -1740,7 +1740,7 @@ class STACAPI
                 $theoricalUrl = $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS; 
                 $exploded = explode($theoricalUrl, $catalog['links'][$i]['href']);
                 if (count($exploded) !== 2) {
-                    return RestoLogUtil::httpError(400, 'Parent link is set but it\'s url is invalid - should starts with ' . $theoricalUrl);
+                    RestoLogUtil::httpError(400, 'Parent link is set but it\'s url is invalid - should starts with ' . $theoricalUrl);
                 }
                 $parentIdInBody = str_starts_with($exploded[1], '/') ? substr($exploded[1], 1) : $exploded[1];
                 break;
@@ -1749,7 +1749,7 @@ class STACAPI
 
         if ( $hasParentInBody ) {
             if ( isset($parentId) && $parentId !== $parentIdInBody ) {
-                return RestoLogUtil::httpError(400, 'The rel=parent catalog differs from the path ' . $parentId);
+                RestoLogUtil::httpError(400, 'The rel=parent catalog differs from the path ' . $parentId);
             }
             return $parentIdInBody . '/' . $catalog['id'];
         }

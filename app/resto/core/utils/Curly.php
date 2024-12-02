@@ -28,7 +28,7 @@ class Curly
     public function __construct()
     {
         if (! extension_loaded('curl')) {
-            return RestoLogUtil::httpError(500, 'Curl extension not loaded');
+            RestoLogUtil::httpError(500, 'Curl extension not loaded');
         }
 
         $this->handler = curl_init();

@@ -79,18 +79,6 @@ return array(
             )
         )
     ),
-    'osDescriptions' => array(
-        'en' => array(
-            'ShortName' => '${SEARCH_OPENSEARCH_SHORTNAME}',
-            'LongName' => '${SEARCH_OPENSEARCH_LONGNAME}',
-            'Description' => '${SEARCH_OPENSEARCH_DESCRIPTION}',
-            'Tags' => '${SEARCH_OPENSEARCH_TAGS}',
-            'Developer' => '${SEARCH_OPENSEARCH_DEVELOPER}',
-            'Contact' => '${SEARCH_OPENSEARCH_CONTACT}',
-            'Query' => '${SEARCH_OPENSEARCH_QUERY}',
-            'Attribution' => '${SEARCH_OPENSEARCH_ATTRIBUTION}'
-        )
-    ),
     'addons' => array(
         'Cataloger' => array(
             'options' => array(

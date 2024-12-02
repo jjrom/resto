@@ -1,31 +1,20 @@
 {
     "id": "S2",
     "type": "Collection",
+    "title": "Level 1C Sentinel-2 images",
+    "description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites",
+    "kewyords": [
+        "copernicus",
+        "esa",
+        "eu",
+        "msi",
+        "radiance",
+        "sentinel",
+        "sentinel2"
+    ],      
     "version": "1.0",
     "model": "OpticalModel",
     "license": "proprietary",
-    "osDescription": {
-        "en": {
-            "ShortName": "Sentinel-2",
-            "LongName": "Level 1C Sentinel-2 images",
-            "Description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites",
-            "Tags": "copernicus esa eu msi radiance sentinel sentinel2",
-            "Developer": "Jérôme Gasperi",
-            "Contact": "jrom@snapplanet.io",
-            "Query": "Toulouse",
-            "Attribution": "European Union/ESA/Copernicus"
-        },
-        "fr": {
-            "ShortName": "Sentinel-2",
-            "LongName": "Images Sentinel-2 Niveau 1C",
-            "Description": "La mission SENTINEL-2 est constituée de deux satellites d'imagerie optique équipés d’un imageur multispectral (MSI) en 13 bandes spectrales avec des résolutions de 10, 20 et 60 mètres et d'une fauchée unique de 290 km de large. La capacité d'observation des deux satellites permet de surveiller l'intégralité des terres émergées du globe tous les 5 jours",
-            "Tags": "copernicus esa eu msi radiance sentinel sentinel2",
-            "Developer": "Jérôme Gasperi",
-            "Contact": "jrom@snapplanet.io",
-            "Query": "Toulouse",
-            "Attribution": "European Union/ESA/Copernicus"
-        }
-    },
     "providers": [
         {
             "name": "European Union/ESA/Copernicus",

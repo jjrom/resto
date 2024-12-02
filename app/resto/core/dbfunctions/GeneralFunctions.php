@@ -83,7 +83,7 @@ class GeneralFunctions
         if (!is_int($duration)) {
             $duration = 86400;
         }
-        $results = $this->dbDriver->fetch($this->dbDriver->query('INSERT INTO ' . $this->dbDriver->commonSchema . '.sharedlink (url, token, userid, validity) VALUES (\'' . pg_escape_string($this->dbDriver->getConnection(), $resourceUrl) . '\',\'' . (RestoUtil::encrypt(mt_rand(0, 100000) . microtime())) . '\',' . pg_escape_string($this->dbDriver->getConnection(), $userid) . ',now() + ' . $duration . ' * \'1 second\'::interval) RETURNING token', 500, 'Cannot share link'));
+        $results = $this->dbDriver->fetch($this->dbDriver->query('INSERT INTO ' . $this->dbDriver->commonSchema . '.sharedlink (url, token, userid, validity) VALUES (\'' . $this->dbDriver->escape_string( $resourceUrl) . '\',\'' . (RestoUtil::encrypt(mt_rand(0, 100000) . microtime())) . '\',' . $this->dbDriver->escape_string( $userid) . ',now() + ' . $duration . ' * \'1 second\'::interval) RETURNING token', 500, 'Cannot share link'));
         if (count($results) === 1) {
             return array(
                 'resourceUrl' => $resourceUrl,
@@ -190,7 +190,7 @@ class GeneralFunctions
         }
         
         try {
-            $result = pg_fetch_row(pg_query_params($this->dbDriver->getConnection(), 'WITH tmp AS (SELECT ST_Force2D(' . $geoJsonParser . ') AS geom, ST_Force2D(' . $this->getSplitterFunction($geoJsonParser, $params) . ') AS _geom) SELECT geom, _geom, ST_Force2D(ST_SetSRID(ST_Centroid(_geom), 4326)) AS centroid, Box2D(ST_SetSRID(_geom, 4326)) as bbox FROM tmp', array(
+            $result = pg_fetch_row($this->dbDriver->query_params('WITH tmp AS (SELECT ST_Force2D(' . $geoJsonParser . ') AS geom, ST_Force2D(' . $this->getSplitterFunction($geoJsonParser, $params) . ') AS _geom) SELECT geom, _geom, ST_Force2D(ST_SetSRID(ST_Centroid(_geom), 4326)) AS centroid, Box2D(ST_SetSRID(_geom, 4326)) as bbox FROM tmp', array(
                 json_encode(array(
                     'type' => $geometry['type'],
                     'coordinates' => $geometry['coordinates']

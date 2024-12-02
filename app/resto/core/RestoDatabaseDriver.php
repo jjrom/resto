@@ -135,9 +135,6 @@ class RestoDatabaseDriver
     {
         try {
             $dbh = $this->getConnection();
-            if (!$dbh) {
-                throw new Exception('Cannot connect to database ' . ($this->config['dbname'] ?? '???') . '@' . ($this->config['host'] ?? '???') . ':' . ($this->config['port'] ?? '???'), 500);
-            }
             
             $results = isset($params) ? pg_query_params($dbh, $query, $params) : pg_query($dbh, $query);
             if (!$results) {
@@ -154,7 +151,7 @@ class RestoDatabaseDriver
      * Convert database query result into array
      *
      * @param PgSql\Result $results
-     * @return Array
+     * @return array
      */
     public function fetch($results)
     {
@@ -163,20 +160,53 @@ class RestoDatabaseDriver
     }
 
     /**
+     * Wrapper of pg_escape_string
+     *
+     * @param string $str
+     * @return string
+     */
+    public function escape_string($str)
+    {
+        try {
+            return pg_escape_string($this->getConnection(), $str);
+        }
+        catch (Exception $e) {
+            RestoLogUtil::httpError($e->getCode(), $e->getMessage());
+        }
+    }
+
+    /**
+     * Wrapper of pg_query_params
+     *
+     * @param string $str
+     * @param array $params
+     * @return PgSql\Result|false
+     */
+    public function query_params($str, $params)
+    {
+        try {
+            return pg_query_params($this->getConnection(), $str, $params);
+        }
+        catch (Exception $e) {
+            RestoLogUtil::httpError($e->getCode(), $e->getMessage());
+        }
+    }
+
+    /**
      * Return PostgreSQL database handler
      */
     public function getConnection()
     {
         // Connection already initialized
-        if (isset($this->dbh)) {
+        if ( !empty($this->dbh) )  {
             return $this->dbh;
         }
         
         // Get connection
         $this->dbh = $this->getConnectionFromConfig($this->config);
         
-        if (!$this->dbh) {
-            return RestoLogUtil::httpError(500, 'Cannot connect to database ' . ($this->config['dbname'] ?? '???') . '@' . ($this->config['host'] ?? '???') . ':' . ($this->config['port'] ?? '???'));
+        if ( empty($this->dbh)  ) {
+            throw new Exception('Cannot connect to database ' . ($this->config['dbname'] ?? '???') . '@' . ($this->config['host'] ?? '???') . ':' . ($this->config['port'] ?? '???'), 500);
         }
        
         return $this->dbh;

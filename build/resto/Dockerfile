@@ -26,6 +26,9 @@ COPY ${BUILD_DIR}/container_root/cont-init.d /etc/cont-init.d
 # Copy source code in app directory
 COPY ./app /app
 
+# Copy admin_scripts
+COPY ./admin_scripts /admin_scripts
+
 # Copy source code in app directory
 COPY ./resto-database-model /resto-database-model
 

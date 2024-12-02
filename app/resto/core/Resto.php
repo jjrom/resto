@@ -65,15 +65,12 @@
  *
  * @OA\OpenApi(
  *   @OA\Info(
- *       title=API_INFO_TITLE,
- *       description=API_INFO_DESCRIPTION,
- *       version=RESTO_VERSION,
- *       @OA\Contact(
- *           email=API_INFO_CONTACT_EMAIL
- *       )
+ *       title=STAC_ROOT_TITLE,
+ *       description=STAC_ROOT_DESCRIPTION,
+ *       version=RESTO_VERSION
  *   ),
  *   @OA\Server(
- *       description=API_HOST_DESCRIPTION,
+ *       description=STAC_ROOT_DESCRIPTION,
  *       url=PUBLIC_ENDPOINT
  *   )
  *  )
@@ -190,7 +187,7 @@ class Resto
                 return $this->setCORSHeaders();
 
             default:
-                return RestoLogUtil::httpError(404);
+                RestoLogUtil::httpError(404);
         }
         
         $response = $this->router->process($method, $this->context->path, $this->context->query);
@@ -261,7 +258,7 @@ class Resto
          * Case 0 - Object is null
          */
         if (!isset($object)) {
-            return RestoLogUtil::httpError(400, 'Empty object');
+            RestoLogUtil::httpError(400, 'Empty object');
         }
         
         $pretty = isset($this->context->query['_pretty']) ? filter_var($this->context->query['_pretty'], FILTER_VALIDATE_BOOLEAN) : false;
@@ -283,7 +280,7 @@ class Resto
             if (method_exists(get_class($object), $methodName)) {
                 return $outputFormat === 'json' ? $object->$methodName($pretty) : $object->$methodName();
             }
-            return RestoLogUtil::httpError(404);
+            RestoLogUtil::httpError(404);
         }
 
         return $object;
@@ -291,7 +288,7 @@ class Resto
         /*
          * Unknown stuff
          */
-        return RestoLogUtil::httpError(400, 'Invalid object');
+        RestoLogUtil::httpError(400, 'Invalid object');
     }
 
     /**

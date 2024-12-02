@@ -186,11 +186,6 @@
  *                  "href": "http://127.0.0.1:5252/stac/search.json?"
  *              },
  *              {
- *                  "rel": "search",
- *                  "type": "application/opensearchdescription+xml",
- *                  "href": "http://127.0.0.1:5252/services/osdd"
- *              },
- *              {
  *                  "rel": "next",
  *                  "type": "application/json",
  *                  "href": "http://127.0.0.1:5252/stac/search.json?next=204449069316703379"
@@ -392,7 +387,7 @@ class RestoFeatureCollection
     /**
      * Constructor
      *
-     * @param RestoResto $context : Resto Context
+     * @param RestoContext $context : Resto Context
      * @param RestoUser $user : Resto user
      * @param array $collections
      * @param RestoModel $model : Base model
@@ -824,11 +819,6 @@ class RestoFeatureCollection
                 'href' => RestoUtil::updateUrl($this->context->getUrl(false), $this->writeRequestParams($this->query))
             ),
             array(
-                'rel' => 'search',
-                'type' => 'application/opensearchdescription+xml',
-                'href' => $this->context->core['baseUrl'] . '/services/osdd' . (isset($collectionId) ? '/' . $collectionId : '')
-            ),
-            array(
                 'rel' => 'root',
                 'type' => RestoUtil::$contentTypes['json'],
                 'href' => $this->context->core['baseUrl']
@@ -1005,7 +995,7 @@ class RestoFeatureCollection
          * Finally check validity
          */
         if (! in_array($sortKey, $this->context->dbDriver->sortKeys)) {
-            return RestoLogUtil::httpError(400, "Invalid sorting key");
+            RestoLogUtil::httpError(400, "Invalid sorting key");
         }
 
         /*

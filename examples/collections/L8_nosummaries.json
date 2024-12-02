@@ -1,34 +1,19 @@
 {
     "id": "L8",
     "type": "Collection",
+    "title":"Landsat-8 Level 1C product",
+    "description": "Landsat represents the world's longest continuously acquired collection of space-based moderate-resolution land remote sensing data. Four decades of imagery provides a unique resource for those who work in agriculture, geology, forestry, regional planning, education, mapping, and global change research. Landsat images are also invaluable for emergency response and disaster relief",
+    "keywords":[
+        "landsat",
+        "USGS",
+        "level1C"
+    ],
     "aliases":[
         "Landsat8"
     ],
     "version": "1.0",
     "model": "SatelliteModel",
     "license": "PDDL-1.0",
-    "osDescription": {
-        "en": {
-            "ShortName": "Landsat-8",
-            "LongName": "Images Landsat-8 niveau 1C",
-            "Description": "Landsat represents the world's longest continuously acquired collection of space-based moderate-resolution land remote sensing data. Four decades of imagery provides a unique resource for those who work in agriculture, geology, forestry, regional planning, education, mapping, and global change research. Landsat images are also invaluable for emergency response and disaster relief",
-            "Tags": "landsat level1C USGS",
-            "Developer": "Jérôme Gasperi",
-            "Contact": "jrom@snapplanet.io",
-            "Query": "USA 2019",
-            "Attribution": "USGS/NASA Landsat"
-        },
-        "fr": {
-            "ShortName": "Landsat-8",
-            "LongName": "Landsat-8 Level 1C product",
-            "Description": "Le programme Landsat est le premier programme spatial d'observation de la Terre d\u00e9di\u00e9 \u00e0 des fins civiles. Quarante ann\u00e9es d'imageries spatiales fournissent une ressource unique dans les secteurs de l'agriculture, de la g\u00e9ologie, de la gestion des for\u00eats, de l'\u00e9ducation, et de la recherche sur le changement climatique",
-            "Tags": "landsat level1C USGS",
-            "Developer": "Jérôme Gasperi",
-            "Contact": "jrom@snapplanet.io",
-            "Query": "US 2019",
-            "Attribution": "USGS/NASA Landsat"
-        }
-    },
     "providers": [
         {
             "name": "USGS",

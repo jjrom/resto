@@ -93,7 +93,7 @@ class SecurityUtil
          * Authentication headers were present but authentication leads to unauthentified user => security error
          */
         if ($authRequested && !isset($user->profile['id'])) {
-            return RestoLogUtil::httpError(401);
+            RestoLogUtil::httpError(401);
         }
 
         return $user;

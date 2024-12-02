@@ -35,7 +35,7 @@ class RestoRouter
     const ROUTE_TO_FEATURE = RestoRouter::ROUTE_TO_FEATURES . '/{featureId}';
     const ROUTE_TO_FORGOT_PASSWORD = '/services/password/forgot';
     const ROUTE_TO_GROUPS = '/groups';
-    const ROUTE_TO_OSDD = '/services/osdd';
+    
     const ROUTE_TO_LIVENESS = '/_isLive';
     const ROUTE_TO_RESET_PASSWORD = '/services/password/reset';
     const ROUTE_TO_SEND_ACTIVATION_LINK = '/services/activation/send';
@@ -105,8 +105,6 @@ class RestoRouter
         array('PUT',    RestoRouter::ROUTE_TO_AUTH . '/activate/{token}', false, 'AuthAPI::activateUser'),                              // Activate owner of the token
 
         // API for services
-        array('GET',    RestoRouter::ROUTE_TO_OSDD, false, 'ServicesAPI::getOSDD'),                                                     // Opensearch service description at collections level
-        array('GET',    RestoRouter::ROUTE_TO_OSDD . '/{collectionId}', false, 'ServicesAPI::getOSDDForCollection'),                    // Opensearch service description for products on {collection}
         array('POST',   RestoRouter::ROUTE_TO_SEND_ACTIVATION_LINK, false, 'ServicesAPI::sendActivationLink'),                          // Send activation link
         array('POST',   RestoRouter::ROUTE_TO_FORGOT_PASSWORD, false, 'ServicesAPI::forgotPassword'),                                   // Send reset password link
         array('POST',   RestoRouter::ROUTE_TO_RESET_PASSWORD, false, 'ServicesAPI::resetPassword'),                                     // Reset password
@@ -331,7 +329,7 @@ class RestoRouter
          * Authentication is required
          */
         if (isset($validRoute[0]['auth']) && $validRoute[0]['auth'] && !isset($this->user->profile['id'])) {
-            return RestoLogUtil::httpError(401);
+            RestoLogUtil::httpError(401);
         }
 
         /*
