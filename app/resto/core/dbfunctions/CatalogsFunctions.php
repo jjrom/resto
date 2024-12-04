@@ -81,7 +81,7 @@ class CatalogsFunctions
             'level' => (integer) $rawCatalog['level'],
             'counters' => isset($rawCatalog['counters']) ? json_decode($rawCatalog['counters'], true) : null,
             'owner' => $rawCatalog['owner'] ?? null,
-            'visibility' => (integer) $rawCatalog['visibility'],
+            'visibility' => json_decode($rawCatalog['visibility'], true),
             'created' => $rawCatalog['created'],
             'rtype' => $rawCatalog['rtype'] ?? null
         );
@@ -362,7 +362,7 @@ class CatalogsFunctions
         $properties = null;
         foreach (array_keys($catalog) as $key ) {
             if (in_array($key, $canBeUpdated)) {
-                $values[] = $key === 'links' ? json_encode($catalog[$key], JSON_UNESCAPED_SLASHES) : $catalog[$key];
+                $values[] = ($key === 'links' || $key === 'visibility') ? json_encode($catalog[$key], JSON_UNESCAPED_SLASHES) : $catalog[$key];
                 $set[] = $key . '=$' . count($values);
             }
             // Other properties goes to properties

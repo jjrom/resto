@@ -103,6 +103,7 @@ class RestoFeatureUtil
      */
     private function formatRawFeatureArray($rawFeatureArray, $collection)
     {
+
         $self = $this->context->core['baseUrl'] . RestoUtil::replaceInTemplate(RestoRouter::ROUTE_TO_FEATURE, array(
             'collectionId' => $collection->id,
             'featureId' => $rawFeatureArray['id']
@@ -198,6 +199,10 @@ class RestoFeatureUtil
                     $featureArray[$key] = array_merge($featureArray[$key], $this->getLinks(json_decode($value, true), $self));
                     break;
 
+                case 'visibility':
+                    $featureArray['visibility'] = explode(',', (substr($value, 1, strlen($value) - 2)));
+                    break;
+
                 case 'bbox4326':
                     $featureArray['bbox'] = RestoGeometryUtil::box2dTobbox($value);
                     break;
@@ -215,7 +220,6 @@ class RestoFeatureUtil
                     break;
                 
                 case 'status':
-                case 'visibility':
                 case 'likes':
                 case 'comments':
                     $featureArray['properties'][$key] = (integer) $value;
@@ -248,7 +252,6 @@ class RestoFeatureUtil
         if (! isset($featureArray['properties']['ssys:targets']) || ! is_array($featureArray['properties']['ssys:targets'])) {
             $featureArray['properties']['ssys:targets'] = array($collection->getPlanet());
         }
-
         return $featureArray;
     }
 

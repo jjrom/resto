@@ -467,7 +467,7 @@ class CollectionsFunctions
             'aliases' => isset($rawCollection['aliases']) ? json_decode($rawCollection['aliases'], true) : array(),
             'version' => $rawCollection['version'] ?? null,
             'model' => $rawCollection['model'],
-            'visibility' => (integer) $rawCollection['visibility'],
+            'visibility' => json_decode($rawCollection['visibility'], true),
             'owner' => $rawCollection['owner'],
             'providers' => json_decode($rawCollection['providers'], true),
             'assets' => json_decode($rawCollection['assets'], true),

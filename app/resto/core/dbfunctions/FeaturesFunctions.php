@@ -299,7 +299,7 @@ class FeaturesFunctions
             array(
                 'id' => $id,
                 'collection' => $collection->id,
-                'visibility' => RestoConstants::GROUP_DEFAULT_ID,
+                'visibility' => array(RestoConstants::GROUP_DEFAULT_ID),
                 'owner' => isset($collection) && isset($collection->user) ? $collection->user->profile['id'] : null,
                 'status' => isset($featureArray['properties']) && isset($featureArray['properties']['status']) && is_int($featureArray['properties']['status']) ? $featureArray['properties']['status'] : 1,
                 'likes' => 0,
@@ -552,7 +552,7 @@ class FeaturesFunctions
         }
 
         // Check property type validity
-        if (in_array($property, array('visibility', 'owner', 'status'))) {
+        if (in_array($property, array('owner', 'status'))) {
             if (! ctype_digit($value . '')) {
                 RestoLogUtil::httpError(400, 'Invalid ' . $property . ' type - should be numeric');
             }
