@@ -259,8 +259,12 @@ class FiltersFunctions
             return null;
         }
 
+        $groups = $this->user->getGroupIds();
+        if ( !isset($groups) || count($groups) === 0 ) {
+            $groups = [RestoConstants::GROUP_ADMIN_ID];
+        } 
         return array(
-            'value' =>  $tableName . '.visibility IN (' . join(',', $this->user->getGroupIds()) . ')',
+            'value' =>  $tableName . '.visibility && ARRAY[' . (count($groups) === 1 ? $groups[0] : join('::BIGINT,', $groups) ). '.::BIGINT]',
             'isGeo' => false
         );
     }

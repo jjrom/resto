@@ -34,7 +34,7 @@ class RightsFunctions
 
         // Non authenticated user can only see DEFAULT
         if ( !isset($user) || !isset($user->profile['id']) ) {
-            return 'visibility IN (' . RestoConstants::GROUP_DEFAULT_ID . ')';
+            return 'visibility && ARRAY[' . RestoConstants::GROUP_DEFAULT_ID . '::BIGINT]';
         }
 
         // Admin can see everything
@@ -44,7 +44,7 @@ class RightsFunctions
 
         $groups = $user->getGroupIds();
         if ( isset($groups) && count($groups) > 0 ) {
-            return '(owner = ' . $user->profile['id'] . ' OR visibility IN (' . join(',', $groups) . '))';
+            return '(owner = ' . $user->profile['id'] . ' OR visibility && ARRAY[' . (count($groups) === 1 ? $groups[0] : join('::BIGINT,', $groups) ). '.::BIGINT])';
         }
 
         // This is not possible since every user is at leat in DEFAULT group but who knows !
