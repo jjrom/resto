@@ -7,8 +7,7 @@
     "links":[
         {
             "rel":"item",
-            "href":"http://127.0.0.1:5252/collections/DummyCollection/items/DummySargasse",
-            "title":"Catalog can also have item"
+            "href":"http://127.0.0.1:5252/collections/DummyCollection/items/DummySargasse"
         },
         {
             "rel":"item",

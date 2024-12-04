@@ -232,10 +232,10 @@ class CatalogsFunctions
      * @param RestoContext $context
      * @param string $userid
      * @param RestoCollection $collection
-     * @param string $featureId
+     * @param array $feature
      * @param boolean addBeginCommit // True means that call is already within a BEGIN/COMMIT block
      */
-    public function storeCatalogs($catalogs, $context, $userid, $collection, $featureId, $addBeginCommit)
+    public function storeCatalogs($catalogs, $context, $userid, $collection, $feature, $addBeginCommit)
     {
 
         // Empty catalogs - do nothing
@@ -252,12 +252,12 @@ class CatalogsFunctions
             }
 
             for ($i = count($catalogs); $i--;) {
-                $this->storeCatalog($catalogs[$i], $userid, $context, $collectionId, $featureId);
+                $this->storeCatalog($catalogs[$i], $userid, $context, $collectionId, $feature);
             }
     
             // Update all counters at the same time for a given featureId
-            if ( isset($featureId) ) {
-                $this->updateFeatureCatalogsCounters($featureId, $collectionId, 1);
+            if ( isset($feature) ) {
+                $this->updateFeatureCatalogsCounters($feature['id'], $collectionId, 1);
             }
 
             if ( $addBeginCommit) {
@@ -531,9 +531,9 @@ class CatalogsFunctions
      * @param string $userid
      * @param RestoContext $context
      * @param string $collectionId
-     * @param string $featureId
+     * @param array $feature
      */
-    private function storeCatalog($catalog, $userid, $context, $collectionId, $featureId)
+    private function storeCatalog($catalog, $userid, $context, $collectionId, $feature)
     {
         // Empty catalog - do nothing
         if (!isset($catalog)) {
@@ -584,7 +584,7 @@ class CatalogsFunctions
                 'collections' => array()
             ), JSON_UNESCAPED_SLASHES)),
             $catalog['owner'] ?? $userid,
-            RestoConstants::GROUP_DEFAULT_ID,
+            '{' . join(',', array(RestoConstants::GROUP_DEFAULT_ID)) . '}',
             $catalog['rtype'] ?? null,
             isset($properties) ? json_encode($properties, JSON_UNESCAPED_SLASHES) : null
         );
@@ -628,12 +628,12 @@ class CatalogsFunctions
             $catalog['rtype'] = null;
         }
 
-        if ( isset($featureId) && $catalog['rtype'] !== 'collection' && ($catalogLevel > 1 || $catalog['rtype'] === 'catalog')  ) {
-            $this->insertIntoCatalogFeature($featureId, $path, $catalog['id'], $collectionId);
+        if ( isset($feature) && $catalog['rtype'] !== 'collection' && ($catalogLevel > 1 || $catalog['rtype'] === 'catalog')  ) {
+            $this->insertIntoCatalogFeature($feature, $path, $catalog['id'], $collectionId);
         }
 
         /*
-         * Add an entry in catalog_feature for each interalItems
+         * Add an entry in catalog_feature for each internalItems
          */
         $this->addInternalItems($cleanLinks['internalItems'] ?? array(), $catalog['id']);
         
@@ -654,9 +654,9 @@ class CatalogsFunctions
         $path = RestoUtil::path2ltree($catalogId);
 
         for ($i = 0, $ii = count($items); $i < $ii; $i++) {
-            $this->insertIntoCatalogFeature($items[$i]['id'], $path, $catalogId, $items[$i]['collection']);
+            $this->insertIntoCatalogFeature($items[$i], $path, $catalogId, $items[$i]['collection']);
             $query = 'UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters,1,\'' . $this->dbDriver->escape_string( $items[$i]['collection']) . '\') WHERE id = \'' . $this->dbDriver->escape_string( $catalogId) . '\'';
-            $results = $this->dbDriver->fetch($this->dbDriver->query($query));
+            $this->dbDriver->fetch($this->dbDriver->query($query));
         }
         
     }
@@ -806,22 +806,29 @@ class CatalogsFunctions
 
     /**
      * Create catalog -> featureId association
+     * 
+     * @param array $feature
+     * @param string $path
+     * @param string $catalogId
+     * @param string $collectionId
      */
-    private function insertIntoCatalogFeature($featureId, $path, $catalogId, $collectionId) {
+    private function insertIntoCatalogFeature($feature, $path, $catalogId, $collectionId) {
 
-        $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.catalog_feature SET featureid=$1, path=$2, catalogid=$3, collection=$4 WHERE featureid=$1 AND path @> $2::ltree AND nlevel(path) < nlevel($2::ltree)', array(
-            $featureId,
+        $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.catalog_feature SET featureid=$1, path=$2, catalogid=$3, collection=$4, title=$5 WHERE featureid=$1 AND path @> $2::ltree AND nlevel(path) < nlevel($2::ltree)', array(
+            $feature['id'],
             $path,
             $catalogId,
-            $collectionId
-        ), 500, 'Cannot create association for ' . $featureId . ' in catalog ' . $catalogId);
+            $collectionId,
+            $feature['title'] ?? null
+        ), 500, 'Cannot create association for ' . $feature['id'] . ' in catalog ' . $catalogId);
         
-        $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog_feature (featureid, path, catalogid, collection) SELECT $1, $2::ltree, $3, $4 WHERE NOT EXISTS (SELECT 1 FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE featureid = $1 AND (path <@ $2::ltree OR path @> $2::ltree))', array(
-            $featureId,
+        $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog_feature (featureid, path, catalogid, collection, title) SELECT $1, $2::ltree, $3, $4, $5 WHERE NOT EXISTS (SELECT 1 FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE featureid = $1 AND (path <@ $2::ltree OR path @> $2::ltree))', array(
+            $feature['id'],
             $path,
             $catalogId,
-            $collectionId
-        ), 500, 'Cannot create association for ' . $featureId . ' in catalog ' . $catalogId);
+            $collectionId,
+            $feature['title'] ?? null
+        ), 500, 'Cannot create association for ' . $feature['id'] . ' in catalog ' . $catalogId);
       
     }
 
@@ -886,13 +893,18 @@ class CatalogsFunctions
                             'href' => $link['href'],
                             'collection' => $collectionId
                         );
-                        $output['internalItems'][] = $internalItem;
 
                         // Check for link existence !
-                        if ( !(new FeaturesFunctions($this->dbDriver))->featureExists($internalItem['id'], $this->dbDriver->targetSchema . '.feature', $internalItem['collection']) ) {
+                        $minimalFeature = (new FeaturesFunctions($this->dbDriver))->getMinimalFeature($internalItem['id'], $this->dbDriver->targetSchema . '.feature', $internalItem['collection']);
+                        if ( empty($minimalFeature) ) {
                             RestoLogUtil::httpError(400, 'Feature ' . $internalItem['href'] . ' does not exist. Ingest it first !');
                         }
-            
+                        else {
+                            $internalItem['title'] = $link['title'] ?? $minimalFeature[0]['title'];
+                        }
+
+                        $output['internalItems'][] = $internalItem;
+
                         continue;
                     }
 

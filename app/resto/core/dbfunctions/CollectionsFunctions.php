@@ -220,7 +220,7 @@ class CollectionsFunctions
                     'lineage' => '{' . join(',', $collection->model->getLineage()) . '}',
                     // Be carefull license column is named licenseid in table
                     'licenseid' => $collection->license,
-                    'visibility' => $collection->visibility,
+                    'visibility' => '{' . join(',', $collection->visibility) . '}',
                     'owner' => $collection->owner,
                     'providers' => json_encode($collection->providers, JSON_UNESCAPED_SLASHES),
                     'properties' => json_encode($collection->properties, JSON_UNESCAPED_SLASHES),

@@ -266,6 +266,21 @@ class FeaturesFunctions
      */
     public function featureExists($featureId, $featureTableName, $collectionId = null)
     {
+        return !empty($this->getMinimalFeature($featureId, $featureTableName, $collectionId));
+    }
+
+    /**
+     * Check if feature identified by $featureId exists
+     * If collectionId is set then returns true only if feature exists and within the collection
+     *
+     * @param string $featureId - feature UUID
+     * @param string $featureTableName
+     * @param string 
+     * @return array
+     * @throws Exception
+     */
+    public function getMinimalFeature($featureId, $featureTableName, $collectionId = null)
+    {
 
         $params = array(
             $featureId
@@ -279,7 +294,7 @@ class FeaturesFunctions
             $where[] = 'collection=$2';
         }
 
-        return !empty($this->dbDriver->fetch($this->dbDriver->pQuery('SELECT 1 FROM ' . $featureTableName . ' WHERE ' . join(' AND ', $where), $params)));
+        return $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id,title FROM ' . $featureTableName . ' WHERE ' . join(' AND ', $where), $params));
     }
 
     /**
@@ -299,7 +314,7 @@ class FeaturesFunctions
             array(
                 'id' => $id,
                 'collection' => $collection->id,
-                'visibility' => array(RestoConstants::GROUP_DEFAULT_ID),
+                'visibility' => '{' . join(',', array(RestoConstants::GROUP_DEFAULT_ID)) . '}',
                 'owner' => isset($collection) && isset($collection->user) ? $collection->user->profile['id'] : null,
                 'status' => isset($featureArray['properties']) && isset($featureArray['properties']['status']) && is_int($featureArray['properties']['status']) ? $featureArray['properties']['status'] : 1,
                 'likes' => 0,
@@ -351,7 +366,7 @@ class FeaturesFunctions
             /*
              * Store feature - identifier is generated with public.timestamp_to_id()
              */
-            $result = pg_fetch_assoc($this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.feature (' . join(',', array_keys($keysAndValues['keysAndValues'])) . ') VALUES (' . join(',', array_values($keysAndValues['params'])) . ') RETURNING id, productidentifier', array_values($keysAndValues['keysAndValues'])), 0);
+            $result = pg_fetch_assoc($this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.feature (' . join(',', array_keys($keysAndValues['keysAndValues'])) . ') VALUES (' . join(',', array_values($keysAndValues['params'])) . ') RETURNING id, productidentifier, title', array_values($keysAndValues['keysAndValues'])), 0);
             
             /*
              * Store feature content
@@ -361,7 +376,7 @@ class FeaturesFunctions
             /*
              * Store catalogs
              */
-            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->context, $collection->user->profile['id'], $collection, $result['id'], false);
+            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->context, $collection->user->profile['id'], $collection, array('id' => $result['id'], 'title' => $result['title'] ?? null), false);
         
             /*
              * Commit everything - rollback if one of the inserts failed
@@ -520,7 +535,7 @@ class FeaturesFunctions
                     $feature->id
                 )
             );
-            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->context, $collection->user->profile['id'], $collection, $feature->id, false);
+            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->context, $collection->user->profile['id'], $collection, $feature->toArray(), false);
         
             /*
              * Commit

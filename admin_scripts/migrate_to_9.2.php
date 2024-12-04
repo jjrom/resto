@@ -31,6 +31,10 @@
             $dbDriver->query('ALTER TABLE ' . $dbDriver->targetSchema . '.' . $target . ' DROP COLUMN visibleby');
             $dbDriver->query('CREATE INDEX IF NOT EXISTS idx_visibility_' . $target . ' ON ' . $dbDriver->targetSchema . '.' . $target . ' USING GIN (visibility)');    
         }
+
+        // Set Title to feature
+        $dbDriver->query('ALTER TABLE resto.catalog_feature ADD COLUMN title TEXT');
+        $dbDriver->query('WITH tmp AS (SELECT id, title FROM ' . $dbDriver->targetSchema . '.feature) UPDATE ' . $dbDriver->targetSchema . '.catalog_feature SET title = tmp.title FROM tmp WHERE featureid = tmp.id');
         
         $dbDriver->query('COMMIT');
 
@@ -38,4 +42,7 @@
         $dbDriver->query('ROLLBACK');
         RestoLogUtil::httpError(500, $e->getMessage());
     }
+
+    
+    
 

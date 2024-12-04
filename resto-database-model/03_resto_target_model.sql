@@ -377,6 +377,9 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog_feature (
     -- Leaf catalog path with . instead of / as delimiter
     path                    LTREE,
 
+    -- This is a duplicate from feature title to avoid JOIN
+    title                   TEXT,
+
     -- This is a duplicate from catalog id without constraint to avoid JOIN
     catalogid               TEXT,
 
