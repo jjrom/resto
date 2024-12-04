@@ -24,6 +24,35 @@ class RightsFunctions
     private $dbDriver = null;
 
     /**
+     * Return visibility WHERE clause
+     * 
+     * @param RestoUser $user
+     * @return string
+     */
+    public static function getVisibilityClause($user)
+    {
+
+        // Non authenticated user can only see DEFAULT
+        if ( !isset($user) || !isset($user->profile['id']) ) {
+            return 'visibility IN (' . RestoConstants::GROUP_DEFAULT_ID . ')';
+        }
+
+        // Admin can see everything
+        if ( $user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+            return null;
+        }
+
+        $groups = $user->getGroupIds();
+        if ( isset($groups) && count($groups) > 0 ) {
+            return '(owner = ' . $user->profile['id'] . ' OR visibility IN (' . join(',', $groups) . '))';
+        }
+
+        // This is not possible since every user is at leat in DEFAULT group but who knows !
+        return 'owner = ' . $user->profile['id'];
+        
+    }
+
+    /**
      * Constructor
      *
      * @param RestoDatabaseDriver $dbDriver

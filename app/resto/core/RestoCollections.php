@@ -206,8 +206,7 @@ class RestoCollections
        
         if ( !$this->isLoaded ) {
             
-            $params['group'] = $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ? null : $this->user->getGroupIds();
-            $collectionsDesc = (new CollectionsFunctions($this->context->dbDriver))->getCollections($params);
+            $collectionsDesc = (new CollectionsFunctions($this->context->dbDriver))->getCollections($this->user, $params);
             
             foreach (array_keys($collectionsDesc) as $collectionId) {
                 $collection = $this->context->keeper->getRestoCollection($collectionId, $this->user);

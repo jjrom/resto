@@ -395,7 +395,7 @@ class STACAPI
         if ( isset($params['segments']) ) {
             for ($i = 0, $ii = count($params['segments']); $i < $ii; $i++) {
                 $parentId = isset($parentId) ? $parentId . '/' . $params['segments'][$i] : $params['segments'][$i];
-                if ($this->catalogsFunctions->getCatalog($parentId) === null) {
+                if ($this->catalogsFunctions->getCatalog($parentId, $this->user) === null) {
                     RestoLogUtil::httpError(400, 'Parent catalog ' . $parentId . ' does not exist.');
                 }
             }
@@ -422,7 +422,7 @@ class STACAPI
             RestoLogUtil::httpError(400, 'A catalog path cannot starts with *collections* as it is a reserved keyword');
         }
 
-        if ($this->catalogsFunctions->getCatalog($body['id']) !== null) {
+        if ($this->catalogsFunctions->getCatalog($body['id'], $this->user) !== null) {
             RestoLogUtil::httpError(409, 'Catalog ' . $body['id'] . ' already exists');
         }
 
@@ -503,7 +503,7 @@ class STACAPI
             'id' => join('/', $params['segments']),
             'noCount' => true,
             'noProperties' => true
-        ), true);
+        ), $this->user, true);
 
         if ( count($catalogs) === 0 ){
             RestoLogUtil::httpError(404);
@@ -625,7 +625,7 @@ class STACAPI
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
             'id' => join('/', $params['segments']),
             'noCount' => true
-        ), true);
+        ), $this->user, true);
         
         $count = count($catalogs);
         if ( $count === 0 ){
@@ -1385,7 +1385,7 @@ class STACAPI
                 'id' => join('/', $segments),
                 'q' => $params['q'] ?? null,
                 'noCount' => isset($params['_nocount']) ? filter_var($params['_nocount'], FILTER_VALIDATE_BOOLEAN) : false
-            ), false);
+            ), $this->user, false);
             
             if ( empty($catalogs) ) {
                 RestoLogUtil::httpError(404);
@@ -1554,7 +1554,7 @@ class STACAPI
             'id' => $catalogId,
             'q' => $params['q'] ?? null,
             'noCount' => isset($params['_nocount']) ? filter_var($params['_nocount'], FILTER_VALIDATE_BOOLEAN) : false
-        ), true);
+        ), $this->user, true);
         
         if ( empty($catalogs) ) {
             return null;
@@ -1687,7 +1687,7 @@ class STACAPI
             'level' => 1,
             'q' => $params['q'] ?? null,
             'noCount' => isset($params['_nocount']) ? filter_var($params['_nocount'], FILTER_VALIDATE_BOOLEAN) : false
-        ), false);
+        ), $this->user, false);
         
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
 

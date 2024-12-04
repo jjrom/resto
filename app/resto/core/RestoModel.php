@@ -664,10 +664,12 @@ abstract class RestoModel
         $discardedProperties = array(
             'id',
             'visibility',
-            //'owner',
+            'sort_idx'/*,
+            // [TODO] Remove ?
+            'owner',
             'sort_idx',
             '_keywords',
-            'resto:internal'
+            'resto:internal'*/
         );
 
         $properties = array();

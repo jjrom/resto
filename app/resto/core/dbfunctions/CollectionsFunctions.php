@@ -71,19 +71,23 @@ class CollectionsFunctions
     /**
      * Get all collections
      *
+     * @param RestoUser $user
      * @param array $params
      * @return array
      * @throws Exception
      */
-    public function getCollections($params = array())
+    public function getCollections($user, $params = array())
     {
         $collections = array();
-
+        
         // Where clause
         $where = array();
-        if (isset($params['group']) && count($params['group']) > 0) {
-            $where[] = 'visibility IN (' . join(',', $params['group']) . ')';
-        }
+        
+        // Visibility
+        $visibilityClause = RightsFunctions::getVisibilityClause($user);
+        if ( isset($visibilityClause) ) {
+            $where[] = $visibilityClause;
+        } 
         
         // Filter on keywords
         if (isset($params['ck'])) {

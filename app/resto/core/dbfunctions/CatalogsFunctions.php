@@ -107,13 +107,14 @@ class CatalogsFunctions
      * Get catalog
      *
      * @param string $id
+     * @param RestoUser $user
      */
-    public function getCatalog($catalogId)
+    public function getCatalog($catalogId, $user)
     {
     
         $catalogs = $this->getCatalogs(array(
             'id' => $catalogId
-        ), false);
+        ), $user, false);
 
         if ( isset($catalogs) && count($catalogs) === 1) {
             return $catalogs[0];
@@ -127,15 +128,21 @@ class CatalogsFunctions
      * Get catalogs (and eventually all its childs if id is set)
      *
      * @param array $params
+     * @param RestoUser $user
      * @param boolean $withChilds
      */
-    public function getCatalogs($params, $withChilds)
+    public function getCatalogs($params, $user, $withChilds)
     {
         
         $catalogs = array();
         $where = array();
         $values = array();
         $params = isset($params) ? $params : array();
+
+        $visibilityClause = RightsFunctions::getVisibilityClause($user);
+        if ( isset($visibilityClause) ) {
+            $where[] = $visibilityClause;
+        } 
 
         // Direct where clause
         if ( isset($params['where'])) {
@@ -716,7 +723,7 @@ class CatalogsFunctions
 
         $catalogs = $this->getCatalogs(array(
             'where' => !empty($types) ? 'rtype IN (\'' . join('\',\'', $types) . '\')' : 'rtype NOT IN (\'' . join('\',\'', CatalogsFunctions::TOPONYM_TYPES) . '\')'
-        ), false);
+        ), null, false);
         
         $counter = 0;
 
