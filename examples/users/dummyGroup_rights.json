@@ -1,3 +1,4 @@
 {
-    "createAnyFeature": true
+    "createAnyFeature": true,
+    "createCollection": true
 }

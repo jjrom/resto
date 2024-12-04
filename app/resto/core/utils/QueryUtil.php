@@ -56,6 +56,26 @@ class QueryUtil
     }
 
     /**
+     * Convert array of bigint to visibility SQL
+     * 
+     * @param array $arr
+     */
+    public static function visibilityToSQL($arr)
+    {
+        if ( !isset($arr) || !is_array($arr) ) {
+            throw new Exception('Invalid visibility type - should be an array of bigint string', 400);
+        }
+
+        for ($i = count($arr); $i--;) {
+            if ( !ctype_digit($arr[$i]) ) {
+                throw new Exception('Invalid visibility type - ' . $arr[$i] . ' is not a bigint string (must be quoted)', 400);
+            }
+        }
+        
+        return '{' . join(',', $arr) . '}';
+    }
+
+    /**
      * Process simple interval
      *
      * @param PgSql\Connection $dbh

@@ -1,0 +1,10 @@
+{
+    "id": "JohnDoeCollection",
+    "type": "Collection",
+    "title": "I'm John Doe collection",
+    "description": "My owner is John Doe",
+    "keywords": [
+        "dummy",
+        "johnDoe"
+    ]
+}

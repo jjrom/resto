@@ -414,6 +414,10 @@ class RestoUser
      */
     public function getGroups()
     {
+        if ( !$this->profile['id'] ) {
+            return array();
+        }
+        
         if ( !isset($this->groups) ) {
             $this->groups = (new GroupsFunctions($this->context->dbDriver))->getGroups(array('userid' => $this->profile['id']));
         }

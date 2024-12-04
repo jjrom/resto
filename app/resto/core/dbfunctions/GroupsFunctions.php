@@ -85,7 +85,7 @@ class GroupsFunctions
         }
 
         try {
-            $result = $this->dbDriver->query_params('INSERT INTO ' . $this->dbDriver->commonSchema . '.group (name, description, owner, created) VALUES ($1, $2, $3, now()) ON CONFLICT name DO NOTHING RETURNING id ', array(
+            $result = $this->dbDriver->query_params('INSERT INTO ' . $this->dbDriver->commonSchema . '.group (name, description, owner, created) VALUES ($1, $2, $3, now()) ON CONFLICT (name) DO NOTHING RETURNING id ', array(
                 $params['body']['name'],
                 $params['body']['description'] ?? null,
                 $params['id']

@@ -573,6 +573,15 @@ class FeaturesFunctions
             }
         }
 
+        // Visibility
+        if ($property === 'visibility') {
+            try {
+                $value = QueryUtil::visibilityToSQL($value);
+            } catch (Exception $e) {
+                RestoLogUtil::httpError($e->getCode(), $e->getMessage());
+            }
+        }
+
         try {
             $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.feature SET ' . $property . '=$1 WHERE id=$2', array(
                 $value,

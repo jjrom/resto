@@ -362,7 +362,19 @@ class CatalogsFunctions
         $properties = null;
         foreach (array_keys($catalog) as $key ) {
             if (in_array($key, $canBeUpdated)) {
-                $values[] = ($key === 'links' || $key === 'visibility') ? json_encode($catalog[$key], JSON_UNESCAPED_SLASHES) : $catalog[$key];
+                if ($key === 'links') {
+                    $values[] = json_encode($catalog[$key], JSON_UNESCAPED_SLASHES);
+                }
+                else if ($key === 'visibility') {
+                    try {
+                        $values[] = QueryUtil::visibilityToSQL($catalog[$key]);
+                    } catch (Exception $e) {
+                        RestoLogUtil::httpError($e->getCode(), $e->getMessage());
+                    }
+                }
+                else {
+                    $values[] = $catalog[$key];
+                }
                 $set[] = $key . '=$' . count($values);
             }
             // Other properties goes to properties

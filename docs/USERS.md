@@ -151,17 +151,17 @@ Any user can add a group. Note that the group name must be unique.
 
 The result should be
 
-        {"status":"success","message":"Group created","id":103,"name":"My first group","owner":"224468756040777732"}
+        {"status":"success","message":"Group created","id":1000,"name":"My first group","owner":"224468756040777732"}
 
 ### Set group rights
 Only a user in the **admin group** can set the rights for a group
 
         # Set rights for dummy group allowing members to createAnyFeature
-        curl -X POST -d@examples/users/dummyGroup_rights.json "http://admin:admin@localhost:5252/groups/103/rights"
+        curl -X POST -d@examples/users/dummyGroup_rights.json "http://admin:admin@localhost:5252/groups/1000/rights"
 
 The result should returns :
 
-        {"status":"success","message":"Rights set","rights":{"createAnyFeature":true}}
+        {"status":"success","message":"Rights set","rights":{"createAnyFeature":true,"createAnyCollection":true}}
 
 Note that existing rights are not deleted when setting rights but are merged with input rights.
 
@@ -169,7 +169,7 @@ Note that existing rights are not deleted when setting rights but are merged wit
 Only a user in the **admin group** or the owner of the group can add user to a group
 
         # Add John Doe in group dummyGroup
-        curl -X POST -d@examples/users/dummyGroup_addJohnDoe.json "http://admin:admin@localhost:5252/groups/103/users"
+        curl -X POST -d@examples/users/dummyGroup_addJohnDoe.json "http://admin:admin@localhost:5252/groups/1000/users"
 
         # Consequently, John Doe's rights now includes rights from its groups
         curl -H "Authorization: Bearer ${JOHN_DOE_BEARER}" "http://localhost:5252/users/224468756040777732/rights"
@@ -189,3 +189,54 @@ Only a user in the **admin group** or the owner of the group can remove a user f
         # {"rights":{"createCollection":true,"deleteCollection":true,"updateCollection":true,"deleteAnyCollection":false,"updateAnyCollection":false,"createFeature":true,"updateFeature":true,"deleteFeature":true,"createAnyFeature":false,"deleteAnyFeature":false,"updateAnyFeature":false,"downloadFeature":false}
 
 ## Ownership and visibility
+### Ownership
+The following resources have an ownership i.e. they **belong to a user**:
+* item
+* catalog
+* collection
+* group
+
+The ownership is referenced by the user identifier.
+
+An owned resource can only be updated and deleted by its owner or by a user with a *Any* right (e.g. updateAnyCollection or deleteAnyCatalog). See the rights section for more detailed information.
+
+### Visibility
+The following resources have a visibility status:
+* item
+* catalog
+* collection
+
+The visibility property is an array of group identifiers. For a given resource, only user belonging to one of the group within the resource visibility array can see it.
+
+Unless specified, every resource is visible by every user (i.e. its visibility property is set by default to an array containing the *default group*).
+
+#### Create a collection visible by everyone
+First create John Doe user if not exist then create a group and add John Doe inside it:
+
+        # Add a new user
+        curl -X POST -d@examples/users/johnDoe.json "http://localhost:5252/users"
+
+        # Allow John Doe to create collection
+        curl -X POST -d@examples/users/johnDoe_rights.json "http://admin:admin@localhost:5252/users/227186704389477947/rights"
+
+        # Create dummy group
+        curl -X POST -d@examples/users/dummyGroup.json "http://johnDoe%40localhost:dummy@localhost:5252/groups"
+
+        # Add John Doe in group dummyGroup (only admin can do that)
+        curl -X POST "http://admin:admin@localhost:5252/groups/1000/users" -d '
+        {
+                "userid":"227186704389477947"
+        }'
+
+John Doe is in group dummyGroup and can create a collection:
+
+        # Create collection
+        curl -X POST -d@examples/collections/JohnDoeCollection.json "http://johnDoe%40localhost:dummy@localhost:5252/collections"
+
+        # This collection is visible for everyone
+        curl "http://localhost:5252/collections/JohnDoeCollection"
+
+Now John Doe change the visibility of the collection to dummyGroup only:
+
+
+        curl -X PUT -d@examples/users/dummySargasse_visibility.json "http://admin:admin@localhost:5252/collections/DummyCollection/items/DummySargasse/properties"

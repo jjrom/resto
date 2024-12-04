@@ -564,7 +564,7 @@ class RestoCollection
      * [STAC] Collection root attributes
      */
     public $aliases = array();
-    public $visibility = RestoConstants::GROUP_DEFAULT_ID;
+    public $visibility = array(RestoConstants::GROUP_DEFAULT_ID);
     public $version = '1.0.0';
     public $license = 'other';
     public $links = array();

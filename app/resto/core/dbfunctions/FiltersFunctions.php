@@ -252,6 +252,7 @@ class FiltersFunctions
      */
     private function prepareFilterQueryContextualSearch($tableName)
     {
+        
         /*
          * Admin user has no restriction on search
          */
@@ -261,7 +262,7 @@ class FiltersFunctions
 
         $groups = $this->user->getGroupIds();
         if ( !isset($groups) || count($groups) === 0 ) {
-            $groups = [RestoConstants::GROUP_ADMIN_ID];
+            $groups = [RestoConstants::GROUP_DEFAULT_ID];
         } 
         return array(
             'value' =>  $tableName . '.visibility && ARRAY[' . (count($groups) === 1 ? $groups[0] : join('::BIGINT,', $groups) ). '.::BIGINT]',
