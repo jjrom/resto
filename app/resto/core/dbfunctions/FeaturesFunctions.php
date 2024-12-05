@@ -556,42 +556,46 @@ class FeaturesFunctions
      * Update feature property
      *
      * @param RestoFeature $feature
-     * @param any $status
+     * @param array $properties
      * @throws Exception
      */
-    public function updateFeatureProperty($feature, $property, $value)
+    public function updateFeatureProperties($feature, $properties)
     {
-        // Special case for description
-        if ($property === 'description') {
-            return $this->updateFeatureDescription($feature, $value);
-        }
-
-        // Check property type validity
-        if (in_array($property, array('owner', 'status'))) {
-            if (! ctype_digit($value . '')) {
-                RestoLogUtil::httpError(400, 'Invalid ' . $property . ' type - should be numeric');
-            }
-        }
-
-        // Visibility
-        if ($property === 'visibility') {
-            try {
-                $value = QueryUtil::visibilityToSQL($value);
-            } catch (Exception $e) {
-                RestoLogUtil::httpError($e->getCode(), $e->getMessage());
-            }
-        }
 
         try {
-            $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.feature SET ' . $property . '=$1 WHERE id=$2', array(
-                $value,
-                $feature->id
-            ));
+
+            foreach ($properties as $property => $value) {
+
+                // Special case for description
+                if ($property === 'description') {
+                    $this->updateFeatureDescription($feature, $value);
+                }
+
+                // Check property type validity
+                if (in_array($property, array('owner', 'status'))) {
+                    if (! ctype_digit($value . '')) {
+                        RestoLogUtil::httpError(400, 'Invalid ' . $property . ' type - should be numeric');
+                    }
+                }
+
+                // Visibility
+                if ($property === 'visibility') {
+                    $value = QueryUtil::visibilityToSQL($value);
+                }
+
+                $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.feature SET ' . $property . '=$1 WHERE id=$2', array(
+                    $value,
+                    $feature->id
+                ));
+                
+            }
+
         } catch (Exception $e) {
-            RestoLogUtil::httpError(500, 'Cannot update ' . $property . ' for feature ' . $feature->id);
+            RestoLogUtil::httpError($e->getCode() ?? 500, $e->getMessage() ?? 'Cannot update ' . $property . ' for feature ' . $feature->id);
         }
+
+        return RestoLogUtil::success('Properties ' . join(',', array_keys($properties)) . ' updated for feature ' . $feature->id);
         
-        return RestoLogUtil::success('Property ' . $property . ' updated for feature ' . $feature->id);
     }
 
     /**

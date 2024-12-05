@@ -702,12 +702,12 @@ class FeaturesAPI
     }
 
     /**
-     * Update feature property
+     * Update feature properties
      *
      *  @OA\Put(
-     *      path="/collections/{collectionId}/items/{featureId}/properties/{property}",
-     *      summary="Update feature property",
-     *      description="Update {property} for feature {featureId}",
+     *      path="/collections/{collectionId}/items/{featureId}/properties",
+     *      summary="Update feature properties",
+     *      description="Update properties for feature {featureId}. Allowed properties are one of : title, description, visibility, owner and status",
      *      tags={"Feature"},
      *      @OA\Parameter(
      *         name="collectionId",
@@ -727,19 +727,9 @@ class FeaturesAPI
      *             type="string"
      *         )
      *      ),
-     *      @OA\Parameter(
-     *         name="property",
-     *         in="path",
-     *         required=true,
-     *         description="Property to update",
-     *         @OA\Schema(
-     *              type="string",
-     *              enum={"title", "description", "visibility", "owner", "status"}
-     *         )
-     *      ),
      *      @OA\Response(
      *          response="200",
-     *          description="The property is updated",
+     *          description="The properties are updated",
      *          @OA\JsonContent(
      *              @OA\Property(
      *                  property="status",
@@ -778,16 +768,8 @@ class FeaturesAPI
      *          @OA\JsonContent(ref="#/components/schemas/NotFoundError")
      *      ),
      *      @OA\RequestBody(
-     *         description="Property value to update",
-     *         @OA\JsonContent(
-     *              @OA\Property(
-     *                  property="value",
-     *                  description="New property value"
-     *              ),
-     *              example={
-     *                  "value":1
-     *              }
-     *          )
+     *         description="Properties to update",
+     *         @OA\JsonContent()
      *      ),
      *      security={
      *          {"basicAuth":{}, "bearerAuth":{}, "queryAuth":{}}
@@ -797,7 +779,7 @@ class FeaturesAPI
      * @param array $params
      * @param array $body
      */
-    public function updateFeatureProperty($params, $body)
+    public function updateFeatureProperties($params, $body)
     {
         $feature = new RestoFeature($this->context, $this->user, array(
             'featureId' => $params['featureId'],
@@ -813,21 +795,18 @@ class FeaturesAPI
         }
         
         // A value key is mandatory
-        if (! array_key_exists('value', $body)) {
-            RestoLogUtil::httpError(400, 'Missing mandatory "value" property');
+        $allowed = array('title', 'description', 'visibility', 'owner', 'status');
+        foreach (array_keys($body) as $property) {
+            if (! in_array($property, $allowed)) {
+                RestoLogUtil::httpError(400, 'Property "' . $property . '" is not one of updatable properties (' . join(',', $allowed) . ')');
+            }
+            // Only admin can change owner property
+            if ($property === 'owner' && ! $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
+                RestoLogUtil::httpError(403);
+            }
         }
 
-        // Only these properties can be updated
-        if (! in_array($params['property'], array('title', 'description', 'visibility', 'owner', 'status'))) {
-            RestoLogUtil::httpError(400, 'Invalid property "' . $params['property'] . '"');
-        }
-        
-        // Only admin can change owner property
-        if ($params['property'] === 'owner' && ! $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
-            RestoLogUtil::httpError(403);
-        }
-
-        return (new FeaturesFunctions($this->context->dbDriver))->updateFeatureProperty($feature, $params['property'], $body['value']);
+        return (new FeaturesFunctions($this->context->dbDriver))->updateFeatureProperties($feature, $body);
     }
 
     /**
