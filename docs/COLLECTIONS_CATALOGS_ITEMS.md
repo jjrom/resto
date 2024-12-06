@@ -1,10 +1,12 @@
-# Collections and catalogs
-The aim of resto is to store spatiotemporal *items* (aka features). These items are stored within *collections*.
+# Collections, catalogs and items
+The aim of resto is to store spatiotemporal *items*. These items are stored within *collections*.
 Each item must belong to one and only one *collection*. Usually a *collection* is made of homogeneous *items* (e.g. the Sentinel-2 collection contains Sentinel-2 images).
 
 However, the *collection->item* can be restrictive. Thus, items can also be linked to *catalogs*. A *catalog* is a simple, flexible JSON file of links that provides a structure to organize and browse items. For instance the "Flood in the South of France 2019-11" *catalog* could contains items that are related to this event but coming from very different *collections*
 
 ![Collections and catalogs](./stac_catalog.png)
+
+**[IMPORTANT]** RESTO IS FOLLOWING THE OGC COLLECTION/FEATURE CONVENTION NAMING. SO ANY TIME YOU SEE "FEATURE" IN THE DOCUMENTATION OR IN THE CODE YOU CAN REPLACE IT BY "ITEM". IT'S EXACTLY THE SAME !
 
 ## Collections
 **A collection must have a unique id.**
@@ -33,20 +35,20 @@ To update a collection
 
 Then get the collections list :
 
-### Ingest an item (aka feature)
-To ingest a feature using the default **ADMIN_USER_NAME** and **ADMIN_USER_PASSWORD** (see [config.env](config.env)) :
+### Ingest an item
+To ingest an item using the default **ADMIN_USER_NAME** and **ADMIN_USER_PASSWORD** (see [config.env](config.env)) :
 
-        # POST a dummy feature inside the S2 collection
-        curl -X POST -d@examples/features/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040.json "http://admin:admin@localhost:5252/collections/S2/items"
+        # POST a dummy item inside the S2 collection
+        curl -X POST -d@examples/items/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040.json "http://admin:admin@localhost:5252/collections/S2/items"
 
-        # Update a dummy feature inside the S2 collection
-        curl -X PUT -d@examples/features/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040_update.json "http://admin:admin@localhost:5252/collections/S2/items/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040"
+        # Update a dummy item inside the S2 collection
+        curl -X PUT -d@examples/items/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040_update.json "http://admin:admin@localhost:5252/collections/S2/items/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040"
 
-Then get the feature :
+Then get the item :
 
         curl "http://localhost:5252/collections/S2/items/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040"
 
-*Note: Any user with the "createFeature" right can insert a feature to a collection he owns ([see rights](./USERS.md))*
+*Note: Any user with the "createFeature" right can insert an item to a collection he owns ([see rights](./USERS.md))*
 
 ## Catalogs
 
@@ -92,7 +94,7 @@ is to create an empty catalog then add its childs through the POST API
         #   * an external item that is kept as referenced within the links column in catalog table
 
         # First POST the item because it should exist before referencing it within the catalog
-        curl -X POST -d@examples/features/dummySargasse.json "http://admin:admin@localhost:5252/collections/DummyCollection/items"
+        curl -X POST -d@examples/items/dummySargasse.json "http://admin:admin@localhost:5252/collections/DummyCollection/items"
 
         curl -X POST -d@examples/catalogs/dummyCatalogWithItem.json "http://admin:admin@localhost:5252/catalogs/dummyCatalogWithChilds/dummyCatalogChild1"
 
@@ -133,10 +135,10 @@ is to create an empty catalog then add its childs through the POST API
         curl -X POST -d@examples/collections/DummyCollection.json "http://admin:admin@localhost:5252/collections"
 
         # Add 4 dummy items
-        curl -X POST -d@examples/features/dummy1.json "http://admin:admin@localhost:5252/collections/DummyCollection/items"
-        curl -X POST -d@examples/features/dummy2.json "http://admin:admin@localhost:5252/collections/DummyCollection/items"
-        curl -X POST -d@examples/features/dummy3.json "http://admin:admin@localhost:5252/collections/DummyCollection/items"
-        curl -X POST -d@examples/features/dummy4.json "http://admin:admin@localhost:5252/collections/DummyCollection/items"
+        curl -X POST -d@examples/items/dummy1.json "http://admin:admin@localhost:5252/collections/DummyCollection/items"
+        curl -X POST -d@examples/items/dummy2.json "http://admin:admin@localhost:5252/collections/DummyCollection/items"
+        curl -X POST -d@examples/items/dummy3.json "http://admin:admin@localhost:5252/collections/DummyCollection/items"
+        curl -X POST -d@examples/items/dummy4.json "http://admin:admin@localhost:5252/collections/DummyCollection/items"
 
         # POST a dummyCatalogWithItems catalog referencing 2 dummy items
         curl -X POST -d@examples/catalogs/dummyCatalogWith2Items.json "http://admin:admin@localhost:5252/catalogs"

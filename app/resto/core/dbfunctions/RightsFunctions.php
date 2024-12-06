@@ -182,23 +182,28 @@ class RightsFunctions
         // Default rights allows only to delete/update things
         // that belongs to user
         $merged = array(
-            'createCollection' => false,
-            'deleteCollection' => true,
-            'updateCollection' => true,
-            'deleteAnyCollection' => false,
-            'updateAnyCollection' => false,
-            'createCatalog' => true,
-            'deleteCatalog' => true,
-            'updateCatalog' => true,
-            'deleteAnyCatalog' => false,
-            'updateAnyCatalog' => false,
-            'createFeature' => true,
-            'updateFeature' => true,
-            'deleteFeature' => true,
-            'createAnyFeature' => false,
-            'deleteAnyFeature' => false,
-            'updateAnyFeature' => false,
-            'downloadFeature' => false
+            RestoUser::CREATE_COLLECTION => false,
+            RestoUser::DELETE_COLLECTION => true,
+            RestoUser::UPDATE_COLLECTION => true,
+
+            RestoUser::DELETE_ANY_COLLECTION => false,
+            RestoUser::UPDATE_ANY_COLLECTION => false,
+
+            RestoUser::CREATE_CATALOG => true,
+            RestoUser::DELETE_CATALOG => true,
+            RestoUser::UPDATE_CATALOG => true,
+
+            RestoUser::DELETE_ANY_CATALOG => false,
+            RestoUser::UPDATE_ANY_CATALOG => false,
+
+            RestoUser::CREATE_ITEM => true,
+            RestoUser::DELETE_ITEM => true,
+            RestoUser::UPDATE_ITEM => true,
+            
+            RestoUser::CREATE_ANY_ITEM => false,
+            RestoUser::DELETE_ANY_ITEM => false,
+            RestoUser::UPDATE_ANY_ITEM => false,
+            RestoUser::DOWNLOAD_ITEM => false
         );
 
         // [IMPORTANT] Assume only boolean otherwise it will be converted to anyway

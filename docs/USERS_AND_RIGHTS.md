@@ -1,5 +1,5 @@
 # Users, rights and groups
-resto provide a user authentication and authorization mechanism allowing to manage access to ressources in particular to authorize CRUD operations (Create, Read, Update, Delete) on collections and features.
+resto provide a user authentication and authorization mechanism allowing to manage access to ressources in particular to authorize CRUD operations (Create, Read, Update, Delete) on collections, catalogs and items.
 
 ## Users
 On the first launch of resto, one user (admin) is created with a user *{userId}* equals to **100**. This user is automatically added to the **admin group** (see chapter on groups below).
@@ -57,7 +57,7 @@ The token can be used to request authenticated endpoint, for instance to get the
         curl -H "Authorization: Bearer ${JOHN_DOE_BEARER}" "http://localhost:5252/users/224468756040777732"
 
 ## Rights
-The rights defines access to resto ressources in particular to authorize CRUD operations (Create, Read, Update, Delete) on collections and features.
+The rights defines access to resto ressources in particular to authorize CRUD operations (Create, Read, Update, Delete) on collections, catalogs and items.
 
 rights are defined as boolean properties within a JSON object. The default user's rights are the following:
 
@@ -92,23 +92,23 @@ rights are defined as boolean properties within a JSON object. The default user'
                 // If true the user can update any catalog whether he owns it or not
                 "updateAnyCatalog": false,
 
-                // If true the user can add a feature to a collection owns
-                "createFeature": true,
+                // If true the user can add an item to a collection he owns
+                "createItem": true,
 
-                // If true the user can delete a feature he owns
-                "deleteFeature": true,
+                // If true the user can delete an item he owns
+                "deleteItem": true,
 
-                // If true the user can update a feature he owns
-                "updateFeature": true,
+                // If true the user can update a, item he owns
+                "updateItem": true,
                 
-                // If true the user can add a feature to any collection whether he owns it or not
-                "createAnyFeature": false,
+                // If true the user can add an item to any collection whether he owns it or not
+                "createAnyItem": false,
 
-                // If true the user can delete any feature whether he owns it or not
-                "deleteAnyFeature": false,
+                // If true the user can delete any item whether he owns it or not
+                "deleteAnyItem": false,
 
-                // If true the user can update any feature whether he owns it or not
-                "updateAnyFeature": false
+                // If true the user can update any item whether he owns it or not
+                "updateAnyItem": false
 
         }
 
@@ -119,7 +119,7 @@ To get the rights for John Doe:
 
 The result should be :
 
-        {"rights":{"createCollection":false,"deleteCollection":true,"updateCollection":true,"deleteAnyCollection":false,"updateAnyCollection":false,"createFeature":true,"updateFeature":true,"deleteFeature":true,"createAnyFeature":false,"deleteAnyFeature":false,"updateAnyFeature":false,"downloadFeature":false}}
+        {"rights":{"createCollection":false,"deleteCollection":true,"updateCollection":true,"deleteAnyCollection":false,"updateAnyCollection":false,"createItem":true,"updateItem":true,"deleteItem":true,"createAnyItem":false,"deleteAnyItem":false,"updateAnyItem":false,"downloadItem":false}}
 
 ### Set user rights
 Only a user in the **admin group** (see chapter on groups below) can set the rights of a user.
@@ -156,12 +156,12 @@ The result should be
 ### Set group rights
 Only a user in the **admin group** can set the rights for a group
 
-        # Set rights for dummy group allowing members to createAnyFeature
+        # Set rights for dummy group allowing members to createAnyItem
         curl -X POST -d@examples/users/dummyGroup_rights.json "http://admin:admin@localhost:5252/groups/1000/rights"
 
 The result should returns :
 
-        {"status":"success","message":"Rights set","rights":{"createAnyFeature":true,"createAnyCollection":true}}
+        {"status":"success","message":"Rights set","rights":{"createAnyItem":true,"createAnyCollection":true}}
 
 Note that existing rights are not deleted when setting rights but are merged with input rights.
 
@@ -174,8 +174,8 @@ Only a user in the **admin group** or the owner of the group can add user to a g
         # Consequently, John Doe's rights now includes rights from its groups
         curl -H "Authorization: Bearer ${JOHN_DOE_BEARER}" "http://localhost:5252/users/224468756040777732/rights"
 
-        # Result of previous request shows that John Doe can now createAnyFeature since he is in dummyGroup
-        # {"rights":{"createCollection":true,"deleteCollection":true,"updateCollection":true,"deleteAnyCollection":false,"updateAnyCollection":false,"createFeature":true,"updateFeature":true,"deleteFeature":true,"createAnyFeature":true,"deleteAnyFeature":false,"updateAnyFeature":false,"downloadFeature":false}
+        # Result of previous request shows that John Doe can now createAnyItem since he is in dummyGroup
+        # {"rights":{"createCollection":true,"deleteCollection":true,"updateCollection":true,"deleteAnyCollection":false,"updateAnyCollection":false,"createItem":true,"updateItem":true,"deleteItem":true,"createAnyItem":true,"deleteAnyItem":false,"updateAnyItem":false,"downloadItem":false}
 
 ### Remove user from a group
 Only a user in the **admin group** or the owner of the group can remove a user from a group
@@ -186,7 +186,7 @@ Only a user in the **admin group** or the owner of the group can remove a user f
         # Consequently, John Doe's rights do not include anymore rights from dummyGroup
         curl -H "Authorization: Bearer ${JOHN_DOE_BEARER}" "http://localhost:5252/users/224468756040777732/rights"
 
-        # {"rights":{"createCollection":true,"deleteCollection":true,"updateCollection":true,"deleteAnyCollection":false,"updateAnyCollection":false,"createFeature":true,"updateFeature":true,"deleteFeature":true,"createAnyFeature":false,"deleteAnyFeature":false,"updateAnyFeature":false,"downloadFeature":false}
+        # {"rights":{"createCollection":true,"deleteCollection":true,"updateCollection":true,"deleteAnyCollection":false,"updateAnyCollection":false,"createItem":true,"updateItem":true,"deleteItem":true,"createAnyItem":false,"deleteAnyItem":false,"updateAnyItem":false,"downloadItem":false}
 
 ## Ownership and visibility
 ### Ownership
@@ -210,33 +210,57 @@ The visibility property is an array of group identifiers. For a given resource, 
 
 Unless specified, every resource is visible by every user (i.e. its visibility property is set by default to an array containing the *default group*).
 
-#### Create a collection visible by everyone
-First create John Doe user if not exist then create a group and add John Doe inside it:
+#### Set up group and user to play with visibility
+First create John Doe user if not exist then create a group and add John Doe to this group:
 
-        # Add a new user
+        # John Doe register
         curl -X POST -d@examples/users/johnDoe.json "http://localhost:5252/users"
 
-        # Allow John Doe to create collection
-        curl -X POST -d@examples/users/johnDoe_rights.json "http://admin:admin@localhost:5252/users/227186704389477947/rights"
+        # Admin create a dummy group
+        curl -X POST -d@examples/users/dummyGroup.json "http://admin:admin@localhost:5252/groups"
 
-        # Create dummy group
-        curl -X POST -d@examples/users/dummyGroup.json "http://johnDoe%40localhost:dummy@localhost:5252/groups"
-
-        # Add John Doe in group dummyGroup (only admin can do that)
+        # Admin add John Doe in group dummyGroup
         curl -X POST "http://admin:admin@localhost:5252/groups/1000/users" -d '
         {
                 "userid":"227186704389477947"
         }'
 
-John Doe is in group dummyGroup and can create a collection:
+        # Admin allows John Doe to create collection
+        curl -X POST -d@examples/users/johnDoe_rights.json "http://admin:admin@localhost:5252/users/227186704389477947/rights"
 
-        # Create collection
+#### Update an item to make it visible only to a group
+John Doe is in group dummyGroup and has right to create a collection:
+
+        # John Doe Create collection
         curl -X POST -d@examples/collections/JohnDoeCollection.json "http://johnDoe%40localhost:dummy@localhost:5252/collections"
 
-        # This collection is visible for everyone
+        # And add an item to this collection
+        curl -X POST -d@examples/items/JohnDoeItem.json "http://johnDoe%40localhost:dummy@localhost:5252/collections/JohnDoeCollection/items"
+
+        # This item is visible by everyone
+        curl "http://localhost:5252/collections/JohnDoeCollection/items"
+
+Now John Doe change the visibility of the item to dummyGroup only:
+
+        curl -X PUT -d@examples/items/johnDoeItem_visibility.json "http://johnDoe%40localhost:dummy@localhost:5252/collections/JohnDoeCollection/items/JohnDoeItem/properties"
+
+        # The item is not visible anymore for users
+        curl "http://localhost:5252/collections/JohnDoeCollection/items"
+
+        # Except for users belonging to dummyGroup (like John Doe)
+        curl "http://johnDoe%40localhost:dummy@localhost:5252/collections/JohnDoeCollection/items"
+
+#### Update a collection to make it visible only to a group
+John Doe change the visibility of the JohnDoeCollection to dummyGroup only:
+
+        curl -X PUT -d@examples/collections/johnDoeCollection_update.json "http://johnDoe%40localhost:dummy@localhost:5252/collections/JohnDoeCollection"
+
+        # The collection is not visible anymore for users
         curl "http://localhost:5252/collections/JohnDoeCollection"
 
-Now John Doe change the visibility of the collection to dummyGroup only:
+        # Except for users belonging to dummyGroup (like John Doe)
+        curl "http://johnDoe%40localhost:dummy@localhost:5252/collections/JohnDoeCollection"
 
+*Note: The collection visibility can also be set during collection creation by adding the "visibility" property to the collection json description*
 
-        curl -X PUT -d@examples/users/dummySargasse_visibility.json "http://admin:admin@localhost:5252/collections/DummyCollection/items/DummySargasse/properties"
+#### Update a catalog to make it visible only to a group

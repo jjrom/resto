@@ -3,7 +3,7 @@
     "info": {
         "title": "Welcome to resto",
         "description": "A metadata catalog and search engine for geospatialized data",
-        "version": "9.1.0"
+        "version": "9.2.0"
     },
     "servers": [
         {
@@ -1775,14 +1775,14 @@
                 ]
             }
         },
-        "/collections/{collectionId}/items/{featureId}/properties/{property}": {
+        "/collections/{collectionId}/items/{featureId}/properties": {
             "put": {
                 "tags": [
                     "Feature"
                 ],
-                "summary": "Update feature property",
-                "description": "Update {property} for feature {featureId}",
-                "operationId": "FeaturesAPI::updateFeatureProperty",
+                "summary": "Update feature properties",
+                "description": "Update properties for feature {featureId}. Allowed properties are one of : title, description, visibility, owner and status",
+                "operationId": "FeaturesAPI::updateFeatureProperties",
                 "parameters": [
                     {
                         "name": "collectionId",
@@ -1801,45 +1801,19 @@
                         "schema": {
                             "type": "string"
                         }
-                    },
-                    {
-                        "name": "property",
-                        "in": "path",
-                        "description": "Property to update",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "title",
-                                "description",
-                                "visibility",
-                                "owner",
-                                "status"
-                            ]
-                        }
                     }
                 ],
                 "requestBody": {
-                    "description": "Property value to update",
+                    "description": "Properties to update",
                     "content": {
                         "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "value": {
-                                        "description": "New property value"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "value": 1
-                            }
+                            "schema": {}
                         }
                     }
                 },
                 "responses": {
                     "200": {
-                        "description": "The property is updated",
+                        "description": "The properties are updated",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2512,13 +2486,13 @@
                                         "updateCollection": true,
                                         "deleteAnyCollection": false,
                                         "updateAnyCollection": false,
-                                        "createFeature": true,
-                                        "updateFeature": true,
-                                        "deleteFeature": true,
-                                        "createAnyFeature": false,
-                                        "deleteAnyFeature": false,
-                                        "updateAnyFeature": false,
-                                        "downloadFeature": false
+                                        "createItem": true,
+                                        "updateItem": true,
+                                        "deleteItem": true,
+                                        "createAnyItem": false,
+                                        "deleteAnyItem": false,
+                                        "updateAnyItem": false,
+                                        "downloadItem": false
                                     }
                                 }
                             }
@@ -2671,13 +2645,13 @@
                                         "updateCollection": true,
                                         "deleteAnyCollection": false,
                                         "updateAnyCollection": false,
-                                        "createFeature": true,
-                                        "updateFeature": true,
-                                        "deleteFeature": true,
-                                        "createAnyFeature": false,
-                                        "deleteAnyFeature": false,
-                                        "updateAnyFeature": false,
-                                        "downloadFeature": false
+                                        "createItem": true,
+                                        "updateItem": true,
+                                        "deleteItem": true,
+                                        "createAnyItem": false,
+                                        "deleteAnyItem": false,
+                                        "updateAnyItem": false,
+                                        "downloadItem": false
                                     }
                                 }
                             }
@@ -5731,13 +5705,13 @@
                     "updateCollection": true,
                     "deleteAnyCollection": false,
                     "updateAnyCollection": false,
-                    "createFeature": true,
-                    "updateFeature": true,
-                    "deleteFeature": true,
-                    "createAnyFeature": false,
-                    "deleteAnyFeature": false,
-                    "updateAnyFeature": false,
-                    "downloadFeature": false
+                    "createItem": true,
+                    "updateItem": true,
+                    "deleteItem": true,
+                    "createAnyItem": false,
+                    "deleteAnyItem": false,
+                    "updateAnyItem": false,
+                    "downloadItem": false
                 }
             },
             "Catalog": {

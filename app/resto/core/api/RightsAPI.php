@@ -36,13 +36,13 @@ class RightsAPI
      *    "updateCollection": true,
      *    "deleteAnyCollection": false,
      *    "updateAnyCollection": false,
-     *    "createFeature": true,
-     *    "updateFeature": true,
-     *    "deleteFeature": true,
-     *    "createAnyFeature": false,
-     *    "deleteAnyFeature": false,
-     *    "updateAnyFeature": false,
-     *    "downloadFeature": false
+     *    "createItem": true,
+     *    "updateItem": true,
+     *    "deleteItem": true,
+     *    "createAnyItem": false,
+     *    "deleteAnyItem": false,
+     *    "updateAnyItem": false,
+     *    "downloadItem": false
      *  }
      * )
      */
@@ -207,13 +207,13 @@ class RightsAPI
      *                      "updateCollection": true,
      *                      "deleteAnyCollection": false,
      *                      "updateAnyCollection": false,
-     *                      "createFeature": true,
-     *                      "updateFeature": true,
-     *                      "deleteFeature": true,
-     *                      "createAnyFeature": false,
-     *                      "deleteAnyFeature": false,
-     *                      "updateAnyFeature": false,
-     *                      "downloadFeature": false
+     *                      "createItem": true,
+     *                      "updateItem": true,
+     *                      "deleteItem": true,
+     *                      "createAnyItem": false,
+     *                      "deleteAnyItem": false,
+     *                      "updateAnyItem": false,
+     *                      "downloadItem": false
      *                  }
      *              }
      *          )
@@ -306,13 +306,13 @@ class RightsAPI
      *                      "updateCollection": true,
      *                      "deleteAnyCollection": false,
      *                      "updateAnyCollection": false,
-     *                      "createFeature": true,
-     *                      "updateFeature": true,
-     *                      "deleteFeature": true,
-     *                      "createAnyFeature": false,
-     *                      "deleteAnyFeature": false,
-     *                      "updateAnyFeature": false,
-     *                      "downloadFeature": false
+     *                      "createItem": true,
+     *                      "updateItem": true,
+     *                      "deleteItem": true,
+     *                      "createAnyItem": false,
+     *                      "deleteAnyItem": false,
+     *                      "updateAnyItem": false,
+     *                      "downloadItem": false
      *                  }
      *              }
      *          )

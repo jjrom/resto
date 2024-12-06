@@ -600,7 +600,7 @@ class CollectionsAPI
          */
         $collection = $this->context->keeper->getRestoCollection($params['collectionId'], $this->user)->load();
         
-        if (!$this->user->hasRightsTo(RestoUser::CREATE_FEATURE, array('collection' => $collection))) {
+        if (!$this->user->hasRightsTo(RestoUser::CREATE_ITEM, array('collection' => $collection))) {
             RestoLogUtil::httpError(403);
         }
         

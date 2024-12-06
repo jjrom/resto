@@ -49,10 +49,10 @@ If you're using docker on Mac with apple Silicon M1 chip, be sure to **turn off 
 When this option is turned on, every calls to PHP preg_match function (which is used by resto) leads to a segmentation fault within php fpm and an HTTP 502 Bad Gateway error in nginx. Why ? I just don't know !
 
 ## Users, groups and rights
-See [./USERS.md](./docs/USERS.md)
+See [USERS_AND_RIGHTS.md](./docs/USERS_AND_RIGHTS.md)
 
 ## Collection and catalogs
-See [.COLLECTIONS_AND_CATALOGS.md](./docs/COLLECTIONS_AND_CATALOGS.md)
+See [COLLECTIONS_CATALOGS_ITEMS.md](./docs/COLLECTIONS_CATALOGS_ITEMS.md)
 
 # References
 

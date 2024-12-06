@@ -691,7 +691,7 @@ class FeaturesAPI
             RestoLogUtil::httpError(404);
         }
 
-        if (!$this->user->hasRightsTo(RestoUser::UPDATE_FEATURE, array('feature' => $feature))) {
+        if (!$this->user->hasRightsTo(RestoUser::UPDATE_ITEM, array('feature' => $feature))) {
             RestoLogUtil::httpError(403);
         }
 
@@ -790,7 +790,7 @@ class FeaturesAPI
             RestoLogUtil::httpError(404);
         }
 
-        if (!$this->user->hasRightsTo(RestoUser::UPDATE_FEATURE, array('feature' => $feature))) {
+        if (!$this->user->hasRightsTo(RestoUser::UPDATE_ITEM, array('feature' => $feature))) {
             RestoLogUtil::httpError(403);
         }
         
@@ -892,7 +892,7 @@ class FeaturesAPI
             RestoLogUtil::httpError(404);
         }
 
-        if (!$this->user->hasRightsTo(RestoUser::DELETE_FEATURE, array('feature' => $feature))) {
+        if (!$this->user->hasRightsTo(RestoUser::DELETE_ITEM, array('feature' => $feature))) {
             RestoLogUtil::httpError(403);
         }
 

@@ -696,7 +696,7 @@ class RestoCollection
         
         if ( !$this->isLoaded ) {
             $this->isLoaded = true;
-            $collectionObject = (new CollectionsFunctions($this->context->dbDriver))->getCollection($this->id);
+            $collectionObject = (new CollectionsFunctions($this->context->dbDriver))->getCollection($this->id, $this->user);
             if (! isset($collectionObject)) {
                 RestoLogUtil::httpError(404);
             }
@@ -936,9 +936,14 @@ class RestoCollection
         
         /*
          * Default collection visibility is the value of RestoConstants::GROUP_DEFAULT_ID
-         * [TODO] Allow to change visibility in collection
          */
-        //$this->visibility = isset($object['visibility']) ? $object['visibility'] : RestoConstants::GROUP_DEFAULT_ID;
+        if ( isset($object['visibility']) ) {
+            $result = RestoUtil::isValidVisibility($object['visibility']);
+            if ( !$result['isValid'] ) {
+                RestoLogUtil::httpError($result['errorCode'], $result['errorMessage'] );
+            }
+            $this->visibility = $object['visibility'];
+        }
         
         /*
          * Set values

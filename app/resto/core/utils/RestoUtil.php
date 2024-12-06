@@ -522,6 +522,36 @@ class RestoUtil
     }
     
     /**
+     * Ensure visibility array is valid
+     * 
+     * @params array $visibility
+     */
+    public static function isValidVisibility($visibility)
+    {
+        if ( !isset($visibility) || !is_array($visibility) ) {
+            return array(
+                'isValid' => false,
+                'errorCode' => 400,
+                'errorMessage' => 'Invalid visibility type - should be an array of bigint string'
+            );
+        }
+
+        for ($i = count($visibility); $i--;) {
+            if ( !ctype_digit($visibility[$i]) ) {
+                return array(
+                    'isValid' => false,
+                    'errorCode' => 400,
+                    'errorMessage' => 'Invalid visibility type - ' . $visibility[$i] . ' is not a bigint string (must be quoted)'
+                );
+            }
+        }
+        return array(
+            'isValid' => true
+        );
+
+    }
+
+    /**
      * Construct base url from parse_url fragments
      *
      * @param array $exploded

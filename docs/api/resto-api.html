@@ -1496,7 +1496,7 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
 	  	<ul class="toc-list-h1">
         
           <li>
-            <a href="#welcome-to-resto" class="toc-h1 toc-link" data-title="Welcome to resto v9.1.0">Welcome to resto v9.1.0</a>
+            <a href="#welcome-to-resto" class="toc-h1 toc-link" data-title="Welcome to resto v9.2.0">Welcome to resto v9.2.0</a>
             
           </li>
         
@@ -1570,7 +1570,7 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
                   </li>
                 
                   <li>
-                    <a href="#featuresapi--updatefeatureproperty" class="toc-h2 toc-link" data-title="FeaturesAPI::updateFeatureProperty">FeaturesAPI::updateFeatureProperty</a>
+                    <a href="#featuresapi--updatefeatureproperties" class="toc-h2 toc-link" data-title="FeaturesAPI::updateFeatureProperties">FeaturesAPI::updateFeatureProperties</a>
                     
                   </li>
                 
@@ -1936,7 +1936,7 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
     <div class="page-wrapper">
       <div class="dark-box"></div>
       <div class="content">
-        <h1 id="welcome-to-resto">Welcome to resto v9.1.0</h1>
+        <h1 id="welcome-to-resto">Welcome to resto v9.2.0</h1>
 <blockquote>
 <p>Scroll down for code samples, example requests and responses. Select a language for code samples from the tabs above or the mobile navigation menu.</p>
 </blockquote>
@@ -4524,29 +4524,27 @@ curl -X DELETE http://127.0.0.1:5252/collections/{collectionId}/items/{featureId
 To perform this operation, you must be authenticated by means of one of the following methods:
 basicAuth & bearerAuth & queryAuth
 </aside>
-<h2 id="featuresapi--updatefeatureproperty">FeaturesAPI::updateFeatureProperty</h2>
-<p><a id="opIdFeaturesAPI::updateFeatureProperty"></a></p>
+<h2 id="featuresapi--updatefeatureproperties">FeaturesAPI::updateFeatureProperties</h2>
+<p><a id="opIdFeaturesAPI::updateFeatureProperties"></a></p>
 <blockquote>
 <p>Code samples</p>
 </blockquote>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X PUT http://127.0.0.1:5252/collections/{collectionId}/items/{featureId}/properties/{property} \
+curl -X PUT http://127.0.0.1:5252/collections/{collectionId}/items/{featureId}/properties \
   -H <span class="hljs-string">'Content-Type: application/json'</span> \
   -H <span class="hljs-string">'Accept: application/json'</span> \
   -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
 
 </code></pre>
-<p><code>PUT /collections/{collectionId}/items/{featureId}/properties/{property}</code></p>
-<p><em>Update feature property</em></p>
-<p>Update {property} for feature {featureId}</p>
+<p><code>PUT /collections/{collectionId}/items/{featureId}/properties</code></p>
+<p><em>Update feature properties</em></p>
+<p>Update properties for feature {featureId}. Allowed properties are one of : title, description, visibility, owner and status</p>
 <blockquote>
 <p>Body parameter</p>
 </blockquote>
-<pre class="highlight tab tab-json"><code>{
-  <span class="hljs-attr">"value"</span>: <span class="hljs-literal">null</span>
-}
+<pre class="highlight tab tab-json"><code><span class="hljs-literal">null</span>
 </code></pre>
-<h3 id="featuresapi--updatefeatureproperty-parameters">Parameters</h3>
+<h3 id="featuresapi--updatefeatureproperties-parameters">Parameters</h3>
 <table>
 <thead>
 <tr>
@@ -4573,56 +4571,11 @@ curl -X PUT http://127.0.0.1:5252/collections/{collectionId}/items/{featureId}/p
 <td>Feature identifier</td>
 </tr>
 <tr>
-<td>property</td>
-<td>path</td>
-<td>string</td>
-<td>true</td>
-<td>Property to update</td>
-</tr>
-<tr>
 <td>body</td>
-<td>body</td>
-<td>object</td>
-<td>false</td>
-<td>Property value to update</td>
-</tr>
-<tr>
-<td>» value</td>
 <td>body</td>
 <td>any</td>
 <td>false</td>
-<td>New property value</td>
-</tr>
-</tbody>
-</table>
-<h4 id="enumerated-values">Enumerated Values</h4>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Value</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>property</td>
-<td>title</td>
-</tr>
-<tr>
-<td>property</td>
-<td>description</td>
-</tr>
-<tr>
-<td>property</td>
-<td>visibility</td>
-</tr>
-<tr>
-<td>property</td>
-<td>owner</td>
-</tr>
-<tr>
-<td>property</td>
-<td>status</td>
+<td>Properties to update</td>
 </tr>
 </tbody>
 </table>
@@ -4645,7 +4598,7 @@ curl -X PUT http://127.0.0.1:5252/collections/{collectionId}/items/{featureId}/p
   <span class="hljs-attr">"ErrorMessage"</span>: <span class="hljs-string">"Bad request"</span>
 }
 </code></pre>
-<h3 id="featuresapi--updatefeatureproperty-responses">Responses</h3>
+<h3 id="featuresapi--updatefeatureproperties-responses">Responses</h3>
 <table>
 <thead>
 <tr>
@@ -4659,7 +4612,7 @@ curl -X PUT http://127.0.0.1:5252/collections/{collectionId}/items/{featureId}/p
 <tr>
 <td>200</td>
 <td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.1">OK</a></td>
-<td>The property is updated</td>
+<td>The properties are updated</td>
 <td>Inline</td>
 </tr>
 <tr>
@@ -4688,7 +4641,7 @@ curl -X PUT http://127.0.0.1:5252/collections/{collectionId}/items/{featureId}/p
 </tr>
 </tbody>
 </table>
-<h3 id="featuresapi--updatefeatureproperty-responseschema">Response Schema</h3>
+<h3 id="featuresapi--updatefeatureproperties-responseschema">Response Schema</h3>
 <p>Status Code <strong>200</strong></p>
 <table>
 <thead>
@@ -7861,13 +7814,13 @@ curl -X GET http://127.0.0.1:5252/users/{userid}/rights \
   <span class="hljs-attr">"updateCollection"</span>: <span class="hljs-literal">true</span>,
   <span class="hljs-attr">"deleteAnyCollection"</span>: <span class="hljs-literal">false</span>,
   <span class="hljs-attr">"updateAnyCollection"</span>: <span class="hljs-literal">false</span>,
-  <span class="hljs-attr">"createFeature"</span>: <span class="hljs-literal">true</span>,
-  <span class="hljs-attr">"updateFeature"</span>: <span class="hljs-literal">true</span>,
-  <span class="hljs-attr">"deleteFeature"</span>: <span class="hljs-literal">true</span>,
-  <span class="hljs-attr">"createAnyFeature"</span>: <span class="hljs-literal">false</span>,
-  <span class="hljs-attr">"deleteAnyFeature"</span>: <span class="hljs-literal">false</span>,
-  <span class="hljs-attr">"updateAnyFeature"</span>: <span class="hljs-literal">false</span>,
-  <span class="hljs-attr">"downloadFeature"</span>: <span class="hljs-literal">false</span>
+  <span class="hljs-attr">"createItem"</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">"updateItem"</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">"deleteItem"</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">"createAnyItem"</span>: <span class="hljs-literal">false</span>,
+  <span class="hljs-attr">"deleteAnyItem"</span>: <span class="hljs-literal">false</span>,
+  <span class="hljs-attr">"updateAnyItem"</span>: <span class="hljs-literal">false</span>,
+  <span class="hljs-attr">"downloadItem"</span>: <span class="hljs-literal">false</span>
 }
 </code></pre>
 <h3 id="rightsapi--getuserrights-responses">Responses</h3>
@@ -7935,13 +7888,13 @@ curl -X POST http://127.0.0.1:5252/users/{userid}/rights \
   <span class="hljs-attr">"updateCollection"</span>: <span class="hljs-literal">true</span>,
   <span class="hljs-attr">"deleteAnyCollection"</span>: <span class="hljs-literal">false</span>,
   <span class="hljs-attr">"updateAnyCollection"</span>: <span class="hljs-literal">false</span>,
-  <span class="hljs-attr">"createFeature"</span>: <span class="hljs-literal">true</span>,
-  <span class="hljs-attr">"updateFeature"</span>: <span class="hljs-literal">true</span>,
-  <span class="hljs-attr">"deleteFeature"</span>: <span class="hljs-literal">true</span>,
-  <span class="hljs-attr">"createAnyFeature"</span>: <span class="hljs-literal">false</span>,
-  <span class="hljs-attr">"deleteAnyFeature"</span>: <span class="hljs-literal">false</span>,
-  <span class="hljs-attr">"updateAnyFeature"</span>: <span class="hljs-literal">false</span>,
-  <span class="hljs-attr">"downloadFeature"</span>: <span class="hljs-literal">false</span>
+  <span class="hljs-attr">"createItem"</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">"updateItem"</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">"deleteItem"</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">"createAnyItem"</span>: <span class="hljs-literal">false</span>,
+  <span class="hljs-attr">"deleteAnyItem"</span>: <span class="hljs-literal">false</span>,
+  <span class="hljs-attr">"updateAnyItem"</span>: <span class="hljs-literal">false</span>,
+  <span class="hljs-attr">"downloadItem"</span>: <span class="hljs-literal">false</span>
 }
 </code></pre>
 <h3 id="rightsapi--setuserrights-parameters">Parameters</h3>
@@ -7987,13 +7940,13 @@ curl -X POST http://127.0.0.1:5252/users/{userid}/rights \
     <span class="hljs-attr">"updateCollection"</span>: <span class="hljs-literal">true</span>,
     <span class="hljs-attr">"deleteAnyCollection"</span>: <span class="hljs-literal">false</span>,
     <span class="hljs-attr">"updateAnyCollection"</span>: <span class="hljs-literal">false</span>,
-    <span class="hljs-attr">"createFeature"</span>: <span class="hljs-literal">true</span>,
-    <span class="hljs-attr">"updateFeature"</span>: <span class="hljs-literal">true</span>,
-    <span class="hljs-attr">"deleteFeature"</span>: <span class="hljs-literal">true</span>,
-    <span class="hljs-attr">"createAnyFeature"</span>: <span class="hljs-literal">false</span>,
-    <span class="hljs-attr">"deleteAnyFeature"</span>: <span class="hljs-literal">false</span>,
-    <span class="hljs-attr">"updateAnyFeature"</span>: <span class="hljs-literal">false</span>,
-    <span class="hljs-attr">"downloadFeature"</span>: <span class="hljs-literal">false</span>
+    <span class="hljs-attr">"createItem"</span>: <span class="hljs-literal">true</span>,
+    <span class="hljs-attr">"updateItem"</span>: <span class="hljs-literal">true</span>,
+    <span class="hljs-attr">"deleteItem"</span>: <span class="hljs-literal">true</span>,
+    <span class="hljs-attr">"createAnyItem"</span>: <span class="hljs-literal">false</span>,
+    <span class="hljs-attr">"deleteAnyItem"</span>: <span class="hljs-literal">false</span>,
+    <span class="hljs-attr">"updateAnyItem"</span>: <span class="hljs-literal">false</span>,
+    <span class="hljs-attr">"downloadItem"</span>: <span class="hljs-literal">false</span>
   }
 }
 </code></pre>
@@ -8116,13 +8069,13 @@ curl -X GET http://127.0.0.1:5252/groups/{id}/rights \
   <span class="hljs-attr">"updateCollection"</span>: <span class="hljs-literal">true</span>,
   <span class="hljs-attr">"deleteAnyCollection"</span>: <span class="hljs-literal">false</span>,
   <span class="hljs-attr">"updateAnyCollection"</span>: <span class="hljs-literal">false</span>,
-  <span class="hljs-attr">"createFeature"</span>: <span class="hljs-literal">true</span>,
-  <span class="hljs-attr">"updateFeature"</span>: <span class="hljs-literal">true</span>,
-  <span class="hljs-attr">"deleteFeature"</span>: <span class="hljs-literal">true</span>,
-  <span class="hljs-attr">"createAnyFeature"</span>: <span class="hljs-literal">false</span>,
-  <span class="hljs-attr">"deleteAnyFeature"</span>: <span class="hljs-literal">false</span>,
-  <span class="hljs-attr">"updateAnyFeature"</span>: <span class="hljs-literal">false</span>,
-  <span class="hljs-attr">"downloadFeature"</span>: <span class="hljs-literal">false</span>
+  <span class="hljs-attr">"createItem"</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">"updateItem"</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">"deleteItem"</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">"createAnyItem"</span>: <span class="hljs-literal">false</span>,
+  <span class="hljs-attr">"deleteAnyItem"</span>: <span class="hljs-literal">false</span>,
+  <span class="hljs-attr">"updateAnyItem"</span>: <span class="hljs-literal">false</span>,
+  <span class="hljs-attr">"downloadItem"</span>: <span class="hljs-literal">false</span>
 }
 </code></pre>
 <h3 id="rightsapi--getgrouprights-responses">Responses</h3>
@@ -8190,13 +8143,13 @@ curl -X POST http://127.0.0.1:5252/groups/{id}/rights \
   <span class="hljs-attr">"updateCollection"</span>: <span class="hljs-literal">true</span>,
   <span class="hljs-attr">"deleteAnyCollection"</span>: <span class="hljs-literal">false</span>,
   <span class="hljs-attr">"updateAnyCollection"</span>: <span class="hljs-literal">false</span>,
-  <span class="hljs-attr">"createFeature"</span>: <span class="hljs-literal">true</span>,
-  <span class="hljs-attr">"updateFeature"</span>: <span class="hljs-literal">true</span>,
-  <span class="hljs-attr">"deleteFeature"</span>: <span class="hljs-literal">true</span>,
-  <span class="hljs-attr">"createAnyFeature"</span>: <span class="hljs-literal">false</span>,
-  <span class="hljs-attr">"deleteAnyFeature"</span>: <span class="hljs-literal">false</span>,
-  <span class="hljs-attr">"updateAnyFeature"</span>: <span class="hljs-literal">false</span>,
-  <span class="hljs-attr">"downloadFeature"</span>: <span class="hljs-literal">false</span>
+  <span class="hljs-attr">"createItem"</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">"updateItem"</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">"deleteItem"</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">"createAnyItem"</span>: <span class="hljs-literal">false</span>,
+  <span class="hljs-attr">"deleteAnyItem"</span>: <span class="hljs-literal">false</span>,
+  <span class="hljs-attr">"updateAnyItem"</span>: <span class="hljs-literal">false</span>,
+  <span class="hljs-attr">"downloadItem"</span>: <span class="hljs-literal">false</span>
 }
 </code></pre>
 <h3 id="rightsapi--setgrouprights-parameters">Parameters</h3>
@@ -8242,13 +8195,13 @@ curl -X POST http://127.0.0.1:5252/groups/{id}/rights \
     <span class="hljs-attr">"updateCollection"</span>: <span class="hljs-literal">true</span>,
     <span class="hljs-attr">"deleteAnyCollection"</span>: <span class="hljs-literal">false</span>,
     <span class="hljs-attr">"updateAnyCollection"</span>: <span class="hljs-literal">false</span>,
-    <span class="hljs-attr">"createFeature"</span>: <span class="hljs-literal">true</span>,
-    <span class="hljs-attr">"updateFeature"</span>: <span class="hljs-literal">true</span>,
-    <span class="hljs-attr">"deleteFeature"</span>: <span class="hljs-literal">true</span>,
-    <span class="hljs-attr">"createAnyFeature"</span>: <span class="hljs-literal">false</span>,
-    <span class="hljs-attr">"deleteAnyFeature"</span>: <span class="hljs-literal">false</span>,
-    <span class="hljs-attr">"updateAnyFeature"</span>: <span class="hljs-literal">false</span>,
-    <span class="hljs-attr">"downloadFeature"</span>: <span class="hljs-literal">false</span>
+    <span class="hljs-attr">"createItem"</span>: <span class="hljs-literal">true</span>,
+    <span class="hljs-attr">"updateItem"</span>: <span class="hljs-literal">true</span>,
+    <span class="hljs-attr">"deleteItem"</span>: <span class="hljs-literal">true</span>,
+    <span class="hljs-attr">"createAnyItem"</span>: <span class="hljs-literal">false</span>,
+    <span class="hljs-attr">"deleteAnyItem"</span>: <span class="hljs-literal">false</span>,
+    <span class="hljs-attr">"updateAnyItem"</span>: <span class="hljs-literal">false</span>,
+    <span class="hljs-attr">"downloadItem"</span>: <span class="hljs-literal">false</span>
   }
 }
 </code></pre>
@@ -11512,13 +11465,13 @@ This operation does not require authentication
   <span class="hljs-attr">"updateCollection"</span>: <span class="hljs-literal">true</span>,
   <span class="hljs-attr">"deleteAnyCollection"</span>: <span class="hljs-literal">false</span>,
   <span class="hljs-attr">"updateAnyCollection"</span>: <span class="hljs-literal">false</span>,
-  <span class="hljs-attr">"createFeature"</span>: <span class="hljs-literal">true</span>,
-  <span class="hljs-attr">"updateFeature"</span>: <span class="hljs-literal">true</span>,
-  <span class="hljs-attr">"deleteFeature"</span>: <span class="hljs-literal">true</span>,
-  <span class="hljs-attr">"createAnyFeature"</span>: <span class="hljs-literal">false</span>,
-  <span class="hljs-attr">"deleteAnyFeature"</span>: <span class="hljs-literal">false</span>,
-  <span class="hljs-attr">"updateAnyFeature"</span>: <span class="hljs-literal">false</span>,
-  <span class="hljs-attr">"downloadFeature"</span>: <span class="hljs-literal">false</span>
+  <span class="hljs-attr">"createItem"</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">"updateItem"</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">"deleteItem"</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">"createAnyItem"</span>: <span class="hljs-literal">false</span>,
+  <span class="hljs-attr">"deleteAnyItem"</span>: <span class="hljs-literal">false</span>,
+  <span class="hljs-attr">"updateAnyItem"</span>: <span class="hljs-literal">false</span>,
+  <span class="hljs-attr">"downloadItem"</span>: <span class="hljs-literal">false</span>
 }
 
 </code></pre>
