@@ -806,7 +806,7 @@ class FeaturesAPI
             }
         }
 
-        return (new FeaturesFunctions($this->context->dbDriver))->updateFeatureProperties($feature, $body);
+        return (new FeaturesFunctions($this->context->dbDriver))->updateFeatureProperties($feature, $body, $this->context, $this->user);
     }
 
     /**

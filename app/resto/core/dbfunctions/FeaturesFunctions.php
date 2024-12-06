@@ -557,9 +557,11 @@ class FeaturesFunctions
      *
      * @param RestoFeature $feature
      * @param array $properties
+     * @param RestoContext $context
+     * @param RestoUser $user
      * @throws Exception
      */
-    public function updateFeatureProperties($feature, $properties)
+    public function updateFeatureProperties($feature, $properties, $context, $user)
     {
 
         try {
@@ -568,7 +570,15 @@ class FeaturesFunctions
 
                 // Special case for description
                 if ($property === 'description') {
-                    $this->updateFeatureDescription($feature, $value);
+                    $newCatalogs = (new Cataloger(null, null))->catalogsFromText($value);
+                    $oldCatalogs = (new Cataloger(null, null))->catalogsFromText($feature->toArray()['properties']['description'] ?? null);
+                    // Remove old catalogs and add new ones
+                    for ($i = 0, $ii = count($oldCatalogs); $i < $ii; $i++) {
+                        if ($oldCatalogs[$i]['id'] !== 'hashtags') {
+                            (new CatalogsFunctions($this->dbDriver))->removeCatalogFeature($feature->id, $oldCatalogs[$i]['id']);
+                        }
+                    }
+                    (new CatalogsFunctions($this->dbDriver))->storeCatalogs($newCatalogs, $context, $user->profile['id'], $feature->collection, $feature->toArray(), false);
                 }
 
                 // Check property type validity
@@ -595,20 +605,6 @@ class FeaturesFunctions
         }
 
         return RestoLogUtil::success('Properties ' . join(',', array_keys($properties)) . ' updated for feature ' . $feature->id);
-        
-    }
-
-    /**
-     * Update feature description
-     *
-     * @param RestoFeature $feature
-     * @param string $description
-     * @throws Exception
-     */
-    public function updateFeatureDescription($feature, $description)
-    {
-
-        RestoLogUtil::httpError(400, 'TODO - update feature description not yet implemented');
         
     }
 

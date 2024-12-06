@@ -535,6 +535,20 @@ class CatalogsFunctions
     }
 
     /**
+     * Remove catalog feature - updating catalog counters accordingly
+     * 
+     * [WARNING] This DOES NOT REMOVE FEATURE IN TABLE feature
+     *
+     * @param string $featureId
+     * @param string $catalogId
+     */
+    public function removeCatalogFeature($featureId, $catalogId)
+    {
+        $this->updateFeatureCatalogsCounters($featureId, null, -1);
+        $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path = $1' , array(RestoUtil::path2ltree($catalogId)), 500, 'Cannot delete catalog_feature association for catalog ' . $catalogId));   
+    }
+
+    /**
      * Store catalog within database
      *
      * !! THIS FUNCTION IS THREAD SAFE !!
