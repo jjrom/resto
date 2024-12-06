@@ -269,7 +269,12 @@ class GroupAPI
         $body['private'] = 0;
         
         $group = (new GroupsFunctions($this->context->dbDriver))->createGroup($body);
-
+        
+        // When you create a group, you're in the group unless you're an admin
+        if ( !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID ) ) {
+            (new GroupsFunctions($this->context->dbDriver))->addUserToGroup(array('id' => $group['id']), $body['owner']);
+        }
+        
         return RestoLogUtil::success('Group created', $group);
     }
 

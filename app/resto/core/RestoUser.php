@@ -166,6 +166,7 @@ class RestoUser
      * Reference to groups object
      */
     private $groups;
+    private $ownedGroups;
 
     /*
      * Unregistered profile
@@ -438,24 +439,12 @@ class RestoUser
         if ( !$this->profile['id'] ) {
             return array();
         }
-        return (new GroupsFunctions($this->context->dbDriver))->getGroups(array('owner' => $this->profile['id']));
-    }   
 
-    /**
-     * Return the user private group
-     * 
-     * @throws Exception
-     */
-    public function getPrivateGroup()
-    {
-        $groups = $this->getGroups();
-        for ($i = 0, $ii = count($groups); $i < $ii; $i++) {
-            if ( $groups[$i]['private'] === 1 ) {
-                return $groups[$i];
-            }
+        if ( !isset($this->ownedGroups) ) {
+            $this->ownedGroups = (new GroupsFunctions($this->context->dbDriver))->getGroups(array('owner' => $this->profile['id']));
         }
-        return null;
-    }
+        return $this->ownedGroups;
+    }   
 
     /**
      * Return the list of user group ids

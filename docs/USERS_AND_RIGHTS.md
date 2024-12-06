@@ -157,6 +157,8 @@ The result should be
 
         {"status":"success","message":"Group created","id":1000,"name":"My first group","owner":"${JOHN_DOE_USER_ID}"}
 
+*Note: When a user create a group, the user is automaticaly added to this group (except if the user is an admin)*
+
 ### Set group rights
 Only a user in the **admin group** can set the rights for a group
 
@@ -172,7 +174,7 @@ Note that existing rights are not deleted when setting rights but are merged wit
 ### Add user to a group
 Only a user in the **admin group** or the owner of the group can add user to a group
 
-        # Add John Doe in group dummyGroup
+        # Add John Doe in group dummyGroup - not that this is unecessary because it was automatically added during group creation
         curl -X POST -d@examples/users/dummyGroup_addJohnDoe.json "http://admin:admin@localhost:5252/groups/1000/users"
 
         # Consequently, John Doe's rights now includes rights from its groups
