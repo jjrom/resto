@@ -69,7 +69,7 @@ class GroupsFunctions
             $where[] = 'owner=' . $this->dbDriver->escape_string( $params['owner']);
         }
         
-        return $this->formatGroups($this->dbDriver->fetch($this->dbDriver->query('SELECT id, name, description, owner, to_iso8601(created) as created FROM ' . $this->dbDriver->commonSchema . '.group' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : '') . ' ORDER BY id DESC')), $params['id'] ?? null);
+        return $this->formatGroups($this->dbDriver->fetch($this->dbDriver->query('SELECT id, name, description, owner, private, to_iso8601(created) as created FROM ' . $this->dbDriver->commonSchema . '.group' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : '') . ' ORDER BY id DESC')), $params['id'] ?? null);
     }
 
     /**
@@ -78,17 +78,19 @@ class GroupsFunctions
      * @param Array $params
      * @throws Exception
      */
-    public function createGroup($params)
+    public function createGroup($group)
     {
-        if (! isset($params['body']) || ! isset($params['body']['name'])) {
+        if (! isset($group['name'])) {
             RestoLogUtil::httpError(400, 'Missing mandatory group name');
         }
 
         try {
-            $result = $this->dbDriver->query_params('INSERT INTO ' . $this->dbDriver->commonSchema . '.group (name, description, owner, created) VALUES ($1, $2, $3, now()) ON CONFLICT (name) DO NOTHING RETURNING id ', array(
-                $params['body']['name'],
-                $params['body']['description'] ?? null,
-                $params['id']
+
+            $result = $this->dbDriver->query_params('INSERT INTO ' . $this->dbDriver->commonSchema . '.group (name, description, owner, private, created) VALUES ($1, $2, $3, $4, now()) ON CONFLICT (name) DO NOTHING RETURNING id ', array(
+                $group['name'],
+                $group['description'] ?? null,
+                $group['owner'],
+                $group['private']
             ));
 
             if (!$result) {
@@ -97,13 +99,14 @@ class GroupsFunctions
             
             $row = pg_fetch_assoc($result);
             if (empty($row)) {
-                throw new Exception('A group named - ' . $params['body']['name'] . ' - already exist', 400);
+                throw new Exception('A group named - ' . $group['name'] . ' - already exist', 400);
             }
 
             return array(
                 'id' => intval($row['id']),
-                'name' => $params['body']['name'],
-                'owner' => $params['id']
+                'name' => $group['name'],
+                'owner' => $group['owner'],
+                'private' => $group['private']
             );
             
         } catch (Exception $e) {
@@ -226,6 +229,7 @@ class GroupsFunctions
         // Format groups
         for ($i = $length; $i--;) {
             $results[$i]['id'] = intval($results[$i]['id']);
+            $results[$i]['private'] = intval($results[$i]['private']);
             if (! isset($results[$i]['owner']) ) {
                 unset($results[$i]['owner']);
             }

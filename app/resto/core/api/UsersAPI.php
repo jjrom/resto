@@ -199,7 +199,13 @@ class UsersAPI
      */
     public function getMyProfile() {
         $this->user->loadProfile();
-        return $this->user->profile;
+        return array_merge(
+            $this->user->profile,
+            array(
+                'in_groups' => $this->user->getGroups(),
+                'owned_groups' => $this->user->getOwnedGroups()
+            )
+        );
     }
 
     /**

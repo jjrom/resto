@@ -49,6 +49,9 @@ class RestoUser
     
     const DOWNLOAD_ITEM = 'downloadFeature';
 
+    // Each user has a private group named {userName}_USER_GROUP_SUFFIX
+    const USER_GROUP_SUFFIX = '_private';
+
     /**
      * User profile
      *
@@ -170,7 +173,8 @@ class RestoUser
     private $unregistered = array(
         'id' => null,
         'email' => 'unregistered',
-        'activated' => 0
+        'activated' => 0,
+        'myGroup' => null
     );
 
     /*
@@ -408,7 +412,7 @@ class RestoUser
     }
 
     /**
-     * Return the list of user groups
+     * Return the list of groups the user belongs too
      *
      * @throws Exception
      */
@@ -423,6 +427,35 @@ class RestoUser
         }
         return $this->groups;
     }   
+
+    /**
+     * Return the list of groups own by the user
+     *
+     * @throws Exception
+     */
+    public function getOwnedGroups()
+    {
+        if ( !$this->profile['id'] ) {
+            return array();
+        }
+        return (new GroupsFunctions($this->context->dbDriver))->getGroups(array('owner' => $this->profile['id']));
+    }   
+
+    /**
+     * Return the user private group
+     * 
+     * @throws Exception
+     */
+    public function getPrivateGroup()
+    {
+        $groups = $this->getGroups();
+        for ($i = 0, $ii = count($groups); $i < $ii; $i++) {
+            if ( $groups[$i]['private'] === 1 ) {
+                return $groups[$i];
+            }
+        }
+        return null;
+    }
 
     /**
      * Return the list of user group ids

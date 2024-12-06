@@ -122,6 +122,9 @@ CREATE TABLE IF NOT EXISTS __DATABASE_COMMON_SCHEMA__.group (
     -- Owner of the group
     owner               BIGINT,
 
+    -- Flag to distinguish user private group
+    private             INTEGER DEFAULT 0,
+
     -- Timestamp of group creation
     created             TIMESTAMP
 

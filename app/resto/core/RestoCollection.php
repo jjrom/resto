@@ -544,7 +544,6 @@ class RestoCollection
      * [STAC] Collection root attributes
      */
     public $aliases = array();
-    public $visibility = array(RestoConstants::GROUP_DEFAULT_ID);
     public $version = '1.0.0';
     public $license = 'other';
     public $links = array();
@@ -568,6 +567,11 @@ class RestoCollection
      * Collection owner
      */
     public $owner;
+
+    /*
+     * Visibility for collection
+     */
+    public $visibility;
 
     /**
      * Summaries
@@ -655,6 +659,7 @@ class RestoCollection
         $this->id = $id;
         $this->context = $context;
         $this->user = $user;
+        
     }
 
     /**

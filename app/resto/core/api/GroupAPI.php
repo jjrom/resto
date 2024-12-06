@@ -258,10 +258,17 @@ class GroupAPI
      */
     public function createGroup($params, $body)
     {
-        $group = (new GroupsFunctions($this->context->dbDriver))->createGroup(array(
-            'id' => $this->user->profile['id'],
-            'body' => $body
-        ));
+
+        // Owner of group can only be set by admin user
+        if ( isset($body['owner']) && !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+            RestoLogUtil::httpError(403, 'You are not allowed to set property "owner"');
+        } 
+        
+        // Force owner to POSTING user
+        $body['owner'] = $body['owner'] ?? $this->user->profile['id'];
+        $body['private'] = 0;
+        
+        $group = (new GroupsFunctions($this->context->dbDriver))->createGroup($body);
 
         return RestoLogUtil::success('Group created', $group);
     }
@@ -429,6 +436,9 @@ class GroupAPI
         
     }
 
+    /**
+     * Remove user from a group
+     */
     public function deleteUser($params)
     {
 

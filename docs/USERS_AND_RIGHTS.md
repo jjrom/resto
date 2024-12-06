@@ -16,7 +16,7 @@ The above command should returns an HTTP 200 response including the newly create
                 "status":"success",
                 "message":"User johndoe@localhost created and activated",
                 "profile":{
-                        "id":"227186704389477947",
+                        "id":"227212790451639870",
                         "email":"johndoe@localhost",
                         "name":"John Doe",
                         "firstname":"John",
@@ -226,7 +226,7 @@ First create John Doe user if not exist then create a group and add John Doe to 
         # Admin add John Doe in group dummyGroup
         curl -X POST "http://admin:admin@localhost:5252/groups/1000/users" -d '
         {
-                "userid":"227186704389477947"
+                "userid":"227212790451639870"
         }'
 
         # Admin allows John Doe to create collection
