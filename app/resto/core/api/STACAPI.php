@@ -388,6 +388,11 @@ class STACAPI
             $body['links'] = array();
         }
 
+        // Owner of catalog can only be set by admin user
+        if ( isset($body['owner']) && !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+            RestoLogUtil::httpError(403, 'You are not allowed to set property "owner"');
+        } 
+
         /*
          * Check that parent catalogs exists
          */
@@ -518,6 +523,11 @@ class STACAPI
         if ( !$this->user->hasRightsTo(RestoUser::UPDATE_CATALOG, array('catalog' => $catalogs[0])) ) {
             RestoLogUtil::httpError(403);
         }
+
+        // Owner of catalog can only be changed by admin user
+        if ( isset($body['owner']) && !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+            RestoLogUtil::httpError(403, 'You are not allowed to change property "owner"');
+        } 
         
         // Update is not forced so we should check that input links array don't remove existing childs
         // [IMPORTANT] if no links object is in the body then only other properties are updated and existing links are not destroyed

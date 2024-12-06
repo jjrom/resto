@@ -802,7 +802,7 @@ class FeaturesAPI
             }
             // Only admin can change owner property
             if ($property === 'owner' && ! $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
-                RestoLogUtil::httpError(403);
+                RestoLogUtil::httpError(403, 'You are not allowed to change property "owner"');
             }
         }
 

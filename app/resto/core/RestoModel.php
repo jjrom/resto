@@ -500,6 +500,14 @@ abstract class RestoModel
      */
     public function updateFeature($feature, $collection, $body, $params)
     {
+
+        /*
+         * Owner of collection can only be set by admin user
+         */
+        if ( isset($body['owner']) && !$collection->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+            RestoLogUtil::httpError(403, 'You are not allowed to change property "owner"');
+        } 
+
         return (new FeaturesFunctions($collection->context->dbDriver))->updateFeature(
             $feature,
             $collection,
@@ -866,6 +874,14 @@ abstract class RestoModel
      */
     private function storeFeature($collection, $data, $params)
     {
+
+        /*
+         * Owner of collection can only be set by admin user
+         */
+        if ( isset($data['owner']) && !$collection->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+            RestoLogUtil::httpError(403, 'You are not allowed to set property "owner"');
+        } 
+
         /*
          * Input feature cannot have both an id and a productIdentifier
          */

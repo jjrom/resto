@@ -186,11 +186,10 @@ class CollectionsFunctions
      * Save collection to database
      *
      * @param RestoCollection $collection
-     * @param array $rights
      *
      * @throws Exception
      */
-    public function storeCollection($collection, $rights)
+    public function storeCollection($collection)
     {
 
         /*
