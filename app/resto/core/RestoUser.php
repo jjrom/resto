@@ -320,10 +320,10 @@ class RestoUser
             // Only owner of feature can do this
             case RestoUser::DELETE_ITEM:
             case RestoUser::UPDATE_ITEM:
-                if ( !isset($params['feature']) ) {
+                if ( !isset($params['item']) ) {
                     return false;     
                 }
-                $featureArray = $params['feature']->toArray();
+                $featureArray = $params['item']->toArray();
                 return $rights[$action] && isset($featureArray['properties']['owner']) && $featureArray['properties']['owner'] === $this->profile['id'];
                     
             default:
