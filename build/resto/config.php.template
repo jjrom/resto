@@ -3,7 +3,6 @@ return array(
     'baseUrl' => '${PUBLIC_ENDPOINT:-http://127.0.0.1:5252}',
     'planet' => '${PLANET:-earth}',
     'debug' => ${RESTO_DEBUG:-false},
-    'languages' => array(${SUPPORTED_LANGUAGES:-'en'}),
     'passphrase' => '${JWT_PASSPHRASE}',
     'sharedLinkDuration' => ${SHAREDLINK_DURATION:-86400},
     'storageInfo' => array(
