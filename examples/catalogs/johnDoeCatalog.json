@@ -1,0 +1,10 @@
+{
+    "id": "JohnDoeCatalog",
+    "title": "John Doe Catalog",
+    "type": "Catalog",
+    "description":"This is a simple catalog",
+    "stac_version":"1.0.0",
+    "visibility":[
+        "1000"
+    ]
+}

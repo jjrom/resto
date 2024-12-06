@@ -426,7 +426,7 @@ class STACAPI
             RestoLogUtil::httpError(409, 'Catalog ' . $body['id'] . ' already exists');
         }
 
-        return RestoLogUtil::success('Catalog added', $this->catalogsFunctions->storeCatalogs(array($body), $this->context, $this->user->profile['id'], null, null, true));
+        return RestoLogUtil::success('Catalog added', $this->catalogsFunctions->storeCatalogs(array($body), $this->context, $this->user, null, null, true));
 
     }
 

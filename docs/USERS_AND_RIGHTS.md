@@ -244,10 +244,10 @@ Now John Doe change the visibility of the item to dummyGroup only:
 
         curl -X PUT -d@examples/items/johnDoeItem_visibility.json "http://johnDoe%40localhost:dummy@localhost:5252/collections/JohnDoeCollection/items/JohnDoeItem/properties"
 
-        # The item is not visible anymore for users
+        # The item is not visible anymore to users
         curl "http://localhost:5252/collections/JohnDoeCollection/items"
 
-        # Except for users belonging to dummyGroup (like John Doe)
+        # Except to users belonging to dummyGroup (like John Doe)
         curl "http://johnDoe%40localhost:dummy@localhost:5252/collections/JohnDoeCollection/items"
 
 #### Update a collection to make it visible only to a group
@@ -255,12 +255,27 @@ John Doe change the visibility of the JohnDoeCollection to dummyGroup only:
 
         curl -X PUT -d@examples/collections/johnDoeCollection_update.json "http://johnDoe%40localhost:dummy@localhost:5252/collections/JohnDoeCollection"
 
-        # The collection is not visible anymore for users
+        # The collection is not visible anymore to users
         curl "http://localhost:5252/collections/JohnDoeCollection"
 
-        # Except for users belonging to dummyGroup (like John Doe)
+        # Except to users belonging to dummyGroup (like John Doe)
         curl "http://johnDoe%40localhost:dummy@localhost:5252/collections/JohnDoeCollection"
 
 *Note: The collection visibility can also be set during collection creation by adding the "visibility" property to the collection json description*
 
-#### Update a catalog to make it visible only to a group
+#### Create a catalog to make it visible only to a group
+John Doe creates a catalog that is only visible by dummyGroup:
+
+        curl -X POST -d@examples/catalogs/JohnDoeCatalog.json "http://johnDoe%40localhost:dummy@localhost:5252/catalogs"
+
+        # The catalog is not visible to users
+        curl "http://localhost:5252/catalogs"
+
+        # Except to users belonging to dummyGroup (like John Doe)
+        curl "http://johnDoe%40localhost:dummy@localhost:5252/catalogs"
+
+#### Update a catalog to make it visible for everyone
+John Doe change visibility to default group so everyone can see it:
+
+        curl -X PUT -d@examples/catalogs/JohnDoeCatalog_update.json "http://johnDoe%40localhost:dummy@localhost:5252/catalogs/JohnDoeCatalog"
+        

@@ -376,7 +376,7 @@ class FeaturesFunctions
             /*
              * Store catalogs
              */
-            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->context, $collection->user->profile['id'], $collection, array('id' => $result['id'], 'title' => $result['title'] ?? null), false);
+            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->context, $collection->user, $collection, array('id' => $result['id'], 'title' => $result['title'] ?? null), false);
         
             /*
              * Commit everything - rollback if one of the inserts failed
@@ -535,7 +535,7 @@ class FeaturesFunctions
                     $feature->id
                 )
             );
-            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->context, $collection->user->profile['id'], $collection, $feature->toArray(), false);
+            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->context, $collection->user, $collection, $feature->toArray(), false);
         
             /*
              * Commit
@@ -578,7 +578,7 @@ class FeaturesFunctions
                             (new CatalogsFunctions($this->dbDriver))->removeCatalogFeature($feature->id, $oldCatalogs[$i]['id']);
                         }
                     }
-                    (new CatalogsFunctions($this->dbDriver))->storeCatalogs($newCatalogs, $context, $user->profile['id'], $feature->collection, $feature->toArray(), false);
+                    (new CatalogsFunctions($this->dbDriver))->storeCatalogs($newCatalogs, $context, $user, $feature->collection, $feature->toArray(), false);
                 }
 
                 // Check property type validity

@@ -230,12 +230,12 @@ class CatalogsFunctions
      *
      * @param array $catalogs
      * @param RestoContext $context
-     * @param string $userid
+     * @param RestoUser $user
      * @param RestoCollection $collection
      * @param array $feature
      * @param boolean addBeginCommit // True means that call is already within a BEGIN/COMMIT block
      */
-    public function storeCatalogs($catalogs, $context, $userid, $collection, $feature, $addBeginCommit)
+    public function storeCatalogs($catalogs, $context, $user, $collection, $feature, $addBeginCommit)
     {
 
         // Empty catalogs - do nothing
@@ -252,7 +252,7 @@ class CatalogsFunctions
             }
 
             for ($i = count($catalogs); $i--;) {
-                $this->storeCatalog($catalogs[$i], $userid, $context, $collectionId, $feature);
+                $this->storeCatalog($catalogs[$i], $user, $context, $collectionId, $feature);
             }
     
             // Update all counters at the same time for a given featureId
@@ -554,12 +554,12 @@ class CatalogsFunctions
      * !! THIS FUNCTION IS THREAD SAFE !!
      *
      * @param array $catalog
-     * @param string $userid
+     * @param RestoUser $user
      * @param RestoContext $context
      * @param string $collectionId
      * @param array $feature
      */
-    private function storeCatalog($catalog, $userid, $context, $collectionId, $feature)
+    private function storeCatalog($catalog, $user, $context, $collectionId, $feature)
     {
         // Empty catalog - do nothing
         if (!isset($catalog)) {
@@ -598,6 +598,9 @@ class CatalogsFunctions
             }
         }
         
+        // Visibility
+        $visibility = QueryUtil::visibilityToSQL($catalog['visibility'] ?? array(RestoConstants::GROUP_DEFAULT_ID));
+
         $insert = '(id, title, description, level, counters, owner, visibility, rtype, properties, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,now()';
         $values = array(
             $catalog['id'],
@@ -609,8 +612,8 @@ class CatalogsFunctions
                 'total' => 0,
                 'collections' => array()
             ), JSON_UNESCAPED_SLASHES)),
-            $catalog['owner'] ?? $userid,
-            '{' . join(',', array(RestoConstants::GROUP_DEFAULT_ID)) . '}',
+            $catalog['owner'] ?? $user->profile['id'],
+            $visibility,
             $catalog['rtype'] ?? null,
             isset($properties) ? json_encode($properties, JSON_UNESCAPED_SLASHES) : null
         );
