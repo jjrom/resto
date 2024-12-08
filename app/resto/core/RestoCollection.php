@@ -109,7 +109,7 @@
  *          "description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites",
  *          "version": "1.0",
  *          "model": "OpticalModel",
- *          "visibility": [100],
+ *          "visibility": {"100"},
  *          "license": "proprietary",
  *          "providers": {
  *              {
