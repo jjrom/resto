@@ -659,20 +659,7 @@ class RestoCollection
         $this->id = $id;
         $this->context = $context;
         $this->user = $user;
-        
-        // Default visibility
-        if ( $this->context->core['defaultCollectionVisibility'] === 'owner' ) {
-            $ownedGroups = $this->user->getOwnedGroups();
-            for ($i = 0, $ii = count($ownedGroups); $i < $ii; $i++) {
-                if ( $ownedGroups[$i]['private'] === 1 ) {
-                    $this->visibility = array($ownedGroups[$i]['id']);
-                    break;
-                }
-            }
-        }
-        else {
-            $this->visibility = array(RestoConstants::GROUP_DEFAULT_ID);
-        }
+        $this->visibility = RestoUtil::getDefaultVisibility($this->user, $this->context->core['defaultCollectionVisibility']);
     }
 
     /**

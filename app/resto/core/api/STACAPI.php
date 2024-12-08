@@ -564,7 +564,7 @@ class STACAPI
         // [TODO] not sure it's needed
         $body['id'] = $catalogs[0]['id'];
         
-        return $this->catalogsFunctions->updateCatalog($body, $this->user->profile['id'], $this->context) ? RestoLogUtil::success('Catalog updated') : RestoLogUtil::error('Cannot update catalog');
+        return $this->catalogsFunctions->updateCatalog($body, $this->user, $this->context) ? RestoLogUtil::success('Catalog updated') : RestoLogUtil::error('Cannot update catalog');
     }
 
     /**

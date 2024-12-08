@@ -552,6 +552,26 @@ class RestoUtil
     }
 
     /**
+     * Return vsibility for user
+     * 
+     * @param RestoUser $user
+     * @param string $groupId
+     */
+    public static function getDefaultVisibility($user, $groupId)
+    {
+        if ( $groupId === 'owner' ) {
+            $ownedGroups = $user->getOwnedGroups();
+            for ($i = 0, $ii = count($ownedGroups); $i < $ii; $i++) {
+                if ( $ownedGroups[$i]['private'] === 1 ) {
+                    return array($ownedGroups[$i]['id']);
+                }
+            }
+        }
+        return array(RestoConstants::GROUP_DEFAULT_ID);
+    }
+    
+
+    /**
      * Construct base url from parse_url fragments
      *
      * @param array $exploded

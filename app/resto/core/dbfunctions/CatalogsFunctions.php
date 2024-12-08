@@ -330,11 +330,11 @@ class CatalogsFunctions
      * Update catalog 
      * 
      * @param array $catalog
-     * @param string $userid
+     * @param RestoUser $user
      * @param RestoContext $context
      * @return boolean
      */
-    public function updateCatalog($catalog, $userid, $context)
+    public function updateCatalog($catalog, $user, $context)
     {
         
         if ( !isset($catalog['id']) ) {
@@ -353,7 +353,7 @@ class CatalogsFunctions
         );
 
         $set = array();
-        $cleanLinks = $this->getCleanLinks($catalog, $context);
+        $cleanLinks = $this->getCleanLinks($catalog, $user, $context);
         
         if ( array_key_exists('links', $cleanLinks) ) {
             $catalog['links'] = $cleanLinks['links'];
@@ -576,7 +576,7 @@ class CatalogsFunctions
             $catalog['id'] = rtrim($catalog['id'], '/');
         }
        
-        $cleanLinks = $this->getCleanLinks($catalog, $context);
+        $cleanLinks = $this->getCleanLinks($catalog, $user, $context);
        
         // For collection, do not store properties since it's a duplication of properties within collection table
         $properties = null;
@@ -599,7 +599,7 @@ class CatalogsFunctions
         }
         
         // Visibility
-        $visibility = QueryUtil::visibilityToSQL($catalog['visibility'] ?? array(RestoConstants::GROUP_DEFAULT_ID));
+        $visibility = QueryUtil::visibilityToSQL($catalog['visibility']) ?? RestoUtil::getDefaultVisibility($user, $context->core['defaultCatalogVisibility']);
 
         $insert = '(id, title, description, level, counters, owner, visibility, rtype, properties, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,now()';
         $values = array(
@@ -869,10 +869,11 @@ class CatalogsFunctions
      *  - keep non first level child links
      * 
      * @param array $catalog
+     * @param RestoUser $user
      * @param RestoContext $context
      * @return array
      */
-    private function getCleanLinks($catalog, $context) {
+    private function getCleanLinks($catalog, $user, $context) {
 
         $output = array(
             'childIds' => array(),
@@ -971,7 +972,7 @@ class CatalogsFunctions
                     RestoLogUtil::httpError(400, 'One link child has an external href i.e. not starting with ' . $context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS);    
                 }
 
-                $childCatalog = $this->getCatalog($exploded[1]);
+                $childCatalog = $this->getCatalog($exploded[1], $user);
                 if ( $childCatalog === null ) {
                     RestoLogUtil::httpError(400, 'Catalog child ' . $link['href'] . ' does not exist');    
                 }
