@@ -547,13 +547,13 @@ class GroupAPI
     }
     
     /*
-     * Check that id is an integer stricly lower than Postgres INTEGER MAX_VALUE
+     * Check that id is an integer
      *
      * @param string $id
      */
     private function checkGroupId($groupid)
     {
-        if (! ctype_digit($groupid) || intval($groupid) >= RestoConstants::INT_MAX_VALUE) {
+        if ( !ctype_digit($groupid) ) {
             RestoLogUtil::httpError(400, 'Invalid group identifier');
         }
     }

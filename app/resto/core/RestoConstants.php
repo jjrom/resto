@@ -20,14 +20,11 @@ class RestoConstants
     // [IMPORTANT] Starting resto 7.x, default routes are defined in RestoRouter class
 
     // resto version
-    const VERSION = '9.2.0';
+    const VERSION = '9.3.0';
 
     /* ============================================================
      *              NEVER EVER TOUCH THESE VALUES
      * ============================================================*/
-
-    // PostgreSQL max value for integer
-    const INT_MAX_VALUE = 2147483647;
 
     // admin user identifier
     const ADMIN_USER_ID = '100';
@@ -50,6 +47,6 @@ class RestoConstants
      *              DEFINE GROUPS HERE
      * ============================================================*/
     
-     const GROUP_SNAPPLANET_ADMIN_ID = 11;
+     const GROUP_SNAPPLANET_ADMIN_ID = '11';
 
 }
