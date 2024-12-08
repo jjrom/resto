@@ -103,7 +103,7 @@ class GroupsFunctions
             }
 
             return array(
-                'id' => intval($row['id']),
+                'id' => $row['id'],
                 'name' => $group['name'],
                 'owner' => $group['owner'],
                 'private' => $group['private']
@@ -143,7 +143,7 @@ class GroupsFunctions
             }
             
             return array(
-                'id' => intval($params['id'])
+                'id' => $params['id']
             );
         } catch (Exception $e) {
             RestoLogUtil::httpError(403, 'Cannot delete group');
@@ -228,7 +228,7 @@ class GroupsFunctions
 
         // Format groups
         for ($i = $length; $i--;) {
-            $results[$i]['id'] = intval($results[$i]['id']);
+            $results[$i]['id'] = $results[$i]['id'];
             $results[$i]['private'] = intval($results[$i]['private']);
             if (! isset($results[$i]['owner']) ) {
                 unset($results[$i]['owner']);

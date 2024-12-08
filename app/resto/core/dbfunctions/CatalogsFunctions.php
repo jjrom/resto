@@ -233,9 +233,10 @@ class CatalogsFunctions
      * @param RestoUser $user
      * @param RestoCollection $collection
      * @param array $feature
-     * @param boolean addBeginCommit // True means that call is already within a BEGIN/COMMIT block
+     * @param boolean $addBeginCommit // True means that call is already within a BEGIN/COMMIT block
+     * @param boolean $forceOwnerToAdmin // True if inner catalogs then created with DEFAULT visibility and owner to admin
      */
-    public function storeCatalogs($catalogs, $context, $user, $collection, $feature, $addBeginCommit)
+    public function storeCatalogs($catalogs, $context, $user, $collection, $feature, $addBeginCommit, $forceOwnerToAdmin = false)
     {
 
         // Empty catalogs - do nothing
@@ -252,7 +253,7 @@ class CatalogsFunctions
             }
 
             for ($i = count($catalogs); $i--;) {
-                $this->storeCatalog($catalogs[$i], $user, $context, $collectionId, $feature);
+                $this->storeCatalog($catalogs[$i], $user, $context, $collectionId, $feature, $forceOwnerToAdmin);
             }
     
             // Update all counters at the same time for a given featureId
@@ -558,8 +559,9 @@ class CatalogsFunctions
      * @param RestoContext $context
      * @param string $collectionId
      * @param array $feature
+     * @param boolean $forceOwnerToAdmin
      */
-    private function storeCatalog($catalog, $user, $context, $collectionId, $feature)
+    private function storeCatalog($catalog, $user, $context, $collectionId, $feature, $forceOwnerToAdmin)
     {
         // Empty catalog - do nothing
         if (!isset($catalog)) {
@@ -599,8 +601,13 @@ class CatalogsFunctions
         }
         
         // Visibility
-        $visibility = QueryUtil::visibilityToSQL($catalog['visibility']) ?? RestoUtil::getDefaultVisibility($user, $context->core['defaultCatalogVisibility']);
-
+        if ($forceOwnerToAdmin) {
+            $catalog['owner'] = RestoConstants::ADMIN_USER_ID;
+            $catalog['visibility'] = array(RestoConstants::GROUP_DEFAULT_ID);
+        }
+        if ( !isset($catalog['visibility']) ) {
+            $catalog['visibility'] = RestoUtil::getDefaultVisibility($user, $context->core['defaultCatalogVisibility']);
+        }
         $insert = '(id, title, description, level, counters, owner, visibility, rtype, properties, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,now()';
         $values = array(
             $catalog['id'],
@@ -613,7 +620,7 @@ class CatalogsFunctions
                 'collections' => array()
             ), JSON_UNESCAPED_SLASHES)),
             $catalog['owner'] ?? $user->profile['id'],
-            $visibility,
+            QueryUtil::visibilityToSQL($catalog['visibility']),
             $catalog['rtype'] ?? null,
             isset($properties) ? json_encode($properties, JSON_UNESCAPED_SLASHES) : null
         );

@@ -378,8 +378,9 @@ class FeaturesFunctions
 
             /*
              * Store catalogs
+             * [IMPORTANT] These are inner catalogs thus created using admin not user that post item !!!
              */
-            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->context, $collection->user, $collection, array('id' => $result['id'], 'title' => $result['title'] ?? null), false);
+            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->context, $collection->user, $collection, array('id' => $result['id'], 'title' => $result['title'] ?? null), false, true);
         
             /*
              * Commit everything - rollback if one of the inserts failed
@@ -538,7 +539,7 @@ class FeaturesFunctions
                     $feature->id
                 )
             );
-            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->context, $collection->user, $collection, $feature->toArray(), false);
+            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->context, $collection->user, $collection, $feature->toArray(), false, true);
         
             /*
              * Commit
@@ -581,7 +582,7 @@ class FeaturesFunctions
                             (new CatalogsFunctions($this->dbDriver))->removeCatalogFeature($feature->id, $oldCatalogs[$i]['id']);
                         }
                     }
-                    (new CatalogsFunctions($this->dbDriver))->storeCatalogs($newCatalogs, $context, $user, $feature->collection, $feature->toArray(), false);
+                    (new CatalogsFunctions($this->dbDriver))->storeCatalogs($newCatalogs, $context, $user, $feature->collection, $feature->toArray(), false, true);
                 }
 
                 // Check property type validity
