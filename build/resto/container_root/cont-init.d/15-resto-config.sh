@@ -41,9 +41,6 @@ fi
 mkdir -p /etc/resto
 
 # Add brackets around elements of comma separated lists
-if [ ! -z "${SUPPORTED_LANGUAGES}" ]; then
-    SUPPORTED_LANGUAGES=\'$(echo $SUPPORTED_LANGUAGES | sed s/,/\',\'/g)\'
-fi
 if [ ! -z "${CORS_WHITELIST}" ]; then
     CORS_WHITELIST=\'$(echo $CORS_WHITELIST | sed s/,/\',\'/g)\'
 fi

@@ -355,10 +355,40 @@ class UsersFunctions
                 $toBeSet[$field] = "'" . $this->dbDriver->escape_string( $profile[$field]) . "'";
             }
         }
+   
+        $outputProfile = null;
+        try {
+            
+            $this->dbDriver->query('BEGIN');
 
-        $results =  $this->dbDriver->fetch($this->dbDriver->query('INSERT INTO ' . $this->dbDriver->commonSchema . '.user (' . join(',', array_keys($toBeSet)) . ') VALUES (' . join(',', array_values($toBeSet)) . ') RETURNING *'));
+            // First create the user
+            $results =  $this->dbDriver->fetch($this->dbDriver->query('INSERT INTO ' . $this->dbDriver->commonSchema . '.user (' . join(',', array_keys($toBeSet)) . ') VALUES (' . join(',', array_values($toBeSet)) . ') RETURNING *'));
 
-        return count($results) === 1 ? UsersFunctions::formatUserProfile($results[0]) : null;
+            // Next create the user private group
+            if ( count($results) === 1 ) {
+                $outputProfile = UsersFunctions::formatUserProfile($results[0]);
+                $group = (new GroupsFunctions($this->dbDriver))->createGroup(array(
+                    'name' => $outputProfile['name'] . RestoUser::USER_GROUP_SUFFIX,
+                    'description' => 'Private group for user ' . $outputProfile['name'],
+                    'owner' => $outputProfile['id'],
+                    'private' => 1
+                ));
+            }
+
+            // And add user to its private group
+            $this->dbDriver->query_params('INSERT INTO ' . $this->dbDriver->commonSchema . '.group_member (groupid,userid,created) VALUES ($1,$2,now_utc()) ON CONFLICT (groupid,userid) DO NOTHING RETURNING groupid, userid', array(
+                $group['id'],
+                $outputProfile['id']
+            ));
+            
+            $this->dbDriver->query('COMMIT');
+
+        } catch (Exception $e) {
+            $this->dbDriver->query('ROLLBACK');
+            RestoLogUtil::httpError($e->getCode() ?? 500, $e->getMessage());
+        }
+
+        return $outputProfile;
     }
 
     /**

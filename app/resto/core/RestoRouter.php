@@ -95,7 +95,7 @@ class RestoRouter
         array('GET',    RestoRouter::ROUTE_TO_FEATURE, false, 'FeaturesAPI::getFeature'),                                               // Get feature :featureId
         array('PUT',    RestoRouter::ROUTE_TO_FEATURE, true, 'FeaturesAPI::updateFeature'),                                             // Update feature :featureId
         array('DELETE', RestoRouter::ROUTE_TO_FEATURE, true, 'FeaturesAPI::deleteFeature'),                                             // Delete :featureId
-        array('PUT',    RestoRouter::ROUTE_TO_FEATURE . '/properties/{property}', true, 'FeaturesAPI::updateFeatureProperty'),          // Update feature :featureId single property
+        array('PUT',    RestoRouter::ROUTE_TO_FEATURE . '/properties', true, 'FeaturesAPI::updateFeatureProperties'),                   // Update feature properties
         
         // API for authentication (token based)
         array('GET',    RestoRouter::ROUTE_TO_AUTH, true, 'AuthAPI::getToken'),

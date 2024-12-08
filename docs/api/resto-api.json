@@ -3,15 +3,12 @@
     "info": {
         "title": "Welcome to resto",
         "description": "A metadata catalog and search engine for geospatialized data",
-        "contact": {
-            "email": "jerome.gasperi@gmail.com"
-        },
-        "version": "9.0.0-RC9"
+        "version": "9.2.0"
     },
     "servers": [
         {
             "url": "http://127.0.0.1:5252",
-            "description": "resto localhost server"
+            "description": "A metadata catalog and search engine for geospatialized data"
         }
     ],
     "paths": {
@@ -401,7 +398,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of all collection descriptions",
+                        "description": "List of all collections",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -409,10 +406,6 @@
                                         "extent": {
                                             "type": "object",
                                             "$ref": "#/components/schemas/Extent"
-                                        },
-                                        "resto:info": {
-                                            "description": "resto additional information",
-                                            "type": "object"
                                         },
                                         "collections": {
                                             "description": "List of available collections",
@@ -445,18 +438,6 @@
                                                 ]
                                             ],
                                             "trs": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"
-                                        }
-                                    },
-                                    "resto:info": {
-                                        "osDescription": {
-                                            "ShortName": "resto",
-                                            "LongName": "resto search service",
-                                            "Description": "Search on all collections",
-                                            "Tags": "resto",
-                                            "Developer": "J\\u00e9r\\u00f4me Gasperi",
-                                            "Contact": "jerome.gasperi@gmail.com",
-                                            "Query": "europe 2015",
-                                            "Attribution": "Copyright 2018, All Rights Reserved"
                                         }
                                     },
                                     "collections": [
@@ -512,16 +493,6 @@
                                                     "SatelliteModel",
                                                     "OpticalModel"
                                                 ],
-                                                "osDescription": {
-                                                    "ShortName": "Landsat-8",
-                                                    "LongName": "Images Landsat-8 niveau 1C",
-                                                    "Description": "Landsat represents the world's longest continuously acquired collection of space-based moderate-resolution land remote sensing data. Four decades of imagery provides a unique resource for those who work in agriculture, geology, forestry, regional planning, education, mapping, and global change research. Landsat images are also invaluable for emergency response and disaster relief",
-                                                    "Tags": "landsat level1C USGS",
-                                                    "Developer": "J\\u00e9r\\u00f4me Gasperi",
-                                                    "Contact": "jrom@snapplanet.io",
-                                                    "Query": "USA 2019",
-                                                    "Attribution": "USGS/NASA Landsat"
-                                                },
                                                 "owner": "203883411255198721"
                                             },
                                             "summaries": {
@@ -658,7 +629,7 @@
                     "Collection"
                 ],
                 "summary": "Get collection",
-                "description": "Returns collection description including statistics (i.e. number of products, etc.)",
+                "description": "Returns collection including statistics (i.e. number of products, etc.)",
                 "operationId": "CollectionsAPI::getCollection",
                 "parameters": [
                     {
@@ -673,7 +644,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Collection description",
+                        "description": "Collection",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1804,14 +1775,14 @@
                 ]
             }
         },
-        "/collections/{collectionId}/items/{featureId}/properties/{property}": {
+        "/collections/{collectionId}/items/{featureId}/properties": {
             "put": {
                 "tags": [
                     "Feature"
                 ],
-                "summary": "Update feature property",
-                "description": "Update {property} for feature {featureId}",
-                "operationId": "FeaturesAPI::updateFeatureProperty",
+                "summary": "Update feature properties",
+                "description": "Update properties for feature {featureId}. Allowed properties are one of : title, description, visibility, owner and status",
+                "operationId": "FeaturesAPI::updateFeatureProperties",
                 "parameters": [
                     {
                         "name": "collectionId",
@@ -1830,45 +1801,19 @@
                         "schema": {
                             "type": "string"
                         }
-                    },
-                    {
-                        "name": "property",
-                        "in": "path",
-                        "description": "Property to update",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "title",
-                                "description",
-                                "visibility",
-                                "owner",
-                                "status"
-                            ]
-                        }
                     }
                 ],
                 "requestBody": {
-                    "description": "Property value to update",
+                    "description": "Properties to update",
                     "content": {
                         "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "value": {
-                                        "description": "New property value"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "value": 1
-                            }
+                            "schema": {}
                         }
                     }
                 },
                 "responses": {
                     "200": {
-                        "description": "The property is updated",
+                        "description": "The properties are updated",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2541,13 +2486,13 @@
                                         "updateCollection": true,
                                         "deleteAnyCollection": false,
                                         "updateAnyCollection": false,
-                                        "createFeature": true,
-                                        "updateFeature": true,
-                                        "deleteFeature": true,
-                                        "createAnyFeature": false,
-                                        "deleteAnyFeature": false,
-                                        "updateAnyFeature": false,
-                                        "downloadFeature": false
+                                        "createItem": true,
+                                        "updateItem": true,
+                                        "deleteItem": true,
+                                        "createAnyItem": false,
+                                        "deleteAnyItem": false,
+                                        "updateAnyItem": false,
+                                        "downloadItem": false
                                     }
                                 }
                             }
@@ -2700,13 +2645,13 @@
                                         "updateCollection": true,
                                         "deleteAnyCollection": false,
                                         "updateAnyCollection": false,
-                                        "createFeature": true,
-                                        "updateFeature": true,
-                                        "deleteFeature": true,
-                                        "createAnyFeature": false,
-                                        "deleteAnyFeature": false,
-                                        "updateAnyFeature": false,
-                                        "downloadFeature": false
+                                        "createItem": true,
+                                        "updateItem": true,
+                                        "deleteItem": true,
+                                        "createAnyItem": false,
+                                        "deleteAnyItem": false,
+                                        "updateAnyItem": false,
+                                        "downloadItem": false
                                     }
                                 }
                             }
@@ -2740,6 +2685,24 @@
                 "summary": "Get STAC catalogs",
                 "description": "Get STAC catalogs",
                 "operationId": "STACAPI::getCatalogs",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Filter on catalog id and description",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "_nocount",
+                        "in": "query",
+                        "description": "Set to 1 to not count number of items below catalogs. Speed up *a lot* the query so should be used when using this for suggest (see rocket catalog search for instance)",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "STAC catalog definition - contains links to child catalogs and/or items",
@@ -3731,65 +3694,6 @@
                 }
             }
         },
-        "/services/osdd/{collectionId}": {
-            "get": {
-                "tags": [
-                    "Collection"
-                ],
-                "summary": "Get OpenSearch Description Document for a collection",
-                "description": "Returns the OpenSearch Document Description (OSDD) for the search service of collection {collectionId}",
-                "operationId": "ServicesAPI::getOSDDForCollection",
-                "parameters": [
-                    {
-                        "name": "collectionId",
-                        "in": "path",
-                        "description": "Collection identifier",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OpenSearch Document Description (OSDD)"
-                    },
-                    "404": {
-                        "description": "Collection not found"
-                    }
-                }
-            }
-        },
-        "/services/osdd": {
-            "get": {
-                "tags": [
-                    "Collection"
-                ],
-                "summary": "Get OpenSearch Description Document for all collections",
-                "description": "Returns the OpenSearch Document Description (OSDD) for the search service on all collections",
-                "operationId": "ServicesAPI::getOSDD",
-                "parameters": [
-                    {
-                        "name": "model",
-                        "in": "query",
-                        "description": "Limit description to collections belonging to *model* - e.g. *model=SatelliteModel* will search in all satellite collections",
-                        "required": false,
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OpenSearch Document Description (OSDD)"
-                    },
-                    "404": {
-                        "description": "Collection not found"
-                    }
-                }
-            }
-        },
         "/_isLive": {
             "get": {
                 "tags": [
@@ -4471,7 +4375,7 @@
                         "type": "string"
                     },
                     "visibility": {
-                        "description": "Visibility of this collection. Collections with visibility 1 are visible to all users."
+                        "description": "Visibility for this collection as a group list. Only user from one of the group can see the collection."
                     },
                     "model": {
                         "description": "[For developper] Name of the collection model class under $SRC/include/resto/Models - Default is DefaultModel",
@@ -4480,41 +4384,6 @@
                     "license": {
                         "description": "License for this collection as a SPDX License identifier. Alternatively, use proprietary if the license is not on the SPDX license list or various if multiple licenses apply. In these two cases links to the license texts SHOULD be added, see the license link relation type.",
                         "type": "string"
-                    },
-                    "rights": {
-                        "description": "Default collection rights settings",
-                        "properties": {
-                            "download": {
-                                "description": "Feature download rights (1 can be downloaded; 0 cannot be downloaded)",
-                                "type": "integer",
-                                "enum": [
-                                    0,
-                                    1
-                                ]
-                            },
-                            "visualize": {
-                                "description": "Features visualization rights (1 can be visualized; 0 cannot be visualized)",
-                                "type": "integer"
-                            }
-                        },
-                        "type": "object"
-                    },
-                    "osDescription": {
-                        "description": "resto collection",
-                        "required": [
-                            "en"
-                        ],
-                        "properties": {
-                            "en": {
-                                "description": "OpenSearch description in English",
-                                "$ref": "#/components/schemas/OpenSearchDescription"
-                            },
-                            "fr": {
-                                "description": "OpenSearch description in French",
-                                "$ref": "#/components/schemas/OpenSearchDescription"
-                            }
-                        },
-                        "type": "object"
                     },
                     "links": {
                         "description": "resto collection",
@@ -4556,36 +4425,15 @@
                 "type": "object",
                 "example": {
                     "id": "S2",
+                    "type": "Collection",
+                    "title": "Level 1C Sentinel-2 images",
+                    "description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites",
                     "version": "1.0",
                     "model": "OpticalModel",
-                    "rights": {
-                        "download": 1,
-                        "visualize": 1
-                    },
-                    "visibility": 1,
+                    "visibility": [
+                        "100"
+                    ],
                     "license": "proprietary",
-                    "osDescription": {
-                        "en": {
-                            "ShortName": "Sentinel-2",
-                            "LongName": "Level 1C Sentinel-2 images",
-                            "Description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites",
-                            "Tags": "copernicus esa eu msi radiance sentinel sentinel2",
-                            "Developer": "Jérôme Gasperi",
-                            "Contact": "jrom@snapplanet.io",
-                            "Query": "Toulouse",
-                            "Attribution": "European Union/ESA/Copernicus"
-                        },
-                        "fr": {
-                            "ShortName": "Sentinel-2",
-                            "LongName": "Images Sentinel-2 Niveau 1C",
-                            "Description": "La mission SENTINEL-2 est constituée de deux satellites d'imagerie optique équipés d’un imageur multispectral (MSI) en 13 bandes spectrales avec des résolutions de 10, 20 et 60 mètres et d'une fauchée unique de 290 km de large. La capacité d'observation des deux satellites permet de surveiller l'intégralité des terres émergées du globe tous les 5 jours",
-                            "Tags": "copernicus esa eu msi radiance sentinel sentinel2",
-                            "Developer": "Jérôme Gasperi",
-                            "Contact": "jrom@snapplanet.io",
-                            "Query": "Toulouse",
-                            "Attribution": "European Union/ESA/Copernicus"
-                        }
-                    },
                     "providers": [
                         {
                             "name": "European Union/ESA/Copernicus",
@@ -4685,7 +4533,6 @@
                 "required": [
                     "id",
                     "type",
-                    "title",
                     "description",
                     "license",
                     "extent",
@@ -4838,16 +4685,6 @@
                             "SatelliteModel",
                             "OpticalModel"
                         ],
-                        "osDescription": {
-                            "ShortName": "Sentinel-2",
-                            "LongName": "Level 1C Sentinel-2 images",
-                            "Description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites",
-                            "Tags": "copernicus esa eu msi radiance sentinel sentinel2",
-                            "Developer": "J\\u00e9r\\u00f4me Gasperi",
-                            "Contact": "jrom@snapplanet.io",
-                            "Query": "Toulouse",
-                            "Attribution": "European Union/ESA/Copernicus"
-                        },
                         "owner": "203883411255198721"
                     },
                     "providers": [
@@ -4956,58 +4793,6 @@
                     "stac_extensions": [
                         "https://stac-extensions.github.io/eo/v1.0.0/schema.json"
                     ]
-                }
-            },
-            "OpenSearchDescription": {
-                "description": "OpenSearch description of the search engine attached to the collection",
-                "required": [
-                    "ShortName",
-                    "Description"
-                ],
-                "properties": {
-                    "ShortName": {
-                        "description": "Contains a brief human-readable title that identifies the search engine",
-                        "type": "string"
-                    },
-                    "LongName": {
-                        "description": "Contains an extended human-readable title that identifies this search engine",
-                        "type": "string"
-                    },
-                    "Description": {
-                        "description": "Contains a human-readable text description of the collection search engine",
-                        "type": "string"
-                    },
-                    "Tags": {
-                        "description": "Contains a set of words that are used as keywords to identify and categorize this search content. Tags must be a single word and are delimited by the space character",
-                        "type": "string"
-                    },
-                    "Developer": {
-                        "description": "Contains the human-readable name or identifier of the creator or maintainer of the description document",
-                        "type": "string"
-                    },
-                    "Contact": {
-                        "description": "Contains an email address at which the maintainer of the description document can be reached",
-                        "type": "string"
-                    },
-                    "Query": {
-                        "description": "Defines a search query that can be performed by search clients. Please see the OpenSearch Query element specification for more information",
-                        "type": "string"
-                    },
-                    "Attribution": {
-                        "description": "Contains a list of all sources or entities that should be credited for the content contained in the search feed",
-                        "type": "string"
-                    }
-                },
-                "type": "object",
-                "example": {
-                    "ShortName": "S2",
-                    "LongName": "Sentinel-2",
-                    "Description": "Sentinel-2 tiles",
-                    "Tags": "s2 sentinel2",
-                    "Developer": "Jérôme Gasperi",
-                    "Contact": "jrom@snapplanet.io",
-                    "Query": "Toulouse",
-                    "Attribution": "SnapPlanet - Copyright 2016, All Rights Reserved"
                 }
             },
             "Provider": {
@@ -5632,11 +5417,6 @@
                             "href": "http://127.0.0.1:5252/stac/search.json?"
                         },
                         {
-                            "rel": "search",
-                            "type": "application/opensearchdescription+xml",
-                            "href": "http://127.0.0.1:5252/services/osdd"
-                        },
-                        {
                             "rel": "next",
                             "type": "application/json",
                             "href": "http://127.0.0.1:5252/stac/search.json?next=204449069316703379"
@@ -5873,7 +5653,7 @@
                 "properties": {
                     "id": {
                         "description": "Unique group identifier - generated by resto during group creation",
-                        "type": "integer"
+                        "type": "string"
                     },
                     "name": {
                         "description": "Unique name of the group - free text",
@@ -5890,7 +5670,7 @@
                 },
                 "type": "object",
                 "example": {
-                    "id": 100,
+                    "id": "100",
                     "name": "My first group",
                     "description": "Any user can create a group.",
                     "owner": "1919730603616371731"
@@ -5905,13 +5685,13 @@
                     "updateCollection": true,
                     "deleteAnyCollection": false,
                     "updateAnyCollection": false,
-                    "createFeature": true,
-                    "updateFeature": true,
-                    "deleteFeature": true,
-                    "createAnyFeature": false,
-                    "deleteAnyFeature": false,
-                    "updateAnyFeature": false,
-                    "downloadFeature": false
+                    "createItem": true,
+                    "updateItem": true,
+                    "deleteItem": true,
+                    "createAnyItem": false,
+                    "deleteAnyItem": false,
+                    "updateAnyItem": false,
+                    "downloadItem": false
                 }
             },
             "Catalog": {

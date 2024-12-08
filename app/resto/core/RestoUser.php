@@ -39,15 +39,18 @@ class RestoUser
     const DELETE_ANY_CATALOG = 'deleteAnyCatalog';
     const UPDATE_ANY_CATALOG = 'updateAnyCatalog';
     
-    const CREATE_FEATURE = 'createFeature';
-    const DELETE_FEATURE = 'deleteFeature';
-    const UPDATE_FEATURE = 'updateFeature';
+    const CREATE_ITEM = 'createFeature';
+    const DELETE_ITEM = 'deleteFeature';
+    const UPDATE_ITEM = 'updateFeature';
     
-    const CREATE_ANY_FEATURE = 'createAnyFeature';
-    const DELETE_ANY_FEATURE = 'deleteAnyFeature';
-    const UPDATE_ANY_FEATURE = 'updateAnyFeature';
+    const CREATE_ANY_ITEM = 'createAnyFeature';
+    const DELETE_ANY_ITEM = 'deleteAnyFeature';
+    const UPDATE_ANY_ITEM = 'updateAnyFeature';
     
-    const DOWNLOAD_FEATURE = 'downloadFeature';
+    const DOWNLOAD_ITEM = 'downloadFeature';
+
+    // Each user has a private group named {userName}_USER_GROUP_SUFFIX
+    const USER_GROUP_SUFFIX = '_private';
 
     /**
      * User profile
@@ -163,6 +166,7 @@ class RestoUser
      * Reference to groups object
      */
     private $groups;
+    private $ownedGroups;
 
     /*
      * Unregistered profile
@@ -170,7 +174,8 @@ class RestoUser
     private $unregistered = array(
         'id' => null,
         'email' => 'unregistered',
-        'activated' => 0
+        'activated' => 0,
+        'myGroup' => null
     );
 
     /*
@@ -249,15 +254,15 @@ class RestoUser
      *  - deleteAnyCatalog      : delete any catalog i.e. including not owned by user
      *  - updateAnyCatalog      : update any catalog i.e. including not owned by user
      * 
-     *  - createFeature         : create a feature in a collection owned by user
-     *  - deleteFeature         : delete a feature owned by user
-     *  - updateFeature         : update a feature owned by user
+     *  - createItem            : create an item in a collection owned by user
+     *  - deleteItem            : delete an item owned by user
+     *  - updateItem            : update an item owned by user
      * 
-     *  - createAnyFeature      : create a feature in any collection
-     *  - deleteAnyFeature      : delete any feature i.e. including not owned by user
-     *  - updateAnyFeature      : update any feature i.e. including not owned by user
+     *  - createAnyItem         : create an item in any collection
+     *  - deleteAnyItem         : delete any item i.e. including not owned by user
+     *  - updateAnyItem         : update any item i.e. including not owned by user
      *  
-     *  - downloadFeature       : download a feature [NOT USED]
+     *  - downloadItem       : download an item [NOT USED]
      *
      * @param string $action
      * @param array $params
@@ -277,9 +282,9 @@ class RestoUser
             RestoUser::UPDATE_COLLECTION,
             RestoUser::DELETE_CATALOG,
             RestoUser::UPDATE_CATALOG,
-            RestoUser::CREATE_FEATURE,
-            RestoUser::DELETE_FEATURE,
-            RestoUser::UPDATE_FEATURE,
+            RestoUser::CREATE_ITEM,
+            RestoUser::DELETE_ITEM,
+            RestoUser::UPDATE_ITEM,
         );
         if ( !in_array($action, $withParams) ) {
             return $rights[$action] ?? false;
@@ -307,7 +312,7 @@ class RestoUser
         switch ($action) {
 
             // Only owner of collection can do this
-            case RestoUser::CREATE_FEATURE:
+            case RestoUser::CREATE_ITEM:
             case RestoUser::DELETE_COLLECTION:
             case RestoUser::UPDATE_COLLECTION:
                 return $rights[$action] && isset($params['collection']) && $params['collection']->owner === $this->profile['id'];
@@ -318,12 +323,12 @@ class RestoUser
                 return $rights[$action] && isset($params['catalog']) && $params['catalog']['owner'] === $this->profile['id'];
             
             // Only owner of feature can do this
-            case RestoUser::DELETE_FEATURE:
-            case RestoUser::UPDATE_FEATURE:
-                if ( !isset($params['feature']) ) {
+            case RestoUser::DELETE_ITEM:
+            case RestoUser::UPDATE_ITEM:
+                if ( !isset($params['item']) ) {
                     return false;     
                 }
-                $featureArray = $params['feature']->toArray();
+                $featureArray = $params['item']->toArray();
                 return $rights[$action] && isset($featureArray['properties']['owner']) && $featureArray['properties']['owner'] === $this->profile['id'];
                     
             default:
@@ -408,16 +413,37 @@ class RestoUser
     }
 
     /**
-     * Return the list of user groups
+     * Return the list of groups the user belongs too
      *
      * @throws Exception
      */
     public function getGroups()
     {
+        if ( !$this->profile['id'] ) {
+            return array();
+        }
+        
         if ( !isset($this->groups) ) {
             $this->groups = (new GroupsFunctions($this->context->dbDriver))->getGroups(array('userid' => $this->profile['id']));
         }
         return $this->groups;
+    }   
+
+    /**
+     * Return the list of groups own by the user
+     *
+     * @throws Exception
+     */
+    public function getOwnedGroups()
+    {
+        if ( !$this->profile['id'] ) {
+            return array();
+        }
+
+        if ( !isset($this->ownedGroups) ) {
+            $this->ownedGroups = (new GroupsFunctions($this->context->dbDriver))->getGroups(array('owner' => $this->profile['id']));
+        }
+        return $this->ownedGroups;
     }   
 
     /**

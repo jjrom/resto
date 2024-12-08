@@ -388,6 +388,11 @@ class STACAPI
             $body['links'] = array();
         }
 
+        // Owner of catalog can only be set by admin user
+        if ( isset($body['owner']) && !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+            RestoLogUtil::httpError(403, 'You are not allowed to set property "owner"');
+        } 
+
         /*
          * Check that parent catalogs exists
          */
@@ -395,7 +400,7 @@ class STACAPI
         if ( isset($params['segments']) ) {
             for ($i = 0, $ii = count($params['segments']); $i < $ii; $i++) {
                 $parentId = isset($parentId) ? $parentId . '/' . $params['segments'][$i] : $params['segments'][$i];
-                if ($this->catalogsFunctions->getCatalog($parentId) === null) {
+                if ($this->catalogsFunctions->getCatalog($parentId, $this->user) === null) {
                     RestoLogUtil::httpError(400, 'Parent catalog ' . $parentId . ' does not exist.');
                 }
             }
@@ -422,11 +427,11 @@ class STACAPI
             RestoLogUtil::httpError(400, 'A catalog path cannot starts with *collections* as it is a reserved keyword');
         }
 
-        if ($this->catalogsFunctions->getCatalog($body['id']) !== null) {
+        if ($this->catalogsFunctions->getCatalog($body['id'], $this->user) !== null) {
             RestoLogUtil::httpError(409, 'Catalog ' . $body['id'] . ' already exists');
         }
 
-        return RestoLogUtil::success('Catalog added', $this->catalogsFunctions->storeCatalogs(array($body), $this->context, $this->user->profile['id'], null, null, true));
+        return RestoLogUtil::success('Catalog added', $this->catalogsFunctions->storeCatalogs(array($body), $this->context, $this->user, null, null, true));
 
     }
 
@@ -503,7 +508,7 @@ class STACAPI
             'id' => join('/', $params['segments']),
             'noCount' => true,
             'noProperties' => true
-        ), true);
+        ), $this->user, true);
 
         if ( count($catalogs) === 0 ){
             RestoLogUtil::httpError(404);
@@ -518,6 +523,11 @@ class STACAPI
         if ( !$this->user->hasRightsTo(RestoUser::UPDATE_CATALOG, array('catalog' => $catalogs[0])) ) {
             RestoLogUtil::httpError(403);
         }
+
+        // Owner of catalog can only be changed by admin user
+        if ( isset($body['owner']) && !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+            RestoLogUtil::httpError(403, 'You are not allowed to change property "owner"');
+        } 
         
         // Update is not forced so we should check that input links array don't remove existing childs
         // [IMPORTANT] if no links object is in the body then only other properties are updated and existing links are not destroyed
@@ -554,7 +564,7 @@ class STACAPI
         // [TODO] not sure it's needed
         $body['id'] = $catalogs[0]['id'];
         
-        return $this->catalogsFunctions->updateCatalog($body, $this->user->profile['id'], $this->context) ? RestoLogUtil::success('Catalog updated') : RestoLogUtil::error('Cannot update catalog');
+        return $this->catalogsFunctions->updateCatalog($body, $this->user, $this->context) ? RestoLogUtil::success('Catalog updated') : RestoLogUtil::error('Cannot update catalog');
     }
 
     /**
@@ -625,7 +635,7 @@ class STACAPI
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
             'id' => join('/', $params['segments']),
             'noCount' => true
-        ), true);
+        ), $this->user, true);
         
         $count = count($catalogs);
         if ( $count === 0 ){
@@ -1385,7 +1395,7 @@ class STACAPI
                 'id' => join('/', $segments),
                 'q' => $params['q'] ?? null,
                 'noCount' => isset($params['_nocount']) ? filter_var($params['_nocount'], FILTER_VALIDATE_BOOLEAN) : false
-            ), false);
+            ), $this->user, false);
             
             if ( empty($catalogs) ) {
                 RestoLogUtil::httpError(404);
@@ -1554,7 +1564,7 @@ class STACAPI
             'id' => $catalogId,
             'q' => $params['q'] ?? null,
             'noCount' => isset($params['_nocount']) ? filter_var($params['_nocount'], FILTER_VALIDATE_BOOLEAN) : false
-        ), true);
+        ), $this->user, true);
         
         if ( empty($catalogs) ) {
             return null;
@@ -1687,7 +1697,7 @@ class STACAPI
             'level' => 1,
             'q' => $params['q'] ?? null,
             'noCount' => isset($params['_nocount']) ? filter_var($params['_nocount'], FILTER_VALIDATE_BOOLEAN) : false
-        ), false);
+        ), $this->user, false);
         
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
 

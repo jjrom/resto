@@ -20,7 +20,7 @@ class RestoConstants
     // [IMPORTANT] Starting resto 7.x, default routes are defined in RestoRouter class
 
     // resto version
-    const VERSION = '9.1.0';
+    const VERSION = '9.2.0';
 
     /* ============================================================
      *              NEVER EVER TOUCH THESE VALUES
@@ -29,11 +29,14 @@ class RestoConstants
     // PostgreSQL max value for integer
     const INT_MAX_VALUE = 2147483647;
 
+    // admin user identifier
+    const ADMIN_USER_ID = '100';
+
     // Group identifier for administrator group
-    const GROUP_ADMIN_ID = 0;
+    const GROUP_ADMIN_ID = '0';
 
     // Group identifier for default group (every user is in default group)
-    const GROUP_DEFAULT_ID = 100;
+    const GROUP_DEFAULT_ID = '100';
 
     // Separator for hashtags identifiers - should be the same as iTag
     const ITAG_SEPARATOR = ':';
@@ -47,6 +50,6 @@ class RestoConstants
      *              DEFINE GROUPS HERE
      * ============================================================*/
     
-     const GROUP_SNAPPLANET_ADMIN_ID = 11;
+     const GROUP_SNAPPLANET_ADMIN_ID = '11';
 
 }

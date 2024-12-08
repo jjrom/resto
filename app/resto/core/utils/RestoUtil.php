@@ -522,6 +522,56 @@ class RestoUtil
     }
     
     /**
+     * Ensure visibility array is valid
+     * 
+     * @params array $visibility
+     */
+    public static function isValidVisibility($visibility)
+    {
+        if ( !isset($visibility) || !is_array($visibility) ) {
+            return array(
+                'isValid' => false,
+                'errorCode' => 400,
+                'errorMessage' => 'Invalid visibility type - should be an array of bigint string'
+            );
+        }
+
+        for ($i = count($visibility); $i--;) {
+            if ( !ctype_digit($visibility[$i]) ) {
+                return array(
+                    'isValid' => false,
+                    'errorCode' => 400,
+                    'errorMessage' => 'Invalid visibility type - ' . $visibility[$i] . ' is not a bigint string (must be quoted)'
+                );
+            }
+        }
+        return array(
+            'isValid' => true
+        );
+
+    }
+
+    /**
+     * Return vsibility for user
+     * 
+     * @param RestoUser $user
+     * @param string $groupId
+     */
+    public static function getDefaultVisibility($user, $groupId)
+    {
+        if ( $groupId === 'owner' ) {
+            $ownedGroups = $user->getOwnedGroups();
+            for ($i = 0, $ii = count($ownedGroups); $i < $ii; $i++) {
+                if ( $ownedGroups[$i]['private'] === 1 ) {
+                    return array($ownedGroups[$i]['id']);
+                }
+            }
+        }
+        return array(RestoConstants::GROUP_DEFAULT_ID);
+    }
+    
+
+    /**
      * Construct base url from parse_url fragments
      *
      * @param array $exploded

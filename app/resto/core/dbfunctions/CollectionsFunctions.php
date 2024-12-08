@@ -37,10 +37,11 @@ class CollectionsFunctions
      * Get collection
      *
      * @param string $id
+     * @param RestoUser $user
      * @return array
      * @throws Exception
      */
-    public function getCollection($id)
+    public function getCollection($id, $user)
     {
 
         // Eventually convert input alias to the real collection id
@@ -49,12 +50,22 @@ class CollectionsFunctions
             $id = $collectionId;
         }
 
+        $where = array(
+            'id=$1'
+        );
+
+        // Visibility
+        $visibilityFilter = (new FiltersFunctions(null, null, null))->prepareFilterQueryVisibility($this->dbDriver->targetSchema . '.collection', $user);
+        if ( isset($visibilityFilter) ) {
+            $where[] = $visibilityFilter['value'];
+        }
+
         // Query with aliases
         $query = join(' ', array(
             'SELECT id, title, description, version, visibility, owner, model, licenseid, to_iso8601(startdate) as startdate, to_iso8601(completiondate) as completiondate, Box2D(bbox) as box2d, providers, properties, links, assets, array_to_json(keywords) as keywords, STRING_AGG(ca.alias, \', \' ORDER BY ca.alias) AS aliases',
             'FROM ' . $this->dbDriver->targetSchema . '.collection',
             'LEFT JOIN ' . $this->dbDriver->targetSchema . '.collection_alias ca ON id = ca.collection',
-            'WHERE id=$1',
+            'WHERE ' . join(' AND ', $where),
             'GROUP BY id'
         ));
 
@@ -71,19 +82,23 @@ class CollectionsFunctions
     /**
      * Get all collections
      *
+     * @param RestoUser $user
      * @param array $params
      * @return array
      * @throws Exception
      */
-    public function getCollections($params = array())
+    public function getCollections($user, $params = array())
     {
         $collections = array();
-
+        
         // Where clause
         $where = array();
-        if (isset($params['group']) && count($params['group']) > 0) {
-            $where[] = 'visibility IN (' . join(',', $params['group']) . ')';
-        }
+        
+        // Visibility
+        $visibilityClause = RightsFunctions::getVisibilityClause($user);
+        if ( isset($visibilityClause) ) {
+            $where[] = $visibilityClause;
+        } 
         
         // Filter on keywords
         if (isset($params['ck'])) {
@@ -171,11 +186,10 @@ class CollectionsFunctions
      * Save collection to database
      *
      * @param RestoCollection $collection
-     * @param array $rights
      *
      * @throws Exception
      */
-    public function storeCollection($collection, $rights)
+    public function storeCollection($collection)
     {
 
         /*
@@ -216,7 +230,7 @@ class CollectionsFunctions
                     'lineage' => '{' . join(',', $collection->model->getLineage()) . '}',
                     // Be carefull license column is named licenseid in table
                     'licenseid' => $collection->license,
-                    'visibility' => $collection->visibility,
+                    'visibility' => '{' . join(',', $collection->visibility) . '}',
                     'owner' => $collection->owner,
                     'providers' => json_encode($collection->providers, JSON_UNESCAPED_SLASHES),
                     'properties' => json_encode($collection->properties, JSON_UNESCAPED_SLASHES),
@@ -247,7 +261,7 @@ class CollectionsFunctions
                     $collection->model->getName(),
                     '{' . join(',', $collection->model->getLineage()) . '}',
                     $collection->license,
-                    $collection->visibility,
+                    '{' . join(',', $collection->visibility) . '}',
                     json_encode($collection->providers, JSON_UNESCAPED_SLASHES),
                     json_encode($collection->properties, JSON_UNESCAPED_SLASHES),
                     json_encode($collection->links, JSON_UNESCAPED_SLASHES),
@@ -463,7 +477,7 @@ class CollectionsFunctions
             'aliases' => isset($rawCollection['aliases']) ? json_decode($rawCollection['aliases'], true) : array(),
             'version' => $rawCollection['version'] ?? null,
             'model' => $rawCollection['model'],
-            'visibility' => (integer) $rawCollection['visibility'],
+            'visibility' => json_decode($rawCollection['visibility'], true),
             'owner' => $rawCollection['owner'],
             'providers' => json_decode($rawCollection['providers'], true),
             'assets' => json_decode($rawCollection['assets'], true),

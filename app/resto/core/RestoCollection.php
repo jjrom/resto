@@ -56,7 +56,7 @@
  *      ),
  *      @OA\Property(
  *          property="visibility",
- *          description="Visibility of this collection. Collections with visibility 1 are visible to all users."
+ *          description="Visibility for this collection as a group list. Only user from one of the group can see the collection."
  *      ),
  *      @OA\Property(
  *          property="model",
@@ -67,22 +67,6 @@
  *          property="license",
  *          type="string",
  *          description="License for this collection as a SPDX License identifier. Alternatively, use proprietary if the license is not on the SPDX license list or various if multiple licenses apply. In these two cases links to the license texts SHOULD be added, see the license link relation type."
- *      ),
- *      @OA\Property(
- *          property="rights",
- *          type="object",
- *          description="Default collection rights settings",
- *          @OA\Property(
- *              property="download",
- *              type="integer",
- *              enum={0,1},
- *              description="Feature download rights (1 can be downloaded; 0 cannot be downloaded)"
- *          ),
- *          @OA\Property(
- *              property="visualize",
- *              type="integer",
- *              description="Features visualization rights (1 can be visualized; 0 cannot be visualized)"
- *          )
  *      ),
  *      @OA\Property(
  *          property="links",
@@ -125,11 +109,7 @@
  *          "description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites",
  *          "version": "1.0",
  *          "model": "OpticalModel",
- *          "rights": {
- *              "download": 1,
- *              "visualize": 1
- *          },
- *          "visibility": 1,
+ *          "visibility": {"100"},
  *          "license": "proprietary",
  *          "providers": {
  *              {
@@ -564,12 +544,10 @@ class RestoCollection
      * [STAC] Collection root attributes
      */
     public $aliases = array();
-    public $visibility = RestoConstants::GROUP_DEFAULT_ID;
     public $version = '1.0.0';
     public $license = 'other';
     public $links = array();
     public $providers = array();
-    public $rights = array();
     public $assets = array();
     public $keywords = array();
     public $extent = array(
@@ -589,6 +567,11 @@ class RestoCollection
      * Collection owner
      */
     public $owner;
+
+    /*
+     * Visibility for collection
+     */
+    public $visibility;
 
     /**
      * Summaries
@@ -651,7 +634,6 @@ class RestoCollection
         'links',
         'model',
         'providers',
-        'rights',
         'stac_extension',
         'stac_version',
         'title',
@@ -677,6 +659,7 @@ class RestoCollection
         $this->id = $id;
         $this->context = $context;
         $this->user = $user;
+        $this->visibility = RestoUtil::getDefaultVisibility($this->user, $this->context->core['defaultCollectionVisibility']);
     }
 
     /**
@@ -696,7 +679,7 @@ class RestoCollection
         
         if ( !$this->isLoaded ) {
             $this->isLoaded = true;
-            $collectionObject = (new CollectionsFunctions($this->context->dbDriver))->getCollection($this->id);
+            $collectionObject = (new CollectionsFunctions($this->context->dbDriver))->getCollection($this->id, $this->user);
             if (! isset($collectionObject)) {
                 RestoLogUtil::httpError(404);
             }
@@ -720,7 +703,7 @@ class RestoCollection
      */
     public function store()
     {
-        (new CollectionsFunctions($this->context->dbDriver))->storeCollection($this, $this->rights);
+        (new CollectionsFunctions($this->context->dbDriver))->storeCollection($this);
     }
 
     /**
@@ -936,14 +919,19 @@ class RestoCollection
         
         /*
          * Default collection visibility is the value of RestoConstants::GROUP_DEFAULT_ID
-         * [TODO] Allow to change visibility in collection
          */
-        //$this->visibility = isset($object['visibility']) ? $object['visibility'] : RestoConstants::GROUP_DEFAULT_ID;
+        if ( isset($object['visibility']) ) {
+            $result = RestoUtil::isValidVisibility($object['visibility']);
+            if ( !$result['isValid'] ) {
+                RestoLogUtil::httpError($result['errorCode'], $result['errorMessage'] );
+            }
+            $this->visibility = $object['visibility'];
+        }
         
         /*
          * Set values
          */
-        foreach (array_values(array('title', 'description', 'aliases', 'version', 'license', 'links', 'providers', 'rights', 'assets', 'keywords', 'extent')) as $key) {
+        foreach (array_values(array('title', 'description', 'aliases', 'version', 'license', 'links', 'providers', 'assets', 'keywords', 'extent')) as $key) {
             if (isset($object[$key])) {
                 $this->$key = $key === 'links' ? $this->cleanInputLinks($object['links']) : $object[$key];
             }

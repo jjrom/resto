@@ -24,6 +24,35 @@ class RightsFunctions
     private $dbDriver = null;
 
     /**
+     * Return visibility WHERE clause
+     * 
+     * @param RestoUser $user
+     * @return string
+     */
+    public static function getVisibilityClause($user)
+    {
+
+        // Non authenticated user can only see DEFAULT
+        if ( !isset($user) || !isset($user->profile['id']) ) {
+            return 'visibility && ARRAY[' . RestoConstants::GROUP_DEFAULT_ID . '::BIGINT]';
+        }
+
+        // Admin can see everything
+        if ( $user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+            return null;
+        }
+
+        $groups = $user->getGroupIds();
+        if ( isset($groups) && count($groups) > 0 ) {
+            return '(owner = ' . $user->profile['id'] . ' OR visibility && ARRAY[' . (count($groups) === 1 ? $groups[0] : join('::BIGINT,', $groups) ). '.::BIGINT])';
+        }
+
+        // This is not possible since every user is at leat in DEFAULT group but who knows !
+        return 'owner = ' . $user->profile['id'];
+        
+    }
+
+    /**
      * Constructor
      *
      * @param RestoDatabaseDriver $dbDriver
@@ -153,23 +182,28 @@ class RightsFunctions
         // Default rights allows only to delete/update things
         // that belongs to user
         $merged = array(
-            'createCollection' => false,
-            'deleteCollection' => true,
-            'updateCollection' => true,
-            'deleteAnyCollection' => false,
-            'updateAnyCollection' => false,
-            'createCatalog' => true,
-            'deleteCatalog' => true,
-            'updateCatalog' => true,
-            'deleteAnyCatalog' => false,
-            'updateAnyCatalog' => false,
-            'createFeature' => true,
-            'updateFeature' => true,
-            'deleteFeature' => true,
-            'createAnyFeature' => false,
-            'deleteAnyFeature' => false,
-            'updateAnyFeature' => false,
-            'downloadFeature' => false
+            RestoUser::CREATE_COLLECTION => false,
+            RestoUser::DELETE_COLLECTION => true,
+            RestoUser::UPDATE_COLLECTION => true,
+
+            RestoUser::DELETE_ANY_COLLECTION => false,
+            RestoUser::UPDATE_ANY_COLLECTION => false,
+
+            RestoUser::CREATE_CATALOG => true,
+            RestoUser::DELETE_CATALOG => true,
+            RestoUser::UPDATE_CATALOG => true,
+
+            RestoUser::DELETE_ANY_CATALOG => false,
+            RestoUser::UPDATE_ANY_CATALOG => false,
+
+            RestoUser::CREATE_ITEM => true,
+            RestoUser::DELETE_ITEM => true,
+            RestoUser::UPDATE_ITEM => true,
+            
+            RestoUser::CREATE_ANY_ITEM => false,
+            RestoUser::DELETE_ANY_ITEM => false,
+            RestoUser::UPDATE_ANY_ITEM => false,
+            RestoUser::DOWNLOAD_ITEM => false
         );
 
         // [IMPORTANT] Assume only boolean otherwise it will be converted to anyway

@@ -266,6 +266,21 @@ class FeaturesFunctions
      */
     public function featureExists($featureId, $featureTableName, $collectionId = null)
     {
+        return !empty($this->getMinimalFeature($featureId, $featureTableName, $collectionId));
+    }
+
+    /**
+     * Check if feature identified by $featureId exists
+     * If collectionId is set then returns true only if feature exists and within the collection
+     *
+     * @param string $featureId - feature UUID
+     * @param string $featureTableName
+     * @param string 
+     * @return array
+     * @throws Exception
+     */
+    public function getMinimalFeature($featureId, $featureTableName, $collectionId = null)
+    {
 
         $params = array(
             $featureId
@@ -279,7 +294,7 @@ class FeaturesFunctions
             $where[] = 'collection=$2';
         }
 
-        return !empty($this->dbDriver->fetch($this->dbDriver->pQuery('SELECT 1 FROM ' . $featureTableName . ' WHERE ' . join(' AND ', $where), $params)));
+        return $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id,title FROM ' . $featureTableName . ' WHERE ' . join(' AND ', $where), $params));
     }
 
     /**
@@ -293,13 +308,16 @@ class FeaturesFunctions
      */
     public function storeFeature($id, $collection, $featureArray)
     {
+        
+        // Default visibility
+        $visibility = RestoUtil::getDefaultVisibility($collection->user, $collection->context->core['defaultItemVisibility']);
         $keysAndValues = $this->featureArrayToKeysValues(
             $collection,
             $featureArray,
             array(
                 'id' => $id,
                 'collection' => $collection->id,
-                'visibility' => RestoConstants::GROUP_DEFAULT_ID,
+                'visibility' => '{' . join(',', $visibility) . '}',
                 'owner' => isset($collection) && isset($collection->user) ? $collection->user->profile['id'] : null,
                 'status' => isset($featureArray['properties']) && isset($featureArray['properties']['status']) && is_int($featureArray['properties']['status']) ? $featureArray['properties']['status'] : 1,
                 'likes' => 0,
@@ -351,7 +369,7 @@ class FeaturesFunctions
             /*
              * Store feature - identifier is generated with public.timestamp_to_id()
              */
-            $result = pg_fetch_assoc($this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.feature (' . join(',', array_keys($keysAndValues['keysAndValues'])) . ') VALUES (' . join(',', array_values($keysAndValues['params'])) . ') RETURNING id, productidentifier', array_values($keysAndValues['keysAndValues'])), 0);
+            $result = pg_fetch_assoc($this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.feature (' . join(',', array_keys($keysAndValues['keysAndValues'])) . ') VALUES (' . join(',', array_values($keysAndValues['params'])) . ') RETURNING id, productidentifier, title', array_values($keysAndValues['keysAndValues'])), 0);
             
             /*
              * Store feature content
@@ -360,8 +378,9 @@ class FeaturesFunctions
 
             /*
              * Store catalogs
+             * [IMPORTANT] These are inner catalogs thus created using admin not user that post item !!!
              */
-            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->context, $collection->user->profile['id'], $collection, $result['id'], false);
+            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->context, $collection->user, $collection, array('id' => $result['id'], 'title' => $result['title'] ?? null), false, true);
         
             /*
              * Commit everything - rollback if one of the inserts failed
@@ -520,7 +539,7 @@ class FeaturesFunctions
                     $feature->id
                 )
             );
-            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->context, $collection->user->profile['id'], $collection, $feature->id, false);
+            (new CatalogsFunctions($this->dbDriver))->storeCatalogs($keysAndValues['catalogs'], $collection->context, $collection->user, $collection, $feature->toArray(), false, true);
         
             /*
              * Commit
@@ -541,46 +560,55 @@ class FeaturesFunctions
      * Update feature property
      *
      * @param RestoFeature $feature
-     * @param any $status
+     * @param array $properties
+     * @param RestoContext $context
+     * @param RestoUser $user
      * @throws Exception
      */
-    public function updateFeatureProperty($feature, $property, $value)
+    public function updateFeatureProperties($feature, $properties, $context, $user)
     {
-        // Special case for description
-        if ($property === 'description') {
-            return $this->updateFeatureDescription($feature, $value);
-        }
-
-        // Check property type validity
-        if (in_array($property, array('visibility', 'owner', 'status'))) {
-            if (! ctype_digit($value . '')) {
-                RestoLogUtil::httpError(400, 'Invalid ' . $property . ' type - should be numeric');
-            }
-        }
 
         try {
-            $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.feature SET ' . $property . '=$1 WHERE id=$2', array(
-                $value,
-                $feature->id
-            ));
+
+            foreach ($properties as $property => $value) {
+
+                // Special case for description
+                if ($property === 'description') {
+                    $newCatalogs = (new Cataloger(null, null))->catalogsFromText($value);
+                    $oldCatalogs = (new Cataloger(null, null))->catalogsFromText($feature->toArray()['properties']['description'] ?? null);
+                    // Remove old catalogs and add new ones
+                    for ($i = 0, $ii = count($oldCatalogs); $i < $ii; $i++) {
+                        if ($oldCatalogs[$i]['id'] !== 'hashtags') {
+                            (new CatalogsFunctions($this->dbDriver))->removeCatalogFeature($feature->id, $oldCatalogs[$i]['id']);
+                        }
+                    }
+                    (new CatalogsFunctions($this->dbDriver))->storeCatalogs($newCatalogs, $context, $user, $feature->collection, $feature->toArray(), false, true);
+                }
+
+                // Check property type validity
+                if (in_array($property, array('owner', 'status'))) {
+                    if (! ctype_digit($value . '')) {
+                        RestoLogUtil::httpError(400, 'Invalid ' . $property . ' type - should be numeric');
+                    }
+                }
+
+                // Visibility
+                if ($property === 'visibility') {
+                    $value = QueryUtil::visibilityToSQL($value);
+                }
+
+                $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.feature SET ' . $property . '=$1 WHERE id=$2', array(
+                    $value,
+                    $feature->id
+                ));
+                
+            }
+
         } catch (Exception $e) {
-            RestoLogUtil::httpError(500, 'Cannot update ' . $property . ' for feature ' . $feature->id);
+            RestoLogUtil::httpError($e->getCode() ?? 500, $e->getMessage() ?? 'Cannot update ' . $property . ' for feature ' . $feature->id);
         }
-        
-        return RestoLogUtil::success('Property ' . $property . ' updated for feature ' . $feature->id);
-    }
 
-    /**
-     * Update feature description
-     *
-     * @param RestoFeature $feature
-     * @param string $description
-     * @throws Exception
-     */
-    public function updateFeatureDescription($feature, $description)
-    {
-
-        RestoLogUtil::httpError(400, 'TODO - update feature description not yet implemented');
+        return RestoLogUtil::success('Properties ' . join(',', array_keys($properties)) . ' updated for feature ' . $feature->id);
         
     }
 

@@ -35,16 +35,24 @@ To launch a default pre-configured resto instance, just type :
 
 This will build locally the jjrom/resto image and launch a resto container exposing the resto API service at **http://localhost:5252**
 
+To launch a default develop resto instance (i.e. with RESTO_DEBUG set to true and all database logs), just type :
+
+    ./deploy -e config-dev.env
+
+To launch a default develop resto instance using a connection pooling, just type :
+
+    ./deploy -e config-dev-pgbouncer.env
+
 ### [IMPORTANT] Docker on Mac M1
 If you're using docker on Mac with apple Silicon M1 chip, be sure to **turn off "Use Rosetta for x86/amd64 emulation on Apple Silicon"** in Docker Desktop > Settings > General.
 
 When this option is turned on, every calls to PHP preg_match function (which is used by resto) leads to a segmentation fault within php fpm and an HTTP 502 Bad Gateway error in nginx. Why ? I just don't know !
 
 ## Users, groups and rights
-See [./USERS.md](./docs/USERS.md)
+See [USERS_AND_RIGHTS.md](./docs/USERS_AND_RIGHTS.md)
 
 ## Collection and catalogs
-See [.COLLECTIONS_AND_CATALOGS.md](./docs/COLLECTIONS_AND_CATALOGS.md)
+See [COLLECTIONS_CATALOGS_ITEMS.md](./docs/COLLECTIONS_CATALOGS_ITEMS.md)
 
 # References
 

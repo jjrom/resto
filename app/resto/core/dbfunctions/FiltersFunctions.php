@@ -82,7 +82,7 @@ class FiltersFunctions
         /**
          * Append filter for contextual search
          */
-        $filterCS = $this->prepareFilterQueryContextualSearch($this->context->dbDriver->targetSchema . '.feature');
+        $filterCS = $this->prepareFilterQueryVisibility($this->context->dbDriver->targetSchema . '.feature', $this->user);
         if (isset($filterCS) && $filterCS !== '') {
             $filters[] = $filterCS;
         }
@@ -248,19 +248,25 @@ class FiltersFunctions
      * the groups list from user profile
      *
      * @param string $tableName
+     * @param RestoUser $user
      * @return string
      */
-    private function prepareFilterQueryContextualSearch($tableName)
+    public function prepareFilterQueryVisibility($tableName, $user)
     {
+        
         /*
          * Admin user has no restriction on search
          */
-        if ($this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
+        if ($user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
             return null;
         }
 
+        $groups = $user->getGroupIds();
+        if ( !isset($groups) || count($groups) === 0 ) {
+            $groups = [RestoConstants::GROUP_DEFAULT_ID];
+        } 
         return array(
-            'value' =>  $tableName . '.visibility IN (' . join(',', $this->user->getGroupIds()) . ')',
+            'value' =>  $tableName . '.visibility && ARRAY[' . (count($groups) === 1 ? $groups[0] : join('::BIGINT,', $groups) ). '.::BIGINT]',
             'isGeo' => false
         );
     }

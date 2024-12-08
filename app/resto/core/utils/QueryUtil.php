@@ -56,6 +56,20 @@ class QueryUtil
     }
 
     /**
+     * Convert array of bigint to visibility SQL
+     * 
+     * @param array $arr
+     */
+    public static function visibilityToSQL($arr)
+    {
+        $result = RestoUtil::isValidVisibility($arr);
+        if ( !$result['isValid'] ) {
+            throw new Exception($result['errorMessage'], $result['errorCode']);
+        }   
+        return '{' . join(',', $arr) . '}';
+    }
+
+    /**
      * Process simple interval
      *
      * @param PgSql\Connection $dbh

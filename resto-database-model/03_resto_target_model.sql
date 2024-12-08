@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.collection (
     licenseid           TEXT,
 
     -- Visibility - group visibility (only user within this group can see collection)
-    visibility          INTEGER,
+    visibility          BIGINT[],
 
     -- Owner of the collection. References __DATABASE_COMMON_SCHEMA__.user.id
     owner               BIGINT,
@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.feature (
     completiondate      TIMESTAMP,
 
     -- [INDEXED] Visibility - only user within a group with the same name as visibility can see feature
-    visibility          INTEGER,
+    visibility          BIGINT[],
 
     -- [INDEXED] Owner of the feature. Reference __DATABASE_COMMON_SCHEMA__.user.id
     owner               BIGINT,
@@ -356,7 +356,7 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog (
     links               JSON,
 
     -- Visibility - group visibility (only user within this group can see collection)
-    visibility          INTEGER,
+    visibility          BIGINT[],
 
     -- resto type 
     rtype               TEXT,
@@ -377,6 +377,9 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog_feature (
     -- Leaf catalog path with . instead of / as delimiter
     path                    LTREE,
 
+    -- This is a duplicate from feature title to avoid JOIN
+    title                   TEXT,
+
     -- This is a duplicate from catalog id without constraint to avoid JOIN
     catalogid               TEXT,
 
@@ -391,13 +394,14 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog_feature (
 
 -- [TABLE __DATABASE_TARGET_SCHEMA__.collection]
 CREATE INDEX IF NOT EXISTS idx_lineage_collection ON __DATABASE_TARGET_SCHEMA__.collection USING GIN (lineage);
-CREATE INDEX IF NOT EXISTS idx_visibility_collection ON __DATABASE_TARGET_SCHEMA__.collection (visibility);
+CREATE INDEX IF NOT EXISTS idx_visibility_collection ON  __DATABASE_TARGET_SCHEMA__.collection USING GIN (visibility);
 CREATE INDEX IF NOT EXISTS idx_created_collection ON __DATABASE_TARGET_SCHEMA__.collection (created);
 CREATE INDEX IF NOT EXISTS idx_keywords_collection ON __DATABASE_TARGET_SCHEMA__.collection USING GIN (keywords);
 
 -- [TABLE __DATABASE_TARGET_SCHEMA__.catalog]
 CREATE INDEX IF NOT EXISTS idx_description_catalog ON __DATABASE_TARGET_SCHEMA__.catalog USING GIN (public.normalize(description) gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_level_catalog ON __DATABASE_TARGET_SCHEMA__.catalog USING btree (level);
+CREATE INDEX IF NOT EXISTS idx_visibility_catalog ON  __DATABASE_TARGET_SCHEMA__.catalog USING GIN (visibility);
 
 -- [TABLE __DATABASE_TARGET_SCHEMA__.catalog_feature]
 CREATE INDEX IF NOT EXISTS idx_path_catalog_feature ON __DATABASE_TARGET_SCHEMA__.catalog_feature USING GIST (path);
@@ -407,7 +411,7 @@ CREATE INDEX IF NOT EXISTS idx_collection_feature ON __DATABASE_TARGET_SCHEMA__.
 CREATE INDEX IF NOT EXISTS idx_startdateidx_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (startdate_idx);
 CREATE INDEX IF NOT EXISTS idx_createdidx_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (created_idx);
 CREATE INDEX IF NOT EXISTS idx_owner_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (owner) WHERE owner IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_visibility_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (visibility);
+CREATE INDEX IF NOT EXISTS idx_visibility_feature ON __DATABASE_TARGET_SCHEMA__.feature USING GIN (visibility);
 CREATE INDEX IF NOT EXISTS idx_status_feature ON __DATABASE_TARGET_SCHEMA__.feature USING btree (status);
 CREATE INDEX IF NOT EXISTS idx_centroid_feature ON __DATABASE_TARGET_SCHEMA__.feature USING GIST (centroid);
 CREATE INDEX IF NOT EXISTS idx_geom_feature ON __DATABASE_TARGET_SCHEMA__.feature USING GIST (geom);
