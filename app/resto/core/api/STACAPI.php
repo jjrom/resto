@@ -564,7 +564,7 @@ class STACAPI
         // [TODO] not sure it's needed
         $body['id'] = $catalogs[0]['id'];
         
-        return $this->catalogsFunctions->updateCatalog($body, $this->user, $this->context) ? RestoLogUtil::success('Catalog updated') : RestoLogUtil::error('Cannot update catalog');
+        return $this->catalogsFunctions->updateCatalog($body, $this->user, $this->context) ? RestoLogUtil::success('Catalog updated') : RestoLogUtil::httpError(500, 'Cannot update catalog');
     }
 
     /**
@@ -1456,9 +1456,10 @@ class STACAPI
 
         $nbOfSegments = count($segments);
         
-        if ($segments[0] === 'views' && isset($this->context->addons['View'])) {
+        $viewClassName = 'View';
+        if ($segments[0] === 'views' && isset($this->context->addons[$viewClassName])) {
 
-            $view = new View($this->context, $this->user);
+            $view = new $viewClassName($this->context, $this->user);
             
             // Root
             if ($nbOfSegments === 1) {
@@ -1480,7 +1481,9 @@ class STACAPI
 
         // SOSA special case
         else if ($segments[0] === 'concepts' && isset($this->context->addons['SOSA'])) {
-            $skos = new SKOS($this->context, $this->user);
+
+            $skosClassName = 'SKOS';
+            $skos = new $skosClassName($this->context, $this->user);
             
             // Root
             if ($nbOfSegments === 1) {
@@ -1681,12 +1684,15 @@ class STACAPI
     {
         $links = array();
 
+        $viewClassName = 'View';
+
         /*
          * Exposed views as STAC catalogs
          * Only displayed if at least one theme exists
          */
-        if (isset($this->context->addons['View'])) {
-            $stacLink = (new View($this->context, $this->user))->getSTACRootLink();
+        if (isset($this->context->addons[$viewClassName])) {
+            
+            $stacLink = (new $viewClassName($this->context, $this->user))->getSTACRootLink();
             if (isset($stacLink) && $stacLink['matched'] > 0) {
                 $links[] = $stacLink;
             }

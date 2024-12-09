@@ -363,7 +363,8 @@ class RestoUser
         if (! isset($this->context->addons['Cart'])) {
             RestoLogUtil::httpError(404, 'Cart add-on not installed');
         }
-        return (new CartFunctions($this->context->dbDriver))->getOrders($this->profile['id']);
+        $cartFunctionsClassName = 'CartFunctions';
+        return (new $cartFunctionsClassName($this->context->dbDriver))->getOrders($this->profile['id']);
     }
 
     /**
@@ -394,7 +395,8 @@ class RestoUser
         if (! isset($this->context->addons['Social'])) {
             RestoLogUtil::httpError(404, 'Social add-on not installed');
         }
-        return (new SocialFunctions($this->context->dbDriver))->getFollowers(array(
+        $socialFunctionsClassName = 'SocialFunctions';
+        return (new $socialFunctionsClassName($this->context->dbDriver))->getFollowers(array(
             'id' => $this->profile['id']
         ));
     }
@@ -407,7 +409,8 @@ class RestoUser
         if (! isset($this->context->addons['Social'])) {
             RestoLogUtil::httpError(404, 'Social add-on not installed');
         }
-        return (new SocialFunctions($this->context->dbDriver))->getFollowings(array(
+        $socialFunctionsClassName = 'SocialFunctions';
+        return (new $socialFunctionsClassName($this->context->dbDriver))->getFollowings(array(
             'id' => $this->profile['id']
         ));
     }

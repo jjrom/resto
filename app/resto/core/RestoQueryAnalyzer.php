@@ -45,8 +45,9 @@ class RestoQueryAnalyzer
     {
         $this->context = $context;
         $this->user = $user;
-        if (isset($this->context->addons['Gazetteer'])) {
-            $this->gazetteer = new Gazetteer($this->context, $this->user);
+        $gazetteerClassName = 'Gazetteer';
+        if (isset($this->context->addons[$gazetteerClassName])) {
+            $this->gazetteer = new $gazetteerClassName($this->context, $this->user);
         }
     }
 
@@ -172,6 +173,9 @@ class RestoQueryAnalyzer
      */
     private function appendSkos($searchTerms)
     {
+
+        $skosClassName = 'SKOS';
+
         for ($i = 0, $ii = count($searchTerms); $i < $ii; $i++) {
             /*
              * If resto-addon-sosa add-on exists, check for searchTerm last character:
@@ -183,12 +187,12 @@ class RestoQueryAnalyzer
             if (in_array($lastCharacter, array('!', '*', '~')) && class_exists('SKOS')) {
                 $searchTerms[$i] = substr($searchTerms[$i], 0, -1);
                 $relations = array(
-                    '!' => SKOS::$SKOS_BROADER,
-                    '*' => SKOS::$SKOS_NARROWER,
-                    '~' => SKOS::$SKOS_RELATED
+                    '!' => $skosClassName::$SKOS_BROADER,
+                    '*' => $skosClassName::$SKOS_NARROWER,
+                    '~' => $skosClassName::$SKOS_RELATED
                 );
                 // Don't forget to trim # prefix
-                $relations = (new SKOS($this->context, $this->user))->retrieveRecursiveRelations(substr($searchTerms[$i], 1), $relations[$lastCharacter]);
+                $relations = (new $skosClassName($this->context, $this->user))->retrieveRecursiveRelations(substr($searchTerms[$i], 1), $relations[$lastCharacter]);
                 if (count($relations) > 0) {
                     $searchTerms[$i] = $searchTerms[$i] . '|' . join('|', $relations);
                 }
