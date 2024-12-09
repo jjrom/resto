@@ -57,9 +57,9 @@ class RestoContext
         'defaultModel' => 'DefaultModel',
 
         // Default visibility applied to collection, catalog and item created by non admin user
-        'defaultCollectionVisibility' => 'all',
-        'defaultCatalogVisibility' => 'all',
-        'defaultItemVisibility' => 'all',
+        'defaultCollectionVisibility' => 'public',
+        'defaultCatalogVisibility' => 'public',
+        'defaultItemVisibility' => 'public',
 
         // Use cache
         'useCache' => false,
