@@ -307,7 +307,7 @@ class UsersAPI
      *         description="User information to create user account",
      *         required=true,
      *         @OA\JsonContent(
-     *              required={"email", "password"},
+     *              required={"name", "email", "password"},
      *              @OA\Property(
      *                  property="email",
      *                  type="string",
@@ -326,7 +326,7 @@ class UsersAPI
      *              @OA\Property(
      *                  property="name",
      *                  type="string",
-     *                  description="User display name"
+     *                  description="User name - must be alphanumerical only between 3 and 255 characters. (Note: will be converted to lowercase)"
      *              ),
      *              @OA\Property(
      *                  property="firstname",
@@ -384,16 +384,21 @@ class UsersAPI
      */
     public function createUser($params, $body)
     {
-        foreach (array('email', 'password') as $required) {
+        foreach (array('email', 'password', 'name') as $required) {
             if (!isset($body[$required])) {
                 RestoLogUtil::httpError(400, $required . ' is not set');
             }
+        }
+
+        // Enforce alphanumerical name between 3 and 255 characters
+        if ( !ctype_alnum($body['name']) || strlen($body['name']) < 3 || strlen($body['name']) > 254 ) {
+            RestoLogUtil::httpError(400, 'Propety name must be an alphanumerical string between 3 and 255 characters');
         }
         
         $profile = array(
             'email' => $body['email'],
             'password' => $body['password'] ?? null,
-            'name'=> $body['name'] ?? trim(join(' ', array(ucfirst($body['firstname'] ?? ''), ucfirst($body['lastname'] ?? '')))),
+            'name'=> strtolower($body['name']),
             'firstname' => $body['firstname'] ?? null,
             'lastname' => $body['lastname'] ?? null,
             // [TODO] Check lang from request
@@ -470,11 +475,6 @@ class UsersAPI
      *                  description="An http(s) url to the user's avatar picture"
      *              ),
      *              @OA\Property(
-     *                  property="name",
-     *                  type="string",
-     *                  description="User display name"
-     *              ),
-     *              @OA\Property(
      *                  property="firstname",
      *                  type="string",
      *                  description="User firstname"
@@ -512,6 +512,11 @@ class UsersAPI
     public function updateUserProfile($params, $body)
     {
         RestoUtil::checkUser($this->user, $params['userid']);
+
+        // name cannot be updated
+        if ( isset($body['name']) ) {
+            RestoLogUtil::httpError(400, 'Propety name cannot be updated');
+        }
 
         /*
          * For normal user (i.e. non admin), some properties cannot be modified after validation

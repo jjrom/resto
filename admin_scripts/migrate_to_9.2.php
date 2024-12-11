@@ -33,18 +33,13 @@
         }
 
         // Set Title to feature
-        $dbDriver->query('ALTER TABLE resto.catalog_feature ADD COLUMN IF NOT EXISTS title TEXT');
+        $dbDriver->query('ALTER TABLE ' . $dbDriver->targetSchema . '.catalog_feature ADD COLUMN IF NOT EXISTS title TEXT');
         $dbDriver->query('WITH tmp AS (SELECT id, title FROM ' . $dbDriver->targetSchema . '.feature) UPDATE ' . $dbDriver->targetSchema . '.catalog_feature SET title = tmp.title FROM tmp WHERE featureid = tmp.id');
         
         // Group table update
-        $dbDriver->query('ALTER TABLE ' . $dbDriver->targetSchema . '.group ADD UNIQUE (name)');
-        $dbDriver->query('ALTER TABLE ' . $dbDriver->targetSchema . '.group ADD COLUMN IF NOT EXISTS private INTEGER DEFAULT 0');
+        $dbDriver->query('ALTER TABLE ' . $dbDriver->commonSchema . '.group ADD UNIQUE (name)');
+        $dbDriver->query('ALTER TABLE ' . $dbDriver->commonSchema . '.group ADD COLUMN IF NOT EXISTS private INTEGER DEFAULT 0');
         
-        /* User name is now UNIQUE
-        $dbDriver->query('WITH tmp AS (SELECT name as n FROM ' . $dbDriver->targetSchema . '.user GROUP BY name HAVING count(name) > 1) UPDATE ' . $dbDriver->targetSchema . '.user SET name = tmp.n || (floor(random() * 1000 + 1)::int)::TEXT FROM tmp WHERE name = tmp.n');
-        $dbDriver->query('UPDATE ' . $dbDriver->targetSchema . '.user SET name = \'anonymous\' || (floor(random() * 1000 + 1)::int)::TEXT WHERE name IS NULL');
-        $dbDriver->query('ALTER TABLE resto.user ADD COLUMN name UNIQUE');
-        */
         $dbDriver->query('COMMIT');
 
     } catch(Exception $e){

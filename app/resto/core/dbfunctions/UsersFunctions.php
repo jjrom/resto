@@ -278,7 +278,7 @@ class UsersFunctions
      *          0 => user exists but not activated
      *          1 => user exists and is activated
      *
-     * @param array $params - email or id
+     * @param array $params
      *
      * @return boolean
      * @throws Exception
@@ -312,17 +312,17 @@ class UsersFunctions
      */
     public function storeUserProfile($profile, $storageInfo)
     {
-        if (!is_array($profile) || !isset($profile['email'])) {
-            RestoLogUtil::httpError(400, 'Cannot save user profile - invalid user identifier');
+        if (!is_array($profile) || !isset($profile['email']) || !isset($profile['name'])) {
+            RestoLogUtil::httpError(400, 'Cannot save user profile - missing mandatories email and/or name');
         }
 
         $activatedStatus = $this->userActivatedStatus(array('email' => $profile['email']));
         if ($activatedStatus === 1) {
-            RestoLogUtil::httpError(409, 'Cannot save user profile - user already exist');
+            RestoLogUtil::httpError(409, 'Cannot save user profile - email already exist');
         }
 
         if ($activatedStatus === 0) {
-            RestoLogUtil::httpError(412, 'Cannot save user profile - user already exist but is not activated');
+            RestoLogUtil::httpError(412, 'Cannot save user profile - email already exist but the account is not yet activated');
         }
 
         /*
@@ -339,7 +339,8 @@ class UsersFunctions
          * Store everything
          */
         $toBeSet = array(
-            'email' => '\'' . $this->dbDriver->escape_string( $email) . '\'',
+            'name' => $this->dbDriver->escape_string($profile['name']),
+            'email' => '\'' . $this->dbDriver->escape_string($email) . '\'',
             'password' => '\'' . (isset($profile['password']) ? password_hash($profile['password'], PASSWORD_BCRYPT) : str_repeat('*', 60)) . '\'',
             'topics' => isset($profile['topics']) ? '\'{' . $this->dbDriver->escape_string( $profile['topics']) . '}\'' : 'NULL',
             'picture' => '\'' . $this->dbDriver->escape_string( $picture) . '\'',
@@ -360,6 +361,10 @@ class UsersFunctions
         try {
             
             $this->dbDriver->query('BEGIN');
+
+            if ( $this->userExists($profile['name']) ) {
+                throw new Exception('User name ' . $profile['name'] . ' already exists', 409);
+            }
 
             // First create the user
             $results =  $this->dbDriver->fetch($this->dbDriver->query('INSERT INTO ' . $this->dbDriver->commonSchema . '.user (' . join(',', array_keys($toBeSet)) . ') VALUES (' . join(',', array_values($toBeSet)) . ') RETURNING *'));
@@ -432,12 +437,13 @@ class UsersFunctions
          * The following parameters cannot be updated :
          *   - id
          *   - email
+         *   - name
          *   - resettoken
          *   - resetexpire
          *   - registrationdate
          */
         $values = array();
-        foreach (array_values(array('password', 'activated', 'bio', 'name', 'firstname', 'lastname', 'country', 'organization', 'topics', 'organizationcountry', 'flags', 'lang', 'settings', 'picture', 'externalidp')) as $field) {
+        foreach (array_values(array('password', 'activated', 'bio', 'firstname', 'lastname', 'country', 'organization', 'topics', 'organizationcountry', 'flags', 'lang', 'settings', 'picture', 'externalidp')) as $field) {
             if (isset($profile[$field])) {
                 switch ($field) {
                     case 'password':
@@ -578,6 +584,19 @@ class UsersFunctions
         );
 
         return count($this->dbDriver->fetch($this->dbDriver->query('UPDATE ' . $this->dbDriver->commonSchema . '.user SET ' . join(',', $toBeSet) . ' WHERE id=' . $this->dbDriver->escape_string( $userid) . ' RETURNING id'))) === 1 ? true : false;
+    }
+
+    /**
+     * Check if user exists from name
+     *
+     * @param string $name
+     * @return boolean
+     * @throws Exception
+     */
+    public function userExists($name)
+    {
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT name FROM ' . $this->dbDriver->targetSchema . '.user WHERE name=$1', array(strtolower($name))));
+        return !empty($results);
     }
 
     /**

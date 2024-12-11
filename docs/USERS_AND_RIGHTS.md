@@ -17,8 +17,8 @@ The above command should returns an HTTP 200 response including the newly create
                 "message":"User johndoe@localhost created and activated",
                 "profile":{
                         "id":"227212962406176319",
+                        "name":"johndoe",
                         "email":"johndoe@localhost",
-                        "name":"John Doe",
                         "firstname":"John",
                         "lastname":"Doe",
                         "lang":"en",
@@ -39,6 +39,12 @@ Notes :
 **[IMPORTANT]** In the following, John Doe user's id is referenced as ${JOHN_DOE_USER_ID}
 
         export JOHN_DOE_USER_ID=${JOHN_DOE_USER_ID}
+
+### Update user profile
+Updating user profile can be done either by administrator or by the user itself:
+
+        # Update johndoe bio with John Doe credentials
+        curl -X PUT -d@examples/users/johnDoe_update.json "http://johnDoe%40localhost:dummy@localhost:5252/users/${JOHN_DOE_USER_ID}"
 
 ### Get an authorization token (optional)
 To authenticate to resto endpoint, you can either provide the email/password of an existing user or an authentication token.

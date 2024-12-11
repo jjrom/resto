@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS __DATABASE_COMMON_SCHEMA__.user (
     email               TEXT NOT NULL UNIQUE,
 
     -- By default concatenation of firstname lastname
-    name                TEXT,
+    name                TEXT NOT NULL UNIQUE,
 
     -- First name
     firstname           TEXT,
@@ -83,7 +83,6 @@ CREATE TABLE IF NOT EXISTS __DATABASE_COMMON_SCHEMA__.user (
 
     -- Free application settings
     settings            JSON
-
 );
 
 --
