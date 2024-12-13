@@ -67,18 +67,18 @@ class RestoRouter
         
         // API for groups
         array('GET'   , RestoRouter::ROUTE_TO_GROUPS, true, 'GroupAPI::getGroups'),                                                     // List users profiles
-        array('GET'   , RestoRouter::ROUTE_TO_GROUPS . '/{id}', true, 'GroupAPI::getGroup'),                                            // Get group
+        array('GET'   , RestoRouter::ROUTE_TO_GROUPS . '/{name}', true, 'GroupAPI::getGroup'),                                            // Get group
         array('POST'  , RestoRouter::ROUTE_TO_GROUPS, true, 'GroupAPI::createGroup'),                                                   // Create group
-        array('DELETE', RestoRouter::ROUTE_TO_GROUPS . '/{id}', true, 'GroupAPI::deleteGroup'),                                         // Delete group
+        array('DELETE', RestoRouter::ROUTE_TO_GROUPS . '/{name}', true, 'GroupAPI::deleteGroup'),                                         // Delete group
         array('GET'   , RestoRouter::ROUTE_TO_USER . '/groups', true, 'GroupAPI::getUserGroups'),                                       // Show user groups
-        array('POST'  , RestoRouter::ROUTE_TO_GROUPS . '/{id}/users', true, 'GroupAPI::addUser'),                                       // Add user to group
-        array('DELETE', RestoRouter::ROUTE_TO_GROUPS . '/{id}/users/{username}', true, 'GroupAPI::deleteUser'),                         // Delete user from group
+        array('POST'  , RestoRouter::ROUTE_TO_GROUPS . '/{name}/users', true, 'GroupAPI::addUser'),                                       // Add user to group
+        array('DELETE', RestoRouter::ROUTE_TO_GROUPS . '/{name}/users/{username}', true, 'GroupAPI::deleteUser'),                         // Delete user from group
 
         // API for rights
         array('GET',    RestoRouter::ROUTE_TO_USER . '/rights', true, 'RightsAPI::getUserRights'),                                      // Show user rights
-        array('GET',    RestoRouter::ROUTE_TO_GROUPS . '/{id}/rights', true, 'RightsAPI::getGroupRights'),                              // Show group rights
+        array('GET',    RestoRouter::ROUTE_TO_GROUPS . '/{name}/rights', true, 'RightsAPI::getGroupRights'),                              // Show group rights
         array('POST'  , RestoRouter::ROUTE_TO_USER . '/rights', true, 'RightsAPI::setUserRights'),                                      // Set user rights
-        array('POST'  , RestoRouter::ROUTE_TO_GROUPS . '/{id}/rights', true, 'RightsAPI::setGroupRights'),                              // Set group rights
+        array('POST'  , RestoRouter::ROUTE_TO_GROUPS . '/{name}/rights', true, 'RightsAPI::setGroupRights'),                              // Set group rights
         
         // API for collections
         array('GET',    RestoRouter::ROUTE_TO_COLLECTIONS, false, 'CollectionsAPI::getCollections'),                                    // List all collections

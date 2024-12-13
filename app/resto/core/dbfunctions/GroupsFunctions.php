@@ -49,6 +49,11 @@ class GroupsFunctions
             $where[] = 'id=' . $this->dbDriver->escape_string( $params['id']);
         }
 
+        // Return group by id
+        if (isset($params['name'])) {
+            $where[] = 'name=\'' . $this->dbDriver->escape_string( $params['name']) . '\'';
+        }
+
         // Return all groups in
         if (isset($params['in'])) {
             $where[] = 'id IN (' . $this->dbDriver->escape_string( join(',', $params['in'])) . ')';
@@ -69,7 +74,7 @@ class GroupsFunctions
             $where[] = 'owner=' . $this->dbDriver->escape_string( $params['owner']);
         }
         
-        return $this->formatGroups($this->dbDriver->fetch($this->dbDriver->query('SELECT id, name, description, owner, private, to_iso8601(created) as created FROM ' . $this->dbDriver->commonSchema . '.group' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : '') . ' ORDER BY id DESC')), $params['id'] ?? null);
+        return $this->formatGroups($this->dbDriver->fetch($this->dbDriver->query('SELECT id, name, description, owner, private, to_iso8601(created) as created FROM ' . $this->dbDriver->commonSchema . '.group' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : '') . ' ORDER BY id DESC')), $params['name'] ?? null);
     }
 
     /**
@@ -122,19 +127,19 @@ class GroupsFunctions
      */
     public function removeGroup($params)
     {
-        if (! isset($params['id'])) {
-            RestoLogUtil::httpError(400, 'Missing mandatory group identifier');
+        if (! isset($params['name'])) {
+            RestoLogUtil::httpError(400, 'Missing mandatory group name');
         }
 
         try {
             if (isset($params['owner'])) {
-                $result = $this->dbDriver->query_params('DELETE FROM ' . $this->dbDriver->commonSchema . '.group WHERE id=($1) AND owner=($2)', array(
-                    $params['id'],
+                $result = $this->dbDriver->query_params('DELETE FROM ' . $this->dbDriver->commonSchema . '.group WHERE name=($1) AND owner=($2)', array(
+                    $params['name'],
                     $params['owner']
                 ));
             } else {
-                $result = $this->dbDriver->query_params('DELETE FROM ' . $this->dbDriver->commonSchema . '.group WHERE id=($1)', array(
-                    $params['id']
+                $result = $this->dbDriver->query_params('DELETE FROM ' . $this->dbDriver->commonSchema . '.group WHERE name=($1)', array(
+                    $params['name']
                 ));
             }
             
@@ -143,7 +148,7 @@ class GroupsFunctions
             }
             
             return array(
-                'id' => $params['id']
+                'name' => $params['name']
             );
         } catch (Exception $e) {
             RestoLogUtil::httpError(403, 'Cannot delete group');
@@ -214,17 +219,17 @@ class GroupsFunctions
      * Format group results for nice output
      *
      * @param array $results Groups from database
-     * @param string $groupId Group id
+     * @param string $name Group name
      */
-    private function formatGroups($results, $groupId)
+    private function formatGroups($results, $name)
     {
 
         // 404 if no empty results when id is specified
-        if (! isset($results) || (isset($groupId) && count($results) === 0)) {
+        if (! isset($results) || (isset($name) && count($results) === 0)) {
             RestoLogUtil::httpError(404);
         }
 
-        $length = isset($groupId) ? 1 : count($results);
+        $length = isset($name) ? 1 : count($results);
 
         // Format groups
         for ($i = $length; $i--;) {
@@ -235,7 +240,7 @@ class GroupsFunctions
             }
         }
 
-        return isset($groupId) ? $results[0] : $results;
+        return isset($name) ? $results[0] : $results;
 
     }
 }

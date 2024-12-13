@@ -164,7 +164,7 @@ The result should be
 Only a user in the **admin group** can set the rights for a group
 
         # Set rights for dummy group allowing members to createAnyItem
-        curl -X POST -d@examples/users/dummyGroup_rights.json "http://admin:admin@localhost:5252/groups/1000/rights"
+        curl -X POST -d@examples/users/dummyGroup_rights.json "http://admin:admin@localhost:5252/groups/My%20first%20group/rights"
 
 The result should returns :
 
@@ -176,8 +176,9 @@ Note that existing rights are not deleted when setting rights but are merged wit
 Only a user in the **admin group** or the owner of the group can add user to a group
 
         # Add John Doe in group dummyGroup - not that this is unecessary because it was automatically added during group creation
-        curl -X POST -d@examples/users/dummyGroup_addJohnDoe.json "http://admin:admin@localhost:5252/groups/1000/users"
-
+        # Admin add John Doe in group dummyGroup
+        curl -X POST "http://admin:admin@localhost:5252/groups/My%20first%20group/users" -d '{"username":"johndoe"}'
+        
         # Consequently, John Doe's rights now includes rights from its groups
         curl -H "Authorization: Bearer ${JOHN_DOE_BEARER}" "http://localhost:5252/users/johndoe/rights"
 
@@ -227,10 +228,7 @@ First create John Doe user if not exist then create a group and add John Doe to 
         curl -X POST -d@examples/users/dummyGroup.json "http://admin:admin@localhost:5252/groups"
 
         # Admin add John Doe in group dummyGroup
-        curl -X POST "http://admin:admin@localhost:5252/groups/1000/users" -d '
-        {
-                "username":"johndoe"
-        }'
+        curl -X POST "http://admin:admin@localhost:5252/groups/My%20first%20group/users" -d '{"username":"johndoe"}'
 
         # Admin allows John Doe to create collection
         curl -X POST -d@examples/users/johnDoe_rights.json "http://admin:admin@localhost:5252/users/johndoe/rights"
