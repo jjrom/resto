@@ -21,17 +21,18 @@
 
         $dbDriver->query('BEGIN');
 
-        /* User name is now UNIQUE */
+        /* User name is now UNIQUE and called username */
         $dbDriver->query('UPDATE ' . $dbDriver->targetSchema . '.user SET name = lower(name)');
         $dbDriver->query('WITH tmp AS (SELECT name as n FROM ' . $dbDriver->targetSchema . '.user GROUP BY name HAVING count(name) > 1) UPDATE ' . $dbDriver->targetSchema . '.user SET name = tmp.n || (floor(random() * 1000 + 1)::int)::TEXT FROM tmp WHERE name = tmp.n');
         $dbDriver->query('UPDATE ' . $dbDriver->targetSchema . '.user SET name = \'anonymous\' || (floor(random() * 1000 + 1)::int)::TEXT WHERE name IS NULL');
-        $dbDriver->query('ALTER TABLE ' . $dbDriver->commonSchema . '.user ADD UNIQUE (name)');
+        $dbDriver->query('ALTER TABLE ' . $dbDriver->commonSchema . '.user RENAME name TO username');
+        $dbDriver->query('ALTER TABLE ' . $dbDriver->commonSchema . '.user ADD UNIQUE (userame)');
         
         // Create private group per user
         $dbDriver->query('DROP INDEX IF EXISTS ' . $dbDriver->commonSchema . '.idx_uname_group');
-        $dbDriver->query('WITH tmp AS (SELECT id, name FROM ' . $dbDriver->commonSchema . '.user) INSERT INTO ' . $dbDriver->commonSchema . '.group (name, description, owner, private) SELECT name || \'_private\', \'Private group for user \' || name, id, 1 FROM tmp WHERE name <> \'admin\'');
-        
-        
+        $dbDriver->query('WITH tmp AS (SELECT id, username FROM ' . $dbDriver->commonSchema . '.user) INSERT INTO ' . $dbDriver->commonSchema . '.group (name, description, owner, private) SELECT username || \'_private\', \'Private group for user \' || username, id, 1 FROM tmp WHERE username <> \'admin\'');
+    
+
         $dbDriver->query('COMMIT');
 
     } catch(Exception $e){

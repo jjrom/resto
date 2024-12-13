@@ -25,7 +25,7 @@ class UsersFunctions
 
     private $countLimit = 50;
 
-    private $userFields = 'id,email,name,firstname,lastname,bio,lang,country,organization,organizationcountry,flags,topics,password,picture,to_iso8601(registrationdate) as registrationdate,activated,followers,followings,validatedby,to_iso8601(validationdate) as validationdate,externalidp,settings';
+    private $userFields = 'id,username,email,firstname,lastname,bio,lang,country,organization,organizationcountry,flags,topics,password,picture,to_iso8601(registrationdate) as registrationdate,activated,followers,followings,validatedby,to_iso8601(validationdate) as validationdate,externalidp,settings';
         
     /**
      * Constructor
@@ -78,7 +78,7 @@ class UsersFunctions
 
                 case 'id':
                 case 'email':
-                case 'name':
+                case 'username':
                 case 'firstname':
                 case 'lastname':
                 case 'bio':
@@ -123,8 +123,8 @@ class UsersFunctions
         
         $profile = array(
             'id' => $rawProfile['id'],
+            'username' => $rawProfile['username'],
             'picture' => $rawProfile['picture'],
-            'name' => $rawProfile['name'],
             'registrationdate' => $rawProfile['registrationdate'],
             'followers' => (integer) $rawProfile['followers'],
             'followings' => (integer) $rawProfile['followings']
@@ -312,7 +312,7 @@ class UsersFunctions
      */
     public function storeUserProfile($profile, $storageInfo)
     {
-        if (!is_array($profile) || !isset($profile['email']) || !isset($profile['name'])) {
+        if (!is_array($profile) || !isset($profile['email']) || !isset($profile['username'])) {
             RestoLogUtil::httpError(400, 'Cannot save user profile - missing mandatories email and/or name');
         }
 
@@ -339,7 +339,7 @@ class UsersFunctions
          * Store everything
          */
         $toBeSet = array(
-            'name' => $this->dbDriver->escape_string($profile['name']),
+            'username' => $this->dbDriver->escape_string($profile['username']),
             'email' => '\'' . $this->dbDriver->escape_string($email) . '\'',
             'password' => '\'' . (isset($profile['password']) ? password_hash($profile['password'], PASSWORD_BCRYPT) : str_repeat('*', 60)) . '\'',
             'topics' => isset($profile['topics']) ? '\'{' . $this->dbDriver->escape_string( $profile['topics']) . '}\'' : 'NULL',
@@ -351,7 +351,7 @@ class UsersFunctions
             'registrationdate' => 'now()',
             'externalidp' => isset($profile['externalidp']) ? '\'' . $this->dbDriver->escape_string( json_encode($profile['externalidp'], JSON_UNESCAPED_SLASHES)) . '\'' : 'NULL'
         );
-        foreach (array_values(array('name', 'firstname', 'lastname', 'country', 'organization', 'organizationcountry', 'flags', 'lang')) as $field) {
+        foreach (array_values(array('username', 'firstname', 'lastname', 'country', 'organization', 'organizationcountry', 'flags', 'lang')) as $field) {
             if (isset($profile[$field])) {
                 $toBeSet[$field] = "'" . $this->dbDriver->escape_string( $profile[$field]) . "'";
             }
@@ -362,8 +362,8 @@ class UsersFunctions
             
             $this->dbDriver->query('BEGIN');
 
-            if ( $this->userExists($profile['name']) ) {
-                throw new Exception('User name ' . $profile['name'] . ' already exists', 409);
+            if ( $this->userExists($profile['username']) ) {
+                throw new Exception('User name ' . $profile['username'] . ' already exists', 409);
             }
 
             // First create the user
@@ -373,8 +373,8 @@ class UsersFunctions
             if ( count($results) === 1 ) {
                 $outputProfile = UsersFunctions::formatUserProfile($results[0]);
                 $group = (new GroupsFunctions($this->dbDriver))->createGroup(array(
-                    'name' => $outputProfile['name'] . RestoUser::USER_GROUP_SUFFIX,
-                    'description' => 'Private group for user ' . $outputProfile['name'],
+                    'name' => $outputProfile['username'] . RestoUser::USER_GROUP_SUFFIX,
+                    'description' => 'Private group for user ' . $outputProfile['username'],
                     'owner' => $outputProfile['id'],
                     'private' => 1
                 ));
@@ -429,7 +429,7 @@ class UsersFunctions
      */
     public function updateUserProfile($profile, $storageInfo)
     {
-        if (!is_array($profile) || !isset($profile['email'])) {
+        if (!is_array($profile) || !isset($profile['username'])) {
             RestoLogUtil::httpError(400);
         }
 
@@ -475,7 +475,7 @@ class UsersFunctions
 
         $results = array();
         if (count($values) > 0) {
-            $results = $this->dbDriver->fetch($this->dbDriver->query('UPDATE ' . $this->dbDriver->commonSchema . '.user SET ' . join(',', $values) . ' WHERE email=\'' . $this->dbDriver->escape_string( trim(strtolower($profile['email']))) . '\' RETURNING id'));
+            $results = $this->dbDriver->fetch($this->dbDriver->query('UPDATE ' . $this->dbDriver->commonSchema . '.user SET ' . join(',', $values) . ' WHERE username=\'' . $this->dbDriver->escape_string(strtolower($profile['username'])) . '\' RETURNING id'));
         }
 
         return count($results) === 1 ? $results[0]['id'] : null;
@@ -595,7 +595,7 @@ class UsersFunctions
      */
     public function userExists($name)
     {
-        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT name FROM ' . $this->dbDriver->targetSchema . '.user WHERE name=$1', array(strtolower($name))));
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT username FROM ' . $this->dbDriver->targetSchema . '.user WHERE username=$1', array(strtolower($name))));
         return !empty($results);
     }
 

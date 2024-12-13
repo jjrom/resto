@@ -17,7 +17,7 @@ The above command should returns an HTTP 200 response including the newly create
                 "message":"User johndoe@localhost created and activated",
                 "profile":{
                         "id":"227212962406176319",
-                        "name":"johndoe",
+                        "username":"johndoe",
                         "email":"johndoe@localhost",
                         "firstname":"John",
                         "lastname":"Doe",
@@ -33,38 +33,33 @@ The above command should returns an HTTP 200 response including the newly create
 
 Notes :
 
-* An unique *id* is created for the user 
 * The *activated* value set to 1. This means that the user is created and validated i.e. you can use authenticate with this user within resto. If you want to check for email address before allowing user to authenticate to resto, you have to set the **USER_AUTOVALIDATION** environment value to *false* in [config.env](./config.env). In this case, the user will receive an email including a validation link. The *activated* value will be set to 1 upon user's validation link resolution.
-
-**[IMPORTANT]** In the following, John Doe user's id is referenced as ${JOHN_DOE_USER_ID}
-
-        export JOHN_DOE_USER_ID=${JOHN_DOE_USER_ID}
 
 ### Update user profile
 Updating user profile can be done either by administrator or by the user itself:
 
         # Update johndoe bio with John Doe credentials
-        curl -X PUT -d@examples/users/johnDoe_update.json "http://johnDoe%40localhost:dummy@localhost:5252/users/${JOHN_DOE_USER_ID}"
+        curl -X PUT -d@examples/users/johnDoe_update.json "http://johnDoe%40localhost:dummy@localhost:5252/users/johndoe"
 
 ### Get an authorization token (optional)
 To authenticate to resto endpoint, you can either provide the email/password of an existing user or an authentication token.
 
 You can generate a bearer authentication token valid for 100 days for the above user with the following command:
 
-        ./scripts/generateAuthToken -i ${JOHN_DOE_USER_ID} -d 100
+        ./scripts/generateAuthToken -i johndoe -d 100
 
 The result should be:
 
-        {"userId":"${JOHN_DOE_USER_ID}","duration":100,"valid_until":"2024-07-17T09:41:49","token":"eyJzdWIiOiIyMjQ0Njg3NTYwNDA3Nzc3MzIiLCJpYXQiOjE3MTI1NjIxMDksImV4cCI6MTcyMTIwMjEwOX0.XatRV4bLbuRyvsQrL2etPAumpPPg5SK2h-7qVRrPub4"}
+        {"username":"johndoe","duration":100,"valid_until":"2024-07-17T09:41:49","token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2huZG9lIiwiaWF0IjoxNzM0MTAxNDI2LCJleHAiOjE3NDI3NDE0MjZ9.erUUOUBlbjtXswP7suvyzLmUgcR9y_qib1CfDS1m-ds"}
 
 The token can be used to request authenticated endpoint, for instance to get the user profile:
 
         # Using email/password
-        curl "http://johnDoe%40localhost:dummy@localhost:5252/users/${JOHN_DOE_USER_ID}"
+        curl "http://johnDoe%40localhost:dummy@localhost:5252/users/johndoe"
 
         # Using bearer token
-        export JOHN_DOE_BEARER=eyJzdWIiOiIyMjQ0Njg3NTYwNDA3Nzc3MzIiLCJpYXQiOjE3MTI1NjIxMDksImV4cCI6MTcyMTIwMjEwOX0.XatRV4bLbuRyvsQrL2etPAumpPPg5SK2h-7qVRrPub4
-        curl -H "Authorization: Bearer ${JOHN_DOE_BEARER}" "http://localhost:5252/users/${JOHN_DOE_USER_ID}"
+        export JOHN_DOE_BEARER=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2huZG9lIiwiaWF0IjoxNzM0MTAxNDI2LCJleHAiOjE3NDI3NDE0MjZ9.erUUOUBlbjtXswP7suvyzLmUgcR9y_qib1CfDS1m-ds
+        curl -H "Authorization: Bearer ${JOHN_DOE_BEARER}" "http://localhost:5252/users/johndoe"
 
 ## Rights
 The rights defines access to resto ressources in particular to authorize CRUD operations (Create, Read, Update, Delete) on collections, catalogs and items.
@@ -125,7 +120,7 @@ rights are defined as boolean properties within a JSON object. The default user'
 ### Get user rights
 To get the rights for John Doe:
 
-        curl -H "Authorization: Bearer ${JOHN_DOE_BEARER}" "http://localhost:5252/users/${JOHN_DOE_USER_ID}/rights"
+        curl -H "Authorization: Bearer ${JOHN_DOE_BEARER}" "http://localhost:5252/users/johndoe/rights"
 
 The result should be :
 
@@ -135,7 +130,7 @@ The result should be :
 Only a user in the **admin group** (see chapter on groups below) can set the rights of a user.
 
         # Allow John Doe to create collection
-        curl -X POST -d@examples/users/johnDoe_rights.json "http://admin:admin@localhost:5252/users/${JOHN_DOE_USER_ID}/rights"
+        curl -X POST -d@examples/users/johnDoe_rights.json "http://admin:admin@localhost:5252/users/johndoe/rights"
 
 The result should returns :
 
@@ -184,7 +179,7 @@ Only a user in the **admin group** or the owner of the group can add user to a g
         curl -X POST -d@examples/users/dummyGroup_addJohnDoe.json "http://admin:admin@localhost:5252/groups/1000/users"
 
         # Consequently, John Doe's rights now includes rights from its groups
-        curl -H "Authorization: Bearer ${JOHN_DOE_BEARER}" "http://localhost:5252/users/${JOHN_DOE_USER_ID}/rights"
+        curl -H "Authorization: Bearer ${JOHN_DOE_BEARER}" "http://localhost:5252/users/johndoe/rights"
 
         # Result of previous request shows that John Doe can now createAnyItem since he is in dummyGroup
         # {"rights":{"createCollection":true,"deleteCollection":true,"updateCollection":true,"deleteAnyCollection":false,"updateAnyCollection":false,"createItem":true,"updateItem":true,"deleteItem":true,"createAnyItem":true,"deleteAnyItem":false,"updateAnyItem":false,"downloadItem":false}
@@ -193,10 +188,10 @@ Only a user in the **admin group** or the owner of the group can add user to a g
 Only a user in the **admin group** or the owner of the group can remove a user from a group
 
         # Remove John Doe from dummyGroup
-        curl -X DELETE "http://admin:admin@localhost:5252/groups/103/users/${JOHN_DOE_USER_ID}"
+        curl -X DELETE "http://admin:admin@localhost:5252/groups/103/users/johndoe"
 
         # Consequently, John Doe's rights do not include anymore rights from dummyGroup
-        curl -H "Authorization: Bearer ${JOHN_DOE_BEARER}" "http://localhost:5252/users/${JOHN_DOE_USER_ID}/rights"
+        curl -H "Authorization: Bearer ${JOHN_DOE_BEARER}" "http://localhost:5252/users/johndoe/rights"
 
         # {"rights":{"createCollection":true,"deleteCollection":true,"updateCollection":true,"deleteAnyCollection":false,"updateAnyCollection":false,"createItem":true,"updateItem":true,"deleteItem":true,"createAnyItem":false,"deleteAnyItem":false,"updateAnyItem":false,"downloadItem":false}
 
@@ -234,11 +229,11 @@ First create John Doe user if not exist then create a group and add John Doe to 
         # Admin add John Doe in group dummyGroup
         curl -X POST "http://admin:admin@localhost:5252/groups/1000/users" -d '
         {
-                "userid":"227212962406176319"
+                "username":"johndoe"
         }'
 
         # Admin allows John Doe to create collection
-        curl -X POST -d@examples/users/johnDoe_rights.json "http://admin:admin@localhost:5252/users/${JOHN_DOE_USER_ID}/rights"
+        curl -X POST -d@examples/users/johnDoe_rights.json "http://admin:admin@localhost:5252/users/johndoe/rights"
 
 #### Update an item to make it visible only to a group
 John Doe is in group dummyGroup and has right to create a collection:

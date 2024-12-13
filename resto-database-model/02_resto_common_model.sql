@@ -213,7 +213,7 @@ CREATE TABLE IF NOT EXISTS __DATABASE_COMMON_SCHEMA__.revokedtoken (
     -- Unique identifier (not used)
     gid                 INTEGER PRIMARY KEY DEFAULT nextval('__DATABASE_COMMON_SCHEMA__.revokedtoken_id_seq'),
 
-    -- Token either JWT or RJWT
+    -- Token
     token               TEXT UNIQUE NOT NULL,
 
     -- Date of token creation

@@ -379,7 +379,7 @@ class CollectionsAPI
         /*
          * Update collection and store to database
          */
-        $collection->update($body)->store();
+        $collection->update($body);
 
         return RestoLogUtil::success('Collection ' . $collection->id . ' updated');
     }

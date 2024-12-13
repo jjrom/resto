@@ -394,14 +394,14 @@ class GroupAPI
      *         description="User info",
      *         required=true,
      *         @OA\JsonContent(
-     *              required={"userid"},
+     *              required={"name"},
      *              @OA\Property(
-     *                  property="userid",
+     *                  property="name",
      *                  type="string",
-     *                  description="User identifier"
+     *                  description="User name"
      *              ),
      *              example={
-     *                  "userid": "100"
+     *                  "name": "johndoe"
      *              }
      *          )
      *      ),
@@ -419,9 +419,11 @@ class GroupAPI
 
         $group = (new GroupsFunctions($this->context->dbDriver))->getGroups(array('id' => $params['id']));
 
-        if ( !isset($body['userid']) ) {
-            RestoLogUtil::httpError(400, 'Mandatory userid property is missing in message body');
+        if ( !isset($body['username']) ) {
+            RestoLogUtil::httpError(400, 'Mandatory username property is missing in message body');
         }
+
+        $user = new RestoUser(array('username' => $body['username']), $this->context);
 
         /*
          * [SECURITY] Only user and admin can add user to group
@@ -431,10 +433,10 @@ class GroupAPI
             if ( !isset($group['owner']) ) {
                 RestoLogUtil::httpError(403);
             }
-            RestoUtil::checkUser($this->user, $group['owner']);
+            RestoUtil::checkUserId($this->user, $group['owner']);
         }
 
-        if ( (new GroupsFunctions($this->context->dbDriver))->addUserToGroup(array('id' => $params['id']), $body['userid']) ) {
+        if ( (new GroupsFunctions($this->context->dbDriver))->addUserToGroup(array('id' => $params['id']), $user->profile['id']) ) {
             return RestoLogUtil::success('User added to group');
         }
 
@@ -448,6 +450,7 @@ class GroupAPI
     {
 
         $group = (new GroupsFunctions($this->context->dbDriver))->getGroups(array('id' => $params['id']));
+        $user = new RestoUser(array('username' => $params['username']), $this->context);
 
         /*
          * [SECURITY] Only user and admin can delete user from group
@@ -457,10 +460,10 @@ class GroupAPI
             if ( !isset($group['owner']) ) {
                 RestoLogUtil::httpError(403);
             }
-            RestoUtil::checkUser($this->user, $group['owner']);
+            RestoUtil::checkUserId($this->user, $group['owner']);
         }
 
-        if ( (new GroupsFunctions($this->context->dbDriver))->removeUserFromGroup(array('id' => $params['id']), $params['userid']) ) {
+        if ( (new GroupsFunctions($this->context->dbDriver))->removeUserFromGroup(array('id' => $params['id']), $user->profile['id']) ) {
             return RestoLogUtil::success('User removed from group');
         }
 
@@ -471,14 +474,14 @@ class GroupAPI
      *  Get user groups
      *
      *  @OA\Get(
-     *      path="/users/{userid}/groups",
+     *      path="/users/{username}/groups",
      *      summary="Get user's groups",
      *      tags={"User"},
      *      @OA\Parameter(
-     *         name="userid",
+     *         name="username",
      *         in="path",
      *         required=true,
-     *         description="User's identifier",
+     *         description="User's name",
      *         @OA\Schema(
      *             type="string"
      *         )
@@ -527,9 +530,10 @@ class GroupAPI
      */
     public function getUserGroups($params)
     {
-        if ($this->user->profile['id'] === $params['userid']) {
+        if ($this->user->profile['username'] === $params['username']) {
             $this->user->loadProfile();
             return array(
+                'username' => $this->user->profile['username'],
                 'id' => $this->user->profile['id'],
                 'groups' => (new GroupsFunctions($this->context->dbDriver))->getGroups(array(
                     'in' => $this->user->getGroupIds()
@@ -537,8 +541,9 @@ class GroupAPI
             );
         }
 
-        $user = new RestoUser(array('id' => $params['userid']), $this->context, true);
-        return isset($user->profile['id']) ? array(
+        $user = new RestoUser(array('username' => $params['username']), $this->context);
+        return isset($user->profile['username']) ? array(
+            'username' => $this->user->profile['username'],
             'id' => $user->profile['id'],
             'groups' => (new GroupsFunctions($this->context->dbDriver))->getGroups(array(
                 'in' => $user->getGroupIds()

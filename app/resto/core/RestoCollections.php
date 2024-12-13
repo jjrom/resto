@@ -173,9 +173,8 @@ class RestoCollections
         /*
          * Create collection
          */
-        $collection = $this->context->keeper->getRestoCollection($object['id'], $this->user);
-        $collection->load($object, $modelName)->store();
-
+        $this->context->keeper->getRestoCollection($object['id'], $this->user)->loadFromJSON($object, $modelName)->store();
+    
         return true;
     }
 

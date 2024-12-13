@@ -663,20 +663,14 @@ class RestoCollection
     }
 
     /**
-     * Load collection from database or from input data
+     * Load collection from database
      * Return 404 if collection is not found
      *
-     * @param array $object
-     * @param string $modelName
      * @return object
      */
-    public function load($object = null, $modelName = null)
+    public function load()
     {
 
-        if (isset($object)) {
-            return $this->loadFromJSON($object, $modelName);
-        }
-        
         if ( !$this->isLoaded ) {
             $this->isLoaded = true;
             $collectionObject = (new CollectionsFunctions($this->context->dbDriver))->getCollection($this->id, $this->user);
@@ -719,9 +713,8 @@ class RestoCollection
             RestoLogUtil::httpError(400, 'Model does not exist');
         }
 
-        $this->loadFromJSON($object);
-        
-        return $this;
+        (new CollectionsFunctions($this->context->dbDriver))->updateCollection($this, $this->cleanJSON($object));
+
     }
 
     /**
@@ -903,49 +896,38 @@ class RestoCollection
      * @param array $object : collection description as json file
      * @param string $modelName
      */
-    private function loadFromJSON($object, $modelName = null)
+    public function loadFromJSON($object, $modelName = null)
     {
-        /*
-         * Check that object is a valid array
-         */
-        if (!is_array($object)) {
-            RestoLogUtil::httpError(400, 'Invalid input JSON');
-        }
 
+        $cleanObject = $this->cleanJSON($object, $modelName);
+        
         /*
          * Check mandatory properties are required
          */
-        $this->checkCreationMandatoryProperties($object, $modelName);
+        $this->checkCreationMandatoryProperties($cleanObject);
         
         /*
-         * Default collection visibility is the value of RestoConstants::GROUP_DEFAULT_ID
+         * Set collection model
          */
-        if ( isset($object['visibility']) ) {
-            $result = RestoUtil::isValidVisibility($object['visibility']);
-            if ( !$result['isValid'] ) {
-                RestoLogUtil::httpError($result['errorCode'], $result['errorMessage'] );
-            }
-            $this->visibility = $object['visibility'];
+        if ( !isset($cleanObject['model']) ) {
+            $cleanObject['model'] = $this->context->core['defaultModel'];
         }
+        $this->model = new $cleanObject['model'](array(
+            'collectionId' => $this->id,
+            'addons' => $this->context->addons
+        ));
         
+        /*
+         * Collection owner is the current user
+         */
+        $this->owner = $this->user->profile['id'];
+
         /*
          * Set values
          */
-        foreach (array_values(array('title', 'description', 'aliases', 'version', 'license', 'links', 'providers', 'assets', 'keywords', 'extent')) as $key) {
-            if (isset($object[$key])) {
-                $this->$key = $key === 'links' ? $this->cleanInputLinks($object['links']) : $object[$key];
-            }
-        }
-
-        /*
-         * Store every other properties to $this->properties
-         *
-         * [IMPORTANT] Clear properties first !
-         */
-        $this->properties = array();
-        foreach ($object as $key => $value) {
-            if (!in_array($key, $this->notInProperties)) {
-                $this->properties[$key] = $value;
+        foreach ($cleanObject as $key => $value) {
+            if ( !in_array($key, array('model', 'owner')) ) {
+                $this->$key = $value;
             }
         }
 
@@ -955,12 +937,82 @@ class RestoCollection
     }
 
     /**
+     * Return a clean collection array from json 
+     * 
+     * @param array $object
+     * @param string $modelName
+     * @return array
+     */
+    private function cleanJSON($object, $modelName = null)
+    {
+
+        $clean = array();
+
+        /*
+         * Check that object is a valid array
+         */
+        if (!is_array($object)) {
+            RestoLogUtil::httpError(400, 'Invalid input JSON');
+        }
+
+        /*
+         * Set DefaultModel if not set - preseance to input $modelName
+         */
+        if ( isset($object['model']) ) {
+            $clean['model'] = $object['model'];
+        }
+        if ( isset($modelName) ) {
+            $clean['model'] = $modelName;
+        }
+
+        if ( isset($clean['model']) ) {
+            if (!class_exists($clean['model']) || !is_subclass_of($clean['model'], 'RestoModel')) {
+                RestoLogUtil::httpError(400, 'Model "' . $clean['model'] . '" is not a valid model name');
+            }
+        }
+
+        /*
+         * Default collection visibility is the value of RestoConstants::GROUP_DEFAULT_ID
+         */
+        if ( isset($object['visibility']) ) {
+            $result = RestoUtil::isValidVisibility($object['visibility']);
+            if ( !$result['isValid'] ) {
+                RestoLogUtil::httpError($result['errorCode'], $result['errorMessage'] );
+            }
+            $clean['visibility'] = $object['visibility'];
+        }
+        
+        /*
+         * Set values
+         */
+        foreach (array_values(array('id', 'type', 'title', 'description', 'aliases', 'version', 'license', 'links', 'providers', 'assets', 'keywords', 'extent')) as $key) {
+            if (isset($object[$key])) {
+                $clean[$key] = $key === 'links' ? $this->cleanInputLinks($object['links']) : $object[$key];
+            }
+        }
+
+        /*
+         * Store every other properties to $this->properties
+         *
+         * [IMPORTANT] Clear properties first !
+         */
+        $clean['properties'] = array();
+        foreach ($object as $key => $value) {
+            if (!in_array($key, $this->notInProperties)) {
+                $clean['properties'][$key] = $value;
+            }
+        }
+
+        return $clean;
+
+    }
+
+    /**
      * Check mandatory properties for collection creation
      *
      * @param array $object
-     * @param string $modelName
      */
-    private function checkCreationMandatoryProperties($object, $modelName)
+    private function checkCreationMandatoryProperties($object)
     {
         /*
          * Check that input file is for the current collection
@@ -983,32 +1035,6 @@ class RestoCollection
             RestoLogUtil::httpError(400, 'Property "description" is mandatory');
         }
          
-        /*
-         * Set DefaultModel if not set - preseance to input $modelName
-         */
-        if ( isset($modelName) ) {
-            $object['model'] = $modelName;
-        }
-        if ( !isset($object['model']) ) {
-            $object['model'] = $this->context->core['defaultModel'];
-        }
-        
-        if (!class_exists($object['model']) || !is_subclass_of($object['model'], 'RestoModel')) {
-            RestoLogUtil::httpError(400, 'Model "' . $object['model'] . '" is not a valid model name');
-        }
-
-        /*
-         * Set collection model
-         */
-        $this->model = new $object['model'](array(
-            'collectionId' => $this->id,
-            'addons' => $this->context->addons
-        ));
-        
-        /*
-         * Collection owner is the current user
-         */
-        $this->owner = $this->user->profile['id'];
     }
 
     /**

@@ -62,7 +62,7 @@ class AuthAPI
      *                      "groups": {
      *                          "1"
      *                      },
-     *                      "name": "jrom",
+     *                      "username": "jrom",
      *                      "followers": 185,
      *                      "followings": 144,
      *                      "firstname": "Jérôme",
@@ -98,7 +98,7 @@ class AuthAPI
         }
 
         return array(
-            'token' => $this->context->createRJWT($this->user->profile['id'], $this->context->core['tokenDuration']),
+            'token' => $this->context->createJWT($this->user->profile['username'], $this->context->core['tokenDuration']),
             'profile' => $this->user->profile
         );
     }
@@ -109,13 +109,13 @@ class AuthAPI
      *  @OA\Get(
      *      path="/create",
      *      summary="Create an authentication {token}",
-     *      description="Create an authentication token (aka rJWT) for user identified by {emailOrId}",
+     *      description="Create an authentication token (aka rJWT) for user identified by {emailOrName}",
      *      tags={"Authentication"},
      *      @OA\Parameter(
-     *         name="emailOrId",
+     *         name="emailOrName",
      *         in="query",
      *         required=true,
-     *         description="User email or id",
+     *         description="User email or user name",
      *         @OA\Schema(
      *             type="string"
      *         )
@@ -134,9 +134,9 @@ class AuthAPI
      *          description="The token is created",
      *          @OA\JsonContent(
      *              @OA\Property(
-     *                  property="userId",
+     *                  property="username",
      *                  type="string",
-     *                  description="User id"
+     *                  description="User name"
      *              ),
      *              @OA\Property(
      *                  property="duration",
@@ -194,17 +194,17 @@ class AuthAPI
             $params['duration'] = (integer) ($this->context->core['tokenDuration'] / 86400);
         }
 
-        if ( !isset($params['userId']) || !ctype_digit($params['userId']) ) {
-            RestoLogUtil::httpError(400, 'Mandatory userId is not set or not valid');
+        if ( !isset($params['username']) ) {
+            RestoLogUtil::httpError(400, 'Mandatory username is not set');
         }
 
         $days = isset($params['duration']) ? (integer) $params['duration'] : round($this->context->core['tokenDuration'] / 86400);
         $seconds = 86400 * $days;
         return array(
-            'userId' => $params['userId'],
+            'username' => $params['username'],
             'duration' => $days,
             'valid_until' => date('Y-m-d\TH:i:s', time() + $seconds),
-            'token' => $this->context->createRJWT($params['userId'], $seconds)
+            'token' => $this->context->createJWT($params['username'], $seconds)
         );
 
     }
@@ -388,7 +388,7 @@ class AuthAPI
      *                      "groups": {
      *                          "1"
      *                      },
-     *                      "name": "jrom",
+     *                      "username": "jrom",
      *                      "followers": 185,
      *                      "followings": 144,
      *                      "firstname": "Jérôme",
@@ -418,14 +418,14 @@ class AuthAPI
             RestoLogUtil::httpError(400, 'Invalid or expired token');
         }
 
-        $user = new RestoUser(array('id' => $payload['sub']), $this->context, true);
+        $user = new RestoUser(array('username' => $payload['sub']), $this->context);
 
-        if (!isset($user->profile['id']) || !$user->activate()) {
+        if (!isset($user->profile['username']) || !$user->activate()) {
             RestoLogUtil::httpError(500, 'User not activated');
         }
 
         return array(
-            'token' => $this->context->createRJWT($user->profile['id'], $this->context->core['tokenDuration']),
+            'token' => $this->context->createJWT($user->profile['username'], $this->context->core['tokenDuration']),
             'profile' => $user->profile
         );
     }

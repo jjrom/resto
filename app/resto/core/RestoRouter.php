@@ -43,7 +43,7 @@ class RestoRouter
     const ROUTE_TO_STAC_QUERYABLES = '/queryables';
     const ROUTE_TO_STAC_SEARCH = '/search';
     const ROUTE_TO_USERS = '/users';
-    const ROUTE_TO_USER = RestoRouter::ROUTE_TO_USERS . '/{userid}';
+    const ROUTE_TO_USER = RestoRouter::ROUTE_TO_USERS . '/{username}';
     
     /*
      * Default routes
@@ -63,8 +63,7 @@ class RestoRouter
         array('GET',    RestoRouter::ROUTE_TO_USERS, true, 'UsersAPI::getUsersProfiles'),                                               // List users profiles
         array('POST',   RestoRouter::ROUTE_TO_USERS, false, 'UsersAPI::createUser'),                                                    // Create user
         array('GET',    RestoRouter::ROUTE_TO_USER, true, 'UsersAPI::getUserProfile'),                                                  // Show user profile
-        array('PUT',    RestoRouter::ROUTE_TO_USER, true, 'UsersAPI::updateUserProfile'),                                               // Update :userid profile
-        array('GET',    RestoRouter::ROUTE_TO_USER . '/logs', true, 'UsersAPI::getUserLogs'),                                           // Show user logs
+        array('PUT',    RestoRouter::ROUTE_TO_USER, true, 'UsersAPI::updateUserProfile'),                                               // Update profile
         
         // API for groups
         array('GET'   , RestoRouter::ROUTE_TO_GROUPS, true, 'GroupAPI::getGroups'),                                                     // List users profiles
@@ -73,7 +72,7 @@ class RestoRouter
         array('DELETE', RestoRouter::ROUTE_TO_GROUPS . '/{id}', true, 'GroupAPI::deleteGroup'),                                         // Delete group
         array('GET'   , RestoRouter::ROUTE_TO_USER . '/groups', true, 'GroupAPI::getUserGroups'),                                       // Show user groups
         array('POST'  , RestoRouter::ROUTE_TO_GROUPS . '/{id}/users', true, 'GroupAPI::addUser'),                                       // Add user to group
-        array('DELETE', RestoRouter::ROUTE_TO_GROUPS . '/{id}/users/{userid}', true, 'GroupAPI::deleteUser'),                           // Delete user from group
+        array('DELETE', RestoRouter::ROUTE_TO_GROUPS . '/{id}/users/{username}', true, 'GroupAPI::deleteUser'),                         // Delete user from group
 
         // API for rights
         array('GET',    RestoRouter::ROUTE_TO_USER . '/rights', true, 'RightsAPI::getUserRights'),                                      // Show user rights

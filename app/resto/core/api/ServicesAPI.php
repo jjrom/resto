@@ -305,7 +305,7 @@ class ServicesAPI
     public function forgotPassword($params, $body)
     {
         if (isset($body['email'])) {
-            $user = new RestoUser(array('email' => strtolower($body['email'])), $this->context, true);
+            $user = new RestoUser(array('email' => strtolower($body['email'])), $this->context);
         }
         if (!isset($user)) {
             RestoLogUtil::httpError(400, 'Missing or invalid email');
@@ -349,7 +349,7 @@ class ServicesAPI
                 RestoLogUtil::httpError(400, 'Email address is invalid');
             }
 
-            $user = new RestoUser(array('email' => strtolower($body['email'])), $this->context, true);
+            $user = new RestoUser(array('email' => strtolower($body['email'])), $this->context);
         }
         
         if (!isset($user)) {
@@ -357,9 +357,9 @@ class ServicesAPI
         }
 
         // Send activation link
-        if (isset($user->profile['id']) && $user->profile['activated'] === 0) {
+        if (isset($user->profile['username']) && $user->profile['activated'] === 0) {
             if (!((new RestoNotifier($this->context->servicesInfos, $this->context->lang))->sendMailForUserActivation($body['email'], $this->context->core['sendmail'], array(
-                'token' => $this->context->createRJWT($user->profile['id'], $this->context->core['tokenDuration'])
+                'token' => $this->context->createJWT($user->profile['username'], $this->context->core['tokenDuration'])
             )))) {
                 RestoLogUtil::httpError(500, 'Cannot send activation link');
             }

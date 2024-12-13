@@ -58,16 +58,16 @@ class RightsAPI
 
     /**
      *  @OA\Get(
-     *      path="/users/{userid}/rights",
+     *      path="/users/{username}/rights",
      *      summary="Get user rights",
      *      tags={"Rights"},
      *      @OA\Parameter(
-     *         name="userid",
+     *         name="username",
      *         in="path",
      *         required=true,
-     *         description="User identifier",
+     *         description="User name",
      *         @OA\Schema(
-     *             type="integer"
+     *             type="string"
      *         )
      *      ),
      *      @OA\Response(
@@ -103,10 +103,10 @@ class RightsAPI
          */
         $isAdmin = $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID);
         if ( !$isAdmin ) {
-            RestoUtil::checkUser($this->user, $params['userid']);
+            RestoUtil::checkUserName($this->user, $params['username']);
         }
 
-        $user = new RestoUser(array('id' => $params['userid']), $this->context, true);
+        $user = new RestoUser(array('username' => $params['username']), $this->context);
         return array(
             'rights' => $user->getRights()
         );
@@ -166,17 +166,17 @@ class RightsAPI
      * Set user rights
      *
      * @OA\Post(
-     *      path="/users/{userid}/rights",
+     *      path="/users/{username}/rights",
      *      summary="Set rights for user",
      *      description="Set rights for a given user",
      *      tags={"Rights"},
      *      @OA\Parameter(
-     *         name="userid",
+     *         name="username",
      *         in="path",
      *         required=true,
-     *         description="User identifier",
+     *         description="User name",
      *         @OA\Schema(
-     *             type="integer"
+     *             type="string"
      *         )
      *      ),
      *      @OA\Response(
@@ -252,10 +252,10 @@ class RightsAPI
         }
 
         // Get user just to be sure that it exists !
-        new RestoUser(array('id' => $params['userid']), $this->context, true);
+        $user = new RestoUser(array('username' => $params['username']), $this->context);
         
         return RestoLogUtil::success('Rights set', array(
-            'rights' => (new RightsFunctions($this->context->dbDriver))->storeOrUpdateRights('userid', $params['userid'], $body)
+            'rights' => (new RightsFunctions($this->context->dbDriver))->storeOrUpdateRights('userid', $user->profile['id'], $body)
         ));
 
     }
