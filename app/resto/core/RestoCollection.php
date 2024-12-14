@@ -983,10 +983,7 @@ class RestoCollection
                 RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group');
             }
         }
-        
-        /* 
-         * Convert 
-         */
+
         /*
          * Set values
          */

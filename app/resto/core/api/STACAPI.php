@@ -399,8 +399,16 @@ class STACAPI
         }
 
         // Owner of catalog can only be set by admin user
-        if ( isset($body['owner']) && !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
-            RestoLogUtil::httpError(403, 'You are not allowed to set property "owner"');
+        if ( isset($body['owner']) ) {
+
+            if ( !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+                RestoLogUtil::httpError(403, 'You are not allowed to set property "owner"');
+            }
+
+            // Convert owner name to id
+            $owner = new RestoUser(array('username' => $body['owner']), $this->context);
+            $body['owner'] = $owner->profile['id'];
+            
         } 
 
         /*
@@ -545,8 +553,16 @@ class STACAPI
         }
 
         // Owner of catalog can only be changed by admin user
-        if ( isset($body['owner']) && !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
-            RestoLogUtil::httpError(403, 'You are not allowed to change property "owner"');
+        if ( isset($body['owner']) ) {
+
+            if ( !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+                RestoLogUtil::httpError(403, 'You are not allowed to change property "owner"');
+            }
+
+             // Convert owner name to id
+             $owner = new RestoUser(array('username' => $body['owner']), $this->context);
+             $body['owner'] = $owner->profile['id'];
+            
         }
         
         // Update is not forced so we should check that input links array don't remove existing childs
@@ -1114,10 +1130,10 @@ class STACAPI
      *          name="owner",
      *          in="query",
      *          style="form",
-     *          description="Limit search to owner's features (i.e. resto user identifier as bigint)",
+     *          description="Limit search to owner's features (i.e. resto username)",
      *          required=false,
      *          @OA\Schema(
-     *              type="integer"
+     *              type="string"
      *          )
      *      ),
      *      @OA\Parameter(

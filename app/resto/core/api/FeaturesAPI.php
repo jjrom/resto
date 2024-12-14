@@ -354,10 +354,10 @@ class FeaturesAPI
      *          name="owner",
      *          in="query",
      *          style="form",
-     *          description="Limit search to owner's features (i.e. resto user identifier as bigint)",
+     *          description="Limit search to owner's features (i.e. resto username)",
      *          required=false,
      *          @OA\Schema(
-     *              type="integer"
+     *              type="string"
      *          )
      *      ),
      *      @OA\Parameter(

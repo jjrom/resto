@@ -171,7 +171,7 @@ class GeneralFunctions
         if ( empty($visibility) ) {
             throw new Exception();
         }
-        
+
         $names = array();
         try {
             $results = $this->dbDriver->fetch($this->dbDriver->query('SELECT id, name FROM ' . $this->dbDriver->commonSchema . '.group WHERE id IN (' .join(',', $visibility). ')'));
