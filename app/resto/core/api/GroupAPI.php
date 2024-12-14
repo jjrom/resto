@@ -180,9 +180,7 @@ class GroupAPI
      */
     public function getGroup($params)
     {
-        return (new GroupsFunctions($this->context->dbDriver))->getGroups(array(
-            'name' => $params['name']
-        ));
+        return (new GroupsFunctions($this->context->dbDriver))->getGroup($params['name']);
     }
 
     /**
@@ -415,14 +413,14 @@ class GroupAPI
     public function addUser($params, $body)
     {
 
-        $group = (new GroupsFunctions($this->context->dbDriver))->getGroups(array('name' => $params['name']));
+        $group = (new GroupsFunctions($this->context->dbDriver))->getGroup($params['name']);
         
         if ( !isset($body['username']) ) {
             RestoLogUtil::httpError(400, 'Mandatory username property is missing in message body');
         }
 
         $user = new RestoUser(array('username' => $body['username']), $this->context);
-
+        
         /*
          * [SECURITY] Only user and admin can add user to group
          */
@@ -447,7 +445,7 @@ class GroupAPI
     public function deleteUser($params)
     {
 
-        $group = (new GroupsFunctions($this->context->dbDriver))->getGroups(array('name' => $params['name']));
+        $group = (new GroupsFunctions($this->context->dbDriver))->getGroup($params['name']);
         $user = new RestoUser(array('username' => $params['username']), $this->context);
 
         /*

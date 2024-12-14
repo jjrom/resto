@@ -156,7 +156,7 @@ class RightsAPI
      */
     public function getGroupRights($params)
     {
-        $group = (new GroupsFunctions($this->context->dbDriver))->getGroups(array('name' => $params['name']));
+        $group = (new GroupsFunctions($this->context->dbDriver))->getGroup($params['name']);
         return array(
             'rights' => (new RightsFunctions($this->context->dbDriver))->getRightsForGroup($group['id'])
         );
@@ -351,9 +351,7 @@ class RightsAPI
         }
 
         // Get group just to be sure that it exists !
-        $group = (new GroupsFunctions($this->context->dbDriver))->getGroups(array(
-            'name' => $params['name']
-        ));
+        $group = (new GroupsFunctions($this->context->dbDriver))->getGroup($params['name']);
 
         return RestoLogUtil::success('Rights set', array(
             'rights' => (new RightsFunctions($this->context->dbDriver))->storeOrUpdateRights('groupid', $group['id'], $body)

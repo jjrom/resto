@@ -566,7 +566,7 @@ class RestoUtil
     }
 
     /**
-     * Return vsibility for user
+     * Return visibility for user
      * 
      * @param RestoUser $user
      * @param string $groupId

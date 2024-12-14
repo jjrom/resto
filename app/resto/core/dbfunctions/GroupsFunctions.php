@@ -42,16 +42,14 @@ class GroupsFunctions
      */
     public function getGroups($params = array())
     {
-        $where = array();
+        $where = array(
+            'private <> 1'/*,
+            'name NOT IN (\'admin\', \'default\')'*/
+        );
         
         // Return group by id
         if (isset($params['id'])) {
             $where[] = 'id=' . $this->dbDriver->escape_string( $params['id']);
-        }
-
-        // Return group by id
-        if (isset($params['name'])) {
-            $where[] = 'name=\'' . $this->dbDriver->escape_string( $params['name']) . '\'';
         }
 
         // Return all groups in
@@ -73,8 +71,40 @@ class GroupsFunctions
         if (isset($params['owner'])) {
             $where[] = 'owner=' . $this->dbDriver->escape_string( $params['owner']);
         }
+
+        $results = $this->dbDriver->fetch($this->dbDriver->query('SELECT name, description, id, to_iso8601(created) as created FROM ' . $this->dbDriver->commonSchema . '.group' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : '') . ' ORDER BY id DESC'));
+
+        // 404 if no empty results when id is specified
+        if ( empty($results) ) {
+            RestoLogUtil::httpError(404);
+        }
         
-        return $this->formatGroups($this->dbDriver->fetch($this->dbDriver->query('SELECT id, name, description, owner, private, to_iso8601(created) as created FROM ' . $this->dbDriver->commonSchema . '.group' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : '') . ' ORDER BY id DESC')), $params['name'] ?? null);
+        return $results;
+
+    }
+
+    /**
+     * List all groups
+     *
+     * @return array
+     * @throws Exception
+     */
+    public function getGroup($name)
+    {
+        if ( !isset($name) ) {
+            RestoLogUtil::httpError(404);
+        }
+
+        $query = join(' ', array(
+            'SELECT g.name, g.description, g.owner, g.id, to_iso8601(g.created) as created, COALESCE(ARRAY_REMOVE(ARRAY_AGG(u.username ORDER BY u.username), NULL), \'{}\') AS members',
+            'FROM ' . $this->dbDriver->commonSchema . '.group g LEFT JOIN  ' . $this->dbDriver->commonSchema . '.group_member gm ON g.id = gm.groupid',
+            'LEFT JOIN  ' . $this->dbDriver->commonSchema . '.user u ON gm.userid = u.id',
+            'WHERE private <> 1 AND g.name = \'' . $this->dbDriver->escape_string($name) . '\'',
+            'GROUP BY g.name,g.description,g.owner,g.id,g.created ORDER BY g.name'
+        ));
+
+        return $this->formatGroup($this->dbDriver->fetch($this->dbDriver->query($query)));
+        
     }
 
     /**
@@ -216,31 +246,16 @@ class GroupsFunctions
     }
 
     /**
-     * Format group results for nice output
+     * Format group  for nice output
      *
-     * @param array $results Groups from database
-     * @param string $name Group name
+     * @param array $rawGroup Group from database
      */
-    private function formatGroups($results, $name)
+    private function formatGroup($rawGroup)
     {
-
-        // 404 if no empty results when id is specified
-        if (! isset($results) || (isset($name) && count($results) === 0)) {
+        if ( empty($rawGroup) ) {
             RestoLogUtil::httpError(404);
         }
-
-        $length = isset($name) ? 1 : count($results);
-
-        // Format groups
-        for ($i = $length; $i--;) {
-            $results[$i]['id'] = $results[$i]['id'];
-            $results[$i]['private'] = intval($results[$i]['private']);
-            if (! isset($results[$i]['owner']) ) {
-                unset($results[$i]['owner']);
-            }
-        }
-
-        return isset($name) ? $results[0] : $results;
-
+        $rawGroup[0]['members'] = RestoUtil::SQLTextArrayToPHP($rawGroup[0]['members']);
+        return $rawGroup[0];
     }
 }

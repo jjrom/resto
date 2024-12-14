@@ -202,8 +202,10 @@ class UsersAPI
         return array_merge(
             $this->user->profile,
             array(
-                'in_groups' => $this->user->getGroups(),
-                'owned_groups' => $this->user->getOwnedGroups()
+                'groups' => array(
+                    'in' => $this->user->getGroups(),
+                    'owned' => $this->user->getOwnedGroups(),
+                )
             )
         );
     }

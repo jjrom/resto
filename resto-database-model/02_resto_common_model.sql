@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS __DATABASE_COMMON_SCHEMA__.user (
     email               TEXT NOT NULL UNIQUE,
 
     -- By default concatenation of firstname lastname
-    name                TEXT NOT NULL UNIQUE,
+    username            TEXT NOT NULL UNIQUE,
 
     -- First name
     firstname           TEXT,
@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS __DATABASE_COMMON_SCHEMA__.user (
     externalidp         JSON, 
 
     -- Free application settings
-    settings            JSON DEFAULT '{"notifyOnAddFeature":true,"notifyOnNewFollower":true,"notifyOnLikeFeature":true,"notifyOnAddComment":true,"showBio":true,"showIdentity":true,"showTopics":true,"showEmail":false,"profileNeedReview":true}';
+    settings            JSON DEFAULT '{"notifyOnAddFeature":true,"notifyOnNewFollower":true,"notifyOnLikeFeature":true,"notifyOnAddComment":true,"showBio":true,"showIdentity":true,"showTopics":true,"showEmail":false,"profileNeedReview":true}'
 
 );
 
@@ -256,7 +256,7 @@ CREATE TABLE IF NOT EXISTS __DATABASE_COMMON_SCHEMA__.log (
 
 -- [TABLE __DATABASE_COMMON_SCHEMA__.user]
 CREATE INDEX IF NOT EXISTS idx_resettoken_user ON __DATABASE_COMMON_SCHEMA__.user (resettoken);
-CREATE INDEX IF NOT EXISTS idx_name_user ON __DATABASE_COMMON_SCHEMA__.user USING gist (name gist_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_username_user ON __DATABASE_COMMON_SCHEMA__.user USING gist (username gist_trgm_ops);
 
 -- [TABLE __DATABASE_COMMON_SCHEMA__.follower]
 CREATE INDEX IF NOT EXISTS idx_userid_follower ON __DATABASE_COMMON_SCHEMA__.follower (userid);

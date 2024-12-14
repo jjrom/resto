@@ -139,10 +139,21 @@ class SecurityUtil
         $user = null;
         list($username, $password) = explode(':', base64_decode($token), 2);
         if (!empty($username) && !empty($password) && (bool)preg_match('//u', $username) && (bool)preg_match('//u', $password) && strpos($username, '\'') === false) {
-            $user = new RestoUser(array(
-                'email' => strtolower($username),
-                'password' => $password
-            ), $context);
+            
+            // email has a mandatory @
+            if (str_contains($username, '@')) {
+                $user = new RestoUser(array(
+                    'email' => strtolower($username),
+                    'password' => $password
+                ), $context);
+            }
+            else {
+                $user = new RestoUser(array(
+                    'username' => strtolower($username),
+                    'password' => $password
+                ), $context);
+            }
+            
         }
         return $user;
     }
