@@ -831,8 +831,8 @@ class RestoCollection
             'resto:info' => array(
                 'model' => $this->model->getName(),
                 'lineage' => $this->model->getLineage(),
-                'owner' => $this->owner,
-                'visibility' => $this->visibility
+                'owner' => $this->owner/*,
+                'visibility' => $this->visibility*/
             )
         );
 
