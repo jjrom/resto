@@ -101,11 +101,11 @@ class UsersAPI
      *                  "profiles":{
      *                      {
      *                          "id": "1356771884787565573",
+     *                          "username": "jrom",
      *                          "picture": "https://robohash.org/d0e907f8b6f4ee74cd4c38a515e2a4de?gravatar=hashed&bgset=any&size=400x400",
      *                          "groups": {
      *                              1
      *                          },
-     *                          "name": "jrom",
      *                          "followers": 185,
      *                          "followings": 144,
      *                          "firstname": "Jérôme",
@@ -118,11 +118,11 @@ class UsersAPI
      *                      },
      *                      {
      *                          "id": "1381434932013827205",
+     *                          "username": "Sergio",
      *                          "picture": "https://graph.facebook.com/410860042635946/picture?type=large",
      *                          "groups": {
      *                              "1"
      *                          },
-     *                          "name": "Sergio",
      *                          "followers": 16,
      *                          "followings": 9,
      *                          "registrationdate": "2016-10-08T22:50:34.187217Z",
@@ -166,11 +166,11 @@ class UsersAPI
 
         return (new UsersFunctions($this->context->dbDriver))->getUsersProfiles(
             array(
-            'lt' => $params['lt'] ?? null,
-            'groupid' => $params['groupid'] ?? null,
-            'in' => $params['in'] ?? null,
-            'q' => $params['q'] ?? null
-        ),
+                'lt' => $params['lt'] ?? null,
+                'groupid' => $params['groupid'] ?? null,
+                'in' => $params['in'] ?? null,
+                'q' => $params['q'] ?? null
+            ),
             !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ? $this->user->profile['id'] : null
         );
     }
@@ -179,7 +179,7 @@ class UsersAPI
      *  Get my profile
      *
      *  @OA\Get(
-     *      path="/user",
+     *      path="/me",
      *      summary="Get my profile",
      *      tags={"User"},
      *      @OA\Response(
@@ -202,8 +202,10 @@ class UsersAPI
         return array_merge(
             $this->user->profile,
             array(
-                'in_groups' => $this->user->getGroups(),
-                'owned_groups' => $this->user->getOwnedGroups()
+                'groups' => array(
+                    'in' => $this->user->getGroups(),
+                    'owned' => $this->user->getOwnedGroups(),
+                )
             )
         );
     }
@@ -212,14 +214,14 @@ class UsersAPI
      *  Get user profile
      *
      *  @OA\Get(
-     *      path="/users/{userid}",
+     *      path="/users/{username}",
      *      summary="Get user",
      *      tags={"User"},
      *      @OA\Parameter(
-     *         name="userid",
+     *         name="username",
      *         in="path",
      *         required=true,
-     *         description="User's identifier",
+     *         description="User name",
      *         @OA\Schema(
      *             type="string"
      *         )
@@ -247,13 +249,13 @@ class UsersAPI
     public function getUserProfile($params)
     {
 
-        if ($this->user->profile['id'] === $params['userid']) {
+        if ($this->user->profile['username'] === $params['username']) {
             return $this->getMyProfile();
         }
         
         return (new UsersFunctions($this->context->dbDriver))->getUserProfile(
-            'id',
-            $params['userid'],
+            'username',
+            $params['username'],
             array(
                 'from' => $this->user->profile['id'],
                 'partial' => true
@@ -307,7 +309,7 @@ class UsersAPI
      *         description="User information to create user account",
      *         required=true,
      *         @OA\JsonContent(
-     *              required={"email", "password"},
+     *              required={"username", "email", "password"},
      *              @OA\Property(
      *                  property="email",
      *                  type="string",
@@ -324,9 +326,9 @@ class UsersAPI
      *                  description="An http(s) url to the user's avatar picture"
      *              ),
      *              @OA\Property(
-     *                  property="name",
+     *                  property="username",
      *                  type="string",
-     *                  description="User display name"
+     *                  description="User name - must be alphanumerical only between 3 and 255 characters. (Note: will be converted to lowercase)"
      *              ),
      *              @OA\Property(
      *                  property="firstname",
@@ -367,7 +369,7 @@ class UsersAPI
      *                  "email": "john.doe@dev.null",
      *                  "password":"MySuperSecretPassword",
      *                  "picture": "https://robohash.org/d0e907f8b6f4ee74cd4c38a515e2a4de?gravatar=hashed&bgset=any&size=400x400",
-     *                  "name": "jj",
+     *                  "username": "jj",
      *                  "firstname": "John",
      *                  "lastname": "Doe",
      *                  "bio": "Just a user",
@@ -384,16 +386,21 @@ class UsersAPI
      */
     public function createUser($params, $body)
     {
-        foreach (array('email', 'password') as $required) {
+        foreach (array('email', 'password', 'username') as $required) {
             if (!isset($body[$required])) {
                 RestoLogUtil::httpError(400, $required . ' is not set');
             }
+        }
+
+        // Enforce alphanumerical name between 3 and 255 characters
+        if ( !ctype_alnum($body['username']) || strlen($body['username']) < 3 || strlen($body['username']) > 254 ) {
+            RestoLogUtil::httpError(400, 'Propety username must be an alphanumerical string between 3 and 255 characters');
         }
         
         $profile = array(
             'email' => $body['email'],
             'password' => $body['password'] ?? null,
-            'name'=> $body['name'] ?? trim(join(' ', array(ucfirst($body['firstname'] ?? ''), ucfirst($body['lastname'] ?? '')))),
+            'username'=> strtolower($body['username']),
             'firstname' => $body['firstname'] ?? null,
             'lastname' => $body['lastname'] ?? null,
             // [TODO] Check lang from request
@@ -418,14 +425,14 @@ class UsersAPI
      * Update user profile
      *
      * @OA\Put(
-     *      path="/users/{userid}",
+     *      path="/users/{username}",
      *      summary="Update user",
      *      tags={"User"},
      *      @OA\Parameter(
-     *         name="userid",
+     *         name="username",
      *         in="path",
      *         required=true,
-     *         description="User's identifier",
+     *         description="User's name",
      *         @OA\Schema(
      *             type="string"
      *         )
@@ -470,11 +477,6 @@ class UsersAPI
      *                  description="An http(s) url to the user's avatar picture"
      *              ),
      *              @OA\Property(
-     *                  property="name",
-     *                  type="string",
-     *                  description="User display name"
-     *              ),
-     *              @OA\Property(
      *                  property="firstname",
      *                  type="string",
      *                  description="User firstname"
@@ -511,7 +513,12 @@ class UsersAPI
      */
     public function updateUserProfile($params, $body)
     {
-        RestoUtil::checkUser($this->user, $params['userid']);
+        RestoUtil::checkUserName($this->user, $params['username']);
+
+        // name cannot be updated
+        if ( isset($body['username']) ) {
+            RestoLogUtil::httpError(400, 'Property username cannot be updated');
+        }
 
         /*
          * For normal user (i.e. non admin), some properties cannot be modified after validation
@@ -529,157 +536,13 @@ class UsersAPI
         /*
          * Ensure that user can only update its profile
          */
-        $body['email'] = $this->user->profile['email'];
+        $body['username'] = $this->user->profile['username'];
         (new UsersFunctions($this->context->dbDriver))->updateUserProfile(
             $body,
             $this->context->core['storageInfo']
         );
 
-        return RestoLogUtil::success('Update profile for user ' . $this->user->profile['email']);
-    }
-
-    /**
-     * Get user searches
-     *
-     *  @OA\Get(
-     *      path="/users/{userid}/history",
-     *      summary="Get user's search history",
-     *      description="Results are returned by pages with 50 results per page from most recent to oldest.",
-     *      tags={"User"},
-     *      @OA\Parameter(
-     *         name="userid",
-     *         in="path",
-     *         required=true,
-     *         description="User's identifier",
-     *         @OA\Schema(
-     *             type="string"
-     *         )
-     *      ),
-     *      @OA\Parameter(
-     *         name="querytime",
-     *         in="query",
-     *         style="form",
-     *         description="Filter on query time. Interval of ISO8601 date (i.e. YYYY-MM-DDTHH:MM:SSZ)",
-     *         @OA\Schema(
-     *             type="string"
-     *         )
-     *      ),
-     *      @OA\Parameter(
-     *         name="lt",
-     *         in="query",
-     *         style="form",
-     *         description="Return logs with gid lower than *lt* - used for pagination",
-     *         @OA\Schema(
-     *             type="integer"
-     *         )
-     *      ),
-     *      @OA\Response(
-     *          response="200",
-     *          description="User's history",
-     *          @OA\JsonContent(
-     *              @OA\Property(
-     *                  property="id",
-     *                  type="string",
-     *                  description="User identifier"
-     *              ),
-     *              @OA\Property(
-     *                  property="logs",
-     *                  type="array",
-     *                  description="Array of user's log history",
-     *                  @OA\Items(
-     *                      type="object",
-     *                      @OA\Property(
-     *                          property="gid",
-     *                          type="integer",
-     *                          description="Log unique idendifier"
-     *                      ),
-     *                      @OA\Property(
-     *                          property="method",
-     *                          type="string",
-     *                          description="Method - one of GET, POST, PUT or DELETE"
-     *                      ),
-     *                      @OA\Property(
-     *                          property="path",
-     *                          type="string",
-     *                          description="Path relative to the root endpoint"
-     *                      ),
-     *                      @OA\Property(
-     *                          property="querytime",
-     *                          type="string",
-     *                          description="Date of query (in ISO 8601)"
-     *                      ),
-     *                      @OA\Property(
-     *                          property="query",
-     *                          type="string",
-     *                          description="Query string"
-     *                      ),
-     *                      @OA\Property(
-     *                          property="userid",
-     *                          type="string",
-     *                          description="User identifier (only display to admin user)"
-     *                      ),
-     *                      @OA\Property(
-     *                          property="ip",
-     *                          type="string",
-     *                          description="Calling IP address (only display to admin user)"
-     *                      )
-     *                  )
-     *              ),
-     *              example={
-     *                  "id": "1356771884787565573",
-     *                  "logs":{
-     *                      {
-     *                          "gid": 65,
-     *                          "method": "GET",
-     *                          "path": "/users/202707441557308418/logs",
-     *                          "querytime": "2019-01-05T07:10:38.785236Z"
-     *                      },
-     *                      {
-     *                          "gid": 39,
-     *                          "method": "GET",
-     *                          "path": "/users",
-     *                          "querytime": "2019-01-03T22:19:28.251167Z",
-     *                          "query": "&in=202707441557308418%60"
-     *                      }
-     *                  }
-     *              }
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response="401",
-     *          description="Unauthorized",
-     *          @OA\JsonContent(ref="#/components/schemas/UnauthorizedError")
-     *      ),
-     *      @OA\Response(
-     *          response="403",
-     *          description="Forbidden",
-     *          @OA\JsonContent(ref="#/components/schemas/ForbiddenError")
-     *      ),
-     *      security={
-     *          {"basicAuth":{}, "bearerAuth":{}, "queryAuth":{}}
-     *      }
-     *  )
-     */
-    public function getUserLogs($params)
-    {
-        /*
-         * [SECURITY] User is limited to its own history logs
-         */
-        $isAdmin = $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID);
-        if (!$isAdmin) {
-            RestoUtil::checkUser($this->user, $params['userid']);
-        }
-
-        if (isset($params['lt']) && !ctype_digit($params['lt'])) {
-            RestoLogUtil::httpError(400, 'Invalid lt - should be numeric');
-        }
-        
-        return (new LogsFunctions($this->context->dbDriver))->getLogs(array(
-            'userid' => $params['userid'],
-            'lt' => $params['lt'] ?? null,
-            'querytime' => $params['querytime'] ?? null,
-            'fullDisplay' => $isAdmin
-        ));
+        return RestoLogUtil::success('Update profile for user ' . $this->user->profile['username']);
     }
 
     /**
@@ -703,7 +566,7 @@ class UsersAPI
             }
 
             if (!(new RestoNotifier($this->context->servicesInfos, $this->context->lang))->sendMailForUserActivation($userInfo['email'], $this->context->core['sendmail'], array(
-                'token' => $this->context->createRJWT($userInfo['id'], $this->context->core['tokenDuration'])
+                'token' => $this->context->createJWT($userInfo['username'], $this->context->core['tokenDuration'])
             ))) {
                 RestoLogUtil::httpError(500, 'Cannot send activation link');
             }

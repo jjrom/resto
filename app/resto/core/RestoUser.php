@@ -49,7 +49,7 @@ class RestoUser
     
     const DOWNLOAD_ITEM = 'downloadFeature';
 
-    // Each user has a private group named {userName}_USER_GROUP_SUFFIX
+    // Each user has a private group named {username}_USER_GROUP_SUFFIX
     const USER_GROUP_SUFFIX = '_private';
 
     /**
@@ -57,7 +57,7 @@ class RestoUser
      *
      * @OA\Schema(
      *  schema="UserDisplayProfile",
-     *  required={"id", "picture", "groups", "name", "followers", "followings"},
+     *  required={"id", "picture", "groups", "username", "followers", "followings"},
      *  @OA\Property(
      *      property="id",
      *      type="string",
@@ -77,9 +77,9 @@ class RestoUser
      *      description="Array of group identifiers"
      *  ),
      *  @OA\Property(
-     *      property="name",
+     *      property="username",
      *      type="string",
-     *      description="User display name"
+     *      description="User name"
      *  ),
      *  @OA\Property(
      *      property="followers",
@@ -132,7 +132,7 @@ class RestoUser
      *      "groups": {
      *          "1"
      *      },
-     *      "name": "jrom",
+     *      "username": "jrom",
      *      "followers": 185,
      *      "followings": 144,
      *      "firstname": "Jérôme",
@@ -173,6 +173,7 @@ class RestoUser
      */
     private $unregistered = array(
         'id' => null,
+        'username' => null,
         'email' => 'unregistered',
         'activated' => 0,
         'myGroup' => null
@@ -188,26 +189,26 @@ class RestoUser
      *
      * @param array $profile : Profile parameters
      * @param RestoContext $context
-     * @param boolean autoload
      */
-    public function __construct($profile, $context, $autoload = false)
+    public function __construct($profile, $context)
     {
         $this->context = $context;
 
         /*
          * Impossible
          */
-        if (!isset($profile) || (!isset($profile['id']) && (!isset($profile['email']) ||  $profile['email'] == 'unregistered'))) {
+        if (!isset($profile) || (!isset($profile['username']) && (!isset($profile['email']) ||  $profile['email'] == 'unregistered'))) {
             $this->profile = $this->unregistered;
         }
         /*
-         * Load profile from database is autoload is set to true
-         * or if no id is provided
+         * 
          */
-        elseif ($autoload || !isset($profile['id'])) {
-            if (isset($profile['id'])) {
-                $this->profile = (new UsersFunctions($this->context->dbDriver))->getUserProfile('id', $profile['id']);
-            } else {
+        else {
+
+            if (isset($profile['username'])) {
+                $this->profile = (new UsersFunctions($this->context->dbDriver))->getUserProfile('username', $profile['username']);
+            }
+            else {
                 $this->profile = (new UsersFunctions($this->context->dbDriver))->getUserProfile('email', $profile['email'], array(
                     'password' => $profile['password'] ?? null
                 ));
@@ -218,9 +219,8 @@ class RestoUser
             }
 
             $this->isComplete = true;
-        } else {
-            $this->profile = $profile;
         }
+
     }
 
     /**
@@ -363,7 +363,8 @@ class RestoUser
         if (! isset($this->context->addons['Cart'])) {
             RestoLogUtil::httpError(404, 'Cart add-on not installed');
         }
-        return (new CartFunctions($this->context->dbDriver))->getOrders($this->profile['id']);
+        $cartFunctionsClassName = 'CartFunctions';
+        return (new $cartFunctionsClassName($this->context->dbDriver))->getOrders($this->profile['id']);
     }
 
     /**
@@ -394,7 +395,8 @@ class RestoUser
         if (! isset($this->context->addons['Social'])) {
             RestoLogUtil::httpError(404, 'Social add-on not installed');
         }
-        return (new SocialFunctions($this->context->dbDriver))->getFollowers(array(
+        $socialFunctionsClassName = 'SocialFunctions';
+        return (new $socialFunctionsClassName($this->context->dbDriver))->getFollowers(array(
             'id' => $this->profile['id']
         ));
     }
@@ -407,7 +409,8 @@ class RestoUser
         if (! isset($this->context->addons['Social'])) {
             RestoLogUtil::httpError(404, 'Social add-on not installed');
         }
-        return (new SocialFunctions($this->context->dbDriver))->getFollowings(array(
+        $socialFunctionsClassName = 'SocialFunctions';
+        return (new $socialFunctionsClassName($this->context->dbDriver))->getFollowings(array(
             'id' => $this->profile['id']
         ));
     }
@@ -528,8 +531,8 @@ class RestoUser
      */
     public function loadProfile()
     {
-        if ( !$this->isComplete && isset($this->profile['id']) ) {
-            $this->profile = (new UsersFunctions($this->context->dbDriver))->getUserProfile('id', $this->profile['id']);
+        if ( !$this->isComplete && isset($this->profile['username']) ) {
+            $this->profile = (new UsersFunctions($this->context->dbDriver))->getUserProfile('username', $this->profile['username']);
             $this->isComplete = true;
         }
     }

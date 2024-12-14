@@ -354,10 +354,10 @@ class FeaturesAPI
      *          name="owner",
      *          in="query",
      *          style="form",
-     *          description="Limit search to owner's features (i.e. resto user identifier as bigint)",
+     *          description="Limit search to owner's features (i.e. resto username)",
      *          required=false,
      *          @OA\Schema(
-     *              type="integer"
+     *              type="string"
      *          )
      *      ),
      *      @OA\Parameter(
@@ -797,13 +797,24 @@ class FeaturesAPI
         // A value key is mandatory
         $allowed = array('title', 'description', 'visibility', 'owner', 'status');
         foreach (array_keys($body) as $property) {
+
             if (! in_array($property, $allowed)) {
                 RestoLogUtil::httpError(400, 'Property "' . $property . '" is not one of updatable properties (' . join(',', $allowed) . ')');
             }
+
             // Only admin can change owner property
             if ($property === 'owner' && ! $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
                 RestoLogUtil::httpError(403, 'You are not allowed to change property "owner"');
             }
+
+            // Convert visibility from names to ids
+            if ( $property === 'visibility' && isset($body[$property]) ) {
+                $body[$property] = (new GeneralFunctions($this->context->dbDriver))->visibilityNamesToIds($body[$property]);
+                if ( empty($body[$property]) ) {
+                    RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group'); 
+                }
+            }
+
         }
 
         return (new FeaturesFunctions($this->context->dbDriver))->updateFeatureProperties($feature, $body, $this->context, $this->user);

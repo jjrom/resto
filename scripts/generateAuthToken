@@ -1,6 +1,6 @@
 #!/bin/bash
 
-USER_ID=100
+USER_NAME=admin
 DAYS=100
 ABS_ROOT_PATH=$(cd -P -- "$(dirname -- "$0")" && printf '%s\n' "$(pwd -P)")
 ENV_FILE=${ABS_ROOT_PATH}/../config.env
@@ -32,7 +32,7 @@ function showUsage {
     echo -e "   Options:"
     echo -e ""
     echo -e "      -e | --envfile Environnement file (default is ${GREEN}${ENV_FILE}${NC})"
-    echo -e "      -i | --userid User identifier (default is ${GREEN}${USER_ID}${NC})"
+    echo -e "      -i | --username User name (default is ${GREEN}${USER_NAME}${NC})"
     echo -e "      -d | --duration Duration of token in days (default ${GREEN}${DAYS}${NC})"
     echo -e "      -h | --help show this help"
     echo -e ""
@@ -52,11 +52,11 @@ do
             ENV_FILE="$2"
             shift 2 # past argument
             ;;
-        -i|--userid)
-            USER_ID="$2"
+        -i|--username)
+            USER_NAME="$2"
             if [[ "$2" == "" || ${2:0:1} == "-" ]]; then
                 showUsage
-                echo -e "${RED}[ERROR] Missing user id${NC}"
+                echo -e "${RED}[ERROR] Missing username${NC}"
                 echo -e ""
                 exit 1
             fi
@@ -104,4 +104,4 @@ ADMIN_USER_PASSWORD=$(grep ^ADMIN_USER_PASSWORD= ${ENV_FILE} | awk -F= '{for (i=
 PUBLIC_ENDPOINT=${PUBLIC_ENDPOINT} \
 ADMIN_USER_NAME=${ADMIN_USER_NAME} \
 ADMIN_USER_PASSWORD=${ADMIN_USER_PASSWORD} \
-curl -u "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" "{$PUBLIC_ENDPOINT}/auth/create?userId={$USER_ID}&duration=${DAYS}"
+curl -u "${ADMIN_USER_NAME}:${ADMIN_USER_PASSWORD}" "{$PUBLIC_ENDPOINT}/auth/create?username={$USER_NAME}&duration=${DAYS}"

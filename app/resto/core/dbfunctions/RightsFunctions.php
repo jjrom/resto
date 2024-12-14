@@ -44,7 +44,7 @@ class RightsFunctions
 
         $groups = $user->getGroupIds();
         if ( isset($groups) && count($groups) > 0 ) {
-            return '(owner = ' . $user->profile['id'] . ' OR visibility && ARRAY[' . (count($groups) === 1 ? $groups[0] : join('::BIGINT,', $groups) ). '.::BIGINT])';
+            return '(owner = ' . $user->profile['id'] . ' OR visibility && ARRAY[' . (count($groups) === 1 ? $groups[0] : join('::BIGINT,', $groups) ). '::BIGINT])';
         }
 
         // This is not possible since every user is at leat in DEFAULT group but who knows !

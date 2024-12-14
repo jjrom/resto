@@ -47,13 +47,22 @@ class GroupAPI
      *  @OA\Property(
      *      property="owner",
      *      type="integer",
-     *      description="Owner of the group (i.e. resto user identifier as bigint)"
+     *      description="Owner of the group (i.e. resto username)"
+     *  ),
+     *  @OA\Property(
+     *      property="created",
+     *      type="string",
+     *      description="Date of group creation (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)"
      *  ),
      *  example={
-     *      "id": "100",
      *      "name": "My first group",
      *      "description": "Any user can create a group.",
-     *      "owner": "1919730603616371731"
+     *      "id": "100",
+     *      "owner": "johndoe",
+     *      "created": "2024-12-13T21:29:23.671111Z",
+     *      "members": {
+     *          "johndoe"
+     *      }
      *  }
      * )
      */
@@ -104,13 +113,11 @@ class GroupAPI
      *                          "id": 100,
      *                          "name": "My first group",
      *                          "description": "Any user can create a group.",
-     *                          "owner": "1919730603616371731"
      *                      },
      *                      {
      *                          "id": 101,
      *                          "name": "My second group",
-     *                          "description": "Any user can create a group.",
-     *                          "owner": "1919730603616371731"
+     *                          "description": "Any user can create a group."
      *                      }
      *                  }
      *              }
@@ -141,16 +148,16 @@ class GroupAPI
      *  Get group
      *
      *  @OA\Get(
-     *      path="/groups/{id}",
+     *      path="/groups/{name}",
      *      summary="Get group",
      *      tags={"Group"},
      *      @OA\Parameter(
-     *         name="id",
+     *         name="name",
      *         in="path",
      *         required=true,
-     *         description="Group identifier",
+     *         description="Group name",
      *         @OA\Schema(
-     *             type="integer"
+     *             type="string"
      *         )
      *      ),
      *      @OA\Response(
@@ -180,10 +187,7 @@ class GroupAPI
      */
     public function getGroup($params)
     {
-        $this->checkGroupId($params['id']);
-        return (new GroupsFunctions($this->context->dbDriver))->getGroups(array(
-            'id' => $params['id']
-        ));
+        return (new GroupsFunctions($this->context->dbDriver))->getGroup($params['name']);
     }
 
     /**
@@ -283,15 +287,15 @@ class GroupAPI
      * Remove a group
      *
      *  @OA\Delete(
-     *      path="/groups/{id}",
+     *      path="/groups/{name}",
      *      summary="Delete group",
      *      description="Only administrator and owner of a group can delete it",
      *      tags={"Group"},
      *      @OA\Parameter(
-     *         name="id",
+     *         name="name",
      *         in="path",
      *         required=true,
-     *         description="Group identifier",
+     *         description="Group name",
      *         @OA\Schema(
      *             type="string"
      *         )
@@ -312,7 +316,7 @@ class GroupAPI
      *              ),
      *              example={
      *                  "status": "success",
-     *                  "message": "Delete group 1919831313561420822"
+     *                  "message": "Delete group xxxx"
      *              }
      *          )
      *      ),
@@ -342,13 +346,12 @@ class GroupAPI
      */
     public function deleteGroup($params)
     {
-        $this->checkGroupId($params['id']);
         $group = (new GroupsFunctions($this->context->dbDriver))->removeGroup(array(
-            'id' => $params['id'],
+            'name' => $params['name'],
             'owner' => $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ? null : $this->user->profile['id']
         ));
 
-        return RestoLogUtil::success('Deleted group', array('id' => $group['id']));
+        return RestoLogUtil::success('Deleted group', array('name' => $group['name']));
 
     }
 
@@ -357,17 +360,17 @@ class GroupAPI
      * Add a user to group
      *
      * @OA\Post(
-     *      path="/groups/{id}/users",
+     *      path="/groups/{name}/users",
      *      summary="Add a user",
      *      description="Add a user to a group",
      *      tags={"Group"},
      *      @OA\Parameter(
-     *         name="id",
+     *         name="name",
      *         in="path",
      *         required=true,
-     *         description="Group identifier",
+     *         description="Group name",
      *         @OA\Schema(
-     *             type="integer"
+     *             type="name"
      *         )
      *      ),
      *      @OA\Response(
@@ -394,14 +397,14 @@ class GroupAPI
      *         description="User info",
      *         required=true,
      *         @OA\JsonContent(
-     *              required={"userid"},
+     *              required={"name"},
      *              @OA\Property(
-     *                  property="userid",
+     *                  property="username",
      *                  type="string",
-     *                  description="User identifier"
+     *                  description="User name"
      *              ),
      *              example={
-     *                  "userid": "100"
+     *                  "username": "johndoe"
      *              }
      *          )
      *      ),
@@ -417,12 +420,14 @@ class GroupAPI
     public function addUser($params, $body)
     {
 
-        $group = (new GroupsFunctions($this->context->dbDriver))->getGroups(array('id' => $params['id']));
-
-        if ( !isset($body['userid']) ) {
-            RestoLogUtil::httpError(400, 'Mandatory userid property is missing in message body');
+        $group = (new GroupsFunctions($this->context->dbDriver))->getGroup($params['name']);
+        
+        if ( !isset($body['username']) ) {
+            RestoLogUtil::httpError(400, 'Mandatory username property is missing in message body');
         }
 
+        $user = new RestoUser(array('username' => $body['username']), $this->context);
+        
         /*
          * [SECURITY] Only user and admin can add user to group
          */
@@ -431,10 +436,10 @@ class GroupAPI
             if ( !isset($group['owner']) ) {
                 RestoLogUtil::httpError(403);
             }
-            RestoUtil::checkUser($this->user, $group['owner']);
+            RestoUtil::checkUserId($this->user, $group['owner']);
         }
 
-        if ( (new GroupsFunctions($this->context->dbDriver))->addUserToGroup(array('id' => $params['id']), $body['userid']) ) {
+        if ( (new GroupsFunctions($this->context->dbDriver))->addUserToGroup(array('id' => $group['id']), $user->profile['id']) ) {
             return RestoLogUtil::success('User added to group');
         }
 
@@ -447,7 +452,8 @@ class GroupAPI
     public function deleteUser($params)
     {
 
-        $group = (new GroupsFunctions($this->context->dbDriver))->getGroups(array('id' => $params['id']));
+        $group = (new GroupsFunctions($this->context->dbDriver))->getGroup($params['name']);
+        $user = new RestoUser(array('username' => $params['username']), $this->context);
 
         /*
          * [SECURITY] Only user and admin can delete user from group
@@ -457,10 +463,10 @@ class GroupAPI
             if ( !isset($group['owner']) ) {
                 RestoLogUtil::httpError(403);
             }
-            RestoUtil::checkUser($this->user, $group['owner']);
+            RestoUtil::checkUserId($this->user, $group['owner']);
         }
 
-        if ( (new GroupsFunctions($this->context->dbDriver))->removeUserFromGroup(array('id' => $params['id']), $params['userid']) ) {
+        if ( (new GroupsFunctions($this->context->dbDriver))->removeUserFromGroup(array('id' => $group['id']), $user->profile['id']) ) {
             return RestoLogUtil::success('User removed from group');
         }
 
@@ -471,14 +477,14 @@ class GroupAPI
      *  Get user groups
      *
      *  @OA\Get(
-     *      path="/users/{userid}/groups",
+     *      path="/users/{username}/groups",
      *      summary="Get user's groups",
      *      tags={"User"},
      *      @OA\Parameter(
-     *         name="userid",
+     *         name="username",
      *         in="path",
      *         required=true,
-     *         description="User's identifier",
+     *         description="User's name",
      *         @OA\Schema(
      *             type="string"
      *         )
@@ -503,7 +509,7 @@ class GroupAPI
      *                  "groups":{
      *                      {
      *                          "id":"1",
-     *                          "name":"Default",
+     *                          "name":"default",
      *                          "description":"Default group"
      *                      }
      *                  }
@@ -527,9 +533,10 @@ class GroupAPI
      */
     public function getUserGroups($params)
     {
-        if ($this->user->profile['id'] === $params['userid']) {
+        if ($this->user->profile['username'] === $params['username']) {
             $this->user->loadProfile();
             return array(
+                'username' => $this->user->profile['username'],
                 'id' => $this->user->profile['id'],
                 'groups' => (new GroupsFunctions($this->context->dbDriver))->getGroups(array(
                     'in' => $this->user->getGroupIds()
@@ -537,8 +544,9 @@ class GroupAPI
             );
         }
 
-        $user = new RestoUser(array('id' => $params['userid']), $this->context, true);
-        return isset($user->profile['id']) ? array(
+        $user = new RestoUser(array('username' => $params['username']), $this->context);
+        return isset($user->profile['username']) ? array(
+            'username' => $this->user->profile['username'],
             'id' => $user->profile['id'],
             'groups' => (new GroupsFunctions($this->context->dbDriver))->getGroups(array(
                 'in' => $user->getGroupIds()
@@ -546,15 +554,4 @@ class GroupAPI
         ) : RestoLogUtil::httpError(404);
     }
     
-    /*
-     * Check that id is an integer stricly lower than Postgres INTEGER MAX_VALUE
-     *
-     * @param string $id
-     */
-    private function checkGroupId($groupid)
-    {
-        if (! ctype_digit($groupid) || intval($groupid) >= RestoConstants::INT_MAX_VALUE) {
-            RestoLogUtil::httpError(400, 'Invalid group identifier');
-        }
-    }
 }

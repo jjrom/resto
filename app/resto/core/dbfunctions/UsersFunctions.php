@@ -25,7 +25,7 @@ class UsersFunctions
 
     private $countLimit = 50;
 
-    private $userFields = 'id,email,name,firstname,lastname,bio,lang,country,organization,organizationcountry,flags,topics,password,picture,to_iso8601(registrationdate) as registrationdate,activated,followers,followings,validatedby,to_iso8601(validationdate) as validationdate,externalidp,settings';
+    private $userFields = 'id,username,email,firstname,lastname,bio,lang,country,organization,organizationcountry,flags,topics,password,picture,to_iso8601(registrationdate) as registrationdate,activated,followers,followings,validatedby,to_iso8601(validationdate) as validationdate,externalidp,settings';
         
     /**
      * Constructor
@@ -78,7 +78,7 @@ class UsersFunctions
 
                 case 'id':
                 case 'email':
-                case 'name':
+                case 'username':
                 case 'firstname':
                 case 'lastname':
                 case 'bio':
@@ -121,10 +121,11 @@ class UsersFunctions
     public static function formatPartialUserProfile($rawProfile)
     {
         
+        
         $profile = array(
-            'id' => $rawProfile['id'],
+            //'id' => $rawProfile['id'],
+            'username' => $rawProfile['username'],
             'picture' => $rawProfile['picture'],
-            'name' => $rawProfile['name'],
             'registrationdate' => $rawProfile['registrationdate'],
             'followers' => (integer) $rawProfile['followers'],
             'followings' => (integer) $rawProfile['followings']
@@ -138,6 +139,12 @@ class UsersFunctions
                         $profile['firstname'] = $rawProfile['firstname'];
                         $profile['lastname'] = $rawProfile['lastname'];
                     }
+                    if (isset($settings) && $settings['showBio']) {
+                        $profile['bio'] = $rawProfile['bio'];
+                    }
+                    if (isset($settings) && $settings['showEmail']) {
+                        $profile['email'] = $rawProfile['email'];
+                    }
                     if (isset($settings) && $settings['showTopics']) {
                         $topics = isset($rawProfile['topics']) ? substr($rawProfile['topics'], 1, -1) : null;
                         if (isset($topics)) {
@@ -149,10 +156,6 @@ class UsersFunctions
                 case 'followed':
                 case 'followme':
                     $profile[$key] = $value === 't' ? true : false;
-                    break;
-                
-                case 'bio':
-                    $profile[$key] = $value;
                     break;
                 
                 default:
@@ -278,7 +281,7 @@ class UsersFunctions
      *          0 => user exists but not activated
      *          1 => user exists and is activated
      *
-     * @param array $params - email or id
+     * @param array $params
      *
      * @return boolean
      * @throws Exception
@@ -312,17 +315,17 @@ class UsersFunctions
      */
     public function storeUserProfile($profile, $storageInfo)
     {
-        if (!is_array($profile) || !isset($profile['email'])) {
-            RestoLogUtil::httpError(400, 'Cannot save user profile - invalid user identifier');
+        if (!is_array($profile) || !isset($profile['email']) || !isset($profile['username'])) {
+            RestoLogUtil::httpError(400, 'Cannot save user profile - missing mandatories email and/or name');
         }
 
         $activatedStatus = $this->userActivatedStatus(array('email' => $profile['email']));
         if ($activatedStatus === 1) {
-            RestoLogUtil::httpError(409, 'Cannot save user profile - user already exist');
+            RestoLogUtil::httpError(409, 'Cannot save user profile - email already exist');
         }
 
         if ($activatedStatus === 0) {
-            RestoLogUtil::httpError(412, 'Cannot save user profile - user already exist but is not activated');
+            RestoLogUtil::httpError(412, 'Cannot save user profile - email already exist but the account is not yet activated');
         }
 
         /*
@@ -339,7 +342,8 @@ class UsersFunctions
          * Store everything
          */
         $toBeSet = array(
-            'email' => '\'' . $this->dbDriver->escape_string( $email) . '\'',
+            'username' => $this->dbDriver->escape_string($profile['username']),
+            'email' => '\'' . $this->dbDriver->escape_string($email) . '\'',
             'password' => '\'' . (isset($profile['password']) ? password_hash($profile['password'], PASSWORD_BCRYPT) : str_repeat('*', 60)) . '\'',
             'topics' => isset($profile['topics']) ? '\'{' . $this->dbDriver->escape_string( $profile['topics']) . '}\'' : 'NULL',
             'picture' => '\'' . $this->dbDriver->escape_string( $picture) . '\'',
@@ -350,7 +354,7 @@ class UsersFunctions
             'registrationdate' => 'now()',
             'externalidp' => isset($profile['externalidp']) ? '\'' . $this->dbDriver->escape_string( json_encode($profile['externalidp'], JSON_UNESCAPED_SLASHES)) . '\'' : 'NULL'
         );
-        foreach (array_values(array('name', 'firstname', 'lastname', 'country', 'organization', 'organizationcountry', 'flags', 'lang')) as $field) {
+        foreach (array_values(array('username', 'firstname', 'lastname', 'country', 'organization', 'organizationcountry', 'flags', 'lang')) as $field) {
             if (isset($profile[$field])) {
                 $toBeSet[$field] = "'" . $this->dbDriver->escape_string( $profile[$field]) . "'";
             }
@@ -361,6 +365,10 @@ class UsersFunctions
             
             $this->dbDriver->query('BEGIN');
 
+            if ( $this->userExists($profile['username']) ) {
+                throw new Exception('User name ' . $profile['username'] . ' already exists', 409);
+            }
+
             // First create the user
             $results =  $this->dbDriver->fetch($this->dbDriver->query('INSERT INTO ' . $this->dbDriver->commonSchema . '.user (' . join(',', array_keys($toBeSet)) . ') VALUES (' . join(',', array_values($toBeSet)) . ') RETURNING *'));
 
@@ -368,8 +376,8 @@ class UsersFunctions
             if ( count($results) === 1 ) {
                 $outputProfile = UsersFunctions::formatUserProfile($results[0]);
                 $group = (new GroupsFunctions($this->dbDriver))->createGroup(array(
-                    'name' => $outputProfile['name'] . RestoUser::USER_GROUP_SUFFIX,
-                    'description' => 'Private group for user ' . $outputProfile['name'],
+                    'name' => $outputProfile['username'] . RestoUser::USER_GROUP_SUFFIX,
+                    'description' => 'Private group for user ' . $outputProfile['username'],
                     'owner' => $outputProfile['id'],
                     'private' => 1
                 ));
@@ -424,7 +432,7 @@ class UsersFunctions
      */
     public function updateUserProfile($profile, $storageInfo)
     {
-        if (!is_array($profile) || !isset($profile['email'])) {
+        if (!is_array($profile) || !isset($profile['username'])) {
             RestoLogUtil::httpError(400);
         }
 
@@ -432,12 +440,13 @@ class UsersFunctions
          * The following parameters cannot be updated :
          *   - id
          *   - email
+         *   - name
          *   - resettoken
          *   - resetexpire
          *   - registrationdate
          */
         $values = array();
-        foreach (array_values(array('password', 'activated', 'bio', 'name', 'firstname', 'lastname', 'country', 'organization', 'topics', 'organizationcountry', 'flags', 'lang', 'settings', 'picture', 'externalidp')) as $field) {
+        foreach (array_values(array('password', 'activated', 'bio', 'firstname', 'lastname', 'country', 'organization', 'topics', 'organizationcountry', 'flags', 'lang', 'settings', 'picture', 'externalidp')) as $field) {
             if (isset($profile[$field])) {
                 switch ($field) {
                     case 'password':
@@ -469,7 +478,7 @@ class UsersFunctions
 
         $results = array();
         if (count($values) > 0) {
-            $results = $this->dbDriver->fetch($this->dbDriver->query('UPDATE ' . $this->dbDriver->commonSchema . '.user SET ' . join(',', $values) . ' WHERE email=\'' . $this->dbDriver->escape_string( trim(strtolower($profile['email']))) . '\' RETURNING id'));
+            $results = $this->dbDriver->fetch($this->dbDriver->query('UPDATE ' . $this->dbDriver->commonSchema . '.user SET ' . join(',', $values) . ' WHERE username=\'' . $this->dbDriver->escape_string(strtolower($profile['username'])) . '\' RETURNING id'));
         }
 
         return count($results) === 1 ? $results[0]['id'] : null;
@@ -578,6 +587,19 @@ class UsersFunctions
         );
 
         return count($this->dbDriver->fetch($this->dbDriver->query('UPDATE ' . $this->dbDriver->commonSchema . '.user SET ' . join(',', $toBeSet) . ' WHERE id=' . $this->dbDriver->escape_string( $userid) . ' RETURNING id'))) === 1 ? true : false;
+    }
+
+    /**
+     * Check if user exists from name
+     *
+     * @param string $name
+     * @return boolean
+     * @throws Exception
+     */
+    public function userExists($name)
+    {
+        $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT username FROM ' . $this->dbDriver->targetSchema . '.user WHERE username=$1', array(strtolower($name))));
+        return !empty($results);
     }
 
     /**

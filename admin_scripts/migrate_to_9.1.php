@@ -21,8 +21,8 @@
 
         $dbDriver->query('BEGIN');
 
-        $dbDriver->query('ALTER TABLE ' . $dbDriver->targetSchema . '.collection ADD COLUMN title TEXT');
-        $dbDriver->query('ALTER TABLE ' . $dbDriver->targetSchema . '.collection ADD COLUMN description TEXT');
+        $dbDriver->query('ALTER TABLE ' . $dbDriver->targetSchema . '.collection ADD COLUMN IF NOT EXISTS title TEXT');
+        $dbDriver->query('ALTER TABLE ' . $dbDriver->targetSchema . '.collection ADD COLUMN IF NOT EXISTS description TEXT');
         $dbDriver->query('WITH tmp as (SELECT collection, longname, description FROM ' . $dbDriver->targetSchema . '.osdescription WHERE lang=\'en\') UPDATE ' . $dbDriver->targetSchema . '.collection SET title=tmp.longname, description=tmp.description FROM tmp WHERE tmp.collection=id');
         $dbDriver->query('DROP TABLE ' . $dbDriver->targetSchema . '.osdescription');
 
@@ -53,4 +53,4 @@
         $dbDriver->query('ROLLBACK');
         RestoLogUtil::httpError(500, $e->getMessage());
     }
-
+    echo "Looks good\n";

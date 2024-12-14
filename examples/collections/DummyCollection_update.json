@@ -4,18 +4,8 @@
     "title": "DummyCollection with an updated title",
     "description":"This is a Dummy Collection with an updated title",
     "aliases":[
-        "DummyCollectionAlias"
-    ],
-    "version": "1.0",
-    "license": "PDDL-1.0",
-    "providers": [
-        {
-            "name": "jeobrowser",
-            "roles": [
-                "processor"
-            ],
-            "url": "https://github.com/jjrom/resto"
-        }
+        "DummyCollectionAlias",
+        "DummyCollectionAlias2"
     ],
     "anyProperty":"You can add other free properties"
 }

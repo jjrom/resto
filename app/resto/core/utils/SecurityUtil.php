@@ -86,7 +86,7 @@ class SecurityUtil
          * If we land here - set an unregistered user
          */
         if (!isset($user)) {
-            $user = new RestoUser(null, $context, false);
+            $user = new RestoUser(null, $context);
         }
 
         /*
@@ -139,10 +139,21 @@ class SecurityUtil
         $user = null;
         list($username, $password) = explode(':', base64_decode($token), 2);
         if (!empty($username) && !empty($password) && (bool)preg_match('//u', $username) && (bool)preg_match('//u', $password) && strpos($username, '\'') === false) {
-            $user = new RestoUser(array(
-                'email' => strtolower($username),
-                'password' => $password
-            ), $context, true);
+            
+            // email has a mandatory @
+            if (str_contains($username, '@')) {
+                $user = new RestoUser(array(
+                    'email' => strtolower($username),
+                    'password' => $password
+                ), $context);
+            }
+            else {
+                $user = new RestoUser(array(
+                    'username' => strtolower($username),
+                    'password' => $password
+                ), $context);
+            }
+            
         }
         return $user;
     }
@@ -166,18 +177,18 @@ class SecurityUtil
              * If issuer_id is specified in the request then assumes a third party token.
              * In this case, transform this third party token into a resto token
              */
-            if (isset($context->query['issuerId']) && isset($context->addons['Auth'])) {
-                $auth = new Auth($context, null);
+            $authClassName = 'Auth';
+            if (isset($context->query['issuerId']) && isset($context->addons[$authClassName])) {
+                $auth = new $authClassName($context, null);
                 $token = $auth->getProfileToken($context->query['issuerId'], $token);
             }
 
             /*
              * Get user from JWT payload if valid
              */
-            $userid = $this->getIdFromBearer($context, $token);
-
-            if (isset($userid)) {
-                $user = new RestoUser(array('id' => $userid), $context, false);
+            $username = $this->getUsernameFromBearer($context, $token);
+            if (isset($username)) {
+                $user = new RestoUser(array('username' => $username), $context);
                 $user->token = $token;
             }
         } catch (Exception $ex) {
@@ -195,7 +206,7 @@ class SecurityUtil
      * @param array $payloadObject JWT payload
      * @return string
      */
-    private function getIdFromBearer($context, $token)
+    private function getUsernameFromBearer($context, $token)
     {
         $payloadObject = $context->decodeJWT($token);
 

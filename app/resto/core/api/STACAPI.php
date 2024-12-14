@@ -388,9 +388,27 @@ class STACAPI
             $body['links'] = array();
         }
 
+        /*
+         * Convert visibility from names to ids
+         */
+        if ( isset($body['visibility']) ) {
+            $body['visibility'] = (new GeneralFunctions($this->context->dbDriver))->visibilityNamesToIds($body['visibility']);
+            if ( empty($body['visibility']) ) {
+                RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group'); 
+            }
+        }
+
         // Owner of catalog can only be set by admin user
-        if ( isset($body['owner']) && !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
-            RestoLogUtil::httpError(403, 'You are not allowed to set property "owner"');
+        if ( isset($body['owner']) ) {
+
+            if ( !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+                RestoLogUtil::httpError(403, 'You are not allowed to set property "owner"');
+            }
+
+            // Convert owner name to id
+            $owner = new RestoUser(array('username' => $body['owner']), $this->context);
+            $body['owner'] = $owner->profile['id'];
+            
         } 
 
         /*
@@ -524,10 +542,28 @@ class STACAPI
             RestoLogUtil::httpError(403);
         }
 
+        /*
+         * Convert visibility from names to ids
+         */
+        if ( isset($body['visibility']) ) {
+            $body['visibility'] = (new GeneralFunctions($this->context->dbDriver))->visibilityNamesToIds($body['visibility']);
+            if ( empty($body['visibility']) ) {
+                RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group'); 
+            }
+        }
+
         // Owner of catalog can only be changed by admin user
-        if ( isset($body['owner']) && !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
-            RestoLogUtil::httpError(403, 'You are not allowed to change property "owner"');
-        } 
+        if ( isset($body['owner']) ) {
+
+            if ( !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+                RestoLogUtil::httpError(403, 'You are not allowed to change property "owner"');
+            }
+
+             // Convert owner name to id
+             $owner = new RestoUser(array('username' => $body['owner']), $this->context);
+             $body['owner'] = $owner->profile['id'];
+            
+        }
         
         // Update is not forced so we should check that input links array don't remove existing childs
         // [IMPORTANT] if no links object is in the body then only other properties are updated and existing links are not destroyed
@@ -564,7 +600,7 @@ class STACAPI
         // [TODO] not sure it's needed
         $body['id'] = $catalogs[0]['id'];
         
-        return $this->catalogsFunctions->updateCatalog($body, $this->user, $this->context) ? RestoLogUtil::success('Catalog updated') : RestoLogUtil::error('Cannot update catalog');
+        return $this->catalogsFunctions->updateCatalog($body, $this->user, $this->context) ? RestoLogUtil::success('Catalog updated') : RestoLogUtil::httpError(500, 'Cannot update catalog');
     }
 
     /**
@@ -1094,10 +1130,10 @@ class STACAPI
      *          name="owner",
      *          in="query",
      *          style="form",
-     *          description="Limit search to owner's features (i.e. resto user identifier as bigint)",
+     *          description="Limit search to owner's features (i.e. resto username)",
      *          required=false,
      *          @OA\Schema(
-     *              type="integer"
+     *              type="string"
      *          )
      *      ),
      *      @OA\Parameter(
@@ -1456,9 +1492,10 @@ class STACAPI
 
         $nbOfSegments = count($segments);
         
-        if ($segments[0] === 'views' && isset($this->context->addons['View'])) {
+        $viewClassName = 'View';
+        if ($segments[0] === 'views' && isset($this->context->addons[$viewClassName])) {
 
-            $view = new View($this->context, $this->user);
+            $view = new $viewClassName($this->context, $this->user);
             
             // Root
             if ($nbOfSegments === 1) {
@@ -1480,7 +1517,9 @@ class STACAPI
 
         // SOSA special case
         else if ($segments[0] === 'concepts' && isset($this->context->addons['SOSA'])) {
-            $skos = new SKOS($this->context, $this->user);
+
+            $skosClassName = 'SKOS';
+            $skos = new $skosClassName($this->context, $this->user);
             
             // Root
             if ($nbOfSegments === 1) {
@@ -1681,12 +1720,15 @@ class STACAPI
     {
         $links = array();
 
+        $viewClassName = 'View';
+
         /*
          * Exposed views as STAC catalogs
          * Only displayed if at least one theme exists
          */
-        if (isset($this->context->addons['View'])) {
-            $stacLink = (new View($this->context, $this->user))->getSTACRootLink();
+        if (isset($this->context->addons[$viewClassName])) {
+            
+            $stacLink = (new $viewClassName($this->context, $this->user))->getSTACRootLink();
             if (isset($stacLink) && $stacLink['matched'] > 0) {
                 $links[] = $stacLink;
             }

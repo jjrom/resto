@@ -220,59 +220,37 @@ class CollectionsFunctions
             /*
              * Create collection
              */
-            if (! $this->collectionExists($collection->id)) {
-                $toBeSet = array(
-                    'id' => $collection->id,
-                    'title' => $collection->title,
-                    'description' => $collection->description,
-                    'created' => 'now()',
-                    'model' => $collection->model->getName(),
-                    'lineage' => '{' . join(',', $collection->model->getLineage()) . '}',
-                    // Be carefull license column is named licenseid in table
-                    'licenseid' => $collection->license,
-                    'visibility' => '{' . join(',', $collection->visibility) . '}',
-                    'owner' => $collection->owner,
-                    'providers' => json_encode($collection->providers, JSON_UNESCAPED_SLASHES),
-                    'properties' => json_encode($collection->properties, JSON_UNESCAPED_SLASHES),
-                    'links' => json_encode($collection->links, JSON_UNESCAPED_SLASHES),
-                    'assets' => json_encode($collection->assets, JSON_UNESCAPED_SLASHES),
-                    'keywords' => $keywords,
-                    'version' => $collection->version,
-                    'startdate' => $startDate,
-                    'completiondate' => $completionDate
-                );
-                
-                // bbox is set
-                if (isset($collection->extent['spatial']['bbox'][0])) {
-                    if (count($collection->extent['spatial']['bbox'][0]) !== 4) {
-                        RestoLogUtil::httpError(400, 'Invalid input bbox');
-                    }
-                    $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.collection (' . join(',', array_keys($toBeSet)) . ', bbox) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, ST_SetSRID(ST_MakeBox2D(ST_Point($18, $19), ST_Point($20, $21)), 4326) )', array_merge(array_values($toBeSet), $collection->extent['spatial']['bbox'][0]));
-                } else {
-                    $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.collection (' . join(',', array_keys($toBeSet)) . ') VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)', array_values($toBeSet));
+            $toBeSet = array(
+                'id' => $collection->id,
+                'title' => $collection->title,
+                'description' => $collection->description,
+                'created' => 'now()',
+                'model' => $collection->model->getName(),
+                'lineage' => '{' . join(',', $collection->model->getLineage()) . '}',
+                // Be carefull license column is named licenseid in table
+                'licenseid' => $collection->license,
+                'visibility' => '{' . join(',', $collection->visibility) . '}',
+                'owner' => $collection->owner,
+                'providers' => json_encode($collection->providers, JSON_UNESCAPED_SLASHES),
+                'properties' => json_encode($collection->properties, JSON_UNESCAPED_SLASHES),
+                'links' => json_encode($collection->links, JSON_UNESCAPED_SLASHES),
+                'assets' => json_encode($collection->assets, JSON_UNESCAPED_SLASHES),
+                'keywords' => $keywords,
+                'version' => $collection->version,
+                'startdate' => $startDate,
+                'completiondate' => $completionDate
+            );
+            
+            // bbox is set
+            if (isset($collection->extent['spatial']['bbox'][0])) {
+                if (count($collection->extent['spatial']['bbox'][0]) !== 4) {
+                    RestoLogUtil::httpError(400, 'Invalid input bbox');
                 }
+                $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.collection (' . join(',', array_keys($toBeSet)) . ', bbox) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, ST_SetSRID(ST_MakeBox2D(ST_Point($18, $19), ST_Point($20, $21)), 4326) )', array_merge(array_values($toBeSet), $collection->extent['spatial']['bbox'][0]));
+            } else {
+                $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.collection (' . join(',', array_keys($toBeSet)) . ') VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)', array_values($toBeSet));
             }
-            /*
-             * Otherwise update collection fields
-             */
-            else {
-                $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.collection SET model=$2, lineage=$3, licenseid=$4, visibility=$5, providers=$6, properties=$7, links=$8, assets=$9, keywords=$10, version=$11, title=$12, description=$13 WHERE id=$1', array(
-                    $collection->id,
-                    $collection->model->getName(),
-                    '{' . join(',', $collection->model->getLineage()) . '}',
-                    $collection->license,
-                    '{' . join(',', $collection->visibility) . '}',
-                    json_encode($collection->providers, JSON_UNESCAPED_SLASHES),
-                    json_encode($collection->properties, JSON_UNESCAPED_SLASHES),
-                    json_encode($collection->links, JSON_UNESCAPED_SLASHES),
-                    json_encode($collection->assets, JSON_UNESCAPED_SLASHES),
-                    $keywords,
-                    $collection->version,
-                    $collection->title,
-                    $collection->description
-                ));
-            }
-
+            
             // Store aliases
             $this->updateAliases($collection->id, $collection->aliases ?? array());
 
@@ -292,6 +270,90 @@ class CollectionsFunctions
         } catch (Exception $e) {
             RestoLogUtil::httpError($e->getCode(), $e->getMessage());
         }
+    }
+
+    /**
+     * Update collection
+     * 
+     * @param RestoCollection $collection
+     * @param array $body
+     */
+    public function updateCollection($collection, $body)
+    {
+
+        $keys = array();
+        $values = array(
+            $collection->id
+        );
+
+        $body['properties'] = array_merge($collection->properties, $body['properties'] ?? array());
+
+        foreach($body as $key => $value) {
+
+            switch ($key) {
+
+                case 'providers':
+                case 'properties':
+                case 'links':
+                case 'assets':
+                    $keys[] = $key . '=$' . (count($keys) + 2);
+                    $values[] = json_encode($value, JSON_UNESCAPED_SLASHES);
+                    break;
+
+                case 'license':
+                    $keys[] = 'licenseid=$' . (count($keys) + 2);
+                    $values[] = $value;
+                    break;
+
+                case 'version':
+                case 'title':
+                case 'description':
+                    $keys[] = $key . '=$' . (count($keys) + 2);
+                    $values[] = $value;
+                    break;
+                
+                case 'keywords':
+                case 'visibility':
+                    $keys[] = $key . '=$' . (count($keys) + 2);
+                    $values[] = '{' . join(',', $value) . '}';
+                    break;
+
+                case 'model':
+                    $model = (new $value(array(
+                        'collectionId' => $collection->id,
+                        'addons' => $collection->context->addons
+                    )));
+                    $keys[] =  'model=$' . (count($keys) + 2);
+                    $values[] = $model->getName();
+                    $keys[] = 'lineage=$' . (count($keys) + 2);
+                    $values[] = '{' . join(',', $model->getLineage()) . '}';
+                    break;
+            }
+
+        }
+
+        try {
+
+            /*
+             * Start transaction
+             */
+            $this->dbDriver->query('BEGIN');
+
+            $query = 'UPDATE ' . $this->dbDriver->targetSchema . '.collection SET ' . join(',', $keys) . ' WHERE id=$1';
+            $this->dbDriver->pQuery($query, $values);
+
+            // Store aliases
+            $this->updateAliases($collection->id, $body['aliases'] ?? array());
+
+            /*
+             * Close transaction
+             */
+            $this->dbDriver->query('COMMIT');
+
+        } catch (Exception $e) {
+            RestoLogUtil::httpError($e->getCode(), $e->getMessage());
+        }
+
     }
 
     /**
@@ -477,7 +539,7 @@ class CollectionsFunctions
             'aliases' => isset($rawCollection['aliases']) ? json_decode($rawCollection['aliases'], true) : array(),
             'version' => $rawCollection['version'] ?? null,
             'model' => $rawCollection['model'],
-            'visibility' => json_decode($rawCollection['visibility'], true),
+            'visibility' => RestoUtil::SQLTextArrayToPHP($rawCollection['visibility']),
             'owner' => $rawCollection['owner'],
             'providers' => json_decode($rawCollection['providers'], true),
             'assets' => json_decode($rawCollection['assets'], true),
@@ -504,7 +566,7 @@ class CollectionsFunctions
             // Special _properties will be discarded in toArray()
             'properties' => json_decode($rawCollection['properties'], true)
         );
-
+        
         return $collection;
     }
 

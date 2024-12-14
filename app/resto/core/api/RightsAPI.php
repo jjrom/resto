@@ -58,16 +58,16 @@ class RightsAPI
 
     /**
      *  @OA\Get(
-     *      path="/users/{userid}/rights",
+     *      path="/users/{username}/rights",
      *      summary="Get user rights",
      *      tags={"Rights"},
      *      @OA\Parameter(
-     *         name="userid",
+     *         name="username",
      *         in="path",
      *         required=true,
-     *         description="User identifier",
+     *         description="User name",
      *         @OA\Schema(
-     *             type="integer"
+     *             type="string"
      *         )
      *      ),
      *      @OA\Response(
@@ -103,10 +103,10 @@ class RightsAPI
          */
         $isAdmin = $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID);
         if ( !$isAdmin ) {
-            RestoUtil::checkUser($this->user, $params['userid']);
+            RestoUtil::checkUserName($this->user, $params['username']);
         }
 
-        $user = new RestoUser(array('id' => $params['userid']), $this->context, true);
+        $user = new RestoUser(array('username' => $params['username']), $this->context);
         return array(
             'rights' => $user->getRights()
         );
@@ -117,21 +117,21 @@ class RightsAPI
      *  Get group rights
      *
      *  @OA\Get(
-     *      path="/groups/{id}/rights",
+     *      path="/groups/{name}/rights",
      *      summary="Get group rights",
      *      tags={"Rights"},
      *      @OA\Parameter(
-     *         name="id",
+     *         name="name",
      *         in="path",
      *         required=true,
-     *         description="Group identifier",
+     *         description="Group name",
      *         @OA\Schema(
-     *             type="integer"
+     *             type="string"
      *         )
      *      ),
      *      @OA\Response(
      *          response="200",
-     *          description="User group rights",
+     *          description="Group rights",
      *          @OA\JsonContent(ref="#/components/schemas/Rights")
      *      ),
      *      @OA\Response(
@@ -156,8 +156,9 @@ class RightsAPI
      */
     public function getGroupRights($params)
     {
+        $group = (new GroupsFunctions($this->context->dbDriver))->getGroup($params['name']);
         return array(
-            'rights' => (new RightsFunctions($this->context->dbDriver))->getRightsForGroup($params['id'])
+            'rights' => (new RightsFunctions($this->context->dbDriver))->getRightsForGroup($group['id'])
         );
     }
 
@@ -166,17 +167,17 @@ class RightsAPI
      * Set user rights
      *
      * @OA\Post(
-     *      path="/users/{userid}/rights",
+     *      path="/users/{username}/rights",
      *      summary="Set rights for user",
      *      description="Set rights for a given user",
      *      tags={"Rights"},
      *      @OA\Parameter(
-     *         name="userid",
+     *         name="username",
      *         in="path",
      *         required=true,
-     *         description="User identifier",
+     *         description="User name",
      *         @OA\Schema(
-     *             type="integer"
+     *             type="string"
      *         )
      *      ),
      *      @OA\Response(
@@ -252,10 +253,10 @@ class RightsAPI
         }
 
         // Get user just to be sure that it exists !
-        new RestoUser(array('id' => $params['userid']), $this->context, true);
+        $user = new RestoUser(array('username' => $params['username']), $this->context);
         
         return RestoLogUtil::success('Rights set', array(
-            'rights' => (new RightsFunctions($this->context->dbDriver))->storeOrUpdateRights('userid', $params['userid'], $body)
+            'rights' => (new RightsFunctions($this->context->dbDriver))->storeOrUpdateRights('userid', $user->profile['id'], $body)
         ));
 
     }
@@ -265,17 +266,17 @@ class RightsAPI
      * Set group rights
      *
      * @OA\Post(
-     *      path="/groups/{id}/rights",
+     *      path="/groups/{name}/rights",
      *      summary="Set rights for group",
      *      description="Set rights for a given group",
      *      tags={"Rights"},
      *      @OA\Parameter(
-     *         name="id",
+     *         name="name",
      *         in="path",
      *         required=true,
-     *         description="Group identifier",
+     *         description="Group name",
      *         @OA\Schema(
-     *             type="integer"
+     *             type="string"
      *         )
      *      ),
      *      @OA\Response(
@@ -350,12 +351,10 @@ class RightsAPI
         }
 
         // Get group just to be sure that it exists !
-        (new GroupsFunctions($this->context->dbDriver))->getGroups(array(
-            'id' => $params['id']
-        ));
+        $group = (new GroupsFunctions($this->context->dbDriver))->getGroup($params['name']);
 
         return RestoLogUtil::success('Rights set', array(
-            'rights' => (new RightsFunctions($this->context->dbDriver))->storeOrUpdateRights('groupid', $params['id'], $body)
+            'rights' => (new RightsFunctions($this->context->dbDriver))->storeOrUpdateRights('groupid', $group['id'], $body)
         ));
 
     }

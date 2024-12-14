@@ -399,6 +399,12 @@ class RestoFeatureCollection
         $this->user = $user;
         $this->collections = $collections;
         $this->model = $model ?? new DefaultModel();
+
+        // Convert ower name to owner id
+        if ( !empty($query) && isset($query['owner']) ) {
+            $owner = new RestoUser(array('username' => $query['owner']), $this->context);
+            $query['owner'] = $owner->profile['id'];
+        }
         $this->query = $query;
     }
 

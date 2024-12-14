@@ -491,14 +491,28 @@ class RestoUtil
     /**
      * Check that userid is the caller
      *
+     * @param RestoUser $user
      * @param string userid
      */
-    public static function checkUser($user, $userid)
+    public static function checkUserId($user, $userid)
     {
         if (!ctype_digit($userid)) {
             RestoLogUtil::httpError(400, 'Invalid userid');
         }
         if (! $user || $user->profile['id'] !== $userid) {
+            RestoLogUtil::httpError(403);
+        }
+    }
+
+    /**
+     * Check that userid is the caller
+     *
+     * @param RestoUser $user
+     * @param string username
+     */
+    public static function checkUserName($user, $username)
+    {
+        if (! $user || $user->profile['username'] !== $username) {
             RestoLogUtil::httpError(403);
         }
     }
@@ -552,7 +566,7 @@ class RestoUtil
     }
 
     /**
-     * Return vsibility for user
+     * Return visibility for user
      * 
      * @param RestoUser $user
      * @param string $groupId
@@ -570,6 +584,21 @@ class RestoUtil
         return array(RestoConstants::GROUP_DEFAULT_ID);
     }
     
+
+    /**
+     * Convert a SQL text array i.e. "{100,1000}" into a php array
+     * 
+     * @param string $textArray
+     */
+    public static function SQLTextArrayToPHP($textArray)
+    {
+
+        if ( !isset($textArray) ) {
+            return array();
+        }
+
+        return explode(',', substr($textArray, 1, -1));
+    }
 
     /**
      * Construct base url from parse_url fragments

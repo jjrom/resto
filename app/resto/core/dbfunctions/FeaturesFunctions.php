@@ -187,7 +187,9 @@ class FeaturesFunctions
         /*
          * Heatmap
          */
-        if (isset($context->addons['Heatmap'])) {
+        $heatmapClassName = 'Heatmap';
+        if (isset($context->addons[$heatmapClassName])) {
+
             $wkt = null;
 
             /*
@@ -196,7 +198,7 @@ class FeaturesFunctions
             if (isset($context->query['_heatmapNoGeo']) && filter_var($context->query['_heatmapNoGeo'], FILTER_VALIDATE_BOOLEAN)) {
                 $whereClause = $filtersFunctions->getWhereClause($filtersAndJoins, array('sort' => false, 'addGeo' => false));
                 // [IMPORTANT] Set empty $params in getCount() to avoid computation of real count
-                $heatmapLink = (new Heatmap($context, $user))->getEndPoint($featureTableName, $whereClause, $this->getCount('FROM ' . $featureTableName . ' ' . $whereClause, join(' ', $filtersAndJoins['withs']),), $wkt);
+                $heatmapLink = (new $heatmapClassName($context, $user))->getEndPoint($featureTableName, $whereClause, $this->getCount('FROM ' . $featureTableName . ' ' . $whereClause, join(' ', $filtersAndJoins['withs']),), $wkt);
             } else {
                 for ($i = count($filtersAndJoins['filters']); $i--;) {
                     if ($filtersAndJoins['filters'][$i]['isGeo']) {
@@ -204,7 +206,7 @@ class FeaturesFunctions
                         break;
                     }
                 }
-                $heatmapLink = (new Heatmap($context, $user))->getEndPoint($featureTableName, $whereClause, $count, $wkt);
+                $heatmapLink = (new $heatmapClassName($context, $user))->getEndPoint($featureTableName, $whereClause, $count, $wkt);
             }
             
             if (isset($heatmapLink)) {

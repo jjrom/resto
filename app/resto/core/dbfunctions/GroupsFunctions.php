@@ -42,7 +42,10 @@ class GroupsFunctions
      */
     public function getGroups($params = array())
     {
-        $where = array();
+        $where = array(
+            'private <> 1'/*,
+            'name NOT IN (\'admin\', \'default\')'*/
+        );
         
         // Return group by id
         if (isset($params['id'])) {
@@ -68,8 +71,40 @@ class GroupsFunctions
         if (isset($params['owner'])) {
             $where[] = 'owner=' . $this->dbDriver->escape_string( $params['owner']);
         }
+
+        $results = $this->dbDriver->fetch($this->dbDriver->query('SELECT name, description, id, to_iso8601(created) as created FROM ' . $this->dbDriver->commonSchema . '.group' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : '') . ' ORDER BY id DESC'));
+
+        // 404 if no empty results when id is specified
+        if ( empty($results) ) {
+            RestoLogUtil::httpError(404);
+        }
         
-        return $this->formatGroups($this->dbDriver->fetch($this->dbDriver->query('SELECT id, name, description, owner, private, to_iso8601(created) as created FROM ' . $this->dbDriver->commonSchema . '.group' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : '') . ' ORDER BY id DESC')), $params['id'] ?? null);
+        return $results;
+
+    }
+
+    /**
+     * List all groups
+     *
+     * @return array
+     * @throws Exception
+     */
+    public function getGroup($name)
+    {
+        if ( !isset($name) ) {
+            RestoLogUtil::httpError(404);
+        }
+
+        $query = join(' ', array(
+            'SELECT g.name, g.description, g.owner, g.id, to_iso8601(g.created) as created, COALESCE(ARRAY_REMOVE(ARRAY_AGG(u.username ORDER BY u.username), NULL), \'{}\') AS members',
+            'FROM ' . $this->dbDriver->commonSchema . '.group g LEFT JOIN  ' . $this->dbDriver->commonSchema . '.group_member gm ON g.id = gm.groupid',
+            'LEFT JOIN  ' . $this->dbDriver->commonSchema . '.user u ON gm.userid = u.id',
+            'WHERE private <> 1 AND g.name = \'' . $this->dbDriver->escape_string($name) . '\'',
+            'GROUP BY g.name,g.description,g.owner,g.id,g.created ORDER BY g.name'
+        ));
+
+        return $this->formatGroup($this->dbDriver->fetch($this->dbDriver->query($query)));
+        
     }
 
     /**
@@ -122,19 +157,19 @@ class GroupsFunctions
      */
     public function removeGroup($params)
     {
-        if (! isset($params['id'])) {
-            RestoLogUtil::httpError(400, 'Missing mandatory group identifier');
+        if (! isset($params['name'])) {
+            RestoLogUtil::httpError(400, 'Missing mandatory group name');
         }
 
         try {
             if (isset($params['owner'])) {
-                $result = $this->dbDriver->query_params('DELETE FROM ' . $this->dbDriver->commonSchema . '.group WHERE id=($1) AND owner=($2)', array(
-                    $params['id'],
+                $result = $this->dbDriver->query_params('DELETE FROM ' . $this->dbDriver->commonSchema . '.group WHERE name=($1) AND owner=($2)', array(
+                    $params['name'],
                     $params['owner']
                 ));
             } else {
-                $result = $this->dbDriver->query_params('DELETE FROM ' . $this->dbDriver->commonSchema . '.group WHERE id=($1)', array(
-                    $params['id']
+                $result = $this->dbDriver->query_params('DELETE FROM ' . $this->dbDriver->commonSchema . '.group WHERE name=($1)', array(
+                    $params['name']
                 ));
             }
             
@@ -143,7 +178,7 @@ class GroupsFunctions
             }
             
             return array(
-                'id' => $params['id']
+                'name' => $params['name']
             );
         } catch (Exception $e) {
             RestoLogUtil::httpError(403, 'Cannot delete group');
@@ -211,31 +246,30 @@ class GroupsFunctions
     }
 
     /**
-     * Format group results for nice output
+     * Format group  for nice output
      *
-     * @param array $results Groups from database
-     * @param string $groupId Group id
+     * @param array $rawGroup Group from database
      */
-    private function formatGroups($results, $groupId)
+    private function formatGroup($rawGroup)
     {
-
-        // 404 if no empty results when id is specified
-        if (! isset($results) || (isset($groupId) && count($results) === 0)) {
+        if ( empty($rawGroup) ) {
             RestoLogUtil::httpError(404);
         }
 
-        $length = isset($groupId) ? 1 : count($results);
-
-        // Format groups
-        for ($i = $length; $i--;) {
-            $results[$i]['id'] = $results[$i]['id'];
-            $results[$i]['private'] = intval($results[$i]['private']);
-            if (! isset($results[$i]['owner']) ) {
-                unset($results[$i]['owner']);
+        try {
+            if ( isset($rawGroup[0]['owner']) ) {
+                $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT username FROM ' . $this->dbDriver->commonSchema . '.user WHERE id=$1', array(
+                    $rawGroup[0]['owner']
+                )));
+                if ( !empty($results) ) {
+                    $rawGroup[0]['owner'] = $results[0]['username'];
+                }
             }
+            
+        } catch(Exception $e) {
+            // Don't break
         }
-
-        return isset($groupId) ? $results[0] : $results;
-
+        $rawGroup[0]['members'] = RestoUtil::SQLTextArrayToPHP($rawGroup[0]['members']);
+        return $rawGroup[0];
     }
 }

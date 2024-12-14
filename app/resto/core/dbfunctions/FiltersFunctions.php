@@ -265,8 +265,11 @@ class FiltersFunctions
         if ( !isset($groups) || count($groups) === 0 ) {
             $groups = [RestoConstants::GROUP_DEFAULT_ID];
         } 
+        
+        $value = $tableName . '.visibility && ARRAY[' . (count($groups) === 1 ? $groups[0] : join('::BIGINT,', $groups) ). '::BIGINT]';
+
         return array(
-            'value' =>  $tableName . '.visibility && ARRAY[' . (count($groups) === 1 ? $groups[0] : join('::BIGINT,', $groups) ). '.::BIGINT]',
+            'value' =>  isset($user->profile['id']) ? '(' . $tableName . '.owner=' . $user->profile['id'] . ' OR ' . $value . ')': $value,
             'isGeo' => false
         );
     }
