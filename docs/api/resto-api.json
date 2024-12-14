@@ -3,7 +3,7 @@
     "info": {
         "title": "Welcome to resto",
         "description": "A metadata catalog and search engine for geospatialized data",
-        "version": "9.2.0"
+        "version": "9.3.0"
     },
     "servers": [
         {
@@ -46,7 +46,7 @@
                                         "groups": [
                                             "1"
                                         ],
-                                        "name": "jrom",
+                                        "username": "jrom",
                                         "followers": 185,
                                         "followings": 144,
                                         "firstname": "Jérôme",
@@ -87,13 +87,13 @@
                     "Authentication"
                 ],
                 "summary": "Create an authentication {token}",
-                "description": "Create an authentication token (aka rJWT) for user identified by {emailOrId}",
+                "description": "Create an authentication token (aka rJWT) for user identified by {emailOrName}",
                 "operationId": "AuthAPI::createToken",
                 "parameters": [
                     {
-                        "name": "emailOrId",
+                        "name": "emailOrName",
                         "in": "query",
-                        "description": "User email or id",
+                        "description": "User email or user name",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -116,8 +116,8 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "userId": {
-                                            "description": "User id",
+                                        "username": {
+                                            "description": "User name",
                                             "type": "string"
                                         },
                                         "duration": {
@@ -355,7 +355,7 @@
                                         "groups": [
                                             "1"
                                         ],
-                                        "name": "jrom",
+                                        "username": "jrom",
                                         "followers": 185,
                                         "followings": 144,
                                         "firstname": "Jérôme",
@@ -1101,11 +1101,11 @@
                     {
                         "name": "owner",
                         "in": "query",
-                        "description": "Limit search to owner's features (i.e. resto user identifier as bigint)",
+                        "description": "Limit search to owner's features (i.e. resto username)",
                         "required": false,
                         "style": "form",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -1931,14 +1931,12 @@
                                         {
                                             "id": 100,
                                             "name": "My first group",
-                                            "description": "Any user can create a group.",
-                                            "owner": "1919730603616371731"
+                                            "description": "Any user can create a group."
                                         },
                                         {
                                             "id": 101,
                                             "name": "My second group",
-                                            "description": "Any user can create a group.",
-                                            "owner": "1919730603616371731"
+                                            "description": "Any user can create a group."
                                         }
                                     ]
                                 }
@@ -2049,7 +2047,7 @@
                 ]
             }
         },
-        "/groups/{id}": {
+        "/groups/{name}": {
             "get": {
                 "tags": [
                     "Group"
@@ -2058,12 +2056,12 @@
                 "operationId": "GroupAPI::getGroup",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "name",
                         "in": "path",
-                        "description": "Group identifier",
+                        "description": "Group name",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -2126,9 +2124,9 @@
                 "operationId": "GroupAPI::deleteGroup",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "name",
                         "in": "path",
-                        "description": "Group identifier",
+                        "description": "Group name",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -2155,7 +2153,7 @@
                                 },
                                 "example": {
                                     "status": "success",
-                                    "message": "Delete group 1919831313561420822"
+                                    "message": "Delete group xxxx"
                                 }
                             }
                         }
@@ -2200,7 +2198,7 @@
                 ]
             }
         },
-        "/groups/{id}/users": {
+        "/groups/{name}/users": {
             "post": {
                 "tags": [
                     "Group"
@@ -2210,12 +2208,12 @@
                 "operationId": "GroupAPI::addUser",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "name",
                         "in": "path",
-                        "description": "Group identifier",
+                        "description": "Group name",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "name"
                         }
                     }
                 ],
@@ -2226,18 +2224,18 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "userid"
+                                    "name"
                                 ],
                                 "properties": {
-                                    "userid": {
-                                        "description": "User identifier",
+                                    "username": {
+                                        "description": "User name",
                                         "type": "string"
                                     }
                                 },
                                 "type": "object"
                             },
                             "example": {
-                                "userid": "100"
+                                "username": "johndoe"
                             }
                         }
                     }
@@ -2277,7 +2275,7 @@
                 ]
             }
         },
-        "/users/{userid}/groups": {
+        "/users/{username}/groups": {
             "get": {
                 "tags": [
                     "User"
@@ -2286,9 +2284,9 @@
                 "operationId": "GroupAPI::getUserGroups",
                 "parameters": [
                     {
-                        "name": "userid",
+                        "name": "username",
                         "in": "path",
-                        "description": "User's identifier",
+                        "description": "User's name",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -2321,7 +2319,7 @@
                                     "groups": [
                                         {
                                             "id": "1",
-                                            "name": "Default",
+                                            "name": "default",
                                             "description": "Default group"
                                         }
                                     ]
@@ -2359,7 +2357,7 @@
                 ]
             }
         },
-        "/users/{userid}/rights": {
+        "/users/{username}/rights": {
             "get": {
                 "tags": [
                     "Rights"
@@ -2368,12 +2366,12 @@
                 "operationId": "RightsAPI::getUserRights",
                 "parameters": [
                     {
-                        "name": "userid",
+                        "name": "username",
                         "in": "path",
-                        "description": "User identifier",
+                        "description": "User name",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -2436,12 +2434,12 @@
                 "operationId": "RightsAPI::setUserRights",
                 "parameters": [
                     {
-                        "name": "userid",
+                        "name": "username",
                         "in": "path",
-                        "description": "User identifier",
+                        "description": "User name",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -2518,7 +2516,7 @@
                 ]
             }
         },
-        "/groups/{id}/rights": {
+        "/groups/{name}/rights": {
             "get": {
                 "tags": [
                     "Rights"
@@ -2527,18 +2525,18 @@
                 "operationId": "RightsAPI::getGroupRights",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "name",
                         "in": "path",
-                        "description": "Group identifier",
+                        "description": "Group name",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "User group rights",
+                        "description": "Group rights",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2595,12 +2593,12 @@
                 "operationId": "RightsAPI::setGroupRights",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "name",
                         "in": "path",
-                        "description": "Group identifier",
+                        "description": "Group name",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -3332,11 +3330,11 @@
                     {
                         "name": "owner",
                         "in": "query",
-                        "description": "Limit search to owner's features (i.e. resto user identifier as bigint)",
+                        "description": "Limit search to owner's features (i.e. resto username)",
                         "required": false,
                         "style": "form",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     },
                     {
@@ -3810,11 +3808,11 @@
                                     "profiles": [
                                         {
                                             "id": "1356771884787565573",
+                                            "username": "jrom",
                                             "picture": "https://robohash.org/d0e907f8b6f4ee74cd4c38a515e2a4de?gravatar=hashed&bgset=any&size=400x400",
                                             "groups": [
                                                 1
                                             ],
-                                            "name": "jrom",
                                             "followers": 185,
                                             "followings": 144,
                                             "firstname": "Jérôme",
@@ -3827,11 +3825,11 @@
                                         },
                                         {
                                             "id": "1381434932013827205",
+                                            "username": "Sergio",
                                             "picture": "https://graph.facebook.com/410860042635946/picture?type=large",
                                             "groups": [
                                                 "1"
                                             ],
-                                            "name": "Sergio",
                                             "followers": 16,
                                             "followings": 9,
                                             "registrationdate": "2016-10-08T22:50:34.187217Z",
@@ -3875,6 +3873,7 @@
                         "application/json": {
                             "schema": {
                                 "required": [
+                                    "username",
                                     "email",
                                     "password"
                                 ],
@@ -3891,8 +3890,8 @@
                                         "description": "An http(s) url to the user's avatar picture",
                                         "type": "string"
                                     },
-                                    "name": {
-                                        "description": "User display name",
+                                    "username": {
+                                        "description": "User name - must be alphanumerical only between 3 and 255 characters. (Note: will be converted to lowercase)",
                                         "type": "string"
                                     },
                                     "firstname": {
@@ -3930,7 +3929,7 @@
                                 "email": "john.doe@dev.null",
                                 "password": "MySuperSecretPassword",
                                 "picture": "https://robohash.org/d0e907f8b6f4ee74cd4c38a515e2a4de?gravatar=hashed&bgset=any&size=400x400",
-                                "name": "jj",
+                                "username": "jj",
                                 "firstname": "John",
                                 "lastname": "Doe",
                                 "bio": "Just a user",
@@ -3999,7 +3998,7 @@
                 }
             }
         },
-        "/user": {
+        "/me": {
             "get": {
                 "tags": [
                     "User"
@@ -4037,7 +4036,7 @@
                 ]
             }
         },
-        "/users/{userid}": {
+        "/users/{username}": {
             "get": {
                 "tags": [
                     "User"
@@ -4046,9 +4045,9 @@
                 "operationId": "UsersAPI::getUserProfile",
                 "parameters": [
                     {
-                        "name": "userid",
+                        "name": "username",
                         "in": "path",
-                        "description": "User's identifier",
+                        "description": "User name",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -4103,9 +4102,9 @@
                 "operationId": "UsersAPI::updateUserProfile",
                 "parameters": [
                     {
-                        "name": "userid",
+                        "name": "username",
                         "in": "path",
-                        "description": "User's identifier",
+                        "description": "User's name",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -4125,10 +4124,6 @@
                                     },
                                     "picture": {
                                         "description": "An http(s) url to the user's avatar picture",
-                                        "type": "string"
-                                    },
-                                    "name": {
-                                        "description": "User display name",
                                         "type": "string"
                                     },
                                     "firstname": {
@@ -4202,145 +4197,6 @@
                     }
                 ]
             }
-        },
-        "/users/{userid}/history": {
-            "get": {
-                "tags": [
-                    "User"
-                ],
-                "summary": "Get user's search history",
-                "description": "Results are returned by pages with 50 results per page from most recent to oldest.",
-                "operationId": "UsersAPI::getUserLogs",
-                "parameters": [
-                    {
-                        "name": "userid",
-                        "in": "path",
-                        "description": "User's identifier",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "querytime",
-                        "in": "query",
-                        "description": "Filter on query time. Interval of ISO8601 date (i.e. YYYY-MM-DDTHH:MM:SSZ)",
-                        "style": "form",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "lt",
-                        "in": "query",
-                        "description": "Return logs with gid lower than *lt* - used for pagination",
-                        "style": "form",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "User's history",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "id": {
-                                            "description": "User identifier",
-                                            "type": "string"
-                                        },
-                                        "logs": {
-                                            "description": "Array of user's log history",
-                                            "type": "array",
-                                            "items": {
-                                                "properties": {
-                                                    "gid": {
-                                                        "description": "Log unique idendifier",
-                                                        "type": "integer"
-                                                    },
-                                                    "method": {
-                                                        "description": "Method - one of GET, POST, PUT or DELETE",
-                                                        "type": "string"
-                                                    },
-                                                    "path": {
-                                                        "description": "Path relative to the root endpoint",
-                                                        "type": "string"
-                                                    },
-                                                    "querytime": {
-                                                        "description": "Date of query (in ISO 8601)",
-                                                        "type": "string"
-                                                    },
-                                                    "query": {
-                                                        "description": "Query string",
-                                                        "type": "string"
-                                                    },
-                                                    "userid": {
-                                                        "description": "User identifier (only display to admin user)",
-                                                        "type": "string"
-                                                    },
-                                                    "ip": {
-                                                        "description": "Calling IP address (only display to admin user)",
-                                                        "type": "string"
-                                                    }
-                                                },
-                                                "type": "object"
-                                            }
-                                        }
-                                    },
-                                    "type": "object"
-                                },
-                                "example": {
-                                    "id": "1356771884787565573",
-                                    "logs": [
-                                        {
-                                            "gid": 65,
-                                            "method": "GET",
-                                            "path": "/users/202707441557308418/logs",
-                                            "querytime": "2019-01-05T07:10:38.785236Z"
-                                        },
-                                        {
-                                            "gid": 39,
-                                            "method": "GET",
-                                            "path": "/users",
-                                            "querytime": "2019-01-03T22:19:28.251167Z",
-                                            "query": "&in=202707441557308418%60"
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/UnauthorizedError"
-                                }
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ForbiddenError"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "basicAuth": [],
-                        "bearerAuth": [],
-                        "queryAuth": []
-                    }
-                ]
-            }
         }
     },
     "components": {
@@ -4375,7 +4231,7 @@
                         "type": "string"
                     },
                     "visibility": {
-                        "description": "Visibility for this collection as a group list. Only user from one of the group can see the collection."
+                        "description": "Visibility for this collection as a list of group names. Only user from one of the group can see the collection."
                     },
                     "model": {
                         "description": "[For developper] Name of the collection model class under $SRC/include/resto/Models - Default is DefaultModel",
@@ -4431,7 +4287,7 @@
                     "version": "1.0",
                     "model": "OpticalModel",
                     "visibility": [
-                        "100"
+                        "default"
                     ],
                     "license": "proprietary",
                     "providers": [
@@ -5563,7 +5419,7 @@
                     "id",
                     "picture",
                     "groups",
-                    "name",
+                    "username",
                     "followers",
                     "followings"
                 ],
@@ -5583,8 +5439,8 @@
                             "type": "string"
                         }
                     },
-                    "name": {
-                        "description": "User display name",
+                    "username": {
+                        "description": "User name",
                         "type": "string"
                     },
                     "followers": {
@@ -5631,7 +5487,7 @@
                     "groups": [
                         "1"
                     ],
-                    "name": "jrom",
+                    "username": "jrom",
                     "followers": 185,
                     "followings": 144,
                     "firstname": "Jérôme",
@@ -5664,16 +5520,24 @@
                         "type": "string"
                     },
                     "owner": {
-                        "description": "Owner of the group (i.e. resto user identifier as bigint)",
+                        "description": "Owner of the group (i.e. resto username)",
                         "type": "integer"
+                    },
+                    "created": {
+                        "description": "Date of group creation (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)",
+                        "type": "string"
                     }
                 },
                 "type": "object",
                 "example": {
-                    "id": "100",
                     "name": "My first group",
                     "description": "Any user can create a group.",
-                    "owner": "1919730603616371731"
+                    "id": "100",
+                    "owner": "johndoe",
+                    "created": "2024-12-13T21:29:23.671111Z",
+                    "members": [
+                        "johndoe"
+                    ]
                 }
             },
             "Rights": {

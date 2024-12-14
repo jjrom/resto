@@ -255,6 +255,20 @@ class GroupsFunctions
         if ( empty($rawGroup) ) {
             RestoLogUtil::httpError(404);
         }
+
+        try {
+            if ( isset($rawGroup[0]['owner']) ) {
+                $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT username FROM ' . $this->dbDriver->commonSchema . '.user WHERE id=$1', array(
+                    $rawGroup[0]['owner']
+                )));
+                if ( !empty($results) ) {
+                    $rawGroup[0]['owner'] = $results[0]['username'];
+                }
+            }
+            
+        } catch(Exception $e) {
+            // Don't break
+        }
         $rawGroup[0]['members'] = RestoUtil::SQLTextArrayToPHP($rawGroup[0]['members']);
         return $rawGroup[0];
     }

@@ -47,13 +47,22 @@ class GroupAPI
      *  @OA\Property(
      *      property="owner",
      *      type="integer",
-     *      description="Owner of the group (i.e. resto user identifier as bigint)"
+     *      description="Owner of the group (i.e. resto username)"
+     *  ),
+     *  @OA\Property(
+     *      property="created",
+     *      type="string",
+     *      description="Date of group creation (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)"
      *  ),
      *  example={
-     *      "id": "100",
      *      "name": "My first group",
      *      "description": "Any user can create a group.",
-     *      "owner": "1919730603616371731"
+     *      "id": "100",
+     *      "owner": "johndoe",
+     *      "created": "2024-12-13T21:29:23.671111Z",
+     *      "members": {
+     *          "johndoe"
+     *      }
      *  }
      * )
      */
@@ -104,13 +113,11 @@ class GroupAPI
      *                          "id": 100,
      *                          "name": "My first group",
      *                          "description": "Any user can create a group.",
-     *                          "owner": "1919730603616371731"
      *                      },
      *                      {
      *                          "id": 101,
      *                          "name": "My second group",
-     *                          "description": "Any user can create a group.",
-     *                          "owner": "1919730603616371731"
+     *                          "description": "Any user can create a group."
      *                      }
      *                  }
      *              }
