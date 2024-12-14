@@ -121,8 +121,9 @@ class UsersFunctions
     public static function formatPartialUserProfile($rawProfile)
     {
         
+        
         $profile = array(
-            'id' => $rawProfile['id'],
+            //'id' => $rawProfile['id'],
             'username' => $rawProfile['username'],
             'picture' => $rawProfile['picture'],
             'registrationdate' => $rawProfile['registrationdate'],
@@ -138,6 +139,12 @@ class UsersFunctions
                         $profile['firstname'] = $rawProfile['firstname'];
                         $profile['lastname'] = $rawProfile['lastname'];
                     }
+                    if (isset($settings) && $settings['showBio']) {
+                        $profile['bio'] = $rawProfile['bio'];
+                    }
+                    if (isset($settings) && $settings['showEmail']) {
+                        $profile['email'] = $rawProfile['email'];
+                    }
                     if (isset($settings) && $settings['showTopics']) {
                         $topics = isset($rawProfile['topics']) ? substr($rawProfile['topics'], 1, -1) : null;
                         if (isset($topics)) {
@@ -149,10 +156,6 @@ class UsersFunctions
                 case 'followed':
                 case 'followme':
                     $profile[$key] = $value === 't' ? true : false;
-                    break;
-                
-                case 'bio':
-                    $profile[$key] = $value;
                     break;
                 
                 default:

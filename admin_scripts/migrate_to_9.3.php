@@ -27,7 +27,8 @@
         $dbDriver->query('UPDATE ' . $dbDriver->targetSchema . '.user SET name = \'anonymous\' || (floor(random() * 1000 + 1)::int)::TEXT WHERE name IS NULL');
         $dbDriver->query('ALTER TABLE ' . $dbDriver->commonSchema . '.user RENAME name TO username');
         $dbDriver->query('ALTER TABLE ' . $dbDriver->commonSchema . '.user ADD UNIQUE (userame)');
-        
+        $dbDriver->query('ALTER TABLE ' . $dbDriver->commonSchema . '.user ALTER COLUMN settings SET DEFAULT \'{"notifyOnAddFeature":true,"notifyOnNewFollower":true,"notifyOnLikeFeature":true,"notifyOnAddComment":true,"showBio":true","showIdentity":true,"showTopics":true,"showEmail":false,"profileNeedReview":true}\'');
+
         // Create private group per user
         $dbDriver->query('DROP INDEX IF EXISTS ' . $dbDriver->commonSchema . '.idx_uname_group');
         $dbDriver->query('WITH tmp AS (SELECT id, username FROM ' . $dbDriver->commonSchema . '.user) INSERT INTO ' . $dbDriver->commonSchema . '.group (name, description, owner, private) SELECT username || \'_private\', \'Private group for user \' || username, id, 1 FROM tmp WHERE username <> \'admin\'');

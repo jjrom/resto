@@ -59,7 +59,7 @@ class RestoRouter
         array('GET',    RestoRouter::ROUTE_TO_CONFORMANCE, false, 'ServicesAPI::conformance'),                                          // Conform
         
         // API for users
-        array('GET',    '/user', true, 'UsersAPI::getMyProfile'),                                                                     // Show my profile
+        array('GET',    '/me', true, 'UsersAPI::getMyProfile'),                                                                         // Show my profile
         array('GET',    RestoRouter::ROUTE_TO_USERS, true, 'UsersAPI::getUsersProfiles'),                                               // List users profiles
         array('POST',   RestoRouter::ROUTE_TO_USERS, false, 'UsersAPI::createUser'),                                                    // Create user
         array('GET',    RestoRouter::ROUTE_TO_USER, true, 'UsersAPI::getUserProfile'),                                                  // Show user profile

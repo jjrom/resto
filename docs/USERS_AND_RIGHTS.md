@@ -41,6 +41,23 @@ Updating user profile can be done either by administrator or by the user itself:
         # Update johndoe bio with John Doe credentials
         curl -X PUT -d@examples/users/johnDoe_update.json "http://johnDoe%40localhost:dummy@localhost:5252/users/johndoe"
 
+### Get user profile
+First create another user Jane Doe:
+
+        curl -X POST -d@examples/users/janeDoe.json "http://localhost:5252/users"
+
+User profiles can only be viewed by authenticated user 
+        
+        # John Doe ask for Jane Doe profile 
+        curl "http://johnDoe%40localhost:dummy@localhost:5252/users/janedoe"
+
+User can get its own profile directly using the shorcut /me
+
+        # John Doe get its own profile
+        curl "http://johnDoe%40localhost:dummy@localhost:5252/me"
+
+*Note: when requesting the profile of another user (e.g. John Doe requesting Jane Doe profile), only a limited set of the profile properties are returned. These properties are defined in the user settings*
+
 ### Get an authorization token (optional)
 To authenticate to resto endpoint, you can either provide the email/password of an existing user or an authentication token.
 

@@ -179,7 +179,7 @@ class UsersAPI
      *  Get my profile
      *
      *  @OA\Get(
-     *      path="/user",
+     *      path="/me",
      *      summary="Get my profile",
      *      tags={"User"},
      *      @OA\Response(
