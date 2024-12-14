@@ -936,12 +936,23 @@ abstract class RestoModel
      */
     private function prepareFeatureArray($collection, $data, $params = array())
     {
+
         /*
          * Assume input file or stream is a JSON Feature
          */
         $checkGeoJSON = RestoGeometryUtil::checkGeoJSONFeature($data);
         if (! $checkGeoJSON['isValid']) {
             RestoLogUtil::httpError(400, $checkGeoJSON['error']);
+        }
+
+        /*
+         * Convert visibility from names to ids
+         */
+        if ( isset($data['visibility']) ) {
+            $data['visibility'] = (new GeneralFunctions($collection->context->dbDriver))->visibilityNamesToIds($data['visibility']);
+            if ( empty($data['visibility']) ) {
+                RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group'); 
+            }
         }
 
         /*

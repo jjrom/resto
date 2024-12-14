@@ -56,7 +56,7 @@
  *      ),
  *      @OA\Property(
  *          property="visibility",
- *          description="Visibility for this collection as a group list. Only user from one of the group can see the collection."
+ *          description="Visibility for this collection as a list of group names. Only user from one of the group can see the collection."
  *      ),
  *      @OA\Property(
  *          property="model",
@@ -109,7 +109,7 @@
  *          "description": "The SENTINEL-2 mission is a land monitoring constellation of two satellites each equipped with a MSI (Multispectral Imager) instrument covering 13 spectral bands providing high resolution optical imagery (i.e., 10m, 20m, 60 m) every 10 days with one satellite and 5 days with two satellites",
  *          "version": "1.0",
  *          "model": "OpticalModel",
- *          "visibility": {"100"},
+ *          "visibility": {"default"},
  *          "license": "proprietary",
  *          "providers": {
  *              {
@@ -307,8 +307,7 @@
  *              @OA\Property(
  *                  property="datetime",
  *                  type="string",
- *                  enum={"public", "<group id>"},
- *                  description="Visibility of this collection. *public* collections are visible to all users. Non public collections are visible to owner and member of <group id> only"
+ *                  description="Temporal extent of collection (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ/YYYY-MM-DD-THH:MM:SSZ)"
  *              ),
  *              @OA\Property(
  *                  property="resto:stats",
@@ -975,13 +974,19 @@ class RestoCollection
          * Default collection visibility is the value of RestoConstants::GROUP_DEFAULT_ID
          */
         if ( isset($object['visibility']) ) {
-            $result = RestoUtil::isValidVisibility($object['visibility']);
-            if ( !$result['isValid'] ) {
-                RestoLogUtil::httpError($result['errorCode'], $result['errorMessage'] );
+            if ( !is_array($object['visibility']) ) {
+                RestoLogUtil::httpError(400, 'Invalid visibility type - should be an array of group names' );
             }
-            $clean['visibility'] = $object['visibility'];
+            // [IMPORTANT] Convert input names to ids
+            $clean['visibility'] = (new GeneralFunctions($this->context->dbDriver))->visibilityNamesToIds($object['visibility']);
+            if ( empty($clean['visibility']) ) {
+                RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group');
+            }
         }
         
+        /* 
+         * Convert 
+         */
         /*
          * Set values
          */

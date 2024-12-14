@@ -161,6 +161,60 @@ class GeneralFunctions
     }
 
     /**
+     * Convert an array of visibility integers to visibility names
+     * 
+     * @param array $visibility
+     */
+    public function visibilityIdsToNames($visibility)
+    {
+        
+        if ( empty($visibility) ) {
+            throw new Exception();
+        }
+        
+        $names = array();
+        try {
+            $results = $this->dbDriver->fetch($this->dbDriver->query('SELECT id, name FROM ' . $this->dbDriver->commonSchema . '.group WHERE id IN (' .join(',', $visibility). ')'));
+            for ($i = 0, $ii = count($results); $i < $ii; $i++) {
+                $names[] = $results[$i]['name'];
+            }
+        } catch (Exception $e) {
+            throw new Exception();
+        }
+        return $names;
+        
+    }
+
+    /**
+     * Convert an array of visibility names to visibility integers
+     * 
+     * @param array $visibility
+     */
+    public function visibilityNamesToIds($visibility)
+    {
+       
+        if ( empty($visibility) ) {
+            throw new Exception();
+        }
+
+        $ids = array();
+        $names = array();
+        for ($i = count($visibility); $i--;) {
+            $names[] = '\'' . $this->dbDriver->escape_string( $visibility[$i] ) . '\'';
+        }
+        try {
+            $results = $this->dbDriver->fetch($this->dbDriver->query('SELECT id, name FROM ' . $this->dbDriver->commonSchema . '.group WHERE name IN (' .join(',', $names). ')'));
+            for ($i = 0, $ii = count($results); $i < $ii; $i++) {
+                $ids[] = $results[$i]['id'];
+            }
+        } catch (Exception $e) {
+            throw new Exception();
+        }
+
+        return $ids;
+    }
+
+    /**
      * Return topology analysis
      *
      * @param array $geometry

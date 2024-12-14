@@ -504,7 +504,7 @@ class GroupAPI
      *                  "groups":{
      *                      {
      *                          "id":"1",
-     *                          "name":"Default",
+     *                          "name":"default",
      *                          "description":"Default group"
      *                      }
      *                  }

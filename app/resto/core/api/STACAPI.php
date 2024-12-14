@@ -388,6 +388,16 @@ class STACAPI
             $body['links'] = array();
         }
 
+        /*
+         * Convert visibility from names to ids
+         */
+        if ( isset($body['visibility']) ) {
+            $body['visibility'] = (new GeneralFunctions($this->context->dbDriver))->visibilityNamesToIds($body['visibility']);
+            if ( empty($body['visibility']) ) {
+                RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group'); 
+            }
+        }
+
         // Owner of catalog can only be set by admin user
         if ( isset($body['owner']) && !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
             RestoLogUtil::httpError(403, 'You are not allowed to set property "owner"');
@@ -524,10 +534,20 @@ class STACAPI
             RestoLogUtil::httpError(403);
         }
 
+        /*
+         * Convert visibility from names to ids
+         */
+        if ( isset($body['visibility']) ) {
+            $body['visibility'] = (new GeneralFunctions($this->context->dbDriver))->visibilityNamesToIds($body['visibility']);
+            if ( empty($body['visibility']) ) {
+                RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group'); 
+            }
+        }
+
         // Owner of catalog can only be changed by admin user
         if ( isset($body['owner']) && !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
             RestoLogUtil::httpError(403, 'You are not allowed to change property "owner"');
-        } 
+        }
         
         // Update is not forced so we should check that input links array don't remove existing childs
         // [IMPORTANT] if no links object is in the body then only other properties are updated and existing links are not destroyed

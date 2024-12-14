@@ -5,6 +5,6 @@
     "description":"This is a simple catalog",
     "stac_version":"1.0.0",
     "visibility":[
-        "1000"
+        "My first group"
     ]
 }
