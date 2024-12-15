@@ -26,14 +26,15 @@
         $dbDriver->query('WITH tmp AS (SELECT name as n FROM ' . $dbDriver->targetSchema . '.user GROUP BY name HAVING count(name) > 1) UPDATE ' . $dbDriver->targetSchema . '.user SET name = tmp.n || (floor(random() * 1000 + 1)::int)::TEXT FROM tmp WHERE name = tmp.n');
         $dbDriver->query('UPDATE ' . $dbDriver->targetSchema . '.user SET name = \'anonymous\' || (floor(random() * 1000 + 1)::int)::TEXT WHERE name IS NULL');
         $dbDriver->query('ALTER TABLE ' . $dbDriver->commonSchema . '.user RENAME name TO username');
-        $dbDriver->query('ALTER TABLE ' . $dbDriver->commonSchema . '.user ADD UNIQUE (userame)');
-        $dbDriver->query('ALTER TABLE ' . $dbDriver->commonSchema . '.user ALTER COLUMN settings SET DEFAULT \'{"notifyOnAddFeature":true,"notifyOnNewFollower":true,"notifyOnLikeFeature":true,"notifyOnAddComment":true,"showBio":true","showIdentity":true,"showTopics":true,"showEmail":false,"profileNeedReview":true}\'');
+        $dbDriver->query('ALTER TABLE ' . $dbDriver->commonSchema . '.user ADD UNIQUE (username)');
+        $dbDriver->query('ALTER TABLE ' . $dbDriver->commonSchema . '.user ALTER COLUMN settings SET DEFAULT \'{"notifyOnAddFeature":true,"notifyOnNewFollower":true,"notifyOnLikeFeature":true,"notifyOnAddComment":true,"showBio":true,"showIdentity":true,"showTopics":true,"showEmail":false,"profileNeedReview":true}\'');
 
         // Create private group per user
         $dbDriver->query('DROP INDEX IF EXISTS ' . $dbDriver->commonSchema . '.idx_uname_group');
         $dbDriver->query('WITH tmp AS (SELECT id, username FROM ' . $dbDriver->commonSchema . '.user) INSERT INTO ' . $dbDriver->commonSchema . '.group (name, description, owner, private) SELECT username || \'_private\', \'Private group for user \' || username, id, 1 FROM tmp WHERE username <> \'admin\'');
     
-
+        $dbDriver->query('WITH tmp AS (SELECT id, owner FROM ' . $dbDriver->commonSchema . '.group WHERE private = 1) INSERT INTO ' . $dbDriver->commonSchema . '.group_member (groupid, userid, created) SELECT tmp.id, tmp.owner, now() FROM tmp');
+        
         $dbDriver->query('COMMIT');
 
     } catch(Exception $e){
