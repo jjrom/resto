@@ -137,11 +137,17 @@ class GroupAPI
      */
     public function getGroups($params)
     {
-        return array(
+        $groups = array(
             'groups' => (new GroupsFunctions($this->context->dbDriver))->getGroups(array(
                 'q' => $params['q'] ?? null
             ))
         );
+
+        if ( empty($groups) ) {
+            RestoLogUtil::httpError(400);
+        }
+
+        return $groups;
     }
 
     /**
