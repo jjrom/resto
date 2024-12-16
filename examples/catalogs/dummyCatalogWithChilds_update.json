@@ -1,0 +1,16 @@
+{
+    "id": "dummyCatalogWithChilds",
+    "title": "Dummy Catalog with childs",
+    "type": "Catalog",
+    "description":"This catalog has no childs - they will be added later on",
+    "stac_version":"1.0.0",
+    "links":[
+        {
+            "rel": "child",
+            "type": "application/json",
+            "href": "http://127.0.0.1:5252/catalogs/dummyCatalogWithChilds/dummyCatalogChild1",
+            "title": "Dummy Catalog child 1",
+            "description": "I'm a child of dummyCatalog"
+        }
+    ]
+}
