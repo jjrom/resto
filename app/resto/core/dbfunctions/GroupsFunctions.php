@@ -74,12 +74,7 @@ class GroupsFunctions
 
         $results = $this->dbDriver->fetch($this->dbDriver->query('SELECT name, description, id, to_iso8601(created) as created FROM ' . $this->dbDriver->commonSchema . '.group' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : '') . ' ORDER BY id DESC'));
 
-        // 404 if no empty results when id is specified
-        if ( empty($results) ) {
-            RestoLogUtil::httpError(404);
-        }
-        
-        return $results;
+        return empty($results) ? array() : $results;
 
     }
 
