@@ -816,6 +816,7 @@ class RestoCollection
                     ),
                     array(
                         'rel' => 'items',
+                        'title' => 'All items',
                         'type' => RestoUtil::$contentTypes['geojson'],
                         'href' => $this->context->core['baseUrl'] . RestoUtil::replaceInTemplate(RestoRouter::ROUTE_TO_FEATURES, array('collectionId' => $this->id))
                     ),

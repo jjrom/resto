@@ -1620,6 +1620,7 @@ class STACAPI
             if ( $catalogs[0]['rtype'] === 'collection' ) {
                 $items = array(
                     'rel' => 'items',
+                    'title' => 'All items',
                     'type' => RestoUtil::$contentTypes['geojson'],
                     'href' => $this->context->core['baseUrl'] . '/collections/' . substr($parentAndChilds['parent']['id'], strrpos($parentAndChilds['parent']['id'], '/') + 1) . '/items'
                 );

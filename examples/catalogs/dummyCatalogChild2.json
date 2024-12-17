@@ -4,5 +4,11 @@
     "title": "Dummy Catalog child 2",
     "description":"I'm a child of dummyCatalog",
     "stac_version":"1.0.0",
-    "links":[]
+    "links":[
+        {
+            "rel":"item",
+            "href":"http://127.0.0.1:5252/collections/JohnDoeCollection/items/e3b2cf46-6f4f-58cc-95e9-8686efc89f58",
+            "title":"Catalog can also have item"
+        }
+    ]
 }

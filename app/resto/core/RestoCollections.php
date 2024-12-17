@@ -253,7 +253,7 @@ class RestoCollections
                 ),
                 array(
                     'rel' => 'items',
-                    'title' => 'All collections',
+                    'title' => 'All items',
                     'type' => RestoUtil::$contentTypes['geojson'],
                     'href' => $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_STAC_SEARCH
                 )
