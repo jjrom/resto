@@ -182,8 +182,8 @@ class CatalogsFunctions
         /*
          * Recursively add child collection counters to catalog counters
          */
-        return !empty($params['noCount']) ? $catalogs : $this->onTheFlyUpdateCountersWithCollection($catalogs);
-    
+        return empty($params['countCatalogs']) ? $catalogs : $this->onTheFlyUpdateCountersWithCollection($catalogs);
+        
     }
 
     /**
@@ -202,7 +202,7 @@ class CatalogsFunctions
          * Delete (within transaction)
          */
         try {
-            $results = $this->dbDriver->pQuery('SELECT featureid, collection FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path=$1::ltree', array(
+            $results = $this->dbDriver->pQuery('SELECT featureid, collection, title FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path=$1::ltree', array(
                 RestoUtil::path2ltree($catalogId)
             ));    
         } catch (Exception $e) {
@@ -213,6 +213,7 @@ class CatalogsFunctions
             $items[] = array(
                 'rel' => 'item',
                 'id' => $result['featureid'],
+                'title' => $result['title'] ?? $result['featureid'],
                 'type' => RestoUtil::$contentTypes['geojson'],
                 'href' => $baseUrl . '/collections/' . $result['collection'] . '/items/' . $result['featureid']
             );

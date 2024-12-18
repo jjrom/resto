@@ -267,7 +267,7 @@ class STACAPI
      *         )
      *      ),
      *      @OA\Parameter(
-     *         name="_nocount",
+     *         name="_countCatalogs",
      *         in="query",
      *         description="Set to 1 to not count number of items below catalogs. Speed up *a lot* the query so should be used when using this for suggest (see rocket catalog search for instance)",
      *         @OA\Schema(
@@ -524,7 +524,7 @@ class STACAPI
         // Get catalogs and childs
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
             'id' => join('/', $params['segments']),
-            'noCount' => true,
+            'countCatalogs' => false,
             'noProperties' => true
         ), $this->user, true);
 
@@ -670,7 +670,7 @@ class STACAPI
         // Get catalogs and childs
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
             'id' => join('/', $params['segments']),
-            'noCount' => true
+            'countCatalogs' => false
         ), $this->user, true);
         
         $count = count($catalogs);
@@ -1430,7 +1430,7 @@ class STACAPI
             $catalogs = $this->catalogsFunctions->getCatalogs(array(
                 'id' => join('/', $segments),
                 'q' => $params['q'] ?? null,
-                'noCount' => isset($params['_nocount']) ? filter_var($params['_nocount'], FILTER_VALIDATE_BOOLEAN) : false
+                'countCatalogs' => isset($params['_countCatalogs']) ? filter_var($params['_countCatalogs'], FILTER_VALIDATE_BOOLEAN) : $this->context->core['countCatalogs']
             ), $this->user, false);
             
             if ( empty($catalogs) ) {
@@ -1602,7 +1602,7 @@ class STACAPI
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
             'id' => $catalogId,
             'q' => $params['q'] ?? null,
-            'noCount' => isset($params['_nocount']) ? filter_var($params['_nocount'], FILTER_VALIDATE_BOOLEAN) : false
+            'countCatalogs' => isset($params['_countCatalogs']) ? filter_var($params['_countCatalogs'], FILTER_VALIDATE_BOOLEAN) : $this->context->core['countCatalogs']
         ), $this->user, true);
         
         if ( empty($catalogs) ) {
@@ -1739,7 +1739,7 @@ class STACAPI
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
             'level' => 1,
             'q' => $params['q'] ?? null,
-            'noCount' => isset($params['_nocount']) ? filter_var($params['_nocount'], FILTER_VALIDATE_BOOLEAN) : false
+            'countCatalogs' => isset($params['_countCatalogs']) ? filter_var($params['_countCatalogs'], FILTER_VALIDATE_BOOLEAN) : $this->context->core['countCatalogs']
         ), $this->user, false);
         
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {

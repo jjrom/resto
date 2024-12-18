@@ -53,6 +53,9 @@ class RestoContext
         // Display collection that have at least 'collectionMinMatch' object
         'collectionMinMatch' => 0,
 
+        // Count catalogs
+        'countCatalogs' => false,
+
         // Default model applied to POST collection
         'defaultModel' => 'DefaultModel',
 
