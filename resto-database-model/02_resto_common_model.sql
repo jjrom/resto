@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS __DATABASE_COMMON_SCHEMA__.user (
     externalidp         JSON, 
 
     -- Free application settings
-    settings            JSON DEFAULT '{"notifyOnAddFeature":true,"notifyOnNewFollower":true,"notifyOnLikeFeature":true,"notifyOnAddComment":true,"showBio":true,"showIdentity":true,"showTopics":true,"showEmail":false,"profileNeedReview":true}'
+    settings            JSON DEFAULT '{"createdCatalogIsPublic":true,"createdCollectionIsPublic":true,"createdItemIsPublic":true,"notifyOnAddFeature":true,"notifyOnNewFollower":true,"notifyOnLikeFeature":true,"notifyOnAddComment":true,"showBio":true,"showIdentity":true,"showTopics":true,"showEmail":false,"profileNeedReview":true}'
 
 );
 

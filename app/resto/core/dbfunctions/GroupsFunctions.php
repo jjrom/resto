@@ -43,7 +43,7 @@ class GroupsFunctions
     public function getGroups($params = array())
     {
         $where = array(
-            'private <> 1'/*,
+            /*'private <> 1',
             'name NOT IN (\'admin\', \'default\')'*/
         );
         
@@ -72,14 +72,14 @@ class GroupsFunctions
             $where[] = 'owner=' . $this->dbDriver->escape_string( $params['owner']);
         }
 
-        $results = $this->dbDriver->fetch($this->dbDriver->query('SELECT name, description, id, to_iso8601(created) as created FROM ' . $this->dbDriver->commonSchema . '.group' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : '') . ' ORDER BY id DESC'));
+        $results = $this->dbDriver->fetch($this->dbDriver->query('SELECT name, description, id, to_iso8601(created) as created, private FROM ' . $this->dbDriver->commonSchema . '.group' . (count($where) > 0 ? ' WHERE ' . join(' AND ', $where) : '') . ' ORDER BY id DESC'));
 
         return empty($results) ? array() : $results;
 
     }
 
     /**
-     * List all groups
+     * Get group
      *
      * @return array
      * @throws Exception
@@ -91,11 +91,11 @@ class GroupsFunctions
         }
 
         $query = join(' ', array(
-            'SELECT g.name, g.description, g.owner, g.id, to_iso8601(g.created) as created, COALESCE(ARRAY_REMOVE(ARRAY_AGG(u.username ORDER BY u.username), NULL), \'{}\') AS members',
+            'SELECT g.name, g.description, g.owner, g.id, to_iso8601(g.created) as created, g.private, COALESCE(ARRAY_REMOVE(ARRAY_AGG(u.username ORDER BY u.username), NULL), \'{}\') AS members',
             'FROM ' . $this->dbDriver->commonSchema . '.group g LEFT JOIN  ' . $this->dbDriver->commonSchema . '.group_member gm ON g.id = gm.groupid',
             'LEFT JOIN  ' . $this->dbDriver->commonSchema . '.user u ON gm.userid = u.id',
             'WHERE private <> 1 AND g.name = \'' . $this->dbDriver->escape_string($name) . '\'',
-            'GROUP BY g.name,g.description,g.owner,g.id,g.created ORDER BY g.name'
+            'GROUP BY g.name,g.description,g.owner,g.id,g.created,g.private ORDER BY g.name'
         ));
 
         return $this->formatGroup($this->dbDriver->fetch($this->dbDriver->query($query)));
@@ -264,6 +264,7 @@ class GroupsFunctions
         } catch(Exception $e) {
             // Don't break
         }
+        $rawGroup[0]['private'] = (integer) $rawGroup[0]['private'];
         $rawGroup[0]['members'] = RestoUtil::SQLTextArrayToPHP($rawGroup[0]['members']);
         return $rawGroup[0];
     }

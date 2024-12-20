@@ -607,7 +607,7 @@ class CatalogsFunctions
             $catalog['visibility'] = array(RestoConstants::GROUP_DEFAULT_ID);
         }
         if ( !isset($catalog['visibility']) ) {
-            $catalog['visibility'] = RestoUtil::getDefaultVisibility($user, $context->core['defaultCatalogVisibility']);
+            $catalog['visibility'] = RestoUtil::getDefaultVisibility($user, isset($user->profile['settings']['createdCatalogIsPublic']) ? $user->profile['settings']['createdCatalogIsPublic'] : true);
         }
         $insert = '(id, title, description, level, counters, owner, visibility, rtype, properties, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,now()';
         $values = array(

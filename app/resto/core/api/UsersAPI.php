@@ -517,7 +517,23 @@ class UsersAPI
 
         // name cannot be updated
         if ( isset($body['username']) ) {
-            RestoLogUtil::httpError(400, 'Property username cannot be updated');
+            RestoLogUtil::httpError(400, 'Property username cannot be updated from this endpoint');
+        }
+
+        // Special case - settings are merged with existing settings
+        if ( isset($body['settings']) ) {
+
+            // Forbidden settings cannot be changed
+            $forbiddenSettings = array(
+                'profileNeedReview'
+            );
+            for ($i = count($forbiddenSettings); $i--;) {
+                if ( isset($body['settings'][$forbiddenSettings[$i]])) {
+                    RestoLogUtil::httpError(400, 'Property *' . $forbiddenSettings[$i] . '* in settings is protected and cannot be updated'); 
+                }
+            }
+            // Merge input settings with user settings
+            $body['settings'] = array_merge($this->user->profile['settings'], $body['settings']);
         }
 
         /*

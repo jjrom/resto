@@ -658,7 +658,7 @@ class RestoCollection
         $this->id = $id;
         $this->context = $context;
         $this->user = $user;
-        $this->visibility = RestoUtil::getDefaultVisibility($this->user, $this->context->core['defaultCollectionVisibility']);
+        $this->visibility = RestoUtil::getDefaultVisibility($this->user, isset($this->user->profile['settings']['createdCollectionIsPublic']) ? $this->user->profile['settings']['createdCollectionIsPublic'] : true);
     }
 
     /**

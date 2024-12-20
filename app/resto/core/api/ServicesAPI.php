@@ -33,8 +33,8 @@ class ServicesAPI
     {
         $this->context = $context;
         $this->user = $user;
-        $this->title = getenv('STAC_ROOT_TITLE') ?? $this->title;
-        $this->description = getenv('STAC_ROOT_DESCRIPTION') ?? $this->description;
+        $this->title = getenv('STAC_ROOT_TITLE') && !empty(getenv('STAC_ROOT_TITLE')) ? getenv('STAC_ROOT_TITLE') : $this->title;
+        $this->description = getenv('STAC_ROOT_DESCRIPTION') && !empty(getenv('STAC_ROOT_DESCRIPTION')) ? getenv('STAC_ROOT_DESCRIPTION') : $this->description;
     }
 
     /**
