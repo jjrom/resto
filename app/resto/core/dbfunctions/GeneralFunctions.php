@@ -238,17 +238,23 @@ class GeneralFunctions
          * Convert to EPSG:4326 if input SRID differs from this projection
          */
         $epsgCode = RestoGeometryUtil::geoJSONGeometryToSRID($geometry);
-        $geoJsonParser = 'ST_SetSRID(ST_GeomFromGeoJSON($1), 4326)';
-        if ($epsgCode !== "4326") {
-            $geoJsonParser = 'ST_Transform(ST_SetSRID(ST_GeomFromGeoJSON($1), ' . $epsgCode . '), 4326)';
+        if ($epsgCode !== 4326) {
+            try {
+                $result = pg_fetch_row($this->dbDriver->query_params('SELECT ST_AsGeoJSON(ST_Force2D(ST_Transform(ST_SetSRID(ST_GeomFromGeoJSON($1), ' . $epsgCode . '), 4326))) AS geom', array(
+                    json_encode($geometry, JSON_UNESCAPED_SLASHES)
+                )), 0, PGSQL_ASSOC);
+                $geometry = json_decode($result['geom'], true);
+            } catch (Exception $e) {
+                $error = '[GEOMETRY] ' . pg_last_error($this->dbDriver->getConnection());
+            }
         }
         
+        $antimeridian = new AntiMeridian();
+        $fixedGeometry = $antimeridian->fixGeoJSON($geometry);
         try {
-            $result = pg_fetch_row($this->dbDriver->query_params('WITH tmp AS (SELECT ST_Force2D(' . $geoJsonParser . ') AS geom, ST_Force2D(' . $this->getSplitterFunction($geoJsonParser, $params) . ') AS _geom) SELECT geom, _geom, ST_Force2D(ST_SetSRID(ST_Centroid(_geom), 4326)) AS centroid, Box2D(ST_SetSRID(_geom, 4326)) as bbox FROM tmp', array(
-                json_encode(array(
-                    'type' => $geometry['type'],
-                    'coordinates' => $geometry['coordinates']
-                ), JSON_UNESCAPED_SLASHES)
+            $result = pg_fetch_row($this->dbDriver->query_params('WITH tmp AS (SELECT ST_Force2D(ST_SetSRID(ST_GeomFromGeoJSON($1), 4326)) AS geom, ST_Force2D(ST_SetSRID(ST_GeomFromGeoJSON($2), 4326)) AS _geom) SELECT geom, _geom, ST_Force2D(ST_SetSRID(ST_Centroid(_geom), 4326)) AS centroid, Box2D(ST_SetSRID(_geom, 4326)) as bbox FROM tmp', array(
+                json_encode($geometry, JSON_UNESCAPED_SLASHES),    
+                json_encode($fixedGeometry, JSON_UNESCAPED_SLASHES)
             )), 0, PGSQL_ASSOC);
         } catch (Exception $e) {
             $error = '[GEOMETRY] ' . pg_last_error($this->dbDriver->getConnection());
@@ -294,23 +300,4 @@ class GeneralFunctions
         return $best;
     }
 
-    /**
-     * Return Split function
-     *
-     * @param string $geom
-     * @param array $params
-     */
-    private function getSplitterFunction($geom, $params)
-    {
-        // Specifically no split required !
-        if (isset($params['_splitGeom']) && !$params['_splitGeom']) {
-            return $geom;
-        }
-
-        if (!isset($params['tolerance'])) {
-            return 'ST_SetSRID(ST_SplitDateLine(' . $geom . '), 4326)';
-        }
-        
-        return 'ST_SetSRID(ST_SimplifyPreserveTopologyWhenTooBig(ST_SplitDateLine(' . $geom . '),' . $params['tolerance'] . (isset($params['maxpoints']) ? ',' . $params['maxpoints'] : '') . '), 4326)';
-    }
 }
