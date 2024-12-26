@@ -183,7 +183,7 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.feature (
     -- Centroid computed from geometry
     centroid            GEOMETRY(POINT, 4326),
 
-    -- Result of ST_SplitDateLine(geometry)
+    -- Result of Antimeridian function applied to original geometry
     -- Guarantee a valid geometry in database even if input geometry crosses -180/180 meridian of crosses North or South pole
     -- If input geometry does not cross one of this case, then input geometry is not
     -- modified and geom equals geomety.

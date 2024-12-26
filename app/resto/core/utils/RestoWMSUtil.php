@@ -148,16 +148,16 @@ class RestoWMSUtil
      */
     private function stream($url)
     {
-        header('Pragma: public');
-        header('Cache-Control: public, must-revalidate, post-check=0, pre-check=0');
-        header('Expires: 0');
-        header('Content-Type: image/png');
-
-        $curl = new Curl();
+        $curl = new Curly();
+        $curl->setHeaders(array(
+            'Pragma: public',
+            'Cache-Control: public, must-revalidate, post-check=0, pre-check=0',
+            'Expires: 0',
+            'Content-Type: image/png'
+        ));
         $curl->setOptions(array(
             CURLOPT_RETURNTRANSFER => false,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTPHEADER => array()
+            CURLOPT_FOLLOWLOCATION => true
         ));
         $curl->get(urldecode($url));
         $curl->close();
