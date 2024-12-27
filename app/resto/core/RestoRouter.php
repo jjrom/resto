@@ -64,21 +64,24 @@ class RestoRouter
         array('POST',   RestoRouter::ROUTE_TO_USERS, false, 'UsersAPI::createUser'),                                                    // Create user
         array('GET',    RestoRouter::ROUTE_TO_USER, true, 'UsersAPI::getUserProfile'),                                                  // Show user profile
         array('PUT',    RestoRouter::ROUTE_TO_USER, true, 'UsersAPI::updateUserProfile'),                                               // Update profile
+        array('GET',    RestoRouter::ROUTE_TO_USER . '/catalogs', true, 'UsersAPI::getUserCatalogs'),                                   // Show user catalogs
+        array('GET',    RestoRouter::ROUTE_TO_USER . '/collections', true, 'UsersAPI::getUserCollections'),                             // Show user collections
+        array('GET',    RestoRouter::ROUTE_TO_USER . '/features', true, 'UsersAPI::getUserFeatures'),                                   // Show user features
         
         // API for groups
         array('GET'   , RestoRouter::ROUTE_TO_GROUPS, true, 'GroupAPI::getGroups'),                                                     // List users profiles
-        array('GET'   , RestoRouter::ROUTE_TO_GROUPS . '/{name}', true, 'GroupAPI::getGroup'),                                            // Get group
+        array('GET'   , RestoRouter::ROUTE_TO_GROUPS . '/{name}', true, 'GroupAPI::getGroup'),                                          // Get group
         array('POST'  , RestoRouter::ROUTE_TO_GROUPS, true, 'GroupAPI::createGroup'),                                                   // Create group
-        array('DELETE', RestoRouter::ROUTE_TO_GROUPS . '/{name}', true, 'GroupAPI::deleteGroup'),                                         // Delete group
+        array('DELETE', RestoRouter::ROUTE_TO_GROUPS . '/{name}', true, 'GroupAPI::deleteGroup'),                                       // Delete group
         array('GET'   , RestoRouter::ROUTE_TO_USER . '/groups', true, 'GroupAPI::getUserGroups'),                                       // Show user groups
-        array('POST'  , RestoRouter::ROUTE_TO_GROUPS . '/{name}/users', true, 'GroupAPI::addUser'),                                       // Add user to group
-        array('DELETE', RestoRouter::ROUTE_TO_GROUPS . '/{name}/users/{username}', true, 'GroupAPI::deleteUser'),                         // Delete user from group
+        array('POST'  , RestoRouter::ROUTE_TO_GROUPS . '/{name}/users', true, 'GroupAPI::addUser'),                                     // Add user to group
+        array('DELETE', RestoRouter::ROUTE_TO_GROUPS . '/{name}/users/{username}', true, 'GroupAPI::deleteUser'),                       // Delete user from group
 
         // API for rights
         array('GET',    RestoRouter::ROUTE_TO_USER . '/rights', true, 'RightsAPI::getUserRights'),                                      // Show user rights
-        array('GET',    RestoRouter::ROUTE_TO_GROUPS . '/{name}/rights', true, 'RightsAPI::getGroupRights'),                              // Show group rights
+        array('GET',    RestoRouter::ROUTE_TO_GROUPS . '/{name}/rights', true, 'RightsAPI::getGroupRights'),                            // Show group rights
         array('POST'  , RestoRouter::ROUTE_TO_USER . '/rights', true, 'RightsAPI::setUserRights'),                                      // Set user rights
-        array('POST'  , RestoRouter::ROUTE_TO_GROUPS . '/{name}/rights', true, 'RightsAPI::setGroupRights'),                              // Set group rights
+        array('POST'  , RestoRouter::ROUTE_TO_GROUPS . '/{name}/rights', true, 'RightsAPI::setGroupRights'),                            // Set group rights
         
         // API for collections
         array('GET',    RestoRouter::ROUTE_TO_COLLECTIONS, false, 'CollectionsAPI::getCollections'),                                    // List all collections
@@ -109,17 +112,17 @@ class RestoRouter
         array('POST',   RestoRouter::ROUTE_TO_RESET_PASSWORD, false, 'ServicesAPI::resetPassword'),                                     // Reset password
 
         // STAC
-        array('GET',    RestoRouter::ROUTE_TO_ASSETS . '/{urlInBase64}', false, 'STACAPI::getAsset'),                                      // Get an asset using HTTP 301 permanent redirect
-        array('GET',    RestoRouter::ROUTE_TO_CATALOGS, false, 'STACAPI::getCatalogs'),
-        array('GET',    RestoRouter::ROUTE_TO_CATALOGS . '/*', false, 'STACAPI::getCatalogs'),                                             // Get catalogs
-        array('GET',    RestoRouter::ROUTE_TO_STAC_CHILDREN, false, 'STACAPI::getChildren'),                                               // STAC API - Children
-        array('GET',    RestoRouter::ROUTE_TO_STAC_QUERYABLES, false, 'STACAPI::getQueryables'),                                           // STAC/OAFeature API - Queryables
-        array('GET',    RestoRouter::ROUTE_TO_STAC_SEARCH, false, 'STACAPI::search'),                                                      // STAC API - core search (GET)
-        array('POST',   RestoRouter::ROUTE_TO_STAC_SEARCH, false, 'STACAPI::search'),                                                      // STAC API - core search (POST)
-        array('POST',   RestoRouter::ROUTE_TO_CATALOGS , true , 'STACAPI::addCatalog'),                                                    // STAC - Add a catalog
-        array('POST',   RestoRouter::ROUTE_TO_CATALOGS . '/*', true , 'STACAPI::addCatalog'),                                              // STAC - Add a catalog at a given level
-        array('PUT' ,   RestoRouter::ROUTE_TO_CATALOGS . '/*', true , 'STACAPI::updateCatalog'),                                           // STAC - Update a catalog
-        array('DELETE', RestoRouter::ROUTE_TO_CATALOGS . '/*', true , 'STACAPI::removeCatalog')                                            // STAC - Remove a catalog
+        array('GET',    RestoRouter::ROUTE_TO_ASSETS . '/{urlInBase64}', false, 'STACAPI::getAsset'),                                   // Get an asset using HTTP 301 permanent redirect
+        array('GET',    RestoRouter::ROUTE_TO_CATALOGS, false, 'STACAPI::getCatalogs'),                                                 // Get catalogs
+        array('GET',    RestoRouter::ROUTE_TO_CATALOGS . '/*', false, 'STACAPI::getCatalogs'),                                          // Get catalogs
+        array('GET',    RestoRouter::ROUTE_TO_STAC_CHILDREN, false, 'STACAPI::getChildren'),                                            // STAC API - Children
+        array('GET',    RestoRouter::ROUTE_TO_STAC_QUERYABLES, false, 'STACAPI::getQueryables'),                                        // STAC/OAFeature API - Queryables
+        array('GET',    RestoRouter::ROUTE_TO_STAC_SEARCH, false, 'STACAPI::search'),                                                   // STAC API - core search (GET)
+        array('POST',   RestoRouter::ROUTE_TO_STAC_SEARCH, false, 'STACAPI::search'),                                                   // STAC API - core search (POST)
+        array('POST',   RestoRouter::ROUTE_TO_CATALOGS , true , 'STACAPI::addCatalog'),                                                 // STAC - Add a catalog
+        array('POST',   RestoRouter::ROUTE_TO_CATALOGS . '/*', true , 'STACAPI::addCatalog'),                                           // STAC - Add a catalog at a given level
+        array('PUT' ,   RestoRouter::ROUTE_TO_CATALOGS . '/*', true , 'STACAPI::updateCatalog'),                                        // STAC - Update a catalog
+        array('DELETE', RestoRouter::ROUTE_TO_CATALOGS . '/*', true , 'STACAPI::removeCatalog')                                         // STAC - Remove a catalog
     );
 
     /*

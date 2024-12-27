@@ -104,6 +104,11 @@ class CollectionsFunctions
         if (isset($params['ck'])) {
             $where[] = 'keywords @> ARRAY[\'' . $this->dbDriver->escape_string( $params['ck']) . '\']';
         }
+
+         // Filter on owner
+         if (isset($params['owner'])) {
+            $where[] = 'owner=' . $this->dbDriver->escape_string( $params['owner']);
+        }
         
         // Query with aliases
         $query = join(' ', array(
