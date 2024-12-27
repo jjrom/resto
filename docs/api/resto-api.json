@@ -450,7 +450,7 @@
                                                 "level1C",
                                                 "USGS"
                                             ],
-                                            "license": "proprietary",
+                                            "license": "other",
                                             "extent": {
                                                 "spatial": {
                                                     "bbox": [
@@ -4289,7 +4289,7 @@
                     "visibility": [
                         "default"
                     ],
-                    "license": "proprietary",
+                    "license": "other",
                     "providers": [
                         {
                             "name": "European Union/ESA/Copernicus",
@@ -4308,7 +4308,7 @@
                         }
                     ],
                     "summaries": {
-                        "eo:bands": [
+                        "bands": [
                             {
                                 "name": "B1",
                                 "common_name": "coastal",
@@ -4493,7 +4493,7 @@
                         "sentinel",
                         "sentinel2"
                     ],
-                    "license": "proprietary",
+                    "license": "other",
                     "extent": {
                         "spatial": {
                             "bbox": [
@@ -4570,7 +4570,7 @@
                         "productType": [
                             "REFLECTANCE"
                         ],
-                        "eo:bands": [
+                        "bands": [
                             {
                                 "name": "B1",
                                 "common_name": "coastal",
@@ -5717,7 +5717,7 @@
                     "roles": [
                         "data"
                     ],
-                    "eo:bands": [
+                    "bands": [
                         0
                     ]
                 }

@@ -562,6 +562,137 @@ class UsersAPI
     }
 
     /**
+     *  Get user catalogs
+     *
+     *  @OA\Get(
+     *      path="/users/{username}/catalogs",
+     *      summary="Get user's catalogs",
+     *      tags={"User"},
+     *      @OA\Parameter(
+     *         name="username",
+     *         in="path",
+     *         required=true,
+     *         description="User name",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *      ),
+     *      @OA\Response(
+     *          response="200",
+     *          description="User catalogs",
+     *          @OA\JsonContent()
+     *      ),
+     *      @OA\Response(
+     *          response="401",
+     *          description="Unauthorized",
+     *          @OA\JsonContent(ref="#/components/schemas/UnauthorizedError")
+     *      ),
+     *      @OA\Response(
+     *          response="404",
+     *          description="Resource not found",
+     *          @OA\JsonContent(ref="#/components/schemas/NotFoundError")
+     *      ),
+     *      security={
+     *          {"basicAuth":{}, "bearerAuth":{}, "queryAuth":{}}
+     *      }
+     *  )
+     */
+    public function getUserCatalogs($params)
+    {
+        $owner = new RestoUser(array('username' => $params['username']), $this->context);
+        return (new CatalogsFunctions($this->context->dbDriver))->getCatalogs(array(
+            'where' => 'owner=' . $owner->profile['id']
+        ), $this->user, true);
+    }
+
+    /**
+     *  Get user collections
+     *
+     *  @OA\Get(
+     *      path="/users/{username}/collections",
+     *      summary="Get user's collections",
+     *      tags={"User"},
+     *      @OA\Parameter(
+     *         name="username",
+     *         in="path",
+     *         required=true,
+     *         description="User name",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *      ),
+     *      @OA\Response(
+     *          response="200",
+     *          description="User collections",
+     *          @OA\JsonContent()
+     *      ),
+     *      @OA\Response(
+     *          response="401",
+     *          description="Unauthorized",
+     *          @OA\JsonContent(ref="#/components/schemas/UnauthorizedError")
+     *      ),
+     *      @OA\Response(
+     *          response="404",
+     *          description="Resource not found",
+     *          @OA\JsonContent(ref="#/components/schemas/NotFoundError")
+     *      ),
+     *      security={
+     *          {"basicAuth":{}, "bearerAuth":{}, "queryAuth":{}}
+     *      }
+     *  )
+     */
+    public function getUserCollections($params)
+    {
+        $owner = new RestoUser(array('username' => $params['username']), $this->context);
+        return (new CollectionsFunctions($this->context->dbDriver))->getCollections($this->user, array(
+            'owner' => $owner->profile['id']
+        ));
+    }
+
+    /**
+     *  Get user features
+     *
+     *  @OA\Get(
+     *      path="/users/{username}/features",
+     *      summary="Get user's features",
+     *      tags={"User"},
+     *      @OA\Parameter(
+     *         name="username",
+     *         in="path",
+     *         required=true,
+     *         description="User name",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *      ),
+     *      @OA\Response(
+     *          response="200",
+     *          description="User features",
+     *          @OA\JsonContent()
+     *      ),
+     *      @OA\Response(
+     *          response="401",
+     *          description="Unauthorized",
+     *          @OA\JsonContent(ref="#/components/schemas/UnauthorizedError")
+     *      ),
+     *      @OA\Response(
+     *          response="404",
+     *          description="Resource not found",
+     *          @OA\JsonContent(ref="#/components/schemas/NotFoundError")
+     *      ),
+     *      security={
+     *          {"basicAuth":{}, "bearerAuth":{}, "queryAuth":{}}
+     *      }
+     *  )
+     */
+    public function getUserFeatures($params)
+    {
+        return (new RestoCollections($this->context, $this->user))->search(null, array(
+            'owner' => $params['username']
+        ));
+    }
+
+    /**
      * Store user profile
      *
      * @param array $profile

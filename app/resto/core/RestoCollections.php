@@ -288,10 +288,14 @@ class RestoCollections
                 'rel' => 'child',
                 'type' => RestoUtil::$contentTypes['json'],
                 'title' => $collection['title'],
-                'description' => $collection['description'],
                 'href' => $this->context->core['baseUrl'] . RestoUtil::replaceInTemplate(RestoRouter::ROUTE_TO_COLLECTION, array('collectionId' => $key)),
                 'roles' => array('collection')
             );
+
+            if ( isset($collection['description']) ) {
+                $link['description'] = $collection['description'];
+            }
+
             if ( $matched > 0 ) {
                 $link['matched'] = $matched;
             }
