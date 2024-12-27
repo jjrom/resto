@@ -66,7 +66,7 @@
  *      @OA\Property(
  *          property="license",
  *          type="string",
- *          description="License for this collection as a SPDX License identifier. Alternatively, use proprietary if the license is not on the SPDX license list or various if multiple licenses apply. In these two cases links to the license texts SHOULD be added, see the license link relation type."
+ *          description="License for this collection as a SPDX License identifier. Alternatively, use other if the license is not on the SPDX license list. In these case link to the license texts SHOULD be added, see the license link relation type."
  *      ),
  *      @OA\Property(
  *          property="links",
@@ -110,7 +110,7 @@
  *          "version": "1.0",
  *          "model": "OpticalModel",
  *          "visibility": {"default"},
- *          "license": "proprietary",
+ *          "license": "other",
  *          "providers": {
  *              {
  *                  "name": "European Union/ESA/Copernicus",
@@ -129,7 +129,7 @@
  *              }
  *          },
  *          "summaries": {
- *              "eo:bands": {
+ *              "bands": {
  *                  {
  *                      "name": "B1",
  *                      "common_name": "coastal",
@@ -250,8 +250,8 @@
  *      @OA\Property(
  *          property="license",
  *          type="string",
- *          enum={"proprietary", "various", "<license id>"},
- *          description="License for this collection as a SPDX License identifier or expression. Alternatively, use proprietary if the license is not on the SPDX license list or various if multiple licenses apply. In these two cases links to the license texts SHOULD be added, see the license link relation type."
+ *          enum={"other", "<license id>"},
+ *          description="License for this collection as a SPDX License identifier or expression. Alternatively, use other if the license is not on the SPDX license list. In this case, links to the license texts SHOULD be added, see the license link relation type."
  *      ),
  *      @OA\Property(
  *          property="extent",
@@ -342,7 +342,7 @@
  *              "sentinel",
  *              "sentinel2"
  *          },
- *          "license": "proprietary",
+ *          "license": "other",
  *          "extent": {
  *              "spatial": {
  *                  "bbox": {
@@ -419,7 +419,7 @@
  *              "productType": {
  *                  "REFLECTANCE"
  *              },
- *              "eo:bands": {
+ *              "bands": {
  *                  {
  *                      "name": "B1",
  *                      "common_name": "coastal",

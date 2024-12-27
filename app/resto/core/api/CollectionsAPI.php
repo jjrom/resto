@@ -100,7 +100,7 @@ class CollectionsAPI
      *                              "level1C",
      *                              "USGS"
      *                          },
-     *                          "license": "proprietary",
+     *                          "license": "other",
      *                          "extent": {
      *                              "spatial": {
      *                                  "bbox": {

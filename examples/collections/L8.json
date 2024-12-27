@@ -38,7 +38,7 @@
         }
     ],
     "summaries": {
-        "eo:bands": [
+        "bands": [
             {
                 "name": "B1",
                 "common_name": "coastal",

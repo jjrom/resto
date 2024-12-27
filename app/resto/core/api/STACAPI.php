@@ -183,7 +183,7 @@ class STACAPI
      *          "href": "https://landsat-pds.s3.amazonaws.com/c1/L8/171/002/LC08_L1TP_171002_20200616_20200616_01_RT/LC08_L1TP_171002_20200616_20200616_01_RT_B1.TIF",
      *          "type": "image/tiff; application=geotiff; profile=cloud-optimized",
      *          "roles":{"data"},
-     *          "eo:bands": {
+     *          "bands": {
      *              0
      *          }
      *      }
@@ -193,7 +193,7 @@ class STACAPI
     /*
      * STAC version
      */
-    const STAC_VERSION = '1.0.0';
+    const STAC_VERSION = '1.1.0';
 
     /*
      * STAC namespaces
@@ -211,11 +211,11 @@ class STACAPI
         'https://api.stacspec.org/v1.0.0/item-search#sort',
         'https://api.stacspec.org/v1.0.0-rc.3/item-search#filter',
 
-        'http://www.opengis.net/spec/ogcapi_common-2/1.0/conf/collections',
-
         'https://api.stacspec.org/v1.0.0/ogcapi-features#fields',
         'https://api.stacspec.org/v1.0.0/ogcapi-features#sort',
         'https://api.stacspec.org/v1.0.0/ogcapi-features#filter',
+
+        'http://www.opengis.net/spec/ogcapi_common-2/1.0/conf/collections',
 
         'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core',
         'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson',
