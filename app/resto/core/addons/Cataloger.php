@@ -61,7 +61,11 @@ class Cataloger extends RestoAddOn
      */
     public function getCatalogs($properties, $geometry, $collection, $iTagParams)
     {
-        return $iTagParams && $iTagParams['taggers'] ? array_merge($this->catalogsFromITag($properties, $geometry, $iTagParams), $this->catalogsFromProperties($properties, $collection)) : $this->catalogsFromProperties($properties, $collection);
+        $iTagHasEndpoint = isset($this->options['iTag']) && !empty($this->options['iTag']['endpoint']);
+        if ( $iTagHasEndpoint ) {
+            return array_merge($this->catalogsFromITag($properties, $geometry, $iTagParams), $this->catalogsFromProperties($properties, $collection, true));
+        }
+        return $this->catalogsFromProperties($properties, $collection, $iTagHasEndpoint);
     }
 
     /**
@@ -132,15 +136,10 @@ class Cataloger extends RestoAddOn
     private function catalogsFromITag($properties, $geometry, $iTagParams)
     {
         
-        /*
-         * No geometry = no iTag
-         *
-         * [TODO] Add support to null geometry in iTag instead
-         */
-        if (! isset($geometry)) {
+        if ( !isset($iTagParams) || empty($iTagParams['taggers']) || !isset($geometry)) {
             return array();
         }
-
+        
         $taggerKeys = array_keys($iTagParams['taggers']);
         $queryParams = array(
             'geometry' => RestoGeometryUtil::geoJSONGeometryToWKT($geometry),
@@ -444,8 +443,9 @@ class Cataloger extends RestoAddOn
      *
      * @param array $properties
      * @param RestoCollection $collection
+     * @param boolean $addDateCatalogs
      */
-    private function catalogsFromProperties($properties, $collection)
+    private function catalogsFromProperties($properties, $collection, $addDateCatalogs)
     {
         /*
          * [IMPORTANT] If input properties contains a resto:catalogs property then use it
@@ -478,7 +478,7 @@ class Cataloger extends RestoAddOn
         /*
          * Finnaly date catalogs
          */
-        return array_merge($catalogs, $this->getDateCatalogs($properties, $model));
+        return $addDateCatalogs? array_merge($catalogs, $this->getDateCatalogs($properties, $model)) : $catalogs;
     }
 
     /**
