@@ -393,7 +393,7 @@ class RestoContext
      */
     private function setPath()
     {
-        $restoUrl = filter_input(INPUT_GET, '_path', FILTER_UNSAFE_RAW);
+        $restoUrl = explode('?', filter_input(INPUT_GET, '_path', FILTER_UNSAFE_RAW))[0];
         if (isset($restoUrl)) {
             $this->path = ($restoUrl !== '/' && substr($restoUrl, -1) === '/' ? substr($restoUrl, 0, strlen($restoUrl) - 1) : $restoUrl);
         }
