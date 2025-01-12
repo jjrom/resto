@@ -11,7 +11,8 @@ server {
   index index.php;
   
   location / {
-    try_files $uri /index.php?_path=$uri&$args;
+  #  try_files $uri /index.php?_path=$uri&$args;
+    try_files $uri /index.php?_path=$request_uri&$args;
   }
 
   location /static/ {
