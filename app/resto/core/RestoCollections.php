@@ -204,9 +204,12 @@ class RestoCollections
     {
        
         if ( !$this->isLoaded ) {
-            
+
+            if ( isset($params['owner']) ) {
+                $owner = new RestoUser(array('username' => $params['owner']), $this->context);
+                $params['owner'] = $owner->profile['id'];
+            }
             $collectionsDesc = (new CollectionsFunctions($this->context->dbDriver))->getCollections($this->user, $params);
-            
             foreach (array_keys($collectionsDesc) as $collectionId) {
                 $collection = $this->context->keeper->getRestoCollection($collectionId, $this->user);
                 foreach ($collectionsDesc[$collectionId] as $key => $value) {
