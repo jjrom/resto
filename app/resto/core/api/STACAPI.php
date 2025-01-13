@@ -1565,7 +1565,7 @@ class STACAPI
          * Input bbox should be an array of 4 floats
          */
         if ( isset($jsonQuery['bbox']) ) {
-            if ( is_array($jsonQuery['bbox']) || count($jsonQuery['bbox']) !== 4 ) {
+            if ( !is_array($jsonQuery['bbox']) || count($jsonQuery['bbox']) !== 4 ) {
                 RestoLogUtil::httpError(400, 'Invalid bbox parameter. Should be an array of 4 coordinates');
             }
             $params['bbox'] = join(',', $jsonQuery['bbox']);
