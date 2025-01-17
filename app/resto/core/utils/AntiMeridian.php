@@ -175,7 +175,7 @@ class AntiMeridian {
         bool $fix_winding = true,
         bool $great_circle = true
     ): Polygon|MultiPolygon {
-        
+
 
         if ($force_north_pole || $force_south_pole) {
             $fix_winding = false;
@@ -191,7 +191,7 @@ class AntiMeridian {
 
         if (count($polygons) === 1) {
             $polygon = $polygons[0];
-            if (!Polygon::isClockwise($polygon->getExteriorRing())) {
+            if (Polygon::isCCW($polygon->getExteriorRing())) {
                 return $polygon;
             } else {
                 $polygon->setInteriorRings($polygon->getExteriorRing()); 
@@ -366,9 +366,52 @@ class AntiMeridian {
     }
 
 
+    /**
+     * Segment a set of coordinates at the antimeridian.
+     * 
+     * [IMPORTANT] This function differs from the original implementation in that it first test if the
+     * polygon split or not the antimeridian based on the bbox order. To do so, it takes the asumption that
+     * the first coordinates is the most western point of the polygon. From this it computes the bbox and applies
+     * the GeoJSON rule on antimeridian crossing (https://datatracker.ietf.org/doc/html/rfc7946#section-5.2)
+     *    
+     *          "Consider a set of point Features within the Fiji archipelago,
+     *          straddling the antimeridian between 16 degrees S and 20 degrees S.
+     *          The southwest corner of the box containing these Features is at 20
+     *          degrees S and 177 degrees E, and the northwest corner is at 16
+     *          degrees S and 178 degrees W.  The antimeridian-spanning GeoJSON
+     *          bounding box for this FeatureCollection is
+     *          
+     *          "bbox": [177.0, -20.0, -178.0, -16.0]
+     *          
+     *          and covers 5 degrees of longitude.
+     *          
+     *          The complementary bounding box for the same latitude band, not
+     *          crossing the antimeridian, is
+     *          
+     *          "bbox": [-178.0, -20.0, 177.0, -16.0]
+     *          
+     *          and covers 355 degrees of longitude.
+     *          
+     *          The latitude of the northeast corner is always greater than the
+     *          latitude of the southwest corner, but bounding boxes that cross the
+     *          antimeridian have a northeast corner longitude that is less than the
+     *          longitude of the southwest corner."
+     * 
+     * 
+     * @param array $coords The coordinates to segment.
+     * @param bool $greatCircle Whether to use great circle calculations.
+     */
     private function segment(array $coords, bool $greatCircle): array {
         $segment = [];
         $segments = [];
+
+        $westernCoords = $coords[0];
+        $easternCoords = $this->getEasternmostCoordinate($coords);
+
+        if ($westernCoords[0] < $easternCoords[0]) {
+            // No antimeridian crossing
+            return [];
+        }
 
         for ($i = 0; $i < count($coords) - 1; $i++) {
             $start = $coords[$i];
@@ -401,6 +444,26 @@ class AntiMeridian {
         }
 
         return $segments;
+    }
+
+    /**
+     * Returns the easternmost coordinate in an array of coordinates.
+     * 
+     * @param array $coordinates The array of coordinates.
+     * @return array|null The easternmost coordinate.
+     */
+    private function getEasternmostCoordinate($coordinates) {
+        if (empty($coordinates)) {
+            return null; // Return null if the array is empty
+        }
+
+        // Sort the array by longitude in descending order
+        usort($coordinates, function($a, $b) {
+            return $b[0] <=> $a[0]; // Compare longitude values
+        });
+
+        // Return the first coordinate (easternmost)
+        return $coordinates[0];
     }
 
     private function buildPolygons(array &$segments): array {

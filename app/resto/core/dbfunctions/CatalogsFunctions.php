@@ -202,7 +202,7 @@ class CatalogsFunctions
          * Delete (within transaction)
          */
         try {
-            $results = $this->dbDriver->pQuery('SELECT featureid, collection, title FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path=$1::ltree', array(
+            $results = $this->dbDriver->pQuery('SELECT featureid, collection, title FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path=$1::ltree ORDER BY created DESC', array(
                 RestoUtil::path2ltree($catalogId)
             ));    
         } catch (Exception $e) {
@@ -585,8 +585,8 @@ class CatalogsFunctions
         $properties = null;
         if ( isset($catalog['rtype']) && $catalog['rtype'] === 'collection' ) {
             $catalog = array_merge($catalog, [
-                'title' => null,
-                'description' => null,
+                /*'title' => null,
+                'description' => null,*/
                 'rtype' => 'collection'
             ]);
         }

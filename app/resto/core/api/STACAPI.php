@@ -1640,13 +1640,11 @@ class STACAPI
                 $element = array(
                     'rel' => 'items',
                     'type' => RestoUtil::$contentTypes['geojson'],
-                    'href' => $this->context->core['baseUrl'] . ( str_starts_with($catalogId, 'collections/') ? '/' : '/catalogs/') .  join('/', array_map('rawurlencode', explode('/', $parentAndChilds['parent']['id']))) . '/_'
+                    'href' => $this->context->core['baseUrl'] . ( str_starts_with($catalogId, 'collections/') ? '/' : '/catalogs/') .  join('/', array_map('rawurlencode', explode('/', $parentAndChilds['parent']['id']))) . '/_',
+                    'title' => 'All items'
                 );
                 if ( $parentAndChilds['parent']['counters']['total'] > 0 ) {
                     $element['matched'] = $parentAndChilds['parent']['counters']['total'];
-                }
-                if ( isset($parentAndChilds['parent']['title']) ) {
-                    $element['title'] = $parentAndChilds['parent']['title'];
                 }
                 $parentAndChilds['childs'][] = $element;
             }

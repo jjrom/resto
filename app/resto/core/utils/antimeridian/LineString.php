@@ -78,13 +78,13 @@ class LineString {
     }
 
     /**
-     * Check if the LineString is "clockwise".
+     * Check if the LineString is "counter clockwise".
      * LineStrings don't have a defined clockwise or counterclockwise orientation.
      * This method is here for consistency, but it will always return false for LineStrings.
      *
      * @return bool False for LineString, as orientation doesn't apply.
      */
-    public function isClockwise(): bool {
+    public function isCCW(): bool {
         return false;
     }
 
