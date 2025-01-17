@@ -1,0 +1,35 @@
+{
+    "id": "Dummy5",
+    "type": "Feature",
+    "properties": {
+        "datetime": "2024-06-21T16:27:00Z",
+        "description": "Dummy5"
+    },
+    "geometry": {
+        "coordinates": [
+            [
+                [
+                    -52,
+                    -65
+                ],
+                [
+                    159,
+                    -65
+                ],
+                [
+                    159,
+                    76
+                ],
+                [
+                    -52,
+                    76
+                ],
+                [
+                    -52,
+                    -65
+                ]
+            ]
+        ],
+        "type": "Polygon"
+    }
+}

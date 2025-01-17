@@ -1,36 +1,38 @@
 <?php
 
-class Polygon {
+class Polygon
+{
 
     private $exteriorRing; // Array of coordinates representing the exterior ring
     private $interiorRings = []; // Array of arrays, each representing an interior ring
 
-   /**
-    * Determine if a ring is oriented clockwise.
-    *
-    * @param array $ring The ring to check.
-    * @return bool True if the ring is clockwise, false otherwise.
-    */
-    public static function isClockwise(array $ring): bool {
-       $sum = 0;
-       $n = count($ring);
+    /**
+     * Determine if a ring is oriented CounterClockWise.
+     *
+     * @param array $ring The ring to check.
+     * @return bool True if the ring is ccw, false otherwise.
+     */
+    public static function isCCW(array $ring): bool
+    {
+        $area = 0.0;
+        $n = count($ring);
 
-       for ($i = 0; $i < $n - 1; $i++) {
-           $p1 = $ring[$i];
-           $p2 = $ring[$i + 1];
-           $sum += ($p2[0] - $p1[0]) * ($p2[1] + $p1[1]);
-       }
+        for ($i = 0; $i < $n - 1; $i++) {
+            $p1 = $ring[$i];
+            $p2 = $ring[$i + 1];
+            $area += ($p2[0] - $p1[0]) * ($p2[1] + $p1[1]);
+        }
 
-       return $sum > 0;
-   }
+        return $area < 0;
+    }
 
-    public function __construct(array $geoJsonGeometryOrSegment) {
-        
+    public function __construct(array $geoJsonGeometryOrSegment)
+    {
+
         if (array_is_list($geoJsonGeometryOrSegment)) {
             $geoJsonGeometryOrSegment[] = $geoJsonGeometryOrSegment[0];
             $this->exteriorRing = $geoJsonGeometryOrSegment;
-        }
-        else {
+        } else {
 
             if (!isset($geoJsonGeometryOrSegment['type']) || $geoJsonGeometryOrSegment['type'] !== 'Polygon') {
                 throw new Exception('Invalid GeoJSON: Must be of type Polygon');
@@ -56,7 +58,8 @@ class Polygon {
         }
     }
 
-    public function toGeoJSON(): array {
+    public function toGeoJSON(): array
+    {
 
         return [
             'type' => $this->getType(),
@@ -64,37 +67,44 @@ class Polygon {
         ];
     }
 
-    public function getExteriorRing(): array {
+    public function getExteriorRing(): array
+    {
         return $this->exteriorRing;
     }
 
-    public function getInteriorRings(): array {
+    public function getInteriorRings(): array
+    {
         return $this->interiorRings;
     }
 
-    public function setExteriorRing($exteriorRing) {
+    public function setExteriorRing($exteriorRing)
+    {
         $this->exteriorRing = $exteriorRing;
     }
 
-    public function setInteriorRings($interiorRings) {
+    public function setInteriorRings($interiorRings)
+    {
         $this->interiorRings = $interiorRings;
     }
 
-    private function isValidRing(array $ring): bool {
+    private function isValidRing(array $ring): bool
+    {
         return count($ring) >= 4 && $ring[0] === end($ring);
     }
 
-    public function getCoordinates(): array {
+    public function getCoordinates(): array
+    {
         $coordinates = [
             $this->exteriorRing
         ];
-        if ( !empty($this->interiorRings) ) {
+        if (!empty($this->interiorRings)) {
             $coordinates[] = $this->interiorRings;
         }
         return $coordinates;
     }
 
-    public function isCoincidentToAntimeridian(): bool {
+    public function isCoincidentToAntimeridian(): bool
+    {
         if ($this->checkRingCoincidence($this->exteriorRing)) {
             return true;
         }
@@ -108,7 +118,8 @@ class Polygon {
         return false;
     }
 
-    private function checkRingCoincidence(array $ring): bool {
+    private function checkRingCoincidence(array $ring): bool
+    {
         for ($i = 0; $i < count($ring) - 1; $i++) {
             $start = $ring[$i];
             $end = $ring[$i + 1];
@@ -125,13 +136,14 @@ class Polygon {
      *
      * @return bool True if the exterior ring is CCW and interior rings are CW.
      */
-    public function checkOrientation(): bool {
-        if (Polygon::isClockwise($this->exteriorRing)) {
+    public function checkOrientation(): bool
+    {
+        if (!Polygon::isCCW($this->exteriorRing)) {
             return false;
         }
 
         foreach ($this->interiorRings as $ring) {
-            if (!Polygon::isClockwise($ring)) {
+            if (Polygon::isCCW($ring)) {
                 return false;
             }
         }
@@ -143,13 +155,14 @@ class Polygon {
      * Correct the orientation of the rings.
      * Ensures the exterior ring is CCW and interior rings are CW.
      */
-    public function correctOrientation(): void {
-        if (Polygon::isClockwise($this->exteriorRing)) {
+    public function correctOrientation(): void
+    {
+        if (!Polygon::isCCW($this->exteriorRing)) {
             $this->exteriorRing = array_reverse($this->exteriorRing);
         }
 
         foreach ($this->interiorRings as &$ring) {
-            if (!Polygon::isClockwise($ring)) {
+            if (Polygon::isCCW($ring)) {
                 $ring = array_reverse($ring);
             }
         }
@@ -177,7 +190,8 @@ class Polygon {
      *
      * @return string The geometry type.
      */
-    public function getType(): string {
+    public function getType(): string
+    {
         return 'Polygon';
     }
 
@@ -203,12 +217,12 @@ class Polygon {
             $yj = $coords[$j][1];
 
             if (($yi > $y) != ($yj > $y) &&
-                $x < ($xj - $xi) * ($y - $yi) / ($yj - $yi) + $xi) {
+                $x < ($xj - $xi) * ($y - $yi) / ($yj - $yi) + $xi
+            ) {
                 $inside = !$inside;
             }
         }
 
         return $inside;
     }
-
 }
