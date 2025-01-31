@@ -86,7 +86,7 @@ class FiltersFunctions
         if (isset($filterCS) && $filterCS !== '') {
             $filters[] = $filterCS;
         }
-        
+
         /*
          * Skip the following
          */
@@ -155,7 +155,7 @@ class FiltersFunctions
                 }
             }
         }
-        
+
         // searchTerms specialcase - everything processed at the end
         if (count($this->terms) > 0) {
        
@@ -947,7 +947,8 @@ class FiltersFunctions
             $results = $this->context->dbDriver->query('SELECT id,rtype,counters,links FROM ' . $this->context->dbDriver->targetSchema . '.catalog WHERE id ILIKE \'%' . $this->context->dbDriver->escape_string($catalogPartName) . '%\'');
             while ($result = pg_fetch_assoc($results)) {
                 if ($result['rtype'] === 'collection') {
-                    $collectionId = str_replace('collections/', '', $result['id']); 
+                    // The collection name is the last string of path
+                    $collectionId = end(explode('/', $result['id'])); 
                     if ( !in_array($collectionId, $collectionIds) ) {
                         $collectionIds[] = $collectionId;
                     }
