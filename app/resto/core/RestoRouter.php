@@ -326,7 +326,7 @@ class RestoRouter
                 'auth' => $validRoute[0]
             );
         }
-
+        
         /*
          * Authentication is required
          */

@@ -205,13 +205,15 @@ class RestoUser
          */
         else {
 
-            if (isset($profile['username'])) {
-                $this->profile = (new UsersFunctions($this->context->dbDriver))->getUserProfile('username', $profile['username']);
-            }
-            else {
-                $this->profile = (new UsersFunctions($this->context->dbDriver))->getUserProfile('email', $profile['email'], array(
+            $target = isset($profile['username']) ? array('username', $profile['username']) : array('email', $profile['email']);
+
+            if ( array_key_exists('password', $profile) ) {
+                $this->profile = (new UsersFunctions($this->context->dbDriver))->getUserProfile($target[0], $target[1], array(
                     'password' => $profile['password'] ?? null
                 ));
+            }
+            else {
+                $this->profile = (new UsersFunctions($this->context->dbDriver))->getUserProfile($target[0], $target[1]);
             }
             
             if (!$this->profile) {
