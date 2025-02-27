@@ -206,12 +206,13 @@ class UsersFunctions
         /*
          * Check password
          */
-        if (isset($params['password'])) {
+        if ( array_key_exists('password', $params) ) {
+
             // External authentication
             if ($results[0]['password'] === str_repeat('*', 60)) {
                 RestoLogUtil::httpError(400, 'External user');
             }
-                
+            
             if (!password_verify($params['password'], $results[0]['password'])) {
                 RestoLogUtil::httpError(401);
             }
