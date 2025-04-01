@@ -1463,7 +1463,7 @@ class STACAPI
             'id' => $segments[count($segments) -1 ],
             'title' => $parentAndChilds['parent']['title'] ?? '',
             'description' => $parentAndChilds['parent']['description'] ?? '',
-            'type' => 'Catalog',
+            'type' => ucfirst($parentAndChilds['parent']['rtype'] ?? 'catalog'),
             'links' => array_merge(
                 $this->getBaseLinks($segments),
                 !empty($parentAndChilds['parent']['links']) ? array_merge($parentAndChilds['childs'], $parentAndChilds['parent']['links']) : $parentAndChilds['childs']
