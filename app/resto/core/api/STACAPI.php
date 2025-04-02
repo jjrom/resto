@@ -1636,7 +1636,7 @@ class STACAPI
         else {
 
             // Parent has an hashtag thus can have a rel="items" child to directly search for its contents
-            if ( $parentAndChilds['parent']['level'] > 1 ) {
+            if ( $parentAndChilds['parent']['level'] > 1 && $this->context->core['showItemsLink'] ) {
                 $element = array(
                     'rel' => 'items',
                     'type' => RestoUtil::$contentTypes['geojson'],
