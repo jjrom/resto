@@ -347,7 +347,7 @@ class FeaturesFunctions
          */
         foreach (array_values($keysAndValues['catalogs']) as $catalog) {
             if (isset($catalog['isExternal']) && $catalog['isExternal']) {
-                if ( !$collection->user->hasRightsTo(RestoUser::CREATE_CATALOG) ) {
+                if ( !$collection->user->hasRightsTo(RestoUser::CREATE_CATALOG, array('catalog' => $catalog)) ) {
                     RestoLogUtil::httpError(403, 'Feature ingestion leads to creation of catalog ' . $catalog['id'] . ' but you don\'t have right to create catalogs');
                 }
                 break;
@@ -497,7 +497,7 @@ class FeaturesFunctions
          */
         foreach (array_values($keysAndValues['catalogs']) as $catalog) {
             if (isset($catalog['isExternal']) && $catalog['isExternal']) {
-                if ( !$collection->user->hasRightsTo(RestoUser::CREATE_CATALOG) ) {
+                if ( !$collection->user->hasRightsTo(RestoUser::CREATE_CATALOG, array('catalog' => $catalog)) ) {
                     RestoLogUtil::httpError(403, 'Feature update leads to creation of catalog ' . $catalog['id'] . ' but you don\'t have right to create catalogs');
                 }
                 break;

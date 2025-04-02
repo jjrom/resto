@@ -389,6 +389,10 @@ class UsersFunctions
                 $group['id'],
                 $outputProfile['id']
             ));
+
+            // Finally create user catalog under /catalogs/users
+            // [TODO] Issue there since it only creates the catalog within targetSchema not all the potential schemas ...
+            $this->createUserCatalog($outputProfile, $group['id']);
             
             $this->dbDriver->query('COMMIT');
 
@@ -635,5 +639,27 @@ class UsersFunctions
         }
 
         RestoLogUtil::httpError(400, 'Invalid picture');
+    }
+
+    /**
+     * Create user's private catalog
+     * 
+     * @param array $profile
+     * @param string $groupId
+     */
+    public function createUserCatalog($profile, $groupId) {
+
+        $this->dbDriver->query_params('INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog (id, title, description, level, counters, owner, visibility, created) VALUES ($1,$2,$3,$4,$5,$6,$7,now_utc()) ON CONFLICT (id) DO NOTHING', array(
+            'users/' . $profile['username'],
+            'Private catalog',
+            'This is ' . $profile['username'] . ' private catalog',
+            2,
+            str_replace('[]', '{}', json_encode(array(
+                'total' => 0,
+                'collections' => array()
+            ), JSON_UNESCAPED_SLASHES)),
+            $profile['id'],
+            '{' . $groupId . '}'
+        ));   
     }
 }

@@ -230,6 +230,16 @@ class STACAPI
     );
 
     /*
+     * Reserved catalog paths
+     * These paths are reserved for internal use
+     */
+    const RESERVED_CATALOG_PATHS = array(
+        'collections',
+        'users',
+        'projects'
+    );
+
+    /*
      * Reference to catalogsFunctions
      */
     private $catalogsFunctions;
@@ -368,16 +378,42 @@ class STACAPI
     public function addCatalog($params, $body)
     {
         
-        if (!$this->user->hasRightsTo(RestoUser::CREATE_CATALOG)) {
+        /*
+         * Check that parent catalogs exists
+         */
+        $parentId = null;
+        if ( isset($params['segments']) ) {
+            for ($i = 0, $ii = count($params['segments']); $i < $ii; $i++) {
+                $parentId = isset($parentId) ? $parentId . '/' . $params['segments'][$i] : $params['segments'][$i];
+                if ($this->catalogsFunctions->getCatalog($parentId, $this->user) === null) {
+                    RestoLogUtil::httpError(400, 'Parent catalog ' . $parentId . ' does not exist.');
+                }
+            }
+        }
+        
+        /*
+         * Compute internal catalog id as full path
+         */
+        $body['id'] = $this->getIdPath($body, $parentId);
+
+        /*
+         * Check forbidden paths
+         */
+        $firstLevelPath = explode('/', $body['id'])[0];
+        if ( !isset($params['segments']) && in_array($firstLevelPath, $this::RESERVED_CATALOG_PATHS) ) {
+            RestoLogUtil::httpError(400, 'You cannot create /catalogs/' . $firstLevelPath . ' as it is a reserved path');
+        }
+
+        /*
+         * First check that user has the right to create a catalog
+         */
+        if (!$this->user->hasRightsTo(RestoUser::CREATE_CATALOG, array('catalog' => $body))) {
             RestoLogUtil::httpError(403);
         }
 
         /*
          * Check mandatory properties
          */
-        if ( !isset($body['id']) ) {
-            RestoLogUtil::httpError(400, 'Missing mandatory catalog id');
-        }
         if ( !isset($body['type']) || !in_array($body['type'], array('Catalog', 'Collection')) ) {
             RestoLogUtil::httpError(400, 'Missing mandatory type - must be set to *Catalog* or *Collection*');
         }
@@ -412,19 +448,6 @@ class STACAPI
         } 
 
         /*
-         * Check that parent catalogs exists
-         */
-        $parentId = null;
-        if ( isset($params['segments']) ) {
-            for ($i = 0, $ii = count($params['segments']); $i < $ii; $i++) {
-                $parentId = isset($parentId) ? $parentId . '/' . $params['segments'][$i] : $params['segments'][$i];
-                if ($this->catalogsFunctions->getCatalog($parentId, $this->user) === null) {
-                    RestoLogUtil::httpError(400, 'Parent catalog ' . $parentId . ' does not exist.');
-                }
-            }
-        }
-        
-        /*
          * [IMPORTANT] Special case - post a collection under a catalog is in fact an update of 'links' property of this catalog
          */
         if ( $body['type'] === 'Collection' ) {
@@ -433,16 +456,6 @@ class STACAPI
             if ( !(new CollectionsFunctions($this->context->dbDriver))->collectionExists($body['id']) ) {
                 $this->context->keeper->getRestoCollections($this->user)->create($body, $params['model'] ?? null);
             }
-        }
-        
-        /*
-         * Convert input catalog to resto:catalog
-         * i.e. add rtype property and convert id to a path
-         */
-        $body['id'] = $this->getIdPath($body, $parentId);
-        
-        if ( str_starts_with($body['id'], 'collections') ) {
-            RestoLogUtil::httpError(400, 'A catalog path cannot starts with *collections* as it is a reserved keyword');
         }
 
         if ($this->catalogsFunctions->getCatalog($body['id'], $this->user) !== null) {
@@ -1780,6 +1793,13 @@ class STACAPI
      */
     private function getIdPath($catalog, $parentId)
     {
+
+        if ( !isset($catalog['id']) ) {
+            RestoLogUtil::httpError(400, 'Missing mandatory catalog id');
+        }
+        if ( count(explode('/', $catalog['id'])) >  1 ) {
+            RestoLogUtil::httpError(400, 'Catalog id cannot contain a slash');
+        }
 
         $parentIdInBody = '';
         $hasParentInBody = false;
