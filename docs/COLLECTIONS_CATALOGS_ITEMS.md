@@ -57,7 +57,11 @@ Then get the item :
         # Create a catalog - user with the "createCatalog" right can create a catalog 
         curl -X POST -d@examples/catalogs/dummyCatalog.json "http://admin:admin@localhost:5252/catalogs"
 
-### Invalid catalog
+### Reserved catalog names
+The following paths are reserved i.e. created by resto itself:
+* /catalogs/collections
+* /catalogs/projects
+* /catalogs/users
 
         # A catalog at the root level cannot be named "collections" because it is a reserved catalog name
         curl -X POST -d@examples/catalogs/invalidCatalogInRoot.json "http://admin:admin@localhost:5252/catalogs"
@@ -66,6 +70,7 @@ Then get the item :
 
 **[IMPORTANT]** You cannot create a catalog with childs in links because a child cannot exist before its parent. The good way
 is to create an empty catalog then add its childs through the POST API
+
         # This will raise an error because the catalog references childs that do not exist.
         curl -X POST -d@examples/catalogs/dummyCatalogWithChilds_invalid.json "http://admin:admin@localhost:5252/catalogs"
 

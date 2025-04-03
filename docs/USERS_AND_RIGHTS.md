@@ -288,15 +288,15 @@ John Doe change the visibility of the JohnDoeCollection to dummyGroup only:
 #### Create a catalog to make it visible only to a group
 John Doe creates a catalog that is only visible by dummyGroup:
 
-        curl -X POST -d@examples/catalogs/JohnDoeCatalog.json "http://johnDoe%40localhost:dummy@localhost:5252/catalogs"
+        curl -X POST -d@examples/catalogs/JohnDoeCatalog.json "http://johnDoe%40localhost:dummy@localhost:5252/catalogs/users/johndoe"
 
         # The catalog is not visible to users
-        curl "http://localhost:5252/catalogs"
+        curl "http://localhost:5252/catalogs/users/johndoe"
 
         # Except to users belonging to dummyGroup (like John Doe)
-        curl "http://johnDoe%40localhost:dummy@localhost:5252/catalogs"
+        curl "http://johnDoe%40localhost:dummy@localhost:5252/catalogs/users/johndoe"
 
 #### Update a catalog to make it visible for everyone
 John Doe change visibility to default group so everyone can see it:
 
-        curl -X PUT -d@examples/catalogs/JohnDoeCatalog_update.json "http://johnDoe%40localhost:dummy@localhost:5252/catalogs/JohnDoeCatalog"
+        curl -X PUT -d@examples/catalogs/JohnDoeCatalog_update.json "http://johnDoe%40localhost:dummy@localhost:5252/catalogs/users/johndoe/JohnDoeCatalog"
