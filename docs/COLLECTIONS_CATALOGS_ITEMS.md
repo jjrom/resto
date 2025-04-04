@@ -53,23 +53,31 @@ Then get the item :
 ## Catalogs
 
 ### Add a catalog
+User with catalog creation right can create a catalog i.e.:
+* The "createCatalog" right allows user to create catalog within its private space i.e. under /catalogs/users/{username}
+* The "createAnyCatalog" right allows user to create catalog anywhere **except the private space of another user**
 
-        # Create a catalog - user with the "createCatalog" right can create a catalog 
+For instance, user "johndoe" has the "createCatalog" right and can create a catalog only under its private space:
+
+        curl -X POST -d@examples/catalogs/dummyCatalog.json "http://johndoe:dummy@localhost:5252/catalogs/users/johndoe"
+
+Admin user has the "createAnyCatalog" right and can create a catalog anywhere:
+
         curl -X POST -d@examples/catalogs/dummyCatalog.json "http://admin:admin@localhost:5252/catalogs"
 
 ### Reserved catalog names
-The following paths are reserved i.e. created by resto itself:
+The following paths are reserved and cannot be created by a user whatever its rights:
 * /catalogs/collections
 * /catalogs/projects
 * /catalogs/users
 
-        # A catalog at the root level cannot be named "collections" because it is a reserved catalog name
-        curl -X POST -d@examples/catalogs/invalidCatalogInRoot.json "http://admin:admin@localhost:5252/catalogs"
+### Catalog /catalogs/users
+No user can create a catalog directly under /catalogs/users catalog neither can create a catalog under a another user catalog.
+For instance "johndoe" user cannot create a catalog under /catalog/users/janedoe even if he get the "createAnyCatalog" right
 
 ### Add a catalog under an existing catalog
-
 **[IMPORTANT]** You cannot create a catalog with childs in links because a child cannot exist before its parent. The good way
-is to create an empty catalog then add its childs through the POST API
+is to create first an empty catalog (i.e. the parent) then add its childs through the POST API
 
         # This will raise an error because the catalog references childs that do not exist.
         curl -X POST -d@examples/catalogs/dummyCatalogWithChilds_invalid.json "http://admin:admin@localhost:5252/catalogs"

@@ -21,6 +21,7 @@
  */
 class RightsFunctions
 {
+
     private $dbDriver = null;
 
     /**
@@ -193,6 +194,7 @@ class RightsFunctions
             RestoUser::DELETE_CATALOG => true,
             RestoUser::UPDATE_CATALOG => true,
 
+            RestoUser::CREATE_ANY_CATALOG => false,
             RestoUser::DELETE_ANY_CATALOG => false,
             RestoUser::UPDATE_ANY_CATALOG => false,
 

@@ -18,6 +18,16 @@
 class STACUtil
 {
 
+    /*
+     * Reserved catalog paths
+     * These paths are reserved for internal use
+     */
+    const RESERVED_CATALOG_PATHS = array(
+        'collections',
+        'users',
+        'projects'
+    );
+
     public static $extensions = array(
         'acuracy' => array(
             'id' => ' https://stac-extensions.github.io/accuracy/v1.0.0-beta.1/schema.json',

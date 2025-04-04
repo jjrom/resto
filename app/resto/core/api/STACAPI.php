@@ -230,16 +230,6 @@ class STACAPI
     );
 
     /*
-     * Reserved catalog paths
-     * These paths are reserved for internal use
-     */
-    const RESERVED_CATALOG_PATHS = array(
-        'collections',
-        'users',
-        'projects'
-    );
-
-    /*
      * Reference to catalogsFunctions
      */
     private $catalogsFunctions;
@@ -395,14 +385,6 @@ class STACAPI
          * Compute internal catalog id as full path
          */
         $body['id'] = $this->getIdPath($body, $parentId);
-
-        /*
-         * Check forbidden paths
-         */
-        $firstLevelPath = explode('/', $body['id'])[0];
-        if ( !isset($params['segments']) && in_array($firstLevelPath, $this::RESERVED_CATALOG_PATHS) ) {
-            RestoLogUtil::httpError(400, 'You cannot create /catalogs/' . $firstLevelPath . ' as it is a reserved path');
-        }
 
         /*
          * First check that user has the right to create a catalog
@@ -1805,16 +1787,18 @@ class STACAPI
         $hasParentInBody = false;
 
         // Retrieve parent if any
-        for ($i = 0, $ii = count($catalog['links']); $i < $ii; $i++ ) {
-            if ( isset($catalog['links'][$i]['rel']) &&$catalog['links'][$i]['rel'] === 'parent' ) {
-                $hasParentInBody = true;
-                $theoricalUrl = $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS; 
-                $exploded = explode($theoricalUrl, $catalog['links'][$i]['href']);
-                if (count($exploded) !== 2) {
-                    RestoLogUtil::httpError(400, 'Parent link is set but it\'s url is invalid - should starts with ' . $theoricalUrl);
+        if ( isset($catalog['links']) && is_array($catalog['links']) ) {
+            for ($i = 0, $ii = count($catalog['links']); $i < $ii; $i++ ) {
+                if ( isset($catalog['links'][$i]['rel']) &&$catalog['links'][$i]['rel'] === 'parent' ) {
+                    $hasParentInBody = true;
+                    $theoricalUrl = $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS; 
+                    $exploded = explode($theoricalUrl, $catalog['links'][$i]['href']);
+                    if (count($exploded) !== 2) {
+                        RestoLogUtil::httpError(400, 'Parent link is set but it\'s url is invalid - should starts with ' . $theoricalUrl);
+                    }
+                    $parentIdInBody = str_starts_with($exploded[1], '/') ? substr($exploded[1], 1) : $exploded[1];
+                    break;
                 }
-                $parentIdInBody = str_starts_with($exploded[1], '/') ? substr($exploded[1], 1) : $exploded[1];
-                break;
             }
         }
 
