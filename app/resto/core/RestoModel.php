@@ -47,14 +47,6 @@ abstract class RestoModel
     public $stacMapping = array(
 
         /*
-         * Common metadata
-         * [TODO][WARNING] The "published" metadata is part of https://github.com/stac-extensions/timestamps so we should not replace it with "created"
-         */
-        'published' => array(
-            'key' => 'created'
-        ),
-
-        /*
          * Processing Extension Specification
          * (https://stac-extensions.github.io/processing/v1.0.0/schema.json)
          */
@@ -261,7 +253,7 @@ abstract class RestoModel
 
         'dc:date' => array(
             'key' => 'created',
-            'osKey' => 'published',
+            'osKey' => 'created',
             'title' => 'Metadata product publication date within database - must follow RFC3339 pattern',
             'operation' => '>=',
             'pattern' => '^([0-9]{4})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\.[0-9]+)?(([Zz])|([\+|\-]([01][0-9]|2[0-3]):[0-5][0-9]))$'
