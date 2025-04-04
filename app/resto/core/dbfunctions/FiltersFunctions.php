@@ -301,7 +301,7 @@ class FiltersFunctions
          * [Issue][#267] Convert ',' to '.' character for seconds fraction since its a valid RFC339 (https://datatracker.ietf.org/doc/html/rfc3339)
          * but an invalid PostgreSQL date
          */
-        if (in_array($filterName, array('time:start', 'time:end', 'dc:date'))) {
+        if (in_array($filterName, array('time:start', 'time:end', 'dc:start', 'dc:end'))) {
             return array(
                 'value' => $this->optimizeNotEqual($paramsWithOperation[$filterName]['operation'], $this->addNot($exclusion) . $featureTableName . '.' . strtolower($this->model->searchFilters[$filterName]['key']) . '_idx ', ' timestamp_to_firstid(\'' . $this->context->dbDriver->escape_string(str_replace(',', '.', $paramsWithOperation[$filterName]['value'])) . '\')'),
                 'isGeo' => false

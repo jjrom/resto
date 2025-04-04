@@ -254,10 +254,24 @@ abstract class RestoModel
         'dc:date' => array(
             'key' => 'created',
             'osKey' => 'created',
-            'title' => 'Metadata product publication date within database - must follow RFC3339 pattern',
+            'title' => 'Metadata creation date within database - must follow RFC3339 pattern. Single date+time, or a range ("/" separator) of the search query. Format should follow RFC-3339.',
+            'pattern' => '^(\.\.)|[(a-zA-Z0-9\-\/\.\:)]+$',
+        ),
+
+        'dc:start' => array(
+            'key' => 'created',
+            'osKey' => 'created_start',
             'operation' => '>=',
+            'title' => 'Beginning of the time slice of the metadata creation. Format should follow RFC-3339',
             'pattern' => '^([0-9]{4})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\.[0-9]+)?(([Zz])|([\+|\-]([01][0-9]|2[0-3]):[0-5][0-9]))$'
-            /*'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'*/
+        ),
+        
+        'dc:end' => array(
+            'key' => 'created',
+            'osKey' => 'created_end',
+            'operation' => '<=',
+            'title' => 'End of the time slice of the metadata creation. Format should follow RFC-3339',
+            'pattern' => '^([0-9]{4})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\.[0-9]+)?(([Zz])|([\+|\-]([01][0-9]|2[0-3]):[0-5][0-9]))$'
         ),
 
         'resto:collection' => array(
