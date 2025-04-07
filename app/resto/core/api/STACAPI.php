@@ -539,13 +539,18 @@ class STACAPI
 
         /*
          * Convert visibility from names to ids
+         * Note that a user can only set the visibility of a catalog if he is in the group
          */
         if ( isset($body['visibility']) ) {
             $body['visibility'] = (new GeneralFunctions($this->context->dbDriver))->visibilityNamesToIds($body['visibility']);
             if ( empty($body['visibility']) ) {
                 RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group'); 
             }
-            // TODO - visibility only if user is in the group
+
+            if ( !$this->catalogsFunctions->canSeeCatalog($body['visibility'], $this->user) ) {
+                RestoLogUtil::httpError(403, 'You are not allowed to sset the visibility to a group you are not part of');
+            }
+
         }
 
         // Owner of catalog can only be changed by admin user
@@ -1434,14 +1439,7 @@ class STACAPI
             }
 
             if ( $catalogs[0]['visibility'] ) {
-                $canSee = false;
-                for ($i = count($catalogs[0]['visibility']); $i--;) {
-                    if ( $this->user->hasGroup($catalogs[0]['visibility'][$i]) ) {
-                        $canSee = true;
-                        break;
-                    }
-                }
-                if ( !$canSee ) {
+                if ( !$this->catalogsFunctions->canSeeCatalog($catalogs[0]['visibility'], $this->user) ) {
                     RestoLogUtil::httpError(403, 'You are not allowed to access this catalog');
                 }
             }
@@ -1771,14 +1769,7 @@ class STACAPI
             }
 
             if ( $catalogs[$i]['visibility'] ) {
-                $canSee = false;
-                for ($i = count($catalogs[0]['visibility']); $i--;) {
-                    if ( $this->user->hasGroup($catalogs[0]['visibility'][$i]) ) {
-                        $canSee = true;
-                        break;
-                    }
-                }
-                if ( !$canSee ) {
+                if ( !$this->catalogsFunctions->canSeeCatalog($catalogs[$i]['visibility'], $this->user) ) {
                     continue;
                 }
             }

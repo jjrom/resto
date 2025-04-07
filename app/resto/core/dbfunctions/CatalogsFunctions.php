@@ -103,6 +103,27 @@ class CatalogsFunctions
     }
 
     /**
+     * 
+     * Return true if $user is allowed to see catalog
+     * 
+     * @param array $visibility
+     * @param RestoUser $user
+     * @return boolean
+     */
+    public function canSeeCatalog($visibility, $user)
+    {
+        if ( isset($visibility) ) {
+            for ($i = count($visibility); $i--;) {
+                if ( $user->hasGroup($visibility[$i]) ) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * Get catalog
      *
      * @param string $id
@@ -116,20 +137,9 @@ class CatalogsFunctions
         ), false);
 
         if ( isset($catalogs) && count($catalogs) === 1) {
-
-            if ( $catalogs[0]['visibility'] ) {
-                $canSee = false;
-                for ($i = count($catalogs[0]['visibility']); $i--;) {
-                    if ( $user->hasGroup($catalogs[0]['visibility'][$i]) ) {
-                        $canSee = true;
-                        break;
-                    }
-                }
-                if ( !$canSee ) {
-                    RestoLogUtil::httpError(403, 'You are not allowed to access this catalog');
-                }
+            if ( !$this->canSeeCatalog($catalogs[0]['visibility'], $user) ) {
+                RestoLogUtil::httpError(403, 'You are not allowed to access this catalog');
             }
-            
             return $catalogs[0];
         }
 
