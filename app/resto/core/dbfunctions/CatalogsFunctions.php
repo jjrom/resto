@@ -108,18 +108,31 @@ class CatalogsFunctions
      * 
      * @param array $visibility
      * @param RestoUser $user
+     * @param boolean $mustSeeAll
      * @return boolean
      */
-    public function canSeeCatalog($visibility, $user)
+    public function canSeeCatalog($visibility, $user, $mustSeeAll = false)
     {
         if ( isset($visibility) ) {
+            
+            if ( $mustSeeAll ) {
+                for ($i = count($visibility); $i--;) {
+                    if ( !$user->hasGroup($visibility[$i]) ) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
             for ($i = count($visibility); $i--;) {
                 if ( $user->hasGroup($visibility[$i]) ) {
                     return true;
                 }
             }
+
             return false;
         }
+
         return true;
     }
 
@@ -585,7 +598,6 @@ class CatalogsFunctions
         if (!isset($catalog)) {
             return;
         }
-        print_r($catalog);
 
         // Set rtype for Collection
         if ( isset($catalog['type']) && $catalog['type'] === 'Collection' ) {
@@ -625,7 +637,12 @@ class CatalogsFunctions
             $catalog['visibility'] = array(RestoConstants::GROUP_DEFAULT_ID);
         }
         if ( !isset($catalog['visibility']) ) {
-            $catalog['visibility'] = RestoUtil::getDefaultVisibility($user, isset($user->profile['settings']['createdCatalogIsPublic']) ? $user->profile['settings']['createdCatalogIsPublic'] : true);
+            $createdCatalogIsPublic = isset($user->profile['settings']['createdCatalogIsPublic']) ? $user->profile['settings']['createdCatalogIsPublic'] : true;
+            // Always private by default under users/
+            if ( isset($catalog['id']) && strpos($catalog['id'], 'users/') === 0 ) {
+                $createdCatalogIsPublic = false;
+            }
+            $catalog['visibility'] = RestoUtil::getDefaultVisibility($user, $createdCatalogIsPublic);
         }
         $insert = '(id, title, description, level, counters, owner, visibility, rtype, properties, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,now()';
         $values = array(

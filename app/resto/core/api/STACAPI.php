@@ -414,6 +414,9 @@ class STACAPI
             if ( empty($body['visibility']) ) {
                 RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group'); 
             }
+            if ( !$this->catalogsFunctions->canSeeCatalog($body['visibility'], $this->user, true) ) {
+                RestoLogUtil::httpError(403, 'You are not allowed to sset the visibility to a group you are not part of');
+            }
         }
 
         // Owner of catalog can only be set by admin user
