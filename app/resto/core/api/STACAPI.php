@@ -521,7 +521,7 @@ class STACAPI
             'id' => join('/', $params['segments']),
             'countCatalogs' => false,
             'noProperties' => true
-        ), $this->user, true);
+        ), true);
 
         if ( count($catalogs) === 0 ){
             RestoLogUtil::httpError(404);
@@ -545,6 +545,7 @@ class STACAPI
             if ( empty($body['visibility']) ) {
                 RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group'); 
             }
+            // TODO - visibility only if user is in the group
         }
 
         // Owner of catalog can only be changed by admin user
@@ -666,7 +667,7 @@ class STACAPI
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
             'id' => join('/', $params['segments']),
             'countCatalogs' => false
-        ), $this->user, true);
+        ), true);
         
         $count = count($catalogs);
         if ( $count === 0 ){
@@ -1426,10 +1427,23 @@ class STACAPI
                 'id' => join('/', $segments),
                 'q' => $params['q'] ?? null,
                 'countCatalogs' => isset($params['_countCatalogs']) ? filter_var($params['_countCatalogs'], FILTER_VALIDATE_BOOLEAN) : $this->context->core['countCatalogs']
-            ), $this->user, false);
+            ), false);
             
             if ( empty($catalogs) ) {
                 RestoLogUtil::httpError(404);
+            }
+
+            if ( $catalogs[0]['visibility'] ) {
+                $canSee = false;
+                for ($i = count($catalogs[0]['visibility']); $i--;) {
+                    if ( $this->user->hasGroup($catalogs[0]['visibility'][$i]) ) {
+                        $canSee = true;
+                        break;
+                    }
+                }
+                if ( !$canSee ) {
+                    RestoLogUtil::httpError(403, 'You are not allowed to access this catalog');
+                }
             }
             
             $searchParams = array(
@@ -1452,6 +1466,20 @@ class STACAPI
         if ( !isset($parentAndChilds) ) {
             RestoLogUtil::httpError(404);
         }
+
+        if ( $parentAndChilds['parent']['visibility'] ) {
+            $canSee = false;
+            for ($i = count($parentAndChilds['parent']['visibility']); $i--;) {
+                if ( $this->user->hasGroup($parentAndChilds['parent']['visibility'][$i]) ) {
+                    $canSee = true;
+                    break;
+                }
+            }
+            if ( !$canSee ) {
+                RestoLogUtil::httpError(403, 'You are not allowed to access this catalog');
+            }
+        }
+        
 
         $catalog = array(
             'stac_version' => STACAPI::STAC_VERSION,
@@ -1593,12 +1621,13 @@ class STACAPI
      */
     private function getParentAndChilds($catalogId, $params)
     {
+
         // Get catalogs - first one is $catalogId, other its childs
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
             'id' => $catalogId,
             'q' => $params['q'] ?? null,
             'countCatalogs' => isset($params['_countCatalogs']) ? filter_var($params['_countCatalogs'], FILTER_VALIDATE_BOOLEAN) : $this->context->core['countCatalogs']
-        ), $this->user, true);
+        ), true);
         
         if ( empty($catalogs) ) {
             return null;
@@ -1733,7 +1762,7 @@ class STACAPI
             'level' => 1,
             'q' => $params['q'] ?? null,
             'countCatalogs' => isset($params['_countCatalogs']) ? filter_var($params['_countCatalogs'], FILTER_VALIDATE_BOOLEAN) : $this->context->core['countCatalogs']
-        ), $this->user, false);
+        ), false);
         
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
 
@@ -1741,6 +1770,19 @@ class STACAPI
                 continue;
             }
 
+            if ( $catalogs[$i]['visibility'] ) {
+                $canSee = false;
+                for ($i = count($catalogs[0]['visibility']); $i--;) {
+                    if ( $this->user->hasGroup($catalogs[0]['visibility'][$i]) ) {
+                        $canSee = true;
+                        break;
+                    }
+                }
+                if ( !$canSee ) {
+                    continue;
+                }
+            }
+            
             $link = array(
                 'id' => $catalogs[$i]['id'],
                 'rel' => 'child',

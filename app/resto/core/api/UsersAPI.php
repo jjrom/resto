@@ -602,7 +602,7 @@ class UsersAPI
         $owner = new RestoUser(array('username' => $params['username']), $this->context);
         return (new CatalogsFunctions($this->context->dbDriver))->getCatalogs(array(
             'where' => 'owner=' . $owner->profile['id']
-        ), $this->user, true);
+        ), true);
     }
 
     /**

@@ -577,7 +577,6 @@ class RestoUtil
             $ownedGroups = $user->getOwnedGroups();
             for ($i = 0, $ii = count($ownedGroups); $i < $ii; $i++) {
                 if ( $ownedGroups[$i]['private'] === "1" ) {
-
                     return array($ownedGroups[$i]['id']);
                 }
             }

@@ -72,7 +72,6 @@ class CatalogsFunctions
      */
     public static function format($rawCatalog, $noProperties)
     {
-
         $catalog = array(
             'id' => $rawCatalog['id'],
             'title' => $rawCatalog['title'],
@@ -81,7 +80,7 @@ class CatalogsFunctions
             'level' => (integer) $rawCatalog['level'],
             'counters' => isset($rawCatalog['counters']) ? json_decode($rawCatalog['counters'], true) : null,
             'owner' => $rawCatalog['owner'] ?? null,
-            'visibility' => json_decode($rawCatalog['visibility'], true),
+            'visibility' => RestoUtil::SQLTextArrayToPHP($rawCatalog['visibility']),
             'created' => $rawCatalog['created'],
             'rtype' => $rawCatalog['rtype'] ?? null
         );
@@ -114,9 +113,23 @@ class CatalogsFunctions
     
         $catalogs = $this->getCatalogs(array(
             'id' => $catalogId
-        ), $user, false);
+        ), false);
 
         if ( isset($catalogs) && count($catalogs) === 1) {
+
+            if ( $catalogs[0]['visibility'] ) {
+                $canSee = false;
+                for ($i = count($catalogs[0]['visibility']); $i--;) {
+                    if ( $user->hasGroup($catalogs[0]['visibility'][$i]) ) {
+                        $canSee = true;
+                        break;
+                    }
+                }
+                if ( !$canSee ) {
+                    RestoLogUtil::httpError(403, 'You are not allowed to access this catalog');
+                }
+            }
+            
             return $catalogs[0];
         }
 
@@ -128,21 +141,15 @@ class CatalogsFunctions
      * Get catalogs (and eventually all its childs if id is set)
      *
      * @param array $params
-     * @param RestoUser $user
      * @param boolean $withChilds
      */
-    public function getCatalogs($params, $user, $withChilds)
+    public function getCatalogs($params, $withChilds)
     {
         
         $catalogs = array();
         $where = array();
         $values = array();
         $params = isset($params) ? $params : array();
-
-        $visibilityClause = RightsFunctions::getVisibilityClause($user);
-        if ( isset($visibilityClause) ) {
-            $where[] = $visibilityClause;
-        } 
 
         // Direct where clause
         if ( isset($params['where'])) {
@@ -568,6 +575,7 @@ class CatalogsFunctions
         if (!isset($catalog)) {
             return;
         }
+        print_r($catalog);
 
         // Set rtype for Collection
         if ( isset($catalog['type']) && $catalog['type'] === 'Collection' ) {
@@ -760,10 +768,8 @@ class CatalogsFunctions
 
         $catalogs = $this->getCatalogs(array(
             'where' => !empty($types) ? 'rtype IN (\'' . join('\',\'', $types) . '\')' : 'rtype NOT IN (\'' . join('\',\'', CatalogsFunctions::TOPONYM_TYPES) . '\')'
-        ), null, false);
+        ), false);
         
-        $counter = 0;
-
         // First create collection pivots
         $pivots = array();
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
