@@ -813,6 +813,9 @@ class FeaturesAPI
                 if ( empty($body[$property]) ) {
                     RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group'); 
                 }
+                if ( !(new CatalogsFunctions($this->context->dbDriver))->canSeeCatalog($body[$property], $this->user, true) ) {
+                    RestoLogUtil::httpError(403, 'You are not allowed to set the visibility to a group you are not part of');
+                }
             }
 
         }

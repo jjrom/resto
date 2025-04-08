@@ -310,16 +310,18 @@ class FeaturesFunctions
      */
     public function storeFeature($id, $collection, $featureArray)
     {
-        
+       
         // Default visibility
-        $visibility = RestoUtil::getDefaultVisibility($collection->user, isset($collection->user->profile['settings']['createdItemIsPublic']) ? $collection->user->profile['settings']['createdItemIsPublic'] : true);
+        if ( !isset($featureArray['properties']['visibility']) ) {
+            $featureArray['properties']['visibility'] = RestoUtil::getDefaultVisibility($collection->user, isset($collection->user->profile['settings']['createdItemIsPublic']) ? $collection->user->profile['settings']['createdItemIsPublic'] : true);
+        }
         $keysAndValues = $this->featureArrayToKeysValues(
             $collection,
             $featureArray,
             array(
                 'id' => $id,
                 'collection' => $collection->id,
-                'visibility' => '{' . join(',', $visibility) . '}',
+                'visibility' => '{' . join(',', $featureArray['properties']['visibility']) . '}',
                 'owner' => isset($collection) && isset($collection->user) ? $collection->user->profile['id'] : null,
                 'status' => isset($featureArray['properties']) && isset($featureArray['properties']['status']) && is_int($featureArray['properties']['status']) ? $featureArray['properties']['status'] : 1,
                 'likes' => 0,

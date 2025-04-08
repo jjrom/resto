@@ -952,19 +952,27 @@ abstract class RestoModel
         }
 
         /*
-         * Convert visibility from names to ids
-         */
-        if ( isset($data['visibility']) ) {
-            $data['visibility'] = (new GeneralFunctions($collection->context->dbDriver))->visibilityNamesToIds($data['visibility']);
-            if ( empty($data['visibility']) ) {
-                RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group'); 
-            }
-        }
-
-        /*
          * Clean properties
          */
         $properties = RestoUtil::cleanAssociativeArray($data['properties']);
+
+        /*
+         * Convert visibility from names to ids
+         */
+        if ( isset($properties['visibility']) ) {
+            $properties['visibility'] = (new GeneralFunctions($collection->context->dbDriver))->visibilityNamesToIds($properties['visibility']);
+            if ( empty($properties['visibility']) ) {
+                RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group'); 
+            }
+
+            /*
+             * Check visibility
+             */
+            if ( !(new CatalogsFunctions($collection->context->dbDriver))->canSeeCatalog($properties['visibility'], $collection->user, true) ) {
+                RestoLogUtil::httpError(403, 'You are not allowed to set the visibility to a group you are not part of');
+            }
+
+        }
 
         /*
          * Convert datetime to startDate / completionDate

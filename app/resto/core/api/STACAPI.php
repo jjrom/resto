@@ -415,7 +415,7 @@ class STACAPI
                 RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group'); 
             }
             if ( !$this->catalogsFunctions->canSeeCatalog($body['visibility'], $this->user, true) ) {
-                RestoLogUtil::httpError(403, 'You are not allowed to sset the visibility to a group you are not part of');
+                RestoLogUtil::httpError(403, 'You are not allowed to set the visibility to a group you are not part of');
             }
         }
 
@@ -550,8 +550,8 @@ class STACAPI
                 RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group'); 
             }
 
-            if ( !$this->catalogsFunctions->canSeeCatalog($body['visibility'], $this->user) ) {
-                RestoLogUtil::httpError(403, 'You are not allowed to sset the visibility to a group you are not part of');
+            if ( !$this->catalogsFunctions->canSeeCatalog($body['visibility'], $this->user, true) ) {
+                RestoLogUtil::httpError(403, 'You are not allowed to set the visibility to a group you are not part of');
             }
 
         }
