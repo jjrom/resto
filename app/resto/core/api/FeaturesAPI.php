@@ -341,7 +341,7 @@ class FeaturesAPI
      *          )
      *      ),
      *      @OA\Parameter(
-     *          name="sort",
+     *          name="sortby",
      *          in="query",
      *          style="form",
      *          description="Sort results by property *startDate* or *created* (default *startDate*). Sorting order is DESCENDING (ASCENDING if property is prefixed by minus sign)",

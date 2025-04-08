@@ -651,7 +651,7 @@ class UsersFunctions
 
         $this->dbDriver->query_params('INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog (id, title, description, level, counters, owner, visibility, created) VALUES ($1,$2,$3,$4,$5,$6,$7,now_utc()) ON CONFLICT (id) DO NOTHING', array(
             'users/' . $profile['username'],
-            'Private catalog',
+            $profile['username'],
             'This is ' . $profile['username'] . ' private catalog',
             2,
             str_replace('[]', '{}', json_encode(array(
