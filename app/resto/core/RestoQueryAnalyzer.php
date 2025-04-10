@@ -69,14 +69,18 @@ class RestoQueryAnalyzer
          * [STAC][WFS] datetime is converted into start/end
          */
         if (isset($params['resto:datetime'])) {
-            $this->splitDatetime($params['resto:datetime'], $params);
+            $this->splitDatetime($params['resto:datetime'], $params, $model);
             unset($params['resto:datetime']);
         }
-
-        /*
-         * Check dates
-         */
         if (isset($params['time:start']) && isset($params['time:end']) && $params['time:start'] > $params['time:end']) {
+            RestoLogUtil::httpError(400, 'Invalid dates range - start cannot be greater than end');
+        }
+
+        if (isset($params['dc:date'])) {
+            $this->splitDatetime($params['dc:date'], $params, $model, 'created_');
+            unset($params['dc:date']);
+        }
+        if (isset($params['dc:start']) && isset($params['dc:end']) && $params['dc:start'] > $params['dc:end']) {
             RestoLogUtil::httpError(400, 'Invalid dates range - start cannot be greater than end');
         }
 
@@ -376,8 +380,10 @@ class RestoQueryAnalyzer
      *
      * @param string $datetime
      * @param array $params
+     * @param RestoModel $model
+     * @param string $prefix
      */
-    private function splitDatetime($datetime, &$params)
+    private function splitDatetime($datetime, &$params, &$model, $prefix = '')
     {
         $dates = explode('/', trim($datetime));
 
@@ -390,18 +396,28 @@ class RestoQueryAnalyzer
             RestoLogUtil::httpError(400, 'Invalid dates range - double-open-ended queries are not allowed in STAC API /');
         }
 
-        $model = new DefaultModel();
-
-        if (isset($dates[0]) && !in_array($dates[0], array('', '..'))) {
-            $filterKey = $model->getFilterName('start');
-            $params[$filterKey] = preg_replace('/<.+?>/', '', $dates[0]);
+        
+        if (count($dates) == 1) {
+            $filterKey = $model->getFilterName($prefix . 'start');
+            $params[$filterKey] = preg_replace('/<.+?>/', '', $this->keepSecondsAndAdd($dates[0], 0));
+            $model->validateFilter($filterKey, $params[$filterKey]);
+            $filterKey = $model->getFilterName($prefix . 'end');
+            $params[$filterKey] = preg_replace('/<.+?>/', '', $this->keepSecondsAndAdd($dates[0], 1));
             $model->validateFilter($filterKey, $params[$filterKey]);
         }
-        if (isset($dates[1]) && !in_array($dates[1], array('', '..'))) {
-            $filterKey = $model->getFilterName('end');
-            $params[$filterKey] = preg_replace('/<.+?>/', '', $dates[1]);
-            $model->validateFilter($filterKey, $params[$filterKey]);
+        else {
+            if ( !in_array($dates[0], array('', '..')) ) {
+                $filterKey = $model->getFilterName($prefix . 'start');
+                $params[$filterKey] = preg_replace('/<.+?>/', '', $dates[0]);
+                $model->validateFilter($filterKey, $params[$filterKey]);
+            }
+            if (isset($dates[1]) && !in_array($dates[1], array('', '..'))) {
+                $filterKey = $model->getFilterName($prefix . 'end');
+                $params[$filterKey] = preg_replace('/<.+?>/', '', $dates[1]);
+                $model->validateFilter($filterKey, $params[$filterKey]);
+            }
         }
+        
     }
 
     /**
@@ -426,5 +442,22 @@ class RestoQueryAnalyzer
             }
         }
         return $paramsWithOperation;
+    }
+
+    /**
+     * Keep seconds and add 1 second if needed
+     * 
+     * $param string $datetime
+     * @param int $add
+     * @return string
+     */
+    private function keepSecondsAndAdd($datetime, $add)
+    {
+        $date = new DateTime($datetime);
+        if ($add === 0) {
+            return $date->format('Y-m-d\TH:i:s\Z');
+        } else {
+            return $date->modify('+1 second')->format('Y-m-d\TH:i:s\Z');
+        }
     }
 }

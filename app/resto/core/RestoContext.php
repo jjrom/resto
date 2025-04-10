@@ -71,6 +71,9 @@ class RestoContext
         // JSON Web Token validity duration (in seconds) - default is 100 days
         'tokenDuration' => 8640000,
 
+        // Display rel="items" link at every /catalogs/* level
+        'showItemsLink' => false,
+
         // Permanent storage directory to store/retrieve files
         'storageInfo' => array(
             'path' => '/var/www/static',

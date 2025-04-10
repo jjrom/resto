@@ -310,16 +310,18 @@ class FeaturesFunctions
      */
     public function storeFeature($id, $collection, $featureArray)
     {
-        
+       
         // Default visibility
-        $visibility = RestoUtil::getDefaultVisibility($collection->user, isset($collection->user->profile['settings']['createdItemIsPublic']) ? $collection->user->profile['settings']['createdItemIsPublic'] : true);
+        if ( !isset($featureArray['properties']['visibility']) ) {
+            $featureArray['properties']['visibility'] = RestoUtil::getDefaultVisibility($collection->user, isset($collection->user->profile['settings']['createdItemIsPublic']) ? $collection->user->profile['settings']['createdItemIsPublic'] : true);
+        }
         $keysAndValues = $this->featureArrayToKeysValues(
             $collection,
             $featureArray,
             array(
                 'id' => $id,
                 'collection' => $collection->id,
-                'visibility' => '{' . join(',', $visibility) . '}',
+                'visibility' => '{' . join(',', $featureArray['properties']['visibility']) . '}',
                 'owner' => isset($collection) && isset($collection->user) ? $collection->user->profile['id'] : null,
                 'status' => isset($featureArray['properties']) && isset($featureArray['properties']['status']) && is_int($featureArray['properties']['status']) ? $featureArray['properties']['status'] : 1,
                 'likes' => 0,
@@ -347,7 +349,7 @@ class FeaturesFunctions
          */
         foreach (array_values($keysAndValues['catalogs']) as $catalog) {
             if (isset($catalog['isExternal']) && $catalog['isExternal']) {
-                if ( !$collection->user->hasRightsTo(RestoUser::CREATE_CATALOG) ) {
+                if ( !$collection->user->hasRightsTo(RestoUser::CREATE_CATALOG, array('catalog' => $catalog)) ) {
                     RestoLogUtil::httpError(403, 'Feature ingestion leads to creation of catalog ' . $catalog['id'] . ' but you don\'t have right to create catalogs');
                 }
                 break;
@@ -497,7 +499,7 @@ class FeaturesFunctions
          */
         foreach (array_values($keysAndValues['catalogs']) as $catalog) {
             if (isset($catalog['isExternal']) && $catalog['isExternal']) {
-                if ( !$collection->user->hasRightsTo(RestoUser::CREATE_CATALOG) ) {
+                if ( !$collection->user->hasRightsTo(RestoUser::CREATE_CATALOG, array('catalog' => $catalog)) ) {
                     RestoLogUtil::httpError(403, 'Feature update leads to creation of catalog ' . $catalog['id'] . ' but you don\'t have right to create catalogs');
                 }
                 break;

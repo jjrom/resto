@@ -104,9 +104,9 @@
  *              description="The date when the feature metadata was updated (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)"
  *          ),
  *          @OA\Property(
- *              property="published",
+ *              property="created",
  *              type="string",
- *              description="The date when the feature metadata was published (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)"
+ *              description="The date when the feature metadata was created (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)"
  *          ),
  *          @OA\Property(
  *              property="resto:catalogs",
@@ -213,7 +213,7 @@
  *              "end_datetime": "2020-06-21T11:11:28.371000Z",
  *              "productIdentifier": "S2B_MSIL1C_20200621T111039_N0209_R008_T28HCE_20200621T132349",
  *              "updated": "2018-09-13T12:52:25.971969Z",
- *              "published": "2018-09-13T12:52:25.971969Z",
+ *              "created": "2018-09-13T12:52:25.971969Z",
  *              "resto:catalogs": {
  *                   "ocean/SouthAtlanticOcean",
  *                   "landcover/water",

@@ -47,14 +47,6 @@ abstract class RestoModel
     public $stacMapping = array(
 
         /*
-         * Common metadata
-         * [TODO][WARNING] The "published" metadata is part of https://github.com/stac-extensions/timestamps so we should not replace it with "created"
-         */
-        'published' => array(
-            'key' => 'created'
-        ),
-
-        /*
          * Processing Extension Specification
          * (https://stac-extensions.github.io/processing/v1.0.0/schema.json)
          */
@@ -261,11 +253,25 @@ abstract class RestoModel
 
         'dc:date' => array(
             'key' => 'created',
-            'osKey' => 'published',
-            'title' => 'Metadata product publication date within database - must follow RFC3339 pattern',
+            'osKey' => 'created',
+            'title' => 'Metadata creation date within database - must follow RFC3339 pattern. Single date+time, or a range ("/" separator) of the search query. Format should follow RFC-3339.',
+            'pattern' => '^(\.\.)|[(a-zA-Z0-9\-\/\.\:)]+$',
+        ),
+
+        'dc:start' => array(
+            'key' => 'created',
+            'osKey' => 'created_start',
             'operation' => '>=',
+            'title' => 'Beginning of the time slice of the metadata creation. Format should follow RFC-3339',
             'pattern' => '^([0-9]{4})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\.[0-9]+)?(([Zz])|([\+|\-]([01][0-9]|2[0-3]):[0-5][0-9]))$'
-            /*'pattern' => '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(|Z|[\+\-][0-9]{2}:[0-9]{2}))?$'*/
+        ),
+        
+        'dc:end' => array(
+            'key' => 'created',
+            'osKey' => 'created_end',
+            'operation' => '<=',
+            'title' => 'End of the time slice of the metadata creation. Format should follow RFC-3339',
+            'pattern' => '^([0-9]{4})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\.[0-9]+)?(([Zz])|([\+|\-]([01][0-9]|2[0-3]):[0-5][0-9]))$'
         ),
 
         'resto:collection' => array(
@@ -946,19 +952,27 @@ abstract class RestoModel
         }
 
         /*
-         * Convert visibility from names to ids
-         */
-        if ( isset($data['visibility']) ) {
-            $data['visibility'] = (new GeneralFunctions($collection->context->dbDriver))->visibilityNamesToIds($data['visibility']);
-            if ( empty($data['visibility']) ) {
-                RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group'); 
-            }
-        }
-
-        /*
          * Clean properties
          */
         $properties = RestoUtil::cleanAssociativeArray($data['properties']);
+
+        /*
+         * Convert visibility from names to ids
+         */
+        if ( isset($properties['visibility']) ) {
+            $properties['visibility'] = (new GeneralFunctions($collection->context->dbDriver))->visibilityNamesToIds($properties['visibility']);
+            if ( empty($properties['visibility']) ) {
+                RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group'); 
+            }
+
+            /*
+             * Check visibility
+             */
+            if ( !(new CatalogsFunctions($collection->context->dbDriver))->canSeeCatalog($properties['visibility'], $collection->user, true) ) {
+                RestoLogUtil::httpError(403, 'You are not allowed to set the visibility to a group you are not part of');
+            }
+
+        }
 
         /*
          * Convert datetime to startDate / completionDate

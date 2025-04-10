@@ -362,7 +362,10 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog (
     rtype               TEXT,
 
     -- Free object to store info
-    properties          JSON
+    properties          JSON,
+
+    -- [STAC PROXY] This catalog is a proxy to a STAC catalog
+    stac_url            TEXT
 
 );
 

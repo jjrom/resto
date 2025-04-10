@@ -18,6 +18,16 @@
 class STACUtil
 {
 
+    /*
+     * Reserved catalog paths
+     * These paths are reserved for internal use
+     */
+    const RESERVED_CATALOG_PATHS = array(
+        'collections',
+        'users',
+        'projects'
+    );
+
     public static $extensions = array(
         'acuracy' => array(
             'id' => ' https://stac-extensions.github.io/accuracy/v1.0.0-beta.1/schema.json',
@@ -450,5 +460,30 @@ class STACUtil
             )
         )
     );
+
+    /**
+     * Return an external STAC catalog
+     * 
+     * @param string $url
+     * @return array
+     */
+    public static function resolveEndpoint($url)
+    {
+        try {
+            $curl = new Curly();
+            $response = json_decode($curl->get($url), true);
+            $httpStatus = curl_getinfo($curl->handler, CURLINFO_HTTP_CODE);
+            $curl->close();
+        } catch (Exception $e) {
+            $curl->close();
+            return RestoLogUtil::httpError($e->getCode(), $e->getMessage());
+        }
+
+        if ( $httpStatus !== 200 ) {
+            return RestoLogUtil::httpError($httpStatus);
+        }
+
+        return $response;
+    }
 
 }

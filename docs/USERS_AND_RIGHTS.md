@@ -84,7 +84,7 @@ The rights defines access to resto ressources in particular to authorize CRUD op
 rights are defined as boolean properties within a JSON object. The default user's rights are the following:
 
         {
-                // If true the user can create a collection
+                // If true the user can create a collection (i.e. under /collections)
                 "createCollection": false,
 
                 // If true the user can delete a collection he owns
@@ -99,7 +99,7 @@ rights are defined as boolean properties within a JSON object. The default user'
                 // If true the user can update any collection whether he owns it or not
                 "updateAnyCollection": false,
                 
-                // If true the user can create a catalog
+                // If true the user can create a catalog in its user's private catalog (i.e. under /catalogs/users/{username})
                 "createCatalog": true,
 
                 // If true the user can delete a catalog he owns
@@ -107,6 +107,9 @@ rights are defined as boolean properties within a JSON object. The default user'
 
                 // If true the user can update a catalog he owns
                 "updateCatalog": true,
+
+                // If true the user can create a catalog anywhere (except in another user private catalog)
+                "createAnyCatalog": false,
 
                 // If true the user can delete any catalog whether he owns it or not
                 "deleteAnyCatalog": false,
@@ -288,15 +291,15 @@ John Doe change the visibility of the JohnDoeCollection to dummyGroup only:
 #### Create a catalog to make it visible only to a group
 John Doe creates a catalog that is only visible by dummyGroup:
 
-        curl -X POST -d@examples/catalogs/JohnDoeCatalog.json "http://johnDoe%40localhost:dummy@localhost:5252/catalogs"
+        curl -X POST -d@examples/catalogs/JohnDoeCatalog.json "http://johnDoe%40localhost:dummy@localhost:5252/catalogs/users/johndoe"
 
         # The catalog is not visible to users
-        curl "http://localhost:5252/catalogs"
+        curl "http://localhost:5252/catalogs/users/johndoe"
 
         # Except to users belonging to dummyGroup (like John Doe)
-        curl "http://johnDoe%40localhost:dummy@localhost:5252/catalogs"
+        curl "http://johnDoe%40localhost:dummy@localhost:5252/catalogs/users/johndoe"
 
 #### Update a catalog to make it visible for everyone
 John Doe change visibility to default group so everyone can see it:
 
-        curl -X PUT -d@examples/catalogs/JohnDoeCatalog_update.json "http://johnDoe%40localhost:dummy@localhost:5252/catalogs/JohnDoeCatalog"
+        curl -X PUT -d@examples/catalogs/JohnDoeCatalog_update.json "http://johnDoe%40localhost:dummy@localhost:5252/catalogs/users/johndoe/JohnDoeCatalog"

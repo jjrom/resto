@@ -1,0 +1,8 @@
+{
+    "id": "users",
+    "title": "A first level catalogs called users is not allowed",
+    "type": "Catalog",
+    "description":"Will never be created",
+    "stac_version":"1.0.0",
+    "links":[]
+}

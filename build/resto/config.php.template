@@ -22,6 +22,7 @@ return array(
     'documentationUrl' => '${DOCUMENTATION_URL}',
     'useCache' => ${USE_CACHE:-false}, 
     'useJSONLD' => ${USE_JSONLD:-false},
+    'showItemsLink' => ${SHOW_ITEMS_LINK:-false},
     'corsWhiteList' => array(${CORS_WHITELIST}),
     'htmlSearchEndpoint' => '${SEARCH_OPENSEARCH_HTML_ENDPOINT}',
     'database' => array(

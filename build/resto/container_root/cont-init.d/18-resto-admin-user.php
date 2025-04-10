@@ -18,7 +18,7 @@
     $config = include($configFile);
     
     $dbDriver = new RestoDatabaseDriver($config['database'] ?? null);
-    $dbDriver->pQuery('INSERT INTO ' . $dbDriver->commonSchema . '.user (id,username,email,password,activated,registrationdate) VALUES ($1,$2,$3,$4,1,now_utc()) ON CONFLICT (id) DO UPDATE SET password=$3', array(
+    $dbDriver->pQuery('INSERT INTO ' . $dbDriver->commonSchema . '.user (id,username,email,password,activated,registrationdate) VALUES ($1,$2,$3,$4,1,now_utc()) ON CONFLICT (id) DO UPDATE SET password=$4', array(
         RestoConstants::ADMIN_USER_ID,
         getenv('ADMIN_USER_NAME') ?? 'admin',
         getenv('ADMIN_USER_NAME') ?? 'admin@localhost',

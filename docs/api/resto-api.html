@@ -1496,7 +1496,7 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
 	  	<ul class="toc-list-h1">
         
           <li>
-            <a href="#welcome-to-resto" class="toc-h1 toc-link" data-title="Welcome to resto v9.3.0">Welcome to resto v9.3.0</a>
+            <a href="#welcome-to-resto" class="toc-h1 toc-link" data-title="Welcome to resto v9.6.2">Welcome to resto v9.6.2</a>
             
           </li>
         
@@ -1625,6 +1625,21 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
                 
                   <li>
                     <a href="#usersapi--updateuserprofile" class="toc-h2 toc-link" data-title="UsersAPI::updateUserProfile">UsersAPI::updateUserProfile</a>
+                    
+                  </li>
+                
+                  <li>
+                    <a href="#usersapi--getusercatalogs" class="toc-h2 toc-link" data-title="UsersAPI::getUserCatalogs">UsersAPI::getUserCatalogs</a>
+                    
+                  </li>
+                
+                  <li>
+                    <a href="#usersapi--getusercollections" class="toc-h2 toc-link" data-title="UsersAPI::getUserCollections">UsersAPI::getUserCollections</a>
+                    
+                  </li>
+                
+                  <li>
+                    <a href="#usersapi--getuserfeatures" class="toc-h2 toc-link" data-title="UsersAPI::getUserFeatures">UsersAPI::getUserFeatures</a>
                     
                   </li>
                 
@@ -1931,7 +1946,7 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
     <div class="page-wrapper">
       <div class="dark-box"></div>
       <div class="content">
-        <h1 id="welcome-to-resto">Welcome to resto v9.3.0</h1>
+        <h1 id="welcome-to-resto">Welcome to resto v9.6.2</h1>
 <blockquote>
 <p>Scroll down for code samples, example requests and responses. Select a language for code samples from the tabs above or the mobile navigation menu.</p>
 </blockquote>
@@ -2031,7 +2046,7 @@ curl -X GET http://127.0.0.1:5252/collections \
         <span class="hljs-string">"level1C"</span>,
         <span class="hljs-string">"USGS"</span>
       ],
-      <span class="hljs-attr">"license"</span>: <span class="hljs-string">"proprietary"</span>,
+      <span class="hljs-attr">"license"</span>: <span class="hljs-string">"other"</span>,
       <span class="hljs-attr">"extent"</span>: {
         <span class="hljs-attr">"spatial"</span>: {
           <span class="hljs-attr">"bbox"</span>: [
@@ -2214,7 +2229,7 @@ curl -X GET http://127.0.0.1:5252/collections \
 <td>string</td>
 <td>true</td>
 <td>none</td>
-<td>License for this collection as a SPDX License identifier or expression. Alternatively, use proprietary if the license is not on the SPDX license list or various if multiple licenses apply. In these two cases links to the license texts SHOULD be added, see the license link relation type.</td>
+<td>License for this collection as a SPDX License identifier or expression. Alternatively, use other if the license is not on the SPDX license list. In this case, links to the license texts SHOULD be added, see the license link relation type.</td>
 </tr>
 <tr>
 <td>»» extent</td>
@@ -2345,11 +2360,7 @@ curl -X GET http://127.0.0.1:5252/collections \
 </tr>
 <tr>
 <td>license</td>
-<td>proprietary</td>
-</tr>
-<tr>
-<td>license</td>
-<td>various</td>
+<td>other</td>
 </tr>
 <tr>
 <td>license</td>
@@ -2387,7 +2398,7 @@ curl -X POST http://127.0.0.1:5252/collections \
   <span class="hljs-attr">"visibility"</span>: [
     <span class="hljs-string">"default"</span>
   ],
-  <span class="hljs-attr">"license"</span>: <span class="hljs-string">"proprietary"</span>,
+  <span class="hljs-attr">"license"</span>: <span class="hljs-string">"other"</span>,
   <span class="hljs-attr">"providers"</span>: [
     {
       <span class="hljs-attr">"name"</span>: <span class="hljs-string">"European Union/ESA/Copernicus"</span>,
@@ -2406,7 +2417,7 @@ curl -X POST http://127.0.0.1:5252/collections \
     }
   ],
   <span class="hljs-attr">"summaries"</span>: {
-    <span class="hljs-attr">"eo:bands"</span>: [
+    <span class="hljs-attr">"bands"</span>: [
       {
         <span class="hljs-attr">"name"</span>: <span class="hljs-string">"B1"</span>,
         <span class="hljs-attr">"common_name"</span>: <span class="hljs-string">"coastal"</span>,
@@ -2653,7 +2664,7 @@ curl -X GET http://127.0.0.1:5252/collections/{collectionId} \
     <span class="hljs-string">"sentinel"</span>,
     <span class="hljs-string">"sentinel2"</span>
   ],
-  <span class="hljs-attr">"license"</span>: <span class="hljs-string">"proprietary"</span>,
+  <span class="hljs-attr">"license"</span>: <span class="hljs-string">"other"</span>,
   <span class="hljs-attr">"extent"</span>: {
     <span class="hljs-attr">"spatial"</span>: {
       <span class="hljs-attr">"bbox"</span>: [
@@ -2730,7 +2741,7 @@ curl -X GET http://127.0.0.1:5252/collections/{collectionId} \
     <span class="hljs-attr">"productType"</span>: [
       <span class="hljs-string">"REFLECTANCE"</span>
     ],
-    <span class="hljs-attr">"eo:bands"</span>: [
+    <span class="hljs-attr">"bands"</span>: [
       {
         <span class="hljs-attr">"name"</span>: <span class="hljs-string">"B1"</span>,
         <span class="hljs-attr">"common_name"</span>: <span class="hljs-string">"coastal"</span>,
@@ -2867,7 +2878,7 @@ curl -X PUT http://127.0.0.1:5252/collections/{collectionId} \
   <span class="hljs-attr">"visibility"</span>: [
     <span class="hljs-string">"default"</span>
   ],
-  <span class="hljs-attr">"license"</span>: <span class="hljs-string">"proprietary"</span>,
+  <span class="hljs-attr">"license"</span>: <span class="hljs-string">"other"</span>,
   <span class="hljs-attr">"providers"</span>: [
     {
       <span class="hljs-attr">"name"</span>: <span class="hljs-string">"European Union/ESA/Copernicus"</span>,
@@ -2886,7 +2897,7 @@ curl -X PUT http://127.0.0.1:5252/collections/{collectionId} \
     }
   ],
   <span class="hljs-attr">"summaries"</span>: {
-    <span class="hljs-attr">"eo:bands"</span>: [
+    <span class="hljs-attr">"bands"</span>: [
       {
         <span class="hljs-attr">"name"</span>: <span class="hljs-string">"B1"</span>,
         <span class="hljs-attr">"common_name"</span>: <span class="hljs-string">"coastal"</span>,
@@ -3646,11 +3657,11 @@ curl -X GET http://127.0.0.1:5252/collections/{collectionId}/items \
 <td>End of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:end}</td>
 </tr>
 <tr>
-<td>published</td>
+<td>created</td>
 <td>query</td>
 <td>string(date-time)</td>
 <td>false</td>
-<td>Returns products with metadata publication date greater or equal than <em>published</em> - OpenSearch {dc:date}</td>
+<td>Returns products with metadata publication date greater or equal than <em>created</em> - OpenSearch {dc:date}</td>
 </tr>
 <tr>
 <td>prev</td>
@@ -3674,7 +3685,7 @@ curl -X GET http://127.0.0.1:5252/collections/{collectionId}/items \
 <td>Like on product identifier</td>
 </tr>
 <tr>
-<td>sort</td>
+<td>sortby</td>
 <td>query</td>
 <td>string</td>
 <td>false</td>
@@ -4109,7 +4120,7 @@ curl -X GET http://127.0.0.1:5252/collections/{collectionId}/items/{featureId} \
     <span class="hljs-attr">"end_datetime"</span>: <span class="hljs-string">"2020-06-21T11:11:28.371000Z"</span>,
     <span class="hljs-attr">"productIdentifier"</span>: <span class="hljs-string">"S2B_MSIL1C_20200621T111039_N0209_R008_T28HCE_20200621T132349"</span>,
     <span class="hljs-attr">"updated"</span>: <span class="hljs-string">"2018-09-13T12:52:25.971969Z"</span>,
-    <span class="hljs-attr">"published"</span>: <span class="hljs-string">"2018-09-13T12:52:25.971969Z"</span>,
+    <span class="hljs-attr">"created"</span>: <span class="hljs-string">"2018-09-13T12:52:25.971969Z"</span>,
     <span class="hljs-attr">"resto:catalogs"</span>: [
       <span class="hljs-string">"ocean/SouthAtlanticOcean"</span>,
       <span class="hljs-string">"landcover/water"</span>,
@@ -4852,7 +4863,7 @@ curl -X GET http://127.0.0.1:5252/search \
 <td>Like on product identifier</td>
 </tr>
 <tr>
-<td>sort</td>
+<td>sortby</td>
 <td>query</td>
 <td>string</td>
 <td>false</td>
@@ -6465,6 +6476,240 @@ curl -X PUT http://127.0.0.1:5252/users/{username} \
 </tr>
 </tbody>
 </table>
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+basicAuth & bearerAuth & queryAuth
+</aside>
+<h2 id="usersapi--getusercatalogs">UsersAPI::getUserCatalogs</h2>
+<p><a id="opIdUsersAPI::getUserCatalogs"></a></p>
+<blockquote>
+<p>Code samples</p>
+</blockquote>
+<pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
+curl -X GET http://127.0.0.1:5252/users/{username}/catalogs \
+  -H <span class="hljs-string">'Accept: application/json'</span> \
+  -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
+
+</code></pre>
+<p><code>GET /users/{username}/catalogs</code></p>
+<p><em>Get user's catalogs</em></p>
+<h3 id="usersapi--getusercatalogs-parameters">Parameters</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>In</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>username</td>
+<td>path</td>
+<td>string</td>
+<td>true</td>
+<td>User name</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Example responses</p>
+</blockquote>
+<blockquote>
+<p>200 Response</p>
+</blockquote>
+<pre class="highlight tab tab-json"><code><span class="hljs-literal">null</span>
+</code></pre>
+<h3 id="usersapi--getusercatalogs-responses">Responses</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+<th>Description</th>
+<th>Schema</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.1">OK</a></td>
+<td>User catalogs</td>
+<td>Inline</td>
+</tr>
+<tr>
+<td>401</td>
+<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
+<td>Unauthorized</td>
+<td><a href="#schemaunauthorizederror">UnauthorizedError</a></td>
+</tr>
+<tr>
+<td>404</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.4">Not Found</a></td>
+<td>Resource not found</td>
+<td><a href="#schemanotfounderror">NotFoundError</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="usersapi--getusercatalogs-responseschema">Response Schema</h3>
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+basicAuth & bearerAuth & queryAuth
+</aside>
+<h2 id="usersapi--getusercollections">UsersAPI::getUserCollections</h2>
+<p><a id="opIdUsersAPI::getUserCollections"></a></p>
+<blockquote>
+<p>Code samples</p>
+</blockquote>
+<pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
+curl -X GET http://127.0.0.1:5252/users/{username}/collections \
+  -H <span class="hljs-string">'Accept: application/json'</span> \
+  -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
+
+</code></pre>
+<p><code>GET /users/{username}/collections</code></p>
+<p><em>Get user's collections</em></p>
+<h3 id="usersapi--getusercollections-parameters">Parameters</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>In</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>username</td>
+<td>path</td>
+<td>string</td>
+<td>true</td>
+<td>User name</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Example responses</p>
+</blockquote>
+<blockquote>
+<p>200 Response</p>
+</blockquote>
+<pre class="highlight tab tab-json"><code><span class="hljs-literal">null</span>
+</code></pre>
+<h3 id="usersapi--getusercollections-responses">Responses</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+<th>Description</th>
+<th>Schema</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.1">OK</a></td>
+<td>User collections</td>
+<td>Inline</td>
+</tr>
+<tr>
+<td>401</td>
+<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
+<td>Unauthorized</td>
+<td><a href="#schemaunauthorizederror">UnauthorizedError</a></td>
+</tr>
+<tr>
+<td>404</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.4">Not Found</a></td>
+<td>Resource not found</td>
+<td><a href="#schemanotfounderror">NotFoundError</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="usersapi--getusercollections-responseschema">Response Schema</h3>
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+basicAuth & bearerAuth & queryAuth
+</aside>
+<h2 id="usersapi--getuserfeatures">UsersAPI::getUserFeatures</h2>
+<p><a id="opIdUsersAPI::getUserFeatures"></a></p>
+<blockquote>
+<p>Code samples</p>
+</blockquote>
+<pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
+curl -X GET http://127.0.0.1:5252/users/{username}/features \
+  -H <span class="hljs-string">'Accept: application/json'</span> \
+  -H <span class="hljs-string">'Authorization: Bearer {access-token}'</span>
+
+</code></pre>
+<p><code>GET /users/{username}/features</code></p>
+<p><em>Get user's features</em></p>
+<h3 id="usersapi--getuserfeatures-parameters">Parameters</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>In</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>username</td>
+<td>path</td>
+<td>string</td>
+<td>true</td>
+<td>User name</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Example responses</p>
+</blockquote>
+<blockquote>
+<p>200 Response</p>
+</blockquote>
+<pre class="highlight tab tab-json"><code><span class="hljs-literal">null</span>
+</code></pre>
+<h3 id="usersapi--getuserfeatures-responses">Responses</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+<th>Description</th>
+<th>Schema</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.1">OK</a></td>
+<td>User features</td>
+<td>Inline</td>
+</tr>
+<tr>
+<td>401</td>
+<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
+<td>Unauthorized</td>
+<td><a href="#schemaunauthorizederror">UnauthorizedError</a></td>
+</tr>
+<tr>
+<td>404</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.4">Not Found</a></td>
+<td>Resource not found</td>
+<td><a href="#schemanotfounderror">NotFoundError</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="usersapi--getuserfeatures-responseschema">Response Schema</h3>
 <aside class="warning">
 To perform this operation, you must be authenticated by means of one of the following methods:
 basicAuth & bearerAuth & queryAuth
@@ -8116,7 +8361,7 @@ curl -X GET http://127.0.0.1:5252/catalogs/* \
 <td>Filter on catalog id and description</td>
 </tr>
 <tr>
-<td>_nocount</td>
+<td>_countCatalogs</td>
 <td>query</td>
 <td>boolean</td>
 <td>false</td>
@@ -8753,7 +8998,7 @@ curl -X GET http://127.0.0.1:5252/children \
         <span class="hljs-attr">"end_datetime"</span>: <span class="hljs-string">"2020-06-21T11:11:28.371000Z"</span>,
         <span class="hljs-attr">"productIdentifier"</span>: <span class="hljs-string">"S2B_MSIL1C_20200621T111039_N0209_R008_T28HCE_20200621T132349"</span>,
         <span class="hljs-attr">"updated"</span>: <span class="hljs-string">"2018-09-13T12:52:25.971969Z"</span>,
-        <span class="hljs-attr">"published"</span>: <span class="hljs-string">"2018-09-13T12:52:25.971969Z"</span>,
+        <span class="hljs-attr">"created"</span>: <span class="hljs-string">"2018-09-13T12:52:25.971969Z"</span>,
         <span class="hljs-attr">"resto:catalogs"</span>: [
           <span class="hljs-string">"ocean/SouthAtlanticOcean"</span>,
           <span class="hljs-string">"landcover/water"</span>,
@@ -8955,11 +9200,11 @@ curl -X GET http://127.0.0.1:5252/children \
 <td>The date when the feature metadata was updated (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)</td>
 </tr>
 <tr>
-<td>»»» published</td>
+<td>»»» created</td>
 <td>string</td>
 <td>false</td>
 <td>none</td>
-<td>The date when the feature metadata was published (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)</td>
+<td>The date when the feature metadata was created (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)</td>
 </tr>
 <tr>
 <td>»»» resto:catalogs</td>
@@ -9302,9 +9547,6 @@ curl -X GET http://127.0.0.1:5252/ \
   <span class="hljs-attr">"id"</span>: <span class="hljs-string">"string"</span>,
   <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
   <span class="hljs-attr">"description"</span>: <span class="hljs-string">"string"</span>,
-  <span class="hljs-attr">"capabilities"</span>: [
-    <span class="hljs-string">"string"</span>
-  ],
   <span class="hljs-attr">"links"</span>: [
     {
       <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"self"</span>,
@@ -9372,13 +9614,6 @@ curl -X GET http://127.0.0.1:5252/ \
 <td>false</td>
 <td>none</td>
 <td>Server description</td>
-</tr>
-<tr>
-<td>» capabilities</td>
-<td>[string]</td>
-<td>false</td>
-<td>none</td>
-<td>Array of resto-addons list. Used client side to detect resto capabilities</td>
 </tr>
 <tr>
 <td>» links</td>
@@ -9515,7 +9750,7 @@ This operation does not require authentication
   <span class="hljs-attr">"visibility"</span>: [
     <span class="hljs-string">"default"</span>
   ],
-  <span class="hljs-attr">"license"</span>: <span class="hljs-string">"proprietary"</span>,
+  <span class="hljs-attr">"license"</span>: <span class="hljs-string">"other"</span>,
   <span class="hljs-attr">"providers"</span>: [
     {
       <span class="hljs-attr">"name"</span>: <span class="hljs-string">"European Union/ESA/Copernicus"</span>,
@@ -9534,7 +9769,7 @@ This operation does not require authentication
     }
   ],
   <span class="hljs-attr">"summaries"</span>: {
-    <span class="hljs-attr">"eo:bands"</span>: [
+    <span class="hljs-attr">"bands"</span>: [
       {
         <span class="hljs-attr">"name"</span>: <span class="hljs-string">"B1"</span>,
         <span class="hljs-attr">"common_name"</span>: <span class="hljs-string">"coastal"</span>,
@@ -9678,7 +9913,7 @@ This operation does not require authentication
 <td>string</td>
 <td>false</td>
 <td>none</td>
-<td>License for this collection as a SPDX License identifier. Alternatively, use proprietary if the license is not on the SPDX license list or various if multiple licenses apply. In these two cases links to the license texts SHOULD be added, see the license link relation type.</td>
+<td>License for this collection as a SPDX License identifier. Alternatively, use other if the license is not on the SPDX license list. In these case link to the license texts SHOULD be added, see the license link relation type.</td>
 </tr>
 <tr>
 <td>links</td>
@@ -9739,7 +9974,7 @@ This operation does not require authentication
     <span class="hljs-string">"sentinel"</span>,
     <span class="hljs-string">"sentinel2"</span>
   ],
-  <span class="hljs-attr">"license"</span>: <span class="hljs-string">"proprietary"</span>,
+  <span class="hljs-attr">"license"</span>: <span class="hljs-string">"other"</span>,
   <span class="hljs-attr">"extent"</span>: {
     <span class="hljs-attr">"spatial"</span>: {
       <span class="hljs-attr">"bbox"</span>: [
@@ -9816,7 +10051,7 @@ This operation does not require authentication
     <span class="hljs-attr">"productType"</span>: [
       <span class="hljs-string">"REFLECTANCE"</span>
     ],
-    <span class="hljs-attr">"eo:bands"</span>: [
+    <span class="hljs-attr">"bands"</span>: [
       {
         <span class="hljs-attr">"name"</span>: <span class="hljs-string">"B1"</span>,
         <span class="hljs-attr">"common_name"</span>: <span class="hljs-string">"coastal"</span>,
@@ -9957,7 +10192,7 @@ This operation does not require authentication
 <td>string</td>
 <td>true</td>
 <td>none</td>
-<td>License for this collection as a SPDX License identifier or expression. Alternatively, use proprietary if the license is not on the SPDX license list or various if multiple licenses apply. In these two cases links to the license texts SHOULD be added, see the license link relation type.</td>
+<td>License for this collection as a SPDX License identifier or expression. Alternatively, use other if the license is not on the SPDX license list. In this case, links to the license texts SHOULD be added, see the license link relation type.</td>
 </tr>
 <tr>
 <td>extent</td>
@@ -10032,11 +10267,7 @@ This operation does not require authentication
 </tr>
 <tr>
 <td>license</td>
-<td>proprietary</td>
-</tr>
-<tr>
-<td>license</td>
-<td>various</td>
+<td>other</td>
 </tr>
 <tr>
 <td>license</td>
@@ -10211,7 +10442,7 @@ This operation does not require authentication
     <span class="hljs-attr">"end_datetime"</span>: <span class="hljs-string">"2020-06-21T11:11:28.371000Z"</span>,
     <span class="hljs-attr">"productIdentifier"</span>: <span class="hljs-string">"S2B_MSIL1C_20200621T111039_N0209_R008_T28HCE_20200621T132349"</span>,
     <span class="hljs-attr">"updated"</span>: <span class="hljs-string">"2018-09-13T12:52:25.971969Z"</span>,
-    <span class="hljs-attr">"published"</span>: <span class="hljs-string">"2018-09-13T12:52:25.971969Z"</span>,
+    <span class="hljs-attr">"created"</span>: <span class="hljs-string">"2018-09-13T12:52:25.971969Z"</span>,
     <span class="hljs-attr">"resto:catalogs"</span>: [
       <span class="hljs-string">"ocean/SouthAtlanticOcean"</span>,
       <span class="hljs-string">"landcover/water"</span>,
@@ -10358,11 +10589,11 @@ This operation does not require authentication
 <td>The date when the feature metadata was updated (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)</td>
 </tr>
 <tr>
-<td>» published</td>
+<td>» created</td>
 <td>string</td>
 <td>false</td>
 <td>none</td>
-<td>The date when the feature metadata was published (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)</td>
+<td>The date when the feature metadata was created (ISO 8601 - YYYY-MM-DD-THH:MM:SSZ)</td>
 </tr>
 <tr>
 <td>» resto:catalogs</td>
@@ -11463,7 +11694,7 @@ This operation does not require authentication
   <span class="hljs-attr">"roles"</span>: [
     <span class="hljs-string">"data"</span>
   ],
-  <span class="hljs-attr">"eo:bands"</span>: [
+  <span class="hljs-attr">"bands"</span>: [
     <span class="hljs-number">0</span>
   ]
 }

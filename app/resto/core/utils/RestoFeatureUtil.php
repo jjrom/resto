@@ -200,7 +200,7 @@ class RestoFeatureUtil
                     break;
 
                 case 'visibility':
-                    $featureArray['visibility'] = explode(',', (substr($value, 1, strlen($value) - 2)));
+                    $featureArray['properties']['visibility'] = RestoUtil::SQLTextArrayToPHP($value);
                     break;
 
                 case 'bbox4326':

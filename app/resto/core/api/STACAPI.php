@@ -367,17 +367,39 @@ class STACAPI
      */
     public function addCatalog($params, $body)
     {
-        
-        if (!$this->user->hasRightsTo(RestoUser::CREATE_CATALOG)) {
+
+        /*
+         * Check that parent catalogs exists
+         */
+        $parentId = null;
+        if ( isset($params['segments']) ) {
+            for ($i = 0, $ii = count($params['segments']); $i < $ii; $i++) {
+                $parentId = isset($parentId) ? $parentId . '/' . $params['segments'][$i] : $params['segments'][$i];
+                $parentCatalog = $this->catalogsFunctions->getCatalog($parentId, $this->user);
+                if ( $parentCatalog === null) {
+                    RestoLogUtil::httpError(400, 'Parent catalog ' . $parentId . ' does not exist.');
+                }
+                if ( isset($parentCatalog['stac_url']) ) {
+                    RestoLogUtil::httpError(400, 'Cannot add a catalog under an external catalog.');
+                }
+            }
+        }
+       
+        /*
+         * Compute internal catalog id as full path
+         */
+        $body['id'] = $this->getIdPath($body, $parentId);
+
+        /*
+         * First check that user has the right to create a catalog
+         */
+        if (!$this->user->hasRightsTo(RestoUser::CREATE_CATALOG, array('catalog' => $body))) {
             RestoLogUtil::httpError(403);
         }
 
         /*
          * Check mandatory properties
          */
-        if ( !isset($body['id']) ) {
-            RestoLogUtil::httpError(400, 'Missing mandatory catalog id');
-        }
         if ( !isset($body['type']) || !in_array($body['type'], array('Catalog', 'Collection')) ) {
             RestoLogUtil::httpError(400, 'Missing mandatory type - must be set to *Catalog* or *Collection*');
         }
@@ -396,6 +418,9 @@ class STACAPI
             if ( empty($body['visibility']) ) {
                 RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group'); 
             }
+            if ( !$this->catalogsFunctions->canSeeCatalog($body['visibility'], $this->user, true) ) {
+                RestoLogUtil::httpError(403, 'You are not allowed to set the visibility to a group you are not part of');
+            }
         }
 
         // Owner of catalog can only be set by admin user
@@ -412,19 +437,6 @@ class STACAPI
         } 
 
         /*
-         * Check that parent catalogs exists
-         */
-        $parentId = null;
-        if ( isset($params['segments']) ) {
-            for ($i = 0, $ii = count($params['segments']); $i < $ii; $i++) {
-                $parentId = isset($parentId) ? $parentId . '/' . $params['segments'][$i] : $params['segments'][$i];
-                if ($this->catalogsFunctions->getCatalog($parentId, $this->user) === null) {
-                    RestoLogUtil::httpError(400, 'Parent catalog ' . $parentId . ' does not exist.');
-                }
-            }
-        }
-        
-        /*
          * [IMPORTANT] Special case - post a collection under a catalog is in fact an update of 'links' property of this catalog
          */
         if ( $body['type'] === 'Collection' ) {
@@ -433,16 +445,6 @@ class STACAPI
             if ( !(new CollectionsFunctions($this->context->dbDriver))->collectionExists($body['id']) ) {
                 $this->context->keeper->getRestoCollections($this->user)->create($body, $params['model'] ?? null);
             }
-        }
-        
-        /*
-         * Convert input catalog to resto:catalog
-         * i.e. add rtype property and convert id to a path
-         */
-        $body['id'] = $this->getIdPath($body, $parentId);
-        
-        if ( str_starts_with($body['id'], 'collections') ) {
-            RestoLogUtil::httpError(400, 'A catalog path cannot starts with *collections* as it is a reserved keyword');
         }
 
         if ($this->catalogsFunctions->getCatalog($body['id'], $this->user) !== null) {
@@ -526,7 +528,7 @@ class STACAPI
             'id' => join('/', $params['segments']),
             'countCatalogs' => false,
             'noProperties' => true
-        ), $this->user, true);
+        ), true);
 
         if ( count($catalogs) === 0 ){
             RestoLogUtil::httpError(404);
@@ -544,12 +546,18 @@ class STACAPI
 
         /*
          * Convert visibility from names to ids
+         * Note that a user can only set the visibility of a catalog if he is in the group
          */
         if ( isset($body['visibility']) ) {
             $body['visibility'] = (new GeneralFunctions($this->context->dbDriver))->visibilityNamesToIds($body['visibility']);
             if ( empty($body['visibility']) ) {
                 RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group'); 
             }
+
+            if ( !$this->catalogsFunctions->canSeeCatalog($body['visibility'], $this->user, true) ) {
+                RestoLogUtil::httpError(403, 'You are not allowed to set the visibility to a group you are not part of');
+            }
+
         }
 
         // Owner of catalog can only be changed by admin user
@@ -671,7 +679,7 @@ class STACAPI
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
             'id' => join('/', $params['segments']),
             'countCatalogs' => false
-        ), $this->user, true);
+        ), true);
         
         $count = count($catalogs);
         if ( $count === 0 ){
@@ -1117,7 +1125,7 @@ class STACAPI
      *          )
      *      ),
      *      @OA\Parameter(
-     *          name="sort",
+     *          name="sortby",
      *          in="query",
      *          style="form",
      *          description="Sort results by property *startDate* or *created* (default *startDate*). Sorting order is DESCENDING (ASCENDING if property is prefixed by minus sign)",
@@ -1420,42 +1428,45 @@ class STACAPI
          * Special case for '_' => compute FeatureCollection instead of catalogs
          */
         if ($segments[count($segments) - 1 ] === '_') {
+            return $this->processSearch($segments, $params);
+        }
+        
+        /*
+         * Get catalogs - first one is $catalogId, other its childs
+         */
+        $catalogId = join('/', $segments);
+        $catalogs = $this->catalogsFunctions->getCatalogs(array(
+            'id' => $catalogId,
+            'q' => $params['q'] ?? null,
+            'countCatalogs' => isset($params['_countCatalogs']) ? filter_var($params['_countCatalogs'], FILTER_VALIDATE_BOOLEAN) : $this->context->core['countCatalogs'],
+            'checkForExternal' => true
+        ), true);
 
-            // This is not possible
-            if (count($segments) < 2) {
-                RestoLogUtil::httpError(404);
-            }
+        if ( empty($catalogs) ) {
+            RestoLogUtil::httpError(404);
+        }
 
-            array_pop($segments);
-            $catalogs = $this->catalogsFunctions->getCatalogs(array(
-                'id' => join('/', $segments),
-                'q' => $params['q'] ?? null,
-                'countCatalogs' => isset($params['_countCatalogs']) ? filter_var($params['_countCatalogs'], FILTER_VALIDATE_BOOLEAN) : $this->context->core['countCatalogs']
-            ), $this->user, false);
-            
-            if ( empty($catalogs) ) {
-                RestoLogUtil::httpError(404);
-            }
-            
-            $searchParams = array(
-                'q' => $catalogs[0]['id']
-            );
-
-            foreach (array_keys($params) as $key) {
-                if ($key !== 'segments') {
-                    $searchParams[$key] = $params[$key];
-                }
-            }
-
-            return $this->search($searchParams, null);
-
+        /*
+         * This is an external ressources !
+         */
+        if ( isset($catalogs[0]['stac_url']) ) {
+            return $this->processExternalCatalog($catalogs[0]);
         }
         
         // The path is the catalog identifier
-        $parentAndChilds = $this->getParentAndChilds(join('/', $segments), $params);
+        $parentAndChilds = $this->getParentAndChilds($catalogs, $params);
 
-        if ( !isset($parentAndChilds) ) {
-            RestoLogUtil::httpError(404);
+        if ( $parentAndChilds['parent']['visibility'] ) {
+            $canSee = false;
+            for ($i = count($parentAndChilds['parent']['visibility']); $i--;) {
+                if ( $this->user->hasGroup($parentAndChilds['parent']['visibility'][$i]) ) {
+                    $canSee = true;
+                    break;
+                }
+            }
+            if ( !$canSee ) {
+                RestoLogUtil::httpError(403, 'You are not allowed to access this catalog');
+            }
         }
 
         $catalog = array(
@@ -1463,7 +1474,7 @@ class STACAPI
             'id' => $segments[count($segments) -1 ],
             'title' => $parentAndChilds['parent']['title'] ?? '',
             'description' => $parentAndChilds['parent']['description'] ?? '',
-            'type' => 'Catalog',
+            'type' => ucfirst($parentAndChilds['parent']['rtype'] ?? 'catalog'),
             'links' => array_merge(
                 $this->getBaseLinks($segments),
                 !empty($parentAndChilds['parent']['links']) ? array_merge($parentAndChilds['childs'], $parentAndChilds['parent']['links']) : $parentAndChilds['childs']
@@ -1478,6 +1489,51 @@ class STACAPI
         }
         
         return $this->context->core['useJSONLD'] ? JSONLDUtil::addDataCatalogMetadata($catalog) : $catalog;
+    }
+
+    /**
+     * Process search on catalogs
+     * 
+     * @param array $segments
+     * @param array $params
+     * @return array
+     * @throws Exception
+     */ 
+    private function processSearch($segments, $params)
+    {
+        // This is not possible
+        if (count($segments) < 2) {
+            RestoLogUtil::httpError(404);
+        }
+
+        array_pop($segments);
+        $catalogs = $this->catalogsFunctions->getCatalogs(array(
+            'id' => join('/', $segments),
+            'q' => $params['q'] ?? null,
+            'countCatalogs' => isset($params['_countCatalogs']) ? filter_var($params['_countCatalogs'], FILTER_VALIDATE_BOOLEAN) : $this->context->core['countCatalogs']
+        ), false);
+        
+        if ( empty($catalogs) ) {
+            RestoLogUtil::httpError(404);
+        }
+
+        if ( $catalogs[0]['visibility'] ) {
+            if ( !$this->catalogsFunctions->canSeeCatalog($catalogs[0]['visibility'], $this->user) ) {
+                RestoLogUtil::httpError(403, 'You are not allowed to access this catalog');
+            }
+        }
+        
+        $searchParams = array(
+            'q' => $catalogs[0]['id']
+        );
+
+        foreach (array_keys($params) as $key) {
+            if ($key !== 'segments') {
+                $searchParams[$key] = $params[$key];
+            }
+        }
+
+        return $this->search($searchParams, null);
     }
 
     /**
@@ -1539,6 +1595,99 @@ class STACAPI
         return null;
     }
 
+
+    /**
+     * Process external catalog i.e. resolve url and proxify links to resto links
+     * 
+     * @param array $catalog
+     * @return array
+     */
+    private function processExternalCatalog($catalog)
+    {
+
+        $externalCatalog = STACUtil::resolveEndpoint($catalog['stac_url_to_be_resolved'] ?? $catalog['stac_url']);
+        
+        // Replace first level links
+        if ( isset($externalCatalog['links']) ) {
+            $externalCatalog['links'] = $this->replaceLinks($catalog, $externalCatalog['links']);
+        }
+
+        // Collections case
+        if ( isset($externalCatalog['collections']) ) {
+            for ($i = 0, $ii = count($externalCatalog['collections']); $i < $ii; $i++) {
+                if ( isset($externalCatalog['collections'][$i]['links']) ) {
+                    $externalCatalog['collections'][$i]['links'] = $this->replaceLinks($catalog, $externalCatalog['collections'][$i]['links']);
+                }
+            }
+        }
+
+        // Features case
+        if ( isset($externalCatalog['features']) ) {
+            for ($i = 0, $ii = count($externalCatalog['features']); $i < $ii; $i++) {
+                if ( isset($externalCatalog['features'][$i]['links']) ) {
+                    $externalCatalog['features'][$i]['links'] = $this->replaceLinks($catalog, $externalCatalog['features'][$i]['links']);
+                }
+            }
+        }
+
+        return $externalCatalog;
+        /*
+        $catalogs[0]['title'] = $external['title'] ?? $catalog['title'];
+        $catalogs[0]['description'] = $external['description'] ?? $catalog['description'];
+        if (isset($external['links'])) {
+            for ($i = 0, $ii = count($external['links']); $i < $ii; $i++) {
+                if ( in_array($external['links'][$i]['rel'], array('self', 'root', 'parent')) ) {
+                    continue;
+                }
+                $id = str_replace($catalog['stac_url'], '', $external['links'][$i]['href']);
+                $element = [
+                    'id' => $catalog['id'] . '/' . $id,
+                    'title' => $external['links'][$i]['title'] ?? null,
+                    'description' => $external['links'][$i]['description'] ?? null,
+                    'level' => $catalogs[0]['level'] + 1,
+                    'counters' => $catalogs[0]['counters'],
+                    'owner' => $catalogs[0]['owner'],
+                    'visibility' => $catalogs[0]['visibility'],
+                    'link_properties' => array()
+                ];
+                foreach (array_keys($external['links'][$i]) as $key) {
+                    if ( !in_array($key, array('href', 'title', 'description')) ) {
+                        $element['link_properties'][$key] = $external['links'][$i][$key];
+                    }
+                }
+                $catalogs[] = $element;
+            }
+        }*/
+        return $output;
+    }
+
+    /**
+     * 
+     * Replace links in external catalog with resto links i.e. act as a proxy
+     * 
+     * @param array $catalog
+     * @param array $links
+     * @return array
+     */
+    private function replaceLinks($catalog, $links)
+    {
+        $correctUrl = substr($catalog['stac_url'], -1) === '/' ? substr($catalog['stac_url'], 0, strlen($catalog['stac_url']) - 1) : $catalog['stac_url'];
+        for ($i = 0, $ii = count($links); $i < $ii; $i++) {
+            if ( isset($links[$i]['href']) ) {
+                if ( $links[$i]['rel'] === 'root') {
+                    $links[$i]['href'] = $this->context->core['baseUrl'];
+                }
+                else {
+                    $links[$i]['href'] = str_replace($correctUrl, join('/', array($this->context->core['baseUrl'], 'catalogs', $catalog['id'])), $links[$i]['href']);
+                    if ( $links[$i]['rel'] === 'parent') {
+                        $links[$i]['href'] = substr($links[$i]['href'],0,strrpos($links[$i]['href'],'/'));
+                    }
+                }
+            }
+        }
+        return $links;
+    }
+
     /**
      * Convert JSON query to queryParam
      * 
@@ -1592,22 +1741,12 @@ class STACAPI
     /**
      * Return catalog childs 
      * 
-     * @param string $catalogId
+     * @param array $catalogs
      * @param array $params Search parameters
      * @return array
      */
-    private function getParentAndChilds($catalogId, $params)
+    private function getParentAndChilds($catalogs, $params)
     {
-        // Get catalogs - first one is $catalogId, other its childs
-        $catalogs = $this->catalogsFunctions->getCatalogs(array(
-            'id' => $catalogId,
-            'q' => $params['q'] ?? null,
-            'countCatalogs' => isset($params['_countCatalogs']) ? filter_var($params['_countCatalogs'], FILTER_VALIDATE_BOOLEAN) : $this->context->core['countCatalogs']
-        ), $this->user, true);
-        
-        if ( empty($catalogs) ) {
-            return null;
-        }
 
         $parentAndChilds = array(
             'parent' => $catalogs[0] ?? null,
@@ -1627,7 +1766,7 @@ class STACAPI
                 if ( isset($parentAndChilds['parent']['counters']) && $parentAndChilds['parent']['counters']['total'] > 0) {
                     $items['matched'] = $parentAndChilds['parent']['counters']['total'];
                 }
-                $parentAndChilds['childs'][] =$items;
+                $parentAndChilds['childs'][] = $items;
             }
             else {
                 $parentAndChilds['childs'] = $this->catalogsFunctions->getCatalogItems($parentAndChilds['parent']['id'], $this->context->core['baseUrl']);
@@ -1636,11 +1775,11 @@ class STACAPI
         else {
 
             // Parent has an hashtag thus can have a rel="items" child to directly search for its contents
-            if ( $parentAndChilds['parent']['level'] > 1 ) {
+            if ( $parentAndChilds['parent']['level'] > 1 && $this->context->core['showItemsLink'] ) {
                 $element = array(
                     'rel' => 'items',
                     'type' => RestoUtil::$contentTypes['geojson'],
-                    'href' => $this->context->core['baseUrl'] . ( str_starts_with($catalogId, 'collections/') ? '/' : '/catalogs/') .  join('/', array_map('rawurlencode', explode('/', $parentAndChilds['parent']['id']))) . '/_',
+                    'href' => $this->context->core['baseUrl'] . ( str_starts_with($catalogs[0]['id'], 'collections/') ? '/' : '/catalogs/') .  join('/', array_map('rawurlencode', explode('/', $parentAndChilds['parent']['id']))) . '/_',
                     'title' => 'All items'
                 );
                 if ( $parentAndChilds['parent']['counters']['total'] > 0 ) {
@@ -1652,11 +1791,15 @@ class STACAPI
             // Childs are 1 level above their parent catalog level
             for ($i = 1, $ii = count($catalogs); $i < $ii; $i++) {
                 if ($catalogs[$i]['level'] === $parentAndChilds['parent']['level'] + 1) {
+                    if (!isset($catalogs[$i]['link_properties'])) {
+                        $catalogs[$i]['link_properties'] = array();
+                    }
                     $element = array(
-                        'rel' => 'child',
-                        'type' => RestoUtil::$contentTypes['json'],
+                        'rel' => $catalogs[$i]['link_properties']['rel'] ?? 'child',
+                        'type' => $catalogs[$i]['link_properties']['type'] ?? RestoUtil::$contentTypes['json'],
                         'href' => $this->context->core['baseUrl'] . ( str_starts_with($catalogs[$i]['id'], 'collections/') ? '/' : '/catalogs/') .  join('/', array_map('rawurlencode', explode('/', $catalogs[$i]['id'])))
                     );
+                    
                     if (  $catalogs[$i]['counters']['total'] > 0 ) {
                         $element['matched'] = $catalogs[$i]['counters']['total'];
                     }
@@ -1665,6 +1808,11 @@ class STACAPI
                     }
                     if ( isset($catalogs[$i]['description']) ) {
                         $element['description'] = $catalogs[$i]['description'];
+                    }
+                    foreach (array_keys($catalogs[$i]['link_properties']) as $key ) {
+                        if ( !in_array($key, array('rel', 'type')) ){
+                            $element[$key] = $catalogs[$i]['link_properties'][$key];
+                        }
                     }
                     $parentAndChilds['childs'][] = $element;
                 }
@@ -1738,7 +1886,7 @@ class STACAPI
             'level' => 1,
             'q' => $params['q'] ?? null,
             'countCatalogs' => isset($params['_countCatalogs']) ? filter_var($params['_countCatalogs'], FILTER_VALIDATE_BOOLEAN) : $this->context->core['countCatalogs']
-        ), $this->user, false);
+        ), false);
         
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
 
@@ -1746,6 +1894,12 @@ class STACAPI
                 continue;
             }
 
+            if ( $catalogs[$i]['visibility'] ) {
+                if ( !$this->catalogsFunctions->canSeeCatalog($catalogs[$i]['visibility'], $this->user) ) {
+                    continue;
+                }
+            }
+            
             $link = array(
                 'id' => $catalogs[$i]['id'],
                 'rel' => 'child',
@@ -1781,20 +1935,29 @@ class STACAPI
     private function getIdPath($catalog, $parentId)
     {
 
+        if ( !isset($catalog['id']) ) {
+            RestoLogUtil::httpError(400, 'Missing mandatory catalog id');
+        }
+        if ( count(explode('/', $catalog['id'])) >  1 ) {
+            RestoLogUtil::httpError(400, 'Catalog id cannot contain a slash');
+        }
+
         $parentIdInBody = '';
         $hasParentInBody = false;
 
         // Retrieve parent if any
-        for ($i = 0, $ii = count($catalog['links']); $i < $ii; $i++ ) {
-            if ( isset($catalog['links'][$i]['rel']) &&$catalog['links'][$i]['rel'] === 'parent' ) {
-                $hasParentInBody = true;
-                $theoricalUrl = $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS; 
-                $exploded = explode($theoricalUrl, $catalog['links'][$i]['href']);
-                if (count($exploded) !== 2) {
-                    RestoLogUtil::httpError(400, 'Parent link is set but it\'s url is invalid - should starts with ' . $theoricalUrl);
+        if ( isset($catalog['links']) && is_array($catalog['links']) ) {
+            for ($i = 0, $ii = count($catalog['links']); $i < $ii; $i++ ) {
+                if ( isset($catalog['links'][$i]['rel']) &&$catalog['links'][$i]['rel'] === 'parent' ) {
+                    $hasParentInBody = true;
+                    $theoricalUrl = $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS; 
+                    $exploded = explode($theoricalUrl, $catalog['links'][$i]['href']);
+                    if (count($exploded) !== 2) {
+                        RestoLogUtil::httpError(400, 'Parent link is set but it\'s url is invalid - should starts with ' . $theoricalUrl);
+                    }
+                    $parentIdInBody = str_starts_with($exploded[1], '/') ? substr($exploded[1], 1) : $exploded[1];
+                    break;
                 }
-                $parentIdInBody = str_starts_with($exploded[1], '/') ? substr($exploded[1], 1) : $exploded[1];
-                break;
             }
         }
 

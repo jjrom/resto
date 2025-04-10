@@ -158,14 +158,6 @@ class ServicesAPI
      *                  description="Server description"
      *              ),
      *              @OA\Property(
-     *                  property="capabilities",
-     *                  type="array",
-     *                  @OA\Items(
-     *                      type="string"
-     *                  ),
-     *                  description="Array of resto-addons list. Used client side to detect resto capabilities",
-     *              ),
-     *              @OA\Property(
      *                  property="links",
      *                  type="array",
      *                  @OA\Items(ref="#/components/schemas/Link")
@@ -187,7 +179,6 @@ class ServicesAPI
             'type' => 'Catalog',
             'title' => $this->title,
             'description' => $this->description,
-            'capabilities' => array_merge(array('resto-core'), array_map('strtolower', array_keys($this->context->addons))),
             'resto:version' => RestoConstants::VERSION,
             'ssys:targets' => array($this->context->core['planet']),
             'links' => array(
@@ -433,6 +424,6 @@ class ServicesAPI
      */
     private function conformsTo()
     {
-        return STACAPI::CONFORMANCE_CLASSES;
+        return array_merge(STACAPI::CONFORMANCE_CLASSES, array_map(fn($str) => 'https://api.snapplanet.io/v1.0.0/' . strtolower($str), array_keys(array_merge(array('resto-core' => 1), $this->context->addons))));
     }
 }

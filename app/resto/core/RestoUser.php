@@ -36,6 +36,7 @@ class RestoUser
     const DELETE_CATALOG = 'deleteCatalog';
     const UPDATE_CATALOG = 'updateCatalog';
     
+    const CREATE_ANY_CATALOG = 'createAnyCatalog';
     const DELETE_ANY_CATALOG = 'deleteAnyCatalog';
     const UPDATE_ANY_CATALOG = 'updateAnyCatalog';
     
@@ -249,10 +250,11 @@ class RestoUser
      *  - deleteAnyCollection   : delete any collection i.e. including not owned by user
      *  - updateAnyCollection   : update any collection i.e. including not owned by user
      * 
-     *  - createCatalog         : create a catalog
+     *  - createCatalog         : create a catalog under user private catalog i.e. /catalogs/users/{username}
      *  - deleteCatalog         : delete a catalog owned by user
      *  - updateCatalog         : update a catalog owned by user
      *
+     *  - createAnyCatalog      : create a catalog anywhere except under another user private catalog
      *  - deleteAnyCatalog      : delete any catalog i.e. including not owned by user
      *  - updateAnyCatalog      : update any catalog i.e. including not owned by user
      * 
@@ -274,12 +276,13 @@ class RestoUser
     {
 
         $rights = $this->getRights();
-
+        
         /*
          * 1) Handle actions that are not known
          * and actions that do not need params to be set
          */
         $withParams = array(
+            RestoUser::CREATE_CATALOG,
             RestoUser::DELETE_COLLECTION,
             RestoUser::UPDATE_COLLECTION,
             RestoUser::DELETE_CATALOG,
@@ -298,44 +301,18 @@ class RestoUser
          * The last token is the target (collection, feature)
          */
         $splittedAction = preg_split('/(?<=[a-z])(?=[A-Z])/x', $action);
-
         if ( count($splittedAction) === 2 ) {
 
             // 2) Handle "Any" cases
             $any = $splittedAction[0] . 'Any' . $splittedAction[1];
             if ( isset($rights[$any]) && $rights[$any] ) {
-                return true;
+                return $this->handleAnyRights($action, $params);
             }
 
         }
 
-        
         // 3) Handle action with params
-        switch ($action) {
-
-            // Only owner of collection can do this
-            case RestoUser::CREATE_ITEM:
-            case RestoUser::DELETE_COLLECTION:
-            case RestoUser::UPDATE_COLLECTION:
-                return $rights[$action] && isset($params['collection']) && $params['collection']->owner === $this->profile['id'];
-            
-            // Only owner of catalog can do this
-            case RestoUser::DELETE_CATALOG:
-            case RestoUser::UPDATE_CATALOG:
-                return $rights[$action] && isset($params['catalog']) && $params['catalog']['owner'] === $this->profile['id'];
-            
-            // Only owner of feature can do this
-            case RestoUser::DELETE_ITEM:
-            case RestoUser::UPDATE_ITEM:
-                if ( !isset($params['item']) ) {
-                    return false;     
-                }
-                $featureArray = $params['item']->toArray();
-                return $rights[$action] && isset($featureArray['properties']['owner']) && $featureArray['properties']['owner'] === $this->profile['id'];
-                    
-            default:
-                return $rights[$action] ?? false;
-        }
+        return $this->handleSimpleRights($action, $rights, $params);
 
     }
 
@@ -536,6 +513,113 @@ class RestoUser
         if ( !$this->isComplete && isset($this->profile['username']) ) {
             $this->profile = (new UsersFunctions($this->context->dbDriver))->getUserProfile('username', $this->profile['username']);
             $this->isComplete = true;
+        }
+    }
+
+    /**
+     * Handle any rights
+     * 
+     * @param string $action
+     * @param array $params
+     * @return boolean
+     */
+    private function handleAnyRights($action, $params)
+    {
+
+        // Only catalog actions are special cases
+        if ( !in_array($action, array(
+                RestoUser::CREATE_CATALOG,
+                RestoUser::DELETE_CATALOG,
+                RestoUser::UPDATE_CATALOG
+            ))) {
+            return true;
+        }
+
+        if ( !isset($params['catalog']) ) {
+            return false;
+        }
+
+        /*
+         * Check forbidden paths
+         */
+        switch ($action) {
+            case RestoUser::CREATE_CATALOG:
+                if ( in_array($params['catalog']['id'], STACUtil::RESERVED_CATALOG_PATHS) ) {
+                    RestoLogUtil::httpError(400, 'You cannot create /catalogs/' . $params['catalog']['id'] . ' as it is a reserved path');
+                }
+                break;
+
+            case RestoUser::DELETE_CATALOG:
+                if ( in_array($params['catalog']['id'], STACUtil::RESERVED_CATALOG_PATHS) ) {
+                    RestoLogUtil::httpError(400, 'You cannot delete /catalogs/' . $params['catalog']['id'] . ' as it is a reserved path');
+                }
+                break;
+        }
+
+        // You cannot delete /users/* catalogs
+        $exploded = explode('/', $params['catalog']['id']);
+        if ( count($exploded) > 1 && $exploded[0] === 'users' ) {
+            return false;
+        }
+
+        return true;
+
+    }
+
+    /**
+     * Handle simple rights
+     * 
+     * @param string $action
+     * @param array $rights
+     * @param array $params
+     * @return boolean
+     */
+    private function handleSimpleRights($action, $rights, $params)
+    {
+        switch ($action) {
+
+            // Catalog can only be created under /users/{username}
+            case RestoUser::CREATE_CATALOG:
+                if ( !isset($params['catalog']) ) {
+                    return false;
+                }
+                $exploded = explode('/', $params['catalog']['id']);
+                if ( count($exploded) < 3 && $exploded[0] !== 'users' && $exploded[1] !== $this->profile['username'] ) {
+                    return false;
+                }
+                return $rights[$action];
+
+            // Only owner of collection can do this
+            case RestoUser::CREATE_ITEM:
+            case RestoUser::DELETE_COLLECTION:
+            case RestoUser::UPDATE_COLLECTION:
+                return $rights[$action] && isset($params['collection']) && $params['collection']->owner === $this->profile['id'];
+            
+            // Only owner of catalog can do this
+            case RestoUser::UPDATE_CATALOG:
+                return $rights[$action] && isset($params['catalog']) && $params['catalog']['owner'] === $this->profile['id'];
+            
+            case RestoUser::DELETE_CATALOG:
+                if ( !isset($params['catalog']) ) {
+                    return false;
+                }
+                $exploded = explode('/', $params['catalog']['id']);
+                if ( count($exploded) === 2 && $exploded[0] === 'users' ) {
+                    return false;
+                }
+                return $rights[$action] && isset($params['catalog']) && $params['catalog']['owner'] === $this->profile['id'];
+
+            // Only owner of feature can do this
+            case RestoUser::DELETE_ITEM:
+            case RestoUser::UPDATE_ITEM:
+                if ( !isset($params['item']) ) {
+                    return false;     
+                }
+                $featureArray = $params['item']->toArray();
+                return $rights[$action] && isset($featureArray['properties']['owner']) && $featureArray['properties']['owner'] === $this->profile['id'];
+                    
+            default:
+                return $rights[$action] ?? false;
         }
     }
 

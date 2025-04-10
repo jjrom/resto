@@ -299,10 +299,10 @@ class FeaturesAPI
      *          )
      *      ),
      *      @OA\Parameter(
-     *          name="published",
+     *          name="created",
      *          in="query",
      *          style="form",
-     *          description="Returns products with metadata publication date greater or equal than *published* - OpenSearch {dc:date}",
+     *          description="Returns products with metadata publication date greater or equal than *created* - OpenSearch {dc:date}",
      *          required=false,
      *          @OA\Schema(
      *              type="string",
@@ -341,7 +341,7 @@ class FeaturesAPI
      *          )
      *      ),
      *      @OA\Parameter(
-     *          name="sort",
+     *          name="sortby",
      *          in="query",
      *          style="form",
      *          description="Sort results by property *startDate* or *created* (default *startDate*). Sorting order is DESCENDING (ASCENDING if property is prefixed by minus sign)",
@@ -812,6 +812,9 @@ class FeaturesAPI
                 $body[$property] = (new GeneralFunctions($this->context->dbDriver))->visibilityNamesToIds($body[$property]);
                 if ( empty($body[$property]) ) {
                     RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group'); 
+                }
+                if ( !(new CatalogsFunctions($this->context->dbDriver))->canSeeCatalog($body[$property], $this->user, true) ) {
+                    RestoLogUtil::httpError(403, 'You are not allowed to set the visibility to a group you are not part of');
                 }
             }
 

@@ -1,0 +1,7 @@
+{
+    "id": "JaneDoeCatalog",
+    "title": "Jane Doe Catalog",
+    "type": "Catalog",
+    "description":"This is a simple catalog - it is private by default",
+    "stac_version":"1.1.0"
+}
