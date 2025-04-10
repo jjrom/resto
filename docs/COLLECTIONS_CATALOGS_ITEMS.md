@@ -71,7 +71,7 @@ The following paths are reserved and cannot be created by a user whatever its ri
 * /catalogs/projects
 * /catalogs/users
 
-### Catalog /catalogs/users
+#### Catalog /catalogs/users
 No user can create a catalog directly under /catalogs/users catalog neither can create a catalog under a another user catalog.
 For instance "johndoe" user cannot create a catalog under /catalog/users/janedoe even if he get the "createAnyCatalog" right
 
@@ -87,11 +87,11 @@ is to create first an empty catalog (i.e. the parent) then add its childs throug
         curl -X POST -d@examples/catalogs/dummyCatalogChild1.json "http://admin:admin@localhost:5252/catalogs/dummyCatalogWithChilds"
         curl -X POST -d@examples/catalogs/dummyCatalogChild2.json "http://admin:admin@localhost:5252/catalogs/dummyCatalogWithChilds"
 
-#### Add a collection under an existing catalog
+### Add a collection under an existing catalog
 
         curl -X POST -d@examples/collections/DummyCollection.json "http://admin:admin@localhost:5252/catalogs/dummyCatalogWithChilds"
 
-## Add a catalog under an existing catalog that cycle on itself
+### Add a catalog under an existing catalog that cycle on itself
 
         # The catalog dummyCatalogCycling is posted under /catalogs/dummyCatalogChild1 but reference one of this
         # parent as a child which is forbiden
@@ -110,6 +110,11 @@ is to create first an empty catalog (i.e. the parent) then add its childs throug
         curl -X POST -d@examples/items/dummySargasse.json "http://admin:admin@localhost:5252/collections/DummyCollection/items"
 
         curl -X POST -d@examples/catalogs/dummyCatalogWithItem.json "http://admin:admin@localhost:5252/catalogs/dummyCatalogWithChilds/dummyCatalogChild1"
+
+### Add an external catalog
+If you POST a catalog with a rel="root" link pointing to an external STAC href, then the resto will act as a proxy to this catalog
+
+        curl -X POST -d@examples/catalogs/externalCatalog.json "http://admin:admin@localhost:5252/catalogs"
 
 ### Update a catalog
 

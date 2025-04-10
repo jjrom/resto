@@ -48,7 +48,7 @@ class CatalogsFunctions
      * These are STAC/resto default properties in catalog
      */
     const CATALOG_PROPERTIES = array(
-        'id', 'title', 'description', 'type', 'owner', 'visibility', 'rtype', 'stac_version', 'stac_extension', 'links', 'level', 'counters', 'created'
+        'id', 'title', 'description', 'type', 'owner', 'visibility', 'rtype', 'stac_version', 'stac_extension', 'links', 'level', 'counters', 'stac_url', 'created'
     );
 
     private $dbDriver = null;
@@ -82,7 +82,8 @@ class CatalogsFunctions
             'owner' => $rawCatalog['owner'] ?? null,
             'visibility' => RestoUtil::SQLTextArrayToPHP($rawCatalog['visibility']),
             'created' => $rawCatalog['created'],
-            'rtype' => $rawCatalog['rtype'] ?? null
+            'rtype' => $rawCatalog['rtype'] ?? null,
+            'stac_url' => $rawCatalog['stac_url'] ?? null
         );
 
         if ( $noProperties ) {
@@ -144,12 +145,12 @@ class CatalogsFunctions
      */
     public function getCatalog($catalogId, $user)
     {
-    
+
         $catalogs = $this->getCatalogs(array(
             'id' => $catalogId
         ), false);
 
-        if ( isset($catalogs) && count($catalogs) === 1) {
+        if ( isset($catalogs) && count($catalogs) > 0) {
             if ( !$this->canSeeCatalog($catalogs[0]['visibility'], $user) ) {
                 RestoLogUtil::httpError(403, 'You are not allowed to access this catalog');
             }
@@ -173,7 +174,8 @@ class CatalogsFunctions
         $where = array();
         $values = array();
         $params = isset($params) ? $params : array();
-
+        $checkForExternal = isset($params['checkForExternal']) ? $params['checkForExternal'] : false;
+        
         // Direct where clause
         if ( isset($params['where'])) {
             $where[] = $params['where'];
@@ -201,12 +203,33 @@ class CatalogsFunctions
         }
         
         try {
-            $results = $this->dbDriver->pQuery('SELECT id, title, description, level, counters, owner, links, visibility, rtype, properties, to_iso8601(created) as created FROM ' . $this->dbDriver->targetSchema . '.catalog' . ( empty($where) ? '' : ' WHERE ' . join(' AND ', $where) . ' ORDER BY id ASC'), $values);
+            $results = $this->dbDriver->pQuery('SELECT id, title, description, level, counters, owner, links, visibility, rtype, properties, to_iso8601(created) as created, stac_url FROM ' . $this->dbDriver->targetSchema . '.catalog' . ( empty($where) ? '' : ' WHERE ' . join(' AND ', $where) . ' ORDER BY id ASC'), $values);
             while ($result = pg_fetch_assoc($results)) {
                 $catalogs[] = CatalogsFunctions::format($result, $params['noProperties'] ?? false);
             }
         }  catch (Exception $e) {
             RestoLogUtil::httpError(500, $e->getMessage());
+        }
+        
+        /*
+         * Check for external catalog means get the eventual ancestor if no catalogs where found
+         */
+        if ( empty($catalogs) && isset($params['id']) && $checkForExternal ) {
+            try {
+                $id = explode('/', $params['id'])[0];
+                $results = $this->dbDriver->pQuery('SELECT id, title, description, level, counters, owner, links, visibility, rtype, properties, to_iso8601(created) as created, stac_url FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE id=$1 OR id LIKE $2 AND stac_url IS NOT NULL ORDER BY id ASC', array(
+                    $id,
+                    $id . '/%'
+                ));
+                while ($result = pg_fetch_assoc($results)) {
+                    $catalog = CatalogsFunctions::format($result, false);
+                    $catalog['stac_url_to_be_resolved'] = (substr($catalog['stac_url'], -1) === '/' ? substr($catalog['stac_url'], 0, strlen($catalog['stac_url']) - 1) : $catalog['stac_url']) . '/' . str_replace($id .'/', '', $params['id']);
+                    $catalogs[] = $catalog;
+                    break;
+                }
+            }  catch (Exception $e) {
+                RestoLogUtil::httpError(500, $e->getMessage());
+            }
         }
 
         /*
@@ -599,6 +622,8 @@ class CatalogsFunctions
             return;
         }
 
+        $properties = null;
+
         // Set rtype for Collection
         if ( isset($catalog['type']) && $catalog['type'] === 'Collection' ) {
             $catalog['rtype'] = 'collection';
@@ -608,15 +633,19 @@ class CatalogsFunctions
         if ( substr($catalog['id'], -1) === '/' ) {
             $catalog['id'] = rtrim($catalog['id'], '/');
         }
-       
+
         $cleanLinks = $this->getCleanLinks($catalog, $user, $context);
-       
+        
+        if ( isset($cleanLinks['external']) ) {
+            $catalog['stac_url'] = $cleanLinks['external']['href'];
+            $catalog['title'] = $cleanLinks['external']['title'] ?? $catalog['title'] ?? null;
+            $catalog['description'] = $cleanLinks['external']['description'] ?? $catalog['description'] ?? null;
+            $catalog['links'] = null;
+        }
+
         // For collection, do not store properties since it's a duplication of properties within collection table
-        $properties = null;
         if ( isset($catalog['rtype']) && $catalog['rtype'] === 'collection' ) {
             $catalog = array_merge($catalog, [
-                /*'title' => null,
-                'description' => null,*/
                 'rtype' => 'collection'
             ]);
         }
@@ -644,7 +673,7 @@ class CatalogsFunctions
             }
             $catalog['visibility'] = RestoUtil::getDefaultVisibility($user, $createdCatalogIsPublic);
         }
-        $insert = '(id, title, description, level, counters, owner, visibility, rtype, properties, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,now()';
+        $insert = '(id, title, description, level, counters, owner, visibility, rtype, properties, stac_url, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,now()';
         $values = array(
             $catalog['id'],
             $catalog['title'] ?? null,
@@ -658,11 +687,12 @@ class CatalogsFunctions
             $catalog['owner'] ?? $user->profile['id'],
             QueryUtil::visibilityToSQL($catalog['visibility']),
             $catalog['rtype'] ?? null,
-            isset($properties) ? json_encode($properties, JSON_UNESCAPED_SLASHES) : null
+            isset($properties) ? json_encode($properties, JSON_UNESCAPED_SLASHES) : null,
+            isset($catalog['stac_url']) ? $catalog['stac_url'] : null
         );
         if ( array_key_exists('links', $cleanLinks) ) {
             $values[] = json_encode($cleanLinks['links'] ?? array(), JSON_UNESCAPED_SLASHES);
-            $insert = '(id, title, description, level, counters, owner, visibility, rtype, properties, links, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,now()';
+            $insert = '(id, title, description, level, counters, owner, visibility, rtype, properties, stac_url, links, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,now()';
         }
 
         $insert = 'INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog ' . $insert . ' ON CONFLICT (id) DO NOTHING';
@@ -918,7 +948,8 @@ class CatalogsFunctions
 
         $output = array(
             'childIds' => array(),
-            'internalItems' => array()
+            'internalItems' => array(),
+            'external' => null
         );
 
         if ( !array_key_exists('links', $catalog) ) {
@@ -933,8 +964,24 @@ class CatalogsFunctions
 
         for ($i = 0, $ii = count($catalog['links']); $i < $ii; $i++) {
             $link = $catalog['links'][$i];
-            if ( !isset($link['rel']) || in_array($link['rel'], array('root', 'parent', 'self')) ) {
+            if ( !isset($link['rel']) || in_array($link['rel'], array('parent', 'self')) ) {
                 continue;
+            }
+
+            // [IMPORTANT] Proxy to stac_url
+            if ( $link['rel'] === 'root' ) {
+                if ( !isset($link['href']) ) {
+                    RestoLogUtil::httpError(400, 'The root link has an empty href');
+                }
+                if ( str_starts_with($link['href'], $context->core['baseUrl']) ) {
+                    continue;
+                }
+                $output['external'] = [
+                    'href' => $link['href'],
+                    'title' => $link['title'] ?? null,
+                    'description' => $link['description'] ?? null
+                ];
+                break;
             }
             
             if ( in_array($link['rel'], array('child', 'item', 'items')) ) {
@@ -1034,6 +1081,11 @@ class CatalogsFunctions
      */
     private function onTheFlyUpdateCountersWithCollection($catalogs)
     {
+
+        // Never compute counters for external catalogs
+        if ( count($catalogs) > 0 && isset($catalogs[0]['stac_url']) ) {
+            return $catalogs;
+        }
         
         $collectionsList = [];
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++){

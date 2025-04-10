@@ -1,0 +1,16 @@
+{
+    "id": "CDSE",
+    "title": "This is an external catalog",
+    "type": "Catalog",
+    "description":"When setting root link to an external url, resto proxies the request to the external catalog.",
+    "stac_version":"1.0.0",
+    "links":[
+        {
+            "rel": "root",
+            "href": "https://stac.dataspace.copernicus.eu/v1/",
+            "type": "application/json",
+            "title": "Copernicus Data Space Ecosystem (CDSE) asset-level STAC catalogue",
+            "description": "Copernicus Data Space Ecosystem (CDSE) asset-level STAC catalogue"
+        }
+    ]
+}
