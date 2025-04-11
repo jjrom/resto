@@ -3,15 +3,13 @@
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/jjrom/resto.svg)](http://isitmaintained.com/project/jjrom/resto "Average time to resolve an issue")
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/jjrom/resto.svg)](http://isitmaintained.com/project/jjrom/resto "Percentage of issues still open")
 
-resto is a metadata catalog and a search engine dedicated to geospatialized data. Originally, it’s main purpose it to handle Earth Observation satellite imagery but it can be used to store any kind of metadata localized in time and space.
+resto is a STAC catalog and a search engine dedicated to geospatialized data. Originally, it’s main purpose it to handle Earth Observation satellite imagery but it can be used to store any kind of metadata localized in time and space.
 
-resto search API conforms to the [SpatioTemporal Asset Catalog (STAC) specification v1.0.0](https://github.com/radiantearth/stac-spec)
-
-It is mentioned in ESA's "Exploitation Platform Common Core Components" as the closest implementation of a catalogue component according to the requirements specified in ESA's ["Exploitation Platform Open Architecture"](https://tep.eo.esa.int/news/-/blogs/exploitation-platforms-open-architecture-released)
+resto search API conforms to the [SpatioTemporal Asset Catalog (STAC) specification v1.1.0](https://github.com/radiantearth/stac-spec)
 
 ## Demo
 
-The [https://tamn.snapplanet.io] resto server provides up to date access to Landsat-8 and Sentinel-2 images.
+The [https://tamn.snapplanet.io] resto server provides up to date access to Sentinel-2 images.
 
 You can browse it with the [rocket web client](https://rocket.snapplanet.io)
 
@@ -20,8 +18,8 @@ Or test the API :
 * Get STAC root endpoint - https://tamn.snapplanet.io/?_pretty=1
 * Get all collections - https://tamn.snapplanet.io/collections?_pretty=1
 * Search Sentinel-2 products acquired on June 1st, 2021 - https://tamn.snapplanet.io/collections/S2/items?datetime=2021-05-06T00:00:00Z/2021-06-01T23:59:59Z&_pretty=1
-* Get catalogs of products classified by continents - https://tamn.snapplanet.io/catalogs/classifications/geographical/continent?_pretty=1
-* Get catalogs of products classified by european countries - https://tamn.snapplanet.io/catalogs/classifications/geographical/continent/continent:Europe:6255148?_pretty=1
+* Get catalogs of products classified by continents - https://tamn.snapplanet.io/catalogs/facets/geographical/continent?_pretty=1
+* Get catalogs of products classified by european countries - https://tamn.snapplanet.io/catalogs/facets/geographical/continent/continent%3AEurope%3A6255148?_pretty=1
 
 # Installation
 
