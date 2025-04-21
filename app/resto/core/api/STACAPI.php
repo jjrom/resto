@@ -209,7 +209,7 @@ class STACAPI
         // Unsupported
         //'https://api.stacspec.org/v1.0.0/item-search#query',
         'https://api.stacspec.org/v1.0.0/item-search#sort',
-        'https://api.stacspec.org/v1.0.0-rc.3/item-search#filter',
+        'https://api.stacspec.org/v1.0.0/item-search#filter',
 
         'https://api.stacspec.org/v1.0.0/ogcapi-features#fields',
         'https://api.stacspec.org/v1.0.0/ogcapi-features#sort',
@@ -226,7 +226,9 @@ class STACAPI
 
         'http://www.opengis.net/spec/cql2/1.0/conf/basic-cql2',
         'http://www.opengis.net/spec/cql2/1.0/conf/cql2-text',
-        'http://www.opengis.net/spec/cql2/1.0/conf/basic-spatial-operators'
+        'http://www.opengis.net/spec/cql2/1.0/conf/basic-spatial-functions',
+        'http://www.opengis.net/spec/cql2/1.0/conf/basic-spatial-functions-plus',
+        'http://www.opengis.net/spec/cql2/1.0/conf/advanced-comparison-operators'
     );
 
     /*
