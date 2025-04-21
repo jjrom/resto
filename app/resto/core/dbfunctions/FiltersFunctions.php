@@ -884,6 +884,13 @@ class FiltersFunctions
                 $filterName = 'time:start';
             }
 
+            /*
+             * Convert BBOX to WKT
+             */
+            if (str_starts_with(strtolower($cql2Filters[$i]['value']), 'bbox') ) {
+                $cql2Filters[$i]['value'] = RestoGeometryUtil::WKTPolygonFromBBOX($cql2Filters[$i]['value']);
+            }
+
             $paramsWithOperation[$filterName] = array(
                 'value' => $cql2Filters[$i]['value'],
                 'operation' => $cql2Filters[$i]['operation'],

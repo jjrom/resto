@@ -45,6 +45,7 @@ class Lexer extends Doctrine\Common\Lexer\AbstractLexer
     public const T_NI       = 307;
     public const T_NOT      = 308;
     public const T_IS_NULL  = 309;
+    public const T_LIKE     = 310;
 
     // Functions that can be applied on value only should be >= 400
     public const T_TIMESTAMP = 400;
@@ -65,6 +66,8 @@ class Lexer extends Doctrine\Common\Lexer\AbstractLexer
                 return 'not';
             case self::T_EQ:
                 return '=';
+            case self::T_LIKE:
+                return ' LIKE';
             case self::T_NE:
                 return '<>';
             case self::T_LT:
@@ -208,14 +211,14 @@ class Lexer extends Doctrine\Common\Lexer\AbstractLexer
         }
 
         // See if we are a quoted date
-        try {
+        /*try {
             $ret = new \DateTime($value, new \DateTimeZone("UTC"));
             if ($ret instanceof \DateTime) {
                 return self::T_DATE;
             }
         } catch (\Exception $e) {
             // It's ok when it's not a date.
-        }
+        }*/
 
         return self::T_STRING;
     }

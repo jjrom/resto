@@ -428,6 +428,25 @@ class RestoGeometryUtil
     }
 
     /**
+     * Return a WKT Polygon from BBOX(lon1, lat1, lon2, lat2)
+     *
+     * @param string $bbox  - BBOX string (lon1, lat1, lon2, lat2)
+     * @throws Exception
+     * @return string
+     */
+    public static function WKTPolygonFromBBOX($bbox)
+    {
+        if ( !isset($bbox) ) {
+            return RestoLogUtil::httpError(400, 'Invalid BBOX');
+        }
+        $exploded = explode(',', str_replace(' ','', substr($bbox, 5, -1)));
+        if ( !is_array($exploded) || count($exploded) !== 4 ) {
+            return RestoLogUtil::httpError(400, 'Invalid BBOX');
+        }
+        return 'POLYGON((' . $exploded[0] . ' ' . $exploded[1] . ',' . $exploded[0] . ' ' . $exploded[3] . ',' . $exploded[2] . ' ' . $exploded[3] . ',' .$exploded[2] . ' ' . $exploded[1] . ',' . $exploded[0] . ' ' . $exploded[1] . '))';
+    }
+
+    /**
      * Return POINT WKT from coordinates (without WKT type)
      *
      * @param array $coordinates - GeoJSON geometry
