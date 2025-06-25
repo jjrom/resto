@@ -62,7 +62,7 @@ For instance, user "johndoe" has no particular right and thus can create a catal
 
 Admin user has the "createAnyCatalog" right and can create a catalog anywhere:
 
-        curl -X POST -d@examples/catalogs/dummyCatalog.json "http://admin:admin@localhost:5252/catalogs"
+        curl -X POST -d@examples/catalogs/dummyCatalog.json "http://admin:admin@localhost:5252/catalogs/projects"
 
 ### Reserved catalog names
 The following paths are reserved and cannot be created by a user whatever its rights:
