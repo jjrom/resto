@@ -184,28 +184,21 @@ class RightsFunctions
         // that belongs to user
         $merged = array(
             RestoUser::CREATE_COLLECTION => false,
-            RestoUser::DELETE_COLLECTION => true,
-            RestoUser::UPDATE_COLLECTION => true,
 
             RestoUser::DELETE_ANY_COLLECTION => false,
             RestoUser::UPDATE_ANY_COLLECTION => false,
 
-            RestoUser::CREATE_CATALOG => true,
-            RestoUser::DELETE_CATALOG => true,
-            RestoUser::UPDATE_CATALOG => true,
+            RestoUser::CREATE_CATALOG => false,
 
             RestoUser::CREATE_ANY_CATALOG => false,
             RestoUser::DELETE_ANY_CATALOG => false,
             RestoUser::UPDATE_ANY_CATALOG => false,
 
-            RestoUser::CREATE_ITEM => true,
-            RestoUser::DELETE_ITEM => true,
-            RestoUser::UPDATE_ITEM => true,
+            RestoUser::CREATE_ITEM => false,
             
             RestoUser::CREATE_ANY_ITEM => false,
             RestoUser::DELETE_ANY_ITEM => false,
-            RestoUser::UPDATE_ANY_ITEM => false,
-            RestoUser::DOWNLOAD_ITEM => false
+            RestoUser::UPDATE_ANY_ITEM => false
         );
 
         // [IMPORTANT] Assume only boolean otherwise it will be converted to anyway

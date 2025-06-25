@@ -442,7 +442,7 @@ class GroupAPI
             if ( !isset($group['owner']) ) {
                 RestoLogUtil::httpError(403);
             }
-            RestoUtil::checkUserId($this->user, $group['owner']);
+            RestoUtil::checkUserName($this->user, $group['owner']);
         }
 
         if ( (new GroupsFunctions($this->context->dbDriver))->addUserToGroup(array('id' => $group['id']), $user->profile['id']) ) {
@@ -469,7 +469,7 @@ class GroupAPI
             if ( !isset($group['owner']) ) {
                 RestoLogUtil::httpError(403);
             }
-            RestoUtil::checkUserId($this->user, $group['owner']);
+            RestoUtil::checkUserName($this->user, $group['owner']);
         }
 
         if ( (new GroupsFunctions($this->context->dbDriver))->removeUserFromGroup(array('id' => $group['id']), $user->profile['id']) ) {

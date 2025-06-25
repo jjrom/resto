@@ -22,6 +22,20 @@
     $allUsers = array();
     try {
 
+        // Projects catalog
+        $dbDriver->query_params('INSERT INTO ' . $dbDriver->targetSchema . '.catalog (id, title, description, level, counters, owner, visibility, created) VALUES ($1,$2,$3,$4,$5,$6,$7,now_utc()) ON CONFLICT (id) DO NOTHING', array(
+            'projects',
+            'Project catalog',
+            'Project catalog',
+            1,
+            str_replace('[]', '{}', json_encode(array(
+                'total' => 0,
+                'collections' => array()
+            ), JSON_UNESCAPED_SLASHES)),
+            RestoConstants::ADMIN_USER_ID,
+            '{' . RestoConstants::GROUP_DEFAULT_ID . '}'
+        ));   
+
         $dbDriver->query_params('INSERT INTO ' . $dbDriver->targetSchema . '.catalog (id, title, description, level, counters, owner, visibility, created) VALUES ($1,$2,$3,$4,$5,$6,$7,now_utc()) ON CONFLICT (id) DO NOTHING', array(
             'users',
             'Users catalog',

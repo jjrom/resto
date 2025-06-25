@@ -41,8 +41,7 @@ class RightsAPI
      *    "deleteItem": true,
      *    "createAnyItem": false,
      *    "deleteAnyItem": false,
-     *    "updateAnyItem": false,
-     *    "downloadItem": false
+     *    "updateAnyItem": false
      *  }
      * )
      */
@@ -213,8 +212,7 @@ class RightsAPI
      *                      "deleteItem": true,
      *                      "createAnyItem": false,
      *                      "deleteAnyItem": false,
-     *                      "updateAnyItem": false,
-     *                      "downloadItem": false
+     *                      "updateAnyItem": false
      *                  }
      *              }
      *          )
@@ -312,8 +310,7 @@ class RightsAPI
      *                      "deleteItem": true,
      *                      "createAnyItem": false,
      *                      "deleteAnyItem": false,
-     *                      "updateAnyItem": false,
-     *                      "downloadItem": false
+     *                      "updateAnyItem": false
      *                  }
      *              }
      *          )

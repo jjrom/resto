@@ -33,31 +33,30 @@ To update a collection
         # UPDATE dummy collection
         curl -X PUT -d@examples/collections/DummyCollection_update.json "http://admin:admin@localhost:5252/collections/DummyCollection"
 
-Then get the collections list :
-
 ### Ingest an item
 To ingest an item using the default **ADMIN_USER_NAME** and **ADMIN_USER_PASSWORD** (see [config.env](config.env)) :
 
-        # POST a dummy item inside the S2 collection
-        curl -X POST -d@examples/items/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040.json "http://admin:admin@localhost:5252/collections/S2/items"
+        # POST a Dummy1 item inside the DummyCollection collection
+        curl -X POST -d@examples/items/dummy1.json "http://admin:admin@localhost:5252/collections/DummyCollection/items"
 
-        # Update a dummy item inside the S2 collection
-        curl -X PUT -d@examples/items/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040_update.json "http://admin:admin@localhost:5252/collections/S2/items/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040"
+        # Update a dummy item inside the DummyCollection collection
+        curl -X PUT -d@examples/items/dummy1_update.json "http://admin:admin@localhost:5252/collections/DummyCollection/items/Dummy1"
 
 Then get the item :
 
-        curl "http://localhost:5252/collections/S2/items/S2A_MSIL1C_20190611T160901_N0207_R140_T23XMD_20190611T193040"
+        curl "http://localhost:5252/collections/DummyCollection/items/Dummy1"
 
-*Note: Any user with the "createFeature" right can insert an item to a collection he owns ([see rights](./USERS.md))*
+*Note: Any user with the "createItem" right can insert an item to a collection he owns ([see rights](./USERS.md))*
 
 ## Catalogs
 
 ### Add a catalog
 User with catalog creation right can create a catalog i.e.:
-* The "createCatalog" right allows user to create catalog within its private space i.e. under /catalogs/users/{username}
+* Any user has right to create catalog within its private space i.e. under /catalogs/users/{username}
+* The "createCatalog" right allows user to create catalog under /catalogs/projects
 * The "createAnyCatalog" right allows user to create catalog anywhere **except the private space of another user**
 
-For instance, user "johndoe" has the "createCatalog" right and can create a catalog only under its private space:
+For instance, user "johndoe" has no particular right and thus can create a catalog only under its private space:
 
         curl -X POST -d@examples/catalogs/dummyCatalog.json "http://johndoe:dummy@localhost:5252/catalogs/users/johndoe"
 
@@ -79,25 +78,28 @@ For instance "johndoe" user cannot create a catalog under /catalog/users/janedoe
 **[IMPORTANT]** You cannot create a catalog with childs in links because a child cannot exist before its parent. The good way
 is to create first an empty catalog (i.e. the parent) then add its childs through the POST API
 
+        # First admin gives JohnDoe the right to createCatalog under /collections/projects
+        curl -X POST -d@examples/users/johnDoe_rights.json "http://admin:admin@localhost:5252/users/johndoe/rights"
+
         # This will raise an error because the catalog references childs that do not exist.
-        curl -X POST -d@examples/catalogs/dummyCatalogWithChilds_invalid.json "http://admin:admin@localhost:5252/catalogs"
+        curl -X POST -d@examples/catalogs/dummyCatalogWithChilds_invalid.json "http://johndoe:dummy@localhost:5252/catalogs/projects"
 
         # Good way: ingest parent without childs then add childs under parent
-        curl -X POST -d@examples/catalogs/dummyCatalogWithChilds_valid.json "http://admin:admin@localhost:5252/catalogs"
-        curl -X POST -d@examples/catalogs/dummyCatalogChild1.json "http://admin:admin@localhost:5252/catalogs/dummyCatalogWithChilds"
-        curl -X POST -d@examples/catalogs/dummyCatalogChild2.json "http://admin:admin@localhost:5252/catalogs/dummyCatalogWithChilds"
+        curl -X POST -d@examples/catalogs/dummyCatalogWithChilds_valid.json "http://admin:admin@localhost:5252/catalogs/projects"
+        curl -X POST -d@examples/catalogs/dummyCatalogChild1.json "http://admin:admin@localhost:5252/catalogs/projects/dummyCatalogWithChilds"
+        curl -X POST -d@examples/catalogs/dummyCatalogChild2.json "http://admin:admin@localhost:5252/catalogs/projects/dummyCatalogWithChilds"
 
 ### Add a collection under an existing catalog
 
-        curl -X POST -d@examples/collections/DummyCollection.json "http://admin:admin@localhost:5252/catalogs/dummyCatalogWithChilds"
+        curl -X POST -d@examples/collections/DummyCollection.json "http://admin:admin@localhost:5252/catalogs/projects/dummyCatalogWithChilds"
 
 ### Add a catalog under an existing catalog that cycle on itself
 
-        # The catalog dummyCatalogCycling is posted under /catalogs/dummyCatalogChild1 but reference one of this
-        # parent as a child which is forbiden
-        curl -X POST -d@examples/catalogs/dummyCatalogChild1.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog"
-        curl -X POST -d@examples/catalogs/dummyCatalogChildOfChild1.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog/dummyCatalogChild1"
-        curl -X POST -d@examples/catalogs/dummyCatalogCycling.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog/dummyCatalogChild1"
+        curl -X POST -d@examples/catalogs/dummyCatalogChild1.json "http://admin:admin@localhost:5252/catalogs/projects/dummyCatalog"
+        curl -X POST -d@examples/catalogs/dummyCatalogChildOfChild1.json "http://admin:admin@localhost:5252/catalogs/projects/dummyCatalog/dummyCatalogChild1"
+
+        # Forbidden : dummyCatalogCycling posted under /catalogs/dummyCatalogChild1 but reference its parent as a child
+        curl -X POST -d@examples/catalogs/dummyCatalogCycling.json "http://admin:admin@localhost:5252/catalogs/projects/dummyCatalog/dummyCatalogChild1"
 
 ### Add a catalog with item
 
@@ -109,30 +111,35 @@ is to create first an empty catalog (i.e. the parent) then add its childs throug
         # First POST the item because it should exist before referencing it within the catalog
         curl -X POST -d@examples/items/dummySargasse.json "http://admin:admin@localhost:5252/collections/DummyCollection/items"
 
-        curl -X POST -d@examples/catalogs/dummyCatalogWithItem.json "http://admin:admin@localhost:5252/catalogs/dummyCatalogWithChilds/dummyCatalogChild1"
+        curl -X POST -d@examples/catalogs/dummyCatalogWithItem.json "http://admin:admin@localhost:5252/catalogs/projects/dummyCatalogWithChilds/dummyCatalogChild1"
 
 ### Add an external catalog
 If you POST a catalog with a rel="root" link pointing to an external STAC href, then the resto will act as a proxy to this catalog
 
-        curl -X POST -d@examples/catalogs/externalCatalog.json "http://admin:admin@localhost:5252/catalogs"
+        # POST the CDSE STAC catalog endpoint
+        curl -X POST -d@examples/catalogs/externalCatalog.json "http://admin:admin@localhost:5252/catalogs/projects"
+
+        # Now CDSE catalogs looks like its under resto catalog
+        curl "http://localhost:5252/catalogs/projects/cdse-stac"
+
 
 ### Update a catalog
 
         # Update a catalog - user with the "updateCatalog" right can update a catalog he owns
 
-        curl -X PUT -d@examples/catalogs/dummyCatalogWithItem_update.json "http://admin:admin@localhost:5252/catalogs/dummyCatalogWithChilds/dummyCatalogChild1"
+        curl -X PUT -d@examples/catalogs/dummyCatalogWithItem_update.json "http://admin:admin@localhost:5252/catalogs/projects/dummyCatalogWithChilds/dummyCatalogChild1"
 
 ### Update a catalog that has already childs
 
         # First post 2 catalogs under dummyCatalog 
-        curl -X POST -d@examples/catalogs/dummyCatalogChild1.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog"
-        curl -X POST -d@examples/catalogs/dummyCatalogChild2.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog"
+        curl -X POST -d@examples/catalogs/dummyCatalogChild1.json "http://admin:admin@localhost:5252/catalogs/projects/dummyCatalog"
+        curl -X POST -d@examples/catalogs/dummyCatalogChild2.json "http://admin:admin@localhost:5252/catalogs/projects/dummyCatalog"
         
         # Update dummyCatalog removing one catalog in the links will return an HTTP error because it would remove existing child
-        curl -X PUT -d@examples/catalogs/dummyCatalog_update.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog"
+        curl -X PUT -d@examples/catalogs/dummyCatalog_update.json "http://admin:admin@localhost:5252/catalogs/projects/dummyCatalog"
         
         # Use _force flag to force links update
-        curl -X PUT -d@examples/catalogs/dummyCatalog_update.json "http://admin:admin@localhost:5252/catalogs/dummyCatalog?_force=1"
+        curl -X PUT -d@examples/catalogs/dummyCatalog_update.json "http://admin:admin@localhost:5252/catalogs/projects/dummyCatalog?_force=1"
 
 ### Update a catalog changing everything except links
 
@@ -142,10 +149,10 @@ If you POST a catalog with a rel="root" link pointing to an external STAC href, 
 
         # Delete a catalog - user with the "deleteCatalog" right can delete a catalog he owns
         # This will return an HTTP error because the catalog contains child and removing it would remove childs
-        curl -X DELETE "http://admin:admin@localhost:5252/catalogs/dummyCatalog"
+        curl -X DELETE "http://admin:admin@localhost:5252/catalogs/projects/dummyCatalog"
 
         # Use _force flag to force deletion
-        curl -X DELETE "http://admin:admin@localhost:5252/catalogs/dummyCatalog?_force=1"
+        curl -X DELETE "http://admin:admin@localhost:5252/catalogs/projects/dummyCatalog?_force=1"
 
 ## Debug
 
@@ -159,10 +166,10 @@ If you POST a catalog with a rel="root" link pointing to an external STAC href, 
         curl -X POST -d@examples/items/dummy4.json "http://admin:admin@localhost:5252/collections/DummyCollection/items"
 
         # POST a dummyCatalogWithItems catalog referencing 2 dummy items
-        curl -X POST -d@examples/catalogs/dummyCatalogWith2Items.json "http://admin:admin@localhost:5252/catalogs"
+        curl -X POST -d@examples/catalogs/dummyCatalogWith2Items.json "http://admin:admin@localhost:5252/catalogs/projects"
 
         # PUT the catalog by referencing 4 dummy items
-        curl -X PUT -d@examples/catalogs/dummyCatalogWith4Items.json "http://admin:admin@localhost:5252/catalogs"
+        curl -X PUT -d@examples/catalogs/dummyCatalogWith4Items.json "http://admin:admin@localhost:5252/catalogs/projects/dummyCatalogWithItems"
 
 
 

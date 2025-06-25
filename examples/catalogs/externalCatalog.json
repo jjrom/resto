@@ -1,5 +1,5 @@
 {
-    "id": "CDSE",
+    "id": "cdse-stac",
     "title": "This is an external catalog",
     "type": "Catalog",
     "description":"When setting root link to an external url, resto proxies the request to the external catalog.",

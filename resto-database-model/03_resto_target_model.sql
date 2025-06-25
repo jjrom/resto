@@ -389,6 +389,9 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog_feature (
     -- Feature collection
     collection              TEXT,
 
+    -- Feature ingestion date
+    created                 TIMESTAMP DEFAULT now(),
+
     PRIMARY KEY (featureid, path)
    
 );

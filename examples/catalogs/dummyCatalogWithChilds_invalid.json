@@ -7,11 +7,11 @@
     "links":[
         {
             "rel":"child",
-            "href":"http://127.0.0.1:5252/catalogs/dummyCatalogWithChilds/dummyCatalogChild1"
+            "href":"http://127.0.0.1:5252/catalogs/projects/dummyCatalogWithChilds/dummyCatalogChild1"
         },
         {
             "rel":"child",
-            "href":"http://127.0.0.1:5252/catalogs/dummyCatalogWithChilds/dummyCatalogChild2"
+            "href":"http://127.0.0.1:5252/catalogs/projects/dummyCatalogWithChilds/dummyCatalogChild2"
         },
         {
             "rel":"child",
