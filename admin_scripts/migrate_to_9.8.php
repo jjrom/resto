@@ -24,6 +24,9 @@
         /* Group name is now UNIQUE */
         $dbDriver->query('ALTER TABLE ' . $dbDriver->defaultSchema . '.group ADD CONSTRAINT idx_name_unique UNIQUE (name)');
         
+        /* Add pinned catalog  */
+        $dbDriver->query('ALTER TABLE resto.catalog ADD COLUMN pinned BOOLEAN');
+        
         $dbDriver->query('COMMIT');
 
     } catch(Exception $e){

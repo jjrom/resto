@@ -208,7 +208,15 @@ class RestoFeatureUtil
                     break;
 
                 case 'catalogs':
-                    $featureArray['properties']['resto:catalogs'] = json_decode($value, true);
+                    $featureArray['properties']['resto:catalogs'] = [];
+                    $catalogs = json_decode($value, true);
+                    for ($i = count($catalogs); $i--;) {
+                        $featureArray['properties']['resto:catalogs'][] = array(
+                            'id' => $catalogs[$i],
+                            'type' => RestoUtil::$contentTypes['json'],
+                            'href' => $this->context->core['baseUrl'] . '/catalogs/' . join('/', array_map('rawurlencode', explode('/', $catalogs[$i])))
+                        );
+                    }
                     break;
 
                 case 'liked':

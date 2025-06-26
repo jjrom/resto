@@ -436,7 +436,16 @@ class STACAPI
             $owner = new RestoUser(array('username' => $body['owner']), $this->context);
             $body['owner'] = $owner->profile['id'];
             
-        } 
+        }
+
+        // Only admin can change pinned flag
+        if ( isset($body['pinned']) && $body['pinned'] ) {
+
+            if ( !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+                RestoLogUtil::httpError(403, 'You are not allowed to set property "pinned"');
+            }
+            
+        }
 
         /*
          * [IMPORTANT] Special case - post a collection under a catalog is in fact an update of 'links' property of this catalog
@@ -572,6 +581,15 @@ class STACAPI
              // Convert owner name to id
              $owner = new RestoUser(array('username' => $body['owner']), $this->context);
              $body['owner'] = $owner->profile['id'];
+            
+        }
+
+        // Only admin can change pinned flag
+        if ( isset($body['pinned']) ) {
+
+            if ( !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+                RestoLogUtil::httpError(403, 'You are not allowed to change property "pinned"');
+            }
             
         }
         

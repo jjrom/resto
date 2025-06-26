@@ -16,7 +16,7 @@ Only user belonging to a project can POST/PUT/DELETE catalog/item within the pro
 
 Copernicus Marine Service and EMODNET are projects. Thus, the paths to their corresponding catalog are located under /catalogs/projects (e.g. /catalogs/projects/emodnet and /catalogs/projects/cmems)
 
-Catalog can be "pinned" by EDITO administrator. A pinned catalog also appears directly at the root of the EDITO catalog endpoint. This allows a viewer to display these catalogs first and not mixed with the other catalogs
+[OK] Catalog can be "pinned" by EDITO administrator. A pinned catalog also appears directly at the root of the EDITO catalog endpoint. This allows a viewer to display these catalogs first and not mixed with the other catalogs
 
 EMODNET and Copernicus Marine Services catalogs are pinned catalogs
 

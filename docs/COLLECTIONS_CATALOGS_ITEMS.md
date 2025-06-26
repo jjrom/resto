@@ -141,6 +141,12 @@ If you POST a catalog with a rel="root" link pointing to an external STAC href, 
         # Use _force flag to force links update
         curl -X PUT -d@examples/catalogs/dummyCatalog_update.json "http://admin:admin@localhost:5252/catalogs/projects/dummyCatalog?_force=1"
 
+### Update the "pinned" flag of a catalog
+When a catalog is flagged as "pinned" (i.e. its first level pinned property is set to true), then it also appears at the root level of the STAC endpoint.
+Only admin can set/unset the "pinned" flag
+
+        curl -X PUT -d@examples/catalogs/externalCatalog_update.json "http://admin:admin@localhost:5252/catalogs/projects/cdse-stac"
+
 ### Update a catalog changing everything except links
 
         # If the links property is not set, then existing links will not be affected
