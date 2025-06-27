@@ -88,6 +88,21 @@ class RightsFunctions
             if ( isset($results) && count($results) === 1 ) {
                 $userRights = json_decode($results[0]['rights'], true);
             }
+            $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT catalogid, rights FROM ' . $this->dbDriver->targetSchema . '.catalog_right WHERE userid=$1', array(
+                $user->profile['id']
+            )));
+            
+            // Rights per catalog
+            if ( isset($results) ) {
+                for ($i = count($results); $i--;) {
+                    if ( isset($results[$i]['rights']) ) {
+                        if ( !isset($userRights['catalogs']) ) {
+                             $userRights['catalogs'] = array();
+                        }
+                        $userRights['catalogs'][$results[$i]['catalogid']] = json_decode($results[$i]['rights'], true);
+                    }
+                }
+            }
         }
         
         /*
@@ -144,6 +159,47 @@ class RightsFunctions
         }
 
         return json_decode($result['rights'], true);
+
+    }
+
+    /**
+     * Store or update catalogs rights to database
+     *
+     * @param string $userid
+     * @param array catalogRights
+     *
+     * @throws Exception
+     */
+    public function storeOrUpdateCatalogsRights($userid, $catalogsRights)
+    {
+
+        $query = join(' ', array(
+            'INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog_right as r (catalogid, userid, rights)',
+            'VALUES ($1, $2, $3)',
+            'ON CONFLICT (catalogid, userid)',
+            'DO UPDATE SET rights = COALESCE(r.rights::jsonb || $3::jsonb) RETURNING rights'
+        ));
+
+        try {
+
+            foreach ($catalogsRights as $catalogId => $rights) {
+            
+                $result = pg_fetch_assoc($this->dbDriver->query_params($query, array(
+                    $catalogId,
+                    $userid,
+                    json_encode($rights, JSON_UNESCAPED_SLASHES)
+                )));
+
+                if ( !$result ) {
+                    throw new Exception();
+                }
+
+            }
+        } catch (Exception $e) {
+            RestoLogUtil::httpError(500, 'Cannot set catalogs rights');
+        }
+
+        return true;
 
     }
 

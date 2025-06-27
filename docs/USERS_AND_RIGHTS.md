@@ -119,7 +119,7 @@ rights are defined as boolean properties within a JSON object. The default user'
 ### Get user rights
 To get the rights for John Doe:
 
-        curl -H "Authorization: Bearer ${JOHN_DOE_BEARER}" "http://localhost:5252/users/johndoe/rights?_pretty=1"
+        curl "http://johndoe:dummy@localhost:5252/users/johndoe/rights?_pretty=1"
 
 The result should be :
 
@@ -135,7 +135,8 @@ The result should be :
                         "createFeature": false,
                         "createAnyFeature": false,
                         "deleteAnyFeature": false,
-                        "updateAnyFeature": false
+                        "updateAnyFeature": false,
+                        "catalogs":{}
                 }
         }
 
@@ -235,7 +236,8 @@ Only a user in the **admin group** or the owner of the group can remove a user f
                         "createAnyFeature": false,
                         "deleteAnyFeature": false,
                         "updateAnyFeature": false,
-                        "createAnyItem": false
+                        "createAnyItem": false,
+                        "catalogs":{}
                 }
         }
 
@@ -324,3 +326,24 @@ John Doe creates a catalog that is only visible by dummyGroup:
 John Doe change visibility to default group so everyone can see it:
 
         curl -X PUT -d@examples/catalogs/johnDoeCatalog_update.json "http://johndoe:dummy@localhost:5252/catalogs/users/johndoe/JohnDoeCatalog"
+
+#### Allow user to create a catalog under another catalog it does not own
+John Doe has "createCatalog" right, so he can create a catalog under /catalogs/projects
+
+        curl -X POST -d@examples/catalogs/johnDoeCatalog.json "http://johndoe:dummy@localhost:5252/catalogs/projects"
+
+Jane Doe cannot create a catalog under JohnDoeCatalog because she has no rights to do so
+
+        # Result is {"ErrorMessage":"addCatalog - Forbidden","ErrorCode":403}
+        curl -X POST -d@examples/catalogs/janeDoeCatalog.json "http://janedoe:dummy@localhost:5252/catalogs/projects/JohnDoeCatalog"
+        
+As the owner of JohnDoeCatalog, John Doe can give "createCatalog" rights to Jane Doe to allow to create catalog under JohnDoeCatalog:
+
+        # Allow John Doe to create catalog under /catalogs/projects
+        curl -X PUT -d@examples/users/janeDoe_johnDoeCatalog_rights.json "http://johndoe:dummy@localhost:5252/users/janedoe/rights/catalogs"
+        
+Now Jane Doe can create a catalog under JohnDoeCatalog
+
+        # Result is {"ErrorMessage":"addCatalog - Forbidden","ErrorCode":403}
+        curl -X POST -d@examples/catalogs/janeDoeCatalog.json "http://janedoe:dummy@localhost:5252/catalogs/projects/JohnDoeCatalog"
+        

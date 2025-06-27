@@ -261,6 +261,113 @@ class RightsAPI
 
     /**
      *
+     * Set catalogs rights for user
+     *
+     * @OA\Put(
+     *      path="/users/{username}/rights/catalogs",
+     *      summary="Set catalogs rights for user",
+     *      description="Set catalogs rights for a given user. Only admin of owner of catalogs can set rights to user",
+     *      tags={"Rights"},
+     *      @OA\Parameter(
+     *         name="username",
+     *         in="path",
+     *         required=true,
+     *         description="User name",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *      ),
+     *      @OA\Response(
+     *          response="200",
+     *          description="Rights is created or updated",
+     *          @OA\JsonContent(
+     *              @OA\Property(
+     *                  property="status",
+     *                  type="string",
+     *                  description="Status is *success*"
+     *              ),
+     *              @OA\Property(
+     *                  property="message",
+     *                  type="string",
+     *                  description="Rights updated"
+     *              ),
+     *              @OA\Property(
+     *                  property="rights",
+     *                  description="Set rights",
+     *                  @OA\JsonContent(ref="#/components/schemas/Rights")
+     *              ),
+     *              example={
+     *                  "status": "success",
+     *                  "message": "Catalogs rights updated",
+     *                  "rights": {
+     *                      "createCollection": false,
+     *                      "deleteCollection": true,
+     *                      "updateCollection": true,
+     *                      "deleteAnyCollection": false,
+     *                      "updateAnyCollection": false,
+     *                      "createItem": true,
+     *                      "updateItem": true,
+     *                      "deleteItem": true,
+     *                      "createAnyItem": false,
+     *                      "deleteAnyItem": false,
+     *                      "updateAnyItem": false
+     *                  }
+     *              }
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response="400",
+     *          description="Rights is not set",
+     *          @OA\JsonContent(ref="#/components/schemas/BadRequestError")
+     *      ),
+     *      @OA\RequestBody(
+     *         description="Rights to create/udpated",
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/Rights")
+     *      ),
+     *      security={
+     *          {"basicAuth":{}, "bearerAuth":{}, "queryAuth":{}}
+     *      }
+     * )
+     *
+     * @param array $params
+     * @param array $body
+     *
+     */
+    public function setCatalogsRights($params, $body)
+    {
+
+        if ( empty($body) ) {
+            RestoLogUtil::httpError(400, 'No rights to set');
+        }
+
+        /*
+         * [SECURITY] Only admin and owner of the catalog can set catalog rights for user
+         */
+        $catalogsFunctions = new CatalogsFunctions($this->context->dbDriver);
+        foreach ($body as $catalogId => $rights) {
+            $catalogs = $catalogsFunctions->getCatalogs(array(
+                'id' => $catalogId
+            ), false);
+            if ( empty($catalogs) ) {
+                RestoLogUtil::httpError(400, 'Catalog ' . $catalogId . 'does not exist');
+            }
+            if ( !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+                if ( $this->user->profile['id'] !== $catalogs[0]['owner'] ) {
+                    RestoLogUtil::httpError(403, 'You are not allowed to set rights on catalog ' . $catalogId);
+                }
+            }  
+        }
+
+        // Get user just to be sure that it exists !
+        $user = new RestoUser(array('username' => $params['username']), $this->context);
+        (new RightsFunctions($this->context->dbDriver))->storeOrUpdateCatalogsRights($user->profile['id'], $body);
+        return RestoLogUtil::success('Catalogs rights set');
+
+    }
+
+    /**
+     *
      * Set group rights
      *
      * @OA\Post(

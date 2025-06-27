@@ -399,6 +399,28 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog_feature (
    
 );
 
+
+--
+-- Catalog/right association 
+--
+CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog_right (
+
+    -- This is a duplicate from catalog id without constraint to avoid JOIN
+    catalogid               TEXT NOT NULL REFERENCES __DATABASE_TARGET_SCHEMA__.catalog (id) ON DELETE CASCADE,
+
+    -- Feature collection
+    userid                  BIGINT NOT NULL REFERENCES __DATABASE_COMMON_SCHEMA__.user (id) ON DELETE CASCADE,
+
+    -- User rights on catalog
+    rights                  JSON,
+
+    -- Feature ingestion date
+    created                 TIMESTAMP DEFAULT now(),
+
+    PRIMARY KEY (catalogid, userid)
+   
+);
+
 -- --------------------- INDEXES ---------------------------
 
 -- [TABLE __DATABASE_TARGET_SCHEMA__.collection]

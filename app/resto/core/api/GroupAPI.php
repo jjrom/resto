@@ -435,7 +435,7 @@ class GroupAPI
         $user = new RestoUser(array('username' => $body['username']), $this->context);
         
         /*
-         * [SECURITY] Only user and admin can add user to group
+         * [SECURITY] Only owner and admin can add user to group
          */
         $isAdmin = $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID);
         if ( !$isAdmin ) {

@@ -634,17 +634,30 @@ class RestoUser
         }
         $exploded = explode('/', $params['catalog']['id']);
         
-        // Under /catalogs/{username}
+        // Always true under /catalogs/{username}
         if ( count($exploded) >= 3 && $exploded[0] === 'users' && $exploded[1] === $this->profile['username'] ) {
             return true;
         }
 
-        // Not under /catalogs/projects 
-        if ( count($exploded) < 2 && $exploded[0] !== 'projects' ) {
+        // Always false if not under /catalogs/projects 
+        if ( count($exploded) < 2 || $exploded[0] !== 'projects' ) {
             return false;
         }
 
-        return $rights[RestoUser::CREATE_CATALOG];
+        // This is /catalogs/projects/something
+        if ( count($exploded) === 2 ) {
+            return $rights[RestoUser::CREATE_CATALOG];
+        }
+        // This is /catalogs/projects/something/somethingele/...
+        else if ( isset($rights['catalogs']) ) {
+            foreach ($rights['catalogs'] as $key => $value) {
+                if ( str_starts_with($params['catalog']['id'], $key) ) {
+                    return $rights['catalogs'][$key][RestoUser::CREATE_CATALOG] ?? false;
+                }
+            }
+        }
+        
+        return false;
 
     }
 
