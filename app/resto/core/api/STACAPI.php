@@ -1455,6 +1455,7 @@ class STACAPI
          * Get catalogs - first one is $catalogId, other its childs
          */
         $catalogId = join('/', $segments);
+        $selfHref = $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS . '/' . $catalogId;
         $catalogs = $this->catalogsFunctions->getCatalogs(array(
             'id' => $catalogId,
             'q' => $params['q'] ?? null,
@@ -1470,7 +1471,7 @@ class STACAPI
          * This is an external ressources !
          */
         if ( isset($catalogs[0]['stac_url']) ) {
-            return $this->processExternalCatalog($catalogs[0]);
+            return $this->processExternalCatalog($catalogs[0], $selfHref);
         }
         
         // The path is the catalog identifier
@@ -1622,21 +1623,21 @@ class STACAPI
      * @param array $catalog
      * @return array
      */
-    private function processExternalCatalog($catalog)
+    private function processExternalCatalog($catalog, $selfHref)
     {
 
         $externalCatalog = STACUtil::resolveEndpoint($catalog['stac_url_to_be_resolved'] ?? $catalog['stac_url']);
         
         // Replace first level links
         if ( isset($externalCatalog['links']) ) {
-            $externalCatalog['links'] = $this->replaceLinks($catalog, $externalCatalog['links']);
+            $externalCatalog['links'] = $this->replaceLinks($catalog, $externalCatalog['links'], $selfHref);
         }
 
         // Collections case
         if ( isset($externalCatalog['collections']) ) {
             for ($i = 0, $ii = count($externalCatalog['collections']); $i < $ii; $i++) {
                 if ( isset($externalCatalog['collections'][$i]['links']) ) {
-                    $externalCatalog['collections'][$i]['links'] = $this->replaceLinks($catalog, $externalCatalog['collections'][$i]['links']);
+                    $externalCatalog['collections'][$i]['links'] = $this->replaceLinks($catalog, $externalCatalog['collections'][$i]['links'], $selfHref);
                 }
             }
         }
@@ -1645,40 +1646,13 @@ class STACAPI
         if ( isset($externalCatalog['features']) ) {
             for ($i = 0, $ii = count($externalCatalog['features']); $i < $ii; $i++) {
                 if ( isset($externalCatalog['features'][$i]['links']) ) {
-                    $externalCatalog['features'][$i]['links'] = $this->replaceLinks($catalog, $externalCatalog['features'][$i]['links']);
+                    $externalCatalog['features'][$i]['links'] = $this->replaceLinks($catalog, $externalCatalog['features'][$i]['links'], $selfHref);
                 }
             }
         }
 
         return $externalCatalog;
-        /*
-        $catalogs[0]['title'] = $external['title'] ?? $catalog['title'];
-        $catalogs[0]['description'] = $external['description'] ?? $catalog['description'];
-        if (isset($external['links'])) {
-            for ($i = 0, $ii = count($external['links']); $i < $ii; $i++) {
-                if ( in_array($external['links'][$i]['rel'], array('self', 'root', 'parent')) ) {
-                    continue;
-                }
-                $id = str_replace($catalog['stac_url'], '', $external['links'][$i]['href']);
-                $element = [
-                    'id' => $catalog['id'] . '/' . $id,
-                    'title' => $external['links'][$i]['title'] ?? null,
-                    'description' => $external['links'][$i]['description'] ?? null,
-                    'level' => $catalogs[0]['level'] + 1,
-                    'counters' => $catalogs[0]['counters'],
-                    'owner' => $catalogs[0]['owner'],
-                    'visibility' => $catalogs[0]['visibility'],
-                    'link_properties' => array()
-                ];
-                foreach (array_keys($external['links'][$i]) as $key) {
-                    if ( !in_array($key, array('href', 'title', 'description')) ) {
-                        $element['link_properties'][$key] = $external['links'][$i][$key];
-                    }
-                }
-                $catalogs[] = $element;
-            }
-        }*/
-        return $output;
+       
     }
 
     /**
@@ -1687,18 +1661,26 @@ class STACAPI
      * 
      * @param array $catalog
      * @param array $links
+     * @param string $selfHref
      * @return array
      */
-    private function replaceLinks($catalog, $links)
+    private function replaceLinks($catalog, $links, $selfHref)
     {
+
         $correctUrl = substr($catalog['stac_url'], -1) === '/' ? substr($catalog['stac_url'], 0, strlen($catalog['stac_url']) - 1) : $catalog['stac_url'];
+        
+        // Hack if url includes a json file
+        if ( substr($correctUrl, -5) === '.json' ) {
+            $correctUrl = substr($correctUrl, 0, strrpos($correctUrl, '/'));
+        }
+        
         for ($i = 0, $ii = count($links); $i < $ii; $i++) {
             if ( isset($links[$i]['href']) ) {
                 if ( $links[$i]['rel'] === 'root') {
                     $links[$i]['href'] = $this->context->core['baseUrl'];
                 }
                 else {
-                    $links[$i]['href'] = str_replace($correctUrl, join('/', array($this->context->core['baseUrl'], 'catalogs', $catalog['id'])), $links[$i]['href']);
+                    $links[$i]['href'] = str_replace($correctUrl, join('/', array($this->context->core['baseUrl'], 'catalogs', $catalog['id'])), $this->toAbsoluteUrl($links[$i]['href'], $selfHref));
                     if ( $links[$i]['rel'] === 'parent') {
                         $links[$i]['href'] = substr($links[$i]['href'],0,strrpos($links[$i]['href'],'/'));
                     }
@@ -1991,5 +1973,29 @@ class STACAPI
         return isset($parentId) ? $parentId . '/' . $catalog['id'] : $catalog['id'];
 
     }    
+
+    /**
+     * 
+     * Convert relative $href to absolute url from self url
+     * Do nothing if the input $href is already absolute
+     * 
+     * @param string $href
+     * @param string $selfHref
+     * @return string
+     */
+    private function toAbsoluteUrl($href, $selfHref)
+    {
+        $root = substr($selfHref, 0, strrpos($selfHref, '/'));
+        
+        if ( str_starts_with(strtolower($href), 'http') ) {
+            return $href;
+        }
+
+        if ( str_starts_with($href, '../') ) {
+            return substr($root, 0, strrpos($root, '/')) . substr($href, 2);
+        }
+        
+        return $root . '/' . ltrim(ltrim($href, './'), '/');
+    }
 
 }

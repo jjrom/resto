@@ -170,7 +170,6 @@ class CatalogsFunctions
      */
     public function getCatalogs($params, $withChilds)
     {
-
         $catalogs = array();
         $where = array();
         $values = array();
@@ -217,14 +216,19 @@ class CatalogsFunctions
          */
         if ( empty($catalogs) && isset($params['id']) && $checkForExternal ) {
             try {
-                $id = explode('/', $params['id'])[0];
+                $id = join('/', array_slice(explode('/', $params['id']), 0, 2));
                 $results = $this->dbDriver->pQuery('SELECT id, title, description, level, counters, owner, links, visibility, rtype, properties, to_iso8601(created) as created, stac_url FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE (id=$1 OR id LIKE $2) AND stac_url IS NOT NULL ORDER BY id ASC', array(
                     $id,
                     $id . '/%'
                 ));
                 while ($result = pg_fetch_assoc($results)) {
                     $catalog = CatalogsFunctions::format($result, false);
-                    $catalog['stac_url_to_be_resolved'] = (substr($catalog['stac_url'], -1) === '/' ? substr($catalog['stac_url'], 0, strlen($catalog['stac_url']) - 1) : $catalog['stac_url']) . '/' . str_replace($result['id'] .'/', '', $params['id']);
+                    $correctUrl = (substr($catalog['stac_url'], -1) === '/' ? substr($catalog['stac_url'], 0, strlen($catalog['stac_url']) - 1) : $catalog['stac_url']);
+                    // Hack if url includes a json file
+                    if ( substr($correctUrl, -5) === '.json' ) {
+                        $correctUrl = substr($correctUrl, 0, strrpos($correctUrl, '/'));
+                    }
+                    $catalog['stac_url_to_be_resolved'] =  $correctUrl . '/' . str_replace($result['id'] .'/', '', $params['id']);
                     $catalogs[] = $catalog;
                     break;
                 }
