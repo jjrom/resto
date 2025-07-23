@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS __DATABASE_COMMON_SCHEMA__.group (
     "id"                INTEGER PRIMARY KEY DEFAULT nextval('__DATABASE_COMMON_SCHEMA__.group_id_seq'),
 
     -- Name of the group
-    name                TEXT NOT NULL,
+    name                TEXT UNIQUE NOT NULL,
 
     -- Description
     description         TEXT,

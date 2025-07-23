@@ -365,7 +365,10 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog (
     properties          JSON,
 
     -- [STAC PROXY] This catalog is a proxy to a STAC catalog
-    stac_url            TEXT
+    stac_url            TEXT,
+
+    -- True to have this catalog "pinned" i.e. appears at the catalog root level whatever its real level
+    pinned              BOOLEAN
 
 );
 
@@ -389,7 +392,32 @@ CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog_feature (
     -- Feature collection
     collection              TEXT,
 
+    -- Feature ingestion date
+    created                 TIMESTAMP DEFAULT now(),
+
     PRIMARY KEY (featureid, path)
+   
+);
+
+
+--
+-- Catalog/right association 
+--
+CREATE TABLE IF NOT EXISTS __DATABASE_TARGET_SCHEMA__.catalog_right (
+
+    -- This is a duplicate from catalog id without constraint to avoid JOIN
+    catalogid               TEXT NOT NULL REFERENCES __DATABASE_TARGET_SCHEMA__.catalog (id) ON DELETE CASCADE,
+
+    -- Feature collection
+    userid                  BIGINT NOT NULL REFERENCES __DATABASE_COMMON_SCHEMA__.user (id) ON DELETE CASCADE,
+
+    -- User rights on catalog
+    rights                  JSON,
+
+    -- Feature ingestion date
+    created                 TIMESTAMP DEFAULT now(),
+
+    PRIMARY KEY (catalogid, userid)
    
 );
 

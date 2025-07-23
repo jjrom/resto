@@ -48,7 +48,7 @@ class CatalogsFunctions
      * These are STAC/resto default properties in catalog
      */
     const CATALOG_PROPERTIES = array(
-        'id', 'title', 'description', 'type', 'owner', 'visibility', 'rtype', 'stac_version', 'stac_extension', 'links', 'level', 'counters', 'stac_url', 'created'
+        'id', 'title', 'description', 'type', 'owner', 'visibility', 'rtype', 'stac_version', 'stac_extension', 'links', 'level', 'counters', 'stac_url', 'pinned', 'created'
     );
 
     private $dbDriver = null;
@@ -83,7 +83,8 @@ class CatalogsFunctions
             'visibility' => RestoUtil::SQLTextArrayToPHP($rawCatalog['visibility']),
             'created' => $rawCatalog['created'],
             'rtype' => $rawCatalog['rtype'] ?? null,
-            'stac_url' => $rawCatalog['stac_url'] ?? null
+            'stac_url' => $rawCatalog['stac_url'] ?? null,
+            'pinned' => isset($rawCatalog['pinned']) && $rawCatalog['pinned'] === 't' ? true : false
         );
 
         if ( $noProperties ) {
@@ -169,7 +170,6 @@ class CatalogsFunctions
      */
     public function getCatalogs($params, $withChilds)
     {
-        
         $catalogs = array();
         $where = array();
         $values = array();
@@ -216,14 +216,19 @@ class CatalogsFunctions
          */
         if ( empty($catalogs) && isset($params['id']) && $checkForExternal ) {
             try {
-                $id = explode('/', $params['id'])[0];
-                $results = $this->dbDriver->pQuery('SELECT id, title, description, level, counters, owner, links, visibility, rtype, properties, to_iso8601(created) as created, stac_url FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE id=$1 OR id LIKE $2 AND stac_url IS NOT NULL ORDER BY id ASC', array(
+                $id = join('/', array_slice(explode('/', $params['id']), 0, 2));
+                $results = $this->dbDriver->pQuery('SELECT id, title, description, level, counters, owner, links, visibility, rtype, properties, to_iso8601(created) as created, stac_url FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE (id=$1 OR id LIKE $2) AND stac_url IS NOT NULL ORDER BY id ASC', array(
                     $id,
                     $id . '/%'
                 ));
                 while ($result = pg_fetch_assoc($results)) {
                     $catalog = CatalogsFunctions::format($result, false);
-                    $catalog['stac_url_to_be_resolved'] = (substr($catalog['stac_url'], -1) === '/' ? substr($catalog['stac_url'], 0, strlen($catalog['stac_url']) - 1) : $catalog['stac_url']) . '/' . str_replace($id .'/', '', $params['id']);
+                    $correctUrl = (substr($catalog['stac_url'], -1) === '/' ? substr($catalog['stac_url'], 0, strlen($catalog['stac_url']) - 1) : $catalog['stac_url']);
+                    // Hack if url includes a json file
+                    if ( substr($correctUrl, -5) === '.json' ) {
+                        $correctUrl = substr($correctUrl, 0, strrpos($correctUrl, '/'));
+                    }
+                    $catalog['stac_url_to_be_resolved'] =  $correctUrl . '/' . str_replace($result['id'] .'/', '', $params['id']);
                     $catalogs[] = $catalog;
                     break;
                 }
@@ -404,7 +409,8 @@ class CatalogsFunctions
             'owner',
             'description',
             'links',
-            'visibility'
+            'visibility',
+            'pinned'
         );
 
         $set = array();
@@ -673,7 +679,7 @@ class CatalogsFunctions
             }
             $catalog['visibility'] = RestoUtil::getDefaultVisibility($user, $createdCatalogIsPublic);
         }
-        $insert = '(id, title, description, level, counters, owner, visibility, rtype, properties, stac_url, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,now()';
+        $insert = '(id, title, description, level, counters, owner, visibility, rtype, properties, stac_url, pinned, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,now()';
         $values = array(
             $catalog['id'],
             $catalog['title'] ?? null,
@@ -688,11 +694,12 @@ class CatalogsFunctions
             QueryUtil::visibilityToSQL($catalog['visibility']),
             $catalog['rtype'] ?? null,
             isset($properties) ? json_encode($properties, JSON_UNESCAPED_SLASHES) : null,
-            isset($catalog['stac_url']) ? $catalog['stac_url'] : null
+            isset($catalog['stac_url']) ? $catalog['stac_url'] : null,
+            isset($catalog['pinned']) && $catalog['pinned'] === true ? 't' : 'f'
         );
         if ( array_key_exists('links', $cleanLinks) ) {
             $values[] = json_encode($cleanLinks['links'] ?? array(), JSON_UNESCAPED_SLASHES);
-            $insert = '(id, title, description, level, counters, owner, visibility, rtype, properties, stac_url, links, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,now()';
+            $insert = '(id, title, description, level, counters, owner, visibility, rtype, properties, stac_url, pinned, links, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,now()';
         }
 
         $insert = 'INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog ' . $insert . ' ON CONFLICT (id) DO NOTHING';

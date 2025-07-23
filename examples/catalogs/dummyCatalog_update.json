@@ -7,7 +7,7 @@
     "links":[
         {
             "rel":"child",
-            "href":"http://127.0.0.1:5252/catalogs/dummyCatalog/dummyCatalogChild1"
+            "href":"http://127.0.0.1:5252/catalogs/projects/dummyCatalog/dummyCatalogChild1"
         }
     ]
 }

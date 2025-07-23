@@ -2489,8 +2489,7 @@
                                         "deleteItem": true,
                                         "createAnyItem": false,
                                         "deleteAnyItem": false,
-                                        "updateAnyItem": false,
-                                        "downloadItem": false
+                                        "updateAnyItem": false
                                     }
                                 }
                             }

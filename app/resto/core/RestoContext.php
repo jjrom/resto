@@ -446,8 +446,6 @@ class RestoContext
         if ($size > 1) {
             if (array_key_exists($splitted[$size - 1], RestoUtil::$contentTypes)) {
                 $suffix = $splitted[$size - 1];
-                array_pop($splitted);
-                $this->path = join('.', $splitted);
                 return $suffix;
             }
         }

@@ -88,6 +88,21 @@ class RightsFunctions
             if ( isset($results) && count($results) === 1 ) {
                 $userRights = json_decode($results[0]['rights'], true);
             }
+            $results = $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT catalogid, rights FROM ' . $this->dbDriver->targetSchema . '.catalog_right WHERE userid=$1', array(
+                $user->profile['id']
+            )));
+            
+            // Rights per catalog
+            if ( isset($results) ) {
+                for ($i = count($results); $i--;) {
+                    if ( isset($results[$i]['rights']) ) {
+                        if ( !isset($userRights['catalogs']) ) {
+                             $userRights['catalogs'] = array();
+                        }
+                        $userRights['catalogs'][$results[$i]['catalogid']] = json_decode($results[$i]['rights'], true);
+                    }
+                }
+            }
         }
         
         /*
@@ -148,6 +163,47 @@ class RightsFunctions
     }
 
     /**
+     * Store or update catalogs rights to database
+     *
+     * @param string $userid
+     * @param array catalogRights
+     *
+     * @throws Exception
+     */
+    public function storeOrUpdateCatalogsRights($userid, $catalogsRights)
+    {
+
+        $query = join(' ', array(
+            'INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog_right as r (catalogid, userid, rights)',
+            'VALUES ($1, $2, $3)',
+            'ON CONFLICT (catalogid, userid)',
+            'DO UPDATE SET rights = COALESCE(r.rights::jsonb || $3::jsonb) RETURNING rights'
+        ));
+
+        try {
+
+            foreach ($catalogsRights as $catalogId => $rights) {
+            
+                $result = pg_fetch_assoc($this->dbDriver->query_params($query, array(
+                    $catalogId,
+                    $userid,
+                    json_encode($rights, JSON_UNESCAPED_SLASHES)
+                )));
+
+                if ( !$result ) {
+                    throw new Exception();
+                }
+
+            }
+        } catch (Exception $e) {
+            RestoLogUtil::httpError(500, 'Cannot set catalogs rights');
+        }
+
+        return true;
+
+    }
+
+    /**
      * Return rights for groups
      *
      * @param array $groupIds
@@ -184,28 +240,21 @@ class RightsFunctions
         // that belongs to user
         $merged = array(
             RestoUser::CREATE_COLLECTION => false,
-            RestoUser::DELETE_COLLECTION => true,
-            RestoUser::UPDATE_COLLECTION => true,
 
             RestoUser::DELETE_ANY_COLLECTION => false,
             RestoUser::UPDATE_ANY_COLLECTION => false,
 
-            RestoUser::CREATE_CATALOG => true,
-            RestoUser::DELETE_CATALOG => true,
-            RestoUser::UPDATE_CATALOG => true,
+            RestoUser::CREATE_CATALOG => false,
 
             RestoUser::CREATE_ANY_CATALOG => false,
             RestoUser::DELETE_ANY_CATALOG => false,
             RestoUser::UPDATE_ANY_CATALOG => false,
 
-            RestoUser::CREATE_ITEM => true,
-            RestoUser::DELETE_ITEM => true,
-            RestoUser::UPDATE_ITEM => true,
+            RestoUser::CREATE_ITEM => false,
             
             RestoUser::CREATE_ANY_ITEM => false,
             RestoUser::DELETE_ANY_ITEM => false,
-            RestoUser::UPDATE_ANY_ITEM => false,
-            RestoUser::DOWNLOAD_ITEM => false
+            RestoUser::UPDATE_ANY_ITEM => false
         );
 
         // [IMPORTANT] Assume only boolean otherwise it will be converted to anyway

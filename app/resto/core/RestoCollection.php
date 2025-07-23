@@ -984,7 +984,7 @@ class RestoCollection
             if ( empty($clean['visibility']) ) {
                 RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group'); 
             }
-            if ( !(new catalogsFunctions($this->context->dbDriver))->canSeeCatalog($clean['visibility'], $this->user, true) ) {
+            if ( !(new CatalogsFunctions($this->context->dbDriver))->canSeeCatalog($clean['visibility'], $this->user, true) ) {
                 RestoLogUtil::httpError(403, 'You are not allowed to set the visibility to a group you are not part of');
             }
         

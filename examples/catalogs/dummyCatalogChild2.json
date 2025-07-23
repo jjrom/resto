@@ -7,7 +7,7 @@
     "links":[
         {
             "rel":"item",
-            "href":"http://127.0.0.1:5252/collections/JohnDoeCollection/items/e3b2cf46-6f4f-58cc-95e9-8686efc89f58",
+            "href":"http://127.0.0.1:5252/collections/DummyCollection/items/Dummy1",
             "title":"Catalog can also have item"
         }
     ]

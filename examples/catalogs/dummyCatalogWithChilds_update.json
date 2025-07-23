@@ -8,7 +8,7 @@
         {
             "rel": "child",
             "type": "application/json",
-            "href": "http://127.0.0.1:5252/catalogs/dummyCatalogWithChilds/dummyCatalogChild1",
+            "href": "http://127.0.0.1:5252/catalogs/projects/dummyCatalogWithChilds/dummyCatalogChild1",
             "title": "Dummy Catalog child 1",
             "description": "I'm a child of dummyCatalog"
         }

@@ -261,6 +261,44 @@ class ServicesAPI
             'conformsTo' => $this->conformsTo()
         );
 
+        // Add pinned catalogs
+        $catalogsFunctions = new CatalogsFunctions($this->context->dbDriver);
+        $catalogs = $catalogsFunctions->getCatalogs(array(
+            'where' => 'pinned IS TRUE',
+            'countCatalogs' => false,
+            'noProperties' => true
+        ), false);
+
+        for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
+
+            if ( $catalogs[$i]['visibility'] ) {
+                if ( !$catalogsFunctions->canSeeCatalog($catalogs[$i]['visibility'], $this->user) ) {
+                    continue;
+                }
+            }
+            
+            $link = array(
+                'id' => $catalogs[$i]['id'],
+                'rel' => 'child',
+                'type' => RestoUtil::$contentTypes['json'],
+                'href' => $this->context->core['baseUrl'] . ( str_starts_with($catalogs[$i]['id'], 'collections/') ? '/' : '/catalogs/') . join('/', array_map('rawurlencode', explode('/', $catalogs[$i]['id'])))
+            );
+            if ( $catalogs[$i]['counters']['total'] > 0 ) {
+                $link['matched'] = $catalogs[$i]['counters']['total'];
+            }
+            if ( isset($catalogs[$i]['title']) ) {
+                $link['title'] = $catalogs[$i]['title'];
+            }
+            if ( isset($catalogs[$i]['description']) ) {
+                $link['description'] = $catalogs[$i]['description'];
+            }
+            if ( isset($catalogs[$i]['rtype']) ) {
+                $link['resto:type'] = $catalogs[$i]['rtype'];
+            }
+            $hello['links'][] = $link;
+            
+        }
+
         return $this->context->core['useJSONLD'] ? JSONLDUtil::addDataCatalogMetadata($hello) : $hello;
     }
 

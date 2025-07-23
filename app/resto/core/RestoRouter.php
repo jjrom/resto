@@ -81,6 +81,7 @@ class RestoRouter
         array('GET',    RestoRouter::ROUTE_TO_USER . '/rights', true, 'RightsAPI::getUserRights'),                                      // Show user rights
         array('GET',    RestoRouter::ROUTE_TO_GROUPS . '/{name}/rights', true, 'RightsAPI::getGroupRights'),                            // Show group rights
         array('POST'  , RestoRouter::ROUTE_TO_USER . '/rights', true, 'RightsAPI::setUserRights'),                                      // Set user rights
+        array('PUT'  ,  RestoRouter::ROUTE_TO_USER . '/rights/catalogs', true, 'RightsAPI::setCatalogsRights'),                         // Set catalogs rights for user
         array('POST'  , RestoRouter::ROUTE_TO_GROUPS . '/{name}/rights', true, 'RightsAPI::setGroupRights'),                            // Set group rights
         
         // API for collections

@@ -25,6 +25,8 @@
 class RestoUser
 {
 
+    const CREATE_GROUP = 'createGroup';
+    
     const CREATE_COLLECTION = 'createCollection';
     const DELETE_COLLECTION = 'deleteCollection';
     const UPDATE_COLLECTION = 'updateCollection';
@@ -241,18 +243,29 @@ class RestoUser
     }
 
     /**
-     * User rights are :
+     * User has explicit and implicit rights.
      * 
-     *  - createCollection      : create a collection
-     *  - deleteCollection      : delete a collection owned by user
-     *  - updateCollection      : update a collection owned by user
+     * Explicit rights are defined by a boolean property :
+     * 
+     *  - createGroup           : if true, user can create a group
+     *  - createCollection      : if true, user can create a collection under /collections
+     *  - createCatalog         : if true, user can create a catalog under /catalogs/projects
+     *  - createItem            : if true, user can create an item under any /collections/{collectionId}/items
+     * 
+     * 
+     * Implicit rights are associated to every user without specific property: 
      *
+     *  - User can create an item within a collection he owns
+     *  - User can update any group / collection / catalog / item he owns
+     *  - User can delete any group / collection / catalog / item he owns
+     * 
+     * 
+     * 
+     * 
      *  - deleteAnyCollection   : delete any collection i.e. including not owned by user
      *  - updateAnyCollection   : update any collection i.e. including not owned by user
      * 
-     *  - createCatalog         : create a catalog under user private catalog i.e. /catalogs/users/{username}
-     *  - deleteCatalog         : delete a catalog owned by user
-     *  - updateCatalog         : update a catalog owned by user
+     *  
      *
      *  - createAnyCatalog      : create a catalog anywhere except under another user private catalog
      *  - deleteAnyCatalog      : delete any catalog i.e. including not owned by user
@@ -265,8 +278,6 @@ class RestoUser
      *  - createAnyItem         : create an item in any collection
      *  - deleteAnyItem         : delete any item i.e. including not owned by user
      *  - updateAnyItem         : update any item i.e. including not owned by user
-     *  
-     *  - downloadItem       : download an item [NOT USED]
      *
      * @param string $action
      * @param array $params
@@ -281,24 +292,19 @@ class RestoUser
          * 1) Handle actions that are not known
          * and actions that do not need params to be set
          */
-        $withParams = array(
+        /*$withParams = array(
+            RestoUser::CREATE_GROUP,
             RestoUser::CREATE_CATALOG,
-            RestoUser::DELETE_COLLECTION,
-            RestoUser::UPDATE_COLLECTION,
-            RestoUser::DELETE_CATALOG,
-            RestoUser::UPDATE_CATALOG,
-            RestoUser::CREATE_ITEM,
-            RestoUser::DELETE_ITEM,
-            RestoUser::UPDATE_ITEM,
+            RestoUser::CREATE_ITEM
         );
         if ( !in_array($action, $withParams) ) {
             return $rights[$action] ?? false;
-        }
-
+        }*/
+        
         /* 
          * Split camel case action into parts
          * The first token is the action (create, update, delete)
-         * The last token is the target (collection, feature)
+         * The last token is the target (collection, catalog, item)
          */
         $splittedAction = preg_split('/(?<=[a-z])(?=[A-Z])/x', $action);
         if ( count($splittedAction) === 2 ) {
@@ -544,16 +550,13 @@ class RestoUser
          */
         switch ($action) {
             case RestoUser::CREATE_CATALOG:
+            case RestoUser::DELETE_CATALOG:
+            case RestoUser::UPDATE_CATALOG:
                 if ( in_array($params['catalog']['id'], STACUtil::RESERVED_CATALOG_PATHS) ) {
-                    RestoLogUtil::httpError(400, 'You cannot create /catalogs/' . $params['catalog']['id'] . ' as it is a reserved path');
+                    RestoLogUtil::httpError(400, 'You cannot create/delete/update the /catalogs/' . $params['catalog']['id'] . ' as it is a reserved path');
                 }
                 break;
 
-            case RestoUser::DELETE_CATALOG:
-                if ( in_array($params['catalog']['id'], STACUtil::RESERVED_CATALOG_PATHS) ) {
-                    RestoLogUtil::httpError(400, 'You cannot delete /catalogs/' . $params['catalog']['id'] . ' as it is a reserved path');
-                }
-                break;
         }
 
         // You cannot delete /users/* catalogs
@@ -578,27 +581,20 @@ class RestoUser
     {
         switch ($action) {
 
-            // Catalog can only be created under /users/{username}
             case RestoUser::CREATE_CATALOG:
-                if ( !isset($params['catalog']) ) {
-                    return false;
-                }
-                $exploded = explode('/', $params['catalog']['id']);
-                if ( count($exploded) < 3 && $exploded[0] !== 'users' && $exploded[1] !== $this->profile['username'] ) {
-                    return false;
-                }
-                return $rights[$action];
+                return $this->hasRightsToCreateCatalog($rights, $params);
 
-            // Only owner of collection can do this
             case RestoUser::CREATE_ITEM:
+
+            // Owner of a collection can update/delete it
             case RestoUser::DELETE_COLLECTION:
             case RestoUser::UPDATE_COLLECTION:
-                return $rights[$action] && isset($params['collection']) && $params['collection']->owner === $this->profile['id'];
+                return isset($params['collection']) && $params['collection']->owner === $this->profile['id'];
             
-            // Only owner of catalog can do this
+            // Owner of a catalog can update/delete it
             case RestoUser::UPDATE_CATALOG:
-                return $rights[$action] && isset($params['catalog']) && $params['catalog']['owner'] === $this->profile['id'];
-            
+                return isset($params['catalog']) && $params['catalog']['owner'] === $this->profile['id'];
+
             case RestoUser::DELETE_CATALOG:
                 if ( !isset($params['catalog']) ) {
                     return false;
@@ -607,20 +603,62 @@ class RestoUser
                 if ( count($exploded) === 2 && $exploded[0] === 'users' ) {
                     return false;
                 }
-                return $rights[$action] && isset($params['catalog']) && $params['catalog']['owner'] === $this->profile['id'];
+                return isset($params['catalog']) && $params['catalog']['owner'] === $this->profile['id'];
 
-            // Only owner of feature can do this
+            // Owner of an item can update/delete it
             case RestoUser::DELETE_ITEM:
             case RestoUser::UPDATE_ITEM:
                 if ( !isset($params['item']) ) {
                     return false;     
                 }
                 $featureArray = $params['item']->toArray();
-                return $rights[$action] && isset($featureArray['properties']['owner']) && $featureArray['properties']['owner'] === $this->profile['id'];
+                return isset($featureArray['properties']['owner']) && $featureArray['properties']['owner'] === $this->profile['id'];
                     
             default:
                 return $rights[$action] ?? false;
         }
+    }
+
+    /**
+     * User can create a catalog under /users/{username}
+     * User with createCatalog can only create catalog under /catalogs/projects
+     * 
+     * @param array $rights
+     * @param array $params
+     * @return boolean
+     */
+    private function hasRightsToCreateCatalog($rights, $params) {
+        
+        if ( !isset($params['catalog']) ) {
+            return false;
+        }
+        $exploded = explode('/', $params['catalog']['id']);
+        
+        // Always true under /catalogs/{username}
+        if ( count($exploded) >= 3 && $exploded[0] === 'users' && $exploded[1] === $this->profile['username'] ) {
+            return true;
+        }
+
+        // Always false if not under /catalogs/projects 
+        if ( count($exploded) < 2 || $exploded[0] !== 'projects' ) {
+            return false;
+        }
+
+        // This is /catalogs/projects/something
+        if ( count($exploded) === 2 ) {
+            return $rights[RestoUser::CREATE_CATALOG];
+        }
+        // This is /catalogs/projects/something/somethingele/...
+        else if ( isset($rights['catalogs']) ) {
+            foreach ($rights['catalogs'] as $key => $value) {
+                if ( str_starts_with($params['catalog']['id'], $key) ) {
+                    return $rights['catalogs'][$key][RestoUser::CREATE_CATALOG] ?? false;
+                }
+            }
+        }
+        
+        return false;
+
     }
 
 }
