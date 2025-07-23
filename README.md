@@ -7,20 +7,6 @@ resto is a STAC catalog and a search engine dedicated to geospatialized data. Or
 
 resto search API conforms to the [SpatioTemporal Asset Catalog (STAC) specification v1.1.0](https://github.com/radiantearth/stac-spec)
 
-## Demo
-
-The [https://tamn.snapplanet.io] resto server provides up to date access to Sentinel-2 images.
-
-You can browse it with the [rocket web client](https://rocket.snapplanet.io)
-
-Or test the API :
-
-* Get STAC root endpoint - https://tamn.snapplanet.io/?_pretty=1
-* Get all collections - https://tamn.snapplanet.io/collections?_pretty=1
-* Search Sentinel-2 products acquired on June 1st, 2021 - https://tamn.snapplanet.io/collections/S2/items?datetime=2021-05-06T00:00:00Z/2021-06-01T23:59:59Z&_pretty=1
-* Get catalogs of products classified by continents - https://tamn.snapplanet.io/catalogs/facets/geographical/continent?_pretty=1
-* Get catalogs of products classified by european countries - https://tamn.snapplanet.io/catalogs/facets/geographical/continent/continent%3AEurope%3A6255148?_pretty=1
-
 # Installation
 
 ## TL;DR
@@ -56,10 +42,8 @@ See [COLLECTIONS_CATALOGS_ITEMS.md](./docs/COLLECTIONS_CATALOGS_ITEMS.md)
 
 Here are some projects that use resto.
 
-* [SnapPlanet](https://snapplanet.io)
 * [European Digital Twin of the Ocean](https://www.edito.eu)
 * [CREODIAS](https://creodias.eu/eo-data-finder-api-manual)
-* [Rocket - The Earth in your pocket](https://rocket.snapplanet.io)
 * [The French Sentinel Data Processing center](https://peps.cnes.fr/rocket/#/home)
 * [The French Space Agency, THEIA land data center](https://theia.cnes.fr/atdistrib/rocket/#/home)
 * [The Polish EO Data finder](http://finder.eocloud.eu/www/)
@@ -73,8 +57,3 @@ Here are some projects that use resto.
 * [IRSTEA Thisme project - THeia and Irstea Soil MoisturE catalog](https://thisme.cines.teledetection.fr/home)
 
 If you plan to use resto and would like to have your project added to this list, feel free to contact [support](#support)
-
-# <a name="support"></a>Support
-resto is developped and maintained by [jeobrowser](https://snapplanet.io). 
-
-For questions, support or anything related to resto feel free to contact *jerome[dot]gasperi[at]gmail[dot]com*
