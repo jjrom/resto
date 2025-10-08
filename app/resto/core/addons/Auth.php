@@ -63,19 +63,19 @@ class Auth extends RestoAddOn
          *      "iss": "https://accounts.google.com",
          *      "iat": "1486397062",
          *      "exp": "1486400662",
-         *      "at_hash": "WW7VOi8A3sdOkQufbJxozg",
-         *      "aud": "426412538974-ncfcdep7n4estpg52vplojijcvea2ese.apps.googleusercontent.com",
+         *      "at_hash": "XQUIDHFIDbcd",
+         *      "aud": "xxxxxx.apps.googleusercontent.com",
          *      "sub": "110613268514751241292",
          *      "email_verified": "true",
-         *      "azp": "426412538974-ncfcdep7n4estpg52vplojijcvea2ese.apps.googleusercontent.com",
-         *      "email": "jerome.gasperi@gmail.com",
-         *      "name": "Jérôme Gasperi",
-         *      "picture": "https://lh4.googleusercontent.com/-b2ZwDfR874M/AAAAAAAAAAI/AAAAAAAAAv4/qlnh8V_Y8zA/s96-c/photo.jpg",
+         *      "azp": "xxxxxx.apps.googleusercontent.com",
+         *      "email": "xxxxx@gmail.com",
+         *      "name": "Jérôme G",
+         *      "picture": "https://lh4.googleusercontent.com/-b2ZwDfR874M/AAAAAAAAAAI/AAAAAAAAAv4/xxxxx/photo.jpg",
          *      "given_name": "Jérôme",
-         *      "family_name": "Gasperi",
+         *      "family_name": "G",
          *      "locale": "fr",
          *      "alg": "RS256",
-         *      "kid": "2f7c552b3b91db466e73f0972c8a2b19c5f0dd8e"
+         *      "kid": "2f7c552b3b91db466e73f0972rt6b19c5f0dd8e"
          *  }
          */
         'googlejwt' => array(
@@ -549,6 +549,7 @@ class Auth extends RestoAddOn
 
         // User exists => return JWT
         if (isset($user) && isset($user->profile['username'])) {
+            $this->setGroups($user, $profile, $provider);
             return array(
                 'token' => $this->context->createJWT($user->profile['username'], $this->context->core['tokenDuration'], null),
                 'profile' => $user->profile
@@ -558,6 +559,7 @@ class Auth extends RestoAddOn
         // User does not exist => Special case - create it
         if (isset($provider['forceCreation']) && $provider['forceCreation']) {
             $restoProfile = $this->storeUser($profile);
+            $this->setGroups($user, $profile, $provider);
             return array(
                 'token' => $this->context->createJWT($restoProfile['username'], $this->context->core['tokenDuration'], null),
                 'profile' => $restoProfile
@@ -581,6 +583,43 @@ class Auth extends RestoAddOn
             'activated' => 1,
             'validatedby' => $this->context->core['userAutoValidation'] ? 'auto' : null
         )), $this->context->core['storageInfo']);
+
+    }
+
+    /**
+     * Set groups from profile if any
+     * 
+     * @param {RestoUser} $user
+     * @param array $profile
+     * @param array $provider
+     */
+    private function setGroups($user, $profile, $provider)
+    {
+        
+        if ( !$this->options['setGroups'] || !isset($profile['groups'])) {
+            return;
+        }
+        
+        $groupsFunctions = new GroupsFunctions($this->context->dbDriver);
+        $userGroups = $groupsFunctions->getGroups(array('userid' => $user->profile['id']));
+        $userGroupNames = array_map(function($g) { return $g['name']; }, $userGroups);
+
+        // Add user to groups in inputGroups not already associated
+        foreach ($inputGroups as $groupName) {
+            if (!in_array($groupName, $userGroupNames)) {
+                $group = $groupsFunctions->getGroup($groupName);
+                if (isset($group['id'])) {
+                    $groupsFunctions->addUserToGroup(array('id' => $group['id']), $user->profile['id'], true);
+                }
+            }
+        }
+
+        // Remove user from groups not in inputGroups
+        foreach ($userGroups as $group) {
+            if (!in_array($group['name'], $inputGroups)) {
+                $groupsFunctions->removeUserFromGroup(array('id' => $group['id']), $user->profile['id'], true);
+            }
+        }
 
     }
 
@@ -719,6 +758,32 @@ class Auth extends RestoAddOn
 
     }
 
+    /**
+     * 
+     * Example of EDITO profile return
+     * {
+     *      "sub": "5f3febcc-3cd6-47b4-a208-c50684d48cd7",
+     *      "email_verified": true,
+     *      "name": "J G",
+     *      "groups": [
+     *        "CONTRIBUTION",
+     *        "EDITO_RESTRICTED_SERVICE_CATALOG",
+     *        "EDITO_USER",
+     *        "chlorophyll",
+     *        "coclico",
+     *        "infra",
+     *        "mer-ep",
+     *        "nature-based-solution",
+     *        "omi",
+     *        "plastic-marine-debris-drift",
+     *        "sargasse"
+     *      ],
+     *      "preferred_username": "jg",
+     *      "given_name": "J",
+     *      "family_name": "G",
+     *      "email": "jg@example.com"
+     * }
+     */
     private function convertEdito($profile)
     {
         return array(
@@ -728,7 +793,8 @@ class Auth extends RestoAddOn
             'lastname' => $profile['family_name'] ?? null,
             'externalidp' => array(
                 'edito' => $profile
-            )
+            ),
+            'groups' => isset($profile['groups']) ? (is_array($profile['groups']) ? $profile['groups'] : explode(',', $profile['groups'])) : null
         );
     }
 

@@ -186,7 +186,7 @@ class GroupsFunctions
      * @param Array $params
      * @throws Exception
      */
-    public function addUserToGroup($params, $userid)
+    public function addUserToGroup($params, $userid, $silent = false)
     {
         if (! isset($params['id'])) {
             RestoLogUtil::httpError(400, 'Missing mandatory group identifier');
@@ -199,7 +199,7 @@ class GroupsFunctions
                 $userid
             ));
             
-            if ( !isset($result) ) {
+            if ( !isset($result) && !$silent) {
                 throw new Exception();
             }
             
@@ -211,12 +211,12 @@ class GroupsFunctions
     }
 
     /**
-     * Add user to group
+     * Remove user from group
      *
      * @param Array $params
      * @throws Exception
      */
-    public function removeUserFromGroup($params, $userid)
+    public function removeUserFromGroup($params, $userid, $silent = false)
     {
         if (! isset($params['id'])) {
             RestoLogUtil::httpError(400, 'Missing mandatory group identifier');
@@ -229,7 +229,7 @@ class GroupsFunctions
                 $userid
             ));
             
-            if ( !isset($result) ) {
+            if ( !isset($result) && !$silent) {
                 throw new Exception();
             }
             

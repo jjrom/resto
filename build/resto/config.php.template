@@ -88,6 +88,7 @@ return array(
             ),
             'options' => array(
                 'providers' => '${ADDON_AUTH_PROVIDERS}',
+                'setGroups' => ${ADDON_AUTH_SET_GROUPS:-true},
                 'ssl' => array(
                     'verify_peer' => false,
                     'verify_peer_name' => false
