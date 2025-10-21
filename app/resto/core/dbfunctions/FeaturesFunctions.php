@@ -296,7 +296,7 @@ class FeaturesFunctions
             $where[] = 'collection=$2';
         }
 
-        return $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id,title FROM ' . $featureTableName . ' WHERE ' . join(' AND ', $where), $params));
+        return $this->dbDriver->fetch($this->dbDriver->pQuery('SELECT id,title,collection FROM ' . $featureTableName . ' WHERE ' . join(' AND ', $where), $params));
     }
 
     /**
