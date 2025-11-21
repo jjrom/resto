@@ -81,6 +81,20 @@ return array(
         )
     ),
     'addons' => array(
+        'Auth' => array(
+            'routes' => array(
+                array('POST'  , '/auth/{issuerId}', false, 'Auth::authenticate'),
+                array('POST'  , '/authWithToken/{issuerId}', false, 'Auth::authenticateWithToken')
+            ),
+            'options' => array(
+                'providers' => '${ADDON_AUTH_PROVIDERS}',
+                'setGroups' => ${ADDON_AUTH_SET_GROUPS:-true},
+                'ssl' => array(
+                    'verify_peer' => false,
+                    'verify_peer_name' => false
+                )
+            )
+        ),
         'Cataloger' => array(
             'options' => array(
                 'iTag' => array(

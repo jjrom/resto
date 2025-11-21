@@ -910,8 +910,11 @@ abstract class RestoModel
          *
          * (do this before getKeywords to avoid iTag process)
          */
-        if (isset($productIdentifier) && (new FeaturesFunctions($collection->context->dbDriver))->featureExists($featureId, $collection->context->dbDriver->targetSchema . '.feature')) {
-            RestoLogUtil::httpError(409, 'Feature ' . $featureId . ' (with productIdentifier=' . $productIdentifier . ') already in database');
+        if (isset($productIdentifier)) {
+            $minimalFeature = (new FeaturesFunctions($collection->context->dbDriver))->getMinimalFeature($featureId, $collection->context->dbDriver->targetSchema . '.feature');
+            if ( !empty($minimalFeature) ) {
+                RestoLogUtil::httpError(409, 'Feature ' . $featureId . ' (with productIdentifier=' . $productIdentifier . ') already in collection ' . $minimalFeature[0]['collection']);
+            }
         }
 
         /*
