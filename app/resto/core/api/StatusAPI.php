@@ -71,4 +71,9 @@ class StatusAPI
         return RestoLogUtil::success('Service is live');
     }
 
+    public function debug()
+    {
+        return RestoLogUtil::success(xdebug_info());
+    }
+
 }

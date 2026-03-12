@@ -238,7 +238,7 @@ class STACAPI
 
     private $context;
     private $user;
-    
+
     /**
      * Constructor
      *
@@ -292,7 +292,7 @@ class STACAPI
     public function getCatalogs($params)
     {
         // This is /catalogs
-        if ( !isset($params['segments']) ) {
+        if (!isset($params['segments'])) {
             $catalog = array(
                 'stac_version' => STACAPI::STAC_VERSION,
                 'id' => 'catalogs',
@@ -311,7 +311,7 @@ class STACAPI
         return $this->processPath($params['segments'], $params);
     }
 
-     /**
+    /**
      * Add a catalog
      * 
      *    @OA\Post(
@@ -369,91 +369,110 @@ class STACAPI
      */
     public function addCatalog($params, $body)
     {
-
         /*
          * Check that parent catalogs exists
          */
         $parentId = null;
-        if ( isset($params['segments']) ) {
+        if (isset($params['segments'])) {
             for ($i = 0, $ii = count($params['segments']); $i < $ii; $i++) {
                 $parentId = isset($parentId) ? $parentId . '/' . $params['segments'][$i] : $params['segments'][$i];
                 $parentCatalog = $this->catalogsFunctions->getCatalog($parentId, $this->user);
-                if ( $parentCatalog === null) {
+                if ($parentCatalog === null) {
                     RestoLogUtil::httpError(400, 'Parent catalog ' . $parentId . ' does not exist.');
                 }
-                if ( isset($parentCatalog['stac_url']) ) {
+                if (isset($parentCatalog['stac_url'])) {
                     RestoLogUtil::httpError(400, 'Cannot add a catalog under an external catalog.');
                 }
             }
         }
-       
         /*
          * Compute internal catalog id as full path
          */
         $body['id'] = $this->getIdPath($body, $parentId);
 
+
         /*
          * First check that user has the right to create a catalog
          */
         if (!$this->user->hasRightsTo(RestoUser::CREATE_CATALOG, array('catalog' => $body))) {
-            RestoLogUtil::httpError(403);
+            if (empty($body['visibility'])) {
+                RestoLogUtil::httpError(403, "No visibility set for catalog and you don't have global right to create catalog");
+            }
+            $isCollection = $body['type'] === 'Collection';
+            foreach ($body['visibility'] as $group) {
+
+                $canCreateInGroup = $this->user->hasRightsTo(RestoGroup::createCatalogRight($group));
+                if (!$canCreateInGroup) {
+                    RestoLogUtil::httpError(403);
+                }
+                if ($isCollection && !$this->user->hasRightsTo(RestoGroup::createCollectionRight($group))) {
+                    RestoLogUtil::httpError(403, "No right to create collection in catalogs");
+                }
+            }
+        }
+
+        /*
+        * Convert visibility from names to ids
+        */
+        if (isset($body['visibility'])) {
+            $body['visibility'] = (new GeneralFunctions($this->context->dbDriver))->visibilityNamesToIds($body['visibility']);
+            if (empty($body['visibility'])) {
+                RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group');
+            }
+            if (!$this->catalogsFunctions->canSeeCatalog($body['visibility'], $this->user, true)) {
+                RestoLogUtil::httpError(403, 'You are not allowed to set the visibility to a group you are not part of');
+            }
+
+            if (!$this->context->core['anyoneCanSwitchVisibilityToPublic'] && in_array(RestoConstants::GROUP_DEFAULT_ID, $body['visibility'])) {
+                $isAdmin = $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID);
+                if (!$isAdmin) {
+                    RestoLogUtil::httpError(403, 'You are not allowed to change the visibility of this catalog to default');
+                }
+            }
         }
 
         /*
          * Check mandatory properties
          */
-        if ( !isset($body['type']) || !in_array($body['type'], array('Catalog', 'Collection')) ) {
+        if (!isset($body['type']) || !in_array($body['type'], array('Catalog', 'Collection'))) {
             RestoLogUtil::httpError(400, 'Missing mandatory type - must be set to *Catalog* or *Collection*');
         }
-        if ( !isset($body['description']) && $body['type'] === 'Catalog' ) {
+        if (!isset($body['description']) && $body['type'] === 'Catalog') {
             RestoLogUtil::httpError(400, 'Missing mandatory description');
         }
-        if ( !isset($body['links']) ) {
+        if (!isset($body['links'])) {
             $body['links'] = array();
         }
 
-        /*
-         * Convert visibility from names to ids
-         */
-        if ( isset($body['visibility']) ) {
-            $body['visibility'] = (new GeneralFunctions($this->context->dbDriver))->visibilityNamesToIds($body['visibility']);
-            if ( empty($body['visibility']) ) {
-                RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group'); 
-            }
-            if ( !$this->catalogsFunctions->canSeeCatalog($body['visibility'], $this->user, true) ) {
-                RestoLogUtil::httpError(403, 'You are not allowed to set the visibility to a group you are not part of');
-            }
-        }
+
 
         // Owner of catalog can only be set by admin user
-        if ( isset($body['owner']) ) {
+        if (isset($body['owner'])) {
 
-            if ( !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+            if (!$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
                 RestoLogUtil::httpError(403, 'You are not allowed to set property "owner"');
             }
 
             // Convert owner name to id
             $owner = new RestoUser(array('username' => $body['owner']), $this->context);
             $body['owner'] = $owner->profile['id'];
-            
         }
 
         // Only admin can change pinned flag
-        if ( isset($body['pinned']) && $body['pinned'] ) {
+        if (isset($body['pinned']) && $body['pinned']) {
 
-            if ( !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+            if (!$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
                 RestoLogUtil::httpError(403, 'You are not allowed to set property "pinned"');
             }
-            
         }
 
         /*
          * [IMPORTANT] Special case - post a collection under a catalog is in fact an update of 'links' property of this catalog
          */
-        if ( $body['type'] === 'Collection' ) {
+        if ($body['type'] === 'Collection') {
 
             // Collection does not exist - created first
-            if ( !(new CollectionsFunctions($this->context->dbDriver))->collectionExists($body['id']) ) {
+            if (!(new CollectionsFunctions($this->context->dbDriver))->collectionExists($body['id'])) {
                 $this->context->keeper->getRestoCollections($this->user)->create($body, $params['model'] ?? null);
             }
         }
@@ -463,7 +482,6 @@ class STACAPI
         }
 
         return RestoLogUtil::success('Catalog added', $this->catalogsFunctions->storeCatalogs(array($body), $this->context, $this->user, null, null, true));
-
     }
 
     /**
@@ -541,61 +559,72 @@ class STACAPI
             'noProperties' => true
         ), true);
 
-        if ( count($catalogs) === 0 ){
+        if (count($catalogs) === 0) {
             RestoLogUtil::httpError(404);
         }
 
         // If catalog is a collection it cannot be updated this way
-        if ( isset($catalogs[0]['rtype']) && $catalogs[0]['rtype'] === 'collection' ) {
+        if (isset($catalogs[0]['rtype']) && $catalogs[0]['rtype'] === 'collection') {
             RestoLogUtil::httpError(400, 'This catalog is a collection. Collection should be updated using /collections endoint');
         }
 
         // If user has not the right to update catalog then 403
-        if ( !$this->user->hasRightsTo(RestoUser::UPDATE_CATALOG, array('catalog' => $catalogs[0])) ) {
-            RestoLogUtil::httpError(403);
+        if (!$this->user->hasRightsTo(RestoUser::UPDATE_CATALOG, array('catalog' => $catalogs[0]))) {
+            if (empty($catalogs[0]['visibility'])) {
+                RestoLogUtil::httpError(403);
+            }
+            $groups = (new GroupsFunctions($this->context->dbDriver))->getGroups(array('in' => $catalogs[0]['visibility']));
+
+
+            $hasRights = false;
+
+            foreach ($groups as $group) {
+                $canUpdateInGroup = $this->user->hasRightsTo(RestoGroup::updateCatalogRight($group['name']));
+                $hasRights = $hasRights || $canUpdateInGroup;
+            }
+            if (!$hasRights) {
+                RestoLogUtil::httpError(403, 'Insufficient rights to update a catalog');
+            }
         }
 
         /*
          * Convert visibility from names to ids
          * Note that a user can only set the visibility of a catalog if he is in the group
          */
-        if ( isset($body['visibility']) ) {
+        if (isset($body['visibility'])) {
             $body['visibility'] = (new GeneralFunctions($this->context->dbDriver))->visibilityNamesToIds($body['visibility']);
-            if ( empty($body['visibility']) ) {
-                RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group'); 
+            if (empty($body['visibility'])) {
+                RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group');
             }
 
-            if ( !$this->catalogsFunctions->canSeeCatalog($body['visibility'], $this->user, true) ) {
+            if (!$this->catalogsFunctions->canSeeCatalog($body['visibility'], $this->user, true)) {
                 RestoLogUtil::httpError(403, 'You are not allowed to set the visibility to a group you are not part of');
             }
-
         }
 
         // Owner of catalog can only be changed by admin user
-        if ( isset($body['owner']) ) {
+        if (isset($body['owner'])) {
 
-            if ( !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+            if (!$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
                 RestoLogUtil::httpError(403, 'You are not allowed to change property "owner"');
             }
 
-             // Convert owner name to id
-             $owner = new RestoUser(array('username' => $body['owner']), $this->context);
-             $body['owner'] = $owner->profile['id'];
-            
+            // Convert owner name to id
+            $owner = new RestoUser(array('username' => $body['owner']), $this->context);
+            $body['owner'] = $owner->profile['id'];
         }
 
         // Only admin can change pinned flag
-        if ( isset($body['pinned']) ) {
+        if (isset($body['pinned'])) {
 
-            if ( !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+            if (!$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
                 RestoLogUtil::httpError(403, 'You are not allowed to change property "pinned"');
             }
-            
         }
-        
+
         // Update is not forced so we should check that input links array don't remove existing childs
         // [IMPORTANT] if no links object is in the body then only other properties are updated and existing links are not destroyed
-        if ( array_key_exists('links', $body) && isset($body['links']) ) {
+        if (array_key_exists('links', $body) && isset($body['links'])) {
             $levelUp = array();
             for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
                 if ($catalogs[$i]['level'] !== $catalogs[0]['level'] + 1) {
@@ -603,7 +632,7 @@ class STACAPI
                 }
                 $levelUp[$catalogs[$i]['id']] = false;
                 for ($j = 0, $jj = count($body['links']); $j < $jj; $j++) {
-                    if ( !str_starts_with($body['links'][$j]['href'], $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS ) ) {
+                    if (!str_starts_with($body['links'][$j]['href'], $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS)) {
                         continue;
                     }
                     if ($catalogs[$i]['id'] === substr($body['links'][$j]['href'], strlen($this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS) + 1)) {
@@ -614,7 +643,7 @@ class STACAPI
             }
             $removed = 0;
             foreach (array_keys($levelUp) as $key) {
-                if ( $levelUp[$key] === false ) {
+                if ($levelUp[$key] === false) {
                     $removed++;
                 }
             }
@@ -622,12 +651,11 @@ class STACAPI
             if ($removed > 0 && !filter_var($params['_force'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
                 RestoLogUtil::httpError(400, 'The catalog update would remove ' . $removed . ' existing child(s). Set **_force** query parameter to true to force update anyway');
             }
-
         }
 
         // [TODO] not sure it's needed
         $body['id'] = $catalogs[0]['id'];
-        
+
         return $this->catalogsFunctions->updateCatalog($body, $this->user, $this->context) ? RestoLogUtil::success('Catalog updated') : RestoLogUtil::httpError(500, 'Cannot update catalog');
     }
 
@@ -700,24 +728,33 @@ class STACAPI
             'id' => join('/', $params['segments']),
             'countCatalogs' => false
         ), true);
-        
+
         $count = count($catalogs);
-        if ( $count === 0 ){
+        if ($count === 0) {
             RestoLogUtil::httpError(404);
         }
 
         // If user has not the right to delete catalog then 403
-        if ( !$this->user->hasRightsTo(RestoUser::DELETE_CATALOG, array('catalog' => $catalogs[0])) ) {
-            RestoLogUtil::httpError(403);
+        if (!$this->user->hasRightsTo(RestoUser::DELETE_CATALOG, array('catalog' => $catalogs[0]))) {
+            if (empty($catalogs[0]['visibility'])) {
+                RestoLogUtil::httpError(403);
+            }
+            $groups = (new GroupsFunctions($this->context->dbDriver))->getGroups(array('in' => $catalogs[0]['visibility']));
+
+            foreach ($groups as $group) {
+                $canDeleteInGroup = $this->user->hasRightsTo(RestoGroup::deleteCatalogRight($group['name']));
+                if (!$canDeleteInGroup) {
+                    RestoLogUtil::httpError(403);
+                }
+            }
         }
 
         // If catalogs has child, do not remove it unless _force option is set to true
-        if ( $count > 1 && !filter_var($params['_force'] ?? false, FILTER_VALIDATE_BOOLEAN) ){
+        if ($count > 1 && !filter_var($params['_force'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
             RestoLogUtil::httpError(400, 'The catalog contains ' . ($count - 1) . ' child(s) and cannot be deleted. Set **_force** query parameter to true to force deletion anyway');
         }
-        
-        return RestoLogUtil::success('Catalog deleted', $this->catalogsFunctions->removeCatalog($catalogs[0]['id']));
 
+        return RestoLogUtil::success('Catalog deleted', $this->catalogsFunctions->removeCatalog($catalogs[0]['id']));
     }
 
 
@@ -923,12 +960,12 @@ class STACAPI
      *          in="query",
      *          style="form",
      *          description="Free text search - OpenSearch {searchTerms}. Example:
-* *cryosphere* will search for *cryosphere*
-* *cryosphere atmosphere* will search for *cryosphere* AND *atmosphere*
-* *cryosphere|atmosphere* will search for *cryosphere* OR *atmosphere*
-* *cryosphere!* will search for *cryosphere* OR any *broader* concept of *cryosphere* ([EXTENSION][SKOS])
-* *cryosphere\** will search for *cryosphere* OR any *narrower* concept of *cryosphere* ([EXTENSION][SKOS])
-* *cryosphere~* will search for *cryosphere* OR any *related* concept of *cryosphere* ([EXTENSION][SKOS])",
+     * *cryosphere* will search for *cryosphere*
+     * *cryosphere atmosphere* will search for *cryosphere* AND *atmosphere*
+     * *cryosphere|atmosphere* will search for *cryosphere* OR *atmosphere*
+     * *cryosphere!* will search for *cryosphere* OR any *broader* concept of *cryosphere* ([EXTENSION][SKOS])
+     * *cryosphere\** will search for *cryosphere* OR any *narrower* concept of *cryosphere* ([EXTENSION][SKOS])
+     * *cryosphere~* will search for *cryosphere* OR any *related* concept of *cryosphere* ([EXTENSION][SKOS])",
      *          required=false,
      *          @OA\Schema(
      *              type="string"
@@ -1354,8 +1391,8 @@ class STACAPI
      *              type="string"
      *          ),
      *          description="Comma separated list of property fields to be returned. The following reserved keywords can also be used:
-* _all: Return all properties (This is the default)
-* _simple: Return all fields except *keywords* property"
+     * _all: Return all properties (This is the default)
+     * _simple: Return all fields except *keywords* property"
      *      ),
      *      @OA\Parameter(
      *          name="_heatmapNoGeo",
@@ -1391,7 +1428,7 @@ class STACAPI
         if ($this->context->method === 'POST') {
             $params = $this->jsonQueryToKVP($body);
         }
-        
+
         $model = null;
         if (isset($params['model'])) {
             if (! class_exists($params['model'])) {
@@ -1399,7 +1436,7 @@ class STACAPI
             }
             $model = new $params['model']();
         }
-        
+
         // [STAC] Only one of either intersects or bbox should be specified. If both are specified, a 400 Bad Request response should be returned.
         if (isset($params['intersects']) && isset($params['bbox'])) {
             RestoLogUtil::httpError(400, 'Only one of either intersects or bbox should be specified');
@@ -1435,22 +1472,22 @@ class STACAPI
      */
     private function processPath($segments, $params = array())
     {
-    
+
         /*
          * Addons special case - not handle within resto.catalog table
          */
         $resultFromAddons = $this->processAddons($segments, $params);
-        if ( isset($resultFromAddons) ) {
+        if (isset($resultFromAddons)) {
             return $resultFromAddons;
         }
-        
+
         /*
          * Special case for '_' => compute FeatureCollection instead of catalogs
          */
-        if ($segments[count($segments) - 1 ] === '_') {
+        if ($segments[count($segments) - 1] === '_') {
             return $this->processSearch($segments, $params);
         }
-        
+
         /*
          * Get catalogs - first one is $catalogId, other its childs
          */
@@ -1463,36 +1500,35 @@ class STACAPI
             'checkForExternal' => true
         ), true);
 
-        if ( empty($catalogs) ) {
+        if (empty($catalogs)) {
             RestoLogUtil::httpError(404);
         }
 
         /*
          * This is an external ressources !
          */
-        if ( isset($catalogs[0]['stac_url']) ) {
+        if (isset($catalogs[0]['stac_url'])) {
             return $this->processExternalCatalog($catalogs[0], $selfHref);
         }
-        
+
         // The path is the catalog identifier
         $parentAndChilds = $this->getParentAndChilds($catalogs, $params);
-
-        if ( $parentAndChilds['parent']['visibility'] ) {
+        if ($parentAndChilds['parent']['visibility']) {
             $canSee = false;
             for ($i = count($parentAndChilds['parent']['visibility']); $i--;) {
-                if ( $this->user->hasGroup($parentAndChilds['parent']['visibility'][$i]) ) {
+                if ($this->user->hasGroup($parentAndChilds['parent']['visibility'][$i])) {
                     $canSee = true;
                     break;
                 }
             }
-            if ( !$canSee ) {
+            if (!$canSee) {
                 RestoLogUtil::httpError(403, 'You are not allowed to access this catalog');
             }
         }
 
         $catalog = array(
             'stac_version' => STACAPI::STAC_VERSION,
-            'id' => $segments[count($segments) -1 ],
+            'id' => $segments[count($segments) - 1],
             'title' => $parentAndChilds['parent']['title'] ?? '',
             'description' => $parentAndChilds['parent']['description'] ?? '',
             'type' => ucfirst($parentAndChilds['parent']['rtype'] ?? 'catalog'),
@@ -1503,12 +1539,12 @@ class STACAPI
         );
 
         // Add additional metadata
-        foreach (array_keys($parentAndChilds['parent']) as $key ) {
-            if ( !in_array($key, CatalogsFunctions::CATALOG_PROPERTIES) ){
+        foreach (array_keys($parentAndChilds['parent']) as $key) {
+            if (!in_array($key, CatalogsFunctions::CATALOG_PROPERTIES)) {
                 $catalog[$key] = $parentAndChilds['parent'][$key];
             }
         }
-        
+
         return $this->context->core['useJSONLD'] ? JSONLDUtil::addDataCatalogMetadata($catalog) : $catalog;
     }
 
@@ -1519,7 +1555,7 @@ class STACAPI
      * @param array $params
      * @return array
      * @throws Exception
-     */ 
+     */
     private function processSearch($segments, $params)
     {
         // This is not possible
@@ -1533,17 +1569,17 @@ class STACAPI
             'q' => $params['q'] ?? null,
             'countCatalogs' => isset($params['_countCatalogs']) ? filter_var($params['_countCatalogs'], FILTER_VALIDATE_BOOLEAN) : $this->context->core['countCatalogs']
         ), false);
-        
-        if ( empty($catalogs) ) {
+
+        if (empty($catalogs)) {
             RestoLogUtil::httpError(404);
         }
 
-        if ( $catalogs[0]['visibility'] ) {
-            if ( !$this->catalogsFunctions->canSeeCatalog($catalogs[0]['visibility'], $this->user) ) {
+        if ($catalogs[0]['visibility']) {
+            if (!$this->catalogsFunctions->canSeeCatalog($catalogs[0]['visibility'], $this->user)) {
                 RestoLogUtil::httpError(403, 'You are not allowed to access this catalog');
             }
         }
-        
+
         $searchParams = array(
             'q' => $catalogs[0]['id']
         );
@@ -1568,12 +1604,12 @@ class STACAPI
     {
 
         $nbOfSegments = count($segments);
-        
+
         $viewClassName = 'View';
         if ($segments[0] === 'views' && isset($this->context->addons[$viewClassName])) {
 
             $view = new $viewClassName($this->context, $this->user);
-            
+
             // Root
             if ($nbOfSegments === 1) {
                 return $view->getViews(array(
@@ -1586,8 +1622,7 @@ class STACAPI
                     'viewId' => $segments[1],
                     'format' => 'stac'
                 )));
-            }
-            else {
+            } else {
                 RestoLogUtil::httpError(404);
             }
         }
@@ -1597,7 +1632,7 @@ class STACAPI
 
             $skosClassName = 'SKOS';
             $skos = new $skosClassName($this->context, $this->user);
-            
+
             // Root
             if ($nbOfSegments === 1) {
                 return $skos->getConcepts($this->context->query);
@@ -1607,8 +1642,7 @@ class STACAPI
                 return $skos->getConcept(array_merge($this->context->query, array(
                     'conceptId' => $segments[1],
                 )));
-            }
-            else {
+            } else {
                 RestoLogUtil::httpError(404);
             }
         }
@@ -1627,32 +1661,31 @@ class STACAPI
     {
 
         $externalCatalog = STACUtil::resolveEndpoint($catalog['stac_url_to_be_resolved'] ?? $catalog['stac_url']);
-        
+
         // Replace first level links
-        if ( isset($externalCatalog['links']) ) {
+        if (isset($externalCatalog['links'])) {
             $externalCatalog['links'] = $this->replaceLinks($catalog, $externalCatalog['links'], $selfHref);
         }
 
         // Collections case
-        if ( isset($externalCatalog['collections']) ) {
+        if (isset($externalCatalog['collections'])) {
             for ($i = 0, $ii = count($externalCatalog['collections']); $i < $ii; $i++) {
-                if ( isset($externalCatalog['collections'][$i]['links']) ) {
+                if (isset($externalCatalog['collections'][$i]['links'])) {
                     $externalCatalog['collections'][$i]['links'] = $this->replaceLinks($catalog, $externalCatalog['collections'][$i]['links'], $selfHref);
                 }
             }
         }
 
         // Features case
-        if ( isset($externalCatalog['features']) ) {
+        if (isset($externalCatalog['features'])) {
             for ($i = 0, $ii = count($externalCatalog['features']); $i < $ii; $i++) {
-                if ( isset($externalCatalog['features'][$i]['links']) ) {
+                if (isset($externalCatalog['features'][$i]['links'])) {
                     $externalCatalog['features'][$i]['links'] = $this->replaceLinks($catalog, $externalCatalog['features'][$i]['links'], $selfHref);
                 }
             }
         }
 
         return $externalCatalog;
-       
     }
 
     /**
@@ -1668,21 +1701,20 @@ class STACAPI
     {
 
         $correctUrl = substr($catalog['stac_url'], -1) === '/' ? substr($catalog['stac_url'], 0, strlen($catalog['stac_url']) - 1) : $catalog['stac_url'];
-        
+
         // Hack if url includes a json file
-        if ( substr($correctUrl, -5) === '.json' ) {
+        if (substr($correctUrl, -5) === '.json') {
             $correctUrl = substr($correctUrl, 0, strrpos($correctUrl, '/'));
         }
-        
+
         for ($i = 0, $ii = count($links); $i < $ii; $i++) {
-            if ( isset($links[$i]['href']) ) {
-                if ( $links[$i]['rel'] === 'root') {
+            if (isset($links[$i]['href'])) {
+                if ($links[$i]['rel'] === 'root') {
                     $links[$i]['href'] = $this->context->core['baseUrl'];
-                }
-                else {
+                } else {
                     $links[$i]['href'] = str_replace($correctUrl, join('/', array($this->context->core['baseUrl'], 'catalogs', $catalog['id'])), $this->toAbsoluteUrl($links[$i]['href'], $selfHref));
-                    if ( $links[$i]['rel'] === 'parent') {
-                        $links[$i]['href'] = substr($links[$i]['href'],0,strrpos($links[$i]['href'],'/'));
+                    if ($links[$i]['rel'] === 'parent') {
+                        $links[$i]['href'] = substr($links[$i]['href'], 0, strrpos($links[$i]['href'], '/'));
                     }
                 }
             }
@@ -1705,8 +1737,8 @@ class STACAPI
         /*
          * Input collections should be an array of collection id strings
          */
-        if ( isset($jsonQuery['collections']) ) {
-            if ( !is_array($jsonQuery['collections']) ) {
+        if (isset($jsonQuery['collections'])) {
+            if (!is_array($jsonQuery['collections'])) {
                 RestoLogUtil::httpError(400, 'Invalid collections parameter. Should be an array of strings');
             }
             $params['collections'] = join(',', $jsonQuery['collections']);
@@ -1715,8 +1747,8 @@ class STACAPI
         /*
          * Input bbox should be an array of 4 floats
          */
-        if ( isset($jsonQuery['bbox']) ) {
-            if ( !is_array($jsonQuery['bbox']) || count($jsonQuery['bbox']) !== 4 ) {
+        if (isset($jsonQuery['bbox'])) {
+            if (!is_array($jsonQuery['bbox']) || count($jsonQuery['bbox']) !== 4) {
                 RestoLogUtil::httpError(400, 'Invalid bbox parameter. Should be an array of 4 coordinates');
             }
             $params['bbox'] = join(',', $jsonQuery['bbox']);
@@ -1725,19 +1757,18 @@ class STACAPI
         /*
          * Input intersects should be a GeoJSON geometry object
          */
-        if ( isset($jsonQuery['intersects']) ) {
-            if ( !isset($jsonQuery['intersects']['type']) || !isset($jsonQuery['intersects']['coordinates']) ) {
+        if (isset($jsonQuery['intersects'])) {
+            if (!isset($jsonQuery['intersects']['type']) || !isset($jsonQuery['intersects']['coordinates'])) {
                 RestoLogUtil::httpError(400, 'Invalid intersects. Should be a GeoJSON geometry object');
             }
             $params['intersects'] = RestoGeometryUtil::geoJSONGeometryToWKT($jsonQuery['intersects']);
         }
-        
-        if ( isset($jsonQuery['datetime']) ) {
+
+        if (isset($jsonQuery['datetime'])) {
             $params['datetime'] = $jsonQuery['datetime'];
         }
 
         return $params;
-
     }
 
     /**
@@ -1756,35 +1787,33 @@ class STACAPI
         );
 
         // Parent has no catalog childs, so its childs are item or items if if's a collection
-        if ( count($catalogs) === 1 ) {
+        if (count($catalogs) === 1) {
 
-            if ( $catalogs[0]['rtype'] === 'collection' ) {
+            if ($catalogs[0]['rtype'] === 'collection') {
                 $items = array(
                     'rel' => 'items',
                     'title' => 'All items',
                     'type' => RestoUtil::$contentTypes['geojson'],
                     'href' => $this->context->core['baseUrl'] . '/collections/' . substr($parentAndChilds['parent']['id'], strrpos($parentAndChilds['parent']['id'], '/') + 1) . '/items'
                 );
-                if ( isset($parentAndChilds['parent']['counters']) && $parentAndChilds['parent']['counters']['total'] > 0) {
+                if (isset($parentAndChilds['parent']['counters']) && $parentAndChilds['parent']['counters']['total'] > 0) {
                     $items['matched'] = $parentAndChilds['parent']['counters']['total'];
                 }
                 $parentAndChilds['childs'][] = $items;
-            }
-            else {
+            } else {
                 $parentAndChilds['childs'] = $this->catalogsFunctions->getCatalogItems($parentAndChilds['parent']['id'], $this->context->core['baseUrl']);
             }
-        }
-        else {
+        } else {
 
             // Parent has an hashtag thus can have a rel="items" child to directly search for its contents
-            if ( $parentAndChilds['parent']['level'] > 1 && $this->context->core['showItemsLink'] ) {
+            if ($parentAndChilds['parent']['level'] > 1 && $this->context->core['showItemsLink']) {
                 $element = array(
                     'rel' => 'items',
                     'type' => RestoUtil::$contentTypes['geojson'],
-                    'href' => $this->context->core['baseUrl'] . ( str_starts_with($catalogs[0]['id'], 'collections/') ? '/' : '/catalogs/') .  join('/', array_map('rawurlencode', explode('/', $parentAndChilds['parent']['id']))) . '/_',
+                    'href' => $this->context->core['baseUrl'] . (str_starts_with($catalogs[0]['id'], 'collections/') ? '/' : '/catalogs/') .  join('/', array_map('rawurlencode', explode('/', $parentAndChilds['parent']['id']))) . '/_',
                     'title' => 'All items'
                 );
-                if ( $parentAndChilds['parent']['counters']['total'] > 0 ) {
+                if ($parentAndChilds['parent']['counters']['total'] > 0) {
                     $element['matched'] = $parentAndChilds['parent']['counters']['total'];
                 }
                 $parentAndChilds['childs'][] = $element;
@@ -1799,20 +1828,20 @@ class STACAPI
                     $element = array(
                         'rel' => $catalogs[$i]['link_properties']['rel'] ?? 'child',
                         'type' => $catalogs[$i]['link_properties']['type'] ?? RestoUtil::$contentTypes['json'],
-                        'href' => $this->context->core['baseUrl'] . ( str_starts_with($catalogs[$i]['id'], 'collections/') ? '/' : '/catalogs/') .  join('/', array_map('rawurlencode', explode('/', $catalogs[$i]['id'])))
+                        'href' => $this->context->core['baseUrl'] . (str_starts_with($catalogs[$i]['id'], 'collections/') ? '/' : '/catalogs/') .  join('/', array_map('rawurlencode', explode('/', $catalogs[$i]['id'])))
                     );
-                    
-                    if (  $catalogs[$i]['counters']['total'] > 0 ) {
+
+                    if ($catalogs[$i]['counters']['total'] > 0) {
                         $element['matched'] = $catalogs[$i]['counters']['total'];
                     }
-                    if ( isset($catalogs[$i]['title']) ) {
+                    if (isset($catalogs[$i]['title'])) {
                         $element['title'] = $catalogs[$i]['title'];
                     }
-                    if ( isset($catalogs[$i]['description']) ) {
+                    if (isset($catalogs[$i]['description'])) {
                         $element['description'] = $catalogs[$i]['description'];
                     }
-                    foreach (array_keys($catalogs[$i]['link_properties']) as $key ) {
-                        if ( !in_array($key, array('rel', 'type')) ){
+                    foreach (array_keys($catalogs[$i]['link_properties']) as $key) {
+                        if (!in_array($key, array('rel', 'type'))) {
                             $element[$key] = $catalogs[$i]['link_properties'][$key];
                         }
                     }
@@ -1820,9 +1849,8 @@ class STACAPI
                 }
             }
         }
-        
-        return $parentAndChilds;
 
+        return $parentAndChilds;
     }
 
     /**
@@ -1832,7 +1860,7 @@ class STACAPI
      */
     private function getBaseLinks($segments = array())
     {
-        
+
         array_unshift($segments, 'catalogs');
 
         $links = array(
@@ -1854,9 +1882,8 @@ class STACAPI
             'type' => RestoUtil::$contentTypes['json'],
             'href' => $this->context->core['baseUrl'] . (count($segments) > 0 ? '/' . join('/', array_map('rawurlencode', $segments)) : '')
         );
-        
-        return $links;
 
+        return $links;
     }
 
     /**
@@ -1876,7 +1903,7 @@ class STACAPI
          * Only displayed if at least one theme exists
          */
         if (isset($this->context->addons[$viewClassName])) {
-            
+
             $stacLink = (new $viewClassName($this->context, $this->user))->getSTACRootLink();
             if (isset($stacLink) && $stacLink['matched'] > 0) {
                 $links[] = $stacLink;
@@ -1889,41 +1916,40 @@ class STACAPI
             'q' => $params['q'] ?? null,
             'countCatalogs' => isset($params['_countCatalogs']) ? filter_var($params['_countCatalogs'], FILTER_VALIDATE_BOOLEAN) : $this->context->core['countCatalogs']
         ), false);
-        
+
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
 
             if ($catalogs[$i]['id'] === 'collections') {
                 continue;
             }
 
-            if ( $catalogs[$i]['visibility'] ) {
-                if ( !$this->catalogsFunctions->canSeeCatalog($catalogs[$i]['visibility'], $this->user) ) {
+            if ($catalogs[$i]['visibility']) {
+                if (!$this->catalogsFunctions->canSeeCatalog($catalogs[$i]['visibility'], $this->user)) {
                     continue;
                 }
             }
-            
+
             $link = array(
                 'id' => $catalogs[$i]['id'],
                 'rel' => 'child',
                 'type' => RestoUtil::$contentTypes['json'],
-                'href' => $this->context->core['baseUrl'] . ( str_starts_with($catalogs[$i]['id'], 'collections/') ? '/' : '/catalogs/') . rawurlencode($catalogs[$i]['id'])
+                'href' => $this->context->core['baseUrl'] . (str_starts_with($catalogs[$i]['id'], 'collections/') ? '/' : '/catalogs/') . rawurlencode($catalogs[$i]['id'])
             );
-            if ( $catalogs[$i]['counters']['total'] > 0 ) {
+            if ($catalogs[$i]['counters']['total'] > 0) {
                 $link['matched'] = $catalogs[$i]['counters']['total'];
             }
-            if ( isset($catalogs[$i]['title']) ) {
+            if (isset($catalogs[$i]['title'])) {
                 $link['title'] = $catalogs[$i]['title'];
             }
-            if ( isset($catalogs[$i]['description']) ) {
+            if (isset($catalogs[$i]['description'])) {
                 $link['description'] = $catalogs[$i]['description'];
             }
-            if ( isset($catalogs[$i]['rtype']) ) {
+            if (isset($catalogs[$i]['rtype'])) {
                 $link['resto:type'] = $catalogs[$i]['rtype'];
             }
             $links[] = $link;
-            
         }
-        
+
         return $links;
     }
 
@@ -1937,10 +1963,10 @@ class STACAPI
     private function getIdPath($catalog, $parentId)
     {
 
-        if ( !isset($catalog['id']) ) {
+        if (!isset($catalog['id'])) {
             RestoLogUtil::httpError(400, 'Missing mandatory catalog id');
         }
-        if ( count(explode('/', $catalog['id'])) >  1 ) {
+        if (count(explode('/', $catalog['id'])) >  1) {
             RestoLogUtil::httpError(400, 'Catalog id cannot contain a slash');
         }
 
@@ -1948,11 +1974,11 @@ class STACAPI
         $hasParentInBody = false;
 
         // Retrieve parent if any
-        if ( isset($catalog['links']) && is_array($catalog['links']) ) {
-            for ($i = 0, $ii = count($catalog['links']); $i < $ii; $i++ ) {
-                if ( isset($catalog['links'][$i]['rel']) &&$catalog['links'][$i]['rel'] === 'parent' ) {
+        if (isset($catalog['links']) && is_array($catalog['links'])) {
+            for ($i = 0, $ii = count($catalog['links']); $i < $ii; $i++) {
+                if (isset($catalog['links'][$i]['rel']) && $catalog['links'][$i]['rel'] === 'parent') {
                     $hasParentInBody = true;
-                    $theoricalUrl = $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS; 
+                    $theoricalUrl = $this->context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS;
                     $exploded = explode($theoricalUrl, $catalog['links'][$i]['href']);
                     if (count($exploded) !== 2) {
                         RestoLogUtil::httpError(400, 'Parent link is set but it\'s url is invalid - should starts with ' . $theoricalUrl);
@@ -1963,16 +1989,15 @@ class STACAPI
             }
         }
 
-        if ( $hasParentInBody ) {
-            if ( isset($parentId) && $parentId !== $parentIdInBody ) {
+        if ($hasParentInBody) {
+            if (isset($parentId) && $parentId !== $parentIdInBody) {
                 RestoLogUtil::httpError(400, 'The rel=parent catalog differs from the path ' . $parentId);
             }
             return $parentIdInBody . '/' . $catalog['id'];
         }
 
         return isset($parentId) ? $parentId . '/' . $catalog['id'] : $catalog['id'];
-
-    }    
+    }
 
     /**
      * 
@@ -1986,16 +2011,15 @@ class STACAPI
     private function toAbsoluteUrl($href, $selfHref)
     {
         $root = substr($selfHref, 0, strrpos($selfHref, '/'));
-        
-        if ( str_starts_with(strtolower($href), 'http') ) {
+
+        if (str_starts_with(strtolower($href), 'http')) {
             return $href;
         }
 
-        if ( str_starts_with($href, '../') ) {
+        if (str_starts_with($href, '../')) {
             return substr($root, 0, strrpos($root, '/')) . substr($href, 2);
         }
-        
+
         return $root . '/' . ltrim(ltrim($href, './'), '/');
     }
-
 }

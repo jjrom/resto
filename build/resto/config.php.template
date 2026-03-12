@@ -11,6 +11,8 @@ return array(
     ),
     'storeQuery' => ${STORE_QUERY:-false},
     'collectionMinMatch' => ${COLLECTION_MINMATCH:-0},
+    'anyoneCanSwitchVisibilityToPublic' => ${ANYONE_CAN_SWITCH_VISIBILITY_TO_PUBLIC:-true},
+    'automaticGroupCreationFromIdp' => ${AUTOMATIC_GROUP_CREATION_FROM_IDP:-false},
     'countCatalogs' => ${COUNT_CATALOGS:-false},
     'defaultModel' => '${DEFAULT_COLLECTION_MODEL:-DefaultModel}',
     'timezone' => '${TIMEZONE:-Europe/Paris}',
@@ -89,6 +91,7 @@ return array(
             'options' => array(
                 'providers' => '${ADDON_AUTH_PROVIDERS}',
                 'setGroups' => ${ADDON_AUTH_SET_GROUPS:-true},
+                'ignoreUppercaseGroups' => ${ADDON_AUTH_IGNORE_UPPERCASE_GROUPS:-true},
                 'ssl' => array(
                     'verify_peer' => false,
                     'verify_peer_name' => false

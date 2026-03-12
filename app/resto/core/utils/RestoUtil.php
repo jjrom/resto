@@ -573,7 +573,7 @@ class RestoUtil
      */
     public static function getDefaultVisibility($user, $createdResourceIsPublic)
     {
-        if ( !$createdResourceIsPublic ) {
+        if ( !$createdResourceIsPublic) {
             $ownedGroups = $user->getOwnedGroups();
             for ($i = 0, $ii = count($ownedGroups); $i < $ii; $i++) {
                 if ( $ownedGroups[$i]['private'] === "1" ) {
