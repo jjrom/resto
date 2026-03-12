@@ -673,6 +673,9 @@ class CatalogsFunctions
         }
         if ( !isset($catalog['visibility']) ) {
             $createdCatalogIsPublic = isset($user->profile['settings']['createdCatalogIsPublic']) ? $user->profile['settings']['createdCatalogIsPublic'] : true;
+            if (!$this->context->core['anyoneCanSwitchVisibilityToPublic']) {
+             $createdCatalogIsPublic=false;
+            }
             // Always private by default under users/
             if ( isset($catalog['id']) && strpos($catalog['id'], 'users/') === 0 ) {
                 $createdCatalogIsPublic = false;

@@ -64,7 +64,7 @@ class RestoContext
 
         // Display JSON-LD metadata in catalogs/collections/items
         'useJSONLD' => false,
-        
+
         // Timezone for date display
         'timezone' => 'Europe/Paris',
 
@@ -182,27 +182,27 @@ class RestoContext
          * Set TimeZone
          */
         date_default_timezone_set($config['timezone'] ?? 'Europe/Paris');
-        
+
         /*
          * HTTP input request method is one of GET, POST, PUT or DELETE
          */
         $this->method = strtoupper(filter_input(INPUT_SERVER, 'REQUEST_METHOD', FILTER_UNSAFE_RAW));
-        
+
         /*
          * Set general configuration
          */
         $this->setCoreConfig($config);
-        
+
         /*
          * Set default lang
          */
         $this->setLang(filter_input(INPUT_GET, 'lang', FILTER_UNSAFE_RAW));
-        
+
         /*
          * Initialize addons
          */
         $this->addons = $config['addons'] ?? array();
-        
+
         /*
          * Initialize keeper
          */
@@ -242,7 +242,7 @@ class RestoContext
         if (isset($jsonData)) {
             $payload['data'] = $jsonData;
         }
-        
+
         return JWT::encode($payload, $this->core['passphrase']);
     }
 
@@ -257,7 +257,7 @@ class RestoContext
     public function createRJWT($identifier, $duration, $jsonData = null)
     {
         $splitJWT = explode('.', $this->createJWT($identifier, $duration, $jsonData));
-        return $splitJWT[1] . '.' .$splitJWT[2];
+        return $splitJWT[1] . '.' . $splitJWT[2];
     }
 
     /**
@@ -276,7 +276,7 @@ class RestoContext
             if (count(explode('.', $token)) == 2) {
                 $token = $this->JWTDefaultHeader . $token;
             }
-            
+
             $payload = json_decode(json_encode((array) JWT::decode($token, $this->core['passphrase'], array('HS256')), JSON_UNESCAPED_SLASHES), true);
 
             // Check if this token has expired
@@ -326,22 +326,22 @@ class RestoContext
          * Initialize path
          */
         $this->setPath();
-        
+
         /*
          * Initialize output format
          */
         $this->setOutputFormat();
-        
+
         /*
          * Initialize database driver
          */
         $this->dbDriver = new RestoDatabaseDriver($config['database'] ?? null);
-        
+
         /*
          * Set servicesInfos
          */
         $this->servicesInfos = $config['serviceInfos'] ?? array();
-        
+
         /*
          * Initialize query array
          */
@@ -359,7 +359,7 @@ class RestoContext
          * Note: PUT is handled by Router->readInputData() function
          */
         $query = array();
-        
+
         switch ($this->method) {
             case 'GET':
             case 'DELETE':
@@ -370,7 +370,7 @@ class RestoContext
             default:
                 break;
         }
-        
+
         /*
          * Remove unwanted parameters
          */
@@ -408,7 +408,7 @@ class RestoContext
     private function setOutputFormat()
     {
         $this->outputFormat = $this->getPathSuffix();
-        
+
         /*
          * Extract outputFormat from HTTP_ACCEPT
          */

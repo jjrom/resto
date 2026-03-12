@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright 2018 Jérôme Gasperi
  *
@@ -219,9 +220,8 @@ class Auth extends RestoAddOn
      */
     public function authenticateWithToken($params, $data = array())
     {
-
         // Authentication issuer is mandatory
-        if ( !isset($params) || !isset($params['issuerId']) )  {
+        if (!isset($params) || !isset($params['issuerId'])) {
             RestoLogUtil::httpError(400, 'Missing input issuerId');
         }
 
@@ -289,12 +289,13 @@ class Auth extends RestoAddOn
      *
      * @param array $provider
      */
-    private function validateOpenIDToken($provider) {
+    private function validateOpenIDToken($provider)
+    {
 
         $token = $this->data['token'];
         $audience = $provider['clientId']; // TODO - verify Token
 
-        if ( empty($provider['openidConfigurationUrl']) ) {
+        if (empty($provider['openidConfigurationUrl'])) {
             RestoLogUtil::httpError(400, 'Missing openIdConfigurationUrl in provider configuration');
         }
         $openidConfigurationUrl = $provider['openidConfigurationUrl'];
@@ -346,10 +347,9 @@ class Auth extends RestoAddOn
         /*
          * Step 1. Get access token
          */
-        if (isset($this->data['code']) && isset($this->data['redirectUri'])){
+        if (isset($this->data['code']) && isset($this->data['redirectUri'])) {
             $accessToken = $this->oauth2GetAccessToken($provider);
-        }
-        elseif (isset($this->data['token']) ){
+        } elseif (isset($this->data['token'])) {
             $accessToken = $this->validateOpenIDToken($provider);
         }
 
@@ -387,13 +387,12 @@ class Auth extends RestoAddOn
         try {
             $curl = new Curly();
 
-            if ( isset($provider['useUrlEncoded']) && $provider['useUrlEncoded'] ) {
+            if (isset($provider['useUrlEncoded']) && $provider['useUrlEncoded']) {
                 $curl->setHeaders(array(
                     'Content-Type:application/x-www-form-urlencoded'
                 ));
-                $postResponse = json_decode($curl->post($provider['accessTokenUrl'] , http_build_query($params)), true);
-            }
-            else {
+                $postResponse = json_decode($curl->post($provider['accessTokenUrl'], http_build_query($params)), true);
+            } else {
                 $postResponse = json_decode($curl->post($provider['accessTokenUrl'], json_encode($params)), true);
             }
 
@@ -403,7 +402,7 @@ class Auth extends RestoAddOn
             RestoLogUtil::httpError($e->getCode(), $e->getMessage());
         }
 
-        if ( isset($postResponse['error']) ) {
+        if (isset($postResponse['error'])) {
             RestoLogUtil::httpError(400, $postResponse['error']);
         }
 
@@ -434,7 +433,7 @@ class Auth extends RestoAddOn
             RestoLogUtil::httpError($e->getCode(), $e->getMessage());
         }
 
-        if ( !isset($profileResponse) ) {
+        if (!isset($profileResponse)) {
             RestoLogUtil::httpError(401, 'Unauthorized');
         }
 
@@ -509,7 +508,7 @@ class Auth extends RestoAddOn
         /*
          * No provider => exit
          */
-        if ( !isset($providers[$issuerId])) {
+        if (!isset($providers[$issuerId])) {
             RestoLogUtil::httpError(400, 'No configuration found for issuer "' . $issuerId . '"');
         }
 
@@ -525,7 +524,7 @@ class Auth extends RestoAddOn
         /*
          * Set default protocol to oauth2 if not set
          */
-        if ( !isset($provider['protocol']) ) {
+        if (!isset($provider['protocol'])) {
             $provider['protocol'] = 'oauth2';
         }
 
@@ -544,7 +543,8 @@ class Auth extends RestoAddOn
         if (isset($profile['email'])) {
             try {
                 $user = new RestoUser(array('email' => strtolower($profile['email'])), $this->context, true);
-            } catch (Exception $e) {}
+            } catch (Exception $e) {
+            }
         }
 
         // User exists => return JWT
@@ -588,25 +588,40 @@ class Auth extends RestoAddOn
 
     /**
      * Set groups from profile if any
-     * 
+     *
      * @param {RestoUser} $user
      * @param array $profile
      * @param array $provider
      */
     private function setGroups($user, $profile, $provider)
     {
-        
-        if ( !$this->options['setGroups'] || !isset($profile['groups'])) {
+
+        if (!$this->options['setGroups'] || !isset($profile['groups'])) {
             return;
         }
-        
+
         $groupsFunctions = new GroupsFunctions($this->context->dbDriver);
         $userGroups = $groupsFunctions->getGroups(array('userid' => $user->profile['id']));
-        $userGroupNames = array_map(function($g) { return $g['name']; }, $userGroups);
+        $userGroupNames = array_map(function ($g) { return $g['name']; }, $userGroups);
 
+        $inputGroups = $profile['groups'];
+
+        $groupsInDB = $groupsFunctions->getGroups(array('exclude_user_groups' => true));
+        $groupNamesInDB = array_map(fn ($value) => $value['name'], $groupsInDB);
         // Add user to groups in inputGroups not already associated
         foreach ($inputGroups as $groupName) {
-            if (!in_array($groupName, $userGroupNames)) {
+            if (($this->options['ignoreUppercaseGroups'] == false || !preg_match('/[A-Z]/', $groupName)) && !in_array($groupName, $userGroupNames)) {
+                if (!in_array($groupName, $groupNamesInDB)) {
+                    if (str_ends_with($groupName, RestoUser::USER_GROUP_SUFFIX)) {
+                        RestoLogUtil::httpError(403, "Cannot create private group");
+                    }
+                    $groupsFunctions->createGroup(array(
+                      "name" => $groupName,
+                      "owner" => $user->profile['id'],
+                      "private" => 0,
+                      "description" => "Created automaticaly during " . $user->profile['username'] . " login",
+                    ));
+                }
                 $group = $groupsFunctions->getGroup($groupName);
                 if (isset($group['id'])) {
                     $groupsFunctions->addUserToGroup(array('id' => $group['id']), $user->profile['id'], true);
@@ -614,13 +629,13 @@ class Auth extends RestoAddOn
             }
         }
 
+        $internalGroups = array("admin", "default");
         // Remove user from groups not in inputGroups
         foreach ($userGroups as $group) {
-            if (!in_array($group['name'], $inputGroups)) {
+            if ($group['private'] === 0 && !in_array($group['name'], $inputGroups) && !in_array($group['name'], $internalGroups)) {
                 $groupsFunctions->removeUserFromGroup(array('id' => $group['id']), $user->profile['id'], true);
             }
         }
-
     }
 
     /**
@@ -759,7 +774,7 @@ class Auth extends RestoAddOn
     }
 
     /**
-     * 
+     *
      * Example of EDITO profile return
      * {
      *      "sub": "5f3febcc-3cd6-47b4-a208-c50684d48cd7",
@@ -807,7 +822,7 @@ class Auth extends RestoAddOn
     private function convertGeneric($provider, $profile)
     {
 
-        if ( !isset($provider['mapping']) ) {
+        if (!isset($provider['mapping'])) {
             return $profile;
         }
 
@@ -849,7 +864,7 @@ class Auth extends RestoAddOn
     {
         $providers = array();
 
-        if ( !isset($str) ) {
+        if (!isset($str)) {
             return $providers;
         }
 
@@ -904,7 +919,8 @@ class Auth extends RestoAddOn
         ) : array();
 
         // create an array of nice possible user names from the first name and last name
-        array_push($userNamesList,
+        array_push(
+            $userNamesList,
             $firstname,                           //john
             $lastname,                            //doe
             $firstname.$lastname,                 //johndoe
@@ -931,10 +947,10 @@ class Auth extends RestoAddOn
             if ($limit) {
                 break;
             }
-        } while ( !$isAvailable );
+        } while (!$isAvailable);
 
         // No unique ? Use random
-        if( !$isAvailable ){
+        if (!$isAvailable) {
             return $firstname . $lastname . random_int(1, 9999);
         }
         return $availableUserName;

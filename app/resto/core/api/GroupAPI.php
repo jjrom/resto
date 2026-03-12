@@ -269,22 +269,27 @@ class GroupAPI
     public function createGroup($params, $body)
     {
 
+        if (str_ends_with($body['name'], RestoUser::USER_GROUP_SUFFIX)) {
+            RestoLogUtil::httpError(400, 'Group name cannot end with '. RestoUser::USER_GROUP_SUFFIX );
+        }
         // Owner of group can only be set by admin user
-        if ( isset($body['owner']) && !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+        if (isset($body['owner']) && !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
             RestoLogUtil::httpError(403, 'You are not allowed to set property "owner"');
-        } 
-        
+        }
+
+        if ($this->context->core['automaticGroupCreationFromIdp']) {
+            RestoLogUtil::httpError(403, 'You are not allowed to create a group when connecting through external identity provider, ask an administrator');
+        }
         // Force owner to POSTING user
         $body['owner'] = $body['owner'] ?? $this->user->profile['id'];
         $body['private'] = 0;
-        
+
         $group = (new GroupsFunctions($this->context->dbDriver))->createGroup($body);
-        
+
         // When you create a group, you're in the group unless you're an admin
-        if ( !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID ) ) {
+        if (!$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
             (new GroupsFunctions($this->context->dbDriver))->addUserToGroup(array('id' => $group['id']), $body['owner']);
         }
-        
         return RestoLogUtil::success('Group created', $group);
     }
 
@@ -432,7 +437,7 @@ class GroupAPI
             RestoLogUtil::httpError(400, 'Mandatory username property is missing in message body');
         }
 
-        $user = new RestoUser(array('username' => $body['username']), $this->context);
+        $user = new RestoUser(array('username' => strtolower($body['username'])), $this->context);
         
         /*
          * [SECURITY] Only owner and admin can add user to group

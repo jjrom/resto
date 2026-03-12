@@ -1,4 +1,5 @@
 # About
+
 [![Build](https://github.com/jjrom/resto/actions/workflows/build-image.yml/badge.svg)](https://github.com/jjrom/resto/actions/workflows/build-image.yml/badge.svg "Build")
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/jjrom/resto.svg)](http://isitmaintained.com/project/jjrom/resto "Average time to resolve an issue")
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/jjrom/resto.svg)](http://isitmaintained.com/project/jjrom/resto "Percentage of issues still open")
@@ -10,14 +11,16 @@ resto search API conforms to the [SpatioTemporal Asset Catalog (STAC) specificat
 # Installation
 
 ## TL;DR
+
 The [INSTALLATION.md](./docs/INSTALLATION.md) file provides additional information on the installation process.
 
 ## Deploy the service
+
 To launch a default pre-configured resto instance, just type :
 
     ./deploy
 
-This will build locally the jjrom/resto image and launch a resto container exposing the resto API service at **http://localhost:5252**
+This will build locally the jjrom/resto image and launch a resto container exposing the resto API service at **<http://localhost:5252>**
 
 To launch a default develop resto instance (i.e. with RESTO_DEBUG set to true and all database logs), just type :
 
@@ -28,14 +31,17 @@ To launch a default develop resto instance using a connection pooling, just type
     ./deploy -e config-dev-pgbouncer.env
 
 ### [IMPORTANT] Docker on Mac M1
+
 If you're using docker on Mac with apple Silicon M1 chip, be sure to **turn off "Use Rosetta for x86/amd64 emulation on Apple Silicon"** in Docker Desktop > Settings > General.
 
 When this option is turned on, every calls to PHP preg_match function (which is used by resto) leads to a segmentation fault within php fpm and an HTTP 502 Bad Gateway error in nginx. Why ? I just don't know !
 
 ## Users, groups and rights
+
 See [USERS_AND_RIGHTS.md](./docs/USERS_AND_RIGHTS.md)
 
 ## Collection and catalogs
+
 See [COLLECTIONS_CATALOGS_ITEMS.md](./docs/COLLECTIONS_CATALOGS_ITEMS.md)
 
 # References
@@ -57,3 +63,15 @@ Here are some projects that use resto.
 * [IRSTEA Thisme project - THeia and Irstea Soil MoisturE catalog](https://thisme.cines.teledetection.fr/home)
 
 If you plan to use resto and would like to have your project added to this list, feel free to contact [support](#support)
+
+## Debug
+
+In order to attach a debugger, you need to have xdebug enabled in resto:
+
+    ./deploy -e config-dev.env
+
+You can check <http://localhost:5252/_debug> to see if everything is activated.
+
+You then have to install everything on your IDE (VSCode, Nvim, ...) don't forget to add the pathMappings so your filePath matches the ones in the docker.
+
+For a nvim (and vscode) configuration see here: <https://gitlab.com/mbitard/nvim-config/-/blob/main/lua/plugins/php-dap.lua?ref_type=heads#L22>

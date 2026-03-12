@@ -101,7 +101,7 @@ class RightsAPI
          * [SECURITY] Only user and admin can see user rights
          */
         $isAdmin = $this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID);
-        if ( !$isAdmin ) {
+        if (!$isAdmin) {
             RestoUtil::checkUserName($this->user, $params['username']);
         }
 
@@ -242,17 +242,17 @@ class RightsAPI
         /*
          * [SECURITY] Only admin can set user rights
          */
-        if ( !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+        if (!$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
             RestoLogUtil::httpError(403);
         }
 
-        if ( empty($body) ) {
+        if (empty($body)) {
             RestoLogUtil::httpError(400, 'No rights to set');
         }
 
         // Get user just to be sure that it exists !
         $user = new RestoUser(array('username' => $params['username']), $this->context);
-        
+
         return RestoLogUtil::success('Rights set', array(
             'rights' => (new RightsFunctions($this->context->dbDriver))->storeOrUpdateRights('userid', $user->profile['id'], $body)
         ));
@@ -337,7 +337,7 @@ class RightsAPI
     public function setCatalogsRights($params, $body)
     {
 
-        if ( empty($body) ) {
+        if (empty($body)) {
             RestoLogUtil::httpError(400, 'No rights to set');
         }
 
@@ -349,14 +349,14 @@ class RightsAPI
             $catalogs = $catalogsFunctions->getCatalogs(array(
                 'id' => $catalogId
             ), false);
-            if ( empty($catalogs) ) {
+            if (empty($catalogs)) {
                 RestoLogUtil::httpError(400, 'Catalog ' . $catalogId . 'does not exist');
             }
-            if ( !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
-                if ( $this->user->profile['id'] !== $catalogs[0]['owner'] ) {
+            if (!$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
+                if ($this->user->profile['id'] !== $catalogs[0]['owner']) {
                     RestoLogUtil::httpError(403, 'You are not allowed to set rights on catalog ' . $catalogId);
                 }
-            }  
+            }
         }
 
         // Get user just to be sure that it exists !
@@ -443,24 +443,37 @@ class RightsAPI
      */
     public function setGroupRights($params, $body)
     {
-        /*
-         * [SECURITY] Only admin can set group rights
-         */
-        if ( !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
-            RestoLogUtil::httpError(403);
-        }
 
-        if ( empty($body) ) {
+        if (empty($body)) {
             RestoLogUtil::httpError(400, 'No rights to set');
         }
 
         // Get group just to be sure that it exists !
         $group = (new GroupsFunctions($this->context->dbDriver))->getGroup($params['name']);
 
-        return RestoLogUtil::success('Rights set', array(
-            'rights' => (new RightsFunctions($this->context->dbDriver))->storeOrUpdateRights('groupid', $group['id'], $body)
-        ));
+        if (!$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
+            if (!$group['owner'] === $this->user->id) {
+                RestoLogUtil::httpError(403, 'Only the owner of the group can set rights');
+            }
 
+            $allGroupRights = RestoGroup::getAllRights($params['name']);
+            foreach (array_keys($body) as $bodyRight) {
+                if (!in_array($bodyRight, $allGroupRights)) {
+                    RestoLogUtil::httpError(400, 'Cannot set rights not belonging to group');
+                }
+            }
+
+            return RestoLogUtil::success('Rights set', array(
+                'rights' => (new RightsFunctions($this->context->dbDriver))->storeOrUpdateRights('groupid', $group['id'], rights: $body)
+            ));
+        } else {
+            /*
+             * [SECURITY] Only admin can set any group rights
+             */
+            return RestoLogUtil::success('Rights set', array(
+                'rights' => (new RightsFunctions($this->context->dbDriver))->storeOrUpdateRights('groupid', $group['id'], rights: $body)
+            ));
+        }
     }
 
 }

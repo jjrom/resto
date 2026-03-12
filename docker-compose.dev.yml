@@ -1,5 +1,6 @@
 services:
   resto:
+    restart: no
     environment: 
       # Set to 0 in production environment to activate opcache
       - RESTO_DEBUG=1
@@ -10,6 +11,10 @@ services:
       - ./app/resto/core:/app/resto/core:ro
       - ./app/vendor:/app/vendor:ro
       - ./build/resto/container_root/cont-init.d/:/etc/cont-init.d/:ro
+      - ./admin_scripts:/admin_scripts:ro
   restodb:
+    restart: no
+    ports:
+      - 5432:5432
     volumes:
       - ./postgresql-conf/postgresql-dev.conf:/etc/postgresql.conf

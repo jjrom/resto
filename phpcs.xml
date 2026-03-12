@@ -1,0 +1,1 @@
+<rule ref="PSR1"><exclude name="PSR1.Classes.ClassDeclaration.MissingNamespace" /></rule>

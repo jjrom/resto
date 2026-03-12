@@ -37,6 +37,7 @@ class RestoRouter
     const ROUTE_TO_GROUPS = '/groups';
     
     const ROUTE_TO_LIVENESS = '/_isLive';
+    const ROUTE_TO_DEBUG = '/_debug';
     const ROUTE_TO_RESET_PASSWORD = '/services/password/reset';
     const ROUTE_TO_SEND_ACTIVATION_LINK = '/services/activation/send';
     const ROUTE_TO_STAC_CHILDREN = '/children';
@@ -53,6 +54,7 @@ class RestoRouter
         // Liveness and readyness for cloud
         array('GET',    '/', false, 'ServicesAPI::hello'),                                                                              // Landing page
         array('GET',    RestoRouter::ROUTE_TO_LIVENESS, false, 'StatusAPI::isLive'),                                                    // Liveness
+        array('GET',    RestoRouter::ROUTE_TO_DEBUG, false, 'StatusAPI::debug'),                                                    // Liveness
         
         // Landing page and conformance (see WFS 3.0)                                                                           
         array('GET',    RestoRouter::ROUTE_TO_API, false, 'ServicesAPI::api'),                                                          // API page
