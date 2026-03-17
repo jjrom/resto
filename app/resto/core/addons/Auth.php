@@ -152,7 +152,10 @@ class Auth extends RestoAddOn
         'edito' => array(
             'protocol' => 'oauth2',
             'useUrlEncoded' => true,
-            'forceCreation' => true
+            'forceCreation' => true,
+            'mapping' => array(
+                'username' => 'preferred_username'
+            )
         )
 
     );
