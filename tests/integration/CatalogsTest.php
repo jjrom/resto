@@ -130,4 +130,37 @@ final class CatalogsTest extends TestCase
         $decoded = json_decode($response);
         $this->assertSame($decoded->status, "success", $response);
     }
+
+    #[Group('only')]
+    public function testAdminCanPinCatalog(): void
+    {
+        $utils = new Utils();
+        $userHasCatalogRight = uniqid("userwithcatalogright");
+        $utils->createAPIUser($userHasCatalogRight);
+        $createCatalogRight = ["createCatalog" => true];
+
+        $utils->adminAddRightsToUserAPI($userHasCatalogRight, $createCatalogRight);
+        $pinnedName =uniqid("newPinnedCatalog");
+        $catalogPinned = Utils::catalog($pinnedName, []);
+        $catalogPinned['pinned'] = true;
+
+        $response = Utils::httpPost("http://" . $userHasCatalogRight . ":dummy@localhost:5252/catalogs/projects", json_encode($catalogPinned));
+        $decoded = json_decode($response);
+        $this->assertSame($decoded->ErrorCode, 403, $response);
+
+        //Admin can pin catalog
+        $response = Utils::httpPost("http://admin:admin@localhost:5252/catalogs/projects", json_encode($catalogPinned));
+        $decoded = json_decode($response);
+        $this->assertSame($decoded->status, "success", $response);
+
+        $response = Utils::httpGet("http://" . $userHasCatalogRight . ":dummy@localhost:5252/catalogs");
+        $decoded = json_decode($response);
+        $ids = array();
+        for ($i = 0; $i < count($decoded->links); $i++) {
+            if (isset($decoded->links[$i]->id)) {
+                array_push($ids, $decoded->links[$i]->id);
+            }
+        }
+        $this->assertContains("projects/" . $pinnedName, $ids, $response);
+    }
 }
