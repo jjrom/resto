@@ -1911,11 +1911,20 @@ class STACAPI
         }
 
         // Get first level catalog
-        $catalogs = $this->catalogsFunctions->getCatalogs(array(
+        $firstLevelCatalogs = $this->catalogsFunctions->getCatalogs(array(
             'level' => 1,
             'q' => $params['q'] ?? null,
             'countCatalogs' => isset($params['_countCatalogs']) ? filter_var($params['_countCatalogs'], FILTER_VALIDATE_BOOLEAN) : $this->context->core['countCatalogs']
         ), false);
+
+               // Add pinned catalogs
+        $pinnedCatalogs = $this->catalogsFunctions->getCatalogs(array(
+            'where' => 'pinned IS TRUE',
+            'countCatalogs' => false,
+            'noProperties' => true
+        ), false);
+
+        $catalogs =  array_merge( $pinnedCatalogs, $firstLevelCatalogs);
 
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
 
