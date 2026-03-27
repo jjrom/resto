@@ -130,8 +130,7 @@ final class CatalogsTest extends TestCase
         $decoded = json_decode($response);
         $this->assertSame($decoded->status, "success", $response);
     }
-
-    #[Group('only')]
+     #[Group('only')]
     public function testAdminCanPinCatalog(): void
     {
         $utils = new Utils();
@@ -162,5 +161,31 @@ final class CatalogsTest extends TestCase
             }
         }
         $this->assertContains("projects/" . $pinnedName, $ids, $response);
+    }
+
+    #[Group('only')]
+    public function testAdminCanManageCatalogVisibility(): void
+    {
+        $utils = new Utils();
+        $userHasCatalogRight = uniqid("userwithcatalogright");
+        $utils->createAPIUser($userHasCatalogRight);
+        $createCatalogRight = ["createCatalog" => true];
+
+        $utils->adminAddRightsToUserAPI($userHasCatalogRight, $createCatalogRight);
+        $catalogNoVisibility = Utils::catalog(uniqid("newcatalognovisibility"), []);
+        $utils->createCatalogAPI($userHasCatalogRight, $catalogNoVisibility);
+
+        $catalogNoVisibility['visibility'] = ['default'];
+
+        //admin can change the visibility to default
+        $response = Utils::httpPut("http://admin:admin@localhost:5252/catalogs/projects/" . $catalogNoVisibility['id'], json_encode($catalogNoVisibility));
+        $decoded = json_decode($response);
+        $this->assertSame($decoded->status, "success", $response);
+
+        $catalogDefaultVisibility = Utils::catalog(uniqid("newcatalogDefaultVisibility"), ['default']);
+        
+        $response = Utils::httpPost("http://admin:admin@localhost:5252/catalogs/projects", json_encode($catalogDefaultVisibility));
+        $decoded = json_decode($response);
+        $this->assertSame($decoded->status, "success", $response);
     }
 }

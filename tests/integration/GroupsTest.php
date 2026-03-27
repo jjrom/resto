@@ -332,12 +332,53 @@ final class GroupsTest extends TestCase
 
     }
 
-    //Create  catalog with group right
+    #[Group('only')]
+    public function testAdminCanManageGroupCatalogVisibility(): void
+    {
 
-    // Update catalog with group right
-    // Delete catalog with group right
-    //Catalog test
-    //check creation outiside of 'projects' and 'users' catalogs
-    //catalog creation creates collection even without collection right?! type=collection...
+        $utils = new Utils();
+        $groupOwnerUserName = uniqid("groupowner");
+        $utils->createAPIUser($groupOwnerUserName);
 
+        $groupName = uniqid("catalogManagementGroup");
+        $groupRight = [
+            RestoGroup::createCatalogRight($groupName) => true,
+            RestoGroup::updateCatalogRight($groupName) => true,
+            RestoGroup::deleteCatalogRight($groupName) => true,
+        ];
+        $utils->createAPIGroup($groupOwnerUserName, $groupName);
+        $utils->addRightToGroupAPI($groupOwnerUserName, $groupName, $groupRight);
+
+        //create catalog
+        $catalogId =  uniqid("catalog");
+        $catalog = Utils::catalog($catalogId, [$groupName]);
+        $response = Utils::httpPost("http://" . $groupOwnerUserName . ":dummy@localhost:5252/catalogs/projects", json_encode($catalog));
+        $decoded = json_decode($response);
+        $this->assertSame($decoded->status, "success", $response);
+
+        $catalog['visibility'] = ['default'];
+
+        //admin can change the visibility to default
+        $response = Utils::httpPut("http://admin:admin@localhost:5252/catalogs/projects/" . $catalog['id'], json_encode($catalog));
+        $decoded = json_decode($response);
+        $this->assertSame($decoded->status, "success", $response);
+
+        $catalog['visibility'] = [$groupName];
+
+        //admin can change the visibility back to group
+        $response = Utils::httpPut("http://admin:admin@localhost:5252/catalogs/projects/" . $catalog['id'], json_encode($catalog));
+        $decoded = json_decode($response);
+        $this->assertSame($decoded->status, "success", $response);
+
+
+        $response = Utils::httpGet("http://admin:admin@localhost:5252/catalogs/projects/" . $catalog['id']);
+        $decoded = json_decode($response);
+        $this->assertSame($decoded->id,  $catalog['id'], $response);
+
+        $catalogDefaultVisibility = Utils::catalog(uniqid("newcatalogDefaultVisibility"), ['default']);
+
+        $response = Utils::httpPost("http://admin:admin@localhost:5252/catalogs/projects/" . $catalog['id'], json_encode($catalogDefaultVisibility));
+        $decoded = json_decode($response);
+        $this->assertSame($decoded->status, "success", $response);
+    }
 }
