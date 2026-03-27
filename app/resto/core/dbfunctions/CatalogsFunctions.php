@@ -152,7 +152,7 @@ class CatalogsFunctions
         ), false);
 
         if ( isset($catalogs) && count($catalogs) > 0) {
-            if ( !$this->canSeeCatalog($catalogs[0]['visibility'], $user) ) {
+            if ( !$this->canSeeCatalog($catalogs[0]['visibility'], $user) && !$user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
                 RestoLogUtil::httpError(403, 'You are not allowed to access this catalog');
             }
             return $catalogs[0];

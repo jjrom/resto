@@ -597,7 +597,7 @@ class STACAPI
                 RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group');
             }
 
-            if (!$this->catalogsFunctions->canSeeCatalog($body['visibility'], $this->user, true)) {
+            if (!$this->catalogsFunctions->canSeeCatalog($body['visibility'], $this->user, true) && !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
                 RestoLogUtil::httpError(403, 'You are not allowed to set the visibility to a group you are not part of');
             }
         }
@@ -1521,7 +1521,7 @@ class STACAPI
                     break;
                 }
             }
-            if (!$canSee) {
+            if (!$canSee && !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
                 RestoLogUtil::httpError(403, 'You are not allowed to access this catalog');
             }
         }
@@ -1575,7 +1575,7 @@ class STACAPI
         }
 
         if ($catalogs[0]['visibility']) {
-            if (!$this->catalogsFunctions->canSeeCatalog($catalogs[0]['visibility'], $this->user)) {
+            if (!$this->catalogsFunctions->canSeeCatalog($catalogs[0]['visibility'], $this->user) && !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
                 RestoLogUtil::httpError(403, 'You are not allowed to access this catalog');
             }
         }
