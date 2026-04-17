@@ -1511,8 +1511,24 @@ class STACAPI
             return $this->processExternalCatalog($catalogs[0], $selfHref);
         }
 
+        $filtered_catalogs = array($catalogs[0]);
+
+        for ($i = 1, $ii = count($catalogs); $i < $ii; $i++) {
+            if ($this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
+              $filtered_catalogs[] = $catalogs[$i];
+            } else if ($catalogs[$i]['visibility']) {
+              for ($j = count($catalogs[$i]['visibility']); $j--;) {
+                  if ($this->user->hasGroup($catalogs[$i]['visibility'][$j])) {
+                      $filtered_catalogs[] = $catalogs[$i];
+                      break;
+                  }
+              }
+            } else {
+              $filtered_catalogs[] = $catalogs[$i];
+            }
+        }
         // The path is the catalog identifier
-        $parentAndChilds = $this->getParentAndChilds($catalogs, $params);
+        $parentAndChilds = $this->getParentAndChilds($filtered_catalogs, $params);
         if ($parentAndChilds['parent']['visibility']) {
             $canSee = false;
             for ($i = count($parentAndChilds['parent']['visibility']); $i--;) {

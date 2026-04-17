@@ -12,6 +12,8 @@ services:
       - ./app/vendor:/app/vendor:ro
       - ./build/resto/container_root/cont-init.d/:/etc/cont-init.d/:ro
       - ./admin_scripts:/admin_scripts:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   restodb:
     restart: no
     ports:
