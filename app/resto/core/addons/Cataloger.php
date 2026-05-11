@@ -62,7 +62,7 @@ class Cataloger extends RestoAddOn
     public function getCatalogs($properties, $geometry, $collection, $iTagParams)
     {
         $iTagHasEndpoint = isset($this->options['iTag']) && !empty($this->options['iTag']['endpoint']);
-        if ( $iTagHasEndpoint ) {
+        if ($iTagHasEndpoint) {
             return array_merge($this->catalogsFromITag($properties, $geometry, $iTagParams), $this->catalogsFromProperties($properties, $collection, true));
         }
         return $this->catalogsFromProperties($properties, $collection, $iTagHasEndpoint);
@@ -112,7 +112,7 @@ class Cataloger extends RestoAddOn
                             'description' => 'Catalog of features per hashtags'
                         )
                     );
-                    foreach (array_keys($hashtagsArray) as $key) {                  
+                    foreach (array_keys($hashtagsArray) as $key) {
                         $catalogs[] = array(
                             'id' => 'hashtags/' . $key,
                             'title' => $key,
@@ -135,11 +135,11 @@ class Cataloger extends RestoAddOn
      */
     private function catalogsFromITag($properties, $geometry, $iTagParams)
     {
-        
-        if ( !isset($iTagParams) || empty($iTagParams['taggers']) || !isset($geometry)) {
+
+        if (!isset($iTagParams) || empty($iTagParams['taggers']) || !isset($geometry)) {
             return array();
         }
-        
+
         $taggerKeys = array_keys($iTagParams['taggers']);
         $queryParams = array(
             'geometry' => RestoGeometryUtil::geoJSONGeometryToWKT($geometry),
@@ -159,7 +159,7 @@ class Cataloger extends RestoAddOn
                 $queryParams[strtolower($taggerKeys[$i]) . '_' . $optionName] = $optionValue;
             }
         }
-        
+
         try {
             $curl = new Curly();
             $iTagFeature = json_decode($curl->get($this->options['iTag']['endpoint'] . '?' . http_build_query($queryParams)), true);
@@ -168,7 +168,7 @@ class Cataloger extends RestoAddOn
             $curl->close();
             RestoLogUtil::httpError($e->getCode(), $e->getMessage());
         }
-        
+
         /*
          * Return empty result
          */
@@ -239,11 +239,11 @@ class Cataloger extends RestoAddOn
                             'itag:population' => array(
                                 'count' => $value['count'],
                                 'densityPerSquareKm' => $value['densityPerSquareKm']
-                            )    
+                            )
                         )
                     );
                     break;
-                
+
                 case 'keywords':
                     $catalogs = array_merge($catalogs, $this->getCatalogsFromAlways($value));
                     break;
@@ -265,7 +265,7 @@ class Cataloger extends RestoAddOn
      */
     private function getCatalogsFromAlways($properties)
     {
-        
+
         $catalogs = array();
 
         foreach (array_values($properties) as $typeAndId) {
@@ -308,7 +308,7 @@ class Cataloger extends RestoAddOn
             foreach (array_values($properties['main']) as $landcover) {
                 $exploded = explode(RestoConstants::ITAG_SEPARATOR, $landcover['id']);
                 $id = $parentId . '/' . $exploded[1];
-                if ( !$this->alreadyExists($catalogs, $id) ) {
+                if (!$this->alreadyExists($catalogs, $id)) {
                     $catalogs[] = array(
                         'id' => $id,
                         'title' => $landcover['name'],
@@ -340,11 +340,11 @@ class Cataloger extends RestoAddOn
         /*
          * Main landcover
          */
-        for ($i = 0, $ii=count($physicals); $i < $ii; $i++) {
+        for ($i = 0, $ii = count($physicals); $i < $ii; $i++) {
             $exploded = explode(RestoConstants::ITAG_SEPARATOR, $physicals[$i]['id']);
             $type = $exploded[0];
             $id = $parentId . '/' . $type . 's';
-            if ( !$this->alreadyExists($catalogs, $type) ) {
+            if (!$this->alreadyExists($catalogs, $type)) {
                 $catalogs[] = array(
                     'id' => $id,
                     'title' => ucfirst($type) . 's',
@@ -374,7 +374,7 @@ class Cataloger extends RestoAddOn
                 $catalogs[] = $catalog;
 
                 switch ($catalog['rtype']) {
-                    
+
                     case 'continent':
                         $catalogs = array_merge($catalogs, $this->getCatalogsFromGeneric($properties[$i]['countries'], $catalog['id']));
                         break;
@@ -429,12 +429,12 @@ class Cataloger extends RestoAddOn
             $properties['gcover'] = $property['gcover'];
         }
 
-        if ( !empty($properties) ) {
+        if (!empty($properties)) {
             $catalog['properties'] = array(
                 'itag' . RestoConstants::ITAG_SEPARATOR . $property['id'] => $properties
             );
         }
-        
+
         return $catalog;
     }
 
@@ -454,11 +454,15 @@ class Cataloger extends RestoAddOn
          */
         $catalogs = $properties['resto:catalogs'] ?? array();
         for ($i = count($catalogs); $i--;) {
+            if (!isset($catalogs[$i]['id'])) {
+                unset($catalogs[$i]);
+                continue;
+            }
             $exploded = explode('/', $catalogs[$i]['id']);
             $catalogs[$i]['isExternal'] = true;
             $catalogs[$i]['rtype'] = 'catalog';
         }
-        
+
         /*
          * Roll over facet categories
          */
@@ -466,19 +470,19 @@ class Cataloger extends RestoAddOn
         foreach (array_values($model->facetCategories) as $facetCategory) {
             $catalogs = array_merge($catalogs, $this->catalogsFromFacetCategory($properties, $facetCategory, $model));
         }
-        
+
         /*
          * Compute catalogs from description
          */
         $hashtags = $this->catalogsFromText($properties['description'] ?? null);
-        if ( !empty($hashtags) ) {
+        if (!empty($hashtags)) {
             $catalogs = array_merge($catalogs, $hashtags);
         }
-        
+
         /*
          * Finnaly date catalogs
          */
-        return $addDateCatalogs? array_merge($catalogs, $this->getDateCatalogs($properties, $model)) : $catalogs;
+        return $addDateCatalogs ? array_merge($catalogs, $this->getDateCatalogs($properties, $model)) : $catalogs;
     }
 
     /**
@@ -497,7 +501,7 @@ class Cataloger extends RestoAddOn
         for ($i = 0, $ii = count($facetCategory); $i < $ii; $i++) {
             // Get value in properties for input facetCategory
             $value = $properties[$facetCategory[$i]] ?? null;
-            
+
             // If the facetCategory is not found, try the STAC alias
             if (!isset($value) && isset($model->stacMapping[$facetCategory[$i]])) {
                 $value = $properties[$model->stacMapping[$facetCategory[$i]]['key']] ?? null;
@@ -511,11 +515,11 @@ class Cataloger extends RestoAddOn
                 if (! is_array($value)) {
                     $value = array($value);
                 }
-                
+
                 $newParentId = null;
                 for ($j = 0, $jj = count($value); $j < $jj; $j++) {
                     // If parentId is null, create a root catalog using plural of facetCategory 
-                    if ( !isset($parentId) ) {
+                    if (!isset($parentId)) {
                         $parentId = $facetCategory[$i] . (substr($facetCategory[$i], -1) === 's' ? '' : 's');
                         if (! $this->alreadyExists($catalogs, $parentId)) {
                             $catalogs[] = array(

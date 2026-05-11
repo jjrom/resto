@@ -265,7 +265,7 @@ abstract class RestoModel
             'title' => 'Beginning of the time slice of the metadata creation. Format should follow RFC-3339',
             'pattern' => '^([0-9]{4})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\.[0-9]+)?(([Zz])|([\+|\-]([01][0-9]|2[0-3]):[0-5][0-9]))$'
         ),
-        
+
         'dc:end' => array(
             'key' => 'created',
             'osKey' => 'created_end',
@@ -444,7 +444,7 @@ abstract class RestoModel
         // Feature case
         if ($data['type'] === 'Feature') {
             $insert = $this->storeFeature($collection, $data, $params);
-            if ( isset($insert['result']) ) {
+            if (isset($insert['result'])) {
                 $featuresInserted[] = array(
                     'featureId' => $insert['result']['id'],
                     'productIdentifier' => $insert['result']['productIdentifier']
@@ -457,7 +457,7 @@ abstract class RestoModel
 
         // FeatureCollection case
         else {
-            for ($i = 0, $ii = count($data['features']); $i<$ii; $i++) {
+            for ($i = 0, $ii = count($data['features']); $i < $ii; $i++) {
                 try {
                     $insert = $this->storeFeature($collection, $data['features'][$i], $params);
                     if ($insert['result'] !== false) {
@@ -510,9 +510,9 @@ abstract class RestoModel
         /*
          * Owner of collection can only be set by admin user
          */
-        if ( isset($body['owner']) && !$collection->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+        if (isset($body['owner']) && !$collection->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
             RestoLogUtil::httpError(403, 'You are not allowed to change property "owner"');
-        } 
+        }
 
         return (new FeaturesFunctions($collection->context->dbDriver))->updateFeature(
             $feature,
@@ -567,7 +567,7 @@ abstract class RestoModel
         if (count($unknowns) > 0) {
             $params['searchTerms'] = isset($params['searchTerms']) ? $params['searchTerms'] . ' ' . join(' ', $unknowns) : join(' ', $unknowns);
         }
-        
+
         return $params;
     }
 
@@ -654,8 +654,7 @@ abstract class RestoModel
         }
         /*
          * Check pattern for number
-         */
-        elseif (isset($this->searchFilters[$filterKey]['minInclusive']) || isset($this->searchFilters[$filterKey]['maxInclusive'])) {
+         */ elseif (isset($this->searchFilters[$filterKey]['minInclusive']) || isset($this->searchFilters[$filterKey]['maxInclusive'])) {
             return $this->validateFilterNumber($filterKey, $value);
         }
 
@@ -677,7 +676,6 @@ abstract class RestoModel
          */
         $discardedProperties = array(
             'id',
-            'visibility',
             'sort_idx'/*,
             // [TODO] Remove ?
             'owner',
@@ -687,7 +685,7 @@ abstract class RestoModel
         );
 
         $properties = array();
-        
+
         /*
          * Initialiaze stac_extensions array
          */
@@ -703,30 +701,33 @@ abstract class RestoModel
             if (isset($this->stacMapping[$key])) {
                 $properties[$this->stacMapping[$key]['key']] = $this->convertTo($featureArray['properties'][$key], $this->stacMapping[$key]['convertTo'] ?? null);
             } else {
-                $properties[$key] = $featureArray['properties'][$key];
+                if ($key == 'visibility') {
+                    $properties[$key] = (new GeneralFunctions($collection->context->dbDriver))->visibilityIdsToNames($featureArray['properties'][$key]);
+                } else {
+                    $properties[$key] = $featureArray['properties'][$key];
+                }
             }
 
             // [STAC] Detect extensions in properties
             $explodes = explode(':', $key);
             if (count($explodes) > 1) {
                 foreach (STACUtil::$extensions as $extensionPrefix => $extensionValue) {
-                    if ( $extensionPrefix ===  $explodes[0] && !in_array($extensionValue['id'], $stac_extensions)) {
+                    if ($extensionPrefix ===  $explodes[0] && !in_array($extensionValue['id'], $stac_extensions)) {
                         $stac_extensions[] = $extensionValue['id'];
                         break;
                     }
                 }
             }
-    
         }
 
         // [STAC] Detect extensions in links
-        if ( isset($featureArray['links']) ) {
-            for ($i = count($featureArray['links']); $i--; ) {
+        if (isset($featureArray['links'])) {
+            for ($i = count($featureArray['links']); $i--;) {
                 foreach (array_keys($featureArray['links'][$i]) as $key) {
                     $explodes = explode(':', $key);
                     if (count($explodes) > 1) {
                         foreach (STACUtil::$extensions as $extensionPrefix => $extensionValue) {
-                            if ( $extensionPrefix ===  $explodes[0] && !in_array($extensionValue['id'], $stac_extensions)) {
+                            if ($extensionPrefix ===  $explodes[0] && !in_array($extensionValue['id'], $stac_extensions)) {
                                 $stac_extensions[] = $extensionValue['id'];
                                 break;
                             }
@@ -735,7 +736,7 @@ abstract class RestoModel
                 }
             }
         }
-        
+
         $featureArray = array_merge($featureArray, array(
             'stac_extensions' => $stac_extensions,
             'properties' => $properties
@@ -744,7 +745,7 @@ abstract class RestoModel
         /*
          * JSON-LD additionnal metadata
          */
-        if ( isset($collection) && $collection->context->core['useJSONLD']) {
+        if (isset($collection) && $collection->context->core['useJSONLD']) {
             $featureArray = JSONLDUtil::addDatasetsMetadata($featureArray);
         }
 
@@ -819,7 +820,7 @@ abstract class RestoModel
 
                 // Convert to STAC
                 $osKey = $this->searchFilters[$key]['osKey'];
-                $arr[isset($this->stacMapping[$osKey]) ? $this->stacMapping[$osKey]['key']: $osKey] = $obj;
+                $arr[isset($this->stacMapping[$osKey]) ? $this->stacMapping[$osKey]['key'] : $osKey] = $obj;
             }
         }
         return $arr;
@@ -884,9 +885,9 @@ abstract class RestoModel
         /*
          * Owner of collection can only be set by admin user
          */
-        if ( isset($data['owner']) && !$collection->user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+        if (isset($data['owner']) && !$collection->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
             RestoLogUtil::httpError(403, 'You are not allowed to set property "owner"');
-        } 
+        }
 
         /*
          * Input feature cannot have both an id and a productIdentifier
@@ -902,7 +903,7 @@ abstract class RestoModel
          * [WARNING] New in resto 7.x - if input id / productIdentifier is already a valid UUID use it directly
          * Correct issue #342 to be STAC compatible
          */
-        $featureId = isset($productIdentifier) ? (RestoUtil::isValidUUID($productIdentifier) ? $productIdentifier : RestoUtil::toUUID($productIdentifier)) : RestoUtil::toUUID(md5(microtime().rand()));
+        $featureId = isset($productIdentifier) ? (RestoUtil::isValidUUID($productIdentifier) ? $productIdentifier : RestoUtil::toUUID($productIdentifier)) : RestoUtil::toUUID(md5(microtime() . rand()));
 
         /*
          * First check if feature is already in database
@@ -912,7 +913,7 @@ abstract class RestoModel
          */
         if (isset($productIdentifier)) {
             $minimalFeature = (new FeaturesFunctions($collection->context->dbDriver))->getMinimalFeature($featureId, $collection->context->dbDriver->targetSchema . '.feature');
-            if ( !empty($minimalFeature) ) {
+            if (!empty($minimalFeature)) {
                 RestoLogUtil::httpError(409, 'Feature ' . $featureId . ' (with productIdentifier=' . $productIdentifier . ') already in collection ' . $minimalFeature[0]['collection']);
             }
         }
@@ -962,19 +963,18 @@ abstract class RestoModel
         /*
          * Convert visibility from names to ids
          */
-        if ( isset($properties['visibility']) ) {
+        if (isset($properties['visibility'])) {
             $properties['visibility'] = (new GeneralFunctions($collection->context->dbDriver))->visibilityNamesToIds($properties['visibility']);
-            if ( empty($properties['visibility']) ) {
-                RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group'); 
+            if (empty($properties['visibility'])) {
+                RestoLogUtil::httpError(400, 'Visibility is set but either emtpy or referencing an unknown group');
             }
 
             /*
              * Check visibility
              */
-            if ( !(new CatalogsFunctions($collection->context->dbDriver))->canSeeCatalog($properties['visibility'], $collection->user, true) ) {
+            if (!(new CatalogsFunctions($collection->context->dbDriver))->canSeeCatalog($properties['visibility'], $collection->user, true)) {
                 RestoLogUtil::httpError(403, 'You are not allowed to set the visibility to a group you are not part of');
             }
-
         }
 
         /*
@@ -1019,7 +1019,7 @@ abstract class RestoModel
         if (isset($properties['resto:catalogs'])) {
             unset($properties['resto:catalogs']);
         }
-        
+
         /*
          * Return prepared data
          */
@@ -1131,7 +1131,7 @@ abstract class RestoModel
     {
         $searchFilters = [];
         $output = [];
-        
+
         /*
          * Process each searchTerm
          */
@@ -1159,7 +1159,7 @@ abstract class RestoModel
              * Start with - (equivalent to "NOT ")
              */
             $osKey = $this->getOSKeyFromPrefix(substr($key, 0, 1) === '-' ? ltrim($key, '-') : $key);
-            $output[isset($this->stacMapping[$osKey]) ? $this->stacMapping[$osKey]['key']: $osKey] = array(
+            $output[isset($this->stacMapping[$osKey]) ? $this->stacMapping[$osKey]['key'] : $osKey] = array(
                 'value' => $value,
                 'operation' =>  $obj['operation']
             );
@@ -1174,5 +1174,4 @@ abstract class RestoModel
 
         return $output;
     }
-
 }

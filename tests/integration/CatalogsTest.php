@@ -7,7 +7,6 @@ use PHPUnit\Framework\Attributes\Group;
 
 final class CatalogsTest extends TestCase
 {
-    #[Group('only')]
     public function testCanSeeCatalogs(): void
     {
         //Create  catalog with group right
@@ -200,7 +199,6 @@ final class CatalogsTest extends TestCase
         $this->assertContains("projects/" . $pinnedName, $ids, $response);
     }
 
-    #[Group('only')]
     public function testAdminCanManageCatalogVisibility(): void
     {
         $utils = new Utils();
