@@ -59,6 +59,7 @@ final class ItemsTest extends TestCase
         $this->assertSame($decoded->links[3]->id, $itemId, $response);
     }
 
+    #[Group('only')]
     public function testCanUpdateItem(): void
     {
         $utils = new Utils();
@@ -76,7 +77,7 @@ final class ItemsTest extends TestCase
         $itemNoVisibility = Utils::item(uniqid("newitemnovisibility"), []);
         $utils->createItemAPI($userHasItemRight, $collectionName, $itemNoVisibility);
 
-        $itemNoVisibility['description'] = "updated description";
+        $itemNoVisibility['properties']['description'] = "updated description";
 
         $response = Utils::httpPut("http://" . $userWithoutRights . ":dummy@localhost:5252/collections/" . $collectionName . "/items/" . $itemNoVisibility['id'], json_encode($itemNoVisibility));
         $decoded = json_decode($response);
@@ -85,6 +86,10 @@ final class ItemsTest extends TestCase
         $response = Utils::httpPut("http://" . $userHasItemRight . ":dummy@localhost:5252/collections/" . $collectionName . "/items/" . $itemNoVisibility['id'], json_encode($itemNoVisibility));
         $decoded = json_decode($response);
         $this->assertSame($decoded->status, "success", $response);
+        
+        $response = Utils::httpGet("http://" . $userHasItemRight . ":" . "dummy@localhost:5252/collections/" . $collectionName . "/items/" . $itemNoVisibility['id']);
+        $decoded = json_decode($response);
+        $this->assertSame($decoded->properties->description, $itemNoVisibility['properties']['description'], $response);
 
         //TODO do we care for item public visibility given it is in a collection or catalog
         // $itemNoVisibility['properties']+= ['visibility' => ['default']];

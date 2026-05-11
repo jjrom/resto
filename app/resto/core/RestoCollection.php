@@ -659,7 +659,7 @@ class RestoCollection
         $this->context = $context;
         $this->user = $user;
         $createdCollectionIsPublic = false;
-        if ($this->context->core['anyoneCanSwitchVisibilityToPublic']) {
+        if ($context->core['anyoneCanSwitchVisibilityToPublic']) {
             $createdCollectionIsPublic = isset($collection->user->profile['settings']['createdItemIsPublic']) ? $collection->user->profile['settings']['createdItemIsPublic'] : true;
         }
         $this->visibility = RestoUtil::getDefaultVisibility($this->user, $createdCollectionIsPublic);

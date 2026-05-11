@@ -41,14 +41,28 @@ class CatalogsFunctions
         'sea',
         'sound',
         'state',
-        'strait'    
+        'strait'
     );
-    
+
     /*
      * These are STAC/resto default properties in catalog
      */
     const CATALOG_PROPERTIES = array(
-        'id', 'title', 'description', 'type', 'owner', 'visibility', 'rtype', 'stac_version', 'stac_extension', 'links', 'level', 'counters', 'stac_url', 'pinned', 'created'
+        'id',
+        'title',
+        'description',
+        'type',
+        'owner',
+        'visibility',
+        'rtype',
+        'stac_version',
+        'stac_extension',
+        'links',
+        'level',
+        'counters',
+        'stac_url',
+        'pinned',
+        'created'
     );
 
     private $dbDriver = null;
@@ -77,7 +91,7 @@ class CatalogsFunctions
             'title' => $rawCatalog['title'],
             'description' => $rawCatalog['description'],
             'links' => isset($rawCatalog['links']) ? json_decode($rawCatalog['links'], true) : array(),
-            'level' => (integer) $rawCatalog['level'],
+            'level' => (int) $rawCatalog['level'],
             'counters' => isset($rawCatalog['counters']) ? json_decode($rawCatalog['counters'], true) : null,
             'owner' => $rawCatalog['owner'] ?? null,
             'visibility' => RestoUtil::SQLTextArrayToPHP($rawCatalog['visibility']),
@@ -87,21 +101,20 @@ class CatalogsFunctions
             'pinned' => isset($rawCatalog['pinned']) && $rawCatalog['pinned'] === 't' ? true : false
         );
 
-        if ( $noProperties ) {
+        if ($noProperties) {
             return $catalog;
         }
 
         $properties = isset($rawCatalog['properties']) ? json_decode($rawCatalog['properties'], true) : array();
         foreach (array_keys($properties) as $key) {
             if ($key === 'resto:links' && is_array($properties['resto:links'])) {
-                $catalog['links']= array_merge($catalog['links'], $properties['resto:links']);
+                $catalog['links'] = array_merge($catalog['links'], $properties['resto:links']);
                 continue;
             }
             $catalog[$key] = $properties[$key];
         }
-        
+
         return $catalog;
-    
     }
 
     /**
@@ -115,11 +128,11 @@ class CatalogsFunctions
      */
     public function canSeeCatalog($visibility, $user, $mustSeeAll = false)
     {
-        if ( isset($visibility) ) {
-            
-            if ( $mustSeeAll ) {
+        if (isset($visibility)) {
+
+            if ($mustSeeAll) {
                 for ($i = count($visibility); $i--;) {
-                    if ( !$user->hasGroup($visibility[$i]) ) {
+                    if (!$user->hasGroup($visibility[$i])) {
                         return false;
                     }
                 }
@@ -127,7 +140,7 @@ class CatalogsFunctions
             }
 
             for ($i = count($visibility); $i--;) {
-                if ( $user->hasGroup($visibility[$i]) ) {
+                if ($user->hasGroup($visibility[$i])) {
                     return true;
                 }
             }
@@ -151,15 +164,14 @@ class CatalogsFunctions
             'id' => $catalogId
         ), false);
 
-        if ( isset($catalogs) && count($catalogs) > 0) {
-            if ( !$this->canSeeCatalog($catalogs[0]['visibility'], $user) && !$user->hasGroup(RestoConstants::GROUP_ADMIN_ID) ) {
+        if (isset($catalogs) && count($catalogs) > 0) {
+            if (!$this->canSeeCatalog($catalogs[0]['visibility'], $user) && !$user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
                 RestoLogUtil::httpError(403, 'You are not allowed to access this catalog');
             }
             return $catalogs[0];
         }
 
         return null;
-
     }
 
     /**
@@ -175,16 +187,16 @@ class CatalogsFunctions
         $values = array();
         $params = isset($params) ? $params : array();
         $checkForExternal = isset($params['checkForExternal']) ? $params['checkForExternal'] : false;
-        
+
         // Direct where clause
-        if ( isset($params['where'])) {
+        if (isset($params['where'])) {
             $where[] = $params['where'];
         }
 
-        if ( isset($params['id']) ) {
+        if (isset($params['id'])) {
             $values[] = $params['id'];
             $_where = 'id=$' . count($values);
-            if ( $withChilds ) {
+            if ($withChilds) {
                 $values[] = $params['id'] . '/%';
                 $_where = '(' . $_where . ' OR id LIKE $' . count($values) . ')';
             }
@@ -192,29 +204,29 @@ class CatalogsFunctions
         }
 
         // Filter on description / title
-        if ( isset($params['q']) ) {
+        if (isset($params['q'])) {
             $values[] = '%' . $params['q'] . '%';
             $where[] = '(public.normalize(description) ILIKE public.normalize($' . count($values) . ') OR id ILIKE $' . count($values) . ')';
         }
         // [IMPORTANT] Discard level if q is set
-        else if ( isset($params['level']) ) {
+        else if (isset($params['level'])) {
             $values[] = $params['level'];
             $where[] = 'level=$' . count($values);
         }
-        
+
         try {
-            $results = $this->dbDriver->pQuery('SELECT id, title, description, level, counters, owner, links, visibility, rtype, properties, to_iso8601(created) as created, stac_url FROM ' . $this->dbDriver->targetSchema . '.catalog' . ( empty($where) ? '' : ' WHERE ' . join(' AND ', $where) . ' ORDER BY id ASC'), $values);
+            $results = $this->dbDriver->pQuery('SELECT id, title, description, level, counters, owner, links, visibility, rtype, properties, to_iso8601(created) as created, stac_url FROM ' . $this->dbDriver->targetSchema . '.catalog' . (empty($where) ? '' : ' WHERE ' . join(' AND ', $where) . ' ORDER BY id ASC'), $values);
             while ($result = pg_fetch_assoc($results)) {
                 $catalogs[] = CatalogsFunctions::format($result, $params['noProperties'] ?? false);
             }
-        }  catch (Exception $e) {
+        } catch (Exception $e) {
             RestoLogUtil::httpError(500, $e->getMessage());
         }
-        
+
         /*
          * Check for external catalog means get the eventual ancestor if no catalogs where found
          */
-        if ( empty($catalogs) && isset($params['id']) && $checkForExternal ) {
+        if (empty($catalogs) && isset($params['id']) && $checkForExternal) {
             try {
                 $id = join('/', array_slice(explode('/', $params['id']), 0, 2));
                 $results = $this->dbDriver->pQuery('SELECT id, title, description, level, counters, owner, links, visibility, rtype, properties, to_iso8601(created) as created, stac_url FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE (id=$1 OR id LIKE $2) AND stac_url IS NOT NULL ORDER BY id ASC', array(
@@ -225,14 +237,14 @@ class CatalogsFunctions
                     $catalog = CatalogsFunctions::format($result, false);
                     $correctUrl = (substr($catalog['stac_url'], -1) === '/' ? substr($catalog['stac_url'], 0, strlen($catalog['stac_url']) - 1) : $catalog['stac_url']);
                     // Hack if url includes a json file
-                    if ( substr($correctUrl, -5) === '.json' ) {
+                    if (substr($correctUrl, -5) === '.json') {
                         $correctUrl = substr($correctUrl, 0, strrpos($correctUrl, '/'));
                     }
-                    $catalog['stac_url_to_be_resolved'] =  $correctUrl . '/' . str_replace($result['id'] .'/', '', $params['id']);
+                    $catalog['stac_url_to_be_resolved'] =  $correctUrl . '/' . str_replace($result['id'] . '/', '', $params['id']);
                     $catalogs[] = $catalog;
                     break;
                 }
-            }  catch (Exception $e) {
+            } catch (Exception $e) {
                 RestoLogUtil::httpError(500, $e->getMessage());
             }
         }
@@ -241,7 +253,6 @@ class CatalogsFunctions
          * Recursively add child collection counters to catalog counters
          */
         return empty($params['countCatalogs']) ? $catalogs : $this->onTheFlyUpdateCountersWithCollection($catalogs);
-        
     }
 
     /**
@@ -251,7 +262,7 @@ class CatalogsFunctions
      * @param string $baseUrl
      * @return array
      */
-    public function getCatalogItems($catalogId, $baseUrl) 
+    public function getCatalogItems($catalogId, $baseUrl)
     {
 
         $items = [];
@@ -262,7 +273,7 @@ class CatalogsFunctions
         try {
             $results = $this->dbDriver->pQuery('SELECT featureid, collection, title FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path=$1::ltree ORDER BY created DESC', array(
                 RestoUtil::path2ltree($catalogId)
-            ));    
+            ));
         } catch (Exception $e) {
             RestoLogUtil::httpError(500, $e->getMessage());
         }
@@ -278,7 +289,6 @@ class CatalogsFunctions
         }
 
         return $items;
-
     }
 
 
@@ -307,32 +317,30 @@ class CatalogsFunctions
 
         try {
 
-            if ( $addBeginCommit ) {
+            if ($addBeginCommit) {
                 $this->dbDriver->query('BEGIN');
             }
 
             for ($i = count($catalogs); $i--;) {
                 $this->storeCatalog($catalogs[$i], $user, $context, $collectionId, $feature, $forceOwnerToAdmin);
             }
-    
+
             // Update all counters at the same time for a given featureId
-            if ( isset($feature) ) {
+            if (isset($feature)) {
                 $this->updateFeatureCatalogsCounters($feature['id'], $collectionId, 1);
             }
 
-            if ( $addBeginCommit) {
+            if ($addBeginCommit) {
                 $this->dbDriver->query('COMMIT');
             }
-
         } catch (Exception $e) {
-            if ( $addBeginCommit) {
+            if ($addBeginCommit) {
                 $this->dbDriver->query('ROLLBACK');
             }
             RestoLogUtil::httpError($e->getCode() ?? 500, $e->getMessage());
         }
-       
-        return $catalogs;
 
+        return $catalogs;
     }
 
     /**
@@ -377,7 +385,6 @@ class CatalogsFunctions
                 $catalogId,
                 json_encode($links, JSON_UNESCAPED_SLASHES)
             ));
-            
         } catch (Exception $e) {
             $this->dbDriver->query('ROLLBACK');
             RestoLogUtil::httpError($e->getCode() ?? 500, $e->getMessage());
@@ -396,8 +403,8 @@ class CatalogsFunctions
      */
     public function updateCatalog($catalog, $user, $context)
     {
-        
-        if ( !isset($catalog['id']) ) {
+
+        if (!isset($catalog['id'])) {
             return false;
         }
 
@@ -415,32 +422,30 @@ class CatalogsFunctions
 
         $set = array();
         $cleanLinks = $this->getCleanLinks($catalog, $user, $context);
-        
-        if ( array_key_exists('links', $cleanLinks) ) {
+
+        if (array_key_exists('links', $cleanLinks)) {
             $catalog['links'] = $cleanLinks['links'];
         }
 
         $properties = null;
-        foreach (array_keys($catalog) as $key ) {
+        foreach (array_keys($catalog) as $key) {
             if (in_array($key, $canBeUpdated)) {
                 if ($key === 'links') {
                     $values[] = json_encode($catalog[$key], JSON_UNESCAPED_SLASHES);
-                }
-                else if ($key === 'visibility') {
+                } else if ($key === 'visibility') {
                     try {
                         $values[] = QueryUtil::visibilityToSQL($catalog[$key]);
                     } catch (Exception $e) {
                         RestoLogUtil::httpError($e->getCode(), $e->getMessage());
                     }
-                }
-                else {
+                } else {
                     $values[] = $catalog[$key];
                 }
                 $set[] = $key . '=$' . count($values);
             }
             // Other properties goes to properties
-            else if ( !in_array($key, array('id', 'stac_version')) ){
-                if ( !isset($properties) ) {
+            else if (!in_array($key, array('id', 'stac_version'))) {
+                if (!isset($properties)) {
                     $properties = array();
                 }
                 $properties[$key] = $catalog[$key];
@@ -448,53 +453,50 @@ class CatalogsFunctions
         }
 
         // Additional properties
-        if ( isset($properties) ) {
+        if (isset($properties)) {
             $values['properties'] = json_encode($properties, JSON_UNESCAPED_SLASHES);
             $set[] = 'properties=$' . count($values);
         }
-        
+
         // Nothing to update
-        if ( empty($set) ) {
+        if (empty($set)) {
             return false;
         }
 
         try {
-            
+
             $this->dbDriver->query('BEGIN');
 
             /*
              * Delete catalog childs BUT NOT HIMSELF and the one in childIds
              */
-            if ( array_key_exists('links', $cleanLinks) ) {
+            if (array_key_exists('links', $cleanLinks)) {
 
                 // No childIds => easy !
-                if ( empty($cleanLinks['childIds']) ) {
+                if (empty($cleanLinks['childIds'])) {
                     $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE id LIKE $1 RETURNING id', array(
                         $catalog['id'] . '/%'
                     ), 500, 'Cannot update catalog ' . $catalog['id']));
-                    $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path ~ $1 AND path <> $2' , array(
+                    $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path ~ $1 AND path <> $2', array(
                         RestoUtil::path2ltree($catalog['id']) . '.*',
                         RestoUtil::path2ltree($catalog['id'])
                     ), 500, 'Cannot update catalog_feature association for catalog ' . $catalog['id']));
-                }
-                else {
+                } else {
                     $ids = array();
                     $paths = array('\'' . RestoUtil::path2ltree($catalog['id']) . '\'');
                     for ($i = 0, $ii = count($cleanLinks['childIds']); $i < $ii; $i++) {
-                        $ids[] = '\'' . $this->dbDriver->escape_string( $cleanLinks['childIds'][$i]) . '\'';
+                        $ids[] = '\'' . $this->dbDriver->escape_string($cleanLinks['childIds'][$i]) . '\'';
                         $paths[] = '\'' . RestoUtil::path2ltree($cleanLinks['childIds'][$i]) . '\'';
                     }
                     $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE id LIKE $1 AND id NOT IN (' . join(',', $ids) . ') RETURNING id', array(
                         $catalog['id'] . '/%'
                     ), 500, 'Cannot update catalog ' . $catalog['id']));
-                    $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path ~ $1 AND path NOT IN (' . join(',', $paths) . ')' , array(
+                    $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path ~ $1 AND path NOT IN (' . join(',', $paths) . ')', array(
                         RestoUtil::path2ltree($catalog['id']) . '.*'
                     ), 500, 'Cannot update catalog_feature association for catalog ' . $catalog['id']));
-                    
                 }
-            
             }
-            
+
             /*
              * Then update catalog
              */
@@ -503,18 +505,17 @@ class CatalogsFunctions
             /*
              * Add an entry in catalog_feature for each interalItems but first remove all items !
              */
-            if ( array_key_exists('links', $cleanLinks) ) {
+            if (array_key_exists('links', $cleanLinks)) {
                 $this->removeCatalogFeatures($catalog['id']);
                 $this->addInternalItems($cleanLinks['internalItems'] ?? array(), $catalog['id']);
             }
 
             $this->dbDriver->query('COMMIT');
-            
         } catch (Exception $e) {
             $this->dbDriver->query('ROLLBACK');
             RestoLogUtil::httpError($e->getCode() ?? 500, $e->getMessage());
         }
-        
+
         return true;
     }
 
@@ -531,20 +532,19 @@ class CatalogsFunctions
         // Increment by increment all catalog counters for featureId
         $query = join(' ', array(
             'WITH path_hierarchy AS (SELECT collection, catalogid FROM ' . $this->dbDriver->targetSchema . '.catalog_feature',
-            'WHERE featureid = \'' . $this->dbDriver->escape_string( $featureId) . '\')',
+            'WHERE featureid = \'' . $this->dbDriver->escape_string($featureId) . '\')',
             'UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters,' . $increment . ', (SELECT path_hierarchy.collection FROM path_hierarchy LIMIT 1))',
             'WHERE id IN (SELECT path_hierarchy.catalogid FROM path_hierarchy)'
         ));
         $nbOfResults = count($this->dbDriver->fetch($this->dbDriver->query($query)));
 
         // And don't forget the collection !
-        if ( isset($collectionId) ) {
-            $this->dbDriver->query('UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters,' . $increment . ',\'' . $collectionId . '\') WHERE id = \'collections/' . $collectionId . '\'');   
+        if (isset($collectionId)) {
+            $this->dbDriver->query('UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters,' . $increment . ',\'' . $collectionId . '\') WHERE id = \'collections/' . $collectionId . '\'');
             $nbOfResults++;
         }
-        
-        return $nbOfResults;
 
+        return $nbOfResults;
     }
 
     /**
@@ -555,7 +555,7 @@ class CatalogsFunctions
      */
     public function getFeatureCatalogs($featureId)
     {
-        
+
         $catalogs = [];
 
         $query = 'SELECT c.id, c.title, c.description, c.level, c.counters, c.owner, c.links, c.visibility, c.rtype, to_iso8601(c.created) as created FROM ' . $this->dbDriver->targetSchema . '.catalog c, ' . $this->dbDriver->targetSchema . '.catalog_feature cf WHERE lower(c.id) = lower(cf.path AND cf.featureid=$1 ORDER BY c.id ASC';
@@ -568,7 +568,6 @@ class CatalogsFunctions
         }
 
         return $catalogs;
-
     }
 
     /**
@@ -584,15 +583,14 @@ class CatalogsFunctions
         try {
             $this->dbDriver->query('BEGIN');
             $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE id LIKE $1 RETURNING id', array($catalogId . '%'), 500, 'Cannot delete catalog ' . $catalogId));
-            $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path ~ $1' , array(RestoUtil::path2ltree($catalogId) . '.*'), 500, 'Cannot delete catalog_feature association for catalog ' . $catalogId));
+            $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path ~ $1', array(RestoUtil::path2ltree($catalogId) . '.*'), 500, 'Cannot delete catalog_feature association for catalog ' . $catalogId));
             $this->dbDriver->query('COMMIT');
         } catch (Exception $e) {
             $this->dbDriver->query('ROLLBACK');
             RestoLogUtil::httpError(500, $e->getMessage());
         }
-        
-        return array();
 
+        return array();
     }
 
     /**
@@ -606,7 +604,7 @@ class CatalogsFunctions
     public function removeCatalogFeature($featureId, $catalogId)
     {
         $this->updateFeatureCatalogsCounters($featureId, null, -1);
-        $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path = $1' , array(RestoUtil::path2ltree($catalogId)), 500, 'Cannot delete catalog_feature association for catalog ' . $catalogId));   
+        $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path = $1', array(RestoUtil::path2ltree($catalogId)), 500, 'Cannot delete catalog_feature association for catalog ' . $catalogId));
     }
 
     /**
@@ -631,18 +629,18 @@ class CatalogsFunctions
         $properties = null;
 
         // Set rtype for Collection
-        if ( isset($catalog['type']) && $catalog['type'] === 'Collection' ) {
+        if (isset($catalog['type']) && $catalog['type'] === 'Collection') {
             $catalog['rtype'] = 'collection';
         }
 
         // [IMPORTANT] Catalog identifier should never have a trailing /
-        if ( substr($catalog['id'], -1) === '/' ) {
+        if (substr($catalog['id'], -1) === '/') {
             $catalog['id'] = rtrim($catalog['id'], '/');
         }
 
         $cleanLinks = $this->getCleanLinks($catalog, $user, $context);
-        
-        if ( isset($cleanLinks['external']) ) {
+
+        if (isset($cleanLinks['external'])) {
             $catalog['stac_url'] = $cleanLinks['external']['href'];
             $catalog['title'] = $cleanLinks['external']['title'] ?? $catalog['title'] ?? null;
             $catalog['description'] = $cleanLinks['external']['description'] ?? $catalog['description'] ?? null;
@@ -650,34 +648,33 @@ class CatalogsFunctions
         }
 
         // For collection, do not store properties since it's a duplication of properties within collection table
-        if ( isset($catalog['rtype']) && $catalog['rtype'] === 'collection' ) {
+        if (isset($catalog['rtype']) && $catalog['rtype'] === 'collection') {
             $catalog = array_merge($catalog, [
                 'rtype' => 'collection'
             ]);
-        }
-        else {
-            foreach (array_keys($catalog) as $key ) {
-                if ( !in_array($key, CatalogsFunctions::CATALOG_PROPERTIES) ){
-                    if ( !isset($properties) ) {
+        } else {
+            foreach (array_keys($catalog) as $key) {
+                if (!in_array($key, CatalogsFunctions::CATALOG_PROPERTIES)) {
+                    if (!isset($properties)) {
                         $properties = array();
                     }
                     $properties[$key] = $catalog[$key];
                 }
             }
         }
-        
+
         // Visibility
         if ($forceOwnerToAdmin) {
             $catalog['owner'] = RestoConstants::ADMIN_USER_ID;
             $catalog['visibility'] = array(RestoConstants::GROUP_DEFAULT_ID);
         }
-        if ( !isset($catalog['visibility']) ) {
+        if (!isset($catalog['visibility'])) {
             $createdCatalogIsPublic = isset($user->profile['settings']['createdCatalogIsPublic']) ? $user->profile['settings']['createdCatalogIsPublic'] : true;
-            if (!$this->context->core['anyoneCanSwitchVisibilityToPublic']) {
-             $createdCatalogIsPublic=false;
+            if (!$context->core['anyoneCanSwitchVisibilityToPublic']) {
+                $createdCatalogIsPublic = false;
             }
             // Always private by default under users/
-            if ( isset($catalog['id']) && strpos($catalog['id'], 'users/') === 0 ) {
+            if (isset($catalog['id']) && strpos($catalog['id'], 'users/') === 0) {
                 $createdCatalogIsPublic = false;
             }
             $catalog['visibility'] = RestoUtil::getDefaultVisibility($user, $createdCatalogIsPublic);
@@ -700,7 +697,7 @@ class CatalogsFunctions
             isset($catalog['stac_url']) ? $catalog['stac_url'] : null,
             isset($catalog['pinned']) && $catalog['pinned'] === true ? 't' : 'f'
         );
-        if ( array_key_exists('links', $cleanLinks) ) {
+        if (array_key_exists('links', $cleanLinks)) {
             $values[] = json_encode($cleanLinks['links'] ?? array(), JSON_UNESCAPED_SLASHES);
             $insert = '(id, title, description, level, counters, owner, visibility, rtype, properties, stac_url, pinned, links, created) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,now()';
         }
@@ -735,12 +732,12 @@ class CatalogsFunctions
          */
         $catalogLevel = count(explode('/', $catalog['id']));
         $path = RestoUtil::path2ltree($catalog['id']);
-        
-        if ( !isset($catalog['rtype']) ) {
+
+        if (!isset($catalog['rtype'])) {
             $catalog['rtype'] = null;
         }
 
-        if ( isset($feature) && $catalog['rtype'] !== 'collection' && ($catalogLevel > 1 || $catalog['rtype'] === 'catalog')  ) {
+        if (isset($feature) && $catalog['rtype'] !== 'collection' && ($catalogLevel > 1 || $catalog['rtype'] === 'catalog')) {
             $this->insertIntoCatalogFeature($feature, $path, $catalog['id'], $collectionId);
         }
 
@@ -748,9 +745,8 @@ class CatalogsFunctions
          * Add an entry in catalog_feature for each internalItems
          */
         $this->addInternalItems($cleanLinks['internalItems'] ?? array(), $catalog['id']);
-        
-        return $catalog;
 
+        return $catalog;
     }
 
     /**
@@ -767,10 +763,9 @@ class CatalogsFunctions
 
         for ($i = 0, $ii = count($items); $i < $ii; $i++) {
             $this->insertIntoCatalogFeature($items[$i], $path, $catalogId, $items[$i]['collection']);
-            $query = 'UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters,1,\'' . $this->dbDriver->escape_string( $items[$i]['collection']) . '\') WHERE id = \'' . $this->dbDriver->escape_string( $catalogId) . '\'';
+            $query = 'UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=public.increment_counters(counters,1,\'' . $this->dbDriver->escape_string($items[$i]['collection']) . '\') WHERE id = \'' . $this->dbDriver->escape_string($catalogId) . '\'';
             $this->dbDriver->fetch($this->dbDriver->query($query));
         }
-        
     }
 
     /**
@@ -782,8 +777,8 @@ class CatalogsFunctions
      */
     private function removeCatalogFeatures($catalogId)
     {
-        $this->dbDriver->query('UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=\'{"total":0, "collections":{}}\' WHERE id = \'' . $this->dbDriver->escape_string( $catalogId) . '\'');
-        $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path = $1' , array(RestoUtil::path2ltree($catalogId)), 500, 'Cannot delete catalog_feature association for catalog ' . $catalogId));   
+        $this->dbDriver->query('UPDATE ' . $this->dbDriver->targetSchema . '.catalog SET counters=\'{"total":0, "collections":{}}\' WHERE id = \'' . $this->dbDriver->escape_string($catalogId) . '\'');
+        $this->dbDriver->fetch($this->dbDriver->pQuery('DELETE FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE path = $1', array(RestoUtil::path2ltree($catalogId)), 500, 'Cannot delete catalog_feature association for catalog ' . $catalogId));
     }
 
     /**
@@ -830,24 +825,24 @@ class CatalogsFunctions
      */
     public function getSummaries($types)
     {
-        
+
         $summaries = array();
 
         $catalogs = $this->getCatalogs(array(
             'where' => !empty($types) ? 'rtype IN (\'' . join('\',\'', $types) . '\')' : 'rtype NOT IN (\'' . join('\',\'', CatalogsFunctions::TOPONYM_TYPES) . '\')'
         ), false);
-        
+
         // First create collection pivots
         $pivots = array();
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
 
             // Process only collection
-            if ( $catalogs[$i]['rtype'] !== 'collection' ) {
+            if ($catalogs[$i]['rtype'] !== 'collection') {
                 continue;
             }
             $exploded = explode('/', $catalogs[$i]['id']);
             $_collectionId = array_pop($exploded);
-            if ( !isset($pivots[$_collectionId]) ) {
+            if (!isset($pivots[$_collectionId])) {
                 $pivots[$_collectionId] = array(
                     'collection' => array(
                         array(
@@ -861,17 +856,17 @@ class CatalogsFunctions
 
         // Populate with summaries i.e. other rtype
         for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
-         
-            if ( $catalogs[$i]['rtype'] === 'collection' ) {
+
+            if ($catalogs[$i]['rtype'] === 'collection') {
                 continue;
             }
 
             $type = $catalogs[$i]['rtype'];
 
-            if ( isset($catalogs[$i]['counters']['collections']) ) {
+            if (isset($catalogs[$i]['counters']['collections'])) {
                 foreach (array_keys($catalogs[$i]['counters']['collections']) as $_collectionId) {
 
-                    if ( !isset($pivots[$_collectionId][$type]) ) {
+                    if (!isset($pivots[$_collectionId][$type])) {
                         $pivots[$_collectionId][$type] = array();
                     }
 
@@ -889,13 +884,12 @@ class CatalogsFunctions
                     }
 
                     $pivots[$_collectionId][$type][] = $newPivot;
-
                 }
             }
         }
-        
+
         foreach (array_keys($pivots) as $_collectionId) {
-            if ( !isset($summaries[$_collectionId]) ) {
+            if (!isset($summaries[$_collectionId])) {
                 $summaries[$_collectionId] = array();
             }
             foreach (array_keys($pivots[$_collectionId]) as $key) {
@@ -911,7 +905,6 @@ class CatalogsFunctions
         }
 
         return $summaries;
-        
     }
 
     /**
@@ -922,7 +915,8 @@ class CatalogsFunctions
      * @param string $catalogId
      * @param string $collectionId
      */
-    private function insertIntoCatalogFeature($feature, $path, $catalogId, $collectionId) {
+    private function insertIntoCatalogFeature($feature, $path, $catalogId, $collectionId)
+    {
 
         $this->dbDriver->pQuery('UPDATE ' . $this->dbDriver->targetSchema . '.catalog_feature SET featureid=$1, path=$2, catalogid=$3, collection=$4, title=$5 WHERE featureid=$1 AND path @> $2::ltree AND nlevel(path) < nlevel($2::ltree)', array(
             $feature['id'],
@@ -931,7 +925,7 @@ class CatalogsFunctions
             $collectionId,
             $feature['title'] ?? null
         ), 500, 'Cannot create association for ' . $feature['id'] . ' in catalog ' . $catalogId);
-        
+
         $this->dbDriver->pQuery('INSERT INTO ' . $this->dbDriver->targetSchema . '.catalog_feature (featureid, path, catalogid, collection, title) SELECT $1, $2::ltree, $3, $4, $5 WHERE NOT EXISTS (SELECT 1 FROM ' . $this->dbDriver->targetSchema . '.catalog_feature WHERE featureid = $1 AND (path <@ $2::ltree OR path @> $2::ltree))', array(
             $feature['id'],
             $path,
@@ -939,7 +933,6 @@ class CatalogsFunctions
             $collectionId,
             $feature['title'] ?? null
         ), 500, 'Cannot create association for ' . $feature['id'] . ' in catalog ' . $catalogId);
-      
     }
 
     /**
@@ -954,7 +947,8 @@ class CatalogsFunctions
      * @param RestoContext $context
      * @return array
      */
-    private function getCleanLinks($catalog, $user, $context) {
+    private function getCleanLinks($catalog, $user, $context)
+    {
 
         $output = array(
             'childIds' => array(),
@@ -962,28 +956,28 @@ class CatalogsFunctions
             'external' => null
         );
 
-        if ( !array_key_exists('links', $catalog) ) {
+        if (!array_key_exists('links', $catalog)) {
             return $output;
         };
 
         $output['links'] = array();
 
-        if ( empty($catalog['links']) ) {
+        if (empty($catalog['links'])) {
             return $output;
         };
 
         for ($i = 0, $ii = count($catalog['links']); $i < $ii; $i++) {
             $link = $catalog['links'][$i];
-            if ( !isset($link['rel']) || in_array($link['rel'], array('parent', 'self')) ) {
+            if (!isset($link['rel']) || in_array($link['rel'], array('parent', 'self'))) {
                 continue;
             }
 
             // [IMPORTANT] Proxy to stac_url
-            if ( $link['rel'] === 'root' ) {
-                if ( !isset($link['href']) ) {
+            if ($link['rel'] === 'root') {
+                if (!isset($link['href'])) {
                     RestoLogUtil::httpError(400, 'The root link has an empty href');
                 }
-                if ( str_starts_with($link['href'], $context->core['baseUrl']) ) {
+                if (str_starts_with($link['href'], $context->core['baseUrl'])) {
                     continue;
                 }
                 $output['external'] = [
@@ -993,19 +987,19 @@ class CatalogsFunctions
                 ];
                 break;
             }
-            
-            if ( in_array($link['rel'], array('child', 'item', 'items')) ) {
-                
-                if ( !isset($link['href']) ) {
-                    RestoLogUtil::httpError(400, 'One link has an empty href');    
+
+            if (in_array($link['rel'], array('child', 'item', 'items'))) {
+
+                if (!isset($link['href'])) {
+                    RestoLogUtil::httpError(400, 'One link has an empty href');
                 }
-            
+
                 /*
                  * [IMPORTANT] Only put EXTERNAL item/items to links array. Local one are processed later on
                  */
-                if ( in_array($link['rel'], array('item', 'items')) ) {
-                    
-                    if ( !str_starts_with($link['href'], $context->core['baseUrl'] . RestoRouter::ROUTE_TO_COLLECTIONS ) ) {
+                if (in_array($link['rel'], array('item', 'items'))) {
+
+                    if (!str_starts_with($link['href'], $context->core['baseUrl'] . RestoRouter::ROUTE_TO_COLLECTIONS)) {
                         $output['links'][] = $link;
                         continue;
                     }
@@ -1024,10 +1018,9 @@ class CatalogsFunctions
 
                         // Check for link existence !
                         $minimalFeature = (new FeaturesFunctions($this->dbDriver))->getMinimalFeature($internalItem['id'], $this->dbDriver->targetSchema . '.feature', $internalItem['collection']);
-                        if ( empty($minimalFeature) ) {
+                        if (empty($minimalFeature)) {
                             RestoLogUtil::httpError(400, 'Feature ' . $internalItem['href'] . ' does not exist. Ingest it first !');
-                        }
-                        else {
+                        } else {
                             $internalItem['title'] = $link['title'] ?? $minimalFeature[0]['title'];
                         }
 
@@ -1035,19 +1028,18 @@ class CatalogsFunctions
 
                         continue;
                     }
-
                 }
 
-                
-                if ( $link['rel'] === 'child') {
+
+                if ($link['rel'] === 'child') {
 
                     /*
                      * Avoid cycling (i.e. catalog self referencing one of its parent)
                      */
-                    if (str_starts_with($link['href'], $context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS )) {
+                    if (str_starts_with($link['href'], $context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS)) {
                         $childId = substr($link['href'], strlen($context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS) + 1);
                         $exploded = explode('/', $childId);
-                        if ( count($exploded) <= count(explode('/', $catalog['id'])) ) {
+                        if (count($exploded) <= count(explode('/', $catalog['id']))) {
                             RestoLogUtil::httpError(400, 'Child ' . $link['href'] . ' is invalid because it references a parent resource');
                         }
                         // Keep track of child ids for delete before update
@@ -1059,28 +1051,24 @@ class CatalogsFunctions
                     /*
                      * Store local collection within links
                      */
-                    if (str_starts_with($link['href'], $context->core['baseUrl'] . RestoRouter::ROUTE_TO_COLLECTIONS )) {
-                        continue;   
+                    if (str_starts_with($link['href'], $context->core['baseUrl'] . RestoRouter::ROUTE_TO_COLLECTIONS)) {
+                        continue;
                     }
-
                 }
-                
+
                 $exploded = explode($context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS . '/', $link['href']);
-                if ( count($exploded) !== 2) {
-                    RestoLogUtil::httpError(400, 'One link child has an external href i.e. not starting with ' . $context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS);    
+                if (count($exploded) !== 2) {
+                    RestoLogUtil::httpError(400, 'One link child has an external href i.e. not starting with ' . $context->core['baseUrl'] . RestoRouter::ROUTE_TO_CATALOGS);
                 }
 
                 $childCatalog = $this->getCatalog($exploded[1], $user);
-                if ( $childCatalog === null ) {
-                    RestoLogUtil::httpError(400, 'Catalog child ' . $link['href'] . ' does not exist');    
+                if ($childCatalog === null) {
+                    RestoLogUtil::httpError(400, 'Catalog child ' . $link['href'] . ' does not exist');
                 }
-
             }
-
         }
-        
-        return $output;
 
+        return $output;
     }
 
     /**
@@ -1093,19 +1081,19 @@ class CatalogsFunctions
     {
 
         // Never compute counters for external catalogs
-        if ( count($catalogs) > 0 && isset($catalogs[0]['stac_url']) ) {
+        if (count($catalogs) > 0 && isset($catalogs[0]['stac_url'])) {
             return $catalogs;
         }
-        
+
         $collectionsList = [];
-        for ($i = 0, $ii = count($catalogs); $i < $ii; $i++){
+        for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
             if ($catalogs[$i]['rtype'] === 'collection') {
                 $collectionsList[] = '\'collections/' . substr($catalogs[$i]['id'], strrpos($catalogs[$i]['id'], '/') + 1) . '\'';
             }
         }
 
         // First get collections counts
-        if ( !empty($collectionsList) ) {
+        if (!empty($collectionsList)) {
             try {
                 $query = 'WITH tmp AS (SELECT id, substring(id, 13) as collectionid, counters, title, description FROM ' . $this->dbDriver->targetSchema . '.catalog WHERE id IN (' . join(',', $collectionsList) .  '))';
                 $query = $query . ' SELECT tmp.id, col.title, col.description, tmp.counters FROM ' . $this->dbDriver->targetSchema . '.collection as col, tmp WHERE col.id = tmp.collectionid';
@@ -1122,17 +1110,16 @@ class CatalogsFunctions
                         }
                     }
                 }
-            }  catch (Exception $e) {
+            } catch (Exception $e) {
                 RestoLogUtil::httpError(500, $e->getMessage());
             }
         }
-        
+
         $catalogsUpdated = array();
-        for ($i = 0, $ii = count($catalogs); $i < $ii; $i++)
-        {   
+        for ($i = 0, $ii = count($catalogs); $i < $ii; $i++) {
             $catalogsUpdated[] = $this->computeCountersSum($catalogs[$i], $catalogs);
         }
-        
+
         return $catalogsUpdated;
     }
 
@@ -1141,25 +1128,24 @@ class CatalogsFunctions
      * 
      * @param array $parentCatalog
      */
-    private function computeCountersSum($parentCatalog, $catalogs) {
+    private function computeCountersSum($parentCatalog, $catalogs)
+    {
 
         $parentCatalogId = $parentCatalog['id'] . '/';
 
         // Iterate over all catalog entries
         for ($k = 0, $kk = count($catalogs); $k < $kk; $k++) {
-            
+
             $catalog = $catalogs[$k];
-            
+
             // Check if the catalog's path starts with the parent path
-            if ( !str_starts_with($catalog['id'], $parentCatalogId) ) {
+            if (!str_starts_with($catalog['id'], $parentCatalogId)) {
                 continue;
             }
 
             $parentCatalog['counters']['total'] = $parentCatalog['counters']['total'] + $catalog['counters']['total'];
-
         }
 
         return $parentCatalog;
     }
-
 }

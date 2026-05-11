@@ -94,6 +94,6 @@ final class UsersTest extends TestCase
         $rights = $utils->rights();
 
         $response = Utils::httpGet("http://" . $userName . ":" . "dummy@localhost:5252/users/" . $userName . "/rights");
-        $this->assertJsonStringEqualsJsonString($response, json_encode(['rights' => $rights]), 'equals', $response);
+        $this->assertJsonStringEqualsJsonString($response, json_encode(['rights' => $rights]), $response);
     }
 }

@@ -313,7 +313,7 @@ class FeaturesFunctions
         // Default visibility
         if ( !isset($featureArray['properties']['visibility']) ) {
             $createdItemIsPublic=false;
-            if ($this->context->core['anyoneCanSwitchVisibilityToPublic']) {
+            if ($collection->context->core['anyoneCanSwitchVisibilityToPublic']) {
                 $createdItemIsPublic = isset($collection->user->profile['settings']['createdItemIsPublic']) ? $collection->user->profile['settings']['createdItemIsPublic'] : true;
             }
             $featureArray['properties']['visibility'] = RestoUtil::getDefaultVisibility($collection->user, $createdItemIsPublic);
