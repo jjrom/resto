@@ -1418,6 +1418,317 @@ class STACAPI
      *          response="404",
      *          description="Collection not Found",
      *          @OA\JsonContent(ref="#/components/schemas/NotFoundError")
+     *      ),
+     * )
+     *
+     *  @OA\Post(
+     *      path="/search",
+     *      summary="STAC search endpoint",
+     *      description="List of filters to search features within all collections",
+     *      tags={"Feature"},
+     *      @OA\RequestBody(
+     *          required=true,
+     *          description="Search filters",
+     *          @OA\JsonContent(
+     *              type="object",
+     *              additionalProperties=false,
+     *              @OA\Property(
+     *                  property="model",
+     *                  type="string",
+     *                  description="Search features within collections belonging to *model* - e.g. *model=SatelliteModel* will search in all satellite collections"
+     *              ),
+     *              @OA\Property(
+     *                  property="collections",
+     *                  type="array",
+     *                  description="List of collection identifiers",
+     *                  @OA\Items(type="string")
+     *              ),
+     *              @OA\Property(
+     *                  property="ck",
+     *                  type="string",
+     *                  description="Collection keyword - limit results to collections containing the input keyword"
+     *              ),
+     *              @OA\Property(
+     *                  property="q",
+     *                  type="string",
+     *                  description="Free text search - OpenSearch {searchTerms}. Example:
+     *  *cryosphere* will search for *cryosphere*
+     *  *cryosphere atmosphere* will search for *cryosphere* AND *atmosphere*
+     *  *cryosphere|atmosphere* will search for *cryosphere* OR *atmosphere*
+     *  *cryosphere!* will search for *cryosphere* OR any *broader* concept of *cryosphere* ([EXTENSION][SKOS])
+     *  *cryosphere\** will search for *cryosphere* OR any *narrower* concept of *cryosphere* ([EXTENSION][SKOS])
+     *  *cryosphere~* will search for *cryosphere* OR any *related* concept of *cryosphere* ([EXTENSION][SKOS])"
+     *              ),
+     *              @OA\Property(
+     *                  property="description",
+     *                  type="string",
+     *                  description="Keyword search on feature description field"
+     *              ),
+     *              @OA\Property(
+     *                  property="limit",
+     *                  type="integer",
+     *                  minimum=1,
+     *                  maximum=500,
+     *                  default=20,
+     *                  description="Number of results returned per page - between 1 and 500 (default 20) - OpenSearch {count}"
+     *              ),
+     *              @OA\Property(
+     *                  property="startIndex",
+     *                  type="integer",
+     *                  minimum=1,
+     *                  default=1,
+     *                  description="First result to provide - minimum 1, (default 1) - OpenSearch {startIndex}"
+     *              ),
+     *              @OA\Property(
+     *                  property="page",
+     *                  type="integer",
+     *                  minimum=1,
+     *                  default=1,
+     *                  description="First page to provide - minimum 1, (default 1) - OpenSearch {startPage}"
+     *              ),
+     *              @OA\Property(
+     *                  property="lang",
+     *                  type="string",
+     *                  description="Two letters language code according to ISO 639-1 (default *en*) - OpenSearch {language}"
+     *              ),
+     *              @OA\Property(
+     *                  property="ids",
+     *                  type="array",
+     *                  description="Array of item ids to return. All other filter parameters that further restrict the number of search results (except next and limit) are ignored",
+     *                  @OA\Items(type="string")
+     *              ),
+     *              @OA\Property(
+     *                  property="bbox",
+     *                  type="array",
+     *                  minItems=4,
+     *                  maxItems=4,
+     *                  description="Region of Interest defined by 'west, south, east, north' coordinates of longitude, latitude, in decimal degrees (EPSG:4326) - OpenSearch {geo:box}",
+     *                  @OA\Items(type="number")
+     *              ),
+     *              @OA\Property(
+     *                  property="intersects",
+     *                  oneOf={
+     *                      @OA\Schema(
+     *                          type="object",
+     *                          description="GeoJSON geometry object",
+     *                          required={"type", "coordinates"},
+     *                          @OA\Property(
+     *                              property="type",
+     *                              type="string"
+     *                          ),
+     *                          @OA\Property(
+     *                              property="coordinates",
+     *                              type="array",
+     *                              @OA\Items()
+     *                          )
+     *                      ),
+     *                      @OA\Schema(
+     *                          type="string",
+     *                          description="WKT geometry string"
+     *                      )
+     *                  },
+     *                  description="Region of Interest defined in GeoJSON or WKT"
+     *              ),
+     *              @OA\Property(
+     *                  property="name",
+     *                  type="string",
+     *                  description="[EXTENSION][egg] Location string e.g. Paris, France  or toponym identifier (i.e. geouid:xxxx) - OpenSearch {geo:name}"
+     *              ),
+     *              @OA\Property(
+     *                  property="lon",
+     *                  type="number",
+     *                  description="Longitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lat - OpenSearch {geo:lon}"
+     *              ),
+     *              @OA\Property(
+     *                  property="lat",
+     *                  type="number",
+     *                  description="Latitude expressed in decimal degrees (EPSG:4326) - should be used with geo:lon - OpenSearch {geo:lat}"
+     *              ),
+     *              @OA\Property(
+     *                  property="radius",
+     *                  type="number",
+     *                  description="Radius expressed in meters - should be used with geo:lon and geo:lat - OpenSearch {geo:radius}"
+     *              ),
+     *              @OA\Property(
+     *                  property="datetime",
+     *                  type="string",
+     *                  description="Single date+time, or a range ('/' separator) of the search query. Format should follow RFC-3339 - OpenSearch {time:start}/{time:end}",
+     *                  example="2022-01-01T00:00:00Z/2022-01-02T00:00:00Z"
+     *              ),
+     *              @OA\Property(
+     *                  property="start",
+     *                  type="string",
+     *                  format="date-time",
+     *                  description="Beginning of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:start}",
+     *              ),
+     *              @OA\Property(
+     *                  property="end",
+     *                  type="string",
+     *                  format="date-time",
+     *                  description="End of the time slice of the search query. Format should follow RFC-3339 - OpenSearch {time:end}",
+     *              ),
+     *              @OA\Property(
+     *                  property="created",
+     *                  type="string",
+     *                  format="date-time",
+     *                  description="Returns products with metadata creation date greater or equal than *created* - OpenSearch {dc:date}",
+     *              ),
+     *              @OA\Property(
+     *                  property="prev",
+     *                  type="integer",
+     *                  description="Returns features with *sort* key value greater than *prev* value - use this for pagination. The value is a unique iterator computed from the *sort* key value and provided within each feature properties as *sort_idx* property"
+     *              ),
+     *              @OA\Property(
+     *                  property="next",
+     *                  type="integer",
+     *                  description="Returns features with *sort* key value lower than *next* value - use this for pagination. The value is a unique iterator computed from the *sort* key value and provided within each feature properties as *sort_idx* property"
+     *              ),
+     *              @OA\Property(
+     *                  property="pid",
+     *                  type="string",
+     *                  description="Like on product identifier"
+     *              ),
+     *              @OA\Property(
+     *                  property="sortby",
+     *                  type="string",
+     *                  description="Sort results by property *startDate* or *created* (default *startDate*). Sorting order is DESCENDING (ASCENDING if property is prefixed by minus sign)"
+     *              ),
+     *              @OA\Property(
+     *                  property="owner",
+     *                  type="string",
+     *                  description="Limit search to owner's features(i.e. resto username)"
+     *              ),
+     *              @OA\Property(
+     *                  property="likes",
+     *                  type="string",
+     *                  description="[EXTENSION][social] Limit search to number of likes (interval)"
+     *              ),
+     *              @OA\Property(
+     *                  property="liked",
+     *                  type="boolean",
+     *                  description="[EXTENSION][social] Return only liked features from calling user"
+     *              ),
+     *              @OA\Property(
+     *                  property="status",
+     *                  type="string",
+     *                  description="Feature status (unusued)"
+     *              ),
+     *              @OA\Property(
+     *                  property="productType",
+     *                  type="string",
+     *                  description="[MODEL][SatelliteModel] A string identifying the entry type (e.g. ER02_SAR_IM__0P, MER_RR__1P, SM_SLC__1S, GES_DISC_AIRH3STD_V005) - OpenSearch {eo:productType}"
+     *              ),
+     *              @OA\Property(
+     *                  property="processingLevel",
+     *                  type="string",
+     *                  description="[MODEL][SatelliteModel] A string identifying the processing level applied to the entry - OpenSearch {eo:processingLevel}"
+     *              ),
+     *              @OA\Property(
+     *                  property="platform",
+     *                  type="string",
+     *                  description="[MODEL][SatelliteModel] A string with the platform short name (e.g. Sentinel-1) - OpenSearch {eo:platform}"
+     *              ),
+     *              @OA\Property(
+     *                  property="instrument",
+     *                  type="string",
+     *                  description="[MODEL][SatelliteModel] A string identifying the instrument (e.g. MERIS, AATSR, ASAR, HRVIR. SAR) - OpenSearch {eo:instrument}"
+     *              ),
+     *              @OA\Property(
+     *                  property="sensorType",
+     *                  type="string",
+     *                  description="[MODEL][SatelliteModel] A string identifying the sensor type. Suggested values are: OPTICAL, RADAR, ALTIMETRIC, ATMOSPHERIC, LIMB - OpenSearch {eo:sensorType}"
+     *              ),
+     *              @OA\Property(
+     *                  property="cloudCover",
+     *                  type="string",
+     *                  description="[MODEL][OpticalModel] Cloud cover expressed in percent"
+     *              ),
+     *              @OA\Property(
+     *                  property="snowCover",
+     *                  type="string",
+     *                  description="[MODEL][OpticalModel] Snow cover expressed in percent"
+     *              ),
+     *              @OA\Property(
+     *                  property="waterCover",
+     *                  type="string",
+     *                  description="[MODEL][LandCoverModel] Water area expressed in percent"
+     *              ),
+     *              @OA\Property(
+     *                  property="urbanCover",
+     *                  type="string",
+     *                  description="[MODEL][LandCoverModel] Urban area expressed in percent"
+     *              ),
+     *              @OA\Property(
+     *                  property="iceCover",
+     *                  type="string",
+     *                  description="[MODEL][LandCoverModel] Urban area expressed in percent"
+     *              ),
+     *              @OA\Property(
+     *                  property="herbaceousCover",
+     *                  type="string",
+     *                  description="[MODEL][LandCoverModel] Herbaceous area expressed in percent"
+     *              ),
+     *              @OA\Property(
+     *                  property="forestCover",
+     *                  type="string",
+     *                  description="[MODEL][LandCoverModel] Forest area expressed in percent"
+     *              ),
+     *              @OA\Property(
+     *                  property="floodedCover",
+     *                  type="string",
+     *                  description="[MODEL][LandCoverModel] Flooded area expressed in percent"
+     *              ),
+     *              @OA\Property(
+     *                  property="desertCover",
+     *                  type="string",
+     *                  description="[MODEL][LandCoverModel] Desert area expressed in percent"
+     *              ),
+     *              @OA\Property(
+     *                  property="cultivatedCover",
+     *                  type="string",
+     *                  description="[MODEL][LandCoverModel] Cultivated area expressed in percent"
+     *              ),
+     *              @OA\Property(
+     *                  property="fields",
+     *                  oneOf={
+     *                      @OA\Schema(
+     *                          type="array",
+     *                          @OA\Items(type="string")
+     *                      ),
+     *                      @OA\Schema(
+     *                          type="string"
+     *                      )
+     *                  },
+     *                  description="Fields to return. Can be an array of field names, or a keyword _all or _simple"
+     *              ),
+     *              @OA\Property(
+     *                  property="_heatmapNoGeo",
+     *                  type="boolean",
+     *                  description="[EXTENSION][Heatmap] True to compute search result heatmap without taking account geographical filter"
+     *              ),
+     *              example={
+     *                  "collections": {"S2", "LANDSAT"},
+     *                  "bbox": {2.0, 48.0, 3.0, 49.0},
+     *                  "datetime": "2024-01-01T00:00:00Z/2024-12-31T23:59:59Z",
+     *                  "limit": 50,
+     *                  "fields": {"id", "title", "startDate"}
+     *              }
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response="200",
+     *          description="Features collection",
+     *          @OA\JsonContent(ref="#/components/schemas/RestoFeatureCollection")
+     *      ),
+     *      @OA\Response(
+     *          response="400",
+     *          description="Bad request (i.e. invalid parameter)",
+     *          @OA\JsonContent(ref="#/components/schemas/BadRequestError")
+     *      ),
+     *      @OA\Response(
+     *          response="404",
+     *          description="Collection not Found",
+     *          @OA\JsonContent(ref="#/components/schemas/NotFoundError")
      *      )
      * )
      *
@@ -1750,38 +2061,111 @@ class STACAPI
 
         $params = array();
 
-        /*
-         * Input collections should be an array of collection id strings
-         */
-        if (isset($jsonQuery['collections'])) {
-            if (!is_array($jsonQuery['collections'])) {
-                RestoLogUtil::httpError(400, 'Invalid collections parameter. Should be an array of strings');
-            }
-            $params['collections'] = join(',', $jsonQuery['collections']);
-        }
+        $simpleParameters = array(
+            'model',
+            'ck',
+            'q',
+            'description',
+            'limit',
+            'startIndex',
+            'page',
+            'lang',
+            'name',
+            'lon',
+            'lat',
+            'radius',
+            'datetime',
+            'start',
+            'end',
+            'created',
+            'prev',
+            'next',
+            'pid',
+            'sortby',
+            'owner',
+            'likes',
+            'liked',
+            'status',
+            'productType',
+            'processingLevel',
+            'platform',
+            'instrument',
+            'sensorType',
+            'cloudCover',
+            'snowCover',
+            'waterCover',
+            'urbanCover',
+            'iceCover',
+            'herbaceousCover',
+            'forestCover',
+            'floodedCover',
+            'desertCover',
+            'cultivatedCover',
+            '_heatmapNoGeo'
+        );
 
-        /*
-         * Input bbox should be an array of 4 floats
-         */
-        if (isset($jsonQuery['bbox'])) {
-            if (!is_array($jsonQuery['bbox']) || count($jsonQuery['bbox']) !== 4) {
-                RestoLogUtil::httpError(400, 'Invalid bbox parameter. Should be an array of 4 coordinates');
-            }
-            $params['bbox'] = join(',', $jsonQuery['bbox']);
-        }
+        foreach (array_keys($jsonQuery) as $key) {
 
-        /*
-         * Input intersects should be a GeoJSON geometry object
-         */
-        if (isset($jsonQuery['intersects'])) {
-            if (!isset($jsonQuery['intersects']['type']) || !isset($jsonQuery['intersects']['coordinates'])) {
-                RestoLogUtil::httpError(400, 'Invalid intersects. Should be a GeoJSON geometry object');
+            /*
+             * Input collections should be an array of collection id strings
+             */
+            if ($key === 'collections') {
+                if (!is_array($jsonQuery['collections'])) {
+                    RestoLogUtil::httpError(400, 'Invalid collections parameter. Should be an array of strings');
+                }
+                $params['collections'] = join(',', $jsonQuery['collections']);
             }
-            $params['intersects'] = RestoGeometryUtil::geoJSONGeometryToWKT($jsonQuery['intersects']);
-        }
 
-        if (isset($jsonQuery['datetime'])) {
-            $params['datetime'] = $jsonQuery['datetime'];
+            /*
+             * Input ids should be an array of item id strings
+             */
+            elseif ($key === 'ids') {
+                if (!is_array($jsonQuery['ids'])) {
+                    RestoLogUtil::httpError(400, 'Invalid ids parameter. Should be an array of strings');
+                }
+                $params['ids'] = join(',', $jsonQuery['ids']);
+            }
+
+            /*
+             * Input bbox should be an array of 4 floats
+             */
+            elseif ($key === 'bbox') {
+                if (!is_array($jsonQuery['bbox']) || count($jsonQuery['bbox']) !== 4) {
+                    RestoLogUtil::httpError(400, 'Invalid bbox parameter. Should be an array of 4 coordinates');
+                }
+                $params['bbox'] = join(',', $jsonQuery['bbox']);
+            }
+
+            /*
+             * Input intersects should be a GeoJSON geometry object
+             */
+            elseif ($key === 'intersects') {
+                if (!isset($jsonQuery['intersects']['type']) || !isset($jsonQuery['intersects']['coordinates'])) {
+                    RestoLogUtil::httpError(400, 'Invalid intersects. Should be a GeoJSON geometry object');
+                }
+                    $params['intersects'] = RestoGeometryUtil::geoJSONGeometryToWKT($jsonQuery['intersects']);
+            }
+
+            /*
+             * Input fields should be an array of property names, or a keyword '_all' or '_simple'
+             */
+            elseif ($key === 'fields') {
+                if (is_array($jsonQuery['fields'])) {
+                    $params['fields'] = join(',', $jsonQuery['fields']);
+                } elseif (is_string($jsonQuery['fields']) && in_array($jsonQuery['fields'], array('_all', '_simple'))) {
+                    $params['fields'] = $jsonQuery['fields'];
+                } else {
+                    RestoLogUtil::httpError(400, 'Invalid fields parameter. Should be an array of strings, or a keyword "_all" or "_simple"');
+                }
+            }
+
+            elseif (in_array($key, $simpleParameters)) {
+                $params[$key] = $jsonQuery[$key];
+            }
+
+            else {
+                RestoLogUtil::httpError(400, 'Invalid query parameter "' . $key . '"');
+            }
         }
 
         return $params;
