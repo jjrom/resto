@@ -7,7 +7,6 @@ use PHPUnit\Framework\Attributes\Group;
 
 final class GroupsTest extends TestCase
 {
-    #[Group('only')]
     public function testCanUpdateGroupRights(): void
     {
         $userName = uniqid("newuser");
@@ -33,6 +32,7 @@ final class GroupsTest extends TestCase
         $this->assertObjectHasProperty($createGroupItemRight, $decoded->rights, $response);
     }
 
+    #[Group('only')]
     public function testCanPlayWithGroupRightCreate(): void
     {
         $utils = new Utils();
@@ -76,7 +76,7 @@ final class GroupsTest extends TestCase
         $this->assertSame($decoded->ErrorCode, 403, $response);
 
         //inGroupUser can create items in collection with group visibility
-        $response = $utils->createItemAPI($inGroupUserName, $collectionName, Utils::item(uniqid("item1"), []));
+        $utils->createItemAPI($inGroupUserName, $collectionName, Utils::item(uniqid("item1"), []));
 
         //randomUser cannot see collection if not in group with visibility
         $response = Utils::httpGet("http://" . $randomUserName . ":dummy@localhost:5252/collections/" . $collectionName);
@@ -89,7 +89,6 @@ final class GroupsTest extends TestCase
         $this->assertSame($decoded->ErrorCode, 404, $response);
     }
 
-    #[Group('only')]
     public function testCanPlayWithGroupRightUpdate(): void
     {
         $utils = new Utils();
