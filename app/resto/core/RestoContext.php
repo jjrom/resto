@@ -53,6 +53,12 @@ class RestoContext
         // Display collection that have at least 'collectionMinMatch' object
         'collectionMinMatch' => 0,
 
+        // Allow users to change the visibility to public
+        'anyoneCanSwitchVisibilityToPublic' => true,
+
+        //Automatic group creation from IDP
+        'automaticGroupCreationFromIdp' => false,
+
         // Count catalogs
         'countCatalogs' => false,
 

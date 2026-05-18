@@ -452,7 +452,7 @@ class RightsAPI
         $group = (new GroupsFunctions($this->context->dbDriver))->getGroup($params['name']);
 
         if (!$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
-            if (!$group['owner'] === $this->user->id) {
+            if (!$group['owner'] === $this->user->profile['id']) {
                 RestoLogUtil::httpError(403, 'Only the owner of the group can set rights');
             }
 
