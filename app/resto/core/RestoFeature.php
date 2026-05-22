@@ -447,7 +447,7 @@ class RestoFeature
      */
     public function toPublicArray()
     {
-        return (isset($this->collection) ? $this->collection->model : new DefaultModel())->remap($this->featureArray, $this->collection);
+        return (isset($this->collection) ? $this->collection->model : new DefaultModel())->remap($this->featureArray, $this->collection, $this->context->dbDriver);
     }
 
     /**
