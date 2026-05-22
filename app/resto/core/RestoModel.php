@@ -669,7 +669,7 @@ abstract class RestoModel
      * @param RestoCollection $collection
      * @return array
      */
-    public function remap($featureArray, $collection)
+    public function remap($featureArray, $collection, $dbDriver)
     {
         /*
          * These properties are discarded from output
@@ -702,7 +702,7 @@ abstract class RestoModel
                 $properties[$this->stacMapping[$key]['key']] = $this->convertTo($featureArray['properties'][$key], $this->stacMapping[$key]['convertTo'] ?? null);
             } else {
                 if ($key == 'visibility') {
-                    $properties[$key] = (new GeneralFunctions($collection->context->dbDriver))->visibilityIdsToNames($featureArray['properties'][$key]);
+                    $properties[$key] = (new GeneralFunctions($dbDriver))->visibilityIdsToNames($featureArray['properties'][$key]);
                 } else {
                     $properties[$key] = $featureArray['properties'][$key];
                 }
