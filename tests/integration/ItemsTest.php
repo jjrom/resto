@@ -59,7 +59,7 @@ final class ItemsTest extends TestCase
         $this->assertSame($decoded->links[3]->id, $itemId, $response);
     }
 
-    #[Group('only')]
+
     public function testCanUpdateItem(): void
     {
         $utils = new Utils();
@@ -86,7 +86,7 @@ final class ItemsTest extends TestCase
         $response = Utils::httpPut("http://" . $userHasItemRight . ":dummy@localhost:5252/collections/" . $collectionName . "/items/" . $itemNoVisibility['id'], json_encode($itemNoVisibility));
         $decoded = json_decode($response);
         $this->assertSame($decoded->status, "success", $response);
-        
+
         $response = Utils::httpGet("http://" . $userHasItemRight . ":" . "dummy@localhost:5252/collections/" . $collectionName . "/items/" . $itemNoVisibility['id']);
         $decoded = json_decode($response);
         $this->assertSame($decoded->properties->description, $itemNoVisibility['properties']['description'], $response);
@@ -99,7 +99,7 @@ final class ItemsTest extends TestCase
         // $this->assertSame($decoded->ErrorCode, "403", $response);
     }
 
-
+    #[Group('only')]
     public function testCanDeleteItem(): void
     {
         $utils = new Utils();
@@ -124,5 +124,9 @@ final class ItemsTest extends TestCase
         $response = Utils::httpDelete("http://" . $userHasItemRight . ":dummy@localhost:5252/collections/" . $collectionName . "/items/" . $itemNoVisibility['id']);
         $decoded = json_decode($response);
         $this->assertSame($decoded->status, "success", $response);
+
+        $response = Utils::httpGet("http://" . $userHasItemRight . ":" . "dummy@localhost:5252/collections/" . $collectionName . "/items/" . $itemNoVisibility['id']);
+        $decoded = json_decode($response);
+        $this->assertSame($decoded->ErrorCode, 404, $response);
     }
 }

@@ -277,7 +277,7 @@ class GroupAPI
             RestoLogUtil::httpError(403, 'You are not allowed to set property "owner"');
         }
 
-        if ($this->context->core['automaticGroupCreationFromIdp']) {
+        if ($this->context->core['automaticGroupCreationFromIdp'] && !$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
             RestoLogUtil::httpError(403, 'You are not allowed to create a group when connecting through external identity provider, ask an administrator');
         }
         // Force owner to POSTING user
@@ -289,6 +289,12 @@ class GroupAPI
         // When you create a group, you're in the group unless you're an admin
         if (!$this->user->hasGroup(RestoConstants::GROUP_ADMIN_ID)) {
             (new GroupsFunctions($this->context->dbDriver))->addUserToGroup(array('id' => $group['id']), $body['owner']);
+        }
+        else {
+            // For admin, if owner is specified, add owner to group
+            if (isset($body['owner'])) {
+                (new GroupsFunctions($this->context->dbDriver))->addUserToGroup(array('id' => $group['id']), $body['owner']);
+            }
         }
         return RestoLogUtil::success('Group created', $group);
     }
