@@ -68,15 +68,25 @@ final class Utils extends Assert
         curl_close($curl);
         return $response;
     }
-    public function createAPIUser(string $userName): void
+    public function createAPIUser(string $userName): string
     {
         $response = Utils::httpPost("http://localhost:5252/users", json_encode(Utils::user($userName, $userName . "@toto.fr")));
         $decoded = json_decode($response);
         $this->assertSame($decoded->status, "success", $response);
+        return $decoded->profile->id;
     }
     public function createAPIGroup(string $userName, string $groupName): void
     {
         $response = Utils::httpPost("http://" . $userName . ":dummy@localhost:5252/groups", json_encode(Utils::group($groupName)));
+        $decoded = json_decode($response);
+        $this->assertSame($decoded->status, "success", $response);
+    }
+        /**
+     * @param array<int,mixed> $rights
+     */
+    public function adminCreateAPIGroup(string $ownerId, string $groupName): void
+    {
+        $response = Utils::httpPost("http://admin:admin@localhost:5252/groups", json_encode(Utils::groupByAdmin($groupName, $ownerId)));
         $decoded = json_decode($response);
         $this->assertSame($decoded->status, "success", $response);
     }
@@ -155,6 +165,15 @@ final class Utils extends Assert
         return [
             "name" => $groupName,
             "description" => "Any user can create a group.",
+        ];
+    }
+
+        public static function groupByAdmin(string $groupName, string $ownerId): array
+    {
+        return [
+            "name" => $groupName,
+            "description" => "Any user can create a group.",
+            "owner" => $ownerId,
         ];
     }
 

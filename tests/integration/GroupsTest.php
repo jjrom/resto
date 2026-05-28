@@ -9,15 +9,13 @@ final class GroupsTest extends TestCase
 {
     public function testCanUpdateGroupRights(): void
     {
+        $utils = new Utils();
+
         $userName = uniqid("newuser");
-        $response = Utils::httpPost("http://localhost:5252/users", json_encode(Utils::user($userName, uniqid("newUser") . "@toto.fr")));
-        $decoded = json_decode($response);
-        $this->assertSame($decoded->status, "success", $response);
+        $userId = $utils->createAPIUser($userName);
 
         $groupName = uniqid("newGroup");
-        $response = Utils::httpPost("http://" . $userName . ":dummy@localhost:5252/groups", json_encode(Utils::group($groupName)));
-        $decoded = json_decode($response);
-        $this->assertSame($decoded->status, "success", $response);
+        $utils->adminCreateAPIGroup($userId, $groupName);
 
         $unauthorizedRight = ["createCollection" => true];
         $response = Utils::httpPost("http://" . $userName . ":dummy@localhost:5252/groups/" . $groupName . "/rights", json_encode($unauthorizedRight));
@@ -38,7 +36,7 @@ final class GroupsTest extends TestCase
         $utils = new Utils();
 
         $groupOwnerUserName = uniqid("groupowner");
-        $utils->createAPIUser($groupOwnerUserName);
+        $groupOwnerId = $utils->createAPIUser($groupOwnerUserName);
 
 
         $inGroupUserName = uniqid("useringroup");
@@ -48,7 +46,7 @@ final class GroupsTest extends TestCase
         $utils->createAPIUser($randomUserName);
 
         $groupName = uniqid("itemCreationGroup");
-        $utils->createAPIGroup($groupOwnerUserName, $groupName);
+        $utils->adminCreateAPIGroup($groupOwnerId, $groupName);
 
         $utils->addUserToGroupAPI($groupOwnerUserName, $groupName, $inGroupUserName);
 
@@ -94,7 +92,7 @@ final class GroupsTest extends TestCase
         $utils = new Utils();
 
         $groupOwnerUserName = uniqid("groupowner");
-        $utils->createAPIUser($groupOwnerUserName);
+        $groupOwnerId = $utils->createAPIUser($groupOwnerUserName);
 
         $inGroupUserName = uniqid("useringroup");
         $utils->createAPIUser($inGroupUserName);
@@ -106,9 +104,10 @@ final class GroupsTest extends TestCase
         $utils->createAPIUser($randomUserName);
 
         $groupName = uniqid("updateItemGroup");
-        $utils->createAPIGroup($groupOwnerUserName, $groupName);
+        $utils->adminCreateAPIGroup($groupOwnerId, $groupName);
+
         $secondGroupName = uniqid("updateCollectionGroup");
-        $utils->createAPIGroup($groupOwnerUserName, $secondGroupName);
+        $utils->adminCreateAPIGroup($groupOwnerId, $secondGroupName);
 
         $utils->addUserToGroupAPI($groupOwnerUserName, $groupName, $inGroupUserName);
         $utils->addUserToGroupAPI($groupOwnerUserName, $secondGroupName, $inSecondGroupUserName);
@@ -206,7 +205,7 @@ final class GroupsTest extends TestCase
         $this->assertSame($decoded->ErrorCode, 404, $response);
 
         // group owner with update right can update item visibility
-        $inGroupItem['properties']['visibility']=[$groupName];
+        $inGroupItem['properties']['visibility'] = [$groupName];
         $response = Utils::httpPut("http://" . $groupOwnerUserName . ":dummy@localhost:5252/collections/" . $collectionName . "/items/" . $inGroupItem['id'], json_encode($inGroupItem));
         $decoded = json_decode($response);
         $this->assertSame($decoded->status, "success", $response);
@@ -221,7 +220,7 @@ final class GroupsTest extends TestCase
         $utils = new Utils();
 
         $groupOwnerUserName = uniqid("groupowner");
-        $utils->createAPIUser($groupOwnerUserName);
+        $groupOwnerId = $utils->createAPIUser($groupOwnerUserName);
 
         $inGroupUserName = uniqid("useringroup");
         $utils->createAPIUser($inGroupUserName);
@@ -236,7 +235,9 @@ final class GroupsTest extends TestCase
             RestoGroup::createCollectionRight($groupName) => true,
             RestoGroup::deleteCollectionRight($groupName) => true,
         ];
-        $utils->createAPIGroup($groupOwnerUserName, $groupName);
+        $utils->adminCreateAPIGroup($groupOwnerId, $groupName);
+
+
         $utils->addRightToGroupAPI($groupOwnerUserName, $groupName, $groupRight);
         $utils->addUserToGroupAPI($groupOwnerUserName, $groupName, $inGroupUserName);
 
@@ -273,7 +274,7 @@ final class GroupsTest extends TestCase
     {
         $utils = new Utils();
         $groupOwnerUserName = uniqid("groupowner");
-        $utils->createAPIUser($groupOwnerUserName);
+        $groupOwnerId = $utils->createAPIUser($groupOwnerUserName);
 
         $inGroupUserName = uniqid("useringroup");
         $utils->createAPIUser($inGroupUserName);
@@ -287,7 +288,8 @@ final class GroupsTest extends TestCase
             RestoGroup::updateCatalogRight($groupName) => true,
             RestoGroup::deleteCatalogRight($groupName) => true,
         ];
-        $utils->createAPIGroup($groupOwnerUserName, $groupName);
+        $utils->adminCreateAPIGroup($groupOwnerId, $groupName);
+        
         $utils->addRightToGroupAPI($groupOwnerUserName, $groupName, $groupRight);
         $utils->addUserToGroupAPI($groupOwnerUserName, $groupName, $inGroupUserName);
 
@@ -348,7 +350,7 @@ final class GroupsTest extends TestCase
 
         $utils = new Utils();
         $groupOwnerUserName = uniqid("groupowner");
-        $utils->createAPIUser($groupOwnerUserName);
+        $groupOwnerId = $utils->createAPIUser($groupOwnerUserName);
 
         $groupName = uniqid("catalogManagementGroup");
         $groupRight = [
@@ -356,7 +358,8 @@ final class GroupsTest extends TestCase
             RestoGroup::updateCatalogRight($groupName) => true,
             RestoGroup::deleteCatalogRight($groupName) => true,
         ];
-        $utils->createAPIGroup($groupOwnerUserName, $groupName);
+        $utils->adminCreateAPIGroup($groupOwnerId, $groupName);
+
         $utils->addRightToGroupAPI($groupOwnerUserName, $groupName, $groupRight);
 
         //create catalog
