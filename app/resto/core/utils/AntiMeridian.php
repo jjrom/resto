@@ -24,15 +24,15 @@ require_once('antimeridian/MultiLineString.php');
 require_once('antimeridian/LinearRing.php');
 require_once('antimeridian/IndexAndLatitude.php');
 
-class AntiMeridian {
+class AntiMeridian
+{
 
     private $roundPrecision = 7;
 
     /**
      * Constructor
      */
-    public function __construct()
-    {}
+    public function __construct() {}
 
     /**
      * Fixes a GeoJSON object that crosses the antimeridian.
@@ -47,18 +47,18 @@ class AntiMeridian {
      * @return array The same GeoJSON with a fixed geometry or geometries
      * @throws Exception If required fields are missing
      */
-    public function fixGeoJSON(array $geojson,
+    public function fixGeoJSON(
+        array $geojson,
         bool $force_north_pole = false,
         bool $force_south_pole = false,
         bool $fix_winding = true,
         bool $great_circle = true
-    ): array
-    {
+    ): array {
         $type = $geojson['type'] ?? null;
         if ($type === null) {
             throw new Exception('No type field found in GeoJSON');
         }
-        
+
         if ($type === 'Feature') {
             $geometry = $geojson['geometry'] ?? null;
             if ($geometry === null) {
@@ -117,7 +117,7 @@ class AntiMeridian {
         bool $fix_winding = true,
         bool $great_circle = true
     ): array {
-        
+
         $geom = $shape['geometry'] ?? $shape;
         switch ($geom['type']) {
             case 'Polygon':
@@ -143,17 +143,22 @@ class AntiMeridian {
                     new LineString($geom),
                     $great_circle
                 )->toGeoJSON();
-                
+
             case 'MultiLineString':
                 return $this->fixMultiLineString(
                     new MultiLineString($geom),
                     $great_circle
                 )->toGeoJSON();
 
+            case 'Point':
+                return $geom;
+                
+            case 'MultiPoint':
+                return $geom;
+                
             default:
                 throw new Exception('Unsupported geometry type: ' . $geom['type']);
         }
-        
     }
 
     /**
@@ -194,7 +199,7 @@ class AntiMeridian {
             if (Polygon::isCCW($polygon->getExteriorRing())) {
                 return $polygon;
             } else {
-                $polygon->setInteriorRings($polygon->getExteriorRing()); 
+                $polygon->setInteriorRings($polygon->getExteriorRing());
                 $polygon->setExteriorRing([
                     [-180, 90],
                     [-180, -90],
@@ -241,12 +246,13 @@ class AntiMeridian {
             );
             $polygons = array_merge($polygons, $fixed_polygons);
         }
-        
+
         // Assume `create_multi_polygon` is a function to create a MultiPolygon from an array of polygons
         return new MultiPolygon($polygons);
     }
 
-    private function fixLineString(LineString $line_string, bool $great_circle): LineString|MultiLineString {
+    private function fixLineString(LineString $line_string, bool $great_circle): LineString|MultiLineString
+    {
         /**
          * Fixes a LineString geometry.
          *
@@ -271,7 +277,8 @@ class AntiMeridian {
         }
     }
 
-    private function fixMultiLineString(MultiLineString $multi_line_string, bool $great_circle): MultiLineString {
+    private function fixMultiLineString(MultiLineString $multi_line_string, bool $great_circle): MultiLineString
+    {
         /**
          * Fixes a MultiLineString geometry.
          *
@@ -313,8 +320,7 @@ class AntiMeridian {
                 $polygon->correctOrientation();
             }
             return [$polygon];
-        }
-        else {
+        } else {
             $interiors = [];
             $interiorRings = $polygon->getInteriorRings();
             for ($i = 0, $ii = count($interiorRings); $i < $ii; $i++) {
@@ -401,7 +407,8 @@ class AntiMeridian {
      * @param array $coords The coordinates to segment.
      * @param bool $greatCircle Whether to use great circle calculations.
      */
-    private function segment(array $coords, bool $greatCircle): array {
+    private function segment(array $coords, bool $greatCircle): array
+    {
         $segment = [];
         $segments = [];
 
@@ -452,13 +459,14 @@ class AntiMeridian {
      * @param array $coordinates The array of coordinates.
      * @return array|null The easternmost coordinate.
      */
-    private function getEasternmostCoordinate($coordinates) {
+    private function getEasternmostCoordinate($coordinates)
+    {
         if (empty($coordinates)) {
             return null; // Return null if the array is empty
         }
 
         // Sort the array by longitude in descending order
-        usort($coordinates, function($a, $b) {
+        usort($coordinates, function ($a, $b) {
             return $b[0] <=> $a[0]; // Compare longitude values
         });
 
@@ -466,7 +474,8 @@ class AntiMeridian {
         return $coordinates[0];
     }
 
-    private function buildPolygons(array &$segments): array {
+    private function buildPolygons(array &$segments): array
+    {
         if (empty($segments)) {
             return [];
         }
@@ -484,10 +493,10 @@ class AntiMeridian {
             // Is the start of $s on the same side as the end of $segment?
             if ($s[0][0] === end($segment)[0]) {
                 if (
-                    ($isRight && $s[0][1] > end($segment)[1] && 
-                    (!$this->isSelfClosing($s) || end($s)[1] < $segment[0][1])) ||
-                    (!$isRight && $s[0][1] < end($segment)[1] && 
-                    (!$this->isSelfClosing($s) || end($s)[1] > $segment[0][1]))
+                    ($isRight && $s[0][1] > end($segment)[1] &&
+                        (!$this->isSelfClosing($s) || end($s)[1] < $segment[0][1])) ||
+                    (!$isRight && $s[0][1] < end($segment)[1] &&
+                        (!$this->isSelfClosing($s) || end($s)[1] > $segment[0][1]))
                 ) {
                     $candidates[] = [$i, $s[0][1]];
                 }
@@ -531,7 +540,8 @@ class AntiMeridian {
         }
     }
 
-    private function isSelfClosing(array $segment): bool {
+    private function isSelfClosing(array $segment): bool
+    {
         $isRight = $segment[count($segment) - 1][0] == 180;
 
         return $segment[0][0] == $segment[count($segment) - 1][0] && (
@@ -540,13 +550,14 @@ class AntiMeridian {
         );
     }
 
-    private function normalize(array $coords): array {
+    private function normalize(array $coords): array
+    {
         $original = $coords;
         $allAreOnAntimeridian = true;
         foreach ($coords as $i => &$point) {
             $longitude = $point[0];
             $latitude = $point[1];
-            
+
             // Check if the longitude is close to 180
             if ($this->isClose($longitude, 180)) {
                 if (abs($latitude) != 90 && $this->isClose($coords[($i - 1 + count($coords)) % count($coords)][0], -180)) {
@@ -562,7 +573,7 @@ class AntiMeridian {
                 } else {
                     $point[0] = -180;
                 }
-            } 
+            }
             // Normalize the longitude to be within -180 and 180
             else {
                 $point[0] = $this->modulo($longitude + 180, 360) - 180;
@@ -591,7 +602,8 @@ class AntiMeridian {
      * @param float $tol Tolerance (default is 1e-9).
      * @return bool True if the numbers are close, false otherwise.
      */
-    private function isClose(float $a, float $b, float $tol = 1e-9): bool {
+    private function isClose(float $a, float $b, float $tol = 1e-9): bool
+    {
         return abs($a - $b) < $tol;
     }
 
@@ -601,7 +613,8 @@ class AntiMeridian {
      * @param array $point An array [longitude, latitude].
      * @return array An array [x, y, z].
      */
-    private function sphericalDegreesToCartesian(array $point): array {
+    private function sphericalDegreesToCartesian(array $point): array
+    {
         [$lon, $lat] = array_map('deg2rad', $point);
         return [
             cos($lon) * cos($lat),
@@ -617,7 +630,8 @@ class AntiMeridian {
      * @param array $end An array [longitude, latitude].
      * @return float The crossing latitude.
      */
-    private function crossingLatitudeGreatCircle(array $start, array $end): float {
+    private function crossingLatitudeGreatCircle(array $start, array $end): float
+    {
         $p1 = $this->sphericalDegreesToCartesian($start);
         $p2 = $this->sphericalDegreesToCartesian($end);
 
@@ -645,7 +659,8 @@ class AntiMeridian {
      * @param array $end An array [longitude, latitude].
      * @return float The crossing latitude.
      */
-    private function crossingLatitudeFlat(array $start, array $end): float {
+    private function crossingLatitudeFlat(array $start, array $end): float
+    {
         $latitudeDelta = $end[1] - $start[1];
 
         if ($end[0] > 0) {
@@ -669,7 +684,8 @@ class AntiMeridian {
      * @param bool $greatCircle Whether to use great circle calculations.
      * @return float The crossing latitude.
      */
-    private function crossingLatitude(array $start, array $end, bool $greatCircle): float {
+    private function crossingLatitude(array $start, array $end, bool $greatCircle): float
+    {
         if (abs($start[0]) == 180) {
             return $start[1];
         } elseif (abs($end[0]) == 180) {
@@ -689,7 +705,8 @@ class AntiMeridian {
      * @param array $v2 The second vector [x, y, z].
      * @return array The cross product [x, y, z].
      */
-    private function crossProduct(array $v1, array $v2): array {
+    private function crossProduct(array $v1, array $v2): array
+    {
         return [
             $v1[1] * $v2[2] - $v1[2] * $v2[1],
             $v1[2] * $v2[0] - $v1[0] * $v2[2],
@@ -697,25 +714,34 @@ class AntiMeridian {
         ];
     }
 
-    private function extendOverPoles(array $segments, bool $forceNorthPole, bool $forceSouthPole, bool $fixWinding): array {
+    private function extendOverPoles(array $segments, bool $forceNorthPole, bool $forceSouthPole, bool $fixWinding): array
+    {
         $leftStart = null;
         $rightStart = null;
         $leftEnd = null;
         $rightEnd = null;
 
         foreach ($segments as $i => $segment) {
-            if ($segment[0][0] === -180 && 
-                ($leftStart === null || $segment[0][1] < $leftStart->latitude)) {
+            if (
+                $segment[0][0] === -180 &&
+                ($leftStart === null || $segment[0][1] < $leftStart->latitude)
+            ) {
                 $leftStart = new IndexAndLatitude($i, $segment[0][1]);
-            } elseif ($segment[0][0] === 180 && 
-                    ($rightStart === null || $segment[0][1] > $rightStart->latitude)) {
+            } elseif (
+                $segment[0][0] === 180 &&
+                ($rightStart === null || $segment[0][1] > $rightStart->latitude)
+            ) {
                 $rightStart = new IndexAndLatitude($i, $segment[0][1]);
             }
-            if ($segment[count($segment) - 1][0] === -180 && 
-                ($leftEnd === null || $segment[count($segment) - 1][1] < $leftEnd->latitude)) {
+            if (
+                $segment[count($segment) - 1][0] === -180 &&
+                ($leftEnd === null || $segment[count($segment) - 1][1] < $leftEnd->latitude)
+            ) {
                 $leftEnd = new IndexAndLatitude($i, $segment[count($segment) - 1][1]);
-            } elseif ($segment[count($segment) - 1][0] === 180 && 
-                    ($rightEnd === null || $segment[count($segment) - 1][1] > $rightEnd->latitude)) {
+            } elseif (
+                $segment[count($segment) - 1][0] === 180 &&
+                ($rightEnd === null || $segment[count($segment) - 1][1] > $rightEnd->latitude)
+            ) {
                 $rightEnd = new IndexAndLatitude($i, $segment[count($segment) - 1][1]);
             }
         }
@@ -735,8 +761,8 @@ class AntiMeridian {
                 $segments[$leftEnd->index][] = [180, 90];
                 $segments[$leftEnd->index] = array_reverse($segments[$leftEnd->index]);
             } elseif (
-                $forceSouthPole || 
-                $leftStart === null || 
+                $forceSouthPole ||
+                $leftStart === null ||
                 $leftEnd->latitude < $leftStart->latitude
             ) {
                 $isOverSouthPole = true;
@@ -755,8 +781,8 @@ class AntiMeridian {
                 $segments[$rightEnd->index][] = [-180, -90];
                 $segments[$rightEnd->index] = array_reverse($segments[$rightEnd->index]);
             } elseif (
-                $forceNorthPole || 
-                $rightStart === null || 
+                $forceNorthPole ||
+                $rightStart === null ||
                 $rightEnd->latitude > $rightStart->latitude
             ) {
                 $isOverNorthPole = true;
@@ -802,9 +828,4 @@ class AntiMeridian {
 
         return $remainder;
     }
-
-
 }
-
-
-
